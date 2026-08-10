@@ -10,10 +10,20 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nome</string>
     <string name="description">Descrizione</string>
+    <string name="result">Risultato</string>
+    <!-- Text input -->
+    <string name="input">Input</string>
+    <!-- Text output -->
+    <string name="output">Output</string>
+    <string name="run_action">Esegui</string>
     <string name="account_name">Nome account</string>
     <string name="database_name">Nome del database</string>
     <string name="enabled">Attivato</string>
     <string name="disabled">Disattivato</string>
+    <string name="sign">Firma</string>
+    <string name="encrypt">Crittografa</string>
+    <string name="verify">Verifica</string>
+    <string name="decrypt">Decrittografa</string>
     <string name="wordlist">Wordlist</string>
     <string name="username">Nome utente</string>
     <string name="password">Password</string>
@@ -23,6 +33,7 @@
     <string name="no_password">Nessuna password</string>
     <string name="advanced_options">Avanzate</string>
     <string name="file">File</string>
+    <string name="choose_file">Scegli file</string>
     <string name="file_name_placeholder">Nome file</string>
     <string name="file_status_pending_upload">Pending upload</string>
     <string name="file_status_auto_resume">Auto-resumes</string>
@@ -44,6 +55,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Numero massimo di accessi</string>
+    <string name="package_name">Package name</string>
+    <string name="status">Status</string>
     <string name="ready_status_beta">Beta</string>
     <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">Scopri di più</string>
@@ -92,7 +105,10 @@
     <string name="attachments">Allegati</string>
     <string name="attachments_empty_label">Nessun allegato</string>
     <string name="deactivated">Disattivato</string>
+    <!-- (certificate/credit card) expired -->
     <string name="expired">Scaduta</string>
+    <!-- (certificate) revoked -->
+    <string name="revoked">Revocata</string>
     <string name="expiring_soon">In scadenza</string>
     <string name="item_incomplete_title">Dati incompleti</string>
     <string name="item_incomplete_text">Questo elemento manca di alcune delle informazioni importanti.</string>
@@ -151,6 +167,7 @@
     <string name="address3">Indirizzo riga 3</string>
     <string name="ssh_agent">Agente SSH</string>
     <string name="ssh_client">Client SSH</string>
+    <string name="gpg_agent">Agente GPG</string>
     <string name="rename">Rinomina</string>
     <string name="deletion_date">Data di eliminazione</string>
     <string name="deletion_date_custom">Personalizzato</string>
@@ -262,8 +279,16 @@
     <string name="fingerprint">Impronta digitale</string>
     <string name="key_type">Tipo di chiave</string>
     <string name="key_pair">Coppia di chiavi</string>
+    <string name="key_id">ID chiave</string>
+    <string name="algorithm">Algoritmo</string>
+    <string name="created">Creato</string>
+    <string name="expires">Scade</string>
+    <string name="capabilities">Capacità</string>
+    <string name="subkeys">Sottochiavi</string>
     <string name="key_ssh">Chiave SSH</string>
     <string name="key_ssh_value_placeholder">Sembra che qui sia vuoto. Genera una chiave SSH per iniziare!</string>
+    <string name="key_gpg">Chiave GPG</string>
+    <string name="key_gpg_value_placeholder">Sembra che qui sia vuoto. Genera una chiave GPG per iniziare!</string>
     <string name="fingerprint_phrase">Frase impronta</string>
     <string name="fingerprint_phrase_help_title">Che cos'è un'impronta digitale?</string>
     <string name="filter_auth_reprompt_items">Richiesta autorizzazione</string>
@@ -279,6 +304,9 @@
     <string name="select_key_file">Seleziona una chiave</string>
     <string name="select_database_file">Seleziona un database</string>
     <string name="replace_database_file">Sostituisci un database</string>
+    <string name="database_location_title">Posizione del database</string>
+    <string name="database_location_local">File locale</string>
+    <string name="database_location_webdav">WebDAV</string>
     <string name="open_database">Apri un database</string>
     <string name="create_database">Crea un database</string>
     <string name="addaccount_method_header_title">Aggiungi account</string>
@@ -352,6 +380,14 @@
     <string name="ciphers_action_change_passwords_title">Modifica password</string>
     <string name="ciphers_action_view_password_history_title">Visualizza cronologia password</string>
     <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
+    <string name="ciphers_action_upload_gpg_public_key_title">Carica la chiave pubblica GPG</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Caricare la chiave pubblica sul keyserver?</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard invierà la chiave pubblica GPG armored di questo elemento al keyserver configurato. La chiave pubblica può includere impronte digitali, ID utente come nomi e indirizzi e-mail, sottochiavi, date e stato di revoca. Il keyserver può memorizzare e ridistribuire questi dati pubblici. Questo caricamento non richiede e-mail di verifica.</string>
+    <string name="ciphers_action_refresh_gpg_public_key_title">Aggiorna la chiave pubblica GPG</string>
+    <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Aggiornare la chiave pubblica dal keyserver?</string>
+    <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard contatterà il keyserver GPG configurato con l'impronta digitale di questa chiave. Se viene trovata una chiave pubblica corrispondente, Keyguard aggiornerà la chiave pubblica memorizzata, i metadati della chiave e lo stato del keyserver per questo elemento.</string>
+    <string name="ciphers_action_verify_gpg_public_key_title">Verifica la chiave pubblica GPG</string>
+    <string name="ciphers_action_change_gpg_key_expiry_title">Modifica la scadenza della chiave GPG</string>
     <string name="ciphers_action_archive_title">Archivia</string>
     <string name="ciphers_action_archive_confirmation_title">Spostare in archivio?</string>
     <string name="ciphers_action_unarchive_title">Ripristina dall'archivio</string>
@@ -485,6 +521,57 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Chiave privata in chiaro salvata nei download</string>
     <string name="ssh_key_action_add_key_title">Aggiungi chiavi</string>
     <string name="ssh_key_action_replace_key_title">Sostituisci chiavi</string>
+    <string name="gpg_key_action_save_unencrypted_keys_title">Salva chiavi non crittografate</string>
+    <string name="gpg_key_action_save_unencrypted_keys_saved_downloads_success_title">Chiavi GPG salvate nei Download</string>
+    <string name="gpg_key_action_save_public_key_title">Salva chiave pubblica</string>
+    <string name="gpg_key_action_save_public_key_saved_downloads_success_title">Chiave pubblica GPG salvata nei Download</string>
+    <string name="gpg_key_action_save_unencrypted_private_key_title">Salva chiave privata in chiaro</string>
+    <string name="gpg_key_action_save_unencrypted_private_key_saved_downloads_success_title">Chiave privata GPG in chiaro salvata nei Download</string>
+    <string name="gpg_key_import_title">Importa chiave GPG</string>
+    <string name="gpg_key_import_drop_here">Trascina qui un file per importare una chiave pubblica o privata GPG</string>
+    <string name="gpg_key_import_failed_title">Impossibile importare la chiave GPG</string>
+    <string name="gpg_key_import_success_title">Chiave GPG importata</string>
+    <string name="gpg_key_import_error_empty">Il file della chiave GPG è vuoto.</string>
+    <string name="gpg_key_import_error_unsupported_format">Formato della chiave GPG non supportato.</string>
+    <string name="gpg_key_import_error_unsupported_platform">L'importazione delle chiavi GPG non è supportata su questa piattaforma.</string>
+    <string name="gpg_key_import_error_invalid_passphrase">La passphrase della chiave GPG non è valida.</string>
+    <string name="gpg_key_import_error_malformed_key">Il file della chiave GPG è danneggiato.</string>
+    <string name="gpg_key_import_error_read">Impossibile leggere il file selezionato.</string>
+    <string name="gpg_key_import_error_passphrase_required">È necessaria una passphrase per sbloccare questa chiave GPG.</string>
+    <string name="gpg_key_import_error_key_changed">La chiave GPG è cambiata durante l'importazione. Prova a importarla di nuovo.</string>
+    <string name="gpg_key_import_passphrase_title">Passphrase</string>
+    <string name="gpg_key_import_passphrase_hint">Inserisci la passphrase della chiave GPG</string>
+    <string name="gpg_key_import_passphrase_dialog_title">Inserisci la passphrase della chiave GPG</string>
+    <string name="gpg_key_import_passphrase_dialog_message">Questa chiave privata <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g> è crittografata. Keyguard la memorizzerà senza la passphrase dopo l'importazione.</string>
+    <string name="gpg_key_expiry_title">Scadenza</string>
+    <string name="gpg_key_expiry_never">Mai</string>
+    <string name="gpg_key_expiry_same_as_primary">Come la chiave primaria (<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>)</string>
+    <string name="gpg_key_expiry_unknown">Sconosciuta</string>
+    <string name="gpg_key_expiry_private_key_required">Importa la chiave privata per modificarne la scadenza.</string>
+    <string name="gpg_key_expiry_unavailable">La modifica della scadenza non è supportata su questa piattaforma.</string>
+    <string name="gpg_key_expiry_key_unreadable">Impossibile verificare la chiave pubblica o la sua impronta digitale.</string>
+    <string name="gpg_key_expiry_dialog_title">Modifica la scadenza della chiave GPG</string>
+    <string name="gpg_key_expiry_dialog_message">La scadenza è reversibile e non protegge una chiave compromessa. Revoca invece una chiave compromessa.</string>
+    <string name="gpg_key_expiry_primary">Chiave primaria</string>
+    <string name="gpg_key_expiry_subkey">Sottochiave <xliff:g id="key_id" example="0A1B2C3D">%1$s</xliff:g></string>
+    <string name="gpg_key_expiry_subkey_capabilities">Capacità: <xliff:g id="capabilities" example="sign, encrypt">%1$s</xliff:g>. Scadenza attuale: <xliff:g id="expiry" example="Jan 1, 2030">%2$s</xliff:g></string>
+    <string name="gpg_key_expiry_capability_sign">firma</string>
+    <string name="gpg_key_expiry_capability_encrypt">crittografia</string>
+    <string name="gpg_key_expiry_preset_one_year">Un anno</string>
+    <string name="gpg_key_expiry_preset_two_years">Due anni</string>
+    <string name="gpg_key_expiry_preset_five_years">Cinque anni</string>
+    <string name="gpg_key_expiry_preset_custom">Data personalizzata</string>
+    <string name="gpg_key_expiry_no_explicit_expiry">Nessuna scadenza esplicita</string>
+    <string name="gpg_key_expiry_success_title">Scadenza della chiave GPG aggiornata</string>
+    <string name="gpg_key_expiry_success_message">Salva questo elemento, quindi ridistribuisci o carica la sua chiave pubblica.</string>
+    <string name="gpg_key_expiry_cipher_success_message">L'elemento è stato aggiornato. Ridistribuisci o carica la sua chiave pubblica.</string>
+    <string name="gpg_key_expiry_failed_title">Impossibile aggiornare la scadenza della chiave GPG</string>
+    <string name="gpg_key_expiry_failed_message">Impossibile aggiornare la scadenza della chiave. La chiave originale è rimasta invariata.</string>
+    <string name="gpg_key_expiry_no_components_message">Seleziona almeno un componente della chiave.</string>
+    <string name="gpg_key_expiry_after_primary_message">Una sottochiave non può rimanere utilizzabile dopo la scadenza della chiave primaria. Seleziona anche la chiave primaria oppure scegli una scadenza precedente.</string>
+    <string name="gpg_key_expiry_invalid_message">Scegli una data di scadenza futura valida.</string>
+    <string name="gpg_key_expiry_revoked_message">Un componente di chiave revocato non può essere rinnovato.</string>
+    <string name="gpg_key_expiry_unresolved_revocation_message">Una revoca designata non può essere verificata perché la chiave pubblica del revocante non è disponibile. Importala e riprova.</string>
     <string name="ssh_key_import_title">Importa chiave SSH</string>
     <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
@@ -523,6 +610,9 @@
     <string name="copy_ssh_unencrypted_private_key">Copia chiave privata non crittografata</string>
     <string name="copy_ssh_public_key">Copia chiave pubblica</string>
     <string name="copy_ssh_fingerprint">Copia impronta digitale</string>
+    <string name="copy_gpg_unencrypted_private_key">Copia chiave privata non crittografata</string>
+    <string name="copy_gpg_public_key">Copia chiave pubblica</string>
+    <string name="copy_gpg_fingerprint">Copia impronta digitale</string>
     <string name="copied_value">Valore copiato</string>
     <string name="copied_url">URL copiato</string>
     <string name="copied_uri">URI copiato</string>
@@ -600,8 +690,10 @@
     <string name="error_invalid_key">Invalid key</string>
     <string name="error_invalid_card_number">Numero carta non valido</string>
     <string name="error_webdav_url_required">WebDAV URL is required</string>
+    <string name="error_webdav_file_url_required">Inserisci l'URL WebDAV completo di una risorsa file</string>
     <string name="error_incorrect_password">Password errata</string>
     <string name="error_not_found">Non trovato</string>
+    <string name="error_file_must_be_n_or_smaller">File must be <xliff:g id="size" example="500MB">%1$s</xliff:g> or smaller</string>
     <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
     <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">La chiave segreta della password monouso non può essere vuota</string>
@@ -620,6 +712,7 @@
     <string name="error_failed_encrypt_biometric_key">Impossibile crittografare la chiave biometrica</string>
     <string name="error_failed_decrypt_biometric_key">Impossibile decrittografare la chiave biometrica</string>
     <string name="error_failed_ssh_agent_start">Impossibile avviare l'agente SSH</string>
+    <string name="error_failed_gpg_agent_start">Impossibile avviare l'agente GPG</string>
     <string name="error_credential_calling_app_not_privileged">L'app chiamante non è nell'elenco delle app con privilegi e non può richiedere l'autenticazione per conto di altre app.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -898,6 +991,7 @@
     <string name="cipher_type_identity">Identità</string>
     <string name="cipher_type_note">Note</string>
     <string name="cipher_type_ssh_key">Chiave SSH</string>
+    <string name="cipher_type_gpg_key">Chiave GPG</string>
     <string name="cipher_type_passkey">Passkey</string>
     <string name="field_type_text">Testo</string>
     <string name="field_type_text_concealed">Testo (nascosto)</string>
@@ -935,6 +1029,7 @@
     <string name="ssh_agent_history_response_user_denied">Denied</string>
     <string name="ssh_agent_history_response_key_not_found">Key not found</string>
     <string name="ssh_agent_history_response_failure">Failed</string>
+    <string name="ssh_agent_history_response_vault_locked">Vault locked</string>
     <string name="ssh_agent_history_unknown_caller">Unknown caller</string>
     <string name="ssh_agent_history_unknown_key">Unknown key</string>
     <string name="ssh_agent_history_all_accessible_keys">All accessible keys</string>
@@ -973,6 +1068,65 @@
     <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> vuole utilizzare la seguente chiave SSH per firmare i dati:</string>
     <string name="ssh_agent_request_approval_sign_message_unknown_app">Un'applicazione desidera utilizzare la seguente chiave SSH per firmare i dati:</string>
     <string name="ssh_client_request">Richiesta del client SSH</string>
+    <string name="connected_crypto_apps_title">Connected apps</string>
+    <string name="connected_crypto_apps_summary">Review or revoke apps registered for GPG and/or SSH access.</string>
+    <string name="connected_crypto_apps_empty">No apps are registered</string>
+    <string name="connected_crypto_apps_status_registered">Registered</string>
+    <string name="connected_crypto_apps_status_not_installed">Not installed</string>
+    <string name="connected_crypto_apps_status_signer_changed">Signer changed — access disabled</string>
+    <string name="connected_crypto_apps_signer">App signer</string>
+    <string name="connected_crypto_apps_registered_at">Registered</string>
+    <string name="connected_crypto_apps_last_used">Last used</string>
+    <string name="connected_crypto_apps_revoke">Revoke</string>
+    <string name="connected_crypto_apps_revoke_title">Revoke %1$s?</string>
+    <string name="connected_crypto_apps_revoke_message">The app will need to be registered again before it can use Keyguard as the provider.</string>
+    <string name="connected_crypto_apps_unknown">Unknown</string>
+    <string name="ipc_approval_title">External app request</string>
+    <string name="ipc_approval_auth_reason">Approve an external cryptographic request</string>
+    <string name="ipc_approval_unavailable">This approval request expired or is no longer available.</string>
+    <string name="ipc_approval_message"><xliff:g id="app" example="Termux">%1$s</xliff:g> wants to <xliff:g id="request" example="use GPG to encrypt a message">%2$s</xliff:g>.</string>
+    <string name="ipc_approval_operation">use <xliff:g id="protocol" example="GPG">%1$s</xliff:g> to <xliff:g id="operation" example="encrypt a message">%2$s</xliff:g></string>
+    <string name="ipc_approval_operation_with_registration">register with Keyguard and <xliff:g id="request" example="use GPG to encrypt a message">%1$s</xliff:g></string>
+    <string name="ipc_approval_no_keys">No eligible keys are available.</string>
+    <string name="ipc_approval_no_keys_continue">No eligible keys are available. You can continue to check whether the signer is missing.</string>
+    <string name="ipc_approval_deny">Deny</string>
+    <string name="ipc_approval_approve">Approve</string>
+    <string name="ipc_protocol_openpgp">GPG agent</string>
+    <string name="ipc_protocol_ssh">SSH agent</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_check_permission">confirm it has access</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_clear_sign">sign a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_detached_sign">create a detached signature</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_encrypt">encrypt a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_sign_and_encrypt">sign and encrypt a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_decrypt_verify">decrypt or verify a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_decrypt_metadata">read a message's metadata</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_sign_key">choose a signing key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_key_ids">look up recipient keys</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_autocrypt_status">check which recipients it can encrypt to</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_key">export a public key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_other">run an unrecognized operation</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_select_key">choose a key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_get_public_key">read a public key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_get_ssh_public_key">read a public key in OpenSSH format</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_sign">sign an authentication challenge</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_other">run an unrecognized operation</string>
     <string name="sort_header_title">Ordina per</string>
     <string name="sort_empty_label">Nessun ordinamento disponibile</string>
     <string name="sortby_title_title">Nome</string>
@@ -1041,6 +1195,7 @@
     <string name="generator_header_username_title">Generatore nome utente</string>
     <string name="generator_header_password_title">Generatore password</string>
     <string name="generator_header_ssh_key_title">Generatore chiave SSH</string>
+    <string name="generator_header_gpg_key_title">Generatore chiave GPG</string>
     <string name="generator_generate_button">Genera</string>
     <string name="generator_regenerate_button">Rigenera</string>
     <!-- 'Use' generated password as a password -->
@@ -1080,6 +1235,10 @@
     <string name="generator_email_subdomain_addressing_note">L'indirizzamento e-mail con sottodominio fa in modo che eventuali e-mail inviate a <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> vengano comunque inviate al tuo account. Questo significa che puoi avere molte variazioni del tuo vero indirizzo email da dare a persone, siti o mailing list diverse. Prima dell'uso assicurati che il tuo server di hosting email supporti questa funzione.</string>
     <string name="generator_email_subdomain_addressing_email_title">E-mail</string>
     <string name="generator_email_forward_alias_type">Alias email inoltrate</string>
+    <string name="generator_gpg_key_name_title">Nome</string>
+    <string name="generator_gpg_key_email_title">Email</string>
+    <string name="generator_gpg_key_modern_note">Crea una chiave OpenPGP con chiavi di firma/certificazione Ed25519 e una sottochiave di crittografia X25519.</string>
+    <string name="generator_gpg_key_modern_text">Struttura moderna della chiave OpenPGP</string>
     <string name="generator_key_length_title">Lunghezza</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bit</string>
     <string name="generator_key_rsa_note">Tutti i client SSH supportano questo algoritmo. Per RSA si consiglia una dimensione della chiave di almeno 2048 bit, ma l'ideale sarebbe averne 4096. È assai possibile che l'algoritmo RSA diventi in pratica violabile nel prossimo futuro.</string>
@@ -1089,6 +1248,7 @@
     <string name="generator_create_item_with_password_title">Crea un nuovo login con la password</string>
     <string name="generator_create_item_with_username_title">Crea un nuovo login con il nome utente</string>
     <string name="generator_create_item_with_ssh_key_title">Crea un nuovo elemento Chiave SSH</string>
+    <string name="generator_create_item_with_gpg_key_title">Crea un nuovo elemento Chiave GPG</string>
     <string name="generator_password_history_title">Cronologia della password</string>
     <string name="generator_show_tips_title">Mostra suggerimenti</string>
     <string name="generatorhistory_header_title">Cronologia generatore</string>
@@ -1116,6 +1276,12 @@
     <string name="watchtower_item_reused_passwords_text">Non utilizzare la stessa password su più siti. Genera password uniche per migliorare la sicurezza.</string>
     <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
     <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
+    <string name="watchtower_item_unusable_gpg_keys_title">Chiavi GPG inutilizzabili</string>
+    <string name="watchtower_item_unusable_gpg_keys_text">Elementi Chiave GPG revocati, scaduti, danneggiati o privi di materiale utilizzabile per la firma o la decrittografia.</string>
+    <string name="watchtower_item_weak_gpg_keys_title">Chiavi GPG deboli</string>
+    <string name="watchtower_item_weak_gpg_keys_text">Elementi Chiave GPG che utilizzano algoritmi e dimensioni delle chiavi deboli o obsoleti.</string>
+    <string name="watchtower_item_gpg_key_publishing_title">Pubblicazione delle chiavi GPG</string>
+    <string name="watchtower_item_gpg_key_publishing_text">Chiavi GPG con stato del keyserver mancante, obsoleto, non verificato o revocato.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Account Vulnerabili</string>
     <string name="watchtower_item_vulnerable_accounts_text">Siti che sono stati affetti da una violazione di dati dall'ultima modifica di una password. Cambia la password per mantenere il tuo account sicuro.</string>
     <string name="watchtower_item_unsecure_websites_title">Siti non sicuri</string>
@@ -1171,6 +1337,46 @@
     <string name="exportaccount_export_started">Esportazione avviata</string>
     <string name="exportaccount_export_success">Esportazione completata</string>
     <string name="exportaccount_export_failure">Esportazione non riuscita</string>
+    <string name="credential_exchange_export_header_title">Transfer credentials</string>
+    <string name="credential_exchange_export_header_text">App requests access to credentials</string>
+    <string name="credential_exchange_export_header_text_named"><xliff:g id="app_name" example="Example Passwords">%1$s</xliff:g> requests access to credentials</string>
+    <string name="credential_exchange_export_empty_label">There are no credentials to transfer.</string>
+    <string name="credential_exchange_export_credential_passkey">Passkey</string>
+    <string name="credential_exchange_export_credential_password">Password</string>
+    <string name="credential_exchange_export_credential_totp">One-time password</string>
+    <string name="credential_exchange_export_credential_card">Card</string>
+    <string name="credential_exchange_export_credential_identity">Identity</string>
+    <string name="credential_exchange_export_credential_note">Note</string>
+    <string name="credential_exchange_export_credential_fields">Custom fields</string>
+    <string name="credential_exchange_export_credential_ssh_key">SSH key</string>
+    <string name="credential_exchange_export_export_button">Transfer</string>
+    <string name="credential_exchange_export_error_unknown">Something went wrong while preparing the items.</string>
+    <string name="credential_exchange_import_review_all_items_section">All items</string>
+    <string name="credential_exchange_export_error_account_unavailable">This account is no longer available.</string>
+    <string name="skipped_items_text">Some items were skipped.</string>
+    <string name="account_action_import_credentials_title">Import from another app</string>
+    <string name="credential_exchange_import_header_title">Import credentials</string>
+    <string name="credential_exchange_import_header_text">Move credentials directly from another password manager installed on this device.</string>
+    <string name="credential_exchange_import_step_1_title">Start the transfer</string>
+    <string name="credential_exchange_import_step_1_text">Tap Start import. Android will show the apps that can share credentials with Keyguard.</string>
+    <string name="credential_exchange_import_step_2_title">Choose a source app</string>
+    <string name="credential_exchange_import_step_2_text">Select the password manager you want to import from, then follow its prompts to approve the transfer.</string>
+    <string name="credential_exchange_import_step_3_title">Review and import</string>
+    <string name="credential_exchange_import_step_3_text">Back in Keyguard, review what was received. Nothing is saved to this account until you tap Import.</string>
+    <string name="credential_exchange_import_learn_more">Learn about credential exchange</string>
+    <string name="credential_exchange_import_start_button">Start import</string>
+    <string name="credential_exchange_import_retry_button">Retry import</string>
+    <string name="credential_exchange_import_import_button">Import</string>
+    <string name="credential_exchange_import_review_source_label">Received from</string>
+    <string name="credential_exchange_import_review_items_section">Items to import</string>
+    <string name="credential_exchange_import_empty_label">The selected app didn't send any importable items.</string>
+    <string name="credential_exchange_import_error_unavailable">Credential transfer isn't available on this device. It requires a recent version of Google Play services.</string>
+    <string name="credential_exchange_import_error_no_providers">None of the installed apps can share credentials this way.</string>
+    <string name="credential_exchange_import_error_parse">The received data couldn't be read.</string>
+    <string name="credential_exchange_import_error_unknown">Something went wrong while importing the items.</string>
+    <string name="credential_exchange_import_error_save">Failed to import the credentials.</string>
+    <string name="credential_exchange_import_success_title">Import complete</string>
+    <string name="credential_exchange_import_untitled">Untitled</string>
     <string name="contactus_header_title">Contattaci</string>
     <string name="contactus_message_label">Il tuo messaggio</string>
     <string name="contactus_english_note">Usa l'inglese per assicurarti che il tuo feedback non venga frainteso.</string>
@@ -1194,8 +1400,11 @@
     <string name="settings_security_header_title">Sicurezza</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
     <string name="settings_developer_header_title">Sviluppatore</string>
+    <string name="settings_ssh_agent_header_title">Agente SSH</string>
+    <string name="settings_gpg_agent_header_title">Agente GPG</string>
     <string name="settings_watchtower_header_title">Watchtower</string>
     <string name="settings_automatic_backups_header_title">Backups</string>
+    <string name="settings_navigation_items_header_title">Elementi di navigazione</string>
     <string name="settings_open_source_licenses_header_title">Licenze open source</string>
     <string name="pref_section_premium_title">Premium</string>
     <string name="pref_section_options_title">Options</string>
@@ -1296,8 +1505,16 @@
     <string name="pref_item_automatic_backups_retention_value">%1$d snapshots</string>
     <string name="pref_item_automatic_backups_disable_title">Turn off automatic backups</string>
     <string name="pref_item_automatic_backups_disable_message">This only turns off future automatic backups. It clears the local folder, password, and attachment choice from Keyguard. The existing backup repository and files in that folder are not deleted.</string>
+    <string name="pref_item_nav_items_title">Elementi di navigazione</string>
     <string name="pref_item_nav_label_title">Mostra etichette sui pulsanti di navigazione</string>
-    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
+    <string name="navigation_items_add_item_title">Aggiungi elemento</string>
+    <string name="navigation_items_reset_confirmation_title">Reimpostare gli elementi di navigazione?</string>
+    <string name="navigation_items_reset_confirmation_text">Verranno ripristinati l'ordine e la visibilità di navigazione predefiniti. I filtri personalizzati non vengono eliminati, ma i relativi elementi di navigazione verranno rimossi.</string>
+    <string name="navigation_items_built_in_text">Destinazione integrata</string>
+    <string name="navigation_items_custom_filter_text">Filtro personalizzato</string>
+    <string name="navigation_items_missing_filter_title">Filtro personalizzato</string>
+    <string name="navigation_items_missing_filter_text">Filtro non trovato</string>
+    <string name="navigation_items_predefined_route_text">Percorso predefinito</string>
     <string name="pref_item_app_version_title">Versione app</string>
     <string name="pref_item_app_build_date_title">Data di compilazione app</string>
     <!--
@@ -1389,6 +1606,24 @@
     <string name="pref_item_permissions_title">Autorizzazioni</string>
     <string name="pref_item_features_overview_title">Panoramica delle funzionalità</string>
     <string name="pref_item_url_override_title">Sovrascrizioni URL</string>
+    <string name="pref_item_agent_approval_scope_title">Ambito di approvazione</string>
+    <string name="pref_item_agent_approval_scope_connection">Per connessione</string>
+    <string name="pref_item_agent_approval_scope_process">Per processo</string>
+    <string name="pref_item_agent_approval_scope_application">Per applicazione</string>
+    <string name="pref_item_agent_approval_scope_application_and_terminal_session">Per applicazione, isolato per sessione di terminale</string>
+    <string name="pref_item_agent_approval_scope_table_reuse_boundary">Chi può riutilizzare?</string>
+    <string name="pref_item_agent_approval_scope_table_same_terminal">Stessa scheda o riquadro</string>
+    <string name="pref_item_agent_approval_scope_table_other_terminal">Altra scheda o riquadro</string>
+    <string name="pref_item_agent_approval_scope_table_connection_reuse">Connessione attiva corrente all'agente</string>
+    <string name="pref_item_agent_approval_scope_table_process_reuse">Stessa istanza di processo verificata</string>
+    <string name="pref_item_agent_approval_scope_table_application_reuse">Stessa applicazione verificata</string>
+    <string name="pref_item_agent_approval_scope_table_application_and_terminal_session_reuse">Stessa sessione di terminale verificata; applicazione verificata al di fuori dei terminali</string>
+    <string name="pref_item_agent_approval_scope_table_android_process_reuse">Connessione attiva corrente all'agente; identità del processo non disponibile</string>
+    <string name="pref_item_agent_approval_scope_table_android_application_and_terminal_session_reuse">Stessa applicazione verificata; identità della sessione di terminale non disponibile</string>
+    <string name="pref_item_agent_approval_scope_table_current_connection_only">Solo la connessione corrente</string>
+    <string name="pref_item_agent_approval_scope_table_same_process_only">Solo lo stesso processo</string>
+    <string name="pref_item_agent_approval_scope_table_shared">Condiviso</string>
+    <string name="pref_item_agent_approval_scope_table_not_shared">Non condiviso</string>
     <string name="pref_item_ssh_agent_title">Agente SSH</string>
     <string name="pref_item_ssh_agent_text">Autentica i tuoi client Git e SSH senza che questi possano mai leggere la tua chiave privata</string>
     <string name="pref_item_ssh_agent_status_unsupported">Non supportato</string>
@@ -1409,6 +1644,22 @@
     <string name="pref_item_ssh_agent_filters_summary_all">Tutte le chiavi sono accessibili</string>
     <string name="pref_item_ssh_agent_filters_summary_active">Filtri attivi</string>
     <string name="pref_item_ssh_agent_history_title">Request log</string>
+    <string name="pref_item_license_key_title">Collega un codice di licenza esistente</string>
+    <string name="pref_item_license_key_field_label">Codice di licenza</string>
+    <string name="pref_item_license_key_message_redeemed">Codice di licenza collegato correttamente</string>
+    <string name="pref_item_license_key_message_invalid">Chiave non valida o scaduta</string>
+    <string name="pref_item_license_key_status_active">Attivo</string>
+    <string name="pref_item_license_key_status_invalid">Non valido</string>
+    <string name="pref_item_license_key_status_revoked">Revocato</string>
+    <string name="pref_item_license_key_status_expired">Scaduto</string>
+    <string name="pref_item_license_key_status_available">Disponibile</string>
+    <string name="pref_item_license_sync_title">Ottieni un codice di licenza</string>
+    <string name="pref_item_license_sync_text">Verifica il tuo acquisto attivo nello store e genera un codice di licenza associato all'acquisto. Usa questo codice per trasferire l'acquisto sugli altri tuoi dispositivi.</string>
+    <string name="pref_item_license_sync_requested">Codice di licenza richiesto</string>
+    <string name="pref_item_license_sync_success">Codice di licenza sincronizzato correttamente</string>
+    <string name="pref_item_license_sync_already">Il codice di licenza corrente è già attivo</string>
+    <string name="pref_item_license_sync_no_purchases">Nessun acquisto idoneo trovato</string>
+    <string name="pref_item_license_sync_failed">Impossibile ottenere il codice di licenza</string>
     <string name="pref_item_biometric_unlock_title">Sblocco biometrico</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Richiedi conferma</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Richiede un ulteriore tocco sul pulsante di conferma dopo un'autenticazione biometrica riuscita</string>
@@ -1427,10 +1678,9 @@
     <string name="pref_item_autofill_service_title">Servizio di compilazione automatica</string>
     <string name="pref_item_autofill_service_text">Utilizza il framework Android Autofill per aiutare a inserire le informazioni di accesso in altre applicazioni sul dispositivo</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Alcuni dispositivi Xiaomi richiedono di consentire manualmente il permesso "mostra finestre popup quando attive in background". Si prega di aprire le impostazioni e verificare che sia concesso.</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome per supportare nativamente i servizi di riempimento automatico di terze parti</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Aprire le impostazioni di Chrome e toccare i servizi di riempimento automatico
-2. Scegliere riempimento automatico utilizzando un altro servizio
-3. Confermare e riavviare Chrome</string>
+    <string name="pref_item_autofill_service_browser_autofill_v2_title">Browser third-party autofill services</string>
+    <string name="pref_item_autofill_service_browser_autofill_v2_text">Enable third-party autofill in each of the listed browsers to let Keyguard fill logins there.</string>
+    <string name="pref_item_autofill_service_browser_autofill_settings_error">Failed to open browser autofill settings</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copia automaticamente OTP</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Quando si compilano le informazioni di accesso, copia automaticamente le password monouso</string>
     <string name="pref_item_autofill_default_match_detection_title">Rilevamento predefinito delle corrispondenze</string>
@@ -1479,6 +1729,33 @@
     <string name="pref_item_permission_camera_text">Utilizzato per scansionare i codici QR</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Consenti layout a due colonne in modalità orizzontale</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">Consenti layout a due colonne in modalità verticale</string>
+    <string name="pref_item_gpg_agent_title">Agente GPG</string>
+    <string name="pref_item_gpg_agent_setup_title">Configurazione del client GPG</string>
+    <string name="pref_item_gpg_agent_status_ready">Pronto</string>
+    <string name="pref_item_gpg_agent_status_starting">In avvio</string>
+    <string name="pref_item_gpg_agent_status_stopped">Interrotto</string>
+    <string name="pref_item_gpg_agent_status_failed">Fallito</string>
+    <string name="pref_item_gpg_agent_status_unsupported">Non supportato</string>
+    <string name="pref_item_gpg_agent_approval_window_title">Ricorda le approvazioni delle chiavi</string>
+    <string name="pref_item_gpg_agent_approval_window_always_ask">Chiedi ogni volta</string>
+    <string name="pref_item_gpg_agent_approval_window_until_lock">Fino al blocco della cassaforte</string>
+    <string name="pref_item_gpg_agent_display_key_names_title">Mostra i nomi delle chiavi prima dello sblocco della cassaforte</string>
+    <string name="pref_item_gpg_agent_display_key_names_note">Una copia non crittografata del titolo dell'elemento verrà memorizzata localmente</string>
+    <string name="pref_item_gpg_agent_local_storage_title">Archiviazione locale</string>
+    <string name="pref_item_gpg_agent_local_storage_text">Quando l'agente GPG è attivo, Keyguard conserva una copia non crittografata delle chiavi pubbliche su disco, così i client possono elencare le chiavi mentre la cassaforte è bloccata. Le chiavi private non vengono mai esposte; i nomi delle chiavi vengono memorizzati solo se abiliti l'opzione corrispondente.</string>
+    <string name="pref_item_gpg_agent_filters_title">Filtri dell'agente GPG</string>
+    <string name="pref_item_gpg_agent_filters_text">Scegli a quali chiavi GPG ha accesso l'agente GPG</string>
+    <string name="pref_item_gpg_agent_filters_summary_all">Tutte le chiavi sono accessibili</string>
+    <string name="pref_item_gpg_agent_filters_summary_active">Filtri attivi</string>
+    <string name="pref_item_gpg_agent_history_title">Registro richieste</string>
+    <string name="pref_item_gpg_keyserver_search_title">Ricerca sul keyserver GPG</string>
+    <string name="pref_item_gpg_keyserver_search_text">Trova chiavi pubbliche GPG tramite e-mail, impronta digitale, ID chiave o nome</string>
+    <string name="pref_item_gpg_keyserver_url_title">Keyserver</string>
+    <string name="pref_item_gpg_keyserver_url_text">Server utilizzato per cercare e aggiornare le chiavi pubbliche GPG</string>
+    <string name="pref_item_gpg_keyserver_protocol_title">Protocollo del keyserver</string>
+    <string name="pref_item_gpg_keyserver_auto_refresh_title">Aggiorna automaticamente le chiavi pubbliche</string>
+    <string name="pref_item_gpg_keyserver_auto_refresh_note">Mentre l'app è attiva e la cassaforte è sbloccata, Keyguard contatta il keyserver GPG configurato all'intervallo selezionato utilizzando l'impronta digitale di ogni elemento GPG che contiene solo una chiave pubblica. Se viene trovata una chiave pubblica corrispondente, Keyguard aggiorna la chiave pubblica memorizzata, i metadati della chiave e lo stato del keyserver.</string>
+    <string name="pref_item_gpg_keyserver_refresh_interval_title">Intervallo di aggiornamento</string>
     <string name="theme_dark">Scuro</string>
     <string name="theme_light">Chiaro</string>
     <string name="nav_animation_disabled">Disattivato</string>
@@ -1540,12 +1817,22 @@
     <string name="datasafety_remote_text">I dati remoti vengono memorizzati sui server di Bitwarden con crittografia end-to-end.</string>
     <string name="webdav_settings_header_title">WebDAV server configuration</string>
     <string name="webdav_settings_url_title">WebDAV URL</string>
-    <string name="webdav_settings_url_hint">https://example.com/remote.php/dav/files/me/Keyguard/</string>
     <string name="webdav_settings_auth_note">If your WebDAV server requires authentication, enter your server credentials here. Do not enter your master password.</string>
     <string name="webdav_settings_test_title">Test connection</string>
     <string name="webdav_settings_test_text">Writes and removes a small probe file to verify server access.</string>
+    <string name="webdav_settings_test_text_read_only">Legge la risorsa per verificare l'accesso al server.</string>
     <string name="webdav_settings_test_success">WebDAV connection verified.</string>
     <string name="webdav_settings_password_requires_username_error">Enter a username before setting a WebDAV password.</string>
+    <string name="webdav_settings_browse_title">Browse</string>
+    <string name="webdav_picker_header_title">Browse WebDAV</string>
+    <string name="webdav_picker_choose_folder">Choose this folder</string>
+    <string name="webdav_picker_refresh">Refresh folder</string>
+    <string name="webdav_picker_empty">This folder is empty.</string>
+    <string name="webdav_picker_error">Could not load this folder.</string>
+    <string name="webdav_picker_filename_required">Enter a database name.</string>
+    <string name="webdav_picker_filename_invalid">The database name cannot contain path separators.</string>
+    <string name="webdav_picker_filename_extension">The database name must end with %1$s.</string>
+    <string name="webdav_picker_filename_exists">A file with this name already exists.</string>
     <!-- Title of the 'Localization contributors' screen -->
     <string name="localization_contributors_title">Collaboratori di traduzione</string>
     <string name="localization_contributors_search_placeholder">Cerca collaboratori</string>
@@ -1555,4 +1842,121 @@
     <string name="logs_stop_recording_fab_title">Interrompi la registrazione</string>
     <string name="logs_export_button">Esporta</string>
     <string name="logs_export_success">Esportazione completa</string>
+    <string name="gpg_client_request">Richiesta del client GPG</string>
+    <string name="gpg_agent_request_approval_sign_title">Richiesta di firma GPG</string>
+    <string name="gpg_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> vuole utilizzare la seguente chiave GPG per firmare i dati:</string>
+    <string name="gpg_agent_request_approval_sign_message_unknown_app">Un'applicazione desidera utilizzare la seguente chiave GPG per firmare i dati:</string>
+    <string name="gpg_agent_request_approval_decrypt_title">Richiesta di decrittografia GPG</string>
+    <string name="gpg_agent_request_approval_decrypt_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> vuole utilizzare la seguente chiave GPG per decrittografare i dati:</string>
+    <string name="gpg_agent_request_approval_decrypt_message_unknown_app">Un'applicazione desidera utilizzare la seguente chiave GPG per decrittografare i dati:</string>
+    <string name="gpg_agent_setup_header_title">Configurazione del client GPG</string>
+    <string name="gpg_agent_setup_intro">Configura GnuPG per utilizzare l'agente GPG di Keyguard per la firma e la decrittografia senza esporre il materiale della chiave privata.</string>
+    <string name="gpg_agent_setup_unsupported_text">L'agente GPG è disponibile solo nella versione desktop di Keyguard.</string>
+    <string name="gpg_agent_setup_step_1_title">1. Abilita l'agente GPG su Keyguard</string>
+    <string name="gpg_agent_setup_step_1_text">Apri le impostazioni GPG, abilita l'agente GPG e assicurati che la cassaforte contenga una chiave GPG che l'agente è autorizzato a utilizzare.</string>
+    <string name="gpg_agent_setup_step_2_title">2. Configura GNUPGHOME</string>
+    <string name="gpg_agent_setup_step_2_text">Esegui i comandi GnuPG da una shell che punta alla home dell'agente di Keyguard. Keyguard è in ascolto sul socket dell'agente che GnuPG risolve per questa home.</string>
+    <string name="gpg_agent_setup_linux_home_fallback_note">Se XDG_RUNTIME_DIR non è impostato, utilizza invece questo percorso di ripiego:</string>
+    <string name="gpg_agent_setup_step_3_title">3. Importa la chiave pubblica</string>
+    <string name="gpg_agent_setup_step_3_text">Esporta la chiave pubblica dall'elemento Chiave GPG in Keyguard, quindi importala in questa home GnuPG. Questo espone solo il materiale della chiave pubblica.</string>
+    <string name="gpg_agent_setup_step_4_title">4. Verifica</string>
+    <string name="gpg_agent_setup_step_4_text">Elenca le chiavi visibili a Keyguard, quindi firma un breve messaggio. Sostituisci YOUR_KEY_FINGERPRINT con l'impronta digitale della chiave importata.</string>
+    <string name="gpg_agent_setup_step_5_title">5. Firma i commit Git</string>
+    <string name="gpg_agent_setup_step_5_text">Utilizza lo stesso GNUPGHOME quando Git firma i commit. Mantieni la configurazione locale a un singolo repository oppure cambia --local in --global.</string>
+    <string name="gpg_agent_setup_windows_native_gnupg_note">Windows richiede un'installazione nativa di GnuPG. Il GPG incluso in Git per Windows non è compatibile con questa configurazione.</string>
+    <string name="gpg_agent_filters_header_title">Filtri per agente GPG</string>
+    <string name="gpg_agent_filters_note_save_to_apply">Le modifiche vengono applicate dopo aver premuto Salva.</string>
+    <string name="gpg_agent_history_header_title">Cronologia dell'agente GPG</string>
+    <string name="gpg_keys_capability_sign">Firma</string>
+    <string name="gpg_key_status">Stato della chiave GPG</string>
+    <string name="gpg_key_status_revoked_text">Questa chiave GPG è stata revocata e non dovrebbe essere utilizzata.</string>
+    <string name="gpg_key_status_expired_text">Questa chiave GPG è scaduta e non dovrebbe essere utilizzata.</string>
+    <string name="gpg_key_user_ids">ID utente</string>
+    <string name="gpg_key_does_not_expire">Non scade</string>
+    <string name="gpg_key_capability_encrypt_decrypt">Crittografia/decrittografia</string>
+    <string name="gpg_key_sec_pub">sec/pub</string>
+    <string name="gpg_key_secret_key">Chiave segreta</string>
+    <string name="gpg_key_subkey_n">Sottochiave <xliff:g id="index" example="1">%1$d</xliff:g></string>
+    <string name="gpg_tools_header_title">Strumenti GPG</string>
+    <string name="gpg_tools_scope_text">Testo</string>
+    <string name="gpg_tools_scope_file">File</string>
+    <string name="gpg_tools_operation_encrypt_text">Crittografa testo o file per i destinatari selezionati</string>
+    <string name="gpg_tools_operation_decrypt_text">Decrittografa testo o file con le chiavi private memorizzate</string>
+    <string name="gpg_tools_operation_sign_text">Firma testo o file con una chiave privata memorizzata</string>
+    <string name="gpg_tools_operation_verify_text">Verifica firme in linea o separate</string>
+    <string name="gpg_tools_mode_cleartext">Testo in chiaro</string>
+    <string name="gpg_tools_mode_inline">In linea</string>
+    <string name="gpg_tools_mode_detached">Separata</string>
+    <string name="gpg_tools_armor_label">Armor</string>
+    <string name="gpg_tools_sign_encrypted_message">Firma</string>
+    <string name="gpg_tools_sign_none">Non firmare</string>
+    <string name="gpg_tools_signed_text_label">Testo firmato</string>
+    <string name="gpg_tools_encrypted_text_label">Messaggio crittografato</string>
+    <string name="gpg_tools_signature_label">Firma</string>
+    <string name="gpg_tools_pasted_public_key_label">Chiave pubblica</string>
+    <string name="gpg_tools_pasted_public_key_placeholder">Incolla un blocco di chiave pubblica armored</string>
+    <string name="gpg_tools_select_signing_key">Chiave di firma</string>
+    <string name="gpg_tools_select_recipients">Destinatari</string>
+    <string name="gpg_tools_stored_public_keys_note">Le chiavi pubbliche memorizzate vengono utilizzate automaticamente per la verifica.</string>
+    <string name="gpg_tools_decrypt_keys_note">Le chiavi private memorizzate vengono provate automaticamente per la decrittografia.</string>
+    <string name="gpg_tools_no_gpg_keys">Nessuna chiave GPG memorizzata</string>
+    <string name="gpg_tools_no_signing_key">Non è selezionata alcuna chiave GPG in grado di firmare</string>
+    <string name="gpg_tools_no_recipient">Seleziona un destinatario memorizzato o incolla una chiave pubblica</string>
+    <string name="gpg_tools_missing_private_key">Non è disponibile alcuna chiave privata in grado di decrittografare</string>
+    <string name="gpg_tools_select_input_file">File di input</string>
+    <string name="gpg_tools_select_signature_file">File della firma</string>
+    <string name="gpg_tools_clear_file">Pulisci</string>
+    <string name="gpg_tools_run_success">Operazione GPG completata</string>
+    <string name="gpg_tools_valid_signature">Firma valida</string>
+    <string name="gpg_tools_invalid_signature">Firma non valida</string>
+    <string name="gpg_tools_missing_public_key">Chiave pubblica mancante</string>
+    <string name="gpg_tools_signature_by">Firmato da <xliff:g id="signer" example="0123 ABCD">%1$s</xliff:g></string>
+    <string name="gpg_tools_signature_created_at">Creato il <xliff:g id="date" example="2026-06-28T12:30:00Z">%1$s</xliff:g></string>
+    <string name="gpg_tools_warning_key_revoked">Attenzione: la chiave di firma è revocata</string>
+    <string name="gpg_tools_warning_key_expired">Attenzione: la chiave di firma è scaduta</string>
+    <string name="gpg_tools_warning_signature_expired">Attenzione: la firma è scaduta</string>
+    <string name="gpg_tools_file_required">Scegli un file di input</string>
+    <string name="gpg_tools_signature_file_required">Scegli un file della firma</string>
+    <string name="gpg_tools_text_required">Inserisci il testo da elaborare</string>
+    <string name="gpg_tools_public_key_title">Chiave pubblica personalizzata</string>
+    <string name="gpg_tools_public_key_description">Incolla un blocco di chiave pubblica armored da utilizzare per questa operazione. Viene usato in aggiunta alle tue chiavi memorizzate.</string>
+    <string name="gpg_tools_public_key_add">Aggiungi una chiave pubblica</string>
+    <string name="gpg_keyserver_search_header_title">Ricerca sul keyserver GPG</string>
+    <string name="gpg_keyserver_search_placeholder">Cerca e-mail, impronta digitale, ID chiave o nome</string>
+    <string name="gpg_keyserver_search_empty_query_label">Inserisci un'e-mail, un'impronta digitale, un ID chiave o un nome</string>
+    <string name="gpg_keyserver_search_empty_label">Nessuna chiave pubblica trovata</string>
+    <string name="gpg_keyserver_search_error_text">Impossibile cercare le chiavi pubbliche</string>
+    <string name="gpg_keyserver_search_revoked_label">Revocata</string>
+    <string name="gpg_keyserver_search_index_label">Indice</string>
+    <string name="gpg_keyserver_search_public_key_not_found_title">Chiave pubblica GPG non trovata sul keyserver</string>
+    <string name="gpg_keyserver_upload_success_title">Chiave pubblica GPG caricata</string>
+    <string name="gpg_keyserver_refresh_success_title">Chiave pubblica GPG aggiornata</string>
+    <string name="gpg_keyserver_refresh_not_found_title">Chiave pubblica GPG non trovata sul keyserver</string>
+    <string name="gpg_keyserver_verify_unknown_title">Lo stato di verifica della chiave pubblica GPG è sconosciuto</string>
+    <string name="gpg_keyserver_verify_not_found_title">Chiave pubblica GPG non trovata sul keyserver</string>
+    <string name="gpg_keyserver_verify_unverified_title">Chiave pubblica GPG trovata senza e-mail verificata</string>
+    <string name="gpg_keyserver_verify_verified_title">Chiave pubblica GPG verificata</string>
+    <string name="gpg_keyserver_verify_revoked_title">Chiave pubblica GPG revocata</string>
+    <string name="gpg_keyserver_status_title">Keyserver GPG</string>
+    <string name="gpg_keyserver_status_not_checked">Non controllato</string>
+    <string name="gpg_keyserver_status_checked_at">Controllato il <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="gpg_agent_history_request_list_keys">Elenca chiavi</string>
+    <string name="gpg_agent_history_request_sign_hash">Firma hash</string>
+    <string name="gpg_agent_history_request_decrypt">Decrittografa</string>
+    <string name="gpg_agent_history_response_success">Riuscito</string>
+    <string name="gpg_agent_history_response_user_denied">Negato</string>
+    <string name="gpg_agent_history_response_key_not_found">Chiave non trovata</string>
+    <string name="gpg_agent_history_response_vault_locked">Cassaforte bloccata</string>
+    <string name="gpg_agent_history_response_unsupported">Non supportato</string>
+    <string name="gpg_agent_history_response_failure">Non riuscito</string>
+    <string name="gpg_agent_history_unknown_caller">Chiamante sconosciuto</string>
+    <string name="gpg_agent_history_unknown_key">Chiave sconosciuta</string>
+    <string name="gpg_agent_history_clear_history_title">Cancella cronologia</string>
+    <string name="gpg_agent_history_clear_history_confirmation_title">Cancellare la cronologia dell'agente GPG?</string>
+    <string name="gpg_agent_history_clear_history_confirmation_text">Questo rimuoverà tutta la cronologia di utilizzo dell'agente GPG.</string>
+    <string name="cipher_links_outgoing_title">Linked items</string>
+    <string name="cipher_links_incoming_title">Referenced by</string>
+    <string name="cipher_link_unavailable_title">Item unavailable</string>
+    <string name="cipher_link_picker_title">Select linked item</string>
+    <string name="cipher_link_picker_action">Link to an item</string>
 </resources>

@@ -121,8 +121,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 32684,
-    "target": 33619,
+    "translated": 56694,
+    "target": 61722,
     "approved": 1050,
     "voted": 0,
     "positiveVotes": 63,
@@ -187,8 +187,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 2452,
-    "target": 2806,
+    "translated": 5108,
+    "target": 5715,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -341,8 +341,8 @@
         "name": "Korean"
       }
     ],
-    "translated": 6314,
-    "target": 5433,
+    "translated": 6706,
+    "target": 5801,
     "approved": 0,
     "voted": 1,
     "positiveVotes": 0,
@@ -495,8 +495,8 @@
         "name": "Hungarian"
       }
     ],
-    "translated": 5944,
-    "target": 5632,
+    "translated": 7286,
+    "target": 7008,
     "approved": 0,
     "voted": 8,
     "positiveVotes": 0,
@@ -727,11 +727,11 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 4667,
-    "target": 7707,
+    "translated": 6361,
+    "target": 10620,
     "approved": 0,
     "voted": 17,
-    "positiveVotes": 7,
+    "positiveVotes": 13,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1362,8 +1362,8 @@
   {
     "user": {
       "id": "16271182",
-      "username": "anaelle.dev",
-      "fullName": "Ana\u00eblle (anaelle.dev)",
+      "username": "qnqelle",
+      "fullName": "Ana\u00eblle (qnqelle)",
       "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16271182/medium/5bf6a630acd692aa55fed444852f28ff.png",
       "joined": "2024-03-31 12:20:38"
     },
@@ -1817,8 +1817,8 @@
         "name": "German"
       }
     ],
-    "translated": 131,
-    "target": 117,
+    "translated": 151,
+    "target": 132,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -1905,8 +1905,8 @@
         "name": "Bengali"
       }
     ],
-    "translated": 685,
-    "target": 1523,
+    "translated": 881,
+    "target": 1948,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -1931,6 +1931,28 @@
     "target": 89,
     "approved": 0,
     "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "17823381",
+      "username": "Jursin",
+      "fullName": "Jursin",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17823381/medium/c56ad8c691c8299a366cd3a332a44547.jpeg",
+      "joined": "2026-08-05 23:02:13"
+    },
+    "languages": [
+      {
+        "id": "zh-CN",
+        "name": "Chinese Simplified"
+      }
+    ],
+    "translated": 504,
+    "target": 702,
+    "approved": 0,
+    "voted": 6,
     "positiveVotes": 0,
     "negativeVotes": 0,
     "winning": 0
@@ -1993,8 +2015,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 7944,
-    "target": 8972,
+    "translated": 10605,
+    "target": 11924,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

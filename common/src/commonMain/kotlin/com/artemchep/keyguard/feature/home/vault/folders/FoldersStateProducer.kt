@@ -280,13 +280,17 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
             val requestInfo = parent
                 ?.folder
                 ?.createAddFolderRequest(name)
-                ?: createRootAddFolderRequest(
-                    accountId = accountId
-                        ?: return null,
-                    name = name,
-                    hierarchyMode = rootHierarchyMode
-                        ?: return null,
-                )
+                ?: rootHierarchyMode
+                    ?.let { hierarchyMode ->
+                        accountId?.let { accountId ->
+                            createRootAddFolderRequest(
+                                accountId = accountId,
+                                name = name,
+                                hierarchyMode = hierarchyMode,
+                            )
+                        }
+                    }
+                ?: return null
             return AddFolderRequest(
                 accountId = AccountId(requestInfo.accountId),
                 name = requestInfo.name,

@@ -8,8 +8,8 @@ on:
 jobs:
   # Generates variations of the changelog
   #   - changelog-raw.md: all git commits
-  #   - changelog-summary.md: all git commits summarized using LLM
-  #   - changelog-full.md: summary + raw
+  #   - changelog-summary.md: short summary using LLM
+  #   - changelog-full.md: long summary using LLM + raw
   generate-changelog:
     name: "Generate changelog"
     runs-on: ubuntu-slim
@@ -29,7 +29,7 @@ jobs:
           ${{ steps.changelog.outputs.changelog }}
           EOF
       - run: pip install -r .github/get_release_changelog_summary.requirements.txt
-      - name: "Generate summary"
+      - name: "Generate release notes"
         run: |
           cat << "EOF" > changelog-raw.md
           ${{ steps.changelog.outputs.changelog }}
@@ -37,17 +37,14 @@ jobs:
           python .github/get_release_changelog_summary.py \
             changelog-raw.md \
             --token "${{ secrets.GEMINI_API_TOKEN }}" \
-            --output changelog-summary.md
+            --output changelog-summary.md \
+            --full-output changelog-full.md
       - name: "Print summary"
         run: |
           cat changelog-summary.md
-      - name: "Format full changelog"
+      - name: "Print full release notes"
         run: |
-          {
-            cat changelog-summary.md
-            echo -e "\n### All changes\n"
-            cat changelog-raw.md
-          } > changelog-full.md
+          cat changelog-full.md
       - name: "Upload"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:

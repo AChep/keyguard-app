@@ -2554,6 +2554,17 @@
     "created_at": "2024-05-19T10:40:00.923041+00:00"
   },
   {
+    "id": "dbbfc557ff2ee08d099c509c069a8e21",
+    "name": "Reddit",
+    "domain": "reddit.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.reddit.com/settings/",
+    "category": "Information Technology",
+    "created_at": "2026-06-30T19:48:42.724745+00:00"
+  },
+  {
     "id": "99c0e1911b689a3c74d38e9539247fd0",
     "name": "Ring",
     "domain": "ring.com",
@@ -2601,6 +2612,17 @@
     "setup": "https://salad.com/account/summary",
     "category": "Information Technology",
     "created_at": "2023-09-27T03:19:29.950353+00:00"
+  },
+  {
+    "id": "6de40ae21c021869bc5ef91093a641ae",
+    "name": "Samsung",
+    "domain": "samsung.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://v3.account.samsung.com/dashboard/security",
+    "category": "Other",
+    "created_at": "2023-05-03T21:29:48.169149+00:00"
   },
   {
     "id": "a3b5a03b7d7a6fbe75a856ee353a9b97",

@@ -151,6 +151,24 @@
     "name": "Accelo"
   },
   {
+    "domain": "access.service.gov.uk",
+    "additional-domains": [
+      "tax.service.gov.uk"
+    ],
+    "url": "https://www.gov.uk/government/organisations/hm-revenue-customs",
+    "tfa": [
+      "sms",
+      "call",
+      "totp",
+      "custom-software"
+    ],
+    "custom-software": [
+      "HMRC App"
+    ],
+    "documentation": "https://www.gov.uk/guidance/keeping-your-hmrc-login-details-safe#multi-factor-authentication",
+    "name": "HMRC (Government Gateway)"
+  },
+  {
     "domain": "accountable.eu",
     "tfa": [
       "totp"
@@ -246,6 +264,7 @@
       "callofduty.com"
     ],
     "tfa": [
+      "sms",
       "totp"
     ],
     "documentation": "https://support.activision.com/articles/using-two-factor-authentication-with-an-activision-account",
@@ -826,6 +845,14 @@
     "name": "HashiCorp Vagrant Cloud"
   },
   {
+    "domain": "appfigures.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.appfigures.com/en/article/hd61rb/",
+    "name": "Appfigures"
+  },
+  {
     "domain": "appfolio.com",
     "tfa": [
       "totp"
@@ -1015,6 +1042,14 @@
     ],
     "documentation": "https://getprotected.asu.edu/services/identity-and-access-management/duo-two-factor-authentication",
     "name": "Arizona State University"
+  },
+  {
+    "domain": "asus.com",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "name": "Asus"
   },
   {
     "domain": "atera.com",
@@ -4086,6 +4121,15 @@
     "name": "Cosmolex"
   },
   {
+    "domain": "costco.co.uk",
+    "tfa": [
+      "email",
+      "sms"
+    ],
+    "documentation": "https://www.costco.co.uk/two-step-verification",
+    "name": "Costco [UK]"
+  },
+  {
     "domain": "coursera.org",
     "tfa": [
       "totp"
@@ -4592,6 +4636,15 @@
     ],
     "documentation": "https://support.deliverr.com/hc/en-us/articles/4575365498519",
     "name": "Deliverr"
+  },
+  {
+    "domain": "dell.com",
+    "tfa": [
+      "email",
+      "sms"
+    ],
+    "documentation": "https://www.dell.com/en-uk/lp/protect-your-account-faq",
+    "name": "Dell"
   },
   {
     "domain": "delta.com",
@@ -5239,7 +5292,7 @@
       "totp",
       "u2f"
     ],
-    "documentation": "https://help.dropbox.com/security/enable-two-step-verification",
+    "documentation": "https://help.dropbox.com/account-access/enable-2-factor-authentication",
     "notes": "Hardware 2FA requires also enabling Software or SMS 2FA as a back-up.",
     "name": "Dropbox"
   },
@@ -6907,10 +6960,11 @@
   {
     "domain": "gitlab.com",
     "tfa": [
+      "email",
       "totp",
       "u2f"
     ],
-    "documentation": "https://docs.gitlab.com/ee/user/profile/account/two_factor_authentication.html",
+    "documentation": "https://docs.gitlab.com/user/profile/account/two_factor_authentication/",
     "name": "GitLab"
   },
   {
@@ -6919,7 +6973,6 @@
       "totp",
       "sms"
     ],
-    "documentation": "https://help.glassdoor.com/article/Manage-Two-Factor-Authentication/",
     "name": "Glassdoor"
   },
   {
@@ -7125,6 +7178,7 @@
       "sms",
       "totp"
     ],
+    "documentation": "https://www.gov.uk/guidance/getting-a-security-code-for-govuk-one-login",
     "name": "GOV.UK"
   },
   {
@@ -7657,16 +7711,6 @@
     "name": "Harvey Mudd College"
   },
   {
-    "domain": "hmrc.gov.uk",
-    "tfa": [
-      "sms",
-      "call",
-      "totp"
-    ],
-    "documentation": "https://www.gov.uk/government/publications/genuine-hmrc-contact-and-recognising-phishing-emails/genuine-hmrc-contact-and-recognising-phishing-emails#hmrc-short-message-service-text-messages",
-    "name": "HMRC"
-  },
-  {
     "domain": "holded.com",
     "tfa": [
       "sms"
@@ -8082,8 +8126,11 @@
       "hytale.net"
     ],
     "tfa": [
-      "totp"
+      "email",
+      "totp",
+      "u2f"
     ],
+    "notes": "If totp is set-up, email cannot be enabled.",
     "documentation": "https://support.hytale.com/hc/articles/44212029550491",
     "name": "Hytale"
   },
@@ -8145,7 +8192,8 @@
     "domain": "id.atlassian.com",
     "tfa": [
       "sms",
-      "totp"
+      "totp",
+      "u2f"
     ],
     "documentation": "https://support.atlassian.com/atlassian-account/docs/manage-two-step-verification-for-your-atlassian-account/",
     "name": "Atlassian Cloud"
@@ -9676,20 +9724,27 @@
     "name": "Lowes"
   },
   {
-    "domain": "lu.ma",
-    "tfa": [
-      "totp"
-    ],
-    "documentation": "https://help.lu.ma/p/two-factor-authentication",
-    "name": "Luma"
-  },
-  {
     "domain": "lufthansa.com",
+    "additional-domains": [
+      "miles-and-more.com"
+    ],
     "tfa": [
+      "sms",
       "totp"
     ],
     "documentation": "https://www.miles-and-more.com/row/en/general-information/help-and-contact/help/2-factor-authentication.html",
     "name": "Lufthansa"
+  },
+  {
+    "domain": "luma.com",
+    "additional-domains": [
+      "lu.ma"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.luma.com/p/two-factor-authentication",
+    "name": "Luma"
   },
   {
     "domain": "lunchmoney.app",
@@ -9870,27 +9925,6 @@
     ],
     "documentation": "https://ajuda.sapo.pt/id-67553",
     "name": "SAPO Mail"
-  },
-  {
-    "domain": "mail.yahoo.co.jp",
-    "tfa": [
-      "email",
-      "sms"
-    ],
-    "documentation": "https://id.yahoo.co.jp/security/otp.html",
-    "name": "Yahoo Mail [JP]"
-  },
-  {
-    "domain": "mail.yahoo.com",
-    "tfa": [
-      "sms",
-      "call",
-      "totp",
-      "u2f"
-    ],
-    "documentation": "https://help.yahoo.com/kb/SLN5013.html",
-    "notes": "A recovery email or phone number is required for 2FA setup.",
-    "name": "Yahoo Mail"
   },
   {
     "domain": "mail.yandex.com",
@@ -12298,7 +12332,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://library.panic.com/general/sync-2fa/",
+    "documentation": "https://help.panic.com/sync/panic-sync-sync.panic.com/#enabling-2fa",
     "name": "Panic Sync"
   },
   {
@@ -12408,6 +12442,14 @@
     ],
     "documentation": "https://support.patientaccess.com/signing-in/sign-in-or-register-using-two-factor-authentication",
     "name": "Patient Access"
+  },
+  {
+    "domain": "patientsknowbest.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.patientsknowbest.com/support/solutions/articles/11000130901",
+    "name": "Patients Know Best"
   },
   {
     "domain": "patreon.com",
@@ -12672,6 +12714,14 @@
       "call"
     ],
     "name": "Pacific Gas and Electric Company"
+  },
+  {
+    "domain": "pharmacy2u.co.uk",
+    "tfa": [
+      "sms",
+      "u2f"
+    ],
+    "name": "Pharmacy2U"
   },
   {
     "domain": "phemex.com",
@@ -13953,9 +14003,10 @@
   {
     "domain": "report-uri.com",
     "tfa": [
-      "totp"
+      "totp",
+      "u2f"
     ],
-    "documentation": "https://scotthelme.co.uk/dealing-with-account-recovery-and-2fa/",
+    "documentation": "https://docs.report-uri.com/help/twofa/",
     "name": "Report URI"
   },
   {
@@ -14336,12 +14387,14 @@
   },
   {
     "domain": "samsung.com",
-    "url": "https://www.samsung.com/",
+    "additional-domains": [
+      "smartthings.com"
+    ],
     "tfa": [
       "sms",
       "totp"
     ],
-    "documentation": "https://account.samsung.com/membership/guide/2step/",
+    "documentation": "https://v3.account.samsung.com/guide/two-step-verification/introduction",
     "name": "Samsung"
   },
   {
@@ -14955,7 +15008,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://help.short.io/en/articles/4065798",
+    "documentation": "https://docs.short.io/articles/short.io-basics-and-security/security/how-to-enable-two-factor-authentication-2fa",
     "name": "Short.io"
   },
   {
@@ -15281,15 +15334,6 @@
     "documentation": "https://help.smartsurvey.co.uk/article/two-factor-authentication",
     "notes": "SMS 2FA is only available for Enterprise users.",
     "name": "SmartSurvey"
-  },
-  {
-    "domain": "smartthings.com",
-    "tfa": [
-      "sms",
-      "totp"
-    ],
-    "documentation": "https://account.samsung.com/membership/guide/setup-2step-verification",
-    "name": "Samsung SmartThings"
   },
   {
     "domain": "smartvault.com",
@@ -16698,7 +16742,10 @@
     "name": "Techniker Krankenkasse"
   },
   {
-    "domain": "todo.microsoft.com",
+    "domain": "to-do.office.com",
+    "additional-domains": [
+      "to-do.live.com"
+    ],
     "tfa": [
       "sms",
       "call",
@@ -16792,6 +16839,17 @@
     ],
     "documentation": "https://toya.net.pl/dokumenty/pobierz/instrukcja-2fa",
     "name": "Toya"
+  },
+  {
+    "domain": "tp-link.com",
+    "additional-domains": [
+      "tplinkcloud.com"
+    ],
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "name": "TP-Link"
   },
   {
     "domain": "tpg.com.au",
@@ -19215,6 +19273,27 @@
     ],
     "documentation": "https://www.xplenty.com/docs/2-factor-authentication/",
     "name": "Xplenty"
+  },
+  {
+    "domain": "yahoo.co.jp",
+    "tfa": [
+      "email",
+      "sms"
+    ],
+    "documentation": "https://id.yahoo.co.jp/security/otp.html",
+    "name": "Yahoo [JP]"
+  },
+  {
+    "domain": "yahoo.com",
+    "tfa": [
+      "sms",
+      "call",
+      "totp",
+      "u2f"
+    ],
+    "documentation": "https://help.yahoo.com/kb/SLN5013.html",
+    "notes": "A recovery email or phone number is required for 2FA setup.",
+    "name": "Yahoo"
   },
   {
     "domain": "yclas.com",

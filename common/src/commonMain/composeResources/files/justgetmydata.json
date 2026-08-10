@@ -143,6 +143,13 @@
     "notes": "U.S. and Canada residents can fill out the linked web form or email [privacy@rbi.com](mailto:privacy@rbi.com)"
   },
   {
+    "name": "Chess.com",
+    "domains": [],
+    "url": "https://www.chess.com/my-data/download",
+    "difficulty": "easy",
+    "notes": "Fill your account's email and the captcha below, then click \"Show My Data\" and save the single-page PDF."
+  },
+  {
     "name": "Chick-fil-A",
     "domains": [],
     "url": "https://privacyportal.onetrust.com/webform/63dc78c7-5612-4181-beae-47dead0569ee/01252c81-82df-4db5-9cb8-bf23a62a9a55",
@@ -784,6 +791,13 @@
     "url": "https://tmall.com",
     "difficulty": "hard",
     "notes": "Depending on your area you must follow the instructions shown in https://www.alibabagroup.com/en/contact/law_e_commerce?spm=a271m.8038972.0.0.5a916d82MwfIzm'"
+  },
+  {
+    "name": "Trakt",
+    "domains": [],
+    "url": "https://app.trakt.tv/settings/data",
+    "difficulty": "easy",
+    "notes": "In Data tab in Settings, click the \"Export now\" button under the Export section. Request will be completed on the spot and download will begin shortly."
   },
   {
     "name": "Twitch",

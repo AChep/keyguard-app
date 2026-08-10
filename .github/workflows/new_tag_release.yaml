@@ -401,7 +401,7 @@ jobs:
         run: >-
           ./gradlew
           :desktopApp:packageReleaseMsi
-          -Pkeyguard.nativeCrypto.cargoOffline=true
+          "-Pkeyguard.nativeCrypto.cargoOffline=true"
       - name: "Extract final MSI"
         shell: pwsh
         run: |

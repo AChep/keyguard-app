@@ -6,6 +6,7 @@ import com.artemchep.keyguard.util.foundation.constantTimeEquals
 import com.artemchep.keyguard.util.foundation.crypto.createHmacSha256
 import com.artemchep.keyguard.util.foundation.crypto.sha256
 import com.artemchep.keyguard.util.foundation.crypto.sha512
+import com.artemchep.keyguard.util.foundation.isAllZero
 import okio.Buffer
 import okio.BufferedSink
 import okio.BufferedSource
@@ -240,7 +241,7 @@ internal object ContentBlocks {
             val expectedHash = source.readByteArray(32)
             val length = readBlockLength(source, index, maximumBlockSize)
             if (length == 0) {
-                if (!expectedHash.contentEquals(ByteArray(32))) {
+                if (!expectedHash.isAllZero()) {
                     throw FormatError.InvalidContent("Terminal content block hash does not match.")
                 }
                 // The validated zero-length block is the logical end

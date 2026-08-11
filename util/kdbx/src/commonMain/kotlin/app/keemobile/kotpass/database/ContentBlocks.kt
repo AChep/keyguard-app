@@ -243,9 +243,8 @@ internal object ContentBlocks {
                 if (!expectedHash.contentEquals(ByteArray(32))) {
                     throw FormatError.InvalidContent("Terminal content block hash does not match.")
                 }
-                if (!source.exhausted()) {
-                    throw FormatError.InvalidContent("Unexpected data after the terminal content block.")
-                }
+                // The validated zero-length block is the logical end
+                // of the KDBX stream.
                 finish()
                 return
             }
@@ -279,9 +278,8 @@ internal object ContentBlocks {
             }
             actualHmac.fill(0)
             if (length == 0) {
-                if (!source.exhausted()) {
-                    throw FormatError.InvalidContent("Unexpected data after the terminal content block.")
-                }
+                // The validated zero-length block is the logical end
+                // of the KDBX stream.
                 finish()
                 hmacKey.fill(0)
                 return

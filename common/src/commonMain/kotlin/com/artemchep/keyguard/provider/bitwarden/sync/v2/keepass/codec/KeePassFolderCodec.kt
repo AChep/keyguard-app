@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec
 
 import app.keemobile.kotpass.models.Group
+import app.keemobile.kotpass.models.TimeData
 import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
@@ -30,6 +31,7 @@ class KeePassFolderCodec {
                 Uuid.parse(local.folderId)
             }.getOrElse { Uuid.random() },
             name = local.name,
+            times = TimeData.create(now = local.revisionDate),
         )
 
     fun decode(

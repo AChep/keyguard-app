@@ -37,6 +37,6 @@ internal fun Instant.marshal(context: XmlContext.Encode): String {
     return if (binary) {
         (epochSeconds + EpochSecondsFromAD).toByteArray().encodeBase64()
     } else {
-        toString()
+        Instant.fromEpochSeconds(epochSeconds).toString()
     }
 }

@@ -1,18 +1,20 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops
 
+import app.keemobile.kotpass.models.TimeData
 import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassDbMutator
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.entity.KeePassFolder
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassWriteBackBuffer
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassFolderCodec
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.writeIfCurrent
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.entity.KeePassFolder
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.toKeePassTimestamp
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncOps
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateEntry
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateResult
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.RemoteWriteOutcome
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.writeIfCurrent
 import kotlin.uuid.Uuid
 
 class KeePassFolderSyncOps(
@@ -69,6 +71,9 @@ class KeePassFolderSyncOps(
         force: Boolean,
     ): RemoteWriteOutcome<BitwardenFolder> {
         val remoteUuid = server?.group?.uuid
+        val publishedLocal = local.copy(
+            revisionDate = local.revisionDate.toKeePassTimestamp(),
+        )
         val mappings = currentFolderIdMappings()
         val targetParentUuid = resolveTargetParentUuid(
             folder = local,
@@ -76,10 +81,27 @@ class KeePassFolderSyncOps(
         )
 
         if (remoteUuid != null) {
-            val updated = mutator.modifyGroup(remoteUuid) {
-                copy(name = local.name)
-            }
             val shouldMove = targetParentUuid != server.parentGroupUuid
+            val updated = mutator.modifyGroup(remoteUuid) {
+                val currentTimes = times
+                val publishedTimes = currentTimes
+                    ?.copy(
+                        lastAccessTime = publishedLocal.revisionDate,
+                        lastModificationTime = publishedLocal.revisionDate,
+                        locationChanged = if (shouldMove) {
+                            publishedLocal.revisionDate
+                        } else {
+                            currentTimes.locationChanged
+                        },
+                    )
+                    ?: TimeData.create(
+                        now = publishedLocal.revisionDate,
+                    )
+                copy(
+                    name = publishedLocal.name,
+                    times = publishedTimes,
+                )
+            }
             if (shouldMove) {
                 val moved = mutator.moveGroup(remoteUuid, targetParentUuid)
                 check(moved) {
@@ -87,11 +109,11 @@ class KeePassFolderSyncOps(
                 }
             }
             if (updated) {
-                val newLocal = local.copy(
+                val newLocal = publishedLocal.copy(
                     service = BitwardenService(
                         remote = BitwardenService.Remote(
                             id = remoteUuid.toString(),
-                            revisionDate = local.revisionDate,
+                            revisionDate = publishedLocal.revisionDate,
                             deletedDate = null,
                         ),
                         version = BitwardenService.VERSION,
@@ -104,17 +126,17 @@ class KeePassFolderSyncOps(
 
         // Match new groups to their local folder ids so a retry can recognize
         // a group that reached the KDBX file before SQLite was committed.
-        val newGroup = folderCodec.encodeNew(local)
+        val newGroup = folderCodec.encodeNew(publishedLocal)
         val newUuid = newGroup.uuid
         mutator.addGroup(
             newGroup,
             parentGroupUuid = targetParentUuid,
         )
-        val newLocal = local.copy(
+        val newLocal = publishedLocal.copy(
             service = BitwardenService(
                 remote = BitwardenService.Remote(
                     id = newUuid.toString(),
-                    revisionDate = local.revisionDate,
+                    revisionDate = publishedLocal.revisionDate,
                     deletedDate = null,
                 ),
                 version = BitwardenService.VERSION,

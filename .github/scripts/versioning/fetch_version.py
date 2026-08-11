@@ -138,6 +138,11 @@ DEFAULT_TRACKS = [
 # Required scope for reading app information
 SCOPES = ["https://www.googleapis.com/auth/androidpublisher"]
 
+# The releases.list endpoint does not support pagination and returns at most 20
+# releases. Refuse to calculate a version code from a potentially truncated
+# response.
+MAX_RELEASES_PER_TRACK = 20
+
 
 # =============================================================================
 # Typer App
@@ -200,35 +205,34 @@ def get_track_version_codes(
         ApiError: If the API call fails
     """
     try:
-        # Create an edit session (read-only, we won't commit)
-        edit_request = service.edits().insert(body={}, packageName=package_name)
-        edit = edit_request.execute()
-        edit_id = edit["id"]
+        parent = f"applications/{package_name}/tracks/{track}"
+        track_response = (
+            service.applications()
+            .tracks()
+            .releases()
+            .list(parent=parent)
+            .execute(num_retries=1)
+        )
 
-        try:
-            # Get track info
-            track_response = (
-                service.edits()
-                .tracks()
-                .get(
-                    packageName=package_name,
-                    editId=edit_id,
-                    track=track,
-                )
-                .execute()
+        releases = track_response.get("releases", [])
+        if len(releases) >= MAX_RELEASES_PER_TRACK:
+            raise ApiError(
+                f"Track '{track}' returned the API limit of "
+                f"{MAX_RELEASES_PER_TRACK} releases; cannot safely determine "
+                "the maximum version code",
+                service="google_play",
             )
 
-            version_codes = []
-            releases = track_response.get("releases", [])
-            for release in releases:
-                codes = release.get("versionCodes", [])
-                version_codes.extend(int(code) for code in codes)
+        version_codes = []
+        for release in releases:
+            artifacts = release.get("activeArtifacts", [])
+            version_codes.extend(
+                int(artifact["versionCode"])
+                for artifact in artifacts
+                if "versionCode" in artifact
+            )
 
-            return version_codes
-
-        finally:
-            # Always delete the edit (we don't need to commit)
-            service.edits().delete(packageName=package_name, editId=edit_id).execute()
+        return version_codes
 
     except HttpError as e:
         if e.resp.status == 404:

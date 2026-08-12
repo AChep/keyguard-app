@@ -2,9 +2,9 @@
 # Keep only the top-level core package (not com.sun.jna.platform.**) intact,
 # while preserving application-defined native interfaces and structures below.
 -keep,allowobfuscation class com.sun.jna.* { *; }
--keepclassmembers,allowoptimization interface * extends com.sun.jna.Library { <methods>; }
--keepclassmembers,allowoptimization interface * extends com.sun.jna.Callback { <methods>; }
--keepclassmembers,allowoptimization class * extends com.sun.jna.Structure { <fields>; }
+-keepclassmembers interface * extends com.sun.jna.Library { <methods>; }
+-keepclassmembers interface * extends com.sun.jna.Callback { <methods>; }
+-keepclassmembers class * extends com.sun.jna.Structure { <fields>; }
 
 # D-Bus discovers its native transport with ServiceLoader and reflects over
 # wire interfaces, signals, errors, containers, and serializable values.

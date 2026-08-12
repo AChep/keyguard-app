@@ -11,10 +11,10 @@
     <string name="listing_description_highlight_multiple_accounts">Suport multi-compte: Tenir diversos comptes connectats simultàniament.</string>
     <string name="listing_description_highlight_offline">Gestió fora de línia: Afegeix elements i enviaments, modifica i visualitza la teva caixa forta fora de línia.</string>
     <string name="listing_description_highlight_export">Exportació de dades: Exporta elements individuals o d\'organització, incloent-hi els fitxers adjunts.</string>
-    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
-    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
+    <string name="listing_description_highlight_backup">Còpia de seguretat de les dades: Gestiona automàticament un repositori de còpies de seguretat de la caixa forta, incloent-hi els fitxers adjunts.</string>
+    <string name="listing_description_highlight_attachment_preview">Previsualització dels fitxers adjunts: Visualitzador segur integrat a l\'aplicació per a fitxers adjunts d\'imatge i de text.</string>
     <string name="listing_description_highlight_generator">Generador: Crea contrasenyes, claus SSH i reenviadors de correu, amb suport per a llistes de paraules personalitzades.</string>
-    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
+    <string name="listing_description_highlight_ssh_agent">Agent SSH: Autenticació en servidors, signatura de commits de Git i interacció amb serveis basats en SSH.</string>
     <string name="listing_description_highlight_other">Funcions avançades: Suport per a dreceres, marcadors de posició de camps, substitucions d\'URL i resolució intel·ligent de conflictes.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Pantalla d\'inici</string>

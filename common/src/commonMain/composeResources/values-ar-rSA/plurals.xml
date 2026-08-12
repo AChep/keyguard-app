@@ -25,12 +25,12 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> كلمات</item>
     </plurals>
     <plurals name="character_count_plural">
-        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> characters</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> character</item>
-        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> characters</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> characters</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> characters</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> characters</item>
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> حرف</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> حرف</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> حرفان</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> أحرف</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> حرفًا</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> حرف</item>
     </plurals>
     <plurals name="result_count_plural">
         <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> نتائج</item>
@@ -89,188 +89,188 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> أشهر أخرى</item>
     </plurals>
     <plurals name="skipped_passkeys_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> passkey</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> مفتاح مرور</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> مفتاح مرور</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> مفتاحا مرور</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> مفاتيح مرور</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> مفتاح مرور</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> مفتاح مرور</item>
     </plurals>
     <plurals name="skipped_otp_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> one-time password</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> كلمة مرور لمرة واحدة</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> كلمة مرور لمرة واحدة</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> كلمتا مرور لمرة واحدة</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> كلمات مرور لمرة واحدة</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> كلمة مرور لمرة واحدة</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> كلمة مرور لمرة واحدة</item>
     </plurals>
     <plurals name="skipped_ssh_keys_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH key</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> مفتاح SSH</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> مفتاح SSH</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> مفتاحا SSH</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> مفاتيح SSH</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> مفتاح SSH</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> مفتاح SSH</item>
     </plurals>
     <plurals name="skipped_gpg_keys_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> GPG keys</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG key</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> GPG keys</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> GPG keys</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> GPG keys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> GPG keys</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> مفتاح GPG</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> مفتاح GPG</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> مفتاحا GPG</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> مفاتيح GPG</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> مفتاح GPG</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> مفتاح GPG</item>
     </plurals>
     <plurals name="skipped_attachments_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> attachments</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> attachment</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> attachments</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> attachments</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> attachments</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> attachments</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> مرفق</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> مرفق</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> مرفقان</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> مرفقات</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> مرفقًا</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> مرفق</item>
     </plurals>
     <plurals name="skipped_password_history_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> saved previous passwords</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> saved previous password</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> saved previous passwords</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> saved previous passwords</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> saved previous passwords</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> saved previous passwords</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> كلمة مرور سابقة محفوظة</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> كلمة مرور سابقة محفوظة</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> كلمتا مرور سابقتان محفوظتان</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> كلمات مرور سابقة محفوظة</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> كلمة مرور سابقة محفوظة</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> كلمة مرور سابقة محفوظة</item>
     </plurals>
     <plurals name="skipped_archived_items_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> archived items</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> archived item</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> archived items</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> archived items</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> archived items</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> archived items</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> عنصر مؤرشف</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> عنصر مؤرشف</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> عنصران مؤرشفان</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> عناصر مؤرشفة</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> عنصرًا مؤرشفًا</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> عنصر مؤرشف</item>
     </plurals>
     <plurals name="skipped_items_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> عنصر</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> عنصر</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> عنصران</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> عناصر</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> عنصرًا</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> عنصر</item>
     </plurals>
     <plurals name="skipped_accounts_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> accounts</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> account</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> accounts</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> accounts</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> accounts</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> accounts</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> حساب</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> حساب</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> حسابان</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> حسابات</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> حسابًا</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> حساب</item>
     </plurals>
     <plurals name="credential_exchange_import_review_accounts_note">
-        <item quantity="zero">The received data contains <xliff:g id="number">%1$d</xliff:g> accounts; all of their items are imported into this account.</item>
-        <item quantity="one">The received data contains <xliff:g id="number" example="1">%1$d</xliff:g> account; all of its items are imported into this account.</item>
-        <item quantity="two">The received data contains <xliff:g id="number">%1$d</xliff:g> accounts; all of their items are imported into this account.</item>
-        <item quantity="few">The received data contains <xliff:g id="number">%1$d</xliff:g> accounts; all of their items are imported into this account.</item>
-        <item quantity="many">The received data contains <xliff:g id="number">%1$d</xliff:g> accounts; all of their items are imported into this account.</item>
-        <item quantity="other">The received data contains <xliff:g id="number">%1$d</xliff:g> accounts; all of their items are imported into this account.</item>
+        <item quantity="zero">تحتوي البيانات المستلمة على <xliff:g id="number">%1$d</xliff:g> حساب؛ وتُستورد جميع العناصر الواردة فيها إلى هذا الحساب.</item>
+        <item quantity="one">تحتوي البيانات المستلمة على <xliff:g id="number" example="1">%1$d</xliff:g> حساب؛ وتُستورد جميع العناصر الواردة فيها إلى هذا الحساب.</item>
+        <item quantity="two">تحتوي البيانات المستلمة على <xliff:g id="number">%1$d</xliff:g> حسابين؛ وتُستورد جميع العناصر الواردة فيها إلى هذا الحساب.</item>
+        <item quantity="few">تحتوي البيانات المستلمة على <xliff:g id="number">%1$d</xliff:g> حسابات؛ وتُستورد جميع العناصر الواردة فيها إلى هذا الحساب.</item>
+        <item quantity="many">تحتوي البيانات المستلمة على <xliff:g id="number">%1$d</xliff:g> حسابًا؛ وتُستورد جميع العناصر الواردة فيها إلى هذا الحساب.</item>
+        <item quantity="other">تحتوي البيانات المستلمة على <xliff:g id="number">%1$d</xliff:g> حساب؛ وتُستورد جميع العناصر الواردة فيها إلى هذا الحساب.</item>
     </plurals>
     <plurals name="credential_exchange_import_review_folders_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> folder</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> folders</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> مجلد</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> مجلد</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> مجلدان</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> مجلدات</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> مجلدًا</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> مجلد</item>
     </plurals>
     <plurals name="credential_exchange_import_review_logins_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> logins</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> login</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> logins</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> logins</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> logins</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> logins</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> تسجيل دخول</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> تسجيل دخول</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> تسجيلا دخول</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> تسجيلات دخول</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> تسجيل دخول</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> تسجيل دخول</item>
     </plurals>
     <plurals name="credential_exchange_import_review_passkeys_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> passkey</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> مفتاح مرور</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> مفتاح مرور</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> مفتاحا مرور</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> مفاتيح مرور</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> مفتاح مرور</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> مفتاح مرور</item>
     </plurals>
     <plurals name="credential_exchange_import_review_otp_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> one-time password</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> كلمة مرور لمرة واحدة</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> كلمة مرور لمرة واحدة</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> كلمتا مرور لمرة واحدة</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> كلمات مرور لمرة واحدة</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> كلمة مرور لمرة واحدة</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> كلمة مرور لمرة واحدة</item>
     </plurals>
     <plurals name="credential_exchange_import_review_cards_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> cards</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> card</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> cards</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> cards</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> cards</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> cards</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> بطاقة</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> بطاقة</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> بطاقتان</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> بطاقات</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> بطاقةً</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> بطاقة</item>
     </plurals>
     <plurals name="credential_exchange_import_review_identities_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> identities</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> identity</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> identities</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> identities</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> identities</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> identities</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> هوية</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> هوية</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> هويتان</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> هويات</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> هويةً</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> هوية</item>
     </plurals>
     <plurals name="credential_exchange_import_review_notes_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> notes</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> note</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> notes</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> notes</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> notes</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> notes</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> ملاحظة</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> ملاحظة</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> ملاحظتان</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> ملاحظات</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> ملاحظةً</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> ملاحظة</item>
     </plurals>
     <plurals name="credential_exchange_import_review_ssh_keys_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH key</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> مفتاح SSH</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> مفتاح SSH</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> مفتاحا SSH</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> مفاتيح SSH</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> مفتاح SSH</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> مفتاح SSH</item>
     </plurals>
     <plurals name="skipped_unsupported_credentials_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> unsupported credentials</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> unsupported credential</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> unsupported credentials</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> unsupported credentials</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> unsupported credentials</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> unsupported credentials</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> من بيانات الاعتماد غير المدعومة</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> من بيانات الاعتماد غير المدعومة</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> من بيانات الاعتماد غير المدعومة</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> من بيانات الاعتماد غير المدعومة</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> من بيانات الاعتماد غير المدعومة</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> من بيانات الاعتماد غير المدعومة</item>
     </plurals>
     <plurals name="skipped_duplicate_credentials_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> duplicate credentials</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> duplicate credential</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> duplicate credentials</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> duplicate credentials</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> duplicate credentials</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> duplicate credentials</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> من بيانات الاعتماد المكررة</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> من بيانات الاعتماد المكررة</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> من بيانات الاعتماد المكررة</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> من بيانات الاعتماد المكررة</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> من بيانات الاعتماد المكررة</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> من بيانات الاعتماد المكررة</item>
     </plurals>
     <plurals name="skipped_folders_note">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> folder</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> folders</item>
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> مجلد</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> مجلد</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> مجلدان</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> مجلدات</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> مجلدًا</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> مجلد</item>
     </plurals>
     <plurals name="skipped_and_more_note">
-        <item quantity="zero">and <xliff:g id="number">%1$d</xliff:g> more</item>
-        <item quantity="one">and <xliff:g id="number" example="1">%1$d</xliff:g> more</item>
-        <item quantity="two">and <xliff:g id="number">%1$d</xliff:g> more</item>
-        <item quantity="few">and <xliff:g id="number">%1$d</xliff:g> more</item>
-        <item quantity="many">and <xliff:g id="number">%1$d</xliff:g> more</item>
-        <item quantity="other">and <xliff:g id="number">%1$d</xliff:g> more</item>
+        <item quantity="zero">و<xliff:g id="number">%1$d</xliff:g> غيرها</item>
+        <item quantity="one">و<xliff:g id="number" example="1">%1$d</xliff:g> غيرها</item>
+        <item quantity="two">و<xliff:g id="number">%1$d</xliff:g> غيرها</item>
+        <item quantity="few">و<xliff:g id="number">%1$d</xliff:g> غيرها</item>
+        <item quantity="many">و<xliff:g id="number">%1$d</xliff:g> غيرها</item>
+        <item quantity="other">و<xliff:g id="number">%1$d</xliff:g> غيرها</item>
     </plurals>
     <plurals name="credential_exchange_import_success_text">
-        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> items have been added to the account.</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item has been added to the account.</item>
-        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> items have been added to the account.</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> items have been added to the account.</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> items have been added to the account.</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items have been added to the account.</item>
+        <item quantity="zero">تمت إضافة <xliff:g id="number">%1$d</xliff:g> عنصر إلى الحساب.</item>
+        <item quantity="one">تمت إضافة <xliff:g id="number" example="1">%1$d</xliff:g> عنصر إلى الحساب.</item>
+        <item quantity="two">تمت إضافة <xliff:g id="number">%1$d</xliff:g> عنصرين إلى الحساب.</item>
+        <item quantity="few">تمت إضافة <xliff:g id="number">%1$d</xliff:g> عناصر إلى الحساب.</item>
+        <item quantity="many">تمت إضافة <xliff:g id="number">%1$d</xliff:g> عنصرًا إلى الحساب.</item>
+        <item quantity="other">تمت إضافة <xliff:g id="number">%1$d</xliff:g> عنصر إلى الحساب.</item>
     </plurals>
     <plurals name="years_plural">
         <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> سنة</item>

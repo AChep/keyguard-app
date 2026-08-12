@@ -121,8 +121,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 56694,
-    "target": 61722,
+    "translated": 71161,
+    "target": 76062,
     "approved": 1050,
     "voted": 0,
     "positiveVotes": 63,
@@ -727,8 +727,8 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 6361,
-    "target": 10620,
+    "translated": 6366,
+    "target": 10636,
     "approved": 0,
     "voted": 17,
     "positiveVotes": 13,
@@ -1949,10 +1949,32 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 504,
-    "target": 702,
+    "translated": 1376,
+    "target": 2076,
     "approved": 0,
     "voted": 6,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "17830661",
+      "username": "yncn",
+      "fullName": "yncn",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17830661/medium/94465172b74f90317c547ed7df9dda8c_default.png",
+      "joined": "2026-08-11 13:59:30"
+    },
+    "languages": [
+      {
+        "id": "zh-CN",
+        "name": "Chinese Simplified"
+      }
+    ],
+    "translated": 263,
+    "target": 390,
+    "approved": 0,
+    "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
     "winning": 0

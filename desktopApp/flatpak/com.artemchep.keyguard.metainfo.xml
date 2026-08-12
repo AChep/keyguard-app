@@ -64,6 +64,9 @@
         <keyguard_text_res token="listing_description_highlight_ssh_agent" />
       </li>
       <li>
+        <keyguard_text_res token="listing_description_highlight_gpg_agent" />
+      </li>
+      <li>
         <keyguard_text_res token="listing_description_highlight_other" />
       </li>
     </ul>

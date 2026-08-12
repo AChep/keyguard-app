@@ -13,7 +13,7 @@
     <string name="listing_description_highlight_export">Adatexportálás: Egyéni vagy szervezeti elemek exportálása, a mellékletekkel együtt.</string>
     <string name="listing_description_highlight_backup">Biztonsági mentés: A széf biztonsági mentési tárolójának automatikus kezelése, beleértve a mellékleteket is.</string>
     <string name="listing_description_highlight_attachment_preview">Melléklet előnézet: Biztonságos, alkalmazáson belüli megjelenítő kép- és szövegmellékletekhez.</string>
-    <string name="listing_description_highlight_generator">Generátor: Jelszavak, SSH-kulcsok és e-mail továbbítók létrehozása, egyéni szójegyzékek támogatásával.</string>
+    <string name="listing_description_highlight_generator">Generátor: Jelszavak, SSH- és GPG-kulcsok, valamint e-mail-továbbítók létrehozása egyéni szólisták támogatásával.</string>
     <string name="listing_description_highlight_ssh_agent">SSH ügynök: Hitelesítés szervereken, Git commitok aláírása, interakció SSH-alapú szolgáltatásokkal.</string>
     <string name="listing_description_highlight_other">Fejlett funkciók: Parancsikonok, mező-helyőrzők (placeholderek), URL-felülbírálások és intelligens ütközésfeloldás támogatása.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->

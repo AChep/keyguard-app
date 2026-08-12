@@ -13,7 +13,7 @@
     <string name="listing_description_highlight_export">Datenexport: Einzelne oder Organisations-Einträge einschließlich Anhänge exportieren.</string>
     <string name="listing_description_highlight_backup">Datensicherung: Automatische Verwaltung von Vault-Backup-Repositories, inklusive Anhängen.</string>
     <string name="listing_description_highlight_attachment_preview">Anhangsvorschau: Sichere In-App Vorschau von Bild- und Textanhängen.</string>
-    <string name="listing_description_highlight_generator">Generator: Passwörter, SSH-Schlüssel und E-Mail-Weiterleitungen erstellen, mit Unterstützung für benutzerdefinierte Wortlisten.</string>
+    <string name="listing_description_highlight_generator">Generator: Passwörter, SSH- und GPG-Schlüssel sowie E-Mail-Weiterleitungen erstellen; unterstützt benutzerdefinierte Wortlisten.</string>
     <string name="listing_description_highlight_ssh_agent">SSH-Agent: Authentifizierung gegenüber Servern, Signierung von Git-Commits, Interaktion mit SSH-basierten Diensten.</string>
     <string name="listing_description_highlight_other">Erweiterte Funktionen: Unterstützung für Tastenkombinationen, Feld-Platzhalter, URL-Überschreibungen und intelligente Konfliktlösung.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->

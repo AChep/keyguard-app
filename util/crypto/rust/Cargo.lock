@@ -721,7 +721,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48bc224a9084ad760195584ce5abb3c2c34a225fa312a128ad245a6b412b7689"
 dependencies = [
  "digest",
- "num-bigint-dig",
+ "num-bigint-dig 0.8.6",
  "num-traits",
  "pkcs8",
  "rfc6979",
@@ -1195,7 +1195,7 @@ dependencies = [
  "block-buffer",
  "blowfish",
  "digest",
- "num-bigint-dig",
+ "num-bigint-dig 0.9.1",
  "num-integer",
  "zeroize",
 ]
@@ -1291,6 +1291,21 @@ dependencies = [
  "num-traits",
  "rand 0.8.7",
  "serde",
+ "smallvec",
+ "zeroize",
+]
+
+[[package]]
+name = "num-bigint-dig"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7f9a86e097b0d187ad0e65667c2f58b9254671e86e7dbb78036b16692eae099"
+dependencies = [
+ "libm",
+ "num-integer",
+ "num-iter",
+ "num-traits",
+ "once_cell",
  "smallvec",
  "zeroize",
 ]
@@ -1487,7 +1502,7 @@ dependencies = [
  "md-5",
  "memchr",
  "nom",
- "num-bigint-dig",
+ "num-bigint-dig 0.8.6",
  "num-traits",
  "num_enum",
  "ocb3",
@@ -1796,7 +1811,7 @@ checksum = "b8573f03f5883dcaebdfcf4725caa1ecb9c15b2ef50c43a07b816e06799bb12d"
 dependencies = [
  "const-oid",
  "digest",
- "num-bigint-dig",
+ "num-bigint-dig 0.8.6",
  "num-integer",
  "num-traits",
  "pkcs1",

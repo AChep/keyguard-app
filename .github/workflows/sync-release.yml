@@ -69,8 +69,13 @@ jobs:
       - name: "Setup Gradle"
         uses: ./.github/actions/setup_gradle
 
+      - name: "Setup Android NDK"
+        uses: ./.github/actions/setup_android_ndk
+
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
 
       - name: "Fetch upstream code at tag"
         env:
@@ -121,6 +126,11 @@ jobs:
           sudo mkswap /swapfile
           sudo swapon /swapfile
           sudo swapon --show
+
+      - name: "Accept Android SDK licenses"
+        uses: ./.github/actions/build_android_licenses
+        with:
+          build-flavor: "None"
 
       - name: "Build APK"
         run: >-

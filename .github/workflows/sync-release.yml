@@ -77,6 +77,9 @@ jobs:
         with:
           targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
 
+      - name: "Prepare disk space"
+        uses: ./.github/actions/prepare_disk_space
+
       - name: "Fetch upstream code at tag"
         env:
           TAG: ${{ needs.check.outputs.tag }}
@@ -170,6 +173,9 @@ jobs:
 
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
+
+      - name: "Prepare disk space"
+        uses: ./.github/actions/prepare_disk_space
 
       - name: "Fetch upstream code at tag"
         env:

@@ -25,7 +25,7 @@ aws-lc-rs = { version = "=1.17.0", default-features = false, features = ["non-fi
 aws-lc-sys = { version = "=0.41.0", default-features = false }
 cbc = { version = "=0.1.2", default-features = false, features = ["alloc", "block-padding", "zeroize"] }
 chacha20 = { version = "=0.9.1", default-features = false, features = ["zeroize"] }
-cipher = { version = "=0.4.4", default-features = false, features = ["alloc", "block-padding", "zeroize"] }
+cipher = { version = "=0.5.2", default-features = false, features = ["alloc", "block-padding", "zeroize"] }
 digest = "=0.10.7"
 des = { version = "=0.8.1", features = ["zeroize"] }
 ed25519-dalek = { version = "=2.2.0", default-features = false, features = ["fast", "std", "zeroize"] }

@@ -146,6 +146,31 @@ class SyncCoordinatorAndRevisionV2Test {
     }
 
     @Test
+    fun `coordinator propagates fatal errors instead of wrapping failed outcome`() = runTest {
+        val failure = AssertionError("sync runtime is broken")
+        val local = localOnly(localId = "local-1", revisionDate = T1)
+        val ops = TestEntitySyncOps(listOf(local))
+        val throwingStrategy =
+            object : EntitySyncStrategy<TestLocal, TestServer> by TestSyncStrategy {
+                override fun toLocalItemMeta(entity: TestLocal): Nothing = throw failure
+            }
+
+        val actual = assertFailsWith<AssertionError> {
+            SyncCoordinator().safeSyncEntityType(
+                EntitySyncConfig(
+                    name = "test",
+                    strategy = throwingStrategy,
+                    localEntities = listOf(local),
+                    serverEntities = emptyList(),
+                    ops = ops,
+                ),
+            )
+        }
+
+        assertTrue(actual === failure)
+    }
+
+    @Test
     fun `one entity type failure does not prevent another from completing`() = runTest {
         val failing = localOnly(localId = "local-failing", revisionDate = T1)
         val succeeding = localOnly(localId = "local-success", revisionDate = T1)

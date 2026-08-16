@@ -91,9 +91,8 @@ class RunCatchingGuardsTest {
 
     @Test
     fun `the cancellation-only guard still rethrows a cancellation`() {
-        // Three callers need this shape: the Android credential-exchange
-        // registration and import transport, which recover from an `Error` on
-        // purpose, and the v2 sync pipeline's per-item error isolation.
+        // This guard deliberately allows an `Error` to reach the recovery path;
+        // most recovery paths should use runCatchingNonFatal instead.
         assertFailsWith<CancellationException> {
             runCatching { throw CancellationException("cancelled") }
                 .getOrElse { e ->
@@ -115,8 +114,6 @@ class RunCatchingGuardsTest {
 
     @Test
     fun `the cancellation-only guard lets an ordinary failure reach the recovery path`() {
-        // The shape the v2 sync pipeline relies on: one unusable record is
-        // reported and the run carries on.
         val recovered = runCatching { error("gone") }
             .getOrElse { e ->
                 e.throwIfCancellation()

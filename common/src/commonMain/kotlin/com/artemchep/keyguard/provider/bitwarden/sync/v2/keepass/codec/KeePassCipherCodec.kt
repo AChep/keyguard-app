@@ -11,6 +11,7 @@ import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.TimeData
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.KEEPASS_FILE_UPLOAD_MAX_BYTES
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
@@ -257,7 +258,7 @@ class KeePassCipherCodec(
         // makes the write idempotent if the KDBX file is saved but the
         // corresponding SQLite write-back is interrupted.
         val uuid = remote?.uuid
-            ?: runCatching {
+            ?: runCatchingNonFatal {
                 Uuid.parse(local.cipherId)
             }.getOrElse { Uuid.random() }
         val icon = local.customIcon?.toPredefinedIcon()
@@ -694,7 +695,7 @@ class KeePassCipherCodec(
                 .mapNotNull { field ->
                     val ordinal = field.key.removePrefix(prefix).toIntOrNull()
                         ?: return@mapNotNull null
-                    val credentials = runCatching {
+                    val credentials = runCatchingNonFatal {
                         val data = base64Service.decodeToString(field.value.content)
                         json.decodeFromString<BitwardenCipher.Login.Fido2Credentials>(data)
                     }.getOrElse { return@mapNotNull null }

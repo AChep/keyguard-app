@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec
 import app.keemobile.kotpass.cryptography.EncryptedValue
 import app.keemobile.kotpass.models.Entry
 import app.keemobile.kotpass.models.EntryValue
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.CipherSourceCanonicalPaths
@@ -676,7 +677,7 @@ internal class KeePassTotpCodec(
             SecretEncoding.BASE32 -> normalizeBase32Secret(value.content)
             SecretEncoding.RAW -> encodeBase32(value.content.encodeToByteArray())
             SecretEncoding.HEX -> decodeHex(value.content)?.let(::encodeBase32)
-            SecretEncoding.BASE64 -> runCatching {
+            SecretEncoding.BASE64 -> runCatchingNonFatal {
                 base64Service.decode(value.content)
             }.getOrNull()?.let(::encodeBase32)
         }
@@ -702,7 +703,7 @@ internal class KeePassTotpCodec(
     private fun encodeBase32(bytes: ByteArray): String =
         base32Service.encodeToString(bytes).trimEnd('=')
 
-    private fun decodeBase32(value: String): ByteArray? = runCatching {
+    private fun decodeBase32(value: String): ByteArray? = runCatchingNonFatal {
         base32Service.decode(normalizeBase32Secret(value))
     }.getOrNull()
 
@@ -758,7 +759,7 @@ internal class KeePassTotpCodec(
             ?.takeIf { it.matches(BASE64_SECRET_PATTERN) }
             ?: return null
 
-        val decoded = runCatching {
+        val decoded = runCatchingNonFatal {
             base64Service.decode(normalized)
         }.getOrNull()
             ?.takeIf { it.size >= MIN_RAW_OTP_SECRET_BYTES }

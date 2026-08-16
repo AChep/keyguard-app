@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops
 
-import com.artemchep.keyguard.common.io.throwIfCancellation
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCr
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrCta
@@ -51,7 +51,7 @@ internal suspend inline fun <T> decodeRemoteOrFallback(
     try {
         decode()
     } catch (e: Throwable) {
-        e.throwIfCancellation()
+        e.throwIfFatalOrCancellation()
         fallback(e)
     }
 

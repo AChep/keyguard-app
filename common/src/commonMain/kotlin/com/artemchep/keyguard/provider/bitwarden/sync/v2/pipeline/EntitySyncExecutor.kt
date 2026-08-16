@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline
 
-import com.artemchep.keyguard.common.io.throwIfCancellation
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.SyncDiagnostics
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.ActionFailure
@@ -343,7 +343,7 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                 ops.deleteLocally(finalSafeIds)
                 tracker.succeeded += finalSafeIds.size
             } catch (e: Throwable) {
-                e.throwIfCancellation()
+                e.throwIfFatalOrCancellation()
                 for (action in finalSafeActions) {
                     diagnostics.localActionFailed(
                         entityName = entityName,
@@ -381,7 +381,7 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                     ops.insertOrUpdateLocally(entries)
                     tracker.succeeded += entries.size
                 } catch (e: Throwable) {
-                    e.throwIfCancellation()
+                    e.throwIfFatalOrCancellation()
                     for (action in attemptedActions) {
                         diagnostics.localActionFailed(
                             entityName = entityName,
@@ -462,7 +462,7 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                     tracker.succeeded += result.applied
                     tracker.skipped += result.skipped
                 } catch (e: Throwable) {
-                    e.throwIfCancellation()
+                    e.throwIfFatalOrCancellation()
                     for (action in passedActions) {
                         diagnostics.localActionFailed(
                             entityName = entityName,
@@ -553,7 +553,7 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                     )
                 }
             } catch (e: Throwable) {
-                e.throwIfCancellation()
+                e.throwIfFatalOrCancellation()
                 diagnostics.bulkFallback(
                     entityName = entityName,
                     size = chunk.size,
@@ -613,18 +613,21 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                             tracker = tracker,
                         )
 
-                        is RemoteWriteOutcome.Failure -> finalizeRemoteFailure(
-                            action = action,
-                            localId = localId,
-                            operationStartEntity = operationStartEntity,
-                            operationStartMeta = operationStartMeta,
-                            partialRemoteLocal = outcome.partialRemoteLocal,
-                            error = outcome.cause,
-                            tracker = tracker,
-                        )
+                        is RemoteWriteOutcome.Failure -> {
+                            outcome.cause.throwIfFatalOrCancellation()
+                            finalizeRemoteFailure(
+                                action = action,
+                                localId = localId,
+                                operationStartEntity = operationStartEntity,
+                                operationStartMeta = operationStartMeta,
+                                partialRemoteLocal = outcome.partialRemoteLocal,
+                                error = outcome.cause,
+                                tracker = tracker,
+                            )
+                        }
                     }
                 } catch (e: Throwable) {
-                    e.throwIfCancellation()
+                    e.throwIfFatalOrCancellation()
                     finalizeRemoteFailure(
                         action = action,
                         localId = localId,
@@ -689,7 +692,7 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                     )
                     tracker.succeeded++
                 } catch (e: Throwable) {
-                    e.throwIfCancellation()
+                    e.throwIfFatalOrCancellation()
                     diagnostics.localActionFailed(
                         entityName = entityName,
                         action = action,
@@ -739,7 +742,7 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                     )
                     tracker.skipped++
                 } catch (e: Throwable) {
-                    e.throwIfCancellation()
+                    e.throwIfFatalOrCancellation()
                     diagnostics.localActionFailed(
                         entityName = entityName,
                         action = action,
@@ -823,7 +826,7 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                 }
             }
         } catch (e: Throwable) {
-            e.throwIfCancellation()
+            e.throwIfFatalOrCancellation()
             // The remote action already failed. A secondary failure while
             // persisting failure metadata must not count as another action.
         }

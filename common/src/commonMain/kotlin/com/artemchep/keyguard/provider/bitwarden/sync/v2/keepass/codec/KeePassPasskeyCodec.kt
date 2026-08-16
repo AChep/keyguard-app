@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec
 import app.keemobile.kotpass.cryptography.EncryptedValue
 import app.keemobile.kotpass.models.Entry
 import app.keemobile.kotpass.models.EntryValue
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.decodeOrNull
 import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
@@ -369,7 +370,7 @@ internal class KeePassPasskeyCodec(
         value: String,
     ): Boolean {
         if (!BASE64_URL_REGEX.matches(value)) return false
-        return runCatching {
+        return runCatchingNonFatal {
             PasskeyBase64.decode(value).isNotEmpty()
         }.getOrDefault(false)
     }

@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops
 
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.io.throwIfCancellation
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
@@ -226,7 +228,7 @@ class SendSyncOps(
                         )
                 }
             } catch (e: Throwable) {
-                e.throwIfCancellation()
+                e.throwIfFatalOrCancellation()
                 return RemoteWriteOutcome.Failure(
                     partialRemoteLocal = sendFailurePartial(
                         error = e,
@@ -625,7 +627,7 @@ class SendSyncOps(
             // The send was already created remotely. Always try to remove
             // that placeholder before honoring cancellation; otherwise the
             // next retry may duplicate the send instead of reusing local state.
-            runCatching {
+            runCatchingNonFatal {
                 sendApi.delete(
                     httpClient = httpClient,
                     env = env,
@@ -870,7 +872,7 @@ class SendSyncOps(
         return try {
             pendingUploadCoordinator.isUploaded(pendingUpload)
         } catch (e: Throwable) {
-            e.throwIfCancellation()
+            e.throwIfFatalOrCancellation()
             false
         }
     }

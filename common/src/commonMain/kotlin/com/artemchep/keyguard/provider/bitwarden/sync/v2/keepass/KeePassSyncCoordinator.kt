@@ -6,6 +6,7 @@ import app.keemobile.kotpass.models.Group
 import com.artemchep.keyguard.common.exception.KeePassDatabaseModifiedExternallyException
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.throwIfCancellation
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
@@ -116,7 +117,7 @@ class KeePassSyncCoordinator(
             try {
                 recordSyncFailure(token, e, now = now)
             } catch (recordError: Throwable) {
-                recordError.throwIfCancellation()
+                recordError.throwIfFatalOrCancellation()
             }
             throw e
         }

@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline
 
-import com.artemchep.keyguard.common.io.throwIfCancellation
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.SyncDiagnostics
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntityTypeOutcome
@@ -11,7 +11,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncExecutionResul
  * for a single entity type.
  *
  * [safeSyncEntityType] wraps the pipeline in error isolation:
- * non-cancellation exceptions are captured as [EntityTypeOutcome.Failed]
+ * non-fatal exceptions are captured as [EntityTypeOutcome.Failed]
  * so that one entity type's failure does not abort the others.
  */
 class SyncCoordinator(
@@ -57,7 +57,7 @@ class SyncCoordinator(
     }
 
     /**
-     * Like [syncEntityType], but captures non-cancellation exceptions
+     * Like [syncEntityType], but captures non-fatal exceptions
      * as [EntityTypeOutcome.Failed] instead of propagating them.
      */
     suspend fun <Local : BitwardenService.Has<Local>, Server : Any> safeSyncEntityType(
@@ -66,7 +66,7 @@ class SyncCoordinator(
         try {
             EntityTypeOutcome.Completed(syncEntityType(config))
         } catch (e: Throwable) {
-            e.throwIfCancellation()
+            e.throwIfFatalOrCancellation()
             diagnostics.entityFailed(
                 entityName = config.name,
                 error = e,

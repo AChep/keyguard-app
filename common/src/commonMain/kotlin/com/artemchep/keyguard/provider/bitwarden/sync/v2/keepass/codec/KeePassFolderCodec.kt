@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec
 
 import app.keemobile.kotpass.models.Group
 import app.keemobile.kotpass.models.TimeData
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
@@ -27,7 +28,7 @@ import kotlin.uuid.Uuid
 class KeePassFolderCodec {
     fun encodeNew(local: BitwardenFolder): Group =
         Group(
-            uuid = runCatching {
+            uuid = runCatchingNonFatal {
                 Uuid.parse(local.folderId)
             }.getOrElse { Uuid.random() },
             name = local.name,

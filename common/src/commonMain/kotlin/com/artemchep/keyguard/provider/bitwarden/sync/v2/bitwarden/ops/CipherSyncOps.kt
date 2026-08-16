@@ -2,7 +2,9 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops
 
 import arrow.optics.dsl.notNull
 import com.artemchep.keyguard.common.exception.HttpException
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.io.throwIfCancellation
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.logging.LogLevel
@@ -336,7 +338,7 @@ class CipherSyncOps(
                     updatePartialRemoteLocal = { partialRemoteLocal = it },
                 )
             } catch (e: Throwable) {
-                e.throwIfCancellation()
+                e.throwIfFatalOrCancellation()
                 return RemoteWriteOutcome.Failure(partialRemoteLocal, e)
             }
 
@@ -347,7 +349,7 @@ class CipherSyncOps(
                     local = local,
                 )
             } catch (e: Throwable) {
-                e.throwIfCancellation()
+                e.throwIfFatalOrCancellation()
                 val partial =
                     partialRemoteLocal
                         ?: buildDecodeFailurePartial(
@@ -364,7 +366,7 @@ class CipherSyncOps(
                 updatePartialRemoteLocal = { partialRemoteLocal = it },
             )
         } catch (e: Throwable) {
-            e.throwIfCancellation()
+            e.throwIfFatalOrCancellation()
             return RemoteWriteOutcome.Failure(partialRemoteLocal, e)
         }
         return RemoteWriteOutcome.Upsert(decodedResponse)
@@ -587,7 +589,7 @@ class CipherSyncOps(
                     attachmentRemoteId = attachmentId,
                 )
                 val refreshedResponse =
-                    runCatching {
+                    runCatchingNonFatal {
                         cipherApi.get(
                             httpClient = httpClient,
                             env = env,
@@ -663,7 +665,7 @@ class CipherSyncOps(
                         requestedRemoteId = remoteAttachmentId,
                     )
                     if (remoteAttachmentId != null) {
-                        runCatching {
+                        runCatchingNonFatal {
                             cipherApi.attachments.focus(remoteAttachmentId).renew(
                                 httpClient = httpClient,
                                 env = env,
@@ -743,7 +745,7 @@ class CipherSyncOps(
                             // This sync reserved a new remote attachment slot. Always
                             // try to remove it before honoring cancellation so retries
                             // do not accumulate orphaned attachment placeholders.
-                            runCatching {
+                            runCatchingNonFatal {
                                 cipherApi.attachments.delete(
                                     httpClient = httpClient,
                                     env = env,
@@ -790,14 +792,13 @@ class CipherSyncOps(
             )
 
             val refreshedResponse =
-                runCatching {
+                runCatchingNonFatal {
                     cipherApi.get(
                         httpClient = httpClient,
                         env = env,
                         token = token,
                     )
                 }.getOrElse { e ->
-                    e.throwIfCancellation()
                     createResponse.cipherResponse
                         ?: createResponse.cipherMiniResponse
                         ?: throw e
@@ -867,7 +868,7 @@ class CipherSyncOps(
             try {
                 decodeServerCipher(server, local)
             } catch (e: Throwable) {
-                e.throwIfCancellation()
+                e.throwIfFatalOrCancellation()
                 recordCipherDecodeFailure(
                     server = server,
                     error = e,

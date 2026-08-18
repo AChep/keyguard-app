@@ -31,7 +31,7 @@ private inline fun OkHttpClient.Builder.installHybridTrustManager(
     val trustManagers = mutableListOf<X509TrustManager>()
     factories.forEach { factory ->
         val trustManager = runCatching {
-            factory()
+            factory().takeIfHasAcceptedIssuers()
         }.getOrElse { e ->
             // Could not get the platform specific
             // trust manager.
@@ -58,6 +58,9 @@ private inline fun OkHttpClient.Builder.installHybridTrustManager(
         trustManager = hybridTm,
     )
 }
+
+internal fun X509TrustManager.takeIfHasAcceptedIssuers(): X509TrustManager? =
+    takeIf { acceptedIssuers.isNotEmpty() }
 
 private fun getDefaultTrustManager() = Platform.get().platformTrustManager()
 

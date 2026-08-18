@@ -626,6 +626,7 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
+          components: "clippy,rustfmt"
       - uses: ./.github/actions/setup_android_ndk
       - uses: ./.github/actions/setup_protobuf
       - name: "Install termux-create-package"

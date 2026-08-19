@@ -1,10 +1,34 @@
+# ProGuard only applies -keepattributes while obfuscating, and the desktop
+# release build has obfuscation disabled, so LocalVariableTable survives into
+# the release jars. Kotlin emits a $completion entry per inlined suspend body,
+# so a single method can hold several of them differing only by slot and range;
+# re-allocating variable slots collapses two into byte-identical entries, and
+# the JVM then refuses to load the class with a ClassFormatError.
+-optimizations !code/allocation/variable
+
 # JNA's native dispatcher resolves private core methods and fields by JNI name.
 # Keep only the top-level core package (not com.sun.jna.platform.**) intact,
 # while preserving application-defined native interfaces and structures below.
 -keep,allowobfuscation class com.sun.jna.* { *; }
 -keepclassmembers interface * extends com.sun.jna.Library { <methods>; }
 -keepclassmembers interface * extends com.sun.jna.Callback { <methods>; }
+
+# JNA looks up a Callback's method reflectively, so no bytecode references it
+# and shrinking removes it.
+-keepclassmembers class * implements com.sun.jna.Callback { <methods>; }
 -keepclassmembers class * extends com.sun.jna.Structure { <fields>; }
+
+# JNA instantiates a NativeMapped (PointerType, IntegerType) reflectively to
+# convert native return values, and a Structure the same way, both through a
+# public no-arg constructor. Nothing in the bytecode calls those constructors,
+# so shrinking removes them and JNA fails with "requires a public no-arg
+# constructor" on the first native call.
+-keepclassmembers class * implements com.sun.jna.NativeMapped {
+    <init>();
+}
+-keepclassmembers class * extends com.sun.jna.Structure {
+    <init>();
+}
 
 # D-Bus discovers its native transport with ServiceLoader and reflects over
 # wire interfaces, signals, errors, containers, and serializable values.
@@ -46,6 +70,20 @@
 -keep class org.sqlite.BusyHandler { *; }
 -keep class org.sqlite.ProgressHandler { *; }
 -keep class org.sqlite.core.DB$ProgressObserver { *; }
+
+# Coil registers its network fetcher through META-INF/services, and Ktor finds
+# its engine the same way. ProGuard copies the service files but no bytecode
+# references the classes they name, so shrinking drops them and the JDK's
+# ServiceLoader then fails with a ServiceConfigurationError.
+-keep,allowoptimization class * implements coil3.util.FetcherServiceLoaderTarget {
+    public <init>();
+}
+-keep,allowoptimization class * implements coil3.util.DecoderServiceLoaderTarget {
+    public <init>();
+}
+-keep,allowoptimization class * implements io.ktor.client.HttpClientEngineContainer {
+    public <init>();
+}
 
 # LinkExtractor uses EnumSet.allOf(), so LinkType must remain an enum after
 # optimization. No other AutoLink classes use reflection.

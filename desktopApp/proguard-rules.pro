@@ -1,10 +1,27 @@
-# ProGuard only applies -keepattributes while obfuscating, and the desktop
-# release build has obfuscation disabled, so LocalVariableTable survives into
-# the release jars. Kotlin emits a $completion entry per inlined suspend body,
-# so a single method can hold several of them differing only by slot and range;
-# re-allocating variable slots collapses two into byte-identical entries, and
-# the JVM then refuses to load the class with a ClassFormatError.
--optimizations !code/allocation/variable
+# The optimizer cannot rewrite LocalVariableTable correctly: it either collapses
+# two of Kotlin's inlined $completion entries into byte-identical duplicates, or
+# leaves a long's second slot past max_locals. Either is a ClassFormatError when
+# the class is parsed, and turning single optimizations off only swaps one shape
+# for the other, so the table is dropped instead.
+#
+# ProGuard filters attributes only while obfuscating, so that step has to run
+# for -keepattributes to apply at all; -keepnames then keeps every name intact.
+# LocalVariableTable and LocalVariableTypeTable are deliberately absent below.
+-keepnames class ** { *; }
+-keeppackagenames **
+-keepattributes Signature,Exceptions,InnerClasses,EnclosingMethod,SourceFile,LineNumberTable,*Annotation*,PermittedSubclasses,Record,MethodParameters
+
+# Kotlin serialization resolves generated serializers through companion objects
+# reflectively, named ones via getDeclaredClasses, which InnerClasses covers.
+-keepclasseswithmembers class **.*$Companion {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-if class **.*$Companion {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keepclassmembers class <1>.<2> {
+    <1>.<2>$Companion Companion;
+}
 
 # JNA's native dispatcher resolves private core methods and fields by JNI name.
 # Keep only the top-level core package (not com.sun.jna.platform.**) intact,

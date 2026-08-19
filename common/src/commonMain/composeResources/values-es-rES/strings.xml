@@ -32,12 +32,12 @@
     <string name="new_password">Nueva contraseña</string>
     <string name="no_password">Sin contraseña</string>
     <string name="advanced_options">Avanzado</string>
-    <string name="file">File</string>
+    <string name="file">Archivo</string>
     <string name="choose_file">Elegir archivo</string>
-    <string name="file_name_placeholder">File name</string>
-    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_name_placeholder">Nombre del archivo</string>
+    <string name="file_status_pending_upload">Subida pendiente</string>
     <string name="file_status_auto_resume">Auto-resumes</string>
-    <string name="file_status_downloading_failed">Downloading failed</string>
+    <string name="file_status_downloading_failed">Descarga fallida</string>
     <string name="email">Correo electrónico</string>
     <string name="email_verified">Verificado</string>
     <string name="email_not_verified">No verificado</string>
@@ -55,8 +55,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Número máximo de acceso</string>
-    <string name="package_name">Package name</string>
-    <string name="status">Status</string>
+    <string name="package_name">Nombre del paquete</string>
+    <string name="status">Estado</string>
     <string name="ready_status_beta">Beta</string>
     <string name="ready_status_alpha">Alfa</string>
     <string name="learn_more">Más información</string>
@@ -76,7 +76,7 @@
     <string name="expiry_date">Fecha de expiración</string>
     <string name="company">Compañía</string>
     <string name="sync">Sincronizar</string>
-    <string name="sync_requested">Sync was requested</string>
+    <string name="sync_requested">Sincronización solicitada</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Oculto</string>
     <!-- Opposite of 'hidden' -->
@@ -137,7 +137,7 @@
     <string name="organizations_empty_label">Sin organizaciones</string>
     <string name="equivalent_domains">Dominios equivalentes</string>
     <string name="equivalent_domains_empty_label">No hay dominios equivalentes</string>
-    <string name="retry">Retry</string>
+    <string name="retry">Reintentar</string>
     <string name="misc">Varios</string>
     <string name="category">Categoría</string>
     <string name="command">Comando</string>
@@ -176,8 +176,8 @@
     <string name="expiration_date_never">Nunca</string>
     <string name="select_linked_type">Seleccionar tipo</string>
     <string name="select_file">Selecciona un archivo</string>
-    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
-    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
+    <string name="additem_attachments_drop_here">Arrastre un archivo aquí para añadirlo como un archivo adjunto</string>
+    <string name="addsend_drop_file_to_replace">Arrastre un archivo para reemplazar el archivo seleccionado</string>
     <string name="autofill">Autocompletar</string>
     <string name="autofill_and_save_uri">Enlace web para autocompletar y guardar</string>
     <string name="backup_disclaimer_title">Tus datos son tu responsabilidad.</string>
@@ -443,8 +443,8 @@
     <string name="attachment_preview_error_image_decode">This image cannot be previewed.</string>
     <string name="attachment_preview_action_copy_all">Copy all</string>
     <string name="attachment_preview_action_wrap_lines">Wrap lines</string>
-    <string name="attachment_preview_action_source">Source</string>
-    <string name="attachment_preview_action_rendered_preview">Preview</string>
+    <string name="attachment_preview_action_source">Fuente</string>
+    <string name="attachment_preview_action_rendered_preview">Vista previa</string>
     <string name="vault_action_always_show_keyboard_title">Mostrar siempre el teclado</string>
     <string name="vault_action_remember_sorting_title">Recordar método de ordenación</string>
     <string name="vault_action_sync_vault_title">Sincronizar caja fuerte</string>
@@ -573,7 +573,7 @@
     <string name="gpg_key_expiry_revoked_message">Un componente de clave revocado no se puede renovar.</string>
     <string name="gpg_key_expiry_unresolved_revocation_message">No se puede verificar una revocación designada porque la clave pública del revocador no está disponible. Impórtela e inténtelo de nuevo.</string>
     <string name="ssh_key_import_title">Importar clave SSH</string>
-    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
+    <string name="ssh_key_import_drop_here">Suelte un archivo para importar una clave de SSH</string>
     <string name="ssh_key_import_failed_title">Error al importar la clave SSH</string>
     <string name="ssh_key_import_success_title">Clave SSH importada</string>
     <string name="ssh_key_import_error_unsupported_format">Formato de clave privada SSH no soportado.</string>
@@ -689,12 +689,12 @@
     <string name="error_invalid_uri">URI no válida</string>
     <string name="error_invalid_key">Clave no válida</string>
     <string name="error_invalid_card_number">Número de tarjeta no válido</string>
-    <string name="error_webdav_url_required">WebDAV URL is required</string>
+    <string name="error_webdav_url_required">La URL de WebDAV es obligatoria</string>
     <string name="error_webdav_file_url_required">Introduzca la URL completa de WebDAV a un recurso de archivo</string>
     <string name="error_incorrect_password">Contraseña incorrecta</string>
     <string name="error_not_found">No encontrado</string>
     <string name="error_file_must_be_n_or_smaller">File must be <xliff:g id="size" example="500MB">%1$s</xliff:g> or smaller</string>
-    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
+    <string name="error_file_must_be_500_mb_or_smaller">El archivo debe ser de 500 MB o más pequeño</string>
     <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">La clave secreta de contraseñas de un solo uso debe no estar vacía</string>
     <string name="error_otp_key_is_invalid">Clave secreta de una sola vez no válida</string>
@@ -937,9 +937,9 @@
     <!-- Explains that the text next to it is the Issuer of the certificate -->
     <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
     <!-- Explains that the text next to it is the Expiry date of the certificate -->
-    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
-    <string name="addaccount_mutual_tls_status_imported">Imported</string>
-    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
+    <string name="addaccount_mutual_tls_expires_on_label">Caduca el</string>
+    <string name="addaccount_mutual_tls_status_imported">Importado</string>
+    <string name="addaccount_mutual_tls_status_failed">Error al importar</string>
     <string name="addaccount2fa_header_title">Verificación</string>
     <string name="addaccount2fa_unsupported_note">Este método de autenticación no está soportado todavía.</string>
     <string name="addaccount2fa_otp_note">Introduzca el código de verificación de su aplicación de autenticación.</string>
@@ -971,8 +971,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Usa la autenticación biométrica para confirmar su acceso y desbloquear estos datos.</string>
     <string name="home_vault_label">Caja fuerte</string>
-    <string name="home_favorites_label">Favorites</string>
-    <string name="home_other_label">Other</string>
+    <string name="home_favorites_label">Favoritos</string>
+    <string name="home_other_label">Otros</string>
     <string name="home_send_label">Envío</string>
     <string name="home_generator_label">Generador</string>
     <string name="home_watchtower_label">Informes</string>
@@ -1022,12 +1022,12 @@
     <string name="filter_empty_label">No hay filtros disponibles</string>
     <string name="ssh_agent_filters_header_title">Filtros del agente SSH</string>
     <string name="ssh_agent_filters_note_save_to_apply">Los cambios se aplican después de presionar Guardar.</string>
-    <string name="ssh_agent_history_header_title">SSH agent history</string>
-    <string name="ssh_agent_history_request_list_keys">List keys</string>
-    <string name="ssh_agent_history_request_sign_data">Sign data</string>
+    <string name="ssh_agent_history_header_title">Historial del agente de SSH</string>
+    <string name="ssh_agent_history_request_list_keys">Listar llaves</string>
+    <string name="ssh_agent_history_request_sign_data">Firmar datos</string>
     <string name="ssh_agent_history_response_success">Success</string>
-    <string name="ssh_agent_history_response_user_denied">Denied</string>
-    <string name="ssh_agent_history_response_key_not_found">Key not found</string>
+    <string name="ssh_agent_history_response_user_denied">Denegado</string>
+    <string name="ssh_agent_history_response_key_not_found">Llave no encontrada</string>
     <string name="ssh_agent_history_response_failure">Failed</string>
     <string name="ssh_agent_history_response_vault_locked">Vault locked</string>
     <string name="ssh_agent_history_unknown_caller">Unknown caller</string>

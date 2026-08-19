@@ -15,6 +15,7 @@
     <string name="listing_description_highlight_attachment_preview">Aperçu des pièces jointes : Visionneuse sécurisée intégrée à l’application pour les pièces jointes au format image ou texte.</string>
     <string name="listing_description_highlight_generator">Générateur : Créer des mots de passe, des clés SSH et des redirections d\'e-mails, avec support des listes de mots personnalisées.</string>
     <string name="listing_description_highlight_ssh_agent">Agent SSH : Authentification auprès de serveurs, signature de commits Git et interaction avec des services reposant sur SSH.</string>
+    <string name="listing_description_highlight_gpg_agent">GPG Agent: Encrypt, decrypt, sign and verify files or messages.</string>
     <string name="listing_description_highlight_other">Fonctionnalités avancées : Support des raccourcis, espaces réservés de champs, substitutions d\'URL et résolution intelligente des conflits.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Écran d\'accueil</string>

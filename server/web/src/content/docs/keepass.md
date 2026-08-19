@@ -19,11 +19,11 @@ Google Drive, or Dropbox.
 
 When adding an account, choose KeePass and either **open an existing
 database** or **create a new one**. Keyguard supports these file providers:
+
 - file system;
 - WebDAV.
 
-- New databases are created in the **KDBX 4**
-format.
+New databases are created in the **KDBX 4.x** format.
 
 To unlock a database you enter its **master password** and, if the database
 uses one, select its **key file**.

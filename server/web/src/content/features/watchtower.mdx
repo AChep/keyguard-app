@@ -19,15 +19,19 @@ Watchtower audits every item in your vault for security risks and maintenance pr
 ## What it checks
 
 - Pwned (leaked) passwords
+- Vulnerable accounts, where the site was breached after you last changed the password
 - Reused passwords
-- Vulnerable or weak passwords
+- Weak passwords
 - Weak SSH keys
-- Unusable or weak GPG keys
-- Missing or stale GPG keyserver publishing
+- Unusable GPG keys
+- Weak GPG keys
+- GPG key publishing, when a key's keyserver status is missing or stale
 - Inactive two-factor authentication
-- Inactive passkeys
-- Unsecured websites (http://)
+- Available passkeys, on sites that support them
+- Insecure websites, still on `http://`
 - Duplicate items
+- Duplicate URIs, where two of an item's URLs cover the same site
+- Broad URI match detection, where a URL matches more loosely than it should
 - Incomplete items
 - Expiring items
 

@@ -323,6 +323,7 @@ jobs:
         run: >-
           ./gradlew
           :desktopApp:packageReleaseDistributable
+          :desktopApp:packageReleaseDeb
           -Pkeyguard.nativeCrypto.cargoOffline=true
       - name: 'Upload .tar'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -330,6 +331,34 @@ jobs:
           name: app-linux-${{ matrix.arch }}
           path: |
             desktopApp/build/distributions/*.tar.gz
+      - name: "Add a suffix to the .deb artifacts"
+        run: |
+          cd desktopApp/build/compose/binaries/main-release/deb
+          for f in * ; do mv -- "$f" "$(echo $f | sed -nE 's/^(.*)(\..*)$/\1-${{ matrix.arch }}\2/p')" ; done
+      - name: 'Upload .deb'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: app-linux-deb-${{ matrix.arch }}
+          path: desktopApp/build/compose/binaries/main-release/deb/*.deb
+          retention-days: 1
+      - name: "Install rpmbuild"
+        run: sudo apt-get update && sudo apt-get install -y rpm
+      - name: "Package .rpm"
+        run: |
+          set -euo pipefail
+          SOURCES="$PWD/rpmbuild/SOURCES"
+          mkdir -p "$SOURCES"
+          cp desktopApp/build/distributions/*.tar.gz "$SOURCES/keyguard-${{ needs.generate-versions.outputs.version-semantic }}.tar.gz"
+          rpmbuild -ba desktopApp/rpm/keyguard.spec \
+            --define "_app_version ${{ needs.generate-versions.outputs.version-semantic }}" \
+            --define "_topdir $PWD/rpmbuild" \
+            --define "_sourcedir $SOURCES"
+      - name: 'Upload .rpm'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: app-linux-rpm-${{ matrix.arch }}
+          path: rpmbuild/RPMS/${{ matrix.arch }}/*.rpm
+          retention-days: 1
       - name: "Move binaries into the template directory"
         run: |
           mkdir -p desktopApp/flatpak/app-${{ matrix.arch }}/
@@ -689,6 +718,26 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: app-linux-flatpak-aarch64
+          path: artifacts
+      - name: "Download Linux .deb (x86_64)"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-linux-deb-x86_64
+          path: artifacts
+      - name: "Download Linux .deb (aarch64)"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-linux-deb-aarch64
+          path: artifacts
+      - name: "Download Linux .rpm (x86_64)"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-linux-rpm-x86_64
+          path: artifacts
+      - name: "Download Linux .rpm (aarch64)"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-linux-rpm-aarch64
           path: artifacts
       - name: "Download Windows app"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c

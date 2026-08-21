@@ -29,6 +29,7 @@ kotlin {
                 implementation(libs.kdroidfilter.composenativetray)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlin.stdlib)
+                implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
                 implementation(libs.squareup.okhttp)
                 implementation(project(":util:crypto"))
                 implementation(project(":common"))

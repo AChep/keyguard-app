@@ -20,7 +20,7 @@ jobs:
           submodules: recursive
       - name: "Generate changelog"
         id: changelog
-        uses: metcalfc/changelog-generator@0440d0932f9a0dd1cc9ecd8412830761351323bd
+        uses: metcalfc/changelog-generator@98b12822c5dc6bad335d1d60d920cb69831b9c5d
         with:
           myToken: ${{ secrets.GITHUB_TOKEN }}
       - name: "Print changelog"

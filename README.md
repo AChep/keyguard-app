@@ -46,7 +46,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 🌠 _— requires a premium license: one-time or subscription._
 
 #### Platforms
-Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and largely dependent on the JVM libraries. Keyguard is focusing to be **Android** first, other platforms might have some features missing.
+Keyguard is written using Kotlin Multiplatform + Compose Multiplatform + native Rust modules. As of right now, Keyguard supports the following platforms:
 
 - [Android](#android), including Wear OS;
 - [Linux](#linux);

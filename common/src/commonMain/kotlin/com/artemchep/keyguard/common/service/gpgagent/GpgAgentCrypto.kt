@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
+
 /**
  * Performs the raw private-key operations a gpg-agent must provide for the
  * PKSIGN and PKDECRYPT Assuan commands. The production implementation is shared
@@ -27,6 +29,10 @@ interface GpgAgentCrypto {
      * (sub)key of [privateKeyArmored] selected by [metadataKey], returning the
      * `(sig-val ...)` S-expression response.
      *
+     * The selected component must be authorized to sign new data. Renewal-only
+     * authority is not accepted here because PKSIGN does not identify the
+     * signature type; certificate renewal uses the dedicated mutation API.
+     *
      * @throws GpgAgentKeyNotFoundException if no usable signing key matches.
      * @throws GpgAgentUnsupportedAlgorithmException if the key's algorithm is
      *  not supported.
@@ -36,6 +42,7 @@ interface GpgAgentCrypto {
         metadataKey: GpgAgentKeyMetadataKey,
         hashAlgorithm: String,
         hash: ByteArray,
+        candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
     ): GpgAgentMessages.SignHashResponse
 
     /**

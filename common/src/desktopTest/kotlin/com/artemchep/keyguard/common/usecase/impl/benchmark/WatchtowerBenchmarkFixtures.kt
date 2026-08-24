@@ -22,6 +22,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.test.gpgMetadata
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
 import com.artemchep.keyguard.common.service.logging.LogLevel
@@ -386,14 +387,12 @@ private fun createSecret(
                 "benchmark-public-key-weak"
             },
             fingerprint = BENCHMARK_GPG_FINGERPRINT,
-            metadata = GpgAgentKeyMetadata(
-                keys = listOf(
-                    GpgAgentKeyMetadataKey(
+            metadata = gpgMetadata(
+                GpgAgentKeyMetadataKey(
                         keygrip = "benchmark-keygrip",
                         fingerprint = BENCHMARK_GPG_FINGERPRINT,
                         algorithm = "RSA",
                         capabilities = setOf("sign", "decrypt"),
-                    ),
                 ),
             ),
         )

@@ -237,11 +237,13 @@ internal fun coldFieldValues(
         source.gpgKey?.fingerprint
             ?.takeIf(String::isNotBlank)
             ?.let(::add)
-        source.gpgKey?.metadata?.keys?.forEach { key ->
-            key.fingerprint
-                .takeIf(String::isNotBlank)
-                ?.let(::add)
-        }
+        source.gpgKey?.metadata?.certificates.orEmpty()
+            .flatMap { it.components }
+            .forEach { component ->
+                component.fingerprint
+                    .takeIf(String::isNotBlank)
+                    ?.let(::add)
+            }
     }
         .takeIf(List<String>::isNotEmpty)
         ?.let { put(VaultTextField.Gpg, it) }
@@ -337,9 +339,9 @@ internal fun searchFingerprint(
         add(gpgKey.privateKeyArmored.orEmpty())
         add(gpgKey.publicKeyArmored.orEmpty())
         add(gpgKey.fingerprint.orEmpty())
-        gpgKey.metadata?.keys?.forEach { key ->
-            add(key.fingerprint)
-        }
+        gpgKey.metadata?.certificates.orEmpty()
+            .flatMap { it.components }
+            .forEach { component -> add(component.fingerprint) }
     }
     return hash
 }

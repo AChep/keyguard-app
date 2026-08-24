@@ -3,12 +3,16 @@ package com.artemchep.keyguard.common.service.gpgagent.impl
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.filterCiphers
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolverUnsupported
+import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentSecret
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyEntry
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySyncer
 import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
 import com.artemchep.keyguard.common.service.gpgagent.toGpgPublicKeyEntry
+import com.artemchep.keyguard.common.service.gpgagent.resolveAuthorizationOrClear
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
@@ -41,6 +45,7 @@ class GpgPublicKeySyncerImpl(
     private val getGpgAgentDisplayKeyNames: GetGpgAgentDisplayKeyNames,
     private val gpgPublicKeyRepository: GpgPublicKeyRepository,
     private val logRepository: LogRepository,
+    private val gpgKeyMetadataResolver: GpgKeyMetadataResolver = GpgKeyMetadataResolverUnsupported,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : GpgPublicKeySyncer {
     companion object {
@@ -57,6 +62,7 @@ class GpgPublicKeySyncerImpl(
         getGpgAgentDisplayKeyNames = directDI.instance(),
         gpgPublicKeyRepository = directDI.instance(),
         logRepository = directDI.instance(),
+        gpgKeyMetadataResolver = directDI.instance(),
     )
 
     override fun launch(scope: CoroutineScope): Job = scope.launch {
@@ -88,6 +94,7 @@ class GpgPublicKeySyncerImpl(
                     getGpgAgentFilter()
                         .map { it.normalize() },
                 ) { ciphers, filter ->
+                    val candidateRevocationKeys = ciphers.toGpgRevocationKeyCandidates()
                     val secrets = ciphers
                         .mapNotNull { it.toGpgAgentSecretOrNull() }
                     val filteredSecrets = filter.filterCiphers(
@@ -99,7 +106,14 @@ class GpgPublicKeySyncerImpl(
                         "catalog_input ciphers=${ciphers.size} gpg_items=${secrets.size} " +
                                 "filter_active=${filter.isActive} filtered=${filteredSecrets.size}"
                     }
-                    filteredSecrets
+                    filteredSecrets.map { secret ->
+                        secret.resolveAuthorizationOrClear(
+                            resolver = gpgKeyMetadataResolver,
+                            candidateRevocationKeys = candidateRevocationKeys,
+                            logRepository = logRepository,
+                            tag = TAG,
+                        )
+                    }
                 }.distinctUntilChanged()
 
                 combine(

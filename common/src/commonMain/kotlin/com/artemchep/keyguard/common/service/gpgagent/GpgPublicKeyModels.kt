@@ -48,6 +48,12 @@ fun GpgAgentSecret.toGpgPublicKeyEntry(
     name: String?,
 ): GpgPublicKeyEntry {
     val hasPrivateKey = hasPrivateKey
+    val agentKeys = metadata.routableAgentKeys
+    val authorizedSigningKeygrips = authorizedAgentKeys
+        .asSequence()
+        .filter(GpgAgentKeyMetadataKey::canSign)
+        .map { key -> key.keygrip.normalizeGpgKeygrip() }
+        .toSet()
     return GpgPublicKeyEntry(
         accountId = cipher.accountId,
         cipherId = cipher.id,
@@ -55,13 +61,13 @@ fun GpgAgentSecret.toGpgPublicKeyEntry(
             ?.takeIf(String::isNotBlank),
         primaryFingerprint = fingerprint
             ?.takeIf(String::isNotBlank)
-            ?: metadata.keys.firstNotNullOfOrNull {
+            ?: agentKeys.firstNotNullOfOrNull {
                 it.fingerprint.takeIf(String::isNotBlank)
             },
-        canSign = hasPrivateKey && metadata.keys.any { it.canSign },
-        canDecrypt = hasPrivateKey && metadata.keys.any { it.canDecrypt },
+        canSign = hasPrivateKey && authorizedSigningKeygrips.isNotEmpty(),
+        canDecrypt = hasPrivateKey && agentKeys.any { it.canDecrypt },
         name = name,
-        keyInfo = metadata.keys
+        keyInfo = agentKeys
             .filter { it.isUsableAgentKey }
             .map { key ->
                 GpgPublicKeyEntry.KeyInfo(
@@ -70,7 +76,8 @@ fun GpgAgentSecret.toGpgPublicKeyEntry(
                         fingerprint.orEmpty()
                     },
                     algorithm = key.algorithm,
-                    canSign = hasPrivateKey && key.canSign,
+                    canSign = hasPrivateKey &&
+                        key.keygrip.normalizeGpgKeygrip() in authorizedSigningKeygrips,
                     canDecrypt = hasPrivateKey && key.canDecrypt,
                 )
             },

@@ -14,6 +14,10 @@ import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentApprovalWindowMemory
 import com.artemchep.keyguard.common.service.agent.flowBackedAgentApprovalCacheConfigProvider
 import com.artemchep.keyguard.common.service.agent.toApprovalCacheIdentity
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolverUnsupported
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
+import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentApprovalPrompt
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentCrypto
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
@@ -27,8 +31,11 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor.GpgAgentOperationResult
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentSecret
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentUnsupportedAlgorithmException
+import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
 import com.artemchep.keyguard.common.service.gpgagent.hasPrivateKey
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgKeygrip
+import com.artemchep.keyguard.common.service.gpgagent.resolveAuthorizationOrClear
+import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
 import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
 import com.artemchep.keyguard.common.service.gpgagent.toGpgPublicKeyEntry
 import com.artemchep.keyguard.common.service.logging.LogLevel
@@ -149,7 +156,13 @@ class GpgAgentRequestProcessorImpl(
         keygrip = request.keygrip,
         caller = request.caller,
         logNoun = "signing",
-        findKey = { keygrip -> findKeyByKeygrip(keygrip) { it.canSign } },
+        findKey = { keygrip ->
+            findKeyByKeygrip(
+                keygrip = keygrip,
+                keys = { secret -> secret.authorizedAgentKeys },
+                predicate = { key -> key.canSign },
+            )
+        },
         crypto = { match ->
             crypto.signHash(
                 privateKeyArmored = match.secret.privateKeyArmored
@@ -157,6 +170,7 @@ class GpgAgentRequestProcessorImpl(
                 metadataKey = match.metadataKey,
                 hashAlgorithm = request.hashAlgorithm,
                 hash = request.hash,
+                candidateRevocationKeys = candidateRevocationKeys,
             )
         },
     )
@@ -169,7 +183,13 @@ class GpgAgentRequestProcessorImpl(
         keygrip = request.keygrip,
         caller = request.caller,
         logNoun = "decryption",
-        findKey = { keygrip -> findKeyByKeygrip(keygrip) { it.canDecrypt } },
+        findKey = { keygrip ->
+            findKeyByKeygrip(
+                keygrip = keygrip,
+                keys = { secret -> secret.metadata.routableAgentKeys },
+                predicate = { key -> key.canDecrypt },
+            )
+        },
         crypto = { match ->
             crypto.pkdecrypt(
                 privateKeyArmored = match.secret.privateKeyArmored
@@ -194,7 +214,7 @@ class GpgAgentRequestProcessorImpl(
         caller: GpgAgentMessages.CallerIdentity?,
         logNoun: String,
         findKey: GpgVaultContext.(String) -> GpgKeyMatch?,
-        crypto: (GpgKeyMatch) -> T,
+        crypto: GpgVaultContext.(GpgKeyMatch) -> T,
     ): GpgAgentOperationResult<T> {
         val normalizedKeygrip = keygrip.normalizeGpgKeygrip()
         var vault = getGpgKeysFromVault()
@@ -311,7 +331,7 @@ class GpgAgentRequestProcessorImpl(
         }
 
         return try {
-            val response = crypto(match)
+            val response = vault.crypto(match)
             if (approvalGranted) {
                 approvalAccess?.remember()
             }
@@ -387,9 +407,20 @@ class GpgAgentRequestProcessorImpl(
         val approvalWindowSession = approvalWindowMemory.getOrGenerateSession(key)
 
         val getCiphers = key.di.direct.instance<GetCiphers>()
-        val gpgSecrets = getCiphers()
-            .first()
+        val ciphers = getCiphers().first()
+        val candidateRevocationKeys = ciphers.toGpgRevocationKeyCandidates()
+        val metadataResolver = key.di.direct.instanceOrNull<GpgKeyMetadataResolver>()
+            ?: GpgKeyMetadataResolverUnsupported
+        val gpgSecrets = ciphers
             .mapNotNull { it.toGpgAgentSecretOrNull() }
+            .map { secret ->
+                secret.resolveAuthorizationOrClear(
+                    resolver = metadataResolver,
+                    candidateRevocationKeys = candidateRevocationKeys,
+                    logRepository = logRepository,
+                    tag = TAG,
+                )
+            }
         val addGpgUsageHistory = key.di.direct.instanceOrNull<AddGpgUsageHistory>()
             ?: NoOpAddGpgUsageHistory
 
@@ -399,6 +430,7 @@ class GpgAgentRequestProcessorImpl(
                 items = gpgSecrets,
                 cipherOf = { it.cipher },
             ),
+            candidateRevocationKeys = candidateRevocationKeys,
             addGpgUsageHistory = addGpgUsageHistory,
             approvalWindowSession = approvalWindowSession,
         )
@@ -489,13 +521,14 @@ class GpgAgentRequestProcessorImpl(
 
     private fun GpgVaultContext.findKeyByKeygrip(
         keygrip: String,
+        keys: (GpgAgentSecret) -> List<GpgAgentKeyMetadataKey>,
         predicate: (GpgAgentKeyMetadataKey) -> Boolean,
     ): GpgKeyMatch? = gpgSecrets
         .firstNotNullOfOrNull { secret ->
             if (!secret.hasPrivateKey) {
                 return@firstNotNullOfOrNull null
             }
-            secret.metadata.keys
+            keys(secret)
                 .firstOrNull { key ->
                     predicate(key) && key.keygrip.normalizeGpgKeygrip() == keygrip
                 }
@@ -509,6 +542,7 @@ class GpgAgentRequestProcessorImpl(
 
     private data class GpgVaultContext(
         val gpgSecrets: List<GpgAgentSecret>,
+        val candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
         val addGpgUsageHistory: AddGpgUsageHistory,
         val approvalWindowSession: AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>.Session,
     )

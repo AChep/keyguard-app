@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.crypto
 
+import com.artemchep.keyguard.common.service.gpgagent.GpgRenewalAuthorization
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import kotlin.time.Instant
 
@@ -41,6 +42,8 @@ fun GpgPublicKeyParser.parsePrimaryKeyInfo(
 sealed interface GpgPublicKeyParseResult {
     data class Success(
         val keys: List<GpgPublicKeyInfo>,
+        /** Certificates present in the input but omitted because they are unsupported. */
+        val skippedCertificates: Int = 0,
     ) : GpgPublicKeyParseResult
 
     data class Error(
@@ -57,6 +60,12 @@ enum class GpgPublicKeyParseError {
 
     /** The input contains a legacy V2/V3 OpenPGP key packet. */
     UnsupportedKeyVersion,
+
+    /**
+     * The input holds several secret certificates (for example a full
+     * `gpg --export-secret-keys` dump), while this operation accepts one.
+     */
+    MultipleCertificates,
 
     /** Parsing is not available on this platform. */
     Unsupported,
@@ -75,9 +84,33 @@ data class GpgPublicKeyInfo(
     val revoked: Boolean,
     val canSign: Boolean,
     val canEncrypt: Boolean,
-    /** The ASCII-armored encoding of just this key ring. */
+    /**
+     * The ASCII-armored encoding of this certificate's complete original public packet span.
+     * Metadata fields above still report only policy-authenticated identities and capabilities.
+     * When parsing secret input, this is instead its ordinary transferable public projection.
+     */
     val publicKeyArmored: String,
     val subKeys: List<GpgPublicSubKeyInfo>,
+    /**
+     * Whether a self-signature that satisfies the current hash policy
+     * authenticates this key.
+     *
+     * `false` means the key is bound only by a legacy weak-hash (SHA-1)
+     * self-signature: it authorizes nothing, but renewing it reissues that
+     * signature with a modern algorithm and repairs the key.
+     */
+    val authenticated: Boolean = true,
+    /**
+     * Whether recertification may reissue this key's own self-signatures.
+     *
+     * This is what tells the two `authenticated == false` keys apart:
+     * [GpgRenewalAuthorization.TEMPLATE_ONLY] is the weak-hash key a renewal
+     * repairs, [GpgRenewalAuthorization.NONE] is the key a renewal cannot
+     * touch — it has no verified self-signature at all, or it is revoked.
+     * Subkeys carry no such field: an unauthenticated subkey is only reported
+     * when it is template-renewable.
+     */
+    val renewal: GpgRenewalAuthorization = GpgRenewalAuthorization.NONE,
 )
 
 data class GpgPublicSubKeyInfo(
@@ -91,6 +124,8 @@ data class GpgPublicSubKeyInfo(
     val revoked: Boolean,
     val createdAt: Instant? = null,
     val expiresAt: Instant?,
+    /** See [GpgPublicKeyInfo.authenticated]. */
+    val authenticated: Boolean = true,
 )
 
 /**

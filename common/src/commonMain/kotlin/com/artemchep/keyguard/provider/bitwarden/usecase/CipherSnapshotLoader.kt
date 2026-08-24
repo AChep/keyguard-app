@@ -1,5 +1,10 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.gpgagent.isCanonical
+import com.artemchep.keyguard.common.service.logging.LogLevel
+import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.CipherSnapshot
 import com.artemchep.keyguard.common.usecase.CipherSnapshotKey
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
@@ -25,6 +30,8 @@ internal data class CipherSnapshotLoadResult(
 internal class CipherSnapshotLoader(
     private val dbDispatcher: CoroutineDispatcher,
     private val getPasswordStrength: GetPasswordStrength,
+    private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
+    private val logRepository: LogRepository? = null,
 ) {
     private companion object {
 
@@ -87,7 +94,8 @@ internal class CipherSnapshotLoader(
             }
         }
 
-        val loadedPayloadsByKey = payloadLoad.rows
+        val canonicalRows = canonicalizeGpgMetadata(db, payloadLoad.rows)
+        val loadedPayloadsByKey = canonicalRows
             .associateBy(LoadedCipherPayload::key)
         val nextSnapshotsByCipherId = HashMap<String, CipherSnapshot>(payloadLoad.cipherCount)
         val snapshots = payloadLoad.keys.map { key ->
@@ -119,29 +127,113 @@ internal class CipherSnapshotLoader(
                 .getCipherSnapshots()
                 .executeAsList()
         }
-        val nextSnapshotsByCipherId = HashMap<String, CipherSnapshot>(rows.size)
-        val snapshots = rows.map { row ->
+        val loadedRows = rows.map { row ->
             val key = CipherSnapshotKey(
                 cipherId = row.cipherId,
                 dataRevCounter = row.dataRevCounter,
             )
+            LoadedCipherPayload(key = key, data = row.data_)
+        }
+        val canonicalRows = canonicalizeGpgMetadata(db, loadedRows)
+        val nextSnapshotsByCipherId = HashMap<String, CipherSnapshot>(canonicalRows.size)
+        val snapshots = canonicalRows.map { row ->
+            val key = row.key
             CipherSnapshot(
-                cipher = row.data_.toDomain(getPasswordStrength),
+                cipher = row.data.toDomain(getPasswordStrength),
                 key = key,
             ).also { snapshot ->
-                nextSnapshotsByCipherId[row.cipherId] = snapshot
+                nextSnapshotsByCipherId[key.cipherId] = snapshot
             }
         }
         return CipherSnapshotLoadResult(
             snapshots = snapshots,
             snapshotsByCipherId = nextSnapshotsByCipherId,
             stats = CipherSnapshotLoadStats(
-                cipherCount = rows.size,
-                changedCipherCount = rows.size,
-                loadedPayloadCount = rows.size,
+                cipherCount = canonicalRows.size,
+                changedCipherCount = canonicalRows.size,
+                loadedPayloadCount = canonicalRows.size,
                 isFullLoad = true,
             ),
         )
+    }
+
+    private suspend fun canonicalizeGpgMetadata(
+        db: Database,
+        rows: List<LoadedCipherPayload>,
+    ): List<LoadedCipherPayload> {
+        val resolver = gpgKeyMetadataResolver
+            ?: return rows.map(::sanitizeGpgMetadata)
+        val updates = mutableListOf<Pair<BitwardenCipher, BitwardenCipher>>()
+        val canonicalRows = rows.map { row ->
+            val source = row.data
+            val gpgKey = source.gpgKey ?: return@map row
+            if (gpgKey.metadata?.isCanonical == true) {
+                return@map row
+            }
+            val metadata = try {
+                resolver.resolve(
+                    privateKeyArmored = gpgKey.privateKeyArmored,
+                    publicKeyArmored = gpgKey.publicKeyArmored,
+                    fingerprint = gpgKey.fingerprint,
+                )?.metadata?.takeIf { it.isCanonical }
+            } catch (e: Exception) {
+                e.throwIfFatalOrCancellation()
+                logRepository?.post(
+                    tag = "GpgMetadataCanonicalizer",
+                    message = "Failed to resolve GPG metadata for '${source.cipherId}': ${e.message}",
+                    level = LogLevel.ERROR,
+                )
+                null
+            }
+            val canonical = source.copy(
+                gpgKey = gpgKey.copy(metadata = metadata),
+            )
+            if (metadata != null) {
+                updates += source to canonical
+            }
+            row.copy(data = canonical)
+        }
+        if (updates.isNotEmpty()) {
+            persistCanonicalGpgMetadata(db, updates)
+        }
+        return canonicalRows
+    }
+
+    private fun sanitizeGpgMetadata(row: LoadedCipherPayload): LoadedCipherPayload {
+        val gpgKey = row.data.gpgKey ?: return row
+        if (gpgKey.metadata == null || gpgKey.metadata.isCanonical) return row
+        return row.copy(
+            data = row.data.copy(gpgKey = gpgKey.copy(metadata = null)),
+        )
+    }
+
+    private suspend fun persistCanonicalGpgMetadata(
+        db: Database,
+        updates: List<Pair<BitwardenCipher, BitwardenCipher>>,
+    ) = withContext(dbDispatcher) {
+        db.cipherQueries.transaction {
+            updates.forEach { (source, canonical) ->
+                val current = db.cipherQueries
+                    .getByCipherId(source.cipherId)
+                    .executeAsOneOrNull()
+                    ?: return@forEach
+                val currentGpgKey = current.data_.gpgKey
+                    ?: return@forEach
+                if (
+                    currentGpgKey.metadata?.isCanonical == true ||
+                    currentGpgKey.copy(metadata = null) != source.gpgKey?.copy(metadata = null)
+                ) {
+                    return@forEach
+                }
+                db.cipherQueries.insert(
+                    cipherId = current.cipherId,
+                    accountId = current.accountId,
+                    folderId = current.folderId,
+                    data = current.data_.copy(gpgKey = canonical.gpgKey),
+                    updatedAt = current.updatedAt,
+                )
+            }
+        }
     }
 
     private fun shouldLoadAllPayloads(

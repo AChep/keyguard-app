@@ -101,6 +101,8 @@ import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.artemchep.keyguard.common.service.extract.LinkInfoRegistry
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
+import com.artemchep.keyguard.common.service.gpgagent.GpgRenewalAuthorization
 import com.artemchep.keyguard.common.service.gpgagent.chunkedGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPrivateKeyArmored
@@ -4244,8 +4246,9 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
     val gpgPrivateKeyArmored = cipher.getGpgAgentPrivateKeyArmored()
         ?.takeIf { it.isNotBlank() }
     val gpgMetadataKeys = cipher.parseGpgAgentMetadataOrNull()
-        ?.keys
+        ?.certificates
         .orEmpty()
+        .flatMap { it.components }
     val parsedGpgKey = gpgPublicKeyArmored
         ?.let { armored ->
             ioEffect(Dispatchers.Default) {
@@ -4270,6 +4273,15 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
 
     val gpgRevoked = parsedGpgKey?.revoked == true
     val gpgExpired = parsedGpgKey?.expiresAt?.let { it <= now } == true
+    // The vault view has no live policy evaluation, so both self-signature
+    // states are read off the parse result. `authenticated == false` alone does
+    // not say which one it is: a weak-hash key that a renewal repairs and a key
+    // with no verified self-signature at all are both unauthenticated. The
+    // renewal tier is what separates them, so the remediation advice matches.
+    val gpgWeakSelfSignature =
+        parsedGpgKey?.renewal == GpgRenewalAuthorization.TEMPLATE_ONLY
+    val gpgMissingSelfSignature = parsedGpgKey?.authenticated == false &&
+            !gpgWeakSelfSignature
     when {
         gpgRevoked -> {
             items += VaultViewItem.Info(
@@ -4284,6 +4296,22 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
                 id = "info.gpg.expired",
                 name = translate(Res.string.expired),
                 message = translate(Res.string.gpg_key_status_expired_text),
+            )
+        }
+
+        gpgWeakSelfSignature -> {
+            items += VaultViewItem.Info(
+                id = "info.gpg.weakSelfSignature",
+                name = translate(Res.string.gpg_key_status_weak_self_signature_title),
+                message = translate(Res.string.gpg_key_status_weak_self_signature_text),
+            )
+        }
+
+        gpgMissingSelfSignature -> {
+            items += VaultViewItem.Info(
+                id = "info.gpg.missingSelfSignature",
+                name = translate(Res.string.gpg_key_status_missing_self_signature_title),
+                message = translate(Res.string.gpg_key_status_missing_self_signature_text),
             )
         }
     }
@@ -4394,10 +4422,16 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
     val signCapability = translate(Res.string.gpg_keys_capability_sign)
     val encryptDecryptCapability = translate(Res.string.gpg_key_capability_encrypt_decrypt)
     val gpgCapabilities = buildList {
-        if (parsedGpgKey?.canSign == true || gpgMetadataKeys.any { it.canSign }) {
+        if (
+            parsedGpgKey?.canSign == true ||
+            gpgMetadataKeys.any { GpgAgentOperation.SIGN in it.agentOperations }
+        ) {
             this += signCapability
         }
-        if (parsedGpgKey?.canEncrypt == true || gpgMetadataKeys.any { it.canDecrypt }) {
+        if (
+            parsedGpgKey?.canEncrypt == true ||
+            gpgMetadataKeys.any { GpgAgentOperation.DECRYPT in it.agentOperations }
+        ) {
             this += encryptDecryptCapability
         }
     }.distinct()

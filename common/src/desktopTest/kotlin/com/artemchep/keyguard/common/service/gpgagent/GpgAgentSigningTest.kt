@@ -51,6 +51,7 @@ class GpgAgentSigningTest {
                     metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = ""),
                     hashAlgorithm = "sha256",
                     hash = sha256("legacy key".encodeToByteArray()),
+                    candidateRevocationKeys = emptyList(),
                 )
             }
         }
@@ -65,6 +66,7 @@ class GpgAgentSigningTest {
             metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = ""),
             hashAlgorithm = "sha256",
             hash = hash,
+            candidateRevocationKeys = emptyList(),
         )
 
         val (r, s) = parseSigVal(response.sexp, algorithm = "eddsa")
@@ -89,6 +91,7 @@ class GpgAgentSigningTest {
             metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = ""),
             hashAlgorithm = "sha256",
             hash = hash,
+            candidateRevocationKeys = emptyList(),
         )
 
         val (r, s) = parseSigVal(response.sexp, algorithm = "ecdsa")

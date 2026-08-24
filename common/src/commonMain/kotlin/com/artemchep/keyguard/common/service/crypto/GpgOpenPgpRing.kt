@@ -6,7 +6,14 @@ import kotlin.time.Instant
 internal data class GpgOpenPgpVault(
     val session: MasterSession.Key?,
     val rings: List<GpgOpenPgpRing>,
-)
+) {
+    /**
+     * Revocation enforcement always considers every key in the vault,
+     * never just the rings selected for the operation.
+     */
+    fun revocationKeyCandidates(): List<GpgOpenPgpPublicKey> =
+        rings.map(GpgOpenPgpRing::publicKey)
+}
 
 internal data class GpgOpenPgpRing(
     val accountId: String,

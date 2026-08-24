@@ -479,6 +479,15 @@ impl Drop for OpenPgpVerifyRequest {
     }
 }
 
+impl Drop for OpenPgpPublicKeyParseRequest {
+    fn drop(&mut self) {
+        zeroize::Zeroize::zeroize(&mut self.key_data);
+        debug_assert!(self.key_data.iter().all(|byte| *byte == 0));
+        #[cfg(test)]
+        record_zeroized_secret_request_drop();
+    }
+}
+
 impl Drop for OpenPgpMetadataResolveRequest {
     fn drop(&mut self) {
         if let Some(private_key_data) = self.private_key_data.as_mut() {
@@ -611,6 +620,44 @@ impl Drop for OpenPgpExpirationUpdateRequest {
     }
 }
 
+impl Drop for OpenPgpUserIdRevocationRequest {
+    fn drop(&mut self) {
+        zeroize::Zeroize::zeroize(&mut self.private_key);
+        debug_assert!(self.private_key.iter().all(|byte| *byte == 0));
+        #[cfg(test)]
+        record_zeroized_secret_request_drop();
+    }
+}
+
+impl Drop for OpenPgpUserIdReplacementRequest {
+    fn drop(&mut self) {
+        zeroize::Zeroize::zeroize(&mut self.private_key);
+        debug_assert!(self.private_key.iter().all(|byte| *byte == 0));
+        #[cfg(test)]
+        record_zeroized_secret_request_drop();
+    }
+}
+
+impl Drop for OpenPgpCertificateMaterialReconcileRequest {
+    fn drop(&mut self) {
+        if let Some(secret) = self.existing_secret_certificate.as_mut() {
+            zeroize::Zeroize::zeroize(secret);
+        }
+        if let Some(secret) = self.incoming_secret_certificate.as_mut() {
+            zeroize::Zeroize::zeroize(secret);
+        }
+        debug_assert!(
+            self.existing_secret_certificate
+                .iter()
+                .flatten()
+                .chain(self.incoming_secret_certificate.iter().flatten())
+                .all(|byte| *byte == 0)
+        );
+        #[cfg(test)]
+        record_zeroized_secret_request_drop();
+    }
+}
+
 impl Drop for OpenPgpAgentSignRequest {
     fn drop(&mut self) {
         zeroize::Zeroize::zeroize(&mut self.private_key);
@@ -695,6 +742,22 @@ impl Drop for OpenPgpKeyMaterial {
     fn drop(&mut self) {
         zeroize::Zeroize::zeroize(&mut self.private_key_armored);
         debug_assert!(self.private_key_armored.iter().all(|byte| *byte == 0));
+        #[cfg(test)]
+        record_zeroized_secret_output_drop();
+    }
+}
+
+impl Drop for OpenPgpCertificateMaterialReconcileSuccess {
+    fn drop(&mut self) {
+        if let Some(private) = self.private_certificate.as_mut() {
+            zeroize::Zeroize::zeroize(private);
+        }
+        debug_assert!(
+            self.private_certificate
+                .iter()
+                .flatten()
+                .all(|byte| *byte == 0)
+        );
         #[cfg(test)]
         record_zeroized_secret_output_drop();
     }

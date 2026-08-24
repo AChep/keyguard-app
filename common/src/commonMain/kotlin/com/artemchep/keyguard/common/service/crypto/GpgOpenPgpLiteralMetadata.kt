@@ -68,14 +68,14 @@ private object GpgOpenPgpLiteralFileNamePolicy {
         val candidate = value
             ?.trim()
             ?.takeIf(String::isSafeGpgOpenPgpLiteralFileName)
-            ?: return CONSOLE_LITERAL_FILE_NAME
+            ?: return ""
         val encoded = candidate.encodeToByteArray()
         return try {
             if (encoded.size <= MAX_LITERAL_FILE_NAME_BYTES) {
                 candidate
             } else {
                 encoded.decodeValidUtf8Prefix(MAX_LITERAL_FILE_NAME_BYTES)
-                    ?: CONSOLE_LITERAL_FILE_NAME
+                    ?: ""
             }
         } finally {
             encoded.fill(0)
@@ -133,6 +133,5 @@ private const val BINARY_LITERAL_FORMAT = 'b'.code
 private const val TEXT_LITERAL_FORMAT = 't'.code
 private const val UTF8_LITERAL_FORMAT = 'u'.code
 private const val MIME_LITERAL_FORMAT = 'm'.code
-private const val CONSOLE_LITERAL_FILE_NAME = "_CONSOLE"
 private const val MAX_LITERAL_FILE_NAME_BYTES = 255
 private const val MAX_EPOCH_SECONDS_WITH_MILLISECONDS = Long.MAX_VALUE / 1000L

@@ -554,6 +554,7 @@
     <string name="gpg_key_import_error_unsupported_platform">GPG key import is not supported on this platform.</string>
     <string name="gpg_key_import_error_invalid_passphrase">The GPG key passphrase is invalid.</string>
     <string name="gpg_key_import_error_malformed_key">The GPG key file is malformed.</string>
+    <string name="gpg_key_import_error_multiple_keys">The file contains more than one GPG key. Export and import the keys one at a time.</string>
     <string name="gpg_key_import_error_read">Unable to read the selected file.</string>
     <string name="gpg_key_import_error_passphrase_required">A passphrase is required to unlock this GPG key.</string>
     <string name="gpg_key_import_error_key_changed">The GPG key changed while the import was in progress. Try importing it again.</string>
@@ -573,6 +574,7 @@
     <string name="gpg_key_expiry_primary">Primary key</string>
     <string name="gpg_key_expiry_subkey">Subkey <xliff:g id="key_id" example="0A1B2C3D">%1$s</xliff:g></string>
     <string name="gpg_key_expiry_subkey_capabilities">Capabilities: <xliff:g id="capabilities" example="sign, encrypt">%1$s</xliff:g>. Current expiry: <xliff:g id="expiry" example="Jan 1, 2030">%2$s</xliff:g></string>
+    <string name="gpg_key_expiry_subkey_weak_self_signature">Signed with a weak algorithm (SHA-1). Renewing re-signs it with a modern one.</string>
     <string name="gpg_key_expiry_capability_sign">sign</string>
     <string name="gpg_key_expiry_capability_encrypt">encrypt</string>
     <string name="gpg_key_expiry_preset_one_year">One year</string>
@@ -590,6 +592,8 @@
     <string name="gpg_key_expiry_invalid_message">Choose a valid future expiry date.</string>
     <string name="gpg_key_expiry_revoked_message">A revoked key component cannot be renewed.</string>
     <string name="gpg_key_expiry_unresolved_revocation_message">A designated revocation cannot be verified because the revoker's public key is unavailable. Import it and try again.</string>
+    <string name="gpg_key_expiry_unsupported_signing_hash_message">This key can only be re-certified with an insecure digest algorithm. Migrate to a modern key instead.</string>
+    <string name="gpg_key_expiry_missing_self_signature_message">This key has no valid self-signature, so it cannot be renewed. It may be corrupted or incomplete.</string>
     <string name="ssh_key_import_title">Import SSH key</string>
     <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
@@ -1983,6 +1987,10 @@
     <string name="gpg_key_status">GPG key status</string>
     <string name="gpg_key_status_revoked_text">This GPG key has been revoked and should not be used.</string>
     <string name="gpg_key_status_expired_text">This GPG key has expired and should not be used.</string>
+    <string name="gpg_key_status_weak_self_signature_title">Weak self-signature</string>
+    <string name="gpg_key_status_weak_self_signature_text">This key's self-signatures use a weak algorithm (SHA-1). Renew the key to re-sign it with a modern one.</string>
+    <string name="gpg_key_status_missing_self_signature_title">No valid self-signature</string>
+    <string name="gpg_key_status_missing_self_signature_text">This key has no valid self-signature, so it cannot be renewed. It may be corrupted or incomplete.</string>
     <string name="gpg_key_user_ids">User IDs</string>
     <string name="gpg_key_does_not_expire">Does not expire</string>
     <string name="gpg_key_capability_encrypt_decrypt">Encrypt/decrypt</string>
@@ -2027,6 +2035,10 @@
     <string name="gpg_tools_warning_key_revoked">Warning: signing key is revoked</string>
     <string name="gpg_tools_warning_key_expired">Warning: signing key is expired</string>
     <string name="gpg_tools_warning_signature_expired">Warning: signature is expired</string>
+    <string name="gpg_tools_warning_policy_conflict">Warning: signing key has conflicting policy information</string>
+    <string name="gpg_tools_warning_weak_digest">Warning: signature uses a weak digest algorithm</string>
+    <string name="gpg_tools_warning_weak_rsa_decryption_key">Warning: message was decrypted with a weak RSA key</string>
+    <string name="gpg_tools_warning_elgamal_decryption_key">Warning: message was decrypted with a legacy ElGamal key</string>
     <string name="gpg_tools_file_required">Choose an input file</string>
     <string name="gpg_tools_signature_file_required">Choose a signature file</string>
     <string name="gpg_tools_text_required">Enter text to process</string>

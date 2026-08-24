@@ -191,6 +191,12 @@ class OpenPgpContractTest {
                 .result,
         )
         assertEquals(
+            OpenPgpSignatureResult.RESULT_VALID_KEY_UNCONFIRMED,
+            verification(GpgOpenPgpVerificationWarning.POLICY_CONFLICT)
+                .toApiResult()
+                .result,
+        )
+        assertEquals(
             OpenPgpSignatureResult.RESULT_KEY_MISSING,
             verification(status = GpgOpenPgpVerificationStatus.MISSING_PUBLIC_KEY)
                 .toApiResult()
@@ -201,6 +207,123 @@ class OpenPgpContractTest {
             verification(status = GpgOpenPgpVerificationStatus.INVALID)
                 .toApiResult()
                 .result,
+        )
+        assertEquals(
+            OpenPgpSignatureResult.RESULT_INVALID_SIGNATURE,
+            verification(
+                GpgOpenPgpVerificationWarning.POLICY_CONFLICT,
+                status = GpgOpenPgpVerificationStatus.INVALID,
+            ).toApiResult().result,
+        )
+        assertEquals(
+            OpenPgpSignatureResult.RESULT_INVALID_KEY_REVOKED,
+            verification(
+                GpgOpenPgpVerificationWarning.KEY_REVOKED,
+                status = GpgOpenPgpVerificationStatus.INVALID,
+            ).toApiResult().result,
+        )
+        assertEquals(
+            OpenPgpSignatureResult.RESULT_INVALID_KEY_EXPIRED,
+            verification(
+                GpgOpenPgpVerificationWarning.KEY_EXPIRED,
+                status = GpgOpenPgpVerificationStatus.INVALID,
+            ).toApiResult().result,
+        )
+        assertEquals(
+            OpenPgpSignatureResult.RESULT_INVALID_KEY_EXPIRED,
+            verification(
+                GpgOpenPgpVerificationWarning.SIGNATURE_EXPIRED,
+                status = GpgOpenPgpVerificationStatus.INVALID,
+            ).toApiResult().result,
+        )
+        assertEquals(
+            OpenPgpSignatureResult.RESULT_INVALID_KEY_REVOKED,
+            verification(
+                GpgOpenPgpVerificationWarning.KEY_EXPIRED,
+                GpgOpenPgpVerificationWarning.KEY_REVOKED,
+                status = GpgOpenPgpVerificationStatus.INVALID,
+            ).toApiResult().result,
+        )
+        assertEquals(
+            OpenPgpSignatureResult.RESULT_KEY_MISSING,
+            verification(
+                GpgOpenPgpVerificationWarning.KEY_REVOKED,
+                status = GpgOpenPgpVerificationStatus.MISSING_PUBLIC_KEY,
+            ).toApiResult().result,
+        )
+        // The native core never reports a weak-digest (SHA-1/MD5) data signature as
+        // valid, so the warning always arrives alongside an INVALID status.
+        assertEquals(
+            OpenPgpSignatureResult.RESULT_INVALID_SIGNATURE,
+            verification(
+                GpgOpenPgpVerificationWarning.WEAK_DIGEST,
+                status = GpgOpenPgpVerificationStatus.INVALID,
+            ).toApiResult().result,
+        )
+    }
+
+    @Test
+    fun `mixed multi signature results fail closed regardless of packet order`() {
+        val valid = verification()
+        val failures = listOf(
+            verification(status = GpgOpenPgpVerificationStatus.INVALID) to
+                    OpenPgpSignatureResult.RESULT_INVALID_SIGNATURE,
+            verification(status = GpgOpenPgpVerificationStatus.MISSING_PUBLIC_KEY) to
+                    OpenPgpSignatureResult.RESULT_KEY_MISSING,
+            verification(GpgOpenPgpVerificationWarning.KEY_REVOKED) to
+                    OpenPgpSignatureResult.RESULT_INVALID_KEY_REVOKED,
+            verification(GpgOpenPgpVerificationWarning.KEY_EXPIRED) to
+                    OpenPgpSignatureResult.RESULT_INVALID_KEY_EXPIRED,
+            verification(GpgOpenPgpVerificationWarning.SIGNATURE_EXPIRED) to
+                    OpenPgpSignatureResult.RESULT_INVALID_KEY_EXPIRED,
+        )
+
+        failures.forEach { (failure, expectedResult) ->
+            assertEquals(
+                expectedResult,
+                verification(signatures = listOf(valid, failure)).toApiResult().result,
+            )
+            assertEquals(
+                expectedResult,
+                verification(signatures = listOf(failure, valid)).toApiResult().result,
+            )
+        }
+    }
+
+    @Test
+    fun `multi signature reduction applies conservative failure precedence`() {
+        val invalid = verification(status = GpgOpenPgpVerificationStatus.INVALID)
+        val revoked = verification(GpgOpenPgpVerificationWarning.KEY_REVOKED)
+        val firstExpired = verification(GpgOpenPgpVerificationWarning.KEY_EXPIRED).copy(
+            keyId = "1",
+            fingerprint = null,
+        )
+        val secondExpired = firstExpired.copy(keyId = "2")
+        val missing = verification(status = GpgOpenPgpVerificationStatus.MISSING_PUBLIC_KEY)
+
+        assertEquals(
+            OpenPgpSignatureResult.RESULT_INVALID_SIGNATURE,
+            verification(
+                signatures = listOf(missing, revoked, firstExpired, invalid),
+            ).toApiResult().result,
+        )
+        assertEquals(
+            OpenPgpSignatureResult.RESULT_INVALID_KEY_REVOKED,
+            verification(
+                signatures = listOf(missing, firstExpired, revoked),
+            ).toApiResult().result,
+        )
+        assertEquals(
+            OpenPgpSignatureResult.RESULT_INVALID_KEY_EXPIRED,
+            verification(
+                signatures = listOf(missing, firstExpired),
+            ).toApiResult().result,
+        )
+        assertEquals(
+            1L,
+            verification(
+                signatures = listOf(firstExpired, secondExpired),
+            ).toApiResult().keyId,
         )
     }
 
@@ -243,6 +366,7 @@ class OpenPgpContractTest {
     private fun verification(
         vararg warnings: GpgOpenPgpVerificationWarning,
         status: GpgOpenPgpVerificationStatus = GpgOpenPgpVerificationStatus.VALID,
+        signatures: List<GpgOpenPgpVerification> = emptyList(),
     ) = GpgOpenPgpVerification(
         status = status,
         keyId = "0123456789ABCDEF",
@@ -250,5 +374,6 @@ class OpenPgpContractTest {
         userIds = listOf("Alice <alice@example.com>"),
         createdAt = Instant.fromEpochSeconds(1_700_000_000L),
         warnings = warnings.toList(),
+        signatures = signatures,
     )
 }

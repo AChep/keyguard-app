@@ -9,6 +9,13 @@ import kotlinx.serialization.protobuf.ProtoBuf
 public sealed interface NativeOpenPgpPublicKeyParseResult {
     public data class Success(
         val keys: List<NativeOpenPgpPublicKeyInfo>,
+        /**
+         * Number of independent certificates omitted because their version is not
+         * supported, they are malformed, or their policy evaluation exceeds the
+         * per-certificate work budget. Such certificates are tolerated rather than
+         * fatal when another recoverable certificate succeeds.
+         */
+        val skippedCertificates: Int = 0,
     ) : NativeOpenPgpPublicKeyParseResult
 
     public data class Error(
@@ -20,6 +27,7 @@ public enum class NativeOpenPgpPublicKeyParseError {
     EMPTY,
     MALFORMED,
     UNSUPPORTED_KEY_VERSION,
+    MULTIPLE_CERTIFICATES,
 }
 
 public data class NativeOpenPgpPublicKeyInfo(
@@ -37,6 +45,25 @@ public data class NativeOpenPgpPublicKeyInfo(
     val canEncrypt: Boolean,
     val publicKeyArmored: String,
     val subkeys: List<NativeOpenPgpPublicSubKeyInfo>,
+    /**
+     * Whether a policy-acceptable self-signature authenticates this key.
+     *
+     * A reported key with `authenticated == false` is bound only by a
+     * signature below the hash policy: it authorizes nothing, but renewal can
+     * still reissue that signature with a modern algorithm.
+     */
+    val authenticated: Boolean = true,
+    /**
+     * Whether recertification may reissue this key's own self-signatures.
+     *
+     * This is what tells the two `authenticated == false` keys apart:
+     * [NativeOpenPgpRenewalAuthorization.TEMPLATE_ONLY] is the weak-hash key a
+     * renewal repairs, [NativeOpenPgpRenewalAuthorization.NONE] is the key a
+     * renewal cannot touch. Subkeys carry no such field: an unauthenticated
+     * subkey is only reported when it is template-renewable.
+     */
+    val renewal: NativeOpenPgpRenewalAuthorization =
+        NativeOpenPgpRenewalAuthorization.NONE,
 )
 
 public data class NativeOpenPgpPublicSubKeyInfo(
@@ -50,8 +77,11 @@ public data class NativeOpenPgpPublicSubKeyInfo(
     val revoked: Boolean,
     val createdAtEpochSeconds: Long?,
     val expiresAtEpochSeconds: Long?,
+    /** See [NativeOpenPgpPublicKeyInfo.authenticated]. */
+    val authenticated: Boolean = true,
 )
 
+/** Payload signature result; signing-key policy is reported separately in `warnings`. */
 public enum class NativeOpenPgpVerificationStatus {
     VALID,
     INVALID,
@@ -59,9 +89,27 @@ public enum class NativeOpenPgpVerificationStatus {
 }
 
 public enum class NativeOpenPgpVerificationWarning {
+    /** The signature may verify mathematically, but the signing authority is revoked. */
     KEY_REVOKED,
+
+    /** The signature may verify mathematically, but the signing authority is expired. */
     KEY_EXPIRED,
+
+    /** The signature statement has expired and is therefore reported as invalid. */
     SIGNATURE_EXPIRED,
+
+    /**
+     * Equally recent authenticated policy signatures disagree about the effective key policy.
+     * The payload signature may still be cryptographically valid, but signer identity and
+     * capabilities cannot be uniquely authenticated.
+     */
+    POLICY_CONFLICT,
+
+    /**
+     * The data signature is bound to a digest algorithm that is no longer considered
+     * collision resistant (SHA-1 or MD5). Such signatures are never reported as valid.
+     */
+    WEAK_DIGEST,
 }
 
 public data class NativeOpenPgpVerification(
@@ -71,7 +119,13 @@ public data class NativeOpenPgpVerification(
     val userIds: List<String>,
     val createdAtEpochSeconds: Long?,
     val warnings: List<NativeOpenPgpVerificationWarning>,
-)
+    /** One leaf result per input signature, in packet order. */
+    val signatures: List<NativeOpenPgpVerification> = emptyList(),
+) {
+    /** True only for an unqualified valid result under Keyguard's caller policy. */
+    public val isPolicyAccepted: Boolean
+        get() = status == NativeOpenPgpVerificationStatus.VALID && warnings.isEmpty()
+}
 
 public data class NativeOpenPgpClearVerifyResult(
     val verification: NativeOpenPgpVerification,
@@ -79,16 +133,75 @@ public data class NativeOpenPgpClearVerifyResult(
     val bodyValidUtf8: Boolean,
 )
 
-public data class NativeOpenPgpKeyMetadata(
-    val version: Int,
-    val keys: List<NativeOpenPgpKeyMetadataKey>,
+public data class NativeOpenPgpMetadataResolution(
+    val certificates: List<NativeOpenPgpCertificateResolution>,
+    val evaluatedAtEpochSeconds: Long,
+    val policyRevision: Int,
 )
 
-public data class NativeOpenPgpKeyMetadataKey(
-    val keygrip: String,
+public enum class NativeOpenPgpKeyComponentRole {
+    PRIMARY,
+    SUBKEY,
+}
+
+public enum class NativeOpenPgpAgentOperation {
+    SIGN,
+    DECRYPT,
+}
+
+public enum class NativeOpenPgpPolicyUse {
+    SIGN_NEW_DATA,
+    ENCRYPT_NEW_DATA,
+}
+
+/**
+ * Whether recertification may reissue a component's own self-signatures.
+ *
+ * [TEMPLATE_ONLY] is the legacy rescue tier: the component authenticates
+ * nothing, yet renewal stays available because the renewal is exactly what
+ * replaces its weak-hash self-signatures with modern ones. It authorizes no
+ * other operation. [NONE] covers every refusal, including revoked components;
+ * revocation is reported through its own fields.
+ */
+public enum class NativeOpenPgpRenewalAuthorization {
+    AUTHENTICATED,
+    TEMPLATE_ONLY,
+    NONE,
+}
+
+public data class NativeOpenPgpKeyComponentIndex(
     val fingerprint: String,
+    val role: NativeOpenPgpKeyComponentRole,
+    val publicKeyAlgorithmId: Int,
     val algorithm: String,
-    val capabilities: Set<String>,
+    val keygrips: List<String>,
+    val storedSecretMaterial: Boolean,
+    val agentOperations: Set<NativeOpenPgpAgentOperation>,
+)
+
+public data class NativeOpenPgpLegacyDesignatedRevoker(
+    val publicKeyAlgorithmId: Int,
+    val fingerprint: String,
+    val keyClass: Int,
+    val sensitive: Boolean,
+)
+
+public data class NativeOpenPgpCertificateIndex(
+    val primaryFingerprint: String,
+    val components: List<NativeOpenPgpKeyComponentIndex>,
+    val legacyDesignatedRevokers: List<NativeOpenPgpLegacyDesignatedRevoker>,
+)
+
+public data class NativeOpenPgpComponentPolicy(
+    val fingerprint: String,
+    val allowedNewDataUses: Set<NativeOpenPgpPolicyUse>,
+    val renewal: NativeOpenPgpRenewalAuthorization =
+        NativeOpenPgpRenewalAuthorization.NONE,
+)
+
+public data class NativeOpenPgpCertificateResolution(
+    val index: NativeOpenPgpCertificateIndex,
+    val policy: List<NativeOpenPgpComponentPolicy>,
 )
 
 public enum class NativeOpenPgpKeyKind {
@@ -126,12 +239,21 @@ public enum class NativeOpenPgpKeyImportError {
 public enum class NativeOpenPgpProtectionMode {
     SEIPD_V1_MDC,
     GNUPG_OCB,
+    SEIPD_V2_AEAD,
 }
 
 public class NativeOpenPgpEncryptResult(
     val data: ByteArray,
     val protectionMode: NativeOpenPgpProtectionMode,
 )
+
+public enum class NativeOpenPgpDecryptionWarning {
+    /** RFC 9580 Section 12.4: successful historical decryption used RSA below 3072 bits. */
+    WEAK_RSA_KEY,
+
+    /** RFC 9580 Section 12.6: successful historical decryption used deprecated ElGamal. */
+    ELGAMAL_KEY,
+}
 
 public class NativeOpenPgpDecryptResult(
     val data: ByteArray,
@@ -149,6 +271,8 @@ public class NativeOpenPgpDecryptResult(
     val declaredCharset: String?,
     /** Exact primary key or subkey component that recovered the session key. */
     val decryptionKeyFingerprint: String? = null,
+    /** Deprecation warnings for the component that recovered the session key. */
+    val warnings: List<NativeOpenPgpDecryptionWarning> = emptyList(),
 )
 
 public class NativeOpenPgpEncryptFinal(
@@ -172,6 +296,8 @@ public class NativeOpenPgpDecryptFinal(
     val declaredCharset: String?,
     /** Exact primary key or subkey component that recovered the session key. */
     val decryptionKeyFingerprint: String? = null,
+    /** Deprecation warnings for the component that recovered the session key. */
+    val warnings: List<NativeOpenPgpDecryptionWarning> = emptyList(),
 )
 
 /**
@@ -202,7 +328,7 @@ public class NativeOpenPgpLiteralMetadata(
 public sealed interface NativeOpenPgpExpirationUpdateResult {
     public class Success(
         val keyMaterial: NativeOpenPgpKeyMaterial,
-        val metadata: NativeOpenPgpKeyMetadata,
+        val certificateIndex: NativeOpenPgpCertificateIndex,
     ) : NativeOpenPgpExpirationUpdateResult
 
     public data class Error(
@@ -227,6 +353,7 @@ public enum class NativeOpenPgpExpirationUpdateError {
     SIGNATURE_VERIFICATION_FAILED,
     METADATA_RESOLUTION_FAILED,
     INTERNAL_FAILURE,
+    UNSUPPORTED_SIGNING_HASH,
 }
 
 public sealed interface NativeOpenPgpAgentSignResult {
@@ -396,26 +523,7 @@ public object NativeCryptoOpenPgp {
                 ),
             ),
         ).requireBytes("open_pgp_public_key_parse")
-        val result = decodePayload<OpenPgpPublicKeyParseResultProto>(
-            operation = "open_pgp_public_key_parse",
-            payload = payload,
-        )
-        return when (val outcome = result.result) {
-            is OpenPgpPublicKeyParseSuccessOutcomeProto -> {
-                val keys = outcome.value.keys.map { value ->
-                    value.toPublic("open_pgp_public_key_parse")
-                }
-                if (keys.isEmpty()) malformedOpenPgp("open_pgp_public_key_parse")
-                NativeOpenPgpPublicKeyParseResult.Success(keys)
-            }
-
-            is OpenPgpPublicKeyParseErrorOutcomeProto ->
-                NativeOpenPgpPublicKeyParseResult.Error(
-                    reason = outcome.value.reason.toPublic("open_pgp_public_key_parse"),
-                )
-
-            null -> malformedOpenPgp("open_pgp_public_key_parse")
-        }
+        return decodeOpenPgpPublicKeyParseResult("open_pgp_public_key_parse", payload)
     }
 
     public fun verifyClearSigned(
@@ -475,7 +583,7 @@ public object NativeCryptoOpenPgp {
         normalizedFingerprint: String = "",
         candidateRevocationKeys: List<ByteArray> = emptyList(),
         referenceTimeEpochSeconds: Long? = null,
-    ): NativeOpenPgpKeyMetadata? {
+    ): NativeOpenPgpMetadataResolution? {
         requireReferenceTime(referenceTimeEpochSeconds)
         val payload = NativeCrypto.call(
             operationName = "open_pgp_metadata_resolve",
@@ -489,10 +597,10 @@ public object NativeCryptoOpenPgp {
                 ),
             ),
         ).requireBytes("open_pgp_metadata_resolve")
-        return decodePayload<OpenPgpMetadataResolveResultProto>(
+        return decodeOpenPgpMetadataResolution(
             operation = "open_pgp_metadata_resolve",
             payload = payload,
-        ).metadata?.toPublic("open_pgp_metadata_resolve")
+        )
     }
 
     public fun generateKey(
@@ -604,6 +712,7 @@ public object NativeCryptoOpenPgp {
     public fun clearSign(
         content: ByteArray,
         privateKey: ByteArray,
+        candidateRevocationKeys: List<ByteArray>,
         preferredFingerprint: String = "",
         signatureTimeEpochSeconds: Long? = null,
         referenceTimeEpochSeconds: Long? = null,
@@ -611,6 +720,7 @@ public object NativeCryptoOpenPgp {
         kind = OpenPgpSignKindProto.CLEAR_TEXT,
         content = content,
         privateKey = privateKey,
+        candidateRevocationKeys = candidateRevocationKeys,
         preferredFingerprint = preferredFingerprint,
         armored = true,
         signatureTimeEpochSeconds = signatureTimeEpochSeconds,
@@ -620,6 +730,7 @@ public object NativeCryptoOpenPgp {
     public fun signDetached(
         content: ByteArray,
         privateKey: ByteArray,
+        candidateRevocationKeys: List<ByteArray>,
         preferredFingerprint: String = "",
         armored: Boolean = true,
         signatureTimeEpochSeconds: Long? = null,
@@ -628,6 +739,7 @@ public object NativeCryptoOpenPgp {
         kind = OpenPgpSignKindProto.DETACHED,
         content = content,
         privateKey = privateKey,
+        candidateRevocationKeys = candidateRevocationKeys,
         preferredFingerprint = preferredFingerprint,
         armored = armored,
         signatureTimeEpochSeconds = signatureTimeEpochSeconds,
@@ -637,6 +749,7 @@ public object NativeCryptoOpenPgp {
     public fun encrypt(
         content: ByteArray,
         publicKeys: List<ByteArray>,
+        candidateRevocationKeys: List<ByteArray>,
         signingPrivateKey: ByteArray? = null,
         preferredSigningFingerprint: String = "",
         fileName: String,
@@ -661,6 +774,7 @@ public object NativeCryptoOpenPgp {
             return encryptStreaming(
                 content = content,
                 publicKeys = publicKeys,
+                candidateRevocationKeys = candidateRevocationKeys,
                 signingPrivateKey = signingPrivateKey,
                 preferredSigningFingerprint = preferredSigningFingerprint,
                 fileName = fileName,
@@ -683,6 +797,7 @@ public object NativeCryptoOpenPgp {
                     literalTimeEpochSeconds = literalTimeEpochSeconds,
                     referenceTimeEpochSeconds = referenceTimeEpochSeconds,
                     enableCompression = enableCompression,
+                    candidateRevocationKeys = candidateRevocationKeys,
                 ),
             ),
         ).requireBytes("open_pgp_encrypt")
@@ -695,6 +810,7 @@ public object NativeCryptoOpenPgp {
     private fun encryptStreaming(
         content: ByteArray,
         publicKeys: List<ByteArray>,
+        candidateRevocationKeys: List<ByteArray>,
         signingPrivateKey: ByteArray?,
         preferredSigningFingerprint: String,
         fileName: String,
@@ -705,6 +821,7 @@ public object NativeCryptoOpenPgp {
     ): NativeOpenPgpEncryptResult {
         val session = openEncryption(
             publicKeys = publicKeys,
+            candidateRevocationKeys = candidateRevocationKeys,
             signingPrivateKey = signingPrivateKey,
             preferredSigningFingerprint = preferredSigningFingerprint,
             fileName = fileName,
@@ -828,6 +945,7 @@ public object NativeCryptoOpenPgp {
                 encrypted = final.encrypted,
                 declaredCharset = final.declaredCharset,
                 decryptionKeyFingerprint = final.decryptionKeyFingerprint,
+                warnings = final.warnings,
             )
         } catch (failure: Throwable) {
             primaryFailure = failure
@@ -851,6 +969,7 @@ public object NativeCryptoOpenPgp {
 
     public fun openDetachedSigning(
         privateKey: ByteArray,
+        candidateRevocationKeys: List<ByteArray>,
         preferredFingerprint: String = "",
         armored: Boolean = true,
         signatureTimeEpochSeconds: Long? = null,
@@ -865,6 +984,7 @@ public object NativeCryptoOpenPgp {
         return NativeOpenPgpDetachedSigningSessionImpl(
             NativeCrypto.openPgpDetachedSigning(
                 privateKey = privateKey,
+                candidateRevocationKeys = candidateRevocationKeys,
                 preferredFingerprint = preferredFingerprint,
                 armored = armored,
                 signatureTimeEpochSeconds = signatureTimeEpochSeconds,
@@ -875,6 +995,7 @@ public object NativeCryptoOpenPgp {
 
     public fun openClearSigning(
         privateKey: ByteArray,
+        candidateRevocationKeys: List<ByteArray>,
         preferredFingerprint: String = "",
         signatureTimeEpochSeconds: Long? = null,
         referenceTimeEpochSeconds: Long? = null,
@@ -888,6 +1009,7 @@ public object NativeCryptoOpenPgp {
         return NativeOpenPgpClearSigningSessionImpl(
             NativeCrypto.openPgpClearSigning(
                 privateKey = privateKey,
+                candidateRevocationKeys = candidateRevocationKeys,
                 preferredFingerprint = preferredFingerprint,
                 signatureTimeEpochSeconds = signatureTimeEpochSeconds,
                 referenceTimeEpochSeconds = referenceTimeEpochSeconds,
@@ -897,6 +1019,7 @@ public object NativeCryptoOpenPgp {
 
     public fun openEncryption(
         publicKeys: List<ByteArray>,
+        candidateRevocationKeys: List<ByteArray>,
         signingPrivateKey: ByteArray? = null,
         preferredSigningFingerprint: String = "",
         fileName: String,
@@ -916,6 +1039,7 @@ public object NativeCryptoOpenPgp {
         return NativeOpenPgpEncryptionSessionImpl(
             NativeCrypto.openPgpEncryption(
                 publicKeys = publicKeys,
+                candidateRevocationKeys = candidateRevocationKeys,
                 signingPrivateKey = signingPrivateKey,
                 preferredSigningFingerprint = preferredSigningFingerprint,
                 fileName = fileName,
@@ -994,6 +1118,7 @@ public object NativeCryptoOpenPgp {
         preferredFingerprint: String,
         hashAlgorithm: String,
         hash: ByteArray,
+        candidateRevocationKeys: List<ByteArray>,
     ): NativeOpenPgpAgentSignResult {
         require(privateKey.isNotEmpty()) { "OpenPGP private key must not be empty" }
         val payload = NativeCrypto.call(
@@ -1004,6 +1129,7 @@ public object NativeCryptoOpenPgp {
                     preferredFingerprint = preferredFingerprint,
                     hashAlgorithm = hashAlgorithm,
                     hash = hash,
+                    candidateRevocationKeys = candidateRevocationKeys,
                 ),
             ),
         ).requireBytes("open_pgp_agent_sign")
@@ -1069,6 +1195,7 @@ public object NativeCryptoOpenPgp {
         kind: OpenPgpSignKindProto,
         content: ByteArray,
         privateKey: ByteArray,
+        candidateRevocationKeys: List<ByteArray>,
         preferredFingerprint: String,
         armored: Boolean,
         signatureTimeEpochSeconds: Long?,
@@ -1091,6 +1218,7 @@ public object NativeCryptoOpenPgp {
                     armored = armored,
                     signatureTimeEpochSeconds = signatureTimeEpochSeconds,
                     referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                    candidateRevocationKeys = candidateRevocationKeys,
                 ),
             ),
         ).requireBytes("open_pgp_sign")
@@ -1371,13 +1499,14 @@ internal fun OpenPgpExpirationUpdateResultProto.toPublicExpirationUpdateResult(
         val keyMaterial = outcome.value.keyMaterial ?: malformedOpenPgp(operation)
         var ownershipTransferred = false
         try {
-            val metadata = outcome.value.metadata ?: malformedOpenPgp(operation)
+            val certificateIndex = outcome.value.certificateIndex?.toPublic(operation)
+                ?: malformedOpenPgp(operation)
             NativeOpenPgpExpirationUpdateResult.Success(
                 keyMaterial = keyMaterial.toPublic(
                     operation = operation,
                     requirePrivateKey = true,
                 ),
-                metadata = metadata.toPublic(operation),
+                certificateIndex = certificateIndex,
             ).also {
                 ownershipTransferred = true
             }
@@ -1450,6 +1579,9 @@ private fun OpenPgpExpirationUpdateErrorReasonProto.toPublic(
     OpenPgpExpirationUpdateErrorReasonProto.INTERNAL_FAILURE ->
         NativeOpenPgpExpirationUpdateError.INTERNAL_FAILURE
 
+    OpenPgpExpirationUpdateErrorReasonProto.UNSUPPORTED_SIGNING_HASH ->
+        NativeOpenPgpExpirationUpdateError.UNSUPPORTED_SIGNING_HASH
+
     OpenPgpExpirationUpdateErrorReasonProto.UNSPECIFIED -> malformedOpenPgp(operation)
 }
 
@@ -1468,6 +1600,7 @@ private fun OpenPgpProtectionModeProto.toPublic(
 ): NativeOpenPgpProtectionMode = when (this) {
     OpenPgpProtectionModeProto.SEIPD_V1_MDC -> NativeOpenPgpProtectionMode.SEIPD_V1_MDC
     OpenPgpProtectionModeProto.GNUPG_OCB -> NativeOpenPgpProtectionMode.GNUPG_OCB
+    OpenPgpProtectionModeProto.SEIPD_V2_AEAD -> NativeOpenPgpProtectionMode.SEIPD_V2_AEAD
     OpenPgpProtectionModeProto.UNSPECIFIED -> malformedOpenPgp(operation)
 }
 
@@ -1493,10 +1626,26 @@ internal fun OpenPgpDecryptFinalProto.toPublicDecryptFinal(
 ): NativeOpenPgpDecryptFinal {
     var ownershipTransferred = false
     return try {
+        val publicWarnings = warnings.map { wireValue ->
+            when (OpenPgpDecryptionWarningProto.fromWireValue(wireValue)) {
+                OpenPgpDecryptionWarningProto.WEAK_RSA_KEY ->
+                    NativeOpenPgpDecryptionWarning.WEAK_RSA_KEY
+
+                OpenPgpDecryptionWarningProto.ELGAMAL_KEY ->
+                    NativeOpenPgpDecryptionWarning.ELGAMAL_KEY
+
+                OpenPgpDecryptionWarningProto.UNSPECIFIED,
+                null,
+                -> malformedOpenPgp(operation)
+            }
+        }
+        if (publicWarnings.toSet().size != publicWarnings.size) {
+            malformedOpenPgp(operation)
+        }
         decryptionKeyFingerprint?.let { fingerprint ->
             requireOpenPgpFingerprint(operation, fingerprint)
         }
-        if (!encrypted && decryptionKeyFingerprint != null) {
+        if (!encrypted && (decryptionKeyFingerprint != null || publicWarnings.isNotEmpty())) {
             malformedOpenPgp(operation)
         }
         NativeOpenPgpDecryptFinal(
@@ -1506,6 +1655,7 @@ internal fun OpenPgpDecryptFinalProto.toPublicDecryptFinal(
             encrypted = encrypted,
             declaredCharset = declaredCharset,
             decryptionKeyFingerprint = decryptionKeyFingerprint,
+            warnings = publicWarnings,
         ).also {
             ownershipTransferred = true
         }
@@ -1557,7 +1707,23 @@ private fun OpenPgpPublicKeyInfoProto.toPublic(
         canEncrypt = canEncrypt,
         publicKeyArmored = publicKeyArmored,
         subkeys = subkeys.map { value -> value.toPublic(operation) },
+        authenticated = authenticated,
+        renewal = renewal.toRenewalAuthorizationOrNone(),
     )
+}
+
+/**
+ * A renewal value this build does not know must never look like
+ * permission, so anything unrecognized degrades to NONE.
+ */
+private fun Int.toRenewalAuthorizationOrNone(): NativeOpenPgpRenewalAuthorization = when (this) {
+    OPEN_PGP_RENEWAL_AUTHORIZATION_AUTHENTICATED ->
+        NativeOpenPgpRenewalAuthorization.AUTHENTICATED
+
+    OPEN_PGP_RENEWAL_AUTHORIZATION_TEMPLATE_ONLY ->
+        NativeOpenPgpRenewalAuthorization.TEMPLATE_ONLY
+
+    else -> NativeOpenPgpRenewalAuthorization.NONE
 }
 
 private fun OpenPgpPublicSubKeyInfoProto.toPublic(
@@ -1581,6 +1747,7 @@ private fun OpenPgpPublicSubKeyInfoProto.toPublic(
         revoked = revoked,
         createdAtEpochSeconds = createdAtEpochSeconds,
         expiresAtEpochSeconds = expiresAtEpochSeconds,
+        authenticated = authenticated,
     )
 }
 
@@ -1592,7 +1759,39 @@ private fun OpenPgpPublicKeyParseErrorReasonProto.toPublic(
     OpenPgpPublicKeyParseErrorReasonProto.UNSUPPORTED_KEY_VERSION ->
         NativeOpenPgpPublicKeyParseError.UNSUPPORTED_KEY_VERSION
 
+    OpenPgpPublicKeyParseErrorReasonProto.MULTIPLE_CERTIFICATES ->
+        NativeOpenPgpPublicKeyParseError.MULTIPLE_CERTIFICATES
+
     OpenPgpPublicKeyParseErrorReasonProto.UNSPECIFIED -> malformedOpenPgp(operation)
+}
+
+internal fun decodeOpenPgpPublicKeyParseResult(
+    operation: String,
+    payload: ByteArray,
+): NativeOpenPgpPublicKeyParseResult {
+    val result = decodePayload<OpenPgpPublicKeyParseResultProto>(
+        operation = operation,
+        payload = payload,
+    )
+    return when (val outcome = result.result) {
+        is OpenPgpPublicKeyParseSuccessOutcomeProto -> {
+            val keys = outcome.value.keys.map { value -> value.toPublic(operation) }
+            if (keys.isEmpty()) malformedOpenPgp(operation)
+            val skipped = outcome.value.skippedCertificates
+            if (skipped < 0) malformedOpenPgp(operation)
+            NativeOpenPgpPublicKeyParseResult.Success(
+                keys = keys,
+                skippedCertificates = skipped,
+            )
+        }
+
+        is OpenPgpPublicKeyParseErrorOutcomeProto ->
+            NativeOpenPgpPublicKeyParseResult.Error(
+                reason = outcome.value.reason.toPublic(operation),
+            )
+
+        null -> malformedOpenPgp(operation)
+    }
 }
 
 internal fun decodeOpenPgpVerification(
@@ -1603,8 +1802,20 @@ internal fun decodeOpenPgpVerification(
     payload = payload,
 ).toPublic(operation)
 
+internal fun decodeOpenPgpMetadataResolution(
+    operation: String,
+    payload: ByteArray,
+): NativeOpenPgpMetadataResolution? {
+    val result = decodePayload<OpenPgpMetadataResolveResultProto>(
+        operation = operation,
+        payload = payload,
+    )
+    return result.resolution?.toPublic(operation)
+}
+
 private fun OpenPgpVerificationProto.toPublic(
     operation: String,
+    allowSignatureResults: Boolean = true,
 ): NativeOpenPgpVerification {
     requireOpenPgpKeyId(operation, keyId)
     fingerprint?.let { value -> requireOpenPgpFingerprint(operation, value) }
@@ -1631,11 +1842,26 @@ private fun OpenPgpVerificationProto.toPublic(
             OpenPgpVerificationWarningProto.SIGNATURE_EXPIRED ->
                 NativeOpenPgpVerificationWarning.SIGNATURE_EXPIRED
 
+            OpenPgpVerificationWarningProto.POLICY_CONFLICT ->
+                NativeOpenPgpVerificationWarning.POLICY_CONFLICT
+
+            OpenPgpVerificationWarningProto.WEAK_DIGEST ->
+                NativeOpenPgpVerificationWarning.WEAK_DIGEST
+
             OpenPgpVerificationWarningProto.UNSPECIFIED -> malformedOpenPgp(operation)
         }
     }
     if (publicWarnings.toSet().size != publicWarnings.size) {
         malformedOpenPgp(operation)
+    }
+    if (!allowSignatureResults && signatures.isNotEmpty()) {
+        malformedOpenPgp(operation)
+    }
+    val publicSignatures = signatures.map { result ->
+        result.toPublic(
+            operation = operation,
+            allowSignatureResults = false,
+        )
     }
     when (publicStatus) {
         NativeOpenPgpVerificationStatus.MISSING_PUBLIC_KEY -> {
@@ -1655,35 +1881,151 @@ private fun OpenPgpVerificationProto.toPublic(
         userIds = userIds,
         createdAtEpochSeconds = createdAtEpochSeconds,
         warnings = publicWarnings,
+        signatures = publicSignatures,
     )
 }
 
-private fun OpenPgpKeyMetadataProto.toPublic(
+private fun OpenPgpMetadataResolutionV2Proto.toPublic(
     operation: String,
-): NativeOpenPgpKeyMetadata {
-    if (version != 1 || keys.isEmpty()) malformedOpenPgp(operation)
-    return NativeOpenPgpKeyMetadata(
-        version = version,
-        keys = keys.map { value ->
-            requireOpenPgpKeygrip(operation, value.keygrip)
+): NativeOpenPgpMetadataResolution {
+    if (evaluatedAtEpochSeconds < 0L || policyRevision <= 0 || certificates.isEmpty()) {
+        malformedOpenPgp(operation)
+    }
+    val publicCertificates = certificates.map { certificate ->
+        val index = certificate.index?.toPublic(operation) ?: malformedOpenPgp(operation)
+        val componentFingerprints = index.components.mapTo(mutableSetOf()) { it.fingerprint }
+        val seenPolicyFingerprints = mutableSetOf<String>()
+        val publicPolicy = certificate.policy.map { value ->
             requireOpenPgpFingerprint(operation, value.fingerprint)
-            requireOpenPgpAlgorithm(operation, value.algorithm)
-            val capabilities = value.capabilities.toSet()
             if (
-                capabilities.size != value.capabilities.size ||
-                capabilities.any { capability -> capability != "sign" && capability != "decrypt" }
+                value.fingerprint !in componentFingerprints ||
+                !seenPolicyFingerprints.add(value.fingerprint)
             ) {
                 malformedOpenPgp(operation)
             }
-            NativeOpenPgpKeyMetadataKey(
-                keygrip = value.keygrip,
+            NativeOpenPgpComponentPolicy(
                 fingerprint = value.fingerprint,
-                algorithm = value.algorithm,
-                capabilities = capabilities,
+                allowedNewDataUses = if (policyRevision == OPEN_PGP_POLICY_REVISION_V2) {
+                    value.allowedNewDataUses.mapNotNullTo(mutableSetOf()) { wireValue ->
+                        when (wireValue) {
+                            OPEN_PGP_POLICY_USE_SIGN_NEW_DATA ->
+                                NativeOpenPgpPolicyUse.SIGN_NEW_DATA
+
+                            OPEN_PGP_POLICY_USE_ENCRYPT_NEW_DATA ->
+                                NativeOpenPgpPolicyUse.ENCRYPT_NEW_DATA
+
+                            else -> null
+                        }
+                    }
+                } else {
+                    emptySet()
+                },
+                // A policy revision this build does not understand must never
+                // look like permission.
+                renewal = if (policyRevision == OPEN_PGP_POLICY_REVISION_V2) {
+                    value.renewal.toRenewalAuthorizationOrNone()
+                } else {
+                    NativeOpenPgpRenewalAuthorization.NONE
+                },
             )
-        },
+        }
+        if (seenPolicyFingerprints != componentFingerprints) malformedOpenPgp(operation)
+        NativeOpenPgpCertificateResolution(
+            index = index,
+            policy = publicPolicy,
+        )
+    }
+    if (publicCertificates.map { it.index.primaryFingerprint }.toSet().size != publicCertificates.size) {
+        malformedOpenPgp(operation)
+    }
+    return NativeOpenPgpMetadataResolution(
+        certificates = publicCertificates,
+        evaluatedAtEpochSeconds = evaluatedAtEpochSeconds,
+        policyRevision = policyRevision,
     )
 }
+
+private fun OpenPgpCertificateIndexV2Proto.toPublic(
+    operation: String,
+): NativeOpenPgpCertificateIndex {
+    requireOpenPgpFingerprint(operation, primaryFingerprint)
+    if (components.isEmpty()) malformedOpenPgp(operation)
+    val seenFingerprints = mutableSetOf<String>()
+    val publicComponents = components.mapIndexed { index, value ->
+        requireOpenPgpFingerprint(operation, value.fingerprint)
+        requireOpenPgpAlgorithm(operation, value.algorithm)
+        if (
+            !seenFingerprints.add(value.fingerprint) ||
+            value.publicKeyAlgorithmId !in 1..UByte.MAX_VALUE.toInt() ||
+            value.keygrips.toSet().size != value.keygrips.size
+        ) {
+            malformedOpenPgp(operation)
+        }
+        value.keygrips.forEach { keygrip -> requireOpenPgpKeygrip(operation, keygrip) }
+        val role = when (value.role) {
+            OPEN_PGP_KEY_COMPONENT_ROLE_PRIMARY -> NativeOpenPgpKeyComponentRole.PRIMARY
+            OPEN_PGP_KEY_COMPONENT_ROLE_SUBKEY -> NativeOpenPgpKeyComponentRole.SUBKEY
+            else -> malformedOpenPgp(operation)
+        }
+        if (
+            (index == 0) != (role == NativeOpenPgpKeyComponentRole.PRIMARY) ||
+            (role == NativeOpenPgpKeyComponentRole.PRIMARY) !=
+            (value.fingerprint == primaryFingerprint)
+        ) {
+            malformedOpenPgp(operation)
+        }
+        NativeOpenPgpKeyComponentIndex(
+            fingerprint = value.fingerprint,
+            role = role,
+            publicKeyAlgorithmId = value.publicKeyAlgorithmId,
+            algorithm = value.algorithm,
+            keygrips = value.keygrips,
+            storedSecretMaterial = value.storedSecretMaterial,
+            agentOperations = value.agentOperations.mapNotNullTo(mutableSetOf()) { wireValue ->
+                when (wireValue) {
+                    OPEN_PGP_AGENT_OPERATION_SIGN -> NativeOpenPgpAgentOperation.SIGN
+                    OPEN_PGP_AGENT_OPERATION_DECRYPT -> NativeOpenPgpAgentOperation.DECRYPT
+                    else -> null
+                }
+            },
+        )
+    }
+    val seenRevokers = mutableSetOf<Triple<Int, String, Int>>()
+    val publicRevokers = legacyDesignatedRevokers.map { value ->
+        requireOpenPgpFingerprint(operation, value.fingerprint)
+        if (
+            value.publicKeyAlgorithmId !in 1..UByte.MAX_VALUE.toInt() ||
+            value.keyClass !in setOf(0x80, 0xC0) ||
+            value.sensitive != (value.keyClass and 0x40 != 0) ||
+            !seenRevokers.add(
+                Triple(value.publicKeyAlgorithmId, value.fingerprint, value.keyClass),
+            )
+        ) {
+            malformedOpenPgp(operation)
+        }
+        NativeOpenPgpLegacyDesignatedRevoker(
+            publicKeyAlgorithmId = value.publicKeyAlgorithmId,
+            fingerprint = value.fingerprint,
+            keyClass = value.keyClass,
+            sensitive = value.sensitive,
+        )
+    }
+    return NativeOpenPgpCertificateIndex(
+        primaryFingerprint = primaryFingerprint,
+        components = publicComponents,
+        legacyDesignatedRevokers = publicRevokers,
+    )
+}
+
+private const val OPEN_PGP_POLICY_REVISION_V2 = 1
+private const val OPEN_PGP_KEY_COMPONENT_ROLE_PRIMARY = 1
+private const val OPEN_PGP_KEY_COMPONENT_ROLE_SUBKEY = 2
+private const val OPEN_PGP_AGENT_OPERATION_SIGN = 1
+private const val OPEN_PGP_AGENT_OPERATION_DECRYPT = 2
+private const val OPEN_PGP_POLICY_USE_SIGN_NEW_DATA = 1
+private const val OPEN_PGP_POLICY_USE_ENCRYPT_NEW_DATA = 2
+private const val OPEN_PGP_RENEWAL_AUTHORIZATION_AUTHENTICATED = 1
+private const val OPEN_PGP_RENEWAL_AUTHORIZATION_TEMPLATE_ONLY = 2
 
 private inline fun <reified T> decodePayload(
     operation: String,
@@ -1732,7 +2074,9 @@ private fun requireEncryptInputs(
         "A preferred signing fingerprint requires a signing private key"
     }
     requirePreferredFingerprint(preferredSigningFingerprint)
-    require(fileName.isNotBlank()) { "OpenPGP literal file name must not be blank" }
+    require(fileName.isEmpty() || fileName.isNotBlank()) {
+        "OpenPGP literal file name must be empty or non-blank"
+    }
     requireOptionalOpenPgpTime("literal", literalTimeEpochSeconds)
     requireReferenceTime(referenceTimeEpochSeconds)
 }

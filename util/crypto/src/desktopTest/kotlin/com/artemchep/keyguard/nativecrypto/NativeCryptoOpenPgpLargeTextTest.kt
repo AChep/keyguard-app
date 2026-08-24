@@ -23,6 +23,7 @@ class NativeCryptoOpenPgpLargeTextTest {
                 NativeCrypto.openPgp.encrypt(
                     content = plaintext,
                     publicKeys = listOf(material.publicKeyArmored),
+                    candidateRevocationKeys = emptyList(),
                     fileName = "large-text.txt",
                     armored = true,
                     literalTimeEpochSeconds = 1_700_000_001L,
@@ -57,6 +58,7 @@ class NativeCryptoOpenPgpLargeTextTest {
             encrypted = NativeCrypto.openPgp.encrypt(
                 content = plaintext,
                 publicKeys = listOf(material.publicKeyArmored),
+                candidateRevocationKeys = emptyList(),
                 fileName = "boundary.txt",
                 armored = false,
                 literalTimeEpochSeconds = 1_700_000_001L,
@@ -118,6 +120,7 @@ class NativeCryptoOpenPgpLargeTextTest {
             encrypted = NativeCrypto.openPgp.encrypt(
                 content = plaintext,
                 publicKeys = listOf(material.publicKeyArmored),
+                candidateRevocationKeys = emptyList(),
                 fileName = "truncated.bin",
                 armored = false,
                 literalTimeEpochSeconds = 1_700_000_001L,
@@ -155,6 +158,7 @@ class NativeCryptoOpenPgpLargeTextTest {
             NativeCrypto.openPgp
                 .openEncryption(
                     publicKeys = listOf(publicKey),
+                    candidateRevocationKeys = emptyList(),
                     fileName = fileName,
                     armored = false,
                     literalTimeEpochSeconds = 1_700_000_001L,

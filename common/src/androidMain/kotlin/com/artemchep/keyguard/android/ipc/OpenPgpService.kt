@@ -1006,6 +1006,7 @@ class OpenPgpService : Service(), DIAware {
         val signer = selection.ring
         ringOperations.clearSign(
             privateKey = requireNotNull(selection.privateKey),
+            candidateRevocationKeys = vault.revocationKeyCandidates(),
             input = ParcelFileDescriptor
                 .AutoCloseInputStream(input)
                 .asSource()
@@ -1046,6 +1047,7 @@ class OpenPgpService : Service(), DIAware {
         val signer = selection.ring
         val signature = ringOperations.detachedSign(
             privateKey = requireNotNull(selection.privateKey),
+            candidateRevocationKeys = vault.revocationKeyCandidates(),
             input = ParcelFileDescriptor
                 .AutoCloseInputStream(input)
                 .asSource()
@@ -1122,6 +1124,7 @@ class OpenPgpService : Service(), DIAware {
         }
         ringOperations.encrypt(
             recipients = recipients,
+            candidateRevocationKeys = vault.revocationKeyCandidates(),
             signingPrivateKey = signerSelection
                 ?.let { requireNotNull(it.privateKey) },
             input = ParcelFileDescriptor

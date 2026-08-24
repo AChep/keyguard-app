@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.model.GpgKeyConfig
 import com.artemchep.keyguard.common.service.crypto.GpgLegacyKeyFixtures
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
+import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
 import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.bcpg.HashAlgorithmTags
 import org.bouncycastle.bcpg.sig.KeyFlags
@@ -168,19 +169,20 @@ class GpgCertificateInspectorJvmTest {
 
         val unresolvedMetadata = assertNotNull(
             NativeGpgKeyMetadataResolver.resolve(
-                privateKeyArmored = null,
+                privateKeyArmored = victim.privateKeyArmored,
                 publicKeyArmored = revokedRing.armored(),
                 fingerprint = victim.fingerprint,
             ),
         )
-        assertTrue(
-            unresolvedMetadata.keys.any { key ->
+        assertFalse(
+            unresolvedMetadata.authorizedAgentKeys.any { key ->
                 key.fingerprint == victimSubkey.fingerprintHex()
             },
+            "A component with unresolved external revocation evidence must not be authorized for new data.",
         )
-        assertNull(
+        val resolvedMetadata = assertNotNull(
             NativeGpgKeyMetadataResolver.resolve(
-                privateKeyArmored = null,
+                privateKeyArmored = victim.privateKeyArmored,
                 publicKeyArmored = revokedRing.armored(),
                 fingerprint = victim.fingerprint,
                 candidateRevocationKeys = listOf(
@@ -188,9 +190,11 @@ class GpgCertificateInspectorJvmTest {
                 ),
             ),
         )
+        assertTrue(resolvedMetadata.authorizedAgentKeys.isEmpty())
+        assertEquals(victim.fingerprint, resolvedMetadata.metadata.certificates.single().primaryFingerprint)
         val subkeyRevokedMetadata = assertNotNull(
             NativeGpgKeyMetadataResolver.resolve(
-                privateKeyArmored = null,
+                privateKeyArmored = victim.privateKeyArmored,
                 publicKeyArmored = subkeyRevokedRing.armored(),
                 fingerprint = victim.fingerprint,
                 candidateRevocationKeys = listOf(
@@ -199,12 +203,12 @@ class GpgCertificateInspectorJvmTest {
             ),
         )
         assertTrue(
-            subkeyRevokedMetadata.keys.any { key ->
+            subkeyRevokedMetadata.authorization.keys.any { key ->
                 key.fingerprint == victimPrimary.fingerprintHex()
             },
         )
         assertFalse(
-            subkeyRevokedMetadata.keys.any { key ->
+            subkeyRevokedMetadata.authorizedAgentKeys.any { key ->
                 key.fingerprint == victimSubkey.fingerprintHex()
             },
         )
@@ -825,12 +829,12 @@ class GpgCertificateInspectorJvmTest {
 
         val metadata = assertNotNull(
             NativeGpgKeyMetadataResolver.resolve(
-                privateKeyArmored = null,
+                privateKeyArmored = generated.privateKeyArmored,
                 publicKeyArmored = generated.publicKeyArmored,
                 fingerprint = generated.fingerprint,
             ),
         )
-        val primaryMetadata = metadata.keys.single { it.fingerprint == generated.fingerprint }
+        val primaryMetadata = metadata.authorization.keys.single { it.fingerprint == generated.fingerprint }
         assertFalse("decrypt" in primaryMetadata.capabilities)
     }
 
@@ -850,13 +854,15 @@ class GpgCertificateInspectorJvmTest {
         val inspected = assertNotNull(GpgCertificateInspectorJvm.inspect(bareCertificate))
         assertFalse(inspected.primary.authenticated)
         assertTrue(inspected.authenticatedKeys.isEmpty())
-        assertNull(
+        val metadata = assertNotNull(
             NativeGpgKeyMetadataResolver.resolve(
                 privateKeyArmored = null,
                 publicKeyArmored = bareCertificate.armored(),
                 fingerprint = barePrimary.fingerprintHex(),
             ),
         )
+        assertTrue(metadata.authorizedAgentKeys.isEmpty())
+        assertEquals(barePrimary.fingerprintHex(), metadata.metadata.certificates.single().primaryFingerprint)
     }
 
     private fun generate(

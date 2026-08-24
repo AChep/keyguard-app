@@ -10,8 +10,8 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
 import com.artemchep.keyguard.common.model.RefreshGpgPublicKeysRequest
 import com.artemchep.keyguard.common.model.RefreshGpgPublicKeysResult
-import com.artemchep.keyguard.common.model.toGpgAgentKeyMetadataOrNull
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.crypto.resolveDownloadedGpgKeyMetadata
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
 import com.artemchep.keyguard.common.service.gpgkeyserver.gpgKeyserverRefreshFingerprintOrNull
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
@@ -36,6 +36,7 @@ class RefreshGpgPublicKeysImpl(
     private val keyserverClient: GpgKeyserverClient,
     private val keyserverStateRepository: GpgKeyserverStateRepository,
     private val modifyCipherById: ModifyCipherById,
+    private val gpgKeyMetadataResolver: GpgKeyMetadataResolver,
 ) : RefreshGpgPublicKeys {
     constructor(
         directDI: DirectDI,
@@ -46,6 +47,7 @@ class RefreshGpgPublicKeysImpl(
         keyserverClient = directDI.instance(),
         keyserverStateRepository = directDI.instance(),
         modifyCipherById = directDI.instance(),
+        gpgKeyMetadataResolver = directDI.instance(),
     )
 
     override fun invoke(
@@ -103,6 +105,7 @@ class RefreshGpgPublicKeysImpl(
                 val result = requireNotNull(outcome.result)
                 val gpgKey = model.data_.gpgKey.withGpgKeyserverRefresh(
                     result = result,
+                    resolver = gpgKeyMetadataResolver,
                 )
                 model.copy(
                     data_ = model.data_.copy(gpgKey = gpgKey),
@@ -166,71 +169,23 @@ class RefreshGpgPublicKeysImpl(
 
 internal fun BitwardenCipher.GpgKey?.withGpgKeyserverRefresh(
     result: DGpgKeyserverResult,
+    resolver: GpgKeyMetadataResolver,
 ): BitwardenCipher.GpgKey {
     val publicKeyArmored = result.publicKeyArmored
         ?.takeIf { it.isNotBlank() }
         ?: throw IllegalStateException("Keyserver did not return the public GPG key.")
     val fingerprint = result.fingerprint.normalizeGpgFingerprint()
     val current = this ?: BitwardenCipher.GpgKey()
-    val metadata = current.metadata?.mergeWith(result)
+    val metadata = resolver.resolveDownloadedGpgKeyMetadata(
+        publicKeyArmored = publicKeyArmored,
+        fingerprint = fingerprint,
+        privateKeyArmored = current.privateKeyArmored,
+    )
     return current.copy(
         publicKeyArmored = publicKeyArmored,
         fingerprint = fingerprint,
-        metadata = metadata
-            ?: result.toGpgAgentKeyMetadataOrNull()
-            ?: current.metadata,
+        metadata = metadata,
     )
-}
-
-private fun GpgAgentKeyMetadata.mergeWith(
-    result: DGpgKeyserverResult,
-): GpgAgentKeyMetadata {
-    val partsByFingerprint = result.keyParts()
-        .associateBy { it.fingerprint.normalizeGpgFingerprint() }
-    return copy(
-        keys = keys.map { key ->
-            val part = partsByFingerprint[key.fingerprint.normalizeGpgFingerprint()]
-                ?: return@map key
-            key.copy(
-                keygrip = key.keygrip.ifBlank {
-                    part.keygrip.orEmpty()
-                },
-                fingerprint = part.fingerprint.normalizeGpgFingerprint(),
-                algorithm = part.algorithm ?: key.algorithm,
-                capabilities = part.capabilities.takeIf { it.isNotEmpty() }
-                    ?: key.capabilities,
-            )
-        },
-    )
-}
-
-private fun DGpgKeyserverResult.keyParts(): List<ParsedPublicKeyPart> =
-    listOf(
-        ParsedPublicKeyPart(
-            keygrip = keygrip,
-            fingerprint = fingerprint,
-            algorithm = algorithm,
-            capabilities = capabilities(canSign, canEncrypt),
-        ),
-    ) + subKeys.map { subKey ->
-        ParsedPublicKeyPart(
-            keygrip = subKey.keygrip,
-            fingerprint = subKey.fingerprint,
-            algorithm = subKey.algorithm,
-            capabilities = capabilities(subKey.canSign, subKey.canEncrypt),
-        )
-    }
-
-private fun capabilities(
-    canSign: Boolean,
-    canEncrypt: Boolean,
-): Set<String> = buildSet {
-    if (canSign) {
-        add("sign")
-    }
-    if (canEncrypt) {
-        add("encrypt")
-    }
 }
 
 private data class RefreshTarget(
@@ -241,11 +196,4 @@ private data class RefreshTarget(
 private data class RefreshOutcome(
     val target: RefreshTarget,
     val result: DGpgKeyserverResult?,
-)
-
-private data class ParsedPublicKeyPart(
-    val keygrip: String?,
-    val fingerprint: String,
-    val algorithm: String?,
-    val capabilities: Set<String>,
 )

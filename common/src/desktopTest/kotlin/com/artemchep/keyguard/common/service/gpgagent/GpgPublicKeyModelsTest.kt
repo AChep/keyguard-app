@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.gpgagent
 
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.test.gpgMetadata
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -76,6 +77,103 @@ class GpgPublicKeyModelsTest {
             assertEquals(FINGERPRINT_1, key.fingerprint)
         }
 
+    @Test
+    fun `structural operations cannot widen the authorized policy snapshot`() = createSecret(
+        keys = listOf(
+            createMetadataKey(
+                keygrip = KEYGRIP_2,
+                capabilities = setOf("decrypt"),
+            ),
+        ),
+        certificates = listOf(
+            GpgAgentCertificateMetadata(
+                primaryFingerprint = FINGERPRINT_1,
+                components = listOf(
+                    GpgAgentKeyComponentMetadata(
+                        fingerprint = FINGERPRINT_1,
+                        role = GpgAgentKeyComponentRole.PRIMARY,
+                        publicKeyAlgorithmId = 22,
+                        algorithm = "EDDSA",
+                        keygrips = listOf(KEYGRIP_1),
+                        storedSecretMaterial = true,
+                        agentOperations = setOf(GpgAgentOperation.SIGN),
+                    ),
+                    GpgAgentKeyComponentMetadata(
+                        fingerprint = FINGERPRINT_2,
+                        role = GpgAgentKeyComponentRole.SUBKEY,
+                        publicKeyAlgorithmId = 18,
+                        algorithm = "ECDH",
+                        keygrips = listOf(KEYGRIP_2),
+                        storedSecretMaterial = false,
+                        agentOperations = setOf(GpgAgentOperation.DECRYPT),
+                    ),
+                ),
+            ),
+            GpgAgentCertificateMetadata(
+                primaryFingerprint = FINGERPRINT_3,
+                components = listOf(
+                    GpgAgentKeyComponentMetadata(
+                        fingerprint = FINGERPRINT_3,
+                        role = GpgAgentKeyComponentRole.PRIMARY,
+                        publicKeyAlgorithmId = 1,
+                        algorithm = "RSA",
+                        keygrips = listOf(KEYGRIP_3),
+                        storedSecretMaterial = false,
+                        agentOperations = setOf(
+                            GpgAgentOperation.SIGN,
+                            GpgAgentOperation.DECRYPT,
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ).toGpgPublicKeyEntry(name = null).let { entry ->
+        // Secret-material filtering is per certificate: the first certificate stores secret material
+        // so only its secret component is routable, while the second certificate is
+        // public-only and keeps its primary.
+        assertEquals(
+            listOf(KEYGRIP_1, KEYGRIP_3),
+            entry.keyInfo.map { key -> key.keygrip },
+        )
+        // The authorization snapshot grants nothing, so no structural row may claim
+        // signing regardless of the inventory's key flags.
+        assertTrue(entry.keyInfo.none { key -> key.canSign })
+        assertTrue(!entry.canSign)
+    }
+
+    @Test
+    fun `live policy snapshot overlays signing authorization onto structural inventory`() = createSecret(
+        certificates = listOf(
+            GpgAgentCertificateMetadata(
+                primaryFingerprint = FINGERPRINT_1,
+                components = listOf(
+                    GpgAgentKeyComponentMetadata(
+                        fingerprint = FINGERPRINT_1,
+                        role = GpgAgentKeyComponentRole.PRIMARY,
+                        publicKeyAlgorithmId = 22,
+                        algorithm = "EDDSA",
+                        keygrips = listOf(KEYGRIP_1),
+                        storedSecretMaterial = true,
+                        agentOperations = setOf(GpgAgentOperation.SIGN),
+                    ),
+                ),
+            ),
+        ),
+        authorization = GpgAgentAuthorizationSnapshot(
+            evaluatedAtEpochSeconds = 1,
+            policyRevision = 1,
+            keys = listOf(
+                createMetadataKey(
+                    keygrip = KEYGRIP_1,
+                    capabilities = setOf("sign"),
+                ),
+            ),
+        ),
+    ).toGpgPublicKeyEntry(name = null).let { entry ->
+        assertTrue(entry.canSign)
+        assertTrue(entry.keyInfo.single().canSign)
+    }
+
     private fun createSecret(
         privateKeyArmored: String? = "private-key",
         publicKeyArmored: String? = "public-key",
@@ -85,12 +183,20 @@ class GpgPublicKeyModelsTest {
                 keygrip = KEYGRIP_1,
             ),
         ),
+        certificates: List<GpgAgentCertificateMetadata> = emptyList(),
+        authorization: GpgAgentAuthorizationSnapshot? = null,
     ) = GpgAgentSecret(
         cipher = createCipher(),
         privateKeyArmored = privateKeyArmored,
         publicKeyArmored = publicKeyArmored,
         fingerprint = fingerprint,
-        metadata = GpgAgentKeyMetadata(
+        metadata = certificates
+            .takeIf { it.isNotEmpty() }
+            ?.let(::GpgAgentKeyMetadata)
+            ?: gpgMetadata(*keys.toTypedArray()),
+        authorization = authorization ?: GpgAgentAuthorizationSnapshot(
+            evaluatedAtEpochSeconds = 1,
+            policyRevision = 1,
             keys = keys,
         ),
     )
@@ -128,6 +234,9 @@ class GpgPublicKeyModelsTest {
     private companion object {
         const val KEYGRIP_1 = "0123456789ABCDEF0123456789ABCDEF01234567"
         const val KEYGRIP_2 = "1123456789ABCDEF0123456789ABCDEF01234567"
+        const val KEYGRIP_3 = "2123456789ABCDEF0123456789ABCDEF01234567"
         const val FINGERPRINT_1 = "ABCDEF0123456789ABCDEF0123456789ABCDEF01"
+        const val FINGERPRINT_2 = "BBCDEF0123456789ABCDEF0123456789ABCDEF02"
+        const val FINGERPRINT_3 = "CBCDEF0123456789ABCDEF0123456789ABCDEF03"
     }
 }

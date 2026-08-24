@@ -20,6 +20,7 @@ import com.artemchep.keyguard.common.service.gpgagent.isUsableAgentKey
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.parseGpgAgentMetadataOrNull
+import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -274,15 +275,8 @@ internal class GpgWatchtowerPolicy(
             add(GpgWatchtowerIssue.KEY_EXPIRED.code)
         }
 
-        val metadataKeys = metadata?.keys.orEmpty()
-        val expectedSign = metadataKeys
-            .takeIf { it.isNotEmpty() }
-            ?.any { it.canSign }
-            ?: key.canSign
-        val expectedDecrypt = metadataKeys
-            .takeIf { it.isNotEmpty() }
-            ?.any { it.canDecrypt }
-            ?: key.canEncrypt
+        val expectedSign = key.canSign
+        val expectedDecrypt = key.canEncrypt
 
         if (!expectedSign && !expectedDecrypt) {
             add(GpgWatchtowerIssue.NO_CAPABILITY.code)
@@ -292,14 +286,17 @@ internal class GpgWatchtowerPolicy(
             if (metadata == null) {
                 add(GpgWatchtowerIssue.MISSING_AGENT_METADATA.code)
             } else {
-                val hasAgentKey = metadataKeys.any { it.isUsableAgentKey }
+                val hasAgentKey = metadata.routableAgentKeys.any { it.isUsableAgentKey }
                 if (!hasAgentKey) {
                     add(GpgWatchtowerIssue.MISSING_AGENT_KEY.code)
                 }
                 val publicFingerprints = key.publicPartFingerprints()
-                val missingMetadataFingerprints = metadataKeys
+                val missingMetadataFingerprints = metadata.certificates
                     .asSequence()
-                    .mapNotNull { it.fingerprint.normalizeGpgFingerprint().takeIf(String::isNotEmpty) }
+                    .flatMap { it.components.asSequence() }
+                    .mapNotNull { component ->
+                        component.fingerprint.normalizeGpgFingerprint().takeIf(String::isNotEmpty)
+                    }
                     .any { it !in publicFingerprints }
                 if (missingMetadataFingerprints) {
                     add(GpgWatchtowerIssue.METADATA_MISMATCH.code)
@@ -423,16 +420,16 @@ internal fun DSecret.isGpgWatchtowerTarget(): Boolean =
             getGpgAgentPrivateKeyArmored()?.isNotBlank() == true ||
             getGpgAgentPublicKeyArmored()?.isNotBlank() == true ||
             getGpgAgentFingerprint()?.isNotBlank() == true ||
-            parseGpgAgentMetadataOrNull()?.keys?.isNotEmpty() == true
+            parseGpgAgentMetadataOrNull()?.certificates?.isNotEmpty() == true
 
 private fun DSecret.gpgWatchtowerFingerprint(): String? =
     getGpgAgentFingerprint()
         ?.normalizeGpgFingerprint()
         ?.takeIf(String::isNotEmpty)
         ?: parseGpgAgentMetadataOrNull()
-            ?.keys
-            ?.firstNotNullOfOrNull { key ->
-                key.fingerprint
+            ?.certificates
+            ?.firstNotNullOfOrNull { certificate ->
+                certificate.primaryFingerprint
                     .normalizeGpgFingerprint()
                     .takeIf(String::isNotEmpty)
             }

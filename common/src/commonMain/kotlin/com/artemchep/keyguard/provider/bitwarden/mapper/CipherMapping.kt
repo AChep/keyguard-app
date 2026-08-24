@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
+import com.artemchep.keyguard.common.service.gpgagent.isCanonical
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.hasPendingAttachmentMutations
@@ -293,7 +294,7 @@ fun BitwardenCipher.GpgKey.toDomain() = DSecret.GpgKey(
     privateKeyArmored = privateKeyArmored.oh(),
     publicKeyArmored = publicKeyArmored.oh(),
     fingerprint = fingerprint.oh(),
-    metadata = metadata,
+    metadata = metadata?.takeIf { it.isCanonical },
 )
 
 private fun String?.oh() = this?.takeIf { it.isNotBlank() }

@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.model
 
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.test.gpgMetadata
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -54,22 +55,18 @@ class GpgKeyMaterialTest {
     )
 
     private companion object {
-        val oldMetadata = GpgAgentKeyMetadata(
-            keys = listOf(
-                GpgAgentKeyMetadataKey(
+        val oldMetadata = gpgMetadata(
+            GpgAgentKeyMetadataKey(
                     keygrip = "KEYGRIP-OLD",
                     fingerprint = "FINGERPRINT-OLD",
                     capabilities = setOf("sign"),
-                ),
             ),
         )
-        val newMetadata = GpgAgentKeyMetadata(
-            keys = listOf(
-                GpgAgentKeyMetadataKey(
+        val newMetadata = gpgMetadata(
+            GpgAgentKeyMetadataKey(
                     keygrip = "KEYGRIP-NEW",
                     fingerprint = "FINGERPRINT-NEW",
                     capabilities = setOf("decrypt"),
-                ),
             ),
         )
     }

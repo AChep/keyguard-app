@@ -117,7 +117,7 @@ class BcGpgKeyGeneratorTestOracle(
             privateKeyArmored = privateKeyArmored,
             publicKeyArmored = publicKeyArmored,
             fingerprint = fingerprint,
-            metadata = metadata,
+            metadata = metadata.metadata,
             userId = userId,
             typeLabel = config.type.title,
         )

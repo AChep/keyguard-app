@@ -18,12 +18,10 @@ use thiserror::Error;
 use twofish::Twofish;
 use zeroize::{Zeroize, Zeroizing};
 
+use crate::openpgp::adapter::OpenPgpSession;
 use crate::padding::pkcs7_unpadded_block_length;
-use crate::primitives::HMAC_SHA256_BYTES;
-use crate::protocol::{
-    AesCbcPkcs7HmacSha256EncryptResult, CipherDirection, HashAlgorithm,
-    OpenPgpDetachedVerifyStreamOpenRequest,
-};
+use crate::primitives::{HMAC_SHA256_BYTES, PrimitiveError};
+use crate::protocol::{AesCbcPkcs7HmacSha256EncryptResult, CipherDirection, HashAlgorithm};
 
 const AES_BLOCK_BYTES: usize = 16;
 const MAX_SESSION_SLOTS: usize = 1024;
@@ -69,12 +67,7 @@ enum Session {
     CbcPkcs7(Box<CbcPkcs7Session>),
     AesCbcHmacSha256Encrypt(Box<AesCbcHmacSha256EncryptSession>),
     AesCbcHmacSha256Decrypt(Box<AesCbcHmacSha256DecryptSession>),
-    OpenPgpDetachedVerify(Box<crate::openpgp_read::DetachedVerificationSession>),
-    OpenPgpClearVerify(Box<crate::openpgp_read::ClearVerificationSession>),
-    OpenPgpDetachedSign(Box<crate::openpgp_write::DetachedSigningSession>),
-    OpenPgpClearSign(Box<crate::openpgp_write::ClearSigningSession>),
-    OpenPgpEncrypt(Box<crate::openpgp_write::OpenPgpEncryptionSession>),
-    OpenPgpDecrypt(Box<crate::openpgp_write::OpenPgpDecryptionSession>),
+    OpenPgp(Box<OpenPgpSession>),
 }
 
 enum CbcCipher {
@@ -171,52 +164,10 @@ pub(crate) fn open_twofish_cbc_pkcs7(
     insert(Session::CbcPkcs7(Box::new(session)))
 }
 
-pub(crate) fn open_openpgp_detached_verify(
-    request: OpenPgpDetachedVerifyStreamOpenRequest,
+pub(crate) fn open_openpgp(
+    session: Result<OpenPgpSession, PrimitiveError>,
 ) -> Result<u64, SessionError> {
-    let session = crate::openpgp_read::DetachedVerificationSession::open(request)
-        .map_err(openpgp_read_error)?;
-    insert(Session::OpenPgpDetachedVerify(Box::new(session)))
-}
-
-pub(crate) fn open_openpgp_clear_verify(
-    request: crate::protocol::OpenPgpClearVerifyStreamOpenRequest,
-) -> Result<u64, SessionError> {
-    let session =
-        crate::openpgp_read::ClearVerificationSession::open(request).map_err(openpgp_read_error)?;
-    insert(Session::OpenPgpClearVerify(Box::new(session)))
-}
-
-pub(crate) fn open_openpgp_detached_sign(
-    request: crate::protocol::OpenPgpDetachedSignStreamOpenRequest,
-) -> Result<u64, SessionError> {
-    let session =
-        crate::openpgp_write::DetachedSigningSession::open(request).map_err(openpgp_write_error)?;
-    insert(Session::OpenPgpDetachedSign(Box::new(session)))
-}
-
-pub(crate) fn open_openpgp_clear_sign(
-    request: crate::protocol::OpenPgpClearSignStreamOpenRequest,
-) -> Result<u64, SessionError> {
-    let session =
-        crate::openpgp_write::ClearSigningSession::open(request).map_err(openpgp_write_error)?;
-    insert(Session::OpenPgpClearSign(Box::new(session)))
-}
-
-pub(crate) fn open_openpgp_encrypt(
-    request: crate::protocol::OpenPgpEncryptStreamOpenRequest,
-) -> Result<u64, SessionError> {
-    let session = crate::openpgp_write::OpenPgpEncryptionSession::open(request)
-        .map_err(openpgp_write_error)?;
-    insert(Session::OpenPgpEncrypt(Box::new(session)))
-}
-
-pub(crate) fn open_openpgp_decrypt(
-    request: crate::protocol::OpenPgpDecryptStreamOpenRequest,
-) -> Result<u64, SessionError> {
-    let session = crate::openpgp_write::OpenPgpDecryptionSession::open(request)
-        .map_err(openpgp_write_error)?;
-    insert(Session::OpenPgpDecrypt(Box::new(session)))
+    insert(Session::OpenPgp(Box::new(session.map_err(openpgp_error)?)))
 }
 
 pub(crate) fn update(handle: u64, data: &[u8]) -> Result<Vec<u8>, SessionError> {
@@ -278,18 +229,7 @@ impl Session {
             Self::CbcPkcs7(session) => session.update(data),
             Self::AesCbcHmacSha256Encrypt(session) => session.update(data),
             Self::AesCbcHmacSha256Decrypt(session) => session.update(data),
-            Self::OpenPgpDetachedVerify(session) => {
-                session.update(data).map_err(openpgp_read_error)?;
-                Ok(Vec::new())
-            }
-            Self::OpenPgpClearVerify(session) => session.update(data).map_err(openpgp_read_error),
-            Self::OpenPgpDetachedSign(session) => {
-                session.update(data).map_err(openpgp_write_error)?;
-                Ok(Vec::new())
-            }
-            Self::OpenPgpClearSign(session) => session.update(data).map_err(openpgp_write_error),
-            Self::OpenPgpEncrypt(session) => session.update(data).map_err(openpgp_write_error),
-            Self::OpenPgpDecrypt(session) => session.update(data).map_err(openpgp_write_error),
+            Self::OpenPgp(session) => session.update(data).map_err(openpgp_error),
         }
     }
 
@@ -312,51 +252,22 @@ impl Session {
             Self::CbcPkcs7(mut session) => return session.finish(),
             Self::AesCbcHmacSha256Encrypt(session) => return (*session).finish(),
             Self::AesCbcHmacSha256Decrypt(session) => return (*session).finish(),
-            Self::OpenPgpDetachedVerify(session) => {
-                return (*session).finish().map_err(openpgp_read_error);
-            }
-            Self::OpenPgpClearVerify(session) => {
-                return (*session).finish().map_err(openpgp_read_error);
-            }
-            Self::OpenPgpDetachedSign(session) => {
-                return (*session).finish().map_err(openpgp_write_error);
-            }
-            Self::OpenPgpClearSign(session) => {
-                return (*session).finish().map_err(openpgp_write_error);
-            }
-            Self::OpenPgpEncrypt(session) => {
-                return (*session).finish().map_err(openpgp_write_error);
-            }
-            Self::OpenPgpDecrypt(session) => {
-                return (*session).finish().map_err(openpgp_write_error);
-            }
+            Self::OpenPgp(session) => return (*session).finish().map_err(openpgp_error),
         };
         Ok(output)
     }
 }
 
-fn openpgp_read_error(error: crate::openpgp_read::OpenPgpReadError) -> SessionError {
+fn openpgp_error(error: PrimitiveError) -> SessionError {
     match error {
-        crate::openpgp_read::OpenPgpReadError::InvalidArgument => SessionError::InvalidArgument,
-        crate::openpgp_read::OpenPgpReadError::ResourceLimit => SessionError::ResourceLimit,
-        crate::openpgp_read::OpenPgpReadError::Internal => SessionError::Internal,
-    }
-}
-
-fn openpgp_write_error(error: crate::openpgp_write::OpenPgpWriteError) -> SessionError {
-    match error {
-        crate::openpgp_write::OpenPgpWriteError::InvalidArgument => SessionError::InvalidArgument,
-        crate::openpgp_write::OpenPgpWriteError::MissingKey => SessionError::NoUsableKey,
-        crate::openpgp_write::OpenPgpWriteError::UnsupportedKeyVersion(_) => {
-            SessionError::UnsupportedKeyVersion
-        }
-        crate::openpgp_write::OpenPgpWriteError::AuthenticationFailed => {
-            SessionError::AuthenticationFailed
-        }
-        crate::openpgp_write::OpenPgpWriteError::ResourceLimit => SessionError::ResourceLimit,
-        crate::openpgp_write::OpenPgpWriteError::CryptoFailure => SessionError::CryptoFailure,
-        crate::openpgp_write::OpenPgpWriteError::Internal => SessionError::Internal,
-        crate::openpgp_write::OpenPgpWriteError::Panic => SessionError::Panic,
+        PrimitiveError::InvalidArgument => SessionError::InvalidArgument,
+        PrimitiveError::ResourceLimit => SessionError::ResourceLimit,
+        PrimitiveError::CryptoFailure => SessionError::CryptoFailure,
+        PrimitiveError::UnsupportedKeyVersion => SessionError::UnsupportedKeyVersion,
+        PrimitiveError::AuthenticationFailed => SessionError::AuthenticationFailed,
+        PrimitiveError::NoUsableKey => SessionError::NoUsableKey,
+        PrimitiveError::Internal => SessionError::Internal,
+        PrimitiveError::Panic => SessionError::Panic,
     }
 }
 
@@ -822,7 +733,7 @@ mod tests {
     #[test]
     fn openpgp_missing_key_retains_its_classification() {
         assert_eq!(
-            openpgp_write_error(crate::openpgp_write::OpenPgpWriteError::MissingKey),
+            openpgp_error(PrimitiveError::NoUsableKey),
             SessionError::NoUsableKey
         );
     }

@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationError
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationResult
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentCrypto
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyNotFoundException
@@ -30,31 +31,28 @@ object NativeGpgKeyExpirationService : GpgKeyExpirationService {
     ): GpgKeyExpirationResult = update(
         request = request,
         now = { Clock.System.now() },
-        waitForClock = ::nativeGpgWaitForClock,
     )
 
     internal fun update(
         request: GpgKeyExpirationRequest,
         now: () -> Instant,
-        waitForClock: (milliseconds: Long) -> Boolean,
     ): GpgKeyExpirationResult = try {
         val validationError = request.validationError(now)
         if (validationError != null) {
             GpgKeyExpirationResult.Error(validationError)
         } else {
-            request.withNativeInput { input ->
-                retryTimeConflicts(waitForClock) {
-                    NativeCrypto.openPgp.updateExpiration(
-                        privateKey = input.privateKey,
-                        publicKey = input.publicKey,
-                        expectedPrimaryFingerprint = input.expectedPrimaryFingerprint,
-                        componentFingerprints = input.componentFingerprints,
-                        expiresAtEpochSeconds = input.expiresAtEpochSeconds,
-                        candidateRevocationKeys = input.candidateRevocationKeys,
-                        referenceTimeEpochSeconds = now().epochSeconds,
-                    )
-                }.toDomain()
-            }
+            val referenceTimeEpochSeconds = now().epochSeconds
+            request.withNativeInput(referenceTimeEpochSeconds) { input ->
+                NativeCrypto.openPgp.updateExpiration(
+                    privateKey = input.privateKey,
+                    publicKey = input.publicKey,
+                    expectedPrimaryFingerprint = input.expectedPrimaryFingerprint,
+                    componentFingerprints = input.componentFingerprints,
+                    expiresAtEpochSeconds = input.expiresAtEpochSeconds,
+                    candidateRevocationKeys = input.candidateRevocationKeys,
+                    referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                )
+            }.toDomain()
         }
     } catch (_: Exception) {
         GpgKeyExpirationResult.Error(GpgKeyExpirationError.InternalFailure)
@@ -80,44 +78,38 @@ object NativeGpgKeyExpirationService : GpgKeyExpirationService {
         }
     }
 
-    private inline fun <T> GpgKeyExpirationRequest.withNativeInput(
+    private fun <T> GpgKeyExpirationRequest.withNativeInput(
+        referenceTimeEpochSeconds: Long,
         block: (NativeExpirationUpdateInput) -> T,
     ): T {
         val ownedBuffers = mutableListOf<ByteArray>()
         return try {
-            block(
-                NativeExpirationUpdateInput(
-                    privateKey = key.privateKeyArmored.encodeAndTrack(ownedBuffers),
-                    publicKey = key.publicKeyArmored.encodeAndTrack(ownedBuffers),
-                    expectedPrimaryFingerprint = key.fingerprint.normalizeGpgFingerprint(),
-                    componentFingerprints = change.componentFingerprints.map { fingerprint ->
-                        fingerprint.normalizeGpgFingerprint()
-                    },
-                    expiresAtEpochSeconds = change.expiresAt?.epochSeconds,
-                    candidateRevocationKeys = candidateRevocationKeys
-                        .clampToNativeOpenPgpKeyLimit()
-                        .map { candidate -> candidate.armored.encodeAndTrack(ownedBuffers) },
+            val privateKey = key.privateKeyArmored.encodeAndTrack(ownedBuffers)
+            val publicKey = key.publicKeyArmored.encodeAndTrack(ownedBuffers)
+            candidateRevocationKeys.withEncodedRevocationKeyCandidates(
+                targetPrivateKeys = listOf(
+                    EncodedRevocationTarget(privateKey, key.fingerprint.normalizeGpgFingerprint()),
                 ),
-            )
+                targetPublicKeys = listOf(
+                    EncodedRevocationTarget(publicKey, key.fingerprint.normalizeGpgFingerprint()),
+                ),
+                referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            ) { encodedCandidates, _ ->
+                block(
+                    NativeExpirationUpdateInput(
+                        privateKey = privateKey,
+                        publicKey = publicKey,
+                        expectedPrimaryFingerprint = key.fingerprint.normalizeGpgFingerprint(),
+                        componentFingerprints = change.componentFingerprints.map { fingerprint ->
+                            fingerprint.normalizeGpgFingerprint()
+                        },
+                        expiresAtEpochSeconds = change.expiresAt?.epochSeconds,
+                        candidateRevocationKeys = encodedCandidates,
+                    ),
+                )
+            }
         } finally {
             ownedBuffers.eraseAll()
-        }
-    }
-
-    private inline fun retryTimeConflicts(
-        waitForClock: (milliseconds: Long) -> Boolean,
-        update: () -> NativeOpenPgpExpirationUpdateResult,
-    ): NativeOpenPgpExpirationUpdateResult {
-        var waitsRemaining = MAX_TIME_CONFLICT_WAITS
-        while (true) {
-            val result = update()
-            val isTimeConflict =
-                result is NativeOpenPgpExpirationUpdateResult.Error &&
-                    result.reason == NativeOpenPgpExpirationUpdateError.TIME_CONFLICT
-            if (!isTimeConflict) return result
-            if (waitsRemaining == 0) return result
-            if (!waitForClock(TIME_CONFLICT_WAIT_MILLISECONDS)) return result
-            waitsRemaining -= 1
         }
     }
 
@@ -135,7 +127,7 @@ object NativeGpgKeyExpirationService : GpgKeyExpirationService {
                                 throwOnInvalidSequence = true,
                             ),
                             fingerprint = material.fingerprint,
-                            metadata = metadata.toDomain(),
+                            metadata = certificateIndex.toDomain(),
                         ),
                     )
                 } finally {
@@ -160,17 +152,7 @@ object NativeGpgKeyExpirationService : GpgKeyExpirationService {
         val expiresAtEpochSeconds: Long?,
         val candidateRevocationKeys: List<ByteArray>,
     )
-
-    private const val MAX_TIME_CONFLICT_WAITS = 5
-    private const val TIME_CONFLICT_WAIT_MILLISECONDS = 1_000L
 }
-
-/**
- * Waits for the wall clock to advance before retrying a conflicting signature update.
- * OpenPGP signature timestamps have one-second resolution, and a replacement signature
- * must be strictly newer than the signature it supersedes.
- */
-internal expect fun nativeGpgWaitForClock(milliseconds: Long): Boolean
 
 object NativeGpgAgentCrypto : GpgAgentCrypto {
     override fun signHash(
@@ -178,31 +160,42 @@ object NativeGpgAgentCrypto : GpgAgentCrypto {
         metadataKey: GpgAgentKeyMetadataKey,
         hashAlgorithm: String,
         hash: ByteArray,
+        candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
     ): GpgAgentMessages.SignHashResponse {
         val privateKey = privateKeyArmored.encodeToByteArray()
         return try {
-            when (
-                val result = NativeCrypto.openPgp.agentSignHash(
-                    privateKey = privateKey,
-                    preferredFingerprint = metadataKey.fingerprint
-                        .takeIf { it.isNotBlank() }
-                        ?.normalizeGpgFingerprint()
-                        .orEmpty(),
-                    hashAlgorithm = hashAlgorithm,
-                    hash = hash,
-                )
-            ) {
-                is NativeOpenPgpAgentSignResult.Success -> {
-                    try {
-                        GpgAgentMessages.SignHashResponse(
-                            sexp = result.canonicalSexp.toAdvancedSignatureSexp(),
-                        )
-                    } finally {
-                        result.canonicalSexp.fill(0)
+            candidateRevocationKeys.withEncodedRevocationKeyCandidates(
+                targetPrivateKeys = listOf(
+                    EncodedRevocationTarget(
+                        privateKey,
+                        metadataKey.fingerprint.normalizeGpgFingerprint(),
+                    ),
+                ),
+            ) { encodedCandidates, _ ->
+                when (
+                    val result = NativeCrypto.openPgp.agentSignHash(
+                        privateKey = privateKey,
+                        preferredFingerprint = metadataKey.fingerprint
+                            .takeIf { it.isNotBlank() }
+                            ?.normalizeGpgFingerprint()
+                            .orEmpty(),
+                        hashAlgorithm = hashAlgorithm,
+                        hash = hash,
+                        candidateRevocationKeys = encodedCandidates,
+                    )
+                ) {
+                    is NativeOpenPgpAgentSignResult.Success -> {
+                        try {
+                            GpgAgentMessages.SignHashResponse(
+                                sexp = result.canonicalSexp.toAdvancedSignatureSexp(),
+                            )
+                        } finally {
+                            result.canonicalSexp.fill(0)
+                        }
                     }
-                }
 
-                is NativeOpenPgpAgentSignResult.Error -> throw result.reason.toException()
+                    is NativeOpenPgpAgentSignResult.Error -> throw result.reason.toException()
+                }
             }
         } finally {
             privateKey.fill(0)
@@ -281,6 +274,8 @@ private fun NativeOpenPgpExpirationUpdateError.toDomain(): GpgKeyExpirationError
         GpgKeyExpirationError.MetadataResolutionFailed
 
     NativeOpenPgpExpirationUpdateError.INTERNAL_FAILURE -> GpgKeyExpirationError.InternalFailure
+    NativeOpenPgpExpirationUpdateError.UNSUPPORTED_SIGNING_HASH ->
+        GpgKeyExpirationError.UnsupportedSigningHash
 }
 
 private fun NativeOpenPgpAgentError.toException(): Exception = when (this) {

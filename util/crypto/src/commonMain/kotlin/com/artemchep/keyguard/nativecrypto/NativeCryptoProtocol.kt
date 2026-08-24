@@ -1141,7 +1141,7 @@ internal data class OpenPgpMetadataResolveRequestProto(
     @ProtoNumber(3)
     val normalizedFingerprint: String = "",
     @ProtoNumber(4)
-    val candidateRevocationKeys: List<ByteArray> = emptyList(),
+    val candidateRevocationKeys: List<ByteArray>,
     @ProtoNumber(5)
     val referenceTimeEpochSeconds: Long? = null,
 )
@@ -1159,6 +1159,9 @@ internal enum class OpenPgpPublicKeyParseErrorReasonProto {
 
     @ProtoNumber(3)
     UNSUPPORTED_KEY_VERSION,
+
+    @ProtoNumber(4)
+    MULTIPLE_CERTIFICATES,
 }
 
 @Serializable
@@ -1183,6 +1186,8 @@ internal data class OpenPgpPublicSubKeyInfoProto(
     val createdAtEpochSeconds: Long? = null,
     @ProtoNumber(10)
     val expiresAtEpochSeconds: Long? = null,
+    @ProtoNumber(11)
+    val authenticated: Boolean = false,
 )
 
 @Serializable
@@ -1215,12 +1220,24 @@ internal data class OpenPgpPublicKeyInfoProto(
     val publicKeyArmored: String = "",
     @ProtoNumber(14)
     val subkeys: List<OpenPgpPublicSubKeyInfoProto> = emptyList(),
+    // Fields 15..17 are emitted by the native side and deliberately not read here.
+    @ProtoNumber(18)
+    val authenticated: Boolean = false,
+    /**
+     * `OpenPgpRenewalAuthorization` for the primary key. Held as a raw wire
+     * value, like every other renewal field: a value this build does not know
+     * must degrade to "no renewal", not fail the whole payload.
+     */
+    @ProtoNumber(19)
+    val renewal: Int = 0,
 )
 
 @Serializable
 internal data class OpenPgpPublicKeyParseSuccessProto(
     @ProtoNumber(1)
     val keys: List<OpenPgpPublicKeyInfoProto> = emptyList(),
+    @ProtoNumber(2)
+    val skippedCertificates: Int = 0,
 )
 
 @Serializable
@@ -1275,6 +1292,8 @@ internal enum class OpenPgpVerificationWarningProto(
     KEY_REVOKED(wireValue = 1),
     KEY_EXPIRED(wireValue = 2),
     SIGNATURE_EXPIRED(wireValue = 3),
+    POLICY_CONFLICT(wireValue = 4),
+    WEAK_DIGEST(wireValue = 5),
     ;
 
     companion object {
@@ -1298,32 +1317,89 @@ internal data class OpenPgpVerificationProto(
     @ProtoNumber(6)
     @ProtoPacked
     val warnings: List<Int> = emptyList(),
+    @ProtoNumber(9)
+    val signatures: List<OpenPgpVerificationProto> = emptyList(),
 )
 
 @Serializable
-internal data class OpenPgpKeyMetadataKeyProto(
+internal data class OpenPgpKeyComponentIndexV2Proto(
     @ProtoNumber(1)
-    val keygrip: String = "",
+    val fingerprint: String = "",
+    @ProtoNumber(2)
+    val role: Int = 0,
+    @ProtoNumber(3)
+    val publicKeyAlgorithmId: Int = 0,
+    @ProtoNumber(4)
+    val algorithm: String = "",
+    @ProtoNumber(5)
+    val keygrips: List<String> = emptyList(),
+    @ProtoNumber(6)
+    val storedSecretMaterial: Boolean = false,
+    @ProtoNumber(7)
+    @ProtoPacked
+    val agentOperations: List<Int> = emptyList(),
+)
+
+@Serializable
+internal data class OpenPgpLegacyDesignatedRevokerV2Proto(
+    @ProtoNumber(1)
+    val publicKeyAlgorithmId: Int = 0,
     @ProtoNumber(2)
     val fingerprint: String = "",
     @ProtoNumber(3)
-    val algorithm: String = "",
+    val keyClass: Int = 0,
     @ProtoNumber(4)
-    val capabilities: List<String> = emptyList(),
+    val sensitive: Boolean = false,
 )
 
 @Serializable
-internal data class OpenPgpKeyMetadataProto(
+internal data class OpenPgpCertificateIndexV2Proto(
     @ProtoNumber(1)
-    val version: Int = 0,
+    val primaryFingerprint: String = "",
     @ProtoNumber(2)
-    val keys: List<OpenPgpKeyMetadataKeyProto> = emptyList(),
+    val components: List<OpenPgpKeyComponentIndexV2Proto> = emptyList(),
+    @ProtoNumber(3)
+    val legacyDesignatedRevokers: List<OpenPgpLegacyDesignatedRevokerV2Proto> = emptyList(),
+)
+
+@Serializable
+internal data class OpenPgpComponentPolicyV2Proto(
+    @ProtoNumber(1)
+    val fingerprint: String = "",
+    @ProtoNumber(2)
+    @ProtoPacked
+    val allowedNewDataUses: List<Int> = emptyList(),
+    /**
+     * `OpenPgpRenewalAuthorization`. Held as a raw wire value, like every other
+     * enum in the V2 metadata block: a value this build does not know must
+     * degrade to "no renewal", not fail the whole payload.
+     */
+    @ProtoNumber(3)
+    val renewal: Int = 0,
+)
+
+@Serializable
+internal data class OpenPgpCertificateResolutionV2Proto(
+    @ProtoNumber(1)
+    val index: OpenPgpCertificateIndexV2Proto? = null,
+    @ProtoNumber(2)
+    val policy: List<OpenPgpComponentPolicyV2Proto> = emptyList(),
+)
+
+@Serializable
+internal data class OpenPgpMetadataResolutionV2Proto(
+    @ProtoNumber(1)
+    val evaluatedAtEpochSeconds: Long = 0L,
+    @ProtoNumber(2)
+    val policyRevision: Int = 0,
+    @ProtoNumber(3)
+    val certificates: List<OpenPgpCertificateResolutionV2Proto> = emptyList(),
 )
 
 @Serializable
 internal data class OpenPgpMetadataResolveResultProto(
-    @ProtoNumber(1)
-    val metadata: OpenPgpKeyMetadataProto? = null,
+    @ProtoNumber(2)
+    val resolution: OpenPgpMetadataResolutionV2Proto? = null,
 )
 
 @Serializable
@@ -1486,6 +1562,8 @@ internal data class OpenPgpSignRequestProto(
     val signatureTimeEpochSeconds: Long? = null,
     @ProtoNumber(7)
     val referenceTimeEpochSeconds: Long? = null,
+    @ProtoNumber(8)
+    val candidateRevocationKeys: List<ByteArray>,
 )
 
 @Serializable
@@ -1500,6 +1578,8 @@ internal data class OpenPgpDetachedSignStreamOpenRequestProto(
     val signatureTimeEpochSeconds: Long? = null,
     @ProtoNumber(5)
     val referenceTimeEpochSeconds: Long? = null,
+    @ProtoNumber(6)
+    val candidateRevocationKeys: List<ByteArray>,
 )
 
 @Serializable
@@ -1512,6 +1592,8 @@ internal data class OpenPgpClearSignStreamOpenRequestProto(
     val signatureTimeEpochSeconds: Long? = null,
     @ProtoNumber(4)
     val referenceTimeEpochSeconds: Long? = null,
+    @ProtoNumber(5)
+    val candidateRevocationKeys: List<ByteArray>,
 )
 
 @Serializable
@@ -1534,6 +1616,8 @@ internal data class OpenPgpEncryptRequestProto(
     val referenceTimeEpochSeconds: Long? = null,
     @ProtoNumber(9)
     val enableCompression: Boolean? = null,
+    @ProtoNumber(10)
+    val candidateRevocationKeys: List<ByteArray>,
 )
 
 @Serializable
@@ -1554,6 +1638,8 @@ internal data class OpenPgpEncryptStreamOpenRequestProto(
     val referenceTimeEpochSeconds: Long? = null,
     @ProtoNumber(8)
     val enableCompression: Boolean? = null,
+    @ProtoNumber(9)
+    val candidateRevocationKeys: List<ByteArray>,
 )
 
 @Serializable
@@ -1566,6 +1652,9 @@ internal enum class OpenPgpProtectionModeProto {
 
     @ProtoNumber(2)
     GNUPG_OCB,
+
+    @ProtoNumber(3)
+    SEIPD_V2_AEAD,
 }
 
 @Serializable
@@ -1622,6 +1711,20 @@ internal data class OpenPgpLiteralMetadataProto(
     val originalSize: Long = 0L,
 )
 
+internal enum class OpenPgpDecryptionWarningProto(
+    val wireValue: Int,
+) {
+    UNSPECIFIED(wireValue = 0),
+    WEAK_RSA_KEY(wireValue = 1),
+    ELGAMAL_KEY(wireValue = 2),
+    ;
+
+    companion object {
+        fun fromWireValue(value: Int): OpenPgpDecryptionWarningProto? =
+            entries.firstOrNull { entry -> entry.wireValue == value }
+    }
+}
+
 @Serializable
 internal data class OpenPgpDecryptResultProto(
     @ProtoNumber(1)
@@ -1636,6 +1739,9 @@ internal data class OpenPgpDecryptResultProto(
     val declaredCharset: String? = null,
     @ProtoNumber(6)
     val decryptionKeyFingerprint: String? = null,
+    @ProtoNumber(7)
+    @ProtoPacked
+    val warnings: List<Int> = emptyList(),
 )
 
 @Serializable
@@ -1652,6 +1758,9 @@ internal data class OpenPgpDecryptFinalProto(
     val declaredCharset: String? = null,
     @ProtoNumber(6)
     val decryptionKeyFingerprint: String? = null,
+    @ProtoNumber(7)
+    @ProtoPacked
+    val warnings: List<Int> = emptyList(),
 )
 
 @Serializable
@@ -1667,7 +1776,7 @@ internal data class OpenPgpExpirationUpdateRequestProto(
     @ProtoNumber(5)
     val expiresAtEpochSeconds: Long? = null,
     @ProtoNumber(6)
-    val candidateRevocationKeys: List<ByteArray> = emptyList(),
+    val candidateRevocationKeys: List<ByteArray>,
     @ProtoNumber(7)
     val referenceTimeEpochSeconds: Long,
 )
@@ -1724,14 +1833,17 @@ internal enum class OpenPgpExpirationUpdateErrorReasonProto {
 
     @ProtoNumber(16)
     INTERNAL_FAILURE,
+
+    @ProtoNumber(17)
+    UNSUPPORTED_SIGNING_HASH,
 }
 
 @Serializable
 internal data class OpenPgpExpirationUpdateSuccessProto(
     @ProtoNumber(1)
     val keyMaterial: OpenPgpKeyMaterialProto? = null,
-    @ProtoNumber(2)
-    val metadata: OpenPgpKeyMetadataProto? = null,
+    @ProtoNumber(3)
+    val certificateIndex: OpenPgpCertificateIndexV2Proto? = null,
 )
 
 @Serializable
@@ -1786,6 +1898,8 @@ internal data class OpenPgpAgentSignRequestProto(
     val hashAlgorithm: String,
     @ProtoNumber(4)
     val hash: ByteArray,
+    @ProtoNumber(5)
+    val candidateRevocationKeys: List<ByteArray>,
 )
 
 @Serializable

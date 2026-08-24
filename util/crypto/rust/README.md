@@ -13,7 +13,7 @@ Multiplatform `:util:crypto` module.
 - `keyguard-crypto-c` exports the Apple C ABI declared in
   `crates/keyguard-crypto-c/include/keyguard_crypto.h`.
 The wire source of truth is `../schema/native_crypto.proto`. ABI version 1 and
-protocol version 1 are independent. Calls fail closed on an ABI/capability
+protocol version 2 are independent. Calls fail closed on an ABI/capability
 mismatch, malformed request, resource limit, stale session, or contained panic.
 Rust-owned request/response byte buffers and Argon2 memory blocks are
 zeroized, and the FFI panic hook never prints panic payloads. Digest/HMAC
@@ -23,6 +23,34 @@ on every exit. The dependency/layout assumptions for that unsafe operation are
 exact-pinned and mechanically checked; see the
 [sensitive-context security record](../../../docs/security/native-crypto-sensitive-contexts.md)
 and architecture acceptance ledger.
+
+OpenPGP designated-revoker evidence also fails closed for new-data use and
+certificate mutation. When a structurally relevant revocation names an
+authenticated Revocation Key declaration but that authority key is absent,
+the component is `Indeterminate`: it is not reported as cryptographically
+revoked, yet it cannot encrypt, sign, appear as an authorized agent key, or
+emit new certificate statements. Issuer identifiers are lookup hints rather
+than authentication, so forged hints can temporarily quarantine a component;
+supplying the exact declared authority key resolves that availability tradeoff
+by either verifying or disproving the revocation. Historical verification and
+decryption remain separately governed read operations.
+
+OpenPGP agent `PKSIGN` is authorized only for components that the current
+policy permits to sign new data. Renewal authorization, including the
+`TemplateOnly` legacy-rescue tier, is consumed only by the dedicated expiration
+mutation. This separation prevents a digest-only Assuan request from presenting
+an arbitrary signature as certificate maintenance. Consequently, external
+`gpg --quick-set-expire` cannot use Keyguard's generic agent to renew an expired,
+certify-only, or template-only primary; use Keyguard's expiration mutation for
+those renewals.
+
+OpenPGP verification separates the payload-signature result from signing-key
+policy. `VALID` is not by itself a caller acceptance decision. A revoked or
+expired signing key therefore produces `VALID` together with `KEY_REVOKED` or
+`KEY_EXPIRED`, and callers must apply those warnings. Signature-level rejection
+remains distinct: an expired signature statement or a digest rejected by the
+active verification policy produces `INVALID` with `SIGNATURE_EXPIRED` or
+`WEAK_DIGEST` respectively.
 
 Streaming digest, HMAC, AES-CBC-PKCS#7, and fused AES-CBC/HMAC sessions accept
 raw chunks of at most 64 KiB. Registry lookup is short-lived and each handle

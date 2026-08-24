@@ -89,31 +89,73 @@ internal fun GpgOpenPgpLiteralMetadata.toOpenPgpMetadata(
     )
 }
 
-internal fun GpgOpenPgpVerification?.toApiResult(): OpenPgpSignatureResult = when {
-    this == null -> OpenPgpSignatureResult.createWithNoSignature()
+internal fun GpgOpenPgpVerification?.toApiResult(): OpenPgpSignatureResult = this
+    ?.selectOpenPgpApiSignature()
+    .toSingleSignatureApiResult()
+
+/**
+ * OpenIntents can expose only one signature result. Prefer a definite payload
+ * failure, then known policy failures, then an unverifiable missing key.
+ * [minByOrNull] keeps packet order as the deterministic tie-breaker.
+ */
+private fun GpgOpenPgpVerification.selectOpenPgpApiSignature(): GpgOpenPgpVerification =
+    signatures.minByOrNull { signature -> signature.openPgpApiResultPriority() } ?: this
+
+/**
+ * Status carries the payload result. For a known signer, policy warnings
+ * apply before generic INVALID so revocation or expiry is never hidden.
+ */
+private fun GpgOpenPgpVerification.openPgpApiResultPriority(): OpenPgpApiResultPriority = when {
     status == GpgOpenPgpVerificationStatus.MISSING_PUBLIC_KEY ->
-        OpenPgpSignatureResult.createWithKeyMissing(
-            runCatching { keyId.toULong(OPENPGP_HEX_RADIX).toLong() }.getOrDefault(0L),
-            createdAt?.let { Date(it.toEpochMilliseconds()) },
-        )
+        OpenPgpApiResultPriority.KEY_MISSING
 
     GpgOpenPgpVerificationWarning.KEY_REVOKED in warnings ->
-        createKnownKeySignatureResult(
-            result = OpenPgpSignatureResult.RESULT_INVALID_KEY_REVOKED,
-        )
+        OpenPgpApiResultPriority.INVALID_KEY_REVOKED
 
     GpgOpenPgpVerificationWarning.KEY_EXPIRED in warnings ||
             GpgOpenPgpVerificationWarning.SIGNATURE_EXPIRED in warnings ->
-        createKnownKeySignatureResult(
-            result = OpenPgpSignatureResult.RESULT_INVALID_KEY_EXPIRED,
-        )
+        OpenPgpApiResultPriority.INVALID_KEY_EXPIRED
 
     status == GpgOpenPgpVerificationStatus.INVALID ->
-        OpenPgpSignatureResult.createWithInvalidSignature()
+        OpenPgpApiResultPriority.INVALID_SIGNATURE
 
-    else -> createKnownKeySignatureResult(
-        result = OpenPgpSignatureResult.RESULT_VALID_KEY_UNCONFIRMED,
-    )
+    else -> OpenPgpApiResultPriority.VALID
+}
+
+private enum class OpenPgpApiResultPriority {
+    INVALID_SIGNATURE,
+    INVALID_KEY_REVOKED,
+    INVALID_KEY_EXPIRED,
+    KEY_MISSING,
+    VALID,
+}
+
+private fun GpgOpenPgpVerification?.toSingleSignatureApiResult(): OpenPgpSignatureResult {
+    this ?: return OpenPgpSignatureResult.createWithNoSignature()
+    return when (openPgpApiResultPriority()) {
+        OpenPgpApiResultPriority.KEY_MISSING ->
+            OpenPgpSignatureResult.createWithKeyMissing(
+                runCatching { keyId.toULong(OPENPGP_HEX_RADIX).toLong() }.getOrDefault(0L),
+                createdAt?.let { Date(it.toEpochMilliseconds()) },
+            )
+
+        OpenPgpApiResultPriority.INVALID_KEY_REVOKED ->
+            createKnownKeySignatureResult(
+                result = OpenPgpSignatureResult.RESULT_INVALID_KEY_REVOKED,
+            )
+
+        OpenPgpApiResultPriority.INVALID_KEY_EXPIRED ->
+            createKnownKeySignatureResult(
+                result = OpenPgpSignatureResult.RESULT_INVALID_KEY_EXPIRED,
+            )
+
+        OpenPgpApiResultPriority.INVALID_SIGNATURE ->
+            OpenPgpSignatureResult.createWithInvalidSignature()
+
+        OpenPgpApiResultPriority.VALID -> createKnownKeySignatureResult(
+            result = OpenPgpSignatureResult.RESULT_VALID_KEY_UNCONFIRMED,
+        )
+    }
 }
 
 private fun GpgOpenPgpVerification.createKnownKeySignatureResult(

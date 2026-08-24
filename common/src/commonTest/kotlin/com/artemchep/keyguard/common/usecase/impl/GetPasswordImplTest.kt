@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.test.gpgMetadata
 import com.artemchep.keyguard.common.usecase.GetPassphrase
 import com.artemchep.keyguard.common.usecase.GetPinCode
 import kotlin.test.Test
@@ -62,13 +63,11 @@ class GetPasswordImplTest {
             privateKeyArmored = "-----BEGIN PGP PRIVATE KEY BLOCK-----",
             publicKeyArmored = "-----BEGIN PGP PUBLIC KEY BLOCK-----",
             fingerprint = "0123456789ABCDEF0123456789ABCDEF01234567",
-            metadata = GpgAgentKeyMetadata(
-                keys = listOf(
-                    GpgAgentKeyMetadataKey(
+            metadata = gpgMetadata(
+                GpgAgentKeyMetadataKey(
                         keygrip = "ABCDEF0123456789ABCDEF0123456789ABCDEF01",
                         fingerprint = "0123456789ABCDEF0123456789ABCDEF01234567",
                         capabilities = setOf("sign"),
-                    ),
                 ),
             ),
             userId = "Keyguard Test <gpg@test.invalid>",

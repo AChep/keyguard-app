@@ -30,6 +30,8 @@ class NativeCryptoOpenPgpFixtureTest {
         assertFalse(key.revoked)
         assertTrue(key.canSign)
         assertTrue(key.canEncrypt)
+        assertTrue(key.authenticated)
+        assertEquals(NativeOpenPgpRenewalAuthorization.AUTHENTICATED, key.renewal)
         assertEquals(PUBLIC_KEY.trimEnd(), key.publicKeyArmored.trimEnd())
 
         val subkey = key.subkeys.single()
@@ -41,12 +43,13 @@ class NativeCryptoOpenPgpFixtureTest {
         assertFalse(subkey.canSign)
         assertTrue(subkey.canEncrypt)
         assertFalse(subkey.revoked)
+        assertTrue(subkey.authenticated)
         assertEquals(1_782_541_292L, subkey.createdAtEpochSeconds)
         assertNull(subkey.expiresAtEpochSeconds)
     }
 
     @Test
-    fun resolvesVersionedMetadataFromSecretOrPublicFallback() {
+    fun resolvesCanonicalMetadataFromSecretOrPublicFallback() {
         val metadata = NativeCrypto.openPgp.resolveMetadata(
             privateKeyData = SECRET_KEY.encodeToByteArray(),
             publicKeyData = null,
@@ -55,23 +58,25 @@ class NativeCryptoOpenPgpFixtureTest {
         )
 
         requireNotNull(metadata)
-        assertEquals(1, metadata.version)
+        val certificate = metadata.certificates.single()
+        assertEquals(PRIMARY_FINGERPRINT, certificate.index.primaryFingerprint)
         assertEquals(
-            listOf(
-                NativeOpenPgpKeyMetadataKey(
-                    keygrip = PRIMARY_KEYGRIP,
-                    fingerprint = PRIMARY_FINGERPRINT,
-                    algorithm = "EDDSA",
-                    capabilities = setOf("sign"),
-                ),
-                NativeOpenPgpKeyMetadataKey(
-                    keygrip = SUBKEY_KEYGRIP,
-                    fingerprint = SUBKEY_FINGERPRINT,
-                    algorithm = "ECDH",
-                    capabilities = setOf("decrypt"),
-                ),
-            ),
-            metadata.keys,
+            listOf(PRIMARY_FINGERPRINT, SUBKEY_FINGERPRINT),
+            certificate.index.components.map { component -> component.fingerprint },
+        )
+        assertTrue(certificate.index.components.all { component -> component.storedSecretMaterial })
+        assertEquals(
+            setOf(NativeOpenPgpPolicyUse.SIGN_NEW_DATA),
+            certificate.policy.single { it.fingerprint == PRIMARY_FINGERPRINT }.allowedNewDataUses,
+        )
+        assertEquals(
+            setOf(NativeOpenPgpPolicyUse.ENCRYPT_NEW_DATA),
+            certificate.policy.single { it.fingerprint == SUBKEY_FINGERPRINT }.allowedNewDataUses,
+        )
+        assertTrue(
+            certificate.policy.all { policy ->
+                policy.renewal == NativeOpenPgpRenewalAuthorization.AUTHENTICATED
+            },
         )
 
         val fallback = NativeCrypto.openPgp.resolveMetadata(
@@ -81,7 +86,13 @@ class NativeCryptoOpenPgpFixtureTest {
             candidateRevocationKeys = listOf("ignored malformed candidate".encodeToByteArray()),
             referenceTimeEpochSeconds = REFERENCE_TIME,
         )
-        assertEquals(metadata, fallback)
+        requireNotNull(fallback)
+        assertEquals(certificate.policy, fallback.certificates.single().policy)
+        assertTrue(
+            fallback.certificates.single().index.components.none { component ->
+                component.storedSecretMaterial
+            },
+        )
     }
 
     @Test
@@ -114,6 +125,30 @@ class NativeCryptoOpenPgpFixtureTest {
         assertTrue(missing.userIds.isEmpty())
         assertEquals(1_784_073_600L, missing.createdAtEpochSeconds)
         assertTrue(missing.warnings.isEmpty())
+    }
+
+    @Test
+    fun tiedDirectKeyPolicyDoesNotOverridePrimaryUserIdPolicy() {
+        // This certificate carries two equally recent direct-key policy signatures that
+        // project different key flags. Sequoia-compatible ordering picks a canonical
+        // representative, while the V4 primary User ID remains authoritative for fields
+        // it carries. Its signing flag therefore permits this data signature and the tie
+        // produces no POLICY_CONFLICT warning.
+        val result = NativeCrypto.openPgp.verifyDetached(
+            content = DETACHED_BODY.encodeToByteArray(),
+            signature = DETACHED_SIGNATURE.encodeToByteArray(),
+            publicKeys = listOf(POLICY_CONFLICT_PUBLIC_KEY.encodeToByteArray()),
+            referenceTimeEpochSeconds = REFERENCE_TIME,
+        )
+
+        assertEquals(NativeOpenPgpVerificationStatus.VALID, result.status)
+        assertEquals("F83D947D29EFECF7", result.keyId)
+        assertEquals(PRIMARY_FINGERPRINT, result.fingerprint)
+        assertEquals(listOf(USER_ID), result.userIds)
+        assertEquals(1_784_073_600L, result.createdAtEpochSeconds)
+        // POLICY_CONFLICT is now reserved for unresolved revocation authority, which
+        // this certificate does not have.
+        assertTrue(result.warnings.isEmpty())
     }
 
     @Test
@@ -277,7 +312,7 @@ class NativeCryptoOpenPgpFixtureTest {
     }
 
     private companion object {
-        const val REFERENCE_TIME = 1_783_944_100L
+        const val REFERENCE_TIME = 1_784_073_601L
         const val PRIMARY_FINGERPRINT = "D0BBCFBB250D3BB0658E5384F83D947D29EFECF7"
         const val PRIMARY_KEYGRIP = "894264A490F8D55E3E28378A7E44373782806220"
         const val SUBKEY_FINGERPRINT = "93ABCF804D85EE79D6E1DB0E77648D3E5D4E7699"
@@ -299,6 +334,28 @@ class NativeCryptoOpenPgpFixtureTest {
             bu8oruCxbNY45226eyy6QxS9AQC6cwXPn1NewS7XjGGKea14CgjpvqstWe9PiyfJ
             Y7c+CA==
             =Kf2G
+            -----END PGP PUBLIC KEY BLOCK-----
+        """.trimIndent() + "\n"
+
+        val POLICY_CONFLICT_PUBLIC_KEY = """
+            -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+            mDMEaj9rzxYJKwYBBAHaRw8BAQdAbF/WEPrIP6KKXMDvdC38qJefWOzgPjl1oRjO
+            Zq0b1Q7CbgQfFggAIAUCalTToxYhBNC7z7slDTuwZY5ThPg9lH0p7+z3AhsCAAAF
+            3QD+J0BmEGkteEFvEL6+NcoMXJPA9f2dgASrhMOEx49GzncA/jKiGLIgwVV1Mn+5
+            EEa+0emPNE8jV8Lr5dVrrCvImnUCwm4EHxYIACAFAmpU06MWIQTQu8+7JQ07sGWO
+            U4T4PZR9Ke/s9wIbBAAAY1UA/03TajlkBrd4t80f2wUwFDP5W6yIWz5N62ysR85z
+            K20+AP9Al5wCbGLEhCslgKdx+WrYdXUufex7d8/9AGp7ukRrBLQsS2V5Z3VhcmQg
+            VGVzdCBDVjI1NTE5IDxjdjI1NTE5QHRlc3QuaW52YWxpZD6IrwQTFgoAVxYhBNC7
+            z7slDTuwZY5ThPg9lH0p7+z3BQJqP2vPGxSAAAAAAAQADm1hbnUyLDIuNSsxLjEy
+            LDAsMwIbAwULCQgHAgIiAgYVCgkICwIEFgIDAQIeBwIXgAAKCRD4PZR9Ke/s97M5
+            AP4kys7sEP2t9zVyIhmhJbk0LD037y2RTx87Eqx0VD7QMQD+Jnt7dbYJFQa23xRM
+            fDMEtk6WCfk7Hg7/j3/r8Kf3aAS4OARqP2vsEgorBgEEAZdVAQUBAQdAXNMVlbc8
+            dO/yqy3JjwJ3EwftNkmeSki62eFFzvG6fXYDAQgHiJQEGBYKADwWIQTQu8+7JQ07
+            sGWOU4T4PZR9Ke/s9wUCaj9r7BsUgAAAAAAEAA5tYW51MiwyLjUrMS4xMiwwLDMC
+            GwwACgkQ+D2UfSnv7PculAD/T22Upu3v6Pbqn5DBsKxu7yiu4LFs1jjnbbp7LLpD
+            FL0BALpzBc+fU17BLteMYYp5rXgKCOm+qy1Z70+LJ8ljtz4I
+            =yjR5
             -----END PGP PUBLIC KEY BLOCK-----
         """.trimIndent() + "\n"
 

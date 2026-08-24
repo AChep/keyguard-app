@@ -3,13 +3,19 @@ package com.artemchep.keyguard.common.service.gpgagent.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GpgAgentFilter
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnapshot
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyInfoRow
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
+import com.artemchep.keyguard.test.gpgMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyEntry
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRow
 import com.artemchep.keyguard.common.service.gpgagent.isEligibleForGpgAgent
+import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.GetCiphers
@@ -68,6 +74,11 @@ class GpgPublicKeySyncerImplTest {
             gpgAgentEnabled = enabled,
             displayKeyNames = MutableStateFlow(true),
             filter = MutableStateFlow(GpgAgentFilter()),
+            gpgKeyMetadataResolver = metadataResolver(
+                publicOnly,
+                privateBacked,
+                decryptOnly,
+            ),
             defaultDispatcher = StandardTestDispatcher(testScheduler),
         )
 
@@ -151,6 +162,7 @@ class GpgPublicKeySyncerImplTest {
         gpgAgentEnabled: Flow<Boolean>,
         displayKeyNames: Flow<Boolean>,
         filter: Flow<GpgAgentFilter>,
+        gpgKeyMetadataResolver: GpgKeyMetadataResolver,
         defaultDispatcher: CoroutineDispatcher,
     ) = GpgPublicKeySyncerImpl(
         directDI = DI {}.direct,
@@ -168,8 +180,36 @@ class GpgPublicKeySyncerImplTest {
         },
         gpgPublicKeyRepository = repository,
         logRepository = NoOpLogRepository,
+        gpgKeyMetadataResolver = gpgKeyMetadataResolver,
         defaultDispatcher = defaultDispatcher,
     )
+
+    private fun metadataResolver(
+        vararg ciphers: DSecret,
+    ): GpgKeyMetadataResolver {
+        val metadataByFingerprint = ciphers.associate { cipher ->
+            val gpgKey = requireNotNull(cipher.gpgKey)
+            requireNotNull(gpgKey.fingerprint) to requireNotNull(gpgKey.metadata)
+        }
+        return object : GpgKeyMetadataResolver {
+            override fun resolve(
+                privateKeyArmored: String?,
+                publicKeyArmored: String?,
+                fingerprint: String?,
+                candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
+            ): GpgAgentMetadataResolution? {
+                val metadata = metadataByFingerprint[fingerprint] ?: return null
+                return GpgAgentMetadataResolution(
+                    metadata = metadata,
+                    authorization = GpgAgentAuthorizationSnapshot(
+                        evaluatedAtEpochSeconds = 1,
+                        policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
+                        keys = metadata.routableAgentKeys,
+                    ),
+                )
+            }
+        }
+    }
 
     private class RecordingGpgPublicKeyRepository : GpgPublicKeyRepository {
         var entries: List<GpgPublicKeyEntry> = emptyList()
@@ -272,14 +312,12 @@ class GpgPublicKeySyncerImplTest {
             privateKeyArmored = privateKeyArmored,
             publicKeyArmored = publicKeyArmored,
             fingerprint = fingerprint,
-            metadata = GpgAgentKeyMetadata(
-                keys = listOf(
-                    GpgAgentKeyMetadataKey(
+            metadata = gpgMetadata(
+                GpgAgentKeyMetadataKey(
                         keygrip = keygrip,
                         fingerprint = fingerprint,
                         algorithm = "ED25519",
                         capabilities = capabilities,
-                    ),
                 ),
             ),
         ),

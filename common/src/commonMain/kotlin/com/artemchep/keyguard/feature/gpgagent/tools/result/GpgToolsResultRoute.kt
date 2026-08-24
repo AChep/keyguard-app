@@ -9,7 +9,7 @@ class GpgToolsResultRoute(
 ) : DialogRoute {
     data class Args(
         val title: String,
-        val verification: SimpleNote? = null,
+        val notes: List<SimpleNote> = emptyList(),
         val output: Output? = null,
     ) {
         data class Output(

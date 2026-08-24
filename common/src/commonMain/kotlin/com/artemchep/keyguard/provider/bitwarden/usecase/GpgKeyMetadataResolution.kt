@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.gpgagent.isCanonical
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 
@@ -8,18 +9,16 @@ internal fun BitwardenCipher.GpgKey.resolveGpgMetadata(
     old: BitwardenCipher.GpgKey?,
     resolver: GpgKeyMetadataResolver?,
 ): BitwardenCipher.GpgKey {
-    val oldMetadata = old
+    val reusableInventory = old
         ?.metadata
-        ?.takeIf {
-            old.hasSameGpgMaterial(this)
-        }
-    val resolvedMetadata = oldMetadata
-        ?: resolver?.resolve(
-            privateKeyArmored = privateKeyArmored,
-            publicKeyArmored = publicKeyArmored,
-            fingerprint = fingerprint,
-        )
-        ?: metadata
+        ?.takeIf { it.isCanonical && old.hasSameGpgMaterial(this) }
+    val resolvedMetadata = resolver?.resolve(
+        privateKeyArmored = privateKeyArmored,
+        publicKeyArmored = publicKeyArmored,
+        fingerprint = fingerprint,
+    )?.metadata
+        ?: metadata?.takeIf { it.isCanonical }
+        ?: reusableInventory
     return copy(
         metadata = resolvedMetadata,
     )

@@ -21,9 +21,9 @@ fun DSecret.gpgKeyserverRefreshFingerprintOrNull(): String? {
         ?.normalizeGpgFingerprint()
         ?.takeIf { it.isNotEmpty() }
         ?: parseGpgAgentMetadataOrNull()
-            ?.keys
-            ?.firstOrNull { it.fingerprint.isNotBlank() }
-            ?.fingerprint
+            ?.certificates
+            ?.firstOrNull { it.primaryFingerprint.isNotBlank() }
+            ?.primaryFingerprint
             ?.normalizeGpgFingerprint()
             ?.takeIf { it.isNotEmpty() }
 }
@@ -38,9 +38,9 @@ private fun DSecret.hasGpgKeyserverRefreshFingerprint(): Boolean =
         ?.normalizeGpgFingerprint()
         ?.takeIf { it.isNotEmpty() } != null ||
             parseGpgAgentMetadataOrNull()
-                ?.keys
-                ?.any { key ->
-                    key.fingerprint
+                ?.certificates
+                ?.any { certificate ->
+                    certificate.primaryFingerprint
                         .normalizeGpgFingerprint()
                         .isNotEmpty()
                 } == true

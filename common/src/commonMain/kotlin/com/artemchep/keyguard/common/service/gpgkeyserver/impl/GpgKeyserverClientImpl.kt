@@ -392,6 +392,12 @@ class GpgKeyserverClientImpl(
                     "Keyserver returned malformed OpenPGP public key data.",
                 )
 
+                // A keyserver response never carries secret key material, so
+                // this reason cannot legitimately occur here.
+                GpgPublicKeyParseError.MultipleCertificates -> throw IllegalStateException(
+                    "Keyserver returned secret OpenPGP key material.",
+                )
+
                 GpgPublicKeyParseError.Unsupported -> throw UnsupportedOperationException(
                     "OpenPGP public key parsing is not supported on this platform.",
                 )

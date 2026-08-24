@@ -235,6 +235,7 @@ class BcGpgOpenPgpServiceTestOracle() : GpgOpenPgpService,
             .use { it.readBytes().decodeToString(throwOnInvalidSequence = true) }
         val signed = clearSignText(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = text,
                 privateKey = request.privateKey,
             ),
@@ -771,8 +772,13 @@ class BcGpgOpenPgpServiceTestOracle() : GpgOpenPgpService,
             key.authenticated &&
                 (key.publicKey.isMasterKey || key.signingCrossCertified)
         }
+        // A signature that is merely arithmetically correct is not "valid": an expired
+        // data signature or one bound to a collision-prone digest is reported as INVALID
+        // with the warning that says why, never as VALID.
+        val signatureExpired = signature.isExpiredAt(now)
+        val weakDigest = signature.hashAlgorithm in WEAK_DATA_SIGNATURE_DIGESTS
         return GpgOpenPgpVerification(
-            status = if (valid) {
+            status = if (valid && !signatureExpired && !weakDigest) {
                 GpgOpenPgpVerificationStatus.VALID
             } else {
                 GpgOpenPgpVerificationStatus.INVALID
@@ -800,8 +806,11 @@ class BcGpgOpenPgpServiceTestOracle() : GpgOpenPgpService,
                 ) {
                     add(GpgOpenPgpVerificationWarning.KEY_EXPIRED)
                 }
-                if (signature.isExpiredAt(now)) {
+                if (signatureExpired) {
                     add(GpgOpenPgpVerificationWarning.SIGNATURE_EXPIRED)
+                }
+                if (weakDigest) {
+                    add(GpgOpenPgpVerificationWarning.WEAK_DIGEST)
                 }
             },
         )
@@ -866,4 +875,14 @@ class BcGpgOpenPgpServiceTestOracle() : GpgOpenPgpService,
 
 private data class SigningContext(
     val signatureGenerator: PGPSignatureGenerator,
+)
+
+/**
+ * Digest algorithms the verification policy refuses for data signatures. Mirrors the
+ * native core's `weak_data_signature_digest`.
+ */
+internal val WEAK_DATA_SIGNATURE_DIGESTS = setOf(
+    HashAlgorithmTags.MD5,
+    HashAlgorithmTags.SHA1,
+    HashAlgorithmTags.RIPEMD160,
 )

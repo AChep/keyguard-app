@@ -18,6 +18,7 @@ cbc.workspace = true
 chacha20.workspace = true
 cipher.workspace = true
 des.workspace = true
+digest.workspace = true
 ed25519-dalek.workspace = true
 flate2.workspace = true
 k256.workspace = true
@@ -53,6 +54,10 @@ harness = false
 
 [[bench]]
 name = "bulk_primitives"
+harness = false
+
+[[bench]]
+name = "certificate_reconcile"
 harness = false
 
 [[bench]]

@@ -215,33 +215,18 @@ class GpgKeyExpirationServiceJvm(
             fail(GpgKeyExpirationError.SignatureVerificationFailed)
         }
 
-        val secretComponentFingerprints = reparsedSecret.keyRings
-            .asSequence()
-            .single()
-            .secretKeys
-            .asSequence()
-            .map { it.publicKey.fingerprintHex().normalizeGpgFingerprint() }
-            .toSet()
         val resolvedMetadata = metadataResolver.resolve(
             privateKeyArmored = privateKeyArmored,
             publicKeyArmored = publicKeyArmored,
             fingerprint = canonicalPrimaryFingerprint,
             candidateRevocationKeys = request.candidateRevocationKeys,
         ) ?: fail(GpgKeyExpirationError.MetadataResolutionFailed)
-        // A transferable secret key may contain extra public subkeys learned from
-        // a refreshed certificate. They must remain in both armored outputs, but
-        // they must not be advertised to gpg-agent as usable secret components.
-        val metadata = resolvedMetadata.copy(
-            keys = resolvedMetadata.keys.filter { key ->
-                key.fingerprint.normalizeGpgFingerprint() in secretComponentFingerprints
-            },
-        )
         return GpgKeyExpirationResult.Success(
             key = request.key.copy(
                 privateKeyArmored = privateKeyArmored,
                 publicKeyArmored = publicKeyArmored,
                 fingerprint = canonicalPrimaryFingerprint,
-                metadata = metadata,
+                metadata = resolvedMetadata.metadata,
             ),
         )
     }

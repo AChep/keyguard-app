@@ -5,16 +5,25 @@ import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.GpgKeyMaterial
 import com.artemchep.keyguard.common.model.toGpgKeyMaterial
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
+import com.artemchep.keyguard.common.service.gpgagent.GpgRenewalAuthorization
+import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
+import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
 import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.crypto.GpgCertificateInspectorJvm
 import com.artemchep.keyguard.crypto.GpgKeyExpirationServiceJvm
 import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
 import com.artemchep.keyguard.crypto.NativeGpgKeyExpirationService
+import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
 import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
 import com.artemchep.keyguard.crypto.GpgRevocationStatusJvm
 import com.artemchep.keyguard.crypto.armored
 import com.artemchep.keyguard.crypto.extractPrivateKeyEmptyPassphrase
 import com.artemchep.keyguard.crypto.fingerprintHex
+import com.artemchep.keyguard.crypto.toDomain
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpPublicKeyParseResult
 import org.bouncycastle.bcpg.HashAlgorithmTags
 import org.bouncycastle.bcpg.SignatureSubpacketTags
 import org.bouncycastle.bcpg.sig.KeyFlags
@@ -45,6 +54,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
@@ -52,6 +62,12 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+
+/** Mirrors `MAX_CREATION_TIME_BUMP_SECONDS` in the native mutation core. */
+private const val MAX_CREATION_TIME_BUMP_SECONDS = 300L
+
+/** A read reference that covers any replacement-signature bump the core may apply. */
+private fun Instant.coveringBump(): Instant = this + MAX_CREATION_TIME_BUMP_SECONDS.seconds
 
 class GpgKeyExpirationServiceJvmTest {
     private val generator = NativeGpgKeyGenerator
@@ -69,7 +85,8 @@ class GpgKeyExpirationServiceJvmTest {
         val now = Clock.System.now()
         val service = service(now)
         val generated = generateModernKey()
-        val originalInfo = generated.parseInfo()
+        val readAt = now.coveringBump()
+        val originalInfo = generated.parseInfoAt(readAt)
         val target = now + 730.days
         val fingerprints = buildSet {
             add(originalInfo.fingerprint)
@@ -85,9 +102,9 @@ class GpgKeyExpirationServiceJvmTest {
         )
 
         val updated = assertIs<GpgKeyExpirationResult.Success>(result).key
-        val updatedInfo = updated.parseInfo()
+        val updatedInfo = updated.parseInfoAt(readAt)
         assertEquals(generated.fingerprint, updated.fingerprint)
-        assertEquals(generated.metadata.keys, updated.metadata.keys)
+        assertEquals(generated.metadata, updated.metadata)
         assertInstantWithinOneSecond(target, updatedInfo.expiresAt)
         updatedInfo.subKeys.forEach { subkey ->
             assertInstantWithinOneSecond(target, subkey.expiresAt)
@@ -131,6 +148,65 @@ class GpgKeyExpirationServiceJvmTest {
                 latestPrimarySelfCertification(updatedPrimary).hashAlgorithm,
             )
         }
+    }
+
+    @Test
+    fun `a SHA1 only key reads back as unauthenticated and template-only renewable`() {
+        val generated = generator.generate(
+            GpgKeyConfig.Rsa(
+                userId = "Template Only <template-only@test.invalid>",
+                length = GpgKeyConfig.RsaLength.B3072,
+            ),
+        )
+        val legacy = generated.withPrimarySelfSignatureHash(HashAlgorithmTags.SHA1)
+        val readAt = Clock.System.now() + 5.seconds
+
+        // The parse path is what the vault view reads: the key is still listed,
+        // but nothing about it is authenticated.
+        val info = legacy.parseInfoAt(readAt)
+        assertFalse(info.authenticated)
+        assertFalse(info.canSign)
+        assertFalse(info.canEncrypt)
+        assertFalse(info.revoked)
+        // The parse result carries the renewal tier too, so the vault view can
+        // tell "renew me" apart from "no renewal can fix this".
+        assertEquals(GpgRenewalAuthorization.TEMPLATE_ONLY, info.renewal)
+        val healthy = generated.parseInfoAt(readAt)
+        assertTrue(healthy.authenticated)
+        assertEquals(GpgRenewalAuthorization.AUTHENTICATED, healthy.renewal)
+
+        val renewals = legacy.renewalAuthorizations()
+        assertEquals(
+            GpgRenewalAuthorization.TEMPLATE_ONLY,
+            renewals[legacy.fingerprint.normalizeGpgFingerprint()],
+        )
+        assertEquals(
+            GpgRenewalAuthorization.AUTHENTICATED,
+            generated.renewalAuthorizations()[generated.fingerprint.normalizeGpgFingerprint()],
+        )
+    }
+
+    @Test
+    fun `a key with no self signature reads back as unauthenticated and not renewable`() {
+        val generated = generator.generate(
+            GpgKeyConfig.Rsa(
+                userId = "No Self Signature <no-self-sig@test.invalid>",
+                length = GpgKeyConfig.RsaLength.B3072,
+            ),
+        )
+        val orphaned = generated.withoutPrimarySelfSignatures()
+        val readAt = Clock.System.now() + 5.seconds
+
+        // Unauthenticated exactly like the SHA-1 key above, but nothing here is
+        // renewable: there is no self-signature for a renewal to reissue.
+        val info = orphaned.parseInfoAt(readAt)
+        assertFalse(info.authenticated)
+        assertEquals(GpgRenewalAuthorization.NONE, info.renewal)
+
+        assertEquals(
+            GpgRenewalAuthorization.NONE,
+            orphaned.renewalAuthorizations()[orphaned.fingerprint.normalizeGpgFingerprint()],
+        )
     }
 
     @Test
@@ -179,8 +255,12 @@ class GpgKeyExpirationServiceJvmTest {
                 componentFingerprints = setOf(expiredSubkeyFingerprint),
             ),
         )
+        // The only binding is expired, so the component neither authenticates nor
+        // offers a usable renewal template. Renewal authorization reports that as an
+        // unauthenticated component, which the wire enum surfaces as
+        // SignatureVerificationFailed.
         assertEquals(
-            GpgKeyExpirationError.MissingSelfSignature,
+            GpgKeyExpirationError.SignatureVerificationFailed,
             assertIs<GpgKeyExpirationResult.Error>(subkeyResult).reason,
         )
 
@@ -201,20 +281,11 @@ class GpgKeyExpirationServiceJvmTest {
         val originalRing = publicRing(generated.publicKeyArmored)
         val originalSignatures = renewableSignatures(originalRing)
         val latestOriginalSignatureTime = originalSignatures.maxOf { it.creationTime.time }
-        var currentTime = Instant.fromEpochMilliseconds(latestOriginalSignatureTime)
-        var waits = 0
-        val service = nativeService(
-            now = { currentTime },
-            waitForClock = { milliseconds ->
-                waits += 1
-                Thread.sleep(milliseconds)
-                currentTime = maxOf(
-                    currentTime + milliseconds.milliseconds,
-                    Clock.System.now(),
-                )
-                true
-            },
-        )
+        // The reference time is exactly the newest existing self-signature, so every
+        // replacement collides on the same second. The native core resolves that by
+        // bumping the new signature to newest_existing + 1 instead of failing.
+        val currentTime = Instant.fromEpochMilliseconds(latestOriginalSignatureTime)
+        val service = nativeService(now = { currentTime })
         val target = currentTime + 365.days
         val info = generated.parseInfo()
         val fingerprints = setOf(info.fingerprint) + info.subKeys.map { it.fingerprint }
@@ -229,7 +300,6 @@ class GpgKeyExpirationServiceJvmTest {
             ),
         ).key
 
-        assertTrue(waits > 0)
         assertTrue(
             renewableSignatures(publicRing(updated.publicKeyArmored))
                 .all { it.creationTime.time > latestOriginalSignatureTime },
@@ -242,77 +312,67 @@ class GpgKeyExpirationServiceJvmTest {
     }
 
     @Test
-    fun `future signature beyond gpg wait window returns time conflict`() {
+    fun `same-second renewal is bumped one second past the statement it supersedes`() {
         val generated = generateModernKey()
-        val primary = publicRing(generated.publicKeyArmored).publicKey
-        val template = latestPrimarySelfCertification(primary)
-        var currentTime = Instant.fromEpochMilliseconds(template.creationTime.time) - 5.seconds
-        var waits = 0
-        val service = nativeService(
-            now = { currentTime },
-            waitForClock = { milliseconds ->
-                waits += 1
-                currentTime += milliseconds.milliseconds
-                true
-            },
-        )
+        // A frozen clock one second past the certificate's newest statement: the first
+        // renewal lands on that second, and the second one collides with it. gpg parity
+        // is to date the replacement one second later rather than refuse.
+        val now = renewalNow(generated)
+        val service = nativeService(now = { now })
 
-        val result = service.update(
-            GpgKeyExpirationRequest(
-                key = generated,
-                expiresAt = currentTime + 365.days,
-                componentFingerprints = setOf(generated.fingerprint),
+        val first = assertIs<GpgKeyExpirationResult.Success>(
+            service.update(
+                GpgKeyExpirationRequest(
+                    key = generated,
+                    expiresAt = now + 365.days,
+                    componentFingerprints = setOf(generated.fingerprint),
+                ),
             ),
-        )
+        ).key
+        val second = assertIs<GpgKeyExpirationResult.Success>(
+            service.update(
+                GpgKeyExpirationRequest(
+                    key = first,
+                    expiresAt = now + 365.days,
+                    componentFingerprints = setOf(generated.fingerprint),
+                ),
+            ),
+        ).key
 
-        assertEquals(
-            GpgKeyExpirationError.TimeConflict,
-            assertIs<GpgKeyExpirationResult.Error>(result).reason,
-        )
-        assertEquals(5, waits)
+        assertEquals(now.epochSeconds, primarySelfCertificationSeconds(first))
+        assertEquals(now.epochSeconds + 1L, primarySelfCertificationSeconds(second))
     }
 
     @Test
-    fun `failed clock wait stops time conflict retries`() {
+    fun `a renewal that would repeat the bump against a frozen clock is refused`() {
         val generated = generateModernKey()
-        val primary = publicRing(generated.publicKeyArmored).publicKey
-        val template = latestPrimarySelfCertification(primary)
-        val currentTime = Instant.fromEpochMilliseconds(template.creationTime.time) - 5.seconds
-        var waits = 0
-        val service = nativeService(
-            now = { currentTime },
-            waitForClock = {
-                waits += 1
-                false
-            },
-        )
-
-        val result = service.update(
+        val now = renewalNow(generated)
+        val service = nativeService(now = { now })
+        val request = { key: GpgKeyMaterial ->
             GpgKeyExpirationRequest(
-                key = generated,
-                expiresAt = currentTime + 365.days,
+                key = key,
+                expiresAt = now + 365.days,
                 componentFingerprints = setOf(generated.fingerprint),
-            ),
-        )
+            )
+        }
 
-        assertEquals(
-            GpgKeyExpirationError.TimeConflict,
-            assertIs<GpgKeyExpirationResult.Error>(result).reason,
-        )
-        assertEquals(1, waits)
+        val first = assertIs<GpgKeyExpirationResult.Success>(
+            service.update(request(generated.toGpgKeyMaterial())),
+        ).key
+        val second = assertIs<GpgKeyExpirationResult.Success>(service.update(request(first))).key
+
+        // The bump has put the certificate's newest self-signature one second ahead of
+        // this frozen clock. A future-dated signature is in no policy tier, so a third
+        // attempt in the same second is refused. This is the documented edge of the
+        // bump, not something a retry loop should paper over: a real caller's clock
+        // advances past it.
+        assertIs<GpgKeyExpirationResult.Error>(service.update(request(second)))
     }
 
     @Test
     fun `clock failures are reported as internal failures`() {
         val generated = generateModernKey()
-        var waits = 0
-        val service = nativeService(
-            now = { error("clock failure") },
-            waitForClock = {
-                waits += 1
-                true
-            },
-        )
+        val service = nativeService(now = { error("clock failure") })
 
         val result = service.update(
             GpgKeyExpirationRequest(
@@ -326,22 +386,16 @@ class GpgKeyExpirationServiceJvmTest {
             GpgKeyExpirationError.InternalFailure,
             assertIs<GpgKeyExpirationResult.Error>(result).reason,
         )
-        assertEquals(0, waits)
     }
 
     @Test
     fun `cheap validation completes before reading the clock`() {
         val generated = generateModernKey()
         var clockReads = 0
-        var waits = 0
         val service = nativeService(
             now = {
                 clockReads += 1
                 error("clock must not be read")
-            },
-            waitForClock = {
-                waits += 1
-                true
             },
         )
 
@@ -358,21 +412,13 @@ class GpgKeyExpirationServiceJvmTest {
             assertIs<GpgKeyExpirationResult.Error>(result).reason,
         )
         assertEquals(0, clockReads)
-        assertEquals(0, waits)
     }
 
     @Test
-    fun `non-time-conflict errors do not wait`() {
+    fun `malformed private keys are rejected`() {
         val generated = generateModernKey()
         val currentTime = Clock.System.now()
-        var waits = 0
-        val service = nativeService(
-            now = { currentTime },
-            waitForClock = {
-                waits += 1
-                true
-            },
-        )
+        val service = nativeService(now = { currentTime })
 
         val result = service.update(
             GpgKeyExpirationRequest(
@@ -386,15 +432,15 @@ class GpgKeyExpirationServiceJvmTest {
             GpgKeyExpirationError.MalformedKey,
             assertIs<GpgKeyExpirationResult.Error>(result).reason,
         )
-        assertEquals(0, waits)
     }
 
     @Test
     fun `finite expiry can be removed from every component`() {
-        val now = Clock.System.now()
-        val service = service(now)
         val generated = generateModernKey()
-        val info = generated.parseInfo()
+        val now = renewalNow(generated)
+        val service = service(now)
+        val readAt = now.coveringBump()
+        val info = generated.parseInfoAt(readAt)
         val fingerprints = setOf(info.fingerprint) + info.subKeys.map { it.fingerprint }
         val finite = assertIs<GpgKeyExpirationResult.Success>(
             service.update(
@@ -406,7 +452,7 @@ class GpgKeyExpirationServiceJvmTest {
             service.update(
                 GpgKeyExpirationRequest(finite, null, fingerprints),
             ),
-        ).key.parseInfo()
+        ).key.parseInfoAt(readAt)
 
         assertEquals(null, unlimited.expiresAt)
         assertTrue(unlimited.subKeys.all { it.expiresAt == null })
@@ -416,7 +462,8 @@ class GpgKeyExpirationServiceJvmTest {
     fun `updating only primary leaves subkey certificates unchanged`() {
         val now = Clock.System.now()
         val generated = generateModernKey()
-        val before = generated.parseInfo()
+        val readAt = now.coveringBump()
+        val before = generated.parseInfoAt(readAt)
 
         val updated = assertIs<GpgKeyExpirationResult.Success>(
             service(now).update(
@@ -426,7 +473,7 @@ class GpgKeyExpirationServiceJvmTest {
                     componentFingerprints = setOf(before.fingerprint),
                 ),
             ),
-        ).key.parseInfo()
+        ).key.parseInfoAt(readAt)
 
         assertInstantWithinOneSecond(now + 400.days, updated.expiresAt)
         assertEquals(before.subKeys, updated.subKeys)
@@ -685,8 +732,18 @@ class GpgKeyExpirationServiceJvmTest {
                 it.publicKey.fingerprintHex() == subkeyFingerprint
             }.revocationStatus,
         )
+        val updatedAuthorization = assertNotNull(
+            NativeGpgKeyMetadataResolver.resolve(
+                privateKeyArmored = updatedPrimary.privateKeyArmored,
+                publicKeyArmored = updatedPrimary.publicKeyArmored,
+                fingerprint = updatedPrimary.fingerprint,
+                candidateRevocationKeys = listOf(
+                    GpgOpenPgpPublicKey(revoker.publicKeyArmored),
+                ),
+            ),
+        )
         assertFalse(
-            updatedPrimary.metadata.keys.any { key -> key.fingerprint == subkeyFingerprint },
+            updatedAuthorization.authorizedAgentKeys.any { key -> key.fingerprint == subkeyFingerprint },
             "A verified externally revoked subkey must not be advertised to gpg-agent.",
         )
 
@@ -784,9 +841,9 @@ class GpgKeyExpirationServiceJvmTest {
 
     @Test
     fun `authenticated public-only subkey is retained without becoming agent secret metadata`() {
-        val now = Clock.System.now()
         val generated = generateModernKey()
         val (refreshed, addedSubkey) = withAuthenticatedPublicOnlyEncryptionSubkey(generated)
+        val now = Clock.System.now()
 
         val updated = assertIs<GpgKeyExpirationResult.Success>(
             service(now).update(
@@ -809,14 +866,23 @@ class GpgKeyExpirationServiceJvmTest {
             .single { it.fingerprint.contentEquals(addedSubkey.fingerprint) }
         assertTrue(addedSubkey.encoded.contentEquals(updatedPublicSubkey.encoded))
         assertTrue(addedSubkey.encoded.contentEquals(updatedSecretSubkey.encoded))
-        assertEquals(generated.metadata, updated.metadata)
+        assertEquals(
+            assertNotNull(generated.metadata).routableAgentKeys,
+            assertNotNull(updated.metadata).routableAgentKeys,
+        )
+        val addedFingerprint = addedSubkey.fingerprint.toHex().uppercase()
+        val addedComponent = assertNotNull(updated.metadata).certificates
+            .flatMap { it.components }
+            .single { it.fingerprint == addedFingerprint }
+        assertFalse(addedComponent.storedSecretMaterial)
+        assertTrue(updated.metadata?.routableAgentKeys.orEmpty().none { it.fingerprint == addedFingerprint })
     }
 
     @Test
     fun `authenticated public-only encryption subkey expiry can be updated`() {
-        val now = Clock.System.now()
         val generated = generateModernKey()
         val (refreshed, addedSubkey) = withAuthenticatedPublicOnlyEncryptionSubkey(generated)
+        val now = Clock.System.now()
         val addedFingerprint = addedSubkey.fingerprint.toHex().uppercase()
         val target = now + 180.days
 
@@ -833,16 +899,33 @@ class GpgKeyExpirationServiceJvmTest {
         ).key
 
         val updatedInfo = updated.parseInfo()
-        val updatedSubkey = updatedInfo.subKeys.single { it.fingerprint == addedFingerprint }
+        val inspectedSubkey = GpgCertificateInspectorJvm
+            .inspect(publicRing(updated.publicKeyArmored))
+            ?.subkeys
+            ?.singleOrNull { it.publicKey.fingerprintHex() == addedFingerprint }
+        val updatedSubkey = assertNotNull(
+            updatedInfo.subKeys.singleOrNull { it.fingerprint == addedFingerprint },
+            "Renewed public-only subkey $addedFingerprint was not authenticated by a fresh policy evaluation. " +
+                "BC authenticated=${inspectedSubkey?.authenticated}, " +
+                "BC binding=${inspectedSubkey?.effectiveSignature?.creationTime}; " +
+                "Available subkeys: ${updatedInfo.subKeys.map { it.fingerprint }}",
+        )
         assertInstantWithinOneSecond(target, updatedSubkey.expiresAt)
-        assertEquals(generated.metadata, updated.metadata)
+        assertEquals(
+            assertNotNull(generated.metadata).routableAgentKeys,
+            assertNotNull(updated.metadata).routableAgentKeys,
+        )
+        val addedComponent = assertNotNull(updated.metadata).certificates
+            .flatMap { it.components }
+            .single { it.fingerprint == addedFingerprint }
+        assertFalse(addedComponent.storedSecretMaterial)
     }
 
     @Test
     fun `authenticated public-only signing subkey reuses its cross-signature`() {
-        val now = Clock.System.now()
         val generated = generateModernKey()
         val (refreshed, addedSubkey) = withAuthenticatedPublicOnlySigningSubkey(generated)
+        val now = Clock.System.now()
         val addedFingerprint = addedSubkey.fingerprint.toHex().uppercase()
         val primaryKeyId = publicRing(refreshed.publicKeyArmored).publicKey.keyID
         val originalCrossSignature = addedSubkey.signatures.asSequence()
@@ -879,11 +962,29 @@ class GpgKeyExpirationServiceJvmTest {
             .single { it.signatureType == PGPSignature.PRIMARYKEY_BINDING }
         assertTrue(originalCrossSignature.encoded.contentEquals(updatedCrossSignature.encoded))
         val updatedInfo = updated.parseInfo()
+        val inspectedSubkey = GpgCertificateInspectorJvm
+            .inspect(publicRing(updated.publicKeyArmored))
+            ?.subkeys
+            ?.singleOrNull { it.publicKey.fingerprintHex() == addedFingerprint }
         assertInstantWithinOneSecond(
             target,
-            updatedInfo.subKeys.single { it.fingerprint == addedFingerprint }.expiresAt,
+            assertNotNull(
+                updatedInfo.subKeys.singleOrNull { it.fingerprint == addedFingerprint },
+                "Renewed public-only signing subkey $addedFingerprint was not authenticated by a fresh policy evaluation. " +
+                    "BC authenticated=${inspectedSubkey?.authenticated}, " +
+                    "BC binding=${inspectedSubkey?.effectiveSignature?.creationTime}, " +
+                    "BC cross-certified=${inspectedSubkey?.signingCrossCertified}; " +
+                    "Available subkeys: ${updatedInfo.subKeys.map { it.fingerprint }}",
+            ).expiresAt,
         )
-        assertEquals(generated.metadata, updated.metadata)
+        assertEquals(
+            assertNotNull(generated.metadata).routableAgentKeys,
+            assertNotNull(updated.metadata).routableAgentKeys,
+        )
+        val addedComponent = assertNotNull(updated.metadata).certificates
+            .flatMap { it.components }
+            .single { it.fingerprint == addedFingerprint }
+        assertFalse(addedComponent.storedSecretMaterial)
     }
 
     @Test
@@ -917,7 +1018,7 @@ class GpgKeyExpirationServiceJvmTest {
     }
 
     @Test
-    fun `empty legacy metadata is repopulated`() {
+    fun `empty non-canonical metadata is repopulated`() {
         val now = Clock.System.now()
         val generated = generateModernKey().copy(metadata = GpgAgentKeyMetadata())
         val info = generated.parseInfo()
@@ -932,41 +1033,45 @@ class GpgKeyExpirationServiceJvmTest {
             ),
         ).key
 
-        assertTrue(updated.metadata.keys.isNotEmpty())
+        assertTrue(assertNotNull(updated.metadata).certificates.isNotEmpty())
+        assertTrue(updated.metadata?.routableAgentKeys.orEmpty().isNotEmpty())
     }
 
     @Test
-    fun `partial and stale legacy metadata are refreshed`() {
+    fun `non-canonical and stale certificate indices are refreshed`() {
         val now = Clock.System.now()
         val generated = generateModernKey()
-        assertTrue(generated.metadata.keys.size > 1)
-        val partialMetadata = generated.metadata.copy(
-            keys = generated.metadata.keys.take(1),
-        )
-        val staleMetadata = generated.metadata.copy(
-            keys = generated.metadata.keys.mapIndexed { index, key ->
-                if (index == 0) key.copy(keygrip = "stale-keygrip") else key
+        val generatedMetadata = assertNotNull(generated.metadata)
+        val nonCanonicalMetadata = GpgAgentKeyMetadata()
+        val staleMetadata = generatedMetadata.copy(
+            certificates = generatedMetadata.certificates.mapIndexed { index, certificate ->
+                if (index != 0) return@mapIndexed certificate
+                certificate.copy(
+                    components = certificate.components.mapIndexed { componentIndex, component ->
+                        if (componentIndex == 0) component.copy(keygrips = listOf("stale-keygrip")) else component
+                    },
+                )
             },
         )
 
-        listOf(partialMetadata, staleMetadata).forEach { legacyMetadata ->
-            val legacy = generated.copy(metadata = legacyMetadata)
+        listOf(nonCanonicalMetadata, staleMetadata).forEach { storedMetadata ->
+            val stale = generated.copy(metadata = storedMetadata)
             val updated = assertIs<GpgKeyExpirationResult.Success>(
                 service(now).update(
                     GpgKeyExpirationRequest(
-                        key = legacy,
+                        key = stale,
                         expiresAt = now + 365.days,
                         componentFingerprints = setOf(generated.fingerprint),
                     ),
                 ),
             ).key
 
-            assertEquals(generated.metadata, updated.metadata)
+            assertEquals(generatedMetadata, updated.metadata)
         }
     }
 
     @Test
-    fun `an empty legacy fingerprint is canonicalized for a single certificate`() {
+    fun `an empty fingerprint is canonicalized for a single certificate`() {
         val now = Clock.System.now()
         val generated = generateModernKey()
         val info = generated.parseInfo()
@@ -983,7 +1088,7 @@ class GpgKeyExpirationServiceJvmTest {
         ).key
 
         assertEquals(info.fingerprint, updated.fingerprint)
-        assertTrue(updated.metadata.keys.isNotEmpty())
+        assertTrue(assertNotNull(updated.metadata).certificates.isNotEmpty())
     }
 
     @Test
@@ -1050,7 +1155,7 @@ class GpgKeyExpirationServiceJvmTest {
                     publicKeyArmored: String?,
                     fingerprint: String?,
                     candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
-                ): GpgAgentKeyMetadata = error("resolver failure")
+                ): GpgAgentMetadataResolution = error("resolver failure")
             },
             now = { now },
             waitForClock = {},
@@ -1107,7 +1212,7 @@ class GpgKeyExpirationServiceJvmTest {
                         componentFingerprints = setOf(fingerprint),
                     ),
                 ),
-            ).key.parseInfo()
+            ).key.parseInfoAt(now.coveringBump())
 
         assertInstantWithinOneSecond(target, updated.expiresAt)
     }
@@ -1143,27 +1248,16 @@ class GpgKeyExpirationServiceJvmTest {
 
     private fun service(
         now: Instant,
-    ): GpgKeyExpirationService {
-        var currentTime = now
-        return nativeService(
-            now = { currentTime },
-            waitForClock = { milliseconds ->
-                currentTime += milliseconds.milliseconds
-                true
-            },
-        )
-    }
+    ): GpgKeyExpirationService = nativeService(now = { now })
 
     private fun nativeService(
         now: () -> Instant,
-        waitForClock: (milliseconds: Long) -> Boolean,
     ): GpgKeyExpirationService = object : GpgKeyExpirationService {
         override fun update(
             request: GpgKeyExpirationRequest,
         ): GpgKeyExpirationResult = NativeGpgKeyExpirationService.update(
             request = request,
             now = now,
-            waitForClock = waitForClock,
         )
     }
 
@@ -1327,6 +1421,42 @@ class GpgKeyExpirationServiceJvmTest {
         )
     }
 
+    /**
+     * Strips every self-signature that could authenticate the primary key: its
+     * identity certifications and any Direct Key signatures. What is left is a
+     * certificate a renewal cannot repair, because it has nothing to reissue.
+     */
+    private fun GeneratedGpgKey.withoutPrimarySelfSignatures(): GeneratedGpgKey {
+        val certificate = publicRing(publicKeyArmored)
+        val secretKeyRing = secretRing(privateKeyArmored)
+        val primary = certificate.publicKey
+        var updatedPrimary = primary
+        primary.rawUserIDs.asSequence().toList().forEach { rawUserId ->
+            primary.getSignaturesForID(rawUserId).asSequence().toList().forEach { signature ->
+                updatedPrimary = PGPPublicKey.removeCertification(
+                    updatedPrimary,
+                    rawUserId,
+                    signature,
+                )
+            }
+        }
+        primary.keySignatures.asSequence().toList().forEach { signature ->
+            updatedPrimary = PGPPublicKey.removeCertification(updatedPrimary, signature)
+        }
+        val updatedKeys = certificate.publicKeys.asSequence().map { key ->
+            if (key.isMasterKey) updatedPrimary else key
+        }.toList()
+        val updatedCertificate = PGPPublicKeyRing(updatedKeys)
+        val updatedSecretKeyRing = PGPSecretKeyRing.replacePublicKeys(
+            secretKeyRing,
+            updatedCertificate,
+        )
+        return copy(
+            privateKeyArmored = updatedSecretKeyRing.armored(),
+            publicKeyArmored = updatedCertificate.armored(),
+        )
+    }
+
     private fun GeneratedGpgKey.withExpiredOnlySubkeyBinding(): Triple<GeneratedGpgKey, String, Instant> {
         val certificate = publicRing(publicKeyArmored)
         val secretKeyRing = secretRing(privateKeyArmored)
@@ -1435,7 +1565,11 @@ class GpgKeyExpirationServiceJvmTest {
             signingKey = primary,
             signatureType = PGPSignature.SUBKEY_BINDING,
             privateKey = primarySecret.extractPrivateKeyEmptyPassphrase(),
-        ).generateCertification(primary, foreignSubkey)
+        ).apply {
+            val hashed = PGPSignatureSubpacketGenerator()
+            hashed.setSignatureCreationTime(true, backdatedSignatureCreationTime())
+            setHashedSubpackets(hashed.generate())
+        }.generateCertification(primary, foreignSubkey)
         val authenticatedSubkey = PGPPublicKey.addCertification(foreignSubkey, binding)
         val suppliedKeys = originalRing.publicKeys.asSequence().toMutableList().apply {
             add(1, authenticatedSubkey)
@@ -1466,7 +1600,7 @@ class GpgKeyExpirationServiceJvmTest {
             privateKey = foreignSubkeyPrivate,
         ).apply {
             val hashed = PGPSignatureSubpacketGenerator()
-            hashed.setSignatureCreationTime(true, Date())
+            hashed.setSignatureCreationTime(true, backdatedSignatureCreationTime())
             setHashedSubpackets(hashed.generate())
         }
         val crossSignature = crossSignatureGenerator.generateCertification(primary, foreignSubkey)
@@ -1476,7 +1610,7 @@ class GpgKeyExpirationServiceJvmTest {
             privateKey = primaryPrivate,
         ).apply {
             val hashed = PGPSignatureSubpacketGenerator()
-            hashed.setSignatureCreationTime(true, Date())
+            hashed.setSignatureCreationTime(true, backdatedSignatureCreationTime())
             hashed.setKeyFlags(true, KeyFlags.SIGN_DATA)
             hashed.addEmbeddedSignature(false, crossSignature)
             setHashedSubpackets(hashed.generate())
@@ -1490,6 +1624,10 @@ class GpgKeyExpirationServiceJvmTest {
             publicKeyArmored = PGPPublicKeyRing(suppliedKeys).armored(),
         ) to authenticatedSubkey
     }
+
+    private fun backdatedSignatureCreationTime(): Date = Date(
+        (Clock.System.now() - 60.seconds).toEpochMilliseconds(),
+    )
 
     private fun publicRing(
         armored: String,
@@ -1523,9 +1661,66 @@ class GpgKeyExpirationServiceJvmTest {
         return result.keys.single()
     }
 
+    /**
+     * A renewal reference strictly after every statement the certificate already
+     * carries. Real callers renew later than the certificate was created; freezing the
+     * clock at or before the newest existing signature exercises the same-second bump
+     * instead, which `same-second renewal is bumped ...` covers on purpose.
+     */
+    private fun renewalNow(key: GeneratedGpgKey): Instant =
+        Instant.fromEpochSeconds(newestRenewableSecond(key.publicKeyArmored)) + 1.seconds
+
+    private fun newestRenewableSecond(publicKeyArmored: String): Long =
+        renewableSignatures(publicRing(publicKeyArmored))
+            .maxOf { signature -> signature.creationTime.time / 1_000L }
+
+    private fun primarySelfCertificationSeconds(key: GpgKeyMaterial): Long =
+        latestPrimarySelfCertification(
+            publicRing(key.publicKeyArmored).publicKey,
+        ).creationTime.time / 1_000L
+
     private fun GpgKeyMaterial.parseInfo(): GpgPublicKeyInfo {
         val result = assertIs<GpgPublicKeyParseResult.Success>(parser.parse(publicKeyArmored))
         return result.keys.single()
+    }
+
+    /**
+     * Parses the certificate as of [referenceTime].
+     *
+     * A renewal whose reference time collides with the certificate's newest statement is
+     * resolved by bumping the replacement signature forward (bounded by
+     * [MAX_CREATION_TIME_BUMP_SECONDS]) rather than by refusing. A replacement can
+     * therefore be dated slightly after the instant the caller asked for, and reading it
+     * back against the wall clock would see a not-yet-valid signature. Tests that renew
+     * at "now" must read the result at an instant that covers the bump.
+     */
+    private fun GpgKeyMaterial.parseInfoAt(referenceTime: Instant): GpgPublicKeyInfo {
+        val keyData = publicKeyArmored.encodeToByteArray()
+        val result = assertIs<NativeOpenPgpPublicKeyParseResult.Success>(
+            NativeCrypto.openPgp.parsePublicKeys(
+                keyData = keyData,
+                referenceTimeEpochSeconds = referenceTime.epochSeconds,
+            ),
+        )
+        return result.keys.single().toDomain()
+    }
+
+    private fun GeneratedGpgKey.parseInfoAt(referenceTime: Instant): GpgPublicKeyInfo =
+        toGpgKeyMaterial().parseInfoAt(referenceTime)
+
+    /**
+     * Renewal state from one live policy evaluation. It lives on the transient
+     * authorization snapshot, never on the persisted certificate index.
+     */
+    private fun GeneratedGpgKey.renewalAuthorizations(): Map<String, GpgRenewalAuthorization> {
+        val metadata = assertNotNull(
+            NativeGpgKeyMetadataResolver.resolve(
+                privateKeyArmored = privateKeyArmored,
+                publicKeyArmored = publicKeyArmored,
+                fingerprint = fingerprint,
+            ),
+        )
+        return assertNotNull(metadata.authorization).renewals
     }
 
     private fun assertInstantWithinOneSecond(

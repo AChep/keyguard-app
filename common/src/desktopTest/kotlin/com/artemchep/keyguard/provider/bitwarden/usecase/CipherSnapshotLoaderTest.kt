@@ -2,11 +2,17 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import app.cash.sqldelight.ColumnAdapter
 import com.artemchep.keyguard.common.service.database.ObjectToStringAdapter
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnapshot
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestPasswordStrength
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestServer
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.testCipher
+import com.artemchep.keyguard.test.gpgCanonicalMetadata
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -102,6 +108,72 @@ class CipherSnapshotLoaderTest {
         assertTrue(updated.stats.isFullLoad)
     }
 
+    @Test
+    fun `regenerates old metadata on first load and persists only the canonical index`() = runTest {
+        val db = createUploadTestDatabase()
+        val stored = gpgCipher(metadata = GpgAgentKeyMetadata())
+        db.insert(stored)
+        var resolutions = 0
+        val loader = CipherSnapshotLoader(
+            dbDispatcher = StandardTestDispatcher(testScheduler),
+            getPasswordStrength = UploadTestPasswordStrength,
+            gpgKeyMetadataResolver = object : GpgKeyMetadataResolver {
+                override fun resolve(
+                    privateKeyArmored: String?,
+                    publicKeyArmored: String?,
+                    fingerprint: String?,
+                    candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
+                ): GpgAgentMetadataResolution {
+                    resolutions += 1
+                    return CANONICAL_RESOLUTION
+                }
+            },
+        )
+
+        val initial = loader.load(db, previousSnapshotsByCipherId = emptyMap())
+
+        assertEquals(CANONICAL_METADATA, initial.snapshots.single().cipher.gpgKey?.metadata)
+        val migratedRow = db.cipherQueries.getByCipherId(stored.cipherId).executeAsOne()
+        assertEquals(CANONICAL_METADATA, migratedRow.data_.gpgKey?.metadata)
+        assertEquals(stored.revisionDate, migratedRow.data_.revisionDate)
+        assertEquals(stored.service, migratedRow.data_.service)
+        assertEquals(stored.remoteEntity, migratedRow.data_.remoteEntity)
+        assertEquals(T0, migratedRow.updatedAt)
+        assertEquals(1L, migratedRow.dataRevCounter)
+        assertEquals(1, resolutions)
+
+        val afterFeedback = loader.load(db, initial.snapshotsByCipherId)
+
+        assertEquals(1L, afterFeedback.snapshots.single().key.dataRevCounter)
+        assertEquals(1, resolutions, "canonical metadata must not be regenerated again")
+    }
+
+    @Test
+    fun `never exposes old metadata when regeneration is unavailable`() = runTest {
+        val db = createUploadTestDatabase()
+        val stored = gpgCipher(metadata = GpgAgentKeyMetadata())
+        db.insert(stored)
+        val loader = CipherSnapshotLoader(
+            dbDispatcher = StandardTestDispatcher(testScheduler),
+            getPasswordStrength = UploadTestPasswordStrength,
+            gpgKeyMetadataResolver = object : GpgKeyMetadataResolver {
+                override fun resolve(
+                    privateKeyArmored: String?,
+                    publicKeyArmored: String?,
+                    fingerprint: String?,
+                    candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
+                ): GpgAgentMetadataResolution? = null
+            },
+        )
+
+        val loaded = loader.load(db, previousSnapshotsByCipherId = emptyMap())
+
+        assertEquals(null, loaded.snapshots.single().cipher.gpgKey?.metadata)
+        val row = db.cipherQueries.getByCipherId(stored.cipherId).executeAsOne()
+        assertEquals(GpgAgentKeyMetadata(), row.data_.gpgKey?.metadata)
+        assertEquals(0L, row.dataRevCounter)
+    }
+
     private fun loginCipher(index: Int) = testCipher(
         localId = "cipher-$index",
         remoteId = "remote-cipher-$index",
@@ -114,6 +186,25 @@ class CipherSnapshotLoaderTest {
         login = BitwardenCipher.Login(
             password = "password-$index",
             uris = emptyList(),
+        ),
+    )
+
+    private fun gpgCipher(
+        metadata: GpgAgentKeyMetadata?,
+    ) = testCipher(
+        localId = "gpg-cipher",
+        remoteId = "remote-gpg-cipher",
+        localRevisionDate = T0,
+        remoteRevisionDate = T0,
+        attachments = emptyList(),
+    ).copy(
+        type = BitwardenCipher.Type.GpgKey,
+        secureNote = null,
+        gpgKey = BitwardenCipher.GpgKey(
+            privateKeyArmored = "private",
+            publicKeyArmored = "public",
+            fingerprint = FINGERPRINT,
+            metadata = metadata,
         ),
     )
 
@@ -145,6 +236,21 @@ class CipherSnapshotLoaderTest {
     }
 
     private companion object {
+        const val FINGERPRINT = "ABCDEF0123456789ABCDEF0123456789ABCDEF01"
+        const val KEYGRIP = "0123456789ABCDEF0123456789ABCDEF01234567"
+
+        val CANONICAL_METADATA = gpgCanonicalMetadata(
+            fingerprint = FINGERPRINT,
+            keygrip = KEYGRIP,
+        )
+        val CANONICAL_RESOLUTION = GpgAgentMetadataResolution(
+            metadata = CANONICAL_METADATA,
+            authorization = GpgAgentAuthorizationSnapshot(
+                evaluatedAtEpochSeconds = 1,
+                policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
+                keys = emptyList(),
+            ),
+        )
         val T0 = Instant.fromEpochMilliseconds(1_000L)
         val T1 = Instant.fromEpochMilliseconds(2_000L)
     }

@@ -103,6 +103,7 @@ import com.artemchep.keyguard.common.service.crypto.SshKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
+import com.artemchep.keyguard.common.service.gpgagent.isCanonical
 import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.TextService
@@ -4177,7 +4178,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                         privateKeyArmored = gpgKey.privateKeyArmored.orEmpty(),
                         publicKeyArmored = gpgKey.publicKeyArmored.orEmpty(),
                         fingerprint = gpgKey.fingerprint.orEmpty(),
-                        metadata = gpgKey.metadata ?: GpgAgentKeyMetadata(),
+                        metadata = gpgKey.metadata,
                         userId = "",
                         typeLabel = "",
                     )
@@ -4187,7 +4188,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                         privateKeyArmored = gpgKey.privateKeyArmored.orEmpty(),
                         publicKeyArmored = gpgKey.publicKeyArmored.orEmpty(),
                         fingerprint = gpgKey.fingerprint.orEmpty(),
-                        metadata = gpgKey.metadata ?: GpgAgentKeyMetadata(),
+                        metadata = gpgKey.metadata,
                         userId = args.initialValue.name,
                         typeLabel = "",
                     )
@@ -4196,7 +4197,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                     privateKeyArmored = "",
                     publicKeyArmored = "",
                     fingerprint = "",
-                    metadata = GpgAgentKeyMetadata(),
+                    metadata = null,
                     userId = "",
                     typeLabel = "",
                 )
@@ -4526,9 +4527,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                     privateKeyArmored = state.gpgKey?.privateKeyArmored,
                     publicKeyArmored = state.gpgKey?.publicKeyArmored,
                     fingerprint = state.gpgKey?.fingerprint,
-                    // The form model requires a metadata object, so ciphers
-                    // without one carry an empty placeholder; do not persist it.
-                    metadata = state.gpgKey?.metadata?.takeIf { it.keys.isNotEmpty() },
+                    metadata = state.gpgKey?.metadata?.takeIf { it.isCanonical },
                 )
                 CreateRequest.gpgKey.set(this, gpgKey)
             },
@@ -4581,6 +4580,10 @@ suspend fun TranslatorScope.createLocalizedGpgKeyImportErrorToast(
     GpgKeyImportError.MalformedKey -> createGpgKeyImportToast(
         title = translate(Res.string.gpg_key_import_failed_title),
         text = translate(Res.string.gpg_key_import_error_malformed_key),
+    )
+    GpgKeyImportError.MultipleKeys -> createGpgKeyImportToast(
+        title = translate(Res.string.gpg_key_import_failed_title),
+        text = translate(Res.string.gpg_key_import_error_multiple_keys),
     )
 }
 

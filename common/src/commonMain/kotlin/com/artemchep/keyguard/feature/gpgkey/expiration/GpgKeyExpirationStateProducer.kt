@@ -103,13 +103,21 @@ internal suspend fun RememberStateFlowScope.gpgKeyExpirationStateProducer(
                     add(translate(Res.string.gpg_key_expiry_capability_encrypt))
                 }
             }.joinToString().ifEmpty { subKey.algorithm }
+            val description = translate(
+                Res.string.gpg_key_expiry_subkey_capabilities,
+                capabilities,
+                formatSubKeyExpiration(subKey.expiresAt),
+            )
+            // A subkey bound only by a weak-hash template carries no
+            // capabilities, so say why it is still worth selecting.
+            val hint = if (subKey.authenticated) {
+                ""
+            } else {
+                "\n" + translate(Res.string.gpg_key_expiry_subkey_weak_self_signature)
+            }
             put(
                 subKey.fingerprint,
-                translate(
-                    Res.string.gpg_key_expiry_subkey_capabilities,
-                    capabilities,
-                    formatSubKeyExpiration(subKey.expiresAt),
-                ),
+                description + hint,
             )
         }
     }

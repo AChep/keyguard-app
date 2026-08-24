@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 
 interface GpgKeyMetadataResolver {
     /**
@@ -15,8 +16,24 @@ interface GpgKeyMetadataResolver {
         publicKeyArmored: String?,
         fingerprint: String?,
         candidateRevocationKeys: List<GpgOpenPgpPublicKey> = emptyList(),
-    ): GpgAgentKeyMetadata?
+    ): GpgAgentMetadataResolution?
 }
+
+/**
+ * Resolves the metadata of a public key downloaded from a keyserver. A
+ * downloaded key must yield metadata before it may be stored, so a failed
+ * resolution throws instead of returning a partial record.
+ */
+fun GpgKeyMetadataResolver.resolveDownloadedGpgKeyMetadata(
+    publicKeyArmored: String,
+    fingerprint: String,
+    privateKeyArmored: String? = null,
+): GpgAgentKeyMetadata = resolve(
+    privateKeyArmored = privateKeyArmored,
+    publicKeyArmored = publicKeyArmored,
+    fingerprint = fingerprint,
+)?.metadata
+    ?: throw IllegalStateException("Could not resolve downloaded GPG key metadata.")
 
 object GpgKeyMetadataResolverUnsupported : GpgKeyMetadataResolver {
     override fun resolve(
@@ -24,5 +41,5 @@ object GpgKeyMetadataResolverUnsupported : GpgKeyMetadataResolver {
         publicKeyArmored: String?,
         fingerprint: String?,
         candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
-    ): GpgAgentKeyMetadata? = null
+    ): GpgAgentMetadataResolution? = null
 }

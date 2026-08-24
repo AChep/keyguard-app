@@ -141,6 +141,10 @@ class VerifyGpgPublicKeyImpl(
                         "OpenPGP V2/V3 keys are not supported.",
                     )
 
+                GpgPublicKeyParseError.MultipleCertificates -> throw IllegalStateException(
+                    "The item stores more than one secret GPG key.",
+                )
+
                 GpgPublicKeyParseError.Unsupported -> throw UnsupportedOperationException(
                     "OpenPGP public key parsing is not supported on this platform.",
                 )

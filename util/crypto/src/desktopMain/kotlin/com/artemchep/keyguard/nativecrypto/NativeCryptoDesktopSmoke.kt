@@ -240,6 +240,7 @@ public object NativeCryptoDesktopSmoke {
 
             val signature = NativeCrypto.openPgp.openDetachedSigning(
                 privateKey = material.privateKeyArmored,
+                candidateRevocationKeys = emptyList(),
                 preferredFingerprint = signingFingerprint,
                 armored = false,
                 signatureTimeEpochSeconds = OPENPGP_WRITE_SIGNATURE_TIME,
@@ -269,6 +270,7 @@ public object NativeCryptoDesktopSmoke {
             val ciphertext = try {
                 NativeCrypto.openPgp.openEncryption(
                     publicKeys = listOf(material.publicKeyArmored),
+                    candidateRevocationKeys = emptyList(),
                     signingPrivateKey = material.privateKeyArmored,
                     preferredSigningFingerprint = signingFingerprint,
                     fileName = OPENPGP_WRITE_FILE_NAME,
@@ -402,6 +404,7 @@ public object NativeCryptoDesktopSmoke {
             ciphertext = NativeCrypto.openPgp.encrypt(
                 content = plaintext,
                 publicKeys = listOf(material.publicKeyArmored),
+                candidateRevocationKeys = emptyList(),
                 fileName = OPENPGP_RSA_AGENT_FILE_NAME,
                 armored = false,
                 literalTimeEpochSeconds = OPENPGP_WRITE_SIGNATURE_TIME,
@@ -492,8 +495,20 @@ public object NativeCryptoDesktopSmoke {
             normalizedFingerprint = material.fingerprint,
             referenceTimeEpochSeconds = OPENPGP_WRITE_REFERENCE_TIME,
         ) ?: throw packagedSmokeFailure("openpgp_agent_${capability}_key")
-        return metadata.keys.singleOrNull { key -> capability in key.capabilities }
-            ?.fingerprint
+        return metadata.certificates.firstNotNullOfOrNull { certificate ->
+            certificate.index.components.singleOrNull { component ->
+                val policy = certificate.policy.firstOrNull { policy ->
+                    policy.fingerprint == component.fingerprint
+                } ?: return@singleOrNull false
+                when (capability) {
+                    "sign" -> NativeOpenPgpAgentOperation.SIGN in component.agentOperations &&
+                            NativeOpenPgpPolicyUse.SIGN_NEW_DATA in policy.allowedNewDataUses
+
+                    "decrypt" -> NativeOpenPgpAgentOperation.DECRYPT in component.agentOperations
+                    else -> false
+                }
+            }?.fingerprint
+        }
             ?: throw packagedSmokeFailure("openpgp_agent_${capability}_key")
     }
 
@@ -685,7 +700,9 @@ public object NativeCryptoDesktopSmoke {
         try {
             if (
                 updated.keyMaterial.fingerprint != material.fingerprint ||
-                updated.metadata.keys.none { key -> key.fingerprint == material.fingerprint }
+                updated.certificateIndex.components.none { component ->
+                    component.fingerprint == material.fingerprint
+                }
             ) {
                 throw NativeCryptoException(
                     operation = "packaged_smoke.openpgp_expiration_update",
@@ -704,6 +721,7 @@ public object NativeCryptoDesktopSmoke {
                 preferredFingerprint = signingFingerprint,
                 hashAlgorithm = "sha256",
                 hash = hash,
+                candidateRevocationKeys = emptyList(),
             )
             val signature = (signed as? NativeOpenPgpAgentSignResult.Success)?.canonicalSexp
                 ?: throw NativeCryptoException(

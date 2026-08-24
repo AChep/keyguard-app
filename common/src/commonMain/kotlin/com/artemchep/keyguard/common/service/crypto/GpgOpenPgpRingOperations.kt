@@ -37,6 +37,7 @@ internal class GpgOpenPgpRingOperations(
 
     fun clearSign(
         privateKey: GpgOpenPgpPrivateKey,
+        candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
         input: Source,
         output: Sink,
     ) {
@@ -45,12 +46,14 @@ internal class GpgOpenPgpRingOperations(
                 input = input,
                 output = output,
                 privateKey = privateKey,
+                candidateRevocationKeys = candidateRevocationKeys,
             ),
         )
     }
 
     fun detachedSign(
         privateKey: GpgOpenPgpPrivateKey,
+        candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
         input: Source,
         armored: Boolean,
     ): ByteArray {
@@ -60,6 +63,7 @@ internal class GpgOpenPgpRingOperations(
                 input = input,
                 signatureOutput = signatureOutput,
                 privateKey = privateKey,
+                candidateRevocationKeys = candidateRevocationKeys,
                 armored = armored,
             ),
         )
@@ -69,6 +73,7 @@ internal class GpgOpenPgpRingOperations(
     @Suppress("LongParameterList")
     fun encrypt(
         recipients: List<GpgOpenPgpRing>,
+        candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
         signingPrivateKey: GpgOpenPgpPrivateKey?,
         input: Source,
         output: Sink,
@@ -81,6 +86,7 @@ internal class GpgOpenPgpRingOperations(
                 input = input,
                 output = output,
                 publicKeys = recipients.map { it.publicKey() },
+                candidateRevocationKeys = candidateRevocationKeys,
                 fileName = GpgOpenPgpLiteralFileName.fromUntrusted(fileName),
                 armored = armored,
                 signingPrivateKey = signingPrivateKey,

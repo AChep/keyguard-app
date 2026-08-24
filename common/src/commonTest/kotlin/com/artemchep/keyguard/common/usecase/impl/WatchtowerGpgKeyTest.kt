@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.test.gpgMetadata
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
@@ -123,17 +124,15 @@ class WatchtowerGpgKeyTest {
 
         val result = policy.assess(
             cipher = gpgSecret(
-                metadata = GpgAgentKeyMetadata(
-                    keys = listOf(
-                        metadataKey(
+                metadata = gpgMetadata(
+                    metadataKey(
                             fingerprint = primaryFingerprint,
                             capabilities = setOf("sign"),
                         ),
-                        metadataKey(
+                    metadataKey(
                             fingerprint = encryptionSubKeyFingerprint,
                             capabilities = setOf("decrypt"),
                         ),
-                    ),
                 ),
             ),
             now = now,
@@ -237,11 +236,7 @@ private fun gpgSecret(
     publicKeyArmored: String? = "public",
     privateKeyArmored: String? = "private",
     fingerprint: String? = primaryFingerprint,
-    metadata: GpgAgentKeyMetadata? = GpgAgentKeyMetadata(
-        keys = listOf(
-            metadataKey(),
-        ),
-    ),
+    metadata: GpgAgentKeyMetadata? = gpgMetadata(metadataKey()),
 ) = DSecret(
     id = cipherId,
     accountId = "account",

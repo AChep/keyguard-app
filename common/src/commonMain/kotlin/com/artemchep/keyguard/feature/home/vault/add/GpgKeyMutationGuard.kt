@@ -107,9 +107,7 @@ private fun GeneratedGpgKey.mergeGpgKeyImport(
         fingerprint = imported.fingerprint.ifBlank {
             if (sameFingerprint) fingerprint else ""
         },
-        metadata = imported.metadata.takeIf { it.keys.isNotEmpty() }
-            ?: metadata.takeIf { sameFingerprint }
-            ?: GpgAgentKeyMetadata(),
+        metadata = imported.metadata ?: metadata.takeIf { sameFingerprint },
         userId = imported.userId.ifBlank {
             if (sameFingerprint) userId else ""
         },

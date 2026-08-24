@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyNotFoundException
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentUnsupportedAlgorithmException
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgCanonicalSExpr
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.util.toHex
@@ -49,6 +50,7 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
         metadataKey: GpgAgentKeyMetadataKey,
         hashAlgorithm: String,
         hash: ByteArray,
+        candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
     ): GpgAgentMessages.SignHashResponse {
         val secretKey = findSecretKey(
             privateKeyArmored = privateKeyArmored,

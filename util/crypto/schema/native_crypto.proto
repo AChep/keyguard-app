@@ -50,6 +50,9 @@ message NativeRequest {
     PasskeySignRequest passkey_sign = 50;
     SshKeyExportCxfRequest ssh_key_export_cxf = 51;
     SshPublicKeyDecodeRequest ssh_public_key_decode = 52;
+    OpenPgpUserIdRevocationRequest open_pgp_user_id_revocation = 54;
+    OpenPgpUserIdReplacementRequest open_pgp_user_id_replacement = 55;
+    OpenPgpCertificateMaterialReconcileRequest open_pgp_certificate_material_reconcile = 56;
   }
 }
 
@@ -470,7 +473,8 @@ message SshPrivateKeyImportResult {
 }
 
 message OpenPgpPublicKeyParseRequest {
-  // ASCII-armored or binary transferable public keys.
+  // ASCII-armored or binary transferable public certificates, or exactly one
+  // transferable secret certificate to parse as its public projection.
   bytes key_data = 1;
   // Supplying the policy time makes expiry decisions deterministic. When
   // absent, the native library uses the current wall-clock second.
@@ -534,6 +538,9 @@ enum OpenPgpPublicKeyParseErrorReason {
   OPEN_PGP_PUBLIC_KEY_PARSE_ERROR_REASON_EMPTY = 1;
   OPEN_PGP_PUBLIC_KEY_PARSE_ERROR_REASON_MALFORMED = 2;
   OPEN_PGP_PUBLIC_KEY_PARSE_ERROR_REASON_UNSUPPORTED_KEY_VERSION = 3;
+  // The document holds several secret certificates (for example a full
+  // `gpg --export-secret-keys` dump); the operation accepts exactly one.
+  OPEN_PGP_PUBLIC_KEY_PARSE_ERROR_REASON_MULTIPLE_CERTIFICATES = 4;
 }
 
 message OpenPgpPublicSubKeyInfo {
@@ -547,6 +554,11 @@ message OpenPgpPublicSubKeyInfo {
   bool revoked = 8;
   optional uint64 created_at_epoch_seconds = 9;
   optional uint64 expires_at_epoch_seconds = 10;
+  // True when a policy-acceptable binding signature authenticates this subkey.
+  // A false value with a present subkey means the binding verified only under a
+  // hash algorithm below policy: the subkey authorizes nothing, but renewal can
+  // reissue its binding with a modern hash.
+  bool authenticated = 11;
 }
 
 message OpenPgpPublicKeyInfo {
@@ -564,10 +576,36 @@ message OpenPgpPublicKeyInfo {
   bool can_encrypt = 12;
   string public_key_armored = 13;
   repeated OpenPgpPublicSubKeyInfo subkeys = 14;
+  repeated OpenPgpUserIdInfo user_id_details = 15;
+  // Complete key-component index for resolving external certificate references.
+  repeated string component_fingerprints = 16;
+  // Fingerprints from cryptographically self-authenticated Revocation Key declarations.
+  repeated string revocation_authority_fingerprints = 17;
+  // True when a policy-acceptable self-signature authenticates the primary key.
+  // See OpenPgpPublicSubKeyInfo.authenticated for the false case.
+  bool authenticated = 18;
+  // Whether recertification may reissue the primary key's own self-signatures.
+  //
+  // This disambiguates `authenticated == false`: TEMPLATE_ONLY means the key is
+  // bound only by weak-hash self-signatures that a renewal replaces, while NONE
+  // means no renewal can repair it (no verified self-signature at all, or the
+  // key is revoked). Subkeys carry no such field: an unauthenticated subkey is
+  // only reported when it is template-renewable, so the state cannot arise.
+  OpenPgpRenewalAuthorization renewal = 19;
+}
+
+message OpenPgpUserIdInfo {
+  string identity_id = 1;
+  string user_id = 2;
 }
 
 message OpenPgpPublicKeyParseSuccess {
   repeated OpenPgpPublicKeyInfo keys = 1;
+  // Independent certificate entries omitted because Keyguard cannot represent
+  // their key version, the entry is malformed, or its policy evaluation exceeds
+  // the per-certificate work budget. One bad entry never invalidates later
+  // recoverable entries.
+  uint32 skipped_certificates = 2;
 }
 
 message OpenPgpPublicKeyParseError {
@@ -593,6 +631,11 @@ enum OpenPgpVerificationWarning {
   OPEN_PGP_VERIFICATION_WARNING_KEY_REVOKED = 1;
   OPEN_PGP_VERIFICATION_WARNING_KEY_EXPIRED = 2;
   OPEN_PGP_VERIFICATION_WARNING_SIGNATURE_EXPIRED = 3;
+  OPEN_PGP_VERIFICATION_WARNING_POLICY_CONFLICT = 4;
+  // The data signature's digest algorithm is below Keyguard's verification
+  // policy (SHA-1, MD5, RIPEMD-160). The signature is reported invalid; this
+  // distinguishes "uses a broken digest" from "does not verify".
+  OPEN_PGP_VERIFICATION_WARNING_WEAK_DIGEST = 5;
 }
 
 message OpenPgpVerification {
@@ -602,22 +645,98 @@ message OpenPgpVerification {
   repeated string user_ids = 4;
   optional uint64 created_at_epoch_seconds = 5;
   repeated OpenPgpVerificationWarning warnings = 6;
+  optional string primary_fingerprint = 7;
+  optional string primary_user_id = 8;
+  // One leaf result for every signature packet in input order. The top-level
+  // fields retain the compatibility aggregate (any valid signature wins),
+  // while these entries prevent invalid or missing-key signatures from being
+  // hidden by another valid signature. Leaf entries do not nest results.
+  repeated OpenPgpVerification signatures = 9;
 }
 
-message OpenPgpKeyMetadataKey {
-  string keygrip = 1;
+enum OpenPgpKeyComponentRole {
+  OPEN_PGP_KEY_COMPONENT_ROLE_UNSPECIFIED = 0;
+  OPEN_PGP_KEY_COMPONENT_ROLE_PRIMARY = 1;
+  OPEN_PGP_KEY_COMPONENT_ROLE_SUBKEY = 2;
+}
+
+enum OpenPgpAgentOperation {
+  OPEN_PGP_AGENT_OPERATION_UNSPECIFIED = 0;
+  OPEN_PGP_AGENT_OPERATION_SIGN = 1;
+  OPEN_PGP_AGENT_OPERATION_DECRYPT = 2;
+}
+
+enum OpenPgpPolicyUse {
+  OPEN_PGP_POLICY_USE_UNSPECIFIED = 0;
+  OPEN_PGP_POLICY_USE_SIGN_NEW_DATA = 1;
+  OPEN_PGP_POLICY_USE_ENCRYPT_NEW_DATA = 2;
+}
+
+message OpenPgpKeyComponentIndexV2 {
+  string fingerprint = 1;
+  OpenPgpKeyComponentRole role = 2;
+  uint32 public_key_algorithm_id = 3;
+  string algorithm = 4;
+  repeated string keygrips = 5;
+  bool stored_secret_material = 6;
+  repeated OpenPgpAgentOperation agent_operations = 7;
+}
+
+message OpenPgpLegacyDesignatedRevokerV2 {
+  uint32 public_key_algorithm_id = 1;
   string fingerprint = 2;
-  string algorithm = 3;
-  repeated string capabilities = 4;
+  uint32 key_class = 3;
+  bool sensitive = 4;
 }
 
-message OpenPgpKeyMetadata {
-  uint32 version = 1;
-  repeated OpenPgpKeyMetadataKey keys = 2;
+message OpenPgpCertificateIndexV2 {
+  string primary_fingerprint = 1;
+  repeated OpenPgpKeyComponentIndexV2 components = 2;
+  // Legacy RFC 4880 Revocation Key declarations. These are discovery hints,
+  // not revocation evidence. Sensitive declarations must never be fetched.
+  repeated OpenPgpLegacyDesignatedRevokerV2 legacy_designated_revokers = 3;
+}
+
+// Whether a component may have its own self-signatures reissued.
+//
+// TEMPLATE_ONLY is the legacy rescue tier: the component authenticates nothing
+// (its self-signatures are all past a hash cutoff) yet stays renewable, because
+// the renewal is exactly what replaces those signatures with modern ones. It
+// authorizes no other operation. NONE covers every refusal, including revoked
+// and indeterminate components; those states are reported through their own
+// fields and are deliberately not distinguished here.
+enum OpenPgpRenewalAuthorization {
+  OPEN_PGP_RENEWAL_AUTHORIZATION_UNSPECIFIED = 0;
+  OPEN_PGP_RENEWAL_AUTHORIZATION_AUTHENTICATED = 1;
+  OPEN_PGP_RENEWAL_AUTHORIZATION_TEMPLATE_ONLY = 2;
+  OPEN_PGP_RENEWAL_AUTHORIZATION_NONE = 3;
+}
+
+message OpenPgpComponentPolicyV2 {
+  string fingerprint = 1;
+  // Uses approved for newly created data at evaluated_at_epoch_seconds.
+  repeated OpenPgpPolicyUse allowed_new_data_uses = 2;
+  // Whether recertification may reissue this component's self-signatures.
+  OpenPgpRenewalAuthorization renewal = 3;
+}
+
+message OpenPgpCertificateResolutionV2 {
+  OpenPgpCertificateIndexV2 index = 1;
+  // Transient policy output. Callers must not persist this list.
+  repeated OpenPgpComponentPolicyV2 policy = 2;
+}
+
+message OpenPgpMetadataResolutionV2 {
+  uint64 evaluated_at_epoch_seconds = 1;
+  uint32 policy_revision = 2;
+  // One result per primary certificate; component selectors return their owner.
+  repeated OpenPgpCertificateResolutionV2 certificates = 3;
 }
 
 message OpenPgpMetadataResolveResult {
-  optional OpenPgpKeyMetadata metadata = 1;
+  reserved 1;
+  reserved "metadata";
+  optional OpenPgpMetadataResolutionV2 resolution = 2;
 }
 
 enum OpenPgpKeyKind {
@@ -692,6 +811,9 @@ message OpenPgpSignRequest {
   bool armored = 5;
   optional uint64 signature_time_epoch_seconds = 6;
   optional uint64 reference_time_epoch_seconds = 7;
+  // Advisory public certificates used only to authenticate designated
+  // revocations while selecting the signing component.
+  repeated bytes candidate_revocation_keys = 8;
 }
 
 message OpenPgpDetachedSignStreamOpenRequest {
@@ -700,6 +822,7 @@ message OpenPgpDetachedSignStreamOpenRequest {
   bool armored = 3;
   optional uint64 signature_time_epoch_seconds = 4;
   optional uint64 reference_time_epoch_seconds = 5;
+  repeated bytes candidate_revocation_keys = 6;
 }
 
 message OpenPgpClearSignStreamOpenRequest {
@@ -707,6 +830,7 @@ message OpenPgpClearSignStreamOpenRequest {
   string preferred_fingerprint = 2;
   optional uint64 signature_time_epoch_seconds = 3;
   optional uint64 reference_time_epoch_seconds = 4;
+  repeated bytes candidate_revocation_keys = 5;
 }
 
 message OpenPgpEncryptRequest {
@@ -720,6 +844,9 @@ message OpenPgpEncryptRequest {
   optional uint64 reference_time_epoch_seconds = 8;
   // Absent preserves the historical behavior of compressing messages.
   optional bool enable_compression = 9;
+  // Kept separate from public_keys: these certificates authorize revocations
+  // and must never become message recipients.
+  repeated bytes candidate_revocation_keys = 10;
 }
 
 message OpenPgpEncryptStreamOpenRequest {
@@ -732,12 +859,14 @@ message OpenPgpEncryptStreamOpenRequest {
   optional uint64 reference_time_epoch_seconds = 7;
   // Absent preserves the historical behavior of compressing messages.
   optional bool enable_compression = 8;
+  repeated bytes candidate_revocation_keys = 9;
 }
 
 enum OpenPgpProtectionMode {
   OPEN_PGP_PROTECTION_MODE_UNSPECIFIED = 0;
   OPEN_PGP_PROTECTION_MODE_SEIPD_V1_MDC = 1;
   OPEN_PGP_PROTECTION_MODE_GNUPG_OCB = 2;
+  OPEN_PGP_PROTECTION_MODE_SEIPD_V2_AEAD = 3;
 }
 
 message OpenPgpEncryptResult {
@@ -787,6 +916,17 @@ message OpenPgpLiteralMetadata {
   uint64 original_size = 4;
 }
 
+enum OpenPgpDecryptionWarning {
+  OPEN_PGP_DECRYPTION_WARNING_UNSPECIFIED = 0;
+  // RFC 9580 Section 12.4: the message was successfully decrypted with an
+  // RSA key smaller than 3072 bits. Historical access remains permitted, but
+  // the key is too weak for modern use.
+  OPEN_PGP_DECRYPTION_WARNING_WEAK_RSA_KEY = 1;
+  // RFC 9580 Section 12.6: the message was successfully decrypted with a
+  // deprecated ElGamal key.
+  OPEN_PGP_DECRYPTION_WARNING_ELGAMAL_KEY = 2;
+}
+
 message OpenPgpDecryptResult {
   bytes data = 1;
   optional OpenPgpVerification verification = 2;
@@ -799,6 +939,10 @@ message OpenPgpDecryptResult {
   // Fingerprint of the primary key or subkey component that successfully
   // recovered the message session key. Absent for signed-only input.
   optional string decryption_key_fingerprint = 6;
+  // Deprecation warnings for the exact private component that successfully
+  // recovered the message session key. Empty for signed-only input and failed
+  // recovery attempts.
+  repeated OpenPgpDecryptionWarning warnings = 7;
 }
 
 message OpenPgpDecryptFinal {
@@ -815,6 +959,10 @@ message OpenPgpDecryptFinal {
   // Fingerprint of the primary key or subkey component that successfully
   // recovered the message session key. Absent for signed-only input.
   optional string decryption_key_fingerprint = 6;
+  // Deprecation warnings for the exact private component that successfully
+  // recovered the message session key. Empty for signed-only input and failed
+  // recovery attempts.
+  repeated OpenPgpDecryptionWarning warnings = 7;
 }
 
 message OpenPgpExpirationUpdateRequest {
@@ -843,13 +991,21 @@ enum OpenPgpExpirationUpdateErrorReason {
   OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_INVALID_EXPIRATION = 12;
   OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_TIME_CONFLICT = 13;
   OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED = 14;
+  // Reserved wire value. The mutation pipeline derives its metadata directly
+  // from the certificate it just produced, so this reason is no longer
+  // produced; the value stays allocated for older clients.
   OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_METADATA_RESOLUTION_FAILED = 15;
   OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_INTERNAL_FAILURE = 16;
+  // No signature hash satisfies both the caller's template and the signing
+  // key's algorithm-specific digest-size floor.
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_UNSUPPORTED_SIGNING_HASH = 17;
 }
 
 message OpenPgpExpirationUpdateSuccess {
   OpenPgpKeyMaterial key_material = 1;
-  OpenPgpKeyMetadata metadata = 2;
+  reserved 2;
+  reserved "metadata";
+  optional OpenPgpCertificateIndexV2 certificate_index = 3;
 }
 
 message OpenPgpExpirationUpdateError {
@@ -860,6 +1016,183 @@ message OpenPgpExpirationUpdateResult {
   oneof result {
     OpenPgpExpirationUpdateSuccess success = 1;
     OpenPgpExpirationUpdateError error = 2;
+  }
+}
+
+message OpenPgpCertificateMaterialReconcileRequest {
+  string expected_primary_fingerprint = 1;
+  optional bytes existing_public_certificate = 2;
+  optional bytes incoming_public_certificate = 3;
+  optional bytes existing_secret_certificate = 4;
+  optional bytes incoming_secret_certificate = 5;
+}
+
+enum OpenPgpCertificateMaterialInputErrorReason {
+  OPEN_PGP_CERTIFICATE_MATERIAL_INPUT_ERROR_REASON_UNSPECIFIED = 0;
+  OPEN_PGP_CERTIFICATE_MATERIAL_INPUT_ERROR_REASON_EMPTY_CERTIFICATE = 1;
+  OPEN_PGP_CERTIFICATE_MATERIAL_INPUT_ERROR_REASON_MALFORMED_CERTIFICATE = 2;
+  OPEN_PGP_CERTIFICATE_MATERIAL_INPUT_ERROR_REASON_UNSUPPORTED_KEY_VERSION = 3;
+  OPEN_PGP_CERTIFICATE_MATERIAL_INPUT_ERROR_REASON_FINGERPRINT_MISMATCH = 4;
+  OPEN_PGP_CERTIFICATE_MATERIAL_INPUT_ERROR_REASON_COMPONENT_COLLISION = 5;
+  OPEN_PGP_CERTIFICATE_MATERIAL_INPUT_ERROR_REASON_RESOURCE_LIMIT = 6;
+  OPEN_PGP_CERTIFICATE_MATERIAL_INPUT_ERROR_REASON_UNSUPPORTED_TSK_LAYOUT = 7;
+}
+
+enum OpenPgpCertificateMaterialPairErrorReason {
+  reserved 2;
+  OPEN_PGP_CERTIFICATE_MATERIAL_PAIR_ERROR_REASON_UNSPECIFIED = 0;
+  OPEN_PGP_CERTIFICATE_MATERIAL_PAIR_ERROR_REASON_MISSING_MATERIAL = 1;
+  OPEN_PGP_CERTIFICATE_MATERIAL_PAIR_ERROR_REASON_FINGERPRINT_MISMATCH = 3;
+  OPEN_PGP_CERTIFICATE_MATERIAL_PAIR_ERROR_REASON_COMPONENT_COLLISION = 4;
+  OPEN_PGP_CERTIFICATE_MATERIAL_PAIR_ERROR_REASON_RESOURCE_LIMIT = 5;
+  OPEN_PGP_CERTIFICATE_MATERIAL_PAIR_ERROR_REASON_INVALID_REBUILT_OUTPUT = 6;
+  OPEN_PGP_CERTIFICATE_MATERIAL_PAIR_ERROR_REASON_CONFLICTING_SECRET_MATERIAL = 7;
+}
+
+message OpenPgpCertificateMaterialReconcileSuccess {
+  bytes public_certificate = 1;
+  optional bytes private_certificate = 2;
+  string primary_fingerprint = 3;
+  bool existing_public_contributed = 4;
+  bool incoming_public_contributed = 5;
+  bool existing_secret_contributed = 6;
+  bool incoming_secret_contributed = 7;
+}
+
+message OpenPgpCertificateMaterialReconcileError {
+  OpenPgpCertificateMaterialInputErrorReason existing_public_input_error = 1;
+  OpenPgpCertificateMaterialInputErrorReason incoming_public_input_error = 2;
+  OpenPgpCertificateMaterialInputErrorReason existing_secret_input_error = 3;
+  OpenPgpCertificateMaterialInputErrorReason incoming_secret_input_error = 4;
+  OpenPgpCertificateMaterialPairErrorReason pair_error = 5;
+}
+
+message OpenPgpCertificateMaterialReconcileResult {
+  oneof result {
+    OpenPgpCertificateMaterialReconcileSuccess success = 1;
+    OpenPgpCertificateMaterialReconcileError error = 2;
+  }
+}
+
+message OpenPgpUserIdRevocationRequest {
+  bytes private_key = 1;
+  bytes public_key = 2;
+  string expected_primary_fingerprint = 3;
+  string identity_id = 4;
+  repeated bytes candidate_revocation_keys = 5;
+  uint64 reference_time_epoch_seconds = 6;
+}
+
+enum OpenPgpUserIdRevocationErrorReason {
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSPECIFIED = 0;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_EMPTY_PRIVATE_KEY = 1;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_MALFORMED_KEY = 2;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_FINGERPRINT_MISMATCH = 3;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_TARGET_NOT_FOUND = 4;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_LAST_USER_ID = 5;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSUPPORTED_KEY_VERSION = 6;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_PROTECTED_SECRET_KEY = 7;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_MISSING_SELF_SIGNATURE = 8;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_NON_REVOCABLE = 9;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_TIME_CONFLICT = 10;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED = 11;
+  // Reserved wire value. The mutation pipeline derives its metadata directly
+  // from the certificate it just produced, so this reason is no longer
+  // produced; the value stays allocated for older clients.
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_METADATA_RESOLUTION_FAILED = 12;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_INTERNAL_FAILURE = 13;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_CERTIFICATE_REVOKED = 14;
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY = 15;
+  // No signature hash satisfies both the caller's template and the signing
+  // key's algorithm-specific digest-size floor.
+  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSUPPORTED_SIGNING_HASH = 16;
+}
+
+message OpenPgpUserIdRevocationSuccess {
+  OpenPgpKeyMaterial key_material = 1;
+  reserved 2;
+  reserved "metadata";
+  // Minimal transferable certificate containing the revocation evidence.
+  bytes revocation_certificate_armored = 3;
+  bool changed = 4;
+  uint64 effective_at_epoch_seconds = 5;
+  optional OpenPgpCertificateIndexV2 certificate_index = 6;
+}
+
+message OpenPgpUserIdRevocationError {
+  OpenPgpUserIdRevocationErrorReason reason = 1;
+}
+
+message OpenPgpUserIdRevocationResult {
+  oneof result {
+    OpenPgpUserIdRevocationSuccess success = 1;
+    OpenPgpUserIdRevocationError error = 2;
+  }
+}
+
+message OpenPgpUserIdReplacementRequest {
+  bytes private_key = 1;
+  bytes public_key = 2;
+  string expected_primary_fingerprint = 3;
+  string old_identity_id = 4;
+  string new_user_id = 5;
+  repeated bytes candidate_revocation_keys = 6;
+  uint64 reference_time_epoch_seconds = 7;
+}
+
+enum OpenPgpUserIdReplacementErrorReason {
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSPECIFIED = 0;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_EMPTY_PRIVATE_KEY = 1;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_MALFORMED_KEY = 2;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_FINGERPRINT_MISMATCH = 3;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TARGET_NOT_FOUND = 4;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TARGET_INACTIVE = 5;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_INVALID_NEW_USER_ID = 6;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_SAME_IDENTITY = 7;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_DUPLICATE_IDENTITY = 8;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_PREVIOUSLY_REVOKED_IDENTITY = 9;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_AMBIGUOUS_PRIMARY = 10;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_KEY_VERSION = 11;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_PROTECTED_SECRET_KEY = 12;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_MISSING_SELF_SIGNATURE = 13;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_NON_REVOCABLE = 14;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_TEMPLATE = 15;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TIME_CONFLICT = 16;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED = 17;
+  // Reserved wire value. The mutation pipeline derives its metadata directly
+  // from the certificate it just produced, so this reason is no longer
+  // produced; the value stays allocated for older clients.
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_METADATA_RESOLUTION_FAILED = 18;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_INTERNAL_FAILURE = 19;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_CERTIFICATE_REVOKED = 20;
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY = 21;
+  // No signature hash satisfies both the caller's template and the signing
+  // key's algorithm-specific digest-size floor.
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_SIGNING_HASH = 22;
+}
+
+message OpenPgpUserIdReplacementSuccess {
+  OpenPgpKeyMaterial key_material = 1;
+  reserved 2;
+  reserved "metadata";
+  // Minimal transferable certificate containing both atomic statements.
+  bytes replacement_certificate_armored = 3;
+  bool changed = 4;
+  uint64 effective_at_epoch_seconds = 5;
+  string old_identity_id = 6;
+  string new_identity_id = 7;
+  string primary_user_id = 8;
+  optional OpenPgpCertificateIndexV2 certificate_index = 9;
+}
+
+message OpenPgpUserIdReplacementError {
+  OpenPgpUserIdReplacementErrorReason reason = 1;
+}
+
+message OpenPgpUserIdReplacementResult {
+  oneof result {
+    OpenPgpUserIdReplacementSuccess success = 1;
+    OpenPgpUserIdReplacementError error = 2;
   }
 }
 
@@ -874,6 +1207,7 @@ message OpenPgpAgentSignRequest {
   string preferred_fingerprint = 2;
   string hash_algorithm = 3;
   bytes hash = 4;
+  repeated bytes candidate_revocation_keys = 5;
 }
 
 message OpenPgpAgentSignSuccess {
@@ -896,6 +1230,9 @@ message OpenPgpAgentDecryptRequest {
   string preferred_fingerprint = 2;
   bytes ciphertext = 3;
   bool unwrap_ecdh = 4;
+  // Raw decryption is deliberately exempt from revocation policy, so the
+  // former candidate_revocation_keys field is retired.
+  reserved 5;
 }
 
 message OpenPgpAgentDecryptSuccess {

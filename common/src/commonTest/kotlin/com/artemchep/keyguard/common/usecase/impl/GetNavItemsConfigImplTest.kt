@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.NavItemsConfigDefaults
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.test.gpgMetadata
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetProfiles
@@ -553,14 +554,12 @@ private fun createGpgCipher(
         privateKeyArmored = "private",
         publicKeyArmored = "public",
         fingerprint = "fingerprint",
-        metadata = GpgAgentKeyMetadata(
-            keys = listOf(
-                GpgAgentKeyMetadataKey(
+        metadata = gpgMetadata(
+            GpgAgentKeyMetadataKey(
                     keygrip = "keygrip",
                     fingerprint = "fingerprint",
                     algorithm = "ED25519",
                     capabilities = setOf("sign"),
-                ),
             ),
         ),
     ),

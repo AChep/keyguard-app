@@ -1,12 +1,22 @@
 package com.artemchep.keyguard.common.service.crypto
 
+import com.artemchep.keyguard.common.model.GpgKeyConfig
+import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
+import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
+import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
 import com.artemchep.keyguard.crypto.NativeGpgKeyImportService
+import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
+import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
 import com.artemchep.keyguard.crypto.armored
 import com.artemchep.keyguard.crypto.canonicalGpgArmorForComparison
 import com.artemchep.keyguard.crypto.extractPrivateKeyEmptyPassphrase
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpPublicKeyParseResult
+import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.bcpg.HashAlgorithmTags
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.bouncycastle.openpgp.PGPPublicKeyRingCollection
 import org.bouncycastle.openpgp.PGPSecretKeyRing
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
 import org.bouncycastle.openpgp.PGPUtil
@@ -15,11 +25,13 @@ import org.bouncycastle.openpgp.operator.jcajce.JcaPGPDigestCalculatorProviderBu
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyEncryptorBuilder
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.security.Security
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -56,8 +68,41 @@ class GpgKeyImportServiceJvmTest {
         )
         assertFalse(key.publicKeyArmored.contains("Version: BCPG"))
         assertEquals("D0BBCFBB250D3BB0658E5384F83D947D29EFECF7", key.fingerprint)
-        assertTrue(key.metadata.keys.any { it.canSign })
-        assertTrue(key.metadata.keys.any { it.canDecrypt })
+        val resolution = assertNotNull(
+            NativeGpgKeyMetadataResolver.resolve(
+                privateKeyArmored = key.privateKeyArmored,
+                publicKeyArmored = key.publicKeyArmored,
+                fingerprint = key.fingerprint,
+            ),
+        )
+        assertTrue(resolution.authorizedAgentKeys.isEmpty())
+        assertTrue(resolution.metadata.routableAgentKeys.any { it.canSign })
+        assertTrue(resolution.metadata.routableAgentKeys.any { it.canDecrypt })
+    }
+
+    @Test
+    fun `rejects public key documents containing multiple certificates`() {
+        val first = secretRing(GpgTestKeyFixtures.CV25519)
+            .toCertificate()
+            .armored()
+        val second = NativeGpgKeyGenerator.generate(
+            GpgKeyConfig.Modern(userId = "Second Key <second@test.invalid>"),
+        ).publicKeyArmored
+        val document = publicKeyDocument(first, second)
+
+        val parsed = assertIs<GpgPublicKeyParseResult.Success>(
+            NativeGpgPublicKeyParser.parse(document),
+        )
+        assertEquals(2, parsed.keys.size)
+        assertEquals(
+            GpgKeyImportResult.Error(GpgKeyImportError.MultipleKeys),
+            service.import(
+                GpgKeyImportRequest(
+                    content = document,
+                    fileName = "multiple-public.asc",
+                ),
+            ),
+        )
     }
 
     @Test
@@ -75,6 +120,47 @@ class GpgKeyImportServiceJvmTest {
                 "legacy public key version $version",
             )
         }
+    }
+
+    @Test
+    fun `reports a skipped legacy certificate and rejects the mixed import`() {
+        val modern = NativeGpgKeyGenerator.generate(
+            GpgKeyConfig.Modern(userId = "Mixed Document <mixed@test.invalid>"),
+        )
+        val modernRing = PGPPublicKeyRingCollection(
+            PGPUtil.getDecoderStream(
+                ByteArrayInputStream(modern.publicKeyArmored.encodeToByteArray()),
+            ),
+            JcaKeyFingerprintCalculator(),
+        ).keyRings.next()
+        // A keyserver export can carry a v3 certificate alongside usable ones in one
+        // armored block. Skipping the unsupported certificate must not discard the rest
+        // of the document.
+        val document = ByteArrayOutputStream().also { out ->
+            ArmoredOutputStream(out).use { armored ->
+                armored.write(GpgLegacyKeyFixtures.publicRing(3).encoded)
+                armored.write(modernRing.encoded)
+            }
+        }.toString(Charsets.UTF_8)
+
+        val parsed = assertIs<GpgPublicKeyParseResult.Success>(
+            NativeGpgPublicKeyParser.parse(document),
+        )
+        assertEquals(listOf(modern.fingerprint), parsed.keys.map { key -> key.fingerprint })
+        assertEquals(1, parsed.skippedCertificates)
+
+        // The native layer reports how many certificates it had to drop.
+        val native = NativeCrypto.openPgp.parsePublicKeys(document.encodeToByteArray())
+        assertEquals(1, assertIs<NativeOpenPgpPublicKeyParseResult.Success>(native).skippedCertificates)
+        assertEquals(
+            GpgKeyImportResult.Error(GpgKeyImportError.MultipleKeys),
+            service.import(
+                GpgKeyImportRequest(
+                    content = document,
+                    fileName = "mixed-public.asc",
+                ),
+            ),
+        )
     }
 
     @Test
@@ -106,8 +192,15 @@ class GpgKeyImportServiceJvmTest {
         assertTrue(key.privateKeyArmored.contains("BEGIN PGP PRIVATE KEY BLOCK"))
         assertTrue(key.publicKeyArmored.contains("BEGIN PGP PUBLIC KEY BLOCK"))
         assertEquals("D0BBCFBB250D3BB0658E5384F83D947D29EFECF7", key.fingerprint)
-        assertTrue(key.metadata.keys.any { it.canSign })
-        assertTrue(key.metadata.keys.any { it.canDecrypt })
+        val authorization = assertNotNull(
+            NativeGpgKeyMetadataResolver.resolve(
+                privateKeyArmored = key.privateKeyArmored,
+                publicKeyArmored = key.publicKeyArmored,
+                fingerprint = key.fingerprint,
+            ),
+        )
+        assertTrue(authorization.authorizedAgentKeys.any { it.canSign })
+        assertTrue(authorization.authorizedAgentKeys.any { it.canDecrypt })
     }
 
     @Test
@@ -218,6 +311,22 @@ class GpgKeyImportServiceJvmTest {
         )
         return collection.keyRings.next()
     }
+
+    private fun publicKeyDocument(
+        vararg armoredKeys: String,
+    ): String = ByteArrayOutputStream().also { out ->
+        ArmoredOutputStream(out).use { armored ->
+            armoredKeys.forEach { publicKeyArmored ->
+                val collection = PGPPublicKeyRingCollection(
+                    PGPUtil.getDecoderStream(
+                        ByteArrayInputStream(publicKeyArmored.encodeToByteArray()),
+                    ),
+                    JcaKeyFingerprintCalculator(),
+                )
+                armored.write(collection.keyRings.next().encoded)
+            }
+        }
+    }.toString(Charsets.UTF_8)
 
     private companion object {
         const val PASSPHRASE = "correct horse battery staple"

@@ -7,11 +7,7 @@
 mod argon2_compat;
 pub mod fast;
 mod legacy_pem;
-mod openpgp_agent;
-mod openpgp_mutation;
-mod openpgp_packets;
-mod openpgp_read;
-mod openpgp_write;
+mod openpgp;
 mod padding;
 mod passkeys;
 mod pkcs8_pbes2;
@@ -36,7 +32,7 @@ use sessions::SessionError;
 /// Native function ABI version.
 pub const ABI_VERSION: u32 = 1;
 /// Protobuf request/response protocol version.
-pub const PROTOCOL_VERSION: u32 = 1;
+pub const PROTOCOL_VERSION: u32 = 2;
 /// Maximum encoded request or response envelope size (16 MiB).
 pub const MAX_CONTROL_ENVELOPE_BYTES: usize = 16 * 1024 * 1024;
 /// Maximum raw streaming update size (64 KiB).
@@ -98,6 +94,14 @@ pub const CAPABILITY_SSH_CXF_EXPORT: u64 = 1 << 25;
 pub const CAPABILITY_SSH_PUBLIC_KEY_DECODE: u64 = 1 << 26;
 /// Streaming cleartext OpenPGP signature verification and body recovery.
 pub const CAPABILITY_OPENPGP_CLEAR_VERIFY: u64 = 1 << 27;
+/// External designated-revoker policy is enforced for OpenPGP private operations.
+pub const CAPABILITY_OPENPGP_EXTERNAL_REVOCATION_POLICY: u64 = 1 << 28;
+/// V4 signed User ID revocation with minimal transferable artifacts.
+pub const CAPABILITY_OPENPGP_SIGNED_REVOCATION: u64 = 1 << 29;
+/// Atomic V4 textual User ID replacement with a combined certificate artifact.
+pub const CAPABILITY_OPENPGP_USER_ID_REPLACEMENT: u64 = 1 << 30;
+/// Coherent public/secret OpenPGP certificate material reconciliation.
+pub const CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE: u64 = 1 << 31;
 /// Complete capability set provided by this native library revision.
 pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_PBKDF2_SHA256
@@ -126,7 +130,11 @@ pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_PASSKEYS
     | CAPABILITY_SSH_CXF_EXPORT
     | CAPABILITY_SSH_PUBLIC_KEY_DECODE
-    | CAPABILITY_OPENPGP_CLEAR_VERIFY;
+    | CAPABILITY_OPENPGP_CLEAR_VERIFY
+    | CAPABILITY_OPENPGP_EXTERNAL_REVOCATION_POLICY
+    | CAPABILITY_OPENPGP_SIGNED_REVOCATION
+    | CAPABILITY_OPENPGP_USER_ID_REPLACEMENT
+    | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE;
 
 static PANIC_HOOK: Once = Once::new();
 
@@ -261,27 +269,31 @@ pub fn stream_open(request_bytes: &[u8]) -> Vec<u8> {
         native_stream_open_request::Operation::OpenPgpDetachedVerify(request) => {
             stream_open_response(
                 operation_name,
-                sessions::open_openpgp_detached_verify(request),
+                sessions::open_openpgp(openpgp::adapter::OpenPgpSession::detached_verify(request)),
             )
         }
         native_stream_open_request::Operation::OpenPgpDetachedSign(request) => {
             stream_open_response(
                 operation_name,
-                sessions::open_openpgp_detached_sign(request),
+                sessions::open_openpgp(openpgp::adapter::OpenPgpSession::detached_sign(request)),
             )
         }
-        native_stream_open_request::Operation::OpenPgpClearSign(request) => {
-            stream_open_response(operation_name, sessions::open_openpgp_clear_sign(request))
-        }
-        native_stream_open_request::Operation::OpenPgpClearVerify(request) => {
-            stream_open_response(operation_name, sessions::open_openpgp_clear_verify(request))
-        }
-        native_stream_open_request::Operation::OpenPgpEncrypt(request) => {
-            stream_open_response(operation_name, sessions::open_openpgp_encrypt(request))
-        }
-        native_stream_open_request::Operation::OpenPgpDecrypt(request) => {
-            stream_open_response(operation_name, sessions::open_openpgp_decrypt(request))
-        }
+        native_stream_open_request::Operation::OpenPgpClearSign(request) => stream_open_response(
+            operation_name,
+            sessions::open_openpgp(openpgp::adapter::OpenPgpSession::clear_sign(request)),
+        ),
+        native_stream_open_request::Operation::OpenPgpClearVerify(request) => stream_open_response(
+            operation_name,
+            sessions::open_openpgp(openpgp::adapter::OpenPgpSession::clear_verify(request)),
+        ),
+        native_stream_open_request::Operation::OpenPgpEncrypt(request) => stream_open_response(
+            operation_name,
+            sessions::open_openpgp(openpgp::adapter::OpenPgpSession::encrypt(request)),
+        ),
+        native_stream_open_request::Operation::OpenPgpDecrypt(request) => stream_open_response(
+            operation_name,
+            sessions::open_openpgp(openpgp::adapter::OpenPgpSession::decrypt(request)),
+        ),
     }
 }
 
@@ -532,37 +544,38 @@ fn execute_one_shot(
             std::mem::take(&mut request.data),
         )?,
         native_request::Operation::OpenPgpPublicKeyParse(request) => {
-            openpgp_read::parse_public_key_request(request).map_err(openpgp_read_error)?
+            openpgp::adapter::parse_public_key(request)?
         }
-        native_request::Operation::OpenPgpVerify(request) => {
-            openpgp_read::verify_request(request).map_err(openpgp_read_error)?
-        }
+        native_request::Operation::OpenPgpVerify(request) => openpgp::adapter::verify(request)?,
         native_request::Operation::OpenPgpMetadataResolve(request) => {
-            openpgp_read::resolve_metadata(request).map_err(openpgp_read_error)?
+            openpgp::adapter::resolve_metadata(request)?
         }
         native_request::Operation::OpenPgpKeyGenerate(request) => {
-            openpgp_write::generate_key_request(request).map_err(openpgp_write_error)?
+            openpgp::adapter::generate_key(request)?
         }
         native_request::Operation::OpenPgpKeyImport(request) => {
-            openpgp_write::import_key_request(request).map_err(openpgp_write_error)?
+            openpgp::adapter::import_key(request)?
         }
-        native_request::Operation::OpenPgpSign(request) => {
-            openpgp_write::sign_request(request).map_err(openpgp_write_error)?
-        }
-        native_request::Operation::OpenPgpEncrypt(request) => {
-            openpgp_write::encrypt_request(request).map_err(openpgp_write_error)?
-        }
-        native_request::Operation::OpenPgpDecrypt(request) => {
-            openpgp_write::decrypt_request(request).map_err(openpgp_write_error)?
-        }
+        native_request::Operation::OpenPgpSign(request) => openpgp::adapter::sign(request)?,
+        native_request::Operation::OpenPgpEncrypt(request) => openpgp::adapter::encrypt(request)?,
+        native_request::Operation::OpenPgpDecrypt(request) => openpgp::adapter::decrypt(request)?,
         native_request::Operation::OpenPgpExpirationUpdate(request) => {
-            openpgp_mutation::update_expiration_request(request).map_err(openpgp_mutation_error)?
+            openpgp::adapter::update_expiration(request)?
+        }
+        native_request::Operation::OpenPgpCertificateMaterialReconcile(request) => {
+            openpgp::adapter::reconcile_certificate_material(request)?
+        }
+        native_request::Operation::OpenPgpUserIdRevocation(request) => {
+            openpgp::adapter::revoke_user_id(request)?
+        }
+        native_request::Operation::OpenPgpUserIdReplacement(request) => {
+            openpgp::adapter::replace_user_id(request)?
         }
         native_request::Operation::OpenPgpAgentSign(request) => {
-            openpgp_agent::sign_request(request).map_err(openpgp_agent_error)?
+            openpgp::adapter::agent_sign(request)?
         }
         native_request::Operation::OpenPgpAgentDecrypt(request) => {
-            openpgp_agent::decrypt_request(request).map_err(openpgp_agent_error)?
+            openpgp::adapter::agent_decrypt(request)?
         }
     };
     Ok(native_response::Result::BytesValue(result))
@@ -616,6 +629,11 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::OpenPgpEncrypt(_) => "open_pgp_encrypt",
         native_request::Operation::OpenPgpDecrypt(_) => "open_pgp_decrypt",
         native_request::Operation::OpenPgpExpirationUpdate(_) => "open_pgp_expiration_update",
+        native_request::Operation::OpenPgpCertificateMaterialReconcile(_) => {
+            "open_pgp_certificate_material_reconcile"
+        }
+        native_request::Operation::OpenPgpUserIdRevocation(_) => "open_pgp_user_id_revocation",
+        native_request::Operation::OpenPgpUserIdReplacement(_) => "open_pgp_user_id_replacement",
         native_request::Operation::OpenPgpAgentSign(_) => "open_pgp_agent_sign",
         native_request::Operation::OpenPgpAgentDecrypt(_) => "open_pgp_agent_decrypt",
     }
@@ -710,46 +728,6 @@ fn parse_cipher_direction(value: i32) -> Result<CipherDirection, PrimitiveError>
         .ok_or(PrimitiveError::InvalidArgument)
 }
 
-fn openpgp_read_error(error: openpgp_read::OpenPgpReadError) -> PrimitiveError {
-    match error {
-        openpgp_read::OpenPgpReadError::InvalidArgument => PrimitiveError::InvalidArgument,
-        openpgp_read::OpenPgpReadError::ResourceLimit => PrimitiveError::ResourceLimit,
-        openpgp_read::OpenPgpReadError::Internal => PrimitiveError::CryptoFailure,
-    }
-}
-
-fn openpgp_write_error(error: openpgp_write::OpenPgpWriteError) -> PrimitiveError {
-    match error {
-        openpgp_write::OpenPgpWriteError::InvalidArgument => PrimitiveError::InvalidArgument,
-        openpgp_write::OpenPgpWriteError::MissingKey => PrimitiveError::NoUsableKey,
-        openpgp_write::OpenPgpWriteError::UnsupportedKeyVersion(_) => {
-            PrimitiveError::UnsupportedKeyVersion
-        }
-        openpgp_write::OpenPgpWriteError::AuthenticationFailed => {
-            PrimitiveError::AuthenticationFailed
-        }
-        openpgp_write::OpenPgpWriteError::ResourceLimit => PrimitiveError::ResourceLimit,
-        openpgp_write::OpenPgpWriteError::CryptoFailure => PrimitiveError::CryptoFailure,
-        openpgp_write::OpenPgpWriteError::Internal => PrimitiveError::Internal,
-        openpgp_write::OpenPgpWriteError::Panic => PrimitiveError::Panic,
-    }
-}
-
-fn openpgp_mutation_error(error: openpgp_mutation::OpenPgpMutationFatal) -> PrimitiveError {
-    match error {
-        openpgp_mutation::OpenPgpMutationFatal::ResourceLimit => PrimitiveError::ResourceLimit,
-    }
-}
-
-fn openpgp_agent_error(error: openpgp_agent::OpenPgpAgentError) -> PrimitiveError {
-    match error {
-        openpgp_agent::OpenPgpAgentError::InvalidArgument => PrimitiveError::InvalidArgument,
-        openpgp_agent::OpenPgpAgentError::ResourceLimit => PrimitiveError::ResourceLimit,
-        openpgp_agent::OpenPgpAgentError::CryptoFailure => PrimitiveError::CryptoFailure,
-        openpgp_agent::OpenPgpAgentError::Internal => PrimitiveError::Internal,
-    }
-}
-
 fn primitive_error_code(error: PrimitiveError) -> NativeErrorCode {
     match error {
         PrimitiveError::InvalidArgument => NativeErrorCode::InvalidArgument,
@@ -838,14 +816,16 @@ mod tests {
         AesCbcPkcs7StreamOpenRequest, AesEcbNoPaddingEncryptRequest,
         AesEcbNoPaddingTransformRequest, Argon2Request, DigestRequest, DigestStreamOpenRequest,
         HkdfSha256Request, HmacRequest, HmacSha256StreamOpenRequest, HmacStreamOpenRequest,
-        NativeStreamOpenRequest, OpenPgpDetachedVerifyStreamOpenRequest,
-        OpenPgpMetadataResolveRequest, OpenPgpVerifyKind, OpenPgpVerifyRequest,
-        Pbkdf2Sha256Request, RandomBytesRequest, RandomIntRequest, RandomIntsRequest,
-        RsaOaepDecryptRequest, RsaOaepEncryptRequest, RsaPkcs8ToSpkiRequest, SshAgentSignRequest,
-        SshAgentTcpChaCha20Poly1305Request, SshKeyDescribeRequest, SshKeyGenerateRequest,
-        SshKeyMaterial, SshKeyParseRequest, SshKeyType, SshPrivateKeyFormatRequest,
-        SshPrivateKeyImportRequest, StreamCipherXorAtOffsetRequest, TwofishCbcPkcs7Request,
-        TwofishCbcPkcs7StreamOpenRequest,
+        NativeStreamOpenRequest, OpenPgpCertificateMaterialReconcileRequest,
+        OpenPgpCertificateMaterialReconcileSuccess, OpenPgpDetachedVerifyStreamOpenRequest,
+        OpenPgpMetadataResolveRequest, OpenPgpPublicKeyParseRequest,
+        OpenPgpUserIdReplacementRequest, OpenPgpUserIdRevocationRequest, OpenPgpVerifyKind,
+        OpenPgpVerifyRequest, Pbkdf2Sha256Request, RandomBytesRequest, RandomIntRequest,
+        RandomIntsRequest, RsaOaepDecryptRequest, RsaOaepEncryptRequest, RsaPkcs8ToSpkiRequest,
+        SshAgentSignRequest, SshAgentTcpChaCha20Poly1305Request, SshKeyDescribeRequest,
+        SshKeyGenerateRequest, SshKeyMaterial, SshKeyParseRequest, SshKeyType,
+        SshPrivateKeyFormatRequest, SshPrivateKeyImportRequest, StreamCipherXorAtOffsetRequest,
+        TwofishCbcPkcs7Request, TwofishCbcPkcs7StreamOpenRequest,
     };
 
     fn invoke(operation: native_request::Operation) -> NativeResponse {
@@ -859,9 +839,10 @@ mod tests {
 
     #[test]
     fn no_usable_openpgp_key_has_distinct_wire_code() {
-        let error = openpgp_write_error(openpgp_write::OpenPgpWriteError::MissingKey);
-
-        assert_eq!(primitive_error_code(error), NativeErrorCode::NoUsableKey);
+        assert_eq!(
+            primitive_error_code(PrimitiveError::NoUsableKey),
+            NativeErrorCode::NoUsableKey
+        );
         assert_eq!(
             session_error_code(SessionError::NoUsableKey),
             NativeErrorCode::NoUsableKey
@@ -882,6 +863,53 @@ mod tests {
         protocol::reset_zeroized_secret_request_drops();
         let response = NativeResponse::decode(call(&unsupported).as_slice())
             .expect("unsupported-protocol response must decode");
+        assert_eq!(
+            response.status.map(|status| status.code),
+            Some(NativeErrorCode::UnsupportedProtocol as i32)
+        );
+        assert_eq!(protocol::zeroized_secret_request_drops(), 1);
+
+        let unsupported_replacement = NativeRequest {
+            protocol_version: PROTOCOL_VERSION + 1,
+            operation: Some(native_request::Operation::OpenPgpUserIdReplacement(
+                OpenPgpUserIdReplacementRequest {
+                    private_key: b"unsupported-replacement-private-key".to_vec(),
+                    public_key: b"unsupported-replacement-public-key".to_vec(),
+                    expected_primary_fingerprint: "00".to_owned(),
+                    old_identity_id: "v1:00".to_owned(),
+                    new_user_id: "new@example.test".to_owned(),
+                    candidate_revocation_keys: Vec::new(),
+                    reference_time_epoch_seconds: 1,
+                },
+            )),
+        }
+        .encode_to_vec();
+        protocol::reset_zeroized_secret_request_drops();
+        let response = NativeResponse::decode(call(&unsupported_replacement).as_slice())
+            .expect("unsupported replacement response must decode");
+        assert_eq!(
+            response.status.map(|status| status.code),
+            Some(NativeErrorCode::UnsupportedProtocol as i32)
+        );
+        assert_eq!(protocol::zeroized_secret_request_drops(), 1);
+
+        let unsupported_revocation = NativeRequest {
+            protocol_version: PROTOCOL_VERSION + 1,
+            operation: Some(native_request::Operation::OpenPgpUserIdRevocation(
+                OpenPgpUserIdRevocationRequest {
+                    private_key: b"unsupported-revocation-private-key".to_vec(),
+                    public_key: b"unsupported-revocation-public-key".to_vec(),
+                    expected_primary_fingerprint: "00".to_owned(),
+                    identity_id: "v1:00".to_owned(),
+                    candidate_revocation_keys: Vec::new(),
+                    reference_time_epoch_seconds: 1,
+                },
+            )),
+        }
+        .encode_to_vec();
+        protocol::reset_zeroized_secret_request_drops();
+        let response = NativeResponse::decode(call(&unsupported_revocation).as_slice())
+            .expect("unsupported revocation response must decode");
         assert_eq!(
             response.status.map(|status| status.code),
             Some(NativeErrorCode::UnsupportedProtocol as i32)
@@ -942,6 +970,61 @@ mod tests {
         assert_eq!(
             response.status.map(|status| status.code),
             Some(NativeErrorCode::InvalidArgument as i32)
+        );
+        assert_eq!(protocol::zeroized_secret_request_drops(), 1);
+    }
+
+    #[test]
+    fn decoded_openpgp_parse_request_zeroizes_on_unsupported_protocol() {
+        let unsupported = NativeRequest {
+            protocol_version: PROTOCOL_VERSION + 1,
+            operation: Some(native_request::Operation::OpenPgpPublicKeyParse(
+                OpenPgpPublicKeyParseRequest {
+                    key_data: b"unsupported-protocol-secret-certificate".to_vec(),
+                    reference_time_epoch_seconds: None,
+                },
+            )),
+        }
+        .encode_to_vec();
+
+        protocol::reset_zeroized_secret_request_drops();
+        let response = NativeResponse::decode(call(&unsupported).as_slice())
+            .expect("unsupported-protocol response must decode");
+        assert_eq!(
+            response.status.map(|status| status.code),
+            Some(NativeErrorCode::UnsupportedProtocol as i32),
+        );
+        assert_eq!(protocol::zeroized_secret_request_drops(), 1);
+    }
+
+    #[test]
+    fn decoded_certificate_material_request_zeroizes_on_unsupported_protocol() {
+        let unsupported = NativeRequest {
+            protocol_version: PROTOCOL_VERSION + 1,
+            operation: Some(
+                native_request::Operation::OpenPgpCertificateMaterialReconcile(
+                    OpenPgpCertificateMaterialReconcileRequest {
+                        expected_primary_fingerprint: "00".repeat(20),
+                        existing_public_certificate: None,
+                        incoming_public_certificate: None,
+                        existing_secret_certificate: Some(
+                            b"unsupported-secret-certificate".to_vec(),
+                        ),
+                        incoming_secret_certificate: Some(
+                            b"second-unsupported-secret-certificate".to_vec(),
+                        ),
+                    },
+                ),
+            ),
+        }
+        .encode_to_vec();
+
+        protocol::reset_zeroized_secret_request_drops();
+        let response = NativeResponse::decode(call(&unsupported).as_slice())
+            .expect("unsupported reconciliation response must decode");
+        assert_eq!(
+            response.status.map(|status| status.code),
+            Some(NativeErrorCode::UnsupportedProtocol as i32),
         );
         assert_eq!(protocol::zeroized_secret_request_drops(), 1);
     }
@@ -1069,6 +1152,21 @@ mod tests {
         assert_eq!(protocol::zeroized_secret_output_drops(), 1);
     }
 
+    #[test]
+    fn certificate_material_secret_output_zeroizes_on_drop() {
+        protocol::reset_zeroized_secret_output_drops();
+        drop(OpenPgpCertificateMaterialReconcileSuccess {
+            public_certificate: b"public certificate".to_vec(),
+            private_certificate: Some(b"private certificate".to_vec()),
+            primary_fingerprint: "00".repeat(20),
+            existing_public_contributed: false,
+            incoming_public_contributed: false,
+            existing_secret_contributed: false,
+            incoming_secret_contributed: false,
+        });
+        assert_eq!(protocol::zeroized_secret_output_drops(), 1);
+    }
+
     fn response_bytes(response: NativeResponse) -> Vec<u8> {
         assert_eq!(
             response.status.as_ref().map(|status| status.code),
@@ -1141,7 +1239,8 @@ mod tests {
     #[test]
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
-        assert_eq!(CAPABILITIES, 0x0fffffff);
+        assert_eq!(PROTOCOL_VERSION, 2);
+        assert_eq!(CAPABILITIES, 0xffffffff);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256, 1 << 20);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256_FAST_PATH, 1 << 21);
         assert_eq!(CAPABILITY_RANDOM_FAST_PATH, 1 << 23);
@@ -1150,6 +1249,31 @@ mod tests {
         assert_eq!(CAPABILITY_SSH_CXF_EXPORT, 1 << 25);
         assert_eq!(CAPABILITY_SSH_PUBLIC_KEY_DECODE, 1 << 26);
         assert_eq!(CAPABILITY_OPENPGP_CLEAR_VERIFY, 1 << 27);
+        assert_eq!(CAPABILITY_OPENPGP_EXTERNAL_REVOCATION_POLICY, 1 << 28);
+        assert_eq!(CAPABILITY_OPENPGP_SIGNED_REVOCATION, 1 << 29);
+        assert_eq!(CAPABILITY_OPENPGP_USER_ID_REPLACEMENT, 1 << 30);
+        assert_eq!(CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE, 1 << 31);
+    }
+
+    #[test]
+    fn protocol_v2_rejects_v1_requests() {
+        let request = NativeRequest {
+            protocol_version: 1,
+            operation: Some(native_request::Operation::Digest(DigestRequest {
+                algorithm: HashAlgorithm::Sha256 as i32,
+                data: b"legacy-v1-request".to_vec(),
+            })),
+        };
+
+        let response = NativeResponse::decode(call(&request.encode_to_vec()).as_slice())
+            .expect("unsupported-protocol response must decode");
+
+        assert_eq!(response.protocol_version, PROTOCOL_VERSION);
+        assert_eq!(
+            response.status.map(|status| status.code),
+            Some(NativeErrorCode::UnsupportedProtocol as i32),
+        );
+        assert!(response.result.is_none());
     }
 
     #[test]

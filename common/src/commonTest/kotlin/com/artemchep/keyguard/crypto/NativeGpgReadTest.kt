@@ -2,12 +2,16 @@ package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationStatus
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationWarning
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpVerification
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpVerificationStatus
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpVerificationWarning
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
 import kotlinx.io.buffered
@@ -18,6 +22,24 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class NativeGpgReadTest {
+    @Test
+    fun `policy conflict warning maps to the domain without changing validity`() {
+        val verification = NativeOpenPgpVerification(
+            status = NativeOpenPgpVerificationStatus.VALID,
+            keyId = "0123456789ABCDEF",
+            fingerprint = PRIMARY_FINGERPRINT,
+            userIds = emptyList(),
+            createdAtEpochSeconds = 1_700_000_000L,
+            warnings = listOf(NativeOpenPgpVerificationWarning.POLICY_CONFLICT),
+        ).toDomain()
+
+        assertEquals(GpgOpenPgpVerificationStatus.VALID, verification.status)
+        assertEquals(
+            listOf(GpgOpenPgpVerificationWarning.POLICY_CONFLICT),
+            verification.warnings,
+        )
+    }
+
     @Test
     fun `resource limited public key returns malformed`() {
         val oversizedInput = "A".repeat(NativeCrypto.MAX_CONTROL_ENVELOPE_BYTES + 1)

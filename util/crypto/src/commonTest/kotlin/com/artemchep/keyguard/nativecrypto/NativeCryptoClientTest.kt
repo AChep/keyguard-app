@@ -20,6 +20,19 @@ private val allNativeCryptoCapabilitiesMask: Long = NativeCryptoCapability.entri
 
 class NativeCryptoClientTest {
     @Test
+    fun protocolV2RejectsV1Responses() {
+        assertEquals(2, NativeCrypto.PROTOCOL_VERSION)
+        val bridge = FakeBridge(callResponse = response(protocolVersion = 1))
+
+        val exception = assertFailsWith<NativeCryptoException> {
+            NativeCryptoClient(bridge).call("digest", digestOperation())
+        }
+
+        assertEquals(NativeCryptoErrorCode.UNSUPPORTED_PROTOCOL, exception.code)
+        assertEquals("digest", exception.operation)
+    }
+
+    @Test
     fun rejectsAbiMismatch() {
         val bridge = FakeBridge(abiVersion = NativeCrypto.EXPECTED_ABI_VERSION + 1)
         val exception = assertFailsWith<NativeCryptoException> {
@@ -46,6 +59,7 @@ class NativeCryptoClientTest {
         listOf(
             NativeCryptoCapability.SSH_PUBLIC_KEY_DECODE,
             NativeCryptoCapability.OPENPGP_CLEAR_VERIFY,
+            NativeCryptoCapability.OPENPGP_EXTERNAL_REVOCATION_POLICY,
         ).forEach { missingCapability ->
             val bridge = FakeBridge(
                 capabilities = allNativeCryptoCapabilitiesMask and missingCapability.bit.inv(),
@@ -557,7 +571,10 @@ class NativeCryptoClientTest {
         val absentBytes = ProtoBuf.encodeToByteArray(absent)
         val emptyBytes = ProtoBuf.encodeToByteArray(empty)
 
-        assertContentEquals(byteArrayOf(0x08, 0x01), absentBytes.copyOfRange(0, 2))
+        assertContentEquals(
+            byteArrayOf(0x08, NativeCrypto.PROTOCOL_VERSION.toByte()),
+            absentBytes.copyOfRange(0, 2),
+        )
         assertNotEquals(absentBytes.toList(), emptyBytes.toList())
         val decodedAbsent = ProtoBuf.decodeFromByteArray<NativeRequestProto>(absentBytes)
         val decodedEmpty = ProtoBuf.decodeFromByteArray<NativeRequestProto>(emptyBytes)
@@ -688,6 +705,8 @@ class NativeCryptoClientTest {
                             publicKeyArmored = "public",
                         ),
                     ),
+                    // v2/v3 certificates are tolerated and counted rather than fatal.
+                    skippedCertificates = 2,
                 ),
             ),
             OpenPgpPublicKeyParseErrorOutcomeProto(
@@ -700,6 +719,7 @@ class NativeCryptoClientTest {
             val encoded = ProtoBuf.encodeToByteArray(OpenPgpPublicKeyParseResultProto(outcome))
             val decoded = ProtoBuf.decodeFromByteArray<OpenPgpPublicKeyParseResultProto>(encoded)
             assertEquals(outcome::class, decoded.result?.let { it::class })
+            assertEquals(outcome, decoded.result)
         }
 
         val verification = OpenPgpVerificationProto(
@@ -712,15 +732,21 @@ class NativeCryptoClientTest {
                 OpenPgpVerificationWarningProto.KEY_REVOKED.wireValue,
                 OpenPgpVerificationWarningProto.KEY_EXPIRED.wireValue,
                 OpenPgpVerificationWarningProto.SIGNATURE_EXPIRED.wireValue,
+                OpenPgpVerificationWarningProto.POLICY_CONFLICT.wireValue,
+                OpenPgpVerificationWarningProto.WEAK_DIGEST.wireValue,
             ),
         )
         val verificationBytes = ProtoBuf.encodeToByteArray(verification)
         assertTrue(
             verificationBytes
                 .asList()
-                .windowed(5)
-                .contains(listOf(0x32, 0x03, 0x01, 0x02, 0x03).map(Int::toByte)),
+                .windowed(7)
+                .contains(listOf(0x32, 0x05, 0x01, 0x02, 0x03, 0x04, 0x05).map(Int::toByte)),
             "proto3 repeated verification warnings must use packed enum encoding",
+        )
+        assertEquals(
+            OpenPgpVerificationWarningProto.WEAK_DIGEST,
+            OpenPgpVerificationWarningProto.fromWireValue(5),
         )
         assertEquals(
             verification,
@@ -756,6 +782,7 @@ class NativeCryptoClientTest {
                     preferredFingerprint = "A".repeat(40),
                     armored = true,
                     signatureTimeEpochSeconds = 1_700_000_002L,
+                    candidateRevocationKeys = listOf(byteArrayOf(13)),
                 ),
             ),
             OpenPgpEncryptOperationProto(
@@ -767,6 +794,7 @@ class NativeCryptoClientTest {
                     fileName = "message.txt",
                     armored = false,
                     literalTimeEpochSeconds = 1_700_000_003L,
+                    candidateRevocationKeys = listOf(byteArrayOf(14)),
                 ),
             ),
             OpenPgpDecryptOperationProto(
@@ -795,6 +823,7 @@ class NativeCryptoClientTest {
                 OpenPgpDetachedSignStreamOpenRequestProto(
                     privateKey = byteArrayOf(1),
                     armored = true,
+                    candidateRevocationKeys = listOf(byteArrayOf(15)),
                 ),
             ),
             OpenPgpEncryptStreamOpenOperationProto(
@@ -802,6 +831,7 @@ class NativeCryptoClientTest {
                     publicKeys = listOf(byteArrayOf(2)),
                     fileName = "payload.bin",
                     armored = false,
+                    candidateRevocationKeys = listOf(byteArrayOf(16)),
                 ),
             ),
             OpenPgpDecryptStreamOpenOperationProto(
@@ -877,11 +907,11 @@ class NativeCryptoClientTest {
         val encryptResult = roundTrip(
             OpenPgpEncryptResultProto(
                 data = byteArrayOf(12),
-                protectionMode = OpenPgpProtectionModeProto.GNUPG_OCB,
+                protectionMode = OpenPgpProtectionModeProto.SEIPD_V2_AEAD,
             ),
         )
         assertContentEquals(byteArrayOf(12), encryptResult.data)
-        assertEquals(OpenPgpProtectionModeProto.GNUPG_OCB, encryptResult.protectionMode)
+        assertEquals(OpenPgpProtectionModeProto.SEIPD_V2_AEAD, encryptResult.protectionMode)
         val encryptFinal = roundTrip(
             OpenPgpEncryptFinalProto(
                 data = byteArrayOf(13),
@@ -896,22 +926,32 @@ class NativeCryptoClientTest {
                 verification = verification,
                 encrypted = true,
                 decryptionKeyFingerprint = "A".repeat(40),
+                warnings = listOf(OpenPgpDecryptionWarningProto.WEAK_RSA_KEY.wireValue),
             ),
         )
         assertContentEquals(byteArrayOf(14), decryptResult.data)
         assertEquals(OpenPgpVerificationStatusProto.VALID, decryptResult.verification?.status)
         assertEquals("A".repeat(40), decryptResult.decryptionKeyFingerprint)
+        assertEquals(
+            listOf(OpenPgpDecryptionWarningProto.WEAK_RSA_KEY.wireValue),
+            decryptResult.warnings,
+        )
         val decryptFinal = roundTrip(
             OpenPgpDecryptFinalProto(
                 data = byteArrayOf(15),
                 verification = verification,
                 encrypted = true,
                 decryptionKeyFingerprint = "B".repeat(40),
+                warnings = listOf(OpenPgpDecryptionWarningProto.ELGAMAL_KEY.wireValue),
             ),
         )
         assertContentEquals(byteArrayOf(15), decryptFinal.data)
         assertEquals(OpenPgpVerificationStatusProto.VALID, decryptFinal.verification?.status)
         assertEquals("B".repeat(40), decryptFinal.decryptionKeyFingerprint)
+        assertEquals(
+            listOf(OpenPgpDecryptionWarningProto.ELGAMAL_KEY.wireValue),
+            decryptFinal.warnings,
+        )
     }
 
     @Test
@@ -960,6 +1000,7 @@ class NativeCryptoClientTest {
         )
         val session = NativeCryptoClient(bridge).openPgpEncryption(
             publicKeys = listOf(byteArrayOf(1)),
+            candidateRevocationKeys = listOf(byteArrayOf(2)),
             signingPrivateKey = null,
             preferredSigningFingerprint = "",
             fileName = "payload.bin",
@@ -1158,6 +1199,74 @@ class NativeCryptoClientTest {
         }
     }
 
+    @Test
+    fun candidateRevocationKeysUseTheSchemaFieldsForEveryWritePath() {
+        val candidate = byteArrayOf(0x5a)
+        val requests = listOf(
+            ProtoBuf.encodeToByteArray(
+                OpenPgpSignRequestProto(
+                    kind = OpenPgpSignKindProto.DETACHED,
+                    content = byteArrayOf(1),
+                    privateKey = byteArrayOf(2),
+                    armored = true,
+                    candidateRevocationKeys = listOf(candidate),
+                ),
+            ) to 8,
+            ProtoBuf.encodeToByteArray(
+                OpenPgpDetachedSignStreamOpenRequestProto(
+                    privateKey = byteArrayOf(1),
+                    armored = true,
+                    candidateRevocationKeys = listOf(candidate),
+                ),
+            ) to 6,
+            ProtoBuf.encodeToByteArray(
+                OpenPgpClearSignStreamOpenRequestProto(
+                    privateKey = byteArrayOf(1),
+                    candidateRevocationKeys = listOf(candidate),
+                ),
+            ) to 5,
+            ProtoBuf.encodeToByteArray(
+                OpenPgpEncryptRequestProto(
+                    content = byteArrayOf(1),
+                    publicKeys = listOf(byteArrayOf(2)),
+                    fileName = "message.txt",
+                    armored = true,
+                    candidateRevocationKeys = listOf(candidate),
+                ),
+            ) to 10,
+            ProtoBuf.encodeToByteArray(
+                OpenPgpEncryptStreamOpenRequestProto(
+                    publicKeys = listOf(byteArrayOf(2)),
+                    fileName = "message.txt",
+                    armored = true,
+                    candidateRevocationKeys = listOf(candidate),
+                ),
+            ) to 9,
+            ProtoBuf.encodeToByteArray(
+                OpenPgpAgentSignRequestProto(
+                    privateKey = byteArrayOf(1),
+                    preferredFingerprint = "A".repeat(40),
+                    hashAlgorithm = "sha256",
+                    hash = byteArrayOf(2),
+                    candidateRevocationKeys = listOf(candidate),
+                ),
+            ) to 5,
+        )
+
+        requests.forEach { (encoded, fieldNumber) ->
+            assertContainsLengthDelimitedTag(encoded, fieldNumber)
+            assertTrue(
+                encoded.asList().windowed(3).contains(
+                    listOf(
+                        ((fieldNumber shl 3) or 2).toByte(),
+                        1.toByte(),
+                        candidate.single(),
+                    ),
+                ),
+            )
+        }
+    }
+
     private fun digestOperation(): NativeRequestOperationProto = DigestOperationProto(
         DigestRequestProto(
             algorithm = HashAlgorithmProto.SHA256,
@@ -1285,9 +1394,10 @@ private fun response(
     result: NativeResponseResultProto? = null,
     code: NativeErrorCodeProto = NativeErrorCodeProto.OK,
     operation: String = "test",
+    protocolVersion: Int = NativeCrypto.PROTOCOL_VERSION,
 ): ByteArray = ProtoBuf.encodeToByteArray(
     NativeResponseProto(
-        protocolVersion = NativeCrypto.PROTOCOL_VERSION,
+        protocolVersion = protocolVersion,
         status = NativeStatusProto(code = code, operation = operation),
         result = result,
     ),

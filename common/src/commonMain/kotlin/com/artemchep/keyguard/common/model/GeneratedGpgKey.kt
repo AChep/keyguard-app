@@ -13,7 +13,7 @@ data class GeneratedGpgKey(
     @SerialName("fingerprint")
     val fingerprint: String,
     @SerialName("metadata")
-    val metadata: GpgAgentKeyMetadata,
+    val metadata: GpgAgentKeyMetadata?,
     @SerialName("userId")
     val userId: String,
     @SerialName("typeLabel")

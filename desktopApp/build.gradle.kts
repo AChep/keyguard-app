@@ -7,6 +7,7 @@ import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.process.CommandLineArgumentProvider
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 
 plugins {
     alias(libs.plugins.compose)
@@ -39,6 +40,12 @@ kotlin {
 }
 
 val appId = "com.artemchep.keyguard"
+
+val executableAppResourceNames = setOf(
+    "keyguard-ssh-agent",
+    "keyguard-gpg-agent",
+    "keyguard-lib",
+)
 
 val bundledAppResources by configurations.creating {
     isCanBeConsumed = false
@@ -266,6 +273,36 @@ afterEvaluate {
     }
 }
 
+if (Os.isFamily(Os.FAMILY_MAC)) {
+    tasks.withType<AbstractJPackageTask>().configureEach {
+        if (targetFormat != TargetFormat.AppImage) {
+            return@configureEach
+        }
+
+        fun appResourcesDirectory() = destinationDir.get().asFile
+            .resolve("${packageName.get()}.app/Contents/app/resources")
+
+        // Compose's app-resource copy does not preserve POSIX executable bits.
+        // Repair the app image before it is passed to the DMG packaging task.
+        outputs.upToDateWhen {
+            executableAppResourceNames.all { name ->
+                appResourcesDirectory().resolve(name).canExecute()
+            }
+        }
+        doLast {
+            executableAppResourceNames.forEach { name ->
+                val executable = appResourcesDirectory().resolve(name)
+                check(executable.isFile) {
+                    "Bundled executable is missing: $executable"
+                }
+                check(executable.setExecutable(true, false) && executable.canExecute()) {
+                    "Could not mark bundled resource as executable: $executable"
+                }
+            }
+        }
+    }
+}
+
 kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(jdkVersion))
@@ -292,9 +329,7 @@ fun Tar.installPackageDistributable(
             if (
                 name == "Keyguard" ||
                 name == "jspawnhelper" || // https://github.com/AChep/keyguard-app/issues/640#issuecomment-4111835953
-                name == "keyguard-ssh-agent" ||
-                name == "keyguard-gpg-agent" ||
-                name == "keyguard-lib"
+                name in executableAppResourceNames
             ) {
                 permissions = DefaultFilePermissions("755".toInt(8))
             }

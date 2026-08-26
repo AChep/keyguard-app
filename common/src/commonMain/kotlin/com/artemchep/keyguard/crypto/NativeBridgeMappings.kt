@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.crypto
 
+import com.artemchep.keyguard.common.model.GpgKeyMaterial
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnapshot
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentCertificateMetadata
@@ -15,6 +16,7 @@ import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpAgentOperation
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpCertificateIndex
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyComponentRole
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyMaterial
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpMetadataResolution
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpPolicyUse
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpRenewalAuthorization
@@ -79,6 +81,33 @@ internal fun NativeOpenPgpCertificateIndex.toDomain(): GpgAgentKeyMetadata =
     GpgAgentKeyMetadata(
         certificates = listOf(toCertificateMetadata()),
     )
+
+/** Decodes the owned armored buffers into strings, zeroizing the buffers afterwards. */
+internal inline fun <T> NativeOpenPgpKeyMaterial.useArmoredStrings(
+    block: (privateKeyArmored: String, publicKeyArmored: String) -> T,
+): T = try {
+    block(
+        privateKeyArmored.decodeToString(throwOnInvalidSequence = true),
+        publicKeyArmored.decodeToString(throwOnInvalidSequence = true),
+    )
+} finally {
+    privateKeyArmored.fill(0)
+    publicKeyArmored.fill(0)
+}
+
+internal inline fun <T> NativeOpenPgpKeyMaterial.useAsGpgKeyMaterial(
+    certificateIndex: NativeOpenPgpCertificateIndex,
+    block: (key: GpgKeyMaterial) -> T,
+): T = useArmoredStrings { privateKeyArmored, publicKeyArmored ->
+    block(
+        GpgKeyMaterial(
+            privateKeyArmored = privateKeyArmored,
+            publicKeyArmored = publicKeyArmored,
+            fingerprint = fingerprint,
+            metadata = certificateIndex.toDomain(),
+        ),
+    )
+}
 
 private fun NativeOpenPgpCertificateIndex.toCertificateMetadata(): GpgAgentCertificateMetadata =
     GpgAgentCertificateMetadata(

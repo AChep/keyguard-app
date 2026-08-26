@@ -9,7 +9,7 @@ pub struct NativeRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_request::Operation",
-        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 56"
+        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 56, 57"
     )]
     pub operation: ::core::option::Option<native_request::Operation>,
 }
@@ -108,6 +108,10 @@ pub mod native_request {
         #[prost(message, tag = "56")]
         OpenPgpCertificateMaterialReconcile(
             super::OpenPgpCertificateMaterialReconcileRequest,
+        ),
+        #[prost(message, tag = "57")]
+        OpenPgpCertificateMaterialReconcileV2(
+            super::OpenPgpCertificateMaterialReconcileV2Request,
         ),
     }
 }
@@ -1345,6 +1349,100 @@ pub mod open_pgp_certificate_material_reconcile_result {
         Error(super::OpenPgpCertificateMaterialReconcileError),
     }
 }
+/// V2 separates packet-preserving local state from ordinary transferable
+/// OpenPGP objects. V1 remains wire-compatible but exposes only local state.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpCertificateMaterialReconcileV2Request {
+    #[prost(string, tag = "1")]
+    pub expected_primary_fingerprint: ::prost::alloc::string::String,
+    #[prost(bytes = "vec", optional, tag = "2")]
+    pub existing_public_certificate: ::core::option::Option<
+        ::prost::alloc::vec::Vec<u8>,
+    >,
+    #[prost(bytes = "vec", optional, tag = "3")]
+    pub incoming_public_certificate: ::core::option::Option<
+        ::prost::alloc::vec::Vec<u8>,
+    >,
+    #[prost(bytes = "vec", optional, tag = "4")]
+    pub existing_secret_certificate: ::core::option::Option<
+        ::prost::alloc::vec::Vec<u8>,
+    >,
+    #[prost(bytes = "vec", optional, tag = "5")]
+    pub incoming_secret_certificate: ::core::option::Option<
+        ::prost::alloc::vec::Vec<u8>,
+    >,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct OpenPgpCertificateMaterialInputContribution {
+    #[prost(bool, tag = "1")]
+    pub present: bool,
+    #[prost(bool, tag = "2")]
+    pub unique_public_evidence: bool,
+    #[prost(bool, tag = "3")]
+    pub unique_secret_capability: bool,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct OpenPgpCertificateMaterialContributions {
+    #[prost(message, optional, tag = "1")]
+    pub existing_public: ::core::option::Option<
+        OpenPgpCertificateMaterialInputContribution,
+    >,
+    #[prost(message, optional, tag = "2")]
+    pub incoming_public: ::core::option::Option<
+        OpenPgpCertificateMaterialInputContribution,
+    >,
+    #[prost(message, optional, tag = "3")]
+    pub existing_secret: ::core::option::Option<
+        OpenPgpCertificateMaterialInputContribution,
+    >,
+    #[prost(message, optional, tag = "4")]
+    pub incoming_secret: ::core::option::Option<
+        OpenPgpCertificateMaterialInputContribution,
+    >,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpCertificateMaterialReconcileV2Success {
+    #[prost(bytes = "vec", tag = "1")]
+    pub local_public_material: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", optional, tag = "2")]
+    pub local_secret_material: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
+    #[prost(bytes = "vec", optional, tag = "3")]
+    pub transferable_public_certificate: ::core::option::Option<
+        ::prost::alloc::vec::Vec<u8>,
+    >,
+    #[prost(bytes = "vec", optional, tag = "4")]
+    pub transferable_secret_key: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
+    #[prost(string, tag = "5")]
+    pub primary_fingerprint: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "6")]
+    pub contributions: ::core::option::Option<OpenPgpCertificateMaterialContributions>,
+    #[prost(
+        enumeration = "OpenPgpCertificateMaterialWithheldReason",
+        repeated,
+        tag = "7"
+    )]
+    pub withheld_reasons: ::prost::alloc::vec::Vec<i32>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpCertificateMaterialReconcileV2Result {
+    #[prost(
+        oneof = "open_pgp_certificate_material_reconcile_v2_result::Result",
+        tags = "1, 2"
+    )]
+    pub result: ::core::option::Option<
+        open_pgp_certificate_material_reconcile_v2_result::Result,
+    >,
+}
+/// Nested message and enum types in `OpenPgpCertificateMaterialReconcileV2Result`.
+pub mod open_pgp_certificate_material_reconcile_v2_result {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Result {
+        #[prost(message, tag = "1")]
+        Success(super::OpenPgpCertificateMaterialReconcileV2Success),
+        #[prost(message, tag = "2")]
+        Error(super::OpenPgpCertificateMaterialReconcileError),
+    }
+}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpUserIdRevocationRequest {
     #[prost(bytes = "vec", tag = "1")]
@@ -1367,6 +1465,7 @@ pub struct OpenPgpUserIdRevocationSuccess {
     #[prost(message, optional, tag = "1")]
     pub key_material: ::core::option::Option<OpenPgpKeyMaterial>,
     /// Minimal transferable certificate containing the revocation evidence.
+    /// Empty when unchanged or when the mutation is local-only.
     #[prost(bytes = "vec", tag = "3")]
     pub revocation_certificate_armored: ::prost::alloc::vec::Vec<u8>,
     #[prost(bool, tag = "4")]
@@ -1420,6 +1519,7 @@ pub struct OpenPgpUserIdReplacementSuccess {
     #[prost(message, optional, tag = "1")]
     pub key_material: ::core::option::Option<OpenPgpKeyMaterial>,
     /// Minimal transferable certificate containing both atomic statements.
+    /// Empty when unchanged or when the mutation is local-only.
     #[prost(bytes = "vec", tag = "3")]
     pub replacement_certificate_armored: ::prost::alloc::vec::Vec<u8>,
     #[prost(bool, tag = "4")]
@@ -2610,6 +2710,54 @@ impl OpenPgpCertificateMaterialPairErrorReason {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
+pub enum OpenPgpCertificateMaterialWithheldReason {
+    Unspecified = 0,
+    NoTransferablePublicCertificate = 1,
+    LocalPublicEvidence = 2,
+    SecretMaterialNotTransferable = 3,
+}
+impl OpenPgpCertificateMaterialWithheldReason {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => {
+                "OPEN_PGP_CERTIFICATE_MATERIAL_WITHHELD_REASON_UNSPECIFIED"
+            }
+            Self::NoTransferablePublicCertificate => {
+                "OPEN_PGP_CERTIFICATE_MATERIAL_WITHHELD_REASON_NO_TRANSFERABLE_PUBLIC_CERTIFICATE"
+            }
+            Self::LocalPublicEvidence => {
+                "OPEN_PGP_CERTIFICATE_MATERIAL_WITHHELD_REASON_LOCAL_PUBLIC_EVIDENCE"
+            }
+            Self::SecretMaterialNotTransferable => {
+                "OPEN_PGP_CERTIFICATE_MATERIAL_WITHHELD_REASON_SECRET_MATERIAL_NOT_TRANSFERABLE"
+            }
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "OPEN_PGP_CERTIFICATE_MATERIAL_WITHHELD_REASON_UNSPECIFIED" => {
+                Some(Self::Unspecified)
+            }
+            "OPEN_PGP_CERTIFICATE_MATERIAL_WITHHELD_REASON_NO_TRANSFERABLE_PUBLIC_CERTIFICATE" => {
+                Some(Self::NoTransferablePublicCertificate)
+            }
+            "OPEN_PGP_CERTIFICATE_MATERIAL_WITHHELD_REASON_LOCAL_PUBLIC_EVIDENCE" => {
+                Some(Self::LocalPublicEvidence)
+            }
+            "OPEN_PGP_CERTIFICATE_MATERIAL_WITHHELD_REASON_SECRET_MATERIAL_NOT_TRANSFERABLE" => {
+                Some(Self::SecretMaterialNotTransferable)
+            }
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
 pub enum OpenPgpUserIdRevocationErrorReason {
     Unspecified = 0,
     EmptyPrivateKey = 1,
@@ -2779,6 +2927,9 @@ pub enum OpenPgpUserIdReplacementErrorReason {
     /// No signature hash satisfies both the caller's template and the signing
     /// key's algorithm-specific digest-size floor.
     UnsupportedSigningHash = 22,
+    /// Authenticated certificate statements do not resolve to one effective
+    /// policy. Advancing the signature clock cannot resolve this conflict.
+    PolicyConflict = 23,
 }
 impl OpenPgpUserIdReplacementErrorReason {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -2854,6 +3005,9 @@ impl OpenPgpUserIdReplacementErrorReason {
             Self::UnsupportedSigningHash => {
                 "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_SIGNING_HASH"
             }
+            Self::PolicyConflict => {
+                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_POLICY_CONFLICT"
+            }
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2927,6 +3081,9 @@ impl OpenPgpUserIdReplacementErrorReason {
             }
             "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_SIGNING_HASH" => {
                 Some(Self::UnsupportedSigningHash)
+            }
+            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_POLICY_CONFLICT" => {
+                Some(Self::PolicyConflict)
             }
             _ => None,
         }

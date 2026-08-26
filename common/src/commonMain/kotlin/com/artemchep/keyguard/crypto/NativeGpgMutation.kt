@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.crypto
 
-import com.artemchep.keyguard.common.model.GpgKeyMaterial
 import com.artemchep.keyguard.common.service.crypto.GPG_KEY_EXPIRATION_MAX_INSTANT
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationError
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationRequest
@@ -116,23 +115,8 @@ object NativeGpgKeyExpirationService : GpgKeyExpirationService {
     private fun NativeOpenPgpExpirationUpdateResult.toDomain(): GpgKeyExpirationResult =
         when (this) {
             is NativeOpenPgpExpirationUpdateResult.Success -> {
-                val material = keyMaterial
-                try {
-                    GpgKeyExpirationResult.Success(
-                        key = GpgKeyMaterial(
-                            privateKeyArmored = material.privateKeyArmored.decodeToString(
-                                throwOnInvalidSequence = true,
-                            ),
-                            publicKeyArmored = material.publicKeyArmored.decodeToString(
-                                throwOnInvalidSequence = true,
-                            ),
-                            fingerprint = material.fingerprint,
-                            metadata = certificateIndex.toDomain(),
-                        ),
-                    )
-                } finally {
-                    material.privateKeyArmored.fill(0)
-                    material.publicKeyArmored.fill(0)
+                keyMaterial.useAsGpgKeyMaterial(certificateIndex) { key ->
+                    GpgKeyExpirationResult.Success(key = key)
                 }
             }
 

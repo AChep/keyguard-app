@@ -44,11 +44,22 @@ pub(crate) fn canonicalize_public_certificate(
 
 /// Canonicalizes one public certificate into its retained local and ordinary
 /// transferable views.
+#[cfg(test)]
 pub(crate) fn canonicalize_public_certificate_material(
     data: &[u8],
 ) -> Result<CanonicalCertificate, CertificateMergeError> {
     let mut rehoming_budget = SignatureRehomingBudget::default();
-    validate_single_certificate(data, &mut rehoming_budget)?.finalize()
+    parse_public_certificate_packet_set_with_budget(data, &mut rehoming_budget)?.finalize()
+}
+
+/// Parses one public certificate while charging placement repair to the
+/// caller's request-scoped budget.
+pub(crate) fn parse_public_certificate_packet_set_with_budget(
+    data: &[u8],
+    budget: &mut SignatureRehomingBudget,
+) -> Result<PublicCertificatePacketSet, CertificateMergeError> {
+    let (_, certificate) = parsing::parse_single_certificate_with_stream_and_budget(data, budget)?;
+    Ok(certificate)
 }
 
 /// Canonically unions public certificate documents into transferable bytes.
@@ -62,18 +73,39 @@ pub(crate) fn merge_public_certificate_documents(
 
 /// Canonically unions public certificate documents while retaining the local
 /// evidence that ordinary transferable export must omit.
+#[cfg(test)]
 pub(crate) fn merge_public_certificate_material_documents(
     documents: &[&[u8]],
+) -> Result<CanonicalCertificate, CertificateMergeError> {
+    merge_public_certificate_material_documents_with_order(documents, false)
+}
+
+/// Canonically unions public certificate documents using an input-order-
+/// independent component order suitable for multi-replica reconciliation.
+#[cfg(test)]
+pub(crate) fn merge_public_certificate_material_documents_deterministic(
+    documents: &[&[u8]],
+) -> Result<CanonicalCertificate, CertificateMergeError> {
+    merge_public_certificate_material_documents_with_order(documents, true)
+}
+
+#[cfg(test)]
+fn merge_public_certificate_material_documents_with_order(
+    documents: &[&[u8]],
+    deterministic_component_order: bool,
 ) -> Result<CanonicalCertificate, CertificateMergeError> {
     let mut rehoming_budget = SignatureRehomingBudget::default();
     let mut values = documents
         .iter()
-        .map(|document| validate_single_certificate(document, &mut rehoming_budget))
+        .map(|document| {
+            parse_public_certificate_packet_set_with_budget(document, &mut rehoming_budget)
+        })
         .collect::<Result<Vec<_>, _>>()?;
     if values.is_empty() {
         return Err(CertificateMergeError::Malformed);
     }
-    // Resource caps are enforced per document by `validate_single_certificate`
+    // Resource caps are enforced per document by
+    // `parse_public_certificate_packet_set_with_budget`
     // and on the deduplicated union by `finalize`; summing per-document counts
     // against the per-certificate caps here would reject legitimate merges of
     // near-cap duplicates, such as a certificate reconciled with its own
@@ -86,15 +118,10 @@ pub(crate) fn merge_public_certificate_material_documents(
         }
         merged.merge(value)?;
     }
+    if deterministic_component_order {
+        merged.sort_component_order();
+    }
     merged.finalize()
-}
-
-fn validate_single_certificate(
-    data: &[u8],
-    budget: &mut SignatureRehomingBudget,
-) -> Result<PublicCertificatePacketSet, CertificateMergeError> {
-    let (_, certificate) = parsing::parse_single_certificate_with_stream_and_budget(data, budget)?;
-    Ok(certificate)
 }
 
 pub(crate) fn normalize_expected_fingerprint(value: &str) -> Option<String> {
@@ -110,6 +137,12 @@ pub(crate) fn normalize_expected_fingerprint(value: &str) -> Option<String> {
 }
 
 impl PublicCertificatePacketSet {
+    pub(crate) fn sort_component_order(&mut self) {
+        self.identity_order.sort();
+        self.subkey_order.sort();
+        self.unknown_order.sort();
+    }
+
     /// Unions `other` into `self` and reports whether anything changed.
     pub(crate) fn merge(&mut self, other: Self) -> Result<bool, CertificateMergeError> {
         if self.fingerprint != other.fingerprint {

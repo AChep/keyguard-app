@@ -53,6 +53,7 @@ message NativeRequest {
     OpenPgpUserIdRevocationRequest open_pgp_user_id_revocation = 54;
     OpenPgpUserIdReplacementRequest open_pgp_user_id_replacement = 55;
     OpenPgpCertificateMaterialReconcileRequest open_pgp_certificate_material_reconcile = 56;
+    OpenPgpCertificateMaterialReconcileV2Request open_pgp_certificate_material_reconcile_v2 = 57;
   }
 }
 
@@ -1074,6 +1075,53 @@ message OpenPgpCertificateMaterialReconcileResult {
   }
 }
 
+// V2 separates packet-preserving local state from ordinary transferable
+// OpenPGP objects. V1 remains wire-compatible but exposes only local state.
+message OpenPgpCertificateMaterialReconcileV2Request {
+  string expected_primary_fingerprint = 1;
+  optional bytes existing_public_certificate = 2;
+  optional bytes incoming_public_certificate = 3;
+  optional bytes existing_secret_certificate = 4;
+  optional bytes incoming_secret_certificate = 5;
+}
+
+message OpenPgpCertificateMaterialInputContribution {
+  bool present = 1;
+  bool unique_public_evidence = 2;
+  bool unique_secret_capability = 3;
+}
+
+message OpenPgpCertificateMaterialContributions {
+  OpenPgpCertificateMaterialInputContribution existing_public = 1;
+  OpenPgpCertificateMaterialInputContribution incoming_public = 2;
+  OpenPgpCertificateMaterialInputContribution existing_secret = 3;
+  OpenPgpCertificateMaterialInputContribution incoming_secret = 4;
+}
+
+enum OpenPgpCertificateMaterialWithheldReason {
+  OPEN_PGP_CERTIFICATE_MATERIAL_WITHHELD_REASON_UNSPECIFIED = 0;
+  OPEN_PGP_CERTIFICATE_MATERIAL_WITHHELD_REASON_NO_TRANSFERABLE_PUBLIC_CERTIFICATE = 1;
+  OPEN_PGP_CERTIFICATE_MATERIAL_WITHHELD_REASON_LOCAL_PUBLIC_EVIDENCE = 2;
+  OPEN_PGP_CERTIFICATE_MATERIAL_WITHHELD_REASON_SECRET_MATERIAL_NOT_TRANSFERABLE = 3;
+}
+
+message OpenPgpCertificateMaterialReconcileV2Success {
+  bytes local_public_material = 1;
+  optional bytes local_secret_material = 2;
+  optional bytes transferable_public_certificate = 3;
+  optional bytes transferable_secret_key = 4;
+  string primary_fingerprint = 5;
+  OpenPgpCertificateMaterialContributions contributions = 6;
+  repeated OpenPgpCertificateMaterialWithheldReason withheld_reasons = 7;
+}
+
+message OpenPgpCertificateMaterialReconcileV2Result {
+  oneof result {
+    OpenPgpCertificateMaterialReconcileV2Success success = 1;
+    OpenPgpCertificateMaterialReconcileError error = 2;
+  }
+}
+
 message OpenPgpUserIdRevocationRequest {
   bytes private_key = 1;
   bytes public_key = 2;
@@ -1113,6 +1161,7 @@ message OpenPgpUserIdRevocationSuccess {
   reserved 2;
   reserved "metadata";
   // Minimal transferable certificate containing the revocation evidence.
+  // Empty when unchanged or when the mutation is local-only.
   bytes revocation_certificate_armored = 3;
   bool changed = 4;
   uint64 effective_at_epoch_seconds = 5;
@@ -1169,6 +1218,9 @@ enum OpenPgpUserIdReplacementErrorReason {
   // No signature hash satisfies both the caller's template and the signing
   // key's algorithm-specific digest-size floor.
   OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_SIGNING_HASH = 22;
+  // Authenticated certificate statements do not resolve to one effective
+  // policy. Advancing the signature clock cannot resolve this conflict.
+  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_POLICY_CONFLICT = 23;
 }
 
 message OpenPgpUserIdReplacementSuccess {
@@ -1176,6 +1228,7 @@ message OpenPgpUserIdReplacementSuccess {
   reserved 2;
   reserved "metadata";
   // Minimal transferable certificate containing both atomic statements.
+  // Empty when unchanged or when the mutation is local-only.
   bytes replacement_certificate_armored = 3;
   bool changed = 4;
   uint64 effective_at_epoch_seconds = 5;

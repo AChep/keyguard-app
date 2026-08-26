@@ -622,18 +622,6 @@ private fun requireSinglePublicKeyArmor(armored: String) {
     }
 }
 
-private inline fun <T> NativeOpenPgpKeyMaterial.useArmoredStrings(
-    block: (privateKeyArmored: String, publicKeyArmored: String) -> T,
-): T = try {
-    block(
-        privateKeyArmored.decodeToString(throwOnInvalidSequence = true),
-        publicKeyArmored.decodeToString(throwOnInvalidSequence = true),
-    )
-} finally {
-    privateKeyArmored.fill(0)
-    publicKeyArmored.fill(0)
-}
-
 private inline fun <T> GpgOpenPgpPrivateKey.withEncoded(
     block: (keyData: ByteArray, preferredFingerprint: String) -> T,
 ): T {

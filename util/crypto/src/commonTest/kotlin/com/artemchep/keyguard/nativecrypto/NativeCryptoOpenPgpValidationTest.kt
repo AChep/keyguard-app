@@ -13,6 +13,19 @@ import kotlin.test.assertTrue
 
 class NativeCryptoOpenPgpValidationTest {
     @Test
+    fun validatesUserIdsUsingStrictUtf8Encoding() {
+        assertFalse("\uD800".isValidOpenPgpUserId())
+        assertFalse("\uDC00".isValidOpenPgpUserId())
+        assertFalse("\uD800A".isValidOpenPgpUserId())
+        assertFalse("A\uDC00".isValidOpenPgpUserId())
+
+        assertTrue("Alice \uD83D\uDE00".isValidOpenPgpUserId())
+        assertTrue("A".repeat(1_024).isValidOpenPgpUserId())
+        assertTrue("é".repeat(512).isValidOpenPgpUserId())
+        assertFalse("é".repeat(513).isValidOpenPgpUserId())
+    }
+
+    @Test
     fun policyAcceptanceRequiresValidStatusWithoutWarnings() {
         val valid = NativeOpenPgpVerification(
             status = NativeOpenPgpVerificationStatus.VALID,

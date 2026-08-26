@@ -10,9 +10,12 @@ import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayPars
 import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
+import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementService
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationService
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
@@ -521,10 +524,13 @@ import com.artemchep.keyguard.crypto.NativeCipherEncryptor
 import com.artemchep.keyguard.crypto.NativeCryptoGenerator
 import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
 import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
+import com.artemchep.keyguard.crypto.NativeGpgUserIdReplacementService
+import com.artemchep.keyguard.crypto.NativeGpgUserIdRevocationService
 import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
 import com.artemchep.keyguard.crypto.NativePasskeyCrypto
 import com.artemchep.keyguard.crypto.NativeSshKeyImportService
 import com.artemchep.keyguard.crypto.NativeSshKeyPkcs8Exporter
+import com.artemchep.keyguard.crypto.NativeGpgCertificateMaterialReconciler
 import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadCoordinatorImpl
@@ -585,6 +591,15 @@ fun globalModuleCommon() = DI.Module(
     }
     bindSingleton<GpgPublicKeyParser> {
         NativeGpgPublicKeyParser
+    }
+    bindSingleton<GpgCertificateMaterialReconciler> {
+        NativeGpgCertificateMaterialReconciler
+    }
+    bindSingleton<GpgUserIdRevocationService> {
+        NativeGpgUserIdRevocationService
+    }
+    bindSingleton<GpgUserIdReplacementService> {
+        NativeGpgUserIdReplacementService
     }
     bindSingleton<GpgKeyMetadataResolver> {
         NativeGpgKeyMetadataResolver

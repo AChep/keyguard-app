@@ -590,7 +590,9 @@ pub(crate) fn parse_public_key(
         match project_secret_certificate(&key_data) {
             Ok((public_projection, _secret_overlay)) => Some(public_projection),
             Err(
-                MutationMaterialError::MalformedKey | MutationMaterialError::FingerprintMismatch,
+                MutationMaterialError::MalformedKey
+                | MutationMaterialError::FingerprintMismatch
+                | MutationMaterialError::UnsupportedTskLayout,
             ) => {
                 return Ok(PublicKeyParseOutcome::Failure(
                     PublicKeyParseFailure::Malformed,
@@ -783,7 +785,8 @@ pub(crate) fn resolve_metadata(
                         Err(
                             MutationMaterialError::MalformedKey
                             | MutationMaterialError::FingerprintMismatch
-                            | MutationMaterialError::UnsupportedKeyVersion,
+                            | MutationMaterialError::UnsupportedKeyVersion
+                            | MutationMaterialError::UnsupportedTskLayout,
                         ) => {}
                         // See `parse_public_key`: only material
                         // failures can reach a read-path caller.

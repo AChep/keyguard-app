@@ -362,7 +362,8 @@ fn parse_secret_keys(input: &[u8]) -> Result<Vec<ParsedSecretCertificate>, KeyPa
                 MutationMaterialError::UnsupportedKeyVersion => KeyParseError::UnsupportedVersion,
                 MutationMaterialError::ResourceLimit => KeyParseError::ResourceLimit,
                 MutationMaterialError::MalformedKey
-                | MutationMaterialError::FingerprintMismatch => KeyParseError::Malformed,
+                | MutationMaterialError::FingerprintMismatch
+                | MutationMaterialError::UnsupportedTskLayout => KeyParseError::Malformed,
                 MutationMaterialError::InternalFailure
                 | MutationMaterialError::SignatureVerificationFailed => KeyParseError::Internal,
             })?;

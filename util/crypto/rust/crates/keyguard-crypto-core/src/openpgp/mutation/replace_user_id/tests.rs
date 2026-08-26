@@ -35,7 +35,7 @@ fn select_effective_certification<'a>(
     match select_newest_policy_signature(verified, PolicyContext::Identity, |_| Ok(false))? {
         PolicySelection::Selected { signature, .. } => Ok(signature),
         PolicySelection::Missing => Err(UserIdReplacementFailure::MissingSelfSignature),
-        PolicySelection::Conflict => Err(UserIdReplacementFailure::TimeConflict),
+        PolicySelection::Conflict => Err(UserIdReplacementFailure::PolicyConflict),
     }
 }
 

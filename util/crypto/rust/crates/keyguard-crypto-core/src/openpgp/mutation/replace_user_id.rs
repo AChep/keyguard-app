@@ -80,6 +80,7 @@ pub(crate) enum UserIdReplacementFailure {
     MissingSelfSignature,
     NonRevocable,
     UnsupportedTemplate,
+    PolicyConflict,
     TimeConflict,
     SignatureVerificationFailed,
     InternalFailure,
@@ -140,7 +141,7 @@ pub(crate) fn replace_user_id_request(
     let certificate = &preflight.canonical.semantic;
     let policy = preflight.policy()?;
     if policy.primary.policy_conflict {
-        return Err(UserIdReplacementFailure::TimeConflict);
+        return Err(UserIdReplacementFailure::PolicyConflict);
     }
     policy.primary_component().authorize_mutation()?;
     let primary_snapshot = PrimaryKeyPolicySnapshot::capture(&policy);
@@ -168,7 +169,7 @@ pub(crate) fn replace_user_id_request(
                 .is_some_and(signature_config_is_non_exportable)
         });
     if target_identity.policy_conflict {
-        return Err(UserIdReplacementFailure::TimeConflict);
+        return Err(UserIdReplacementFailure::PolicyConflict);
     }
     if target_identity.revocation_status.is_indeterminate() {
         return Err(UserIdReplacementFailure::UnresolvedRevocationAuthority);
@@ -243,7 +244,7 @@ pub(crate) fn replace_user_id_request(
         .user_id_at(primary_index)
         .ok_or(UserIdReplacementFailure::MissingSelfSignature)?;
     if primary_identity.policy_conflict {
-        return Err(UserIdReplacementFailure::TimeConflict);
+        return Err(UserIdReplacementFailure::PolicyConflict);
     }
     let policy_template = primary_identity
         .effective_signature
@@ -464,7 +465,7 @@ fn finish_success(
         local_only_mutation,
         |canonical, policy: &ValidatedCertificate<'_>, secret_fingerprints| {
             if policy.primary.policy_conflict {
-                return Err(UserIdReplacementFailure::TimeConflict);
+                return Err(UserIdReplacementFailure::PolicyConflict);
             }
             policy.primary_component().authorize_mutation()?;
             if let Some(body) = guards.revoked_target.as_deref()

@@ -16,7 +16,8 @@ pub(crate) use material::{
     MutationPreflight, next_signature_time, validate_mutation_document_bounds,
 };
 pub(crate) use reconcile::{
-    CertificateMaterialReconcileInput, MaterialInputError, MaterialPairError, ReconcileError,
+    CertificateMaterialContributions, CertificateMaterialReconcileInput, MaterialInputContribution,
+    MaterialInputError, MaterialPairError, MaterialWithheldReason, ReconcileError,
     reconcile_certificate_material_request,
 };
 pub(crate) use replace_user_id::{
@@ -44,6 +45,7 @@ macro_rules! impl_mutation_failure_conversions {
                     MutationMaterialError::MalformedKey => Self::MalformedKey,
                     MutationMaterialError::FingerprintMismatch => Self::FingerprintMismatch,
                     MutationMaterialError::UnsupportedKeyVersion => Self::UnsupportedKeyVersion,
+                    MutationMaterialError::UnsupportedTskLayout => Self::MalformedKey,
                     MutationMaterialError::ResourceLimit => Self::ResourceLimit,
                     MutationMaterialError::InternalFailure => Self::InternalFailure,
                     MutationMaterialError::SignatureVerificationFailed => {

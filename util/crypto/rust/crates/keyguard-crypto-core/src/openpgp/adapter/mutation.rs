@@ -2,8 +2,9 @@
 
 use crate::{
     openpgp::mutation::{
-        self as workflow, CertificateMaterialReconcileInput, ExpirationUpdateFailure,
-        ExpirationUpdateInput, MaterialInputError, MaterialPairError, ReconcileError,
+        self as workflow, CertificateMaterialContributions, CertificateMaterialReconcileInput,
+        ExpirationUpdateFailure, ExpirationUpdateInput, MaterialInputContribution,
+        MaterialInputError, MaterialPairError, MaterialWithheldReason, ReconcileError,
         UserIdReplacementFailure, UserIdReplacementInput, UserIdRevocationFailure,
         UserIdRevocationInput,
     },
@@ -14,10 +15,13 @@ use super::{
     certificate::certificate_index,
     key::wire_key_material as key_material,
     wire::{
-        Message as _, OpenPgpCertificateMaterialInputErrorReason,
+        Message as _, OpenPgpCertificateMaterialContributions,
+        OpenPgpCertificateMaterialInputContribution, OpenPgpCertificateMaterialInputErrorReason,
         OpenPgpCertificateMaterialPairErrorReason, OpenPgpCertificateMaterialReconcileError,
         OpenPgpCertificateMaterialReconcileRequest, OpenPgpCertificateMaterialReconcileResult,
-        OpenPgpCertificateMaterialReconcileSuccess, OpenPgpExpirationUpdateError,
+        OpenPgpCertificateMaterialReconcileSuccess, OpenPgpCertificateMaterialReconcileV2Request,
+        OpenPgpCertificateMaterialReconcileV2Result, OpenPgpCertificateMaterialReconcileV2Success,
+        OpenPgpCertificateMaterialWithheldReason, OpenPgpExpirationUpdateError,
         OpenPgpExpirationUpdateErrorReason, OpenPgpExpirationUpdateRequest,
         OpenPgpExpirationUpdateResult, OpenPgpExpirationUpdateSuccess,
         OpenPgpUserIdReplacementError, OpenPgpUserIdReplacementErrorReason,
@@ -25,7 +29,8 @@ use super::{
         OpenPgpUserIdReplacementSuccess, OpenPgpUserIdRevocationError,
         OpenPgpUserIdRevocationErrorReason, OpenPgpUserIdRevocationRequest,
         OpenPgpUserIdRevocationResult, OpenPgpUserIdRevocationSuccess,
-        open_pgp_certificate_material_reconcile_result, open_pgp_expiration_update_result,
+        open_pgp_certificate_material_reconcile_result,
+        open_pgp_certificate_material_reconcile_v2_result, open_pgp_expiration_update_result,
         open_pgp_user_id_replacement_result, open_pgp_user_id_revocation_result,
     },
 };
@@ -100,6 +105,90 @@ pub(crate) fn reconcile_certificate_material(
             ),
         }
         .encode_to_vec()),
+    }
+}
+
+pub(crate) fn reconcile_certificate_material_v2(
+    mut request: OpenPgpCertificateMaterialReconcileV2Request,
+) -> Result<Vec<u8>, PrimitiveError> {
+    let input = CertificateMaterialReconcileInput {
+        expected_primary_fingerprint: std::mem::take(&mut request.expected_primary_fingerprint),
+        existing_public_certificate: std::mem::take(&mut request.existing_public_certificate),
+        incoming_public_certificate: std::mem::take(&mut request.incoming_public_certificate),
+        existing_secret_certificate: std::mem::take(&mut request.existing_secret_certificate),
+        incoming_secret_certificate: std::mem::take(&mut request.incoming_secret_certificate),
+    };
+    match workflow::reconcile_certificate_material_request(input) {
+        Ok(mut success) => Ok(OpenPgpCertificateMaterialReconcileV2Result {
+            result: Some(
+                open_pgp_certificate_material_reconcile_v2_result::Result::Success(
+                    OpenPgpCertificateMaterialReconcileV2Success {
+                        local_public_material: std::mem::take(&mut success.local_public_material),
+                        local_secret_material: std::mem::take(&mut success.private_certificate),
+                        transferable_public_certificate: std::mem::take(
+                            &mut success.transferable_public_certificate,
+                        ),
+                        transferable_secret_key: std::mem::take(
+                            &mut success.transferable_private_certificate,
+                        ),
+                        primary_fingerprint: std::mem::take(&mut success.primary_fingerprint),
+                        contributions: Some(wire_contributions(success.contributions)),
+                        withheld_reasons: std::mem::take(&mut success.withheld_reasons)
+                            .into_iter()
+                            .map(wire_withheld_reason)
+                            .map(|reason| reason as i32)
+                            .collect(),
+                    },
+                ),
+            ),
+        }
+        .encode_to_vec()),
+        Err(ReconcileError::Internal) => Err(PrimitiveError::Internal),
+        Err(error) => Ok(OpenPgpCertificateMaterialReconcileV2Result {
+            result: Some(
+                open_pgp_certificate_material_reconcile_v2_result::Result::Error(reconcile_error(
+                    error,
+                )),
+            ),
+        }
+        .encode_to_vec()),
+    }
+}
+
+fn wire_contributions(
+    contributions: CertificateMaterialContributions,
+) -> OpenPgpCertificateMaterialContributions {
+    OpenPgpCertificateMaterialContributions {
+        existing_public: Some(wire_contribution(contributions.existing_public)),
+        incoming_public: Some(wire_contribution(contributions.incoming_public)),
+        existing_secret: Some(wire_contribution(contributions.existing_secret)),
+        incoming_secret: Some(wire_contribution(contributions.incoming_secret)),
+    }
+}
+
+fn wire_contribution(
+    contribution: MaterialInputContribution,
+) -> OpenPgpCertificateMaterialInputContribution {
+    OpenPgpCertificateMaterialInputContribution {
+        present: contribution.present,
+        unique_public_evidence: contribution.unique_public_evidence,
+        unique_secret_capability: contribution.unique_secret_capability,
+    }
+}
+
+fn wire_withheld_reason(
+    reason: MaterialWithheldReason,
+) -> OpenPgpCertificateMaterialWithheldReason {
+    match reason {
+        MaterialWithheldReason::NoTransferablePublicCertificate => {
+            OpenPgpCertificateMaterialWithheldReason::NoTransferablePublicCertificate
+        }
+        MaterialWithheldReason::LocalPublicEvidence => {
+            OpenPgpCertificateMaterialWithheldReason::LocalPublicEvidence
+        }
+        MaterialWithheldReason::SecretMaterialNotTransferable => {
+            OpenPgpCertificateMaterialWithheldReason::SecretMaterialNotTransferable
+        }
     }
 }
 
@@ -274,6 +363,9 @@ fn input_reason(error: Option<MaterialInputError>) -> OpenPgpCertificateMaterial
         Some(MaterialInputError::ResourceLimit) => {
             OpenPgpCertificateMaterialInputErrorReason::ResourceLimit
         }
+        Some(MaterialInputError::UnsupportedTskLayout) => {
+            OpenPgpCertificateMaterialInputErrorReason::UnsupportedTskLayout
+        }
     }
 }
 
@@ -293,6 +385,9 @@ fn pair_reason(error: MaterialPairError) -> OpenPgpCertificateMaterialPairErrorR
         }
         MaterialPairError::InvalidRebuiltOutput => {
             OpenPgpCertificateMaterialPairErrorReason::InvalidRebuiltOutput
+        }
+        MaterialPairError::ConflictingSecretMaterial => {
+            OpenPgpCertificateMaterialPairErrorReason::ConflictingSecretMaterial
         }
     }
 }
@@ -380,6 +475,9 @@ fn replacement_reason(error: UserIdReplacementFailure) -> OpenPgpUserIdReplaceme
         UserIdReplacementFailure::UnsupportedTemplate => {
             OpenPgpUserIdReplacementErrorReason::UnsupportedTemplate
         }
+        UserIdReplacementFailure::PolicyConflict => {
+            OpenPgpUserIdReplacementErrorReason::PolicyConflict
+        }
         UserIdReplacementFailure::TimeConflict => OpenPgpUserIdReplacementErrorReason::TimeConflict,
         UserIdReplacementFailure::SignatureVerificationFailed => {
             OpenPgpUserIdReplacementErrorReason::SignatureVerificationFailed
@@ -399,5 +497,34 @@ fn replacement_reason(error: UserIdReplacementFailure) -> OpenPgpUserIdReplaceme
         UserIdReplacementFailure::ResourceLimit => {
             OpenPgpUserIdReplacementErrorReason::InternalFailure
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn certificate_material_safety_errors_keep_distinct_wire_reasons() {
+        assert_eq!(
+            input_reason(Some(MaterialInputError::UnsupportedTskLayout)),
+            OpenPgpCertificateMaterialInputErrorReason::UnsupportedTskLayout,
+        );
+        assert_eq!(
+            pair_reason(MaterialPairError::ConflictingSecretMaterial),
+            OpenPgpCertificateMaterialPairErrorReason::ConflictingSecretMaterial,
+        );
+    }
+
+    #[test]
+    fn replacement_conflicts_keep_distinct_wire_reasons() {
+        assert_eq!(
+            replacement_reason(UserIdReplacementFailure::TimeConflict),
+            OpenPgpUserIdReplacementErrorReason::TimeConflict,
+        );
+        assert_eq!(
+            replacement_reason(UserIdReplacementFailure::PolicyConflict),
+            OpenPgpUserIdReplacementErrorReason::PolicyConflict,
+        );
     }
 }

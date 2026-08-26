@@ -5,7 +5,10 @@ use crate::openpgp::adapter::wire::{
     Message as _, OpenPgpCertificateMaterialInputErrorReason,
     OpenPgpCertificateMaterialPairErrorReason, OpenPgpCertificateMaterialReconcileError,
     OpenPgpCertificateMaterialReconcileRequest, OpenPgpCertificateMaterialReconcileResult,
-    OpenPgpCertificateMaterialReconcileSuccess, open_pgp_certificate_material_reconcile_result,
+    OpenPgpCertificateMaterialReconcileSuccess, OpenPgpCertificateMaterialReconcileV2Request,
+    OpenPgpCertificateMaterialReconcileV2Result, OpenPgpCertificateMaterialReconcileV2Success,
+    OpenPgpCertificateMaterialWithheldReason, open_pgp_certificate_material_reconcile_result,
+    open_pgp_certificate_material_reconcile_v2_result,
 };
 use crate::openpgp::certificate::{canonicalize_public_certificate, filtered_tsk_fixture};
 use crate::openpgp::packet::{PUBLIC_KEY_TAG, RawPacketStream, SECRET_KEY_TAG, write_fixed_packet};
@@ -139,6 +142,37 @@ fn error(
     match result.result {
         Some(open_pgp_certificate_material_reconcile_result::Result::Error(error)) => error,
         _ => panic!("expected reconciliation error"),
+    }
+}
+
+fn reconcile_v2(
+    existing_public_certificate: Option<Vec<u8>>,
+    incoming_public_certificate: Option<Vec<u8>>,
+    existing_secret_certificate: Option<Vec<u8>>,
+    incoming_secret_certificate: Option<Vec<u8>>,
+) -> OpenPgpCertificateMaterialReconcileV2Result {
+    let encoded = crate::openpgp::adapter::reconcile_certificate_material_v2(
+        OpenPgpCertificateMaterialReconcileV2Request {
+            expected_primary_fingerprint: fingerprint(),
+            existing_public_certificate,
+            incoming_public_certificate,
+            existing_secret_certificate,
+            incoming_secret_certificate,
+        },
+    )
+    .expect("V2 reconciliation must not fail fatally");
+    OpenPgpCertificateMaterialReconcileV2Result::decode(encoded.as_slice())
+        .expect("decode V2 reconciliation result")
+}
+
+fn success_v2(
+    result: OpenPgpCertificateMaterialReconcileV2Result,
+) -> OpenPgpCertificateMaterialReconcileV2Success {
+    match result.result {
+        Some(open_pgp_certificate_material_reconcile_v2_result::Result::Success(success)) => {
+            success
+        }
+        _ => panic!("expected V2 reconciliation success"),
     }
 }
 
@@ -297,6 +331,10 @@ fn reprotected_secret(password: &str, seed: u64) -> Vec<u8> {
 }
 
 fn secret_with_gnu_dummy_primary(source: &[u8], usage: u8) -> Vec<u8> {
+    secret_with_gnu_primary(source, usage, 1, &[])
+}
+
+fn secret_with_gnu_primary(source: &[u8], usage: u8, mode: u8, trailing: &[u8]) -> Vec<u8> {
     assert!(matches!(usage, 254 | 255));
     let stream =
         RawPacketStream::parse(source, MAX_RECONCILE_PACKETS).expect("parse secret certificate");
@@ -308,11 +346,10 @@ fn secret_with_gnu_dummy_primary(source: &[u8], usage: u8) -> Vec<u8> {
     let public_len = crate::openpgp::key::import_secret_packet_public_len(&stream, primary)
         .expect("parse primary public fields");
     let primary_body = stream.body(primary);
-    let mut dummy_body = Vec::with_capacity(public_len + 8);
+    let mut dummy_body = Vec::with_capacity(public_len + 8 + trailing.len());
     dummy_body.extend_from_slice(&primary_body[..public_len]);
-    // GnuPG private S2K 101, mode 1: no secret material follows the
-    // extension number. Import and reconciliation share this exact shape.
-    dummy_body.extend_from_slice(&[usage, 0, 101, 0, b'G', b'N', b'U', 1]);
+    dummy_body.extend_from_slice(&[usage, 0, 101, 0, b'G', b'N', b'U', mode]);
+    dummy_body.extend_from_slice(trailing);
 
     let mut certificate = Vec::new();
     write_fixed_packet(SECRET_KEY_TAG, &dummy_body, &mut certificate)
@@ -500,6 +537,89 @@ fn reconciliation_rehomes_a_displaced_self_certification() {
 }
 
 #[test]
+fn reconciliation_shares_signature_rehoming_budget_across_inputs() {
+    let displaced = public_with_user_id_certification_before_user_id();
+    let request = CertificateMaterialReconcileInput {
+        expected_primary_fingerprint: fingerprint(),
+        existing_public_certificate: Some(displaced.clone()),
+        incoming_public_certificate: Some(displaced),
+        existing_secret_certificate: None,
+        incoming_secret_certificate: None,
+    };
+    let result = reconcile_certificate_material(
+        &request,
+        &mut ReconcileWorkBudget::with_request_limits(2, usize::MAX),
+    );
+
+    match result {
+        Err(ReconcileError::InvalidInputs {
+            existing_public,
+            incoming_public,
+            existing_secret,
+            incoming_secret,
+        }) => {
+            assert_eq!(existing_public, None);
+            assert_eq!(incoming_public, Some(MaterialInputError::ResourceLimit));
+            assert_eq!(existing_secret, None);
+            assert_eq!(incoming_secret, None);
+        }
+        Ok(_) | Err(ReconcileError::Pair(_) | ReconcileError::Internal) => {
+            panic!("expected aggregate input resource limit")
+        }
+    }
+}
+
+#[test]
+fn reconciliation_classifies_only_the_final_union_under_one_export_budget() {
+    let request = CertificateMaterialReconcileInput {
+        expected_primary_fingerprint: fingerprint(),
+        existing_public_certificate: Some(PUBLIC_KEY.to_vec()),
+        incoming_public_certificate: Some(PUBLIC_KEY.to_vec()),
+        existing_secret_certificate: Some(SECRET_KEY.to_vec()),
+        incoming_secret_certificate: Some(SECRET_KEY.to_vec()),
+    };
+    let result = match reconcile_certificate_material(
+        &request,
+        &mut ReconcileWorkBudget::with_request_limits(usize::MAX, 2),
+    ) {
+        Ok(result) => result,
+        Err(_) => {
+            panic!("one final identity and subkey classification must fit the request budget")
+        }
+    };
+
+    assert_eq!(
+        canonicalize_public_certificate(&result.public_certificate)
+            .expect("canonicalize reconciled public output")
+            .0,
+        canonicalize_public_certificate(PUBLIC_KEY)
+            .expect("canonicalize public fixture")
+            .0,
+    );
+    assert!(result.private_certificate.is_some());
+    assert!(!result.contributions.existing_public.unique_public_evidence);
+    assert!(!result.contributions.incoming_public.unique_public_evidence);
+    assert!(!result.contributions.existing_secret.unique_public_evidence);
+    assert!(!result.contributions.incoming_secret.unique_public_evidence);
+
+    let limited_request = CertificateMaterialReconcileInput {
+        expected_primary_fingerprint: fingerprint(),
+        existing_public_certificate: Some(PUBLIC_KEY.to_vec()),
+        incoming_public_certificate: None,
+        existing_secret_certificate: None,
+        incoming_secret_certificate: None,
+    };
+    let limited = reconcile_certificate_material(
+        &limited_request,
+        &mut ReconcileWorkBudget::with_request_limits(usize::MAX, 1),
+    );
+    assert!(matches!(
+        limited,
+        Err(ReconcileError::Pair(MaterialPairError::ResourceLimit))
+    ));
+}
+
+#[test]
 fn reconciliation_preserves_an_unplaceable_external_certification_as_inert() {
     let result = success(reconcile(
         None,
@@ -673,38 +793,23 @@ fn reconcile_derives_coherent_outputs_without_changing_secret_packets() {
 }
 
 #[test]
-fn reconciliation_accepts_reprotection_and_prefers_incoming_secret_packets() {
+fn reconciliation_rejects_differing_reprotections_in_both_orders() {
     let p0 = reprotected_secret("p0", 0x5030_5052_4f54_4543);
     let p1 = reprotected_secret("p1", 0x5031_5052_4f54_4543);
     assert_ne!(secret_packet_bodies(&p0), secret_packet_bodies(&p1));
 
-    let p1_wins = success(reconcile(
-        Some(PUBLIC_KEY.to_vec()),
-        None,
-        Some(p0.clone()),
-        Some(p1.clone()),
-    ));
-    let p1_output = p1_wins
-        .private_certificate
-        .as_deref()
-        .expect("trusted reprotection yields private output");
-    assert_eq!(secret_packet_bodies(p1_output), secret_packet_bodies(&p1));
-    assert!(!p1_wins.existing_secret_contributed);
-    assert!(p1_wins.incoming_secret_contributed);
-
-    let p0_wins_when_incoming = success(reconcile(
-        Some(PUBLIC_KEY.to_vec()),
-        None,
-        Some(p1),
-        Some(p0.clone()),
-    ));
-    let p0_output = p0_wins_when_incoming
-        .private_certificate
-        .as_deref()
-        .expect("reversed trusted reprotection yields private output");
-    assert_eq!(secret_packet_bodies(p0_output), secret_packet_bodies(&p0));
-    assert!(!p0_wins_when_incoming.existing_secret_contributed);
-    assert!(p0_wins_when_incoming.incoming_secret_contributed);
+    for (existing, incoming) in [(p0.clone(), p1.clone()), (p1, p0)] {
+        let result = error(reconcile(
+            Some(PUBLIC_KEY.to_vec()),
+            None,
+            Some(existing),
+            Some(incoming),
+        ));
+        assert_eq!(
+            result.pair_error,
+            OpenPgpCertificateMaterialPairErrorReason::ConflictingSecretMaterial as i32,
+        );
+    }
 }
 
 #[test]
@@ -769,46 +874,93 @@ fn reconciliation_preserves_gnu_dummy_primary_packet() {
 }
 
 #[test]
-fn reconciliation_prefers_incoming_gnu_dummy_primary_representation() {
-    let existing = secret_with_gnu_dummy_primary(SECRET_KEY, 254);
-    let incoming = secret_with_gnu_dummy_primary(SECRET_KEY, 255);
-    let incoming_stream = RawPacketStream::parse(&incoming, MAX_RECONCILE_PACKETS)
-        .expect("parse incoming GNU dummy-primary TSK");
-    let incoming_primary = incoming_stream.raw(&incoming_stream.packets()[0]);
-
-    let result = success(reconcile(
+fn v2_preserves_gnu_dummy_primary_locally_but_filters_it_from_transferable_secret() {
+    let stub = secret_with_gnu_dummy_primary(SECRET_KEY, 254);
+    let result = success_v2(reconcile_v2(
         Some(PUBLIC_KEY.to_vec()),
         None,
-        Some(existing),
-        Some(incoming),
+        Some(stub),
+        None,
     ));
-    let private = result
-        .private_certificate
+    let local_secret = result
+        .local_secret_material
         .as_deref()
-        .expect("two GNU dummy-primary inputs yield private output");
-    let rebuilt = RawPacketStream::parse(private, MAX_RECONCILE_PACKETS)
-        .expect("parse merged GNU dummy-primary TSK");
+        .expect("local secret material");
+    let transferable_secret = result
+        .transferable_secret_key
+        .as_deref()
+        .expect("real secret subkeys survive transferable filtering");
+    let local_stream = RawPacketStream::parse(local_secret, MAX_RECONCILE_PACKETS)
+        .expect("parse local secret material");
+    let transferable_stream = RawPacketStream::parse(transferable_secret, MAX_RECONCILE_PACKETS)
+        .expect("parse transferable secret key");
 
-    assert_eq!(rebuilt.raw(&rebuilt.packets()[0]), incoming_primary);
-    assert!(!result.existing_secret_contributed);
-    assert!(result.incoming_secret_contributed);
+    assert_eq!(local_stream.packets()[0].tag(), SECRET_KEY_TAG);
+    assert_eq!(transferable_stream.packets()[0].tag(), PUBLIC_KEY_TAG);
+    assert!(
+        transferable_stream
+            .packets()
+            .iter()
+            .any(|packet| packet.tag() == 7)
+    );
+    assert!(result.withheld_reasons.contains(
+        &(OpenPgpCertificateMaterialWithheldReason::SecretMaterialNotTransferable as i32)
+    ));
 }
 
 #[test]
-fn trusted_secret_reconciliation_is_deterministic_and_idempotent() {
-    let p0 = reprotected_secret("p0", 0x4445_5445_524d_5030);
-    let p1 = reprotected_secret("p1", 0x4445_5445_524d_5031);
+fn reconciliation_attributes_unsupported_gnu_layout_to_secret_input() {
+    let unsupported = secret_with_gnu_primary(SECRET_KEY, 254, 2, &[1, b'1']);
+    let result = error(reconcile(
+        Some(PUBLIC_KEY.to_vec()),
+        None,
+        None,
+        Some(unsupported),
+    ));
+
+    assert_eq!(
+        result.incoming_secret_input_error,
+        OpenPgpCertificateMaterialInputErrorReason::UnsupportedTskLayout as i32,
+    );
+    assert_eq!(
+        result.pair_error,
+        OpenPgpCertificateMaterialPairErrorReason::Unspecified as i32,
+    );
+}
+
+#[test]
+fn reconciliation_rejects_differing_gnu_dummy_primary_representations() {
+    let existing = secret_with_gnu_dummy_primary(SECRET_KEY, 254);
+    let incoming = secret_with_gnu_dummy_primary(SECRET_KEY, 255);
+
+    for (left, right) in [(existing.clone(), incoming.clone()), (incoming, existing)] {
+        let result = error(reconcile(
+            Some(PUBLIC_KEY.to_vec()),
+            None,
+            Some(left),
+            Some(right),
+        ));
+        assert_eq!(
+            result.pair_error,
+            OpenPgpCertificateMaterialPairErrorReason::ConflictingSecretMaterial as i32,
+        );
+    }
+}
+
+#[test]
+fn identical_secret_reconciliation_is_deterministic_and_idempotent() {
+    let secret = reprotected_secret("same", 0x4445_5445_524d_4944);
     let first = success(reconcile(
         Some(PUBLIC_KEY.to_vec()),
         Some(PUBLIC_KEY.to_vec()),
-        Some(p0.clone()),
-        Some(p1.clone()),
+        Some(secret.clone()),
+        Some(secret.clone()),
     ));
     let repeated = success(reconcile(
         Some(PUBLIC_KEY.to_vec()),
         Some(PUBLIC_KEY.to_vec()),
-        Some(p0),
-        Some(p1.clone()),
+        Some(secret.clone()),
+        Some(secret.clone()),
     ));
     assert_eq!(first.public_certificate, repeated.public_certificate);
     assert_eq!(first.private_certificate, repeated.private_certificate);
@@ -818,7 +970,7 @@ fn trusted_secret_reconciliation_is_deterministic_and_idempotent() {
         Some(first.public_certificate.clone()),
         Some(PUBLIC_KEY.to_vec()),
         first.private_certificate.clone(),
-        Some(p1),
+        Some(secret),
     ));
     assert_eq!(first.public_certificate, idempotent.public_certificate);
     assert_eq!(first.private_certificate, idempotent.private_certificate);
@@ -967,26 +1119,22 @@ fn reconcile_accepts_filtered_tsk_with_offline_primary() {
 }
 
 #[test]
-fn filtered_tsk_reprotection_prefers_incoming_secret_subkeys() {
+fn filtered_tsk_reprotection_conflicts_in_both_orders() {
     let p0 = filtered_tsk_from(&reprotected_secret("filtered-p0", 0x4649_4c54_4552_5030));
     let p1 = filtered_tsk_from(&reprotected_secret("filtered-p1", 0x4649_4c54_4552_5031));
-    let result = success(reconcile(
-        Some(PUBLIC_KEY.to_vec()),
-        None,
-        Some(p0),
-        Some(p1.clone()),
-    ));
-    let private = result
-        .private_certificate
-        .as_deref()
-        .expect("filtered TSK reprotection yields private output");
-    let rebuilt = RawPacketStream::parse(private, MAX_RECONCILE_PACKETS)
-        .expect("parse reconciled filtered TSK");
 
-    assert_eq!(rebuilt.packets()[0].tag(), PUBLIC_KEY_TAG);
-    assert_eq!(secret_packet_bodies(private), secret_packet_bodies(&p1));
-    assert!(!result.existing_secret_contributed);
-    assert!(result.incoming_secret_contributed);
+    for (existing, incoming) in [(p0.clone(), p1.clone()), (p1, p0)] {
+        let result = error(reconcile(
+            Some(PUBLIC_KEY.to_vec()),
+            None,
+            Some(existing),
+            Some(incoming),
+        ));
+        assert_eq!(
+            result.pair_error,
+            OpenPgpCertificateMaterialPairErrorReason::ConflictingSecretMaterial as i32,
+        );
+    }
 }
 
 #[test]
@@ -1095,4 +1243,83 @@ fn no_secret_input_produces_no_private_output() {
     assert!(result.private_certificate.is_none());
     assert!(!result.existing_secret_contributed);
     assert!(!result.incoming_secret_contributed);
+}
+
+#[test]
+fn v2_separates_local_and_transferable_material_and_reports_exact_inputs() {
+    let result = success_v2(reconcile_v2(
+        Some(PUBLIC_KEY.to_vec()),
+        Some(PUBLIC_KEY.to_vec()),
+        Some(SECRET_KEY.to_vec()),
+        None,
+    ));
+
+    assert!(!result.local_public_material.is_empty());
+    assert!(result.local_secret_material.is_some());
+    assert!(result.transferable_public_certificate.is_some());
+    assert!(result.transferable_secret_key.is_some());
+    assert_eq!(result.primary_fingerprint, fingerprint());
+    assert!(result.withheld_reasons.is_empty());
+
+    let contributions = result.contributions.expect("V2 contribution report");
+    let existing_public = contributions
+        .existing_public
+        .expect("existing public contribution");
+    let incoming_public = contributions
+        .incoming_public
+        .expect("incoming public contribution");
+    let existing_secret = contributions
+        .existing_secret
+        .expect("existing secret contribution");
+    let incoming_secret = contributions
+        .incoming_secret
+        .expect("incoming secret contribution");
+    assert!(existing_public.present);
+    assert!(!existing_public.unique_public_evidence);
+    assert!(incoming_public.present);
+    assert!(!incoming_public.unique_public_evidence);
+    assert!(existing_secret.present);
+    assert!(!existing_secret.unique_public_evidence);
+    assert!(existing_secret.unique_secret_capability);
+    assert!(!incoming_secret.present);
+    assert!(!incoming_secret.unique_public_evidence);
+    assert!(!incoming_secret.unique_secret_capability);
+}
+
+#[test]
+fn v2_transferable_secret_excludes_retained_sensitive_evidence() {
+    let secret = secret_with_sensitive_revoker_declaration();
+    let result = success_v2(reconcile_v2(None, None, Some(secret), None));
+    let local_secret = result
+        .local_secret_material
+        .as_deref()
+        .expect("local secret material");
+    let transferable_secret = result
+        .transferable_secret_key
+        .as_deref()
+        .expect("transferable secret key");
+    let (local_projection, _) =
+        project_secret_certificate(local_secret).expect("project local secret material");
+    let (transferable_projection, _) =
+        project_secret_certificate(transferable_secret).expect("project transferable secret key");
+
+    assert!(has_sensitive_revoker_declaration(
+        &result.local_public_material
+    ));
+    assert!(!has_sensitive_revoker_declaration(
+        result
+            .transferable_public_certificate
+            .as_deref()
+            .expect("transferable public certificate")
+    ));
+    assert!(has_sensitive_revoker_declaration(&local_projection));
+    assert!(!has_sensitive_revoker_declaration(&transferable_projection));
+    assert!(result.withheld_reasons.contains(
+        &(OpenPgpCertificateMaterialWithheldReason::SecretMaterialNotTransferable as i32)
+    ));
+    assert!(
+        result
+            .withheld_reasons
+            .contains(&(OpenPgpCertificateMaterialWithheldReason::LocalPublicEvidence as i32))
+    );
 }

@@ -24,14 +24,15 @@ pub(crate) use material::{
     ParsedSecretCertificate, SecretCertificateOverlay, SecretOverlayMergeError, armor_key_packets,
     armor_key_packets_zeroizing, is_gnu_dummy_secret_stub, merge_secret_certificate_overlays,
     parse_mutation_candidates, parse_secret_certificate, parse_single_secret,
-    project_secret_certificate, rebuild_secret_certificate, serialize_packet_body,
+    project_secret_certificate, rebuild_secret_certificate,
+    rebuild_transferable_secret_certificate, serialize_packet_body,
 };
 pub(crate) use model::{
     CanonicalCertificate, CertificateAddition, CertificateMergeError, CertificateMutationError,
     CertificateSignatureOwner, ExportClassificationBudget, PublicCertificatePacketSet,
-    SignatureRehomingBudget, canonicalize_public_certificate_material,
-    local_public_certificate_preserving_framing, merge_public_certificate_material_documents,
+    SignatureRehomingBudget, local_public_certificate_preserving_framing,
     merge_public_certificate_packet_sets, normalize_expected_fingerprint,
+    parse_public_certificate_packet_set_with_budget,
     parse_public_certificate_packet_sets_with_budget, parse_single_certificate_packet_set,
     raw_packet_is_exportable,
 };

@@ -2841,6 +2841,44 @@ fn raw_certificate_merge_is_commutative_idempotent_and_associative() {
 }
 
 #[test]
+fn deterministic_material_merge_is_independent_of_subkey_input_order() {
+    let secret = generated_v4_two_subkey_secret(0x4445_5445_524d_4f52);
+    let ordered = certificate_packet_set(&secret);
+    assert_eq!(ordered.subkey_order.len(), 2);
+
+    let ordered_document = ordered
+        .clone()
+        .finalize()
+        .expect("finalize ordered certificate")
+        .retained_bytes;
+    let mut reversed = ordered;
+    reversed.subkey_order.reverse();
+    let reversed_document = reversed
+        .finalize()
+        .expect("finalize reversed certificate")
+        .retained_bytes;
+    assert_ne!(ordered_document, reversed_document);
+
+    let ordered_first = merge_public_certificate_material_documents_deterministic(&[
+        &ordered_document,
+        &reversed_document,
+    ])
+    .expect("merge ordered then reversed");
+    let reversed_first = merge_public_certificate_material_documents_deterministic(&[
+        &reversed_document,
+        &ordered_document,
+    ])
+    .expect("merge reversed then ordered");
+
+    assert_eq!(ordered_first.bytes, reversed_first.bytes);
+    assert_eq!(
+        ordered_first.local_public_bytes,
+        reversed_first.local_public_bytes,
+    );
+    assert_eq!(ordered_first.retained_bytes, reversed_first.retained_bytes);
+}
+
+#[test]
 fn normalized_signature_variants_retain_one_complete_wire_packet() {
     let original = first_signature_packet(&parse_fixture());
     let first = signature_with_unhashed_experimental(&original, 1, 2);

@@ -309,6 +309,34 @@ internal data class OpenPgpExpirationUpdateOperationProto(
 ) : NativeRequestOperationProto
 
 @Serializable
+@SerialName("open_pgp_user_id_revocation")
+internal data class OpenPgpUserIdRevocationOperationProto(
+    @ProtoNumber(54)
+    val value: OpenPgpUserIdRevocationRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("open_pgp_user_id_replacement")
+internal data class OpenPgpUserIdReplacementOperationProto(
+    @ProtoNumber(55)
+    val value: OpenPgpUserIdReplacementRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("open_pgp_certificate_material_reconcile")
+internal data class OpenPgpCertificateMaterialReconcileOperationProto(
+    @ProtoNumber(56)
+    val value: OpenPgpCertificateMaterialReconcileRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("open_pgp_certificate_material_reconcile_v2")
+internal data class OpenPgpCertificateMaterialReconcileV2OperationProto(
+    @ProtoNumber(57)
+    val value: OpenPgpCertificateMaterialReconcileV2RequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
 @SerialName("open_pgp_agent_sign")
 internal data class OpenPgpAgentSignOperationProto(
     @ProtoNumber(43)
@@ -1875,6 +1903,482 @@ internal data class OpenPgpExpirationUpdateErrorOutcomeProto(
     @ProtoNumber(2)
     val value: OpenPgpExpirationUpdateErrorProto,
 ) : OpenPgpExpirationUpdateOutcomeProto
+
+@Serializable
+internal data class OpenPgpCertificateMaterialReconcileRequestProto(
+    @ProtoNumber(1)
+    val expectedPrimaryFingerprint: String,
+    @ProtoNumber(2)
+    val existingPublicCertificate: ByteArray? = null,
+    @ProtoNumber(3)
+    val incomingPublicCertificate: ByteArray? = null,
+    @ProtoNumber(4)
+    val existingSecretCertificate: ByteArray? = null,
+    @ProtoNumber(5)
+    val incomingSecretCertificate: ByteArray? = null,
+)
+
+@Serializable
+internal enum class OpenPgpCertificateMaterialInputErrorReasonProto {
+    @ProtoNumber(0)
+    UNSPECIFIED,
+
+    @ProtoNumber(1)
+    EMPTY_CERTIFICATE,
+
+    @ProtoNumber(2)
+    MALFORMED_CERTIFICATE,
+
+    @ProtoNumber(3)
+    UNSUPPORTED_KEY_VERSION,
+
+    @ProtoNumber(4)
+    FINGERPRINT_MISMATCH,
+
+    @ProtoNumber(5)
+    COMPONENT_COLLISION,
+
+    @ProtoNumber(6)
+    RESOURCE_LIMIT,
+
+    @ProtoNumber(7)
+    UNSUPPORTED_TSK_LAYOUT,
+}
+
+@Serializable
+internal enum class OpenPgpCertificateMaterialPairErrorReasonProto {
+    @ProtoNumber(0)
+    UNSPECIFIED,
+
+    @ProtoNumber(1)
+    MISSING_MATERIAL,
+
+    @ProtoNumber(3)
+    FINGERPRINT_MISMATCH,
+
+    @ProtoNumber(4)
+    COMPONENT_COLLISION,
+
+    @ProtoNumber(5)
+    RESOURCE_LIMIT,
+
+    @ProtoNumber(6)
+    INVALID_REBUILT_OUTPUT,
+
+    @ProtoNumber(7)
+    CONFLICTING_SECRET_MATERIAL,
+}
+
+@Serializable
+internal data class OpenPgpCertificateMaterialReconcileSuccessProto(
+    @ProtoNumber(1)
+    val publicCertificate: ByteArray = byteArrayOf(),
+    @ProtoNumber(2)
+    val privateCertificate: ByteArray? = null,
+    @ProtoNumber(3)
+    val primaryFingerprint: String = "",
+    @ProtoNumber(4)
+    val existingPublicContributed: Boolean = false,
+    @ProtoNumber(5)
+    val incomingPublicContributed: Boolean = false,
+    @ProtoNumber(6)
+    val existingSecretContributed: Boolean = false,
+    @ProtoNumber(7)
+    val incomingSecretContributed: Boolean = false,
+)
+
+@Serializable
+internal data class OpenPgpCertificateMaterialReconcileErrorProto(
+    @ProtoNumber(1)
+    val existingPublicInputError: OpenPgpCertificateMaterialInputErrorReasonProto =
+        OpenPgpCertificateMaterialInputErrorReasonProto.UNSPECIFIED,
+    @ProtoNumber(2)
+    val incomingPublicInputError: OpenPgpCertificateMaterialInputErrorReasonProto =
+        OpenPgpCertificateMaterialInputErrorReasonProto.UNSPECIFIED,
+    @ProtoNumber(3)
+    val existingSecretInputError: OpenPgpCertificateMaterialInputErrorReasonProto =
+        OpenPgpCertificateMaterialInputErrorReasonProto.UNSPECIFIED,
+    @ProtoNumber(4)
+    val incomingSecretInputError: OpenPgpCertificateMaterialInputErrorReasonProto =
+        OpenPgpCertificateMaterialInputErrorReasonProto.UNSPECIFIED,
+    @ProtoNumber(5)
+    val pairError: OpenPgpCertificateMaterialPairErrorReasonProto =
+        OpenPgpCertificateMaterialPairErrorReasonProto.UNSPECIFIED,
+)
+
+@Serializable
+internal data class OpenPgpCertificateMaterialReconcileResultProto(
+    @ProtoOneOf
+    val result: OpenPgpCertificateMaterialReconcileOutcomeProto? = null,
+)
+
+@Serializable
+internal sealed interface OpenPgpCertificateMaterialReconcileOutcomeProto
+
+@Serializable
+@SerialName("success")
+internal data class OpenPgpCertificateMaterialReconcileSuccessOutcomeProto(
+    @ProtoNumber(1)
+    val value: OpenPgpCertificateMaterialReconcileSuccessProto,
+) : OpenPgpCertificateMaterialReconcileOutcomeProto
+
+@Serializable
+@SerialName("error")
+internal data class OpenPgpCertificateMaterialReconcileErrorOutcomeProto(
+    @ProtoNumber(2)
+    val value: OpenPgpCertificateMaterialReconcileErrorProto,
+) : OpenPgpCertificateMaterialReconcileOutcomeProto
+
+@Serializable
+internal data class OpenPgpCertificateMaterialReconcileV2RequestProto(
+    @ProtoNumber(1)
+    val expectedPrimaryFingerprint: String,
+    @ProtoNumber(2)
+    val existingPublicCertificate: ByteArray? = null,
+    @ProtoNumber(3)
+    val incomingPublicCertificate: ByteArray? = null,
+    @ProtoNumber(4)
+    val existingSecretCertificate: ByteArray? = null,
+    @ProtoNumber(5)
+    val incomingSecretCertificate: ByteArray? = null,
+)
+
+@Serializable
+internal data class OpenPgpCertificateMaterialInputContributionProto(
+    @ProtoNumber(1)
+    val present: Boolean = false,
+    @ProtoNumber(2)
+    val uniquePublicEvidence: Boolean = false,
+    @ProtoNumber(3)
+    val uniqueSecretCapability: Boolean = false,
+)
+
+@Serializable
+internal data class OpenPgpCertificateMaterialContributionsProto(
+    @ProtoNumber(1)
+    val existingPublic: OpenPgpCertificateMaterialInputContributionProto? = null,
+    @ProtoNumber(2)
+    val incomingPublic: OpenPgpCertificateMaterialInputContributionProto? = null,
+    @ProtoNumber(3)
+    val existingSecret: OpenPgpCertificateMaterialInputContributionProto? = null,
+    @ProtoNumber(4)
+    val incomingSecret: OpenPgpCertificateMaterialInputContributionProto? = null,
+)
+
+@Serializable
+internal enum class OpenPgpCertificateMaterialWithheldReasonProto {
+    @ProtoNumber(0)
+    UNSPECIFIED,
+
+    @ProtoNumber(1)
+    NO_TRANSFERABLE_PUBLIC_CERTIFICATE,
+
+    @ProtoNumber(2)
+    LOCAL_PUBLIC_EVIDENCE,
+
+    @ProtoNumber(3)
+    SECRET_MATERIAL_NOT_TRANSFERABLE,
+}
+
+@Serializable
+internal data class OpenPgpCertificateMaterialReconcileV2SuccessProto(
+    @ProtoNumber(1)
+    val localPublicMaterial: ByteArray = byteArrayOf(),
+    @ProtoNumber(2)
+    val localSecretMaterial: ByteArray? = null,
+    @ProtoNumber(3)
+    val transferablePublicCertificate: ByteArray? = null,
+    @ProtoNumber(4)
+    val transferableSecretKey: ByteArray? = null,
+    @ProtoNumber(5)
+    val primaryFingerprint: String = "",
+    @ProtoNumber(6)
+    val contributions: OpenPgpCertificateMaterialContributionsProto? = null,
+    @ProtoNumber(7)
+    val withheldReasons: List<OpenPgpCertificateMaterialWithheldReasonProto> = emptyList(),
+)
+
+@Serializable
+internal data class OpenPgpCertificateMaterialReconcileV2ResultProto(
+    @ProtoOneOf
+    val result: OpenPgpCertificateMaterialReconcileV2OutcomeProto? = null,
+)
+
+@Serializable
+internal sealed interface OpenPgpCertificateMaterialReconcileV2OutcomeProto
+
+@Serializable
+@SerialName("success")
+internal data class OpenPgpCertificateMaterialReconcileV2SuccessOutcomeProto(
+    @ProtoNumber(1)
+    val value: OpenPgpCertificateMaterialReconcileV2SuccessProto,
+) : OpenPgpCertificateMaterialReconcileV2OutcomeProto
+
+@Serializable
+@SerialName("error")
+internal data class OpenPgpCertificateMaterialReconcileV2ErrorOutcomeProto(
+    @ProtoNumber(2)
+    val value: OpenPgpCertificateMaterialReconcileErrorProto,
+) : OpenPgpCertificateMaterialReconcileV2OutcomeProto
+
+@Serializable
+internal data class OpenPgpUserIdRevocationRequestProto(
+    @ProtoNumber(1)
+    val privateKey: ByteArray,
+    @ProtoNumber(2)
+    val publicKey: ByteArray,
+    @ProtoNumber(3)
+    val expectedPrimaryFingerprint: String,
+    @ProtoNumber(4)
+    val identityId: String,
+    @ProtoNumber(5)
+    val candidateRevocationKeys: List<ByteArray> = emptyList(),
+    @ProtoNumber(6)
+    val referenceTimeEpochSeconds: Long,
+)
+
+@Serializable
+internal enum class OpenPgpUserIdRevocationErrorReasonProto {
+    @ProtoNumber(0)
+    UNSPECIFIED,
+
+    @ProtoNumber(1)
+    EMPTY_PRIVATE_KEY,
+
+    @ProtoNumber(2)
+    MALFORMED_KEY,
+
+    @ProtoNumber(3)
+    FINGERPRINT_MISMATCH,
+
+    @ProtoNumber(4)
+    TARGET_NOT_FOUND,
+
+    @ProtoNumber(5)
+    LAST_USER_ID,
+
+    @ProtoNumber(6)
+    UNSUPPORTED_KEY_VERSION,
+
+    @ProtoNumber(7)
+    PROTECTED_SECRET_KEY,
+
+    @ProtoNumber(8)
+    MISSING_SELF_SIGNATURE,
+
+    @ProtoNumber(9)
+    NON_REVOCABLE,
+
+    @ProtoNumber(10)
+    TIME_CONFLICT,
+
+    @ProtoNumber(11)
+    SIGNATURE_VERIFICATION_FAILED,
+
+    @ProtoNumber(12)
+    METADATA_RESOLUTION_FAILED,
+
+    @ProtoNumber(13)
+    INTERNAL_FAILURE,
+
+    @ProtoNumber(14)
+    CERTIFICATE_REVOKED,
+
+    @ProtoNumber(15)
+    UNRESOLVED_REVOCATION_AUTHORITY,
+
+    @ProtoNumber(16)
+    UNSUPPORTED_SIGNING_HASH,
+}
+
+@Serializable
+internal data class OpenPgpUserIdRevocationSuccessProto(
+    @ProtoNumber(1)
+    val keyMaterial: OpenPgpKeyMaterialProto? = null,
+    /** Empty for an unchanged result or a local-only mutation. */
+    @ProtoNumber(3)
+    val revocationCertificateArmored: ByteArray = byteArrayOf(),
+    @ProtoNumber(4)
+    val changed: Boolean = false,
+    @ProtoNumber(5)
+    val effectiveAtEpochSeconds: Long = 0L,
+    @ProtoNumber(6)
+    val certificateIndex: OpenPgpCertificateIndexV2Proto? = null,
+)
+
+@Serializable
+internal data class OpenPgpUserIdRevocationErrorProto(
+    @ProtoNumber(1)
+    val reason: OpenPgpUserIdRevocationErrorReasonProto =
+        OpenPgpUserIdRevocationErrorReasonProto.UNSPECIFIED,
+)
+
+@Serializable
+internal data class OpenPgpUserIdRevocationResultProto(
+    @ProtoOneOf
+    val result: OpenPgpUserIdRevocationOutcomeProto? = null,
+)
+
+@Serializable
+internal sealed interface OpenPgpUserIdRevocationOutcomeProto
+
+@Serializable
+@SerialName("success")
+internal data class OpenPgpUserIdRevocationSuccessOutcomeProto(
+    @ProtoNumber(1)
+    val value: OpenPgpUserIdRevocationSuccessProto,
+) : OpenPgpUserIdRevocationOutcomeProto
+
+@Serializable
+@SerialName("error")
+internal data class OpenPgpUserIdRevocationErrorOutcomeProto(
+    @ProtoNumber(2)
+    val value: OpenPgpUserIdRevocationErrorProto,
+) : OpenPgpUserIdRevocationOutcomeProto
+
+@Serializable
+internal data class OpenPgpUserIdReplacementRequestProto(
+    @ProtoNumber(1)
+    val privateKey: ByteArray,
+    @ProtoNumber(2)
+    val publicKey: ByteArray,
+    @ProtoNumber(3)
+    val expectedPrimaryFingerprint: String,
+    @ProtoNumber(4)
+    val oldIdentityId: String,
+    @ProtoNumber(5)
+    val newUserId: String,
+    @ProtoNumber(6)
+    val candidateRevocationKeys: List<ByteArray> = emptyList(),
+    @ProtoNumber(7)
+    val referenceTimeEpochSeconds: Long,
+)
+
+@Serializable
+internal enum class OpenPgpUserIdReplacementErrorReasonProto {
+    @ProtoNumber(0)
+    UNSPECIFIED,
+
+    @ProtoNumber(1)
+    EMPTY_PRIVATE_KEY,
+
+    @ProtoNumber(2)
+    MALFORMED_KEY,
+
+    @ProtoNumber(3)
+    FINGERPRINT_MISMATCH,
+
+    @ProtoNumber(4)
+    TARGET_NOT_FOUND,
+
+    @ProtoNumber(5)
+    TARGET_INACTIVE,
+
+    @ProtoNumber(6)
+    INVALID_NEW_USER_ID,
+
+    @ProtoNumber(7)
+    SAME_IDENTITY,
+
+    @ProtoNumber(8)
+    DUPLICATE_IDENTITY,
+
+    @ProtoNumber(9)
+    PREVIOUSLY_REVOKED_IDENTITY,
+
+    @ProtoNumber(10)
+    AMBIGUOUS_PRIMARY,
+
+    @ProtoNumber(11)
+    UNSUPPORTED_KEY_VERSION,
+
+    @ProtoNumber(12)
+    PROTECTED_SECRET_KEY,
+
+    @ProtoNumber(13)
+    MISSING_SELF_SIGNATURE,
+
+    @ProtoNumber(14)
+    NON_REVOCABLE,
+
+    @ProtoNumber(15)
+    UNSUPPORTED_TEMPLATE,
+
+    @ProtoNumber(16)
+    TIME_CONFLICT,
+
+    @ProtoNumber(17)
+    SIGNATURE_VERIFICATION_FAILED,
+
+    @ProtoNumber(18)
+    METADATA_RESOLUTION_FAILED,
+
+    @ProtoNumber(19)
+    INTERNAL_FAILURE,
+
+    @ProtoNumber(20)
+    CERTIFICATE_REVOKED,
+
+    @ProtoNumber(21)
+    UNRESOLVED_REVOCATION_AUTHORITY,
+
+    @ProtoNumber(22)
+    UNSUPPORTED_SIGNING_HASH,
+
+    @ProtoNumber(23)
+    POLICY_CONFLICT,
+}
+
+@Serializable
+internal data class OpenPgpUserIdReplacementSuccessProto(
+    @ProtoNumber(1)
+    val keyMaterial: OpenPgpKeyMaterialProto? = null,
+    /** Empty for an unchanged result or a local-only mutation. */
+    @ProtoNumber(3)
+    val replacementCertificateArmored: ByteArray = byteArrayOf(),
+    @ProtoNumber(4)
+    val changed: Boolean = false,
+    @ProtoNumber(5)
+    val effectiveAtEpochSeconds: Long = 0L,
+    @ProtoNumber(6)
+    val oldIdentityId: String = "",
+    @ProtoNumber(7)
+    val newIdentityId: String = "",
+    @ProtoNumber(8)
+    val primaryUserId: String = "",
+    @ProtoNumber(9)
+    val certificateIndex: OpenPgpCertificateIndexV2Proto? = null,
+)
+
+@Serializable
+internal data class OpenPgpUserIdReplacementErrorProto(
+    @ProtoNumber(1)
+    val reason: OpenPgpUserIdReplacementErrorReasonProto =
+        OpenPgpUserIdReplacementErrorReasonProto.UNSPECIFIED,
+)
+
+@Serializable
+internal data class OpenPgpUserIdReplacementResultProto(
+    @ProtoOneOf
+    val result: OpenPgpUserIdReplacementOutcomeProto? = null,
+)
+
+@Serializable
+internal sealed interface OpenPgpUserIdReplacementOutcomeProto
+
+@Serializable
+@SerialName("success")
+internal data class OpenPgpUserIdReplacementSuccessOutcomeProto(
+    @ProtoNumber(1)
+    val value: OpenPgpUserIdReplacementSuccessProto,
+) : OpenPgpUserIdReplacementOutcomeProto
+
+@Serializable
+@SerialName("error")
+internal data class OpenPgpUserIdReplacementErrorOutcomeProto(
+    @ProtoNumber(2)
+    val value: OpenPgpUserIdReplacementErrorProto,
+) : OpenPgpUserIdReplacementOutcomeProto
 
 @Serializable
 internal enum class OpenPgpAgentErrorReasonProto {

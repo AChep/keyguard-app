@@ -13,10 +13,12 @@ use pgp::armor::BlockType;
 use zeroize::Zeroize;
 
 use crate::openpgp::certificate::{
-    CanonicalCertificate, CertificateMergeError, MutationMaterialError, SecretCertificateOverlay,
-    SecretOverlayMergeError, armor_key_packets, canonicalize_public_certificate_material,
-    merge_public_certificate_material_documents, merge_secret_certificate_overlays,
-    normalize_expected_fingerprint, project_secret_certificate, rebuild_secret_certificate,
+    CanonicalCertificate, CertificateMergeError, ExportClassificationBudget, MutationMaterialError,
+    PublicCertificatePacketSet, SecretCertificateOverlay, SecretOverlayMergeError,
+    SignatureRehomingBudget, armor_key_packets, merge_secret_certificate_overlays,
+    normalize_expected_fingerprint, parse_public_certificate_packet_set_with_budget,
+    project_secret_certificate, rebuild_secret_certificate,
+    rebuild_transferable_secret_certificate,
 };
 
 pub(crate) struct CertificateMaterialReconcileInput {
@@ -39,13 +41,21 @@ impl Drop for CertificateMaterialReconcileInput {
 }
 
 pub(crate) struct CertificateMaterialReconcileSuccess {
+    /// V1 compatibility field containing local public material.
     pub(crate) public_certificate: Vec<u8>,
+    /// Packet-preserving local public evidence for V2 persistence.
+    pub(crate) local_public_material: Vec<u8>,
+    /// V1 compatibility field containing local secret material.
     pub(crate) private_certificate: Option<Vec<u8>>,
+    pub(crate) transferable_public_certificate: Option<Vec<u8>>,
+    pub(crate) transferable_private_certificate: Option<Vec<u8>>,
     pub(crate) primary_fingerprint: String,
     pub(crate) existing_public_contributed: bool,
     pub(crate) incoming_public_contributed: bool,
     pub(crate) existing_secret_contributed: bool,
     pub(crate) incoming_secret_contributed: bool,
+    pub(crate) contributions: CertificateMaterialContributions,
+    pub(crate) withheld_reasons: Vec<MaterialWithheldReason>,
 }
 
 impl Drop for CertificateMaterialReconcileSuccess {
@@ -53,7 +63,32 @@ impl Drop for CertificateMaterialReconcileSuccess {
         if let Some(private) = self.private_certificate.as_mut() {
             private.zeroize();
         }
+        if let Some(private) = self.transferable_private_certificate.as_mut() {
+            private.zeroize();
+        }
     }
+}
+
+#[derive(Clone, Copy)]
+pub(crate) struct CertificateMaterialContributions {
+    pub(crate) existing_public: MaterialInputContribution,
+    pub(crate) incoming_public: MaterialInputContribution,
+    pub(crate) existing_secret: MaterialInputContribution,
+    pub(crate) incoming_secret: MaterialInputContribution,
+}
+
+#[derive(Clone, Copy)]
+pub(crate) struct MaterialInputContribution {
+    pub(crate) present: bool,
+    pub(crate) unique_public_evidence: bool,
+    pub(crate) unique_secret_capability: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum MaterialWithheldReason {
+    NoTransferablePublicCertificate,
+    LocalPublicEvidence,
+    SecretMaterialNotTransferable,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -64,6 +99,7 @@ pub(crate) enum MaterialInputError {
     FingerprintMismatch,
     ComponentCollision,
     ResourceLimit,
+    UnsupportedTskLayout,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -73,6 +109,7 @@ pub(crate) enum MaterialPairError {
     ComponentCollision,
     ResourceLimit,
     InvalidRebuiltOutput,
+    ConflictingSecretMaterial,
 }
 
 pub(crate) enum ReconcileError {
@@ -89,22 +126,44 @@ pub(crate) enum ReconcileError {
 struct PublicMaterial {
     bytes: Vec<u8>,
     retained_bytes: Vec<u8>,
+    transferable_bytes: Option<Vec<u8>>,
     fingerprint: String,
 }
 
 struct SecretMaterial {
-    projection: PublicMaterial,
+    projection: PublicCertificatePacketSet,
     overlay: SecretCertificateOverlay,
+}
+
+/// Cryptographic verification accounting owned by one reconciliation request.
+/// Every stage borrows these values; no nested operation may reset them.
+#[derive(Default)]
+struct ReconcileWorkBudget {
+    signature_rehoming: SignatureRehomingBudget,
+    export_classification: ExportClassificationBudget,
+}
+
+#[cfg(test)]
+impl ReconcileWorkBudget {
+    fn with_request_limits(signature_rehoming: usize, export_classification: usize) -> Self {
+        Self {
+            signature_rehoming: SignatureRehomingBudget::with_request_limit(signature_rehoming),
+            export_classification: ExportClassificationBudget::with_request_limit(
+                export_classification,
+            ),
+        }
+    }
 }
 
 pub(crate) fn reconcile_certificate_material_request(
     request: CertificateMaterialReconcileInput,
 ) -> Result<CertificateMaterialReconcileSuccess, ReconcileError> {
-    reconcile_certificate_material(&request)
+    reconcile_certificate_material(&request, &mut ReconcileWorkBudget::default())
 }
 
 fn reconcile_certificate_material(
     request: &CertificateMaterialReconcileInput,
+    budget: &mut ReconcileWorkBudget,
 ) -> Result<CertificateMaterialReconcileSuccess, ReconcileError> {
     let expected_fingerprint =
         normalize_expected_fingerprint(&request.expected_primary_fingerprint)
@@ -112,18 +171,22 @@ fn reconcile_certificate_material(
     let existing = validate_public_input(
         request.existing_public_certificate.as_deref(),
         &expected_fingerprint,
+        &mut budget.signature_rehoming,
     );
     let incoming = validate_public_input(
         request.incoming_public_certificate.as_deref(),
         &expected_fingerprint,
+        &mut budget.signature_rehoming,
     );
     let existing_secret = validate_secret_input(
         request.existing_secret_certificate.as_deref(),
         &expected_fingerprint,
+        &mut budget.signature_rehoming,
     );
     let incoming_secret = validate_secret_input(
         request.incoming_secret_certificate.as_deref(),
         &expected_fingerprint,
+        &mut budget.signature_rehoming,
     );
     if matches!(existing, Err(InputValidationFailure::Internal))
         || matches!(incoming, Err(InputValidationFailure::Internal))
@@ -161,6 +224,14 @@ fn reconcile_certificate_material(
         return Err(ReconcileError::Internal);
     };
 
+    let public_inputs = [
+        existing.as_ref(),
+        incoming.as_ref(),
+        existing_secret.as_ref().map(|secret| &secret.projection),
+        incoming_secret.as_ref().map(|secret| &secret.projection),
+    ];
+    let input_present = public_inputs.map(|input| input.is_some());
+
     let existing_side = build_side(
         existing.as_ref(),
         existing_secret.as_ref().map(|secret| &secret.projection),
@@ -171,19 +242,25 @@ fn reconcile_certificate_material(
     )?;
     let merged = build_side(existing_side.as_ref(), incoming_side.as_ref())?
         .ok_or(ReconcileError::Pair(MaterialPairError::MissingMaterial))?;
-    if merged.fingerprint != expected_fingerprint {
+    if merged.fingerprint_hex() != expected_fingerprint {
         return Err(ReconcileError::Pair(MaterialPairError::FingerprintMismatch));
     }
+    let unique_public_evidence = unique_public_evidence(&merged, public_inputs)?;
     let existing_public_contributed = existing_side.as_ref().is_some_and(|_| {
         incoming_side
             .as_ref()
-            .is_none_or(|incoming| merged.bytes != incoming.bytes)
+            .is_none_or(|incoming| merged != *incoming)
     });
     let incoming_public_contributed = incoming_side.as_ref().is_some_and(|_| {
         existing_side
             .as_ref()
-            .is_none_or(|existing| merged.bytes != existing.bytes)
+            .is_none_or(|existing| merged != *existing)
     });
+
+    let merged = merged
+        .finalize_with_export_budget(&[], &mut budget.export_classification)
+        .map(public_material)
+        .map_err(map_pair_merge_error)?;
 
     if merged.bytes.is_empty() {
         return Err(ReconcileError::Pair(
@@ -191,6 +268,14 @@ fn reconcile_certificate_material(
         ));
     }
     let public_certificate = armor_key_packets(&merged.bytes, BlockType::PublicKey)
+        .map_err(map_output_material_error)?;
+    let local_public_material = armor_key_packets(&merged.retained_bytes, BlockType::PublicKey)
+        .map_err(map_output_material_error)?;
+    let transferable_public_certificate = merged
+        .transferable_bytes
+        .as_deref()
+        .map(|bytes| armor_key_packets(bytes, BlockType::PublicKey))
+        .transpose()
         .map_err(map_output_material_error)?;
     let merged_secret = merge_secret_certificate_overlays(
         existing_secret.map(|secret| secret.overlay),
@@ -201,20 +286,92 @@ fn reconcile_certificate_material(
         .as_ref()
         .map(|secret| rebuild_and_validate_private(&merged, &secret.overlay))
         .transpose()?;
+    let transferable_private_certificate = merged_secret
+        .as_ref()
+        .map(|secret| rebuild_and_validate_transferable_private(&merged, &secret.overlay))
+        .transpose()?
+        .flatten();
+    let mut withheld_reasons = Vec::new();
+    match merged.transferable_bytes.as_deref() {
+        None => withheld_reasons.push(MaterialWithheldReason::NoTransferablePublicCertificate),
+        Some(transferable) if transferable != merged.retained_bytes => {
+            withheld_reasons.push(MaterialWithheldReason::LocalPublicEvidence);
+        }
+        Some(_) => {}
+    }
+    if private_certificate.is_some()
+        && private_certificate.as_deref() != transferable_private_certificate.as_deref()
+    {
+        withheld_reasons.push(MaterialWithheldReason::SecretMaterialNotTransferable);
+    }
+    let existing_secret_contributed = merged_secret
+        .as_ref()
+        .is_some_and(|secret| secret.existing_contributed);
+    let incoming_secret_contributed = merged_secret
+        .as_ref()
+        .is_some_and(|secret| secret.incoming_contributed);
 
     Ok(CertificateMaterialReconcileSuccess {
         public_certificate,
+        local_public_material,
         private_certificate,
+        transferable_public_certificate,
+        transferable_private_certificate,
         primary_fingerprint: merged.fingerprint,
         existing_public_contributed,
         incoming_public_contributed,
-        existing_secret_contributed: merged_secret
-            .as_ref()
-            .is_some_and(|secret| secret.existing_contributed),
-        incoming_secret_contributed: merged_secret
-            .as_ref()
-            .is_some_and(|secret| secret.incoming_contributed),
+        existing_secret_contributed,
+        incoming_secret_contributed,
+        contributions: CertificateMaterialContributions {
+            existing_public: MaterialInputContribution {
+                present: input_present[0],
+                unique_public_evidence: unique_public_evidence[0],
+                unique_secret_capability: false,
+            },
+            incoming_public: MaterialInputContribution {
+                present: input_present[1],
+                unique_public_evidence: unique_public_evidence[1],
+                unique_secret_capability: false,
+            },
+            existing_secret: MaterialInputContribution {
+                present: input_present[2],
+                unique_public_evidence: unique_public_evidence[2],
+                unique_secret_capability: existing_secret_contributed,
+            },
+            incoming_secret: MaterialInputContribution {
+                present: input_present[3],
+                unique_public_evidence: unique_public_evidence[3],
+                unique_secret_capability: incoming_secret_contributed,
+            },
+        },
+        withheld_reasons,
     })
+}
+
+fn unique_public_evidence(
+    merged: &PublicCertificatePacketSet,
+    inputs: [Option<&PublicCertificatePacketSet>; 4],
+) -> Result<[bool; 4], ReconcileError> {
+    // Packet-set equality covers all retained evidence after deterministic
+    // ordering, so omission analysis does not need to parse or classify the
+    // same certificates again.
+    let mut unique = [false; 4];
+    for (omitted_index, input) in inputs.iter().enumerate() {
+        if input.is_none() {
+            continue;
+        }
+        let documents = inputs
+            .iter()
+            .enumerate()
+            .filter_map(|(index, material)| (index != omitted_index).then_some(*material).flatten())
+            .collect::<Vec<_>>();
+        unique[omitted_index] = if documents.is_empty() {
+            true
+        } else {
+            merge_packet_sets(&documents)? != *merged
+        };
+    }
+    Ok(unique)
 }
 
 enum InputValidationFailure {
@@ -234,7 +391,8 @@ fn invalid_input<T>(
 fn validate_public_input(
     data: Option<&[u8]>,
     expected_fingerprint: &str,
-) -> Result<Option<PublicMaterial>, InputValidationFailure> {
+    budget: &mut SignatureRehomingBudget,
+) -> Result<Option<PublicCertificatePacketSet>, InputValidationFailure> {
     let Some(data) = data else {
         return Ok(None);
     };
@@ -243,19 +401,20 @@ fn validate_public_input(
             MaterialInputError::EmptyCertificate,
         ));
     }
-    let canonical =
-        canonicalize_public_certificate_material(data).map_err(map_public_input_error)?;
-    if canonical.fingerprint != expected_fingerprint {
+    let certificate = parse_public_certificate_packet_set_with_budget(data, budget)
+        .map_err(map_public_input_error)?;
+    if certificate.fingerprint_hex() != expected_fingerprint {
         return Err(InputValidationFailure::Invalid(
             MaterialInputError::FingerprintMismatch,
         ));
     }
-    Ok(Some(public_material(canonical)))
+    Ok(Some(certificate))
 }
 
 fn validate_secret_input(
     data: Option<&[u8]>,
     expected_fingerprint: &str,
+    budget: &mut SignatureRehomingBudget,
 ) -> Result<Option<SecretMaterial>, InputValidationFailure> {
     let Some(data) = data else {
         return Ok(None);
@@ -266,51 +425,58 @@ fn validate_secret_input(
         ));
     }
     let (projection, overlay) = project_secret_certificate(data).map_err(map_secret_input_error)?;
-    let canonical =
-        canonicalize_public_certificate_material(&projection).map_err(map_public_input_error)?;
-    if canonical.fingerprint != expected_fingerprint {
+    let projection = parse_public_certificate_packet_set_with_budget(&projection, budget)
+        .map_err(map_public_input_error)?;
+    if projection.fingerprint_hex() != expected_fingerprint {
         return Err(InputValidationFailure::Invalid(
             MaterialInputError::FingerprintMismatch,
         ));
     }
     Ok(Some(SecretMaterial {
-        projection: public_material(canonical),
+        projection,
         overlay,
     }))
 }
 
 fn public_material(canonical: CanonicalCertificate) -> PublicMaterial {
+    let transferable_bytes = canonical.transferable.then_some(canonical.bytes);
     PublicMaterial {
         // Reconciliation is vault/device local state, not an external
         // transferable export. Preserve bare components for later repair while
         // retaining the existing public-projection privacy filters.
         bytes: canonical.local_public_bytes,
         retained_bytes: canonical.retained_bytes,
+        transferable_bytes,
         fingerprint: canonical.fingerprint,
     }
 }
 
 fn build_side(
-    public: Option<&PublicMaterial>,
-    secret_projection: Option<&PublicMaterial>,
-) -> Result<Option<PublicMaterial>, ReconcileError> {
+    public: Option<&PublicCertificatePacketSet>,
+    secret_projection: Option<&PublicCertificatePacketSet>,
+) -> Result<Option<PublicCertificatePacketSet>, ReconcileError> {
     match (public, secret_projection) {
         (None, None) => Ok(None),
-        (Some(value), None) | (None, Some(value)) => Ok(Some(PublicMaterial {
-            bytes: value.bytes.clone(),
-            retained_bytes: value.retained_bytes.clone(),
-            fingerprint: value.fingerprint.clone(),
-        })),
-        (Some(public), Some(secret)) => {
-            merge_documents(&[&public.retained_bytes, &secret.retained_bytes]).map(Some)
-        }
+        (Some(value), None) | (None, Some(value)) => merge_packet_sets(&[value]).map(Some),
+        (Some(public), Some(secret)) => merge_packet_sets(&[public, secret]).map(Some),
     }
 }
 
-fn merge_documents(documents: &[&[u8]]) -> Result<PublicMaterial, ReconcileError> {
-    merge_public_certificate_material_documents(documents)
-        .map(public_material)
-        .map_err(map_pair_merge_error)
+fn merge_packet_sets(
+    certificates: &[&PublicCertificatePacketSet],
+) -> Result<PublicCertificatePacketSet, ReconcileError> {
+    let mut certificates = certificates.iter().copied();
+    let mut merged = certificates
+        .next()
+        .ok_or(ReconcileError::Pair(MaterialPairError::MissingMaterial))?
+        .clone();
+    for certificate in certificates {
+        merged
+            .merge(certificate.clone())
+            .map_err(map_pair_merge_error)?;
+    }
+    merged.sort_component_order();
+    Ok(merged)
 }
 
 fn rebuild_and_validate_private(
@@ -321,25 +487,41 @@ fn rebuild_and_validate_private(
         .map_err(map_output_material_error)?;
     let (projection, _) =
         project_secret_certificate(&private_packets).map_err(map_output_material_error)?;
-    let canonical_projection =
-        canonicalize_public_certificate_material(&projection).map_err(|error| match error {
-            CertificateMergeError::Internal => ReconcileError::Internal,
-            CertificateMergeError::Malformed
-            | CertificateMergeError::UnsupportedKeyVersion
-            | CertificateMergeError::ComponentCollision
-            | CertificateMergeError::ResourceLimit => {
-                ReconcileError::Pair(MaterialPairError::InvalidRebuiltOutput)
-            }
-        })?;
-    if canonical_projection.fingerprint != public.fingerprint
-        || canonical_projection.local_public_bytes != public.bytes
-        || canonical_projection.retained_bytes != public.retained_bytes
-    {
+    // The rebuild starts from these canonical public packets and changes only
+    // their key-packet secret suffixes. Projecting it must recover them exactly.
+    if projection != public.retained_bytes {
         return Err(ReconcileError::Pair(
             MaterialPairError::InvalidRebuiltOutput,
         ));
     }
     armor_key_packets(&private_packets, BlockType::PrivateKey).map_err(map_output_material_error)
+}
+
+fn rebuild_and_validate_transferable_private(
+    public: &PublicMaterial,
+    overlay: &SecretCertificateOverlay,
+) -> Result<Option<Vec<u8>>, ReconcileError> {
+    let Some(transferable_public) = public.transferable_bytes.as_deref() else {
+        return Ok(None);
+    };
+    let Some(private_packets) =
+        rebuild_transferable_secret_certificate(transferable_public, overlay)
+            .map_err(map_output_material_error)?
+    else {
+        return Ok(None);
+    };
+    let (projection, _) =
+        project_secret_certificate(&private_packets).map_err(map_output_material_error)?;
+    // Exact recovery is stronger than reparsing and re-canonicalizing the same
+    // public evidence with another cryptographic work allowance.
+    if projection != transferable_public {
+        return Err(ReconcileError::Pair(
+            MaterialPairError::InvalidRebuiltOutput,
+        ));
+    }
+    armor_key_packets(&private_packets, BlockType::PrivateKey)
+        .map(Some)
+        .map_err(map_output_material_error)
 }
 
 fn map_public_input_error(error: CertificateMergeError) -> InputValidationFailure {
@@ -371,6 +553,9 @@ fn map_secret_input_error(error: MutationMaterialError) -> InputValidationFailur
         MutationMaterialError::UnsupportedKeyVersion => {
             InputValidationFailure::Invalid(MaterialInputError::UnsupportedKeyVersion)
         }
+        MutationMaterialError::UnsupportedTskLayout => {
+            InputValidationFailure::Invalid(MaterialInputError::UnsupportedTskLayout)
+        }
         MutationMaterialError::ResourceLimit => {
             InputValidationFailure::Invalid(MaterialInputError::ResourceLimit)
         }
@@ -399,6 +584,9 @@ fn map_secret_overlay_merge_error(error: SecretOverlayMergeError) -> ReconcileEr
         SecretOverlayMergeError::ComponentMismatch => {
             ReconcileError::Pair(MaterialPairError::ComponentCollision)
         }
+        SecretOverlayMergeError::ConflictingSecretMaterial => {
+            ReconcileError::Pair(MaterialPairError::ConflictingSecretMaterial)
+        }
     }
 }
 
@@ -410,6 +598,7 @@ fn map_output_material_error(error: MutationMaterialError) -> ReconcileError {
         MutationMaterialError::MalformedKey
         | MutationMaterialError::FingerprintMismatch
         | MutationMaterialError::UnsupportedKeyVersion
+        | MutationMaterialError::UnsupportedTskLayout
         | MutationMaterialError::SignatureVerificationFailed => {
             ReconcileError::Pair(MaterialPairError::InvalidRebuiltOutput)
         }

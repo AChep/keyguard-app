@@ -102,6 +102,8 @@ pub const CAPABILITY_OPENPGP_SIGNED_REVOCATION: u64 = 1 << 29;
 pub const CAPABILITY_OPENPGP_USER_ID_REPLACEMENT: u64 = 1 << 30;
 /// Coherent public/secret OpenPGP certificate material reconciliation.
 pub const CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE: u64 = 1 << 31;
+/// OpenPGP reconciliation with separate local and transferable material outputs.
+pub const CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2: u64 = 1 << 32;
 /// Complete capability set provided by this native library revision.
 pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_PBKDF2_SHA256
@@ -134,7 +136,8 @@ pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_OPENPGP_EXTERNAL_REVOCATION_POLICY
     | CAPABILITY_OPENPGP_SIGNED_REVOCATION
     | CAPABILITY_OPENPGP_USER_ID_REPLACEMENT
-    | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE;
+    | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE
+    | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2;
 
 static PANIC_HOOK: Once = Once::new();
 
@@ -565,6 +568,9 @@ fn execute_one_shot(
         native_request::Operation::OpenPgpCertificateMaterialReconcile(request) => {
             openpgp::adapter::reconcile_certificate_material(request)?
         }
+        native_request::Operation::OpenPgpCertificateMaterialReconcileV2(request) => {
+            openpgp::adapter::reconcile_certificate_material_v2(request)?
+        }
         native_request::Operation::OpenPgpUserIdRevocation(request) => {
             openpgp::adapter::revoke_user_id(request)?
         }
@@ -631,6 +637,9 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::OpenPgpExpirationUpdate(_) => "open_pgp_expiration_update",
         native_request::Operation::OpenPgpCertificateMaterialReconcile(_) => {
             "open_pgp_certificate_material_reconcile"
+        }
+        native_request::Operation::OpenPgpCertificateMaterialReconcileV2(_) => {
+            "open_pgp_certificate_material_reconcile_v2"
         }
         native_request::Operation::OpenPgpUserIdRevocation(_) => "open_pgp_user_id_revocation",
         native_request::Operation::OpenPgpUserIdReplacement(_) => "open_pgp_user_id_replacement",
@@ -817,7 +826,8 @@ mod tests {
         AesEcbNoPaddingTransformRequest, Argon2Request, DigestRequest, DigestStreamOpenRequest,
         HkdfSha256Request, HmacRequest, HmacSha256StreamOpenRequest, HmacStreamOpenRequest,
         NativeStreamOpenRequest, OpenPgpCertificateMaterialReconcileRequest,
-        OpenPgpCertificateMaterialReconcileSuccess, OpenPgpDetachedVerifyStreamOpenRequest,
+        OpenPgpCertificateMaterialReconcileSuccess, OpenPgpCertificateMaterialReconcileV2Request,
+        OpenPgpCertificateMaterialReconcileV2Success, OpenPgpDetachedVerifyStreamOpenRequest,
         OpenPgpMetadataResolveRequest, OpenPgpPublicKeyParseRequest,
         OpenPgpUserIdReplacementRequest, OpenPgpUserIdRevocationRequest, OpenPgpVerifyKind,
         OpenPgpVerifyRequest, Pbkdf2Sha256Request, RandomBytesRequest, RandomIntRequest,
@@ -1030,6 +1040,34 @@ mod tests {
     }
 
     #[test]
+    fn decoded_certificate_material_v2_request_zeroizes_on_unsupported_protocol() {
+        let unsupported = NativeRequest {
+            protocol_version: PROTOCOL_VERSION + 1,
+            operation: Some(
+                native_request::Operation::OpenPgpCertificateMaterialReconcileV2(
+                    OpenPgpCertificateMaterialReconcileV2Request {
+                        expected_primary_fingerprint: "00".repeat(20),
+                        existing_public_certificate: None,
+                        incoming_public_certificate: None,
+                        existing_secret_certificate: Some(b"unsupported-v2-secret".to_vec()),
+                        incoming_secret_certificate: Some(b"second-v2-secret".to_vec()),
+                    },
+                ),
+            ),
+        }
+        .encode_to_vec();
+
+        protocol::reset_zeroized_secret_request_drops();
+        let response = NativeResponse::decode(call(&unsupported).as_slice())
+            .expect("unsupported-protocol response must decode");
+        assert_eq!(
+            response.status.map(|status| status.code),
+            Some(NativeErrorCode::UnsupportedProtocol as i32),
+        );
+        assert_eq!(protocol::zeroized_secret_request_drops(), 1);
+    }
+
+    #[test]
     fn decoded_ssh_agent_tcp_request_zeroizes_on_invalid_direction() {
         let encoded = NativeRequest {
             protocol_version: PROTOCOL_VERSION,
@@ -1165,6 +1203,18 @@ mod tests {
             incoming_secret_contributed: false,
         });
         assert_eq!(protocol::zeroized_secret_output_drops(), 1);
+
+        protocol::reset_zeroized_secret_output_drops();
+        drop(OpenPgpCertificateMaterialReconcileV2Success {
+            local_public_material: b"local public material".to_vec(),
+            local_secret_material: Some(b"local secret material".to_vec()),
+            transferable_public_certificate: Some(b"public certificate".to_vec()),
+            transferable_secret_key: Some(b"transferable secret key".to_vec()),
+            primary_fingerprint: "00".repeat(20),
+            contributions: None,
+            withheld_reasons: Vec::new(),
+        });
+        assert_eq!(protocol::zeroized_secret_output_drops(), 1);
     }
 
     fn response_bytes(response: NativeResponse) -> Vec<u8> {
@@ -1240,7 +1290,7 @@ mod tests {
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
         assert_eq!(PROTOCOL_VERSION, 2);
-        assert_eq!(CAPABILITIES, 0xffffffff);
+        assert_eq!(CAPABILITIES, 0x1ffffffff);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256, 1 << 20);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256_FAST_PATH, 1 << 21);
         assert_eq!(CAPABILITY_RANDOM_FAST_PATH, 1 << 23);
@@ -1253,6 +1303,10 @@ mod tests {
         assert_eq!(CAPABILITY_OPENPGP_SIGNED_REVOCATION, 1 << 29);
         assert_eq!(CAPABILITY_OPENPGP_USER_ID_REPLACEMENT, 1 << 30);
         assert_eq!(CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE, 1 << 31);
+        assert_eq!(
+            CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2,
+            1 << 32
+        );
     }
 
     #[test]

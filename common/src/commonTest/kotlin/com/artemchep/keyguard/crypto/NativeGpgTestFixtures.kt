@@ -1,0 +1,24 @@
+package com.artemchep.keyguard.crypto
+
+// Frozen CV25519 test certificate shared by the native GPG tests.
+internal const val GPG_TEST_CV25519_PRIMARY_FINGERPRINT: String =
+    "D0BBCFBB250D3BB0658E5384F83D947D29EFECF7"
+
+internal val GPG_TEST_CV25519_PUBLIC_KEY: String =
+    """
+    -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+    mDMEaj9rzxYJKwYBBAHaRw8BAQdAbF/WEPrIP6KKXMDvdC38qJefWOzgPjl1oRjO
+    Zq0b1Q60LEtleWd1YXJkIFRlc3QgQ1YyNTUxOSA8Y3YyNTUxOUB0ZXN0LmludmFs
+    aWQ+iK8EExYKAFcWIQTQu8+7JQ07sGWOU4T4PZR9Ke/s9wUCaj9rzxsUgAAAAAAE
+    AA5tYW51MiwyLjUrMS4xMiwwLDMCGwMFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcC
+    F4AACgkQ+D2UfSnv7PezOQD+JMrO7BD9rfc1ciIZoSW5NCw9N+8tkU8fOxKsdFQ+
+    0DEA/iZ7e3W2CRUGtt8UTHwzBLZOlgn5Ox4O/49/6/Cn92gEuDgEaj9r7BIKKwYB
+    BAGXVQEFAQEHQFzTFZW3PHTv8qstyY8CdxMH7TZJnkpIutnhRc7xun12AwEIB4iU
+    BBgWCgA8FiEE0LvPuyUNO7BljlOE+D2UfSnv7PcFAmo/a+wbFIAAAAAABAAObWFu
+    dTIsMi41KzEuMTIsMCwzAhsMAAoJEPg9lH0p7+z3LpQA/09tlKbt7+j26p+QwbCs
+    bu8oruCxbNY45226eyy6QxS9AQC6cwXPn1NewS7XjGGKea14CgjpvqstWe9PiyfJ
+    Y7c+CA==
+    =Kf2G
+    -----END PGP PUBLIC KEY BLOCK-----
+    """.trimIndent() + "\n"

@@ -658,6 +658,26 @@ impl Drop for OpenPgpCertificateMaterialReconcileRequest {
     }
 }
 
+impl Drop for OpenPgpCertificateMaterialReconcileV2Request {
+    fn drop(&mut self) {
+        if let Some(secret) = self.existing_secret_certificate.as_mut() {
+            zeroize::Zeroize::zeroize(secret);
+        }
+        if let Some(secret) = self.incoming_secret_certificate.as_mut() {
+            zeroize::Zeroize::zeroize(secret);
+        }
+        debug_assert!(
+            self.existing_secret_certificate
+                .iter()
+                .flatten()
+                .chain(self.incoming_secret_certificate.iter().flatten())
+                .all(|byte| *byte == 0)
+        );
+        #[cfg(test)]
+        record_zeroized_secret_request_drop();
+    }
+}
+
 impl Drop for OpenPgpAgentSignRequest {
     fn drop(&mut self) {
         zeroize::Zeroize::zeroize(&mut self.private_key);
@@ -756,6 +776,26 @@ impl Drop for OpenPgpCertificateMaterialReconcileSuccess {
             self.private_certificate
                 .iter()
                 .flatten()
+                .all(|byte| *byte == 0)
+        );
+        #[cfg(test)]
+        record_zeroized_secret_output_drop();
+    }
+}
+
+impl Drop for OpenPgpCertificateMaterialReconcileV2Success {
+    fn drop(&mut self) {
+        if let Some(secret) = self.local_secret_material.as_mut() {
+            zeroize::Zeroize::zeroize(secret);
+        }
+        if let Some(secret) = self.transferable_secret_key.as_mut() {
+            zeroize::Zeroize::zeroize(secret);
+        }
+        debug_assert!(
+            self.local_secret_material
+                .iter()
+                .flatten()
+                .chain(self.transferable_secret_key.iter().flatten())
                 .all(|byte| *byte == 0)
         );
         #[cfg(test)]

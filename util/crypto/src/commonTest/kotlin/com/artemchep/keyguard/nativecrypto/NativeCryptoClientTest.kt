@@ -10,6 +10,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -60,6 +61,10 @@ class NativeCryptoClientTest {
             NativeCryptoCapability.SSH_PUBLIC_KEY_DECODE,
             NativeCryptoCapability.OPENPGP_CLEAR_VERIFY,
             NativeCryptoCapability.OPENPGP_EXTERNAL_REVOCATION_POLICY,
+            NativeCryptoCapability.OPENPGP_SIGNED_REVOCATION,
+            NativeCryptoCapability.OPENPGP_USER_ID_REPLACEMENT,
+            NativeCryptoCapability.OPENPGP_CERTIFICATE_MATERIAL_RECONCILE,
+            NativeCryptoCapability.OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2,
         ).forEach { missingCapability ->
             val bridge = FakeBridge(
                 capabilities = allNativeCryptoCapabilitiesMask and missingCapability.bit.inv(),
@@ -1265,6 +1270,129 @@ class NativeCryptoClientTest {
                 ),
             )
         }
+    }
+
+    @Test
+    fun openPgpProtocolExtensionsUseLockstepCapabilityBitsAndOperationTags() {
+        val extensions = listOf(
+            Triple(
+                NativeCryptoCapability.OPENPGP_SIGNED_REVOCATION,
+                OpenPgpUserIdRevocationOperationProto(
+                    OpenPgpUserIdRevocationRequestProto(
+                        privateKey = byteArrayOf(1),
+                        publicKey = byteArrayOf(2),
+                        expectedPrimaryFingerprint = "A".repeat(40),
+                        identityId = "v1:${"B".repeat(64)}",
+                        referenceTimeEpochSeconds = 1L,
+                    ),
+                ),
+                54,
+            ),
+            Triple(
+                NativeCryptoCapability.OPENPGP_USER_ID_REPLACEMENT,
+                OpenPgpUserIdReplacementOperationProto(
+                    OpenPgpUserIdReplacementRequestProto(
+                        privateKey = byteArrayOf(1),
+                        publicKey = byteArrayOf(2),
+                        expectedPrimaryFingerprint = "A".repeat(40),
+                        oldIdentityId = "v1:${"B".repeat(64)}",
+                        newUserId = "Alice <alice@example.invalid>",
+                        referenceTimeEpochSeconds = 1L,
+                    ),
+                ),
+                55,
+            ),
+            Triple(
+                NativeCryptoCapability.OPENPGP_CERTIFICATE_MATERIAL_RECONCILE,
+                OpenPgpCertificateMaterialReconcileOperationProto(
+                    OpenPgpCertificateMaterialReconcileRequestProto(
+                        expectedPrimaryFingerprint = "A".repeat(40),
+                        existingPublicCertificate = byteArrayOf(1),
+                    ),
+                ),
+                56,
+            ),
+            Triple(
+                NativeCryptoCapability.OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2,
+                OpenPgpCertificateMaterialReconcileV2OperationProto(
+                    OpenPgpCertificateMaterialReconcileV2RequestProto(
+                        expectedPrimaryFingerprint = "A".repeat(40),
+                        existingPublicCertificate = byteArrayOf(1),
+                    ),
+                ),
+                57,
+            ),
+        )
+
+        extensions.forEachIndexed { index, (capability, operation, fieldNumber) ->
+            assertEquals(1L shl (29 + index), capability.bit)
+            val encoded = ProtoBuf.encodeToByteArray(
+                NativeRequestProto(
+                    protocolVersion = NativeCrypto.PROTOCOL_VERSION,
+                    operation = operation,
+                ),
+            )
+            assertContainsLengthDelimitedTag(encoded, fieldNumber)
+            assertEquals(
+                operation::class,
+                ProtoBuf.decodeFromByteArray<NativeRequestProto>(encoded).operation::class,
+            )
+        }
+        assertEquals(0x1_FFFF_FFFFL, allNativeCryptoCapabilitiesMask)
+    }
+
+    @Test
+    fun certificateMaterialReconcileV2UsesTag57AndRoundTripsSeparatedFields() {
+        val operation = OpenPgpCertificateMaterialReconcileV2OperationProto(
+            OpenPgpCertificateMaterialReconcileV2RequestProto(
+                expectedPrimaryFingerprint = "A".repeat(40),
+                existingPublicCertificate = byteArrayOf(1),
+                incomingSecretCertificate = byteArrayOf(2),
+            ),
+        )
+        val encodedRequest = ProtoBuf.encodeToByteArray(
+            NativeRequestProto(
+                protocolVersion = NativeCrypto.PROTOCOL_VERSION,
+                operation = operation,
+            ),
+        )
+        val decodedRequest = ProtoBuf.decodeFromByteArray<NativeRequestProto>(encodedRequest)
+        assertIs<OpenPgpCertificateMaterialReconcileV2OperationProto>(decodedRequest.operation)
+        assertContainsLengthDelimitedTag(encodedRequest, fieldNumber = 57)
+
+        val result = OpenPgpCertificateMaterialReconcileV2ResultProto(
+            OpenPgpCertificateMaterialReconcileV2SuccessOutcomeProto(
+                OpenPgpCertificateMaterialReconcileV2SuccessProto(
+                    localPublicMaterial = byteArrayOf(3),
+                    localSecretMaterial = byteArrayOf(4),
+                    transferablePublicCertificate = byteArrayOf(5),
+                    transferableSecretKey = byteArrayOf(6),
+                    primaryFingerprint = "A".repeat(40),
+                    contributions =
+                        OpenPgpCertificateMaterialContributionsProto(
+                            existingPublic =
+                                OpenPgpCertificateMaterialInputContributionProto(present = true),
+                        ),
+                    withheldReasons =
+                        listOf(
+                            OpenPgpCertificateMaterialWithheldReasonProto.LOCAL_PUBLIC_EVIDENCE,
+                        ),
+                ),
+            ),
+        )
+        val decodedResult = roundTrip(result)
+        val success = assertIs<OpenPgpCertificateMaterialReconcileV2SuccessOutcomeProto>(
+            decodedResult.result,
+        ).value
+
+        assertContentEquals(byteArrayOf(3), success.localPublicMaterial)
+        assertContentEquals(byteArrayOf(4), success.localSecretMaterial)
+        assertContentEquals(byteArrayOf(5), success.transferablePublicCertificate)
+        assertContentEquals(byteArrayOf(6), success.transferableSecretKey)
+        assertEquals(
+            listOf(OpenPgpCertificateMaterialWithheldReasonProto.LOCAL_PUBLIC_EVIDENCE),
+            success.withheldReasons,
+        )
     }
 
     private fun digestOperation(): NativeRequestOperationProto = DigestOperationProto(

@@ -67,8 +67,8 @@ mod export;
 mod parsing;
 
 pub(crate) use canonicalization::{
-    canonicalize_public_certificate_material, merge_public_certificate_material_documents,
     merge_public_certificate_packet_sets, normalize_expected_fingerprint,
+    parse_public_certificate_packet_set_with_budget,
 };
 #[cfg(test)]
 pub(crate) use export::export_public_certificate_preserving_framing;
@@ -82,7 +82,9 @@ pub(crate) use parsing::parse_public_certificate_packet_sets;
 
 #[cfg(test)]
 pub(crate) use canonicalization::{
-    canonicalize_public_certificate, merge_public_certificate_documents,
+    canonicalize_public_certificate, canonicalize_public_certificate_material,
+    merge_public_certificate_documents, merge_public_certificate_material_documents,
+    merge_public_certificate_material_documents_deterministic,
 };
 
 const MAX_MERGE_PACKETS: usize = MAX_CERTIFICATE_PACKETS;
@@ -1300,6 +1302,8 @@ pub(crate) struct SignatureRehomingBudget {
     request_verifications: usize,
     active_certificate: Option<FingerprintKey>,
     inactive_certificate_verifications: BTreeMap<FingerprintKey, usize>,
+    #[cfg(test)]
+    request_limit: Option<usize>,
 }
 
 /// Request-scoped accounting for cryptographic work performed solely to
@@ -1314,9 +1318,27 @@ pub(crate) struct ExportClassificationBudget {
     request_verifications: usize,
     active_certificate: Option<FingerprintKey>,
     inactive_certificate_verifications: BTreeMap<FingerprintKey, usize>,
+    #[cfg(test)]
+    request_limit: Option<usize>,
 }
 
 impl ExportClassificationBudget {
+    #[cfg(test)]
+    pub(crate) fn with_request_limit(request_limit: usize) -> Self {
+        Self {
+            request_limit: Some(request_limit),
+            ..Self::default()
+        }
+    }
+
+    fn request_limit(&self) -> usize {
+        #[cfg(test)]
+        if let Some(request_limit) = self.request_limit {
+            return request_limit;
+        }
+        MAX_EXPORT_CLASSIFICATION_VERIFICATIONS_PER_REQUEST
+    }
+
     fn begin_certificate(&mut self, fingerprint: &FingerprintKey) {
         if self.active_certificate.as_ref() == Some(fingerprint) {
             return;
@@ -1333,10 +1355,11 @@ impl ExportClassificationBudget {
     }
 
     fn verify(&mut self, verify: impl FnOnce() -> bool) -> Result<bool, CertificateMergeError> {
+        let request_limit = self.request_limit();
         let request_verifications = self
             .request_verifications
             .checked_add(1)
-            .filter(|count| *count <= MAX_EXPORT_CLASSIFICATION_VERIFICATIONS_PER_REQUEST)
+            .filter(|count| *count <= request_limit)
             .ok_or(CertificateMergeError::ResourceLimit)?;
         let verifications = self
             .verifications
@@ -1350,6 +1373,22 @@ impl ExportClassificationBudget {
 }
 
 impl SignatureRehomingBudget {
+    #[cfg(test)]
+    pub(crate) fn with_request_limit(request_limit: usize) -> Self {
+        Self {
+            request_limit: Some(request_limit),
+            ..Self::default()
+        }
+    }
+
+    fn request_limit(&self) -> usize {
+        #[cfg(test)]
+        if let Some(request_limit) = self.request_limit {
+            return request_limit;
+        }
+        MAX_SIGNATURE_REHOMING_VERIFICATIONS_PER_REQUEST
+    }
+
     fn begin_certificate(&mut self, fingerprint: &FingerprintKey) {
         if self.active_certificate.as_ref() == Some(fingerprint) {
             return;
@@ -1366,10 +1405,11 @@ impl SignatureRehomingBudget {
     }
 
     fn verify(&mut self, verify: impl FnOnce() -> bool) -> Result<bool, CertificateMergeError> {
+        let request_limit = self.request_limit();
         let request_verifications = self
             .request_verifications
             .checked_add(1)
-            .filter(|count| *count <= MAX_SIGNATURE_REHOMING_VERIFICATIONS_PER_REQUEST)
+            .filter(|count| *count <= request_limit)
             .ok_or(CertificateMergeError::ResourceLimit)?;
         let verifications = self
             .verifications

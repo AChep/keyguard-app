@@ -40,6 +40,14 @@ public enum class NativeCryptoCapability(
     OPENPGP_CLEAR_VERIFY(bit = 1L shl 27),
     /** Native OpenPGP sign/encrypt operations enforce external designated revocations. */
     OPENPGP_EXTERNAL_REVOCATION_POLICY(bit = 1L shl 28),
+    /** Native OpenPGP operations can emit signed User ID revocations. */
+    OPENPGP_SIGNED_REVOCATION(bit = 1L shl 29),
+    /** Native OpenPGP operations can replace textual User IDs atomically. */
+    OPENPGP_USER_ID_REPLACEMENT(bit = 1L shl 30),
+    /** Native OpenPGP operations can reconcile public and secret certificate material. */
+    OPENPGP_CERTIFICATE_MATERIAL_RECONCILE(bit = 1L shl 31),
+    /** Native OpenPGP reconciliation exposes separate local and transferable V2 outputs. */
+    OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2(bit = 1L shl 32),
 }
 
 public object NativeCrypto {

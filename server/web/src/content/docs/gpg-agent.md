@@ -20,10 +20,12 @@ fetched from a keyserver (`keys.openpgp.org` by default).
 ## Desktop (Linux, macOS & Windows)
 
 1. Enable the **GPG agent** in Keyguard's GPG settings, and make sure the
-   vault holds a GPG key the agent is allowed to use. Keyguard starts its agent
-   on the native endpoint that GnuPG resolves for a home directory it manages:
+   vault holds a GPG key the agent is allowed to use. Keyguard creates a
+   dedicated GnuPG home for the integration. These are `GNUPGHOME` directories,
+   not agent socket endpoints:
    - **Linux** — `$XDG_RUNTIME_DIR/keyguard-gpg-agent` (or
-     `/tmp/keyguard-$(id -u)/gnupg` if `XDG_RUNTIME_DIR` is unset); **Flatpak** — `~/.var/app/com.artemchep.keyguard/data/gnupg`;
+     `/tmp/keyguard-$(id -u)/gnupg` if `XDG_RUNTIME_DIR` is unset); **Flatpak** —
+     `~/.var/app/com.artemchep.keyguard/data/gnupg`;
    - **macOS** — `~/Library/Group Containers/com.artemchep.keyguard/gnupg`;
    - **Windows** — `%LOCALAPPDATA%\ArtemChepurnyi\keyguard\gnupg`.
 
@@ -40,6 +42,18 @@ fetched from a keyserver (`keys.openpgp.org` by default).
    export GNUPGHOME="$XDG_RUNTIME_DIR/keyguard-gpg-agent"
    ```
 
+   If `XDG_RUNTIME_DIR` is not set, use the fallback instead:
+
+   ```sh
+   export GNUPGHOME="/tmp/keyguard-$(id -u)/gnupg"
+   ```
+
+   On macOS:
+
+   ```sh
+   export GNUPGHOME="$HOME/Library/Group Containers/com.artemchep.keyguard/gnupg"
+   ```
+
    For the Flatpak build, use the persistent app data directory instead:
 
    ```sh
@@ -52,11 +66,15 @@ fetched from a keyserver (`keys.openpgp.org` by default).
    $env:GNUPGHOME = "$env:LOCALAPPDATA\ArtemChepurnyi\keyguard\gnupg"
    ```
 
-   Keyguard speaks the standard gpg-agent protocol on the socket reported by
-   `gpgconf --homedir "$GNUPGHOME" --list-dirs agent-socket`, so any `gpg`
-   command run with this `GNUPGHOME` reaches your vault's keys. Native Windows
-   GnuPG resolves a marker-file endpoint backed by a loopback connection;
-   Keyguard publishes that endpoint automatically.
+   Keyguard speaks the standard gpg-agent protocol on the separate endpoint
+   reported by `gpgconf --homedir "$GNUPGHOME" --list-dirs agent-socket`.
+   GnuPG may place that endpoint under a per-user runtime directory instead of
+   inside `GNUPGHOME`; Keyguard therefore does not construct the socket path
+   from the home directory. If `gpgconf` cannot resolve an absolute endpoint or
+   prepare its required socket directory, Keyguard reports a startup error
+   instead of publishing a socket that GnuPG clients cannot discover. Native
+   Windows GnuPG resolves a marker-file endpoint backed by a loopback
+   connection; Keyguard publishes that endpoint automatically.
 3. Export the public key from the **GPG key** item and import it into this
    home — only public key material leaves the vault:
 
@@ -96,10 +114,16 @@ git config --local gpg.format openpgp
 git config --local gpg.program gpg
 ```
 
-Then commit with that home in the environment:
+Then commit from a shell where `GNUPGHOME` is exported as in step 2:
 
 ```sh
-GNUPGHOME="$XDG_RUNTIME_DIR/keyguard-gpg-agent" git commit -S
+git commit -S
+```
+
+On macOS:
+
+```sh
+GNUPGHOME="$HOME/Library/Group Containers/com.artemchep.keyguard/gnupg" git commit -S
 ```
 
 For the Flatpak build:

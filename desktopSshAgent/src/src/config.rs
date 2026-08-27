@@ -7,6 +7,14 @@ pub(crate) fn linux_fallback_ssh_agent_socket_path(uid: libc::uid_t) -> PathBuf 
     PathBuf::from(format!("/tmp/keyguard-{uid}/ssh-agent.sock"))
 }
 
+#[cfg(target_os = "macos")]
+pub(crate) fn macos_ssh_agent_socket_path(home: &std::path::Path) -> PathBuf {
+    home.join("Library")
+        .join("Group Containers")
+        .join("com.artemchep.keyguard")
+        .join("ssh-agent.sock")
+}
+
 #[cfg(target_os = "linux")]
 const FLATPAK_APP_ID_FALLBACK: &str = "com.artemchep.keyguard";
 
@@ -54,13 +62,8 @@ pub(crate) fn flatpak_ssh_agent_socket_path(
 pub fn default_ssh_agent_socket_path() -> PathBuf {
     #[cfg(target_os = "macos")]
     {
-        // Use a path that's accessible and conventional for macOS apps.
-        // ~/Library/Group Containers/ is writable without sandbox issues.
         let home = dirs::home_dir().expect("Could not determine home directory");
-        home.join("Library")
-            .join("Group Containers")
-            .join("com.artemchep.keyguard")
-            .join("ssh-agent.sock")
+        macos_ssh_agent_socket_path(&home)
     }
 
     #[cfg(target_os = "linux")]
@@ -137,6 +140,10 @@ mod tests {
     #[test]
     fn macos_default_path_uses_group_container() {
         let path = default_ssh_agent_socket_path();
+        assert_eq!(
+            path,
+            macos_ssh_agent_socket_path(&dirs::home_dir().expect("home directory"))
+        );
         assert!(path.ends_with("Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"));
     }
 

@@ -1,6 +1,12 @@
 package com.artemchep.keyguard.gpge2e
 
+import com.artemchep.keyguard.common.service.agent.AGENT_STARTUP_READY_RECORD
+import com.artemchep.keyguard.common.service.agent.AGENT_STARTUP_READY_TIMEOUT_MS
 import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
+import com.artemchep.keyguard.common.service.agent.AgentProcessDiagnosticTail
+import com.artemchep.keyguard.common.service.agent.awaitAgentStartupReadiness
+import com.artemchep.keyguard.common.service.agent.drainAgentProcessOutput
+import com.artemchep.keyguard.common.service.agent.observeProcessExit
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentIpcServer
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
 import kotlinx.coroutines.CompletableDeferred
@@ -85,10 +91,22 @@ class KeyguardAgentLauncher(
                 if (verbose) add("--verbose")
             }
             val builder = ProcessBuilder(command)
-            builder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-            builder.redirectError(ProcessBuilder.Redirect.INHERIT)
             val proc = builder.start()
             this.process = proc
+            val startupReady = CompletableDeferred<Unit>()
+            val diagnostics = AgentProcessDiagnosticTail()
+            val outputDrains = drainAgentProcessOutput(
+                scope = scope,
+                process = proc,
+                displayName = BINARY_NAME,
+                readyRecord = AGENT_STARTUP_READY_RECORD,
+                ready = startupReady,
+                diagnostics = diagnostics,
+                logStdout = { line -> println("$BINARY_NAME stdout: $line") },
+                logStderr = { line -> System.err.println("$BINARY_NAME stderr: $line") },
+                logReadFailure = { message -> System.err.println(message) },
+            )
+            val processExit = observeProcessExit(proc)
             check(expectedPeerProcess.complete(proc)) {
                 "Expected GPG IPC peer process was already published"
             }
@@ -102,40 +120,25 @@ class KeyguardAgentLauncher(
             procStdin.write('\n'.code)
             procStdin.flush()
 
-            // Wait for the Rust binary to bind the gpg socket before any client gpg runs.
-            waitForSocket(gpgSocket, proc)
+            runBlocking {
+                awaitAgentStartupReadiness(
+                    ready = startupReady,
+                    processExited = processExit,
+                    timeoutMs = AGENT_STARTUP_READY_TIMEOUT_MS,
+                    displayName = BINARY_NAME,
+                    diagnostics = diagnostics,
+                    outputDrains = outputDrains,
+                )
+            }
+            // The tail is only readable until readiness resolves; stop
+            // buffering the child's output for the rest of its lifetime.
+            diagnostics.close()
         } catch (e: Exception) {
             expectedPeerProcess.completeExceptionally(e)
             stop()
             throw e
         }
     }
-
-    private fun waitForSocket(
-        gpgSocket: String,
-        proc: Process,
-    ) {
-        val deadline = System.currentTimeMillis() + 10_000
-        while (System.currentTimeMillis() < deadline) {
-            if (!proc.isAlive) {
-                error("keyguard-gpg-agent exited early with code ${proc.exitValue()}")
-            }
-            if (canConnectToSocket(gpgSocket)) {
-                Thread.sleep(250)
-                if (!proc.isAlive) {
-                    error("keyguard-gpg-agent exited after binding $gpgSocket with code ${proc.exitValue()}")
-                }
-                return
-            }
-            Thread.sleep(50)
-        }
-        error("Timed out waiting for the gpg socket to appear at $gpgSocket")
-    }
-
-    private fun canConnectToSocket(gpgSocket: String): Boolean = runCatching {
-        assuanTranscript(gpgSocket, listOf("BYE\n"))
-            .any { it == "OK" || it.startsWith("OK ") }
-    }.getOrDefault(false)
 
     fun assuanTranscript(
         gpgSocket: String,
@@ -294,6 +297,7 @@ class KeyguardAgentLauncher(
     )
 
     companion object {
+        private const val BINARY_NAME = "keyguard-gpg-agent"
         private const val WINDOWS_ASSUAN_NONCE_SIZE = 16
     }
 }

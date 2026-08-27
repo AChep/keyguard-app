@@ -80,30 +80,28 @@ private fun ColumnScope.GpgAgentSetupScreenContent() {
         is Platform.Desktop.MacOS -> {
             val gpgHome = gpgAgentSetupMacosHome()
             GpgAgentSetupSupportedPlatformContent(
-                commands = unixGpgAgentSetupCommands(gpgHome),
-                fallbackHomeCommand = null,
+                commands = unixGpgAgentSetupCommands(exportGpgHomeCommand(gpgHome)),
                 prerequisiteNote = null,
             )
         }
 
         is Platform.Desktop.Linux -> {
-            val gpgHome = if (platform.isFlatpak) {
-                GPG_AGENT_SETUP_LINUX_FLATPAK_HOME
+            val commands = if (platform.isFlatpak) {
+                unixGpgAgentSetupCommands(exportGpgHomeCommand(GPG_AGENT_SETUP_LINUX_FLATPAK_HOME))
             } else {
-                GPG_AGENT_SETUP_LINUX_HOME
+                linuxGpgAgentSetupCommands()
             }
-            val fallbackHome = GPG_AGENT_SETUP_LINUX_HOME_FALLBACK
-                .takeUnless { platform.isFlatpak }
             GpgAgentSetupSupportedPlatformContent(
-                commands = unixGpgAgentSetupCommands(gpgHome),
-                fallbackHomeCommand = fallbackHome?.let(::exportGpgHomeCommand),
+                commands = commands,
                 prerequisiteNote = null,
+                fallbackHomeCommand = GPG_AGENT_SETUP_LINUX_HOME_FALLBACK
+                    .takeUnless { platform.isFlatpak }
+                    ?.let(::exportGpgHomeCommand),
             )
         }
 
         is Platform.Desktop.Windows -> GpgAgentSetupSupportedPlatformContent(
             commands = windowsGpgAgentSetupCommands(gpgAgentSetupWindowsHome()),
-            fallbackHomeCommand = null,
             prerequisiteNote = stringResource(Res.string.gpg_agent_setup_windows_native_gnupg_note),
         )
 
@@ -130,8 +128,8 @@ private fun gpgAgentSetupWindowsHome(): String =
 @Composable
 private fun ColumnScope.GpgAgentSetupSupportedPlatformContent(
     commands: GpgAgentSetupCommands,
-    fallbackHomeCommand: String?,
     prerequisiteNote: String?,
+    fallbackHomeCommand: String? = null,
 ) {
     Section(
         text = stringResource(Res.string.gpg_agent_setup_step_1_title),
@@ -243,14 +241,20 @@ private data class GpgAgentSetupCommands(
     val signGitCommit: String,
 )
 
-private fun unixGpgAgentSetupCommands(gpgHome: String) = GpgAgentSetupCommands(
-    configureHome = exportGpgHomeCommand(gpgHome),
+private fun linuxGpgAgentSetupCommands() = unixGpgAgentSetupCommands(
+    configureHome = exportGpgHomeCommand(GPG_AGENT_SETUP_LINUX_HOME),
+)
+
+private fun unixGpgAgentSetupCommands(
+    configureHome: String,
+) = GpgAgentSetupCommands(
+    configureHome = configureHome,
     importPublicKey = GPG_AGENT_SETUP_IMPORT_CMD,
     listKeys = GPG_AGENT_SETUP_LIST_KEYS_CMD,
     verifyAgent = GPG_AGENT_SETUP_VERIFY_CMD_LIST,
     signMessage = GPG_AGENT_SETUP_VERIFY_CMD_SIGN,
     configureGit = GPG_AGENT_SETUP_GIT_CONFIG_CMD,
-    signGitCommit = "GNUPGHOME=\"${gpgHome.escapeDoubleQuoted()}\" git commit -S",
+    signGitCommit = "$configureHome\ngit commit -S",
 )
 
 private fun windowsGpgAgentSetupCommands(gpgHome: String): GpgAgentSetupCommands {

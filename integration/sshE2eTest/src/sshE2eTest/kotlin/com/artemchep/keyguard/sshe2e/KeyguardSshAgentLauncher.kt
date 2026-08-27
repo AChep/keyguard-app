@@ -1,6 +1,12 @@
 package com.artemchep.keyguard.sshe2e
 
+import com.artemchep.keyguard.common.service.agent.AGENT_STARTUP_READY_RECORD
+import com.artemchep.keyguard.common.service.agent.AGENT_STARTUP_READY_TIMEOUT_MS
 import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
+import com.artemchep.keyguard.common.service.agent.AgentProcessDiagnosticTail
+import com.artemchep.keyguard.common.service.agent.awaitAgentStartupReadiness
+import com.artemchep.keyguard.common.service.agent.drainAgentProcessOutput
+import com.artemchep.keyguard.common.service.agent.observeProcessExit
 import com.artemchep.keyguard.common.service.sshagent.SshAgentIpcServer
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
 import kotlinx.coroutines.CompletableDeferred
@@ -13,10 +19,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import java.io.OutputStream
-import java.io.RandomAccessFile
-import java.net.StandardProtocolFamily
-import java.net.UnixDomainSocketAddress
-import java.nio.channels.SocketChannel
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -81,10 +83,22 @@ class KeyguardSshAgentLauncher(
                 if (verbose) add("--verbose")
             }
             val builder = ProcessBuilder(command)
-            builder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-            builder.redirectError(ProcessBuilder.Redirect.INHERIT)
             val proc = builder.start()
             this.process = proc
+            val startupReady = CompletableDeferred<Unit>()
+            val diagnostics = AgentProcessDiagnosticTail()
+            val outputDrains = drainAgentProcessOutput(
+                scope = scope,
+                process = proc,
+                displayName = BINARY_NAME,
+                readyRecord = AGENT_STARTUP_READY_RECORD,
+                ready = startupReady,
+                diagnostics = diagnostics,
+                logStdout = { line -> println("$BINARY_NAME stdout: $line") },
+                logStderr = { line -> System.err.println("$BINARY_NAME stderr: $line") },
+                logReadFailure = { message -> System.err.println(message) },
+            )
+            val processExit = observeProcessExit(proc)
             check(expectedPeerProcess.complete(proc)) {
                 "Expected SSH IPC peer process was already published"
             }
@@ -98,55 +112,24 @@ class KeyguardSshAgentLauncher(
             procStdin.write('\n'.code)
             procStdin.flush()
 
-            waitForSocket(sshSocket, proc)
+            runBlocking {
+                awaitAgentStartupReadiness(
+                    ready = startupReady,
+                    processExited = processExit,
+                    timeoutMs = AGENT_STARTUP_READY_TIMEOUT_MS,
+                    displayName = BINARY_NAME,
+                    diagnostics = diagnostics,
+                    outputDrains = outputDrains,
+                )
+            }
+            // The tail is only readable until readiness resolves; stop
+            // buffering the child's output for the rest of its lifetime.
+            diagnostics.close()
         } catch (e: Exception) {
             expectedPeerProcess.completeExceptionally(e)
             stop()
             throw e
         }
-    }
-
-    private fun waitForSocket(
-        sshSocket: String,
-        proc: Process,
-    ) {
-        val deadline = System.currentTimeMillis() + 10_000
-        while (System.currentTimeMillis() < deadline) {
-            if (!proc.isAlive) {
-                error("keyguard-ssh-agent exited early with code ${proc.exitValue()}")
-            }
-            if (canConnectToSocket(sshSocket)) {
-                Thread.sleep(250)
-                if (!proc.isAlive) {
-                    error("keyguard-ssh-agent exited after binding $sshSocket with code ${proc.exitValue()}")
-                }
-                return
-            }
-            Thread.sleep(50)
-        }
-        error("Timed out waiting for the SSH socket to appear at $sshSocket")
-    }
-
-    private fun canConnectToSocket(sshSocket: String): Boolean {
-        if (isWindowsPipe(sshSocket)) {
-            return runCatching {
-                RandomAccessFile(sshSocket, "rw").use {
-                    // Connect and close: this is only a readiness probe.
-                }
-                true
-            }.getOrDefault(false)
-        }
-
-        val sshSocketPath = Path.of(sshSocket)
-        if (!Files.exists(sshSocketPath)) {
-            return false
-        }
-        return runCatching {
-            SocketChannel.open(StandardProtocolFamily.UNIX).use { channel ->
-                channel.connect(UnixDomainSocketAddress.of(sshSocketPath))
-            }
-            true
-        }.getOrDefault(false)
     }
 
     fun stop() {
@@ -179,6 +162,7 @@ class KeyguardSshAgentLauncher(
         method.invoke(server)
     }
 
-    private fun isWindowsPipe(value: String): Boolean =
-        value.startsWith("\\\\.\\pipe\\", ignoreCase = true)
+    private companion object {
+        const val BINARY_NAME = "keyguard-ssh-agent"
+    }
 }

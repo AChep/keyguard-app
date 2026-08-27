@@ -12,18 +12,22 @@ use tokio::sync::oneshot;
 
 /// Start serving the GPG agent (Assuan) protocol on a platform-appropriate
 /// socket.
-pub async fn serve(
+pub async fn serve<F>(
     ipc_client: IpcClient,
     socket_path: &Path,
     parent_stdin_closed: oneshot::Receiver<()>,
-) -> Result<()> {
+    on_ready: F,
+) -> Result<()>
+where
+    F: FnOnce() -> Result<()>,
+{
     #[cfg(unix)]
     {
-        unix::serve(ipc_client, socket_path, parent_stdin_closed).await
+        unix::serve(ipc_client, socket_path, parent_stdin_closed, on_ready).await
     }
 
     #[cfg(windows)]
     {
-        windows::serve(ipc_client, socket_path, parent_stdin_closed).await
+        windows::serve(ipc_client, socket_path, parent_stdin_closed, on_ready).await
     }
 }

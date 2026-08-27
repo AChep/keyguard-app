@@ -2,7 +2,10 @@ package com.artemchep.keyguard.gpge2e
 
 import com.artemchep.keyguard.common.model.GpgKeyConfig
 import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
+import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
+import com.artemchep.keyguard.common.service.gpgagent.isWindowsNamedPipePath
 import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
+import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
@@ -160,13 +163,19 @@ class GpgAgentEndToEndTest {
 
         private fun keyguardGeneratedKey(config: GpgKeyConfig): TestGpgKey {
             val generated = NativeGpgKeyGenerator.generate(config)
+            val resolution = NativeGpgKeyMetadataResolver.resolve(
+                privateKeyArmored = generated.privateKeyArmored,
+                publicKeyArmored = generated.publicKeyArmored,
+                fingerprint = generated.fingerprint,
+            )
+                ?: error("Could not resolve agent metadata for the generated test key")
             return TestGpgKey(
                 name = config.userId,
                 privateKeyArmored = generated.privateKeyArmored,
                 publicKeyArmored = generated.publicKeyArmored,
                 primaryFingerprint = generated.fingerprint,
                 // The Kotlin-computed keygrips — gpg's keygrip lookup must match these.
-                metadataKeys = generated.metadata.keys,
+                metadataKeys = resolution.authorizedAgentKeys,
             )
         }
 

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.gpge2e
 
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
@@ -10,6 +11,11 @@ class TestGpgAgentRequestProcessor(
 ) : GpgAgentRequestProcessor {
 
     private val crypto = NativeGpgAgentCrypto
+
+    // Mirrors production, where every vault GPG key's public part is a
+    // candidate designated-revoker key.
+    private val candidateRevocationKeys = keys
+        .map { key -> GpgOpenPgpPublicKey(key.publicKeyArmored) }
 
     private data class KeyMatch(
         val key: TestGpgKey,
@@ -61,6 +67,7 @@ class TestGpgAgentRequestProcessor(
                 metadataKey = match.metadataKey,
                 hashAlgorithm = request.hashAlgorithm,
                 hash = request.hash,
+                candidateRevocationKeys = candidateRevocationKeys,
             )
             GpgAgentRequestProcessor.GpgAgentOperationResult.Success(response = response)
         } catch (e: Exception) {

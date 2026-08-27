@@ -1,19 +1,21 @@
 package com.artemchep.keyguard.common.service.agent
 
+import com.sun.jna.Library
 import com.sun.jna.Memory
 import com.sun.jna.Native
-import com.sun.jna.Platform as JnaPlatform
-import com.sun.jna.Library
 import com.sun.jna.ptr.IntByReference
 import java.io.IOException
 import java.lang.reflect.Field
 import java.nio.channels.SocketChannel
+import com.sun.jna.Platform as JnaPlatform
 
 /** Kernel-authenticated identity of a Unix-domain-socket peer. */
 internal data class UnixAgentPeerCredentials(
     val pid: Long,
     val uid: Long,
 )
+
+internal fun currentUnixEffectiveUid(): Long = UnixLibC.INSTANCE.effectiveUid()
 
 /**
  * Verifies that an accepted Unix-domain-socket connection belongs to the
@@ -32,7 +34,7 @@ internal fun verifyUnixAgentPeer(
 
     val peer = readUnixAgentPeerCredentials(channel)
     val expectedPid = expectedProcess.pid()
-    val expectedUid = UnixLibC.INSTANCE.effectiveUid()
+    val expectedUid = currentUnixEffectiveUid()
     check(peer.pid == expectedPid) {
         "IPC peer PID mismatch: expected $expectedPid, got ${peer.pid}"
     }

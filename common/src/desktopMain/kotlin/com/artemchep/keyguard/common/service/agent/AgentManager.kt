@@ -9,12 +9,19 @@ import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import kotlinx.coroutines.*
+import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
+
+/** Exact stdout record emitted when an agent's public endpoint is ready. */
+const val AGENT_STARTUP_READY_RECORD = "KEYGUARD_AGENT_READY 1"
+
+/** Maximum time (ms) to wait for [AGENT_STARTUP_READY_RECORD]. */
+const val AGENT_STARTUP_READY_TIMEOUT_MS = 10_000L
 
 /**
  * Manages the lifecycle of an agent Rust binary.
@@ -53,6 +60,10 @@ abstract class AgentManager(
      * @param defaultAgentSocketPath Optional app-level default socket path.
      *   This is passed to the agent binary unless [start] receives an explicit
      *   override.
+     * @param startupReadyRecord Exact stdout line that the child emits after
+     *   its public endpoint is ready.
+     * @param startupReadyTimeoutMs Maximum time to wait for
+     *   [startupReadyRecord].
      */
     data class Config(
         val tag: String,
@@ -62,6 +73,8 @@ abstract class AgentManager(
         val agentSocketArg: String,
         val agentSocketLogLabel: String,
         val defaultAgentSocketPath: Path? = null,
+        val startupReadyRecord: String = AGENT_STARTUP_READY_RECORD,
+        val startupReadyTimeoutMs: Long = AGENT_STARTUP_READY_TIMEOUT_MS,
     )
 
     /**
@@ -256,13 +269,38 @@ abstract class AgentManager(
                 command.add(it.toAbsolutePath().toString())
             }
 
-            val processBuilder = ProcessBuilder(command)
-            // Inherit stdout and stderr so we can see the child's logs,
-            // but keep stdin as a pipe so we can write the auth token.
-            processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-            processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
-
-            val process = processBuilder.start()
+            // The child's stdout carries the startup readiness record and both
+            // streams are retained as bounded startup diagnostics, so they are
+            // drained through pipes rather than inherited.
+            val process = ProcessBuilder(command).start()
+            val startupReady = CompletableDeferred<Unit>()
+            val startupDiagnostics = AgentProcessDiagnosticTail()
+            val outputDrains = drainAgentProcessOutput(
+                scope = serverScope,
+                process = process,
+                displayName = config.displayName,
+                readyRecord = config.startupReadyRecord,
+                ready = startupReady,
+                diagnostics = startupDiagnostics,
+                logStdout = { line ->
+                    logRepository.post(
+                        config.tag,
+                        "${config.displayName} stdout: $line",
+                        LogLevel.INFO,
+                    )
+                },
+                logStderr = { line ->
+                    logRepository.post(
+                        config.tag,
+                        "${config.displayName} stderr: $line",
+                        LogLevel.INFO,
+                    )
+                },
+                logReadFailure = { message ->
+                    logRepository.post(config.tag, message, LogLevel.ERROR)
+                },
+            )
+            val processExit = observeProcessExit(process)
             val processStdin = process.outputStream
             agentProcess = process
             publishExpectedPeerProcess(
@@ -282,10 +320,27 @@ abstract class AgentManager(
                 LogLevel.INFO,
             )
 
+            awaitAgentStartupReadiness(
+                ready = startupReady,
+                processExited = processExit,
+                timeoutMs = config.startupReadyTimeoutMs,
+                displayName = config.displayName,
+                diagnostics = startupDiagnostics,
+                outputDrains = outputDrains,
+            )
+            // The tail is only readable until readiness resolves; stop
+            // buffering the child's output for the rest of its lifetime.
+            startupDiagnostics.close()
+            logRepository.post(
+                config.tag,
+                "${config.displayName} public endpoint is ready",
+                LogLevel.INFO,
+            )
+
             // Monitor the process in a background coroutine so we
             // log when it exits and clear the stale process reference.
             serverScope.launch(Dispatchers.IO) {
-                val exitCode = process.waitFor()
+                val exitCode = processExit.await()
                 logRepository.post(
                     config.tag,
                     "${config.displayName} process exited with code: $exitCode",
@@ -400,6 +455,189 @@ abstract class AgentManager(
             outputStream.close()
         } catch (_: Exception) {
         }
+    }
+}
+
+/**
+ * Drains a readiness-enabled agent process's stdout/stderr, completing
+ * [ready] on the exact [readyRecord] line and forwarding everything else for
+ * the process lifetime. [diagnostics] retains output only until it is closed.
+ * Shared between [AgentManager] and the agent e2e launchers.
+ */
+fun drainAgentProcessOutput(
+    scope: CoroutineScope,
+    process: Process,
+    displayName: String,
+    readyRecord: String,
+    ready: CompletableDeferred<Unit>,
+    diagnostics: AgentProcessDiagnosticTail,
+    logStdout: (line: String) -> Unit,
+    logStderr: (line: String) -> Unit,
+    logReadFailure: (message: String) -> Unit,
+): List<Job> {
+    fun drainStream(
+        streamName: String,
+        lines: java.io.BufferedReader,
+        logLine: (line: String) -> Unit,
+        consumeLine: (String) -> Boolean = { false },
+    ) {
+        try {
+            lines.use { reader ->
+                reader.lineSequence().forEach { line ->
+                    // Closing startup diagnostics stops retention, not logging.
+                    // The native agent's filter controls which events it emits.
+                    if (!consumeLine(line)) {
+                        diagnostics.append(streamName, line)
+                        logLine(line)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            if (process.isAlive) {
+                val message = "Failed to read $displayName $streamName: ${e.message}"
+                diagnostics.append(streamName, message)
+                logReadFailure(message)
+            }
+        }
+    }
+
+    val stdoutDrain = scope.launch(Dispatchers.IO) {
+        drainStream(
+            streamName = "stdout",
+            lines = process.inputStream.bufferedReader(),
+            logLine = logStdout,
+            consumeLine = { line ->
+                (line == readyRecord).also { matched ->
+                    if (matched) {
+                        ready.complete(Unit)
+                    }
+                }
+            },
+        )
+    }
+    val stderrDrain = scope.launch(Dispatchers.IO) {
+        drainStream(
+            streamName = "stderr",
+            lines = process.errorStream.bufferedReader(),
+            logLine = logStderr,
+        )
+    }
+    return listOf(stdoutDrain, stderrDrain)
+}
+
+class AgentProcessDiagnosticTail(
+    private val maxChars: Int = 8_192,
+) {
+    private val lines = ArrayDeque<String>()
+    private var totalChars = 0
+    private var closed = false
+
+    init {
+        require(maxChars > 0) { "Diagnostic tail size must be positive" }
+    }
+
+    val isClosed: Boolean
+        @Synchronized
+        get() = closed
+
+    @Synchronized
+    fun append(streamName: String, line: String) {
+        if (closed) {
+            return
+        }
+        val entry = "[$streamName] $line".takeLast(maxChars)
+        // Each retained older entry adds a newline to the final snapshot.
+        while (lines.isNotEmpty() && totalChars.toLong() + lines.size + entry.length > maxChars) {
+            totalChars -= lines.removeFirst().length
+        }
+        lines.addLast(entry)
+        totalChars += entry.length
+    }
+
+    /**
+     * Discards the buffered output and stops retaining new lines. The tail is
+     * only consumed while startup can still fail; the drain coroutines keep
+     * running for the whole process lifetime.
+     */
+    @Synchronized
+    fun close() {
+        closed = true
+        lines.clear()
+        totalChars = 0
+    }
+
+    @Synchronized
+    fun snapshot(): String = lines.joinToString("\n")
+}
+
+fun observeProcessExit(
+    process: Process,
+): Deferred<Int> = CompletableDeferred<Int>().also { exited ->
+    process.onExit().whenComplete { completedProcess, error ->
+        if (error != null) {
+            exited.completeExceptionally(error)
+        } else {
+            exited.complete(completedProcess.exitValue())
+        }
+    }
+}
+
+suspend fun awaitAgentStartupReadiness(
+    ready: Deferred<Unit>,
+    processExited: Deferred<Int>,
+    timeoutMs: Long,
+    displayName: String,
+    diagnostics: AgentProcessDiagnosticTail,
+    outputDrains: List<Job> = emptyList(),
+) {
+    val exitCode = try {
+        withTimeout(timeoutMs) {
+            select<Int?> {
+                ready.onAwait { null }
+                processExited.onAwait { it }
+            }
+        }
+    } catch (_: TimeoutCancellationException) {
+        throw IllegalStateException(
+            agentStartupFailureMessage(
+                displayName = displayName,
+                reason = "did not become ready within ${timeoutMs}ms",
+                diagnostics = diagnostics,
+            ),
+        )
+    }
+
+    // The readiness record can win the select against a process that has
+    // already died; ready but already exited is still a startup failure.
+    val resolvedExitCode = exitCode
+        ?: processExited.takeIf { it.isCompleted }?.await()
+    if (resolvedExitCode != null) {
+        // A process exit can race the pipe readers. Wait until EOF has been
+        // consumed so an early-startup failure includes its final diagnostics.
+        withTimeoutOrNull(200) {
+            outputDrains.joinAll()
+        }
+        throw IllegalStateException(
+            agentStartupFailureMessage(
+                displayName = displayName,
+                reason = "process exited unexpectedly with code $resolvedExitCode",
+                diagnostics = diagnostics,
+            ),
+        )
+    }
+}
+
+private fun agentStartupFailureMessage(
+    displayName: String,
+    reason: String,
+    diagnostics: AgentProcessDiagnosticTail,
+): String = buildString {
+    append(displayName)
+    append(' ')
+    append(reason)
+    diagnostics.snapshot().takeIf { it.isNotEmpty() }?.let { output ->
+        append("\nChild process output:\n")
+        append(output)
     }
 }
 

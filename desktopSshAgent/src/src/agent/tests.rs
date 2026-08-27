@@ -14,6 +14,18 @@ use ssh_key::private::Ed25519Keypair;
 use ssh_key::public::KeyData;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
+use tracing::instrument::WithSubscriber;
+
+async fn capture_logs<T>(action: impl std::future::Future<Output = T>) -> (T, String) {
+    let output = tempfile::NamedTempFile::new().unwrap();
+    let subscriber = tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::TRACE)
+        .with_ansi(false)
+        .with_writer(output.reopen().unwrap())
+        .finish();
+    let result = action.with_subscriber(subscriber).await;
+    (result, std::fs::read_to_string(output.path()).unwrap())
+}
 
 // A well-known Ed25519 test public key (generated for testing).
 const TEST_ED25519_PUBKEY: &str =
@@ -240,9 +252,13 @@ async fn request_identities_skips_unparseable_keys() {
     ]);
     let mut agent = KeyguardAgent::new(provider);
 
-    let identities = agent.request_identities().await.unwrap();
+    let (result, logs) = capture_logs(agent.request_identities()).await;
+    let identities = result.unwrap();
     assert_eq!(identities.len(), 1, "Should skip the unparseable key");
     assert_eq!(identities[0].comment, "valid-key");
+    assert!(logs.contains("Failed to parse SSH public key"), "{logs}");
+    assert!(!logs.contains("bad-key"), "{logs}");
+    assert!(!logs.contains(TEST_INVALID_PUBKEY), "{logs}");
 }
 
 #[tokio::test]
@@ -260,8 +276,10 @@ async fn request_identities_ipc_error_returns_failure() {
     provider.set_list_failure(true);
     let mut agent = KeyguardAgent::new(provider);
 
-    let result = agent.request_identities().await;
+    let (result, logs) = capture_logs(agent.request_identities()).await;
     assert!(result.is_err(), "Should return AgentError on IPC failure");
+    assert!(logs.contains("Failed to list keys from Keyguard"), "{logs}");
+    assert!(!logs.contains("Simulated list_keys failure"), "{logs}");
 }
 
 // ================================================================
@@ -316,8 +334,10 @@ async fn sign_ipc_error_returns_failure() {
         flags: 0,
     };
 
-    let result = agent.sign(request).await;
+    let (result, logs) = capture_logs(agent.sign(request)).await;
     assert!(result.is_err(), "Should fail when IPC sign fails");
+    assert!(logs.contains("Signing request failed"), "{logs}");
+    assert!(!logs.contains("Simulated sign_data failure"), "{logs}");
 }
 
 #[tokio::test]
@@ -343,10 +363,16 @@ async fn sign_returns_valid_signature() {
         flags: 0,
     };
 
-    let result = agent.sign(request).await;
+    let (result, logs) = capture_logs(agent.sign(request)).await;
     assert!(result.is_ok(), "Should succeed with valid sign response");
     let sig = result.unwrap();
     assert_eq!(sig.algorithm(), Algorithm::Ed25519);
+    assert!(
+        logs.contains("Requesting signature from Keyguard"),
+        "{logs}"
+    );
+    assert!(!logs.contains("test-key"), "{logs}");
+    assert!(!logs.contains(TEST_ED25519_PUBKEY), "{logs}");
 }
 
 #[tokio::test]

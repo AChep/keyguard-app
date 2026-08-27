@@ -15,16 +15,16 @@ import platform.Foundation.NSUUID
 import platform.Foundation.NSUserDomainMask
 
 /**
- * App Group container shared by the main app, the SSH agent socket, and the
- * AutoFill credential-provider extension. Resolving the vault data dir from here
- * is the single high-leverage change that lets all three see the same storage
+ * App Group container shared by the main app and the AutoFill
+ * credential-provider extension. Resolving the vault data dir from here
+ * is the single high-leverage change that lets both see the same storage
  * (see IMPL.md G4).
  */
 private const val APP_GROUP_IDENTIFIER = "group.com.artemchep.keyguard"
 
 /**
  * The Keyguard vault data directory. Prefers the **App Group container** so the
- * SSH agent + AutoFill extension share one vault; falls back to Application
+ * main app and AutoFill extension share one vault; falls back to Application
  * Support when the App-Group entitlement is not granted (e.g. an unsigned / ad-hoc
  * build with no provisioning), so the app keeps working without a Developer Team.
  */
@@ -52,8 +52,7 @@ fun appleKeyguardAtomicDataDirectory(): AtomicDirectoryDestination {
 }
 
 /**
- * The App Group container path, or null when the entitlement isn't present. Also
- * the parent of the SSH agent socket (`<container>/ssh-agent.sock`).
+ * The App Group container path, or null when the entitlement isn't present.
  */
 fun appleAppGroupContainerPath(): String? = writableAppGroupContainerPath
 

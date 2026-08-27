@@ -12,7 +12,7 @@ use ssh_agent_lib::proto::Identity;
 use ssh_agent_lib::proto::SignRequest;
 use ssh_encoding::Encode;
 use ssh_key::{Algorithm, Signature};
-use tracing::{debug, info, warn};
+use tracing::{debug, warn};
 
 #[cfg(windows)]
 use crate::ipc::messages::CallerAuthorization;
@@ -232,8 +232,9 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
             .key_provider
             .list_keys(self.caller.clone())
             .await
-            .map_err(|e| {
-                warn!("Failed to list keys from Keyguard: {}", e);
+            .map_err(|_| {
+                // Backend error messages may contain vault data; keep only the operation.
+                warn!("Failed to list keys from Keyguard");
                 AgentError::Failure
             })?;
 
@@ -246,17 +247,14 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
                         comment: key.name.clone(),
                     });
                 }
-                Err(e) => {
-                    warn!(
-                        name = %key.name,
-                        "Failed to parse SSH public key, skipping: {}",
-                        e
-                    );
+                Err(_) => {
+                    // Neither the key's display name nor parser input belongs in logs.
+                    warn!("Failed to parse SSH public key, skipping");
                 }
             }
         }
 
-        info!(count = identities.len(), "Returning SSH key identities");
+        debug!(count = identities.len(), "Returning SSH key identities");
         Ok(identities)
     }
 
@@ -278,8 +276,8 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
             .key_provider
             .list_keys(self.caller.clone())
             .await
-            .map_err(|e| {
-                warn!("Failed to list keys for sign request: {}", e);
+            .map_err(|_| {
+                warn!("Failed to list keys for sign request");
                 AgentError::Failure
             })?;
 
@@ -297,10 +295,7 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
             return Err(AgentError::Failure);
         };
 
-        info!(
-            name = %key.name,
-            "Requesting signature from Keyguard"
-        );
+        debug!("Requesting signature from Keyguard");
 
         // Request signing from Keyguard (may prompt user for approval).
         let sign_caller = self.caller_for_sign();
@@ -312,8 +307,8 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
             .key_provider
             .sign_data(&key.public_key, &request.data, request.flags, sign_caller)
             .await
-            .map_err(|e| {
-                warn!("Signing request failed: {}", e);
+            .map_err(|_| {
+                warn!("Signing request failed");
                 AgentError::Failure
             })?;
 

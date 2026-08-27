@@ -2,56 +2,64 @@
 
 use crate::agent::{KeyProvider, KeyguardAgentFactory};
 use anyhow::{Context, Result};
-use std::fs;
-use std::path::{Path, PathBuf};
+use keyguard_agent_identity::socket_lifecycle::{
+    current_uid, wait_for_shutdown_request, SocketLifecycle,
+};
+use std::path::Path;
 use tokio::net::UnixListener;
 use tokio::sync::oneshot;
-use tracing::{info, warn};
+use tracing::info;
+
+const LIFECYCLE: SocketLifecycle = SocketLifecycle::new("SSH agent");
 
 /// Serves the SSH agent protocol over a Unix domain socket.
 ///
 /// The socket file is created with restrictive permissions (0600) to prevent
-/// other users from connecting. If a stale socket file exists, it is removed.
-pub async fn serve<K: KeyProvider>(
+/// other users from connecting. An owned, stale socket is removed before bind.
+pub async fn serve<K, F>(
     agent: KeyguardAgentFactory<K>,
     socket_path: &Path,
     parent_stdin_closed: oneshot::Receiver<()>,
-) -> Result<()> {
+    on_ready: F,
+) -> Result<()>
+where
+    K: KeyProvider,
+    F: FnOnce() -> Result<()>,
+{
+    LIFECYCLE.validate_socket_path(socket_path)?;
     ensure_socket_parent_dir(socket_path)?;
 
-    // Remove stale socket file if it exists.
-    if socket_path.exists() {
-        warn!(
-            path = %socket_path.display(),
-            "Removing stale SSH agent socket"
-        );
-        fs::remove_file(socket_path).with_context(|| {
-            format!(
-                "Failed to remove stale SSH agent socket: {}",
-                socket_path.display()
-            )
-        })?;
-    }
+    let uid = current_uid();
+    let lifecycle_lock = LIFECYCLE.acquire_lifecycle_lock(socket_path, uid)?;
+    LIFECYCLE
+        .prepare_socket_path_for_bind(socket_path, uid)
+        .await?;
 
     // Bind the Unix socket.
     let listener = UnixListener::bind(socket_path).with_context(|| {
         format!(
-            "Failed to bind SSH agent socket at {}",
+            "failed to bind SSH agent socket at {}",
             socket_path.display()
         )
     })?;
+    let socket_identity = LIFECYCLE.owned_socket_identity(socket_path, uid)?;
 
     // Set restrictive permissions (0600) on the socket file.
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(socket_path, fs::Permissions::from_mode(0o600)).with_context(|| {
-            format!(
-                "Failed to set permissions on SSH agent socket: {}",
-                socket_path.display()
-            )
-        })?;
-    }
+    LIFECYCLE.secure_bound_socket(socket_path, uid, socket_identity)?;
+    // A filesystem identity alone cannot prove that the pathname still leads
+    // to `listener`: another process with the same UID can replace the entry
+    // between bind and the first stat. Kernel peer credentials on a fresh
+    // connection provide that missing process-level proof.
+    LIFECYCLE
+        .attest_bound_socket_path(socket_path, uid, socket_identity)
+        .await?;
+    // Do not arm cleanup until endpoint ownership has been proven. On an
+    // attestation failure the visible pathname may belong to another process.
+    let socket_guard = LIFECYCLE.guard(socket_path, socket_identity, uid);
+
+    // Report readiness only after the public endpoint is bound, owned by this
+    // process, and confirmed to have owner-only permissions.
+    on_ready().context("failed to report SSH agent socket readiness")?;
 
     info!(
         path = %socket_path.display(),
@@ -68,31 +76,37 @@ pub async fn serve<K: KeyProvider>(
     )
     .await
     .map_err(|e| anyhow::anyhow!("SSH agent server error: {}", e));
+    let result = match result {
+        Ok(reason) => {
+            info!(reason, "Stopping SSH agent listener");
+            Ok(())
+        }
+        Err(error) => Err(error),
+    };
 
-    // Always remove the socket, including when the accept loop fails.
-    cleanup_socket_file(socket_path.to_path_buf());
+    // The guard removes only the socket created by this process, including
+    // when the accept loop or a post-bind setup step fails.
+    drop(socket_guard);
+    // Keep the lifecycle lock through identity-checked socket cleanup. Closing
+    // the file releases the lock; its persistent inode is deliberately kept in
+    // Keyguard's owner-only lock directory, separate from the SSH socket.
+    drop(lifecycle_lock);
 
-    let reason = result?;
-    info!(reason, "Stopping SSH agent listener");
-
-    Ok(())
+    result
 }
 
 fn ensure_socket_parent_dir(socket_path: &Path) -> Result<()> {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
-        // SAFETY: `getuid` has no preconditions and only reads the real
-        // user ID maintained by the operating system for this process.
-        let uid = unsafe { libc::getuid() };
-        ensure_socket_parent_dir_for_uid(socket_path, uid)
+        ensure_socket_parent_dir_for_uid(socket_path, current_uid())
     }
 
     #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     {
         if let Some(parent) = socket_path.parent() {
-            fs::create_dir_all(parent).with_context(|| {
+            std::fs::create_dir_all(parent).with_context(|| {
                 format!(
-                    "Failed to create parent directory for SSH agent socket: {}",
+                    "failed to create parent directory for SSH agent socket: {}",
                     parent.display()
                 )
             })?;
@@ -103,19 +117,14 @@ fn ensure_socket_parent_dir(socket_path: &Path) -> Result<()> {
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 fn ensure_socket_parent_dir_for_uid(socket_path: &Path, uid: libc::uid_t) -> Result<()> {
-    if is_linux_fallback_socket_path_for_uid(socket_path, uid) {
-        let fallback_socket_path = crate::config::linux_fallback_ssh_agent_socket_path(uid);
-        let fallback_parent = fallback_socket_path
-            .parent()
-            .context("Linux fallback SSH agent socket path does not have a parent directory")?;
-        ensure_safe_linux_fallback_parent_dir(fallback_parent, uid)?;
-        return Ok(());
+    if let Some(managed_parent) = managed_socket_parent_for_uid(socket_path, uid) {
+        return ensure_managed_socket_parent_dir(&managed_parent, uid);
     }
 
     if let Some(parent) = socket_path.parent() {
-        fs::create_dir_all(parent).with_context(|| {
+        std::fs::create_dir_all(parent).with_context(|| {
             format!(
-                "Failed to create parent directory for SSH agent socket: {}",
+                "failed to create parent directory for SSH agent socket: {}",
                 parent.display()
             )
         })?;
@@ -124,222 +133,115 @@ fn ensure_socket_parent_dir_for_uid(socket_path: &Path, uid: libc::uid_t) -> Res
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-fn is_linux_fallback_socket_path_for_uid(socket_path: &Path, uid: libc::uid_t) -> bool {
-    socket_path == crate::config::linux_fallback_ssh_agent_socket_path(uid)
-}
-
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-fn ensure_safe_linux_fallback_parent_dir(parent: &Path, uid: libc::uid_t) -> Result<()> {
-    use std::io::ErrorKind;
-    use std::os::unix::fs::{DirBuilderExt, MetadataExt, PermissionsExt};
-
-    // Best-effort creation with restrictive permissions if absent.
-    let mut builder = fs::DirBuilder::new();
-    builder.mode(0o700);
-    match builder.create(parent) {
-        Ok(()) => {}
-        Err(e) if e.kind() == ErrorKind::AlreadyExists => {}
-        Err(e) => {
-            return Err(e).with_context(|| {
-                format!(
-                    "Failed to create Linux fallback SSH agent directory {}",
-                    parent.display()
-                )
-            });
-        }
-    }
-
-    let metadata = fs::symlink_metadata(parent).with_context(|| {
-        format!(
-            "Failed to inspect Linux fallback SSH agent directory {}",
-            parent.display()
-        )
-    })?;
-
-    if metadata.file_type().is_symlink() {
-        anyhow::bail!(
-            "Unsafe Linux fallback SSH agent directory {}: parent is a symlink",
-            parent.display()
-        );
-    }
-    if !metadata.file_type().is_dir() {
-        anyhow::bail!(
-            "Unsafe Linux fallback SSH agent directory {}: parent is not a directory",
-            parent.display()
-        );
-    }
-    if metadata.uid() != uid {
-        anyhow::bail!(
-            "Unsafe Linux fallback SSH agent directory {}: owned by uid {}, expected {}",
-            parent.display(),
-            metadata.uid(),
-            uid
-        );
-    }
-
-    if (metadata.mode() & 0o777) != 0o700 {
-        fs::set_permissions(parent, fs::Permissions::from_mode(0o700)).with_context(|| {
+fn ensure_managed_socket_parent_dir(parent: &Path, uid: libc::uid_t) -> Result<()> {
+    if let Some(shared_parent) = parent.parent() {
+        // Library/Group Containers may not exist on a fresh macOS home.
+        // Its existing permissions must remain unchanged.
+        std::fs::create_dir_all(shared_parent).with_context(|| {
             format!(
-                "Failed to set Linux fallback SSH agent directory permissions to 0700: {}",
-                parent.display()
+                "failed to create SSH agent directory ancestors: {}",
+                shared_parent.display()
             )
         })?;
     }
-
-    let final_mode = fs::symlink_metadata(parent)
-        .with_context(|| {
-            format!(
-                "Failed to re-check Linux fallback SSH agent directory {}",
-                parent.display()
-            )
-        })?
-        .mode()
-        & 0o777;
-    if final_mode != 0o700 {
-        anyhow::bail!(
-            "Unsafe Linux fallback SSH agent directory {}: expected mode 0700, got {:03o}",
-            parent.display(),
-            final_mode
-        );
-    }
-
-    Ok(())
+    LIFECYCLE.ensure_safe_managed_parent_dir(parent, uid)
 }
 
-async fn wait_for_shutdown_signal() {
-    #[cfg(unix)]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+fn managed_socket_parent_for_uid(
+    socket_path: &Path,
+    uid: libc::uid_t,
+) -> Option<std::path::PathBuf> {
+    let linux_fallback_socket_path = crate::config::linux_fallback_ssh_agent_socket_path(uid);
+    if socket_path == linux_fallback_socket_path {
+        return linux_fallback_socket_path.parent().map(Path::to_path_buf);
+    }
+
+    #[cfg(target_os = "macos")]
     {
-        use tokio::signal::unix::{signal, SignalKind};
-
-        let mut terminate =
-            signal(SignalKind::terminate()).expect("Failed to install SIGTERM handler");
-        tokio::select! {
-            _ = tokio::signal::ctrl_c() => {}
-            _ = terminate.recv() => {}
+        let macos_socket_path = crate::config::default_ssh_agent_socket_path();
+        if socket_path == macos_socket_path {
+            return macos_socket_path.parent().map(Path::to_path_buf);
         }
     }
+
+    None
 }
 
-async fn wait_for_shutdown_request(parent_stdin_closed: oneshot::Receiver<()>) -> &'static str {
-    tokio::select! {
-        _ = wait_for_shutdown_signal() => "signal",
-        _ = parent_stdin_closed => "parent_stdin_closed",
-    }
-}
-
-fn cleanup_socket_file(socket_path: PathBuf) {
-    match fs::remove_file(&socket_path) {
-        Ok(()) => {
-            info!(
-                path = %socket_path.display(),
-                "Removed SSH agent socket file"
-            );
-        }
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
-        Err(e) => {
-            warn!(
-                path = %socket_path.display(),
-                error = %e,
-                "Failed to remove SSH agent socket file"
-            );
-        }
-    }
-}
-
-#[cfg(all(test, target_os = "linux"))]
+#[cfg(all(test, any(target_os = "linux", target_os = "macos")))]
 mod tests {
     use super::*;
     use std::fs;
     use std::os::unix::fs::{symlink, MetadataExt, PermissionsExt};
+    use std::path::PathBuf;
     use tempfile::tempdir;
 
-    fn current_uid() -> libc::uid_t {
-        // SAFETY: `getuid` has no preconditions and only reads the real
-        // user ID maintained by the operating system for this process.
-        unsafe { libc::getuid() }
-    }
-
     #[test]
-    fn safe_fallback_parent_is_created_with_0700() {
+    fn managed_parent_preparation_creates_and_preserves_shared_ancestors() {
         let tmp = tempdir().expect("tempdir");
-        let parent = tmp.path().join("keyguard-parent");
+        let shared_parent = tmp.path().join("Library/Group Containers");
+        let parent = shared_parent.join("com.artemchep.keyguard");
+        ensure_managed_socket_parent_dir(&parent, current_uid()).expect("prepare new container");
+        fs::set_permissions(&shared_parent, fs::Permissions::from_mode(0o755))
+            .expect("chmod shared parent");
+        fs::set_permissions(&parent, fs::Permissions::from_mode(0o755)).expect("chmod container");
 
-        ensure_safe_linux_fallback_parent_dir(&parent, current_uid()).expect("prepare parent");
+        ensure_managed_socket_parent_dir(&parent, current_uid())
+            .expect("secure existing container");
 
-        let metadata = fs::symlink_metadata(&parent).expect("metadata");
-        assert!(metadata.file_type().is_dir());
-        assert_eq!(metadata.mode() & 0o777, 0o700);
+        assert_eq!(
+            fs::metadata(shared_parent)
+                .expect("shared parent metadata")
+                .mode()
+                & 0o777,
+            0o755
+        );
+        assert_eq!(
+            fs::metadata(parent).expect("container metadata").mode() & 0o777,
+            0o700
+        );
     }
 
     #[test]
-    fn safe_fallback_parent_permissions_are_tightened_to_0700() {
-        let tmp = tempdir().expect("tempdir");
-        let parent = tmp.path().join("keyguard-parent");
-
-        fs::create_dir(&parent).expect("create");
-        fs::set_permissions(&parent, fs::Permissions::from_mode(0o755)).expect("chmod 755");
-
-        ensure_safe_linux_fallback_parent_dir(&parent, current_uid()).expect("prepare parent");
-
-        let metadata = fs::symlink_metadata(&parent).expect("metadata");
-        assert_eq!(metadata.mode() & 0o777, 0o700);
-    }
-
-    #[test]
-    fn safe_fallback_parent_rejects_symlink() {
-        let tmp = tempdir().expect("tempdir");
-        let target = tmp.path().join("real-parent");
-        let link = tmp.path().join("link-parent");
-
-        fs::create_dir(&target).expect("create target");
-        symlink(&target, &link).expect("create symlink");
-
-        let err =
-            ensure_safe_linux_fallback_parent_dir(&link, current_uid()).expect_err("must fail");
-        assert!(err.to_string().contains("symlink"));
-    }
-
-    #[test]
-    fn safe_fallback_parent_rejects_wrong_owner_uid() {
-        let tmp = tempdir().expect("tempdir");
-        let parent = tmp.path().join("keyguard-parent");
-        let uid = current_uid();
-        let wrong_uid = uid.saturating_add(1);
-        assert_ne!(uid, wrong_uid, "wrong uid must differ in test");
-
-        fs::create_dir(&parent).expect("create parent");
-        fs::set_permissions(&parent, fs::Permissions::from_mode(0o700)).expect("chmod 700");
-
-        let err = ensure_safe_linux_fallback_parent_dir(&parent, wrong_uid).expect_err("must fail");
-        assert!(err.to_string().contains("owned by uid"));
-    }
-
-    #[test]
-    fn non_fallback_path_preserves_existing_parent_handling() {
+    fn non_managed_path_preserves_existing_parent_handling() {
         let tmp = tempdir().expect("tempdir");
         let real_parent = tmp.path().join("real-parent");
         let link_parent = tmp.path().join("link-parent");
 
         fs::create_dir(&real_parent).expect("create real parent");
+        fs::set_permissions(&real_parent, fs::Permissions::from_mode(0o755)).expect("chmod 755");
         symlink(&real_parent, &link_parent).expect("create symlink parent");
 
         let socket_path = link_parent.join("ssh-agent.sock");
         ensure_socket_parent_dir_for_uid(&socket_path, current_uid()).expect("should allow");
+        assert_eq!(
+            fs::metadata(&real_parent).expect("metadata").mode() & 0o777,
+            0o755
+        );
     }
 
     #[test]
-    fn fallback_path_detection_is_exact() {
+    fn managed_path_detection_is_exact() {
         let uid = current_uid();
         let fallback_socket_path = crate::config::linux_fallback_ssh_agent_socket_path(uid);
         let non_fallback_socket_path = PathBuf::from(format!("/tmp/keyguard-{uid}/other.sock"));
 
-        assert!(is_linux_fallback_socket_path_for_uid(
-            &fallback_socket_path,
-            uid
-        ));
-        assert!(!is_linux_fallback_socket_path_for_uid(
-            &non_fallback_socket_path,
-            uid
-        ));
+        assert_eq!(
+            managed_socket_parent_for_uid(&fallback_socket_path, uid),
+            fallback_socket_path.parent().map(Path::to_path_buf)
+        );
+        assert_eq!(
+            managed_socket_parent_for_uid(&non_fallback_socket_path, uid),
+            None
+        );
+
+        #[cfg(target_os = "macos")]
+        {
+            let macos_socket_path = crate::config::default_ssh_agent_socket_path();
+            assert_eq!(
+                managed_socket_parent_for_uid(&macos_socket_path, uid),
+                macos_socket_path.parent().map(Path::to_path_buf)
+            );
+        }
     }
 }

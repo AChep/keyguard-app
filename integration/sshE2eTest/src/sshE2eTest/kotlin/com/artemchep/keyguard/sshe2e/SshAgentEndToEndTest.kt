@@ -8,6 +8,7 @@ import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.attribute.PosixFilePermissions
 import java.security.SecureRandom
 import kotlin.io.path.deleteRecursively
 import kotlin.test.Test
@@ -15,6 +16,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.AfterClass
 import org.junit.BeforeClass
+import org.junit.Assume.assumeTrue
 
 class SshAgentEndToEndTest {
     companion object {
@@ -23,6 +25,7 @@ class SshAgentEndToEndTest {
         private lateinit var launcher: KeyguardSshAgentLauncher
         private lateinit var keys: List<TestSshKey>
         private lateinit var ssh: SshCli
+        private lateinit var binaryPath: Path
 
         @JvmStatic
         @BeforeClass
@@ -40,7 +43,7 @@ class SshAgentEndToEndTest {
             Files.createDirectories(workRoot)
             restrict(workRoot)
 
-            val binaryPath = buildAndLocateBinary(repoRoot)
+            binaryPath = buildAndLocateBinary(repoRoot)
             keys = generateKeys()
 
             val authToken = ByteArray(32).also { SecureRandom().nextBytes(it) }
@@ -145,6 +148,49 @@ class SshAgentEndToEndTest {
 
         private fun executableName(name: String): String =
             if (isWindows()) "$name.exe" else name
+    }
+
+    @Test
+    fun `macos default socket serves keys and preserves the shared GPG home across restarts`() {
+        assumeTrue(System.getProperty("os.name").startsWith("Mac", ignoreCase = true))
+        val userHome = Files.createDirectory(workRoot.resolve("home space"))
+        val sharedPermissions = PosixFilePermissions.fromString("rwxr-xr-x")
+        Files.setPosixFilePermissions(userHome, sharedPermissions)
+        val keyguard = userHome.resolve(".keyguard")
+        val socket = keyguard.resolve("ssh-agent.sock")
+        val gpgConfig = keyguard.resolve("gnupg/common.conf")
+        val legacy = Files.createDirectories(userHome.resolve("Library/Group Containers/com.artemchep.keyguard"))
+        val legacyConfig = Files.writeString(legacy.resolve("sentinel"), "unchanged")
+        repeat(2) { attempt ->
+            val defaultLauncher = KeyguardSshAgentLauncher(
+                binaryPath = binaryPath,
+                processor = TestSshAgentRequestProcessor(keys),
+                authToken = ByteArray(32).also { SecureRandom().nextBytes(it) },
+            )
+            try {
+                defaultLauncher.start(
+                    ipcEndpoint = AgentIpcEndpoint.UnixSocket(workRoot.resolve("default-ipc.sock"), workRoot),
+                    environmentOverrides = mapOf("HOME" to userHome.toString()),
+                )
+                val result = SshCli(socket.toString()).run("ssh-add", "-L")
+                assertTrue(result.isSuccess, result.describe())
+                keys.forEach { key ->
+                    assertTrue(result.stdout.lineSequence().any { sshPublicKeysMatch(it, key.publicKey) }, result.describe())
+                }
+                assertEquals(PosixFilePermissions.fromString("rwx------"), Files.getPosixFilePermissions(keyguard))
+                assertEquals(sharedPermissions, Files.getPosixFilePermissions(userHome))
+                assertEquals("unchanged", Files.readString(legacyConfig))
+                if (attempt == 0) {
+                    Files.createDirectory(gpgConfig.parent)
+                    Files.writeString(gpgConfig, "no-autostart\n")
+                } else {
+                    assertEquals("no-autostart\n", Files.readString(gpgConfig))
+                }
+            } finally {
+                defaultLauncher.stop()
+            }
+            assertTrue(Files.notExists(socket), "The default socket must be cleaned up on shutdown")
+        }
     }
 
     @Test

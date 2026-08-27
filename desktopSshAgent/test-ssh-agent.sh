@@ -68,7 +68,7 @@ detect_socket() {
     case "$(uname -s)" in
         Darwin)
             add_candidate_socket "/tmp/keyguard-$(id -u)/ssh-agent.sock"
-            add_candidate_socket "$HOME/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"
+            add_candidate_socket "$HOME/.keyguard/ssh-agent.sock"
             ;;
         Linux)
             if [ "${container:-}" = "flatpak" ] && [ -n "${XDG_RUNTIME_DIR:-}" ]; then

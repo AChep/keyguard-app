@@ -135,8 +135,8 @@ fn ensure_socket_parent_dir_for_uid(socket_path: &Path, uid: libc::uid_t) -> Res
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 fn ensure_managed_socket_parent_dir(parent: &Path, uid: libc::uid_t) -> Result<()> {
     if let Some(shared_parent) = parent.parent() {
-        // Library/Group Containers may not exist on a fresh macOS home.
-        // Its existing permissions must remain unchanged.
+        // Shared ancestors may not exist yet, especially for explicit paths.
+        // Their existing permissions must remain unchanged.
         std::fs::create_dir_all(shared_parent).with_context(|| {
             format!(
                 "failed to create SSH agent directory ancestors: {}",
@@ -179,15 +179,17 @@ mod tests {
     #[test]
     fn managed_parent_preparation_creates_and_preserves_shared_ancestors() {
         let tmp = tempdir().expect("tempdir");
-        let shared_parent = tmp.path().join("Library/Group Containers");
-        let parent = shared_parent.join("com.artemchep.keyguard");
-        ensure_managed_socket_parent_dir(&parent, current_uid()).expect("prepare new container");
+        let shared_parent = tmp.path().join("new/home");
+        let parent = shared_parent.join(".keyguard");
+        ensure_managed_socket_parent_dir(&parent, current_uid())
+            .expect("prepare Keyguard directory");
         fs::set_permissions(&shared_parent, fs::Permissions::from_mode(0o755))
             .expect("chmod shared parent");
-        fs::set_permissions(&parent, fs::Permissions::from_mode(0o755)).expect("chmod container");
+        fs::set_permissions(&parent, fs::Permissions::from_mode(0o755))
+            .expect("chmod Keyguard directory");
 
         ensure_managed_socket_parent_dir(&parent, current_uid())
-            .expect("secure existing container");
+            .expect("secure existing Keyguard directory");
 
         assert_eq!(
             fs::metadata(shared_parent)
@@ -197,7 +199,7 @@ mod tests {
             0o755
         );
         assert_eq!(
-            fs::metadata(parent).expect("container metadata").mode() & 0o777,
+            fs::metadata(parent).expect("Keyguard metadata").mode() & 0o777,
             0o700
         );
     }

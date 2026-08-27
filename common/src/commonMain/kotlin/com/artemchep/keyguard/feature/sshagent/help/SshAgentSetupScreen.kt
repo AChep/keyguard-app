@@ -51,7 +51,7 @@ private const val SSH_AGENT_SETUP_MACOS_DEV_SOCKET =
 //
 // https://github.com/AChep/keyguard-app/issues/1440
 private const val SSH_AGENT_SETUP_MACOS_RELEASE_SOCKET =
-    $$"${HOME}/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"
+    $$"${HOME}/.keyguard/ssh-agent.sock"
 private const val SSH_AGENT_SETUP_LINUX_SOCKET =
     $$"${XDG_RUNTIME_DIR}/keyguard-ssh-agent.sock"
 private const val SSH_AGENT_SETUP_LINUX_SOCKET_FALLBACK =

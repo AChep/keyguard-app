@@ -9,10 +9,12 @@ import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.attribute.PosixFilePermissions
 import java.security.SecureRandom
 import kotlin.io.path.deleteRecursively
 import org.junit.AfterClass
 import org.junit.BeforeClass
+import org.junit.Assume.assumeTrue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -50,6 +52,7 @@ class GpgAgentEndToEndTest {
         private lateinit var generatedRsaKeys: Map<GpgKeyConfig.RsaLength, TestGpgKey>
         private lateinit var generatedKeys: List<GeneratedKeyCase>
         private lateinit var clientGpg: GpgCli
+        private lateinit var binaryPath: Path
 
         @JvmStatic
         @BeforeClass
@@ -72,7 +75,7 @@ class GpgAgentEndToEndTest {
             serverHome = workRoot.resolve("s")
             clientHome = workRoot.resolve("c")
 
-            val binaryPath = buildAndLocateBinary(repoRoot)
+            binaryPath = buildAndLocateBinary(repoRoot)
 
             // 1) Generate the test keys with a real gpg-agent in the server home.
             keys = GpgKeyFactory.generate(serverHome)
@@ -225,8 +228,8 @@ class GpgAgentEndToEndTest {
             return buf.joinToString("") { "%02x".format(it) }
         }
 
-        private fun gpgAgentSocketForClientHome(home: Path): String {
-            val result = GpgCli(home).gpgconf("--list-dirs", "agent-socket")
+        private fun gpgAgentSocketForClientHome(home: Path, gpg: GpgCli = GpgCli(home)): String {
+            val result = gpg.gpgconf("--list-dirs", "agent-socket")
             require(result.isSuccess) {
                 "Failed to resolve GPG agent socket:\n${result.stderr}"
             }
@@ -280,6 +283,114 @@ class GpgAgentEndToEndTest {
             val key: TestGpgKey,
             val label: String,
         )
+    }
+
+    @Test
+    @OptIn(kotlin.io.path.ExperimentalPathApi::class)
+    fun `native defaults sign from persistent homes across socket directory recreation`() {
+        assumeTrue(!isWindows())
+        val macos = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
+        val dataHomes = if (macos) {
+            listOf(null)
+        } else {
+            val dataLink = Files.createSymbolicLink(
+                workRoot.resolve("data-link"),
+                Files.createDirectory(workRoot.resolve("data-target")),
+            )
+            listOf(
+                null,
+                "",
+                "relative",
+                workRoot.resolve("data space").toString(),
+                // Keep the raw environment spelling: Path.of would already collapse the separators.
+                "$workRoot//data repeated///",
+                // GnuPG hashes this lexical spelling, including the symlink and dot component.
+                "$dataLink/./",
+            )
+        }
+        dataHomes.forEachIndexed { index, xdgDataHome ->
+            val caseRoot = Files.createDirectory(workRoot.resolve("d$index"))
+            restrict(caseRoot)
+            val userHome = Files.createDirectory(caseRoot.resolve("home space"))
+            val sharedPermissions = PosixFilePermissions.fromString("rwxr-xr-x")
+            Files.setPosixFilePermissions(userHome, sharedPermissions)
+            val home = if (macos) {
+                userHome.resolve(".keyguard/gnupg")
+            } else {
+                val dataRoot = xdgDataHome?.takeIf { it.startsWith('/') }?.let(Path::of)
+                    ?: userHome.resolve(".local/share")
+                dataRoot.resolve("keyguard/gnupg")
+            }
+            // The application prepares the managed home before launching the binary.
+            // Here the existing fixture supplies public keys; Rust must discover the socket itself.
+            prepareClientHome(home)
+            restrict(home.parent)
+            val commonConfig = Files.writeString(home.resolve("common.conf"), "# persistent\nno-autostart\n")
+            Files.setPosixFilePermissions(commonConfig, PosixFilePermissions.fromString("rw-------"))
+            val defaultHome = Files.createDirectory(userHome.resolve(".gnupg"))
+            val defaultConfig = Files.writeString(defaultHome.resolve("common.conf"), "# untouched\n")
+            val legacyHome = if (macos) {
+                userHome.resolve("Library/Group Containers/com.artemchep.keyguard/gnupg")
+            } else {
+                caseRoot.resolve("run/keyguard-gpg-agent")
+            }
+            val runtime = caseRoot.resolve("run")
+            val environment = mapOf(
+                "HOME" to userHome.toString(),
+                "XDG_DATA_HOME" to xdgDataHome,
+                "XDG_RUNTIME_DIR" to runtime.toString(),
+                "GNUPGHOME" to defaultHome.toString(),
+                "container" to null,
+                "FLATPAK_ID" to null,
+            )
+            val gpg = GpgCli(home, environmentOverrides = environment)
+            importPublicKeys(gpg, listOf(generatedModern))
+            try {
+                repeat(2) {
+                    Files.createDirectory(runtime)
+                    restrict(runtime)
+                    Files.createDirectories(legacyHome)
+                    val legacyConfig = Files.writeString(legacyHome.resolve("common.conf"), "# legacy\n")
+                    val socketDirectory = requireNotNull(Path.of(gpgAgentSocketForClientHome(home, gpg)).parent)
+                    var externalSocketDirectory = false
+                    val defaultLauncher = KeyguardAgentLauncher(
+                        binaryPath = binaryPath,
+                        processor = TestGpgAgentRequestProcessor(listOf(generatedModern)),
+                        authToken = ByteArray(32).also { SecureRandom().nextBytes(it) },
+                    )
+                    try {
+                        defaultLauncher.start(
+                            ipcEndpoint = AgentIpcEndpoint.UnixSocket(caseRoot.resolve("ipc.sock"), caseRoot),
+                            environmentOverrides = environment,
+                        )
+                        externalSocketDirectory = !socketDirectory.toRealPath().startsWith(home.toRealPath())
+                        val signed = gpg.run(
+                            "--no-autostart", "--batch", "--yes", "--armor",
+                            "--local-user", generatedModern.primaryFingerprint, "--clearsign",
+                            stdin = "Default path signing test\n".encodeToByteArray(),
+                        )
+                        assertTrue(signed.isSuccess, signed.toString())
+                        val verified = gpg.run("--no-autostart", "--verify", stdin = signed.stdout.encodeToByteArray())
+                        assertTrue(verified.isSuccess, verified.toString())
+                        assertEquals("# persistent\nno-autostart\n", Files.readString(commonConfig))
+                        assertEquals("# untouched\n", Files.readString(defaultConfig))
+                        assertEquals("# legacy\n", Files.readString(legacyConfig))
+                        assertEquals(sharedPermissions, Files.getPosixFilePermissions(userHome))
+                    } finally {
+                        defaultLauncher.stop()
+                    }
+                    // Remove only this test home's GnuPG socket directory, never the shared root.
+                    val removed = gpg.gpgconf("--remove-socketdir")
+                    assertTrue(removed.isSuccess, removed.toString())
+                    if (externalSocketDirectory) {
+                        assertTrue(Files.notExists(socketDirectory), "The next startup must recreate $socketDirectory")
+                    }
+                    runtime.deleteRecursively()
+                }
+            } finally {
+                gpg.gpgconf("--remove-socketdir")
+            }
+        }
     }
 
     // ---- SIGN tests ------------------------------------------------------------------

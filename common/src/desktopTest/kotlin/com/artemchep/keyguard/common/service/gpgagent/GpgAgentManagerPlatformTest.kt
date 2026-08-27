@@ -22,16 +22,18 @@ import kotlin.test.assertTrue
 
 class GpgAgentManagerPlatformTest {
     @Test
-    fun `linux home uses runtime directory or private tmp fallback`() {
-        val runtimeHome = linuxManagedGpgHome(xdgRuntimeDir = "/run/user/1000", uid = 1000)
-        assertEquals(Path.of("/run/user/1000/keyguard-gpg-agent"), runtimeHome.path)
-        assertEquals(listOf(runtimeHome.path), runtimeHome.ownedDirectories)
+    fun `linux home uses absolute XDG data directory or persistent default`() {
+        val userHome = Path.of("home/alice").toAbsolutePath()
+        val dataDirectory = Path.of("data with spaces/ключі").toAbsolutePath()
+        val dataHome = linuxManagedGpgHome(userHome, xdgDataHome = dataDirectory.toString())
+        assertEquals(dataDirectory.resolve("keyguard/gnupg"), dataHome.path)
+        assertEquals(listOf(dataHome.path.parent, dataHome.path), dataHome.ownedDirectories)
 
-        listOf(null, "", "  ").forEach { runtimeDir ->
-            val fallbackHome = linuxManagedGpgHome(xdgRuntimeDir = runtimeDir, uid = 1000)
-            assertEquals(Path.of("/tmp/keyguard-1000/gnupg"), fallbackHome.path)
+        listOf(null, "", "  ", "relative/data", "~/data").forEach { dataRoot ->
+            val fallbackHome = linuxManagedGpgHome(userHome, xdgDataHome = dataRoot)
+            assertEquals(userHome.resolve(".local/share/keyguard/gnupg"), fallbackHome.path)
             assertEquals(
-                listOf(Path.of("/tmp/keyguard-1000"), fallbackHome.path),
+                listOf(fallbackHome.path.parent, fallbackHome.path),
                 fallbackHome.ownedDirectories,
             )
         }
@@ -66,24 +68,44 @@ class GpgAgentManagerPlatformTest {
     }
 
     @Test
-    fun `linux managed home supports a symlinked runtime root`() {
+    fun `linux managed home supports a symlinked data root`() {
         assumeTrue(supportsUnixAttributes())
-        val root = createTempDirectory("keyguard-gpg-linux-runtime-link")
+        val root = createTempDirectory("keyguard-gpg-linux-data-link")
         try {
-            val runtimeRoot = Files.createDirectory(root.resolve("external-runtime"))
-            val runtimeLink = root.resolve("runtime-link")
-            Files.createSymbolicLink(runtimeLink, runtimeRoot)
-            val rootPermissions = Files.getPosixFilePermissions(runtimeRoot)
-            val home = linuxManagedGpgHome(runtimeLink.toString(), unixUid(root))
+            val dataRoot = Files.createDirectory(root.resolve("external-data"))
+            val dataLink = root.resolve("data-link")
+            Files.createSymbolicLink(dataLink, dataRoot)
+            val rootPermissions = Files.getPosixFilePermissions(dataRoot)
+            val home = linuxManagedGpgHome(root, xdgDataHome = dataLink.toString())
 
             prepareLinuxManagedGpgHome(home.path, root.resolve(".gnupg"), unixUid(root), home.ownedDirectories)
 
-            assertEquals(runtimeLink.resolve("keyguard-gpg-agent"), home.path)
-            assertOwnerOnlyDirectory(runtimeRoot.resolve("keyguard-gpg-agent"))
+            assertEquals(dataLink.resolve("keyguard/gnupg"), home.path)
+            assertOwnerOnlyDirectory(dataRoot.resolve("keyguard"))
+            assertOwnerOnlyDirectory(dataRoot.resolve("keyguard/gnupg"))
             assertEquals("no-autostart\n", Files.readString(home.path.resolve("common.conf")))
-            assertEquals(rootPermissions, Files.getPosixFilePermissions(runtimeRoot))
+            assertEquals(rootPermissions, Files.getPosixFilePermissions(dataRoot))
         } finally {
-            Files.deleteIfExists(root.resolve("runtime-link"))
+            Files.deleteIfExists(root.resolve("data-link"))
+            root.toFile().deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `linux managed home does not fall back when the selected data root is unusable`() {
+        assumeTrue(supportsUnixAttributes())
+        val root = createTempDirectory("keyguard-gpg-linux-data-file")
+        try {
+            val dataRoot = Files.writeString(root.resolve("data"), "not a directory")
+            val home = linuxManagedGpgHome(root, xdgDataHome = dataRoot.toString())
+
+            assertFailsWith<java.io.IOException> {
+                prepareLinuxManagedGpgHome(home.path, root.resolve(".gnupg"), unixUid(root), home.ownedDirectories)
+            }
+
+            assertEquals("not a directory", Files.readString(dataRoot))
+            assertFalse(Files.exists(root.resolve(".local")))
+        } finally {
             root.toFile().deleteRecursively()
         }
     }
@@ -125,7 +147,7 @@ class GpgAgentManagerPlatformTest {
         try {
             val target = Files.createDirectory(root.resolve("other-data"))
             val targetPermissions = Files.getPosixFilePermissions(target)
-            val keyguard = root.resolve("tmp/keyguard-1000")
+            val keyguard = root.resolve(".local/share/keyguard")
             Files.createDirectories(keyguard.parent)
             Files.createSymbolicLink(keyguard, target)
 
@@ -204,7 +226,7 @@ class GpgAgentManagerPlatformTest {
         for (existing in listOf(false, true)) {
             val root = createTempDirectory("keyguard-gpg-linux-reverse-link")
             try {
-                val home = root.resolve("tmp/keyguard-1000/gnupg")
+                val home = root.resolve(".local/share/keyguard/gnupg")
                 if (existing) Files.createDirectories(home)
                 val defaultHome = root.resolve(".gnupg")
                 Files.createSymbolicLink(defaultHome, home)
@@ -237,7 +259,7 @@ class GpgAgentManagerPlatformTest {
                     val target = if (defaultTarget) defaultHome.resolve("common.conf") else root.resolve("other.conf")
                     Files.writeString(target, "# user config\n")
                     val targetPermissions = Files.getPosixFilePermissions(target)
-                    val home = Files.createDirectories(root.resolve("tmp/keyguard-1000/gnupg"))
+                    val home = Files.createDirectories(root.resolve(".local/share/keyguard/gnupg"))
                     val commonConf = home.resolve("common.conf")
                     if (hardLink) {
                         Files.createLink(commonConf, target)
@@ -271,7 +293,7 @@ class GpgAgentManagerPlatformTest {
         val root = createTempDirectory("keyguard-gpg-linux-config-hardlink")
         try {
             val defaultHome = Files.createDirectory(root.resolve(".gnupg"))
-            val home = Files.createDirectories(root.resolve("tmp/keyguard-1000/gnupg"))
+            val home = Files.createDirectories(root.resolve(".local/share/keyguard/gnupg"))
             val sharedConfig = root.resolve("shared.conf")
             Files.writeString(sharedConfig, "# existing\n")
             val commonConf = Files.createLink(home.resolve("common.conf"), sharedConfig)
@@ -358,11 +380,11 @@ class GpgAgentManagerPlatformTest {
     }
 
     @Test
-    fun `macos release home is inside group container`() {
+    fun `macos release home is inside keyguard directory`() {
         val userHome = Path.of("/Users/example")
 
         assertEquals(
-            userHome.resolve("Library/Group Containers/com.artemchep.keyguard/gnupg"),
+            userHome.resolve(".keyguard/gnupg"),
             macosManagedGpgHomePath(
                 userHome = userHome,
                 developmentHome = null,
@@ -388,18 +410,19 @@ class GpgAgentManagerPlatformTest {
         assumeTrue(supportsUnixAttributes())
         val root = createTempDirectory("keyguard-gpg-home")
         try {
-            val home = root.resolve("Library/Group Containers/com.artemchep.keyguard").resolve("gnupg")
+            val userHome = root.resolve("new/user")
+            val home = userHome.resolve(".keyguard/gnupg")
             val uid = unixUid(root)
 
             prepareMacosManagedGpgHome(home, uid)
 
-            assertOwnerOnlyDirectory(root.resolve("Library/Group Containers/com.artemchep.keyguard"))
+            assertOwnerOnlyDirectory(home.parent)
             assertOwnerOnlyDirectory(home)
-            val ancestors = listOf(root, root.resolve("Library"), root.resolve("Library/Group Containers"))
+            val ancestors = listOf(root, userHome.parent, userHome)
             val ancestorPermissions = ancestors.associateWith { Files.getPosixFilePermissions(it) }
 
             Files.setPosixFilePermissions(
-                root.resolve("Library/Group Containers/com.artemchep.keyguard"),
+                home.parent,
                 PosixFilePermission.entries.toSet(),
             )
             Files.setPosixFilePermissions(
@@ -415,7 +438,7 @@ class GpgAgentManagerPlatformTest {
 
             prepareMacosManagedGpgHome(home, uid)
 
-            assertOwnerOnlyDirectory(root.resolve("Library/Group Containers/com.artemchep.keyguard"))
+            assertOwnerOnlyDirectory(home.parent)
             assertOwnerOnlyDirectory(home)
             ancestorPermissions.forEach { (directory, permissions) ->
                 assertEquals(permissions, Files.getPosixFilePermissions(directory))
@@ -430,7 +453,7 @@ class GpgAgentManagerPlatformTest {
         assumeTrue(supportsUnixAttributes())
         val root = createTempDirectory("keyguard-gpg-home-symlink")
         val target = createTempDirectory("keyguard-gpg-home-target")
-        val keyguardDirectory = root.resolve("Library/Group Containers/com.artemchep.keyguard")
+        val keyguardDirectory = root.resolve(".keyguard")
         try {
             Files.createDirectories(keyguardDirectory.parent)
             Files.createSymbolicLink(keyguardDirectory, target)
@@ -456,7 +479,7 @@ class GpgAgentManagerPlatformTest {
         assumeTrue(supportsUnixAttributes())
         val root = createTempDirectory("keyguard-gpg-home-file")
         try {
-            val keyguardDirectory = root.resolve("Library/Group Containers/com.artemchep.keyguard")
+            val keyguardDirectory = root.resolve(".keyguard")
             Files.createDirectories(keyguardDirectory.parent)
             Files.writeString(keyguardDirectory, "not a directory")
 
@@ -481,7 +504,7 @@ class GpgAgentManagerPlatformTest {
             val actualUid = unixUid(root)
             val error = assertFailsWith<IllegalArgumentException> {
                 prepareMacosManagedGpgHome(
-                    home = root.resolve("Library/Group Containers/com.artemchep.keyguard").resolve("gnupg"),
+                    home = root.resolve(".keyguard").resolve("gnupg"),
                     expectedUid = actualUid + 1L,
                 )
             }
@@ -497,7 +520,7 @@ class GpgAgentManagerPlatformTest {
         assumeTrue(supportsUnixAttributes())
         val root = createTempDirectory("keyguard-gpg-common-conf-create")
         try {
-            val home = root.resolve("Library/Group Containers/com.artemchep.keyguard").resolve("gnupg")
+            val home = root.resolve(".keyguard").resolve("gnupg")
             val uid = unixUid(root)
             prepareMacosManagedGpgHome(home, uid)
 
@@ -516,7 +539,7 @@ class GpgAgentManagerPlatformTest {
         assumeTrue(supportsUnixAttributes())
         val root = createTempDirectory("keyguard-gpg-common-conf-preserve")
         try {
-            val home = root.resolve("Library/Group Containers/com.artemchep.keyguard").resolve("gnupg")
+            val home = root.resolve(".keyguard").resolve("gnupg")
             val uid = unixUid(root)
             prepareMacosManagedGpgHome(home, uid)
             val commonConf = home.resolve("common.conf")
@@ -548,7 +571,7 @@ class GpgAgentManagerPlatformTest {
         assumeTrue(supportsUnixAttributes())
         val root = createTempDirectory("keyguard-gpg-macos-common-conf-hardlink")
         try {
-            val home = root.resolve("Library/Group Containers/com.artemchep.keyguard/gnupg")
+            val home = root.resolve(".keyguard/gnupg")
             val uid = unixUid(root)
             prepareMacosManagedGpgHome(home, uid)
             val sharedConfig = root.resolve("shared.conf")
@@ -571,7 +594,7 @@ class GpgAgentManagerPlatformTest {
         val root = createTempDirectory("keyguard-gpg-common-conf-symlink")
         val target = Files.createTempFile("keyguard-gpg-common-conf-target", ".conf")
         try {
-            val home = root.resolve("Library/Group Containers/com.artemchep.keyguard").resolve("gnupg")
+            val home = root.resolve(".keyguard").resolve("gnupg")
             val uid = unixUid(root)
             prepareMacosManagedGpgHome(home, uid)
             Files.writeString(target, "target-content\n")
@@ -594,7 +617,7 @@ class GpgAgentManagerPlatformTest {
         assumeTrue(supportsUnixAttributes())
         val root = createTempDirectory("keyguard-gpg-common-conf-directory")
         try {
-            val home = root.resolve("Library/Group Containers/com.artemchep.keyguard").resolve("gnupg")
+            val home = root.resolve(".keyguard").resolve("gnupg")
             val uid = unixUid(root)
             prepareMacosManagedGpgHome(home, uid)
             Files.createDirectory(home.resolve("common.conf"))
@@ -614,7 +637,7 @@ class GpgAgentManagerPlatformTest {
         assumeTrue(supportsUnixAttributes())
         val root = createTempDirectory("keyguard-gpg-common-conf-owner")
         try {
-            val home = root.resolve("Library/Group Containers/com.artemchep.keyguard").resolve("gnupg")
+            val home = root.resolve(".keyguard").resolve("gnupg")
             val uid = unixUid(root)
             prepareMacosManagedGpgHome(home, uid)
             val commonConf = home.resolve("common.conf")
@@ -636,7 +659,7 @@ class GpgAgentManagerPlatformTest {
         assumeTrue(supportsUnixAttributes())
         val root = createTempDirectory("keyguard-gpg-common-conf-malformed")
         try {
-            val home = root.resolve("Library/Group Containers/com.artemchep.keyguard").resolve("gnupg")
+            val home = root.resolve(".keyguard").resolve("gnupg")
             val uid = unixUid(root)
             prepareMacosManagedGpgHome(home, uid)
             val commonConf = home.resolve("common.conf")
@@ -916,21 +939,21 @@ private fun assertOwnerOnlyFile(path: Path) {
 }
 
 private enum class LinuxHomeLayout {
-    RUNTIME,
-    FALLBACK,
+    XDG_DATA,
+    DEFAULT_DATA,
     FLATPAK,
     ;
 
     fun home(root: Path): Path = root.resolve(
         when (this) {
-            RUNTIME -> "run/keyguard-gpg-agent"
-            FALLBACK -> "tmp/keyguard-1000/gnupg"
-            FLATPAK -> "data/gnupg"
+            XDG_DATA -> "data/keyguard/gnupg"
+            DEFAULT_DATA -> ".local/share/keyguard/gnupg"
+            FLATPAK -> "flatpak/data/gnupg"
         },
     )
 
     fun ownedDirectories(home: Path): List<Path> = when (this) {
-        FALLBACK -> listOf(home.parent, home)
-        else -> listOf(home)
+        FLATPAK -> listOf(home)
+        else -> listOf(home.parent, home)
     }
 }

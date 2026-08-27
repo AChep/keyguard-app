@@ -45,11 +45,12 @@ class KeyguardAgentLauncher(
 
     /**
      * @param ipcEndpoint endpoint for the Kotlin <-> Rust IPC channel.
-     * @param gpgSocket the endpoint the Rust binary binds for gpg or raw Assuan clients.
+     * @param gpgSocket the endpoint to bind, or null to exercise the platform default.
      */
     fun start(
         ipcEndpoint: AgentIpcEndpoint,
-        gpgSocket: String,
+        gpgSocket: String? = null,
+        environmentOverrides: Map<String, String?> = emptyMap(),
     ) {
         this.ipcEndpoint = ipcEndpoint
 
@@ -86,11 +87,17 @@ class KeyguardAgentLauncher(
                 add(ipcEndpoint.argument)
                 add("--parent-pid")
                 add(ProcessHandle.current().pid().toString())
-                add("--gpg-socket")
-                add(gpgSocket)
+                if (gpgSocket != null) {
+                    add("--gpg-socket")
+                    add(gpgSocket)
+                }
                 if (verbose) add("--verbose")
             }
             val builder = ProcessBuilder(command)
+            GpgToolchain.current.applyToEnvironment(builder.environment())
+            environmentOverrides.forEach { (name, value) ->
+                if (value == null) builder.environment().remove(name) else builder.environment()[name] = value
+            }
             val proc = builder.start()
             this.process = proc
             val startupReady = CompletableDeferred<Unit>()

@@ -23,13 +23,17 @@ private const val BUILD_TYPE_DEV = "DEV"
 private const val GPG_AGENT_SETUP_MACOS_DEV_HOME =
     $$"/tmp/keyguard-$(id -u)/gnupg"
 private const val GPG_AGENT_SETUP_MACOS_RELEASE_HOME =
-    $$"${HOME}/Library/Group Containers/com.artemchep.keyguard/gnupg"
-private const val GPG_AGENT_SETUP_LINUX_HOME =
-    $$"${XDG_RUNTIME_DIR}/keyguard-gpg-agent"
+    $$"${HOME}/.keyguard/gnupg"
 private const val GPG_AGENT_SETUP_LINUX_FLATPAK_HOME =
     $$"${HOME}/.var/app/com.artemchep.keyguard/data/gnupg"
-private const val GPG_AGENT_SETUP_LINUX_HOME_FALLBACK =
-    $$"/tmp/keyguard-$(id -u)/gnupg"
+// Match java.nio.file.Path's separator normalization without resolving symlinks:
+// GnuPG hashes the lexical home path when selecting an external agent socket.
+internal const val GPG_AGENT_SETUP_LINUX_HOME_COMMAND = $$"""case "${XDG_DATA_HOME:-}" in
+  /*) GNUPGHOME="$XDG_DATA_HOME/keyguard/gnupg" ;;
+  *) GNUPGHOME="$HOME/.local/share/keyguard/gnupg" ;;
+esac
+GNUPGHOME="$(printf '%s' "$GNUPGHOME" | tr -s '/')"
+export GNUPGHOME"""
 private const val GPG_AGENT_SETUP_WINDOWS_RELEASE_HOME =
     "\$env:LOCALAPPDATA\\ArtemChepurnyi\\keyguard\\gnupg"
 private const val GPG_AGENT_SETUP_WINDOWS_DEV_HOME =
@@ -94,9 +98,6 @@ private fun ColumnScope.GpgAgentSetupScreenContent() {
             GpgAgentSetupSupportedPlatformContent(
                 commands = commands,
                 prerequisiteNote = null,
-                fallbackHomeCommand = GPG_AGENT_SETUP_LINUX_HOME_FALLBACK
-                    .takeUnless { platform.isFlatpak }
-                    ?.let(::exportGpgHomeCommand),
             )
         }
 
@@ -129,7 +130,6 @@ private fun gpgAgentSetupWindowsHome(): String =
 private fun ColumnScope.GpgAgentSetupSupportedPlatformContent(
     commands: GpgAgentSetupCommands,
     prerequisiteNote: String?,
-    fallbackHomeCommand: String? = null,
 ) {
     Section(
         text = stringResource(Res.string.gpg_agent_setup_step_1_title),
@@ -159,22 +159,6 @@ private fun ColumnScope.GpgAgentSetupSupportedPlatformContent(
     AgentSetupCodeBlock(
         text = commands.configureHome,
     )
-    fallbackHomeCommand?.let { command ->
-        Spacer(
-            modifier = Modifier
-                .height(16.dp),
-        )
-        AgentSetupBodyLabel(
-            text = stringResource(Res.string.gpg_agent_setup_linux_home_fallback_note),
-        )
-        Spacer(
-            modifier = Modifier
-                .height(4.dp),
-        )
-        AgentSetupCodeBlock(
-            text = command,
-        )
-    }
     AgentSetupSectionDivider()
 
     Section(
@@ -242,7 +226,7 @@ private data class GpgAgentSetupCommands(
 )
 
 private fun linuxGpgAgentSetupCommands() = unixGpgAgentSetupCommands(
-    configureHome = exportGpgHomeCommand(GPG_AGENT_SETUP_LINUX_HOME),
+    configureHome = GPG_AGENT_SETUP_LINUX_HOME_COMMAND,
 )
 
 private fun unixGpgAgentSetupCommands(

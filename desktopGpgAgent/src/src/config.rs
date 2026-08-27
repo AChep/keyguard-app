@@ -27,10 +27,12 @@ fn linux_fallback_gpg_home_path(uid: libc::uid_t) -> PathBuf {
 
 #[cfg(target_os = "macos")]
 pub(crate) fn macos_managed_gpg_home_path(home: &Path) -> PathBuf {
-    home.join("Library")
-        .join("Group Containers")
-        .join("com.artemchep.keyguard")
-        .join("gnupg")
+    // Match macosManagedGpgHomePath in GpgManagedHome.kt. External GnuPG tools
+    // need this home's public keyrings and configuration outside Group Containers:
+    // macOS 27 blocks other developers' container access by default, without prompting.
+    // Apple, System Integrity Protection (161835690):
+    // https://developer.apple.com/documentation/macos-release-notes/macos-27-release-notes
+    home.join(".keyguard").join("gnupg")
 }
 
 #[cfg(target_os = "linux")]
@@ -47,17 +49,31 @@ pub(crate) fn linux_managed_gpg_home_path() -> Result<PathBuf> {
         ));
     }
 
-    Ok(linux_runtime_gpg_home_path(
-        dirs::runtime_dir().as_deref(),
-        keyguard_agent_identity::socket_lifecycle::current_uid(),
+    let home = dirs::home_dir().context("could not determine the Linux home directory")?;
+    Ok(linux_persistent_gpg_home_path(
+        &home,
+        std::env::var_os("XDG_DATA_HOME").as_deref().map(Path::new),
     ))
 }
 
 #[cfg(any(target_os = "linux", all(test, unix)))]
-fn linux_runtime_gpg_home_path(runtime_dir: Option<&Path>, uid: libc::uid_t) -> PathBuf {
-    runtime_dir
-        .map(|directory| directory.join("keyguard-gpg-agent"))
-        .unwrap_or_else(|| linux_fallback_gpg_home_path(uid))
+fn linux_persistent_gpg_home_path(home: &Path, xdg_data_home: Option<&Path>) -> PathBuf {
+    use std::ffi::OsString;
+    use std::os::unix::ffi::OsStringExt;
+
+    let path = xdg_data_home
+        .filter(|directory| directory.is_absolute())
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| home.join(".local").join("share"))
+        .join("keyguard")
+        .join("gnupg");
+
+    // Match JVM Path and the Linux setup command without resolving symlinks
+    // or removing `.`/`..`: GnuPG hashes the lexical home passed to gpgconf.
+    // Work on Unix bytes so non-UTF-8 directory names remain unchanged.
+    let mut bytes = path.into_os_string().into_vec();
+    bytes.dedup_by(|a, b| *a == b'/' && *b == b'/');
+    PathBuf::from(OsString::from_vec(bytes))
 }
 
 #[cfg(target_os = "linux")]
@@ -217,12 +233,13 @@ pub fn default_gpg_agent_socket_path() -> Result<PathBuf> {
 #[cfg(all(test, unix))]
 mod tests {
     use super::*;
+    use std::ffi::OsStr;
+    use std::os::unix::ffi::OsStrExt;
     use std::os::unix::process::ExitStatusExt;
 
     #[test]
     fn default_policy_returns_the_injected_absolute_gpgconf_socket() {
-        let gpg_home =
-            PathBuf::from("/Users/alice/Library/Group Containers/com.artemchep.keyguard/gnupg");
+        let gpg_home = PathBuf::from("/Users/alice/.keyguard/gnupg");
         let expected_socket = PathBuf::from("/private/tmp/gnupg/d.abc/S.gpg-agent");
 
         let socket = resolve_default_gpg_agent_socket_path(gpg_home.clone(), |resolved_home| {
@@ -237,8 +254,7 @@ mod tests {
 
     #[test]
     fn macos_default_policy_propagates_gpgconf_failure() {
-        let gpg_home =
-            PathBuf::from("/Users/alice/Library/Group Containers/com.artemchep.keyguard/gnupg");
+        let gpg_home = PathBuf::from("/Users/alice/.keyguard/gnupg");
 
         let error = resolve_default_gpg_agent_socket_path(gpg_home, |_| {
             anyhow::bail!("gpgconf executable is unavailable")
@@ -252,7 +268,7 @@ mod tests {
 
     #[test]
     fn linux_default_policy_propagates_gpgconf_failure_without_fallback() {
-        let gpg_home = PathBuf::from("/run/user/1000/keyguard-gpg-agent");
+        let gpg_home = PathBuf::from("/home/alice/.local/share/keyguard/gnupg");
 
         let error = resolve_default_gpg_agent_socket_path(gpg_home.clone(), |_| {
             anyhow::bail!("gpgconf executable is unavailable")
@@ -269,8 +285,7 @@ mod tests {
 
     #[test]
     fn external_gpgconf_socket_requires_create_socketdir_success() {
-        let gpg_home =
-            PathBuf::from("/Users/alice/Library/Group Containers/com.artemchep.keyguard/gnupg");
+        let gpg_home = PathBuf::from("/Users/alice/.keyguard/gnupg");
         let external_socket = "/private/tmp/gnupg/d.abc/S.gpg-agent";
         let mut invocation_count = 0;
 
@@ -294,8 +309,7 @@ mod tests {
 
     #[test]
     fn gpgconf_list_failure_preserves_home_status_and_output() {
-        let gpg_home =
-            PathBuf::from("/Users/alice/Library/Group Containers/com.artemchep.keyguard/gnupg");
+        let gpg_home = PathBuf::from("/Users/alice/.keyguard/gnupg");
 
         let error = gpgconf_agent_socket_path_with(&gpg_home, |_, args| {
             assert_eq!(args, ["--list-dirs", "agent-socket"]);
@@ -312,8 +326,7 @@ mod tests {
 
     #[test]
     fn gpgconf_start_failure_has_invocation_and_home_context() {
-        let gpg_home =
-            PathBuf::from("/Users/alice/Library/Group Containers/com.artemchep.keyguard/gnupg");
+        let gpg_home = PathBuf::from("/Users/alice/.keyguard/gnupg");
 
         let error = gpgconf_agent_socket_path_with(&gpg_home, |_, _| {
             Err(anyhow::anyhow!("permission denied while starting gpgconf"))
@@ -336,13 +349,10 @@ mod tests {
 
     #[cfg(target_os = "macos")]
     #[test]
-    fn macos_managed_home_uses_group_container() {
+    fn macos_managed_home_uses_keyguard_directory() {
         let home = Path::new("/Users/alice");
         let gpg_home = macos_managed_gpg_home_path(home);
-        assert_eq!(
-            gpg_home,
-            PathBuf::from("/Users/alice/Library/Group Containers/com.artemchep.keyguard/gnupg")
-        );
+        assert_eq!(gpg_home, PathBuf::from("/Users/alice/.keyguard/gnupg"));
     }
 
     #[cfg(target_os = "macos")]
@@ -358,17 +368,104 @@ mod tests {
     }
 
     #[test]
-    fn linux_path_uses_runtime_directory() {
-        let path = linux_runtime_gpg_home_path(Some(Path::new("/run/user/1000")), 1000);
+    fn linux_path_uses_absolute_xdg_data_directory() {
+        for (directory, expected) in [
+            ("/data", "/data/keyguard/gnupg"),
+            ("/data/", "/data/keyguard/gnupg"),
+            ("/data///", "/data/keyguard/gnupg"),
+            (
+                "/data//space dir/ключі///",
+                "/data/space dir/ключі/keyguard/gnupg",
+            ),
+            (
+                "/data//./linked/../directory/",
+                "/data/./linked/../directory/keyguard/gnupg",
+            ),
+            (
+                r"///data//bookkeeper\\keys///",
+                r"/data/bookkeeper\\keys/keyguard/gnupg",
+            ),
+            ("/", "/keyguard/gnupg"),
+            ("//", "/keyguard/gnupg"),
+        ] {
+            let path = linux_persistent_gpg_home_path(
+                Path::new("/home/alice"),
+                Some(Path::new(directory)),
+            );
 
-        assert_eq!(path, PathBuf::from("/run/user/1000/keyguard-gpg-agent"));
+            // Path equality ignores repeated separators and interior `.`;
+            // GnuPG's socket-directory hash uses the actual argument bytes.
+            assert_eq!(
+                path.as_os_str(),
+                OsStr::new(expected),
+                "XDG_DATA_HOME={directory}"
+            );
+        }
     }
 
     #[test]
-    fn linux_path_uses_private_tmp_fallback_without_runtime_directory() {
+    fn linux_path_uses_default_data_directory_for_unset_empty_or_relative_xdg() {
+        for directory in [
+            None,
+            Some(""),
+            Some("  "),
+            Some("relative/data"),
+            Some("~/data"),
+        ] {
+            assert_eq!(
+                linux_persistent_gpg_home_path(
+                    Path::new("/home//alice///"),
+                    directory.map(Path::new)
+                )
+                .as_os_str(),
+                OsStr::new("/home/alice/.local/share/keyguard/gnupg")
+            );
+        }
+    }
+
+    #[test]
+    fn linux_path_preserves_non_utf8_directory_bytes() {
+        let path = linux_persistent_gpg_home_path(
+            Path::new("/home/alice"),
+            Some(Path::new(OsStr::from_bytes(b"/data/\xff//keys///"))),
+        );
+
         assert_eq!(
-            linux_runtime_gpg_home_path(None, 1000),
-            PathBuf::from("/tmp/keyguard-1000/gnupg")
+            path.as_os_str().as_bytes(),
+            b"/data/\xff/keys/keyguard/gnupg"
+        );
+    }
+
+    #[test]
+    fn linux_default_passes_the_same_lexical_home_to_both_gpgconf_commands() {
+        let home = linux_persistent_gpg_home_path(
+            Path::new("/home/alice"),
+            Some(Path::new("/data//./linked/../directory///")),
+        );
+        let mut invocations = Vec::new();
+        let socket = resolve_default_gpg_agent_socket_path(home, |home| {
+            gpgconf_agent_socket_path_with(home, |home, args| {
+                assert_eq!(
+                    home.as_os_str(),
+                    OsStr::new("/data/./linked/../directory/keyguard/gnupg"),
+                );
+                invocations.push(args.iter().map(|arg| arg.to_string()).collect::<Vec<_>>());
+                Ok(command_output(
+                    0,
+                    "/run/user/1000/gnupg/d.test/S.gpg-agent\n",
+                    "",
+                ))
+            })
+        })
+        .expect("resolve external socket");
+
+        assert_eq!(socket, Path::new("/run/user/1000/gnupg/d.test/S.gpg-agent"));
+        assert_eq!(
+            invocations,
+            [
+                vec!["--list-dirs", "agent-socket"],
+                vec!["--create-socketdir"]
+            ],
         );
     }
 

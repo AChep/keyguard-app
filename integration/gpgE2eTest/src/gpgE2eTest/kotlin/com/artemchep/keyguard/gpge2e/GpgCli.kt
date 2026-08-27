@@ -21,6 +21,7 @@ data class ProcessResult(
 class GpgCli(
     private val gnupgHome: Path,
     private val toolchain: GpgToolchain = GpgToolchain.current,
+    private val environmentOverrides: Map<String, String?> = emptyMap(),
 ) {
     fun run(
         vararg args: String,
@@ -39,7 +40,7 @@ class GpgCli(
             add(gnupgHome.toAbsolutePath().toString())
             addAll(args)
         }
-        return exec(command, gnupgHome, stdin, timeoutSeconds, toolchain)
+        return exec(command, gnupgHome, stdin, timeoutSeconds, toolchain, environmentOverrides)
     }
 
     fun gpgconf(
@@ -52,7 +53,7 @@ class GpgCli(
             add(gnupgHome.toAbsolutePath().toString())
             addAll(args)
         }
-        return exec(command, gnupgHome, null, timeoutSeconds, toolchain)
+        return exec(command, gnupgHome, null, timeoutSeconds, toolchain, environmentOverrides)
     }
 
     companion object {
@@ -62,9 +63,13 @@ class GpgCli(
             stdin: ByteArray?,
             timeoutSeconds: Long,
             toolchain: GpgToolchain = GpgToolchain.current,
+            environmentOverrides: Map<String, String?> = emptyMap(),
         ): ProcessResult {
             val builder = ProcessBuilder(command)
             toolchain.applyToEnvironment(builder.environment())
+            environmentOverrides.forEach { (name, value) ->
+                if (value == null) builder.environment().remove(name) else builder.environment()[name] = value
+            }
             builder.environment()["GNUPGHOME"] = gnupgHome.toAbsolutePath().toString()
             val process = builder.start()
             if (stdin != null) {

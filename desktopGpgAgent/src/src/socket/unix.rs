@@ -451,7 +451,7 @@ fn ensure_socket_parent_dir_for_uid(socket_path: &Path, uid: libc::uid_t) -> Res
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 fn ensure_managed_socket_parent_dirs(parents: &[PathBuf], uid: libc::uid_t) -> Result<()> {
     if let Some(shared_parent) = parents.first().and_then(|parent| parent.parent()) {
-        // Ancestors such as Library/Group Containers are shared. Create
+        // Ancestors such as the XDG data root are shared. Create
         // missing ancestors without changing existing permissions.
         fs::create_dir_all(shared_parent).with_context(|| {
             format!(
@@ -492,9 +492,12 @@ fn managed_socket_parent_chain_for_uid(
     {
         let gpg_home = crate::config::linux_managed_gpg_home_path().ok()?;
         if socket_path == crate::config::managed_gpg_agent_socket_path(&gpg_home) {
-            // Runtime and Flatpak data directories are shared roots. The
-            // two-level /tmp fallback is handled above.
-            return Some(vec![gpg_home]);
+            // Flatpak owns its data root; ordinary Linux also owns the
+            // Keyguard directory inside the shared XDG data root.
+            if std::env::var("container").ok().as_deref() == Some("flatpak") {
+                return Some(vec![gpg_home]);
+            }
+            return Some(vec![gpg_home.parent()?.to_path_buf(), gpg_home]);
         }
     }
 
@@ -810,7 +813,7 @@ mod tests {
             assert_eq!(
                 managed_socket_parent_chain_for_uid(&socket_path, uid),
                 Some(vec![
-                    gpg_home.parent().expect("group container").to_path_buf(),
+                    gpg_home.parent().expect("Keyguard directory").to_path_buf(),
                     gpg_home
                 ])
             );
@@ -820,12 +823,20 @@ mod tests {
         {
             let gpg_home = crate::config::linux_managed_gpg_home_path().expect("Linux GPG home");
             let socket_path = crate::config::managed_gpg_agent_socket_path(&gpg_home);
-            if socket_path != fallback_socket_path {
-                assert_eq!(
-                    managed_socket_parent_chain_for_uid(&socket_path, uid),
-                    Some(vec![gpg_home])
-                );
-            }
+            let expected_parents = if socket_path != fallback_socket_path
+                && std::env::var("container").ok().as_deref() == Some("flatpak")
+            {
+                vec![gpg_home]
+            } else {
+                vec![
+                    gpg_home.parent().expect("Keyguard directory").to_path_buf(),
+                    gpg_home,
+                ]
+            };
+            assert_eq!(
+                managed_socket_parent_chain_for_uid(&socket_path, uid),
+                Some(expected_parents)
+            );
         }
     }
 
@@ -833,13 +844,11 @@ mod tests {
     fn managed_parent_preparation_preserves_shared_ancestors_for_each_layout() {
         let tmp = tempdir().expect("tempdir");
         for (relative_home, owns_parent) in [
-            ("run/keyguard-gpg-agent", false),
+            ("data/keyguard/gnupg", true),
+            (".local/share/keyguard/gnupg", true),
             ("tmp/keyguard-1000/gnupg", true),
             ("data/gnupg", false),
-            (
-                "Library/Group Containers/com.artemchep.keyguard/gnupg",
-                true,
-            ),
+            (".keyguard/gnupg", true),
         ] {
             let home = tmp.path().join(relative_home);
             let parents = if owns_parent {
@@ -879,6 +888,39 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn ssh_and_gpg_can_prepare_the_same_keyguard_directory_concurrently() {
+        let tmp = tempdir().expect("tempdir");
+        let root = tmp.path().join(".keyguard");
+        let home = root.join("gnupg");
+        let shared_permissions = fs::metadata(tmp.path()).expect("metadata").mode() & 0o777;
+        let barrier = std::sync::Barrier::new(2);
+        std::thread::scope(|scope| {
+            scope.spawn(|| {
+                barrier.wait();
+                // SSH secures the same parent through the shared lifecycle helper.
+                LIFECYCLE
+                    .ensure_safe_managed_parent_dir(&root, current_uid())
+                    .expect("SSH parent");
+            });
+            scope.spawn(|| {
+                barrier.wait();
+                ensure_managed_socket_parent_dirs(&[root.clone(), home.clone()], current_uid())
+                    .expect("GPG parents");
+            });
+        });
+        for directory in [&root, &home] {
+            assert_eq!(
+                fs::metadata(directory).expect("metadata").mode() & 0o777,
+                0o700
+            );
+        }
+        assert_eq!(
+            fs::metadata(tmp.path()).expect("metadata").mode() & 0o777,
+            shared_permissions
+        );
     }
 
     #[test]

@@ -97,8 +97,8 @@ private fun linuxManagedGpgHome(platform: Platform.Desktop.Linux): ManagedGpgHom
     }
 
     return linuxManagedGpgHome(
-        xdgRuntimeDir = System.getenv("XDG_RUNTIME_DIR"),
-        uid = currentUnixUid() ?: error("Could not determine the current Linux user ID"),
+        userHome = Path.of(System.getProperty("user.home")),
+        xdgDataHome = System.getenv("XDG_DATA_HOME"),
     )
 }
 
@@ -118,20 +118,15 @@ private fun flatpakId(): String =
         ?: FLATPAK_APP_ID_FALLBACK
 
 internal fun linuxManagedGpgHome(
-    xdgRuntimeDir: String?,
-    uid: Long,
+    userHome: Path,
+    xdgDataHome: String?,
 ): ManagedGpgHome {
-    val runtimeDir = xdgRuntimeDir
+    val dataDirectory = xdgDataHome
         ?.takeIf { it.isNotBlank() }
         ?.let { Path.of(it) }
-    if (runtimeDir != null) {
-        return ManagedGpgHome(
-            path = runtimeDir.resolve("keyguard-gpg-agent"),
-            kind = ManagedGpgHome.Kind.LINUX,
-        )
-    }
-
-    val keyguardDirectory = Path.of("/tmp", "keyguard-$uid")
+        ?.takeIf { it.isAbsolute }
+        ?: userHome.resolve(".local/share")
+    val keyguardDirectory = dataDirectory.resolve("keyguard")
     val home = keyguardDirectory.resolve("gnupg")
     return ManagedGpgHome(
         path = home,
@@ -140,13 +135,17 @@ internal fun linuxManagedGpgHome(
     )
 }
 
+// External GnuPG tools need this home's public keyrings and configuration, so
+// keep it outside ~/Library/Group Containers. macOS 27 blocks other developers'
+// container access by default without prompting; users can allow it in Privacy
+// & Security. Only the integration home moves, not vault or AutoFill storage.
+// Apple, System Integrity Protection (161835690):
+// https://developer.apple.com/documentation/macos-release-notes/macos-27-release-notes
 internal fun macosManagedGpgHomePath(
     userHome: Path,
     developmentHome: Path?,
 ): Path = developmentHome
-    ?: userHome.resolve("Library")
-        .resolve("Group Containers")
-        .resolve("com.artemchep.keyguard")
+    ?: userHome.resolve(".keyguard")
         .resolve("gnupg")
 
 internal fun isDefaultUserGpgHome(

@@ -37,11 +37,12 @@ class KeyguardSshAgentLauncher(
 
     /**
      * @param ipcEndpoint endpoint for the Kotlin <-> Rust IPC channel.
-     * @param sshSocket the SSH_AUTH_SOCK endpoint the Rust binary binds for OpenSSH clients.
+     * @param sshSocket the endpoint to bind, or null to exercise the platform default.
      */
     fun start(
         ipcEndpoint: AgentIpcEndpoint,
-        sshSocket: String,
+        sshSocket: String? = null,
+        environmentOverrides: Map<String, String?> = emptyMap(),
     ) {
         this.ipcEndpoint = ipcEndpoint
 
@@ -78,11 +79,16 @@ class KeyguardSshAgentLauncher(
                 add(ipcEndpoint.argument)
                 add("--parent-pid")
                 add(ProcessHandle.current().pid().toString())
-                add("--ssh-socket")
-                add(sshSocket)
+                if (sshSocket != null) {
+                    add("--ssh-socket")
+                    add(sshSocket)
+                }
                 if (verbose) add("--verbose")
             }
             val builder = ProcessBuilder(command)
+            environmentOverrides.forEach { (name, value) ->
+                if (value == null) builder.environment().remove(name) else builder.environment()[name] = value
+            }
             val proc = builder.start()
             this.process = proc
             val startupReady = CompletableDeferred<Unit>()

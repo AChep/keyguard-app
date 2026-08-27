@@ -9,10 +9,12 @@ pub(crate) fn linux_fallback_ssh_agent_socket_path(uid: libc::uid_t) -> PathBuf 
 
 #[cfg(target_os = "macos")]
 pub(crate) fn macos_ssh_agent_socket_path(home: &std::path::Path) -> PathBuf {
-    home.join("Library")
-        .join("Group Containers")
-        .join("com.artemchep.keyguard")
-        .join("ssh-agent.sock")
+    // SSH clients are outside Keyguard's app group. Keep their socket outside
+    // ~/Library/Group Containers: macOS 27 blocks other developers' container access
+    // by default, without prompting (users can allow it in Privacy & Security).
+    // Apple, System Integrity Protection (161835690):
+    // https://developer.apple.com/documentation/macos-release-notes/macos-27-release-notes
+    home.join(".keyguard").join("ssh-agent.sock")
 }
 
 #[cfg(target_os = "linux")]
@@ -56,7 +58,7 @@ pub(crate) fn flatpak_ssh_agent_socket_path(
 
 /// Returns the default path for the SSH agent socket.
 ///
-/// - macOS: `~/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock`
+/// - macOS: `~/.keyguard/ssh-agent.sock`
 /// - Linux: `$XDG_RUNTIME_DIR/keyguard-ssh-agent.sock` or `/tmp/keyguard-$UID/ssh-agent.sock`
 /// - Windows: `\\.\pipe\keyguard-ssh-agent`
 pub fn default_ssh_agent_socket_path() -> PathBuf {
@@ -138,13 +140,13 @@ mod tests {
 
     #[cfg(target_os = "macos")]
     #[test]
-    fn macos_default_path_uses_group_container() {
+    fn macos_default_path_uses_keyguard_directory() {
         let path = default_ssh_agent_socket_path();
         assert_eq!(
             path,
             macos_ssh_agent_socket_path(&dirs::home_dir().expect("home directory"))
         );
-        assert!(path.ends_with("Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"));
+        assert!(path.ends_with(".keyguard/ssh-agent.sock"));
     }
 
     #[cfg(target_os = "macos")]

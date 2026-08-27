@@ -19,7 +19,7 @@ internal fun prepareLinuxManagedGpgHome(
     requireSeparateGpgHome(home, defaultUserHome)
     val managedDirectories = ownedDirectories.map { it.toAbsolutePath() }
 
-    // Runtime and Flatpak data roots are not Keyguard-owned directories.
+    // XDG and Flatpak data roots are not Keyguard-owned directories.
     // Allow their aliases and preserve their permissions; only the explicitly
     // owned children must be owner-only, non-symlink directories.
     Files.createDirectories(requireNotNull(managedDirectories.first().parent))
@@ -37,8 +37,8 @@ internal fun prepareMacosManagedGpgHome(
     val keyguardDirectory = requireNotNull(normalizedHome.parent) {
         "Managed GnuPG home must have a parent directory: $home"
     }
-    // Library/Group Containers may not exist yet. Only the app-specific
-    // container and GnuPG home below it are ours to restrict.
+    // Only the Keyguard directory and GnuPG home are ours to restrict.
+    // Preserve shared ancestors, including those of development homes.
     Files.createDirectories(requireNotNull(keyguardDirectory.parent))
     listOf(keyguardDirectory, normalizedHome).forEach { directory ->
         createOrValidateManagedDirectory(directory, expectedUid)

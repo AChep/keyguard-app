@@ -23,10 +23,10 @@ fetched from a keyserver (`keys.openpgp.org` by default).
    vault holds a GPG key the agent is allowed to use. Keyguard creates a
    dedicated GnuPG home for the integration. These are `GNUPGHOME` directories,
    not agent socket endpoints:
-   - **Linux** — `$XDG_RUNTIME_DIR/keyguard-gpg-agent` (or
-     `/tmp/keyguard-$(id -u)/gnupg` if `XDG_RUNTIME_DIR` is unset); **Flatpak** —
+   - **Linux** — `$XDG_DATA_HOME/keyguard/gnupg` (or
+     `~/.local/share/keyguard/gnupg` if `XDG_DATA_HOME` is unset, empty, or relative); **Flatpak** —
      `~/.var/app/com.artemchep.keyguard/data/gnupg`;
-   - **macOS** — `~/Library/Group Containers/com.artemchep.keyguard/gnupg`;
+   - **macOS** — `~/.keyguard/gnupg`;
    - **Windows** — `%LOCALAPPDATA%\ArtemChepurnyi\keyguard\gnupg`.
 
    > **Windows requires native GnuPG.** The GPG executable bundled with Git for
@@ -39,19 +39,18 @@ fetched from a keyserver (`keys.openpgp.org` by default).
    your shell profile:
 
    ```sh
-   export GNUPGHOME="$XDG_RUNTIME_DIR/keyguard-gpg-agent"
-   ```
-
-   If `XDG_RUNTIME_DIR` is not set, use the fallback instead:
-
-   ```sh
-   export GNUPGHOME="/tmp/keyguard-$(id -u)/gnupg"
+   case "${XDG_DATA_HOME:-}" in
+     /*) GNUPGHOME="$XDG_DATA_HOME/keyguard/gnupg" ;;
+     *) GNUPGHOME="$HOME/.local/share/keyguard/gnupg" ;;
+   esac
+   GNUPGHOME="$(printf '%s' "$GNUPGHOME" | tr -s '/')"
+   export GNUPGHOME
    ```
 
    On macOS:
 
    ```sh
-   export GNUPGHOME="$HOME/Library/Group Containers/com.artemchep.keyguard/gnupg"
+   export GNUPGHOME="$HOME/.keyguard/gnupg"
    ```
 
    For the Flatpak build, use the persistent app data directory instead:
@@ -123,7 +122,7 @@ git commit -S
 On macOS:
 
 ```sh
-GNUPGHOME="$HOME/Library/Group Containers/com.artemchep.keyguard/gnupg" git commit -S
+GNUPGHOME="$HOME/.keyguard/gnupg" git commit -S
 ```
 
 For the Flatpak build:

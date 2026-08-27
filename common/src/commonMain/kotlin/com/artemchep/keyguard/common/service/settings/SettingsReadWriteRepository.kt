@@ -192,6 +192,18 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         filter: GpgAgentFilter,
     ): IO<Unit>
 
+    fun setBrowserAutofillAgent(
+        browserAutofillAgent: Boolean,
+    ): IO<Unit>
+
+    fun setBrowserAutofillAgentPort(
+        port: Int,
+    ): IO<Unit>
+
+    fun setBrowserAutofillAgentPairingCode(
+        code: String,
+    ): IO<Unit>
+
     fun setGpgKeyserverConfig(
         config: GpgKeyserverConfig,
     ): IO<Unit>

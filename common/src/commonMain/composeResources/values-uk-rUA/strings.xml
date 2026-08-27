@@ -10,10 +10,20 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Назва</string>
     <string name="description">Опис</string>
+    <string name="result">Результат</string>
+    <!-- Text input -->
+    <string name="input">Вхідні дані</string>
+    <!-- Text output -->
+    <string name="output">Вихідні дані</string>
+    <string name="run_action">Виконати</string>
     <string name="account_name">Назва облікового запису</string>
     <string name="database_name">Назва бази даних</string>
     <string name="enabled">Увімкнено</string>
     <string name="disabled">Вимкнено</string>
+    <string name="sign">Підписати</string>
+    <string name="encrypt">Зашифрувати</string>
+    <string name="verify">Перевірити</string>
+    <string name="decrypt">Розшифрувати</string>
     <string name="wordlist">Список слів</string>
     <string name="username">Ім'я користувача</string>
     <string name="password">Пароль</string>
@@ -23,6 +33,7 @@
     <string name="no_password">Без пароля</string>
     <string name="advanced_options">Додатково</string>
     <string name="file">Файл</string>
+    <string name="choose_file">Виберіть файл</string>
     <string name="file_name_placeholder">Назва файлу</string>
     <string name="file_status_pending_upload">Очікування завантаження</string>
     <string name="file_status_auto_resume">Автовідновлення</string>
@@ -44,6 +55,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Макс. кількість відвідувань</string>
+    <string name="package_name">Назва пакета</string>
+    <string name="status">Стан</string>
     <string name="ready_status_beta">Бета</string>
     <string name="ready_status_alpha">Альфа</string>
     <string name="learn_more">Дізнатися більше</string>
@@ -92,7 +105,10 @@
     <string name="attachments">Вкладення</string>
     <string name="attachments_empty_label">Немає вкладень</string>
     <string name="deactivated">Деактивовано</string>
+    <!-- (certificate/credit card) expired -->
     <string name="expired">Термін дії закінчився</string>
+    <!-- (certificate) revoked -->
+    <string name="revoked">Відкликано</string>
     <string name="expiring_soon">Незабаром закінчується термін дії</string>
     <string name="item_incomplete_title">Неповні дані</string>
     <string name="item_incomplete_text">Цей запис не має певної важливої інформації.</string>
@@ -151,6 +167,7 @@
     <string name="address3">Адресний рядок 3</string>
     <string name="ssh_agent">SSH агент</string>
     <string name="ssh_client">SSH клієнт</string>
+    <string name="gpg_agent">GPG-агент</string>
     <string name="rename">Перейменувати</string>
     <string name="deletion_date">Дата видалення</string>
     <string name="deletion_date_custom">Користувацька</string>
@@ -159,8 +176,8 @@
     <string name="expiration_date_never">Ніколи</string>
     <string name="select_linked_type">Оберіть тип</string>
     <string name="select_file">Виберіть файл</string>
-    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
-    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
+    <string name="additem_attachments_drop_here">Перетягніть файл сюди, щоб додати його як вкладення</string>
+    <string name="addsend_drop_file_to_replace">Перетягніть файл сюди, щоб замінити вибраний файл</string>
     <string name="autofill">Автозаповнити</string>
     <string name="autofill_and_save_uri">Автоматично заповнити та зберегти інформацію про застосунок або вебсайт</string>
     <string name="backup_disclaimer_title">Ваші дані — це ваша відповідальність.</string>
@@ -202,7 +219,7 @@
     <string name="remove_from_history">Видалити з історії</string>
     <string name="pkcs12_password">Пароль PKCS#12</string>
     <string name="pkcs12_password_title">Введіть пароль PKCS#12</string>
-    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
+    <string name="pkcs12_password_note">Цей пакет PKCS#12 зашифровано.</string>
     <string name="reused_password">Повторюваний пароль</string>
     <string name="reused_passwords">Повторювані паролі</string>
     <string name="one_time_password">Одноразовий пароль</string>
@@ -262,8 +279,16 @@
     <string name="fingerprint">Відбиток пальця</string>
     <string name="key_type">Тип ключа</string>
     <string name="key_pair">Пара ключів</string>
+    <string name="key_id">ID ключа</string>
+    <string name="algorithm">Алгоритм</string>
+    <string name="created">Створено</string>
+    <string name="expires">Термін дії</string>
+    <string name="capabilities">Можливості</string>
+    <string name="subkeys">Підключі</string>
     <string name="key_ssh">SSH-ключ</string>
     <string name="key_ssh_value_placeholder">Тут порожньо. Згенеруйте SSH-ключ, щоб розпочати!</string>
+    <string name="key_gpg">GPG-ключ</string>
+    <string name="key_gpg_value_placeholder">Тут порожньо. Згенеруйте GPG-ключ, щоб розпочати!</string>
     <string name="fingerprint_phrase">Фраза відбитку</string>
     <string name="fingerprint_phrase_help_title">Що таке фраза відбитку?</string>
     <string name="filter_auth_reprompt_items">Повторний запит автентифікації</string>
@@ -279,21 +304,24 @@
     <string name="select_key_file">Обрати файл ключа</string>
     <string name="select_database_file">Обрати файл бази даних</string>
     <string name="replace_database_file">Замінити файл бази даних</string>
+    <string name="database_location_title">Розташування бази даних</string>
+    <string name="database_location_local">Локальний файл</string>
+    <string name="database_location_webdav">WebDAV</string>
     <string name="open_database">Відкрити базу даних</string>
     <string name="create_database">Створити базу даних</string>
     <string name="addaccount_method_header_title">Додати обліковий запис</string>
     <string name="addaccount_method_manual_title">Увійти вручну</string>
-    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
-    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_manual_text">Введіть облікові дані на цьому годиннику</string>
+    <string name="addaccount_method_keepass_wear_note">Наразі KeePass на Wear підтримує лише одноразову синхронізацію бази даних. Вибір локальної бази даних безпосередньо з годинника не підтримується.</string>
     <string name="addaccount_method_phone_title">Увійти з телефона</string>
-    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_text">Скористайтеся підключеним телефоном Android</string>
     <string name="addaccount_method_phone_unavailable">Підключений телефон не було знайдено</string>
     <string name="addaccount_method_phone_waiting">В очікуванні телефону</string>
     <string name="addaccount_method_phone_importing">Обліковий запис імпортується</string>
-    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_failed">Не вдалося ввійти з телефона</string>
     <string name="addaccount_method_phone_pick">Виберіть телефон</string>
     <string name="companionauth_header_title">Налаштування годинника</string>
-    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
+    <string name="companionauth_header_text">Увійдіть, щоб додати цей обліковий запис на годинник</string>
     <string name="qr_wifi_description_text">Проскануйте цей QR-код іншим пристроєм, щоб приєднатися до цієї мережі Wi-Fi.</string>
     <string name="qr_generate_button">Згенерувати QR-код</string>
     <string name="pro_tip">Порада: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -352,6 +380,14 @@
     <string name="ciphers_action_change_passwords_title">Змінити паролі</string>
     <string name="ciphers_action_view_password_history_title">Переглянути історію паролів</string>
     <string name="ciphers_action_view_ssh_agent_history_title">Переглянути історію SSH-агента</string>
+    <string name="ciphers_action_upload_gpg_public_key_title">Завантажити відкритий ключ GPG</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Завантажити відкритий ключ на сервер ключів?</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard надішле відкритий ключ GPG цього запису у форматі ASCII armor на налаштований вами сервер ключів. Відкритий ключ може містити відбитки, ідентифікатори користувача, як-от імена та адреси електронної пошти, підключі, дати та статус відкликання. Сервер ключів може зберігати та поширювати ці публічні дані. Це завантаження не надсилає запитів на листи для підтвердження.</string>
+    <string name="ciphers_action_refresh_gpg_public_key_title">Оновити відкритий ключ GPG</string>
+    <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Оновити відкритий ключ із сервера ключів?</string>
+    <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard звернеться до налаштованого вами сервера ключів GPG, використовуючи відбиток цього ключа. Якщо буде знайдено відповідний відкритий ключ, Keyguard оновить збережений відкритий ключ, метадані ключа та статус сервера ключів для цього запису.</string>
+    <string name="ciphers_action_verify_gpg_public_key_title">Перевірити відкритий ключ GPG</string>
+    <string name="ciphers_action_change_gpg_key_expiry_title">Змінити термін дії GPG-ключа</string>
     <string name="ciphers_action_archive_title">Архівувати</string>
     <string name="ciphers_action_archive_confirmation_title">Перемістити в архів?</string>
     <string name="ciphers_action_unarchive_title">Відновити з архіву</string>
@@ -485,20 +521,71 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Незашифрований секретний ключ збережено в теку Завантаження</string>
     <string name="ssh_key_action_add_key_title">Додати ключі</string>
     <string name="ssh_key_action_replace_key_title">Замінити ключі</string>
+    <string name="gpg_key_action_save_unencrypted_keys_title">Зберегти незашифровані ключі</string>
+    <string name="gpg_key_action_save_unencrypted_keys_saved_downloads_success_title">Ключі GPG збережено в теку Завантаження</string>
+    <string name="gpg_key_action_save_public_key_title">Зберегти відкритий ключ</string>
+    <string name="gpg_key_action_save_public_key_saved_downloads_success_title">Відкритий ключ GPG збережено в теку Завантаження</string>
+    <string name="gpg_key_action_save_unencrypted_private_key_title">Зберегти незашифрований секретний ключ</string>
+    <string name="gpg_key_action_save_unencrypted_private_key_saved_downloads_success_title">Незашифрований секретний ключ GPG збережено в теку Завантаження</string>
+    <string name="gpg_key_import_title">Імпортувати GPG-ключ</string>
+    <string name="gpg_key_import_drop_here">Перетягніть файл, щоб імпортувати відкритий або секретний GPG-ключ</string>
+    <string name="gpg_key_import_failed_title">Не вдалося імпортувати GPG-ключ</string>
+    <string name="gpg_key_import_success_title">GPG-ключ імпортовано</string>
+    <string name="gpg_key_import_error_empty">Файл GPG-ключа порожній.</string>
+    <string name="gpg_key_import_error_unsupported_format">Непідтримуваний формат GPG-ключа.</string>
+    <string name="gpg_key_import_error_unsupported_platform">Імпорт GPG-ключа не підтримується на цій платформі.</string>
+    <string name="gpg_key_import_error_invalid_passphrase">Парольна фраза GPG-ключа недійсна.</string>
+    <string name="gpg_key_import_error_malformed_key">Файл GPG-ключа має хибний формат.</string>
+    <string name="gpg_key_import_error_read">Не вдалося прочитати вибраний файл.</string>
+    <string name="gpg_key_import_error_passphrase_required">Для розблокування цього GPG-ключа потрібна парольна фраза.</string>
+    <string name="gpg_key_import_error_key_changed">GPG-ключ змінився під час імпорту. Спробуйте імпортувати його ще раз.</string>
+    <string name="gpg_key_import_passphrase_title">Парольна фраза</string>
+    <string name="gpg_key_import_passphrase_hint">Введіть парольну фразу GPG-ключа</string>
+    <string name="gpg_key_import_passphrase_dialog_title">Введіть парольну фразу GPG-ключа</string>
+    <string name="gpg_key_import_passphrase_dialog_message">Цей секретний ключ <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g> зашифровано. Keyguard збереже його без парольної фрази ключа після імпорту.</string>
+    <string name="gpg_key_expiry_title">Термін дії</string>
+    <string name="gpg_key_expiry_never">Ніколи</string>
+    <string name="gpg_key_expiry_same_as_primary">Так само, як основний ключ (<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>)</string>
+    <string name="gpg_key_expiry_unknown">Невідомо</string>
+    <string name="gpg_key_expiry_private_key_required">Імпортуйте секретний ключ, щоб змінити його термін дії.</string>
+    <string name="gpg_key_expiry_unavailable">Редагування терміну дії не підтримується на цій платформі.</string>
+    <string name="gpg_key_expiry_key_unreadable">Не вдалося перевірити відкритий ключ або його відбиток.</string>
+    <string name="gpg_key_expiry_dialog_title">Змінити термін дії GPG-ключа</string>
+    <string name="gpg_key_expiry_dialog_message">Зміна терміну дії є зворотною й не захищає скомпрометований ключ. Натомість відкличте скомпрометований ключ.</string>
+    <string name="gpg_key_expiry_primary">Основний ключ</string>
+    <string name="gpg_key_expiry_subkey">Підключ <xliff:g id="key_id" example="0A1B2C3D">%1$s</xliff:g></string>
+    <string name="gpg_key_expiry_subkey_capabilities">Можливості: <xliff:g id="capabilities" example="sign, encrypt">%1$s</xliff:g>. Поточний термін дії: <xliff:g id="expiry" example="Jan 1, 2030">%2$s</xliff:g></string>
+    <string name="gpg_key_expiry_capability_sign">підпис</string>
+    <string name="gpg_key_expiry_capability_encrypt">шифрування</string>
+    <string name="gpg_key_expiry_preset_one_year">Один рік</string>
+    <string name="gpg_key_expiry_preset_two_years">Два роки</string>
+    <string name="gpg_key_expiry_preset_five_years">П'ять років</string>
+    <string name="gpg_key_expiry_preset_custom">Користувацька дата</string>
+    <string name="gpg_key_expiry_no_explicit_expiry">Без явного терміну дії</string>
+    <string name="gpg_key_expiry_success_title">Термін дії GPG-ключа оновлено</string>
+    <string name="gpg_key_expiry_success_message">Збережіть цей запис, а потім повторно поширте або завантажте його відкритий ключ.</string>
+    <string name="gpg_key_expiry_cipher_success_message">Запис оновлено. Поширте повторно або завантажте його відкритий ключ.</string>
+    <string name="gpg_key_expiry_failed_title">Не вдалося оновити термін дії GPG-ключа</string>
+    <string name="gpg_key_expiry_failed_message">Не вдалося оновити термін дії ключа. Оригінальний ключ залишився без змін.</string>
+    <string name="gpg_key_expiry_no_components_message">Виберіть щонайменше один компонент ключа.</string>
+    <string name="gpg_key_expiry_after_primary_message">Підключ не може залишатися придатним після завершення терміну дії основного ключа. Виберіть також основний ключ або вкажіть ранішу дату завершення.</string>
+    <string name="gpg_key_expiry_invalid_message">Виберіть коректну майбутню дату завершення терміну дії.</string>
+    <string name="gpg_key_expiry_revoked_message">Відкликаний компонент ключа не можна поновити.</string>
+    <string name="gpg_key_expiry_unresolved_revocation_message">Не вдається перевірити призначене відкликання, оскільки відкритий ключ відкличника недоступний. Імпортуйте його та повторіть спробу.</string>
     <string name="ssh_key_import_title">Імпортувати SSH ключ</string>
-    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
+    <string name="ssh_key_import_drop_here">Перетягніть файл сюди, щоб імпортувати SSH-ключ</string>
     <string name="ssh_key_import_failed_title">Не вдалося імпортувати SSH ключ</string>
-    <string name="ssh_key_import_success_title">Imported SSH key</string>
-    <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
-    <string name="ssh_key_import_error_unsupported_algorithm">Only RSA and Ed25519 SSH keys are supported.</string>
-    <string name="ssh_key_import_error_invalid_passphrase">The SSH key passphrase is invalid.</string>
-    <string name="ssh_key_import_error_malformed_key">The SSH key file is malformed.</string>
-    <string name="ssh_key_import_error_read">Unable to read the selected file.</string>
-    <string name="ssh_key_import_error_passphrase_required">A passphrase is required to unlock this SSH key.</string>
+    <string name="ssh_key_import_success_title">SSH-ключ імпортовано</string>
+    <string name="ssh_key_import_error_unsupported_format">Формат секретного SSH-ключа не підтримується.</string>
+    <string name="ssh_key_import_error_unsupported_algorithm">Підтримуються лише SSH-ключі RSA та Ed25519.</string>
+    <string name="ssh_key_import_error_invalid_passphrase">Парольна фраза SSH-ключа неправильна.</string>
+    <string name="ssh_key_import_error_malformed_key">Файл SSH-ключа пошкоджено.</string>
+    <string name="ssh_key_import_error_read">Не вдалося прочитати вибраний файл.</string>
+    <string name="ssh_key_import_error_passphrase_required">Для розблокування цього SSH-ключа потрібна парольна фраза.</string>
     <string name="ssh_key_import_passphrase_title">Парольна фраза</string>
     <string name="ssh_key_import_passphrase_hint">Введіть ключову фразу SSH ключа</string>
     <string name="ssh_key_import_passphrase_dialog_title">Введіть ключову фразу SSH ключа</string>
-    <string name="ssh_key_import_passphrase_dialog_message">This <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> key is encrypted.</string>
+    <string name="ssh_key_import_passphrase_dialog_message">Цей ключ формату <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> зашифровано.</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> вибрано</string>
     <string name="copy">Скопіювати</string>
     <string name="copy_value">Скопіювати значення</string>
@@ -523,6 +610,9 @@
     <string name="copy_ssh_unencrypted_private_key">Скопіювати незашифрований секретний ключ</string>
     <string name="copy_ssh_public_key">Скопіювати публічний ключ</string>
     <string name="copy_ssh_fingerprint">Скопіювати відбиток ключа</string>
+    <string name="copy_gpg_unencrypted_private_key">Скопіювати незашифрований секретний ключ</string>
+    <string name="copy_gpg_public_key">Скопіювати публічний ключ</string>
+    <string name="copy_gpg_fingerprint">Скопіювати відбиток</string>
     <string name="copied_value">Скопійовано значення</string>
     <string name="copied_url">Скопійовано URL</string>
     <string name="copied_uri">Скопійовано URI</string>
@@ -600,12 +690,14 @@
     <string name="error_invalid_key">Некоректний ключ</string>
     <string name="error_invalid_card_number">Недійсний номер картки</string>
     <string name="error_webdav_url_required">Потрібно вказати URL-адресу WebDAV</string>
+    <string name="error_webdav_file_url_required">Введіть повну URL-адресу WebDAV до файлового ресурсу</string>
     <string name="error_incorrect_password">Невірний пароль</string>
     <string name="error_not_found">Не знайдено</string>
+    <string name="error_file_must_be_n_or_smaller">Розмір файлу має бути не більшим за <xliff:g id="size" example="500MB">%1$s</xliff:g></string>
     <string name="error_file_must_be_500_mb_or_smaller">Розмір файлу має бути 500 Мб або менше</string>
     <string name="error_file_must_be_1_mb_or_smaller">Розмір файлу має бути 1 Мб або менше</string>
     <string name="error_otp_key_must_not_be_empty">Секретний ключ одноразового пароля не може бути порожнім</string>
-    <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
+    <string name="error_otp_key_is_invalid">Секретний ключ одноразового пароля недійсний</string>
     <string name="error_failed_file_already_exists">Не вдалося створити файл. Заміна наявного файлу заборонена</string>
     <string name="error_failed_generate_kdf_hash_oom">Не вдалося створити ключ, не вистачає пам'яті. Перевірте KDF налаштування сервера.</string>
     <string name="error_failed_generate_otp_code">Помилка генерації одноразового коду</string>
@@ -620,6 +712,7 @@
     <string name="error_failed_encrypt_biometric_key">Не вдалося зашифрувати біометричний ключ</string>
     <string name="error_failed_decrypt_biometric_key">Не вдалося розшифрувати біометричний ключ</string>
     <string name="error_failed_ssh_agent_start">Не вдалося запустити SSH агент</string>
+    <string name="error_failed_gpg_agent_start">Не вдалося запустити GPG-агент</string>
     <string name="error_credential_calling_app_not_privileged">Застосунок, що надіслав запит, відсутній у списку привілейованих і не може запитувати автентифікацію від імені інших застосунків.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -691,7 +784,7 @@
     <string name="emailleak_breach_occurred_at">Відбулося <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">Стало відомо <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Не вдалося перевірити витоки даних. Перевірте з'єднання з інтернетом</string>
-    <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
+    <string name="emailleak_failed_no_api_found_text">Не вдалося перевірити витоки даних. Кінцева точка API недоступна</string>
     <string name="passwordleak_title">Витік даних</string>
     <string name="passwordleak_note">Пароль, який зустрічається в витоках даних набагато легше підібрати. Такий пароль не рекомендується використовувати.</string>
     <string name="passwordleak_occurrences_found_title">Пароль скомпрометовано</string>
@@ -780,8 +873,8 @@
     <string name="additem_header_edit_title">Редагувати запис</string>
     <string name="additem_header_merge_title">Об'єднати елементи</string>
     <string name="additem_merge_remove_origin_ciphers_title">Перемістити початкові записи до кошика</string>
-    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
-    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Перемістити початкові записи до архіву</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Зберегти початкові записи</string>
     <string name="additem_merge_attachments_note">Об’єднання елементів не об'єднує їх вкладення! Створений запис не буде мати доданих вкладень.</string>
     <string name="additem_note_placeholder">Додайте будь-які примітки про цей запис</string>
     <string name="additem_markdown_note">Стилізуйте текст використовуючи <xliff:g id="italic" example="italic">%1$s</xliff:g>, <xliff:g id="bold" example="bold">%2$s</xliff:g> та інше. Обмежена підтримка синтаксису Markdown.</string>
@@ -800,7 +893,7 @@
     <string name="addsend_auth_emails_placeholder">Електронні пошти, розділені комами</string>
     <string name="addsend_auth_emails_note">Після відкриття посилання одержувачам потрібно буде пройти одноразове підтвердження електронної пошти.</string>
     <string name="addaccount_promo_title">У вашому сховищі порожньо. Додайте обліковий запис, щоб розпочати:</string>
-    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
+    <string name="addaccount_promo_title_no_direct_action">У вашому сховищі порожньо. Перейдіть у Налаштування та додайте обліковий запис, щоб розпочати.</string>
     <string name="addaccount_promo_features">Хочете повною мірою скористатися всіма можливостями? Нижче ми виклали огляд основних функцій додатку. Подивіться, щоб дізнатися, як вони можуть вам допомогти.</string>
     <string name="addaccount_description_short_bitwarden_text">Зберігайте зашифроване сховище в хмарі.</string>
     <string name="addaccount_description_short_keepass_text">Зберігайте зашифроване сховище локально у форматі KDBX.</string>
@@ -833,16 +926,16 @@
     <string name="addaccount_custom_env_icons_url_label">URL-адреса сервера піктограм</string>
     <string name="addaccount_custom_env_identity_url_label">URL-адреса сервера ідентифікації</string>
     <string name="addaccount_custom_env_notifications_url_label">URL-адреса сервера сповіщень</string>
-    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
-    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
-    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
-    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
-    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
-    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <string name="addaccount_mutual_tls_section">Взаємна автентифікація TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Сертифікат клієнта</string>
+    <string name="addaccount_mutual_tls_note">Сертифікат, що використовується для автентифікації клієнта.</string>
+    <string name="addaccount_mutual_tls_password_label">Пароль PKCS#12</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Введіть пароль PKCS#12</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">Цей пакет PKCS#12 зашифровано.</string>
     <!-- Explains that the text next to it is the Display name of the certificate -->
     <string name="addaccount_mutual_tls_display_name_label">Видиме ім'я</string>
     <!-- Explains that the text next to it is the Issuer of the certificate -->
-    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <string name="addaccount_mutual_tls_issuer_label">Видавець</string>
     <!-- Explains that the text next to it is the Expiry date of the certificate -->
     <string name="addaccount_mutual_tls_expires_on_label">Діє до</string>
     <string name="addaccount_mutual_tls_status_imported">Імпортовано</string>
@@ -867,7 +960,7 @@
     <string name="yubikey_nfc_text">Потребує підтримки NFC.</string>
     <string name="yubikey_error_failed_to_read">Не вдалося прочитати YubiKey</string>
     <string name="yubikey_unlock_error_unsupported_title">Розблокування YubiKey не підтримується</string>
-    <string name="yubikey_unlock_error_unsupported_text">This YubiKey or connection type does not support challenge-response unlock.</string>
+    <string name="yubikey_unlock_error_unsupported_text">Цей YubiKey або тип підключення не підтримує розблокування методом «виклик-відповідь».</string>
     <string name="yubikey_unlock_error_failed_title">Не вдалося використати YubiKey</string>
     <string name="yubikey_unlock_error_failed_text">Спробуйте застосувати YubiKey ще раз або розблокуйте сховище за допомогою пароля.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Для використання FIDO2 WebAuthn необхідно мати версію вебсховища Bitwarden <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> або новішу. В старіших версіях результат автентифікації буде помилково відправлений в офіційний застосунок Bitwarden.</string>
@@ -898,6 +991,7 @@
     <string name="cipher_type_identity">Особисті дані</string>
     <string name="cipher_type_note">Нотатка</string>
     <string name="cipher_type_ssh_key">SSH-ключ</string>
+    <string name="cipher_type_gpg_key">GPG-ключ</string>
     <string name="cipher_type_passkey">Ключ доступу</string>
     <string name="field_type_text">Текст</string>
     <string name="field_type_text_concealed">Текст (прихований)</string>
@@ -935,6 +1029,7 @@
     <string name="ssh_agent_history_response_user_denied">Відхилено</string>
     <string name="ssh_agent_history_response_key_not_found">Ключ не знайдено</string>
     <string name="ssh_agent_history_response_failure">Помилка</string>
+    <string name="ssh_agent_history_response_vault_locked">Сховище заблоковано</string>
     <string name="ssh_agent_history_unknown_caller">Невідомий запитувач</string>
     <string name="ssh_agent_history_unknown_key">Невідомий ключ</string>
     <string name="ssh_agent_history_all_accessible_keys">Усі доступні ключі</string>
@@ -948,12 +1043,12 @@
     <string name="ssh_agent_setup_step_2_title">2. Налаштуйте ваш SSH-клієнт</string>
     <string name="ssh_agent_setup_step_2_text">Вкажіть вашому SSH-клієнту шлях до сокета Keyguard.</string>
     <string name="ssh_agent_setup_linux_socket_fallback_note">Резервний шлях: використовуйте це, коли XDG_RUNTIME_DIR недоступний у вашому сеансі.</string>
-    <string name="ssh_agent_setup_option_env_tab">Env</string>
-    <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
+    <string name="ssh_agent_setup_option_env_tab">Середовище</string>
+    <string name="ssh_agent_setup_option_identityagent_tab">Конфігурація</string>
     <string name="ssh_agent_setup_option_env_label">Встановіть SSH_AUTH_SOCK на шлях до сокета Keyguard.</string>
     <string name="ssh_agent_setup_option_identityagent_label">Встановіть IdentityAgent у вашій конфігурації SSH.</string>
     <string name="ssh_agent_setup_step_3_title">3. Перевірка</string>
-    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_step_3_text">Виконайте ці команди в тому самому сеансі командної оболонки, у якому налаштували агента.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
     <string name="ssh_agent_setup_windows_text">SSH-агент поки що недоступний для Windows, тому налаштування тут наведені лише для ознайомлення.</string>
     <string name="ssh_agent_setup_android_termux_text">На Android Keyguard забезпечує роботу SSH-агента за допомогою спеціального допоміжного пакета. Увімкніть SSH-агента в Keyguard, встановіть та налаштуйте пакет, а потім схвалюйте запити під час підключення вашого SSH-клієнта.</string>
@@ -973,6 +1068,65 @@
     <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> хоче використати цей SSH-ключ для підпису даних:</string>
     <string name="ssh_agent_request_approval_sign_message_unknown_app">Застосунок хоче використати цей SSH-ключ для підпису даних:</string>
     <string name="ssh_client_request">Запит від SSH клієнта</string>
+    <string name="connected_crypto_apps_title">Підключені застосунки</string>
+    <string name="connected_crypto_apps_summary">Переглядайте застосунки, зареєстровані для доступу до GPG та/або SSH, або відкликайте їхній доступ.</string>
+    <string name="connected_crypto_apps_empty">Немає зареєстрованих застосунків</string>
+    <string name="connected_crypto_apps_status_registered">Зареєстровано</string>
+    <string name="connected_crypto_apps_status_not_installed">Не встановлено</string>
+    <string name="connected_crypto_apps_status_signer_changed">Підпис застосунку змінено — доступ вимкнено</string>
+    <string name="connected_crypto_apps_signer">Підпис застосунку</string>
+    <string name="connected_crypto_apps_registered_at">Зареєстровано</string>
+    <string name="connected_crypto_apps_last_used">Востаннє використано</string>
+    <string name="connected_crypto_apps_revoke">Відкликати доступ</string>
+    <string name="connected_crypto_apps_revoke_title">Відкликати доступ для %1$s?</string>
+    <string name="connected_crypto_apps_revoke_message">Щоб знову використовувати Keyguard як постачальника, застосунок потрібно буде повторно зареєструвати.</string>
+    <string name="connected_crypto_apps_unknown">Невідомо</string>
+    <string name="ipc_approval_title">Запит від стороннього застосунку</string>
+    <string name="ipc_approval_auth_reason">Схвалити криптографічний запит від стороннього застосунку</string>
+    <string name="ipc_approval_unavailable">Термін дії цього запиту на схвалення минув або він більше не доступний.</string>
+    <string name="ipc_approval_message"><xliff:g id="app" example="Termux">%1$s</xliff:g> хоче <xliff:g id="request" example="use GPG to encrypt a message">%2$s</xliff:g>.</string>
+    <string name="ipc_approval_operation">використати <xliff:g id="protocol" example="GPG">%1$s</xliff:g>, щоб <xliff:g id="operation" example="encrypt a message">%2$s</xliff:g></string>
+    <string name="ipc_approval_operation_with_registration">зареєструватися в Keyguard і <xliff:g id="request" example="use GPG to encrypt a message">%1$s</xliff:g></string>
+    <string name="ipc_approval_no_keys">Немає придатних ключів.</string>
+    <string name="ipc_approval_no_keys_continue">Немає придатних ключів. Можна продовжити, щоб перевірити, чи відсутній підписувач.</string>
+    <string name="ipc_approval_deny">Відхилити</string>
+    <string name="ipc_approval_approve">Схвалити</string>
+    <string name="ipc_protocol_openpgp">GPG-агент</string>
+    <string name="ipc_protocol_ssh">SSH-агент</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_check_permission">підтвердити наявність доступу</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_clear_sign">підписати повідомлення</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_detached_sign">створити відокремлений підпис</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_encrypt">зашифрувати повідомлення</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_sign_and_encrypt">підписати й зашифрувати повідомлення</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_decrypt_verify">розшифрувати або перевірити повідомлення</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_decrypt_metadata">прочитати метадані повідомлення</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_sign_key">вибрати ключ для підпису</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_key_ids">знайти ключі отримувачів</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_autocrypt_status">перевірити, для яких отримувачів доступне шифрування</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_key">експортувати відкритий ключ</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_other">виконати нерозпізнану операцію</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_select_key">вибрати ключ</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_get_public_key">прочитати відкритий ключ</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_get_ssh_public_key">прочитати відкритий ключ у форматі OpenSSH</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_sign">підписати запит автентифікації</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_other">виконати нерозпізнану операцію</string>
     <string name="sort_header_title">Упорядкувати за</string>
     <string name="sort_empty_label">Сортування недоступне</string>
     <string name="sortby_title_title">Назвою</string>
@@ -1034,13 +1188,14 @@
     <string name="send_main_header_title">Відправлення</string>
     <string name="send_main_search_placeholder">Пошук відправлень</string>
     <string name="send_main_new_item_button">Нове відправлення</string>
-    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
+    <string name="send_main_drop_file_to_create">Перетягніть файл, щоб створити відправлення</string>
     <string name="send_email_is_required_to_access_label">Доступ до цього ресурсу мають одержувачі з підтвердженою електронною поштою</string>
     <string name="send_password_is_required_to_access_label">Для доступу до цього відправлення необхідно буде ввести пароль</string>
     <string name="generator_header_title">Генератор</string>
     <string name="generator_header_username_title">Генератор імені користувача</string>
     <string name="generator_header_password_title">Генератор паролів</string>
     <string name="generator_header_ssh_key_title">Генератор SSH-ключа</string>
+    <string name="generator_header_gpg_key_title">Генератор GPG-ключа</string>
     <string name="generator_generate_button">Згенерувати</string>
     <string name="generator_regenerate_button">Перегенерувати</string>
     <!-- 'Use' generated password as a password -->
@@ -1080,6 +1235,10 @@
     <string name="generator_email_subdomain_addressing_note">Піддомен адресація означає, що будь-які повідомлення, надіслані на <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g>, усе ще надсилаються на ваш обліковий запис. Це означає, що ви можете мати багато варіантів своєї адреси електронної пошти, щоб надавати її різним людям, сайтам або спискам розсилки. Перед використанням переконайтеся, що ваш хостинг електронної пошти підтримує цю функцію.</string>
     <string name="generator_email_subdomain_addressing_email_title">Ел. пошта</string>
     <string name="generator_email_forward_alias_type">Псевдонім е-пошти для пересилання</string>
+    <string name="generator_gpg_key_name_title">Ім'я</string>
+    <string name="generator_gpg_key_email_title">Електронна пошта</string>
+    <string name="generator_gpg_key_modern_note">Створює OpenPGP-ключ із ключами підпису/сертифікації Ed25519 та підключем шифрування X25519.</string>
+    <string name="generator_gpg_key_modern_text">Сучасна форма OpenPGP-ключа</string>
     <string name="generator_key_length_title">Довжина</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-біт</string>
     <string name="generator_key_rsa_note">Підтримується всіма SSH клієнтами. Рекомендується використовувати 4096-бітний або 2048-бітний ключ. Алгоритм RSA може перестати бути безпечним в недалекому майбутньому.</string>
@@ -1089,6 +1248,7 @@
     <string name="generator_create_item_with_password_title">Створити новий логін з паролем</string>
     <string name="generator_create_item_with_username_title">Створити новий логін з іменем користувача</string>
     <string name="generator_create_item_with_ssh_key_title">Створити новий запис з SSH-ключем</string>
+    <string name="generator_create_item_with_gpg_key_title">Створити новий запис з GPG-ключем</string>
     <string name="generator_password_history_title">Історія паролів</string>
     <string name="generator_show_tips_title">Показувати підказки</string>
     <string name="generatorhistory_header_title">Історія генератора</string>
@@ -1115,7 +1275,13 @@
     <string name="watchtower_item_reused_passwords_title">Повторювані паролі</string>
     <string name="watchtower_item_reused_passwords_text">Не використовуйте однаковий пароль на кількох вебсайтах. Генеруйте унікальні паролі для підвищення безпеки.</string>
     <string name="watchtower_item_weak_ssh_keys_title">Слабкі SSH ключі</string>
-    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Записи, що не відповідають рекомендаціям NIST.</string>
+    <string name="watchtower_item_unusable_gpg_keys_title">Непридатні GPG-ключі</string>
+    <string name="watchtower_item_unusable_gpg_keys_text">Записи GPG-ключів, які відкликано, прострочено, мають хибний формат або в яких відсутній придатний матеріал для підпису чи розшифрування.</string>
+    <string name="watchtower_item_weak_gpg_keys_title">Слабкі GPG-ключі</string>
+    <string name="watchtower_item_weak_gpg_keys_text">Записи GPG-ключів, що використовують слабкі або застарілі алгоритми та розміри ключів.</string>
+    <string name="watchtower_item_gpg_key_publishing_title">Публікація GPG-ключів</string>
+    <string name="watchtower_item_gpg_key_publishing_text">GPG-ключі з відсутнім, застарілим, непідтвердженим або відкликаним статусом на сервері ключів.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Вразливі облікові записи</string>
     <string name="watchtower_item_vulnerable_accounts_text">Сайти, які постраждали від витоку даних після вашої останньої зміни пароля. Змініть пароль, щоб убезпечити ваші облікові записи.</string>
     <string name="watchtower_item_unsecure_websites_title">Незахищені вебсайти</string>
@@ -1171,6 +1337,46 @@
     <string name="exportaccount_export_started">Експорт розпочато</string>
     <string name="exportaccount_export_success">Експорт завершено</string>
     <string name="exportaccount_export_failure">Експорт не вдався</string>
+    <string name="credential_exchange_export_header_title">Передати облікові дані</string>
+    <string name="credential_exchange_export_header_text">Застосунок запитує доступ до облікових даних</string>
+    <string name="credential_exchange_export_header_text_named"><xliff:g id="app_name" example="Example Passwords">%1$s</xliff:g> запитує доступ до облікових даних</string>
+    <string name="credential_exchange_export_empty_label">Немає облікових даних для передавання.</string>
+    <string name="credential_exchange_export_credential_passkey">Ключ доступу</string>
+    <string name="credential_exchange_export_credential_password">Пароль</string>
+    <string name="credential_exchange_export_credential_totp">Одноразовий пароль</string>
+    <string name="credential_exchange_export_credential_card">Картка</string>
+    <string name="credential_exchange_export_credential_identity">Особисті дані</string>
+    <string name="credential_exchange_export_credential_note">Нотатка</string>
+    <string name="credential_exchange_export_credential_fields">Користувацькі поля</string>
+    <string name="credential_exchange_export_credential_ssh_key">SSH-ключ</string>
+    <string name="credential_exchange_export_export_button">Передати</string>
+    <string name="credential_exchange_export_error_unknown">Під час підготовки записів сталася помилка.</string>
+    <string name="credential_exchange_import_review_all_items_section">Усі записи</string>
+    <string name="credential_exchange_export_error_account_unavailable">Цей обліковий запис більше недоступний.</string>
+    <string name="skipped_items_text">Деякі записи було пропущено.</string>
+    <string name="account_action_import_credentials_title">Імпортувати з іншого застосунку</string>
+    <string name="credential_exchange_import_header_title">Імпорт облікових даних</string>
+    <string name="credential_exchange_import_header_text">Перенесіть облікові дані безпосередньо з іншого менеджера паролів, установленого на цьому пристрої.</string>
+    <string name="credential_exchange_import_step_1_title">Почніть перенесення</string>
+    <string name="credential_exchange_import_step_1_text">Натисніть «Почати імпорт». Android покаже застосунки, які можуть передавати облікові дані до Keyguard.</string>
+    <string name="credential_exchange_import_step_2_title">Виберіть застосунок-джерело</string>
+    <string name="credential_exchange_import_step_2_text">Виберіть менеджер паролів, з якого потрібно імпортувати дані, а потім виконайте його вказівки, щоб підтвердити перенесення.</string>
+    <string name="credential_exchange_import_step_3_title">Перевірте та імпортуйте</string>
+    <string name="credential_exchange_import_step_3_text">Повернувшись до Keyguard, перевірте отримані дані. Нічого не буде збережено в цьому обліковому записі, доки ви не натиснете «Імпортувати».</string>
+    <string name="credential_exchange_import_learn_more">Докладніше про обмін обліковими даними</string>
+    <string name="credential_exchange_import_start_button">Почати імпорт</string>
+    <string name="credential_exchange_import_retry_button">Повторити імпорт</string>
+    <string name="credential_exchange_import_import_button">Імпортувати</string>
+    <string name="credential_exchange_import_review_source_label">Отримано від</string>
+    <string name="credential_exchange_import_review_items_section">Записи для імпорту</string>
+    <string name="credential_exchange_import_empty_label">Обраний застосунок не надіслав жодного запису, який можна імпортувати.</string>
+    <string name="credential_exchange_import_error_unavailable">Перенесення облікових даних недоступне на цьому пристрої. Для нього потрібна новіша версія сервісів Google Play.</string>
+    <string name="credential_exchange_import_error_no_providers">Жоден зі встановлених застосунків не може передавати облікові дані в цей спосіб.</string>
+    <string name="credential_exchange_import_error_parse">Не вдалося прочитати отримані дані.</string>
+    <string name="credential_exchange_import_error_unknown">Під час імпорту записів сталася помилка.</string>
+    <string name="credential_exchange_import_error_save">Не вдалося імпортувати облікові дані.</string>
+    <string name="credential_exchange_import_success_title">Імпорт завершено</string>
+    <string name="credential_exchange_import_untitled">Без назви</string>
     <string name="contactus_header_title">Зв'язатися з нами</string>
     <string name="contactus_message_label">Ваше повідомлення</string>
     <string name="contactus_english_note">Пишіть англійською, щоб переконатися, що ваше повідомлення не буде сприйнято неправильно.</string>
@@ -1194,8 +1400,11 @@
     <string name="settings_security_header_title">Безпека</string>
     <string name="settings_subscriptions_header_title">Keyguard преміум</string>
     <string name="settings_developer_header_title">Розробник</string>
+    <string name="settings_ssh_agent_header_title">SSH-агент</string>
+    <string name="settings_gpg_agent_header_title">GPG-агент</string>
     <string name="settings_watchtower_header_title">Вартова вежа</string>
     <string name="settings_automatic_backups_header_title">Резервні копії</string>
+    <string name="settings_navigation_items_header_title">Елементи навігації</string>
     <string name="settings_open_source_licenses_header_title">Ліцензії відкритого програмного забезпечення</string>
     <string name="pref_section_premium_title">Преміум</string>
     <string name="pref_section_options_title">Опції</string>
@@ -1296,8 +1505,16 @@
     <string name="pref_item_automatic_backups_retention_value">%1$d знімків</string>
     <string name="pref_item_automatic_backups_disable_title">Вимкнути автоматичне резервне копіювання</string>
     <string name="pref_item_automatic_backups_disable_message">Це лише вимикає майбутні автоматичні резервні копії. Воно очищає локальну теку, пароль та вибір вкладень із Keyguard. Наявний репозиторій резервних копій і файли в тій теці не видаляються.</string>
+    <string name="pref_item_nav_items_title">Елементи навігації</string>
     <string name="pref_item_nav_label_title">Показувати підписи на кнопках навігації</string>
-    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
+    <string name="navigation_items_add_item_title">Додати запис</string>
+    <string name="navigation_items_reset_confirmation_title">Скинути елементи навігації?</string>
+    <string name="navigation_items_reset_confirmation_text">Це відновить типовий порядок і видимість навігації. Користувацькі фільтри не видаляються, але їхні елементи навігації буде вилучено.</string>
+    <string name="navigation_items_built_in_text">Вбудований пункт призначення</string>
+    <string name="navigation_items_custom_filter_text">Користувацький фільтр</string>
+    <string name="navigation_items_missing_filter_title">Користувацький фільтр</string>
+    <string name="navigation_items_missing_filter_text">Фільтр не знайдено</string>
+    <string name="navigation_items_predefined_route_text">Наперед визначений маршрут</string>
     <string name="pref_item_app_version_title">Версія застосунку</string>
     <string name="pref_item_app_build_date_title">Дата збірки застосунку</string>
     <!--
@@ -1332,14 +1549,14 @@
     <string name="pref_item_minimize_on_copy_title">Згортати при копіюванні</string>
     <string name="pref_item_check_pwned_passwords_title">Перевіряти викриті паролі</string>
     <string name="pref_item_check_pwned_services_title">Перевіряти витоки даних</string>
-    <string name="pref_item_hibp_api_token_title">Have I Been Pwned API token</string>
-    <string name="pref_item_hibp_api_token_text">Use HIBP directly instead of Bitwarden's premium proxy. Useful for local-only vaults.</string>
+    <string name="pref_item_hibp_api_token_title">Токен API Have I Been Pwned</string>
+    <string name="pref_item_hibp_api_token_text">Використовуйте HIBP безпосередньо замість преміум-проксі Bitwarden. Корисно для локальних сховищ.</string>
     <string name="pref_item_hibp_api_token_field_label">API-токен</string>
-    <string name="pref_item_hibp_api_token_error">Enter a 32-character hexadecimal HIBP API token</string>
+    <string name="pref_item_hibp_api_token_error">Введіть 32-символьний шістнадцятковий токен API HIBP</string>
     <string name="pref_item_hibp_api_token_status_checking">Перевірка...</string>
     <string name="pref_item_hibp_api_token_status_verified">Підтверджено</string>
     <string name="pref_item_hibp_api_token_status_rejected">Відхилено</string>
-    <string name="pref_item_hibp_api_token_status_failed">Could not verify</string>
+    <string name="pref_item_hibp_api_token_status_failed">Не вдалося перевірити</string>
     <string name="pref_item_check_inactive_2fa_title">Перевіряти неактивну двофакторну автентифікацію</string>
     <string name="pref_item_check_inactive_passkeys_title">Перевіряти неактивні ключі доступу</string>
     <string name="pref_item_conceal_fields_title">Приховати значення полів</string>
@@ -1389,6 +1606,24 @@
     <string name="pref_item_permissions_title">Дозволи</string>
     <string name="pref_item_features_overview_title">Перегляд можливостей</string>
     <string name="pref_item_url_override_title">Перевизначення URL-адреси</string>
+    <string name="pref_item_agent_approval_scope_title">Область схвалення</string>
+    <string name="pref_item_agent_approval_scope_connection">Для кожного з'єднання</string>
+    <string name="pref_item_agent_approval_scope_process">Для кожного процесу</string>
+    <string name="pref_item_agent_approval_scope_application">Для кожного застосунку</string>
+    <string name="pref_item_agent_approval_scope_application_and_terminal_session">Для кожного застосунку, ізольовано за сеансом терміналу</string>
+    <string name="pref_item_agent_approval_scope_table_reuse_boundary">Хто може повторно використати?</string>
+    <string name="pref_item_agent_approval_scope_table_same_terminal">Та сама вкладка або панель</string>
+    <string name="pref_item_agent_approval_scope_table_other_terminal">Інша вкладка або панель</string>
+    <string name="pref_item_agent_approval_scope_table_connection_reuse">Поточне активне з'єднання агента</string>
+    <string name="pref_item_agent_approval_scope_table_process_reuse">Той самий перевірений екземпляр процесу</string>
+    <string name="pref_item_agent_approval_scope_table_application_reuse">Той самий перевірений застосунок</string>
+    <string name="pref_item_agent_approval_scope_table_application_and_terminal_session_reuse">Той самий перевірений сеанс терміналу; перевірений застосунок поза терміналами</string>
+    <string name="pref_item_agent_approval_scope_table_android_process_reuse">Поточне активне з'єднання агента; ідентичність процесу недоступна</string>
+    <string name="pref_item_agent_approval_scope_table_android_application_and_terminal_session_reuse">Той самий перевірений застосунок; ідентичність сеансу терміналу недоступна</string>
+    <string name="pref_item_agent_approval_scope_table_current_connection_only">Лише поточне з'єднання</string>
+    <string name="pref_item_agent_approval_scope_table_same_process_only">Лише той самий процес</string>
+    <string name="pref_item_agent_approval_scope_table_shared">Спільне</string>
+    <string name="pref_item_agent_approval_scope_table_not_shared">Не спільне</string>
     <string name="pref_item_ssh_agent_title">SSH агент</string>
     <string name="pref_item_ssh_agent_text">Автентифікуйте свої клієнти Git та SSH так, щоб вони ніколи не мали доступу до вашого приватного ключа</string>
     <string name="pref_item_ssh_agent_status_unsupported">Не підтримується</string>
@@ -1396,19 +1631,35 @@
     <string name="pref_item_ssh_agent_status_starting">Запускається</string>
     <string name="pref_item_ssh_agent_status_ready">Готовий</string>
     <string name="pref_item_ssh_agent_status_failed">Помилка</string>
-    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Запам'ятовувати схвалення ключів</string>
     <string name="pref_item_ssh_agent_local_storage_title">Локальне сховище</string>
     <string name="pref_item_ssh_agent_local_storage_text">Коли SSH-агент увімкнено, Keyguard зберігає незашифровану копію відкритих ключів на диску, щоб клієнти могли отримувати список ключів, поки сховище заблоковане. Закриті ключі ніколи не розкриваються; назви ключів зберігаються лише якщо ви ввімкнете відповідну опцію.</string>
     <string name="pref_item_ssh_agent_display_key_names_title">Показувати назви ключів до розблокування сховища</string>
     <string name="pref_item_ssh_agent_display_key_names_note">Незашифрована копія назви елемента зберігатиметься локально</string>
     <string name="pref_item_ssh_agent_approval_window_always_ask">Питати щоразу</string>
-    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Доки сховище не заблокується</string>
     <string name="pref_item_ssh_agent_setup_title">Налаштування SSH клієнта</string>
     <string name="pref_item_ssh_agent_filters_title">Фільтри SSH агента</string>
     <string name="pref_item_ssh_agent_filters_text">Виберіть, які ключі доступні для SSH агента</string>
     <string name="pref_item_ssh_agent_filters_summary_all">Всі ключі доступні</string>
     <string name="pref_item_ssh_agent_filters_summary_active">Фільтри активні</string>
     <string name="pref_item_ssh_agent_history_title">Журнал запитів</string>
+    <string name="pref_item_license_key_title">Прив'язати наявний код підтвердження права доступу</string>
+    <string name="pref_item_license_key_field_label">Код підтвердження права доступу</string>
+    <string name="pref_item_license_key_message_redeemed">Код підтвердження права доступу успішно прив'язано</string>
+    <string name="pref_item_license_key_message_invalid">Недійсний або прострочений ключ</string>
+    <string name="pref_item_license_key_status_active">Активний</string>
+    <string name="pref_item_license_key_status_invalid">Недійсний</string>
+    <string name="pref_item_license_key_status_revoked">Відкликаний</string>
+    <string name="pref_item_license_key_status_expired">Прострочений</string>
+    <string name="pref_item_license_key_status_available">Доступний</string>
+    <string name="pref_item_license_sync_title">Отримати код підтвердження права доступу</string>
+    <string name="pref_item_license_sync_text">Перевіряє вашу активну покупку в магазині та генерує код підтвердження права доступу, прив'язаний до покупки. Використовуйте цей код, щоб перенести покупку на інші ваші пристрої.</string>
+    <string name="pref_item_license_sync_requested">Запитано код підтвердження права доступу</string>
+    <string name="pref_item_license_sync_success">Код підтвердження права доступу успішно синхронізовано</string>
+    <string name="pref_item_license_sync_already">Поточний код підтвердження права доступу вже активний</string>
+    <string name="pref_item_license_sync_no_purchases">Не знайдено відповідної покупки</string>
+    <string name="pref_item_license_sync_failed">Не вдалося отримати код підтвердження права доступу</string>
     <string name="pref_item_biometric_unlock_title">Біометричне розблокування</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Вимагати підтвердження</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Вимагати додаткового підтвердження після успішної біометричної автентифікації</string>
@@ -1427,10 +1678,9 @@
     <string name="pref_item_autofill_service_title">Автозаповнення</string>
     <string name="pref_item_autofill_service_text">Заповнювати інформацію в інших програмах за допомогою Android Autofill Framework</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Деякі пристрої Xiaomi вимагають ручного надання дозволу "Показувати вікна під час роботи на задньому плані". Будь ласка, відкрийте налаштування та переконайтеся, що дозвіл надано.</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_title">Браузер Chrome додає підтримку сторонніх сервісів автозаповнення</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Відкрийте налаштування Chrome та тицьніть Автозаповнення
-2. Оберіть Автозаповнення за допомогою іншого сервісу
-3. Підтвердьте та перезавантажте Chrome</string>
+    <string name="pref_item_autofill_service_browser_autofill_v2_title">Сторонні служби автозаповнення у браузерах</string>
+    <string name="pref_item_autofill_service_browser_autofill_v2_text">Увімкніть стороннє автозаповнення в кожному браузері зі списку, щоб Keyguard міг заповнювати в ньому дані для входу.</string>
+    <string name="pref_item_autofill_service_browser_autofill_settings_error">Не вдалося відкрити налаштування автозаповнення браузера</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Автоматично копіювати одноразові паролі</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Автоматично копіювати одноразові паролі при заповненні логіну</string>
     <string name="pref_item_autofill_default_match_detection_title">Виявлення збігів за замовчуванням</string>
@@ -1446,7 +1696,7 @@
     <string name="pref_item_autofill_passkeys_enabled_title">Підтримка ключів доступу</string>
     <string name="pref_item_autofill_passkeys_enabled_text">Повідомляє системний менеджер облікових даних про підтримку ключів доступу</string>
     <string name="pref_item_autofill_passwords_enabled_title">Підтримка паролів</string>
-    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Повідомляє Менеджеру облікових даних про підтримку паролів, що дає застосунку змогу виконувати запити</string>
     <string name="pref_item_autofill_auto_save_source_title">Автозбереження інформації про застосунок або сайт</string>
     <string name="pref_item_autofill_block_uri_title">Блокувати автозаповнення</string>
     <string name="pref_item_autofill_block_uri_text">Запобігає показу пропозицій автозаповнення для цих URI</string>
@@ -1479,6 +1729,33 @@
     <string name="pref_item_permission_camera_text">Для сканування QR-кодів</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Дозволити інтерфейс з двома панелями в ландшафтному режимі</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">Дозволити інтерфейс з двома панелями в портретному режимі</string>
+    <string name="pref_item_gpg_agent_title">GPG-агент</string>
+    <string name="pref_item_gpg_agent_setup_title">Налаштування GPG-клієнта</string>
+    <string name="pref_item_gpg_agent_status_ready">Готовий</string>
+    <string name="pref_item_gpg_agent_status_starting">Запускається</string>
+    <string name="pref_item_gpg_agent_status_stopped">Зупинено</string>
+    <string name="pref_item_gpg_agent_status_failed">Помилка</string>
+    <string name="pref_item_gpg_agent_status_unsupported">Не підтримується</string>
+    <string name="pref_item_gpg_agent_approval_window_title">Запам'ятовувати схвалення ключів</string>
+    <string name="pref_item_gpg_agent_approval_window_always_ask">Питати щоразу</string>
+    <string name="pref_item_gpg_agent_approval_window_until_lock">Доки сховище не заблокується</string>
+    <string name="pref_item_gpg_agent_display_key_names_title">Показувати назви ключів до розблокування сховища</string>
+    <string name="pref_item_gpg_agent_display_key_names_note">Незашифрована копія назви елемента зберігатиметься локально</string>
+    <string name="pref_item_gpg_agent_local_storage_title">Локальне сховище</string>
+    <string name="pref_item_gpg_agent_local_storage_text">Коли GPG-агент увімкнено, Keyguard зберігає незашифровану копію відкритих ключів на диску, щоб клієнти могли отримувати список ключів, поки сховище заблоковане. Секретні ключі ніколи не розкриваються; назви ключів зберігаються лише якщо ви ввімкнете відповідну опцію.</string>
+    <string name="pref_item_gpg_agent_filters_title">Фільтри GPG-агента</string>
+    <string name="pref_item_gpg_agent_filters_text">Виберіть, які GPG-ключі доступні для GPG-агента</string>
+    <string name="pref_item_gpg_agent_filters_summary_all">Всі ключі доступні</string>
+    <string name="pref_item_gpg_agent_filters_summary_active">Фільтри активні</string>
+    <string name="pref_item_gpg_agent_history_title">Журнал запитів</string>
+    <string name="pref_item_gpg_keyserver_search_title">Пошук на сервері ключів GPG</string>
+    <string name="pref_item_gpg_keyserver_search_text">Знаходьте відкриті GPG-ключі за електронною поштою, відбитком, ID ключа або ім'ям</string>
+    <string name="pref_item_gpg_keyserver_url_title">Сервер ключів</string>
+    <string name="pref_item_gpg_keyserver_url_text">Сервер, який використовується для пошуку та оновлення відкритих GPG-ключів</string>
+    <string name="pref_item_gpg_keyserver_protocol_title">Протокол сервера ключів</string>
+    <string name="pref_item_gpg_keyserver_auto_refresh_title">Автоматично оновлювати відкриті ключі</string>
+    <string name="pref_item_gpg_keyserver_auto_refresh_note">Поки застосунок активний і сховище розблоковане, Keyguard звертається до налаштованого вами сервера ключів GPG із вибраним інтервалом, використовуючи відбиток кожного запису GPG, який містить лише відкритий ключ. Якщо буде знайдено відповідний відкритий ключ, Keyguard оновлює збережений відкритий ключ, метадані ключа та статус сервера ключів.</string>
+    <string name="pref_item_gpg_keyserver_refresh_interval_title">Інтервал оновлення</string>
     <string name="theme_dark">Темна</string>
     <string name="theme_light">Світла</string>
     <string name="nav_animation_disabled">Вимкнено</string>
@@ -1540,12 +1817,22 @@
     <string name="datasafety_remote_text">Віддалені дані зберігаються на серверах Bitwarden з шифруванням з нульовим знанням.</string>
     <string name="webdav_settings_header_title">Налаштування сервера WebDAV</string>
     <string name="webdav_settings_url_title">URL-адреса WebDAV</string>
-    <string name="webdav_settings_url_hint">https://example.com/remote.php/dav/files/me/Keyguard/</string>
     <string name="webdav_settings_auth_note">Якщо ваш сервер WebDAV вимагає автентифікації, введіть тут облікові дані вашого сервера. Не вводьте свій головний пароль.</string>
     <string name="webdav_settings_test_title">Перевірити з'єднання</string>
     <string name="webdav_settings_test_text">Записує та видаляє невеликий тестовий файл, щоб перевірити доступ до сервера.</string>
+    <string name="webdav_settings_test_text_read_only">Читає ресурс, щоб перевірити доступ до сервера.</string>
     <string name="webdav_settings_test_success">З'єднання WebDAV перевірено.</string>
     <string name="webdav_settings_password_requires_username_error">Введіть ім'я користувача, перш ніж встановлювати пароль WebDAV.</string>
+    <string name="webdav_settings_browse_title">Огляд</string>
+    <string name="webdav_picker_header_title">Огляд WebDAV</string>
+    <string name="webdav_picker_choose_folder">Вибрати цю теку</string>
+    <string name="webdav_picker_refresh">Оновити теку</string>
+    <string name="webdav_picker_empty">Ця тека порожня.</string>
+    <string name="webdav_picker_error">Не вдалося завантажити цю теку.</string>
+    <string name="webdav_picker_filename_required">Введіть назву бази даних.</string>
+    <string name="webdav_picker_filename_invalid">Назва бази даних не може містити роздільників шляху.</string>
+    <string name="webdav_picker_filename_extension">Назва бази даних має закінчуватися на %1$s.</string>
+    <string name="webdav_picker_filename_exists">Файл із такою назвою вже існує.</string>
     <!-- Title of the 'Localization contributors' screen -->
     <string name="localization_contributors_title">Учасники проєкту локалізації</string>
     <string name="localization_contributors_search_placeholder">Пошук учасників</string>
@@ -1555,4 +1842,121 @@
     <string name="logs_stop_recording_fab_title">Припинити запис</string>
     <string name="logs_export_button">Експортувати</string>
     <string name="logs_export_success">Експорт завершено</string>
+    <string name="gpg_client_request">Запит від GPG-клієнта</string>
+    <string name="gpg_agent_request_approval_sign_title">Запит на підпис GPG</string>
+    <string name="gpg_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> хоче використати цей GPG-ключ для підпису даних:</string>
+    <string name="gpg_agent_request_approval_sign_message_unknown_app">Застосунок хоче використати цей GPG-ключ для підпису даних:</string>
+    <string name="gpg_agent_request_approval_decrypt_title">Запит на розшифрування GPG</string>
+    <string name="gpg_agent_request_approval_decrypt_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> хоче використати цей GPG-ключ для розшифрування даних:</string>
+    <string name="gpg_agent_request_approval_decrypt_message_unknown_app">Застосунок хоче використати цей GPG-ключ для розшифрування даних:</string>
+    <string name="gpg_agent_setup_header_title">Налаштування GPG-клієнта</string>
+    <string name="gpg_agent_setup_intro">Налаштуйте GnuPG, щоб використовувати GPG-агент Keyguard для підписування та розшифрування без розкриття даних секретного ключа.</string>
+    <string name="gpg_agent_setup_unsupported_text">GPG-агент доступний лише в десктопній версії Keyguard.</string>
+    <string name="gpg_agent_setup_step_1_title">1. Увімкніть GPG-агент у Keyguard</string>
+    <string name="gpg_agent_setup_step_1_text">Відкрийте налаштування GPG, увімкніть GPG-агент і переконайтеся, що сховище містить GPG-ключ, який агенту дозволено використовувати.</string>
+    <string name="gpg_agent_setup_step_2_title">2. Налаштуйте GNUPGHOME</string>
+    <string name="gpg_agent_setup_step_2_text">Виконуйте команди GnuPG з оболонки, яка вказує на домашню теку агента Keyguard. Keyguard слухає сокет агента, який GnuPG визначає для цієї домашньої теки.</string>
+    <string name="gpg_agent_setup_linux_home_fallback_note">Якщо XDG_RUNTIME_DIR не встановлено, використовуйте цей резервний варіант:</string>
+    <string name="gpg_agent_setup_step_3_title">3. Імпортуйте відкритий ключ</string>
+    <string name="gpg_agent_setup_step_3_text">Експортуйте відкритий ключ із запису GPG-ключа в Keyguard, а потім імпортуйте його в цю домашню теку GnuPG. Це розкриває лише дані відкритого ключа.</string>
+    <string name="gpg_agent_setup_step_4_title">4. Перевірка</string>
+    <string name="gpg_agent_setup_step_4_text">Виведіть список ключів, видимих для Keyguard, а потім підпишіть коротке повідомлення. Замініть YOUR_KEY_FINGERPRINT на відбиток імпортованого ключа.</string>
+    <string name="gpg_agent_setup_step_5_title">5. Підписуйте коміти Git</string>
+    <string name="gpg_agent_setup_step_5_text">Використовуйте той самий GNUPGHOME, коли Git підписує коміти. Зберігайте конфігурацію локальною для одного репозиторію або змініть --local на --global.</string>
+    <string name="gpg_agent_setup_windows_native_gnupg_note">Windows потребує окремого встановлення GnuPG. GPG, що постачається разом із Git для Windows, несумісний із цим налаштуванням.</string>
+    <string name="gpg_agent_filters_header_title">Фільтри GPG-агента</string>
+    <string name="gpg_agent_filters_note_save_to_apply">Зміни застосовуються після натискання кнопки «Зберегти».</string>
+    <string name="gpg_agent_history_header_title">Історія GPG-агента</string>
+    <string name="gpg_keys_capability_sign">Підпис</string>
+    <string name="gpg_key_status">Статус GPG-ключа</string>
+    <string name="gpg_key_status_revoked_text">Цей GPG-ключ було відкликано, і його не слід використовувати.</string>
+    <string name="gpg_key_status_expired_text">Термін дії цього GPG-ключа закінчився, і його не слід використовувати.</string>
+    <string name="gpg_key_user_ids">Ідентифікатори користувача</string>
+    <string name="gpg_key_does_not_expire">Не має терміну дії</string>
+    <string name="gpg_key_capability_encrypt_decrypt">Шифрування/розшифрування</string>
+    <string name="gpg_key_sec_pub">sec/pub</string>
+    <string name="gpg_key_secret_key">Секретний ключ</string>
+    <string name="gpg_key_subkey_n">Підключ <xliff:g id="index" example="1">%1$d</xliff:g></string>
+    <string name="gpg_tools_header_title">Інструменти GPG</string>
+    <string name="gpg_tools_scope_text">Текст</string>
+    <string name="gpg_tools_scope_file">Файл</string>
+    <string name="gpg_tools_operation_encrypt_text">Зашифрувати текст або файли для вибраних отримувачів</string>
+    <string name="gpg_tools_operation_decrypt_text">Розшифрувати текст або файли за допомогою збережених секретних ключів</string>
+    <string name="gpg_tools_operation_sign_text">Підписати текст або файли за допомогою збереженого секретного ключа</string>
+    <string name="gpg_tools_operation_verify_text">Перевірити вбудовані або відокремлені підписи</string>
+    <string name="gpg_tools_mode_cleartext">Відкритий текст</string>
+    <string name="gpg_tools_mode_inline">Вбудований</string>
+    <string name="gpg_tools_mode_detached">Відокремлений</string>
+    <string name="gpg_tools_armor_label">ASCII armor</string>
+    <string name="gpg_tools_sign_encrypted_message">Підписати</string>
+    <string name="gpg_tools_sign_none">Не підписувати</string>
+    <string name="gpg_tools_signed_text_label">Підписаний текст</string>
+    <string name="gpg_tools_encrypted_text_label">Зашифроване повідомлення</string>
+    <string name="gpg_tools_signature_label">Підпис</string>
+    <string name="gpg_tools_pasted_public_key_label">Відкритий ключ</string>
+    <string name="gpg_tools_pasted_public_key_placeholder">Вставте блок відкритого ключа у форматі ASCII armor</string>
+    <string name="gpg_tools_select_signing_key">Ключ для підпису</string>
+    <string name="gpg_tools_select_recipients">Отримувачі</string>
+    <string name="gpg_tools_stored_public_keys_note">Збережені відкриті ключі автоматично використовуються для перевірки.</string>
+    <string name="gpg_tools_decrypt_keys_note">Збережені секретні ключі автоматично використовуються для розшифрування.</string>
+    <string name="gpg_tools_no_gpg_keys">Немає збережених GPG-ключів</string>
+    <string name="gpg_tools_no_signing_key">Не вибрано GPG-ключ, здатний підписувати</string>
+    <string name="gpg_tools_no_recipient">Виберіть збереженого отримувача або вставте відкритий ключ</string>
+    <string name="gpg_tools_missing_private_key">Немає доступного секретного ключа, здатного розшифровувати</string>
+    <string name="gpg_tools_select_input_file">Вхідний файл</string>
+    <string name="gpg_tools_select_signature_file">Файл підпису</string>
+    <string name="gpg_tools_clear_file">Очистити</string>
+    <string name="gpg_tools_run_success">Операцію GPG завершено</string>
+    <string name="gpg_tools_valid_signature">Дійсний підпис</string>
+    <string name="gpg_tools_invalid_signature">Недійсний підпис</string>
+    <string name="gpg_tools_missing_public_key">Відсутній відкритий ключ</string>
+    <string name="gpg_tools_signature_by">Підписано <xliff:g id="signer" example="0123 ABCD">%1$s</xliff:g></string>
+    <string name="gpg_tools_signature_created_at">Створено <xliff:g id="date" example="2026-06-28T12:30:00Z">%1$s</xliff:g></string>
+    <string name="gpg_tools_warning_key_revoked">Попередження: ключ для підпису відкликано</string>
+    <string name="gpg_tools_warning_key_expired">Попередження: термін дії ключа для підпису закінчився</string>
+    <string name="gpg_tools_warning_signature_expired">Попередження: термін дії підпису закінчився</string>
+    <string name="gpg_tools_file_required">Виберіть вхідний файл</string>
+    <string name="gpg_tools_signature_file_required">Виберіть файл підпису</string>
+    <string name="gpg_tools_text_required">Введіть текст для обробки</string>
+    <string name="gpg_tools_public_key_title">Користувацький відкритий ключ</string>
+    <string name="gpg_tools_public_key_description">Вставте блок відкритого ключа у форматі ASCII armor для використання в цій операції. Він використовується на додачу до ваших збережених ключів.</string>
+    <string name="gpg_tools_public_key_add">Додати відкритий ключ</string>
+    <string name="gpg_keyserver_search_header_title">Пошук на сервері ключів GPG</string>
+    <string name="gpg_keyserver_search_placeholder">Шукати за електронною поштою, відбитком, ID ключа або ім'ям</string>
+    <string name="gpg_keyserver_search_empty_query_label">Введіть електронну пошту, відбиток, ID ключа або ім'я</string>
+    <string name="gpg_keyserver_search_empty_label">Відкритих ключів не знайдено</string>
+    <string name="gpg_keyserver_search_error_text">Не вдалося виконати пошук відкритих ключів</string>
+    <string name="gpg_keyserver_search_revoked_label">Відкликано</string>
+    <string name="gpg_keyserver_search_index_label">Індекс</string>
+    <string name="gpg_keyserver_search_public_key_not_found_title">Відкритий ключ GPG не знайдено на сервері ключів</string>
+    <string name="gpg_keyserver_upload_success_title">Відкритий ключ GPG завантажено</string>
+    <string name="gpg_keyserver_refresh_success_title">Відкритий ключ GPG оновлено</string>
+    <string name="gpg_keyserver_refresh_not_found_title">Відкритий ключ GPG не знайдено на сервері ключів</string>
+    <string name="gpg_keyserver_verify_unknown_title">Статус перевірки відкритого ключа GPG невідомий</string>
+    <string name="gpg_keyserver_verify_not_found_title">Відкритий ключ GPG не знайдено на сервері ключів</string>
+    <string name="gpg_keyserver_verify_unverified_title">Відкритий ключ GPG знайдено без підтвердженої електронної пошти</string>
+    <string name="gpg_keyserver_verify_verified_title">Відкритий ключ GPG підтверджено</string>
+    <string name="gpg_keyserver_verify_revoked_title">Відкритий ключ GPG відкликано</string>
+    <string name="gpg_keyserver_status_title">Сервер ключів GPG</string>
+    <string name="gpg_keyserver_status_not_checked">Не перевірено</string>
+    <string name="gpg_keyserver_status_checked_at">Перевірено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="gpg_agent_history_request_list_keys">Список ключів</string>
+    <string name="gpg_agent_history_request_sign_hash">Підписати хеш</string>
+    <string name="gpg_agent_history_request_decrypt">Розшифрувати</string>
+    <string name="gpg_agent_history_response_success">Успішно</string>
+    <string name="gpg_agent_history_response_user_denied">Відхилено</string>
+    <string name="gpg_agent_history_response_key_not_found">Ключ не знайдено</string>
+    <string name="gpg_agent_history_response_vault_locked">Сховище заблоковано</string>
+    <string name="gpg_agent_history_response_unsupported">Не підтримується</string>
+    <string name="gpg_agent_history_response_failure">Помилка</string>
+    <string name="gpg_agent_history_unknown_caller">Невідомий запитувач</string>
+    <string name="gpg_agent_history_unknown_key">Невідомий ключ</string>
+    <string name="gpg_agent_history_clear_history_title">Очистити історію</string>
+    <string name="gpg_agent_history_clear_history_confirmation_title">Очистити історію GPG-агента?</string>
+    <string name="gpg_agent_history_clear_history_confirmation_text">Це видалить усю історію використання GPG-агента.</string>
+    <string name="cipher_links_outgoing_title">Пов'язані записи</string>
+    <string name="cipher_links_incoming_title">На цей запис посилаються</string>
+    <string name="cipher_link_unavailable_title">Запис недоступний</string>
+    <string name="cipher_link_picker_title">Виберіть пов'язаний запис</string>
+    <string name="cipher_link_picker_action">Пов'язати із записом</string>
 </resources>

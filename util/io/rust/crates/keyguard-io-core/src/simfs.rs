@@ -1290,12 +1290,6 @@ impl FsOps for SimFs {
         }
     }
 
-    fn reopen_dir(&self, directory: &SimDir) -> io::Result<SimDir> {
-        Ok(SimDir {
-            inode: directory.inode,
-        })
-    }
-
     fn create_dir_at(
         &self,
         parent: &SimDir,

@@ -136,7 +136,7 @@ support passkey sign-in are flagged until the item holds a passkey.
 > *Example:* your cloud storage now offers passkeys — create one on your
 > next sign-in and skip the password (and the phishing risk) entirely.
 
-### Unsecure websites
+### Insecure websites
 
 Flags item URLs that still use the `http://` protocol (`localhost` and
 private-network addresses like `192.168.x.x` are ignored), which sends
@@ -208,7 +208,8 @@ weak-password check is the one exception — it cannot be silenced per item.
   [passkeys directory](https://passkeys.directory/)), so those checks
   involve no network requests at all.
 - **GPG key** checks parse and evaluate your keys locally. The publishing
-  check reads the keyserver status recorded the last time *you* verified,
-  uploaded, or if auto-refreshed is enabled.
+  check reads the keyserver status recorded the last time the key was
+  verified, uploaded, or auto-refreshed; it does not contact the keyserver
+  itself.
 - Everything else — strength, reuse, duplicates, URLs, completeness — is
   computed entirely on your device.

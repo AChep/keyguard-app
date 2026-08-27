@@ -10,10 +10,20 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Name</string>
     <string name="description">Description</string>
+    <string name="result">Resultat</string>
+    <!-- Text input -->
+    <string name="input">Inndata</string>
+    <!-- Text output -->
+    <string name="output">Utdata</string>
+    <string name="run_action">Kjør</string>
     <string name="account_name">Account name</string>
     <string name="database_name">Database name</string>
     <string name="enabled">Enabled</string>
     <string name="disabled">Disabled</string>
+    <string name="sign">Signer</string>
+    <string name="encrypt">Krypter</string>
+    <string name="verify">Verifiser</string>
+    <string name="decrypt">Dekrypter</string>
     <string name="wordlist">Wordlist</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
@@ -23,6 +33,7 @@
     <string name="no_password">No password</string>
     <string name="advanced_options">Advanced</string>
     <string name="file">File</string>
+    <string name="choose_file">Velg fil</string>
     <string name="file_name_placeholder">File name</string>
     <string name="file_status_pending_upload">Pending upload</string>
     <string name="file_status_auto_resume">Auto-resumes</string>
@@ -44,6 +55,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Max access count</string>
+    <string name="package_name">Package name</string>
+    <string name="status">Status</string>
     <string name="ready_status_beta">Beta</string>
     <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">Learn more</string>
@@ -92,7 +105,10 @@
     <string name="attachments">Attachments</string>
     <string name="attachments_empty_label">No attachments</string>
     <string name="deactivated">Deactivated</string>
+    <!-- (certificate/credit card) expired -->
     <string name="expired">Expired</string>
+    <!-- (certificate) revoked -->
+    <string name="revoked">Tilbakekalt</string>
     <string name="expiring_soon">Expiring soon</string>
     <string name="item_incomplete_title">Incomplete data</string>
     <string name="item_incomplete_text">This item is missing some of the important information.</string>
@@ -151,6 +167,7 @@
     <string name="address3">Address line 3</string>
     <string name="ssh_agent">SSH agent</string>
     <string name="ssh_client">SSH client</string>
+    <string name="gpg_agent">GPG-agent</string>
     <string name="rename">Rename</string>
     <string name="deletion_date">Deletion date</string>
     <string name="deletion_date_custom">Custom</string>
@@ -262,8 +279,16 @@
     <string name="fingerprint">Fingerprint</string>
     <string name="key_type">Key type</string>
     <string name="key_pair">Key pair</string>
+    <string name="key_id">Nøkkel-ID</string>
+    <string name="algorithm">Algoritme</string>
+    <string name="created">Opprettet</string>
+    <string name="expires">Utløper</string>
+    <string name="capabilities">Funksjoner</string>
+    <string name="subkeys">Undernøkler</string>
     <string name="key_ssh">SSH Key</string>
     <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_gpg">GPG-nøkkel</string>
+    <string name="key_gpg_value_placeholder">Ser tomt ut her. Generer en GPG-nøkkel for å komme i gang!</string>
     <string name="fingerprint_phrase">Fingerprint phrase</string>
     <string name="fingerprint_phrase_help_title">What is a fingerprint?</string>
     <string name="filter_auth_reprompt_items">Auth re-prompt</string>
@@ -279,6 +304,9 @@
     <string name="select_key_file">Select a key file</string>
     <string name="select_database_file">Select a database file</string>
     <string name="replace_database_file">Replace a database file</string>
+    <string name="database_location_title">Databaseplassering</string>
+    <string name="database_location_local">Lokal fil</string>
+    <string name="database_location_webdav">WebDAV</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
     <string name="addaccount_method_header_title">Add account</string>
@@ -352,6 +380,14 @@
     <string name="ciphers_action_change_passwords_title">Change passwords</string>
     <string name="ciphers_action_view_password_history_title">View password history</string>
     <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
+    <string name="ciphers_action_upload_gpg_public_key_title">Last opp offentlig GPG-nøkkel</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Laste opp offentlig nøkkel til nøkkelserver?</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard vil sende dette elementets ASCII-beskyttede offentlige GPG-nøkkel til den konfigurerte nøkkelserveren. Den offentlige nøkkelen kan inneholde fingeravtrykk, bruker-ID-er som navn og e-postadresser, undernøkler, datoer og tilbakekallingsstatus. Nøkkelserveren kan lagre og videredistribuere disse offentlige dataene. Denne opplastingen ber ikke om verifiserings-e-poster.</string>
+    <string name="ciphers_action_refresh_gpg_public_key_title">Oppdater offentlig GPG-nøkkel</string>
+    <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Oppdatere offentlig nøkkel fra nøkkelserver?</string>
+    <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard vil kontakte den konfigurerte GPG-nøkkelserveren med fingeravtrykket til denne nøkkelen. Hvis en samsvarende offentlig nøkkel blir funnet, oppdaterer Keyguard den lagrede offentlige nøkkelen, nøkkelmetadataene og nøkkelserverstatusen for dette elementet.</string>
+    <string name="ciphers_action_verify_gpg_public_key_title">Verifiser offentlig GPG-nøkkel</string>
+    <string name="ciphers_action_change_gpg_key_expiry_title">Endre utløp for GPG-nøkkel</string>
     <string name="ciphers_action_archive_title">Archive</string>
     <string name="ciphers_action_archive_confirmation_title">Move to archive?</string>
     <string name="ciphers_action_unarchive_title">Restore from archive</string>
@@ -485,6 +521,57 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
     <string name="ssh_key_action_add_key_title">Add keys</string>
     <string name="ssh_key_action_replace_key_title">Replace keys</string>
+    <string name="gpg_key_action_save_unencrypted_keys_title">Lagre ukrypterte nøkler</string>
+    <string name="gpg_key_action_save_unencrypted_keys_saved_downloads_success_title">GPG-nøkler lagret i Nedlastinger</string>
+    <string name="gpg_key_action_save_public_key_title">Lagre offentlig nøkkel</string>
+    <string name="gpg_key_action_save_public_key_saved_downloads_success_title">Offentlig GPG-nøkkel lagret i Nedlastinger</string>
+    <string name="gpg_key_action_save_unencrypted_private_key_title">Lagre ukryptert privat nøkkel</string>
+    <string name="gpg_key_action_save_unencrypted_private_key_saved_downloads_success_title">Ukryptert privat GPG-nøkkel lagret i Nedlastinger</string>
+    <string name="gpg_key_import_title">Importer GPG-nøkkel</string>
+    <string name="gpg_key_import_drop_here">Slipp en fil for å importere en offentlig eller privat GPG-nøkkel</string>
+    <string name="gpg_key_import_failed_title">Kunne ikke importere GPG-nøkkel</string>
+    <string name="gpg_key_import_success_title">GPG-nøkkel importert</string>
+    <string name="gpg_key_import_error_empty">GPG-nøkkelfilen er tom.</string>
+    <string name="gpg_key_import_error_unsupported_format">GPG-nøkkelformatet støttes ikke.</string>
+    <string name="gpg_key_import_error_unsupported_platform">Import av GPG-nøkkel støttes ikke på denne plattformen.</string>
+    <string name="gpg_key_import_error_invalid_passphrase">Passordfrasen for GPG-nøkkelen er ugyldig.</string>
+    <string name="gpg_key_import_error_malformed_key">GPG-nøkkelfilen er feilformatert.</string>
+    <string name="gpg_key_import_error_read">Kan ikke lese den valgte filen.</string>
+    <string name="gpg_key_import_error_passphrase_required">Det kreves en passordfrase for å låse opp denne GPG-nøkkelen.</string>
+    <string name="gpg_key_import_error_key_changed">GPG-nøkkelen ble endret mens importen pågikk. Prøv å importere den på nytt.</string>
+    <string name="gpg_key_import_passphrase_title">Passordfrase</string>
+    <string name="gpg_key_import_passphrase_hint">Skriv inn passordfrase for GPG-nøkkel</string>
+    <string name="gpg_key_import_passphrase_dialog_title">Skriv inn passordfrase for GPG-nøkkel</string>
+    <string name="gpg_key_import_passphrase_dialog_message">Denne private <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g>-nøkkelen er kryptert. Keyguard lagrer den uten nøkkelpassordfrasen etter import.</string>
+    <string name="gpg_key_expiry_title">Utløp</string>
+    <string name="gpg_key_expiry_never">Aldri</string>
+    <string name="gpg_key_expiry_same_as_primary">Samme som primærnøkkel (<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>)</string>
+    <string name="gpg_key_expiry_unknown">Ukjent</string>
+    <string name="gpg_key_expiry_private_key_required">Importer den private nøkkelen for å endre utløpet.</string>
+    <string name="gpg_key_expiry_unavailable">Redigering av utløp støttes ikke på denne plattformen.</string>
+    <string name="gpg_key_expiry_key_unreadable">Den offentlige nøkkelen eller fingeravtrykket kunne ikke verifiseres.</string>
+    <string name="gpg_key_expiry_dialog_title">Endre utløp for GPG-nøkkel</string>
+    <string name="gpg_key_expiry_dialog_message">Utløp kan reverseres og beskytter ikke en kompromittert nøkkel. Tilbakekall en kompromittert nøkkel i stedet.</string>
+    <string name="gpg_key_expiry_primary">Primærnøkkel</string>
+    <string name="gpg_key_expiry_subkey">Undernøkkel <xliff:g id="key_id" example="0A1B2C3D">%1$s</xliff:g></string>
+    <string name="gpg_key_expiry_subkey_capabilities">Funksjoner: <xliff:g id="capabilities" example="sign, encrypt">%1$s</xliff:g>. Nåværende utløp: <xliff:g id="expiry" example="Jan 1, 2030">%2$s</xliff:g></string>
+    <string name="gpg_key_expiry_capability_sign">signere</string>
+    <string name="gpg_key_expiry_capability_encrypt">kryptere</string>
+    <string name="gpg_key_expiry_preset_one_year">Ett år</string>
+    <string name="gpg_key_expiry_preset_two_years">To år</string>
+    <string name="gpg_key_expiry_preset_five_years">Fem år</string>
+    <string name="gpg_key_expiry_preset_custom">Egendefinert dato</string>
+    <string name="gpg_key_expiry_no_explicit_expiry">Ingen eksplisitt utløp</string>
+    <string name="gpg_key_expiry_success_title">Utløp for GPG-nøkkel oppdatert</string>
+    <string name="gpg_key_expiry_success_message">Lagre dette elementet, og videredistribuer eller last deretter opp den offentlige nøkkelen.</string>
+    <string name="gpg_key_expiry_cipher_success_message">Elementet ble oppdatert. Videredistribuer eller last opp den offentlige nøkkelen.</string>
+    <string name="gpg_key_expiry_failed_title">Kunne ikke oppdatere utløp for GPG-nøkkel</string>
+    <string name="gpg_key_expiry_failed_message">Nøkkelens utløp kunne ikke oppdateres. Den opprinnelige nøkkelen ble stående uendret.</string>
+    <string name="gpg_key_expiry_no_components_message">Velg minst én nøkkelkomponent.</string>
+    <string name="gpg_key_expiry_after_primary_message">En undernøkkel kan ikke forbli brukbar etter at primærnøkkelen utløper. Velg primærnøkkelen også, eller velg et tidligere utløp.</string>
+    <string name="gpg_key_expiry_invalid_message">Velg en gyldig fremtidig utløpsdato.</string>
+    <string name="gpg_key_expiry_revoked_message">En tilbakekalt nøkkelkomponent kan ikke fornyes.</string>
+    <string name="gpg_key_expiry_unresolved_revocation_message">En utpekt tilbakekalling kan ikke verifiseres fordi tilbakekallerens offentlige nøkkel er utilgjengelig. Importer den og prøv igjen.</string>
     <string name="ssh_key_import_title">Import SSH key</string>
     <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
@@ -523,6 +610,9 @@
     <string name="copy_ssh_unencrypted_private_key">Copy unencrypted private key</string>
     <string name="copy_ssh_public_key">Copy public key</string>
     <string name="copy_ssh_fingerprint">Copy fingerprint</string>
+    <string name="copy_gpg_unencrypted_private_key">Kopier ukryptert privat nøkkel</string>
+    <string name="copy_gpg_public_key">Kopier offentlig nøkkel</string>
+    <string name="copy_gpg_fingerprint">Kopier fingeravtrykk</string>
     <string name="copied_value">Copied a value</string>
     <string name="copied_url">Copied a URL</string>
     <string name="copied_uri">Copied a URI</string>
@@ -600,8 +690,10 @@
     <string name="error_invalid_key">Invalid key</string>
     <string name="error_invalid_card_number">Invalid card number</string>
     <string name="error_webdav_url_required">WebDAV URL is required</string>
+    <string name="error_webdav_file_url_required">Skriv inn den fullstendige WebDAV-URL-en til en filressurs</string>
     <string name="error_incorrect_password">Incorrect password</string>
     <string name="error_not_found">Not found</string>
+    <string name="error_file_must_be_n_or_smaller">File must be <xliff:g id="size" example="500MB">%1$s</xliff:g> or smaller</string>
     <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
     <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">One-time password's secret key must not be empty</string>
@@ -620,6 +712,7 @@
     <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
     <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
+    <string name="error_failed_gpg_agent_start">Kunne ikke starte GPG-agenten</string>
     <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -898,6 +991,7 @@
     <string name="cipher_type_identity">Identity</string>
     <string name="cipher_type_note">Note</string>
     <string name="cipher_type_ssh_key">SSH Key</string>
+    <string name="cipher_type_gpg_key">GPG-nøkkel</string>
     <string name="cipher_type_passkey">Passkey</string>
     <string name="field_type_text">Text</string>
     <string name="field_type_text_concealed">Text (concealed)</string>
@@ -935,6 +1029,7 @@
     <string name="ssh_agent_history_response_user_denied">Denied</string>
     <string name="ssh_agent_history_response_key_not_found">Key not found</string>
     <string name="ssh_agent_history_response_failure">Failed</string>
+    <string name="ssh_agent_history_response_vault_locked">Vault locked</string>
     <string name="ssh_agent_history_unknown_caller">Unknown caller</string>
     <string name="ssh_agent_history_unknown_key">Unknown key</string>
     <string name="ssh_agent_history_all_accessible_keys">All accessible keys</string>
@@ -944,7 +1039,7 @@
     <string name="ssh_agent_setup_header_title">SSH client setup</string>
     <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
     <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
-    <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
+    <string name="ssh_agent_setup_step_1_text">Open Developer settings and enable SSH agent.</string>
     <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
     <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
     <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
@@ -955,7 +1050,7 @@
     <string name="ssh_agent_setup_step_3_title">3. Verify</string>
     <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
-    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
+    <string name="ssh_agent_setup_windows_text">Keyguard listens on a Windows named pipe. Point Windows OpenSSH at this pipe.</string>
     <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
     <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
     <string name="ssh_agent_setup_android_termux_step_1_text">Termux is an Android terminal application and Linux environment.</string>
@@ -973,6 +1068,65 @@
     <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following SSH key to sign data:</string>
     <string name="ssh_agent_request_approval_sign_message_unknown_app">An application wants to use the following SSH key to sign data:</string>
     <string name="ssh_client_request">SSH client request</string>
+    <string name="connected_crypto_apps_title">Connected apps</string>
+    <string name="connected_crypto_apps_summary">Review or revoke apps registered for GPG and/or SSH access.</string>
+    <string name="connected_crypto_apps_empty">No apps are registered</string>
+    <string name="connected_crypto_apps_status_registered">Registered</string>
+    <string name="connected_crypto_apps_status_not_installed">Not installed</string>
+    <string name="connected_crypto_apps_status_signer_changed">Signer changed — access disabled</string>
+    <string name="connected_crypto_apps_signer">App signer</string>
+    <string name="connected_crypto_apps_registered_at">Registered</string>
+    <string name="connected_crypto_apps_last_used">Last used</string>
+    <string name="connected_crypto_apps_revoke">Revoke</string>
+    <string name="connected_crypto_apps_revoke_title">Revoke %1$s?</string>
+    <string name="connected_crypto_apps_revoke_message">The app will need to be registered again before it can use Keyguard as the provider.</string>
+    <string name="connected_crypto_apps_unknown">Unknown</string>
+    <string name="ipc_approval_title">External app request</string>
+    <string name="ipc_approval_auth_reason">Approve an external cryptographic request</string>
+    <string name="ipc_approval_unavailable">This approval request expired or is no longer available.</string>
+    <string name="ipc_approval_message"><xliff:g id="app" example="Termux">%1$s</xliff:g> wants to <xliff:g id="request" example="use GPG to encrypt a message">%2$s</xliff:g>.</string>
+    <string name="ipc_approval_operation">use <xliff:g id="protocol" example="GPG">%1$s</xliff:g> to <xliff:g id="operation" example="encrypt a message">%2$s</xliff:g></string>
+    <string name="ipc_approval_operation_with_registration">register with Keyguard and <xliff:g id="request" example="use GPG to encrypt a message">%1$s</xliff:g></string>
+    <string name="ipc_approval_no_keys">No eligible keys are available.</string>
+    <string name="ipc_approval_no_keys_continue">No eligible keys are available. You can continue to check whether the signer is missing.</string>
+    <string name="ipc_approval_deny">Deny</string>
+    <string name="ipc_approval_approve">Approve</string>
+    <string name="ipc_protocol_openpgp">GPG agent</string>
+    <string name="ipc_protocol_ssh">SSH agent</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_check_permission">confirm it has access</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_clear_sign">sign a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_detached_sign">create a detached signature</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_encrypt">encrypt a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_sign_and_encrypt">sign and encrypt a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_decrypt_verify">decrypt or verify a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_decrypt_metadata">read a message's metadata</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_sign_key">choose a signing key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_key_ids">look up recipient keys</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_autocrypt_status">check which recipients it can encrypt to</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_key">export a public key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_other">run an unrecognized operation</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_select_key">choose a key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_get_public_key">read a public key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_get_ssh_public_key">read a public key in OpenSSH format</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_sign">sign an authentication challenge</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_other">run an unrecognized operation</string>
     <string name="sort_header_title">Sort by</string>
     <string name="sort_empty_label">No sorting available</string>
     <string name="sortby_title_title">Title</string>
@@ -1041,6 +1195,7 @@
     <string name="generator_header_username_title">Username generator</string>
     <string name="generator_header_password_title">Password generator</string>
     <string name="generator_header_ssh_key_title">SSH Key generator</string>
+    <string name="generator_header_gpg_key_title">GPG-nøkkelgenerator</string>
     <string name="generator_generate_button">Generate</string>
     <string name="generator_regenerate_button">Regenerate</string>
     <!-- 'Use' generated password as a password -->
@@ -1080,6 +1235,10 @@
     <string name="generator_email_subdomain_addressing_note">Subdomain addressing means any email sent to <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> is still sent to your account. This means you can have a lot of variations on your email address to give out to different people, sites, or mailing lists. Ensure that your email hosting supports this feature before using it.</string>
     <string name="generator_email_subdomain_addressing_email_title">Email</string>
     <string name="generator_email_forward_alias_type">Forwarded email alias</string>
+    <string name="generator_gpg_key_name_title">Navn</string>
+    <string name="generator_gpg_key_email_title">E-post</string>
+    <string name="generator_gpg_key_modern_note">Oppretter en OpenPGP-nøkkel med Ed25519-nøkler for signering/sertifisering og en X25519-undernøkkel for kryptering.</string>
+    <string name="generator_gpg_key_modern_text">Moderne OpenPGP-nøkkelform</string>
     <string name="generator_key_length_title">Length</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
     <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
@@ -1089,6 +1248,7 @@
     <string name="generator_create_item_with_password_title">Create new login with the password</string>
     <string name="generator_create_item_with_username_title">Create new login with the username</string>
     <string name="generator_create_item_with_ssh_key_title">Create new SSH Key item</string>
+    <string name="generator_create_item_with_gpg_key_title">Opprett nytt GPG-nøkkelelement</string>
     <string name="generator_password_history_title">Password history</string>
     <string name="generator_show_tips_title">Show tips</string>
     <string name="generatorhistory_header_title">Generator history</string>
@@ -1116,6 +1276,12 @@
     <string name="watchtower_item_reused_passwords_text">Don't use the same password on multiple websites. Generate unique passwords to improve security.</string>
     <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
     <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
+    <string name="watchtower_item_unusable_gpg_keys_title">Ubrukelige GPG-nøkler</string>
+    <string name="watchtower_item_unusable_gpg_keys_text">GPG-nøkkelelementer som er tilbakekalt, utløpt, feilformatert eller mangler brukbart signerings- eller dekrypteringsmateriale.</string>
+    <string name="watchtower_item_weak_gpg_keys_title">Svake GPG-nøkler</string>
+    <string name="watchtower_item_weak_gpg_keys_text">GPG-nøkkelelementer som bruker svake eller foreldede algoritmer og nøkkelstørrelser.</string>
+    <string name="watchtower_item_gpg_key_publishing_title">Publisering av GPG-nøkler</string>
+    <string name="watchtower_item_gpg_key_publishing_text">GPG-nøkler med manglende, foreldet, uverifisert eller tilbakekalt nøkkelserverstatus.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Vulnerable Accounts</string>
     <string name="watchtower_item_vulnerable_accounts_text">Sites that were affected by a data breach since you last changed a password. Change your password to keep your account safe.</string>
     <string name="watchtower_item_unsecure_websites_title">Insecure Websites</string>
@@ -1171,6 +1337,46 @@
     <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Export complete</string>
     <string name="exportaccount_export_failure">Export failed</string>
+    <string name="credential_exchange_export_header_title">Transfer credentials</string>
+    <string name="credential_exchange_export_header_text">App requests access to credentials</string>
+    <string name="credential_exchange_export_header_text_named"><xliff:g id="app_name" example="Example Passwords">%1$s</xliff:g> requests access to credentials</string>
+    <string name="credential_exchange_export_empty_label">There are no credentials to transfer.</string>
+    <string name="credential_exchange_export_credential_passkey">Passkey</string>
+    <string name="credential_exchange_export_credential_password">Password</string>
+    <string name="credential_exchange_export_credential_totp">One-time password</string>
+    <string name="credential_exchange_export_credential_card">Card</string>
+    <string name="credential_exchange_export_credential_identity">Identity</string>
+    <string name="credential_exchange_export_credential_note">Note</string>
+    <string name="credential_exchange_export_credential_fields">Custom fields</string>
+    <string name="credential_exchange_export_credential_ssh_key">SSH key</string>
+    <string name="credential_exchange_export_export_button">Transfer</string>
+    <string name="credential_exchange_export_error_unknown">Something went wrong while preparing the items.</string>
+    <string name="credential_exchange_import_review_all_items_section">All items</string>
+    <string name="credential_exchange_export_error_account_unavailable">This account is no longer available.</string>
+    <string name="skipped_items_text">Some items were skipped.</string>
+    <string name="account_action_import_credentials_title">Import from another app</string>
+    <string name="credential_exchange_import_header_title">Import credentials</string>
+    <string name="credential_exchange_import_header_text">Move credentials directly from another password manager installed on this device.</string>
+    <string name="credential_exchange_import_step_1_title">Start the transfer</string>
+    <string name="credential_exchange_import_step_1_text">Tap Start import. Android will show the apps that can share credentials with Keyguard.</string>
+    <string name="credential_exchange_import_step_2_title">Choose a source app</string>
+    <string name="credential_exchange_import_step_2_text">Select the password manager you want to import from, then follow its prompts to approve the transfer.</string>
+    <string name="credential_exchange_import_step_3_title">Review and import</string>
+    <string name="credential_exchange_import_step_3_text">Back in Keyguard, review what was received. Nothing is saved to this account until you tap Import.</string>
+    <string name="credential_exchange_import_learn_more">Learn about credential exchange</string>
+    <string name="credential_exchange_import_start_button">Start import</string>
+    <string name="credential_exchange_import_retry_button">Retry import</string>
+    <string name="credential_exchange_import_import_button">Import</string>
+    <string name="credential_exchange_import_review_source_label">Received from</string>
+    <string name="credential_exchange_import_review_items_section">Items to import</string>
+    <string name="credential_exchange_import_empty_label">The selected app didn't send any importable items.</string>
+    <string name="credential_exchange_import_error_unavailable">Credential transfer isn't available on this device. It requires a recent version of Google Play services.</string>
+    <string name="credential_exchange_import_error_no_providers">None of the installed apps can share credentials this way.</string>
+    <string name="credential_exchange_import_error_parse">The received data couldn't be read.</string>
+    <string name="credential_exchange_import_error_unknown">Something went wrong while importing the items.</string>
+    <string name="credential_exchange_import_error_save">Failed to import the credentials.</string>
+    <string name="credential_exchange_import_success_title">Import complete</string>
+    <string name="credential_exchange_import_untitled">Untitled</string>
     <string name="contactus_header_title">Contact us</string>
     <string name="contactus_message_label">Your message</string>
     <string name="contactus_english_note">Use English to ensure that your feedback doesn't get misunderstood.</string>
@@ -1194,8 +1400,11 @@
     <string name="settings_security_header_title">Security</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
     <string name="settings_developer_header_title">Developer</string>
+    <string name="settings_ssh_agent_header_title">SSH-agent</string>
+    <string name="settings_gpg_agent_header_title">GPG-agent</string>
     <string name="settings_watchtower_header_title">Watchtower</string>
     <string name="settings_automatic_backups_header_title">Backups</string>
+    <string name="settings_navigation_items_header_title">Navigasjonselementer</string>
     <string name="settings_open_source_licenses_header_title">Open-source licenses</string>
     <string name="pref_section_premium_title">Premium</string>
     <string name="pref_section_options_title">Options</string>
@@ -1296,8 +1505,16 @@
     <string name="pref_item_automatic_backups_retention_value">%1$d snapshots</string>
     <string name="pref_item_automatic_backups_disable_title">Turn off automatic backups</string>
     <string name="pref_item_automatic_backups_disable_message">This only turns off future automatic backups. It clears the local folder, password, and attachment choice from Keyguard. The existing backup repository and files in that folder are not deleted.</string>
+    <string name="pref_item_nav_items_title">Navigasjonselementer</string>
     <string name="pref_item_nav_label_title">Show labels on navigation buttons</string>
-    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
+    <string name="navigation_items_add_item_title">Legg til element</string>
+    <string name="navigation_items_reset_confirmation_title">Tilbakestille navigasjonselementer?</string>
+    <string name="navigation_items_reset_confirmation_text">Dette gjenoppretter standard navigasjonsrekkefølge og synlighet. Egendefinerte filtre slettes ikke, men navigasjonselementene deres fjernes.</string>
+    <string name="navigation_items_built_in_text">Innebygd destinasjon</string>
+    <string name="navigation_items_custom_filter_text">Egendefinert filter</string>
+    <string name="navigation_items_missing_filter_title">Egendefinert filter</string>
+    <string name="navigation_items_missing_filter_text">Filter ikke funnet</string>
+    <string name="navigation_items_predefined_route_text">Forhåndsdefinert rute</string>
     <string name="pref_item_app_version_title">App version</string>
     <string name="pref_item_app_build_date_title">App build date</string>
     <!--
@@ -1389,6 +1606,24 @@
     <string name="pref_item_permissions_title">Permissions</string>
     <string name="pref_item_features_overview_title">Features overview</string>
     <string name="pref_item_url_override_title">URL overrides</string>
+    <string name="pref_item_agent_approval_scope_title">Godkjenningsomfang</string>
+    <string name="pref_item_agent_approval_scope_connection">Per tilkobling</string>
+    <string name="pref_item_agent_approval_scope_process">Per prosess</string>
+    <string name="pref_item_agent_approval_scope_application">Per applikasjon</string>
+    <string name="pref_item_agent_approval_scope_application_and_terminal_session">Per applikasjon, isolert per terminaløkt</string>
+    <string name="pref_item_agent_approval_scope_table_reuse_boundary">Hvem kan gjenbruke?</string>
+    <string name="pref_item_agent_approval_scope_table_same_terminal">Samme fane eller panel</string>
+    <string name="pref_item_agent_approval_scope_table_other_terminal">Annen fane eller panel</string>
+    <string name="pref_item_agent_approval_scope_table_connection_reuse">Nåværende aktive agenttilkobling</string>
+    <string name="pref_item_agent_approval_scope_table_process_reuse">Samme verifiserte prosessinstans</string>
+    <string name="pref_item_agent_approval_scope_table_application_reuse">Samme verifiserte applikasjon</string>
+    <string name="pref_item_agent_approval_scope_table_application_and_terminal_session_reuse">Samme verifiserte terminaløkt; verifisert applikasjon utenfor terminaler</string>
+    <string name="pref_item_agent_approval_scope_table_android_process_reuse">Nåværende aktive agenttilkobling; prosessidentitet er utilgjengelig</string>
+    <string name="pref_item_agent_approval_scope_table_android_application_and_terminal_session_reuse">Samme verifiserte applikasjon; identitet for terminaløkt er utilgjengelig</string>
+    <string name="pref_item_agent_approval_scope_table_current_connection_only">Bare nåværende tilkobling</string>
+    <string name="pref_item_agent_approval_scope_table_same_process_only">Bare samme prosess</string>
+    <string name="pref_item_agent_approval_scope_table_shared">Delt</string>
+    <string name="pref_item_agent_approval_scope_table_not_shared">Ikke delt</string>
     <string name="pref_item_ssh_agent_title">SSH agent</string>
     <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
     <string name="pref_item_ssh_agent_status_unsupported">Unsupported</string>
@@ -1409,6 +1644,22 @@
     <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
     <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
     <string name="pref_item_ssh_agent_history_title">Request log</string>
+    <string name="pref_item_license_key_title">Koble til eksisterende rettighetskode</string>
+    <string name="pref_item_license_key_field_label">Rettighetskode</string>
+    <string name="pref_item_license_key_message_redeemed">Rettighetskode ble koblet til</string>
+    <string name="pref_item_license_key_message_invalid">Ugyldig eller utløpt nøkkel</string>
+    <string name="pref_item_license_key_status_active">Aktiv</string>
+    <string name="pref_item_license_key_status_invalid">Ugyldig</string>
+    <string name="pref_item_license_key_status_revoked">Tilbakekalt</string>
+    <string name="pref_item_license_key_status_expired">Utløpt</string>
+    <string name="pref_item_license_key_status_available">Tilgjengelig</string>
+    <string name="pref_item_license_sync_title">Hent rettighetskode</string>
+    <string name="pref_item_license_sync_text">Verifiserer ditt aktive butikkjøp og genererer et rettighetskode knyttet til kjøpet. Bruk koden til å overføre kjøpet til dine andre enheter.</string>
+    <string name="pref_item_license_sync_requested">Rettighetskode ble forespurt</string>
+    <string name="pref_item_license_sync_success">Rettighetskode synkronisert</string>
+    <string name="pref_item_license_sync_already">Nåværende rettighetskode er allerede aktivt</string>
+    <string name="pref_item_license_sync_no_purchases">Ingen kvalifisert kjøp funnet</string>
+    <string name="pref_item_license_sync_failed">Kunne ikke hente rettighetskode</string>
     <string name="pref_item_biometric_unlock_title">Biometric unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
@@ -1427,10 +1678,9 @@
     <string name="pref_item_autofill_service_title">Autofill service</string>
     <string name="pref_item_autofill_service_text">Use the Android Autofill Framework to assist in filling login information into other apps on the device</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the "Display pop-up windows while running in the background" permission. Please open the settings and verify that it is granted.</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
-2. Choose Autofill using another service
-3. Confirm and restart Chrome</string>
+    <string name="pref_item_autofill_service_browser_autofill_v2_title">Browser third-party autofill services</string>
+    <string name="pref_item_autofill_service_browser_autofill_v2_text">Enable third-party autofill in each of the listed browsers to let Keyguard fill logins there.</string>
+    <string name="pref_item_autofill_service_browser_autofill_settings_error">Failed to open browser autofill settings</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Auto-copy one-time passwords</string>
     <string name="pref_item_autofill_auto_copy_otp_text">When filling in login information, automatically copy one-time passwords</string>
     <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
@@ -1479,6 +1729,33 @@
     <string name="pref_item_permission_camera_text">Used to scan QR codes</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Allow two panel layout in landscape mode</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">Allow two panel layout in portrait mode</string>
+    <string name="pref_item_gpg_agent_title">GPG-agent</string>
+    <string name="pref_item_gpg_agent_setup_title">GPG-klientoppsett</string>
+    <string name="pref_item_gpg_agent_status_ready">Klar</string>
+    <string name="pref_item_gpg_agent_status_starting">Starter</string>
+    <string name="pref_item_gpg_agent_status_stopped">Stoppet</string>
+    <string name="pref_item_gpg_agent_status_failed">Mislyktes</string>
+    <string name="pref_item_gpg_agent_status_unsupported">Ikke støttet</string>
+    <string name="pref_item_gpg_agent_approval_window_title">Husk nøkkelgodkjenninger</string>
+    <string name="pref_item_gpg_agent_approval_window_always_ask">Spør hver gang</string>
+    <string name="pref_item_gpg_agent_approval_window_until_lock">Til hvelvet låses</string>
+    <string name="pref_item_gpg_agent_display_key_names_title">Vis nøkkelnavn før hvelvet er låst opp</string>
+    <string name="pref_item_gpg_agent_display_key_names_note">En ukryptert kopi av elementtittelen lagres lokalt</string>
+    <string name="pref_item_gpg_agent_local_storage_title">Lokal lagring</string>
+    <string name="pref_item_gpg_agent_local_storage_text">Når GPG-agenten er på, beholder Keyguard en ukryptert kopi av de offentlige nøklene på disk slik at klienter kan liste nøkler mens hvelvet er låst. Private nøkler blir aldri eksponert; nøkkelnavn lagres bare hvis du aktiverer det tilsvarende alternativet.</string>
+    <string name="pref_item_gpg_agent_filters_title">GPG-agentfiltre</string>
+    <string name="pref_item_gpg_agent_filters_text">Velg hvilke GPG-nøkler som er tilgjengelige for GPG-agenten</string>
+    <string name="pref_item_gpg_agent_filters_summary_all">Alle nøkler tilgjengelige</string>
+    <string name="pref_item_gpg_agent_filters_summary_active">Filtre aktive</string>
+    <string name="pref_item_gpg_agent_history_title">Forespørselslogg</string>
+    <string name="pref_item_gpg_keyserver_search_title">Søk på GPG-nøkkelserver</string>
+    <string name="pref_item_gpg_keyserver_search_text">Finn offentlige GPG-nøkler etter e-post, fingeravtrykk, nøkkel-ID eller navn</string>
+    <string name="pref_item_gpg_keyserver_url_title">Nøkkelserver</string>
+    <string name="pref_item_gpg_keyserver_url_text">Server som brukes til å slå opp og oppdatere offentlige GPG-nøkler</string>
+    <string name="pref_item_gpg_keyserver_protocol_title">Nøkkelserverprotokoll</string>
+    <string name="pref_item_gpg_keyserver_auto_refresh_title">Oppdater offentlige nøkler automatisk</string>
+    <string name="pref_item_gpg_keyserver_auto_refresh_note">Mens appen er aktiv og hvelvet er låst opp, kontakter Keyguard den konfigurerte GPG-nøkkelserveren med det valgte intervallet ved hjelp av fingeravtrykket til hvert GPG-element som bare inneholder en offentlig nøkkel. Hvis en samsvarende offentlig nøkkel blir funnet, oppdaterer Keyguard den lagrede offentlige nøkkelen, nøkkelmetadataene og nøkkelserverstatusen.</string>
+    <string name="pref_item_gpg_keyserver_refresh_interval_title">Oppdateringsintervall</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_light">Light</string>
     <string name="nav_animation_disabled">Disabled</string>
@@ -1540,12 +1817,22 @@
     <string name="datasafety_remote_text">Remote data is stored on Bitwarden servers with zero-knowledge encryption.</string>
     <string name="webdav_settings_header_title">WebDAV server configuration</string>
     <string name="webdav_settings_url_title">WebDAV URL</string>
-    <string name="webdav_settings_url_hint">https://example.com/remote.php/dav/files/me/Keyguard/</string>
     <string name="webdav_settings_auth_note">If your WebDAV server requires authentication, enter your server credentials here. Do not enter your master password.</string>
     <string name="webdav_settings_test_title">Test connection</string>
     <string name="webdav_settings_test_text">Writes and removes a small probe file to verify server access.</string>
+    <string name="webdav_settings_test_text_read_only">Leser ressursen for å verifisere servertilgang.</string>
     <string name="webdav_settings_test_success">WebDAV connection verified.</string>
     <string name="webdav_settings_password_requires_username_error">Enter a username before setting a WebDAV password.</string>
+    <string name="webdav_settings_browse_title">Browse</string>
+    <string name="webdav_picker_header_title">Browse WebDAV</string>
+    <string name="webdav_picker_choose_folder">Choose this folder</string>
+    <string name="webdav_picker_refresh">Refresh folder</string>
+    <string name="webdav_picker_empty">This folder is empty.</string>
+    <string name="webdav_picker_error">Could not load this folder.</string>
+    <string name="webdav_picker_filename_required">Enter a database name.</string>
+    <string name="webdav_picker_filename_invalid">The database name cannot contain path separators.</string>
+    <string name="webdav_picker_filename_extension">The database name must end with %1$s.</string>
+    <string name="webdav_picker_filename_exists">A file with this name already exists.</string>
     <!-- Title of the 'Localization contributors' screen -->
     <string name="localization_contributors_title">Localization contributors</string>
     <string name="localization_contributors_search_placeholder">Search contributors</string>
@@ -1555,4 +1842,121 @@
     <string name="logs_stop_recording_fab_title">Stop recording</string>
     <string name="logs_export_button">Export</string>
     <string name="logs_export_success">Export complete</string>
+    <string name="gpg_client_request">GPG-klientforespørsel</string>
+    <string name="gpg_agent_request_approval_sign_title">GPG-signeringsforespørsel</string>
+    <string name="gpg_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> vil bruke følgende GPG-nøkkel til å signere data:</string>
+    <string name="gpg_agent_request_approval_sign_message_unknown_app">En applikasjon vil bruke følgende GPG-nøkkel til å signere data:</string>
+    <string name="gpg_agent_request_approval_decrypt_title">GPG-dekrypteringsforespørsel</string>
+    <string name="gpg_agent_request_approval_decrypt_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> vil bruke følgende GPG-nøkkel til å dekryptere data:</string>
+    <string name="gpg_agent_request_approval_decrypt_message_unknown_app">En applikasjon vil bruke følgende GPG-nøkkel til å dekryptere data:</string>
+    <string name="gpg_agent_setup_header_title">GPG-klientoppsett</string>
+    <string name="gpg_agent_setup_intro">Sett opp GnuPG for å bruke Keyguards GPG-agent til signering og dekryptering uten å eksponere privat nøkkelmateriale.</string>
+    <string name="gpg_agent_setup_unsupported_text">GPG-agenten er bare tilgjengelig i skrivebordsversjonen av Keyguard.</string>
+    <string name="gpg_agent_setup_step_1_title">1. Aktiver GPG-agenten i Keyguard</string>
+    <string name="gpg_agent_setup_step_1_text">Åpne GPG-innstillingene, aktiver GPG-agenten, og sørg for at hvelvet inneholder en GPG-nøkkel som agenten har lov til å bruke.</string>
+    <string name="gpg_agent_setup_step_2_title">2. Konfigurer GNUPGHOME</string>
+    <string name="gpg_agent_setup_step_2_text">Kjør GnuPG-kommandoer fra et skall som peker til Keyguards agent-hjemmemappe. Keyguard lytter på agent-socketen som GnuPG finner for denne hjemmemappen.</string>
+    <string name="gpg_agent_setup_linux_home_fallback_note">Hvis XDG_RUNTIME_DIR ikke er satt, bruk denne reserveløsningen i stedet:</string>
+    <string name="gpg_agent_setup_step_3_title">3. Importer den offentlige nøkkelen</string>
+    <string name="gpg_agent_setup_step_3_text">Eksporter den offentlige nøkkelen fra GPG-nøkkelelementet i Keyguard, og importer den deretter til denne GnuPG-hjemmemappen. Dette eksponerer bare offentlig nøkkelmateriale.</string>
+    <string name="gpg_agent_setup_step_4_title">4. Verifiser</string>
+    <string name="gpg_agent_setup_step_4_text">List opp nøkler som er synlige for Keyguard, og signer deretter en kort melding. Erstatt YOUR_KEY_FINGERPRINT med fingeravtrykket fra den importerte nøkkelen.</string>
+    <string name="gpg_agent_setup_step_5_title">5. Signer Git-commits</string>
+    <string name="gpg_agent_setup_step_5_text">Bruk samme GNUPGHOME når Git signerer commits. Hold konfigurasjonen lokal til ett repositorium, eller endre --local til --global.</string>
+    <string name="gpg_agent_setup_windows_native_gnupg_note">Windows krever en egen GnuPG-installasjon. GPG-en som følger med Git for Windows, er ikke kompatibel med dette oppsettet.</string>
+    <string name="gpg_agent_filters_header_title">GPG-agentfiltre</string>
+    <string name="gpg_agent_filters_note_save_to_apply">Endringene trer i kraft etter at du trykker Lagre.</string>
+    <string name="gpg_agent_history_header_title">GPG-agenthistorikk</string>
+    <string name="gpg_keys_capability_sign">Signere</string>
+    <string name="gpg_key_status">GPG-nøkkelstatus</string>
+    <string name="gpg_key_status_revoked_text">Denne GPG-nøkkelen er tilbakekalt og bør ikke brukes.</string>
+    <string name="gpg_key_status_expired_text">Denne GPG-nøkkelen har utløpt og bør ikke brukes.</string>
+    <string name="gpg_key_user_ids">Bruker-ID-er</string>
+    <string name="gpg_key_does_not_expire">Utløper ikke</string>
+    <string name="gpg_key_capability_encrypt_decrypt">Kryptere/dekryptere</string>
+    <string name="gpg_key_sec_pub">sec/pub</string>
+    <string name="gpg_key_secret_key">Hemmelig nøkkel</string>
+    <string name="gpg_key_subkey_n">Undernøkkel <xliff:g id="index" example="1">%1$d</xliff:g></string>
+    <string name="gpg_tools_header_title">GPG-verktøy</string>
+    <string name="gpg_tools_scope_text">Tekst</string>
+    <string name="gpg_tools_scope_file">Fil</string>
+    <string name="gpg_tools_operation_encrypt_text">Krypter tekst eller filer for valgte mottakere</string>
+    <string name="gpg_tools_operation_decrypt_text">Dekrypter tekst eller filer med lagrede private nøkler</string>
+    <string name="gpg_tools_operation_sign_text">Signer tekst eller filer med en lagret privat nøkkel</string>
+    <string name="gpg_tools_operation_verify_text">Verifiser innebygde eller frittstående signaturer</string>
+    <string name="gpg_tools_mode_cleartext">Klartekst</string>
+    <string name="gpg_tools_mode_inline">Innebygd</string>
+    <string name="gpg_tools_mode_detached">Frittstående</string>
+    <string name="gpg_tools_armor_label">ASCII-beskyttelse</string>
+    <string name="gpg_tools_sign_encrypted_message">Signer</string>
+    <string name="gpg_tools_sign_none">Ikke signer</string>
+    <string name="gpg_tools_signed_text_label">Signert tekst</string>
+    <string name="gpg_tools_encrypted_text_label">Kryptert melding</string>
+    <string name="gpg_tools_signature_label">Signatur</string>
+    <string name="gpg_tools_pasted_public_key_label">Offentlig nøkkel</string>
+    <string name="gpg_tools_pasted_public_key_placeholder">Lim inn en ASCII-beskyttet offentlig nøkkelblokk</string>
+    <string name="gpg_tools_select_signing_key">Signeringsnøkkel</string>
+    <string name="gpg_tools_select_recipients">Mottakere</string>
+    <string name="gpg_tools_stored_public_keys_note">Lagrede offentlige nøkler brukes automatisk for verifisering.</string>
+    <string name="gpg_tools_decrypt_keys_note">Lagrede private nøkler prøves automatisk for dekryptering.</string>
+    <string name="gpg_tools_no_gpg_keys">Ingen lagrede GPG-nøkler</string>
+    <string name="gpg_tools_no_signing_key">Ingen GPG-nøkkel som kan signere, er valgt</string>
+    <string name="gpg_tools_no_recipient">Velg en lagret mottaker eller lim inn en offentlig nøkkel</string>
+    <string name="gpg_tools_missing_private_key">Ingen privat nøkkel som kan dekryptere, er tilgjengelig</string>
+    <string name="gpg_tools_select_input_file">Inndatafil</string>
+    <string name="gpg_tools_select_signature_file">Signaturfil</string>
+    <string name="gpg_tools_clear_file">Tøm</string>
+    <string name="gpg_tools_run_success">GPG-operasjonen er fullført</string>
+    <string name="gpg_tools_valid_signature">Gyldig signatur</string>
+    <string name="gpg_tools_invalid_signature">Ugyldig signatur</string>
+    <string name="gpg_tools_missing_public_key">Mangler offentlig nøkkel</string>
+    <string name="gpg_tools_signature_by">Signert av <xliff:g id="signer" example="0123 ABCD">%1$s</xliff:g></string>
+    <string name="gpg_tools_signature_created_at">Opprettet <xliff:g id="date" example="2026-06-28T12:30:00Z">%1$s</xliff:g></string>
+    <string name="gpg_tools_warning_key_revoked">Advarsel: signeringsnøkkelen er tilbakekalt</string>
+    <string name="gpg_tools_warning_key_expired">Advarsel: signeringsnøkkelen er utløpt</string>
+    <string name="gpg_tools_warning_signature_expired">Advarsel: signaturen er utløpt</string>
+    <string name="gpg_tools_file_required">Velg en inndatafil</string>
+    <string name="gpg_tools_signature_file_required">Velg en signaturfil</string>
+    <string name="gpg_tools_text_required">Skriv inn tekst som skal behandles</string>
+    <string name="gpg_tools_public_key_title">Egendefinert offentlig nøkkel</string>
+    <string name="gpg_tools_public_key_description">Lim inn en ASCII-beskyttet offentlig nøkkelblokk som skal brukes til denne operasjonen. Den brukes i tillegg til dine lagrede nøkler.</string>
+    <string name="gpg_tools_public_key_add">Legg til en offentlig nøkkel</string>
+    <string name="gpg_keyserver_search_header_title">Søk på GPG-nøkkelserver</string>
+    <string name="gpg_keyserver_search_placeholder">Søk etter e-post, fingeravtrykk, nøkkel-ID eller navn</string>
+    <string name="gpg_keyserver_search_empty_query_label">Skriv inn en e-post, et fingeravtrykk, en nøkkel-ID eller et navn</string>
+    <string name="gpg_keyserver_search_empty_label">Ingen offentlige nøkler funnet</string>
+    <string name="gpg_keyserver_search_error_text">Kunne ikke søke etter offentlige nøkler</string>
+    <string name="gpg_keyserver_search_revoked_label">Tilbakekalt</string>
+    <string name="gpg_keyserver_search_index_label">Indeks</string>
+    <string name="gpg_keyserver_search_public_key_not_found_title">Offentlig GPG-nøkkel ikke funnet på nøkkelserveren</string>
+    <string name="gpg_keyserver_upload_success_title">Offentlig GPG-nøkkel lastet opp</string>
+    <string name="gpg_keyserver_refresh_success_title">Offentlig GPG-nøkkel oppdatert</string>
+    <string name="gpg_keyserver_refresh_not_found_title">Offentlig GPG-nøkkel ikke funnet på nøkkelserveren</string>
+    <string name="gpg_keyserver_verify_unknown_title">Verifiseringsstatus for offentlig GPG-nøkkel er ukjent</string>
+    <string name="gpg_keyserver_verify_not_found_title">Offentlig GPG-nøkkel ikke funnet på nøkkelserveren</string>
+    <string name="gpg_keyserver_verify_unverified_title">Offentlig GPG-nøkkel funnet uten verifisert e-post</string>
+    <string name="gpg_keyserver_verify_verified_title">Offentlig GPG-nøkkel verifisert</string>
+    <string name="gpg_keyserver_verify_revoked_title">Offentlig GPG-nøkkel tilbakekalt</string>
+    <string name="gpg_keyserver_status_title">GPG-nøkkelserver</string>
+    <string name="gpg_keyserver_status_not_checked">Ikke sjekket</string>
+    <string name="gpg_keyserver_status_checked_at">Sjekket <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="gpg_agent_history_request_list_keys">List nøkler</string>
+    <string name="gpg_agent_history_request_sign_hash">Signer hash</string>
+    <string name="gpg_agent_history_request_decrypt">Dekrypter</string>
+    <string name="gpg_agent_history_response_success">Vellykket</string>
+    <string name="gpg_agent_history_response_user_denied">Avvist</string>
+    <string name="gpg_agent_history_response_key_not_found">Nøkkel ikke funnet</string>
+    <string name="gpg_agent_history_response_vault_locked">Hvelv låst</string>
+    <string name="gpg_agent_history_response_unsupported">Ikke støttet</string>
+    <string name="gpg_agent_history_response_failure">Mislyktes</string>
+    <string name="gpg_agent_history_unknown_caller">Ukjent anroper</string>
+    <string name="gpg_agent_history_unknown_key">Ukjent nøkkel</string>
+    <string name="gpg_agent_history_clear_history_title">Tøm historikk</string>
+    <string name="gpg_agent_history_clear_history_confirmation_title">Tømme GPG-agenthistorikken?</string>
+    <string name="gpg_agent_history_clear_history_confirmation_text">Dette fjerner all brukshistorikk for GPG-agenten.</string>
+    <string name="cipher_links_outgoing_title">Linked items</string>
+    <string name="cipher_links_incoming_title">Referenced by</string>
+    <string name="cipher_link_unavailable_title">Item unavailable</string>
+    <string name="cipher_link_picker_title">Select linked item</string>
+    <string name="cipher_link_picker_action">Link to an item</string>
 </resources>

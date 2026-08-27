@@ -6,7 +6,7 @@ order: 5
 ---
 
 Keyguard can act as a **GPG agent**: keys stored in your vault sign and
-decrypt data, so private keys never stored unprotected on disk. Each request can
+decrypt data, so private keys are never stored unprotected on disk. Each request can
 pop up an approval dialog telling you which application wants to use which key.
 You set the approval window — from prompting on **every request**, to
 remembering approvals for a set time (one minute by default), or **until the

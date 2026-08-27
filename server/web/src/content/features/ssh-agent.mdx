@@ -10,9 +10,9 @@ premium: false
 
 import sshKeyItem from '../../assets/screenshots/ssh-key-item.png';
 
-Keyguard can act as an SSH agent, so SSH-based services and command-line tools authenticate using the keys you keep in your vault. Instead of scattering private keys across the filesystem, where they are easy to lose track of or expose, you store them once and let the agent securely present them on demand without ever exposing the private keys.
+Keyguard can act as an SSH agent, so SSH services and command-line tools authenticate with the keys you keep in your vault. The keys stop living as files scattered across the filesystem, where they are easy to lose track of or expose.
 
-This works on both Android and desktop platforms. When a tool requests a signature, the agent answers with the matching key from your vault, keeping the private material in one managed place.
+This works on Android and on desktop. When a tool requests a signature, Keyguard produces it with the matching key and returns just the signature, so the private key never reaches the client.
 If you need a new key pair to begin with, the generator can create SSH keys for you. When you're ready to wire it up, the [setup guide](/docs/ssh-agent/) covers it.
 
-<Screenshot src={sshKeyItem} caption="A vault item holding an Ed25519 SSH key — public key, fingerprint, and protected private key." />
+<Screenshot src={sshKeyItem} caption="A vault item holding an Ed25519 SSH key, with the public key, fingerprint, and protected private key." />

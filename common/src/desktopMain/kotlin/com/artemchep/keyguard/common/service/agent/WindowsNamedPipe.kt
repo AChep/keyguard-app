@@ -24,6 +24,7 @@ private const val PIPE_WAIT = 0x00000000
 private const val PIPE_REJECT_REMOTE_CLIENTS = 0x00000008
 private const val PIPE_UNLIMITED_INSTANCES = 255
 private const val PIPE_BUFFER_SIZE = 64 * 1024
+private const val THREAD_TERMINATE = 0x0001
 
 private const val ERROR_INVALID_HANDLE = 6
 private const val ERROR_HANDLE_EOF = 38
@@ -70,16 +71,8 @@ internal class WindowsNamedPipeServer(
 
     fun accept(): WindowsNamedPipeConnection {
         val handle = takePreparedOrCreatePipeInstance()
-        var connected = false
         try {
-            connected = Kernel32.INSTANCE.ConnectNamedPipe(handle.value, null)
-            if (!connected) {
-                val error = Native.getLastError()
-                connected = error == ERROR_PIPE_CONNECTED
-                if (!connected) {
-                    throw pipeException("ConnectNamedPipe", error)
-                }
-            }
+            handle.connect()
 
             return WindowsNamedPipeConnection(
                 handle = handle,
@@ -176,13 +169,50 @@ internal class WindowsNamedPipeServer(
 internal class WindowsNamedPipeHandle(
     val value: Pointer,
 ) {
+    private val synchronousIoLock = Any()
     private val closed = AtomicBoolean(false)
+    private var acceptThreadHandle: Pointer? = null
 
     fun isClosed(): Boolean = closed.get()
+
+    fun connect() {
+        val threadHandle = openCurrentThreadHandle()
+        synchronized(synchronousIoLock) {
+            if (closed.get()) {
+                closeHandle(threadHandle)
+                throw ClosedChannelException()
+            }
+            acceptThreadHandle = threadHandle
+        }
+
+        try {
+            val connected = Kernel32.INSTANCE.ConnectNamedPipe(value, null)
+            if (!connected) {
+                val error = Native.getLastError()
+                if (error != ERROR_PIPE_CONNECTED) {
+                    throw pipeException("ConnectNamedPipe", error)
+                }
+            }
+        } finally {
+            synchronized(synchronousIoLock) {
+                if (acceptThreadHandle === threadHandle) {
+                    acceptThreadHandle = null
+                }
+            }
+            closeHandle(threadHandle)
+        }
+    }
 
     fun close() {
         if (!closed.compareAndSet(false, true)) {
             return
+        }
+        synchronized(synchronousIoLock) {
+            acceptThreadHandle?.let { threadHandle ->
+                // ConnectNamedPipe() is synchronous. Closing the pipe handle
+                // alone is not the documented way to wake that native call.
+                Kernel32.INSTANCE.CancelSynchronousIo(threadHandle)
+            }
         }
         runCatching {
             Kernel32.INSTANCE.DisconnectNamedPipe(value)
@@ -450,6 +480,18 @@ private fun closeHandle(handle: Pointer) {
     Kernel32.INSTANCE.CloseHandle(handle)
 }
 
+private fun openCurrentThreadHandle(): Pointer {
+    val handle = Kernel32.INSTANCE.OpenThread(
+        THREAD_TERMINATE,
+        false,
+        Kernel32.INSTANCE.GetCurrentThreadId(),
+    )
+    if (handle == null || Pointer.nativeValue(handle) == 0L) {
+        throw pipeException("OpenThread", Native.getLastError())
+    }
+    return handle
+}
+
 private fun pipeException(
     functionName: String,
     error: Int,
@@ -481,6 +523,18 @@ private interface Kernel32 : StdCallLibrary {
         hNamedPipe: Pointer,
         lpOverlapped: Pointer?,
     ): Boolean
+
+    fun CancelSynchronousIo(
+        hThread: Pointer,
+    ): Boolean
+
+    fun GetCurrentThreadId(): Int
+
+    fun OpenThread(
+        dwDesiredAccess: Int,
+        bInheritHandle: Boolean,
+        dwThreadId: Int,
+    ): Pointer?
 
     fun ReadFile(
         hFile: Pointer,

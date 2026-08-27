@@ -30,6 +30,7 @@ internal class FakeKeePassWebDavClientFactory : WebDavClientFactory {
     }
 }
 
+@Suppress("TooManyFunctions")
 internal class FakeKeePassWebDavClient : WebDavClient {
     private val objects = mutableMapOf<String, RemoteObject>()
     private val collections = mutableSetOf<String>()

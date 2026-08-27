@@ -13,8 +13,8 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> ord</item>
     </plurals>
     <plurals name="character_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> character</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> characters</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> tegn</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> tegn</item>
     </plurals>
     <plurals name="result_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> resultat</item>
@@ -43,6 +43,98 @@
     <plurals name="months_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> måned</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> måneder</item>
+    </plurals>
+    <plurals name="skipped_passkeys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> adgangsnøgle</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> adgangsnøgler</item>
+    </plurals>
+    <plurals name="skipped_otp_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> engangsadgangskode</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> engangsadgangskoder</item>
+    </plurals>
+    <plurals name="skipped_ssh_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH-nøgle</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH-nøgler</item>
+    </plurals>
+    <plurals name="skipped_gpg_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG-nøgle</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> GPG-nøgler</item>
+    </plurals>
+    <plurals name="skipped_attachments_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> vedhæftning</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> vedhæftninger</item>
+    </plurals>
+    <plurals name="skipped_password_history_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> gemt tidligere adgangskode</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> gemte tidligere adgangskoder</item>
+    </plurals>
+    <plurals name="skipped_archived_items_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> arkiveret emne</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> arkiverede emner</item>
+    </plurals>
+    <plurals name="skipped_items_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> emne</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> emner</item>
+    </plurals>
+    <plurals name="skipped_accounts_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> konto</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> konti</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_accounts_note">
+        <item quantity="one">De modtagne data indeholder <xliff:g id="number" example="1">%1$d</xliff:g> konto; alle dens emner importeres til denne konto.</item>
+        <item quantity="other">De modtagne data indeholder <xliff:g id="number">%1$d</xliff:g> konti; alle deres emner importeres til denne konto.</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_folders_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> mappe</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> mapper</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_logins_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> login</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> logins</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_passkeys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> adgangsnøgle</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> adgangsnøgler</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_otp_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> engangsadgangskode</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> engangsadgangskoder</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_cards_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> kort</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> kort</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_identities_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> identitet</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> identiteter</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_notes_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> notat</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> notater</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_ssh_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH-nøgle</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH-nøgler</item>
+    </plurals>
+    <plurals name="skipped_unsupported_credentials_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> legitimationsoplysning, der ikke understøttes</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> legitimationsoplysninger, der ikke understøttes</item>
+    </plurals>
+    <plurals name="skipped_duplicate_credentials_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> dubleret legitimationsoplysning</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> dublerede legitimationsoplysninger</item>
+    </plurals>
+    <plurals name="skipped_folders_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> mappe</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> mapper</item>
+    </plurals>
+    <plurals name="skipped_and_more_note">
+        <item quantity="one">og <xliff:g id="number" example="1">%1$d</xliff:g> mere</item>
+        <item quantity="other">og <xliff:g id="number">%1$d</xliff:g> mere</item>
+    </plurals>
+    <plurals name="credential_exchange_import_success_text">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> emne er blevet føjet til kontoen.</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> emner er blevet føjet til kontoen.</item>
     </plurals>
     <plurals name="years_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> år</item>

@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.util.foundation
 
+fun ByteArray.isAllZero(): Boolean = all { it == 0.toByte() }
+
 fun ByteArray.requireValidRange(
     offset: Int,
     length: Int,

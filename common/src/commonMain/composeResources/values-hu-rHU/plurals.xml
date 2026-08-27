@@ -44,6 +44,98 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hónap</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hónap</item>
     </plurals>
+    <plurals name="skipped_passkeys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> hozzáférési kulcs</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> hozzáférési kulcs</item>
+    </plurals>
+    <plurals name="skipped_otp_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> egyszeri jelszó</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> egyszeri jelszó</item>
+    </plurals>
+    <plurals name="skipped_ssh_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH-kulcs</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH-kulcs</item>
+    </plurals>
+    <plurals name="skipped_gpg_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG-kulcs</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> GPG-kulcs</item>
+    </plurals>
+    <plurals name="skipped_attachments_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> melléklet</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> melléklet</item>
+    </plurals>
+    <plurals name="skipped_password_history_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> mentett korábbi jelszó</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> mentett korábbi jelszó</item>
+    </plurals>
+    <plurals name="skipped_archived_items_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> archivált elem</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> archivált elem</item>
+    </plurals>
+    <plurals name="skipped_items_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> elem</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> elem</item>
+    </plurals>
+    <plurals name="skipped_accounts_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> fiók</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> fiók</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_accounts_note">
+        <item quantity="one">A beérkezett adatok <xliff:g id="number" example="1">%1$d</xliff:g> fiókot tartalmaznak; a bennük lévő összes elemet ebbe a fiókba importálja az alkalmazás.</item>
+        <item quantity="other">A beérkezett adatok <xliff:g id="number">%1$d</xliff:g> fiókot tartalmaznak; a bennük lévő összes elemet ebbe a fiókba importálja az alkalmazás.</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_folders_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> mappa</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> mappa</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_logins_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> bejelentkezés</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> bejelentkezés</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_passkeys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> hozzáférési kulcs</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> hozzáférési kulcs</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_otp_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> egyszeri jelszó</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> egyszeri jelszó</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_cards_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> kártya</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> kártya</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_identities_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> személyazonosság</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> személyazonosság</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_notes_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> jegyzet</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> jegyzet</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_ssh_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH-kulcs</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH-kulcs</item>
+    </plurals>
+    <plurals name="skipped_unsupported_credentials_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> nem támogatott hitelesítő adat</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> nem támogatott hitelesítő adat</item>
+    </plurals>
+    <plurals name="skipped_duplicate_credentials_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> ismétlődő hitelesítő adat</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> ismétlődő hitelesítő adat</item>
+    </plurals>
+    <plurals name="skipped_folders_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> mappa</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> mappa</item>
+    </plurals>
+    <plurals name="skipped_and_more_note">
+        <item quantity="one">és még <xliff:g id="number" example="1">%1$d</xliff:g> elem</item>
+        <item quantity="other">és még <xliff:g id="number">%1$d</xliff:g> elem</item>
+    </plurals>
+    <plurals name="credential_exchange_import_success_text">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> elem hozzáadva a fiókhoz.</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> elem hozzáadva a fiókhoz.</item>
+    </plurals>
     <plurals name="years_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> év</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> év</item>

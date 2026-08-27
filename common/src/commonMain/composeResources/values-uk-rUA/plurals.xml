@@ -66,6 +66,144 @@
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> місяців</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> місяця</item>
     </plurals>
+    <plurals name="skipped_passkeys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> ключ доступу</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> ключі доступу</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> ключів доступу</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> ключів доступу</item>
+    </plurals>
+    <plurals name="skipped_otp_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> одноразовий пароль</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> одноразові паролі</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> одноразових паролів</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> одноразових паролів</item>
+    </plurals>
+    <plurals name="skipped_ssh_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH-ключ</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH-ключі</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH-ключів</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH-ключів</item>
+    </plurals>
+    <plurals name="skipped_gpg_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG-ключ</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> GPG-ключі</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> GPG-ключів</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> GPG-ключів</item>
+    </plurals>
+    <plurals name="skipped_attachments_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> вкладення</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> вкладення</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> вкладень</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> вкладень</item>
+    </plurals>
+    <plurals name="skipped_password_history_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> збережений попередній пароль</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> збережені попередні паролі</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> збережених попередніх паролів</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> збережених попередніх паролів</item>
+    </plurals>
+    <plurals name="skipped_archived_items_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> архівований запис</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> архівовані записи</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> архівованих записів</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> архівованих записів</item>
+    </plurals>
+    <plurals name="skipped_items_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> запис</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> записи</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> записів</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> записів</item>
+    </plurals>
+    <plurals name="skipped_accounts_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> обліковий запис</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> облікові записи</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> облікових записів</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> облікових записів</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_accounts_note">
+        <item quantity="one">Отримані дані містять <xliff:g id="number" example="1">%1$d</xliff:g> обліковий запис; усі його записи буде імпортовано до цього облікового запису.</item>
+        <item quantity="few">Отримані дані містять <xliff:g id="number">%1$d</xliff:g> облікові записи; усі їхні записи буде імпортовано до цього облікового запису.</item>
+        <item quantity="many">Отримані дані містять <xliff:g id="number">%1$d</xliff:g> облікових записів; усі їхні записи буде імпортовано до цього облікового запису.</item>
+        <item quantity="other">Отримані дані містять <xliff:g id="number">%1$d</xliff:g> облікових записів; усі їхні записи буде імпортовано до цього облікового запису.</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_folders_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> тека</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> теки</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> тек</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> тек</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_logins_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> логін</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> логіни</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> логінів</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> логінів</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_passkeys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> ключ доступу</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> ключі доступу</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> ключів доступу</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> ключів доступу</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_otp_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> одноразовий пароль</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> одноразові паролі</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> одноразових паролів</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> одноразових паролів</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_cards_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> картка</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> картки</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> карток</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> карток</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_identities_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> запис з особистими даними</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> записи з особистими даними</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> записів з особистими даними</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> записів з особистими даними</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_notes_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> нотатка</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> нотатки</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> нотаток</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> нотаток</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_ssh_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH-ключ</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH-ключі</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH-ключів</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH-ключів</item>
+    </plurals>
+    <plurals name="skipped_unsupported_credentials_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> непідтримуваний елемент облікових даних</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> непідтримувані елементи облікових даних</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> непідтримуваних елементів облікових даних</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> непідтримуваних елементів облікових даних</item>
+    </plurals>
+    <plurals name="skipped_duplicate_credentials_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> дублікат облікових даних</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> дублікати облікових даних</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> дублікатів облікових даних</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> дублікатів облікових даних</item>
+    </plurals>
+    <plurals name="skipped_folders_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> тека</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> теки</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> тек</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> тек</item>
+    </plurals>
+    <plurals name="skipped_and_more_note">
+        <item quantity="one">і ще <xliff:g id="number" example="1">%1$d</xliff:g></item>
+        <item quantity="few">і ще <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="many">і ще <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="other">і ще <xliff:g id="number">%1$d</xliff:g></item>
+    </plurals>
+    <plurals name="credential_exchange_import_success_text">
+        <item quantity="one">До облікового запису додано <xliff:g id="number" example="1">%1$d</xliff:g> запис.</item>
+        <item quantity="few">До облікового запису додано <xliff:g id="number">%1$d</xliff:g> записи.</item>
+        <item quantity="many">До облікового запису додано <xliff:g id="number">%1$d</xliff:g> записів.</item>
+        <item quantity="other">До облікового запису додано <xliff:g id="number">%1$d</xliff:g> записів.</item>
+    </plurals>
     <plurals name="years_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> рік</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> роки</item>

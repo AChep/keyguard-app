@@ -13,6 +13,7 @@ import app.keemobile.kotpass.models.BinaryData
 import app.keemobile.kotpass.models.Entry
 import app.keemobile.kotpass.models.Group
 import com.artemchep.keyguard.common.service.keepass.modifyEntryWithTimes
+import com.artemchep.keyguard.common.service.keepass.modifyGroupWithTimes
 import okio.ByteString
 import kotlin.uuid.Uuid
 
@@ -63,7 +64,7 @@ class KeePassDbMutator(
 
     fun modifyGroup(uuid: Uuid, transform: Group.() -> Group): Boolean {
         var updated = false
-        database = database.modifyGroup(uuid) {
+        database = database.modifyGroupWithTimes(uuid) {
             updated = true
             transform()
         }

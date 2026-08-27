@@ -377,15 +377,6 @@ mod platform {
             follow_links: bool,
         ) -> io::Result<Self::Dir>;
 
-        fn open_dir_at_for_traversal(
-            &self,
-            parent: &Self::Dir,
-            name: &OsStr,
-            follow_links: bool,
-        ) -> io::Result<Self::Dir>;
-
-        fn reopen_dir(&self, directory: &Self::Dir) -> io::Result<Self::Dir>;
-
         fn create_and_open_dir_at(
             &self,
             parent: &Self::Dir,
@@ -412,19 +403,6 @@ mod platform {
             follow_links: bool,
         ) -> io::Result<Self::Dir> {
             self.open_windows_dir_at(parent, name, follow_links)
-        }
-
-        fn open_dir_at_for_traversal(
-            &self,
-            parent: &Self::Dir,
-            name: &OsStr,
-            follow_links: bool,
-        ) -> io::Result<Self::Dir> {
-            self.open_windows_dir_at_for_traversal(parent, name, follow_links)
-        }
-
-        fn reopen_dir(&self, directory: &Self::Dir) -> io::Result<Self::Dir> {
-            self.reopen_windows_dir(directory)
         }
 
         fn create_and_open_dir_at(
@@ -457,20 +435,6 @@ mod platform {
         ) -> io::Result<Self::Dir> {
             let name = name.to_str().ok_or_else(invalid_scratch_root)?;
             crate::fsops::FsOps::open_dir_at(self, parent, name, follow_links)
-        }
-
-        fn open_dir_at_for_traversal(
-            &self,
-            parent: &Self::Dir,
-            name: &OsStr,
-            follow_links: bool,
-        ) -> io::Result<Self::Dir> {
-            let name = name.to_str().ok_or_else(invalid_scratch_root)?;
-            crate::fsops::FsOps::open_dir_at_for_traversal(self, parent, name, follow_links)
-        }
-
-        fn reopen_dir(&self, directory: &Self::Dir) -> io::Result<Self::Dir> {
-            crate::fsops::FsOps::reopen_dir(self, directory)
         }
 
         fn create_and_open_dir_at(
@@ -525,37 +489,36 @@ mod platform {
     /// Existing ancestor links are resolved once and pinned by the returned
     /// directory handle. A link that appears after a component was observed
     /// missing loses the exclusive-create race and is rejected by the
-    /// no-follow reopen. The final component is never followed.
+    /// no-follow collision open. The final component is never followed.
     pub(super) fn open_or_create_directory<F: ScratchDirectoryFs>(
         fs: &F,
         directory: &Path,
     ) -> io::Result<F::Dir> {
         NtAbsolutePath::parse(directory)?;
         let (root, components) = split_absolute_path(directory)?;
-        match fs.open_root_no_follow_final(directory) {
+        let mut missing_error = match fs.open_root_no_follow_final(directory) {
             Ok(directory) => return Ok(directory),
-            Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+            Err(error) if error.kind() == io::ErrorKind::NotFound => error,
             Err(error) => return Err(error),
-        }
+        };
 
-        let mut current = fs.open_root(&root)?;
-        let mut depth = 0;
-        let mut traversal_only = false;
-        for (index, component) in components.iter().enumerate() {
-            let follow_links = index + 1 != components.len();
-            match fs.open_dir_at_for_traversal(&current, component, follow_links) {
+        // Shorter absolute prefixes may follow their final component because
+        // it is an ancestor of the requested scratch root. A successful open
+        // already yields the operational capability used for creation.
+        let mut deepest = None;
+        for depth in (0..components.len()).rev() {
+            let mut candidate = root.clone();
+            candidate.extend(components[..depth].iter());
+            match fs.open_root(&candidate) {
                 Ok(directory) => {
-                    current = directory;
-                    depth = index + 1;
-                    traversal_only = true;
+                    deepest = Some((directory, depth));
+                    break;
                 }
-                Err(error) if error.kind() == io::ErrorKind::NotFound => break,
+                Err(error) if error.kind() == io::ErrorKind::NotFound => missing_error = error,
                 Err(error) => return Err(error),
             }
         }
-        if traversal_only {
-            current = fs.reopen_dir(&current)?;
-        }
+        let (mut current, depth) = deepest.ok_or(missing_error)?;
 
         let first_missing_observed = depth < components.len();
         for (index, component) in components[depth..].iter().enumerate() {
@@ -1044,7 +1007,7 @@ mod tests {
             .collect::<Vec<_>>();
         assert_eq!(
             directory_opens,
-            [0, 1],
+            [0],
             "the creation collision must be reopened exactly once without following links",
         );
     }
@@ -1090,13 +1053,13 @@ mod tests {
             .preexisting_directory("second")
             .preexisting_directory_link("selected", "/first")
             .mutate_before(
-                SimOp::OpenDirAt,
-                1,
+                SimOp::CreateDirAt,
+                0,
                 NamespaceMutation::rename_entry("/", "selected", "selected-old"),
             )
             .mutate_before(
                 SimOp::CreateDirAt,
-                0,
+                1,
                 NamespaceMutation::create_directory_link("/", "selected", "/second"),
             )
             .build();

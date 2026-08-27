@@ -168,20 +168,26 @@ fn open_deepest_absolute<F: FsOps>(
     root: &Path,
     components: &[String],
 ) -> Result<(F::Dir, usize), TxnError> {
-    match fs.open_root(parent) {
+    let mut missing_error = match fs.open_root(parent) {
         Ok(directory) => return Ok((directory, components.len())),
-        Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+        Err(error) if error.kind() == io::ErrorKind::NotFound => error,
         Err(error) => return Err(parent_resolution_error(&error)),
+    };
+
+    // Open each shorter prefix directly as an ordinary capability. Besides
+    // preserving search-only traversal through its ancestors, this avoids
+    // upgrading a traversal handle with a platform-specific reopen operation.
+    for depth in (0..components.len()).rev() {
+        let mut candidate = root.to_path_buf();
+        candidate.extend(components[..depth].iter().map(String::as_str));
+        match fs.open_root(&candidate) {
+            Ok(directory) => return Ok((directory, depth)),
+            Err(error) if error.kind() == io::ErrorKind::NotFound => missing_error = error,
+            Err(error) => return Err(parent_resolution_error(&error)),
+        }
     }
 
-    let root = open_absolute(fs, root)?;
-    let (deepest, depth) = walk_deepest_descendant(
-        fs,
-        &root,
-        components,
-        ExistingParentLinkPolicy::FollowAndPin,
-    )?;
-    Ok((deepest.unwrap_or(root), depth))
+    Err(parent_resolution_error(&missing_error))
 }
 
 fn open_deepest_strict_descendant<F: FsOps>(
@@ -189,53 +195,17 @@ fn open_deepest_strict_descendant<F: FsOps>(
     root: &F::Dir,
     components: &[String],
 ) -> Result<(Option<F::Dir>, usize), TxnError> {
-    if components.is_empty() {
-        return Ok((None, 0));
-    }
-    match fs.open_dir_path_at(root, components) {
-        Ok(directory) => return Ok((Some(directory), components.len())),
-        Err(error) if error.kind() == io::ErrorKind::NotFound => {}
-        Err(error) => return Err(parent_resolution_error(&error)),
-    }
-
-    walk_deepest_descendant(fs, root, components, ExistingParentLinkPolicy::Reject)
-}
-
-fn walk_deepest_descendant<F: FsOps>(
-    fs: &F,
-    root: &F::Dir,
-    components: &[String],
-    existing_parent_links: ExistingParentLinkPolicy,
-) -> Result<(Option<F::Dir>, usize), TxnError> {
-    let mut current = None;
-    for (depth, component) in components.iter().enumerate() {
-        let parent = current.as_ref().unwrap_or(root);
-        let follow_links = existing_parent_links == ExistingParentLinkPolicy::FollowAndPin;
-        match fs.open_dir_at_for_traversal(parent, component, follow_links) {
-            Ok(directory) => current = Some(directory),
-            Err(error) if error.kind() == io::ErrorKind::NotFound => {
-                let current = current
-                    .as_ref()
-                    .map(|directory| {
-                        fs.reopen_dir(directory).map_err(|error| {
-                            TxnError::from_io_error(Operation::PrepareParent, &error)
-                        })
-                    })
-                    .transpose()?;
-                return Ok((current, depth));
-            }
+    // Each probe applies the strict policy to the complete candidate while
+    // returning an operational handle for its final directory.
+    for depth in (1..=components.len()).rev() {
+        match fs.open_dir_path_at(root, &components[..depth]) {
+            Ok(directory) => return Ok((Some(directory), depth)),
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {}
             Err(error) => return Err(parent_resolution_error(&error)),
         }
     }
 
-    let current = current
-        .as_ref()
-        .map(|directory| {
-            fs.reopen_dir(directory)
-                .map_err(|error| TxnError::from_io_error(Operation::PrepareParent, &error))
-        })
-        .transpose()?;
-    Ok((current, components.len()))
+    Ok((None, 0))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -380,7 +350,7 @@ fn parent_sync_policy_error(error: SyncPolicyError) -> TxnError {
 
 #[cfg(test)]
 mod tests {
-    #[cfg(unix)]
+    #[cfg(any(unix, windows))]
     use std::path::PathBuf;
 
     use super::*;
@@ -399,7 +369,7 @@ mod tests {
         assert!(split_absolute_path(Path::new(test_absolute_path!("/vault/../other"))).is_err());
     }
 
-    #[cfg(unix)]
+    #[cfg(any(unix, windows))]
     fn test_directory(label: &str) -> PathBuf {
         let mut nonce = [0_u8; 8];
         getrandom::fill(&mut nonce).expect("test nonce generation must succeed");
@@ -447,6 +417,73 @@ mod tests {
         std::fs::remove_dir_all(&base).expect("test directory must be removed");
         assert_eq!(require_existing.failure().kind(), FailureKind::InvalidInput);
         assert_eq!(create_missing.failure().kind(), FailureKind::InvalidInput);
+    }
+
+    #[cfg(any(unix, windows))]
+    #[test]
+    fn absolute_create_missing_uses_an_operational_existing_prefix() {
+        use crate::fsops::RealFs;
+
+        let base = test_directory("absolute-existing-prefix");
+        let existing = base.join("existing");
+        let selected = existing.join("missing").join("nested");
+        std::fs::create_dir(&existing).expect("existing prefix must be created");
+
+        let prepared = prepare_parent(
+            &RealFs,
+            &selected,
+            ParentDirectoryPolicy::CreateMissing {
+                permissions: crate::txn::DirectoryPermissions::OwnerOnly,
+            },
+            ExistingParentLinkPolicy::FollowAndPin,
+            SyncPolicy::Required(SyncLevel::ProcessAtomic),
+            SyncLevel::ProcessAtomic,
+            false,
+        )
+        .expect("creation must start from an operational existing prefix");
+
+        assert!(
+            selected.is_dir(),
+            "the complete missing suffix must be created"
+        );
+        drop(prepared);
+        std::fs::remove_dir_all(&base).expect("test directory must be removed");
+    }
+
+    #[cfg(any(unix, windows))]
+    #[test]
+    fn strict_relative_create_missing_uses_an_operational_existing_prefix() {
+        use crate::fsops::RealFs;
+
+        let base = test_directory("strict-existing-prefix");
+        let existing = base.join("existing");
+        let selected = existing.join("missing").join("nested");
+        std::fs::create_dir(&existing).expect("existing prefix must be created");
+        let directory =
+            AtomicDirectory::open(&RealFs, &base).expect("trusted root must open directly");
+        let destination = RelativeDestination::parse("existing/missing/nested/vault.bin")
+            .expect("relative destination must parse");
+
+        let prepared = prepare_parent_at(
+            &RealFs,
+            &directory,
+            &destination,
+            ParentDirectoryPolicy::CreateMissing {
+                permissions: crate::txn::DirectoryPermissions::OwnerOnly,
+            },
+            SyncPolicy::Required(SyncLevel::ProcessAtomic),
+            SyncLevel::ProcessAtomic,
+            false,
+        )
+        .expect("strict creation must start from an operational existing prefix");
+
+        assert!(
+            selected.is_dir(),
+            "the complete missing suffix must be created"
+        );
+        drop(prepared);
+        drop(directory);
+        std::fs::remove_dir_all(&base).expect("test directory must be removed");
     }
 
     #[cfg(any(

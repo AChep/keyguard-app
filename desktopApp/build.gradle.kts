@@ -29,6 +29,7 @@ kotlin {
                 implementation(libs.kdroidfilter.composenativetray)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlin.stdlib)
+                implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
                 implementation(libs.squareup.okhttp)
                 implementation(project(":util:crypto"))
                 implementation(project(":common"))
@@ -247,7 +248,7 @@ compose.desktop {
             release {
                 proguard {
                     isEnabled = true
-                    obfuscate = false
+                    obfuscate = true
                     optimize = true
                     configurationFiles.from(
                         project.file("../common/proguard-rules.pro"),
@@ -285,10 +286,11 @@ fun Tar.installPackageDistributable(
     }
 
     from(tasks.named(dependency)) {
-        // Keep helper binaries executable inside the tarball even if
+        // Keep the launcher and helper binaries executable inside the tarball even if
         // their source mode was normalized by an upstream packaging step.
         eachFile {
             if (
+                name == "Keyguard" ||
                 name == "jspawnhelper" || // https://github.com/AChep/keyguard-app/issues/640#issuecomment-4111835953
                 name == "keyguard-ssh-agent" ||
                 name == "keyguard-gpg-agent" ||

@@ -427,6 +427,9 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowVariants
 import com.artemchep.keyguard.common.usecase.GetSshAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetSshAgentStatus
+import com.artemchep.keyguard.common.usecase.GetBrowserAutofillAgent
+import com.artemchep.keyguard.common.usecase.GetBrowserAutofillAgentPairingCode
+import com.artemchep.keyguard.common.usecase.GetBrowserAutofillAgentStatus
 import com.artemchep.keyguard.common.usecase.GetGpgAgent
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
@@ -442,6 +445,8 @@ import com.artemchep.keyguard.common.usecase.GetGpgKeyserverRefreshIntervalVaria
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
 import com.artemchep.keyguard.common.usecase.PutAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.PutAutofillPasswordsEnabled
+import com.artemchep.keyguard.common.usecase.PutBrowserAutofillAgent
+import com.artemchep.keyguard.common.usecase.PutBrowserAutofillAgentPairingCode
 import com.artemchep.keyguard.common.usecase.PutSshAgent
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalCachePolicy
@@ -468,6 +473,9 @@ import com.artemchep.keyguard.common.usecase.impl.GetSshAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentStatusImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBrowserAutofillAgentImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBrowserAutofillAgentPairingCodeImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBrowserAutofillAgentStatusImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentApprovalCachePolicyImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentApprovalWindowVariantsImpl
@@ -489,6 +497,8 @@ import com.artemchep.keyguard.common.usecase.impl.PutSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentFilterImpl
+import com.artemchep.keyguard.common.usecase.impl.PutBrowserAutofillAgentImpl
+import com.artemchep.keyguard.common.usecase.impl.PutBrowserAutofillAgentPairingCodeImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentApprovalCachePolicyImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentDisplayKeyNamesImpl
@@ -924,6 +934,21 @@ fun globalModuleCommon() = DI.Module(
     }
     bindSingleton<GetSshAgentStatus> {
         GetSshAgentStatusImpl(this)
+    }
+    bindSingleton<GetBrowserAutofillAgent> {
+        GetBrowserAutofillAgentImpl(this)
+    }
+    bindSingleton<PutBrowserAutofillAgent> {
+        PutBrowserAutofillAgentImpl(this)
+    }
+    bindSingleton<GetBrowserAutofillAgentPairingCode> {
+        GetBrowserAutofillAgentPairingCodeImpl(this)
+    }
+    bindSingleton<PutBrowserAutofillAgentPairingCode> {
+        PutBrowserAutofillAgentPairingCodeImpl(this)
+    }
+    bindSingleton<GetBrowserAutofillAgentStatus> {
+        GetBrowserAutofillAgentStatusImpl(this)
     }
     bindSingleton<PutGpgAgent> {
         PutGpgAgentImpl(this)

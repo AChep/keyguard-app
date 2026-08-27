@@ -60,6 +60,13 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
+import com.artemchep.keyguard.common.service.browseragent.AgentPairingSecretFileWriter
+import com.artemchep.keyguard.common.service.browseragent.BrowserAutofillAgentManager
+import com.artemchep.keyguard.common.service.browseragent.BrowserAutofillAgentStatusService
+import com.artemchep.keyguard.common.service.browseragent.NativeMessagingHostRegistrar
+import com.artemchep.keyguard.common.service.browseragent.VaultBrowserAutofillBackend
+import com.artemchep.keyguard.common.service.logging.LogLevel
+import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
 import com.artemchep.keyguard.common.model.AgentStatus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
@@ -80,6 +87,7 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
+import com.artemchep.keyguard.common.usecase.PutBrowserAutofillAgentPairingCode
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.copy.DataDirectory
@@ -128,6 +136,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -167,6 +176,8 @@ private const val NATIVE_CRYPTO_PACKAGED_SMOKE_RESULT_PATH_ENV =
     "KEYGUARD_NATIVE_CRYPTO_SMOKE_RESULT_PATH"
 private const val NATIVE_CRYPTO_PACKAGED_SMOKE_NONCE_ENV =
     "KEYGUARD_NATIVE_CRYPTO_SMOKE_NONCE"
+
+private const val DEFAULT_BROWSER_AUTOFILL_AGENT_PORT = 40432
 
 fun main(args: Array<String>) {
     if (NATIVE_CRYPTO_PACKAGED_SMOKE_ARGUMENT in args) {
@@ -398,6 +409,7 @@ private fun runKeyguardApplication() {
     val getGpgAgentFilter: GetGpgAgentFilter = appDi.direct.instance()
     val gpgAgentPublicKeyRepository: GpgAgentPublicKeyRepository = appDi.direct.instance()
     val gpgAgentStatusService: GpgAgentStatusService = appDi.direct.instance()
+    val browserAutofillAgentStatusService: BrowserAutofillAgentStatusService = appDi.direct.instance()
     val dataDirectory: DataDirectory = appDi.direct.instance()
 
     val translatorScope by lazy {
@@ -557,6 +569,92 @@ private fun runKeyguardApplication() {
                     processLifecycleProvider = processLifecycleProvider,
                     sshAgentRequestUiState = sshAgentRequestUiState,
                 )
+            }
+
+            // Browser autofill agent: bridges the browser extension (over a
+            // localhost WebSocket) and the vault. Auto-spawns when the user
+            // enables it in settings, mirroring the SSH/GPG agents.
+            val settingsRepository = appDi.direct.instance<SettingsReadWriteRepository>()
+            val getBrowserAutofillAgentState = remember { settingsRepository.getBrowserAutofillAgent() }
+                .collectAsState(false)
+            val getBrowserAutofillAgentPortState = remember { settingsRepository.getBrowserAutofillAgentPort() }
+                .collectAsState(DEFAULT_BROWSER_AUTOFILL_AGENT_PORT)
+            val getBrowserAutofillAgentPairingCodeState = remember {
+                settingsRepository.getBrowserAutofillAgentPairingCode()
+            }.collectAsState("")
+            val putBrowserAutofillAgentPairingCode = remember {
+                appDi.direct.instance<PutBrowserAutofillAgentPairingCode>()
+            }
+            val getBrowserAutofillAgentStateValue = getBrowserAutofillAgentState.value
+            val browserAutofillAgentPortState = rememberUpdatedState(getBrowserAutofillAgentPortState.value)
+            val browserAutofillAgentPairingCodeValue = getBrowserAutofillAgentPairingCodeState.value
+            val browserAutofillAgentManager = remember {
+                BrowserAutofillAgentManager(
+                    logRepository = logRepository,
+                    cryptoGenerator = cryptoGenerator,
+                    getVaultSession = getVaultSession,
+                    backend = VaultBrowserAutofillBackend(appDi.direct),
+                    getBrowserAgentPort = { browserAutofillAgentPortState.value },
+                )
+            }
+            // Register the Native Messaging host manifests for Firefox/Chrome/Edge
+            // so that the browsers can spawn the agent via connectNative().
+            remember {
+                NativeMessagingHostRegistrar(logRepository)
+                    .register(browserAutofillAgentManager.defaultBinaryPath)
+            }
+            LaunchedEffect(
+                browserAutofillAgentManager,
+                getBrowserAutofillAgentStateValue,
+                browserAutofillAgentPortState.value,
+                browserAutofillAgentPairingCodeValue,
+            ) {
+                val binaryPath = browserAutofillAgentManager.defaultBinaryPath
+                if (binaryPath == null) {
+                    logRepository.post(
+                        "BrowserAutofillAgentManager",
+                        "Browser agent binary not found; browser autofill is unavailable",
+                        LogLevel.WARNING,
+                    )
+                    browserAutofillAgentStatusService.set(AgentStatus.Unsupported)
+                    return@LaunchedEffect
+                }
+                if (!getBrowserAutofillAgentStateValue) {
+                    browserAutofillAgentStatusService.set(AgentStatus.Stopped)
+                    return@LaunchedEffect
+                }
+                // Generate a pairing code on first run; the user copies it
+                // into the browser extension to establish the shared secret.
+                var pairingCode = browserAutofillAgentPairingCodeValue
+                if (pairingCode.isBlank()) {
+                    pairingCode = AgentPairingSecretFileWriter.generatePairingCode()
+                    putBrowserAutofillAgentPairingCode(pairingCode).bind()
+                }
+                try {
+                    browserAutofillAgentStatusService.set(AgentStatus.Starting)
+                    browserAutofillAgentManager.start(
+                        scope = this,
+                        pairingCode = pairingCode,
+                    )
+                    browserAutofillAgentStatusService.set(AgentStatus.Ready)
+                    // Keep the coroutine alive until the scope is cancelled.
+                    // Servers run as child coroutines and will be cancelled automatically.
+                    awaitCancellation()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    e.throwIfFatal()
+                    browserAutofillAgentStatusService.set(AgentStatus.Failed)
+                    logRepository.post(
+                        "BrowserAutofillAgentManager",
+                        "Failed to start browser autofill agent: ${e.message}",
+                        LogLevel.ERROR,
+                    )
+                } finally {
+                    withContext(NonCancellable) {
+                        browserAutofillAgentManager.stop()
+                    }
+                }
             }
 
             val gpgAgentManager = remember {

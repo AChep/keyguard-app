@@ -103,6 +103,10 @@ class SettingsRepositoryImpl(
         private const val KEY_GPG_KEYSERVER_AUTO_REFRESH = "gpg_agent.keyserver_auto_refresh"
         private const val KEY_GPG_KEYSERVER_REFRESH_INTERVAL = "gpg_agent.keyserver_refresh_interval"
         private const val KEY_GPG_KEYSERVER_LAST_REFRESH = "gpg_agent.keyserver_last_refresh"
+        private const val KEY_BROWSER_AUTOFILL_AGENT = "browser_autofill_agent"
+        private const val KEY_BROWSER_AUTOFILL_AGENT_PORT = "browser_autofill_agent.port"
+        private const val KEY_BROWSER_AUTOFILL_AGENT_PAIRING_CODE = "browser_autofill_agent.pairing_code"
+        private const val DEFAULT_BROWSER_AUTOFILL_AGENT_PORT = 40432
         private const val KEY_VERSION_LOG = "version_log"
         private const val KEY_NAV_ANIMATION = "nav_animation"
         private const val KEY_NAV_LABEL = "nav_label"
@@ -303,6 +307,15 @@ class SettingsRepositoryImpl(
 
     private val gpgAgentPref =
         store.getBoolean(KEY_GPG_AGENT, false)
+
+    private val browserAutofillAgentPref =
+        store.getBoolean(KEY_BROWSER_AUTOFILL_AGENT, true)
+
+    private val browserAutofillAgentPortPref =
+        store.getInt(KEY_BROWSER_AUTOFILL_AGENT_PORT, DEFAULT_BROWSER_AUTOFILL_AGENT_PORT)
+
+    private val browserAutofillAgentPairingCodePref =
+        store.getString(KEY_BROWSER_AUTOFILL_AGENT_PAIRING_CODE, "")
 
     private val gpgAgentApprovalWindowRawPref =
         store.getLong(
@@ -863,6 +876,21 @@ class SettingsRepositoryImpl(
         .setAndCommit(filter)
 
     override fun getGpgAgentFilter() = gpgAgentFilterPref
+
+    override fun setBrowserAutofillAgent(browserAutofillAgent: Boolean) = browserAutofillAgentPref
+        .setAndCommit(browserAutofillAgent)
+
+    override fun getBrowserAutofillAgent() = browserAutofillAgentPref
+
+    override fun setBrowserAutofillAgentPort(port: Int) = browserAutofillAgentPortPref
+        .setAndCommit(port)
+
+    override fun getBrowserAutofillAgentPort() = browserAutofillAgentPortPref
+
+    override fun setBrowserAutofillAgentPairingCode(code: String) = browserAutofillAgentPairingCodePref
+        .setAndCommit(code)
+
+    override fun getBrowserAutofillAgentPairingCode() = browserAutofillAgentPairingCodePref
 
     override fun setGpgKeyserverConfig(config: GpgKeyserverConfig) = gpgKeyserverConfigPref
         .setAndCommit(config)

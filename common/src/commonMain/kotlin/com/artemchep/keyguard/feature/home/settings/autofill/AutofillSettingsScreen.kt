@@ -35,6 +35,7 @@ fun rememberSettingsAutofillItems(
                 key = "autofill",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.AUTOFILL),
+                    SettingPaneItem.Item(Setting.BROWSER_AGENT),
                 ),
             ),
             SettingPaneItem.Group(

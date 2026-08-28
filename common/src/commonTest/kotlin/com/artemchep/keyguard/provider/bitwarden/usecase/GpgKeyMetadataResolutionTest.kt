@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
-import com.artemchep.keyguard.common.model.DGpgKeyserverResult
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnapshot
@@ -12,8 +11,8 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
 import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
-import com.artemchep.keyguard.test.gpgCanonicalMetadata
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.test.gpgCanonicalMetadata
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -24,38 +23,6 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class GpgKeyMetadataResolutionTest {
-    @Test
-    fun `keyserver refresh resolves metadata with the stored private material`() {
-        var resolvedPrivateKey: String? = null
-        var resolvedPublicKey: String? = null
-        val resolver = object : GpgKeyMetadataResolver {
-            override fun resolve(
-                privateKeyArmored: String?,
-                publicKeyArmored: String?,
-                fingerprint: String?,
-                candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
-            ): GpgAgentMetadataResolution {
-                resolvedPrivateKey = privateKeyArmored
-                resolvedPublicKey = publicKeyArmored
-                return RESOLUTION
-            }
-        }
-        val current = key(metadata = null)
-
-        val refreshed = current.withGpgKeyserverRefresh(
-            result = DGpgKeyserverResult(
-                fingerprint = FINGERPRINT,
-                publicKeyArmored = "refreshed public",
-            ),
-            resolver = resolver,
-        )
-
-        assertEquals("private", resolvedPrivateKey)
-        assertEquals("refreshed public", resolvedPublicKey)
-        assertEquals("private", refreshed.privateKeyArmored)
-        assertEquals("refreshed public", refreshed.publicKeyArmored)
-        assertEquals(CANONICAL_METADATA, refreshed.metadata)
-    }
 
     @Test
     fun `non-canonical stored metadata is regenerated when material is touched`() {

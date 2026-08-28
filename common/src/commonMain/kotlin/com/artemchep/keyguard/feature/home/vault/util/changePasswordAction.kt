@@ -368,24 +368,14 @@ fun RememberStateFlowScope.cipherRefreshGpgPublicKeyAction(
                             },
                             ifSuccess = { result ->
                                 ioEffect {
-                                    val refreshed = result.refreshed > 0
+                                    val feedback = result.toFeedback()
                                     message(
                                         ToastMessage(
-                                            title = translate(
-                                                if (refreshed) {
-                                                    Res.string.gpg_keyserver_refresh_success_title
-                                                } else {
-                                                    Res.string.gpg_keyserver_refresh_not_found_title
-                                                },
-                                            ),
-                                            type = if (refreshed) {
-                                                ToastMessage.Type.SUCCESS
-                                            } else {
-                                                ToastMessage.Type.INFO
-                                            },
+                                            title = translate(feedback.title),
+                                            type = feedback.type,
                                         ),
                                     )
-                                    after?.invoke(refreshed)
+                                    after?.invoke(feedback.type == ToastMessage.Type.SUCCESS)
                                 }
                             }
                         )

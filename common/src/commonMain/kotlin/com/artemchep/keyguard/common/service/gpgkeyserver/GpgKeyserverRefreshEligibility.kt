@@ -1,11 +1,9 @@
 package com.artemchep.keyguard.common.service.gpgkeyserver
 
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
-import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPrivateKeyArmored
-import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPublicKeyArmored
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
+import com.artemchep.keyguard.common.service.gpgagent.isCanonical
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
-import com.artemchep.keyguard.common.service.gpgagent.parseGpgAgentMetadataOrNull
 
 /**
  * Returns the primary GPG fingerprint that a keyserver refresh should target
@@ -13,34 +11,51 @@ import com.artemchep.keyguard.common.service.gpgagent.parseGpgAgentMetadataOrNul
  * keyserver. Secret-key-backed items are skipped because their local secret key
  * is the source of truth for the public key material.
  */
-fun DSecret.gpgKeyserverRefreshFingerprintOrNull(): String? {
-    if (!isEligibleForGpgKeyserverRefresh()) {
+fun DSecret.gpgKeyserverRefreshFingerprintOrNull(): String? =
+    resolveGpgKeyserverRefreshKey(
+        key = gpgKey,
+        legacyField = { name -> fields.firstOrNull { it.name == name }?.value },
+    )?.fingerprint
+
+fun DSecret.isEligibleForGpgKeyserverRefresh(): Boolean =
+    gpgKeyserverRefreshFingerprintOrNull() != null
+
+internal data class GpgKeyserverRefreshKey(
+    val publicKeyArmored: String,
+    val fingerprint: String,
+)
+
+/**
+ * Shared by snapshot eligibility and the final row check. Blanks are absent, but
+ * nonblank material must be validated by reconciliation, never replaced by a fallback.
+ * The resolved values are for selection only; they do not normalize the stored row.
+ */
+internal fun resolveGpgKeyserverRefreshKey(
+    key: DSecret.GpgKey?,
+    legacyField: (String) -> String?,
+): GpgKeyserverRefreshKey? {
+    fun resolveField(value: String?, name: String): String? =
+        value?.takeIf(String::isNotBlank)
+            ?: legacyField(name)?.takeIf(String::isNotBlank)
+
+    if (resolveField(key?.privateKeyArmored, GpgAgentFields.PRIVATE_KEY_ARMORED) != null) {
         return null
     }
-    return getGpgAgentFingerprint()
+    val publicKeyArmored = resolveField(key?.publicKeyArmored, GpgAgentFields.PUBLIC_KEY_ARMORED)
+        ?: return null
+    val fingerprint = resolveField(key?.fingerprint, GpgAgentFields.FINGERPRINT)
         ?.normalizeGpgFingerprint()
         ?.takeIf { it.isNotEmpty() }
-        ?: parseGpgAgentMetadataOrNull()
+        ?: key?.metadata
+            ?.takeIf { it.isCanonical }
             ?.certificates
             ?.firstOrNull { it.primaryFingerprint.isNotBlank() }
             ?.primaryFingerprint
             ?.normalizeGpgFingerprint()
             ?.takeIf { it.isNotEmpty() }
+        ?: return null
+    return GpgKeyserverRefreshKey(
+        publicKeyArmored = publicKeyArmored,
+        fingerprint = fingerprint,
+    )
 }
-
-fun DSecret.isEligibleForGpgKeyserverRefresh(): Boolean =
-    getGpgAgentPublicKeyArmored()?.isNotBlank() == true &&
-            getGpgAgentPrivateKeyArmored()?.isBlank() != false &&
-            hasGpgKeyserverRefreshFingerprint()
-
-private fun DSecret.hasGpgKeyserverRefreshFingerprint(): Boolean =
-    getGpgAgentFingerprint()
-        ?.normalizeGpgFingerprint()
-        ?.takeIf { it.isNotEmpty() } != null ||
-            parseGpgAgentMetadataOrNull()
-                ?.certificates
-                ?.any { certificate ->
-                    certificate.primaryFingerprint
-                        .normalizeGpgFingerprint()
-                        .isNotEmpty()
-                } == true

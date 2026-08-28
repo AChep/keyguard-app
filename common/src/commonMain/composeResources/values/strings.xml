@@ -2056,6 +2056,8 @@
     <string name="gpg_keyserver_upload_success_title">GPG public key uploaded</string>
     <string name="gpg_keyserver_refresh_success_title">GPG public key refreshed</string>
     <string name="gpg_keyserver_refresh_not_found_title">GPG public key not found on keyserver</string>
+    <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>
+    <string name="gpg_keyserver_refresh_skipped_title">GPG public key cannot be refreshed</string>
     <string name="gpg_keyserver_verify_unknown_title">GPG public key verification status is unknown</string>
     <string name="gpg_keyserver_verify_not_found_title">GPG public key not found on keyserver</string>
     <string name="gpg_keyserver_verify_unverified_title">GPG public key found without verified e-mail</string>

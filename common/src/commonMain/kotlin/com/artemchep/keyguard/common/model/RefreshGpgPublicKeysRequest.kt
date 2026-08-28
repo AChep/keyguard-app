@@ -9,4 +9,5 @@ data class RefreshGpgPublicKeysResult(
     val refreshed: Int,
     val notFound: Int,
     val skipped: Int,
+    val failed: Int = 0,
 )

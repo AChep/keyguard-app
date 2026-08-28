@@ -139,6 +139,64 @@ class AgentCallerAuthorizationTest {
     }
 
     @Test
+    fun `macos joint proof exports select only the available authorization subjects`() {
+        val process = processSubject().copy(
+            evidenceSource = AgentCallerAuthorizationSchema.EvidenceSource.MACOS_AUDIT_TOKEN,
+        )
+        val terminal = terminalSessionSubject().copy(
+            evidenceSource = AgentCallerAuthorizationSchema.EvidenceSource.MACOS_TERMINAL_SESSION,
+        )
+        val applications = listOf(
+            stableApplicationSubject().copy(
+                evidenceSource = AgentCallerAuthorizationSchema.EvidenceSource.MACOS_CODE_SIGNING,
+            ),
+            applicationInstanceSubject().copy(
+                evidenceSource = AgentCallerAuthorizationSchema.EvidenceSource.MACOS_APPLICATION_ANCESTRY,
+            ),
+        )
+
+        applications.forEach { application ->
+            val caller = sshCaller(subjects = listOf(process, terminal, application))
+            assertEquals(
+                AgentApprovalCacheIdentity.CacheSubject.Kind.TerminalSession,
+                caller.toApprovalCacheIdentity()?.cacheSubject?.kind,
+            )
+            assertEquals(
+                application.fingerprint.toHex(),
+                caller.toApprovalCacheIdentity(AgentApprovalCachePolicy.Application)
+                    ?.cacheSubject?.fingerprintHex,
+            )
+        }
+
+        val withoutApplication = sshCaller(subjects = listOf(process, terminal))
+        listOf(AgentApprovalCachePolicy.Default, AgentApprovalCachePolicy.Application).forEach { policy ->
+            assertEquals(
+                AgentApprovalCacheIdentity.CacheSubject.Kind.TerminalSession,
+                withoutApplication.toApprovalCacheIdentity(policy)?.cacheSubject?.kind,
+            )
+        }
+    }
+
+    @Test
+    fun `verified application label cannot broaden process-only macos authorization`() {
+        val caller = sshCaller(
+            appName = "iTerm2",
+            subjects = listOf(
+                processSubject().copy(
+                    evidenceSource = AgentCallerAuthorizationSchema.EvidenceSource.MACOS_AUDIT_TOKEN,
+                ),
+            ),
+        )
+
+        listOf(AgentApprovalCachePolicy.Default, AgentApprovalCachePolicy.Application).forEach { policy ->
+            assertEquals(
+                AgentApprovalCacheIdentity.CacheSubject.Kind.Process,
+                caller.toApprovalCacheIdentity(policy)?.cacheSubject?.kind,
+            )
+        }
+    }
+
+    @Test
     fun `duplicate subject kinds are rejected as ambiguous`() {
         val duplicateProcess = processSubject().copy(fingerprint = fingerprint(9))
 

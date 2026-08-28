@@ -5,6 +5,70 @@ use super::transport::MAX_INQUIRE_LINE_LEN;
 use super::*;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt};
 
+#[cfg(target_os = "macos")]
+#[tokio::test]
+async fn exited_macos_peer_cannot_reach_sign_or_decrypt_ipc_on_repeated_requests() {
+    use std::process::Stdio;
+    use std::time::Duration;
+
+    let directory = tempfile::tempdir().unwrap();
+    let socket_path = directory.path().join("peer.sock");
+    let listener = tokio::net::UnixListener::bind(&socket_path).unwrap();
+    let mut peer = tokio::process::Command::new("/usr/bin/nc")
+        .arg("-U")
+        .arg(&socket_path)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .kill_on_drop(true)
+        .spawn()
+        .unwrap();
+    let (stream, _) = tokio::time::timeout(Duration::from_secs(5), listener.accept())
+        .await
+        .unwrap()
+        .unwrap();
+    let context = crate::caller_identity::caller_context_from_unix_stream(&stream)
+        .expect("authenticated test peer");
+    assert!(context.macos_guard.is_some());
+    peer.kill().await.unwrap();
+
+    let (ipc_stream, mut ipc_peer) = tokio::io::duplex(1024);
+    let ipc_client = IpcClient::from_test_stream(ipc_stream);
+    let (client, server) = tokio::io::duplex(4096);
+    let server_task = tokio::spawn(serve_connection_with_macos_guard(
+        server,
+        ipc_client,
+        Some(context.caller),
+        context.macos_guard,
+        "test".to_string(),
+    ));
+    let (mut read, mut write) = tokio::io::split(client);
+    let keygrip = "A".repeat(40);
+    let commands = format!(
+        "SIGKEY {keygrip}\nSETHASH 8 {}\nPKSIGN\nSETKEY {keygrip}\nPKDECRYPT\nD test-ciphertext\nEND\n",
+        "00".repeat(32),
+    );
+    for _ in 0..2 {
+        write.write_all(commands.as_bytes()).await.unwrap();
+    }
+    write.write_all(b"BYE\n").await.unwrap();
+
+    tokio::time::timeout(Duration::from_secs(5), async {
+        let mut response = String::new();
+        read.read_to_string(&mut response).await.unwrap();
+        server_task.await.unwrap().unwrap();
+        assert_eq!(response.matches("ERR 1 key listing failed\n").count(), 4);
+        let mut ipc_bytes = Vec::new();
+        ipc_peer.read_to_end(&mut ipc_bytes).await.unwrap();
+        assert!(
+            ipc_bytes.is_empty(),
+            "invalid identity must fail before IPC"
+        );
+    })
+    .await
+    .expect("invalid peer must be rejected without awaiting IPC");
+}
+
 #[tokio::test]
 async fn pkdecrypt_oversized_inquiry_reports_error_and_preserves_framing() {
     let mut overlong_line = b"D ".to_vec();

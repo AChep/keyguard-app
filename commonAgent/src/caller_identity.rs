@@ -305,6 +305,16 @@ fn macos_subjects_from_stream(
         return None;
     }
 
+    let subjects = macos_authorization_subjects(&identity)?;
+    Some((subjects, identity))
+}
+
+/// Projects only authorization-eligible subjects; authenticated display data
+/// may describe an application whose login/session proof cannot be reused.
+#[cfg(target_os = "macos")]
+pub(crate) fn macos_authorization_subjects(
+    identity: &crate::macos::MacosPeerIdentity,
+) -> Option<Vec<CallerAuthorizationSubject>> {
     if identity.subject().kind() != VerifiedSubjectKind::Process {
         tracing::warn!("Rejected inconsistent macOS direct-process subject");
         return None;
@@ -314,24 +324,34 @@ fn macos_subjects_from_stream(
         subject: identity.subject(),
         evidence_source: CallerAuthorizationEvidenceSource::MacosAuditToken,
     });
-    if let Some(application) = identity.application() {
-        let Some(evidence_source) = macos_application_evidence_source(application.subject().kind())
-        else {
+    let application = identity.application_authorization_subject();
+    if let Some(subject) = application {
+        let Some(evidence_source) = macos_application_evidence_source(subject.kind()) else {
             tracing::warn!("Rejected inconsistent macOS application subject kind");
             return None;
         };
         subjects.push(CallerAuthorizationSubject {
-            subject: application.subject(),
+            subject,
             evidence_source,
         });
     }
-    if let Some(subject) = identity.terminal_session_subject() {
+    let terminal = identity.terminal_session_subject();
+    if let Some(subject) = terminal {
+        if subject.kind() != VerifiedSubjectKind::TerminalSession {
+            tracing::warn!("Rejected inconsistent macOS terminal subject kind");
+            return None;
+        }
         subjects.push(CallerAuthorizationSubject {
             subject,
             evidence_source: CallerAuthorizationEvidenceSource::MacosTerminalSession,
         });
     }
-    Some((subjects, identity))
+    tracing::debug!(
+        application_kind = ?application.map(|subject| subject.kind()),
+        terminal_session = terminal.is_some(),
+        "Collected macOS reusable authorization subjects",
+    );
+    Some(subjects)
 }
 
 #[cfg(target_os = "macos")]
@@ -529,11 +549,14 @@ mod tests {
             .application()
             .map(macos_authenticated_application_label)
             .unwrap_or_else(|| "Verified process".to_string());
+        let expected_subjects =
+            super::macos_authorization_subjects(guard).expect("authorization-eligible subjects");
         assert_eq!(context.caller.app_name, expected_label);
         let identity = context.caller;
 
         assert_eq!(identity.pid, std::process::id());
         let authorization = identity.authorization.expect("verified authorization");
+        assert_eq!(authorization.subjects, expected_subjects);
         assert_eq!(
             authorization.connection_fingerprint.as_bytes().len(),
             crate::PRINCIPAL_FINGERPRINT_LEN,

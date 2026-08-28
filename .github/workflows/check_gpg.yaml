@@ -86,6 +86,7 @@ jobs:
       - name: "Run GPG agent unit tests"
         run: >-
           ./gradlew :common:desktopTest
+          --tests "com.artemchep.keyguard.common.service.agent.*"
           --tests "com.artemchep.keyguard.common.service.gpgagent.*"
           --tests "com.artemchep.keyguard.common.service.crypto.Gpg*"
           --tests "com.artemchep.keyguard.crypto.OpenPgpMutationAndAgentBouncyCastleDifferentialTest"
@@ -122,6 +123,10 @@ jobs:
         run: |
           cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path desktopGpgAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+      - name: "Test shared caller identity on this platform"
+        run: cargo test --manifest-path commonAgent/Cargo.toml --all-targets --locked
+      - name: "Test desktop GPG agent on this platform"
+        run: cargo test --manifest-path desktopGpgAgent/src/Cargo.toml --all-targets --locked
       - uses: ./.github/actions/setup_gpg
       - name: "Run GPG end-to-end tests"
         run: ${{ matrix.gradle }} :integration:gpgE2eTest:gpgE2eTest

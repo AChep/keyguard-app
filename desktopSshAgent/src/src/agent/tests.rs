@@ -47,6 +47,53 @@ fn windows_authorization_is_strictly_connection_scoped() {
 // A second key that is intentionally invalid.
 const TEST_INVALID_PUBKEY: &str = "not-a-valid-key";
 
+#[cfg(target_os = "macos")]
+#[tokio::test]
+async fn exited_macos_peer_is_rejected_before_key_provider_on_repeated_requests() {
+    use std::process::Stdio;
+    use std::time::Duration;
+
+    let directory = tempfile::tempdir().unwrap();
+    let socket_path = directory.path().join("peer.sock");
+    let listener = tokio::net::UnixListener::bind(&socket_path).unwrap();
+    // A real signed system peer exercises the retained socket/audit-token
+    // boundary without touching the user's agent or any private key.
+    let mut peer = tokio::process::Command::new("/usr/bin/nc")
+        .arg("-U")
+        .arg(&socket_path)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .kill_on_drop(true)
+        .spawn()
+        .unwrap();
+    let (stream, _) = tokio::time::timeout(Duration::from_secs(5), listener.accept())
+        .await
+        .unwrap()
+        .unwrap();
+    let context = crate::caller_identity::caller_context_from_unix_stream(&stream)
+        .expect("authenticated test peer");
+    assert!(context.macos_guard.is_some());
+    let provider = FakeKeyProvider::new(vec![]);
+    let mut agent = KeyguardAgent::with_macos_caller(provider.clone(), Some(context));
+    peer.kill().await.unwrap();
+
+    for _ in 0..2 {
+        assert!(agent.request_identities().await.is_err());
+        let pubkey = ssh_key::PublicKey::from_openssh(TEST_ED25519_PUBKEY).unwrap();
+        assert!(agent
+            .sign(SignRequest {
+                pubkey: pubkey.key_data().clone(),
+                data: vec![1, 2, 3],
+                flags: 0,
+            })
+            .await
+            .is_err());
+    }
+    assert!(provider.last_list_caller().is_none());
+    assert!(provider.last_sign_caller().is_none());
+}
+
 fn session_bind_extension(seed_byte: u8, session_id: &[u8], is_forwarding: bool) -> Extension {
     session_bind_extension_signed_for(seed_byte, session_id, session_id, is_forwarding)
 }

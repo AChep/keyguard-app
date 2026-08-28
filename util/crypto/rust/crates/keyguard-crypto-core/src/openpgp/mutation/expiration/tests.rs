@@ -1883,7 +1883,7 @@ fn expired_prospective_primary_revocation_blocks_expiration_mutation() {
 }
 
 #[test]
-fn newer_primary_binding_does_not_supersede_prospective_revocation_for_mutation() {
+fn newer_primary_binding_supersedes_prospective_revocation_for_mutation() {
     let (secret, mut certificate) =
         generated_test_certificate("Superseded Primary <superseded-primary@example.test>");
     certificate
@@ -1915,12 +1915,19 @@ fn newer_primary_binding_does_not_supersede_prospective_revocation_for_mutation(
         &mut OpenPgpPolicyBudget::default(),
     )
     .expect("evaluate primary policy");
-    assert_eq!(policy.primary.revocation_status, RevocationStatus::Revoked);
+    assert_eq!(
+        policy.primary.revocation_status,
+        RevocationStatus::NotRevoked
+    );
 
     let fingerprint = fingerprint_hex(&certificate.primary_key);
+    let renewed = update_test_component(&secret, &certificate, fingerprint, Vec::new())
+        .expect("renew restored primary key");
+    let renewed =
+        parse_single_public(&renewed.key_material.public_key_armored).expect("renewed key");
     assert_eq!(
-        update_test_component(&secret, &certificate, fingerprint, Vec::new()).err(),
-        Some(ExpirationUpdateFailure::RevokedComponent),
+        renewed.details.revocation_signatures,
+        certificate.details.revocation_signatures
     );
 }
 
@@ -1973,7 +1980,7 @@ fn expired_prospective_subkey_revocation_blocks_expiration_mutation() {
 }
 
 #[test]
-fn newer_subkey_binding_does_not_supersede_prospective_revocation_for_mutation() {
+fn newer_subkey_binding_supersedes_prospective_revocation_for_mutation() {
     let (secret, mut certificate) =
         generated_test_certificate("Superseded Subkey <superseded-subkey@example.test>");
     let subkey = certificate
@@ -2008,18 +2015,29 @@ fn newer_subkey_binding_does_not_supersede_prospective_revocation_for_mutation()
             .expect("generated subkey policy")
             .policy()
             .revocation_status,
-        RevocationStatus::Revoked,
+        RevocationStatus::NotRevoked,
     );
 
+    let renewed = update_test_component(
+        &secret,
+        &certificate,
+        fingerprint_hex(&subkey.key),
+        Vec::new(),
+    )
+    .expect("renew restored subkey");
+    let renewed =
+        parse_single_public(&renewed.key_material.public_key_armored).expect("renewed key");
     assert_eq!(
-        update_test_component(
-            &secret,
-            &certificate,
-            fingerprint_hex(&subkey.key),
-            Vec::new(),
-        )
-        .err(),
-        Some(ExpirationUpdateFailure::RevokedComponent),
+        renewed.public_subkeys[0]
+            .signatures
+            .iter()
+            .filter(|signature| signature.typ() == Some(SignatureType::SubkeyRevocation))
+            .collect::<Vec<_>>(),
+        certificate.public_subkeys[0]
+            .signatures
+            .iter()
+            .filter(|signature| signature.typ() == Some(SignatureType::SubkeyRevocation))
+            .collect::<Vec<_>>(),
     );
 }
 

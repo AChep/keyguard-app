@@ -21,6 +21,18 @@ private val allNativeCryptoCapabilitiesMask: Long = NativeCryptoCapability.entri
 
 class NativeCryptoClientTest {
     @Test
+    fun componentRevocationStatusUsesFieldFourWithoutChangingAbiOrProtocol() {
+        assertEquals(1, NativeCrypto.EXPECTED_ABI_VERSION)
+        assertEquals(2, NativeCrypto.PROTOCOL_VERSION)
+        for (status in 1..3) {
+            val policy = OpenPgpComponentPolicyV2Proto(revocationStatus = status)
+            assertContentEquals(byteArrayOf(0x20, status.toByte()), ProtoBuf.encodeToByteArray(policy))
+            assertEquals(policy, roundTrip(policy))
+        }
+        assertEquals(0, ProtoBuf.decodeFromByteArray<OpenPgpComponentPolicyV2Proto>(byteArrayOf()).revocationStatus)
+    }
+
+    @Test
     fun protocolV2RejectsV1Responses() {
         assertEquals(2, NativeCrypto.PROTOCOL_VERSION)
         val bridge = FakeBridge(callResponse = response(protocolVersion = 1))

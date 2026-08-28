@@ -580,9 +580,16 @@ where
         ) {
             continue;
         }
+        // Missing authority keys must remain indeterminate even when an
+        // apparent retirement predates a newer owner signature. Only apply
+        // key restoration after authenticating the designated revoker.
+        let preliminary_signature = match target {
+            RevocationTarget::PrimaryKey | RevocationTarget::Subkey => None,
+            _ => effective_signature,
+        };
         if !revocation_is_effective(
             std::iter::once(signature),
-            effective_signature,
+            preliminary_signature,
             reference_time,
             target,
         ) {
@@ -590,6 +597,7 @@ where
         }
 
         let signature_algorithm = signature.config().map(|config| u8::from(config.pub_alg));
+        let mut signature_unresolved_authority = false;
         let mut verifies_with = |declarations: &[DesignatedRevokerId]| {
             for declaration in declarations
                 .iter()
@@ -604,7 +612,7 @@ where
                     // packet. With the exact key present, cryptographic
                     // verification below remains authoritative even for
                     // legacy issuer-less packets.
-                    unresolved_authority |= revocation_issuer_matches_declaration(
+                    signature_unresolved_authority |= revocation_issuer_matches_declaration(
                         signature,
                         declaration.algorithm,
                         &declaration.fingerprint,
@@ -623,10 +631,19 @@ where
             Ok(false)
         };
         if verifies_with(declarations)? {
-            return Ok(RevocationEvaluation {
-                status: RevocationStatus::Revoked,
-                effective_at: signature_creation_time(signature).map(u64::from),
-            });
+            if revocation_is_effective(
+                std::iter::once(signature),
+                effective_signature,
+                reference_time,
+                target,
+            ) {
+                return Ok(RevocationEvaluation {
+                    status: RevocationStatus::Revoked,
+                    effective_at: signature_creation_time(signature).map(u64::from),
+                });
+            }
+        } else {
+            unresolved_authority |= signature_unresolved_authority;
         }
     }
 
@@ -1360,6 +1377,18 @@ fn validate_certificate_intern<'a>(
             ))
         })
         .flatten();
+    // Primary policy combines direct-key and identity preferences, and its
+    // effective signature need not be the newest of those statements. Keep
+    // revocation ordering separate, and do not let a nonprimary identity or
+    // User Attribute fallback restore the primary key.
+    let direct_revocation_signature = match &direct_selection {
+        PolicySelection::Selected { signature, .. } => Some(*signature),
+        PolicySelection::Missing | PolicySelection::Conflict => None,
+    };
+    let primary_revocation_signature = direct_revocation_signature
+        .into_iter()
+        .chain(selected_primary_signature)
+        .max_by_key(|signature| signature_creation_time(signature));
     let primary_fallback = match selected_primary_signature {
         Some(signature) => vec![signature],
         None => attribute_fallback,
@@ -1416,7 +1445,7 @@ fn validate_certificate_intern<'a>(
         RevocationEvaluationContext {
             declarations: &authorized_revoker_declarations,
             candidates,
-            effective_signature: primary_signature,
+            effective_signature: primary_signature.and(primary_revocation_signature),
             reference_time,
             cryptographic_policy_time,
             target: RevocationTarget::PrimaryKey,

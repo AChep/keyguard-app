@@ -673,6 +673,15 @@ enum OpenPgpPolicyUse {
   OPEN_PGP_POLICY_USE_ENCRYPT_NEW_DATA = 2;
 }
 
+// Effective revocation state at the metadata evaluation time. Missing or
+// unrecognized values must not be interpreted as evidence of non-revocation.
+enum OpenPgpRevocationStatus {
+  OPEN_PGP_REVOCATION_STATUS_UNSPECIFIED = 0;
+  OPEN_PGP_REVOCATION_STATUS_NOT_REVOKED = 1;
+  OPEN_PGP_REVOCATION_STATUS_REVOKED = 2;
+  OPEN_PGP_REVOCATION_STATUS_INDETERMINATE = 3;
+}
+
 message OpenPgpKeyComponentIndexV2 {
   string fingerprint = 1;
   OpenPgpKeyComponentRole role = 2;
@@ -719,6 +728,8 @@ message OpenPgpComponentPolicyV2 {
   repeated OpenPgpPolicyUse allowed_new_data_uses = 2;
   // Whether recertification may reissue this component's self-signatures.
   OpenPgpRenewalAuthorization renewal = 3;
+  // Transient policy output; never part of the persisted certificate index.
+  OpenPgpRevocationStatus revocation_status = 4;
 }
 
 message OpenPgpCertificateResolutionV2 {

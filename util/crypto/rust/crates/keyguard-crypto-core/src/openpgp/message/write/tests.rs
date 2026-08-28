@@ -6901,6 +6901,169 @@ fn clear_sign_canonicalizes_marker_lines_and_trailing_whitespace() {
 }
 
 #[test]
+fn restored_authorities_allow_signing_and_encryption_only_while_restoration_is_live() {
+    let _guard = STREAM_TEST_LOCK.lock().expect("stream test lock");
+    let material = generated_modern_material();
+    let (base, _) = SignedSecretKey::from_reader_single(Cursor::new(&material.private_key_armored))
+        .expect("generated secret");
+    for revoke_primary in [false, true] {
+        let mut secret = base.clone();
+        let signer = SigningKeyRef(&base.primary_key);
+        let targets = if revoke_primary {
+            vec![None]
+        } else {
+            vec![Some(0), Some(1)]
+        };
+        for target in targets {
+            let mut config = signature_config(
+                if target.is_none() {
+                    SignatureType::KeyRevocation
+                } else {
+                    SignatureType::SubkeyRevocation
+                },
+                &signer,
+                TEST_TIME + 10,
+            );
+            config.hashed_subpackets.push(
+                Subpacket::regular(SubpacketData::RevocationReason(
+                    pgp::packet::RevocationCode::KeyRetired,
+                    Vec::new().into(),
+                ))
+                .expect("retirement reason"),
+            );
+            let revocation = if let Some(index) = target {
+                config.sign_subkey_binding(
+                    &signer,
+                    base.primary_key.public_key(),
+                    &Password::empty(),
+                    base.secret_subkeys[index].key.public_key(),
+                )
+            } else {
+                config.sign_key(&signer, &Password::empty(), base.primary_key.public_key())
+            }
+            .expect("retire authority");
+            let mut config = if let Some(index) = target {
+                base.secret_subkeys[index]
+                    .signatures
+                    .iter()
+                    .find(|signature| signature.typ() == Some(SignatureType::SubkeyBinding))
+                    .and_then(pgp::packet::Signature::config)
+                    .cloned()
+                    .expect("binding config")
+            } else {
+                signature_config(SignatureType::Key, &signer, TEST_TIME + 20)
+            };
+            config.hashed_subpackets.retain(|packet| {
+                !matches!(
+                    packet.data,
+                    SubpacketData::SignatureCreationTime(_)
+                        | SubpacketData::SignatureExpirationTime(_)
+                )
+            });
+            config.hashed_subpackets.extend([
+                Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                    (TEST_TIME + 20) as u32,
+                )))
+                .expect("restoration time"),
+                Subpacket::regular(SubpacketData::SignatureExpirationTime(Duration::from_secs(
+                    10,
+                )))
+                .expect("restoration lifetime"),
+            ]);
+            let restoring = if let Some(index) = target {
+                config.sign_subkey_binding(
+                    &signer,
+                    base.primary_key.public_key(),
+                    &Password::empty(),
+                    base.secret_subkeys[index].key.public_key(),
+                )
+            } else {
+                config.sign_key(&signer, &Password::empty(), base.primary_key.public_key())
+            }
+            .expect("restore authority");
+            if let Some(index) = target {
+                secret.secret_subkeys[index]
+                    .signatures
+                    .extend([revocation, restoring]);
+            } else {
+                secret.details.revocation_signatures.push(revocation);
+                secret.details.direct_signatures.push(restoring);
+            }
+        }
+        let private_key = secret
+            .to_armored_bytes(ArmorOptions::default())
+            .expect("secret armor");
+        let public_key = secret
+            .to_public_key()
+            .to_armored_bytes(ArmorOptions::default())
+            .expect("public armor");
+        let fingerprint = fingerprint_hex(base.secret_subkeys[0].key.public_key());
+        for (offset, available) in [
+            (9, true),
+            (10, false),
+            (19, false),
+            (20, true),
+            (29, true),
+            (30, false),
+        ] {
+            let time = TEST_TIME + offset;
+            let signed = sign_request(OpenPgpSignRequest {
+                kind: OpenPgpSignKind::Detached as i32,
+                content: b"restored signer".to_vec(),
+                private_key: private_key.clone(),
+                preferred_fingerprint: fingerprint.clone(),
+                armored: false,
+                signature_time_epoch_seconds: Some(time),
+                reference_time_epoch_seconds: Some(time),
+                candidate_revocation_keys: Vec::new(),
+            });
+            assert_eq!(
+                signed.is_ok(),
+                available,
+                "primary {revoke_primary}, signed at {time}"
+            );
+            let streamed = open_detached_sign_session(OpenPgpDetachedSignStreamOpenRequest {
+                private_key: private_key.clone(),
+                preferred_fingerprint: fingerprint.clone(),
+                armored: false,
+                signature_time_epoch_seconds: Some(time),
+                reference_time_epoch_seconds: Some(time),
+                candidate_revocation_keys: Vec::new(),
+            })
+            .and_then(|mut stream| {
+                stream.update(b"restored signer")?;
+                stream.finish()
+            });
+            assert_eq!(
+                streamed.is_ok(),
+                available,
+                "primary {revoke_primary}, streamed at {time}"
+            );
+            if !available {
+                assert_eq!(signed.err(), Some(OpenPgpWriteError::MissingKey));
+                assert_eq!(streamed.err(), Some(OpenPgpWriteError::MissingKey));
+            }
+            for streaming in [false, true] {
+                let encrypted = encrypt_recipient_documents(
+                    vec![public_key.clone()],
+                    Vec::new(),
+                    time,
+                    streaming,
+                );
+                assert_eq!(
+                    encrypted.is_ok(),
+                    available,
+                    "primary {revoke_primary}, encrypted at {time}, streaming {streaming}"
+                );
+                if !available {
+                    assert_eq!(encrypted.err(), Some(OpenPgpWriteError::MissingKey));
+                }
+            }
+        }
+    }
+}
+
+#[test]
 fn expired_primary_blocks_signing_and_recipient_selection() {
     let material = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {

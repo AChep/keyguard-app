@@ -914,6 +914,9 @@ pub struct OpenPgpComponentPolicyV2 {
     /// Whether recertification may reissue this component's self-signatures.
     #[prost(enumeration = "OpenPgpRenewalAuthorization", tag = "3")]
     pub renewal: i32,
+    /// Transient policy output; never part of the persisted certificate index.
+    #[prost(enumeration = "OpenPgpRevocationStatus", tag = "4")]
+    pub revocation_status: i32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpCertificateResolutionV2 {
@@ -2207,6 +2210,40 @@ impl OpenPgpPolicyUse {
             "OPEN_PGP_POLICY_USE_UNSPECIFIED" => Some(Self::Unspecified),
             "OPEN_PGP_POLICY_USE_SIGN_NEW_DATA" => Some(Self::SignNewData),
             "OPEN_PGP_POLICY_USE_ENCRYPT_NEW_DATA" => Some(Self::EncryptNewData),
+            _ => None,
+        }
+    }
+}
+/// Effective revocation state at the metadata evaluation time. Missing or
+/// unrecognized values must not be interpreted as evidence of non-revocation.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum OpenPgpRevocationStatus {
+    Unspecified = 0,
+    NotRevoked = 1,
+    Revoked = 2,
+    Indeterminate = 3,
+}
+impl OpenPgpRevocationStatus {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "OPEN_PGP_REVOCATION_STATUS_UNSPECIFIED",
+            Self::NotRevoked => "OPEN_PGP_REVOCATION_STATUS_NOT_REVOKED",
+            Self::Revoked => "OPEN_PGP_REVOCATION_STATUS_REVOKED",
+            Self::Indeterminate => "OPEN_PGP_REVOCATION_STATUS_INDETERMINATE",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "OPEN_PGP_REVOCATION_STATUS_UNSPECIFIED" => Some(Self::Unspecified),
+            "OPEN_PGP_REVOCATION_STATUS_NOT_REVOKED" => Some(Self::NotRevoked),
+            "OPEN_PGP_REVOCATION_STATUS_REVOKED" => Some(Self::Revoked),
+            "OPEN_PGP_REVOCATION_STATUS_INDETERMINATE" => Some(Self::Indeterminate),
             _ => None,
         }
     }

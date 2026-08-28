@@ -159,11 +159,19 @@ pub(crate) enum RenewalCapability {
     None,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum ComponentRevocationStatus {
+    NotRevoked,
+    Revoked,
+    Indeterminate,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ComponentPolicySummary {
     pub(crate) fingerprint: String,
     pub(crate) allowed_new_data_uses: Vec<PolicyUse>,
     pub(crate) renewal: RenewalCapability,
+    pub(crate) revocation_status: ComponentRevocationStatus,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

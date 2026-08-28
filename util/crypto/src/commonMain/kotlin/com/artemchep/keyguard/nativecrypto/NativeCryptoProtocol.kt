@@ -1404,6 +1404,9 @@ internal data class OpenPgpComponentPolicyV2Proto(
      */
     @ProtoNumber(3)
     val renewal: Int = 0,
+    /** Unknown or absent `OpenPgpRevocationStatus` values remain indeterminate. */
+    @ProtoNumber(4)
+    val revocationStatus: Int = 0,
 )
 
 @Serializable

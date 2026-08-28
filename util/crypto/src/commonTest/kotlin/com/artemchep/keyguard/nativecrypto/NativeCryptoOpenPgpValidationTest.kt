@@ -247,7 +247,7 @@ class NativeCryptoOpenPgpValidationTest {
             OpenPgpMetadataResolveResultProto(
                 resolution = OpenPgpMetadataResolutionV2Proto(
                     evaluatedAtEpochSeconds = 1_700_000_000L,
-                    policyRevision = 1,
+                    policyRevision = 2,
                     certificates = listOf(
                         OpenPgpCertificateResolutionV2Proto(
                             index = validMetadataV2Index(
@@ -257,6 +257,7 @@ class NativeCryptoOpenPgpValidationTest {
                                 OpenPgpComponentPolicyV2Proto(
                                     fingerprint = FINGERPRINT,
                                     allowedNewDataUses = listOf(1, 99),
+                                    revocationStatus = 1,
                                 ),
                             ),
                         ),
@@ -288,7 +289,7 @@ class NativeCryptoOpenPgpValidationTest {
             OpenPgpMetadataResolveResultProto(
                 resolution = OpenPgpMetadataResolutionV2Proto(
                     evaluatedAtEpochSeconds = 1_700_000_000L,
-                    policyRevision = 1,
+                    policyRevision = 2,
                     certificates = listOf(
                         OpenPgpCertificateResolutionV2Proto(
                             index = validMetadataV2Index(
@@ -664,7 +665,7 @@ class NativeCryptoOpenPgpValidationTest {
                 OpenPgpMetadataResolveResultProto(
                     resolution = OpenPgpMetadataResolutionV2Proto(
                         evaluatedAtEpochSeconds = 1_700_000_000L,
-                        policyRevision = 1,
+                        policyRevision = 2,
                         certificates = listOf(
                             OpenPgpCertificateResolutionV2Proto(
                                 index = validMetadataV2Index(),
@@ -673,6 +674,7 @@ class NativeCryptoOpenPgpValidationTest {
                                         fingerprint = FINGERPRINT,
                                         allowedNewDataUses = listOf(1),
                                         renewal = wireValue,
+                                        revocationStatus = 1,
                                     ),
                                 ),
                             ),
@@ -696,7 +698,7 @@ class NativeCryptoOpenPgpValidationTest {
             OpenPgpMetadataResolveResultProto(
                 resolution = OpenPgpMetadataResolutionV2Proto(
                     evaluatedAtEpochSeconds = 1_700_000_000L,
-                    policyRevision = 2,
+                    policyRevision = 3,
                     certificates = listOf(
                         OpenPgpCertificateResolutionV2Proto(
                             index = validMetadataV2Index(),
@@ -705,6 +707,7 @@ class NativeCryptoOpenPgpValidationTest {
                                     fingerprint = FINGERPRINT,
                                     allowedNewDataUses = listOf(1),
                                     renewal = 1,
+                                    revocationStatus = 1,
                                 ),
                             ),
                         ),
@@ -718,6 +721,59 @@ class NativeCryptoOpenPgpValidationTest {
         val policy = metadata.certificates.single().policy.single()
         assertTrue(policy.allowedNewDataUses.isEmpty())
         assertEquals(NativeOpenPgpRenewalAuthorization.NONE, policy.renewal)
+        assertEquals(NativeOpenPgpRevocationStatus.INDETERMINATE, policy.revocationStatus)
+    }
+
+    @Test
+    fun revocationStatusDefaultsAndUnknownValuesNeverAuthorizeUse() {
+        val expected = mapOf(
+            0 to NativeOpenPgpRevocationStatus.INDETERMINATE,
+            1 to NativeOpenPgpRevocationStatus.NOT_REVOKED,
+            2 to NativeOpenPgpRevocationStatus.REVOKED,
+            3 to NativeOpenPgpRevocationStatus.INDETERMINATE,
+            99 to NativeOpenPgpRevocationStatus.INDETERMINATE,
+            -1 to NativeOpenPgpRevocationStatus.INDETERMINATE,
+        )
+        for (revision in listOf(1, 2, 3)) {
+            for ((wireValue, status) in expected) {
+                val payload = ProtoBuf.encodeToByteArray(
+                    OpenPgpMetadataResolveResultProto(
+                        resolution = OpenPgpMetadataResolutionV2Proto(
+                            evaluatedAtEpochSeconds = 1_700_000_000L,
+                            policyRevision = revision,
+                            certificates = listOf(
+                                OpenPgpCertificateResolutionV2Proto(
+                                    index = validMetadataV2Index(),
+                                    policy = listOf(
+                                        OpenPgpComponentPolicyV2Proto(
+                                            fingerprint = FINGERPRINT,
+                                            allowedNewDataUses = listOf(1, 2),
+                                            renewal = 1,
+                                            revocationStatus = wireValue,
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+                val metadata = decodeOpenPgpMetadataResolution(OPERATION, payload)
+                    ?: error("metadata must be present")
+                val policy = metadata.certificates.single().policy.single()
+                val expectedStatus = if (revision == 2) status else NativeOpenPgpRevocationStatus.INDETERMINATE
+                assertEquals(expectedStatus, policy.revocationStatus)
+                if (expectedStatus == NativeOpenPgpRevocationStatus.NOT_REVOKED) {
+                    assertEquals(
+                        setOf(NativeOpenPgpPolicyUse.SIGN_NEW_DATA, NativeOpenPgpPolicyUse.ENCRYPT_NEW_DATA),
+                        policy.allowedNewDataUses,
+                    )
+                    assertEquals(NativeOpenPgpRenewalAuthorization.AUTHENTICATED, policy.renewal)
+                } else {
+                    assertTrue(policy.allowedNewDataUses.isEmpty())
+                    assertEquals(NativeOpenPgpRenewalAuthorization.NONE, policy.renewal)
+                }
+            }
+        }
     }
 
     @Test

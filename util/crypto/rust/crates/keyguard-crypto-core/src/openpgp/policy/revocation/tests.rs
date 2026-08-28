@@ -163,7 +163,7 @@ fn future_prospective_key_and_subkey_revocations_are_ineffective() {
 }
 
 #[test]
-fn prospective_key_and_subkey_revocations_survive_newer_bindings() {
+fn retired_and_superseded_keys_require_strictly_newer_bindings() {
     for reason in [RevocationCode::KeySuperseded, RevocationCode::KeyRetired] {
         for (binding_type, revocation_type, target) in [
             (
@@ -177,23 +177,109 @@ fn prospective_key_and_subkey_revocations_survive_newer_bindings() {
                 RevocationTarget::Subkey,
             ),
         ] {
-            let old_binding = signature(binding_type, 100, None, None);
-            let new_binding = signature(binding_type, 300, None, None);
             let revocation = signature(revocation_type, 200, Some(reason), None);
-
-            assert!(revocation_is_effective(
-                std::iter::once(&revocation),
-                Some(&old_binding),
-                200,
-                target,
-            ));
-            assert!(revocation_is_effective(
-                std::iter::once(&revocation),
-                Some(&new_binding),
-                300,
-                target,
-            ));
+            for (statement_time, expected) in [(199, true), (200, true), (201, false)] {
+                let binding = signature(binding_type, statement_time, None, None);
+                assert_eq!(
+                    revocation_is_effective(
+                        std::iter::once(&revocation),
+                        Some(&binding),
+                        201,
+                        target,
+                    ),
+                    expected,
+                    "{target:?}, {reason:?}, statement time {statement_time}",
+                );
+            }
         }
+    }
+}
+
+#[test]
+fn key_restoration_requires_a_live_owner_statement() {
+    for (binding_type, revocation_type, target) in [
+        (
+            SignatureType::Key,
+            SignatureType::KeyRevocation,
+            RevocationTarget::PrimaryKey,
+        ),
+        (
+            SignatureType::SubkeyBinding,
+            SignatureType::SubkeyRevocation,
+            RevocationTarget::Subkey,
+        ),
+    ] {
+        let revocation = signature(revocation_type, 200, Some(RevocationCode::KeyRetired), None);
+        let binding = signature_with_expiration(binding_type, 300, None, None, Some(10));
+        for (reference_time, expected) in [(299, true), (300, false), (309, false), (310, true)] {
+            assert_eq!(
+                revocation_is_effective(
+                    std::iter::once(&revocation),
+                    Some(&binding),
+                    reference_time,
+                    target
+                ),
+                expected,
+                "{target:?}, reference time {reference_time}",
+            );
+        }
+    }
+}
+
+#[test]
+fn other_key_revocation_reasons_cannot_be_superseded() {
+    for reason in [
+        None,
+        Some(RevocationCode::NoReason),
+        Some(RevocationCode::KeyCompromised),
+        Some(RevocationCode::CertUserIdInvalid),
+        Some(RevocationCode::Private100),
+        Some(RevocationCode::Other(42)),
+    ] {
+        for (binding_type, revocation_type, target) in [
+            (
+                SignatureType::Key,
+                SignatureType::KeyRevocation,
+                RevocationTarget::PrimaryKey,
+            ),
+            (
+                SignatureType::SubkeyBinding,
+                SignatureType::SubkeyRevocation,
+                RevocationTarget::Subkey,
+            ),
+        ] {
+            let revocation = signature(revocation_type, 200, reason, None);
+            let binding = signature(binding_type, 300, None, None);
+            assert!(
+                revocation_is_effective(std::iter::once(&revocation), Some(&binding), 300, target),
+                "{target:?}, {reason:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn hard_revocation_blocks_restoration_even_with_superseded_retirement() {
+    let binding = signature(SignatureType::Key, 300, None, None);
+    let retirement = signature(
+        SignatureType::KeyRevocation,
+        200,
+        Some(RevocationCode::KeyRetired),
+        None,
+    );
+    let compromise = signature(
+        SignatureType::KeyRevocation,
+        100,
+        Some(RevocationCode::KeyCompromised),
+        None,
+    );
+    for revocations in [[&retirement, &compromise], [&compromise, &retirement]] {
+        assert!(revocation_is_effective(
+            revocations.into_iter(),
+            Some(&binding),
+            300,
+            RevocationTarget::PrimaryKey
+        ));
     }
 }
 

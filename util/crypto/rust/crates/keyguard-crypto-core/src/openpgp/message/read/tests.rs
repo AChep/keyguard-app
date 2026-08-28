@@ -20,8 +20,9 @@ use crate::openpgp::adapter::wire::{
     OpenPgpKeyGenerateRequest, OpenPgpKeyKind, OpenPgpKeyMaterial, OpenPgpMetadataResolveRequest,
     OpenPgpMetadataResolveResult, OpenPgpPublicKeyInfo, OpenPgpPublicKeyParseErrorReason,
     OpenPgpPublicKeyParseRequest, OpenPgpPublicKeyParseResult, OpenPgpRenewalAuthorization,
-    OpenPgpVerification, OpenPgpVerificationStatus, OpenPgpVerificationWarning, OpenPgpVerifyKind,
-    OpenPgpVerifyRequest, open_pgp_public_key_parse_result,
+    OpenPgpRevocationStatus, OpenPgpVerification, OpenPgpVerificationStatus,
+    OpenPgpVerificationWarning, OpenPgpVerifyKind, OpenPgpVerifyRequest,
+    open_pgp_public_key_parse_result,
 };
 use crate::openpgp::certificate::filtered_tsk_fixture;
 use crate::openpgp::crypto::verification::{
@@ -4327,6 +4328,168 @@ fn signer_revocation_scope_and_creation_time_control_verification_status() {
 }
 
 #[test]
+fn restored_keys_preserve_historical_revocation_intervals() {
+    let secret = historical_signing_certificate(RENEWAL_TEST_CREATION_TIME);
+    let signing_index = signing_subkey_index(&secret);
+    let signing_subkey = &secret.secret_subkeys[signing_index].key;
+    for revoke_subkey in [false, true] {
+        let mut public = secret.to_public_key();
+        let mut config = SignatureConfig::v4(
+            if revoke_subkey {
+                SignatureType::SubkeyRevocation
+            } else {
+                SignatureType::KeyRevocation
+            },
+            secret.primary_key.algorithm(),
+            HashAlgorithm::Sha256,
+        );
+        config.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                1_700_000_100,
+            )))
+            .expect("retirement time"),
+            Subpacket::regular(SubpacketData::RevocationReason(
+                RevocationCode::KeyRetired,
+                Vec::new().into(),
+            ))
+            .expect("retirement reason"),
+        ];
+        let revocation = if revoke_subkey {
+            config.sign_subkey_binding(
+                &secret.primary_key,
+                secret.primary_key.public_key(),
+                &Password::empty(),
+                signing_subkey.public_key(),
+            )
+        } else {
+            config.sign_key(
+                &secret.primary_key,
+                &Password::empty(),
+                secret.primary_key.public_key(),
+            )
+        }
+        .expect("retire signing authority");
+        let mut config = if revoke_subkey {
+            secret.secret_subkeys[signing_index]
+                .signatures
+                .iter()
+                .find(|signature| signature.typ() == Some(SignatureType::SubkeyBinding))
+                .and_then(Signature::config)
+                .cloned()
+                .expect("binding config")
+        } else {
+            SignatureConfig::v4(
+                SignatureType::Key,
+                secret.primary_key.algorithm(),
+                HashAlgorithm::Sha256,
+            )
+        };
+        config.hashed_subpackets.retain(|packet| {
+            !matches!(
+                packet.data,
+                SubpacketData::SignatureCreationTime(_) | SubpacketData::SignatureExpirationTime(_)
+            )
+        });
+        config.hashed_subpackets.extend([
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                1_700_000_140,
+            )))
+            .expect("restoration time"),
+            Subpacket::regular(SubpacketData::SignatureExpirationTime(
+                pgp::types::Duration::from_secs(30),
+            ))
+            .expect("restoration expiration"),
+        ]);
+        let restoring = if revoke_subkey {
+            config.sign_subkey_binding(
+                &secret.primary_key,
+                secret.primary_key.public_key(),
+                &Password::empty(),
+                signing_subkey.public_key(),
+            )
+        } else {
+            config.sign_key(
+                &secret.primary_key,
+                &Password::empty(),
+                secret.primary_key.public_key(),
+            )
+        }
+        .expect("restore signing authority");
+        if revoke_subkey {
+            public.public_subkeys[signing_index]
+                .signatures
+                .extend([revocation, restoring]);
+        } else {
+            public.details.revocation_signatures.push(revocation);
+            public.details.direct_signatures.push(restoring);
+        }
+        for (signature_time, revoked) in [
+            (1_700_000_080, false),
+            (1_700_000_120, true),
+            (1_700_000_160, false),
+            (1_700_000_180, true),
+        ] {
+            let signature = detached_signature_signed_by(
+                signing_subkey,
+                HashAlgorithm::Sha256,
+                signature_time,
+                std::iter::empty(),
+            );
+            let request = OpenPgpVerifyRequest {
+                kind: OpenPgpVerifyKind::Detached as i32,
+                content: DETACHED_BODY.to_vec(),
+                signature: serialized_detached_signature(signature),
+                public_keys: vec![serialized_public_certificate(&public)],
+                reference_time_epoch_seconds: Some(1_700_000_200),
+            };
+            let result = verification(request.clone());
+            assert_eq!(result.status, OpenPgpVerificationStatus::Valid as i32);
+            assert_eq!(
+                result
+                    .warnings
+                    .contains(&(OpenPgpVerificationWarning::KeyRevoked as i32)),
+                revoked,
+                "subkey {revoke_subkey}, signed at {signature_time}"
+            );
+            assert_eq!(streamed_detached_verification(&request), result);
+            let resolution = OpenPgpMetadataResolveResult::decode(
+                resolve_metadata(OpenPgpMetadataResolveRequest {
+                    private_key_data: None,
+                    public_key_data: Some(serialized_public_certificate(&public)),
+                    normalized_fingerprint: String::new(),
+                    candidate_revocation_keys: Vec::new(),
+                    reference_time_epoch_seconds: Some(u64::from(signature_time)),
+                })
+                .expect("resolve restoration metadata")
+                .as_slice(),
+            )
+            .expect("decode metadata")
+            .resolution
+            .expect("restoration metadata");
+            assert_eq!(resolution.policy_revision, 2);
+            let fingerprint = if revoke_subkey {
+                fingerprint_hex(signing_subkey.public_key())
+            } else {
+                fingerprint_hex(secret.primary_key.public_key())
+            };
+            let component = resolution.certificates[0]
+                .policy
+                .iter()
+                .find(|component| component.fingerprint == fingerprint)
+                .expect("restored component metadata");
+            assert_eq!(
+                component.revocation_status,
+                if revoked {
+                    OpenPgpRevocationStatus::Revoked
+                } else {
+                    OpenPgpRevocationStatus::NotRevoked
+                } as i32
+            );
+        }
+    }
+}
+
+#[test]
 fn signer_expiration_preserves_math_status_with_warning_across_verification_paths() {
     const KEY_CREATION_TIME: u64 = 1_700_000_000;
     const KEY_LIFETIME: u32 = 60;
@@ -5684,8 +5847,16 @@ fn unresolved_designated_revocation_blocks_new_uses_until_resolved() {
     };
 
     let unresolved = resolve(Vec::new());
+    assert_eq!(unresolved.policy_revision, 2);
     let unresolved_certificate = unresolved.certificates.first().expect("certificate");
     let unresolved_index = unresolved_certificate.index.as_ref().expect("index");
+    assert!(
+        unresolved_certificate
+            .policy
+            .iter()
+            .any(|component| component.revocation_status
+                == OpenPgpRevocationStatus::Indeterminate as i32)
+    );
     let revoker = parse_public_certificates_fresh(DESIGNATED_REVOKER_PUBLIC_KEY)
         .expect("parse designated revoker")
         .remove(0);
@@ -5707,6 +5878,7 @@ fn unresolved_designated_revocation_blocks_new_uses_until_resolved() {
 
     let resolved = resolve(vec![DESIGNATED_REVOKER_PUBLIC_KEY.to_vec()]);
     let resolved_certificate = resolved.certificates.first().expect("certificate");
+    assert!(resolved_certificate.policy.iter().any(|component| component.revocation_status == OpenPgpRevocationStatus::Revoked as i32));
     assert_eq!(resolved_certificate.index, unresolved_certificate.index);
     for resolved_component in resolved_certificate
         .policy
@@ -5848,6 +6020,7 @@ fn renewal_test_policies(certificate: &SignedPublicKey) -> Vec<OpenPgpComponentP
     .expect("metadata result must decode")
     .resolution
     .expect("metadata");
+    assert_eq!(resolution.policy_revision, 2);
     resolution
         .certificates
         .into_iter()
@@ -5869,6 +6042,11 @@ fn metadata_policy_reports_the_renewal_tier_for_each_certificate_state() {
     let user_id = healthy.details.users[0].id.clone();
 
     let healthy_policies = renewal_test_policies(&healthy);
+    assert!(
+        healthy_policies
+            .iter()
+            .all(|policy| policy.revocation_status == OpenPgpRevocationStatus::NotRevoked as i32)
+    );
     let primary_fingerprint = fingerprint_hex(&healthy.primary_key);
     assert!(
         healthy_policies
@@ -5910,6 +6088,10 @@ fn metadata_policy_reports_the_renewal_tier_for_each_certificate_state() {
     let mut revoked = healthy.clone();
     revoked.details.revocation_signatures = vec![renewal_test_key_revocation(&secret)];
     let revoked_policy = renewal_test_primary_policy(&revoked);
+    assert_eq!(
+        revoked_policy.revocation_status,
+        OpenPgpRevocationStatus::Revoked as i32
+    );
     assert_eq!(
         revoked_policy.renewal,
         OpenPgpRenewalAuthorization::None as i32,

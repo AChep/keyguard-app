@@ -58,6 +58,7 @@ class NativeCryptoOpenPgpFixtureTest {
         )
 
         requireNotNull(metadata)
+        assertEquals(2, metadata.policyRevision)
         val certificate = metadata.certificates.single()
         assertEquals(PRIMARY_FINGERPRINT, certificate.index.primaryFingerprint)
         assertEquals(
@@ -65,6 +66,9 @@ class NativeCryptoOpenPgpFixtureTest {
             certificate.index.components.map { component -> component.fingerprint },
         )
         assertTrue(certificate.index.components.all { component -> component.storedSecretMaterial })
+        assertTrue(certificate.policy.all { policy ->
+            policy.revocationStatus == NativeOpenPgpRevocationStatus.NOT_REVOKED
+        })
         assertEquals(
             setOf(NativeOpenPgpPolicyUse.SIGN_NEW_DATA),
             certificate.policy.single { it.fingerprint == PRIMARY_FINGERPRINT }.allowedNewDataUses,

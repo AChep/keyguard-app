@@ -7,8 +7,8 @@
 //!
 //! RFC 9580 §5.2.3.31 distinguishes compromised keys from superseded or
 //! retired keys so that artifacts created before a prospective revocation
-//! remain valid. That distinction controls when the revocation takes effect;
-//! once effective, a key or subkey revocation is final for new operations.
+//! remain valid. A newer live owner signature may supersede an explicit key
+//! retirement or supersession. Other key revocations remain final.
 
 use pgp::packet::{RevocationCode, Signature, SubpacketData};
 
@@ -55,10 +55,11 @@ pub(in crate::openpgp) enum RevocationTarget {
 /// Evaluates already-authenticated revocations against the current effective
 /// authoritative signature.
 ///
-/// Primary-key and subkey revocations are final once effective. Prospective
-/// reasons take effect at their creation time; retrospective reasons also
-/// invalidate historical use. Signature expiration and later self-signatures
-/// do not restore a revoked key for new operations. Certification revocations
+/// Prospective primary-key and subkey reasons take effect at their creation
+/// time; retrospective reasons also invalidate historical use. Only explicit
+/// retirement and supersession can be superseded by a strictly newer, live,
+/// policy-acceptable owner signature for that target. Revocation signature
+/// expiration alone never restores a key. Certification revocations
 /// remain live only until expiration or a strictly newer authoritative
 /// certification. Every revocation requires its mandatory creation time;
 /// without one, it is malformed and ineffective.
@@ -86,8 +87,23 @@ pub(in crate::openpgp) fn revocation_is_effective<'a>(
             return false;
         };
         if key_target {
-            return revocation_scope(signature) == RevocationScope::Retrospective
-                || u64::from(revocation_time) <= reference_time;
+            if revocation_scope(signature) == RevocationScope::Retrospective {
+                return true;
+            }
+            if u64::from(revocation_time) > reference_time {
+                return false;
+            }
+            let supersedable = matches!(
+                revocation_reason(signature),
+                Some(RevocationCode::KeySuperseded | RevocationCode::KeyRetired)
+            );
+            let superseded = supersedable
+                && effective_time.is_some_and(|time| {
+                    revocation_time < time && u64::from(time) <= reference_time
+                })
+                && effective_signature
+                    .is_some_and(|signature| !signature_expired(signature, reference_time));
+            return !superseded;
         }
 
         if u64::from(revocation_time) > reference_time {
@@ -100,7 +116,11 @@ pub(in crate::openpgp) fn revocation_is_effective<'a>(
 }
 
 pub(in crate::openpgp) fn revocation_scope(signature: &Signature) -> RevocationScope {
-    let reason = signature.config().and_then(|config| {
+    revocation_scope_for_reason(revocation_reason(signature))
+}
+
+fn revocation_reason(signature: &Signature) -> Option<RevocationCode> {
+    signature.config().and_then(|config| {
         config
             .hashed_subpackets
             .iter()
@@ -109,8 +129,7 @@ pub(in crate::openpgp) fn revocation_scope(signature: &Signature) -> RevocationS
                 SubpacketData::RevocationReason(reason, _) => Some(*reason),
                 _ => None,
             })
-    });
-    revocation_scope_for_reason(reason)
+    })
 }
 
 fn revocation_scope_for_reason(reason: Option<RevocationCode>) -> RevocationScope {

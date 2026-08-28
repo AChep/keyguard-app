@@ -328,8 +328,9 @@ pub(super) fn self_revocation_signature_acceptable_at(
     // Retrospective key revocations are timeless evidence: compromise calls the
     // provenance of the key into question even outside the revocation
     // signature's creation window. Prospective key revocations are admitted
-    // only after their creation time, then `revocation_is_effective` keeps them
-    // final. Certification revocations retain liveness and ordering semantics.
+    // only after their creation time; `revocation_is_effective` then compares
+    // eligible owner signatures. Certification revocations retain liveness
+    // and ordering semantics.
     (created <= reference_time || retrospective_key_revocation)
         && signature.config().is_some_and(|config| {
             let requirement = match hash_security {

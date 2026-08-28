@@ -66,9 +66,9 @@ use crate::openpgp::{
     },
     policy::{
         EvaluatedComponent, MutationAuthorizationError, OpenPgpPolicyBudget, OpenPgpPolicyError,
-        PublicComponent, RenewalAuthorization, SignatureIssuerMetadata, ValidatedCertificate,
-        all_components, can_encrypt, can_sign, certificate_components, certificate_index,
-        component_expiration, data_signature_acceptable, is_legacy_weak_hash,
+        PublicComponent, RenewalAuthorization, RevocationStatus, SignatureIssuerMetadata,
+        ValidatedCertificate, all_components, can_encrypt, can_sign, certificate_components,
+        certificate_index, component_expiration, data_signature_acceptable, is_legacy_weak_hash,
         key_signature_verification_acceptable, reference_time, revocation_key_id,
         signature_creation_time, signature_expired, validate_certificate,
         validate_certificate_with_policy_time,
@@ -79,10 +79,10 @@ mod model;
 
 pub(crate) use model::{
     CertificateResolution, ClearVerificationResult, ClearVerifyInput, ComponentPolicySummary,
-    DetachedVerifyInput, MetadataResolution, MetadataResolveInput, PolicyUse, PublicKeyInfo,
-    PublicKeyParseFailure, PublicKeyParseInput, PublicKeyParseOutcome, PublicKeyParseSuccess,
-    PublicSubkeyInfo, RenewalCapability, UserIdInfo, Verification, VerificationStatus,
-    VerificationWarning, VerifyInput, VerifyKind,
+    ComponentRevocationStatus, DetachedVerifyInput, MetadataResolution, MetadataResolveInput,
+    PolicyUse, PublicKeyInfo, PublicKeyParseFailure, PublicKeyParseInput, PublicKeyParseOutcome,
+    PublicKeyParseSuccess, PublicSubkeyInfo, RenewalCapability, UserIdInfo, Verification,
+    VerificationStatus, VerificationWarning, VerifyInput, VerifyKind,
 };
 
 #[cfg(test)]
@@ -97,7 +97,7 @@ use pgp::types::Tag;
 #[cfg(test)]
 use std::io::{BufRead, BufReader};
 
-pub(crate) const METADATA_POLICY_REVISION: u32 = 1;
+pub(crate) const METADATA_POLICY_REVISION: u32 = 2;
 const STREAM_CHANNEL_DEPTH: usize = 1;
 const VERIFY_BUFFER_BYTES: usize = 8 * 1024;
 const MAX_PUBLIC_KEY_DOCUMENTS: usize = 64;
@@ -945,6 +945,7 @@ pub(crate) fn metadata_v2_certificate(
             fingerprint: component.fingerprint_hex(),
             allowed_new_data_uses: Vec::new(),
             renewal: RenewalCapability::None,
+            revocation_status: ComponentRevocationStatus::Indeterminate,
         }));
     }
 
@@ -976,6 +977,11 @@ fn metadata_v2_component_policy<K: KeyDetails>(
         fingerprint: fingerprint_hex(component.key),
         allowed_new_data_uses,
         renewal: renewal_capability(renewal),
+        revocation_status: match component.revocation_status {
+            RevocationStatus::NotRevoked => ComponentRevocationStatus::NotRevoked,
+            RevocationStatus::Revoked => ComponentRevocationStatus::Revoked,
+            RevocationStatus::Indeterminate => ComponentRevocationStatus::Indeterminate,
+        },
     }
 }
 

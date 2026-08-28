@@ -5,8 +5,8 @@ use zeroize::Zeroizing;
 use crate::{
     openpgp::message::{
         self as workflow, CertificateResolution, ClearVerificationResult, ClearVerifyInput,
-        ComponentPolicySummary, DetachedVerifyInput, MetadataResolution, MetadataResolveInput,
-        PolicyUse, PublicKeyInfo, PublicKeyParseFailure, PublicKeyParseInput,
+        ComponentPolicySummary, ComponentRevocationStatus, DetachedVerifyInput, MetadataResolution,
+        MetadataResolveInput, PolicyUse, PublicKeyInfo, PublicKeyParseFailure, PublicKeyParseInput,
         PublicKeyParseOutcome, PublicKeyParseSuccess, PublicSubkeyInfo, RenewalCapability,
         UserIdInfo, Verification, VerificationStatus, VerificationWarning, VerifyInput, VerifyKind,
     },
@@ -22,9 +22,10 @@ use super::{
         OpenPgpMetadataResolveRequest, OpenPgpMetadataResolveResult, OpenPgpPolicyUse,
         OpenPgpPublicKeyInfo, OpenPgpPublicKeyParseError, OpenPgpPublicKeyParseErrorReason,
         OpenPgpPublicKeyParseRequest, OpenPgpPublicKeyParseResult, OpenPgpPublicKeyParseSuccess,
-        OpenPgpPublicSubKeyInfo, OpenPgpRenewalAuthorization, OpenPgpUserIdInfo,
-        OpenPgpVerification, OpenPgpVerificationStatus, OpenPgpVerificationWarning,
-        OpenPgpVerifyKind, OpenPgpVerifyRequest, open_pgp_public_key_parse_result,
+        OpenPgpPublicSubKeyInfo, OpenPgpRenewalAuthorization, OpenPgpRevocationStatus,
+        OpenPgpUserIdInfo, OpenPgpVerification, OpenPgpVerificationStatus,
+        OpenPgpVerificationWarning, OpenPgpVerifyKind, OpenPgpVerifyRequest,
+        open_pgp_public_key_parse_result,
     },
 };
 
@@ -226,6 +227,11 @@ fn component_policy(policy: ComponentPolicySummary) -> OpenPgpComponentPolicyV2 
             .map(|value| policy_use(value) as i32)
             .collect(),
         renewal: renewal_capability(policy.renewal) as i32,
+        revocation_status: match policy.revocation_status {
+            ComponentRevocationStatus::NotRevoked => OpenPgpRevocationStatus::NotRevoked,
+            ComponentRevocationStatus::Revoked => OpenPgpRevocationStatus::Revoked,
+            ComponentRevocationStatus::Indeterminate => OpenPgpRevocationStatus::Indeterminate,
+        } as i32,
     }
 }
 

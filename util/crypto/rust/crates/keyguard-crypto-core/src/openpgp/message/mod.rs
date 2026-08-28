@@ -8,11 +8,12 @@ pub(super) mod write;
 
 pub(crate) use read::{
     CertificateResolution, ClearVerificationResult, ClearVerificationSession, ClearVerifyInput,
-    ComponentPolicySummary, DetachedVerificationSession, DetachedVerifyInput, MetadataResolution,
-    MetadataResolveInput, OpenPgpReadError, PolicyUse, PublicKeyInfo, PublicKeyParseFailure,
-    PublicKeyParseInput, PublicKeyParseOutcome, PublicKeyParseSuccess, PublicSubkeyInfo,
-    RenewalCapability, UserIdInfo, Verification, VerificationStatus, VerificationWarning,
-    VerifyInput, VerifyKind, parse_public_key, resolve_metadata, verify,
+    ComponentPolicySummary, ComponentRevocationStatus, DetachedVerificationSession,
+    DetachedVerifyInput, MetadataResolution, MetadataResolveInput, OpenPgpReadError, PolicyUse,
+    PublicKeyInfo, PublicKeyParseFailure, PublicKeyParseInput, PublicKeyParseOutcome,
+    PublicKeyParseSuccess, PublicSubkeyInfo, RenewalCapability, UserIdInfo, Verification,
+    VerificationStatus, VerificationWarning, VerifyInput, VerifyKind, parse_public_key,
+    resolve_metadata, verify,
 };
 pub(in crate::openpgp) use write::{
     ClearSignInput, DecryptInput, DecryptStreamInput, DecryptionResult, DecryptionWarning,

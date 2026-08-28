@@ -3824,7 +3824,7 @@ fn designated_revocation_fails_closed_until_the_authority_key_verifies_it() {
 }
 
 #[test]
-fn designated_soft_revocation_survives_later_policy_statements() {
+fn designated_soft_revocation_requires_authentication_before_supersession() {
     let target = generated_test_secret("Ordered Target <ordered-target@example.test>");
     let revoker = generated_test_secret("Ordered Revoker <ordered-revoker@example.test>");
     let statement_time = (TEST_TIME + 1) as u32;
@@ -3872,15 +3872,24 @@ fn designated_soft_revocation_survives_later_policy_statements() {
             &mut OpenPgpPolicyBudget::default(),
         )
         .expect("evaluate ordered verified designated revocation");
+        let restored = revocation_time < statement_time;
         assert_eq!(
             resolved.primary.revocation_status,
-            RevocationStatus::Revoked,
+            if restored {
+                RevocationStatus::NotRevoked
+            } else {
+                RevocationStatus::Revoked
+            },
             "revocation time {revocation_time}",
         );
-        assert!(!resolved.primary_available());
+        assert_eq!(resolved.primary_available(), restored);
         assert_eq!(
             resolved.primary_component().authorize_mutation(),
-            Err(MutationAuthorizationError::Revoked),
+            if restored {
+                Ok(())
+            } else {
+                Err(MutationAuthorizationError::Revoked)
+            },
         );
     }
 }
@@ -4600,7 +4609,7 @@ fn expired_user_attribute_certification_revocation_is_ineffective() {
 }
 
 #[test]
-fn soft_primary_revocation_survives_later_policy_statements() {
+fn soft_primary_revocation_is_superseded_only_by_later_policy_statements() {
     let base = generated_test_secret("Ordered Primary <ordered-primary@example.test>");
     let revocation_time = (TEST_TIME + 20) as u32;
 
@@ -4639,6 +4648,7 @@ fn soft_primary_revocation_survives_later_policy_statements() {
                 &mut OpenPgpPolicyBudget::default(),
             )
             .expect("evaluate ordered primary revocation");
+            let restored = statement_time > revocation_time;
             assert_eq!(
                 policy
                     .primary
@@ -4649,17 +4659,299 @@ fn soft_primary_revocation_survives_later_policy_statements() {
             );
             assert_eq!(
                 policy.primary.revocation_status,
-                RevocationStatus::Revoked,
+                if restored {
+                    RevocationStatus::NotRevoked
+                } else {
+                    RevocationStatus::Revoked
+                },
                 "{statement_kind}, statement time {statement_time}",
             );
-            assert!(
-                !policy.primary_available(),
+            assert_eq!(
+                policy.primary_available(),
+                restored,
                 "{statement_kind}, statement time {statement_time}",
             );
             assert_eq!(
                 policy.authorize_primary_renewal(),
-                Err(MutationAuthorizationError::Revoked),
+                if restored {
+                    Ok(RenewalAuthorization::Authenticated)
+                } else {
+                    Err(MutationAuthorizationError::Revoked)
+                },
                 "{statement_kind}, statement time {statement_time}",
+            );
+        }
+    }
+}
+
+#[test]
+fn primary_restoration_uses_newest_direct_or_primary_identity_without_changing_policy_fields() {
+    let mut secret = generated_test_secret("Primary Restore <primary-restore@example.test>");
+    secret.details.users[0].signatures = vec![self_certification(
+        &secret,
+        (TEST_TIME + 1) as u32,
+        HashAlgorithm::Sha256,
+        vec![
+            Subpacket::regular(SubpacketData::IsPrimary(true)).expect("primary identity"),
+            Subpacket::regular(SubpacketData::KeyExpirationTime(Duration::from_secs(600)))
+                .expect("identity expiration"),
+            Subpacket::regular(SubpacketData::PreferredSymmetricAlgorithms(
+                vec![SymmetricKeyAlgorithm::AES128].into(),
+            ))
+            .expect("identity preferences"),
+        ],
+    )];
+    secret.details.direct_signatures = vec![direct_self_signature(
+        &secret,
+        (TEST_TIME + 20) as u32,
+        vec![
+            Subpacket::regular(SubpacketData::PreferredSymmetricAlgorithms(
+                vec![SymmetricKeyAlgorithm::AES256].into(),
+            ))
+            .expect("direct preferences"),
+        ],
+    )];
+    secret.details.revocation_signatures = vec![key_revocation_with_reason(
+        &secret,
+        (TEST_TIME + 10) as u32,
+        HashAlgorithm::Sha256,
+        RevocationCode::KeySuperseded,
+    )];
+    let public = secret.to_public_key();
+    let policy = validate_certificate(
+        &public,
+        &all_components(std::slice::from_ref(&public)),
+        TEST_TIME + 30,
+        &mut OpenPgpPolicyBudget::default(),
+    )
+    .expect("evaluate independent revocation ordering");
+    assert_eq!(
+        policy.primary.revocation_status,
+        RevocationStatus::NotRevoked
+    );
+    assert_eq!(
+        policy
+            .primary
+            .effective_signature
+            .and_then(signature_creation_time),
+        Some((TEST_TIME + 1) as u32)
+    );
+    assert_eq!(policy.primary.key_expiration_seconds, Some(600));
+    assert_eq!(
+        policy.primary.preferred_symmetric.as_deref(),
+        Some([u8::from(SymmetricKeyAlgorithm::AES128)].as_slice())
+    );
+}
+
+#[test]
+fn nonprimary_identity_and_user_attribute_cannot_restore_primary_key() {
+    let mut base = generated_test_secret("Selected Identity <selected@example.test>");
+    base.details.direct_signatures.clear();
+    base.details.users[0].signatures = vec![self_certification(
+        &base,
+        (TEST_TIME + 1) as u32,
+        HashAlgorithm::Sha256,
+        vec![Subpacket::regular(SubpacketData::IsPrimary(true)).expect("selected identity")],
+    )];
+    base.details.revocation_signatures = vec![key_revocation_with_reason(
+        &base,
+        (TEST_TIME + 10) as u32,
+        HashAlgorithm::Sha256,
+        RevocationCode::KeyRetired,
+    )];
+    for attribute_fallback in [false, true] {
+        let mut candidate = base.clone();
+        if attribute_fallback {
+            let attribute = UserAttribute::new_image(Bytes::from_static(b"restoring image"))
+                .expect("attribute");
+            let certification = user_attribute_self_certification(
+                &base,
+                &attribute,
+                (TEST_TIME + 20) as u32,
+                HashAlgorithm::Sha256,
+                Vec::new(),
+            );
+            candidate.details.users.clear();
+            candidate.details.user_attributes =
+                vec![SignedUserAttribute::new(attribute, vec![certification])];
+        } else {
+            candidate.details.users.push(signed_user_id(
+                &base,
+                "Nonprimary <nonprimary@example.test>",
+                (TEST_TIME + 20) as u32,
+                Vec::new(),
+            ));
+        }
+        let public = candidate.to_public_key();
+        let policy = validate_certificate(
+            &public,
+            &all_components(std::slice::from_ref(&public)),
+            TEST_TIME + 30,
+            &mut OpenPgpPolicyBudget::default(),
+        )
+        .expect("evaluate unrelated identity statement");
+        assert!(policy.primary.authenticated);
+        assert_eq!(
+            policy.primary.revocation_status,
+            RevocationStatus::Revoked,
+            "attribute fallback: {attribute_fallback}"
+        );
+        assert!(!policy.primary_available());
+    }
+}
+
+#[test]
+fn primary_restoration_expires_and_another_live_statement_can_restore_it() {
+    let base = generated_test_secret("Temporary Restore <temporary@example.test>");
+    for direct in [false, true] {
+        let expiration = vec![
+            Subpacket::regular(SubpacketData::SignatureExpirationTime(Duration::from_secs(
+                10,
+            )))
+            .expect("restoring signature expiration"),
+        ];
+        let restoring = if direct {
+            direct_self_signature(&base, (TEST_TIME + 20) as u32, expiration)
+        } else {
+            self_certification(
+                &base,
+                (TEST_TIME + 20) as u32,
+                HashAlgorithm::Sha256,
+                expiration,
+            )
+        };
+        let mut candidate = base.clone();
+        candidate.details.revocation_signatures = vec![key_revocation_with_reason(
+            &base,
+            (TEST_TIME + 10) as u32,
+            HashAlgorithm::Sha256,
+            RevocationCode::KeyRetired,
+        )];
+        if direct {
+            candidate.details.direct_signatures.push(restoring);
+        } else {
+            candidate.details.users[0].signatures.push(restoring);
+        }
+        for (offset, restored) in [(19, false), (20, true), (29, true), (30, false)] {
+            let public = candidate.to_public_key();
+            let policy = validate_certificate(
+                &public,
+                &all_components(std::slice::from_ref(&public)),
+                TEST_TIME + offset,
+                &mut OpenPgpPolicyBudget::default(),
+            )
+            .expect("evaluate temporary restoration");
+            assert_eq!(
+                policy.primary_available(),
+                restored,
+                "direct {direct}, offset {offset}"
+            );
+            assert_eq!(
+                policy.authorize_primary_renewal(),
+                if restored {
+                    Ok(RenewalAuthorization::Authenticated)
+                } else {
+                    Err(MutationAuthorizationError::Revoked)
+                }
+            );
+        }
+        candidate
+            .details
+            .direct_signatures
+            .push(direct_self_signature(
+                &base,
+                (TEST_TIME + 35) as u32,
+                Vec::new(),
+            ));
+        let public = candidate.to_public_key();
+        let policy = validate_certificate(
+            &public,
+            &all_components(std::slice::from_ref(&public)),
+            TEST_TIME + 40,
+            &mut OpenPgpPolicyBudget::default(),
+        )
+        .expect("evaluate subsequent live restoration");
+        assert!(policy.primary_available());
+        assert_eq!(public.details.revocation_signatures.len(), 1);
+    }
+}
+
+#[test]
+fn unacceptable_owner_statements_cannot_restore_primary_key() {
+    let base = generated_test_secret_with_kind(
+        "Rejected Restore <rejected@example.test>",
+        OpenPgpKeyKind::Rsa,
+        3_072,
+    );
+    let other = generated_test_secret("Other Owner <other@example.test>");
+    let now = SHA1_SECOND_PREIMAGE_REJECT_AT.max(TEST_TIME + 30);
+    for direct in [false, true] {
+        for defect in ["future", "wrong owner", "critical", "weak"] {
+            let signer = if defect == "wrong owner" {
+                &other
+            } else {
+                &base
+            };
+            let time = if defect == "future" {
+                now + 1
+            } else {
+                TEST_TIME + 20
+            };
+            let hash = if defect == "weak" {
+                HashAlgorithm::Sha1
+            } else {
+                HashAlgorithm::Sha256
+            };
+            let additional = if defect == "critical" {
+                vec![
+                    Subpacket::critical(SubpacketData::Experimental(
+                        100,
+                        Bytes::from_static(b"unknown policy"),
+                    ))
+                    .expect("critical subpacket"),
+                ]
+            } else {
+                Vec::new()
+            };
+            let statement = if direct {
+                direct_self_signature_with_hash(signer, time as u32, hash, additional)
+            } else {
+                user_id_self_certification(
+                    signer,
+                    &base.details.users[0].id,
+                    time as u32,
+                    hash,
+                    additional,
+                )
+            };
+            let mut candidate = base.clone();
+            candidate.details.revocation_signatures = vec![key_revocation_with_reason(
+                &base,
+                (TEST_TIME + 10) as u32,
+                HashAlgorithm::Sha256,
+                RevocationCode::KeyRetired,
+            )];
+            if direct {
+                candidate.details.direct_signatures.push(statement);
+            } else {
+                candidate.details.users[0].signatures.push(statement);
+            }
+            let public = candidate.to_public_key();
+            let policy = validate_certificate(
+                &public,
+                &all_components(std::slice::from_ref(&public)),
+                now,
+                &mut OpenPgpPolicyBudget::default(),
+            )
+            .expect("evaluate rejected restoring evidence");
+            assert_eq!(
+                policy.primary.revocation_status,
+                RevocationStatus::Revoked,
+                "direct {direct}, {defect}"
+            );
+            assert_eq!(
+                policy.authorize_primary_renewal(),
+                Err(MutationAuthorizationError::Revoked)
             );
         }
     }
@@ -4901,7 +5193,7 @@ fn user_attribute_revocation_supersedes_an_equal_or_older_certification() {
 }
 
 #[test]
-fn soft_subkey_revocation_survives_later_bindings() {
+fn soft_subkey_revocation_is_superseded_only_by_later_bindings() {
     const SUBKEY_INDEX: usize = 1;
 
     let base = generated_test_secret("Ordered Subkey <ordered-subkey@example.test>");
@@ -4926,6 +5218,7 @@ fn soft_subkey_revocation_survives_later_bindings() {
             &mut OpenPgpPolicyBudget::default(),
         )
         .expect("evaluate ordered subkey revocation");
+        let restored = statement_time > revocation_time;
         let component = &policy.subkeys[SUBKEY_INDEX];
         assert_eq!(
             component
@@ -4936,11 +5229,16 @@ fn soft_subkey_revocation_survives_later_bindings() {
         );
         assert_eq!(
             component.revocation_status,
-            RevocationStatus::Revoked,
+            if restored {
+                RevocationStatus::NotRevoked
+            } else {
+                RevocationStatus::Revoked
+            },
             "statement time {statement_time}",
         );
-        assert!(
-            !encryption_component_usable(component, TEST_TIME + 30),
+        assert_eq!(
+            encryption_component_usable(component, TEST_TIME + 30),
+            restored,
             "statement time {statement_time}",
         );
     }
@@ -4974,7 +5272,199 @@ fn soft_subkey_revocation_survives_later_bindings() {
 }
 
 #[test]
-fn newer_binding_signatures_do_not_override_soft_key_and_subkey_revocations() {
+fn subkey_restoration_requires_live_policy_acceptable_binding_for_that_subkey() {
+    let base = generated_test_secret_with_kind(
+        "Subkey Restore <subkey-restore@example.test>",
+        OpenPgpKeyKind::Rsa,
+        3_072,
+    );
+    let reference_time = SHA1_SECOND_PREIMAGE_REJECT_AT.max(TEST_TIME + 30);
+    let subkey_index = 1;
+    for defect in [
+        "none",
+        "future",
+        "expired",
+        "weak",
+        "critical",
+        "wrong subkey",
+    ] {
+        let mut candidate = base.clone();
+        let subkey = base.secret_subkeys[subkey_index].key.public_key();
+        let binding = subkey_binding_at(&base, subkey_index, (TEST_TIME + 20) as u32);
+        let mut config = binding.config().cloned().expect("binding config");
+        if defect == "future" {
+            config
+                .hashed_subpackets
+                .retain(|packet| !matches!(packet.data, SubpacketData::SignatureCreationTime(_)));
+            config.hashed_subpackets.push(
+                Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                    (reference_time + 1) as u32,
+                )))
+                .expect("future creation"),
+            );
+        }
+        if defect == "expired" {
+            config.hashed_subpackets.push(
+                Subpacket::regular(SubpacketData::SignatureExpirationTime(Duration::from_secs(
+                    10,
+                )))
+                .expect("binding expiration"),
+            );
+        }
+        if defect == "weak" {
+            config.hash_alg = HashAlgorithm::Sha1;
+        }
+        if defect == "critical" {
+            config.hashed_subpackets.push(
+                Subpacket::critical(SubpacketData::Experimental(
+                    100,
+                    Bytes::from_static(b"unknown binding policy"),
+                ))
+                .expect("critical binding policy"),
+            );
+        }
+        let signed_target = if defect == "wrong subkey" {
+            base.secret_subkeys[0].key.public_key()
+        } else {
+            subkey
+        };
+        let binding = config
+            .sign_subkey_binding(
+                &base.primary_key,
+                base.primary_key.public_key(),
+                &Password::empty(),
+                signed_target,
+            )
+            .expect("sign restoring binding");
+        candidate.secret_subkeys[subkey_index].signatures.extend([
+            subkey_revocation_at(
+                &base,
+                subkey_index,
+                (TEST_TIME + 10) as u32,
+                RevocationCode::KeyRetired,
+            ),
+            binding,
+        ]);
+        let public = candidate.to_public_key();
+        let policy = validate_certificate(
+            &public,
+            &all_components(std::slice::from_ref(&public)),
+            reference_time,
+            &mut OpenPgpPolicyBudget::default(),
+        )
+        .expect("evaluate restoring binding");
+        let restored = defect == "none";
+        let component = policy.subkey(subkey).expect("subkey policy");
+        assert_eq!(component.encryption_usable(), restored, "{defect}");
+        assert_eq!(
+            component.authorize_renewal(),
+            if restored {
+                Ok(RenewalAuthorization::Authenticated)
+            } else {
+                Err(MutationAuthorizationError::Revoked)
+            },
+            "{defect}"
+        );
+        if defect == "expired" {
+            for (offset, restored) in [(29, true), (30, false)] {
+                let policy = validate_certificate(
+                    &public,
+                    &all_components(std::slice::from_ref(&public)),
+                    TEST_TIME + offset,
+                    &mut OpenPgpPolicyBudget::default(),
+                )
+                .expect("evaluate binding lifetime");
+                assert_eq!(
+                    policy
+                        .subkey(subkey)
+                        .expect("subkey policy")
+                        .encryption_usable(),
+                    restored
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn v6_primary_restoration_uses_direct_key_signature() {
+    let mut secret = pgp::composed::SecretKeyParamsBuilder::default()
+        .version(KeyVersion::V6)
+        .key_type(pgp::composed::KeyType::Ed25519)
+        .can_certify(true)
+        .can_sign(true)
+        .created_at(Timestamp::from_secs(TEST_TIME as u32))
+        .primary_user_id("V6 Restore <v6-restore@example.test>".to_owned())
+        .build()
+        .expect("v6 key parameters")
+        .generate(crate::openpgp::crypto::secret::AwsLcRng)
+        .expect("v6 key");
+    let mut config = secret.details.direct_signatures[0]
+        .config()
+        .cloned()
+        .expect("v6 Direct Key config");
+    assert_eq!(secret.primary_key.version(), KeyVersion::V6);
+    config
+        .hashed_subpackets
+        .retain(|packet| !matches!(packet.data, SubpacketData::SignatureCreationTime(_)));
+    config.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+            (TEST_TIME + 10) as u32,
+        )))
+        .expect("revocation time"),
+    );
+    config.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::RevocationReason(
+            RevocationCode::KeyRetired,
+            Vec::new().into(),
+        ))
+        .expect("retirement"),
+    );
+    config.typ = SignatureType::KeyRevocation;
+    let revocation = config
+        .sign_key(
+            &secret.primary_key,
+            &Password::empty(),
+            secret.primary_key.public_key(),
+        )
+        .expect("v6 revocation");
+    secret.details.revocation_signatures.push(revocation);
+    let mut config = secret.details.direct_signatures[0]
+        .config()
+        .cloned()
+        .expect("v6 Direct Key config");
+    config
+        .hashed_subpackets
+        .retain(|packet| !matches!(packet.data, SubpacketData::SignatureCreationTime(_)));
+    config.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+            (TEST_TIME + 20) as u32,
+        )))
+        .expect("restoration time"),
+    );
+    let restoring = config
+        .sign_key(
+            &secret.primary_key,
+            &Password::empty(),
+            secret.primary_key.public_key(),
+        )
+        .expect("v6 restoration");
+    secret.details.direct_signatures.push(restoring);
+    let public = secret.to_public_key();
+    for (offset, restored) in [(19, false), (20, true)] {
+        let policy = validate_certificate(
+            &public,
+            &all_components(std::slice::from_ref(&public)),
+            TEST_TIME + offset,
+            &mut OpenPgpPolicyBudget::default(),
+        )
+        .expect("evaluate v6 restoration");
+        assert_eq!(policy.primary_available(), restored);
+    }
+}
+
+#[test]
+fn newer_binding_signatures_restore_soft_revoked_key_and_subkey_with_retained_evidence() {
     let mut primary_secret = generated_test_secret("Retired Primary <primary@example.test>");
     let primary_revocation = key_revocation_with_reason(
         &primary_secret,
@@ -5003,7 +5493,7 @@ fn newer_binding_signatures_do_not_override_soft_key_and_subkey_revocations() {
         TEST_TIME + 30,
         &mut OpenPgpPolicyBudget::default(),
     )
-    .expect("evaluate retired primary with a newer Direct Key signature");
+    .expect("evaluate retired primary with a newer self-certification");
     assert_eq!(
         primary_policy
             .primary
@@ -5013,12 +5503,13 @@ fn newer_binding_signatures_do_not_override_soft_key_and_subkey_revocations() {
     );
     assert_eq!(
         primary_policy.primary.revocation_status,
-        RevocationStatus::Revoked,
+        RevocationStatus::NotRevoked,
     );
-    assert!(!primary_policy.primary_available());
+    assert!(primary_policy.primary_available());
+    assert_eq!(primary_public.details.revocation_signatures.len(), 1);
     assert_eq!(
         primary_policy.authorize_primary_renewal(),
-        Err(MutationAuthorizationError::Revoked),
+        Ok(RenewalAuthorization::Authenticated),
     );
 
     let mut subkey_secret = generated_test_secret("Retired Subkey <subkey@example.test>");
@@ -5092,12 +5583,18 @@ fn newer_binding_signatures_do_not_override_soft_key_and_subkey_revocations() {
     );
     assert_eq!(
         subkey_policy.subkeys[1].revocation_status,
-        RevocationStatus::Revoked,
+        RevocationStatus::NotRevoked,
     );
-    assert!(!encryption_component_usable(
+    assert!(encryption_component_usable(
         &subkey_policy.subkeys[1],
         TEST_TIME + 30,
     ));
+    assert!(
+        subkey_public.public_subkeys[1]
+            .signatures
+            .iter()
+            .any(|signature| signature.typ() == Some(SignatureType::SubkeyRevocation))
+    );
 }
 
 #[test]

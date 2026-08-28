@@ -154,6 +154,13 @@ public enum class NativeOpenPgpPolicyUse {
     ENCRYPT_NEW_DATA,
 }
 
+/** Effective revocation state at the metadata evaluation time. */
+public enum class NativeOpenPgpRevocationStatus {
+    NOT_REVOKED,
+    REVOKED,
+    INDETERMINATE,
+}
+
 /**
  * Whether recertification may reissue a component's own self-signatures.
  *
@@ -197,6 +204,8 @@ public data class NativeOpenPgpComponentPolicy(
     val allowedNewDataUses: Set<NativeOpenPgpPolicyUse>,
     val renewal: NativeOpenPgpRenewalAuthorization =
         NativeOpenPgpRenewalAuthorization.NONE,
+    val revocationStatus: NativeOpenPgpRevocationStatus =
+        NativeOpenPgpRevocationStatus.INDETERMINATE,
 )
 
 public data class NativeOpenPgpCertificateResolution(
@@ -2885,9 +2894,18 @@ private fun OpenPgpMetadataResolutionV2Proto.toPublic(
             ) {
                 malformedOpenPgp(operation)
             }
+            val revocationStatus = if (policyRevision == OPEN_PGP_POLICY_REVISION_V2) {
+                when (value.revocationStatus) {
+                    OPEN_PGP_REVOCATION_STATUS_NOT_REVOKED -> NativeOpenPgpRevocationStatus.NOT_REVOKED
+                    OPEN_PGP_REVOCATION_STATUS_REVOKED -> NativeOpenPgpRevocationStatus.REVOKED
+                    else -> NativeOpenPgpRevocationStatus.INDETERMINATE
+                }
+            } else {
+                NativeOpenPgpRevocationStatus.INDETERMINATE
+            }
             NativeOpenPgpComponentPolicy(
                 fingerprint = value.fingerprint,
-                allowedNewDataUses = if (policyRevision == OPEN_PGP_POLICY_REVISION_V2) {
+                allowedNewDataUses = if (revocationStatus == NativeOpenPgpRevocationStatus.NOT_REVOKED) {
                     value.allowedNewDataUses.mapNotNullTo(mutableSetOf()) { wireValue ->
                         when (wireValue) {
                             OPEN_PGP_POLICY_USE_SIGN_NEW_DATA ->
@@ -2904,11 +2922,12 @@ private fun OpenPgpMetadataResolutionV2Proto.toPublic(
                 },
                 // A policy revision this build does not understand must never
                 // look like permission.
-                renewal = if (policyRevision == OPEN_PGP_POLICY_REVISION_V2) {
+                renewal = if (revocationStatus == NativeOpenPgpRevocationStatus.NOT_REVOKED) {
                     value.renewal.toRenewalAuthorizationOrNone()
                 } else {
                     NativeOpenPgpRenewalAuthorization.NONE
                 },
+                revocationStatus = revocationStatus,
             )
         }
         if (seenPolicyFingerprints != componentFingerprints) malformedOpenPgp(operation)
@@ -2999,7 +3018,7 @@ private fun OpenPgpCertificateIndexV2Proto.toPublic(
     )
 }
 
-private const val OPEN_PGP_POLICY_REVISION_V2 = 1
+private const val OPEN_PGP_POLICY_REVISION_V2 = 2
 private const val OPEN_PGP_KEY_COMPONENT_ROLE_PRIMARY = 1
 private const val OPEN_PGP_KEY_COMPONENT_ROLE_SUBKEY = 2
 private const val OPEN_PGP_AGENT_OPERATION_SIGN = 1
@@ -3008,6 +3027,8 @@ private const val OPEN_PGP_POLICY_USE_SIGN_NEW_DATA = 1
 private const val OPEN_PGP_POLICY_USE_ENCRYPT_NEW_DATA = 2
 private const val OPEN_PGP_RENEWAL_AUTHORIZATION_AUTHENTICATED = 1
 private const val OPEN_PGP_RENEWAL_AUTHORIZATION_TEMPLATE_ONLY = 2
+private const val OPEN_PGP_REVOCATION_STATUS_NOT_REVOKED = 1
+private const val OPEN_PGP_REVOCATION_STATUS_REVOKED = 2
 
 private inline fun <reified T> decodePayload(
     operation: String,

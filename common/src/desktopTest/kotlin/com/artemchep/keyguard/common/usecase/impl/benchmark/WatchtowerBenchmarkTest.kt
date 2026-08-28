@@ -1,14 +1,15 @@
 package com.artemchep.keyguard.common.usecase.impl.benchmark
 
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+import kotlin.time.Duration
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class WatchtowerBenchmarkTest {
     @Test
-    fun `benchmark and profile every Watchtower check`() = runBlocking {
+    fun `benchmark and profile every Watchtower check`() = runTest(timeout = Duration.INFINITE) {
         val corpusSize = benchmarkIntProperty(
             name = "keyguard.watchtower.benchmark.corpus-size",
             defaultValue = WatchtowerBenchmarkFixtures.DEFAULT_CORPUS_SIZE,
@@ -18,6 +19,7 @@ class WatchtowerBenchmarkTest {
             defaultValue = WatchtowerBenchmarkFixtures.DEFAULT_SERVICE_COUNT,
         )
         val fixtures = WatchtowerBenchmarkFixtures(
+            scope = backgroundScope,
             corpusSize = corpusSize,
             serviceCount = serviceCount,
         )

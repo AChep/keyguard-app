@@ -24,6 +24,12 @@ interface GpgKeyserverStateRepository {
         model: DGpgKeyserverState,
     ): IO<Unit>
 
+    /** Reads, evaluates, and writes one fingerprint while holding the vault mutation lock. */
+    fun update(
+        fingerprint: String,
+        transform: (DGpgKeyserverState?, List<GpgKeyserverLocalKey>) -> DGpgKeyserverState,
+    ): IO<DGpgKeyserverState>
+
     fun removeByFingerprint(
         fingerprint: String,
     ): IO<Unit>

@@ -161,13 +161,14 @@ class GpgPublicKeyModelsTest {
         ),
         authorization = GpgAgentAuthorizationSnapshot(
             evaluatedAtEpochSeconds = 1,
-            policyRevision = 1,
+            policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
             keys = listOf(
                 createMetadataKey(
                     keygrip = KEYGRIP_1,
                     capabilities = setOf("sign"),
                 ),
             ),
+            revocations = mapOf(FINGERPRINT_1 to GpgRevocationStatus.NOT_REVOKED),
         ),
     ).toGpgPublicKeyEntry(name = null).let { entry ->
         assertTrue(entry.canSign)
@@ -196,8 +197,9 @@ class GpgPublicKeyModelsTest {
             ?: gpgMetadata(*keys.toTypedArray()),
         authorization = authorization ?: GpgAgentAuthorizationSnapshot(
             evaluatedAtEpochSeconds = 1,
-            policyRevision = 1,
+            policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
             keys = keys,
+            revocations = keys.associate { it.fingerprint.normalizeGpgFingerprint() to GpgRevocationStatus.NOT_REVOKED },
         ),
     )
 

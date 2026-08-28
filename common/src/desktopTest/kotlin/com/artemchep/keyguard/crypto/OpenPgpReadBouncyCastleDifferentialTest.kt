@@ -27,6 +27,7 @@ import com.artemchep.keyguard.common.service.crypto.parseClearSignedMessage
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnapshot
+import com.artemchep.keyguard.common.service.gpgagent.GpgRevocationStatus
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentCertificateMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyComponentMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyComponentRole
@@ -1024,6 +1025,15 @@ private object BouncyCastleMetadataOracle : GpgKeyMetadataResolver {
                 evaluatedAtEpochSeconds = 0,
                 policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
                 keys = keys,
+                revocations = inspectedCertificates.flatMap { certificate ->
+                    certificate.keys.map { key ->
+                        key.publicKey.fingerprintHex().normalizeGpgFingerprint() to if (key.revoked) {
+                            GpgRevocationStatus.REVOKED
+                        } else {
+                            GpgRevocationStatus.NOT_REVOKED
+                        }
+                    }
+                }.toMap(),
             ),
         )
     }

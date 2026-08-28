@@ -3,7 +3,6 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.model.DGpgKeyserverState
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GpgKeyserverVerifyStatus
 import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
@@ -13,9 +12,12 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRecorder
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverConfig
@@ -30,9 +32,17 @@ class VerifyGpgPublicKeyImpl(
     private val getCiphers: GetCiphers,
     private val getGpgKeyserverConfig: GetGpgKeyserverConfig,
     private val keyserverClient: GpgKeyserverClient,
-    private val keyserverStateRepository: GpgKeyserverStateRepository,
+    keyserverStateRepository: GpgKeyserverStateRepository,
     private val parser: GpgPublicKeyParser,
+    metadataResolver: GpgKeyMetadataResolver,
+    reconciler: GpgCertificateMaterialReconciler,
 ) : VerifyGpgPublicKey {
+    private val stateRecorder = GpgKeyserverStateRecorder(
+        repository = keyserverStateRepository,
+        reconciler = reconciler,
+        resolver = metadataResolver,
+    )
+
     constructor(
         directDI: DirectDI,
     ) : this(
@@ -41,6 +51,8 @@ class VerifyGpgPublicKeyImpl(
         keyserverClient = directDI.instance(),
         keyserverStateRepository = directDI.instance(),
         parser = directDI.instance(),
+        metadataResolver = directDI.instance(),
+        reconciler = directDI.instance(),
     )
 
     override fun invoke(
@@ -64,6 +76,7 @@ class VerifyGpgPublicKeyImpl(
 
         val config = getGpgKeyserverConfig().first()
         val perEmail = mutableMapOf<String, GpgKeyserverVerificationStatus>()
+        val matchingResults = mutableListOf<DGpgKeyserverResult>()
         emails.forEach { email ->
             // The by-email VKS throttle now lives in the keyserver client so it
             // applies to every caller and survives vault unlocks.
@@ -75,12 +88,12 @@ class VerifyGpgPublicKeyImpl(
                 fingerprint = fingerprint,
                 results = results,
             )
+            matchingResults += results.filter {
+                it.fingerprint.normalizeGpgFingerprint() == fingerprint
+            }
         }
         val fingerprintResult = if (
-            perEmail.values.any {
-                it == GpgKeyserverVerificationStatus.VERIFIED ||
-                        it == GpgKeyserverVerificationStatus.REVOKED
-            }
+            matchingResults.any { !it.publicKeyArmored.isNullOrBlank() }
         ) {
             null
         } else {
@@ -89,32 +102,45 @@ class VerifyGpgPublicKeyImpl(
                 config = config,
             ).bind()
         }
-        val overall = gpgKeyserverAggregateVerificationStatus(
+        fingerprintResult?.let { result ->
+            check(result.fingerprint.normalizeGpgFingerprint() == fingerprint)
+            check(!result.publicKeyArmored.isNullOrBlank()) {
+                "Keyserver did not return the public GPG key."
+            }
+            matchingResults += result
+        }
+        check(matchingResults.isEmpty() || matchingResults.any { !it.publicKeyArmored.isNullOrBlank() }) {
+            "Could not obtain signed GPG key evidence from the keyserver."
+        }
+        val publicationStatus = gpgKeyserverAggregateVerificationStatus(
             perEmail = perEmail.values,
             fingerprintResult = fingerprintResult,
         )
 
         val now = Clock.System.now()
-        val current = keyserverStateRepository
-            .getByFingerprint(fingerprint)
-            .first()
-        keyserverStateRepository.put(
-            DGpgKeyserverState(
-                fingerprint = fingerprint,
-                cipherId = cipher.id,
-                verificationStatus = overall,
-                lastCheckedAt = now,
-                lastRefreshedAt = current?.lastRefreshedAt,
-                sourceKeyserver = fingerprintResult?.sourceKeyserver
-                    ?: current?.sourceKeyserver
-                    ?: config.url,
-            ),
+        val saved = stateRecorder.record(
+            fingerprint = fingerprint,
+            cipherIds = setOf(cipher.id),
+            publicCertificates = listOf(publicKeyArmored) + matchingResults.mapNotNull {
+                it.publicKeyArmored?.takeIf(String::isNotBlank)
+            },
+            publicationStatus = publicationStatus,
+            sourceKeyserver = fingerprintResult?.sourceKeyserver
+                ?: matchingResults.firstOrNull()?.sourceKeyserver
+                ?: config.url,
+            checkedAt = now,
+            refreshed = false,
         ).bind()
+        val overall = saved.verificationStatus
 
         GpgKeyserverVerifyStatus(
             fingerprint = fingerprint,
             overall = overall,
-            perEmail = perEmail,
+            perEmail = perEmail.mapValues { (_, status) ->
+                if (status == GpgKeyserverVerificationStatus.VERIFIED &&
+                    overall in setOf(GpgKeyserverVerificationStatus.REVOKED, GpgKeyserverVerificationStatus.UNKNOWN)
+                ) overall else status
+            },
         )
     }
 
@@ -169,28 +195,19 @@ internal fun gpgKeyserverEmailVerificationStatus(
     results: List<DGpgKeyserverResult>,
 ): GpgKeyserverVerificationStatus {
     val normalizedFingerprint = fingerprint.normalizeGpgFingerprint()
-    val match = results.firstOrNull { result ->
+    results.firstOrNull { result ->
         result.fingerprint.normalizeGpgFingerprint() == normalizedFingerprint
     } ?: return GpgKeyserverVerificationStatus.NOT_FOUND
-    return if (match.revoked) {
-        GpgKeyserverVerificationStatus.REVOKED
-    } else {
-        GpgKeyserverVerificationStatus.VERIFIED
-    }
+    // An HKP index is publication evidence, not a signed revocation verdict.
+    return GpgKeyserverVerificationStatus.VERIFIED
 }
 
 internal fun gpgKeyserverAggregateVerificationStatus(
     perEmail: Collection<GpgKeyserverVerificationStatus>,
     fingerprintResult: DGpgKeyserverResult?,
 ): GpgKeyserverVerificationStatus = when {
-    perEmail.any { it == GpgKeyserverVerificationStatus.REVOKED } ->
-        GpgKeyserverVerificationStatus.REVOKED
-
     perEmail.any { it == GpgKeyserverVerificationStatus.VERIFIED } ->
         GpgKeyserverVerificationStatus.VERIFIED
-
-    fingerprintResult?.revoked == true ->
-        GpgKeyserverVerificationStatus.REVOKED
 
     fingerprintResult != null ->
         GpgKeyserverVerificationStatus.FOUND_UNVERIFIED

@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.model.DGpgKeyserverResult
 import com.artemchep.keyguard.common.model.DGpgKeyserverState
 import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
 import com.artemchep.keyguard.common.model.RefreshGpgPublicKeysResult
+import com.artemchep.keyguard.common.model.RefreshGpgPublicKeysRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolverUnsupported
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -18,6 +19,34 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class GpgKeyserverRefreshOutcomeTest {
+    @Test
+    fun `a fingerprint evidence failure counts failed while other fingerprints still finish`() = runTest {
+        val other = refreshRevocationCertificates()
+        GpgKeyserverRefreshTestFixture(
+            initial = listOf(
+                refreshTestCipher(),
+                refreshTestCipher(id = "invalid-copy", publicKey = "malformed local evidence"),
+                refreshTestCipher(id = "other-key", publicKey = other.original, fingerprint = other.fingerprint),
+            ),
+        ).use { fixture ->
+            fixture.lookup = { fingerprint ->
+                DGpgKeyserverResult(
+                    fingerprint,
+                    publicKeyArmored = if (fingerprint == REFRESH_FINGERPRINT) REFRESH_PUBLIC_KEY else other.original,
+                )
+            }
+
+            val result = fixture.useCase(
+                RefreshGpgPublicKeysRequest(setOf(REFRESH_CIPHER_ID, "other-key")),
+            ).bind()
+
+            assertEquals(RefreshGpgPublicKeysResult(1, 0, 0, 1), result)
+            assertNull(fixture.stateRepository.getByFingerprint(REFRESH_FINGERPRINT).first())
+            assertEquals(other.fingerprint, fixture.stateRepository.getAll().first().single().fingerprint)
+            assertEquals(1, fixture.lastRefreshes.size)
+        }
+    }
+
     @Test
     fun `unchanged refresh succeeds without a cipher write or dirty backup`() = runTest {
         for (privateKey in listOf(null, "", " \n\t")) {
@@ -136,6 +165,7 @@ class GpgKeyserverRefreshOutcomeTest {
                 fingerprint = REFRESH_FINGERPRINT,
                 cipherId = REFRESH_CIPHER_ID,
                 verificationStatus = GpgKeyserverVerificationStatus.VERIFIED,
+                publicationStatus = GpgKeyserverVerificationStatus.VERIFIED,
                 lastCheckedAt = REFRESH_CREATED_AT,
                 lastRefreshedAt = REFRESH_CREATED_AT,
                 sourceKeyserver = "https://keys.example.test",

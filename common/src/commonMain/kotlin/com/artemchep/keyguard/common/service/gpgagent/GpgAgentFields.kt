@@ -30,8 +30,12 @@ val GpgAgentMetadataResolution.authorizedAgentKeys: List<GpgAgentKeyMetadataKey>
 val GpgAgentAuthorizationSnapshot?.authorizedAgentKeys: List<GpgAgentKeyMetadataKey>
     get() = this
         ?.takeIf(GpgAgentAuthorizationSnapshot::isSupported)
-        ?.keys
-        ?.filter(GpgAgentKeyMetadataKey::isUsableAgentKey)
+        ?.let { snapshot ->
+            snapshot.keys.filter { key ->
+                snapshot.revocations[key.fingerprint.normalizeGpgFingerprint()] == GpgRevocationStatus.NOT_REVOKED &&
+                    key.isUsableAgentKey
+            }
+        }
         .orEmpty()
 
 data class GpgAgentAuthorizationSnapshot(
@@ -47,12 +51,14 @@ data class GpgAgentAuthorizationSnapshot(
      * never be written into the persisted certificate index.
      */
     val renewals: Map<String, GpgRenewalAuthorization> = emptyMap(),
+    /** Effective revocation state at this evaluation time; missing entries are indeterminate. */
+    val revocations: Map<String, GpgRevocationStatus> = emptyMap(),
 ) {
     val isSupported: Boolean
         get() = policyRevision == SUPPORTED_POLICY_REVISION
 
     companion object {
-        const val SUPPORTED_POLICY_REVISION = 1
+        const val SUPPORTED_POLICY_REVISION = 2
     }
 }
 
@@ -69,6 +75,13 @@ enum class GpgRenewalAuthorization {
     AUTHENTICATED,
     TEMPLATE_ONLY,
     NONE,
+}
+
+/** Transient policy output, never part of the persisted certificate index. */
+enum class GpgRevocationStatus {
+    NOT_REVOKED,
+    REVOKED,
+    INDETERMINATE,
 }
 
 @Serializable

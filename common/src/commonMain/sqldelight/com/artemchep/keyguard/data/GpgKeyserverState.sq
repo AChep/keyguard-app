@@ -1,4 +1,5 @@
 import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus;
+import kotlin.Boolean;
 import kotlin.time.Instant;
 
 CREATE TABLE gpgKeyserverState (
@@ -8,14 +9,17 @@ CREATE TABLE gpgKeyserverState (
   lastCheckedAt INTEGER AS Instant,
   lastRefreshedAt INTEGER AS Instant,
   sourceKeyserver TEXT,
+  revocationEvidenceArmored TEXT,
+  hasUnbackedRevocation INTEGER AS Boolean NOT NULL DEFAULT 0,
+  publicationStatus INTEGER AS GpgKeyserverVerificationStatus NOT NULL DEFAULT 0 CHECK (publicationStatus IN (0, 1, 2, 3)),
   FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE SET NULL
 );
 
 CREATE INDEX idx_gpgKeyserverState_cipherId ON gpgKeyserverState(cipherId);
 
 insertOrReplace:
-INSERT OR REPLACE INTO gpgKeyserverState(fingerprint, cipherId, verificationStatus, lastCheckedAt, lastRefreshedAt, sourceKeyserver)
-VALUES (?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO gpgKeyserverState(fingerprint, cipherId, verificationStatus, lastCheckedAt, lastRefreshedAt, sourceKeyserver, revocationEvidenceArmored, hasUnbackedRevocation, publicationStatus)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getAll:
 SELECT *

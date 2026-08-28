@@ -29,7 +29,12 @@ import com.artemchep.keyguard.crypto.GPG_TEST_CV25519_PRIMARY_FINGERPRINT
 import com.artemchep.keyguard.crypto.GPG_TEST_CV25519_PUBLIC_KEY
 import com.artemchep.keyguard.crypto.NativeGpgCertificateMaterialReconciler
 import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
+import com.artemchep.keyguard.crypto.armored
+import com.artemchep.keyguard.crypto.gpgBouncyCastleProvider
+import com.artemchep.keyguard.crypto.useArmoredStrings
 import com.artemchep.keyguard.data.Database
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyKind
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestPasswordStrength
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestVaultDatabaseManager
@@ -40,6 +45,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import org.bouncycastle.bcpg.HashAlgorithmTags
+import org.bouncycastle.bcpg.sig.KeyFlags
+import org.bouncycastle.openpgp.PGPPublicKey
+import org.bouncycastle.openpgp.PGPPublicKeyRing
+import org.bouncycastle.openpgp.PGPSecretKeyRing
+import org.bouncycastle.openpgp.PGPSignature
+import org.bouncycastle.openpgp.PGPSignatureGenerator
+import org.bouncycastle.openpgp.PGPSignatureSubpacketGenerator
+import org.bouncycastle.openpgp.PGPUtil
+import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
+import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder
+import java.util.Date
 import kotlin.test.assertIs
 import kotlin.time.Instant
 
@@ -62,6 +79,7 @@ internal val REFRESH_PUBLIC_KEY: String by lazy {
 internal fun refreshTestCipher(
     id: String = REFRESH_CIPHER_ID,
     publicKey: String = REFRESH_PUBLIC_KEY,
+    fingerprint: String = REFRESH_FINGERPRINT,
 ): BitwardenCipher = BitwardenCipher(
     accountId = REFRESH_ACCOUNT_ID,
     cipherId = id,
@@ -74,8 +92,8 @@ internal fun refreshTestCipher(
     type = BitwardenCipher.Type.GpgKey,
     gpgKey = BitwardenCipher.GpgKey(
         publicKeyArmored = publicKey,
-        fingerprint = REFRESH_FINGERPRINT,
-        metadata = NativeGpgKeyMetadataResolver.resolve(null, publicKey, REFRESH_FINGERPRINT)?.metadata,
+        fingerprint = fingerprint,
+        metadata = NativeGpgKeyMetadataResolver.resolve(null, publicKey, fingerprint)?.metadata,
     ),
 )
 
@@ -98,6 +116,7 @@ internal class GpgKeyserverRefreshTestFixture(
     }
     var canWrite = true
     var backupDirtyCount = 0
+    var afterCipherWrite: () -> Unit = {}
 
     init {
         initial.forEach(::insert)
@@ -117,6 +136,7 @@ internal class GpgKeyserverRefreshTestFixture(
         markBackupAsDirty = object : MarkBackupAsDirty {
             override fun invoke(): IO<BackupStatus> = ioEffect {
                 backupDirtyCount += 1
+                afterCipherWrite()
                 BackupStatus()
             }
         },
@@ -198,4 +218,72 @@ internal class GpgKeyserverRefreshTestFixture(
     }
 
     override fun close() = driver.close()
+}
+
+internal data class RefreshRevocationCertificates(
+    val fingerprint: String,
+    val original: String,
+    val retired: String,
+    val compromised: String,
+    val restored: String,
+)
+
+/** Independent signed packets, including a restoration response that omits earlier revocations. */
+internal fun refreshRevocationCertificates(
+    restorationExpirationSeconds: Long? = null,
+): RefreshRevocationCertificates {
+    val userId = "Refresh Revocation <refresh@example.test>"
+    val createdAt = 1_700_000_000L
+    val material = NativeCrypto.openPgp.generateKey(
+        kind = NativeOpenPgpKeyKind.LEGACY_ED25519_X25519,
+        userId = userId,
+        creationTimeEpochSeconds = createdAt,
+    )
+    return material.useArmoredStrings { privateArmor, publicArmor ->
+        val ring = PGPPublicKeyRing(
+            PGPUtil.getDecoderStream(publicArmor.byteInputStream()),
+            JcaKeyFingerprintCalculator(),
+        )
+        val primary = ring.publicKey
+        val secretRing = PGPSecretKeyRing(
+            PGPUtil.getDecoderStream(privateArmor.byteInputStream()),
+            JcaKeyFingerprintCalculator(),
+        )
+        fun certification(reason: Int?): String {
+            val signer = PGPSignatureGenerator(
+                JcaPGPContentSignerBuilder(primary.algorithm, HashAlgorithmTags.SHA512)
+                    .setProvider(gpgBouncyCastleProvider),
+                primary,
+            )
+            signer.init(
+                if (reason == null) PGPSignature.POSITIVE_CERTIFICATION else PGPSignature.KEY_REVOCATION,
+                secretRing.secretKey.extractPrivateKey(null),
+            )
+            signer.setHashedSubpackets(
+                PGPSignatureSubpacketGenerator().apply {
+                    setIssuerFingerprint(false, primary)
+                    setSignatureCreationTime(false, Date((createdAt + if (reason == null) 20 else 10) * 1000))
+                    if (reason == null) {
+                        setKeyFlags(false, KeyFlags.CERTIFY_OTHER or KeyFlags.SIGN_DATA)
+                        restorationExpirationSeconds?.let { setSignatureExpirationTime(false, it) }
+                    } else {
+                        setRevocationReason(false, reason.toByte(), "test revocation")
+                    }
+                }.generate(),
+            )
+            val signed = if (reason == null) {
+                PGPPublicKey.addCertification(primary, userId, signer.generateCertification(userId, primary))
+            } else {
+                PGPPublicKey.addCertification(primary, signer.generateCertification(primary))
+            }
+            return PGPPublicKeyRing.insertPublicKey(ring, signed).armored()
+        }
+        RefreshRevocationCertificates(
+            fingerprint = material.fingerprint,
+            original = publicArmor,
+            retired = certification(3),
+            compromised = certification(2),
+            restored = certification(null),
+        )
+    }
 }

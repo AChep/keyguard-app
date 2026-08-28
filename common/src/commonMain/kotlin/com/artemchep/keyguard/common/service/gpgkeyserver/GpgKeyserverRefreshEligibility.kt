@@ -2,8 +2,6 @@ package com.artemchep.keyguard.common.service.gpgkeyserver
 
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
-import com.artemchep.keyguard.common.service.gpgagent.isCanonical
-import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 
 /**
  * Returns the primary GPG fingerprint that a keyserver refresh should target
@@ -43,17 +41,10 @@ internal fun resolveGpgKeyserverRefreshKey(
     }
     val publicKeyArmored = resolveField(key?.publicKeyArmored, GpgAgentFields.PUBLIC_KEY_ARMORED)
         ?: return null
-    val fingerprint = resolveField(key?.fingerprint, GpgAgentFields.FINGERPRINT)
-        ?.normalizeGpgFingerprint()
-        ?.takeIf { it.isNotEmpty() }
-        ?: key?.metadata
-            ?.takeIf { it.isCanonical }
-            ?.certificates
-            ?.firstOrNull { it.primaryFingerprint.isNotBlank() }
-            ?.primaryFingerprint
-            ?.normalizeGpgFingerprint()
-            ?.takeIf { it.isNotEmpty() }
-        ?: return null
+    val fingerprint = resolveGpgKeyserverFingerprint(
+        fingerprint = resolveField(key?.fingerprint, GpgAgentFields.FINGERPRINT),
+        metadata = key?.metadata,
+    ) ?: return null
     return GpgKeyserverRefreshKey(
         publicKeyArmored = publicKeyArmored,
         fingerprint = fingerprint,

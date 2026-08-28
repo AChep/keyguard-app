@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.common.usecase.impl
 
-import com.artemchep.keyguard.common.model.DGpgKeyserverState
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
@@ -12,30 +12,46 @@ import com.artemchep.keyguard.common.service.crypto.canSignAt
 import com.artemchep.keyguard.common.service.crypto.isExpiredAt
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPrivateKeyArmored
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPublicKeyArmored
 import com.artemchep.keyguard.common.service.gpgagent.isUsableAgentKey
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateEvaluator
+import com.artemchep.keyguard.common.service.gpgkeyserver.hasUnbackedRevocationEvidence
+import com.artemchep.keyguard.common.service.gpgkeyserver.indeterminateVerificationStatus
+import com.artemchep.keyguard.common.service.gpgkeyserver.toGpgKeyserverLocalKey
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.parseGpgAgentMetadataOrNull
 import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
+import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.common.util.flowOfTime
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.flow.shareIn
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.time.Clock
+import kotlin.time.DurationUnit
 import kotlin.time.Instant
 
-private const val GPG_KEYS_VERSION = "1"
+private const val GPG_KEYS_VERSION = "2"
 private const val GPG_KEYSERVER_STALE_DAYS = 30L
 private const val SECONDS_IN_DAY = 86_400L
-private const val PARSE_CACHE_MAX_SIZE = 512
 
 class WatchtowerGpgKeyUnusable internal constructor(
     private val policy: GpgWatchtowerPolicy,
@@ -105,41 +121,79 @@ class WatchtowerWeakGpgKey internal constructor(
     }
 }
 
-class WatchtowerGpgKeyPublishing(
-    private val keyserverStateRepository: GpgKeyserverStateRepository,
+class WatchtowerGpgKeyPublishing internal constructor(
+    keyserverStateRepository: GpgKeyserverStateRepository,
+    getCiphers: GetCiphers,
+    evaluator: GpgKeyserverStateEvaluator,
+    scope: CoroutineScope,
+    clock: Clock = Clock.System,
+    dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : WatchtowerClientTyped {
     override val type: Long
         get() = DWatchtowerAlertType.GPG_KEY_PUBLISHING.value
 
     constructor(directDI: DirectDI) : this(
         keyserverStateRepository = directDI.instance(),
+        getCiphers = directDI.instance(),
+        evaluator = GpgKeyserverStateEvaluator(directDI),
+        scope = directDI.instance<WindowCoroutineScope>(),
     )
 
-    override fun version(): Flow<String> = keyserverStateRepository
-        .getAll()
-        .map { states ->
-            val day = Clock.System.now().epochSeconds / SECONDS_IN_DAY
-            val stateVersion = states
-                .sortedWith(compareBy<DGpgKeyserverState> { it.fingerprint }.thenBy { it.cipherId })
-                .joinToString(separator = "|") { state ->
-                    listOf(
-                        state.fingerprint,
-                        state.cipherId.orEmpty(),
-                        state.verificationStatus.code.toString(),
-                        state.lastCheckedAt?.toString().orEmpty(),
-                        state.lastRefreshedAt?.toString().orEmpty(),
-                    ).joinToString(separator = ":")
+    // Resolve with the entire vault, not the current processing batch: a designated
+    // revoker can be a different cipher, including a cipher with private material.
+    // Reassess on relevant data changes and daily for time-dependent policy.
+    private val assessments = combine(
+        keyserverStateRepository.getAll(),
+        getCiphers()
+            .map { ciphers -> ciphers.mapNotNull { it.toGpgKeyserverLocalKey() } }
+            .distinctUntilChanged(),
+        flowOfTime(unit = DurationUnit.DAYS),
+    ) { states, localKeys, _ ->
+        val now = clock.now()
+        val keysByFingerprint = localKeys.groupBy { it.fingerprint }
+        val candidates = localKeys.map { it.publicKeyArmored }.distinct().map(::GpgOpenPgpPublicKey)
+        states.sortedBy { it.fingerprint }.map { state ->
+            currentCoroutineContext().ensureActive()
+            val fingerprint = state.fingerprint.normalizeGpgFingerprint()
+            val status = runCatchingNonFatal {
+                if (state.hasUnbackedRevocationEvidence()) {
+                    return@runCatchingNonFatal GpgKeyserverVerificationStatus.REVOKED
                 }
-            "$GPG_KEYS_VERSION|$day|$stateVersion"
+                val evidence = evaluator.mergeEvidence(
+                    fingerprint = fingerprint,
+                    publicCertificates = buildList {
+                        state.revocationEvidenceArmored?.let(::add)
+                        keysByFingerprint[fingerprint]?.forEach { add(it.publicKeyArmored) }
+                    },
+                )
+                evaluator.evaluate(state, evidence, candidates)
+            }.getOrElse { state.indeterminateVerificationStatus() }
+            GpgKeyPublishingAssessment(
+                fingerprint = fingerprint,
+                cipherId = state.cipherId,
+                issue = gpgKeyPublishingIssue(status, state.lastCheckedAt, now),
+            )
         }
+    }.flowOn(dispatcher)
+        .distinctUntilChanged()
+        .shareIn(
+            scope = scope,
+            started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 0, replayExpirationMillis = 0),
+            replay = 1,
+        )
+
+    override fun version(): Flow<String> = assessments.map { states ->
+        // Only changed outcomes invalidate persisted alerts, not every daily assessment.
+        states.joinToString(separator = "|", prefix = "3|") { state ->
+            listOf(state.fingerprint, state.cipherId.orEmpty(), state.issue.orEmpty())
+                .joinToString(separator = ":")
+        }
+    }
 
     override suspend fun process(
         ciphers: List<DSecret>,
     ): List<WatchtowerClientResult> {
-        val now = Clock.System.now()
-        val states = keyserverStateRepository
-            .getAll()
-            .first()
+        val states = assessments.first()
         val statesByCipherId = states
             .filter { it.cipherId != null }
             .groupBy { it.cipherId.orEmpty() }
@@ -154,7 +208,6 @@ class WatchtowerGpgKeyPublishing(
                     cipher = cipher,
                     statesByCipherId = statesByCipherId,
                     statesByFingerprint = statesByFingerprint,
-                    now = now,
                 )
             }
             WatchtowerClientResult(
@@ -172,20 +225,6 @@ internal class GpgWatchtowerPolicy(
     constructor(directDI: DirectDI) : this(
         parser = directDI.instance(),
     )
-
-    private val cacheMutex = Mutex()
-    private val parseCache = mutableMapOf<String, GpgPublicKeyParseResult>()
-
-    private suspend fun parseCached(
-        publicKeyArmored: String,
-    ): GpgPublicKeyParseResult = cacheMutex.withLock {
-        if (parseCache.size > PARSE_CACHE_MAX_SIZE) {
-            parseCache.clear()
-        }
-        parseCache.getOrPut(publicKeyArmored) {
-            parser.parse(publicKeyArmored)
-        }
-    }
 
     suspend fun assess(
         cipher: DSecret,
@@ -212,7 +251,9 @@ internal class GpgWatchtowerPolicy(
             )
         }
 
-        val keys = when (val result = parseCached(publicKeyArmored)) {
+        // Parsing includes current policy: a restoration signature can become
+        // effective or expire even when the certificate bytes have not changed.
+        val keys = when (val result = parser.parse(publicKeyArmored)) {
             is GpgPublicKeyParseResult.Success -> result.keys
             is GpgPublicKeyParseResult.Error -> {
                 if (result.reason == GpgPublicKeyParseError.Unsupported) {
@@ -384,16 +425,21 @@ private fun gpgWatchtowerDailyVersion(
     emit("$version|$days")
 }
 
+private data class GpgKeyPublishingAssessment(
+    val fingerprint: String,
+    val cipherId: String?,
+    val issue: String?,
+)
+
 private fun gpgKeyPublishingIssue(
     cipher: DSecret,
-    statesByCipherId: Map<String, List<DGpgKeyserverState>>,
-    statesByFingerprint: Map<String, DGpgKeyserverState>,
-    now: Instant,
+    statesByCipherId: Map<String, List<GpgKeyPublishingAssessment>>,
+    statesByFingerprint: Map<String, GpgKeyPublishingAssessment>,
 ): String? {
     if (!cipher.isGpgWatchtowerTarget()) {
         return null
     }
-    val fingerprint = cipher.gpgWatchtowerFingerprint()
+    val fingerprint = cipher.toGpgKeyserverLocalKey()?.fingerprint ?: cipher.gpgWatchtowerFingerprint()
     val state = statesByCipherId[cipher.id]
         ?.firstOrNull { state ->
             fingerprint == null ||
@@ -401,17 +447,21 @@ private fun gpgKeyPublishingIssue(
         }
         ?: fingerprint?.let(statesByFingerprint::get)
         ?: return "unknown"
-    return when (state.verificationStatus) {
-        GpgKeyserverVerificationStatus.REVOKED -> "revoked"
-        GpgKeyserverVerificationStatus.UNKNOWN -> "unknown"
-        GpgKeyserverVerificationStatus.NOT_FOUND -> "not_found"
-        GpgKeyserverVerificationStatus.FOUND_UNVERIFIED -> "unverified"
-        GpgKeyserverVerificationStatus.VERIFIED -> {
-            val lastCheckedAt = state.lastCheckedAt
-                ?: return "stale"
-            val ageSeconds = now.epochSeconds - lastCheckedAt.epochSeconds
-            "stale".takeIf { ageSeconds >= GPG_KEYSERVER_STALE_DAYS * SECONDS_IN_DAY }
-        }
+    return state.issue
+}
+
+private fun gpgKeyPublishingIssue(
+    status: GpgKeyserverVerificationStatus,
+    lastCheckedAt: Instant?,
+    now: Instant,
+): String? = when (status) {
+    GpgKeyserverVerificationStatus.REVOKED -> "revoked"
+    GpgKeyserverVerificationStatus.UNKNOWN -> "unknown"
+    GpgKeyserverVerificationStatus.NOT_FOUND -> "not_found"
+    GpgKeyserverVerificationStatus.FOUND_UNVERIFIED -> "unverified"
+    GpgKeyserverVerificationStatus.VERIFIED -> {
+        val ageSeconds = lastCheckedAt?.let { now.epochSeconds - it.epochSeconds }
+        "stale".takeIf { ageSeconds == null || ageSeconds >= GPG_KEYSERVER_STALE_DAYS * SECONDS_IN_DAY }
     }
 }
 

@@ -19,6 +19,7 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor.GpgAgentOperationResult
+import com.artemchep.keyguard.common.service.gpgagent.GpgRevocationStatus
 import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -310,6 +311,9 @@ class GpgAgentApprovalReuseTest {
                                     evaluatedAtEpochSeconds = 1,
                                     policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
                                     keys = metadata.routableAgentKeys,
+                                    revocations = metadata.routableAgentKeys.associate { key ->
+                                        key.fingerprint to GpgRevocationStatus.NOT_REVOKED
+                                    },
                                 ),
                             )
                         }

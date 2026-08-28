@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.GpgAgentFilter
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnapshot
+import com.artemchep.keyguard.common.service.gpgagent.GpgRevocationStatus
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyInfoRow
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
@@ -205,6 +206,9 @@ class GpgPublicKeySyncerImplTest {
                         evaluatedAtEpochSeconds = 1,
                         policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
                         keys = metadata.routableAgentKeys,
+                        revocations = metadata.routableAgentKeys.associate { key ->
+                            key.fingerprint to GpgRevocationStatus.NOT_REVOKED
+                        },
                     ),
                 )
             }

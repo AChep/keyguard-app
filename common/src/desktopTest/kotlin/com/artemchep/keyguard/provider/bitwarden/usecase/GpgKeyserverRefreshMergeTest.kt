@@ -2,12 +2,17 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.DGpgKeyserverResult
+import com.artemchep.keyguard.common.model.DGpgKeyserverState
+import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.GpgKeyConfig
+import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
+import com.artemchep.keyguard.common.model.RefreshGpgPublicKeysRequest
 import com.artemchep.keyguard.common.model.RefreshGpgPublicKeysResult
 import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconcileResult
 import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
 import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialWithheldReason
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.crypto.NativeGpgCertificateMaterialReconciler
 import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
@@ -16,6 +21,7 @@ import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
 import com.artemchep.keyguard.crypto.armored
 import com.artemchep.keyguard.crypto.gpgBouncyCastleProvider
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.bouncycastle.bcpg.HashAlgorithmTags
 import org.bouncycastle.openpgp.PGPPublicKey
@@ -30,11 +36,159 @@ import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class GpgKeyserverRefreshMergeTest {
+    @Test
+    fun `refresh preserves verified publication through revocation and restoration on the same server`() = runTest {
+        val certificates = refreshRevocationCertificates()
+        for (sameServer in listOf(true, false)) {
+            GpgKeyserverRefreshTestFixture(
+                initial = listOf(refreshTestCipher(publicKey = certificates.original, fingerprint = certificates.fingerprint)),
+            ).use { fixture ->
+                fixture.stateRepository.put(
+                    DGpgKeyserverState(
+                        fingerprint = certificates.fingerprint,
+                        cipherId = REFRESH_CIPHER_ID,
+                        verificationStatus = GpgKeyserverVerificationStatus.VERIFIED,
+                        publicationStatus = GpgKeyserverVerificationStatus.VERIFIED,
+                        sourceKeyserver = if (sameServer) GpgKeyserverConfig().url else "https://other.example.test",
+                    ),
+                ).bind()
+                fixture.lookup = { DGpgKeyserverResult(it, publicKeyArmored = certificates.retired) }
+                fixture.useCase(fixture.request).bind()
+                val retired = assertNotNull(fixture.stateRepository.getByFingerprint(certificates.fingerprint).first())
+                val publication = if (sameServer) GpgKeyserverVerificationStatus.VERIFIED else GpgKeyserverVerificationStatus.FOUND_UNVERIFIED
+                assertEquals(publication, retired.publicationStatus)
+                assertEquals(GpgKeyserverVerificationStatus.REVOKED, retired.verificationStatus)
+
+                fixture.lookup = { DGpgKeyserverResult(it, publicKeyArmored = certificates.restored) }
+                fixture.useCase(fixture.request).bind()
+                val restored = assertNotNull(fixture.stateRepository.getByFingerprint(certificates.fingerprint).first())
+                assertEquals(publication, restored.publicationStatus)
+                assertEquals(publication, restored.verificationStatus)
+            }
+        }
+    }
+
+    @Test
+    fun `signed restoration clears a backed retirement while retaining all evidence`() = runTest {
+        val certificates = refreshRevocationCertificates()
+        GpgKeyserverRefreshTestFixture(
+            initial = listOf(refreshTestCipher(publicKey = certificates.original, fingerprint = certificates.fingerprint)),
+        ).use { fixture ->
+            fixture.lookup = { DGpgKeyserverResult(it, publicKeyArmored = certificates.retired) }
+            assertEquals(RefreshGpgPublicKeysResult(1, 0, 0), fixture.useCase(fixture.request).bind())
+            val retired = assertNotNull(fixture.stateRepository.getByFingerprint(certificates.fingerprint).first())
+            assertEquals(GpgKeyserverVerificationStatus.REVOKED, retired.verificationStatus)
+            assertFalse(retired.hasUnbackedRevocation)
+
+            fixture.lookup = { DGpgKeyserverResult(it, publicKeyArmored = certificates.restored) }
+            assertEquals(RefreshGpgPublicKeysResult(1, 0, 0), fixture.useCase(fixture.request).bind())
+            val restored = assertNotNull(fixture.stateRepository.getByFingerprint(certificates.fingerprint).first())
+            assertEquals(GpgKeyserverVerificationStatus.FOUND_UNVERIFIED, restored.verificationStatus)
+            val evidence = ring(assertNotNull(restored.revocationEvidenceArmored))
+            assertTrue(evidence.publicKey.getSignaturesOfType(PGPSignature.KEY_REVOCATION).hasNext())
+
+            // Neither an edited vault row nor a stale server response may drop the anchor.
+            fixture.update { refreshTestCipher(publicKey = certificates.original, fingerprint = certificates.fingerprint) }
+            fixture.lookup = { DGpgKeyserverResult(it, publicKeyArmored = certificates.original) }
+            assertEquals(RefreshGpgPublicKeysResult(1, 0, 0), fixture.useCase(fixture.request).bind())
+            val stale = assertNotNull(fixture.stateRepository.getByFingerprint(certificates.fingerprint).first())
+            assertEquals(GpgKeyserverVerificationStatus.FOUND_UNVERIFIED, stale.verificationStatus)
+            assertEquals(restored.revocationEvidenceArmored, stale.revocationEvidenceArmored)
+        }
+    }
+
+    @Test
+    fun `a hard revocation in another local copy applies to the shared fingerprint`() = runTest {
+        val certificates = refreshRevocationCertificates()
+        GpgKeyserverRefreshTestFixture(
+            initial = listOf(
+                refreshTestCipher(publicKey = certificates.original, fingerprint = certificates.fingerprint),
+                refreshTestCipher(id = "other-copy", publicKey = certificates.compromised, fingerprint = certificates.fingerprint),
+            ),
+        ).use { fixture ->
+            fixture.lookup = { DGpgKeyserverResult(it, publicKeyArmored = certificates.restored) }
+            val request = RefreshGpgPublicKeysRequest(setOf(REFRESH_CIPHER_ID))
+
+            assertEquals(RefreshGpgPublicKeysResult(1, 0, 0), fixture.useCase(request).bind())
+            val state = assertNotNull(fixture.stateRepository.getByFingerprint(certificates.fingerprint).first())
+            assertEquals(GpgKeyserverVerificationStatus.REVOKED, state.verificationStatus)
+            assertFalse(state.hasUnbackedRevocation)
+
+            fixture.database.cipherQueries.deleteByCipherId("other-copy")
+            assertEquals(RefreshGpgPublicKeysResult(1, 0, 0), fixture.useCase(request).bind())
+            assertEquals(
+                GpgKeyserverVerificationStatus.REVOKED,
+                fixture.stateRepository.getByFingerprint(certificates.fingerprint).first()?.verificationStatus,
+            )
+        }
+    }
+
+    @Test
+    fun `blank typed fields do not hide an unselected legacy copy of a hard revocation`() = runTest {
+        val certificates = refreshRevocationCertificates()
+        val duplicate = refreshTestCipher(id = "legacy-copy", publicKey = certificates.compromised, fingerprint = certificates.fingerprint)
+        for ((blankPublic, blankFingerprint) in listOf("" to "", " \n\t" to " \n\t", " \n\t" to "::")) {
+            val legacy = duplicate.copy(
+                gpgKey = duplicate.gpgKey?.copy(publicKeyArmored = blankPublic, fingerprint = blankFingerprint),
+                fields = listOf(
+                    BitwardenCipher.Field(
+                        name = GpgAgentFields.PUBLIC_KEY_ARMORED,
+                        value = certificates.compromised,
+                        type = BitwardenCipher.Field.Type.Hidden,
+                    ),
+                    BitwardenCipher.Field(
+                        name = GpgAgentFields.FINGERPRINT,
+                        value = certificates.fingerprint,
+                        type = BitwardenCipher.Field.Type.Text,
+                    ),
+                ),
+            )
+            GpgKeyserverRefreshTestFixture(
+                initial = listOf(
+                    refreshTestCipher(publicKey = certificates.original, fingerprint = certificates.fingerprint),
+                    legacy,
+                ),
+            ).use { fixture ->
+                fixture.lookup = { DGpgKeyserverResult(it, publicKeyArmored = certificates.restored) }
+
+                assertEquals(
+                    RefreshGpgPublicKeysResult(1, 0, 0),
+                    fixture.useCase(RefreshGpgPublicKeysRequest(setOf(REFRESH_CIPHER_ID))).bind(),
+                )
+                assertEquals(
+                    GpgKeyserverVerificationStatus.REVOKED,
+                    fixture.stateRepository.getByFingerprint(certificates.fingerprint).first()?.verificationStatus,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `an edit after saving a refresh cannot erase the accepted revocation evidence`() = runTest {
+        val certificates = refreshRevocationCertificates()
+        GpgKeyserverRefreshTestFixture(
+            initial = listOf(refreshTestCipher(publicKey = certificates.compromised, fingerprint = certificates.fingerprint)),
+        ).use { fixture ->
+            fixture.lookup = { DGpgKeyserverResult(it, publicKeyArmored = certificates.restored) }
+            fixture.afterCipherWrite = {
+                fixture.update { refreshTestCipher(publicKey = certificates.original, fingerprint = certificates.fingerprint) }
+            }
+
+            assertEquals(RefreshGpgPublicKeysResult(1, 0, 0), fixture.useCase(fixture.request).bind())
+            assertEquals(certificates.original, fixture.row().data_.gpgKey?.publicKeyArmored)
+            assertEquals(
+                GpgKeyserverVerificationStatus.REVOKED,
+                fixture.stateRepository.getByFingerprint(certificates.fingerprint).first()?.verificationStatus,
+            )
+        }
+    }
+
     @Test
     fun `a partial server certificate cannot discard the local subkey`() {
         val stored = refreshTestCipher().gpgKey!!

@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
+import com.artemchep.keyguard.common.service.gpgagent.GpgRevocationStatus
 import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.test.gpgCanonicalMetadata
@@ -91,6 +92,7 @@ class GpgKeyMetadataResolutionTest {
 
         assertFalse(encoded.contains("authorization"))
         assertFalse(encoded.contains("evaluatedAtEpochSeconds"))
+        assertFalse(encoded.contains("revocations"))
         assertEquals(CANONICAL_METADATA.certificates, decoded.certificates)
         assertEquals(listOf(POLICY_KEY), decoded.routableAgentKeys)
     }
@@ -203,8 +205,9 @@ class GpgKeyMetadataResolutionTest {
             metadata = CANONICAL_METADATA,
             authorization = GpgAgentAuthorizationSnapshot(
                 evaluatedAtEpochSeconds = 1,
-                policyRevision = 1,
+                policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
                 keys = listOf(POLICY_KEY),
+                revocations = mapOf(FINGERPRINT to GpgRevocationStatus.NOT_REVOKED),
             ),
         )
     }

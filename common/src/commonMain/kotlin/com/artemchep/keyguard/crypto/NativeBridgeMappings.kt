@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentLegacyDesignatedRe
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
 import com.artemchep.keyguard.common.service.gpgagent.GpgRenewalAuthorization
+import com.artemchep.keyguard.common.service.gpgagent.GpgRevocationStatus
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpAgentOperation
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpCertificateIndex
@@ -20,6 +21,7 @@ import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyMaterial
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpMetadataResolution
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpPolicyUse
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpRenewalAuthorization
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpRevocationStatus
 import com.artemchep.keyguard.nativecrypto.NativeSshKeyType
 
 internal fun NativeOpenPgpMetadataResolution.toDomain(): GpgAgentMetadataResolution {
@@ -36,15 +38,18 @@ internal fun NativeOpenPgpMetadataResolution.toDomain(): GpgAgentMetadataResolut
             val policy = certificate.policy.firstOrNull { policy ->
                 policy.fingerprint == component.fingerprint
             } ?: return@mapNotNull null
+            val canAuthorize =
+                policyRevision == GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION &&
+                    policy.revocationStatus == NativeOpenPgpRevocationStatus.NOT_REVOKED
             val capabilities = buildSet {
                 if (
-                    NativeOpenPgpAgentOperation.SIGN in component.agentOperations &&
+                    canAuthorize && NativeOpenPgpAgentOperation.SIGN in component.agentOperations &&
                     NativeOpenPgpPolicyUse.SIGN_NEW_DATA in policy.allowedNewDataUses
                 ) {
                     add("sign")
                 }
                 if (
-                    NativeOpenPgpAgentOperation.DECRYPT in component.agentOperations &&
+                    canAuthorize && NativeOpenPgpAgentOperation.DECRYPT in component.agentOperations &&
                     NativeOpenPgpPolicyUse.ENCRYPT_NEW_DATA in
                     policy.allowedNewDataUses
                 ) {
@@ -71,8 +76,32 @@ internal fun NativeOpenPgpMetadataResolution.toDomain(): GpgAgentMetadataResolut
                 .asSequence()
                 .flatMap { certificate -> certificate.policy.asSequence() }
                 .associate { policy ->
-                    policy.fingerprint.normalizeGpgFingerprint() to policy.renewal.toDomain()
+                    val renewal = if (
+                        policyRevision == GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION &&
+                        policy.revocationStatus == NativeOpenPgpRevocationStatus.NOT_REVOKED
+                    ) {
+                        policy.renewal.toDomain()
+                    } else {
+                        GpgRenewalAuthorization.NONE
+                    }
+                    policy.fingerprint.normalizeGpgFingerprint() to renewal
                 },
+            revocations = certificates
+                .asSequence()
+                .flatMap { certificate ->
+                    certificate.index.components.asSequence().map { component ->
+                        val policy = certificate.policy.firstOrNull { policy ->
+                            policy.fingerprint == component.fingerprint
+                        }
+                        val status = if (policyRevision == GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION) {
+                            policy?.revocationStatus?.toDomain() ?: GpgRevocationStatus.INDETERMINATE
+                        } else {
+                            GpgRevocationStatus.INDETERMINATE
+                        }
+                        component.fingerprint.normalizeGpgFingerprint() to status
+                    }
+                }
+                .toMap(),
         ),
     )
 }
@@ -145,6 +174,12 @@ internal fun NativeOpenPgpRenewalAuthorization.toDomain(): GpgRenewalAuthorizati
     NativeOpenPgpRenewalAuthorization.AUTHENTICATED -> GpgRenewalAuthorization.AUTHENTICATED
     NativeOpenPgpRenewalAuthorization.TEMPLATE_ONLY -> GpgRenewalAuthorization.TEMPLATE_ONLY
     NativeOpenPgpRenewalAuthorization.NONE -> GpgRenewalAuthorization.NONE
+}
+
+internal fun NativeOpenPgpRevocationStatus.toDomain(): GpgRevocationStatus = when (this) {
+    NativeOpenPgpRevocationStatus.NOT_REVOKED -> GpgRevocationStatus.NOT_REVOKED
+    NativeOpenPgpRevocationStatus.REVOKED -> GpgRevocationStatus.REVOKED
+    NativeOpenPgpRevocationStatus.INDETERMINATE -> GpgRevocationStatus.INDETERMINATE
 }
 
 internal fun NativeSshKeyType.toDomain(): KeyPair.Type = when (this) {

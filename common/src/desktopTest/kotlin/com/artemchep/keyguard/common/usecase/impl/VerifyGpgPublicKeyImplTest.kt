@@ -15,18 +15,26 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverLocalKey
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverConfig
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.crypto.GPG_TEST_CV25519_PRIMARY_FINGERPRINT
+import com.artemchep.keyguard.crypto.GPG_TEST_CV25519_PUBLIC_KEY
+import com.artemchep.keyguard.crypto.NativeGpgCertificateMaterialReconciler
+import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
+import com.artemchep.keyguard.provider.bitwarden.usecase.refreshRevocationCertificates
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 class VerifyGpgPublicKeyImplTest {
@@ -38,6 +46,7 @@ class VerifyGpgPublicKeyImplTest {
                     DGpgKeyserverResult(
                         fingerprint = primaryFingerprint.lowercase(),
                         emails = listOf("alice@example.com"),
+                        publicKeyArmored = GPG_TEST_CV25519_PUBLIC_KEY,
                         sourceKeyserver = GpgKeyserverConfig.DEFAULT_URL,
                     ),
                 ),
@@ -100,6 +109,7 @@ class VerifyGpgPublicKeyImplTest {
             byFingerprint = mapOf(
                 primaryFingerprint to DGpgKeyserverResult(
                     fingerprint = primaryFingerprint,
+                    publicKeyArmored = GPG_TEST_CV25519_PUBLIC_KEY,
                     sourceKeyserver = "https://keyserver.ubuntu.com",
                 ),
             ),
@@ -143,6 +153,115 @@ class VerifyGpgPublicKeyImplTest {
     }
 
     @Test
+    fun `verification retains local revocation evidence observed before a concurrent edit`() = runTest {
+        val certificates = refreshRevocationCertificates()
+        val repository = FakeGpgKeyserverStateRepository()
+        val client = FakeKeyserverClient(
+            byFingerprint = mapOf(
+                certificates.fingerprint to DGpgKeyserverResult(
+                    certificates.fingerprint,
+                    publicKeyArmored = certificates.restored,
+                ),
+            ),
+        )
+        val useCase = createUseCase(
+            ciphers = listOf(createGpgSecret(certificates.fingerprint, certificates.compromised)),
+            client = client,
+            repository = repository,
+            parser = FakeParser(keyInfo(certificates.fingerprint, emptyList())),
+        )
+        client.beforeFingerprintLookup = { repository.localKeys = emptyList() }
+
+        val result = useCase(VerifyGpgPublicKeyRequest(cipherId, accountId)).bind()
+
+        assertEquals(GpgKeyserverVerificationStatus.REVOKED, result.overall)
+        val state = assertNotNull(repository.saved[certificates.fingerprint])
+        assertNotNull(state.revocationEvidenceArmored)
+        assertNull(state.cipherId)
+    }
+
+    @Test
+    fun `an index email match fetches signed evidence and ignores its revoked flag`() = runTest {
+        val client = FakeKeyserverClient(
+            byEmail = mapOf(
+                "alice@example.com" to listOf(DGpgKeyserverResult(primaryFingerprint, revoked = true)),
+            ),
+            byFingerprint = mapOf(
+                primaryFingerprint to DGpgKeyserverResult(
+                    primaryFingerprint,
+                    publicKeyArmored = GPG_TEST_CV25519_PUBLIC_KEY,
+                ),
+            ),
+        )
+        val repository = FakeGpgKeyserverStateRepository()
+        val useCase = createUseCase(
+            ciphers = listOf(createGpgSecret()),
+            client = client,
+            repository = repository,
+            parser = FakeParser(keyInfo(primaryFingerprint, listOf("alice@example.com"))),
+        )
+
+        val result = useCase(VerifyGpgPublicKeyRequest(cipherId, accountId)).bind()
+
+        assertEquals(listOf(primaryFingerprint), client.byFingerprintCalls)
+        assertEquals(GpgKeyserverVerificationStatus.VERIFIED, result.overall)
+        assertNotNull(repository.saved[primaryFingerprint]?.revocationEvidenceArmored)
+    }
+
+    @Test
+    fun `an index match without a retrievable certificate cannot overwrite saved state`() = runTest {
+        val initial = DGpgKeyserverState(
+            fingerprint = primaryFingerprint,
+            verificationStatus = GpgKeyserverVerificationStatus.REVOKED,
+        )
+        val repository = FakeGpgKeyserverStateRepository(initial)
+        val useCase = createUseCase(
+            ciphers = listOf(createGpgSecret()),
+            client = FakeKeyserverClient(
+                byEmail = mapOf("alice@example.com" to listOf(DGpgKeyserverResult(primaryFingerprint))),
+            ),
+            repository = repository,
+            parser = FakeParser(keyInfo(primaryFingerprint, listOf("alice@example.com"))),
+        )
+
+        assertFailsWith<IllegalStateException> {
+            useCase(VerifyGpgPublicKeyRequest(cipherId, accountId)).bind()
+        }
+        assertEquals(initial, repository.saved[primaryFingerprint])
+    }
+
+    @Test
+    fun `a legacy revocation stays opaque after later evidence is retained`() = runTest {
+        val repository = FakeGpgKeyserverStateRepository(
+            DGpgKeyserverState(
+                fingerprint = primaryFingerprint,
+                verificationStatus = GpgKeyserverVerificationStatus.REVOKED,
+            ),
+        )
+        val useCase = createUseCase(
+            ciphers = listOf(createGpgSecret()),
+            client = FakeKeyserverClient(
+                byEmail = mapOf(
+                    "alice@example.com" to listOf(
+                        DGpgKeyserverResult(primaryFingerprint, publicKeyArmored = GPG_TEST_CV25519_PUBLIC_KEY),
+                    ),
+                ),
+            ),
+            repository = repository,
+            parser = FakeParser(keyInfo(primaryFingerprint, listOf("alice@example.com"))),
+        )
+
+        repeat(2) {
+            val result = useCase(VerifyGpgPublicKeyRequest(cipherId, accountId)).bind()
+            assertEquals(GpgKeyserverVerificationStatus.REVOKED, result.overall)
+            assertEquals(GpgKeyserverVerificationStatus.REVOKED, result.perEmail["alice@example.com"])
+            val state = assertNotNull(repository.saved[primaryFingerprint])
+            assertTrue(state.hasUnbackedRevocation)
+            assertNotNull(state.revocationEvidenceArmored)
+        }
+    }
+
+    @Test
     fun `email verification matches normalized fingerprint`() {
         val status = gpgKeyserverEmailVerificationStatus(
             fingerprint = primaryFingerprint.lowercase(),
@@ -158,7 +277,7 @@ class VerifyGpgPublicKeyImplTest {
     }
 
     @Test
-    fun `email verification reports revoked matching fingerprint`() {
+    fun `email verification ignores unsigned server revocation flags`() {
         val status = gpgKeyserverEmailVerificationStatus(
             fingerprint = primaryFingerprint,
             results = listOf(
@@ -170,7 +289,7 @@ class VerifyGpgPublicKeyImplTest {
             ),
         )
 
-        assertEquals(GpgKeyserverVerificationStatus.REVOKED, status)
+        assertEquals(GpgKeyserverVerificationStatus.VERIFIED, status)
     }
 
     @Test
@@ -224,7 +343,7 @@ class VerifyGpgPublicKeyImplTest {
     }
 
     companion object {
-        const val primaryFingerprint = "ABCDEF0123456789ABCDEF0123456789ABCDEF01"
+        const val primaryFingerprint = GPG_TEST_CV25519_PRIMARY_FINGERPRINT
         const val otherFingerprint = "0123456789ABCDEF0123456789ABCDEF01234567"
         const val cipherId = "cipher-id"
         const val accountId = "account-id"
@@ -237,7 +356,7 @@ private fun createUseCase(
     ciphers: List<DSecret>,
     config: GpgKeyserverConfig = GpgKeyserverConfig(),
     client: GpgKeyserverClient,
-    repository: GpgKeyserverStateRepository,
+    repository: FakeGpgKeyserverStateRepository,
     parser: GpgPublicKeyParser,
 ) = VerifyGpgPublicKeyImpl(
     getCiphers = object : GetCiphers {
@@ -247,12 +366,23 @@ private fun createUseCase(
         override fun invoke(): Flow<GpgKeyserverConfig> = flowOf(config)
     },
     keyserverClient = client,
-    keyserverStateRepository = repository,
+    keyserverStateRepository = repository.apply {
+        localKeys = ciphers.map { cipher ->
+            GpgKeyserverLocalKey(
+                cipherId = cipher.id,
+                fingerprint = cipher.fields.first { it.name == GpgAgentFields.FINGERPRINT }.value,
+                publicKeyArmored = cipher.fields.first { it.name == GpgAgentFields.PUBLIC_KEY_ARMORED }.value!!,
+            )
+        }
+    },
     parser = parser,
+    metadataResolver = NativeGpgKeyMetadataResolver,
+    reconciler = NativeGpgCertificateMaterialReconciler,
 )
 
 private fun createGpgSecret(
     fingerprint: String = VerifyGpgPublicKeyImplTest.primaryFingerprint,
+    publicKey: String = GPG_TEST_CV25519_PUBLIC_KEY,
 ) = DSecret(
     id = VerifyGpgPublicKeyImplTest.cipherId,
     accountId = VerifyGpgPublicKeyImplTest.accountId,
@@ -272,7 +402,7 @@ private fun createGpgSecret(
     fields = listOf(
         DSecret.Field(
             name = GpgAgentFields.PUBLIC_KEY_ARMORED,
-            value = "-----BEGIN PGP PUBLIC KEY BLOCK-----",
+            value = publicKey,
             type = DSecret.Field.Type.Hidden,
         ),
         DSecret.Field(
@@ -300,6 +430,7 @@ private class FakeKeyserverClient(
 ) : GpgKeyserverClient {
     val byEmailCalls = mutableListOf<String>()
     val byFingerprintCalls = mutableListOf<String>()
+    var beforeFingerprintLookup: () -> Unit = {}
 
     override fun search(
         request: SearchGpgPublicKeyRequest,
@@ -319,6 +450,7 @@ private class FakeKeyserverClient(
     ): IO<DGpgKeyserverResult?> = ioEffect {
         val normalized = fingerprint.normalizeGpgFingerprint()
         byFingerprintCalls += normalized
+        beforeFingerprintLookup()
         byFingerprint[normalized]
     }
 
@@ -341,6 +473,7 @@ private class FakeKeyserverClient(
 private class FakeGpgKeyserverStateRepository(
     vararg initial: DGpgKeyserverState,
 ) : GpgKeyserverStateRepository {
+    var localKeys: List<GpgKeyserverLocalKey> = emptyList()
     val saved = initial.associateBy { it.fingerprint.normalizeGpgFingerprint() }
         .toMutableMap()
 
@@ -363,6 +496,14 @@ private class FakeGpgKeyserverStateRepository(
         saved[model.fingerprint.normalizeGpgFingerprint()] = model.copy(
             fingerprint = model.fingerprint.normalizeGpgFingerprint(),
         )
+    }
+
+    override fun update(
+        fingerprint: String,
+        transform: (DGpgKeyserverState?, List<GpgKeyserverLocalKey>) -> DGpgKeyserverState,
+    ): IO<DGpgKeyserverState> = ioEffect {
+        val normalized = fingerprint.normalizeGpgFingerprint()
+        transform(saved[normalized], localKeys).also { saved[normalized] = it }
     }
 
     override fun removeByFingerprint(

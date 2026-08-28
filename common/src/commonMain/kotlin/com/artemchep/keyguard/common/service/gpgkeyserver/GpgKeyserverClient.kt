@@ -28,6 +28,10 @@ interface GpgKeyserverClient {
         config: GpgKeyserverConfig,
     ): Boolean
 
+    /**
+     * Returns `null` only when the keyserver reports that the certificate is absent.
+     * Invalid, unsupported, or mismatched responses fail the returned [IO].
+     */
     fun getByFingerprint(
         fingerprint: String,
         config: GpgKeyserverConfig,

@@ -111,7 +111,7 @@ internal class GpgKeyserverRefreshTestFixture(
     val lastRefreshes = mutableListOf<Instant?>()
     val lookups = mutableListOf<String>()
     var beforeLookup: () -> Unit = {}
-    var lookup: (String) -> DGpgKeyserverResult? = { fingerprint ->
+    var lookup: suspend (String) -> DGpgKeyserverResult? = { fingerprint ->
         DGpgKeyserverResult(fingerprint = fingerprint, publicKeyArmored = REFRESH_PUBLIC_KEY)
     }
     var canWrite = true

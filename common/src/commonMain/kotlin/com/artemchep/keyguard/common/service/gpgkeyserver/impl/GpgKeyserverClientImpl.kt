@@ -124,7 +124,7 @@ class GpgKeyserverClientImpl(
             throw IllegalArgumentException("The GPG key fingerprint is empty.")
         }
 
-        when (config.protocol) {
+        val results = when (config.protocol) {
             GpgKeyserverConfig.Protocol.VKS -> searchVks(
                 query = normalizedFingerprint,
                 mode = SearchGpgPublicKeyRequest.Mode.FINGERPRINT,
@@ -136,7 +136,13 @@ class GpgKeyserverClientImpl(
                 config = config,
             )
         }
-            .firstOrNull { it.fingerprint.normalizeGpgFingerprint() == normalizedFingerprint }
+        val match = results.firstOrNull {
+            it.fingerprint.normalizeGpgFingerprint() == normalizedFingerprint
+        }
+        check(match != null || results.isEmpty()) {
+            "Keyserver returned a public key with an unexpected fingerprint."
+        }
+        match
     }
 
     override fun canServeSearch(
@@ -381,13 +387,22 @@ class GpgKeyserverClientImpl(
     ): List<DGpgKeyserverResult> =
         when (val result = parser.parse(armored)) {
             is GpgPublicKeyParseResult.Success -> result.keys
+                .ifEmpty {
+                    throw IllegalStateException("Keyserver returned no OpenPGP public key data.")
+                }
                 .map { key ->
                     key.toResult(sourceConfig)
                 }
 
             is GpgPublicKeyParseResult.Error -> when (result.reason) {
-                GpgPublicKeyParseError.Empty -> emptyList()
-                GpgPublicKeyParseError.UnsupportedKeyVersion -> emptyList()
+                GpgPublicKeyParseError.Empty -> throw IllegalStateException(
+                    "Keyserver returned no OpenPGP public key data.",
+                )
+
+                GpgPublicKeyParseError.UnsupportedKeyVersion -> throw IllegalStateException(
+                    "Keyserver returned an unsupported OpenPGP public key version.",
+                )
+
                 GpgPublicKeyParseError.Malformed -> throw IllegalStateException(
                     "Keyserver returned malformed OpenPGP public key data.",
                 )

@@ -101,6 +101,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApp
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentDisplayKeyNamesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentLocalStorageInfoProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingBrowserAgentProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentFiltersProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentHistoryProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentSetupProvider
@@ -225,6 +226,7 @@ object Setting {
     const val CONNECTED_APPS = "connected_apps"
     const val SSH_SETTINGS = "ssh_settings"
     const val SSH_AGENT = "ssh_agent"
+    const val BROWSER_AGENT = "browser_agent"
     const val SSH_AGENT_APPROVAL_WINDOW = "ssh_agent_approval_window"
     const val SSH_AGENT_APPROVAL_CACHE_POLICY = "ssh_agent_approval_cache_policy"
     const val SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent_display_key_names"
@@ -355,6 +357,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.CONNECTED_APPS to ::settingConnectedAppsProvider,
     Setting.SSH_SETTINGS to ::settingSshSettingsProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,
+    Setting.BROWSER_AGENT to ::settingBrowserAgentProvider,
     Setting.SSH_AGENT_APPROVAL_WINDOW to ::settingSshAgentApprovalWindowProvider,
     Setting.SSH_AGENT_APPROVAL_CACHE_POLICY to ::settingSshAgentApprovalCachePolicyProvider,
     Setting.SSH_AGENT_DISPLAY_KEY_NAMES to ::settingSshAgentDisplayKeyNamesProvider,

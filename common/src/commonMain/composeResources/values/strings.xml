@@ -1833,6 +1833,14 @@
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Allow two panel layout in landscape mode</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">Allow two panel layout in portrait mode</string>
     <string name="pref_item_gpg_agent_title">GPG agent</string>
+    <string name="pref_item_browser_agent_title">Browser autofill agent</string>
+    <string name="pref_item_browser_agent_text">Bridge the Keyguard browser extension to the desktop vault for autofill</string>
+    <string name="pref_item_browser_agent_status_ready">Running</string>
+    <string name="pref_item_browser_agent_status_stopped">Stopped</string>
+    <string name="pref_item_browser_agent_status_unsupported">Binary not found</string>
+    <string name="pref_item_browser_agent_status_starting">Starting\u2026</string>
+    <string name="pref_item_browser_agent_status_failed">Failed to start</string>
+    <string name="pref_item_browser_agent_pairing_code">Pairing code: %s</string>
     <string name="pref_item_gpg_agent_setup_title">GPG client setup</string>
     <string name="pref_item_gpg_agent_status_ready">Ready</string>
     <string name="pref_item_gpg_agent_status_starting">Starting</string>

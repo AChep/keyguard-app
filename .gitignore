@@ -83,3 +83,15 @@ fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
 fastlane/readme.md
+
+# Build artifacts (packaged extension / app images)
+/dist/
+
+# Browser extension — generated manifests (switch-browser.sh)
+extension/manifest.json
+extension/manifest.json.bak
+
+# Safari — Xcode build artifacts
+safari/build/
+safari/*/build/
+safari/*.xcuserstate

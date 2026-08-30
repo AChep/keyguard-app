@@ -90,3 +90,8 @@ fastlane/readme.md
 # Browser extension — generated manifests (switch-browser.sh)
 extension/manifest.json
 extension/manifest.json.bak
+
+# Safari — Xcode build artifacts
+safari/build/
+safari/*/build/
+safari/*.xcuserstate

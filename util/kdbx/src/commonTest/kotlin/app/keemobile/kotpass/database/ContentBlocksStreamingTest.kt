@@ -42,6 +42,39 @@ class ContentBlocksStreamingTest {
     }
 
     @Test
+    fun v3IgnoresDataAfterValidatedTerminalBlock() {
+        val content = testContent(257)
+        val encoded = Buffer()
+        val sink = ContentBlocks.ver3Sink(encoded)
+        writeChunked(sink, content)
+        sink.finish()
+        encoded.write(testContent(129))
+
+        val decoded = readChunked(ContentBlocks.ver3Source(encoded))
+
+        assertContentEquals(content, decoded)
+    }
+
+    @Test
+    fun v4IgnoresDataAfterValidatedTerminalBlock() {
+        val masterSeed = ByteArray(32) { it.toByte() }
+        val transformedKey = ByteArray(32) { (it * 3).toByte() }
+        val content = testContent(257)
+        val encoded = Buffer()
+        val sink = ContentBlocks.ver4Sink(encoded, masterSeed, transformedKey)
+        writeChunked(sink, content)
+        sink.finish()
+        encoded.write(testContent(129))
+
+        val decoded =
+            readChunked(
+                ContentBlocks.ver4Source(encoded, masterSeed, transformedKey),
+            )
+
+        assertContentEquals(content, decoded)
+    }
+
+    @Test
     fun rejectsNegativeAndOversizedBlockLengthsBeforeAllocation() {
         val negativeV3 =
             Buffer()

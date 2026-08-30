@@ -62,6 +62,11 @@ sealed interface RouteDescriptor {
         val itemId: String,
     ) : RouteDescriptor
 
+    // Intentionally carries no password, attempt, or result data.
+    @Serializable
+    @SerialName("vault.cipher.password_memory")
+    data object PasswordMemory : RouteDescriptor
+
     @Serializable
     @SerialName("generator")
     data class Generator(

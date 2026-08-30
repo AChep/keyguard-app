@@ -8,6 +8,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.ServerEntitySnapsh
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.ServerItemMeta
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncDiffer
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.strategy.EntitySyncStrategy
+import kotlin.time.Instant
 
 /**
  * Builds an [EntitySyncPlan] by taking snapshots of local and server
@@ -17,6 +18,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.strategy.EntitySyncStra
  */
 class EntitySyncPlanBuilder<Local : BitwardenService.Has<Local>, Server : Any>(
     private val strategy: EntitySyncStrategy<Local, Server>,
+    private val dateNormalizer: (Instant) -> Long = SyncDiffer::roundToDeciseconds,
 ) {
     fun buildLocalSnapshot(entities: List<Local>): LocalEntitySnapshot<Local> {
         val metadata = ArrayList<LocalItemMeta>(entities.size)
@@ -56,6 +58,7 @@ class EntitySyncPlanBuilder<Local : BitwardenService.Has<Local>, Server : Any>(
             SyncDiffer.diffResult(
                 localItems = localSnapshot.metadata,
                 serverItems = serverSnapshot.metadata,
+                dateNormalizer = dateNormalizer,
             )
         return EntitySyncPlan(
             actions = diff.actions,

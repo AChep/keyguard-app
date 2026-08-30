@@ -10,10 +10,20 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">名前</string>
     <string name="description">Description</string>
+    <string name="result">結果</string>
+    <!-- Text input -->
+    <string name="input">入力</string>
+    <!-- Text output -->
+    <string name="output">出力</string>
+    <string name="run_action">実行</string>
     <string name="account_name">アカウント名</string>
     <string name="database_name">Database name</string>
     <string name="enabled">有効</string>
     <string name="disabled">無効</string>
+    <string name="sign">署名</string>
+    <string name="encrypt">暗号化</string>
+    <string name="verify">検証</string>
+    <string name="decrypt">復号</string>
     <string name="wordlist">ワードリスト</string>
     <string name="username">ユーザー名</string>
     <string name="password">パスワード</string>
@@ -23,6 +33,7 @@
     <string name="no_password">パスワードなし</string>
     <string name="advanced_options">Advanced</string>
     <string name="file">File</string>
+    <string name="choose_file">ファイルを選択</string>
     <string name="file_name_placeholder">File name</string>
     <string name="file_status_pending_upload">Pending upload</string>
     <string name="file_status_auto_resume">Auto-resumes</string>
@@ -44,6 +55,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">最大アクセス数</string>
+    <string name="package_name">Package name</string>
+    <string name="status">Status</string>
     <string name="ready_status_beta">Beta</string>
     <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">もっと詳しく</string>
@@ -92,7 +105,10 @@
     <string name="attachments">添付ファイル</string>
     <string name="attachments_empty_label">添付ファイルなし</string>
     <string name="deactivated">無効化されました</string>
+    <!-- (certificate/credit card) expired -->
     <string name="expired">期限切れ</string>
+    <!-- (certificate) revoked -->
+    <string name="revoked">失効済み</string>
     <string name="expiring_soon">まもなく期限切れ</string>
     <string name="item_incomplete_title">不完全なデータ</string>
     <string name="item_incomplete_text">このアイテムは重要な情報の一部が欠けています。</string>
@@ -151,6 +167,7 @@
     <string name="address3">住所3</string>
     <string name="ssh_agent">SSH エージェント</string>
     <string name="ssh_client">SSH クライアント</string>
+    <string name="gpg_agent">GPG エージェント</string>
     <string name="rename">名前の変更</string>
     <string name="deletion_date">削除した日</string>
     <string name="deletion_date_custom">カスタム</string>
@@ -262,8 +279,16 @@
     <string name="fingerprint">フィンガープリント</string>
     <string name="key_type">キータイプ</string>
     <string name="key_pair">キーをペア</string>
+    <string name="key_id">キー ID</string>
+    <string name="algorithm">アルゴリズム</string>
+    <string name="created">作成日時</string>
+    <string name="expires">有効期限</string>
+    <string name="capabilities">機能</string>
+    <string name="subkeys">サブキー</string>
     <string name="key_ssh">SSH キー</string>
     <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_gpg">GPG キー</string>
+    <string name="key_gpg_value_placeholder">まだ何もないようです。GPG キーを生成して始めましょう！</string>
     <string name="fingerprint_phrase">フィンガープリントフレーズ</string>
     <string name="fingerprint_phrase_help_title">フィンガープリントとは</string>
     <string name="filter_auth_reprompt_items">認証の再要求</string>
@@ -279,6 +304,9 @@
     <string name="select_key_file">Select a key file</string>
     <string name="select_database_file">Select a database file</string>
     <string name="replace_database_file">Replace a database file</string>
+    <string name="database_location_title">データベースの場所</string>
+    <string name="database_location_local">ローカルファイル</string>
+    <string name="database_location_webdav">WebDAV</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
     <string name="addaccount_method_header_title">Add account</string>
@@ -352,6 +380,14 @@
     <string name="ciphers_action_change_passwords_title">パスワードの変更</string>
     <string name="ciphers_action_view_password_history_title">パスワードの履歴を表示</string>
     <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
+    <string name="ciphers_action_upload_gpg_public_key_title">GPG 公開鍵をアップロード</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_title">キーサーバーに公開鍵をアップロードしますか？</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard は、このアイテムの ASCII アーマー形式の GPG 公開鍵を、設定されたキーサーバーへ送信します。公開鍵には、フィンガープリント、名前やメールアドレスなどのユーザー ID、サブキー、日付、失効状態が含まれる場合があります。キーサーバーはこの公開データを保存し再配布することがあります。このアップロードでは確認メールを要求しません。</string>
+    <string name="ciphers_action_refresh_gpg_public_key_title">GPG 公開鍵を更新</string>
+    <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">キーサーバーから公開鍵を更新しますか？</string>
+    <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard は、このキーのフィンガープリントを使用して、設定された GPG キーサーバーに問い合わせます。一致する公開鍵が見つかった場合、このアイテムの保存済み公開鍵、キーのメタデータ、キーサーバーの状態を更新します。</string>
+    <string name="ciphers_action_verify_gpg_public_key_title">GPG 公開鍵を検証</string>
+    <string name="ciphers_action_change_gpg_key_expiry_title">GPG キーの有効期限を変更</string>
     <string name="ciphers_action_archive_title">アーカイブ</string>
     <string name="ciphers_action_archive_confirmation_title">アーカイブに移動しますか？</string>
     <string name="ciphers_action_unarchive_title">アーカイブから復元</string>
@@ -485,6 +521,57 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">暗号化されていない秘密鍵をダウンロードに保存しました</string>
     <string name="ssh_key_action_add_key_title">キーを追加</string>
     <string name="ssh_key_action_replace_key_title">キーを置換</string>
+    <string name="gpg_key_action_save_unencrypted_keys_title">暗号化されていないキーを保存</string>
+    <string name="gpg_key_action_save_unencrypted_keys_saved_downloads_success_title">GPG キーをダウンロードに保存しました</string>
+    <string name="gpg_key_action_save_public_key_title">公開鍵を保存</string>
+    <string name="gpg_key_action_save_public_key_saved_downloads_success_title">GPG 公開鍵をダウンロードに保存しました</string>
+    <string name="gpg_key_action_save_unencrypted_private_key_title">暗号化されていない秘密鍵を保存</string>
+    <string name="gpg_key_action_save_unencrypted_private_key_saved_downloads_success_title">暗号化されていない GPG 秘密鍵をダウンロードに保存しました</string>
+    <string name="gpg_key_import_title">GPG キーをインポート</string>
+    <string name="gpg_key_import_drop_here">ファイルをドロップして GPG の公開鍵または秘密鍵をインポート</string>
+    <string name="gpg_key_import_failed_title">GPG キーのインポートに失敗しました</string>
+    <string name="gpg_key_import_success_title">GPG キーをインポートしました</string>
+    <string name="gpg_key_import_error_empty">GPG キーファイルが空です。</string>
+    <string name="gpg_key_import_error_unsupported_format">サポートされていない GPG キー形式です。</string>
+    <string name="gpg_key_import_error_unsupported_platform">このプラットフォームでは GPG キーのインポートはサポートされていません。</string>
+    <string name="gpg_key_import_error_invalid_passphrase">GPG キーのパスフレーズが無効です。</string>
+    <string name="gpg_key_import_error_malformed_key">GPG キーファイルの形式が正しくありません。</string>
+    <string name="gpg_key_import_error_read">選択したファイルを読み取れません。</string>
+    <string name="gpg_key_import_error_passphrase_required">この GPG キーのロックを解除するにはパスフレーズが必要です。</string>
+    <string name="gpg_key_import_error_key_changed">インポート中に GPG キーが変更されました。もう一度インポートしてください。</string>
+    <string name="gpg_key_import_passphrase_title">パスフレーズ</string>
+    <string name="gpg_key_import_passphrase_hint">GPG キーのパスフレーズを入力</string>
+    <string name="gpg_key_import_passphrase_dialog_title">GPG キーのパスフレーズを入力</string>
+    <string name="gpg_key_import_passphrase_dialog_message">この <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g> 秘密鍵は暗号化されています。Keyguard はインポート後、キーのパスフレーズなしで保存します。</string>
+    <string name="gpg_key_expiry_title">有効期限</string>
+    <string name="gpg_key_expiry_never">なし</string>
+    <string name="gpg_key_expiry_same_as_primary">プライマリキーと同じ (<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>)</string>
+    <string name="gpg_key_expiry_unknown">不明</string>
+    <string name="gpg_key_expiry_private_key_required">有効期限を変更するには秘密鍵をインポートしてください。</string>
+    <string name="gpg_key_expiry_unavailable">このプラットフォームでは有効期限の編集はサポートされていません。</string>
+    <string name="gpg_key_expiry_key_unreadable">公開鍵またはそのフィンガープリントを検証できませんでした。</string>
+    <string name="gpg_key_expiry_dialog_title">GPG キーの有効期限を変更</string>
+    <string name="gpg_key_expiry_dialog_message">有効期限の変更は元に戻せますが、漏洩したキーを保護するものではありません。漏洩したキーは失効させてください。</string>
+    <string name="gpg_key_expiry_primary">プライマリキー</string>
+    <string name="gpg_key_expiry_subkey">サブキー <xliff:g id="key_id" example="0A1B2C3D">%1$s</xliff:g></string>
+    <string name="gpg_key_expiry_subkey_capabilities">機能: <xliff:g id="capabilities" example="sign, encrypt">%1$s</xliff:g>。現在の有効期限: <xliff:g id="expiry" example="Jan 1, 2030">%2$s</xliff:g></string>
+    <string name="gpg_key_expiry_capability_sign">署名</string>
+    <string name="gpg_key_expiry_capability_encrypt">暗号化</string>
+    <string name="gpg_key_expiry_preset_one_year">1 年</string>
+    <string name="gpg_key_expiry_preset_two_years">2 年</string>
+    <string name="gpg_key_expiry_preset_five_years">5 年</string>
+    <string name="gpg_key_expiry_preset_custom">カスタム日付</string>
+    <string name="gpg_key_expiry_no_explicit_expiry">明示的な有効期限なし</string>
+    <string name="gpg_key_expiry_success_title">GPG キーの有効期限を更新しました</string>
+    <string name="gpg_key_expiry_success_message">このアイテムを保存してから、公開鍵を再配布するかアップロードしてください。</string>
+    <string name="gpg_key_expiry_cipher_success_message">アイテムを更新しました。公開鍵を再配布するかアップロードしてください。</string>
+    <string name="gpg_key_expiry_failed_title">GPG キーの有効期限の更新に失敗しました</string>
+    <string name="gpg_key_expiry_failed_message">キーの有効期限を更新できませんでした。元のキーは変更されていません。</string>
+    <string name="gpg_key_expiry_no_components_message">少なくとも 1 つのキーコンポーネントを選択してください。</string>
+    <string name="gpg_key_expiry_after_primary_message">サブキーはプライマリキーの有効期限が切れた後は使用できません。プライマリキーも選択するか、より早い有効期限を選んでください。</string>
+    <string name="gpg_key_expiry_invalid_message">有効な将来の有効期限を選択してください。</string>
+    <string name="gpg_key_expiry_revoked_message">失効したキーコンポーネントは更新できません。</string>
+    <string name="gpg_key_expiry_unresolved_revocation_message">失効者の公開鍵が利用できないため、指定された失効を検証できません。その公開鍵をインポートしてから再度お試しください。</string>
     <string name="ssh_key_import_title">Import SSH key</string>
     <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
@@ -523,6 +610,9 @@
     <string name="copy_ssh_unencrypted_private_key">暗号化されていない秘密鍵をコピー</string>
     <string name="copy_ssh_public_key">公開鍵をコピー</string>
     <string name="copy_ssh_fingerprint">フィンガープリントをコピー</string>
+    <string name="copy_gpg_unencrypted_private_key">暗号化されていない秘密鍵をコピー</string>
+    <string name="copy_gpg_public_key">公開鍵をコピー</string>
+    <string name="copy_gpg_fingerprint">フィンガープリントをコピー</string>
     <string name="copied_value">値をコピーしました</string>
     <string name="copied_url">URL をコピーしました</string>
     <string name="copied_uri">URI をコピーしました</string>
@@ -600,8 +690,10 @@
     <string name="error_invalid_key">Invalid key</string>
     <string name="error_invalid_card_number">無効なカード番号</string>
     <string name="error_webdav_url_required">WebDAV URL is required</string>
+    <string name="error_webdav_file_url_required">ファイルリソースへの完全な WebDAV URL を入力してください</string>
     <string name="error_incorrect_password">パスワードが間違っています</string>
     <string name="error_not_found">Not found</string>
+    <string name="error_file_must_be_n_or_smaller">File must be <xliff:g id="size" example="500MB">%1$s</xliff:g> or smaller</string>
     <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
     <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">ワンタイムパスワードの秘密鍵は空にできません</string>
@@ -620,6 +712,7 @@
     <string name="error_failed_encrypt_biometric_key">生体認証キーの暗号化に失敗しました</string>
     <string name="error_failed_decrypt_biometric_key">生体認証キーの復号化に失敗しました</string>
     <string name="error_failed_ssh_agent_start">SSHエージェントの起動に失敗しました</string>
+    <string name="error_failed_gpg_agent_start">GPGエージェントの起動に失敗しました</string>
     <string name="error_credential_calling_app_not_privileged">呼び出し元のアプリは特権アプリケーションのリストに含まれておらず、他のアプリの代わりに認証をリクエストすることはできません。</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -898,6 +991,7 @@
     <string name="cipher_type_identity">ID</string>
     <string name="cipher_type_note">メモ</string>
     <string name="cipher_type_ssh_key">SSH キー</string>
+    <string name="cipher_type_gpg_key">GPG キー</string>
     <string name="cipher_type_passkey">パスキー</string>
     <string name="field_type_text">テキスト</string>
     <string name="field_type_text_concealed">Text (concealed)</string>
@@ -935,6 +1029,7 @@
     <string name="ssh_agent_history_response_user_denied">Denied</string>
     <string name="ssh_agent_history_response_key_not_found">Key not found</string>
     <string name="ssh_agent_history_response_failure">Failed</string>
+    <string name="ssh_agent_history_response_vault_locked">Vault locked</string>
     <string name="ssh_agent_history_unknown_caller">Unknown caller</string>
     <string name="ssh_agent_history_unknown_key">Unknown key</string>
     <string name="ssh_agent_history_all_accessible_keys">All accessible keys</string>
@@ -973,6 +1068,65 @@
     <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> が以下のSSHキーを使用してデータの署名を行おうとしています：</string>
     <string name="ssh_agent_request_approval_sign_message_unknown_app">あるアプリケーションが以下のSSHキーを使用してデータの署名を行おうとしています：</string>
     <string name="ssh_client_request">SSHクライアントリクエスト</string>
+    <string name="connected_crypto_apps_title">Connected apps</string>
+    <string name="connected_crypto_apps_summary">Review or revoke apps registered for GPG and/or SSH access.</string>
+    <string name="connected_crypto_apps_empty">No apps are registered</string>
+    <string name="connected_crypto_apps_status_registered">Registered</string>
+    <string name="connected_crypto_apps_status_not_installed">Not installed</string>
+    <string name="connected_crypto_apps_status_signer_changed">Signer changed — access disabled</string>
+    <string name="connected_crypto_apps_signer">App signer</string>
+    <string name="connected_crypto_apps_registered_at">Registered</string>
+    <string name="connected_crypto_apps_last_used">Last used</string>
+    <string name="connected_crypto_apps_revoke">Revoke</string>
+    <string name="connected_crypto_apps_revoke_title">Revoke %1$s?</string>
+    <string name="connected_crypto_apps_revoke_message">The app will need to be registered again before it can use Keyguard as the provider.</string>
+    <string name="connected_crypto_apps_unknown">Unknown</string>
+    <string name="ipc_approval_title">External app request</string>
+    <string name="ipc_approval_auth_reason">Approve an external cryptographic request</string>
+    <string name="ipc_approval_unavailable">This approval request expired or is no longer available.</string>
+    <string name="ipc_approval_message"><xliff:g id="app" example="Termux">%1$s</xliff:g> wants to <xliff:g id="request" example="use GPG to encrypt a message">%2$s</xliff:g>.</string>
+    <string name="ipc_approval_operation">use <xliff:g id="protocol" example="GPG">%1$s</xliff:g> to <xliff:g id="operation" example="encrypt a message">%2$s</xliff:g></string>
+    <string name="ipc_approval_operation_with_registration">register with Keyguard and <xliff:g id="request" example="use GPG to encrypt a message">%1$s</xliff:g></string>
+    <string name="ipc_approval_no_keys">No eligible keys are available.</string>
+    <string name="ipc_approval_no_keys_continue">No eligible keys are available. You can continue to check whether the signer is missing.</string>
+    <string name="ipc_approval_deny">Deny</string>
+    <string name="ipc_approval_approve">Approve</string>
+    <string name="ipc_protocol_openpgp">GPG agent</string>
+    <string name="ipc_protocol_ssh">SSH agent</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_check_permission">confirm it has access</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_clear_sign">sign a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_detached_sign">create a detached signature</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_encrypt">encrypt a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_sign_and_encrypt">sign and encrypt a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_decrypt_verify">decrypt or verify a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_decrypt_metadata">read a message's metadata</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_sign_key">choose a signing key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_key_ids">look up recipient keys</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_autocrypt_status">check which recipients it can encrypt to</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_key">export a public key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_other">run an unrecognized operation</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_select_key">choose a key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_get_public_key">read a public key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_get_ssh_public_key">read a public key in OpenSSH format</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_sign">sign an authentication challenge</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_other">run an unrecognized operation</string>
     <string name="sort_header_title">並べ替え</string>
     <string name="sort_empty_label">並べ替えは利用できません</string>
     <string name="sortby_title_title">タイトル</string>
@@ -1041,6 +1195,7 @@
     <string name="generator_header_username_title">ユーザー名生成</string>
     <string name="generator_header_password_title">パスワード生成</string>
     <string name="generator_header_ssh_key_title">SSH キーの生成</string>
+    <string name="generator_header_gpg_key_title">GPG キーの生成</string>
     <string name="generator_generate_button">生成</string>
     <string name="generator_regenerate_button">再生成</string>
     <!-- 'Use' generated password as a password -->
@@ -1080,6 +1235,10 @@
     <string name="generator_email_subdomain_addressing_note">サブドメインアドレスとは、<xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> のようなメールアドレスに送信されたすべてのメールが、あなたのアカウントに送信されることを意味します。これにより、さまざまな人、サイト、メーリングリストに提供するための、メールアドレスのバリエーションを多く持つことができます。使用する前に、メールホスティングがこの機能をサポートしていることを確認してください。</string>
     <string name="generator_email_subdomain_addressing_email_title">メールアドレス</string>
     <string name="generator_email_forward_alias_type">転送メールアドレス</string>
+    <string name="generator_gpg_key_name_title">名前</string>
+    <string name="generator_gpg_key_email_title">メールアドレス</string>
+    <string name="generator_gpg_key_modern_note">Ed25519 の署名・証明キーと X25519 の暗号化サブキーを持つ OpenPGP キーを作成します。</string>
+    <string name="generator_gpg_key_modern_text">最新の OpenPGP キー構成</string>
     <string name="generator_key_length_title">長さ</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g> ビット</string>
     <string name="generator_key_rsa_note">すべての SSH クライアントはこのアルゴリズムをサポートしています。RSA には少なくとも 2048 ビットの鍵のサイズが推奨され、4096 ビットがより優れています。RSA アルゴリズムは近い将来、実際に破られる可能性は十分に考えられます。</string>
@@ -1089,6 +1248,7 @@
     <string name="generator_create_item_with_password_title">このパスワードで新しいログインを作成</string>
     <string name="generator_create_item_with_username_title">このユーザー名で新しいログインを作成</string>
     <string name="generator_create_item_with_ssh_key_title">新規 SSH キーアイテムを作成</string>
+    <string name="generator_create_item_with_gpg_key_title">新規 GPG キーアイテムを作成</string>
     <string name="generator_password_history_title">パスワードの履歴</string>
     <string name="generator_show_tips_title">ヒントを表示</string>
     <string name="generatorhistory_header_title">生成履歴</string>
@@ -1116,6 +1276,12 @@
     <string name="watchtower_item_reused_passwords_text">複数のウェブサイトで同じパスワードを使用しないでください。セキュリティを向上させるために、一意のパスワードを生成してください。</string>
     <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
     <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
+    <string name="watchtower_item_unusable_gpg_keys_title">使用できない GPG キー</string>
+    <string name="watchtower_item_unusable_gpg_keys_text">失効、有効期限切れ、形式不正、または使用可能な署名・復号用の情報が欠落している GPG キーアイテム。</string>
+    <string name="watchtower_item_weak_gpg_keys_title">脆弱な GPG キー</string>
+    <string name="watchtower_item_weak_gpg_keys_text">脆弱または旧式のアルゴリズムやキーサイズを使用している GPG キーアイテム。</string>
+    <string name="watchtower_item_gpg_key_publishing_title">GPG キーの公開</string>
+    <string name="watchtower_item_gpg_key_publishing_text">キーサーバーの状態が欠落、古い、未検証、または失効している GPG キー。</string>
     <string name="watchtower_item_vulnerable_accounts_title">脆弱なアカウント</string>
     <string name="watchtower_item_vulnerable_accounts_text">パスワードを最後に変更してから、データ漏洩の影響を受けたサイトです。アカウントの安全性を保つために、パスワードを変更してください。</string>
     <string name="watchtower_item_unsecure_websites_title">安全でないウェブサイト</string>
@@ -1171,6 +1337,46 @@
     <string name="exportaccount_export_started">エクスポートを開始</string>
     <string name="exportaccount_export_success">エクスポートが完了しました</string>
     <string name="exportaccount_export_failure">エクスポートに失敗しました</string>
+    <string name="credential_exchange_export_header_title">Transfer credentials</string>
+    <string name="credential_exchange_export_header_text">App requests access to credentials</string>
+    <string name="credential_exchange_export_header_text_named"><xliff:g id="app_name" example="Example Passwords">%1$s</xliff:g> requests access to credentials</string>
+    <string name="credential_exchange_export_empty_label">There are no credentials to transfer.</string>
+    <string name="credential_exchange_export_credential_passkey">Passkey</string>
+    <string name="credential_exchange_export_credential_password">Password</string>
+    <string name="credential_exchange_export_credential_totp">One-time password</string>
+    <string name="credential_exchange_export_credential_card">Card</string>
+    <string name="credential_exchange_export_credential_identity">Identity</string>
+    <string name="credential_exchange_export_credential_note">Note</string>
+    <string name="credential_exchange_export_credential_fields">Custom fields</string>
+    <string name="credential_exchange_export_credential_ssh_key">SSH key</string>
+    <string name="credential_exchange_export_export_button">Transfer</string>
+    <string name="credential_exchange_export_error_unknown">Something went wrong while preparing the items.</string>
+    <string name="credential_exchange_import_review_all_items_section">All items</string>
+    <string name="credential_exchange_export_error_account_unavailable">This account is no longer available.</string>
+    <string name="skipped_items_text">Some items were skipped.</string>
+    <string name="account_action_import_credentials_title">Import from another app</string>
+    <string name="credential_exchange_import_header_title">Import credentials</string>
+    <string name="credential_exchange_import_header_text">Move credentials directly from another password manager installed on this device.</string>
+    <string name="credential_exchange_import_step_1_title">Start the transfer</string>
+    <string name="credential_exchange_import_step_1_text">Tap Start import. Android will show the apps that can share credentials with Keyguard.</string>
+    <string name="credential_exchange_import_step_2_title">Choose a source app</string>
+    <string name="credential_exchange_import_step_2_text">Select the password manager you want to import from, then follow its prompts to approve the transfer.</string>
+    <string name="credential_exchange_import_step_3_title">Review and import</string>
+    <string name="credential_exchange_import_step_3_text">Back in Keyguard, review what was received. Nothing is saved to this account until you tap Import.</string>
+    <string name="credential_exchange_import_learn_more">Learn about credential exchange</string>
+    <string name="credential_exchange_import_start_button">Start import</string>
+    <string name="credential_exchange_import_retry_button">Retry import</string>
+    <string name="credential_exchange_import_import_button">Import</string>
+    <string name="credential_exchange_import_review_source_label">Received from</string>
+    <string name="credential_exchange_import_review_items_section">Items to import</string>
+    <string name="credential_exchange_import_empty_label">The selected app didn't send any importable items.</string>
+    <string name="credential_exchange_import_error_unavailable">Credential transfer isn't available on this device. It requires a recent version of Google Play services.</string>
+    <string name="credential_exchange_import_error_no_providers">None of the installed apps can share credentials this way.</string>
+    <string name="credential_exchange_import_error_parse">The received data couldn't be read.</string>
+    <string name="credential_exchange_import_error_unknown">Something went wrong while importing the items.</string>
+    <string name="credential_exchange_import_error_save">Failed to import the credentials.</string>
+    <string name="credential_exchange_import_success_title">Import complete</string>
+    <string name="credential_exchange_import_untitled">Untitled</string>
     <string name="contactus_header_title">お問い合わせ</string>
     <string name="contactus_message_label">メッセージ</string>
     <string name="contactus_english_note">フィードバックが誤解されないように、英語を使用してください。</string>
@@ -1194,8 +1400,11 @@
     <string name="settings_security_header_title">セキュリティ</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
     <string name="settings_developer_header_title">Developer</string>
+    <string name="settings_ssh_agent_header_title">SSH エージェント</string>
+    <string name="settings_gpg_agent_header_title">GPG エージェント</string>
     <string name="settings_watchtower_header_title">監視</string>
     <string name="settings_automatic_backups_header_title">Backups</string>
+    <string name="settings_navigation_items_header_title">ナビゲーションアイテム</string>
     <string name="settings_open_source_licenses_header_title">オープンソースライセンス</string>
     <string name="pref_section_premium_title">Premium</string>
     <string name="pref_section_options_title">オプション</string>
@@ -1296,8 +1505,16 @@
     <string name="pref_item_automatic_backups_retention_value">%1$d snapshots</string>
     <string name="pref_item_automatic_backups_disable_title">Turn off automatic backups</string>
     <string name="pref_item_automatic_backups_disable_message">This only turns off future automatic backups. It clears the local folder, password, and attachment choice from Keyguard. The existing backup repository and files in that folder are not deleted.</string>
+    <string name="pref_item_nav_items_title">ナビゲーションアイテム</string>
     <string name="pref_item_nav_label_title">ナビゲーションのラベル表示</string>
-    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
+    <string name="navigation_items_add_item_title">アイテムを追加</string>
+    <string name="navigation_items_reset_confirmation_title">ナビゲーションアイテムをリセットしますか？</string>
+    <string name="navigation_items_reset_confirmation_text">ナビゲーションの順序と表示状態を既定に戻します。カスタムフィルターは削除されませんが、そのナビゲーションアイテムは削除されます。</string>
+    <string name="navigation_items_built_in_text">組み込みの遷移先</string>
+    <string name="navigation_items_custom_filter_text">カスタムフィルター</string>
+    <string name="navigation_items_missing_filter_title">カスタムフィルター</string>
+    <string name="navigation_items_missing_filter_text">フィルターが見つかりません</string>
+    <string name="navigation_items_predefined_route_text">定義済みのルート</string>
     <string name="pref_item_app_version_title">アプリのバージョン</string>
     <string name="pref_item_app_build_date_title">アプリのビルド日</string>
     <!--
@@ -1389,6 +1606,24 @@
     <string name="pref_item_permissions_title">権限</string>
     <string name="pref_item_features_overview_title">機能の概要</string>
     <string name="pref_item_url_override_title">URL の上書き</string>
+    <string name="pref_item_agent_approval_scope_title">承認の範囲</string>
+    <string name="pref_item_agent_approval_scope_connection">接続ごと</string>
+    <string name="pref_item_agent_approval_scope_process">プロセスごと</string>
+    <string name="pref_item_agent_approval_scope_application">アプリケーションごと</string>
+    <string name="pref_item_agent_approval_scope_application_and_terminal_session">アプリケーションごと（ターミナルセッションで分離）</string>
+    <string name="pref_item_agent_approval_scope_table_reuse_boundary">誰が再利用できますか？</string>
+    <string name="pref_item_agent_approval_scope_table_same_terminal">同じタブまたはペイン</string>
+    <string name="pref_item_agent_approval_scope_table_other_terminal">別のタブまたはペイン</string>
+    <string name="pref_item_agent_approval_scope_table_connection_reuse">現在アクティブなエージェント接続</string>
+    <string name="pref_item_agent_approval_scope_table_process_reuse">同じ検証済みプロセスインスタンス</string>
+    <string name="pref_item_agent_approval_scope_table_application_reuse">同じ検証済みアプリケーション</string>
+    <string name="pref_item_agent_approval_scope_table_application_and_terminal_session_reuse">同じ検証済みターミナルセッション。ターミナル外では検証済みアプリケーション</string>
+    <string name="pref_item_agent_approval_scope_table_android_process_reuse">現在アクティブなエージェント接続。プロセスの識別情報は利用できません</string>
+    <string name="pref_item_agent_approval_scope_table_android_application_and_terminal_session_reuse">同じ検証済みアプリケーション。ターミナルセッションの識別情報は利用できません</string>
+    <string name="pref_item_agent_approval_scope_table_current_connection_only">現在の接続のみ</string>
+    <string name="pref_item_agent_approval_scope_table_same_process_only">同じプロセスのみ</string>
+    <string name="pref_item_agent_approval_scope_table_shared">共有</string>
+    <string name="pref_item_agent_approval_scope_table_not_shared">共有しない</string>
     <string name="pref_item_ssh_agent_title">SSHエージェント</string>
     <string name="pref_item_ssh_agent_text">秘密鍵を公開することなく、GitおよびSSHクライアントとの安全な認証を行います</string>
     <string name="pref_item_ssh_agent_status_unsupported">サポートされていません</string>
@@ -1409,6 +1644,22 @@
     <string name="pref_item_ssh_agent_filters_summary_all">すべてのキーにアクセス可能</string>
     <string name="pref_item_ssh_agent_filters_summary_active">フィルタ有効</string>
     <string name="pref_item_ssh_agent_history_title">Request log</string>
+    <string name="pref_item_license_key_title">既存の利用権コードをリンク</string>
+    <string name="pref_item_license_key_field_label">利用権コード</string>
+    <string name="pref_item_license_key_message_redeemed">利用権コードをリンクしました</string>
+    <string name="pref_item_license_key_message_invalid">無効または期限切れのキー</string>
+    <string name="pref_item_license_key_status_active">アクティブ</string>
+    <string name="pref_item_license_key_status_invalid">無効</string>
+    <string name="pref_item_license_key_status_revoked">失効済み</string>
+    <string name="pref_item_license_key_status_expired">期限切れ</string>
+    <string name="pref_item_license_key_status_available">利用可能</string>
+    <string name="pref_item_license_sync_title">利用権コードを取得</string>
+    <string name="pref_item_license_sync_text">アクティブなストアの購入を検証し、その購入に紐付いた利用権コードを生成します。このコードを使用して、購入を他のデバイスに移行できます。</string>
+    <string name="pref_item_license_sync_requested">利用権コードをリクエストしました</string>
+    <string name="pref_item_license_sync_success">利用権コードを同期しました</string>
+    <string name="pref_item_license_sync_already">現在の利用権コードはすでにアクティブです</string>
+    <string name="pref_item_license_sync_no_purchases">対象となる購入が見つかりません</string>
+    <string name="pref_item_license_sync_failed">利用権コードを取得できませんでした</string>
     <string name="pref_item_biometric_unlock_title">生体認証によるロック解除</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">確認を求める</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">生体認証の成功後に追加の確認ボタンのタップを要求します。</string>
@@ -1427,10 +1678,9 @@
     <string name="pref_item_autofill_service_title">自動入力サービス</string>
     <string name="pref_item_autofill_service_text">Android 自動入力フレームワークを使用して、デバイス上の他のアプリにログイン情報を入力します。</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">一部の Xiaomi デバイスでは、「バックグラウンドで実行中にポップアップウィンドウを表示する」権限を手動で許可する必要があります。 設定を開き、許可されていることを確認してください。</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome でサードパーティーの自動入力サービスを使用する</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Chrome の設定を開いて「自動入力サービス」をタップします
-2. 他のサービスを使用して自動入力を選択します
-3. 確認後に Chrome を再起動します</string>
+    <string name="pref_item_autofill_service_browser_autofill_v2_title">Browser third-party autofill services</string>
+    <string name="pref_item_autofill_service_browser_autofill_v2_text">Enable third-party autofill in each of the listed browsers to let Keyguard fill logins there.</string>
+    <string name="pref_item_autofill_service_browser_autofill_settings_error">Failed to open browser autofill settings</string>
     <string name="pref_item_autofill_auto_copy_otp_title">ワンタイムパスワードの自動コピー</string>
     <string name="pref_item_autofill_auto_copy_otp_text">ログイン情報を入力するときに、ワンタイムパスワードを自動的にコピーします。</string>
     <string name="pref_item_autofill_default_match_detection_title">デフォルトの一致検出</string>
@@ -1479,6 +1729,33 @@
     <string name="pref_item_permission_camera_text">QR コードのスキャンに使用されます</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">横画面で 2 パネルレイアウトを使用</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">縦画面で 2 パネルレイアウトを使用</string>
+    <string name="pref_item_gpg_agent_title">GPGエージェント</string>
+    <string name="pref_item_gpg_agent_setup_title">GPGクライアントのセットアップ</string>
+    <string name="pref_item_gpg_agent_status_ready">準備完了</string>
+    <string name="pref_item_gpg_agent_status_starting">起動中</string>
+    <string name="pref_item_gpg_agent_status_stopped">停止</string>
+    <string name="pref_item_gpg_agent_status_failed">失敗</string>
+    <string name="pref_item_gpg_agent_status_unsupported">サポートされていません</string>
+    <string name="pref_item_gpg_agent_approval_window_title">キーの承認を記憶する</string>
+    <string name="pref_item_gpg_agent_approval_window_always_ask">毎回確認する</string>
+    <string name="pref_item_gpg_agent_approval_window_until_lock">保管庫がロックされるまで</string>
+    <string name="pref_item_gpg_agent_display_key_names_title">保管庫のロック解除前にキー名を表示</string>
+    <string name="pref_item_gpg_agent_display_key_names_note">アイテムのタイトルの暗号化されていないコピーがローカルに保存されます</string>
+    <string name="pref_item_gpg_agent_local_storage_title">ローカルストレージ</string>
+    <string name="pref_item_gpg_agent_local_storage_text">GPGエージェントが有効な場合、保管庫がロックされていてもクライアントがキーを一覧表示できるように、Keyguard は公開鍵の暗号化されていないコピーをディスク上に保持します。秘密鍵は一切公開されません。キー名は、対応するオプションを有効にした場合にのみ保存されます。</string>
+    <string name="pref_item_gpg_agent_filters_title">GPGエージェント フィルタ設定</string>
+    <string name="pref_item_gpg_agent_filters_text">GPGエージェントがアクセス可能な GPG キーを選択します</string>
+    <string name="pref_item_gpg_agent_filters_summary_all">すべてのキーにアクセス可能</string>
+    <string name="pref_item_gpg_agent_filters_summary_active">フィルタ有効</string>
+    <string name="pref_item_gpg_agent_history_title">リクエストログ</string>
+    <string name="pref_item_gpg_keyserver_search_title">GPG キーサーバー検索</string>
+    <string name="pref_item_gpg_keyserver_search_text">メールアドレス、フィンガープリント、キー ID、または名前で公開 GPG キーを検索します</string>
+    <string name="pref_item_gpg_keyserver_url_title">キーサーバー</string>
+    <string name="pref_item_gpg_keyserver_url_text">公開 GPG キーの検索と更新に使用するサーバー</string>
+    <string name="pref_item_gpg_keyserver_protocol_title">キーサーバープロトコル</string>
+    <string name="pref_item_gpg_keyserver_auto_refresh_title">公開鍵を自動更新</string>
+    <string name="pref_item_gpg_keyserver_auto_refresh_note">アプリがアクティブで保管庫のロックが解除されている間、Keyguard は、公開鍵のみを含む各 GPG アイテムのフィンガープリントを使用して、選択した間隔で設定された GPG キーサーバーに問い合わせます。一致する公開鍵が見つかった場合、保存済みの公開鍵、キーのメタデータ、キーサーバーの状態を更新します。</string>
+    <string name="pref_item_gpg_keyserver_refresh_interval_title">更新間隔</string>
     <string name="theme_dark">ダーク</string>
     <string name="theme_light">ライト</string>
     <string name="nav_animation_disabled">無効</string>
@@ -1540,12 +1817,22 @@
     <string name="datasafety_remote_text">リモートデータは、ゼロ知識暗号化を使用して Bitwarden のサーバー上に保存されます。</string>
     <string name="webdav_settings_header_title">WebDAV server configuration</string>
     <string name="webdav_settings_url_title">WebDAV URL</string>
-    <string name="webdav_settings_url_hint">https://example.com/remote.php/dav/files/me/Keyguard/</string>
     <string name="webdav_settings_auth_note">If your WebDAV server requires authentication, enter your server credentials here. Do not enter your master password.</string>
     <string name="webdav_settings_test_title">Test connection</string>
     <string name="webdav_settings_test_text">Writes and removes a small probe file to verify server access.</string>
+    <string name="webdav_settings_test_text_read_only">リソースを読み取ってサーバーへのアクセスを確認します。</string>
     <string name="webdav_settings_test_success">WebDAV connection verified.</string>
     <string name="webdav_settings_password_requires_username_error">Enter a username before setting a WebDAV password.</string>
+    <string name="webdav_settings_browse_title">Browse</string>
+    <string name="webdav_picker_header_title">Browse WebDAV</string>
+    <string name="webdav_picker_choose_folder">Choose this folder</string>
+    <string name="webdav_picker_refresh">Refresh folder</string>
+    <string name="webdav_picker_empty">This folder is empty.</string>
+    <string name="webdav_picker_error">Could not load this folder.</string>
+    <string name="webdav_picker_filename_required">Enter a database name.</string>
+    <string name="webdav_picker_filename_invalid">The database name cannot contain path separators.</string>
+    <string name="webdav_picker_filename_extension">The database name must end with %1$s.</string>
+    <string name="webdav_picker_filename_exists">A file with this name already exists.</string>
     <!-- Title of the 'Localization contributors' screen -->
     <string name="localization_contributors_title">翻訳の貢献者</string>
     <string name="localization_contributors_search_placeholder">貢献者を検索</string>
@@ -1555,4 +1842,121 @@
     <string name="logs_stop_recording_fab_title">記録を停止</string>
     <string name="logs_export_button">エクスポート</string>
     <string name="logs_export_success">エクスポートが完了しました</string>
+    <string name="gpg_client_request">GPGクライアントリクエスト</string>
+    <string name="gpg_agent_request_approval_sign_title">GPG 署名リクエスト</string>
+    <string name="gpg_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> が以下の GPG キーを使用してデータの署名を行おうとしています：</string>
+    <string name="gpg_agent_request_approval_sign_message_unknown_app">あるアプリケーションが以下の GPG キーを使用してデータの署名を行おうとしています：</string>
+    <string name="gpg_agent_request_approval_decrypt_title">GPG 復号リクエスト</string>
+    <string name="gpg_agent_request_approval_decrypt_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> が以下の GPG キーを使用してデータの復号を行おうとしています：</string>
+    <string name="gpg_agent_request_approval_decrypt_message_unknown_app">あるアプリケーションが以下の GPG キーを使用してデータの復号を行おうとしています：</string>
+    <string name="gpg_agent_setup_header_title">GPGクライアントのセットアップ</string>
+    <string name="gpg_agent_setup_intro">GnuPG を設定して Keyguard の GPGエージェントを使用すると、秘密鍵の情報を外部に公開することなく、署名や復号を行うことができます。</string>
+    <string name="gpg_agent_setup_unsupported_text">GPGエージェントはデスクトップ版の Keyguard でのみ利用できます。</string>
+    <string name="gpg_agent_setup_step_1_title">1. Keyguard で GPGエージェントを有効化</string>
+    <string name="gpg_agent_setup_step_1_text">GPG 設定を開いて GPGエージェントを有効にし、エージェントが使用を許可された GPG キーが保管庫に含まれていることを確認します。</string>
+    <string name="gpg_agent_setup_step_2_title">2. GNUPGHOME を設定</string>
+    <string name="gpg_agent_setup_step_2_text">Keyguard のエージェントホームを指すシェルから GnuPG コマンドを実行します。Keyguard は、このホームに対して GnuPG が解決するエージェントソケットで待ち受けます。</string>
+    <string name="gpg_agent_setup_linux_home_fallback_note">XDG_RUNTIME_DIR が設定されていない場合は、代わりに次の代替パスを使用してください：</string>
+    <string name="gpg_agent_setup_step_3_title">3. 公開鍵をインポート</string>
+    <string name="gpg_agent_setup_step_3_text">Keyguard の GPG キーアイテムから公開鍵をエクスポートし、この GnuPG ホームにインポートします。これにより公開鍵の情報のみが公開されます。</string>
+    <string name="gpg_agent_setup_step_4_title">4. 確認</string>
+    <string name="gpg_agent_setup_step_4_text">Keyguard で参照可能なキーを一覧表示し、短いメッセージに署名します。YOUR_KEY_FINGERPRINT は、インポートしたキーのフィンガープリントに置き換えてください。</string>
+    <string name="gpg_agent_setup_step_5_title">5. Git コミットに署名</string>
+    <string name="gpg_agent_setup_step_5_text">Git がコミットに署名する際も同じ GNUPGHOME を使用します。設定は 1 つのリポジトリにローカルなまま保つか、--local を --global に変更してください。</string>
+    <string name="gpg_agent_setup_windows_native_gnupg_note">Windows では個別の GnuPG インストールが必要です。Git for Windows に同梱される GPG は、このセットアップとは互換性がありません。</string>
+    <string name="gpg_agent_filters_header_title">GPGエージェント フィルタ設定</string>
+    <string name="gpg_agent_filters_note_save_to_apply">変更は保存後に適用されます。</string>
+    <string name="gpg_agent_history_header_title">GPGエージェントの履歴</string>
+    <string name="gpg_keys_capability_sign">署名</string>
+    <string name="gpg_key_status">GPG キーの状態</string>
+    <string name="gpg_key_status_revoked_text">この GPG キーは失効しているため、使用しないでください。</string>
+    <string name="gpg_key_status_expired_text">この GPG キーは有効期限が切れているため、使用しないでください。</string>
+    <string name="gpg_key_user_ids">ユーザー ID</string>
+    <string name="gpg_key_does_not_expire">有効期限なし</string>
+    <string name="gpg_key_capability_encrypt_decrypt">暗号化・復号</string>
+    <string name="gpg_key_sec_pub">sec/pub</string>
+    <string name="gpg_key_secret_key">秘密鍵</string>
+    <string name="gpg_key_subkey_n">サブキー <xliff:g id="index" example="1">%1$d</xliff:g></string>
+    <string name="gpg_tools_header_title">GPG ツール</string>
+    <string name="gpg_tools_scope_text">テキスト</string>
+    <string name="gpg_tools_scope_file">ファイル</string>
+    <string name="gpg_tools_operation_encrypt_text">選択した受信者向けにテキストまたはファイルを暗号化します</string>
+    <string name="gpg_tools_operation_decrypt_text">保存済みの秘密鍵でテキストまたはファイルを復号します</string>
+    <string name="gpg_tools_operation_sign_text">保存済みの秘密鍵でテキストまたはファイルに署名します</string>
+    <string name="gpg_tools_operation_verify_text">インラインまたは分離署名を検証します</string>
+    <string name="gpg_tools_mode_cleartext">クリアテキスト</string>
+    <string name="gpg_tools_mode_inline">インライン</string>
+    <string name="gpg_tools_mode_detached">分離</string>
+    <string name="gpg_tools_armor_label">アーマー</string>
+    <string name="gpg_tools_sign_encrypted_message">署名</string>
+    <string name="gpg_tools_sign_none">署名しない</string>
+    <string name="gpg_tools_signed_text_label">署名されたテキスト</string>
+    <string name="gpg_tools_encrypted_text_label">暗号化されたメッセージ</string>
+    <string name="gpg_tools_signature_label">署名</string>
+    <string name="gpg_tools_pasted_public_key_label">公開鍵</string>
+    <string name="gpg_tools_pasted_public_key_placeholder">ASCII アーマー形式の公開鍵ブロックを貼り付けてください</string>
+    <string name="gpg_tools_select_signing_key">署名キー</string>
+    <string name="gpg_tools_select_recipients">受信者</string>
+    <string name="gpg_tools_stored_public_keys_note">保存済みの公開鍵が検証のために自動的に使用されます。</string>
+    <string name="gpg_tools_decrypt_keys_note">保存済みの秘密鍵が復号のために自動的に試行されます。</string>
+    <string name="gpg_tools_no_gpg_keys">保存された GPG キーがありません</string>
+    <string name="gpg_tools_no_signing_key">署名可能な GPG キーが選択されていません</string>
+    <string name="gpg_tools_no_recipient">保存済みの受信者を選択するか、公開鍵を貼り付けてください</string>
+    <string name="gpg_tools_missing_private_key">復号可能な秘密鍵が利用できません</string>
+    <string name="gpg_tools_select_input_file">入力ファイル</string>
+    <string name="gpg_tools_select_signature_file">署名ファイル</string>
+    <string name="gpg_tools_clear_file">クリア</string>
+    <string name="gpg_tools_run_success">GPG 操作が完了しました</string>
+    <string name="gpg_tools_valid_signature">有効な署名</string>
+    <string name="gpg_tools_invalid_signature">無効な署名</string>
+    <string name="gpg_tools_missing_public_key">公開鍵がありません</string>
+    <string name="gpg_tools_signature_by"><xliff:g id="signer" example="0123 ABCD">%1$s</xliff:g> による署名</string>
+    <string name="gpg_tools_signature_created_at"><xliff:g id="date" example="2026-06-28T12:30:00Z">%1$s</xliff:g> に作成</string>
+    <string name="gpg_tools_warning_key_revoked">警告: 署名キーが失効しています</string>
+    <string name="gpg_tools_warning_key_expired">警告: 署名キーの有効期限が切れています</string>
+    <string name="gpg_tools_warning_signature_expired">警告: 署名の有効期限が切れています</string>
+    <string name="gpg_tools_file_required">入力ファイルを選択してください</string>
+    <string name="gpg_tools_signature_file_required">署名ファイルを選択してください</string>
+    <string name="gpg_tools_text_required">処理するテキストを入力してください</string>
+    <string name="gpg_tools_public_key_title">カスタム公開鍵</string>
+    <string name="gpg_tools_public_key_description">この操作に使用する ASCII アーマー形式の公開鍵ブロックを貼り付けてください。保存済みのキーに加えて使用されます。</string>
+    <string name="gpg_tools_public_key_add">公開鍵を追加</string>
+    <string name="gpg_keyserver_search_header_title">GPG キーサーバー検索</string>
+    <string name="gpg_keyserver_search_placeholder">メールアドレス、フィンガープリント、キー ID、または名前で検索</string>
+    <string name="gpg_keyserver_search_empty_query_label">メールアドレス、フィンガープリント、キー ID、または名前を入力してください</string>
+    <string name="gpg_keyserver_search_empty_label">公開鍵が見つかりません</string>
+    <string name="gpg_keyserver_search_error_text">公開鍵の検索に失敗しました</string>
+    <string name="gpg_keyserver_search_revoked_label">失効済み</string>
+    <string name="gpg_keyserver_search_index_label">インデックス</string>
+    <string name="gpg_keyserver_search_public_key_not_found_title">GPG 公開鍵がキーサーバーに見つかりません</string>
+    <string name="gpg_keyserver_upload_success_title">GPG 公開鍵をアップロードしました</string>
+    <string name="gpg_keyserver_refresh_success_title">GPG 公開鍵を更新しました</string>
+    <string name="gpg_keyserver_refresh_not_found_title">GPG 公開鍵がキーサーバーに見つかりません</string>
+    <string name="gpg_keyserver_verify_unknown_title">GPG 公開鍵の検証状態は不明です</string>
+    <string name="gpg_keyserver_verify_not_found_title">GPG 公開鍵がキーサーバーに見つかりません</string>
+    <string name="gpg_keyserver_verify_unverified_title">GPG 公開鍵は見つかりましたが、メールアドレスは未確認です</string>
+    <string name="gpg_keyserver_verify_verified_title">GPG 公開鍵を検証しました</string>
+    <string name="gpg_keyserver_verify_revoked_title">GPG 公開鍵は失効しています</string>
+    <string name="gpg_keyserver_status_title">GPG キーサーバー</string>
+    <string name="gpg_keyserver_status_not_checked">未確認</string>
+    <string name="gpg_keyserver_status_checked_at"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g> に確認</string>
+    <string name="gpg_agent_history_request_list_keys">キーの一覧表示</string>
+    <string name="gpg_agent_history_request_sign_hash">ハッシュの署名</string>
+    <string name="gpg_agent_history_request_decrypt">復号</string>
+    <string name="gpg_agent_history_response_success">成功</string>
+    <string name="gpg_agent_history_response_user_denied">拒否されました</string>
+    <string name="gpg_agent_history_response_key_not_found">キーが見つかりません</string>
+    <string name="gpg_agent_history_response_vault_locked">保管庫がロックされています</string>
+    <string name="gpg_agent_history_response_unsupported">サポートされていません</string>
+    <string name="gpg_agent_history_response_failure">失敗</string>
+    <string name="gpg_agent_history_unknown_caller">不明な呼び出し元</string>
+    <string name="gpg_agent_history_unknown_key">不明なキー</string>
+    <string name="gpg_agent_history_clear_history_title">履歴を消去</string>
+    <string name="gpg_agent_history_clear_history_confirmation_title">GPGエージェントの履歴を消去しますか？</string>
+    <string name="gpg_agent_history_clear_history_confirmation_text">GPGエージェントの使用履歴をすべて削除します。</string>
+    <string name="cipher_links_outgoing_title">Linked items</string>
+    <string name="cipher_links_incoming_title">Referenced by</string>
+    <string name="cipher_link_unavailable_title">Item unavailable</string>
+    <string name="cipher_link_picker_title">Select linked item</string>
+    <string name="cipher_link_picker_action">Link to an item</string>
 </resources>

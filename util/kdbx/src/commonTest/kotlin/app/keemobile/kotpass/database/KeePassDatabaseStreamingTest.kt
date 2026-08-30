@@ -229,35 +229,34 @@ class KeePassDatabaseStreamingTest {
     }
 
     @Test
-    fun sourceFailureReachedThroughXmlParserIsRethrownUnchanged() {
+    fun physicalSourceIsNotReadAfterValidatedTerminalBlock() {
+        val description = "x".repeat(ContentBlocks.BLOCK_SPLIT_RATE + 257)
         val original =
             database(
                 version = 4,
                 cipher = BaseCiphers.Aes,
                 compression = DatabaseHeader.Compression.None,
-                description = "x".repeat(ContentBlocks.BLOCK_SPLIT_RATE + 257),
+                description = description,
             )
         val encoded =
             Buffer()
                 .also { original.encodeTo(it, cipherProviders = cipherProviders) }
                 .readByteArray()
-        val expected = TestSourceException("XML stream read failed")
+        val unexpected = TestSourceException("physical source read past terminal block")
         var parserEntered = false
         val parser = ArmingXmlContentParser {
             parserEntered = true
         }
 
-        val actual = assertFailsWith<TestSourceException> {
-            KeePassDatabase.decode(
-                source = ArmedFailingRawSource(encoded, expected) { parserEntered }.buffered(),
-                credentials = credentials,
-                contentParser = parser,
-                cipherProviders = cipherProviders,
-            )
-        }
+        val decoded = KeePassDatabase.decode(
+            source = ArmedFailingRawSource(encoded, unexpected) { parserEntered }.buffered(),
+            credentials = credentials,
+            contentParser = parser,
+            cipherProviders = cipherProviders,
+        )
 
         assertTrue(parserEntered)
-        assertSame(expected, actual)
+        assertEquals(description, decoded.content.meta.description)
     }
 
     @Test

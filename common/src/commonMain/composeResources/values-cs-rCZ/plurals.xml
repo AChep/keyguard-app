@@ -19,10 +19,10 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> slov</item>
     </plurals>
     <plurals name="character_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> character</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> characters</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> characters</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> characters</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> znak</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> znaky</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> znaků</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> znaků</item>
     </plurals>
     <plurals name="result_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> výsledek</item>
@@ -65,6 +65,144 @@
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> měsíce</item>
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> měsíců</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> měsíců</item>
+    </plurals>
+    <plurals name="skipped_passkeys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> přístupový klíč</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> přístupové klíče</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> přístupových klíčů</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> přístupových klíčů</item>
+    </plurals>
+    <plurals name="skipped_otp_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> jednorázové heslo</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> jednorázová hesla</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> jednorázových hesel</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> jednorázových hesel</item>
+    </plurals>
+    <plurals name="skipped_ssh_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH klíč</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH klíče</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH klíčů</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH klíčů</item>
+    </plurals>
+    <plurals name="skipped_gpg_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG klíč</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> GPG klíče</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> GPG klíčů</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> GPG klíčů</item>
+    </plurals>
+    <plurals name="skipped_attachments_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> příloha</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> přílohy</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> příloh</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> příloh</item>
+    </plurals>
+    <plurals name="skipped_password_history_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> uložené předchozí heslo</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> uložená předchozí hesla</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> uložených předchozích hesel</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> uložených předchozích hesel</item>
+    </plurals>
+    <plurals name="skipped_archived_items_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> archivovaná položka</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> archivované položky</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> archivovaných položek</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> archivovaných položek</item>
+    </plurals>
+    <plurals name="skipped_items_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> položka</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> položky</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> položek</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> položek</item>
+    </plurals>
+    <plurals name="skipped_accounts_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> účet</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> účty</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> účtů</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> účtů</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_accounts_note">
+        <item quantity="one">Přijatá data obsahují <xliff:g id="number" example="1">%1$d</xliff:g> účet; všechny jeho položky budou importovány do tohoto účtu.</item>
+        <item quantity="few">Přijatá data obsahují <xliff:g id="number">%1$d</xliff:g> účty; všechny jejich položky budou importovány do tohoto účtu.</item>
+        <item quantity="many">Přijatá data obsahují <xliff:g id="number">%1$d</xliff:g> účtů; všechny jejich položky budou importovány do tohoto účtu.</item>
+        <item quantity="other">Přijatá data obsahují <xliff:g id="number">%1$d</xliff:g> účtů; všechny jejich položky budou importovány do tohoto účtu.</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_folders_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> složka</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> složky</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> složek</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> složek</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_logins_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> přihlášení</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> přihlášení</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> přihlášení</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> přihlášení</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_passkeys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> přístupový klíč</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> přístupové klíče</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> přístupových klíčů</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> přístupových klíčů</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_otp_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> jednorázové heslo</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> jednorázová hesla</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> jednorázových hesel</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> jednorázových hesel</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_cards_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> karta</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> karty</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> karet</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> karet</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_identities_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> identita</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> identity</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> identit</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> identit</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_notes_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> poznámka</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> poznámky</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> poznámek</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> poznámek</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_ssh_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH klíč</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH klíče</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH klíčů</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH klíčů</item>
+    </plurals>
+    <plurals name="skipped_unsupported_credentials_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> nepodporované pověření</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> nepodporovaná pověření</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> nepodporovaných pověření</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> nepodporovaných pověření</item>
+    </plurals>
+    <plurals name="skipped_duplicate_credentials_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> duplicitní pověření</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> duplicitní pověření</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> duplicitních pověření</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> duplicitních pověření</item>
+    </plurals>
+    <plurals name="skipped_folders_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> složka</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> složky</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> složek</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> složek</item>
+    </plurals>
+    <plurals name="skipped_and_more_note">
+        <item quantity="one">a <xliff:g id="number" example="1">%1$d</xliff:g> další</item>
+        <item quantity="few">a <xliff:g id="number">%1$d</xliff:g> další</item>
+        <item quantity="many">a <xliff:g id="number">%1$d</xliff:g> dalších</item>
+        <item quantity="other">a <xliff:g id="number">%1$d</xliff:g> dalších</item>
+    </plurals>
+    <plurals name="credential_exchange_import_success_text">
+        <item quantity="one">Do účtu byla přidána <xliff:g id="number" example="1">%1$d</xliff:g> položka.</item>
+        <item quantity="few">Do účtu byly přidány <xliff:g id="number">%1$d</xliff:g> položky.</item>
+        <item quantity="many">Do účtu bylo přidáno <xliff:g id="number">%1$d</xliff:g> položek.</item>
+        <item quantity="other">Do účtu bylo přidáno <xliff:g id="number">%1$d</xliff:g> položek.</item>
     </plurals>
     <plurals name="years_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> rok</item>

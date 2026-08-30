@@ -892,48 +892,7 @@ class KtorWebDavClientTest {
             assertEquals("/dav/root/folder/", request.url.encodedPath)
             assertEquals("1", request.headers["Depth"])
             respond(
-                content = multistatus(
-                    responseXml(
-                        href = "/dav/root/folder/?ignored=true",
-                        properties = "<D:resourcetype><D:collection/></D:resourcetype>",
-                    ),
-                    responseXml(
-                        href = "https://example.com/dav/root/folder/sub%20folder/",
-                        properties = "<D:resourcetype><D:collection/></D:resourcetype>",
-                    ),
-                    responseXml(
-                        href = "/dav/root/folder/vault%20%E2%9C%93.kdbx#fragment",
-                        properties = "<D:resourcetype/><D:getcontentlength>42</D:getcontentlength>",
-                    ),
-                    responseXml(
-                        href = "/dav/root/folder/sub/deep.kdbx",
-                        properties = "<D:resourcetype/>",
-                    ),
-                    responseXml(
-                        href = "/dav/root/sibling.kdbx",
-                        properties = "<D:resourcetype/>",
-                    ),
-                    responseXml(
-                        href = "https://evil.example/dav/root/folder/stolen.kdbx",
-                        properties = "<D:resourcetype/>",
-                    ),
-                    responseXml(
-                        href = "http://example.com/dav/root/folder/insecure.kdbx",
-                        properties = "<D:resourcetype/>",
-                    ),
-                    responseXml(
-                        href = "https://example.com:8443/dav/root/folder/wrong-port.kdbx",
-                        properties = "<D:resourcetype/>",
-                    ),
-                    responseXml(
-                        href = "/dav/root/folder/$tempName",
-                        properties = "<D:resourcetype/>",
-                    ),
-                    responseXml(
-                        href = "/dav/root/folder/vault%20%E2%9C%93.kdbx",
-                        properties = "<D:resourcetype/><D:getcontentlength>42</D:getcontentlength>",
-                    ),
-                ),
+                content = listChildrenMultistatus(tempName),
                 status = MULTI_STATUS,
             )
         }
@@ -1637,6 +1596,51 @@ class KtorWebDavClientTest {
         href: String,
         properties: String,
     ): String = multistatus(responseXml(href, properties))
+
+    private fun listChildrenMultistatus(
+        tempName: String,
+    ): String = multistatus(
+        responseXml(
+            href = "/dav/root/folder/?ignored=true",
+            properties = "<D:resourcetype><D:collection/></D:resourcetype>",
+        ),
+        responseXml(
+            href = "https://example.com/dav/root/folder/sub%20folder/",
+            properties = "<D:resourcetype><D:collection/></D:resourcetype>",
+        ),
+        responseXml(
+            href = "/dav/root/folder/vault%20%E2%9C%93.kdbx#fragment",
+            properties = "<D:resourcetype/><D:getcontentlength>42</D:getcontentlength>",
+        ),
+        responseXml(
+            href = "/dav/root/folder/sub/deep.kdbx",
+            properties = "<D:resourcetype/>",
+        ),
+        responseXml(
+            href = "/dav/root/sibling.kdbx",
+            properties = "<D:resourcetype/>",
+        ),
+        responseXml(
+            href = "https://evil.example/dav/root/folder/stolen.kdbx",
+            properties = "<D:resourcetype/>",
+        ),
+        responseXml(
+            href = "http://example.com/dav/root/folder/insecure.kdbx",
+            properties = "<D:resourcetype/>",
+        ),
+        responseXml(
+            href = "https://example.com:8443/dav/root/folder/wrong-port.kdbx",
+            properties = "<D:resourcetype/>",
+        ),
+        responseXml(
+            href = "/dav/root/folder/$tempName",
+            properties = "<D:resourcetype/>",
+        ),
+        responseXml(
+            href = "/dav/root/folder/vault%20%E2%9C%93.kdbx",
+            properties = "<D:resourcetype/><D:getcontentlength>42</D:getcontentlength>",
+        ),
+    )
 
     private fun multistatus(
         vararg responses: String,

@@ -238,6 +238,7 @@ import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRouteFactory
 import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServiceViewDialogRoute
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
+import com.artemchep.keyguard.feature.passwordmemory.PasswordMemoryRoute
 import com.artemchep.keyguard.feature.send.action.createSendActionOrNull
 import com.artemchep.keyguard.feature.send.action.createShareAction
 import com.artemchep.keyguard.feature.tfa.directory.TwoFaServiceViewDialogRoute
@@ -2098,6 +2099,12 @@ private fun RememberStateFlowScope.oh(
                 badge2 = listOf(pwnage),
                 leading = {
                     IconBox(main = Icons.Outlined.Password)
+                },
+                onBuildTrailingActions = {
+                    this += PasswordMemoryRoute.testPasswordMemoryActionOrNull(
+                        password = cipherLoginPassword,
+                        navigate = ::navigate,
+                    )
                 },
             )
             emit(model)
@@ -3980,6 +3987,7 @@ suspend fun RememberStateFlowScope.create(
     monospace: Boolean = false,
     colorize: Boolean = false,
     elevated: Boolean = false,
+    onBuildTrailingActions: (ContextItemBuilder.() -> Unit)? = null,
 ): VaultViewItem {
     val dropdown = if (!visibility.hidden) {
         buildContextItems {
@@ -4055,6 +4063,11 @@ suspend fun RememberStateFlowScope.create(
                         password = value,
                         navigate = ::navigate,
                     )
+                }
+            }
+            if (onBuildTrailingActions != null) {
+                section {
+                    onBuildTrailingActions()
                 }
             }
         }

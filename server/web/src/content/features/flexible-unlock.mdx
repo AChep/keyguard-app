@@ -11,12 +11,12 @@ premium: false
 import unlockScreen from '../../assets/screenshots/unlock-screen.png';
 import unlockSettings from '../../assets/screenshots/unlock-methods-settings.png';
 
-Choose how you reopen your vault after it locks. You can type your password, use the device biometrics such as a fingerprint or face scan, or tap a hardware YubiKey.
+Choose the vault unlock method. Type your app password, use the device biometrics, or tap a hardware YubiKey.
 
 <Screenshot src={unlockScreen} caption="The vault unlock screen offering a password field alongside a biometric prompt and a YubiKey option." />
 
-## Your balance of convenience and security
-
-Biometrics make daily access quick, while a password or a YubiKey adds a stronger gate when you want it. The decision stays with you, and you can lean toward speed or toward caution depending on the situation.
+Biometrics are fingerprint or face unlock on Android and Touch ID on macOS. YubiKey unlock is Android only, over USB or NFC, using HMAC-SHA1 challenge-response. Turn each one on during setup or later in the security settings, and the unlock screen offers what you enabled.
 
 <Screenshot src={unlockSettings} caption="Settings where the user selects which unlock methods are enabled for the vault." />
+
+[Locking & unlocking](/docs/lock-and-unlock/) explains the difference between the Keyguard app password and the Bitwarden vault password and covers the auto-lock settings.

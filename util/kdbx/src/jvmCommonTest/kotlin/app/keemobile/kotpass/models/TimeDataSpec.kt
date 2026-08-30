@@ -10,6 +10,7 @@ import app.keemobile.kotpass.common.runKotpassSpec
 import kotlin.test.Test
 import app.keemobile.kotpass.common.matchers.shouldBe
 import app.keemobile.kotpass.common.matchers.shouldNotBe
+import kotlin.time.Instant
 
 class TimeDataSpec {
     @Test
@@ -80,6 +81,45 @@ class TimeDataSpec {
 
             renderTestXmlString { times.marshalTo(context, it) }
                 .indexOf(TimeDataRes.Base64BinaryDateTimeText) shouldNotBe -1
+        }
+
+        it("Truncating fractional seconds in text format") {
+            val context = XmlContext.Encode.Plain(
+                version = FormatVersion(3, 1),
+                binaries = linkedMapOf(),
+                memoryProtectionFlags = emptySet()
+            )
+            val fractionalDateTime = Instant.parse("2020-01-12T14:15:00.987654Z")
+            val times = TimeData(
+                creationTime = fractionalDateTime,
+                lastAccessTime = fractionalDateTime,
+                lastModificationTime = fractionalDateTime,
+                locationChanged = fractionalDateTime,
+                expiryTime = fractionalDateTime
+            )
+            val xml = renderTestXmlString { times.marshalTo(context, it) }
+
+            xml.indexOf(TimeDataRes.DateTimeText) shouldNotBe -1
+            xml.indexOf(".987654") shouldBe -1
+        }
+
+        it("Truncating fractional seconds in binary format") {
+            val context = XmlContext.Encode.Encrypted(
+                version = FormatVersion(4, 1),
+                binaries = linkedMapOf(),
+                innerEncryption = EncryptionSaltGenerator.ChaCha20(byteArrayOf())
+            )
+            val fractionalDateTime = Instant.parse("2020-01-12T14:15:00.987654Z")
+            val times = TimeData(
+                creationTime = fractionalDateTime,
+                lastAccessTime = fractionalDateTime,
+                lastModificationTime = fractionalDateTime,
+                locationChanged = fractionalDateTime,
+                expiryTime = fractionalDateTime
+            )
+            val xml = renderTestXmlString { times.marshalTo(context, it) }
+
+            xml.indexOf(TimeDataRes.Base64BinaryDateTimeText) shouldNotBe -1
         }
     }
     }

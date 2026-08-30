@@ -13,8 +13,8 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> woorden</item>
     </plurals>
     <plurals name="character_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> character</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> characters</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> teken</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> tekens</item>
     </plurals>
     <plurals name="result_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> resultaat</item>
@@ -43,6 +43,98 @@
     <plurals name="months_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> maand</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> maanden</item>
+    </plurals>
+    <plurals name="skipped_passkeys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> toegangssleutel</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> toegangssleutels</item>
+    </plurals>
+    <plurals name="skipped_otp_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> eenmalig wachtwoord</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> eenmalige wachtwoorden</item>
+    </plurals>
+    <plurals name="skipped_ssh_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH-sleutel</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH-sleutels</item>
+    </plurals>
+    <plurals name="skipped_gpg_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG-sleutel</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> GPG-sleutels</item>
+    </plurals>
+    <plurals name="skipped_attachments_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> bijlage</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> bijlagen</item>
+    </plurals>
+    <plurals name="skipped_password_history_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> eerder opgeslagen wachtwoord</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> eerder opgeslagen wachtwoorden</item>
+    </plurals>
+    <plurals name="skipped_archived_items_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> gearchiveerd item</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> gearchiveerde items</item>
+    </plurals>
+    <plurals name="skipped_items_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items</item>
+    </plurals>
+    <plurals name="skipped_accounts_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> account</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> accounts</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_accounts_note">
+        <item quantity="one">De ontvangen gegevens bevatten <xliff:g id="number" example="1">%1$d</xliff:g> account; alle items daarvan worden in dit account geïmporteerd.</item>
+        <item quantity="other">De ontvangen gegevens bevatten <xliff:g id="number">%1$d</xliff:g> accounts; alle items daarvan worden in dit account geïmporteerd.</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_folders_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> map</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> mappen</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_logins_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> login</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> logins</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_passkeys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> toegangssleutel</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> toegangssleutels</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_otp_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> eenmalig wachtwoord</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> eenmalige wachtwoorden</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_cards_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> kaart</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> kaarten</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_identities_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> identiteit</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> identiteiten</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_notes_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> notitie</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> notities</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_ssh_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH-sleutel</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH-sleutels</item>
+    </plurals>
+    <plurals name="skipped_unsupported_credentials_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> niet-ondersteund item</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> niet-ondersteunde items</item>
+    </plurals>
+    <plurals name="skipped_duplicate_credentials_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> dubbel item</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> dubbele items</item>
+    </plurals>
+    <plurals name="skipped_folders_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> map</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> mappen</item>
+    </plurals>
+    <plurals name="skipped_and_more_note">
+        <item quantity="one">en nog <xliff:g id="number" example="1">%1$d</xliff:g></item>
+        <item quantity="other">en nog <xliff:g id="number">%1$d</xliff:g></item>
+    </plurals>
+    <plurals name="credential_exchange_import_success_text">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item is aan het account toegevoegd.</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items zijn aan het account toegevoegd.</item>
     </plurals>
     <plurals name="years_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> jaar</item>

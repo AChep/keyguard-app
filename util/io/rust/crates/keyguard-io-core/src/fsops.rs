@@ -287,26 +287,6 @@ pub trait FsOps {
         follow_links: bool,
     ) -> io::Result<Self::Dir>;
 
-    /// Opens one child for use only as a path-resolution anchor.
-    ///
-    /// Implementations may return a handle with fewer rights than an ordinary
-    /// directory capability so search-only ancestors remain traversable.
-    fn open_dir_at_for_traversal(
-        &self,
-        parent: &Self::Dir,
-        name: &str,
-        follow_links: bool,
-    ) -> io::Result<Self::Dir> {
-        self.open_dir_at(parent, name, follow_links)
-    }
-
-    /// Reopens the exact retained directory as an operational capability.
-    ///
-    /// This upgrades a traversal-only handle without resolving its former
-    /// pathname again, so concurrent ancestor renames cannot redirect later
-    /// creation or synchronization.
-    fn reopen_dir(&self, directory: &Self::Dir) -> io::Result<Self::Dir>;
-
     /// Opens a non-empty descendant path without following links or crossing
     /// mounts in any component.
     ///
@@ -1148,27 +1128,6 @@ mod posix {
             } else {
                 openat_directory_without_links_or_mounts(parent.fd.as_raw_fd(), &name)?
             };
-            Ok(PosixDir { fd })
-        }
-
-        fn open_dir_at_for_traversal(
-            &self,
-            parent: &PosixDir,
-            name: &str,
-            follow_links: bool,
-        ) -> io::Result<PosixDir> {
-            let name = c_name(name)?;
-            let fd = openat_traversal_directory(parent.fd.as_raw_fd(), &name, !follow_links)?;
-            if !follow_links {
-                let parent_identity = mount_identity(parent.fd.as_raw_fd())?;
-                let child_identity = mount_identity(fd.as_raw_fd())?;
-                ensure_same_mount(&parent_identity, &child_identity)?;
-            }
-            Ok(PosixDir { fd })
-        }
-
-        fn reopen_dir(&self, directory: &PosixDir) -> io::Result<PosixDir> {
-            let fd = openat_directory(directory.fd.as_raw_fd(), c".", false)?;
             Ok(PosixDir { fd })
         }
 
@@ -3709,18 +3668,18 @@ mod win {
         },
         Win32::{
             Foundation::{
-                ERROR_ACCESS_DENIED, ERROR_FILE_NOT_FOUND, ERROR_INVALID_FUNCTION,
-                ERROR_INVALID_PARAMETER, ERROR_NOT_SUPPORTED, ERROR_REPARSE_POINT_ENCOUNTERED,
-                GENERIC_READ, GENERIC_WRITE, GetLastError, HANDLE, INVALID_HANDLE_VALUE, NTSTATUS,
-                OBJ_CASE_INSENSITIVE, OBJ_DONT_REPARSE, STATUS_ACCESS_DENIED,
+                ERROR_FILE_NOT_FOUND, ERROR_INVALID_FUNCTION, ERROR_INVALID_PARAMETER,
+                ERROR_NOT_SUPPORTED, ERROR_REPARSE_POINT_ENCOUNTERED, GENERIC_READ, GENERIC_WRITE,
+                GetLastError, HANDLE, NTSTATUS, OBJ_CASE_INSENSITIVE, OBJ_DONT_REPARSE,
+                STATUS_ACCESS_DENIED,
             },
             Storage::FileSystem::{
                 BY_HANDLE_FILE_INFORMATION, DELETE, FILE_ATTRIBUTE_DIRECTORY,
                 FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_REPARSE_POINT, FILE_ATTRIBUTE_TAG_INFO,
-                FILE_FLAG_BACKUP_SEMANTICS, FILE_ID_INFO, FILE_READ_ATTRIBUTES, FILE_SHARE_DELETE,
-                FILE_SHARE_READ, FILE_SHARE_WRITE, FILE_TRAVERSE, FileAttributeTagInfo, FileIdInfo,
+                FILE_ID_INFO, FILE_READ_ATTRIBUTES, FILE_SHARE_DELETE, FILE_SHARE_READ,
+                FILE_SHARE_WRITE, FILE_TRAVERSE, FileAttributeTagInfo, FileIdInfo,
                 FileStandardInfo, FlushFileBuffers, GetFileInformationByHandle, READ_CONTROL,
-                ReOpenFile, SYNCHRONIZE, WRITE_DAC,
+                SYNCHRONIZE, WRITE_DAC,
             },
         },
     };
@@ -3806,32 +3765,6 @@ mod win {
             Ok(WinDir { handle })
         }
 
-        pub(crate) fn open_windows_dir_at_for_traversal(
-            &self,
-            parent: &WinDir,
-            name: &OsStr,
-            follow_links: bool,
-        ) -> io::Result<WinDir> {
-            let name = NtRelativeName::parse_os(name)?;
-            let object_attributes = if follow_links {
-                OBJ_CASE_INSENSITIVE
-            } else {
-                OBJ_CASE_INSENSITIVE | OBJ_DONT_REPARSE
-            };
-            let handle = open_directory_for_traversal(
-                parent.traversal_handle(),
-                name.as_slice(),
-                object_attributes,
-            )
-            .map_err(map_reparse_error)?;
-            Ok(WinDir { handle })
-        }
-
-        pub(crate) fn reopen_windows_dir(&self, directory: &WinDir) -> io::Result<WinDir> {
-            reopen_directory_capability(directory.traversal_handle())
-                .map(|handle| WinDir { handle })
-        }
-
         pub(crate) fn open_windows_dir_path_at(
             &self,
             parent: &WinDir,
@@ -3880,19 +3813,6 @@ mod win {
             follow_links: bool,
         ) -> io::Result<WinDir> {
             self.open_windows_dir_at(parent, OsStr::new(name), follow_links)
-        }
-
-        fn open_dir_at_for_traversal(
-            &self,
-            parent: &WinDir,
-            name: &str,
-            follow_links: bool,
-        ) -> io::Result<WinDir> {
-            self.open_windows_dir_at_for_traversal(parent, OsStr::new(name), follow_links)
-        }
-
-        fn reopen_dir(&self, directory: &WinDir) -> io::Result<WinDir> {
-            self.reopen_windows_dir(directory)
         }
 
         fn open_dir_path_at(&self, parent: &WinDir, components: &[String]) -> io::Result<WinDir> {
@@ -4207,56 +4127,6 @@ mod win {
             )
         })
         .map_err(nt_status_to_io_error)
-    }
-
-    fn open_directory_for_traversal(
-        root: HANDLE,
-        name: &[u16],
-        object_attributes: u32,
-    ) -> io::Result<OwnedHandle> {
-        let open = |desired_access| {
-            nt_open_file_status(
-                root,
-                name,
-                desired_access,
-                PERMISSIVE_SHARING,
-                FILE_DIRECTORY_FILE,
-                object_attributes,
-            )
-        };
-        match open(FILE_TRAVERSE) {
-            Err(STATUS_ACCESS_DENIED) => open(FILE_READ_ATTRIBUTES),
-            result => result,
-        }
-        .map_err(nt_status_to_io_error)
-    }
-
-    fn reopen_directory_capability(handle: HANDLE) -> io::Result<OwnedHandle> {
-        let reopen = |desired_access| {
-            // SAFETY: `handle` is a live retained directory handle. The
-            // returned handle, when successful, is a new reference to that
-            // exact directory and is transferred into `OwnedHandle`.
-            let reopened = unsafe {
-                ReOpenFile(
-                    handle,
-                    desired_access,
-                    PERMISSIVE_SHARING,
-                    FILE_FLAG_BACKUP_SEMANTICS,
-                )
-            };
-            if reopened == INVALID_HANDLE_VALUE {
-                return Err(io::Error::last_os_error());
-            }
-            // SAFETY: `ReOpenFile` returned a valid, uniquely-owned handle.
-            Ok(unsafe { OwnedHandle::from_raw_owned(reopened) })
-        };
-
-        match reopen(PREFERRED_DIRECTORY_CAPABILITY_ACCESS) {
-            Err(error) if error.raw_os_error() == Some(ERROR_ACCESS_DENIED as i32) => {
-                reopen(MINIMUM_DIRECTORY_CAPABILITY_ACCESS)
-            }
-            result => result,
-        }
     }
 
     fn windows_relative_path(components: &[String]) -> io::Result<Vec<u16>> {

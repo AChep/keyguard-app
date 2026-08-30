@@ -465,6 +465,7 @@
     <string name="email_action_check_data_breach_title">Check the email in known data breaches</string>
     <string name="username_action_check_data_breach_title">Check the username in known data breaches</string>
     <string name="password_action_check_data_breach_title">Check the password in known data breaches</string>
+    <string name="password_action_test_memory_title">Type from memory</string>
     <string name="website_action_check_data_breach_title">Check the website in known data breaches</string>
 
     <string name="uri_action_launch_app_title">Launch app</string>
@@ -824,6 +825,8 @@
     <string name="passwordleak_occurrences_found_text">The password has been identified in known data breaches. Please change it immediately to protect your online security</string>
     <string name="passwordleak_occurrences_not_found_title">No breaches found</string>
     <string name="passwordleak_failed_to_load_status_text">Failed to check data breaches. You might be offline</string>
+    <string name="password_memory_test_note">Enter this password from memory. Keyguard compares it with the saved password on this device.</string>
+    <string name="password_memory_test_success">Password matches</string>
     <!-- Title of the 'Show in Large Type' dialog -->
     <string name="largetype_title">Large Type</string>
     <string name="largetype_action_show_in_large_type_title">Show in Large Type</string>

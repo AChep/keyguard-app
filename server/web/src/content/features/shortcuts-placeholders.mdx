@@ -12,15 +12,14 @@ import placeholdersUris from '../../assets/screenshots/placeholders-uris.png';
 import urlOverrideList from '../../assets/screenshots/url-override-list.png';
 import urlOverrideApplied from '../../assets/screenshots/url-override-applied.png';
 
-These three tools let power users shape how items behave instead of accepting the defaults. Each targets a different friction point in everyday use.
+Three tools for shaping how items behave instead of accepting the defaults.
 
-- [**Shortcuts**](#shortcuts) trigger your most common actions in a single step, so repetitive tasks stop interrupting your flow.
-- [**Placeholders**](#placeholders) are dynamic tokens that get substituted at the moment you use an item, expanding into the right value when you fill a form or copy a field.
-- [**URL overrides**](#url-overrides) customize how an item's URLs are matched and launched, so the correct item is suggested on the correct site rather than a near-miss.
+- [**Shortcuts**](#shortcuts) run the most common actions from the keyboard.
+- [**Placeholders**](#placeholders) are tokens that expand into the item's own data at the moment you use it.
+- [**URL overrides**](#url-overrides) add a button next to a matching URL that opens a rewritten version of it, or launches a local program.
 
 <Screenshot src={placeholdersUris} caption="An item's URIs built with a placeholder token that expands to the username when the item is launched." />
 
-Together they reward a little upfront configuration with faster, more accurate matching and filling. Set them once on the items that matter, and the behavior follows you everywhere.
 ## Shortcuts
 
 Common actions are a keystroke away (`⌘` on macOS, `Ctrl` elsewhere):
@@ -65,7 +64,7 @@ Regex:    ^http://.*
 Command:  https://{url:rmvscm}
 ```
 
-<Screenshot src={urlOverrideList} caption="The URL overrides screen — an HTTPS-ify rule and an SSH hostname launcher." />
+<Screenshot src={urlOverrideList} caption="The URL overrides screen, with an HTTPS-ify rule and an SSH hostname launcher." />
 
 <Screenshot src={urlOverrideApplied} caption="The SSH hostname override applied to an item's ssh:// URL." />
 

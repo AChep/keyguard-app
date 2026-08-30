@@ -33,6 +33,75 @@
     <plurals name="months_plural">
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g>개월</item>
     </plurals>
+    <plurals name="skipped_passkeys_note">
+        <item quantity="other">패스키 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="skipped_otp_note">
+        <item quantity="other">OTP <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="skipped_ssh_keys_note">
+        <item quantity="other">SSH 키 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="skipped_gpg_keys_note">
+        <item quantity="other">GPG 키 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="skipped_attachments_note">
+        <item quantity="other">첨부 파일 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="skipped_password_history_note">
+        <item quantity="other">저장된 이전 비밀번호 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="skipped_archived_items_note">
+        <item quantity="other">아카이브된 항목 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="skipped_items_note">
+        <item quantity="other">항목 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="skipped_accounts_note">
+        <item quantity="other">계정 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_accounts_note">
+        <item quantity="other">받은 데이터에 <xliff:g id="number">%1$d</xliff:g>개의 계정이 있습니다. 모든 항목을 이 계정으로 가져옵니다.</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_folders_note">
+        <item quantity="other">폴더 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_logins_note">
+        <item quantity="other">로그인 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_passkeys_note">
+        <item quantity="other">패스키 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_otp_note">
+        <item quantity="other">OTP <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_cards_note">
+        <item quantity="other">카드 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_identities_note">
+        <item quantity="other">신원 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_notes_note">
+        <item quantity="other">메모 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="credential_exchange_import_review_ssh_keys_note">
+        <item quantity="other">SSH 키 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="skipped_unsupported_credentials_note">
+        <item quantity="other">지원하지 않는 자격 증명 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="skipped_duplicate_credentials_note">
+        <item quantity="other">중복된 자격 증명 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="skipped_folders_note">
+        <item quantity="other">폴더 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="skipped_and_more_note">
+        <item quantity="other">외 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="credential_exchange_import_success_text">
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g>개 항목을 계정에 추가했습니다.</item>
+    </plurals>
     <plurals name="years_plural">
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g>년</item>
     </plurals>

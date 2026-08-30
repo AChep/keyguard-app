@@ -12,13 +12,17 @@ use keyguard_io_core::{abi, bridge};
 
 /// Runs `body` behind the panic boundary every entry point shares.
 ///
-/// The hook is installed *inside* the boundary: `std::panic::set_hook`
+/// Production builds install the hook *inside* the boundary:
+/// `std::panic::set_hook`
 /// "panics if called from a panicking thread", and a panic inside
 /// `Once::call_once` poisons the `Once` so that every later call panics too.
 /// Installed outside the boundary, one such panic would escape the
 /// `extern "C"` frame and abort the process on every subsequent bridge call.
 fn contained<R>(body: impl FnOnce() -> R) -> Result<R, i64> {
     std::panic::catch_unwind(AssertUnwindSafe(|| {
+        // Unit tests keep Rust's default hook so a caught assertion still
+        // reports its payload and source location in CI logs.
+        #[cfg(not(test))]
         keyguard_io_core::install_redacting_panic_hook();
         body()
     }))

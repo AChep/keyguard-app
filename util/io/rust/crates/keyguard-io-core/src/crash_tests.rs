@@ -1844,7 +1844,11 @@ fn concurrent_directory_create_is_reopened_after_already_exists() {
         .filter(|operation| operation.op == SimOp::OpenDirAt)
         .map(|operation| operation.occurrence)
         .collect::<Vec<_>>();
-    assert_eq!(opens, [0, 1], "missing component must be reopened once");
+    assert_eq!(
+        opens,
+        [0],
+        "missing component must be reopened exactly once"
+    );
     assert_eq!(
         fs.final_snapshot()
             .live_listing()

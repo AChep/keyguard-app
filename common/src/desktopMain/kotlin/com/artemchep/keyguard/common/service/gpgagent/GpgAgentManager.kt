@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.common.service.agent.AgentManager
 import com.artemchep.keyguard.common.service.agent.macosDevAgentSocketPath
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -159,8 +160,17 @@ class GpgAgentManager(
                 awaitWithExpiry(request, reason = "desktop_gpg_approval_timeout")
             },
         )
-        return IpcServerRunner { endpoint, onReady ->
-            ipcServer.start(endpoint, onReady = onReady)
+        return object : IpcServerRunner {
+            override suspend fun start(
+                endpoint: AgentIpcEndpoint,
+                onReady: CompletableDeferred<Unit>?,
+            ) {
+                ipcServer.start(endpoint, onReady = onReady)
+            }
+
+            override fun stop() {
+                ipcServer.stop()
+            }
         }
     }
 

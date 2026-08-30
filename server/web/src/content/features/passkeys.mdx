@@ -11,9 +11,9 @@ premium: false
 import passkeyCreate from '../../assets/screenshots/passkey-create.png';
 import passkeyItem from '../../assets/screenshots/passkey-item.png';
 
-On Android, Keyguard can create passkeys and use them to sign in as a system credential provider, giving you a phishing-resistant way to authenticate without typing or remembering a password. On Wear OS it can sign in with passkeys already in your vault. When a website offers passkey sign-in, you generate one in a moment and use it on your next visit.
+On Android, Keyguard registers as a system credential provider, so it can create passkeys and sign in with them. On Wear OS it can sign in with passkeys already in your vault. A passkey is bound to the site that issued it, so there is no password for a lookalike page to collect.
 
-Each passkey lives in your vault alongside your logins, notes, and cards, so it stays in sync and is protected by the same encryption as everything else. You can view the details of the passkey and/or export it to a file if you want to.
+Each passkey lives in your vault next to your logins. You can inspect a passkey's details or export it to a file.
 
 <Screenshot src={passkeyCreate} caption="Creating a passkey for a website during account sign-up" />
 
@@ -21,4 +21,4 @@ Watchtower can also point out sites that support passkeys where you haven't crea
 
 <Screenshot src={passkeyItem} caption="A passkey item stored in the vault next to other login entries" />
 
-Interested in how passkeys work, and why they resist phishing and breaches in ways passwords can't? See the [passkeys reference](/docs/passkeys/).
+The [passkeys reference](/docs/passkeys/) walks through WebAuthn registration and sign-in, the generic info about passkeys and why a breach of the site's server leaves an attacker nothing reusable.

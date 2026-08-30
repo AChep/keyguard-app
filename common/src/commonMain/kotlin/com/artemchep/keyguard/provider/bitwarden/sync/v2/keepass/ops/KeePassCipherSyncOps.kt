@@ -2,18 +2,18 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops
 
 import app.keemobile.kotpass.database.modifiers.binaries
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
-import com.artemchep.keyguard.common.util.to0DigitsNanosOfSecond
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.entity.KeePassCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassDbMutator
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassWriteBackBuffer
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassCipherCodec
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.writeIfCurrent
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.entity.KeePassCipher
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.toKeePassTimestamp
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncOps
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateEntry
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateResult
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.RemoteWriteOutcome
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.writeIfCurrent
 import kotlin.uuid.Uuid
 
 class KeePassCipherSyncOps(
@@ -86,26 +86,30 @@ class KeePassCipherSyncOps(
         force: Boolean,
     ): RemoteWriteOutcome<BitwardenCipher> {
         val remoteUuid = server?.cipher?.uuid
-        val revisionDate = local.revisionDate.to0DigitsNanosOfSecond()
+        val publishedLocal = local.copy(
+            revisionDate = local.revisionDate.toKeePassTimestamp(),
+            expiredDate = local.expiredDate?.toKeePassTimestamp(),
+            deletedDate = local.deletedDate?.toKeePassTimestamp(),
+        )
         val encoded = cipherCodec.encode(
-            local = local,
+            local = publishedLocal,
             remote = server?.cipher,
             existingBinaries = mutator.database.binaries,
         )
         val newEntry = encoded.entry
-
-        val newLocal = local.copy(
+        val revisionDate = newEntry.times
+            ?.lastModificationTime
+            ?: publishedLocal.revisionDate
+        val newLocal = publishedLocal.copy(
             service = BitwardenService(
                 remote = BitwardenService.Remote(
                     id = newEntry.uuid.toString(),
                     revisionDate = revisionDate,
-                    deletedDate = local.deletedDate?.to0DigitsNanosOfSecond(),
+                    deletedDate = publishedLocal.deletedDate,
                 ),
                 version = BitwardenService.VERSION,
             ),
             revisionDate = revisionDate,
-            expiredDate = local.expiredDate?.to0DigitsNanosOfSecond(),
-            deletedDate = local.deletedDate?.to0DigitsNanosOfSecond(),
             attachments = encoded.attachments,
             sourceData = encoded.sourceData,
         )

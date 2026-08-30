@@ -34,3 +34,19 @@ fun Group.modifyEntryWithTimes(
         copy(groups = groups)
     }
 }
+
+fun KeePassDatabase.modifyGroupWithTimes(
+    uuid: Uuid,
+    block: Group.() -> Group,
+) = modifyContent {
+    copy(group = group.modifyGroupWithTimes(uuid, block))
+}
+
+fun Group.modifyGroupWithTimes(
+    uuid: Uuid,
+    block: Group.() -> Group,
+): Group = if (this.uuid == uuid) {
+    block()
+} else {
+    copy(groups = groups.map { it.modifyGroupWithTimes(uuid, block) })
+}

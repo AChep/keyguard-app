@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.MasterKey
+import com.artemchep.keyguard.common.model.NoAnalytics
 import com.artemchep.keyguard.common.service.database.DatabaseSqlHelper
 import com.artemchep.keyguard.common.service.database.DatabaseSqlManager
 import com.artemchep.keyguard.common.util.toHex
@@ -37,6 +38,8 @@ class DatabaseSqlManagerInFileJvm<Database>(
                 databaseSchema = databaseSchema,
                 callbacks = callbacks,
             )
+        } catch (e: DatabaseSchemaDowngradeException) {
+            throw e
         } catch (e: Exception) {
             recordException(e)
             if ("is not a database" in e.message.orEmpty()) {
@@ -71,6 +74,13 @@ class DatabaseSqlManagerInFileJvm<Database>(
         val currentVersion = runCatching {
             driver.getCurrentVersion()
         }.getOrDefault(0L)
+        if (currentVersion > targetVersion) {
+            driver.close()
+            throw DatabaseSchemaDowngradeException(
+                currentVersion = currentVersion,
+                targetVersion = targetVersion,
+            )
+        }
         if (currentVersion == 0L) {
             databaseSchema.create(driver)
         } else if (targetVersion > currentVersion) {
@@ -82,7 +92,7 @@ class DatabaseSqlManagerInFileJvm<Database>(
             )
         }
         // Bump the version to the current one.
-        if (currentVersion != targetVersion) {
+        if (currentVersion < targetVersion) {
             driver.setCurrentVersion(targetVersion)
         }
 
@@ -160,3 +170,11 @@ class DatabaseSqlManagerInFileJvm<Database>(
             .await()
     }
 }
+
+internal class DatabaseSchemaDowngradeException(
+    val currentVersion: Long,
+    val targetVersion: Long,
+) : IllegalStateException(
+    "The database downgrade is not supported: " +
+            "$currentVersion > $targetVersion",
+), NoAnalytics

@@ -69,7 +69,10 @@ class KeePassTreeSyncExecutor(
             localCount = folders.localFolders.size,
             serverCount = folders.remoteFolders.size,
         ) {
-            val plan = EntitySyncPlanBuilder(folders.strategy)
+            val plan = EntitySyncPlanBuilder(
+                strategy = folders.strategy,
+                dateNormalizer = { it.toKeePassDiffKey() },
+            )
                 .buildPlan(
                     localEntities = folders.localFolders,
                     serverEntities = folders.remoteFolders,
@@ -90,7 +93,10 @@ class KeePassTreeSyncExecutor(
             localCount = ciphers.localCiphers.size,
             serverCount = ciphers.remoteCiphers.size,
         ) {
-            val plan = EntitySyncPlanBuilder(ciphers.strategy)
+            val plan = EntitySyncPlanBuilder(
+                strategy = ciphers.strategy,
+                dateNormalizer = { it.toKeePassDiffKey() },
+            )
                 .buildPlan(
                     localEntities = ciphers.localCiphers,
                     serverEntities = ciphers.remoteCiphers,

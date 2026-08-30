@@ -1,12 +1,14 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.strategy
 
 import app.keemobile.kotpass.models.Group
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncAction
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.buildEntry
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.entity.KeePassCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.entity.KeePassFolder
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenFolder
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.toKeePassDiffKey
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncPlanBuilder
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -51,6 +53,43 @@ class KeePassRetryRecoveryTest {
         )
 
         val plan = EntitySyncPlanBuilder(strategy).buildPlan(
+            localEntities = listOf(local),
+            serverEntities = listOf(remote),
+        )
+
+        assertEquals(
+            listOf(
+                SyncAction.PushToServer(
+                    localId = ITEM_ID,
+                    serverId = ITEM_ID,
+                ),
+            ),
+            plan.actions,
+        )
+    }
+
+    @Test
+    fun `cipher edit shortly after a published second pushes with KeePass precision`() {
+        val remote = remoteCipher(revisionDate = REVISION_DATE)
+        val strategy = KeePassCipherSyncStrategy(
+            remoteFolderIdToLocalId = { null },
+        )
+        val local = testBitwardenCipher(cipherId = ITEM_ID).copy(
+            revisionDate = SAME_SECOND_LOCAL_EDIT,
+            service = BitwardenService(
+                remote = BitwardenService.Remote(
+                    id = ITEM_ID,
+                    revisionDate = REVISION_DATE,
+                    deletedDate = null,
+                ),
+                version = BitwardenService.VERSION,
+            ),
+        )
+
+        val plan = EntitySyncPlanBuilder(
+            strategy = strategy,
+            dateNormalizer = { it.toKeePassDiffKey() },
+        ).buildPlan(
             localEntities = listOf(local),
             serverEntities = listOf(remote),
         )
@@ -114,4 +153,5 @@ class KeePassRetryRecoveryTest {
 private const val ITEM_ID = "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"
 private const val GROUP_ID = "94c40f7c-e6e1-4ec3-b3a0-eb8d54c19c5a"
 private val REVISION_DATE = Instant.parse("2024-01-01T00:00:00Z")
+private val SAME_SECOND_LOCAL_EDIT = Instant.parse("2024-01-01T00:00:00.000040Z")
 private val LATER_REVISION_DATE = Instant.parse("2024-01-02T00:00:00Z")

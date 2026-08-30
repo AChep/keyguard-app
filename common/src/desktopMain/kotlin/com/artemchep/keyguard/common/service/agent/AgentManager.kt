@@ -68,8 +68,10 @@ abstract class AgentManager(
      * Thin abstraction over an agent's IPC server, allowing the shared
      * lifecycle to start it without knowing its concrete type.
      */
-    protected fun interface IpcServerRunner {
+    protected interface IpcServerRunner {
         suspend fun start(endpoint: AgentIpcEndpoint, onReady: CompletableDeferred<Unit>?)
+
+        fun stop()
     }
 
     companion object {
@@ -83,6 +85,7 @@ abstract class AgentManager(
     private val mutex = Mutex()
 
     private var agentProcess: Process? = null
+    private var ipcServerRunner: IpcServerRunner? = null
     private var serverJob: Job? = null
     private var serverScope: CoroutineScope? = null
     private var ipcEndpoint: AgentIpcEndpoint? = null
@@ -166,11 +169,15 @@ abstract class AgentManager(
         }
         // The previous agent process is dead or was never started. Fully
         // tear down any leftover state before allocating new resources.
-        if (existingProcess != null ||
-            serverScope != null ||
-            serverJob != null ||
-            ipcEndpoint != null
-        ) {
+        val hasStaleState = when {
+            existingProcess != null -> true
+            ipcServerRunner != null -> true
+            serverScope != null -> true
+            serverJob != null -> true
+            ipcEndpoint != null -> true
+            else -> false
+        }
+        if (hasStaleState) {
             logRepository.post(config.tag, "Cleaning up stale ${config.displayName} state", LogLevel.INFO)
             stopLocked()
         }
@@ -217,6 +224,7 @@ abstract class AgentManager(
             scope = serverScope,
             expectedPeerProcess = expectedPeerProcess,
         )
+        ipcServerRunner = ipcServer
 
         // The server signals readiness via this deferred once the
         // socket is bound and it starts accepting connections.
@@ -357,6 +365,21 @@ abstract class AgentManager(
 
         val process = agentProcess
         agentProcess = null
+
+        // Closing the transport is what releases a blocking Unix accept() or
+        // Windows ConnectNamedPipe() call. Coroutine cancellation alone cannot
+        // make progress until that blocking call returns.
+        val ipcServerRunner = ipcServerRunner
+        this.ipcServerRunner = null
+        try {
+            ipcServerRunner?.stop()
+        } catch (e: Exception) {
+            logRepository.post(
+                config.tag,
+                "Error stopping IPC server: ${e.message}",
+                LogLevel.ERROR,
+            )
+        }
 
         // Kill the agent process.
         process?.let {

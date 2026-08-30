@@ -6,7 +6,7 @@ order: 6
 ---
 
 Keyguard can act as an **SSH agent**: keys stored in your vault sign SSH
-authentication requests, so private keys never stored unprotected on disk. Each
+authentication requests, so private keys are never stored unprotected on disk. Each
 signing request can pop up an approval dialog telling you which application
 wants to use which key. You set the approval window — from prompting on
 **every request**, to remembering approvals for a set time (5 minutes by

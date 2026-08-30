@@ -12,22 +12,26 @@ import watchtowerOverview from '../../assets/screenshots/watchtower-overview.png
 import reusedPasswords from '../../assets/screenshots/watchtower-reused-passwords.png';
 import mergeDuplicates from '../../assets/screenshots/watchtower-merge-duplicates.png';
 
-Watchtower scans every item in your vault and surfaces the security risks and maintance issues that quietly accumulate over time, so you can fix them before they become a problem. The audit runs continuously and groups its findings, letting you focus on the issues that matter most and resolve them one by one.
+Watchtower audits every item in your vault for security risks and maintenance problems, and groups what it finds by category with a count on each. The audit reruns as your vault changes, so you are always up to date.
 
-<Screenshot src={watchtowerOverview} caption="The Watchtower overview — a password-strength summary and security issues grouped by category with counts." />
+<Screenshot src={watchtowerOverview} caption="The Watchtower overview, with a password-strength summary and security issues grouped by category with counts." />
 
 ## What it checks
 
 - Pwned (leaked) passwords
+- Vulnerable accounts, where the site was breached after you last changed the password
 - Reused passwords
-- Vulnerable or weak passwords
+- Weak passwords
 - Weak SSH keys
-- Unusable or weak GPG keys
-- Missing or stale GPG keyserver publishing
+- Unusable GPG keys
+- Weak GPG keys
+- GPG key publishing, when a key's keyserver status is missing or stale
 - Inactive two-factor authentication
-- Inactive passkeys
-- Unsecured websites (http://)
+- Available passkeys, on sites that support them
+- Insecure websites, still on `http://`
 - Duplicate items
+- Duplicate URIs, where two of an item's URLs cover the same site
+- Broad URI match detection, where a URL matches more loosely than it should
 - Incomplete items
 - Expiring items
 
@@ -37,6 +41,6 @@ Selecting any category opens the affected items, where you can update a password
 
 ## Clean up duplicates
 
-When Watchtower flags duplicate items, you can resolve them on the spot: pick the copies and choose **Merge into…**, and Keyguard reconciles them into a single entry — see [bulk actions](/features/bulk-actions/) for the merge editor.
+When Watchtower flags duplicate items, you can resolve them on the spot: pick the copies, choose **Merge into…**, and Keyguard reconciles them into a single entry. See [bulk actions](/features/bulk-actions/) for the merge editor.
 
 <Screenshot src={mergeDuplicates} caption="Duplicate logins flagged by Watchtower, with the Merge into… action ready." />

@@ -2,8 +2,8 @@
 """
 Release Changelog Summarizer using Google Gemini AI.
 
-Reads a text file containing commit messages and generates
-a concise, user-facing changelog summary.
+Reads a text file containing commit messages, generates full release notes,
+and derives a concise app-store summary from those notes in a second pass.
 
 Dependencies:
     pip install google-genai
@@ -19,11 +19,10 @@ from google.genai import types
 # --- Configuration Constants ---
 MODEL_NAME = "gemini-2.5-pro"
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
-CHANGELOG_SUMMARY_LENGTH_LIMIT = 500
-TRUNCATION_SUFFIX = "…"
+CHANGELOG_SUMMARY_LENGTH_LIMIT = 480
 
-PROMPT_TEMPLATE = """
-You are an expert release-note writer. Convert raw git commit messages into concise, fluent app-store release notes for Keyguard. Write natural English that sounds edited by a human, not like a categorized digest.
+FULL_PROMPT_TEMPLATE = """
+You are an expert release-note writer for Keyguard. Convert raw git commit messages into complete, polished GitHub release notes for end users. Write natural English that sounds edited by a human, not like a categorized commit digest.
 
 **Input Context:**
 The input will be a list of raw git commit messages, recent commits first. 
@@ -38,22 +37,28 @@ Key features include:
 - Autofill integration for browsers and apps
 - Offline access and multi-account support
 
-**Guidelines & Constraints:**
-1. **Precision:** Summarize only the explicit changes mentioned in the commits. Do not infer features, guess "why" changes were made, or elaborate on potential benefits. If the commit is vague, keep the summary brief.
-2. **Audience:** Write for a technical end-user. Focus on functional changes, UI updates, and bug fixes.
-3. **Filtering:** Strictly ignore non-functional commits: "chore", "build", "deps", "version bumps", "CI/CD", and merge commits; do not mention them directly or indirectly. Treat commits marked as "auto" (localization/watchtower) as lowest priority; include them only if they represent a notable user-facing change.
-4. **Prioritization:** Lead with the most notable user-facing changes. Prefer features before fixes when it reads naturally, but do not force category transitions.
-5. **Style:** Use concrete verbs and plain, professional language. No emojis. No fluff, marketing adjectives (e.g., "exciting," "better"), or generic openers like "This update brings", "This release includes", or "We've improved".
-6. **Flow:** Combine related changes by user impact and readability, not strictly by commit order, platform labels, or feature buckets. Name platforms and features only when needed for clarity.
-7. **Format:** Prefer 2-4 sentences in a single cohesive paragraph. No lists or bullet points. You may use a colon and a semicolon sparingly.
+**Work in two silent passes:**
+1. **Extract and rank themes.** Group related commits into coherent change themes. A major feature may have one feature commit plus supporting fixes, refactors, tests, or platform changes; combine those when the relationship is explicit. Grouping evidence is allowed, but do not invent behavior, motivations, or benefits. Rank themes by user impact and scope, not commit order or raw commit count:
+   - major new user-facing capability;
+   - broad platform or integration improvement;
+   - high-impact security or reliability fix;
+   - smaller usability improvement;
+   - minor bug fix or maintenance.
+2. **Write the full notes.** Include all material user-facing themes, with the strongest changes first. A major feature must displace minor fixes. Combine related fixes under the feature they support instead of repeating them as separate entries.
 
-**STRICT Output Rules:**
-* Output **ONLY** the release note text.
-* Do not include introductory text (e.g., "Here is your changelog").
-* Do not include concluding text.
-* Do not use markdown code blocks or quotes. Start directly with the first word of the changelog.
-* Keep the output under 500 characters.
-* Zero-Tolerance Policy for Hallucination: If the commits do not provide enough information for a specific feature, do not fill in the gaps.
+**Guidelines & Constraints:**
+1. **Precision:** Summarize only changes explicitly supported by the commits. If evidence is vague, keep the claim brief or omit it. Do not infer why a change was made or promise unverified benefits.
+2. **Audience:** Write for a technical end-user. Focus on functional changes, UI updates, security, reliability, and important platform limitations.
+3. **Filtering:** Ignore "chore", "build", "deps", version bumps, CI/CD, tests, merge commits, and internal-only refactors unless they directly produce a user-visible change. Treat automatic localization or data refresh commits as low priority unless they represent a notable feature change.
+4. **Style:** Use concrete verbs and plain, professional language. No emojis, fluff, marketing adjectives, generic openers, or implementation details.
+5. **Flow:** Combine related changes by user impact and readability, not commit order or rigid categories. Name platforms and features only when needed for clarity.
+
+**Output Rules:**
+* Output **only** the Markdown release notes; do not include analysis or commentary.
+* Use a short opening paragraph followed by descriptive headings and concise bullet points.
+* Include all material user-facing themes, normally targeting 400–1,200 words based on the release scope.
+* Do not produce a commit-by-commit list, include commit hashes, or mention excluded maintenance work.
+* Zero-Tolerance Policy for Hallucination: If the commits do not provide enough information for a specific claim, do not fill in the gaps.
 
 **Input Commits:**
 ```
@@ -61,27 +66,44 @@ Key features include:
 ```
 """
 
+SUMMARY_PROMPT_TEMPLATE = """
+You are an expert app-store release-note editor for Keyguard. Compress the supplied full GitHub release notes into a concise app-store summary. The full notes are authoritative: preserve their facts and priorities, and do not introduce claims that are not present there.
+
+**Prioritization:**
+1. Lead with the most important new user-facing capability.
+2. Prefer broad platform or integration improvements next.
+3. Include a high-impact security or reliability fix only if it fits.
+4. Omit minor fixes when space is limited. A major feature must displace them.
+
+**Style and output:**
+* Output only plain text: no headings, bullets, markdown, quotes, or commentary.
+* Write 2–3 sentences in one paragraph using concrete verbs and professional language.
+* Target 450–480 characters and never exceed 480 characters.
+* Never end mid-sentence or with an ellipsis.
+* Do not use generic openers, marketing adjectives, or unverified benefits.
+
+**Full release notes:**
+<full_notes>
+{full_notes}
+</full_notes>
+"""
+
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT, datefmt="%H:%M:%S")
 logger = logging.getLogger(__name__)
 
 
-def truncate_changelog_summary(text: str) -> str:
+def validate_changelog_summary(text: str) -> str:
     text = text.strip()
-    if len(text) < CHANGELOG_SUMMARY_LENGTH_LIMIT:
-        return text
-
-    max_length = CHANGELOG_SUMMARY_LENGTH_LIMIT - 1
-    text_length = max_length - len(TRUNCATION_SUFFIX)
-    truncated = text[:text_length].rstrip()
-
-    if text_length < len(text) and text[text_length].isspace():
-        return truncated + TRUNCATION_SUFFIX
-
-    parts = truncated.rsplit(maxsplit=1)
-    if len(parts) > 1:
-        truncated = parts[0].rstrip()
-
-    return truncated + TRUNCATION_SUFFIX
+    if len(text) > CHANGELOG_SUMMARY_LENGTH_LIMIT:
+        raise ValueError(
+            "Generated app-store summary exceeds "
+            f"{CHANGELOG_SUMMARY_LENGTH_LIMIT} characters."
+        )
+    if text.endswith(("…", "...")):
+        raise ValueError("Generated app-store summary ends with an ellipsis.")
+    if not text.endswith((".", "!", "?")):
+        raise ValueError("Generated app-store summary does not end with a complete sentence.")
+    return text
 
 
 class GeminiSummarizer:
@@ -89,8 +111,7 @@ class GeminiSummarizer:
         self.client = genai.Client(api_key=api_token)
         self.model_name = model_name
 
-    def summarize(self, commit_text: str) -> str:
-        prompt = PROMPT_TEMPLATE.format(commit_text=commit_text)
+    def _generate(self, prompt: str, output_name: str) -> str:
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=prompt,
@@ -103,16 +124,36 @@ class GeminiSummarizer:
             text = text.split("\n", 1)[1]
         if text.endswith("```"):
             text = text.rsplit("\n", 1)[0]
-        return text.strip()
+        text = text.strip()
+        if not text:
+            raise RuntimeError(f"Gemini returned empty {output_name}.")
+        return text
+
+    def generate_full_notes(self, commit_text: str) -> str:
+        prompt = FULL_PROMPT_TEMPLATE.format(commit_text=commit_text)
+        return self._generate(prompt, output_name="full release notes")
+
+    def summarize_full_notes(self, full_notes: str) -> str:
+        prompt = SUMMARY_PROMPT_TEMPLATE.format(full_notes=full_notes)
+        return self._generate(prompt, output_name="app-store summary")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate a release changelog summary from commit messages using Gemini AI."
+        description="Generate compressed and full release notes from commit messages using Gemini AI."
     )
     parser.add_argument("commit_file", type=Path, help="Path to the text file with commit messages")
     parser.add_argument("--token", type=str, required=True, help="Gemini API Token")
-    parser.add_argument("--output", type=Path, help="Optional output file path; prints to stdout if omitted")
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="Optional output file path for the compressed summary; prints it to stdout if omitted",
+    )
+    parser.add_argument(
+        "--full-output",
+        type=Path,
+        help="Optional output file path for the full Markdown release notes",
+    )
     args = parser.parse_args()
 
     if not args.commit_file.exists():
@@ -125,14 +166,19 @@ def main():
         return
 
     summarizer = GeminiSummarizer(api_token=args.token)
-    summary = summarizer.summarize(commit_text)
-    summary = truncate_changelog_summary(summary)
+    full = summarizer.generate_full_notes(commit_text)
+    summary = summarizer.summarize_full_notes(full)
+    summary = validate_changelog_summary(summary)
 
     if args.output:
         args.output.write_text(summary + "\n", encoding="utf-8")
         logger.info(f"Summary saved to {args.output}")
     else:
         print(summary)
+
+    if args.full_output:
+        args.full_output.write_text(full + "\n", encoding="utf-8")
+        logger.info(f"Full release notes saved to {args.full_output}")
 
 
 if __name__ == "__main__":

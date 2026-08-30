@@ -14,7 +14,7 @@ Pick your platform on the [Download](/download/) page. Android & Wear OS, Linux,
 
 ## 2. Create local vault
 
-Choose an app password - it locks everything Keyguard keeps on this device and create the local vault. [App password is different from your Bitwarden/KDBX password](/docs/lock-and-unlock/).
+Choose an app password and create the local vault. The app password protects everything Keyguard keeps on this device, it is [not the same as your Bitwarden or KDBX password](/docs/lock-and-unlock/).
 
 ## 3. Add an account
 

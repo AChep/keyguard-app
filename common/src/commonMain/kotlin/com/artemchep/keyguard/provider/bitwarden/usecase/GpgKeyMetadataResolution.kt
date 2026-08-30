@@ -24,14 +24,14 @@ internal fun BitwardenCipher.GpgKey.resolveGpgMetadata(
     )
 }
 
-private fun BitwardenCipher.GpgKey.hasSameGpgMaterial(
+internal fun BitwardenCipher.GpgKey.hasSameGpgMaterial(
     other: BitwardenCipher.GpgKey,
 ): Boolean =
     privateKeyArmored == other.privateKeyArmored &&
             publicKeyArmored == other.publicKeyArmored &&
             fingerprint.normalizeGpgFingerprintOrNull() == other.fingerprint.normalizeGpgFingerprintOrNull()
 
-private fun String?.normalizeGpgFingerprintOrNull(): String? =
+internal fun String?.normalizeGpgFingerprintOrNull(): String? =
     this
         ?.normalizeGpgFingerprint()
         ?.takeIf { it.isNotEmpty() }

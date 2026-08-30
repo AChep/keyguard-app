@@ -9,6 +9,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.crypto.CipherEncryptorImpl
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
+import com.artemchep.keyguard.crypto.NativeGpgCertificateMaterialReconciler
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrImpl
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrKey
@@ -455,6 +456,7 @@ private fun createFullSyncFixture(
         pendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
         watchdog = UploadTestWatchdog,
         markBackupAsDirty = UploadTestMarkBackupAsDirty,
+        gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
     )
     val crypto =
         BitwardenCrImpl(

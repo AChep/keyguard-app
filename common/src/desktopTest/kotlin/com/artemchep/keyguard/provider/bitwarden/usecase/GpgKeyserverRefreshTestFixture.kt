@@ -222,6 +222,7 @@ internal class GpgKeyserverRefreshTestFixture(
 
 internal data class RefreshRevocationCertificates(
     val fingerprint: String,
+    val privateKey: String,
     val original: String,
     val retired: String,
     val compromised: String,
@@ -280,6 +281,7 @@ internal fun refreshRevocationCertificates(
         }
         RefreshRevocationCertificates(
             fingerprint = material.fingerprint,
+            privateKey = privateArmor,
             original = publicArmor,
             retired = certification(3),
             compromised = certification(2),

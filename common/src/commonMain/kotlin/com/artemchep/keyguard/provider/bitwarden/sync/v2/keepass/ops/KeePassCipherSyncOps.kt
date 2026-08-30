@@ -2,6 +2,8 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops
 
 import app.keemobile.kotpass.database.modifiers.binaries
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassDbMutator
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassWriteBackBuffer
@@ -25,6 +27,8 @@ class KeePassCipherSyncOps(
     private val mutator: KeePassDbMutator,
     private val remoteToLocalFolders: Map<String, String>,
     private val localToRemoteFolders: Map<String, String?>,
+    private val gpgCertificateMaterialReconciler: GpgCertificateMaterialReconciler,
+    private val gpgKeyMetadataResolver: GpgKeyMetadataResolver?,
 ) : EntitySyncOps<BitwardenCipher, KeePassCipher> {
     override suspend fun readLocal(localId: String): BitwardenCipher? =
         buffer.readCipher(localId)
@@ -172,6 +176,8 @@ class KeePassCipherSyncOps(
             remote = decoded,
             at = kotlin.time.Clock.System.now(),
             preserveDisplacedSecretsInPasswordHistory = false,
+            gpgCertificateMaterialReconciler = gpgCertificateMaterialReconciler,
+            gpgKeyMetadataResolver = gpgKeyMetadataResolver,
         )
         if (!resolution.requiresRemoteWrite) {
             return RemoteWriteOutcome.Upsert(resolution.cipher)

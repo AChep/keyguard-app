@@ -1,13 +1,21 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops
 
+import app.keemobile.kotpass.cryptography.EncryptedValue
 import app.keemobile.kotpass.models.Entry
+import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.TimeData
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.crypto.NativeGpgCertificateMaterialReconciler
+import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
+import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.ACCOUNT_ID
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.assertGpgMetadataHasComponents
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassDbMutator
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassWriteBackBuffer
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.buildEntry
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassCipherCodec
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassFieldKey
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.createTestCipherCodec
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.createTestDatabase
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.createTestKeePassDatabase
@@ -18,6 +26,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testCryptoGener
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.toKeePassDiffKey
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncPlanBuilder
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.RemoteWriteOutcome
+import com.artemchep.keyguard.provider.bitwarden.usecase.refreshRevocationCertificates
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -76,6 +85,145 @@ class KeePassCipherSyncOpsMergeTest {
             snapshot,
         )
         assertTrue(mutator.hasMutations)
+
+        val publishedServer = remoteCipher(
+            mutator = mutator,
+            entry = publishedEntry,
+            revisionDate = merged.revisionDate,
+        )
+        val plan = EntitySyncPlanBuilder(
+            strategy = KeePassCipherSyncStrategy(
+                remoteFolderIdToLocalId = { null },
+            ),
+            dateNormalizer = { it.toKeePassDiffKey() },
+        ).buildPlan(
+            localEntities = listOf(merged),
+            serverEntities = listOf(publishedServer),
+        )
+        assertEquals(emptyList(), plan.actions)
+    }
+
+    @Test
+    fun `conflict reconciles GPG certificate material writes KDBX and converges`() = runTest {
+        val material = refreshRevocationCertificates()
+        val codec = createTestCipherCodec(
+            gpgKeyMetadataResolver = NativeGpgKeyMetadataResolver,
+        )
+        val baseEntry = gpgEntry(
+            publicMaterial = material.original,
+            fingerprint = material.fingerprint,
+            revisionDate = BASE_REVISION,
+        )
+        val base = decode(codec, baseEntry, BASE_REVISION)
+        val local = base.copy(
+            revisionDate = LOCAL_REVISION,
+            gpgKey = base.gpgKey?.copy(
+                privateKeyArmored = material.privateKey,
+            ),
+        )
+        val remoteEntry = gpgEntry(
+            publicMaterial = material.compromised,
+            fingerprint = material.fingerprint,
+            revisionDate = REMOTE_REVISION,
+        )
+        val mutator = KeePassDbMutator(createTestKeePassDatabase()).also {
+            it.addEntry(remoteEntry)
+        }
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<*>>(
+            createOps(codec, mutator).mergeConflict(
+                local = local,
+                server = remoteCipher(mutator, remoteEntry, REMOTE_REVISION),
+            ),
+        )
+        val merged = assertIs<BitwardenCipher>(outcome.local)
+        val mergedKey = assertNotNull(merged.gpgKey)
+        val publishedEntry = mutator.database.content.group.entries.single()
+        val roundTripped = decode(
+            codec = codec,
+            entry = publishedEntry,
+            revisionDate = merged.revisionDate,
+        )
+        val parsed = assertIs<GpgPublicKeyParseResult.Success>(
+            NativeGpgPublicKeyParser.parse(assertNotNull(mergedKey.publicKeyArmored)),
+        )
+
+        assertTrue(parsed.keys.single().revoked)
+        assertNotNull(mergedKey.privateKeyArmored)
+        assertGpgMetadataHasComponents(mergedKey)
+        assertEquals(mergedKey, roundTripped.gpgKey)
+        assertEquals(
+            mergedKey.publicKeyArmored,
+            publishedEntry.fields[KeePassFieldKey.GPG_PUBLIC_KEY_ARMORED]?.content,
+        )
+        assertEquals(
+            mergedKey.privateKeyArmored,
+            publishedEntry.fields[KeePassFieldKey.GPG_PRIVATE_KEY_ARMORED]?.content,
+        )
+
+        val publishedServer = remoteCipher(
+            mutator = mutator,
+            entry = publishedEntry,
+            revisionDate = merged.revisionDate,
+        )
+        val plan = EntitySyncPlanBuilder(
+            strategy = KeePassCipherSyncStrategy(
+                remoteFolderIdToLocalId = { null },
+            ),
+            dateNormalizer = { it.toKeePassDiffKey() },
+        ).buildPlan(
+            localEntities = listOf(merged),
+            serverEntities = listOf(publishedServer),
+        )
+        assertEquals(emptyList(), plan.actions)
+    }
+
+    @Test
+    fun `conflict preserves selected GPG private material deletion writes KDBX and converges`() = runTest {
+        val material = refreshRevocationCertificates()
+        val codec = createTestCipherCodec(
+            gpgKeyMetadataResolver = NativeGpgKeyMetadataResolver,
+        )
+        val baseEntry = gpgEntry(
+            publicMaterial = material.original,
+            privateMaterial = material.privateKey,
+            fingerprint = material.fingerprint,
+            revisionDate = BASE_REVISION,
+        )
+        val base = decode(codec, baseEntry, BASE_REVISION)
+        val local = base.copy(
+            name = "Local name",
+            revisionDate = LOCAL_REVISION,
+        )
+        val remoteEntry = gpgEntry(
+            publicMaterial = material.original,
+            privateMaterial = null,
+            fingerprint = material.fingerprint,
+            revisionDate = REMOTE_REVISION,
+        )
+        val mutator = KeePassDbMutator(createTestKeePassDatabase()).also {
+            it.addEntry(remoteEntry)
+        }
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<*>>(
+            createOps(codec, mutator).mergeConflict(
+                local = local,
+                server = remoteCipher(mutator, remoteEntry, REMOTE_REVISION),
+            ),
+        )
+        val merged = assertIs<BitwardenCipher>(outcome.local)
+        val mergedKey = assertNotNull(merged.gpgKey)
+        val publishedEntry = mutator.database.content.group.entries.single()
+        val roundTripped = decode(
+            codec = codec,
+            entry = publishedEntry,
+            revisionDate = merged.revisionDate,
+        )
+
+        assertEquals("Local name", merged.name)
+        assertNull(mergedKey.privateKeyArmored)
+        assertNull(publishedEntry.fields[KeePassFieldKey.GPG_PRIVATE_KEY_ARMORED])
+        assertNull(assertNotNull(roundTripped.gpgKey).privateKeyArmored)
 
         val publishedServer = remoteCipher(
             mutator = mutator,
@@ -299,6 +447,8 @@ class KeePassCipherSyncOpsMergeTest {
         mutator = mutator,
         remoteToLocalFolders = emptyMap(),
         localToRemoteFolders = emptyMap(),
+        gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
+        gpgKeyMetadataResolver = NativeGpgKeyMetadataResolver,
     )
 
     private fun remoteCipher(
@@ -329,6 +479,32 @@ class KeePassCipherSyncOpsMergeTest {
         title = "Login",
         username = "alice",
         password = password,
+    ).copy(times = TimeData.create(revisionDate))
+
+    private fun gpgEntry(
+        publicMaterial: String,
+        privateMaterial: String? = null,
+        fingerprint: String,
+        revisionDate: Instant,
+    ) = buildEntry(
+        uuid = Uuid.parse(ITEM_ID),
+        title = "GPG key",
+        extraFields = buildMap {
+            put(
+                KeePassFieldKey.GPG_PUBLIC_KEY_ARMORED,
+                EntryValue.Plain(publicMaterial),
+            )
+            privateMaterial?.let { value ->
+                put(
+                    KeePassFieldKey.GPG_PRIVATE_KEY_ARMORED,
+                    EntryValue.Encrypted(EncryptedValue.fromString(value)),
+                )
+            }
+            put(
+                KeePassFieldKey.GPG_FINGERPRINT,
+                EntryValue.Plain(fingerprint),
+            )
+        },
     ).copy(times = TimeData.create(revisionDate))
 }
 

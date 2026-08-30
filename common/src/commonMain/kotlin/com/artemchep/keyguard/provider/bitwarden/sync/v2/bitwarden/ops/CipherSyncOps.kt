@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.io.throwIfCancellation
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -128,6 +129,7 @@ class CipherSyncOps(
     private val serverFolders: List<FolderEntity>,
     private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val diagnostics: BitwardenSyncDiagnostics = BitwardenSyncDiagnostics.NoOp,
+    private val gpgCertificateMaterialReconciler: GpgCertificateMaterialReconciler,
     private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
 ) : EntitySyncOps<BitwardenCipher, CipherEntity>,
     BulkRemoteOps<BitwardenCipher> {
@@ -904,6 +906,8 @@ class CipherSyncOps(
             remote = remoteDecoded,
             at = now,
             preserveDisplacedSecretsInPasswordHistory = true,
+            gpgCertificateMaterialReconciler = gpgCertificateMaterialReconciler,
+            gpgKeyMetadataResolver = gpgKeyMetadataResolver,
         )
         when (resolution.mode) {
             CipherConflictResolution.Mode.ThreeWay -> {
@@ -926,7 +930,9 @@ class CipherSyncOps(
         return pushToServer(
             local = resolution.cipher,
             server = server,
-            force = false,
+            // Remote fallback can require publishing reconciled material without
+            // changing the remote revision used by the normal write detector.
+            force = true,
         )
     }
 

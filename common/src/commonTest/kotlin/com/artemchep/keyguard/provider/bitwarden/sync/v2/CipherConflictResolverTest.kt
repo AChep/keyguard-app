@@ -29,6 +29,8 @@ class CipherConflictResolverTest {
             remote = remote,
             at = MERGE_REVISION,
             preserveDisplacedSecretsInPasswordHistory = true,
+            gpgCertificateMaterialReconciler = UnexpectedGpgReconciler,
+            gpgKeyMetadataResolver = null,
         )
 
         assertEquals(CipherConflictResolution.Mode.ThreeWay, resolution.mode)
@@ -48,6 +50,8 @@ class CipherConflictResolverTest {
             remote = base.copy(name = "Remote name"),
             at = MERGE_REVISION,
             preserveDisplacedSecretsInPasswordHistory = true,
+            gpgCertificateMaterialReconciler = UnexpectedGpgReconciler,
+            gpgKeyMetadataResolver = null,
         )
 
         assertEquals("Remote name", resolution.cipher.name)
@@ -64,6 +68,8 @@ class CipherConflictResolverTest {
             remote = remote,
             at = MERGE_REVISION,
             preserveDisplacedSecretsInPasswordHistory = true,
+            gpgCertificateMaterialReconciler = UnexpectedGpgReconciler,
+            gpgKeyMetadataResolver = null,
         )
 
         assertEquals(CipherConflictResolution.Mode.RemoteFallback, resolution.mode)
@@ -85,6 +91,8 @@ class CipherConflictResolverTest {
             remote = remote,
             at = MERGE_REVISION,
             preserveDisplacedSecretsInPasswordHistory = true,
+            gpgCertificateMaterialReconciler = UnexpectedGpgReconciler,
+            gpgKeyMetadataResolver = null,
         )
 
         assertFalse(resolution.requiresRemoteWrite)
@@ -119,6 +127,8 @@ class CipherConflictResolverTest {
             remote = remote,
             at = MERGE_REVISION,
             preserveDisplacedSecretsInPasswordHistory = false,
+            gpgCertificateMaterialReconciler = UnexpectedGpgReconciler,
+            gpgKeyMetadataResolver = null,
         )
 
         assertEquals(CipherConflictResolution.Mode.RemoteFallback, resolution.mode)

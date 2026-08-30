@@ -7,6 +7,7 @@ import com.artemchep.keyguard.core.store.bitwarden.reconcilePendingSendFileUploa
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.crypto.CipherEncryptorImpl
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
+import com.artemchep.keyguard.crypto.NativeGpgCertificateMaterialReconciler
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.provider.bitwarden.api.builder.api
@@ -967,6 +968,7 @@ class SyncV2SendUploadIntegrationTest {
                 pendingUploadCoordinator = coordinator,
                 watchdog = UploadTestWatchdog,
                 markBackupAsDirty = UploadTestMarkBackupAsDirty,
+                gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
             )
 
             sync.invoke(user).invoke()

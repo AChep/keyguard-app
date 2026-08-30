@@ -2,6 +2,8 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops
 
 import app.keemobile.kotpass.models.Group
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.crypto.NativeGpgCertificateMaterialReconciler
+import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.ACCOUNT_ID
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassDbMutator
@@ -35,6 +37,8 @@ class KeePassSyncOpsTimestampTest {
             mutator = mutator,
             remoteToLocalFolders = emptyMap(),
             localToRemoteFolders = emptyMap(),
+            gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
+            gpgKeyMetadataResolver = NativeGpgKeyMetadataResolver,
         )
         val local = testBitwardenCipher(cipherId = ITEM_ID).copy(
             revisionDate = FRACTIONAL_REVISION,

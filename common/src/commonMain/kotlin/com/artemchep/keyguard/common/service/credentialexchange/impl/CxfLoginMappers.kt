@@ -19,11 +19,10 @@ private const val COMMAND_PREFIX = "cmd://"
 
 /**
  * Base64 codecs for normalizing stored binary passkey fields. Padding is
- * optional both ways: Keyguard's own creation flow writes unpadded base64url
- * (user handles) and padded standard base64 (private keys), and synced values
- * may differ again, so every combination is accepted. The alphabet itself stays
- * strict, so a corrupted value becomes a counted skip instead of garbage bytes
- * on the wire.
+ * optional both ways: newly created passkeys use unpadded base64url, while
+ * legacy and imported private keys may use padded standard base64. Every
+ * combination is accepted. The alphabet itself stays strict, so a corrupted
+ * value becomes a counted skip instead of garbage bytes on the wire.
  */
 internal val cxfUrlSafeBase64 = Base64.UrlSafe.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL)
 internal val cxfStandardBase64 = Base64.Default.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL)

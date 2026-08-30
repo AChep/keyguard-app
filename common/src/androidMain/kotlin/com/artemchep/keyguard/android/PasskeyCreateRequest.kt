@@ -24,7 +24,6 @@ import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
 import com.artemchep.keyguard.common.service.crypto.PasskeyPublicKey
 import com.artemchep.keyguard.common.service.crypto.PasskeySignatureAlgorithm
 import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
-import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
 import com.artemchep.keyguard.common.service.webauthn.PasskeyCredentialId
 import com.artemchep.keyguard.common.service.webauthn.WebAuthnEncodingException
@@ -50,7 +49,6 @@ import kotlin.math.roundToInt
 class PasskeyCreateRequest(
     private val context: Context,
     private val json: Json,
-    private val base64Service: Base64Service,
     private val passkeyUtils: PasskeyUtils,
     private val passkeyCrypto: PasskeyCrypto,
 ) {
@@ -59,7 +57,6 @@ class PasskeyCreateRequest(
     ) : this(
         context = directDI.instance<Application>(),
         json = directDI.instance(),
-        base64Service = directDI.instance(),
         passkeyUtils = directDI.instance(),
         passkeyCrypto = directDI.instance(),
     )
@@ -203,7 +200,7 @@ class PasskeyCreateRequest(
             publicKeyBytes = when (publicKey) {
                 is PasskeyPublicKey.EcP256 -> publicKey.spki.copyOf()
             }
-            keyValue = base64Service.encodeToString(keyMaterial.privateKeyPkcs8)
+            keyValue = PasskeyBase64.encodeToString(keyMaterial.privateKeyPkcs8)
         } finally {
             keyMaterial.clear()
         }

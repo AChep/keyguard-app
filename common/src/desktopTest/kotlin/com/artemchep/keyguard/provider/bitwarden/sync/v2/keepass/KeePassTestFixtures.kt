@@ -2,12 +2,18 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass
 
 import app.keemobile.kotpass.constants.BasicField
 import app.keemobile.kotpass.cryptography.EncryptedValue
+import app.keemobile.kotpass.database.Credentials
+import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.models.Entry
 import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.EntryValue
+import app.keemobile.kotpass.models.Meta
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.copy.Base32ServiceJvm
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -19,9 +25,14 @@ import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.ACCOUNT_ID
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestCryptoGenerator
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestLogRepository
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestPasswordStrength
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestUnusedFileService
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassCipherCodec
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestServer
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
+import com.artemchep.keyguard.provider.bitwarden.upload.FailingPendingUploadCoordinator
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import kotlinx.serialization.json.Json
@@ -38,6 +49,29 @@ internal typealias TestVaultDatabaseManager = UploadTestVaultDatabaseManager
 private val TEST_REVISION_DATE = Instant.parse("2024-01-01T00:00:00Z")
 
 internal fun createTestDatabase(): Database = createUploadTestDatabase()
+
+internal fun createTestKeePassDatabase(): KeePassDatabase =
+    KeePassDatabase.Ver3x.create(
+        rootName = "Root",
+        meta = Meta(),
+        credentials = Credentials.from(EncryptedValue.fromString("password")),
+    )
+
+internal fun createTestCipherCodec(
+    cryptoGenerator: CryptoGenerator = testCryptoGenerator,
+    pendingUploadCoordinator: PendingUploadCoordinator = FailingPendingUploadCoordinator,
+    getPasswordStrength: GetPasswordStrength = UploadTestPasswordStrength,
+    gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
+) = KeePassCipherCodec(
+    cryptoGenerator = cryptoGenerator,
+    base32Service = testBase32Service,
+    base64Service = testBase64Service,
+    fileService = UploadTestUnusedFileService,
+    pendingUploadCoordinator = pendingUploadCoordinator,
+    getPasswordStrength = getPasswordStrength,
+    json = testJson,
+    gpgKeyMetadataResolver = gpgKeyMetadataResolver,
+)
 
 internal fun insertAccount(
     db: Database,

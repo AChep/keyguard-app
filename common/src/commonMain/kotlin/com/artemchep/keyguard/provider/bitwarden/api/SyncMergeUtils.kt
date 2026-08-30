@@ -28,6 +28,8 @@ suspend fun merge(
             ?: return@run
         val strength = local?.login?.passwordStrength
             .takeIf { local?.login?.password == remote.login.password }
+            ?: remote.login.passwordStrength
+                ?.takeIf { it.password == password }
         // Generate a password strength badge.
             ?: getPasswordStrength(password)
                 .attempt()

@@ -1,29 +1,20 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops
 
-import app.keemobile.kotpass.cryptography.EncryptedValue
-import app.keemobile.kotpass.database.Credentials
-import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.models.Group
-import app.keemobile.kotpass.models.Meta
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.ACCOUNT_ID
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestPasswordStrength
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestUnusedFileService
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassDbMutator
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassWriteBackBuffer
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.createTestCipherCodec
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.createTestDatabase
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.createTestKeePassDatabase
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.entity.KeePassFolder
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBase32Service
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBase64Service
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenFolder
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testCryptoGenerator
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testJson
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassCipherCodec
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassFolderCodec
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.RemoteWriteOutcome
-import com.artemchep.keyguard.provider.bitwarden.upload.FailingPendingUploadCoordinator
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,12 +26,12 @@ import kotlin.uuid.Uuid
 class KeePassSyncOpsTimestampTest {
     @Test
     fun `cipher push publishes one canonical revision everywhere`() = runTest {
-        val mutator = KeePassDbMutator(createKeePassDatabase())
+        val mutator = KeePassDbMutator(createTestKeePassDatabase())
         val ops = KeePassCipherSyncOps(
             accountId = ACCOUNT_ID,
             buffer = KeePassWriteBackBuffer(createTestDatabase()),
             cryptoGenerator = testCryptoGenerator,
-            cipherCodec = createCipherCodec(),
+            cipherCodec = createTestCipherCodec(),
             mutator = mutator,
             remoteToLocalFolders = emptyMap(),
             localToRemoteFolders = emptyMap(),
@@ -72,9 +63,9 @@ class KeePassSyncOpsTimestampTest {
         val remote = KeePassFolder(
             group = remoteGroup,
             name = remoteGroup.name,
-            revisionDate = CANONICAL_REVISION,
+            revisionDate = PAST_REVISION,
         )
-        val mutator = KeePassDbMutator(createKeePassDatabase()).also {
+        val mutator = KeePassDbMutator(createTestKeePassDatabase()).also {
             it.addGroup(remoteGroup)
         }
         val ops = KeePassFolderSyncOps(
@@ -102,24 +93,9 @@ class KeePassSyncOpsTimestampTest {
         assertEquals("After", publishedGroup.name)
     }
 
-    private fun createCipherCodec() = KeePassCipherCodec(
-        cryptoGenerator = testCryptoGenerator,
-        base32Service = testBase32Service,
-        base64Service = testBase64Service,
-        fileService = UploadTestUnusedFileService,
-        pendingUploadCoordinator = FailingPendingUploadCoordinator,
-        getPasswordStrength = UploadTestPasswordStrength,
-        json = testJson,
-    )
-
-    private fun createKeePassDatabase(): KeePassDatabase =
-        KeePassDatabase.Ver3x.create(
-            rootName = "Root",
-            meta = Meta(),
-            credentials = Credentials.from(EncryptedValue.fromString("password")),
-        )
 }
 
 private const val ITEM_ID = "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"
 private val FRACTIONAL_REVISION = Instant.parse("2024-01-01T00:00:00.865708Z")
 private val CANONICAL_REVISION = Instant.parse("2024-01-01T00:00:00Z")
+private val PAST_REVISION = Instant.parse("2023-12-31T00:00:00Z")

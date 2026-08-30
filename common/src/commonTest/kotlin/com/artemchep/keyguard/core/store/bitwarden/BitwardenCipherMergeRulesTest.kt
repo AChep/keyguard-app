@@ -3,19 +3,30 @@ package com.artemchep.keyguard.core.store.bitwarden
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.time.Instant
 
 class BitwardenCipherMergeRulesTest {
     @Test
     fun `merge keeps local password rotation and remote totp setup`() {
+        val oldPasswordStrength = passwordStrength(
+            password = "mail-password-2023",
+            crackTimeSeconds = 1L,
+        )
+        val localPasswordStrength = passwordStrength(
+            password = "mail-password-2024-from-phone",
+            crackTimeSeconds = 2L,
+        )
         val oldRemote = loginCipher(
             password = "mail-password-2023",
+            passwordStrength = oldPasswordStrength,
             passwordRevisionDate = PASSWORD_REVISION_OLD,
         )
         val currentLocal = oldRemote.copy(
             revisionDate = LOCAL_REVISION,
             login = oldRemote.login?.copy(
                 password = "mail-password-2024-from-phone",
+                passwordStrength = localPasswordStrength,
                 passwordRevisionDate = PASSWORD_REVISION_LOCAL,
             ),
         )
@@ -33,6 +44,7 @@ class BitwardenCipherMergeRulesTest {
         )
 
         assertEquals("mail-password-2024-from-phone", merged.login?.password)
+        assertEquals(localPasswordStrength, merged.login?.passwordStrength)
         assertEquals(PASSWORD_REVISION_LOCAL, merged.login?.passwordRevisionDate)
         assertEquals(TOTP, merged.login?.totp)
     }
@@ -63,12 +75,25 @@ class BitwardenCipherMergeRulesTest {
 
     @Test
     fun `merge prefers remote password conflict but keeps local custom field`() {
+        val oldPasswordStrength = passwordStrength(
+            password = "mail-password-2023",
+            crackTimeSeconds = 1L,
+        )
+        val localPasswordStrength = passwordStrength(
+            password = "mail-password-edited-offline",
+            crackTimeSeconds = 2L,
+        )
+        val remotePasswordStrength = passwordStrength(
+            password = "mail-password-reset-on-web",
+            crackTimeSeconds = 3L,
+        )
         val recoveryCode = hiddenField(
             name = "Recovery code",
             value = "paper wallet 42",
         )
         val oldRemote = loginCipher(
             password = "mail-password-2023",
+            passwordStrength = oldPasswordStrength,
             passwordRevisionDate = PASSWORD_REVISION_OLD,
         )
         val currentLocal = oldRemote.copy(
@@ -76,6 +101,7 @@ class BitwardenCipherMergeRulesTest {
             fields = listOf(recoveryCode),
             login = oldRemote.login?.copy(
                 password = "mail-password-edited-offline",
+                passwordStrength = localPasswordStrength,
                 passwordRevisionDate = PASSWORD_REVISION_LOCAL,
             ),
         )
@@ -83,6 +109,7 @@ class BitwardenCipherMergeRulesTest {
             revisionDate = REMOTE_REVISION,
             login = oldRemote.login?.copy(
                 password = "mail-password-reset-on-web",
+                passwordStrength = remotePasswordStrength,
                 passwordRevisionDate = PASSWORD_REVISION_REMOTE,
             ),
         )
@@ -94,8 +121,43 @@ class BitwardenCipherMergeRulesTest {
         )
 
         assertEquals("mail-password-reset-on-web", merged.login?.password)
+        assertEquals(remotePasswordStrength, merged.login?.passwordStrength)
         assertEquals(PASSWORD_REVISION_REMOTE, merged.login?.passwordRevisionDate)
         assertEquals(listOf(recoveryCode), merged.fields)
+    }
+
+    @Test
+    fun `merge clears password strength that does not match winning password`() {
+        val oldPasswordStrength = passwordStrength(
+            password = "mail-password-2023",
+            crackTimeSeconds = 1L,
+        )
+        val oldRemote = loginCipher(
+            password = "mail-password-2023",
+            passwordStrength = oldPasswordStrength,
+            passwordRevisionDate = PASSWORD_REVISION_OLD,
+        )
+        val currentLocal = oldRemote.copy(
+            revisionDate = LOCAL_REVISION,
+            login = oldRemote.login?.copy(
+                password = "mail-password-2024-from-phone",
+                passwordStrength = oldPasswordStrength,
+                passwordRevisionDate = PASSWORD_REVISION_LOCAL,
+            ),
+        )
+        val currentRemote = oldRemote.copy(
+            revisionDate = REMOTE_REVISION,
+            notes = "Personal mailbox updated on web",
+        )
+
+        val merged = merge(
+            oldRemote = oldRemote,
+            currentLocal = currentLocal,
+            currentRemote = currentRemote,
+        )
+
+        assertEquals("mail-password-2024-from-phone", merged.login?.password)
+        assertNull(merged.login?.passwordStrength)
     }
 
     @Test
@@ -591,6 +653,7 @@ class BitwardenCipherMergeRulesTest {
 
     private fun loginCipher(
         password: String? = "mail-password-2023",
+        passwordStrength: BitwardenCipher.Login.PasswordStrength? = null,
         passwordRevisionDate: Instant? = PASSWORD_REVISION_OLD,
         totp: String? = null,
         fields: List<BitwardenCipher.Field> = emptyList(),
@@ -624,11 +687,21 @@ class BitwardenCipherMergeRulesTest {
         login = BitwardenCipher.Login(
             username = "alice@example.com",
             password = password,
+            passwordStrength = passwordStrength,
             passwordRevisionDate = passwordRevisionDate,
             uris = uris,
             fido2Credentials = fido2Credentials,
             totp = totp,
         ),
+    )
+
+    private fun passwordStrength(
+        password: String,
+        crackTimeSeconds: Long,
+    ) = BitwardenCipher.Login.PasswordStrength(
+        password = password,
+        crackTimeSeconds = crackTimeSeconds,
+        version = 1L,
     )
 
     private fun textField(

@@ -9,7 +9,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassDbMutato
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassWriteBackBuffer
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassFolderCodec
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.entity.KeePassFolder
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.toKeePassTimestamp
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.toKeePassWriteTimestamp
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncOps
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateEntry
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateResult
@@ -72,7 +72,7 @@ class KeePassFolderSyncOps(
     ): RemoteWriteOutcome<BitwardenFolder> {
         val remoteUuid = server?.group?.uuid
         val publishedLocal = local.copy(
-            revisionDate = local.revisionDate.toKeePassTimestamp(),
+            revisionDate = local.revisionDate.toKeePassWriteTimestamp(server?.revisionDate),
         )
         val mappings = currentFolderIdMappings()
         val targetParentUuid = resolveTargetParentUuid(

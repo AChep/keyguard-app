@@ -25,10 +25,14 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCr
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrCta
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrImpl
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrKey
+import com.artemchep.keyguard.provider.bitwarden.crypto.CryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.appendOrganizationToken2
+import com.artemchep.keyguard.provider.bitwarden.crypto.decodeSymmetricOrThrow
+import com.artemchep.keyguard.provider.bitwarden.crypto.transformString
 import com.artemchep.keyguard.provider.bitwarden.entity.AttachmentEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherAttachmentCreateRequest
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherRequest
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.SyncByBitwardenTokenV2Impl
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntityTypeOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.CipherSyncOps
@@ -45,6 +49,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.ensureActive
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -1271,6 +1276,87 @@ class SyncV2CipherUploadIntegrationTest {
         assertEquals("cipher-created-1", outcome.local.service.remote?.id)
         assertNull(outcome.local.organizationId)
         assertEquals(listOf(HttpMethod.Post to "/api/ciphers/"), server.requests.map { it.method to it.path })
+    }
+
+    @Test
+    fun `production CipherSyncOps normalizes passkey keys before upload encryption`() = runTest {
+        val server = UploadTestServer()
+        val fixture = createProductionCipherOpsFixture(server)
+        val keyBase64 = fixture.cipherKeyBase64()
+
+        fun passkey(
+            credentialId: String,
+            keyValue: String,
+        ) = BitwardenCipher.Login.Fido2Credentials(
+            credentialId = credentialId,
+            keyType = "public-key",
+            keyAlgorithm = "ECDSA",
+            keyCurve = "P-256",
+            keyValue = keyValue,
+            rpId = "example.com",
+            rpName = "Example",
+            counter = "0",
+            userHandle = "dXNlcg",
+            userName = "alice@example.com",
+            userDisplayName = "Alice",
+            discoverable = "true",
+            creationDate = T0,
+        )
+
+        val local =
+            testCipher(
+                localId = "cipher-local-1",
+                remoteId = "unused-remote",
+                localRevisionDate = T2,
+                remoteRevisionDate = T0,
+                attachments = emptyList(),
+            ).copy(
+                keyBase64 = keyBase64,
+                service = BitwardenService(version = BitwardenService.VERSION),
+                type = BitwardenCipher.Type.Login,
+                secureNote = null,
+                login = BitwardenCipher.Login(
+                    uris = emptyList(),
+                    fido2Credentials = listOf(
+                        passkey(
+                            credentialId = "standard-base64",
+                            keyValue = "+/8=",
+                        ),
+                        passkey(
+                            credentialId = "base64url",
+                            keyValue = "-_8",
+                        ),
+                    ),
+                ),
+            )
+
+        assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.pushToServer(
+                local = local,
+                server = null,
+                force = false,
+            ),
+        )
+
+        val request = UploadTestServer.json.decodeFromString<CipherRequest>(
+            server.requests.single().body,
+        )
+        val itemKey = CryptoKey.decodeSymmetricOrThrow(
+            fixture.base64Service.decode(keyBase64),
+        )
+        val decryptor = fixture.crypto.cta(
+            env = BitwardenCrCta.BitwardenCrCtaEnv(
+                key = BitwardenCrKey.CryptoKey(symmetricCryptoKey = itemKey),
+            ),
+            mode = BitwardenCrCta.Mode.DECRYPT,
+        )
+        val uploadedKeyValues = requireNotNull(request.login)
+            .fido2Credentials
+            .map { credential ->
+                decryptor.transformString(credential.keyValue)
+            }
+
+        assertEquals(listOf("-_8", "-_8"), uploadedKeyValues)
     }
 
     @Test

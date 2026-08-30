@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass
 
 import com.artemchep.keyguard.common.util.to0DigitsNanosOfSecond
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 /**
@@ -11,6 +12,26 @@ import kotlin.time.Instant
  */
 internal fun Instant.toKeePassTimestamp(): Instant =
     to0DigitsNanosOfSecond()
+
+/**
+ * Returns the whole-second timestamp to persist for a KeePass write.
+ *
+ * Existing entries must advance their timestamp even when the proposed local
+ * revision falls within the same second or the remote clock is ahead. Otherwise
+ * peers can treat the changed payload as already synchronized.
+ */
+internal fun Instant.toKeePassWriteTimestamp(
+    remoteRevisionDate: Instant?,
+): Instant {
+    val localTimestamp = toKeePassTimestamp()
+    val remoteTimestamp = remoteRevisionDate?.toKeePassTimestamp()
+        ?: return localTimestamp
+    return if (localTimestamp > remoteTimestamp) {
+        localTimestamp
+    } else {
+        remoteTimestamp + 1.seconds
+    }
+}
 
 /**
  * Unsynced local revisions retain their fractional precision, so the KeePass

@@ -3,17 +3,18 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops
 import app.keemobile.kotpass.database.modifiers.binaries
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassDbMutator
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassWriteBackBuffer
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassCipherCodec
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.entity.KeePassCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.toKeePassTimestamp
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.toKeePassWriteTimestamp
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncOps
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateEntry
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateResult
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.RemoteWriteOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.writeIfCurrent
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.resolveCipherConflict
 import kotlin.uuid.Uuid
 
 class KeePassCipherSyncOps(
@@ -87,7 +88,7 @@ class KeePassCipherSyncOps(
     ): RemoteWriteOutcome<BitwardenCipher> {
         val remoteUuid = server?.cipher?.uuid
         val publishedLocal = local.copy(
-            revisionDate = local.revisionDate.toKeePassTimestamp(),
+            revisionDate = local.revisionDate.toKeePassWriteTimestamp(server?.revisionDate),
             expiredDate = local.expiredDate?.toKeePassTimestamp(),
             deletedDate = local.deletedDate?.toKeePassTimestamp(),
         )
@@ -100,21 +101,26 @@ class KeePassCipherSyncOps(
         val revisionDate = newEntry.times
             ?.lastModificationTime
             ?: publishedLocal.revisionDate
-        val newLocal = publishedLocal.copy(
-            service = BitwardenService(
-                remote = BitwardenService.Remote(
-                    id = newEntry.uuid.toString(),
-                    revisionDate = revisionDate,
-                    deletedDate = publishedLocal.deletedDate,
-                ),
-                version = BitwardenService.VERSION,
+        mutator.addBinaries(encoded.binaryAdditions)
+        val decodedLocal = cipherCodec.decode(
+            accountId = accountId,
+            folderId = publishedLocal.folderId,
+            cipherId = publishedLocal.cipherId,
+            remote = newEntry,
+            local = publishedLocal.copy(
+                attachments = encoded.attachments,
+                sourceData = encoded.sourceData,
             ),
             revisionDate = revisionDate,
-            attachments = encoded.attachments,
-            sourceData = encoded.sourceData,
+            binaries = mutator.database.binaries,
         )
-
-        mutator.addBinaries(encoded.binaryAdditions)
+        // Password history is imported from KDBX, but is not exported as
+        // synthetic KDBX entry snapshots. Keep the local model unchanged after
+        // a successful write while the remoteEntity remains the canonical KDBX
+        // baseline for subsequent conflict resolution.
+        val newLocal = decodedLocal.copy(
+            passwordHistory = publishedLocal.passwordHistory,
+        )
 
         if (remoteUuid != null) {
             val updated = mutator.modifyEntry(remoteUuid) { newEntry }
@@ -160,8 +166,28 @@ class KeePassCipherSyncOps(
             revisionDate = server.revisionDate,
             binaries = mutator.database.binaries,
         )
-        return RemoteWriteOutcome.Upsert(decoded)
+        val resolution = resolveCipherConflict(
+            base = local.remoteEntity,
+            local = local,
+            remote = decoded,
+            at = kotlin.time.Clock.System.now(),
+            preserveDisplacedSecretsInPasswordHistory = false,
+        )
+        if (!resolution.requiresRemoteWrite) {
+            return RemoteWriteOutcome.Upsert(resolution.cipher)
+        }
+        return pushToServer(
+            local = resolution.cipher,
+            server = server,
+            force = false,
+        )
     }
+
+    override fun mergeRemoteSuccessIntoChangedLocal(
+        current: BitwardenCipher,
+        remoteLocal: BitwardenCipher,
+    ): BitwardenCipher = super.mergeRemoteSuccessIntoChangedLocal(current, remoteLocal)
+        .copy(remoteEntity = remoteLocal.remoteEntity ?: remoteLocal)
 
     private fun remoteGroupUuidForLocalFolder(folderId: String?): Uuid? {
         val remoteId = folderId?.let { localFolderId ->

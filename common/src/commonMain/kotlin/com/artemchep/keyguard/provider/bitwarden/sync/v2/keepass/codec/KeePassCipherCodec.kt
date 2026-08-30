@@ -33,6 +33,7 @@ import com.artemchep.keyguard.core.store.bitwarden.SourceBinding
 import com.artemchep.keyguard.core.store.bitwarden.withoutCardCanonicalPaths
 import com.artemchep.keyguard.core.store.bitwarden.withoutCanonicalPath
 import com.artemchep.keyguard.core.store.bitwarden.withoutIdentityCanonicalPaths
+import com.artemchep.keyguard.provider.bitwarden.api.merge
 import com.artemchep.keyguard.provider.bitwarden.usecase.resolveGpgMetadata
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.useAndClear
@@ -328,6 +329,29 @@ class KeePassCipherCodec(
         )
     }
 
+    private fun decodePasswordHistory(
+        remote: Entry,
+    ): List<BitwardenCipher.Login.PasswordHistory> {
+        val history = mutableListOf<BitwardenCipher.Login.PasswordHistory>()
+        var lastPassword = getPassword(remote)
+        remote.history
+            .sortedByDescending { it.times?.lastModificationTime }
+            .forEach { entry ->
+                val currentPassword = getPassword(entry)
+                if (currentPassword != null && currentPassword != lastPassword) {
+                    lastPassword = currentPassword
+                    history += BitwardenCipher.Login.PasswordHistory(
+                        password = currentPassword,
+                        lastUsedDate = entry.times?.lastModificationTime,
+                    )
+                }
+            }
+        return history
+    }
+
+    private fun getPassword(entry: Entry): String? = entry.fields.password?.content
+        .takeUnless { it.isNullOrEmpty() }
+
     suspend fun decode(
         accountId: String,
         folderId: String?,
@@ -411,26 +435,7 @@ class KeePassCipherCodec(
                 parsedDate
             }
 
-        fun getPassword(entry: Entry) = entry.fields.password?.content
-            .takeUnless { it.isNullOrEmpty() }
-
-        val passwordHistory = run {
-            val history = mutableListOf<BitwardenCipher.Login.PasswordHistory>()
-            var lastPassword = getPassword(remote)
-            remote.history
-                .sortedByDescending { it.times?.lastModificationTime }
-                .forEach { entry ->
-                    val curPassword = getPassword(entry)
-                    if (curPassword != null && curPassword != lastPassword) {
-                        lastPassword = curPassword
-                        history += BitwardenCipher.Login.PasswordHistory(
-                            password = curPassword,
-                            lastUsedDate = entry.times?.lastModificationTime,
-                        )
-                    }
-                }
-            history
-        }
+        val passwordHistory = decodePasswordHistory(remote)
 
         val reprompt = run {
             val enabled = scope
@@ -511,7 +516,7 @@ class KeePassCipherCodec(
                     )
                 }
             }
-        return BitwardenCipher(
+        val decodedRemote = BitwardenCipher(
             accountId = accountId,
             cipherId = cipherId,
             folderId = folderId,
@@ -561,6 +566,22 @@ class KeePassCipherCodec(
             archivedDate = archivedDate,
             deletedDate = deletedDate,
             revisionDate = revisionDate,
+        )
+        // decodedRemote carries no remoteEntity or keyBase64 of its own, so it
+        // doubles as the one-level canonical snapshot of the KDBX entry.
+        val merged = merge(
+            remote = decodedRemote.copy(remoteEntity = decodedRemote),
+            local = local,
+            getPasswordStrength = getPasswordStrength,
+            // The decoded remote GPG key was already enriched above. Passing
+            // the resolver again would repeat the potentially expensive parse.
+            gpgKeyMetadataResolver = null,
+        )
+        return merged.copy(
+            // KDBX does not store Bitwarden's per-cipher encryption key. Keep
+            // the local value on the live model while the canonical remote
+            // snapshot remains an exact representation of the KDBX entry.
+            keyBase64 = local?.keyBase64,
         )
     }
 
@@ -656,9 +677,6 @@ class KeePassCipherCodec(
                 ?: local?.revisionDate
                 ?: kotlin.time.Clock.System.now(),
         )
-
-        fun getPassword(entry: Entry) = entry.fields.password?.content
-            .takeUnless { it.isNullOrEmpty() }
 
         val passwordRevDate = run {
             val explicitRevDateRaw = scope

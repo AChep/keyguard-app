@@ -10,8 +10,14 @@ import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
 import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
 import com.artemchep.keyguard.util.io.toLocalPath
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.cache.HttpCache
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
+import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
@@ -57,6 +63,49 @@ private const val CALL_CANCELLATION_TIMEOUT_SECONDS = 5L
 
 @Suppress("FunctionNaming")
 class DownloadTaskJvmSuccessfulOutputTest {
+    @Test
+    fun `url loader bypasses installed response cache`() = runTest {
+        val data = "payload".encodeToByteArray()
+        var requestCount = 0
+        val httpClient = HttpClient(
+            MockEngine { request ->
+                requestCount += 1
+                assertEquals("no-store", request.headers[HttpHeaders.CacheControl])
+                respond(
+                    content = ByteReadChannel(data),
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(
+                        HttpHeaders.CacheControl,
+                        "public, max-age=3600",
+                    ),
+                )
+            },
+        ) {
+            install(HttpCache)
+        }
+        val task = DownloadTaskImpl(
+            httpClient = httpClient,
+            fileEncryptionCodec = CopyingFileEncryptionCodec(),
+        )
+
+        repeat(2) {
+            val sink = Buffer()
+            val complete = task
+                .fileLoader(
+                    url = "https://example.com/payload.bin",
+                    key = null,
+                    writer = DownloadWriter.SinkWriter(sink),
+                )
+                .filterIsInstance<DownloadProgress.Complete>()
+                .single()
+
+            assertIs<Either.Right<String?>>(complete.result)
+            assertContentEquals(data, sink.readByteArray())
+        }
+
+        assertEquals(2, requestCount)
+    }
+
     @Test
     fun `url loader writes local path download`() = runTest {
         val root = createTempDirectory("download-task")

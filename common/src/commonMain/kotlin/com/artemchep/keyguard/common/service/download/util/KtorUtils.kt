@@ -2,7 +2,9 @@ package com.artemchep.keyguard.common.service.download.util
 
 import com.artemchep.keyguard.common.exception.HttpException
 import io.ktor.client.HttpClient
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -13,6 +15,10 @@ import kotlinx.io.Sink
 import kotlinx.io.readByteArray
 
 private const val DEFAULT_DOWNLOAD_BUFFER_SIZE = 16 * 1024
+
+internal fun HttpRequestBuilder.disableCache() {
+    header(HttpHeaders.CacheControl, "no-store")
+}
 
 suspend fun HttpClient.downloadToByteArray(
     url: String,
@@ -38,7 +44,9 @@ private suspend fun HttpClient.downloadToSink(
     validateSize: (Long) -> Unit,
     onProgress: suspend (downloaded: Long, total: Long?) -> Unit,
 ) {
-    val response = get(url)
+    val response = get(url) {
+        disableCache()
+    }
     response.status.throwIfDownloadFailed()
 
     val total = response.headers[HttpHeaders.ContentLength]

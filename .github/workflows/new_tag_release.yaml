@@ -281,9 +281,11 @@ jobs:
         include:
           - runner: ubuntu-latest
             arch: x86_64
+            deb-arch: amd64
             rust-target: x86_64-unknown-linux-gnu
           - runner: ubuntu-24.04-arm
             arch: aarch64
+            deb-arch: arm64
             rust-target: aarch64-unknown-linux-gnu
     steps:
       - name: "Checkout"
@@ -332,17 +334,42 @@ jobs:
           path: |
             desktopApp/build/distributions/*.tar.gz
       - name: "Add a suffix to the .deb artifacts"
+        shell: bash
         run: |
-          cd desktopApp/build/compose/binaries/main-release/deb
-          for f in * ; do mv -- "$f" "$(echo $f | sed -nE 's/^(.*)(\..*)$/\1-${{ matrix.arch }}\2/p')" ; done
+          set -euo pipefail
+          shopt -s nullglob
+          packages=(desktopApp/build/compose/binaries/main-release/deb/*.deb)
+          test "${#packages[@]}" -eq 1
+          package="${packages[0]}"
+          mv -- "$package" "${package%.deb}-${{ matrix.arch }}.deb"
+      - name: "Verify .deb"
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          packages=(desktopApp/build/compose/binaries/main-release/deb/*.deb)
+          test "${#packages[@]}" -eq 1
+          package="${packages[0]}"
+          test "$(dpkg-deb --field "$package" Architecture)" = "${{ matrix.deb-arch }}"
+          case "$(dpkg-deb --field "$package" Version)" in
+            "${{ needs.generate-versions.outputs.version-semantic }}"*) ;;
+            *) exit 1 ;;
+          esac
+          dpkg-deb --info "$package"
+          dpkg-deb --contents "$package"
       - name: 'Upload .deb'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-linux-deb-${{ matrix.arch }}
           path: desktopApp/build/compose/binaries/main-release/deb/*.deb
           retention-days: 1
-      - name: "Install rpmbuild"
-        run: sudo apt-get update && sudo apt-get install -y rpm
+          if-no-files-found: error
+      - name: "Ensure rpmbuild is available"
+        run: |
+          if ! command -v rpmbuild >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y rpm
+          fi
       - name: "Package .rpm"
         run: |
           set -euo pipefail
@@ -353,12 +380,28 @@ jobs:
             --define "_app_version ${{ needs.generate-versions.outputs.version-semantic }}" \
             --define "_topdir $PWD/rpmbuild" \
             --define "_sourcedir $SOURCES"
+      - name: "Verify .rpm"
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          packages=(rpmbuild/RPMS/${{ matrix.arch }}/*.rpm)
+          test "${#packages[@]}" -eq 1
+          package="${packages[0]}"
+          test "$(rpm -qp --queryformat '%{ARCH}' "$package")" = "${{ matrix.arch }}"
+          test "$(rpm -qp --queryformat '%{VERSION}' "$package")" = "${{ needs.generate-versions.outputs.version-semantic }}"
+          rpm -qip "$package"
+          rpm -qp --requires "$package" | grep -Fx '/usr/bin/xdg-open'
+          rpm -qlp "$package"
+          rpm -qlp "$package" | grep -Fx '/usr/bin/keyguard'
+          rpm -qlp "$package" | grep -Fx '/usr/share/applications/com.artemchep.keyguard.desktop'
       - name: 'Upload .rpm'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-linux-rpm-${{ matrix.arch }}
           path: rpmbuild/RPMS/${{ matrix.arch }}/*.rpm
           retention-days: 1
+          if-no-files-found: error
       - name: "Move binaries into the template directory"
         run: |
           mkdir -p desktopApp/flatpak/app-${{ matrix.arch }}/

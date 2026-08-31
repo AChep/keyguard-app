@@ -5,6 +5,7 @@ Summary:        Password manager
 License:        Proprietary
 URL:            https://github.com/AChep/keyguard-app
 Source0:        %{name}-%{version}.tar.gz
+Requires:       /usr/bin/xdg-open
 
 %description
 Keyguard is a cross-platform password manager that supports Bitwarden
@@ -24,31 +25,24 @@ chmod +x %{buildroot}/opt/%{name}/bin/Keyguard
 mkdir -p %{buildroot}/usr/bin
 ln -sf /opt/%{name}/bin/Keyguard %{buildroot}/usr/bin/%{name}
 
-mkdir -p %{buildroot}/usr/share/applications
-cat > %{buildroot}/usr/share/applications/%{name}.desktop << 'EOF'
-[Desktop Entry]
-Name=Keyguard
-Comment=Password manager
-Exec=keyguard
-Terminal=false
-Type=Application
-Icon=com.artemchep.keyguard
-Categories=Utility;
-EOF
+install -Dm0644 \
+  share/applications/com.artemchep.keyguard.desktop \
+  %{buildroot}%{_datadir}/applications/com.artemchep.keyguard.desktop
+sed -i 's/^Exec=Keyguard$/Exec=keyguard/' \
+  %{buildroot}%{_datadir}/applications/com.artemchep.keyguard.desktop
 
-mkdir -p %{buildroot}/usr/share/icons/hicolor/scalable/apps
-cp share/icons/hicolor/scalable/apps/com.artemchep.keyguard.svg \
-   %{buildroot}/usr/share/icons/hicolor/scalable/apps/ 2>/dev/null || true
-
-mkdir -p %{buildroot}/usr/share/metainfo
-cp share/metainfo/com.artemchep.keyguard.metainfo.xml \
-   %{buildroot}/usr/share/metainfo/ 2>/dev/null || true
+install -Dm0644 \
+  share/icons/hicolor/scalable/apps/com.artemchep.keyguard.svg \
+  %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/com.artemchep.keyguard.svg
+install -Dm0644 \
+  share/metainfo/com.artemchep.keyguard.metainfo.xml \
+  %{buildroot}%{_datadir}/metainfo/com.artemchep.keyguard.metainfo.xml
 
 %files
 /opt/%{name}/
 /usr/bin/%{name}
-/usr/share/applications/%{name}.desktop
-/usr/share/icons/hicolor/scalable/apps/com.artemchep.keyguard.svg
-/usr/share/metainfo/com.artemchep.keyguard.metainfo.xml
+%{_datadir}/applications/com.artemchep.keyguard.desktop
+%{_datadir}/icons/hicolor/scalable/apps/com.artemchep.keyguard.svg
+%{_datadir}/metainfo/com.artemchep.keyguard.metainfo.xml
 
 %changelog

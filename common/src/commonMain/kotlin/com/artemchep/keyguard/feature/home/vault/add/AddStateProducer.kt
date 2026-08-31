@@ -81,6 +81,9 @@ import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.model.toGpgKeyMaterial
 import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
+import com.artemchep.keyguard.common.service.crypto.GpgKeyEditorImportError
+import com.artemchep.keyguard.common.service.crypto.GpgKeyEditorImportReconciler
+import com.artemchep.keyguard.common.service.crypto.GpgKeyEditorImportResult
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportError
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
@@ -188,6 +191,7 @@ import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.provider.bitwarden.usecase.autofill
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.StringResource
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.buildContextItems
@@ -257,6 +261,7 @@ fun produceAddScreenState(
         dateFormatter = instance(),
         sshKeyImportService = instance(),
         gpgKeyImportService = instanceOrNull() ?: GpgKeyImportServiceUnsupported,
+        gpgKeyEditorImportReconciler = instance(),
         gpgPublicKeyParser = instanceOrNull() ?: GpgPublicKeyParserUnsupported,
         gpgKeyExpirationService = instanceOrNull() ?: GpgKeyExpirationServiceUnsupported,
         logRepository = instance(),
@@ -297,6 +302,7 @@ fun produceAddScreenState(
     dateFormatter: DateFormatter,
     sshKeyImportService: SshKeyImportService,
     gpgKeyImportService: GpgKeyImportService,
+    gpgKeyEditorImportReconciler: GpgKeyEditorImportReconciler,
     gpgPublicKeyParser: GpgPublicKeyParser,
     gpgKeyExpirationService: GpgKeyExpirationService,
     logRepository: LogRepository,
@@ -339,6 +345,7 @@ fun produceAddScreenState(
         dateFormatter = dateFormatter,
         sshKeyImportService = sshKeyImportService,
         gpgKeyImportService = gpgKeyImportService,
+        gpgKeyEditorImportReconciler = gpgKeyEditorImportReconciler,
         gpgPublicKeyParser = gpgPublicKeyParser,
         gpgKeyExpirationService = gpgKeyExpirationService,
         logRepository = logRepository,
@@ -369,6 +376,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
     dateFormatter: DateFormatter,
     sshKeyImportService: SshKeyImportService,
     gpgKeyImportService: GpgKeyImportService,
+    gpgKeyEditorImportReconciler: GpgKeyEditorImportReconciler,
     gpgPublicKeyParser: GpgPublicKeyParser,
     gpgKeyExpirationService: GpgKeyExpirationService,
     logRepository: LogRepository,
@@ -468,6 +476,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
         textService = textService,
         dateFormatter = dateFormatter,
         gpgKeyImportService = gpgKeyImportService,
+        gpgKeyEditorImportReconciler = gpgKeyEditorImportReconciler,
         gpgPublicKeyParser = gpgPublicKeyParser,
         gpgKeyExpirationService = gpgKeyExpirationService,
         showMessage = showMessage,
@@ -4151,6 +4160,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
     textService: TextService,
     dateFormatter: DateFormatter,
     gpgKeyImportService: GpgKeyImportService,
+    gpgKeyEditorImportReconciler: GpgKeyEditorImportReconciler,
     gpgPublicKeyParser: GpgPublicKeyParser,
     gpgKeyExpirationService: GpgKeyExpirationService,
     showMessage: ShowMessage,
@@ -4216,16 +4226,39 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             snapshot: GpgKeyMutationGuard.Snapshot,
             imported: GeneratedGpgKey,
         ) {
-            if (!keyMutations.commitImport(snapshot, imported)) {
-                showImportConflict()
-                return
+            when (
+                val prepared = withContext(Dispatchers.Default) {
+                    gpgKeyEditorImportReconciler(snapshot.key, imported)
+                }
+            ) {
+                is GpgKeyEditorImportResult.Error -> {
+                    if (!keyMutations.isCurrent(snapshot)) {
+                        showImportConflict()
+                        return
+                    }
+                    val msg = createLocalizedGpgKeyEditorImportErrorToast(prepared.reason)
+                    showMessage.copy(msg)
+                }
+
+                is GpgKeyEditorImportResult.Success -> {
+                    if (!keyMutations.commitReplacement(snapshot, prepared.key)) {
+                        showImportConflict()
+                        return
+                    }
+                    showMessage.copy(
+                        ToastMessage(
+                            type = ToastMessage.Type.SUCCESS,
+                            title = translate(Res.string.gpg_key_import_success_title),
+                        ),
+                    )
+                }
             }
-            showMessage.copy(
-                ToastMessage(
-                    type = ToastMessage.Type.SUCCESS,
-                    title = translate(Res.string.gpg_key_import_success_title),
-                ),
-            )
+        }
+
+        suspend fun importGpgKey(
+            request: GpgKeyImportRequest,
+        ): GpgKeyImportResult = withContext(Dispatchers.Default) {
+            gpgKeyImportService.import(request)
         }
 
         suspend fun importKey(
@@ -4236,7 +4269,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             onNeedsPassphrase: suspend (GpgKeyImportResult.NeedsPassphrase) -> Unit,
         ) {
             when (
-                val result = gpgKeyImportService.import(
+                val result = importGpgKey(
                     GpgKeyImportRequest(
                         content = content,
                         fileName = fileName,
@@ -4310,7 +4343,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             handleGpgKeyFileImport(
                 info = info,
                 readText = textService::readFromFileAsText,
-                importGpgKey = gpgKeyImportService::import,
+                importGpgKey = ::importGpgKey,
                 onSuccess = { importedGpgKey ->
                     publishImportedKey(snapshot, importedGpgKey)
                 },
@@ -4585,6 +4618,46 @@ suspend fun TranslatorScope.createLocalizedGpgKeyImportErrorToast(
         title = translate(Res.string.gpg_key_import_failed_title),
         text = translate(Res.string.gpg_key_import_error_multiple_keys),
     )
+}
+
+private suspend fun TranslatorScope.createLocalizedGpgKeyEditorImportErrorToast(
+    reason: GpgKeyEditorImportError,
+): ToastMessage = createGpgKeyImportToast(
+    title = translate(Res.string.gpg_key_import_failed_title),
+    text = translate(gpgKeyEditorImportFailureMessage(reason)),
+)
+
+/**
+ * The user-facing explanation for one editor import failure.
+ *
+ * Kept apart from the toast so the mapping can be read, and tested, without a
+ * translator.
+ */
+internal fun gpgKeyEditorImportFailureMessage(
+    reason: GpgKeyEditorImportError,
+): StringResource = when (reason) {
+    GpgKeyEditorImportError.ExistingMaterialInvalid ->
+        Res.string.gpg_key_import_error_existing_malformed
+
+    GpgKeyEditorImportError.IncomingMaterialInvalid ->
+        Res.string.gpg_key_import_error_malformed_key
+
+    GpgKeyEditorImportError.UnsupportedMaterial ->
+        Res.string.gpg_key_import_error_unsupported_format
+
+    GpgKeyEditorImportError.FingerprintMismatch ->
+        Res.string.gpg_key_import_error_mismatched_key
+
+    GpgKeyEditorImportError.ConflictingSecretMaterial ->
+        Res.string.gpg_key_import_error_secret_conflict
+
+    GpgKeyEditorImportError.ResourceLimit ->
+        Res.string.gpg_key_import_error_resource_limit
+
+    GpgKeyEditorImportError.InvalidRebuiltMaterial,
+    GpgKeyEditorImportError.MetadataRebuildFailed,
+    GpgKeyEditorImportError.UnexpectedFailure,
+    -> Res.string.gpg_key_import_error_reconcile
 }
 
 suspend fun TranslatorScope.createLocalizedGpgKeyImportReadErrorToast(): ToastMessage = createGpgKeyImportToast(

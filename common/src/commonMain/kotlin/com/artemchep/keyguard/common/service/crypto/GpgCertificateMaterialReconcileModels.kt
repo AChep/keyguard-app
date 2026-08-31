@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.crypto
 
+import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+
 sealed interface GpgCertificateMaterialReconcileResult {
     data class Success(
         val localPublicMaterial: String,
@@ -74,3 +76,20 @@ enum class GpgCertificateMaterialPairError {
 enum class GpgCertificateMaterialOperationalError {
     ResourceLimit,
 }
+
+/**
+ * Returns this result as a [GpgCertificateMaterialReconcileResult.Success] whose rebuilt
+ * public material is non-blank and belongs to the expected primary key, `null` otherwise.
+ * Callers must not persist material from a success that fails this check.
+ */
+fun GpgCertificateMaterialReconcileResult.validSuccessOrNull(
+    expectedPrimaryFingerprint: String,
+): GpgCertificateMaterialReconcileResult.Success? =
+    (this as? GpgCertificateMaterialReconcileResult.Success)
+        ?.takeIf { result ->
+            result.localPublicMaterial.isNotBlank() &&
+                result.primaryFingerprint.normalizeGpgFingerprint() == expectedPrimaryFingerprint
+        }
+
+fun String?.nonBlankCertificateMaterialOrNull(): String? =
+    this?.takeIf { it.isNotBlank() }

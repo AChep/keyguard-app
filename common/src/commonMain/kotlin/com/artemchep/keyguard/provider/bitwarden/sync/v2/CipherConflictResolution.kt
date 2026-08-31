@@ -1,9 +1,9 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2
 
-import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconcileResult
 import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
-import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.crypto.nonBlankCertificateMaterialOrNull
+import com.artemchep.keyguard.common.service.crypto.validSuccessOrNull
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.getMergeRules
@@ -166,20 +166,8 @@ private fun CipherConflictResolution.resolveGpgCertificateMaterialInputs(
     }
 }
 
-private fun GpgCertificateMaterialReconcileResult.validSuccessOrNull(
-    expectedFingerprint: String,
-): GpgCertificateMaterialReconcileResult.Success? =
-    (this as? GpgCertificateMaterialReconcileResult.Success)
-        ?.takeIf { result ->
-            result.localPublicMaterial.isNotBlank() &&
-                result.primaryFingerprint.normalizeGpgFingerprint() == expectedFingerprint
-        }
-
 private fun BitwardenCipher.GpgKey.hasCertificateMaterial(): Boolean =
     !publicKeyArmored.isNullOrBlank() || !privateKeyArmored.isNullOrBlank()
-
-private fun String?.nonBlankCertificateMaterialOrNull(): String? =
-    this?.takeIf { it.isNotBlank() }
 
 /** Prevents the additive reconciler from restoring secret material deleted from the same key. */
 private fun resolveGpgSecretMaterialInputs(

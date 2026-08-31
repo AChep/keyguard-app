@@ -3,8 +3,6 @@ package com.artemchep.keyguard.feature.home.vault.add
 import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.GpgKeyMaterial
 import com.artemchep.keyguard.common.model.withGpgKeyMaterial
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
-import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,11 +35,11 @@ internal class GpgKeyMutationGuard(
         snapshot.generation == generation && snapshot.key == sink.value
     }
 
-    fun commitImport(
+    fun commitReplacement(
         snapshot: Snapshot,
-        imported: GeneratedGpgKey,
-    ): Boolean = commit(snapshot) { current ->
-        current.mergeGpgKeyImport(imported)
+        value: GeneratedGpgKey,
+    ): Boolean = commit(snapshot) {
+        value
     }
 
     fun commitExpiration(
@@ -83,36 +81,4 @@ internal class GpgKeyMutationGuard(
         generation += 1L
         true
     }
-}
-
-private fun GeneratedGpgKey.mergeGpgKeyImport(
-    imported: GeneratedGpgKey,
-): GeneratedGpgKey {
-    val sameFingerprint = fingerprint.normalizeGpgFingerprint()
-        .takeIf { it.isNotEmpty() }
-        ?.let { current ->
-            imported.fingerprint.normalizeGpgFingerprint()
-                .takeIf { it.isNotEmpty() }
-                ?.let { importedFingerprint -> importedFingerprint == current }
-        } == true
-    return GeneratedGpgKey(
-        privateKeyArmored = when {
-            imported.privateKeyArmored.isNotBlank() -> imported.privateKeyArmored
-            sameFingerprint -> privateKeyArmored
-            else -> ""
-        },
-        publicKeyArmored = imported.publicKeyArmored.ifBlank {
-            if (sameFingerprint) publicKeyArmored else ""
-        },
-        fingerprint = imported.fingerprint.ifBlank {
-            if (sameFingerprint) fingerprint else ""
-        },
-        metadata = imported.metadata ?: metadata.takeIf { sameFingerprint },
-        userId = imported.userId.ifBlank {
-            if (sameFingerprint) userId else ""
-        },
-        typeLabel = imported.typeLabel.ifBlank {
-            if (sameFingerprint) typeLabel else ""
-        },
-    )
 }

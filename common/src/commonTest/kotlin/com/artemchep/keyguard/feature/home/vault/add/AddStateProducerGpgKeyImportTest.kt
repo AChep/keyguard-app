@@ -5,9 +5,9 @@ import com.artemchep.keyguard.common.model.toGpgKeyMaterial
 import com.artemchep.keyguard.common.model.withGpgKeyMaterial
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.platform.leParseUri
+import com.artemchep.keyguard.test.generatedGpgKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -18,7 +18,7 @@ import kotlin.test.fail
 class AddStateProducerGpgKeyImportTest {
     @Test
     fun `direct import result cannot overwrite a newer expiration mutation`() {
-        val original = createGpgKey()
+        val original = generatedGpgKey()
         val sink = MutableStateFlow(original)
         val mutations = GpgKeyMutationGuard(sink)
         val importSnapshot = mutations.snapshot()
@@ -30,9 +30,9 @@ class AddStateProducerGpgKeyImportTest {
 
         assertTrue(mutations.commitExpiration(expirationSnapshot, renewedMaterial))
         assertFalse(
-            mutations.commitImport(
+            mutations.commitReplacement(
                 snapshot = importSnapshot,
-                imported = original.copy(
+                value = original.copy(
                     privateKeyArmored = "STALE IMPORT PRIVATE",
                     publicKeyArmored = "STALE IMPORT PUBLIC",
                 ),
@@ -43,7 +43,7 @@ class AddStateProducerGpgKeyImportTest {
 
     @Test
     fun `expiration result cannot overwrite a newer import mutation`() {
-        val original = createGpgKey()
+        val original = generatedGpgKey()
         val sink = MutableStateFlow(original)
         val mutations = GpgKeyMutationGuard(sink)
         val expirationSnapshot = mutations.snapshot()
@@ -57,14 +57,14 @@ class AddStateProducerGpgKeyImportTest {
             publicKeyArmored = "STALE RENEWED PUBLIC",
         )
 
-        assertTrue(mutations.commitImport(importSnapshot, imported))
+        assertTrue(mutations.commitReplacement(importSnapshot, imported))
         assertFalse(mutations.commitExpiration(expirationSnapshot, staleRenewal))
         assertEquals(imported, sink.value)
     }
 
     @Test
     fun `only one overlapping import can commit a shared snapshot`() {
-        val original = createGpgKey()
+        val original = generatedGpgKey()
         val sink = MutableStateFlow(original)
         val mutations = GpgKeyMutationGuard(sink)
         val firstSnapshot = mutations.snapshot()
@@ -72,14 +72,29 @@ class AddStateProducerGpgKeyImportTest {
         val firstImport = original.copy(publicKeyArmored = "FIRST IMPORT PUBLIC")
         val secondImport = original.copy(publicKeyArmored = "SECOND IMPORT PUBLIC")
 
-        assertTrue(mutations.commitImport(firstSnapshot, firstImport))
-        assertFalse(mutations.commitImport(secondSnapshot, secondImport))
+        assertTrue(mutations.commitReplacement(firstSnapshot, firstImport))
+        assertFalse(mutations.commitReplacement(secondSnapshot, secondImport))
         assertEquals(firstImport, sink.value)
     }
 
     @Test
+    fun `prepared reconciliation cannot commit after the editor changes`() {
+        val original = generatedGpgKey()
+        val sink = MutableStateFlow(original)
+        val mutations = GpgKeyMutationGuard(sink)
+        val importSnapshot = mutations.snapshot()
+        val prepared = original.copy(publicKeyArmored = "PREPARED PUBLIC")
+        val edited = original.copy(publicKeyArmored = "EDITED PUBLIC")
+
+        mutations.replace(edited)
+
+        assertFalse(mutations.commitReplacement(importSnapshot, prepared))
+        assertEquals(edited, sink.value)
+    }
+
+    @Test
     fun `passphrase import result cannot commit after an ABA key mutation`() {
-        val original = createGpgKey()
+        val original = generatedGpgKey()
         val sink = MutableStateFlow(original)
         val mutations = GpgKeyMutationGuard(sink)
         val passphraseSnapshot = mutations.snapshot()
@@ -88,9 +103,9 @@ class AddStateProducerGpgKeyImportTest {
         mutations.replace(original)
 
         assertFalse(
-            mutations.commitImport(
+            mutations.commitReplacement(
                 snapshot = passphraseSnapshot,
-                imported = original.copy(
+                value = original.copy(
                     privateKeyArmored = "UNLOCKED PRIVATE",
                     publicKeyArmored = "STALE PUBLIC",
                 ),
@@ -106,7 +121,7 @@ class AddStateProducerGpgKeyImportTest {
             name = "key.asc",
             size = 1024L,
         )
-        val expectedKey = createGpgKey()
+        val expectedKey = generatedGpgKey()
         var importedKey: GeneratedGpgKey? = null
 
         handleGpgKeyFileImport(
@@ -221,12 +236,3 @@ class AddStateProducerGpgKeyImportTest {
         assertTrue(readErrorShown)
     }
 }
-
-private fun createGpgKey() = GeneratedGpgKey(
-    privateKeyArmored = "PRIVATE",
-    publicKeyArmored = "PUBLIC",
-    fingerprint = "FINGERPRINT",
-    metadata = GpgAgentKeyMetadata(),
-    userId = "Keyguard Test <test@example.com>",
-    typeLabel = "OpenPGP",
-)

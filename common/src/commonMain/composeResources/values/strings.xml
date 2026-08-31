@@ -558,6 +558,11 @@
     <string name="gpg_key_import_error_read">Unable to read the selected file.</string>
     <string name="gpg_key_import_error_passphrase_required">A passphrase is required to unlock this GPG key.</string>
     <string name="gpg_key_import_error_key_changed">The GPG key changed while the import was in progress. Try importing it again.</string>
+    <string name="gpg_key_import_error_mismatched_key">The imported key does not match the GPG key in this item.</string>
+    <string name="gpg_key_import_error_existing_malformed">The GPG key stored in this item is malformed and cannot be merged.</string>
+    <string name="gpg_key_import_error_secret_conflict">The imported secret key material conflicts with the secret key stored in this item.</string>
+    <string name="gpg_key_import_error_resource_limit">The GPG key is too large or complex to import.</string>
+    <string name="gpg_key_import_error_reconcile">The GPG key could not be safely merged.</string>
     <string name="gpg_key_import_passphrase_title">Passphrase</string>
     <string name="gpg_key_import_passphrase_hint">Enter GPG key passphrase</string>
     <string name="gpg_key_import_passphrase_dialog_title">Enter GPG key passphrase</string>

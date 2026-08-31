@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
+import com.artemchep.keyguard.common.service.crypto.GpgKeyEditorImportReconciler
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
@@ -603,6 +604,13 @@ fun globalModuleCommon() = DI.Module(
     }
     bindSingleton<GpgKeyMetadataResolver> {
         NativeGpgKeyMetadataResolver
+    }
+    bindSingleton {
+        GpgKeyEditorImportReconciler(
+            materialReconciler = instance(),
+            metadataResolver = instance(),
+            publicKeyParser = instance(),
+        )
     }
     bindSingleton<LicenseServerConfig> {
         LicenseServerConfig.Default

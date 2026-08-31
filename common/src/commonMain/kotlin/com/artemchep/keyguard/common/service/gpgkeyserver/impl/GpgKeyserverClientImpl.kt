@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.crypto.extractGpgUserIdEmail
 import com.artemchep.keyguard.common.service.crypto.gpgAlgorithmName
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.util.isHexDigit
 import com.artemchep.keyguard.provider.bitwarden.api.builder.ensureSuffix
 import com.artemchep.keyguard.provider.bitwarden.api.builder.routeAttribute
 import io.ktor.client.HttpClient
@@ -578,9 +579,6 @@ class GpgKeyserverClientImpl(
     ): String = URLBuilder(Url(baseUrl.ensureSuffix("/")))
         .apply(block)
         .buildString()
-
-    private fun Char.isHexDigit(): Boolean =
-        this in '0'..'9' || this in 'a'..'f' || this in 'A'..'F'
 
     private data class VksLookup(
         val path: String,

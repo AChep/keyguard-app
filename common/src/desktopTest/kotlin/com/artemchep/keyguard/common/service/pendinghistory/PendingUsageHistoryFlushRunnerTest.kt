@@ -6,9 +6,12 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.util.RetryPolicy
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -16,12 +19,33 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PendingUsageHistoryFlushRunnerTest {
+    @Test
+    fun `run dispatches before invoking the flush`() = runTest {
+        var invoked = false
+        val runner = runner {
+            invoked = true
+            io(PendingUsageHistoryFlushResult(deferredRows = 0))
+        }
+
+        val task = async(start = CoroutineStart.UNDISPATCHED) {
+            runner.run()
+                .bind()
+        }
+        assertFalse(invoked)
+
+        runCurrent()
+        task.await()
+
+        assertTrue(invoked)
+    }
+
     @Test
     fun `transient failure retries after the configured delay`() = runTest {
         var attempts = 0
@@ -140,7 +164,7 @@ class PendingUsageHistoryFlushRunnerTest {
         assertEquals(1, attempts)
     }
 
-    private fun runner(
+    private fun TestScope.runner(
         logs: RecordingLogRepository = RecordingLogRepository(),
         maxAttempts: Int = 2,
         delay: Duration = Duration.ZERO,
@@ -153,6 +177,7 @@ class PendingUsageHistoryFlushRunnerTest {
             delayBeforeRetry = { delay },
             shouldRetry = { true },
         ),
+        defaultDispatcher = StandardTestDispatcher(testScheduler),
     )
 }
 

@@ -13,6 +13,9 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 object NativeGpgUserIdReplacementService : GpgUserIdReplacementService {
+    override val isSupported: Boolean
+        get() = true
+
     override fun replace(request: GpgUserIdReplacementRequest): GpgUserIdReplacementResult =
         replace(
             request = request,

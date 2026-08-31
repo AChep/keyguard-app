@@ -1297,10 +1297,11 @@ private object BouncyCastleVerificationOracle {
 }
 
 /**
- * Canonicalizes the armor and drops the renewal tier.
+ * Canonicalizes the armor and drops fields that only the native parser exposes.
  *
  * The BC oracle models no renewal policy at all, so `renewal` is the one parse
- * field the two sides cannot be compared on. Agent authorization is compared
+ * field the two sides cannot be compared on. Stable User-ID identities are also
+ * native-protocol metadata and have no Bouncy Castle equivalent. Agent authorization is compared
  * only for components backed by secret fingerprints; public-only policy is
  * covered by the parse DTO assertions. The tier itself is covered by the native
  * parse-path tests and by `GpgKeyExpirationServiceJvmTest`.
@@ -1318,6 +1319,7 @@ private fun GpgPublicKeyParseResult.withCanonicalArmorForComparison(): GpgPublic
                         key.copy(
                             publicKeyArmored = key.publicKeyArmored.canonicalGpgArmorForComparison(),
                             renewal = GpgRenewalAuthorization.NONE,
+                            userIdDetails = emptyList(),
                         )
                     },
             )

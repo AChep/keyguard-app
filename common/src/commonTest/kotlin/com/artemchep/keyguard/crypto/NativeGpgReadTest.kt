@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationWarnin
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdInfo
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
@@ -18,10 +19,23 @@ import kotlinx.io.buffered
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class NativeGpgReadTest {
+    @Test
+    fun `public key parser maps stable user id details to the domain`() {
+        val result = assertIs<GpgPublicKeyParseResult.Success>(
+            NativeGpgPublicKeyParser.parse(PUBLIC_KEY),
+        )
+
+        assertEquals(
+            listOf(GpgUserIdInfo(USER_ID_IDENTITY_ID, USER_ID)),
+            result.keys.single().userIdDetails,
+        )
+    }
+
     @Test
     fun `policy conflict warning maps to the domain without changing validity`() {
         val verification = NativeOpenPgpVerification(
@@ -127,6 +141,9 @@ class NativeGpgReadTest {
 
     private companion object {
         const val PRIMARY_FINGERPRINT = GPG_TEST_CV25519_PRIMARY_FINGERPRINT
+        const val USER_ID = "Keyguard Test CV25519 <cv25519@test.invalid>"
+        const val USER_ID_IDENTITY_ID =
+            "v1:B61DCC1472153EBE2718B1C06B0F7A14ABE33038B7E02CFC9E47AD146B5935F7"
         val PUBLIC_KEY = GPG_TEST_CV25519_PUBLIC_KEY
         val DETACHED_BODY = """
             Independent OpenPGP verification fixture.

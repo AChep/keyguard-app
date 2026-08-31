@@ -79,7 +79,6 @@ import com.artemchep.keyguard.common.model.creditCards
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.model.titleH
-import com.artemchep.keyguard.common.model.toGpgKeyMaterial
 import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
 import com.artemchep.keyguard.common.service.crypto.GpgKeyEditorImportError
 import com.artemchep.keyguard.common.service.crypto.GpgKeyEditorImportReconciler
@@ -91,13 +90,20 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportServiceUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationChange
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationError
-import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationResult
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationServiceUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParserUnsupported
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementError
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementResult
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementService
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementServiceUnsupported
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationError
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationResult
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationService
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationServiceUnsupported
 import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
 import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportError
@@ -164,6 +170,12 @@ import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.gpgkey.expiration.createLocalizedGpgKeyExpirationFailureToast
 import com.artemchep.keyguard.feature.gpgkey.expiration.requestGpgKeyExpirationChange
+import com.artemchep.keyguard.feature.gpgkey.replacement.createLocalizedGpgUserIdReplacementFailureToast
+import com.artemchep.keyguard.feature.gpgkey.replacement.requestGpgUserIdReplacementValue
+import com.artemchep.keyguard.feature.gpgkey.revocation.createLocalizedGpgUserIdRevocationFailureToast
+import com.artemchep.keyguard.feature.gpgkey.selection.GpgUserIdSelectionIdentity
+import com.artemchep.keyguard.feature.gpgkey.selection.GpgUserIdSelectionRoute
+import com.artemchep.keyguard.feature.gpgkey.selection.requestGpgUserIdSelection
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachmentItemFactory
 import com.artemchep.keyguard.feature.home.vault.add.attachment.handleVaultAttachmentSelection
@@ -264,6 +276,8 @@ fun produceAddScreenState(
         gpgKeyEditorImportReconciler = instance(),
         gpgPublicKeyParser = instanceOrNull() ?: GpgPublicKeyParserUnsupported,
         gpgKeyExpirationService = instanceOrNull() ?: GpgKeyExpirationServiceUnsupported,
+        gpgUserIdReplacementService = instanceOrNull() ?: GpgUserIdReplacementServiceUnsupported,
+        gpgUserIdRevocationService = instanceOrNull() ?: GpgUserIdRevocationServiceUnsupported,
         logRepository = instance(),
         clipboardService = instance(),
         otpMigrationService = instance(),
@@ -305,6 +319,8 @@ fun produceAddScreenState(
     gpgKeyEditorImportReconciler: GpgKeyEditorImportReconciler,
     gpgPublicKeyParser: GpgPublicKeyParser,
     gpgKeyExpirationService: GpgKeyExpirationService,
+    gpgUserIdReplacementService: GpgUserIdReplacementService,
+    gpgUserIdRevocationService: GpgUserIdRevocationService,
     logRepository: LogRepository,
     clipboardService: ClipboardService,
     otpMigrationService: OtpMigrationService,
@@ -348,6 +364,8 @@ fun produceAddScreenState(
         gpgKeyEditorImportReconciler = gpgKeyEditorImportReconciler,
         gpgPublicKeyParser = gpgPublicKeyParser,
         gpgKeyExpirationService = gpgKeyExpirationService,
+        gpgUserIdReplacementService = gpgUserIdReplacementService,
+        gpgUserIdRevocationService = gpgUserIdRevocationService,
         logRepository = logRepository,
         clipboardService = clipboardService,
         otpMigrationService = otpMigrationService,
@@ -379,6 +397,8 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
     gpgKeyEditorImportReconciler: GpgKeyEditorImportReconciler,
     gpgPublicKeyParser: GpgPublicKeyParser,
     gpgKeyExpirationService: GpgKeyExpirationService,
+    gpgUserIdReplacementService: GpgUserIdReplacementService,
+    gpgUserIdRevocationService: GpgUserIdRevocationService,
     logRepository: LogRepository,
     clipboardService: ClipboardService,
     otpMigrationService: OtpMigrationService,
@@ -479,6 +499,8 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
         gpgKeyEditorImportReconciler = gpgKeyEditorImportReconciler,
         gpgPublicKeyParser = gpgPublicKeyParser,
         gpgKeyExpirationService = gpgKeyExpirationService,
+        gpgUserIdReplacementService = gpgUserIdReplacementService,
+        gpgUserIdRevocationService = gpgUserIdRevocationService,
         showMessage = showMessage,
         filePickerIntentSink = filePickerEvents,
         confirmationRouteFactory = confirmationRouteFactory,
@@ -3926,13 +3948,15 @@ data class KeyPairDecor2Brr(
 
 data class GpgKeyDecor2Brr(
     val gpgKey: GeneratedGpgKey? = null,
-    val expiration: Expiration? = null,
+    val expiration: SupportingRow? = null,
+    val identityReplacement: SupportingRow? = null,
+    val identityRevocation: SupportingRow? = null,
     val enabled: Boolean = true,
     val onChange: (GeneratedGpgKey) -> Unit,
     val onImport: () -> Unit,
 ) {
-    data class Expiration(
-        val value: String,
+    data class SupportingRow(
+        val value: String? = null,
         val text: String? = null,
         val onClick: (() -> Unit)? = null,
     )
@@ -4163,14 +4187,15 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
     gpgKeyEditorImportReconciler: GpgKeyEditorImportReconciler,
     gpgPublicKeyParser: GpgPublicKeyParser,
     gpgKeyExpirationService: GpgKeyExpirationService,
+    gpgUserIdReplacementService: GpgUserIdReplacementService,
+    gpgUserIdRevocationService: GpgUserIdRevocationService,
     showMessage: ShowMessage,
     filePickerIntentSink: EventFlow<FilePickerIntent<*>>,
     confirmationRouteFactory: ConfirmationRouteFactory,
 ): TmpGpgKey {
     val prefix = "gpgKey"
-    val expirationUpdateInProgress = MutableStateFlow(false)
 
-    val gpgKey = kotlin.run {
+    val (gpgKey, keyMutationInProgress) = kotlin.run {
         val id = "$prefix.gpgKey"
 
         val sink = mutablePersistedFlow(
@@ -4213,6 +4238,17 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                 )
         }
         val keyMutations = GpgKeyMutationGuard(sink)
+        val keyMutationCoordinator = DraftGpgKeyMutationCoordinator(
+            mutations = keyMutations,
+            loadCandidateRevocationKeys = {
+                getCiphers()
+                    .first()
+                    .toGpgRevocationKeyCandidates()
+            },
+            expirationService = gpgKeyExpirationService,
+            userIdReplacementService = gpgUserIdReplacementService,
+            userIdRevocationService = gpgUserIdRevocationService,
+        )
 
         suspend fun showImportConflict() {
             val msg = createGpgKeyImportToast(
@@ -4367,7 +4403,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
         }
 
         fun requestImportKey() {
-            if (expirationUpdateInProgress.value) {
+            if (keyMutationCoordinator.inProgress.value) {
                 return
             }
             val intent = FilePickerIntent.OpenDocument(
@@ -4390,46 +4426,127 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             createLocalizedGpgKeyExpirationFailureToast(reason),
         )
 
-        suspend fun updateExpiration(change: GpgKeyExpirationChange) {
-            if (!expirationUpdateInProgress.compareAndSet(expect = false, update = true)) {
-                return
-            }
-            val snapshot = keyMutations.snapshot()
-            try {
-                val result = withContext(Dispatchers.IO) {
-                    runCatching {
-                        val candidateRevocationKeys = getCiphers()
-                            .first()
-                            .toGpgRevocationKeyCandidates()
-                        gpgKeyExpirationService.update(
-                            GpgKeyExpirationRequest(
-                                key = snapshot.key.toGpgKeyMaterial(),
-                                change = change,
-                                candidateRevocationKeys = candidateRevocationKeys,
-                            ),
-                        )
-                    }.getOrNull()
-                }
-                when (result) {
-                    is GpgKeyExpirationResult.Success -> {
-                        if (!keyMutations.commitExpiration(snapshot, result.key)) {
-                            showExpirationError()
-                            return
-                        }
-                        showMessage.copy(
-                            ToastMessage(
-                                type = ToastMessage.Type.SUCCESS,
-                                title = translate(Res.string.gpg_key_expiry_success_title),
-                                text = translate(Res.string.gpg_key_expiry_success_message),
-                            ),
-                        )
-                    }
+        suspend fun updateExpiration(
+            snapshot: GpgKeyMutationGuard.Snapshot,
+            change: GpgKeyExpirationChange,
+        ) {
+            when (
+                val outcome = keyMutationCoordinator.updateExpiration(
+                    snapshot = snapshot,
+                    change = change,
+                )
+            ) {
+                DraftGpgKeyMutationOutcome.Busy -> Unit
+                DraftGpgKeyMutationOutcome.Conflict,
+                DraftGpgKeyMutationOutcome.Failed,
+                DraftGpgKeyMutationOutcome.Unsupported,
+                -> showExpirationError()
+
+                is DraftGpgKeyMutationOutcome.Complete -> when (val result = outcome.result) {
+                    is GpgKeyExpirationResult.Success -> showMessage.copy(
+                        ToastMessage(
+                            type = ToastMessage.Type.SUCCESS,
+                            title = translate(Res.string.gpg_key_expiry_success_title),
+                            text = translate(Res.string.gpg_key_expiry_success_message),
+                        ),
+                    )
 
                     is GpgKeyExpirationResult.Error -> showExpirationError(result.reason)
-                    null -> showExpirationError()
                 }
-            } finally {
-                expirationUpdateInProgress.value = false
+            }
+        }
+
+        suspend fun showIdentityReplacementError(
+            reason: GpgUserIdReplacementError? = null,
+        ) = showMessage.copy(
+            createLocalizedGpgUserIdReplacementFailureToast(reason),
+        )
+
+        suspend fun replaceIdentity(
+            snapshot: GpgKeyMutationGuard.Snapshot,
+            oldIdentityId: String,
+            newUserId: String,
+        ) {
+            when (
+                val outcome = keyMutationCoordinator.replaceUserId(
+                    snapshot = snapshot,
+                    oldIdentityId = oldIdentityId,
+                    newUserId = newUserId,
+                )
+            ) {
+                DraftGpgKeyMutationOutcome.Busy -> Unit
+                DraftGpgKeyMutationOutcome.Conflict ->
+                    showIdentityReplacementError(GpgUserIdReplacementError.TargetNotFound)
+
+                DraftGpgKeyMutationOutcome.Unsupported ->
+                    showIdentityReplacementError(GpgUserIdReplacementError.UnsupportedPlatform)
+
+                DraftGpgKeyMutationOutcome.Failed -> showIdentityReplacementError()
+
+                is DraftGpgKeyMutationOutcome.Complete -> when (val result = outcome.result) {
+                    is GpgUserIdReplacementResult.Success -> showMessage.copy(
+                        ToastMessage(
+                            type = ToastMessage.Type.SUCCESS,
+                            title = translate(Res.string.gpg_user_id_replacement_success_title),
+                            text = translate(
+                                if (result.changed) {
+                                    Res.string.gpg_user_id_replacement_success_message
+                                } else {
+                                    Res.string.gpg_user_id_replacement_already_done_message
+                                },
+                            ),
+                        ),
+                    )
+
+                    is GpgUserIdReplacementResult.Error ->
+                        showIdentityReplacementError(result.reason)
+                }
+            }
+        }
+
+        suspend fun showIdentityRevocationError(
+            reason: GpgUserIdRevocationError? = null,
+        ) = showMessage.copy(
+            createLocalizedGpgUserIdRevocationFailureToast(reason),
+        )
+
+        suspend fun revokeIdentity(
+            snapshot: GpgKeyMutationGuard.Snapshot,
+            identityId: String,
+        ) {
+            when (
+                val outcome = keyMutationCoordinator.revokeUserId(
+                    snapshot = snapshot,
+                    identityId = identityId,
+                )
+            ) {
+                DraftGpgKeyMutationOutcome.Busy -> Unit
+                DraftGpgKeyMutationOutcome.Conflict ->
+                    showIdentityRevocationError(GpgUserIdRevocationError.TargetNotFound)
+
+                DraftGpgKeyMutationOutcome.Unsupported ->
+                    showIdentityRevocationError(GpgUserIdRevocationError.UnsupportedPlatform)
+
+                DraftGpgKeyMutationOutcome.Failed -> showIdentityRevocationError()
+
+                is DraftGpgKeyMutationOutcome.Complete -> when (val result = outcome.result) {
+                    is GpgUserIdRevocationResult.Success -> showMessage.copy(
+                        ToastMessage(
+                            type = ToastMessage.Type.SUCCESS,
+                            title = translate(Res.string.gpg_user_id_revocation_success_title),
+                            text = translate(
+                                if (result.changed) {
+                                    Res.string.gpg_user_id_revocation_success_message
+                                } else {
+                                    Res.string.gpg_user_id_revocation_already_done_message
+                                },
+                            ),
+                        ),
+                    )
+
+                    is GpgUserIdRevocationResult.Error ->
+                        showIdentityRevocationError(result.reason)
+                }
             }
         }
 
@@ -4442,16 +4559,102 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             ?: translate(Res.string.gpg_key_expiry_never)
 
         suspend fun requestExpirationChange(
+            expectedKey: GeneratedGpgKey,
             keyInfo: GpgPublicKeyInfo,
         ) {
-            if (expirationUpdateInProgress.value) {
+            if (keyMutationCoordinator.inProgress.value) {
+                return
+            }
+            val snapshot = keyMutations.snapshot()
+            if (snapshot.key != expectedKey) {
+                showExpirationError()
                 return
             }
             requestGpgKeyExpirationChange(
                 keyInfo = keyInfo,
             ) { change ->
                 screenScope.launch {
-                    updateExpiration(change)
+                    updateExpiration(snapshot, change)
+                }
+            }
+        }
+
+        fun GpgPublicKeyInfo.selectionIdentities(): List<GpgUserIdSelectionIdentity> =
+            userIdDetails
+                .distinctBy { identity -> identity.identityId }
+                .map { identity ->
+                    GpgUserIdSelectionIdentity(
+                        identityId = identity.identityId,
+                        userId = identity.userId,
+                    )
+                }
+
+        suspend fun requestIdentityReplacement(
+            expectedKey: GeneratedGpgKey,
+            keyInfo: GpgPublicKeyInfo,
+        ) {
+            if (keyMutationCoordinator.inProgress.value) {
+                return
+            }
+            val snapshot = keyMutations.snapshot()
+            if (snapshot.key != expectedKey) {
+                showIdentityReplacementError(GpgUserIdReplacementError.TargetNotFound)
+                return
+            }
+            val identities = keyInfo.selectionIdentities()
+            requestGpgUserIdSelection(
+                activeIdentities = identities,
+                mode = GpgUserIdSelectionRoute.Args.Mode.Replacement,
+            ) { oldIdentityId ->
+                screenScope.launch {
+                    if (!keyMutations.isCurrent(snapshot)) {
+                        showIdentityReplacementError(GpgUserIdReplacementError.TargetNotFound)
+                        return@launch
+                    }
+                    val oldUserId = identities
+                        .firstOrNull { identity -> identity.identityId == oldIdentityId }
+                        ?.userId
+                    if (oldUserId == null) {
+                        showIdentityReplacementError(GpgUserIdReplacementError.TargetNotFound)
+                        return@launch
+                    }
+                    requestGpgUserIdReplacementValue(
+                        oldUserId = oldUserId,
+                        activeUserIds = identities.map { identity -> identity.userId },
+                    ) { newUserId ->
+                        screenScope.launch {
+                            replaceIdentity(
+                                snapshot = snapshot,
+                                oldIdentityId = oldIdentityId,
+                                newUserId = newUserId,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        suspend fun requestIdentityRevocation(
+            expectedKey: GeneratedGpgKey,
+            keyInfo: GpgPublicKeyInfo,
+        ) {
+            if (keyMutationCoordinator.inProgress.value) {
+                return
+            }
+            val snapshot = keyMutations.snapshot()
+            if (snapshot.key != expectedKey) {
+                showIdentityRevocationError(GpgUserIdRevocationError.TargetNotFound)
+                return
+            }
+            requestGpgUserIdSelection(
+                activeIdentities = keyInfo.selectionIdentities(),
+                mode = GpgUserIdSelectionRoute.Args.Mode.Revocation,
+            ) { identityId ->
+                screenScope.launch {
+                    revokeIdentity(
+                        snapshot = snapshot,
+                        identityId = identityId,
+                    )
                 }
             }
         }
@@ -4460,17 +4663,13 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             value: GeneratedGpgKey,
             keyInfo: Loadable<GpgPublicKeyInfo?>,
             updateInProgress: Boolean,
-        ): GpgKeyDecor2Brr.Expiration? {
+        ): GpgKeyDecor2Brr.SupportingRow? {
             val publicKeyArmored = value.publicKeyArmored
-            if (publicKeyArmored.isBlank()) {
-                return null
-            }
-            val loadedKeyInfo = when (keyInfo) {
-                Loadable.Loading -> return null
-                is Loadable.Ok -> keyInfo.value
-            }
-            if (loadedKeyInfo == null) {
-                return GpgKeyDecor2Brr.Expiration(
+            val loadedKeyInfo = (keyInfo as? Loadable.Ok)?.value
+            return when {
+                publicKeyArmored.isBlank() || keyInfo == Loadable.Loading -> null
+
+                loadedKeyInfo == null -> GpgKeyDecor2Brr.SupportingRow(
                     value = translate(Res.string.gpg_key_expiry_unknown),
                     text = translate(
                         if (gpgPublicKeyParser.isSupported) {
@@ -4480,33 +4679,86 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                         },
                     ),
                 )
+
+                else -> {
+                    val canEdit = value.privateKeyArmored.isNotBlank() &&
+                        gpgKeyExpirationService.isSupported &&
+                        !loadedKeyInfo.revoked &&
+                        !updateInProgress
+                    val supportingText = when {
+                        value.privateKeyArmored.isBlank() ->
+                            translate(Res.string.gpg_key_expiry_private_key_required)
+
+                        !gpgKeyExpirationService.isSupported ->
+                            translate(Res.string.gpg_key_expiry_unavailable)
+
+                        loadedKeyInfo.revoked ->
+                            translate(Res.string.gpg_key_expiry_revoked_message)
+
+                        loadedKeyInfo.expiresAt?.let { it <= Clock.System.now() } == true ->
+                            translate(Res.string.expired)
+
+                        else -> null
+                    }
+                    GpgKeyDecor2Brr.SupportingRow(
+                        value = formatExpiration(loadedKeyInfo.expiresAt),
+                        text = supportingText,
+                        onClick = if (canEdit) {
+                            {
+                                screenScope.launch {
+                                    requestExpirationChange(value, loadedKeyInfo)
+                                }
+                            }
+                        } else {
+                            null
+                        }
+                    )
+                }
             }
-            val canEdit = value.privateKeyArmored.isNotBlank() &&
-                    gpgKeyExpirationService.isSupported &&
-                    !loadedKeyInfo.revoked &&
-                    !updateInProgress
+        }
+
+        suspend fun createIdentityMutationDecor(
+            value: GeneratedGpgKey,
+            keyInfo: Loadable<GpgPublicKeyInfo?>,
+            updateInProgress: Boolean,
+            serviceSupported: Boolean,
+            unavailableRes: StringResource,
+            privateKeyRequiredRes: StringResource,
+            identityRestriction: (GpgPublicKeyInfo) -> StringResource?,
+            request: suspend (GeneratedGpgKey, GpgPublicKeyInfo) -> Unit,
+        ): GpgKeyDecor2Brr.SupportingRow? {
+            if (value.publicKeyArmored.isBlank() || keyInfo is Loadable.Loading) {
+                return null
+            }
+            val loadedKeyInfo = (keyInfo as Loadable.Ok).value
             val supportingText = when {
-                value.privateKeyArmored.isBlank() ->
-                    translate(Res.string.gpg_key_expiry_private_key_required)
+                loadedKeyInfo == null -> translate(
+                    if (gpgPublicKeyParser.isSupported) {
+                        Res.string.gpg_key_expiry_key_unreadable
+                    } else {
+                        unavailableRes
+                    },
+                )
 
-                !gpgKeyExpirationService.isSupported ->
-                    translate(Res.string.gpg_key_expiry_unavailable)
-
+                value.privateKeyArmored.isBlank() -> translate(privateKeyRequiredRes)
+                !serviceSupported -> translate(unavailableRes)
                 loadedKeyInfo.revoked ->
-                    translate(Res.string.gpg_key_expiry_revoked_message)
+                    translate(Res.string.gpg_user_id_mutation_key_revoked_message)
 
-                loadedKeyInfo.expiresAt?.let { it <= Clock.System.now() } == true ->
-                    translate(Res.string.expired)
-
-                else -> null
+                else -> identityRestriction(loadedKeyInfo)?.let { translate(it) }
             }
-            return GpgKeyDecor2Brr.Expiration(
-                value = formatExpiration(loadedKeyInfo.expiresAt),
+            val canMutate = loadedKeyInfo != null &&
+                value.privateKeyArmored.isNotBlank() &&
+                serviceSupported &&
+                !loadedKeyInfo.revoked &&
+                identityRestriction(loadedKeyInfo) == null &&
+                !updateInProgress
+            return GpgKeyDecor2Brr.SupportingRow(
                 text = supportingText,
-                onClick = if (canEdit) {
+                onClick = if (canMutate) {
                     {
                         screenScope.launch {
-                            requestExpirationChange(loadedKeyInfo)
+                            request(value, loadedKeyInfo)
                         }
                     }
                 } else {
@@ -4528,7 +4780,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                 }
         }
         val stateItem = LocalStateItem<GpgKeyDecor2Brr, CreateRequest>(
-            flow = combine(parsedKeyFlow, expirationUpdateInProgress) { (value, keyInfo), updateInProgress ->
+            flow = combine(parsedKeyFlow, keyMutationCoordinator.inProgress) { (value, keyInfo), updateInProgress ->
                 GpgKeyDecor2Brr(
                     gpgKey = value,
                     expiration = createExpirationDecor(
@@ -4536,9 +4788,44 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                         keyInfo = keyInfo,
                         updateInProgress = updateInProgress,
                     ),
+                    identityReplacement = createIdentityMutationDecor(
+                        value = value,
+                        keyInfo = keyInfo,
+                        updateInProgress = updateInProgress,
+                        serviceSupported = gpgUserIdReplacementService.isSupported,
+                        unavailableRes = Res.string.gpg_user_id_replacement_unavailable,
+                        privateKeyRequiredRes =
+                            Res.string.gpg_user_id_replacement_private_key_required,
+                        identityRestriction = { info ->
+                            Res.string.gpg_user_id_replacement_no_identity_message
+                                .takeIf { info.userIdDetails.isEmpty() }
+                        },
+                        request = ::requestIdentityReplacement,
+                    ),
+                    identityRevocation = createIdentityMutationDecor(
+                        value = value,
+                        keyInfo = keyInfo,
+                        updateInProgress = updateInProgress,
+                        serviceSupported = gpgUserIdRevocationService.isSupported,
+                        unavailableRes = Res.string.gpg_user_id_revocation_unavailable,
+                        privateKeyRequiredRes =
+                            Res.string.gpg_user_id_revocation_private_key_required,
+                        identityRestriction = { info ->
+                            when {
+                                info.userIdDetails.isEmpty() ->
+                                    Res.string.gpg_user_id_revocation_no_identity_message
+
+                                info.userIdDetails.size == 1 ->
+                                    Res.string.gpg_user_id_revocation_last_identity_message
+
+                                else -> null
+                            }
+                        },
+                        request = ::requestIdentityRevocation,
+                    ),
                     enabled = !updateInProgress,
                     onChange = {
-                        if (!expirationUpdateInProgress.value) {
+                        if (!keyMutationCoordinator.inProgress.value) {
                             keyMutations.replace(it)
                         }
                     },
@@ -4570,7 +4857,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             fileDrop = AddStateItem.FileDrop(
                 text = translate(Res.string.gpg_key_import_drop_here),
                 onFileDrop = { info ->
-                    if (!expirationUpdateInProgress.value) {
+                    if (!keyMutationCoordinator.inProgress.value) {
                         screenScope.launch {
                             onImportKey(info)
                         }
@@ -4578,11 +4865,11 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                 },
             ),
             state = stateItem,
-        )
+        ) to keyMutationCoordinator.inProgress
     }
     return TmpGpgKey(
         gpgKey = gpgKey,
-        saveEnabled = expirationUpdateInProgress
+        saveEnabled = keyMutationInProgress
             .map { inProgress -> !inProgress }
             .distinctUntilChanged(),
         items = listOfNotNull<AddStateItem>(

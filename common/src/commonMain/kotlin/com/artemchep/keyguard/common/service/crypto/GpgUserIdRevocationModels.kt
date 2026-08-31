@@ -42,4 +42,5 @@ enum class GpgUserIdRevocationError {
     CertificateRevoked,
     UnresolvedRevocationAuthority,
     UnsupportedSigningHash,
+    UnsupportedPlatform,
 }

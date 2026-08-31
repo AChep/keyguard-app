@@ -24,6 +24,10 @@ class NativeCryptoOpenPgpFixtureTest {
         assertEquals("EDDSA", key.algorithm)
         assertEquals(256, key.bitStrength)
         assertEquals(listOf(USER_ID), key.userIds)
+        assertEquals(
+            listOf(NativeOpenPgpUserIdInfo(USER_ID_IDENTITY_ID, USER_ID)),
+            key.userIdDetails,
+        )
         assertEquals(listOf("cv25519@test.invalid"), key.emails)
         assertEquals(1_782_541_263L, key.createdAtEpochSeconds)
         assertNull(key.expiresAtEpochSeconds)
@@ -322,6 +326,8 @@ class NativeCryptoOpenPgpFixtureTest {
         const val SUBKEY_FINGERPRINT = "93ABCF804D85EE79D6E1DB0E77648D3E5D4E7699"
         const val SUBKEY_KEYGRIP = "85C1DE785BEE9244BAFBA73A09E6085BA7A35C8E"
         const val USER_ID = "Keyguard Test CV25519 <cv25519@test.invalid>"
+        const val USER_ID_IDENTITY_ID =
+            "v1:B61DCC1472153EBE2718B1C06B0F7A14ABE33038B7E02CFC9E47AD146B5935F7"
 
         val PUBLIC_KEY = """
             -----BEGIN PGP PUBLIC KEY BLOCK-----

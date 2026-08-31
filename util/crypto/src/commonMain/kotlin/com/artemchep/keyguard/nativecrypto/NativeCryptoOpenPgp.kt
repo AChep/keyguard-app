@@ -30,6 +30,12 @@ public enum class NativeOpenPgpPublicKeyParseError {
     MULTIPLE_CERTIFICATES,
 }
 
+public data class NativeOpenPgpUserIdInfo(
+    /** Stable identifier derived from the exact OpenPGP identity packet body. */
+    val identityId: String,
+    val userId: String,
+)
+
 public data class NativeOpenPgpPublicKeyInfo(
     val fingerprint: String,
     val keygrip: String?,
@@ -64,6 +70,8 @@ public data class NativeOpenPgpPublicKeyInfo(
      */
     val renewal: NativeOpenPgpRenewalAuthorization =
         NativeOpenPgpRenewalAuthorization.NONE,
+    /** Policy-authenticated textual User IDs paired with their stable packet identifiers. */
+    val userIdDetails: List<NativeOpenPgpUserIdInfo> = emptyList(),
 )
 
 public data class NativeOpenPgpPublicSubKeyInfo(
@@ -2771,6 +2779,17 @@ private fun OpenPgpPublicKeyInfoProto.toPublic(
         subkeys = subkeys.map { value -> value.toPublic(operation) },
         authenticated = authenticated,
         renewal = renewal.toRenewalAuthorizationOrNone(),
+        userIdDetails = userIdDetails.map { value -> value.toPublic(operation) },
+    )
+}
+
+private fun OpenPgpUserIdInfoProto.toPublic(
+    operation: String,
+): NativeOpenPgpUserIdInfo {
+    requireOpenPgpIdentityId(operation, identityId)
+    return NativeOpenPgpUserIdInfo(
+        identityId = identityId,
+        userId = userId,
     )
 }
 

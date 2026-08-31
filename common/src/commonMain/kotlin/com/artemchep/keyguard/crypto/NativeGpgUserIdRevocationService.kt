@@ -12,6 +12,9 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 object NativeGpgUserIdRevocationService : GpgUserIdRevocationService {
+    override val isSupported: Boolean
+        get() = true
+
     override fun revoke(request: GpgUserIdRevocationRequest): GpgUserIdRevocationResult =
         revoke(
             request = request,

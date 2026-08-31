@@ -28,7 +28,7 @@ class AddStateProducerGpgKeyImportTest {
             publicKeyArmored = "RENEWED PUBLIC",
         )
 
-        assertTrue(mutations.commitExpiration(expirationSnapshot, renewedMaterial))
+        assertTrue(mutations.commitMaterial(expirationSnapshot, renewedMaterial))
         assertFalse(
             mutations.commitReplacement(
                 snapshot = importSnapshot,
@@ -58,7 +58,7 @@ class AddStateProducerGpgKeyImportTest {
         )
 
         assertTrue(mutations.commitReplacement(importSnapshot, imported))
-        assertFalse(mutations.commitExpiration(expirationSnapshot, staleRenewal))
+        assertFalse(mutations.commitMaterial(expirationSnapshot, staleRenewal))
         assertEquals(imported, sink.value)
     }
 

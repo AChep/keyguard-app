@@ -42,7 +42,7 @@ internal class GpgKeyMutationGuard(
         value
     }
 
-    fun commitExpiration(
+    fun commitMaterial(
         snapshot: Snapshot,
         material: GpgKeyMaterial,
     ): Boolean = commit(snapshot) { current ->

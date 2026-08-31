@@ -12,10 +12,11 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdInfo
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
@@ -222,6 +223,12 @@ internal fun NativeOpenPgpPublicKeyInfo.toDomain(): GpgPublicKeyInfo = GpgPublic
     subKeys = subkeys.map { it.toDomain() },
     authenticated = authenticated,
     renewal = renewal.toDomain(),
+    userIdDetails = userIdDetails.map { value ->
+        GpgUserIdInfo(
+            identityId = value.identityId,
+            userId = value.userId,
+        )
+    },
 )
 
 private fun NativeOpenPgpPublicSubKeyInfo.toDomain(): GpgPublicSubKeyInfo = GpgPublicSubKeyInfo(

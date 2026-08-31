@@ -1219,6 +1219,14 @@ internal data class OpenPgpPublicSubKeyInfoProto(
 )
 
 @Serializable
+internal data class OpenPgpUserIdInfoProto(
+    @ProtoNumber(1)
+    val identityId: String = "",
+    @ProtoNumber(2)
+    val userId: String = "",
+)
+
+@Serializable
 internal data class OpenPgpPublicKeyInfoProto(
     @ProtoNumber(1)
     val fingerprint: String = "",
@@ -1248,7 +1256,9 @@ internal data class OpenPgpPublicKeyInfoProto(
     val publicKeyArmored: String = "",
     @ProtoNumber(14)
     val subkeys: List<OpenPgpPublicSubKeyInfoProto> = emptyList(),
-    // Fields 15..17 are emitted by the native side and deliberately not read here.
+    @ProtoNumber(15)
+    val userIdDetails: List<OpenPgpUserIdInfoProto> = emptyList(),
+    // Fields 16..17 are emitted by the native side and deliberately not read here.
     @ProtoNumber(18)
     val authenticated: Boolean = false,
     /**

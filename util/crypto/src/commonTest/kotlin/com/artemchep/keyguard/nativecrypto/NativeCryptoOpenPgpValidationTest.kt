@@ -818,6 +818,45 @@ class NativeCryptoOpenPgpMetadataPolicyValidationTest {
     }
 
     @Test
+    fun publicKeyUserIdDetailsRoundTripAndRejectMalformedIdentityIds() {
+        val identityId = "v1:${"A".repeat(64)}"
+        val detail = OpenPgpUserIdInfoProto(
+            identityId = identityId,
+            userId = "Alice <alice@example.com>",
+        )
+        val payload = publicKeyParsePayloadWithUserIdDetail(detail)
+
+        val result = decodeOpenPgpPublicKeyParseResult(PARSE_OPERATION, payload)
+        val key = (result as NativeOpenPgpPublicKeyParseResult.Success).keys.single()
+        assertEquals(
+            listOf(
+                NativeOpenPgpUserIdInfo(
+                    identityId = identityId,
+                    userId = detail.userId,
+                ),
+            ),
+            key.userIdDetails,
+        )
+
+        listOf(
+            "v2:${"A".repeat(64)}",
+            "v1:${"A".repeat(63)}",
+            "v1:${"a".repeat(64)}",
+            "v1:${"G".repeat(64)}",
+        ).forEach { malformedIdentityId ->
+            val malformedPayload = publicKeyParsePayloadWithUserIdDetail(
+                detail.copy(identityId = malformedIdentityId),
+            )
+
+            val failure = assertFailsWith<NativeCryptoException>(malformedIdentityId) {
+                decodeOpenPgpPublicKeyParseResult(PARSE_OPERATION, malformedPayload)
+            }
+            assertEquals(PARSE_OPERATION, failure.operation)
+            assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
+        }
+    }
+
+    @Test
     fun publicKeyRenewalTierDecodesAndDegradesUnknownValuesToNone() {
         // The parse path's renewal tier is what tells an unauthenticated but
         // renewable key from one no renewal can repair. An unspecified or
@@ -872,12 +911,34 @@ class NativeCryptoOpenPgpMetadataPolicyValidationTest {
             ),
         )
         val legacy = decodeOpenPgpPublicKeyParseResult(PARSE_OPERATION, legacyPayload)
+        val legacyKey = (legacy as NativeOpenPgpPublicKeyParseResult.Success).keys.single()
         assertEquals(
             NativeOpenPgpRenewalAuthorization.NONE,
-            (legacy as NativeOpenPgpPublicKeyParseResult.Success).keys.single().renewal,
+            legacyKey.renewal,
         )
+        assertTrue(legacyKey.userIdDetails.isEmpty())
     }
 }
+
+private fun publicKeyParsePayloadWithUserIdDetail(
+    detail: OpenPgpUserIdInfoProto,
+): ByteArray = ProtoBuf.encodeToByteArray(
+    OpenPgpPublicKeyParseResultProto(
+        OpenPgpPublicKeyParseSuccessOutcomeProto(
+            OpenPgpPublicKeyParseSuccessProto(
+                keys = listOf(
+                    OpenPgpPublicKeyInfoProto(
+                        fingerprint = FINGERPRINT,
+                        keyId = KEY_ID,
+                        algorithm = "RSA",
+                        publicKeyArmored = "public",
+                        userIdDetails = listOf(detail),
+                    ),
+                ),
+            ),
+        ),
+    ),
+)
 
 private fun assertInvalidInput(block: () -> Unit) {
     assertFailsWith<IllegalArgumentException> { block() }

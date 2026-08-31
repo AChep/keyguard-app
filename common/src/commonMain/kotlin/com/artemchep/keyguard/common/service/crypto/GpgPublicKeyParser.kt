@@ -71,6 +71,12 @@ enum class GpgPublicKeyParseError {
     Unsupported,
 }
 
+data class GpgUserIdInfo(
+    /** Stable identifier derived from the exact OpenPGP identity packet body. */
+    val identityId: String,
+    val userId: String,
+)
+
 data class GpgPublicKeyInfo(
     val fingerprint: String,
     val keygrip: String? = null,
@@ -111,6 +117,8 @@ data class GpgPublicKeyInfo(
      * when it is template-renewable.
      */
     val renewal: GpgRenewalAuthorization = GpgRenewalAuthorization.NONE,
+    /** Policy-authenticated textual User IDs paired with their stable packet identifiers. */
+    val userIdDetails: List<GpgUserIdInfo> = emptyList(),
 )
 
 data class GpgPublicSubKeyInfo(

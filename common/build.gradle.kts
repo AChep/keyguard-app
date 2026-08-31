@@ -287,7 +287,6 @@ kotlin {
                 api(libs.mayakapps.window.styler)
                 api(libs.vinceglb.filekit.core)
                 api(libs.vinceglb.filekit.dialogs)
-                api(libs.vinceglb.filekit.compose)
                 api(libs.willena.sqlite.jdbc)
                 api(project(":desktopLibJvm"))
             }

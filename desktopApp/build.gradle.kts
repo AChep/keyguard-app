@@ -26,13 +26,18 @@ kotlin {
                 implementation(libs.jetbrains.compose.material3)
                 implementation(libs.jetbrains.compose.material.icons.extended)
                 implementation(libs.jetbrains.compose.components.resources)
-                implementation(libs.kdroidfilter.composenativetray)
+                implementation(libs.nucleusframework.composenativetray)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlin.stdlib)
                 implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
                 implementation(libs.squareup.okhttp)
                 implementation(project(":util:crypto"))
                 implementation(project(":common"))
+            }
+        }
+        val jvmTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
             }
         }
     }

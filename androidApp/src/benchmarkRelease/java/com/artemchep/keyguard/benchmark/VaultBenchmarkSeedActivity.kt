@@ -8,6 +8,7 @@ import android.view.Gravity
 import android.widget.TextView
 import app.keemobile.kotpass.database.encode
 import com.artemchep.keyguard.Main
+import com.artemchep.keyguard.R
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.usecase.GetCiphers
@@ -35,7 +36,7 @@ class VaultBenchmarkSeedActivity : Activity() {
         super.onCreate(savedInstanceState)
         statusView = TextView(this).apply {
             gravity = Gravity.CENTER
-            text = "Preparing benchmark vault…"
+            setText(R.string.benchmark_vault_preparing)
             contentDescription = STATUS_SEEDING
         }
         setContentView(statusView)

@@ -274,36 +274,6 @@ class NativeGpgOpenPgpService internal constructor(
         )
     }
 
-    private fun signText(
-        request: GpgOpenPgpSignTextRequest,
-        sign: (
-            content: ByteArray,
-            privateKey: ByteArray,
-            candidateRevocationKeys: List<ByteArray>,
-            preferredFingerprint: String,
-            referenceTimeEpochSeconds: Long,
-        ) -> ByteArray,
-    ): String = request.privateKey.withEncoded { privateKey, preferredFingerprint ->
-        request.candidateRevocationKeys.withEncodedRevocationKeyCandidates(
-            targetPrivateKeys = listOf(EncodedRevocationTarget(privateKey, preferredFingerprint)),
-        ) { candidateRevocationKeys, referenceTimeEpochSeconds ->
-            val content = request.text.encodeToByteArray()
-            try {
-                translateNativeOpenPgpWriteError {
-                    sign(
-                        content,
-                        privateKey,
-                        candidateRevocationKeys,
-                        preferredFingerprint,
-                        referenceTimeEpochSeconds,
-                    )
-                }.decodeAndErase()
-            } finally {
-                content.fill(0)
-            }
-        }
-    }
-
     override fun encryptText(
         request: GpgOpenPgpEncryptTextRequest,
     ): String = request.publicKeys.withEncodedPublicKeys { publicKeys ->
@@ -603,6 +573,36 @@ class NativeGpgOpenPgpService internal constructor(
                     }
                 }
             }
+        }
+    }
+}
+
+private fun signText(
+    request: GpgOpenPgpSignTextRequest,
+    sign: (
+        content: ByteArray,
+        privateKey: ByteArray,
+        candidateRevocationKeys: List<ByteArray>,
+        preferredFingerprint: String,
+        referenceTimeEpochSeconds: Long,
+    ) -> ByteArray,
+): String = request.privateKey.withEncoded { privateKey, preferredFingerprint ->
+    request.candidateRevocationKeys.withEncodedRevocationKeyCandidates(
+        targetPrivateKeys = listOf(EncodedRevocationTarget(privateKey, preferredFingerprint)),
+    ) { candidateRevocationKeys, referenceTimeEpochSeconds ->
+        val content = request.text.encodeToByteArray()
+        try {
+            translateNativeOpenPgpWriteError {
+                sign(
+                    content,
+                    privateKey,
+                    candidateRevocationKeys,
+                    preferredFingerprint,
+                    referenceTimeEpochSeconds,
+                )
+            }.decodeAndErase()
+        } finally {
+            content.fill(0)
         }
     }
 }

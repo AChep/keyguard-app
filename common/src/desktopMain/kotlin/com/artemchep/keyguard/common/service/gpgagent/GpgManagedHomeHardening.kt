@@ -154,24 +154,25 @@ private fun resolveGpgPathForComparison(
     remainingLinks: Int = 40,
 ): Path {
     val absolutePath = path.toAbsolutePath()
-    try {
-        return absolutePath.toRealPath()
+    return try {
+        absolutePath.toRealPath()
     } catch (_: NoSuchFileException) {
         // A default-home or config symlink can point at a managed path that
         // does not exist yet. Resolve its missing suffix before creating it.
         if (Files.isSymbolicLink(absolutePath)) {
             require(remainingLinks > 0) { "Too many symbolic links in GnuPG path: $path" }
             val target = Files.readSymbolicLink(absolutePath)
-            return resolveGpgPathForComparison(
+            resolveGpgPathForComparison(
                 requireNotNull(absolutePath.parent).resolve(target),
                 remainingLinks - 1,
             )
+        } else {
+            val parent = requireNotNull(absolutePath.parent) {
+                "Could not resolve GnuPG path: $path"
+            }
+            resolveGpgPathForComparison(parent, remainingLinks)
+                .resolve(absolutePath.fileName)
+                .normalize()
         }
-        val parent = requireNotNull(absolutePath.parent) {
-            "Could not resolve GnuPG path: $path"
-        }
-        return resolveGpgPathForComparison(parent, remainingLinks)
-            .resolve(absolutePath.fileName)
-            .normalize()
     }
 }

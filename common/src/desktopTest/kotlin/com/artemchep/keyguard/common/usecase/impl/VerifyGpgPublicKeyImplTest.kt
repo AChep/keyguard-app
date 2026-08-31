@@ -37,7 +37,21 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
+private const val PRIMARY_FINGERPRINT = GPG_TEST_CV25519_PRIMARY_FINGERPRINT
+private const val OTHER_FINGERPRINT = "0123456789ABCDEF0123456789ABCDEF01234567"
+private const val CIPHER_ID = "cipher-id"
+private const val ACCOUNT_ID = "account-id"
+private val instant: Instant = Instant.parse("2024-01-01T00:00:00Z")
+private val refreshedAt: Instant = Instant.parse("2024-02-01T00:00:00Z")
+
 class VerifyGpgPublicKeyImplTest {
+    private companion object {
+        const val primaryFingerprint = PRIMARY_FINGERPRINT
+        const val otherFingerprint = OTHER_FINGERPRINT
+        const val cipherId = CIPHER_ID
+        const val accountId = ACCOUNT_ID
+    }
+
     @Test
     fun `invoke verifies by email and persists verified state`() = runTest {
         val client = FakeKeyserverClient(
@@ -307,6 +321,14 @@ class VerifyGpgPublicKeyImplTest {
         assertEquals(GpgKeyserverVerificationStatus.NOT_FOUND, status)
     }
 
+}
+
+class GpgPublicKeyVerificationStatusTest {
+    private companion object {
+        const val primaryFingerprint = PRIMARY_FINGERPRINT
+    }
+
+
     @Test
     fun `aggregate status prefers verified email match`() {
         val status = gpgKeyserverAggregateVerificationStatus(
@@ -342,14 +364,6 @@ class VerifyGpgPublicKeyImplTest {
         assertEquals(GpgKeyserverVerificationStatus.NOT_FOUND, status)
     }
 
-    companion object {
-        const val primaryFingerprint = GPG_TEST_CV25519_PRIMARY_FINGERPRINT
-        const val otherFingerprint = "0123456789ABCDEF0123456789ABCDEF01234567"
-        const val cipherId = "cipher-id"
-        const val accountId = "account-id"
-        val instant: Instant = Instant.parse("2024-01-01T00:00:00Z")
-        val refreshedAt: Instant = Instant.parse("2024-02-01T00:00:00Z")
-    }
 }
 
 private fun createUseCase(
@@ -381,16 +395,16 @@ private fun createUseCase(
 )
 
 private fun createGpgSecret(
-    fingerprint: String = VerifyGpgPublicKeyImplTest.primaryFingerprint,
+    fingerprint: String = PRIMARY_FINGERPRINT,
     publicKey: String = GPG_TEST_CV25519_PUBLIC_KEY,
 ) = DSecret(
-    id = VerifyGpgPublicKeyImplTest.cipherId,
-    accountId = VerifyGpgPublicKeyImplTest.accountId,
+    id = CIPHER_ID,
+    accountId = ACCOUNT_ID,
     folderId = null,
     organizationId = null,
     collectionIds = emptySet(),
-    revisionDate = VerifyGpgPublicKeyImplTest.instant,
-    createdDate = VerifyGpgPublicKeyImplTest.instant,
+    revisionDate = instant,
+    createdDate = instant,
     archivedDate = null,
     deletedDate = null,
     service = BitwardenService(),

@@ -349,9 +349,6 @@ class KeePassCipherCodec(
         return history
     }
 
-    private fun getPassword(entry: Entry): String? = entry.fields.password?.content
-        .takeUnless { it.isNullOrEmpty() }
-
     suspend fun decode(
         accountId: String,
         folderId: String?,
@@ -914,6 +911,9 @@ class KeePassCipherCodec(
 
     // endregion
 }
+
+private fun getPassword(entry: Entry): String? = entry.fields.password?.content
+    .takeUnless { it.isNullOrEmpty() }
 
 private fun BitwardenCipher.Attachment.keepassFileName(): String = when (this) {
     is BitwardenCipher.Attachment.Remote -> fileName

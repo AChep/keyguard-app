@@ -16,24 +16,24 @@ internal fun BitwardenCipher.gpgKeyForRefresh(
     expectedAccountId: String,
     expectedFingerprint: String,
 ): BitwardenCipher.GpgKey? {
-    if (
-        accountId != expectedAccountId || deletedDate != null || service.deleted
-    ) {
-        return null
+    val isEligible = accountId == expectedAccountId && deletedDate == null && !service.deleted
+    return if (isEligible) {
+        resolveGpgKeyserverRefreshKey(
+            key = gpgKey?.toDomain(),
+            legacyField = { name -> fields.firstOrNull { it.name == name }?.value },
+        )
+            ?.takeIf { it.fingerprint == expectedFingerprint }
+            ?.let { resolved ->
+                // Preserve absent private material as stored, so an unchanged refresh does
+                // not become a write solely because an empty string was normalized to null.
+                (gpgKey ?: BitwardenCipher.GpgKey()).copy(
+                    publicKeyArmored = resolved.publicKeyArmored,
+                    fingerprint = resolved.fingerprint,
+                )
+            }
+    } else {
+        null
     }
-    val resolved = resolveGpgKeyserverRefreshKey(
-        key = gpgKey?.toDomain(),
-        legacyField = { name -> fields.firstOrNull { it.name == name }?.value },
-    ) ?: return null
-    if (resolved.fingerprint != expectedFingerprint) {
-        return null
-    }
-    // Preserve absent private material as stored, so an unchanged refresh does
-    // not become a write solely because an empty string was normalized to null.
-    return (gpgKey ?: BitwardenCipher.GpgKey()).copy(
-        publicKeyArmored = resolved.publicKeyArmored,
-        fingerprint = resolved.fingerprint,
-    )
 }
 
 /**

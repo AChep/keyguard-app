@@ -22,116 +22,32 @@ import kotlin.test.assertTrue
 
 class NativeBridgeMappingsTest {
     @Test
-    fun `new data policy authorizes raw signing while renewal stays separate`() {
-        val renewalPrimary = component('1', NativeOpenPgpKeyComponentRole.PRIMARY)
-        val templatePrimary = component('2', NativeOpenPgpKeyComponentRole.PRIMARY)
-        val signingPrimary = component('3', NativeOpenPgpKeyComponentRole.PRIMARY)
-        val templateSubkey = component('4', NativeOpenPgpKeyComponentRole.SUBKEY)
-        val signingSubkey = component('5', NativeOpenPgpKeyComponentRole.SUBKEY)
-        val encryptionSubkey =
-            component(
-                marker = '6',
-                role = NativeOpenPgpKeyComponentRole.SUBKEY,
-                operations = setOf(NativeOpenPgpAgentOperation.DECRYPT),
-            )
-        val nonSigningPrimary =
-            component(
-                marker = '7',
-                role = NativeOpenPgpKeyComponentRole.PRIMARY,
-                operations = setOf(NativeOpenPgpAgentOperation.DECRYPT),
-            )
-        val publicOnlySigningSubkey =
-            component(
-                marker = '8',
-                role = NativeOpenPgpKeyComponentRole.SUBKEY,
-                storedSecretMaterial = false,
-            )
-        val components =
-            listOf(
-                renewalPrimary,
-                templatePrimary,
-                signingPrimary,
-                templateSubkey,
-                signingSubkey,
-                encryptionSubkey,
-                nonSigningPrimary,
-                publicOnlySigningSubkey,
-            )
-        val resolution =
-            NativeOpenPgpMetadataResolution(
-                certificates =
-                    listOf(
-                        NativeOpenPgpCertificateResolution(
-                            index =
-                                NativeOpenPgpCertificateIndex(
-                                    primaryFingerprint = renewalPrimary.fingerprint,
-                                    components = components,
-                                    legacyDesignatedRevokers = emptyList(),
-                                ),
-                            policy =
-                                listOf(
-                                    policy(
-                                        renewalPrimary,
-                                        NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
-                                    ),
-                                    policy(
-                                        templatePrimary,
-                                        NativeOpenPgpRenewalAuthorization.TEMPLATE_ONLY,
-                                    ),
-                                    policy(
-                                        signingPrimary,
-                                        NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
-                                        setOf(NativeOpenPgpPolicyUse.SIGN_NEW_DATA),
-                                    ),
-                                    policy(
-                                        templateSubkey,
-                                        NativeOpenPgpRenewalAuthorization.TEMPLATE_ONLY,
-                                    ),
-                                    policy(
-                                        signingSubkey,
-                                        NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
-                                        setOf(NativeOpenPgpPolicyUse.SIGN_NEW_DATA),
-                                    ),
-                                    policy(
-                                        encryptionSubkey,
-                                        NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
-                                        setOf(NativeOpenPgpPolicyUse.ENCRYPT_NEW_DATA),
-                                    ),
-                                    policy(
-                                        nonSigningPrimary,
-                                        NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
-                                    ),
-                                    policy(
-                                        publicOnlySigningSubkey,
-                                        NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
-                                        setOf(NativeOpenPgpPolicyUse.SIGN_NEW_DATA),
-                                    ),
-                                ),
-                        ),
-                    ),
-                evaluatedAtEpochSeconds = 1_700_000_000L,
-                policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
-            )
-
-        val authorization = resolution.toDomain().authorization
+    fun `new data policy authorizes stored keys with matching operations`() {
+        val authorization = newDataPolicyAuthorization()
         val keys = authorization.keys.associateBy { it.fingerprint }
 
-        assertFalse(keys.getValue(renewalPrimary.fingerprint).canSign)
-        assertFalse(keys.getValue(templatePrimary.fingerprint).canSign)
-        assertTrue(keys.getValue(signingPrimary.fingerprint).canSign)
-        assertFalse(keys.getValue(templateSubkey.fingerprint).canSign)
-        assertTrue(keys.getValue(signingSubkey.fingerprint).canSign)
-        assertTrue(keys.getValue(encryptionSubkey.fingerprint).canDecrypt)
-        assertFalse(keys.getValue(templatePrimary.fingerprint).canDecrypt)
-        assertFalse(keys.getValue(nonSigningPrimary.fingerprint).canSign)
-        assertFalse(keys.containsKey(publicOnlySigningSubkey.fingerprint))
+        assertFalse(keys.getValue(fingerprint('1')).canSign)
+        assertFalse(keys.getValue(fingerprint('2')).canSign)
+        assertTrue(keys.getValue(fingerprint('3')).canSign)
+        assertFalse(keys.getValue(fingerprint('4')).canSign)
+        assertTrue(keys.getValue(fingerprint('5')).canSign)
+        assertTrue(keys.getValue(fingerprint('6')).canDecrypt)
+        assertFalse(keys.getValue(fingerprint('2')).canDecrypt)
+        assertFalse(keys.getValue(fingerprint('7')).canSign)
+        assertFalse(keys.containsKey(fingerprint('8')))
+    }
+
+    @Test
+    fun `renewal authorization stays separate from new data uses`() {
+        val authorization = newDataPolicyAuthorization()
+
         assertEquals(
             GpgRenewalAuthorization.AUTHENTICATED,
-            authorization.renewals.getValue(renewalPrimary.fingerprint),
+            authorization.renewals.getValue(fingerprint('1')),
         )
         assertEquals(
             GpgRenewalAuthorization.TEMPLATE_ONLY,
-            authorization.renewals.getValue(templatePrimary.fingerprint),
+            authorization.renewals.getValue(fingerprint('2')),
         )
     }
 
@@ -201,6 +117,82 @@ class NativeBridgeMappingsTest {
         }
     }
 
+    private fun newDataPolicyAuthorization(): GpgAgentAuthorizationSnapshot {
+        val fixtures = listOf(
+            PolicyFixture(
+                component('1', NativeOpenPgpKeyComponentRole.PRIMARY),
+                NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
+            ),
+            PolicyFixture(
+                component('2', NativeOpenPgpKeyComponentRole.PRIMARY),
+                NativeOpenPgpRenewalAuthorization.TEMPLATE_ONLY,
+            ),
+            PolicyFixture(
+                component('3', NativeOpenPgpKeyComponentRole.PRIMARY),
+                NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
+                setOf(NativeOpenPgpPolicyUse.SIGN_NEW_DATA),
+            ),
+            PolicyFixture(
+                component('4', NativeOpenPgpKeyComponentRole.SUBKEY),
+                NativeOpenPgpRenewalAuthorization.TEMPLATE_ONLY,
+            ),
+            PolicyFixture(
+                component('5', NativeOpenPgpKeyComponentRole.SUBKEY),
+                NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
+                setOf(NativeOpenPgpPolicyUse.SIGN_NEW_DATA),
+            ),
+            PolicyFixture(
+                component(
+                    marker = '6',
+                    role = NativeOpenPgpKeyComponentRole.SUBKEY,
+                    operations = setOf(NativeOpenPgpAgentOperation.DECRYPT),
+                ),
+                NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
+                setOf(NativeOpenPgpPolicyUse.ENCRYPT_NEW_DATA),
+            ),
+            PolicyFixture(
+                component(
+                    marker = '7',
+                    role = NativeOpenPgpKeyComponentRole.PRIMARY,
+                    operations = setOf(NativeOpenPgpAgentOperation.DECRYPT),
+                ),
+                NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
+            ),
+            PolicyFixture(
+                component(
+                    marker = '8',
+                    role = NativeOpenPgpKeyComponentRole.SUBKEY,
+                    storedSecretMaterial = false,
+                ),
+                NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
+                setOf(NativeOpenPgpPolicyUse.SIGN_NEW_DATA),
+            ),
+        )
+        return fixtures.toAuthorization()
+    }
+
+    private fun List<PolicyFixture>.toAuthorization(): GpgAgentAuthorizationSnapshot =
+        NativeOpenPgpMetadataResolution(
+            certificates = listOf(
+                NativeOpenPgpCertificateResolution(
+                    index = NativeOpenPgpCertificateIndex(
+                        primaryFingerprint = first().component.fingerprint,
+                        components = map(PolicyFixture::component),
+                        legacyDesignatedRevokers = emptyList(),
+                    ),
+                    policy = map { fixture ->
+                        policy(
+                            fixture.component,
+                            fixture.renewal,
+                            fixture.allowedNewDataUses,
+                        )
+                    },
+                ),
+            ),
+            evaluatedAtEpochSeconds = 1_700_000_000L,
+            policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
+        ).toDomain().authorization
+
     private fun component(
         marker: Char,
         role: NativeOpenPgpKeyComponentRole,
@@ -225,5 +217,13 @@ class NativeBridgeMappingsTest {
         allowedNewDataUses = uses,
         renewal = renewal,
         revocationStatus = NativeOpenPgpRevocationStatus.NOT_REVOKED,
+    )
+
+    private fun fingerprint(marker: Char) = marker.toString().repeat(40)
+
+    private data class PolicyFixture(
+        val component: NativeOpenPgpKeyComponentIndex,
+        val renewal: NativeOpenPgpRenewalAuthorization,
+        val allowedNewDataUses: Set<NativeOpenPgpPolicyUse> = emptySet(),
     )
 }

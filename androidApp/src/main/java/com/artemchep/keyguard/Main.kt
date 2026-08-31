@@ -329,6 +329,9 @@ class Main : BaseApp(), DIAware {
                             )
                         }
                         .take(ShortcutManagerCompat.getMaxShortcutCountPerActivity(this@Main))
+                    // The shortcut activation is reported from MainActivity in :common;
+                    // app-module lint cannot correlate that cross-module call site.
+                    @Suppress("ReportShortcutUsage")
                     ShortcutManagerCompat.addDynamicShortcuts(this@Main, shortcuts)
                 }
                 .launchIn(this)

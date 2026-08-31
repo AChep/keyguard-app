@@ -47,7 +47,12 @@ class GpgKeyserverRefreshMergeTest {
         val certificates = refreshRevocationCertificates()
         for (sameServer in listOf(true, false)) {
             GpgKeyserverRefreshTestFixture(
-                initial = listOf(refreshTestCipher(publicKey = certificates.original, fingerprint = certificates.fingerprint)),
+                initial = listOf(
+                    refreshTestCipher(
+                        publicKey = certificates.original,
+                        fingerprint = certificates.fingerprint,
+                    ),
+                ),
             ).use { fixture ->
                 fixture.stateRepository.put(
                     DGpgKeyserverState(
@@ -61,7 +66,11 @@ class GpgKeyserverRefreshMergeTest {
                 fixture.lookup = { DGpgKeyserverResult(it, publicKeyArmored = certificates.retired) }
                 fixture.useCase(fixture.request).bind()
                 val retired = assertNotNull(fixture.stateRepository.getByFingerprint(certificates.fingerprint).first())
-                val publication = if (sameServer) GpgKeyserverVerificationStatus.VERIFIED else GpgKeyserverVerificationStatus.FOUND_UNVERIFIED
+                val publication = if (sameServer) {
+                    GpgKeyserverVerificationStatus.VERIFIED
+                } else {
+                    GpgKeyserverVerificationStatus.FOUND_UNVERIFIED
+                }
                 assertEquals(publication, retired.publicationStatus)
                 assertEquals(GpgKeyserverVerificationStatus.REVOKED, retired.verificationStatus)
 
@@ -78,7 +87,12 @@ class GpgKeyserverRefreshMergeTest {
     fun `signed restoration clears a backed retirement while retaining all evidence`() = runTest {
         val certificates = refreshRevocationCertificates()
         GpgKeyserverRefreshTestFixture(
-            initial = listOf(refreshTestCipher(publicKey = certificates.original, fingerprint = certificates.fingerprint)),
+            initial = listOf(
+                refreshTestCipher(
+                    publicKey = certificates.original,
+                    fingerprint = certificates.fingerprint,
+                ),
+            ),
         ).use { fixture ->
             fixture.lookup = { DGpgKeyserverResult(it, publicKeyArmored = certificates.retired) }
             assertEquals(RefreshGpgPublicKeysResult(1, 0, 0), fixture.useCase(fixture.request).bind())
@@ -94,7 +108,12 @@ class GpgKeyserverRefreshMergeTest {
             assertTrue(evidence.publicKey.getSignaturesOfType(PGPSignature.KEY_REVOCATION).hasNext())
 
             // Neither an edited vault row nor a stale server response may drop the anchor.
-            fixture.update { refreshTestCipher(publicKey = certificates.original, fingerprint = certificates.fingerprint) }
+            fixture.update {
+                refreshTestCipher(
+                    publicKey = certificates.original,
+                    fingerprint = certificates.fingerprint,
+                )
+            }
             fixture.lookup = { DGpgKeyserverResult(it, publicKeyArmored = certificates.original) }
             assertEquals(RefreshGpgPublicKeysResult(1, 0, 0), fixture.useCase(fixture.request).bind())
             val stale = assertNotNull(fixture.stateRepository.getByFingerprint(certificates.fingerprint).first())
@@ -109,7 +128,11 @@ class GpgKeyserverRefreshMergeTest {
         GpgKeyserverRefreshTestFixture(
             initial = listOf(
                 refreshTestCipher(publicKey = certificates.original, fingerprint = certificates.fingerprint),
-                refreshTestCipher(id = "other-copy", publicKey = certificates.compromised, fingerprint = certificates.fingerprint),
+                refreshTestCipher(
+                    id = "other-copy",
+                    publicKey = certificates.compromised,
+                    fingerprint = certificates.fingerprint,
+                ),
             ),
         ).use { fixture ->
             fixture.lookup = { DGpgKeyserverResult(it, publicKeyArmored = certificates.restored) }
@@ -132,7 +155,11 @@ class GpgKeyserverRefreshMergeTest {
     @Test
     fun `blank typed fields do not hide an unselected legacy copy of a hard revocation`() = runTest {
         val certificates = refreshRevocationCertificates()
-        val duplicate = refreshTestCipher(id = "legacy-copy", publicKey = certificates.compromised, fingerprint = certificates.fingerprint)
+        val duplicate = refreshTestCipher(
+            id = "legacy-copy",
+            publicKey = certificates.compromised,
+            fingerprint = certificates.fingerprint,
+        )
         for ((blankPublic, blankFingerprint) in listOf("" to "", " \n\t" to " \n\t", " \n\t" to "::")) {
             val legacy = duplicate.copy(
                 gpgKey = duplicate.gpgKey?.copy(publicKeyArmored = blankPublic, fingerprint = blankFingerprint),
@@ -173,11 +200,21 @@ class GpgKeyserverRefreshMergeTest {
     fun `an edit after saving a refresh cannot erase the accepted revocation evidence`() = runTest {
         val certificates = refreshRevocationCertificates()
         GpgKeyserverRefreshTestFixture(
-            initial = listOf(refreshTestCipher(publicKey = certificates.compromised, fingerprint = certificates.fingerprint)),
+            initial = listOf(
+                refreshTestCipher(
+                    publicKey = certificates.compromised,
+                    fingerprint = certificates.fingerprint,
+                ),
+            ),
         ).use { fixture ->
             fixture.lookup = { DGpgKeyserverResult(it, publicKeyArmored = certificates.restored) }
             fixture.afterCipherWrite = {
-                fixture.update { refreshTestCipher(publicKey = certificates.original, fingerprint = certificates.fingerprint) }
+                fixture.update {
+                    refreshTestCipher(
+                        publicKey = certificates.original,
+                        fingerprint = certificates.fingerprint,
+                    )
+                }
             }
 
             assertEquals(RefreshGpgPublicKeysResult(1, 0, 0), fixture.useCase(fixture.request).bind())
@@ -301,29 +338,6 @@ class GpgKeyserverRefreshMergeTest {
         }
     }
 
-    private fun refresh(
-        key: BitwardenCipher.GpgKey,
-        incoming: String,
-        reconciler: GpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
-    ) = key.withGpgKeyserverRefresh(
-        expectedPrimaryFingerprint = REFRESH_FINGERPRINT,
-        result = DGpgKeyserverResult(REFRESH_FINGERPRINT, publicKeyArmored = incoming),
-        reconciler = reconciler,
-        resolver = NativeGpgKeyMetadataResolver,
-    )
-
-    private fun fixedReconciler(
-        result: () -> GpgCertificateMaterialReconcileResult,
-    ) = object : GpgCertificateMaterialReconciler {
-        override fun reconcile(
-            expectedPrimaryFingerprint: String,
-            existingPublicCertificate: String?,
-            existingSecretCertificate: String?,
-            incomingPublicCertificate: String?,
-            incomingSecretCertificate: String?,
-        ) = result()
-    }
-
     private companion object {
         val partialCertificate by lazy {
             PGPPublicKeyRing(listOf(ring(REFRESH_PUBLIC_KEY).publicKey)).armored()
@@ -334,4 +348,27 @@ class GpgKeyserverRefreshMergeTest {
             JcaKeyFingerprintCalculator(),
         )
     }
+}
+
+private fun refresh(
+    key: BitwardenCipher.GpgKey,
+    incoming: String,
+    reconciler: GpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
+) = key.withGpgKeyserverRefresh(
+    expectedPrimaryFingerprint = REFRESH_FINGERPRINT,
+    result = DGpgKeyserverResult(REFRESH_FINGERPRINT, publicKeyArmored = incoming),
+    reconciler = reconciler,
+    resolver = NativeGpgKeyMetadataResolver,
+)
+
+private fun fixedReconciler(
+    result: () -> GpgCertificateMaterialReconcileResult,
+) = object : GpgCertificateMaterialReconciler {
+    override fun reconcile(
+        expectedPrimaryFingerprint: String,
+        existingPublicCertificate: String?,
+        existingSecretCertificate: String?,
+        incomingPublicCertificate: String?,
+        incomingSecretCertificate: String?,
+    ) = result()
 }

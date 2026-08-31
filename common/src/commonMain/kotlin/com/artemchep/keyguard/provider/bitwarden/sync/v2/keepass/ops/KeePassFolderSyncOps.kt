@@ -80,49 +80,15 @@ class KeePassFolderSyncOps(
             mappings = mappings,
         )
 
-        if (remoteUuid != null) {
-            val shouldMove = targetParentUuid != server.parentGroupUuid
-            val updated = mutator.modifyGroup(remoteUuid) {
-                val currentTimes = times
-                val publishedTimes = currentTimes
-                    ?.copy(
-                        lastAccessTime = publishedLocal.revisionDate,
-                        lastModificationTime = publishedLocal.revisionDate,
-                        locationChanged = if (shouldMove) {
-                            publishedLocal.revisionDate
-                        } else {
-                            currentTimes.locationChanged
-                        },
-                    )
-                    ?: TimeData.create(
-                        now = publishedLocal.revisionDate,
-                    )
-                copy(
-                    name = publishedLocal.name,
-                    times = publishedTimes,
-                )
-            }
-            if (shouldMove) {
-                val moved = mutator.moveGroup(remoteUuid, targetParentUuid)
-                check(moved) {
-                    "Could not move KeePass group $remoteUuid to parent $targetParentUuid."
-                }
-            }
-            if (updated) {
-                val newLocal = publishedLocal.copy(
-                    service = BitwardenService(
-                        remote = BitwardenService.Remote(
-                            id = remoteUuid.toString(),
-                            revisionDate = publishedLocal.revisionDate,
-                            deletedDate = null,
-                        ),
-                        version = BitwardenService.VERSION,
-                    ),
-                    hierarchyMode = FolderHierarchyMode.ParentId,
-                )
-                return RemoteWriteOutcome.Upsert(newLocal)
-            }
+        val existingOutcome = remoteUuid?.let { uuid ->
+            updateExistingGroup(
+                remoteUuid = uuid,
+                currentParentUuid = server.parentGroupUuid,
+                targetParentUuid = targetParentUuid,
+                publishedLocal = publishedLocal,
+            )
         }
+        if (existingOutcome != null) return existingOutcome
 
         // Match new groups to their local folder ids so a retry can recognize
         // a group that reached the KDBX file before SQLite was committed.
@@ -144,6 +110,55 @@ class KeePassFolderSyncOps(
             hierarchyMode = FolderHierarchyMode.ParentId,
         )
         return RemoteWriteOutcome.Upsert(newLocal)
+    }
+
+    private fun updateExistingGroup(
+        remoteUuid: Uuid,
+        currentParentUuid: Uuid?,
+        targetParentUuid: Uuid?,
+        publishedLocal: BitwardenFolder,
+    ): RemoteWriteOutcome<BitwardenFolder>? {
+        val shouldMove = targetParentUuid != currentParentUuid
+        val updated = mutator.modifyGroup(remoteUuid) {
+            val currentTimes = times
+            val publishedTimes = currentTimes
+                ?.copy(
+                    lastAccessTime = publishedLocal.revisionDate,
+                    lastModificationTime = publishedLocal.revisionDate,
+                    locationChanged = if (shouldMove) {
+                        publishedLocal.revisionDate
+                    } else {
+                        currentTimes.locationChanged
+                    },
+                )
+                ?: TimeData.create(now = publishedLocal.revisionDate)
+            copy(
+                name = publishedLocal.name,
+                times = publishedTimes,
+            )
+        }
+        if (shouldMove) {
+            check(mutator.moveGroup(remoteUuid, targetParentUuid)) {
+                "Could not move KeePass group $remoteUuid to parent $targetParentUuid."
+            }
+        }
+        return if (updated) {
+            RemoteWriteOutcome.Upsert(
+                publishedLocal.copy(
+                    service = BitwardenService(
+                        remote = BitwardenService.Remote(
+                            id = remoteUuid.toString(),
+                            revisionDate = publishedLocal.revisionDate,
+                            deletedDate = null,
+                        ),
+                        version = BitwardenService.VERSION,
+                    ),
+                    hierarchyMode = FolderHierarchyMode.ParentId,
+                ),
+            )
+        } else {
+            null
+        }
     }
 
     override suspend fun deleteOnServer(

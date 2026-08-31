@@ -20,49 +20,6 @@ fun OkHttpClient.Builder.installPlatformTrustManager() =
         else -> this
     }
 
-fun OkHttpClient.Builder.installMacOsTrustManager() = installHybridTrustManager(
-    ::getMacOsTrustManager,
-)
-
-fun OkHttpClient.Builder.installWindowsTrustManager() = installHybridTrustManager(
-    ::getWindowsMyTrustManager,
-    ::getWindowsRootTrustManager,
-)
-
-private inline fun OkHttpClient.Builder.installHybridTrustManager(
-    vararg factories: () -> X509TrustManager,
-): OkHttpClient.Builder {
-    val trustManagers = mutableListOf<X509TrustManager>()
-    factories.forEach { factory ->
-        val trustManager = runCatching {
-            factory().takeIfHasAcceptedIssuers()
-        }.getOrElse { e ->
-            // Could not get the platform specific
-            // trust manager.
-            e.printStackTrace()
-            null
-        }
-        if (trustManager != null) {
-            trustManagers += trustManager
-        }
-    }
-    if (trustManagers.isEmpty()) {
-        return this
-    }
-
-    // Install the default trust manager as the last one.
-    trustManagers += getDefaultTrustManager()
-
-    // Combine with a new trust manager and set it
-    // as the OkHTTPs socket factory.
-    val hybridTm = createHybridTrustManager(trustManagers)
-    val hybridSslSocketFactory = createSslSocketFactory(hybridTm)
-    return sslSocketFactory(
-        sslSocketFactory = hybridSslSocketFactory,
-        trustManager = hybridTm,
-    )
-}
-
 internal fun X509TrustManager.takeIfHasAcceptedIssuers(): X509TrustManager? =
     takeIf { acceptedIssuers.isNotEmpty() }
 
@@ -82,40 +39,6 @@ internal fun createSslSocketFactory(
 ) = SSLContext.getInstance("TLS").apply {
     init(null, arrayOf<TrustManager>(trustManager), null)
 }.socketFactory
-
-private fun getMacOsTrustManager() =
-    getTrustManager("KeychainStore")
-
-private fun getWindowsRootTrustManager() =
-    getTrustManager("Windows-ROOT", "SunMSCAPI")
-
-private fun getWindowsMyTrustManager() =
-    getTrustManager("Windows-My", "SunMSCAPI")
-
-private fun getTrustManager(
-    type: String,
-    provider: String? = null,
-) = run {
-    val keyStore = if (provider != null) {
-        KeyStore.getInstance(type, provider)
-    } else {
-        KeyStore.getInstance(type)
-    }
-    keyStore.load(null, null)
-    // load the trust manager
-    getTrustManager(keyStore = keyStore)
-}
-
-private fun getTrustManager(
-    keyStore: KeyStore,
-) = run {
-    val trustManagerFactory =
-        TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-    trustManagerFactory.init(keyStore)
-    val winTm = trustManagerFactory.trustManagers
-        .first { it is X509TrustManager } as X509TrustManager
-    winTm
-}
 
 internal fun createHybridTrustManager(
     trustManagers: List<X509TrustManager>,

@@ -22,6 +22,9 @@ import com.artemchep.keyguard.nativecrypto.NativeOpenPgpCertificateMaterialRecon
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpCertificateMaterialWithheldReason
 import com.artemchep.keyguard.nativecrypto.isValidOpenPgpFingerprint
 
+private typealias NativeReconcileSuccess =
+    NativeOpenPgpCertificateMaterialReconcileV2Result.Success
+
 object NativeGpgCertificateMaterialReconciler : GpgCertificateMaterialReconciler {
     override fun reconcile(
         expectedPrimaryFingerprint: String,
@@ -53,39 +56,8 @@ object NativeGpgCertificateMaterialReconciler : GpgCertificateMaterialReconciler
                         incomingSecretCertificate = incomingSecret,
                     )
             ) {
-                is NativeOpenPgpCertificateMaterialReconcileV2Result.Success -> {
-                    try {
-                        GpgCertificateMaterialReconcileResult.Success(
-                            localPublicMaterial =
-                                result.localPublicMaterial.decodeToString(
-                                    throwOnInvalidSequence = true,
-                                ),
-                            localSecretMaterial =
-                                result.localSecretMaterial?.decodeToString(
-                                    throwOnInvalidSequence = true,
-                                ),
-                            transferablePublicCertificate =
-                                result.transferablePublicCertificate?.decodeToString(
-                                    throwOnInvalidSequence = true,
-                                ),
-                            transferableSecretKey =
-                                result.transferableSecretKey?.decodeToString(
-                                    throwOnInvalidSequence = true,
-                                ),
-                            primaryFingerprint = result.primaryFingerprint,
-                            contributions = result.contributions.toDomain(),
-                            withheldReasons =
-                                result.withheldReasons.mapTo(mutableSetOf()) {
-                                    it.toDomain()
-                                },
-                        )
-                    } finally {
-                        result.localPublicMaterial.fill(0)
-                        result.localSecretMaterial?.fill(0)
-                        result.transferablePublicCertificate?.fill(0)
-                        result.transferableSecretKey?.fill(0)
-                    }
-                }
+                is NativeOpenPgpCertificateMaterialReconcileV2Result.Success ->
+                    result.toDomainAndErase()
 
                 is NativeOpenPgpCertificateMaterialReconcileV2Result.Error -> {
                     GpgCertificateMaterialReconcileResult.Error(result.failure.toDomain())
@@ -106,6 +78,32 @@ object NativeGpgCertificateMaterialReconciler : GpgCertificateMaterialReconciler
         }
     }
 }
+
+private fun NativeReconcileSuccess.toDomainAndErase(): GpgCertificateMaterialReconcileResult.Success =
+    try {
+        GpgCertificateMaterialReconcileResult.Success(
+            localPublicMaterial = localPublicMaterial.decodeToString(
+                throwOnInvalidSequence = true,
+            ),
+            localSecretMaterial = localSecretMaterial?.decodeToString(
+                throwOnInvalidSequence = true,
+            ),
+            transferablePublicCertificate = transferablePublicCertificate?.decodeToString(
+                throwOnInvalidSequence = true,
+            ),
+            transferableSecretKey = transferableSecretKey?.decodeToString(
+                throwOnInvalidSequence = true,
+            ),
+            primaryFingerprint = primaryFingerprint,
+            contributions = contributions.toDomain(),
+            withheldReasons = withheldReasons.mapTo(mutableSetOf()) { it.toDomain() },
+        )
+    } finally {
+        localPublicMaterial.fill(0)
+        localSecretMaterial?.fill(0)
+        transferablePublicCertificate?.fill(0)
+        transferableSecretKey?.fill(0)
+    }
 
 private fun NativeOpenPgpCertificateMaterialContributions.toDomain() =
     GpgCertificateMaterialContributions(

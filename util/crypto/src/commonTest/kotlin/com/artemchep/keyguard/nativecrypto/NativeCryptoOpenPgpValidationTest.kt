@@ -313,7 +313,9 @@ class NativeCryptoOpenPgpValidationTest {
 
         assertFalse(metadata.certificates.single().index.components.single().storedSecretMaterial)
     }
+}
 
+class NativeCryptoOpenPgpVerificationValidationTest {
     @Test
     fun acceptsMissingPublicKeyWithoutAuthenticatedMetadata() {
         val result = decode(
@@ -613,10 +615,6 @@ class NativeCryptoOpenPgpValidationTest {
         assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
     }
 
-    private fun assertInvalidInput(block: () -> Unit) {
-        assertFailsWith<IllegalArgumentException> { block() }
-    }
-
     private fun decode(response: OpenPgpVerificationProto): NativeOpenPgpVerification =
         decodeOpenPgpVerification(
             operation = OPERATION,
@@ -646,7 +644,9 @@ class NativeCryptoOpenPgpValidationTest {
             ),
         ),
     )
+}
 
+class NativeCryptoOpenPgpMetadataPolicyValidationTest {
     @Test
     fun decodesRenewalAuthorizationAndDegradesUnknownValuesToNone() {
         // An unknown or unspecified renewal value must read as "no renewal", never
@@ -877,31 +877,33 @@ class NativeCryptoOpenPgpValidationTest {
             (legacy as NativeOpenPgpPublicKeyParseResult.Success).keys.single().renewal,
         )
     }
-
-    private fun validMetadataV2Index(
-        keygrips: List<String> = listOf("A".repeat(40)),
-        agentOperations: List<Int> = listOf(1),
-        storedSecretMaterial: Boolean = true,
-    ) = OpenPgpCertificateIndexV2Proto(
-        primaryFingerprint = FINGERPRINT,
-        components = listOf(
-            OpenPgpKeyComponentIndexV2Proto(
-                fingerprint = FINGERPRINT,
-                role = 1,
-                publicKeyAlgorithmId = 1,
-                algorithm = "RSA",
-                keygrips = keygrips,
-                storedSecretMaterial = storedSecretMaterial,
-                agentOperations = agentOperations,
-            ),
-        ),
-    )
-
-    private companion object {
-        const val OPERATION = "open_pgp_verify"
-        const val PARSE_OPERATION = "open_pgp_public_key_parse"
-        const val EXPIRATION_OPERATION = "open_pgp_expiration_update"
-        const val KEY_ID = "0123456789ABCDEF"
-        const val FINGERPRINT = "0123456789ABCDEF0123456789ABCDEF01234567"
-    }
 }
+
+private fun assertInvalidInput(block: () -> Unit) {
+    assertFailsWith<IllegalArgumentException> { block() }
+}
+
+private fun validMetadataV2Index(
+    keygrips: List<String> = listOf("A".repeat(40)),
+    agentOperations: List<Int> = listOf(1),
+    storedSecretMaterial: Boolean = true,
+) = OpenPgpCertificateIndexV2Proto(
+    primaryFingerprint = FINGERPRINT,
+    components = listOf(
+        OpenPgpKeyComponentIndexV2Proto(
+            fingerprint = FINGERPRINT,
+            role = 1,
+            publicKeyAlgorithmId = 1,
+            algorithm = "RSA",
+            keygrips = keygrips,
+            storedSecretMaterial = storedSecretMaterial,
+            agentOperations = agentOperations,
+        ),
+    ),
+)
+
+private const val OPERATION = "open_pgp_verify"
+private const val PARSE_OPERATION = "open_pgp_public_key_parse"
+private const val EXPIRATION_OPERATION = "open_pgp_expiration_update"
+private const val KEY_ID = "0123456789ABCDEF"
+private const val FINGERPRINT = "0123456789ABCDEF0123456789ABCDEF01234567"

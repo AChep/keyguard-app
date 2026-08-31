@@ -278,57 +278,56 @@ class GpgKeyImportServiceJvmTest {
         assertEquals("D0BBCFBB250D3BB0658E5384F83D947D29EFECF7", key.fingerprint)
     }
 
-    private fun encryptSecretRing(
-        armored: String,
-        passphrase: String,
-    ): String {
-        val ring = secretRing(armored)
-        val digestProvider = JcaPGPDigestCalculatorProviderBuilder()
-            .setProvider(BouncyCastleProvider.PROVIDER_NAME)
-            .build()
-        val decryptor = JcePBESecretKeyDecryptorBuilder(digestProvider)
-            .setProvider(BouncyCastleProvider.PROVIDER_NAME)
-            .build(CharArray(0))
-        val encryptor = JcePBESecretKeyEncryptorBuilder(
-            SymmetricKeyAlgorithmTags.AES_256,
-            digestProvider.get(HashAlgorithmTags.SHA256),
-        )
-            .setProvider(BouncyCastleProvider.PROVIDER_NAME)
-            .build(passphrase.toCharArray())
-        return PGPSecretKeyRing.copyWithNewPassword(
-            ring,
-            decryptor,
-            encryptor,
-        ).armored()
-    }
-
-    private fun secretRing(
-        armored: String,
-    ): PGPSecretKeyRing {
-        val collection = PGPSecretKeyRingCollection(
-            PGPUtil.getDecoderStream(ByteArrayInputStream(armored.encodeToByteArray())),
-            JcaKeyFingerprintCalculator(),
-        )
-        return collection.keyRings.next()
-    }
-
-    private fun publicKeyDocument(
-        vararg armoredKeys: String,
-    ): String = ByteArrayOutputStream().also { out ->
-        ArmoredOutputStream(out).use { armored ->
-            armoredKeys.forEach { publicKeyArmored ->
-                val collection = PGPPublicKeyRingCollection(
-                    PGPUtil.getDecoderStream(
-                        ByteArrayInputStream(publicKeyArmored.encodeToByteArray()),
-                    ),
-                    JcaKeyFingerprintCalculator(),
-                )
-                armored.write(collection.keyRings.next().encoded)
-            }
-        }
-    }.toString(Charsets.UTF_8)
-
-    private companion object {
-        const val PASSPHRASE = "correct horse battery staple"
-    }
 }
+
+private const val PASSPHRASE = "correct horse battery staple"
+
+private fun encryptSecretRing(
+    armored: String,
+    passphrase: String,
+): String {
+    val ring = secretRing(armored)
+    val digestProvider = JcaPGPDigestCalculatorProviderBuilder()
+        .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+        .build()
+    val decryptor = JcePBESecretKeyDecryptorBuilder(digestProvider)
+        .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+        .build(CharArray(0))
+    val encryptor = JcePBESecretKeyEncryptorBuilder(
+        SymmetricKeyAlgorithmTags.AES_256,
+        digestProvider.get(HashAlgorithmTags.SHA256),
+    )
+        .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+        .build(passphrase.toCharArray())
+    return PGPSecretKeyRing.copyWithNewPassword(
+        ring,
+        decryptor,
+        encryptor,
+    ).armored()
+}
+
+private fun secretRing(
+    armored: String,
+): PGPSecretKeyRing {
+    val collection = PGPSecretKeyRingCollection(
+        PGPUtil.getDecoderStream(ByteArrayInputStream(armored.encodeToByteArray())),
+        JcaKeyFingerprintCalculator(),
+    )
+    return collection.keyRings.next()
+}
+
+private fun publicKeyDocument(
+    vararg armoredKeys: String,
+): String = ByteArrayOutputStream().also { out ->
+    ArmoredOutputStream(out).use { armored ->
+        armoredKeys.forEach { publicKeyArmored ->
+            val collection = PGPPublicKeyRingCollection(
+                PGPUtil.getDecoderStream(
+                    ByteArrayInputStream(publicKeyArmored.encodeToByteArray()),
+                ),
+                JcaKeyFingerprintCalculator(),
+            )
+            armored.write(collection.keyRings.next().encoded)
+        }
+    }
+}.toString(Charsets.UTF_8)

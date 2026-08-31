@@ -92,7 +92,8 @@ internal inline fun <T> retryNativeTimeConflicts(
     return result
 }
 
-private fun Instant.millisecondsUntilNextEpochSecond(): Long = MILLISECONDS_PER_SECOND - toEpochMilliseconds().mod(MILLISECONDS_PER_SECOND)
+private fun Instant.millisecondsUntilNextEpochSecond(): Long =
+    MILLISECONDS_PER_SECOND - toEpochMilliseconds().mod(MILLISECONDS_PER_SECOND)
 
 private const val MAX_TIME_CONFLICT_WAITS = 5
 private const val MILLISECONDS_PER_SECOND = 1_000L

@@ -19,35 +19,6 @@ import kotlinx.coroutines.test.runTest
 
 class AgentManagerTest {
     @Test
-    fun `publishes expected IPC peer process`() = runTest {
-        val expectedPeerProcess = CompletableDeferred<Process>()
-        val process = TestProcess()
-
-        publishExpectedPeerProcess(
-            expectedPeerProcess = expectedPeerProcess,
-            process = process,
-        )
-
-        assertSame(process, expectedPeerProcess.await())
-    }
-
-    @Test
-    fun `rethrows IPC server failure that wins process publication race`() = runTest {
-        val serverFailure = IllegalStateException("IPC server failed after readiness")
-        val expectedPeerProcess = CompletableDeferred<Process>()
-        expectedPeerProcess.completeExceptionally(serverFailure)
-
-        val thrown = assertFailsWith<IllegalStateException> {
-            publishExpectedPeerProcess(
-                expectedPeerProcess = expectedPeerProcess,
-                process = TestProcess(),
-            )
-        }
-
-        assertEquals(serverFailure.message, thrown.message)
-    }
-
-    @Test
     fun `output drain accepts only the exact control line`() = runTest {
         val stdout = buildString {
             appendLine(" $AGENT_STARTUP_READY_RECORD")
@@ -239,24 +210,56 @@ class AgentManagerTest {
         assertContains(thrown.message.orEmpty(), "[stderr] still starting")
     }
 
-    private class TestProcess(
-        stdout: ByteArray = ByteArray(0),
-        stderr: ByteArray = ByteArray(0),
-    ) : Process() {
-        private val stdin = ByteArrayOutputStream()
-        private val stdout = ByteArrayInputStream(stdout)
-        private val stderr = ByteArrayInputStream(stderr)
+}
 
-        override fun getOutputStream(): OutputStream = stdin
+class AgentManagerPeerProcessTest {
+    @Test
+    fun `publishes expected IPC peer process`() = runTest {
+        val expectedPeerProcess = CompletableDeferred<Process>()
+        val process = TestProcess()
 
-        override fun getInputStream(): InputStream = stdout
+        publishExpectedPeerProcess(
+            expectedPeerProcess = expectedPeerProcess,
+            process = process,
+        )
 
-        override fun getErrorStream(): InputStream = stderr
-
-        override fun waitFor(): Int = 0
-
-        override fun exitValue(): Int = 0
-
-        override fun destroy() = Unit
+        assertSame(process, expectedPeerProcess.await())
     }
+
+    @Test
+    fun `rethrows IPC server failure that wins process publication race`() = runTest {
+        val serverFailure = IllegalStateException("IPC server failed after readiness")
+        val expectedPeerProcess = CompletableDeferred<Process>()
+        expectedPeerProcess.completeExceptionally(serverFailure)
+
+        val thrown = assertFailsWith<IllegalStateException> {
+            publishExpectedPeerProcess(
+                expectedPeerProcess = expectedPeerProcess,
+                process = TestProcess(),
+            )
+        }
+
+        assertEquals(serverFailure.message, thrown.message)
+    }
+}
+
+private class TestProcess(
+    stdout: ByteArray = ByteArray(0),
+    stderr: ByteArray = ByteArray(0),
+) : Process() {
+    private val stdin = ByteArrayOutputStream()
+    private val stdout = ByteArrayInputStream(stdout)
+    private val stderr = ByteArrayInputStream(stderr)
+
+    override fun getOutputStream(): OutputStream = stdin
+
+    override fun getInputStream(): InputStream = stdout
+
+    override fun getErrorStream(): InputStream = stderr
+
+    override fun waitFor(): Int = 0
+
+    override fun exitValue(): Int = 0
+
+    override fun destroy() = Unit
 }

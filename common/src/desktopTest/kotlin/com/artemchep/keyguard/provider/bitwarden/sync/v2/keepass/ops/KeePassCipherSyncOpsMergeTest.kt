@@ -86,21 +86,7 @@ class KeePassCipherSyncOpsMergeTest {
         )
         assertTrue(mutator.hasMutations)
 
-        val publishedServer = remoteCipher(
-            mutator = mutator,
-            entry = publishedEntry,
-            revisionDate = merged.revisionDate,
-        )
-        val plan = EntitySyncPlanBuilder(
-            strategy = KeePassCipherSyncStrategy(
-                remoteFolderIdToLocalId = { null },
-            ),
-            dateNormalizer = { it.toKeePassDiffKey() },
-        ).buildPlan(
-            localEntities = listOf(merged),
-            serverEntities = listOf(publishedServer),
-        )
-        assertEquals(emptyList(), plan.actions)
+        assertKeePassSyncConverged(mutator, merged, publishedEntry)
     }
 
     @Test
@@ -160,22 +146,7 @@ class KeePassCipherSyncOpsMergeTest {
             mergedKey.privateKeyArmored,
             publishedEntry.fields[KeePassFieldKey.GPG_PRIVATE_KEY_ARMORED]?.content,
         )
-
-        val publishedServer = remoteCipher(
-            mutator = mutator,
-            entry = publishedEntry,
-            revisionDate = merged.revisionDate,
-        )
-        val plan = EntitySyncPlanBuilder(
-            strategy = KeePassCipherSyncStrategy(
-                remoteFolderIdToLocalId = { null },
-            ),
-            dateNormalizer = { it.toKeePassDiffKey() },
-        ).buildPlan(
-            localEntities = listOf(merged),
-            serverEntities = listOf(publishedServer),
-        )
-        assertEquals(emptyList(), plan.actions)
+        assertKeePassSyncConverged(mutator, merged, publishedEntry)
     }
 
     @Test
@@ -422,90 +393,113 @@ class KeePassCipherSyncOpsMergeTest {
         assertEquals(emptyList(), snapshot.passwordHistory)
     }
 
-    private suspend fun decode(
-        codec: KeePassCipherCodec,
-        entry: Entry,
-        revisionDate: Instant,
-    ) = codec.decode(
-        accountId = ACCOUNT_ID,
-        folderId = null,
-        cipherId = ITEM_ID,
-        remote = entry,
-        local = null,
-        revisionDate = revisionDate,
-        binaries = emptyMap(),
-    )
+}
 
-    private fun createOps(
-        codec: KeePassCipherCodec,
-        mutator: KeePassDbMutator,
-    ) = KeePassCipherSyncOps(
-        accountId = ACCOUNT_ID,
-        buffer = KeePassWriteBackBuffer(createTestDatabase()),
-        cryptoGenerator = testCryptoGenerator,
-        cipherCodec = codec,
+private suspend fun decode(
+    codec: KeePassCipherCodec,
+    entry: Entry,
+    revisionDate: Instant,
+) = codec.decode(
+    accountId = ACCOUNT_ID,
+    folderId = null,
+    cipherId = ITEM_ID,
+    remote = entry,
+    local = null,
+    revisionDate = revisionDate,
+    binaries = emptyMap(),
+)
+
+private fun createOps(
+    codec: KeePassCipherCodec,
+    mutator: KeePassDbMutator,
+) = KeePassCipherSyncOps(
+    accountId = ACCOUNT_ID,
+    buffer = KeePassWriteBackBuffer(createTestDatabase()),
+    cryptoGenerator = testCryptoGenerator,
+    cipherCodec = codec,
+    mutator = mutator,
+    remoteToLocalFolders = emptyMap(),
+    localToRemoteFolders = emptyMap(),
+    gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
+    gpgKeyMetadataResolver = NativeGpgKeyMetadataResolver,
+)
+
+private fun remoteCipher(
+    mutator: KeePassDbMutator,
+    entry: Entry,
+    revisionDate: Instant,
+) = KeePassCipher(
+    group = mutator.database.content.group,
+    cipher = entry,
+    revisionDate = revisionDate,
+)
+
+private fun secureNoteEntry(
+    title: String,
+    notes: String,
+    revisionDate: Instant,
+) = buildEntry(
+    uuid = Uuid.parse(ITEM_ID),
+    title = title,
+    notes = notes,
+).copy(times = TimeData.create(revisionDate))
+
+private fun loginEntry(
+    password: String,
+    revisionDate: Instant,
+) = buildEntry(
+    uuid = Uuid.parse(ITEM_ID),
+    title = "Login",
+    username = "alice",
+    password = password,
+).copy(times = TimeData.create(revisionDate))
+
+private fun gpgEntry(
+    publicMaterial: String,
+    privateMaterial: String? = null,
+    fingerprint: String,
+    revisionDate: Instant,
+) = buildEntry(
+    uuid = Uuid.parse(ITEM_ID),
+    title = "GPG key",
+    extraFields = buildMap {
+        put(
+            KeePassFieldKey.GPG_PUBLIC_KEY_ARMORED,
+            EntryValue.Plain(publicMaterial),
+        )
+        privateMaterial?.let { value ->
+            put(
+                KeePassFieldKey.GPG_PRIVATE_KEY_ARMORED,
+                EntryValue.Encrypted(EncryptedValue.fromString(value)),
+            )
+        }
+        put(
+            KeePassFieldKey.GPG_FINGERPRINT,
+            EntryValue.Plain(fingerprint),
+        )
+    },
+).copy(times = TimeData.create(revisionDate))
+
+private fun assertKeePassSyncConverged(
+    mutator: KeePassDbMutator,
+    merged: BitwardenCipher,
+    publishedEntry: Entry,
+) {
+    val publishedServer = remoteCipher(
         mutator = mutator,
-        remoteToLocalFolders = emptyMap(),
-        localToRemoteFolders = emptyMap(),
-        gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
-        gpgKeyMetadataResolver = NativeGpgKeyMetadataResolver,
+        entry = publishedEntry,
+        revisionDate = merged.revisionDate,
     )
-
-    private fun remoteCipher(
-        mutator: KeePassDbMutator,
-        entry: Entry,
-        revisionDate: Instant,
-    ) = KeePassCipher(
-        group = mutator.database.content.group,
-        cipher = entry,
-        revisionDate = revisionDate,
+    val plan = EntitySyncPlanBuilder(
+        strategy = KeePassCipherSyncStrategy(
+            remoteFolderIdToLocalId = { null },
+        ),
+        dateNormalizer = { it.toKeePassDiffKey() },
+    ).buildPlan(
+        localEntities = listOf(merged),
+        serverEntities = listOf(publishedServer),
     )
-
-    private fun secureNoteEntry(
-        title: String,
-        notes: String,
-        revisionDate: Instant,
-    ) = buildEntry(
-        uuid = Uuid.parse(ITEM_ID),
-        title = title,
-        notes = notes,
-    ).copy(times = TimeData.create(revisionDate))
-
-    private fun loginEntry(
-        password: String,
-        revisionDate: Instant,
-    ) = buildEntry(
-        uuid = Uuid.parse(ITEM_ID),
-        title = "Login",
-        username = "alice",
-        password = password,
-    ).copy(times = TimeData.create(revisionDate))
-
-    private fun gpgEntry(
-        publicMaterial: String,
-        privateMaterial: String? = null,
-        fingerprint: String,
-        revisionDate: Instant,
-    ) = buildEntry(
-        uuid = Uuid.parse(ITEM_ID),
-        title = "GPG key",
-        extraFields = buildMap {
-            put(
-                KeePassFieldKey.GPG_PUBLIC_KEY_ARMORED,
-                EntryValue.Plain(publicMaterial),
-            )
-            privateMaterial?.let { value ->
-                put(
-                    KeePassFieldKey.GPG_PRIVATE_KEY_ARMORED,
-                    EntryValue.Encrypted(EncryptedValue.fromString(value)),
-                )
-            }
-            put(
-                KeePassFieldKey.GPG_FINGERPRINT,
-                EntryValue.Plain(fingerprint),
-            )
-        },
-    ).copy(times = TimeData.create(revisionDate))
+    assertEquals(emptyList(), plan.actions)
 }
 
 private const val ITEM_ID = "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"

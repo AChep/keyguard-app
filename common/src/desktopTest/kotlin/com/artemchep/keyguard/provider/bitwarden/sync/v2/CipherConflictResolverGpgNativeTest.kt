@@ -82,13 +82,7 @@ class CipherConflictResolverGpgNativeTest {
             privateMaterial = material.privateKey,
             subkeyFingerprint = targetSubkeyFingerprint,
         )
-        assertTrue(
-            ring(remoteRevoked)
-                .subkeyByFingerprint(targetSubkeyFingerprint)
-                .getSignaturesOfType(PGPSignature.SUBKEY_REVOCATION)
-                .hasNext(),
-            "The remote fixture is missing its synthesized subkey revocation.",
-        )
+        assertSubkeyRevocation(remoteRevoked, targetSubkeyFingerprint)
         val base = cipher(
             publicMaterial = material.original,
             privateMaterial = null,
@@ -115,34 +109,7 @@ class CipherConflictResolverGpgNativeTest {
             gpgKeyMetadataResolver = NativeGpgKeyMetadataResolver,
         )
         val firstKey = assertNotNull(first.cipher.gpgKey)
-        val parsed = assertIs<GpgPublicKeyParseResult.Success>(
-            NativeGpgPublicKeyParser.parse(assertNotNull(firstKey.publicKeyArmored)),
-        )
-        val mergedPublicRing = ring(assertNotNull(firstKey.publicKeyArmored))
-        val metadata = assertNotNull(firstKey.metadata)
-
-        assertTrue(parsed.keys.single().revoked)
-        assertTrue(
-            mergedPublicRing.publicKey
-                .getSignaturesOfType(PGPSignature.KEY_REVOCATION)
-                .hasNext(),
-        )
-        assertTrue(
-            mergedPublicRing
-                .subkeyByFingerprint(targetSubkeyFingerprint)
-                .getSignaturesOfType(PGPSignature.SUBKEY_REVOCATION)
-                .hasNext(),
-            "Reconciliation dropped the target subkey revocation.",
-        )
-        assertNotNull(firstKey.privateKeyArmored)
-        assertGpgMetadataHasComponents(firstKey)
-        assertTrue(
-            metadata
-                .certificates
-                .single()
-                .components
-                .all { it.storedSecretMaterial },
-        )
+        assertMergedRevocations(firstKey, targetSubkeyFingerprint)
 
         val repeated = resolveCipherConflict(
             base = null,
@@ -245,19 +212,6 @@ class CipherConflictResolverGpgNativeTest {
         ),
     )
 
-    private fun ring(armored: String) =
-        parseGpgPublicKeyRingCollection(armored)
-            .keyRings
-            .asSequence()
-            .single()
-
-    private fun PGPPublicKeyRing.subkeyByFingerprint(fingerprint: ByteArray): PGPPublicKey =
-        publicKeys
-            .asSequence()
-            .single { key ->
-                !key.isMasterKey && key.fingerprint.contentEquals(fingerprint)
-            }
-
     private fun String.withSubkeyRevocation(
         privateMaterial: String,
         subkeyFingerprint: ByteArray,
@@ -308,4 +262,64 @@ class CipherConflictResolverGpgNativeTest {
         val BASE_REVISION = Instant.parse("2024-01-01T00:00:00Z")
         val MERGE_REVISION = Instant.parse("2024-01-02T00:00:00Z")
     }
+}
+
+private fun ring(armored: String) =
+    parseGpgPublicKeyRingCollection(armored)
+        .keyRings
+        .asSequence()
+        .single()
+
+private fun PGPPublicKeyRing.subkeyByFingerprint(fingerprint: ByteArray): PGPPublicKey =
+    publicKeys
+        .asSequence()
+        .single { key ->
+            !key.isMasterKey && key.fingerprint.contentEquals(fingerprint)
+        }
+
+private fun assertMergedRevocations(
+    key: BitwardenCipher.GpgKey,
+    targetSubkeyFingerprint: ByteArray,
+) {
+    val publicKeyArmored = assertNotNull(key.publicKeyArmored)
+    val parsed = assertIs<GpgPublicKeyParseResult.Success>(
+        NativeGpgPublicKeyParser.parse(publicKeyArmored),
+    )
+    val mergedPublicRing = ring(publicKeyArmored)
+    val metadata = assertNotNull(key.metadata)
+
+    assertTrue(parsed.keys.single().revoked)
+    assertTrue(
+        mergedPublicRing.publicKey
+            .getSignaturesOfType(PGPSignature.KEY_REVOCATION)
+            .hasNext(),
+    )
+    assertTrue(
+        mergedPublicRing
+            .subkeyByFingerprint(targetSubkeyFingerprint)
+            .getSignaturesOfType(PGPSignature.SUBKEY_REVOCATION)
+            .hasNext(),
+        "Reconciliation dropped the target subkey revocation.",
+    )
+    assertNotNull(key.privateKeyArmored)
+    assertGpgMetadataHasComponents(key)
+    assertTrue(
+        metadata.certificates
+            .single()
+            .components
+            .all { it.storedSecretMaterial },
+    )
+}
+
+private fun assertSubkeyRevocation(
+    publicKeyArmored: String,
+    subkeyFingerprint: ByteArray,
+) {
+    assertTrue(
+        ring(publicKeyArmored)
+            .subkeyByFingerprint(subkeyFingerprint)
+            .getSignaturesOfType(PGPSignature.SUBKEY_REVOCATION)
+            .hasNext(),
+        "The remote fixture is missing its synthesized subkey revocation.",
+    )
 }

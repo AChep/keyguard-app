@@ -262,7 +262,11 @@ class WatchtowerGpgKeyTest {
             keyserverStateRepository = repository,
             resolver = publishingResolver {
                 resolutions++
-                if (testScheduler.currentTime < 2.days.inWholeMilliseconds) GpgRevocationStatus.NOT_REVOKED else GpgRevocationStatus.REVOKED
+                if (testScheduler.currentTime < 2.days.inWholeMilliseconds) {
+                    GpgRevocationStatus.NOT_REVOKED
+                } else {
+                    GpgRevocationStatus.REVOKED
+                }
             },
         )
         val versions = mutableListOf<String>()
@@ -354,7 +358,11 @@ class WatchtowerGpgKeyTest {
             ciphers = vault,
             resolver = publishingResolver { candidates ->
                 resolutions++
-                if (candidates.any { it.armored == "revoker" }) GpgRevocationStatus.REVOKED else GpgRevocationStatus.NOT_REVOKED
+                if (candidates.any { it.armored == "revoker" }) {
+                    GpgRevocationStatus.REVOKED
+                } else {
+                    GpgRevocationStatus.NOT_REVOKED
+                }
             },
         )
         val versions = mutableListOf<String>()
@@ -367,8 +375,16 @@ class WatchtowerGpgKeyTest {
         val revoker = gpgSecret(publicKeyArmored = " ", fingerprint = " ", metadata = null).copy(
             id = "revoker",
             fields = listOf(
-                DSecret.Field(name = GpgAgentFields.PUBLIC_KEY_ARMORED, value = "revoker", type = DSecret.Field.Type.Hidden),
-                DSecret.Field(name = GpgAgentFields.FINGERPRINT, value = encryptionSubKeyFingerprint, type = DSecret.Field.Type.Text),
+                DSecret.Field(
+                    name = GpgAgentFields.PUBLIC_KEY_ARMORED,
+                    value = "revoker",
+                    type = DSecret.Field.Type.Hidden,
+                ),
+                DSecret.Field(
+                    name = GpgAgentFields.FINGERPRINT,
+                    value = encryptionSubKeyFingerprint,
+                    type = DSecret.Field.Type.Text,
+                ),
             ),
         )
         vault.value = listOf(target, revoker)
@@ -401,7 +417,11 @@ class WatchtowerGpgKeyTest {
         runCurrent()
         assertEquals("unknown", processor.process(listOf(gpgSecret())).single().value)
 
-        repository.states.value = listOf(publishingState().copy(verificationStatus = GpgKeyserverVerificationStatus.REVOKED))
+        repository.states.value = listOf(
+            publishingState().copy(
+                verificationStatus = GpgKeyserverVerificationStatus.REVOKED,
+            ),
+        )
         runCurrent()
         assertEquals("revoked", processor.process(listOf(gpgSecret())).single().value)
     }
@@ -425,16 +445,36 @@ class WatchtowerGpgKeyTest {
                 ) = resolution
             }
             val evaluator = GpgKeyserverStateEvaluator(WatchtowerGpgFakeReconciler, resolver)
-            assertEquals(GpgKeyserverVerificationStatus.UNKNOWN, evaluator.evaluate(publishingState(), "public", emptyList()))
+            assertEquals(
+                GpgKeyserverVerificationStatus.UNKNOWN,
+                evaluator.evaluate(
+                    publishingState(),
+                    "public",
+                    emptyList(),
+                ),
+            )
             assertEquals(
                 GpgKeyserverVerificationStatus.REVOKED,
-                evaluator.evaluate(publishingState().copy(verificationStatus = GpgKeyserverVerificationStatus.REVOKED), "public", emptyList()),
+                evaluator.evaluate(
+                    publishingState().copy(
+                        verificationStatus = GpgKeyserverVerificationStatus.REVOKED,
+                    ),
+                    "public",
+                    emptyList(),
+                ),
             )
         }
-        val evaluator = GpgKeyserverStateEvaluator(WatchtowerGpgFakeReconciler, publishingResolver { GpgRevocationStatus.NOT_REVOKED })
+        val evaluator = GpgKeyserverStateEvaluator(
+            WatchtowerGpgFakeReconciler,
+            publishingResolver { GpgRevocationStatus.NOT_REVOKED },
+        )
         assertEquals(
             GpgKeyserverVerificationStatus.REVOKED,
-            evaluator.evaluate(publishingState().copy(hasUnbackedRevocation = true), "public", emptyList()),
+            evaluator.evaluate(
+                publishingState().copy(hasUnbackedRevocation = true),
+                "public",
+                emptyList(),
+            ),
         )
     }
 
@@ -463,7 +503,9 @@ class WatchtowerGpgKeyTest {
 }
 
 private fun TestScope.publishingProcessor(
-    keyserverStateRepository: GpgKeyserverStateRepository = WatchtowerGpgFakeKeyserverStateRepository(listOf(publishingState())),
+    keyserverStateRepository: GpgKeyserverStateRepository = WatchtowerGpgFakeKeyserverStateRepository(
+        listOf(publishingState()),
+    ),
     ciphers: Flow<List<DSecret>> = flowOf(listOf(gpgSecret())),
     reconciler: GpgCertificateMaterialReconciler = WatchtowerGpgFakeReconciler,
     resolver: GpgKeyMetadataResolver = publishingResolver { GpgRevocationStatus.NOT_REVOKED },
@@ -520,7 +562,10 @@ internal object WatchtowerGpgFakeReconciler : GpgCertificateMaterialReconciler {
     ): GpgCertificateMaterialReconcileResult {
         val absent = GpgCertificateMaterialInputContribution(false, false, false)
         return GpgCertificateMaterialReconcileResult.Success(
-            localPublicMaterial = listOfNotNull(existingPublicCertificate, incomingPublicCertificate).distinct().joinToString(),
+            localPublicMaterial = listOfNotNull(
+                existingPublicCertificate,
+                incomingPublicCertificate,
+            ).distinct().joinToString(),
             localSecretMaterial = null,
             transferablePublicCertificate = incomingPublicCertificate,
             transferableSecretKey = null,

@@ -12,6 +12,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -22,6 +23,8 @@ const val AGENT_STARTUP_READY_RECORD = "KEYGUARD_AGENT_READY 1"
 
 /** Maximum time (ms) to wait for [AGENT_STARTUP_READY_RECORD]. */
 const val AGENT_STARTUP_READY_TIMEOUT_MS = 10_000L
+
+private const val AGENT_OUTPUT_DRAIN_TIMEOUT_MS = 200L
 
 /**
  * Manages the lifecycle of an agent Rust binary.
@@ -492,7 +495,7 @@ fun drainAgentProcessOutput(
                     }
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             if (process.isAlive) {
                 val message = "Failed to read $displayName $streamName: ${e.message}"
                 diagnostics.append(streamName, message)
@@ -614,7 +617,7 @@ suspend fun awaitAgentStartupReadiness(
     if (resolvedExitCode != null) {
         // A process exit can race the pipe readers. Wait until EOF has been
         // consumed so an early-startup failure includes its final diagnostics.
-        withTimeoutOrNull(200) {
+        withTimeoutOrNull(AGENT_OUTPUT_DRAIN_TIMEOUT_MS) {
             outputDrains.joinAll()
         }
         throw IllegalStateException(

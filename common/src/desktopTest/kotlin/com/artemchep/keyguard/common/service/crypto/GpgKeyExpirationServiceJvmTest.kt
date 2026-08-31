@@ -928,14 +928,7 @@ class GpgKeyExpirationServiceJvmTest {
         val now = Clock.System.now()
         val addedFingerprint = addedSubkey.fingerprint.toHex().uppercase()
         val primaryKeyId = publicRing(refreshed.publicKeyArmored).publicKey.keyID
-        val originalCrossSignature = addedSubkey.signatures.asSequence()
-            .filter {
-                it.signatureType == PGPSignature.SUBKEY_BINDING &&
-                    it.keyID == primaryKeyId
-            }
-            .mapNotNull { it.hashedSubPackets }
-            .flatMap { it.embeddedSignatures.asSequence() }
-            .single { it.signatureType == PGPSignature.PRIMARYKEY_BINDING }
+        val originalCrossSignature = addedSubkey.primaryKeyBindingSignature(primaryKeyId)
         val target = now + 180.days
 
         val result = service(now).update(
@@ -952,14 +945,7 @@ class GpgKeyExpirationServiceJvmTest {
 
         val updatedSubkey = publicRing(updated.publicKeyArmored).publicKeys.asSequence()
             .single { it.fingerprint.contentEquals(addedSubkey.fingerprint) }
-        val updatedCrossSignature = updatedSubkey.signatures.asSequence()
-            .filter {
-                it.signatureType == PGPSignature.SUBKEY_BINDING &&
-                    it.keyID == primaryKeyId
-            }
-            .mapNotNull { it.hashedSubPackets }
-            .flatMap { it.embeddedSignatures.asSequence() }
-            .single { it.signatureType == PGPSignature.PRIMARYKEY_BINDING }
+        val updatedCrossSignature = updatedSubkey.primaryKeyBindingSignature(primaryKeyId)
         assertTrue(originalCrossSignature.encoded.contentEquals(updatedCrossSignature.encoded))
         val updatedInfo = updated.parseInfo()
         val inspectedSubkey = GpgCertificateInspectorJvm
@@ -970,7 +956,8 @@ class GpgKeyExpirationServiceJvmTest {
             target,
             assertNotNull(
                 updatedInfo.subKeys.singleOrNull { it.fingerprint == addedFingerprint },
-                "Renewed public-only signing subkey $addedFingerprint was not authenticated by a fresh policy evaluation. " +
+                "Renewed public-only signing subkey $addedFingerprint was not authenticated " +
+                    "by a fresh policy evaluation. " +
                     "BC authenticated=${inspectedSubkey?.authenticated}, " +
                     "BC binding=${inspectedSubkey?.effectiveSignature?.creationTime}, " +
                     "BC cross-certified=${inspectedSubkey?.signingCrossCertified}; " +
@@ -1816,3 +1803,13 @@ class GpgKeyExpirationServiceJvmTest {
         )
     }
 }
+
+private fun PGPPublicKey.primaryKeyBindingSignature(primaryKeyId: Long): PGPSignature =
+    signatures.asSequence()
+        .filter {
+            it.signatureType == PGPSignature.SUBKEY_BINDING &&
+                it.keyID == primaryKeyId
+        }
+        .mapNotNull { it.hashedSubPackets }
+        .flatMap { it.embeddedSignatures.asSequence() }
+        .single { it.signatureType == PGPSignature.PRIMARYKEY_BINDING }

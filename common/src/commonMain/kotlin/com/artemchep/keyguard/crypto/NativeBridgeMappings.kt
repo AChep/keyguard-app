@@ -30,7 +30,48 @@ internal fun NativeOpenPgpMetadataResolution.toDomain(): GpgAgentMetadataResolut
             certificate.index.toCertificateMetadata()
         },
     )
-    val keys = certificates.flatMap { certificate ->
+    return GpgAgentMetadataResolution(
+        metadata = metadata,
+        authorization = GpgAgentAuthorizationSnapshot(
+            evaluatedAtEpochSeconds = evaluatedAtEpochSeconds,
+            policyRevision = policyRevision,
+            keys = toAuthorizedAgentKeys(),
+            renewals = certificates
+                .asSequence()
+                .flatMap { certificate -> certificate.policy.asSequence() }
+                .associate { policy ->
+                    val renewal = if (
+                        policyRevision == GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION &&
+                        policy.revocationStatus == NativeOpenPgpRevocationStatus.NOT_REVOKED
+                    ) {
+                        policy.renewal.toDomain()
+                    } else {
+                        GpgRenewalAuthorization.NONE
+                    }
+                    policy.fingerprint.normalizeGpgFingerprint() to renewal
+                },
+            revocations = certificates
+                .asSequence()
+                .flatMap { certificate ->
+                    certificate.index.components.asSequence().map { component ->
+                        val policy = certificate.policy.firstOrNull { policy ->
+                            policy.fingerprint == component.fingerprint
+                        }
+                        val status = if (policyRevision == GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION) {
+                            policy?.revocationStatus?.toDomain() ?: GpgRevocationStatus.INDETERMINATE
+                        } else {
+                            GpgRevocationStatus.INDETERMINATE
+                        }
+                        component.fingerprint.normalizeGpgFingerprint() to status
+                    }
+                }
+                .toMap(),
+        ),
+    )
+}
+
+private fun NativeOpenPgpMetadataResolution.toAuthorizedAgentKeys(): List<GpgAgentKeyMetadataKey> =
+    certificates.flatMap { certificate ->
         certificate.index.components.mapNotNull { component ->
             if (!component.storedSecretMaterial) {
                 return@mapNotNull null
@@ -66,45 +107,6 @@ internal fun NativeOpenPgpMetadataResolution.toDomain(): GpgAgentMetadataResolut
             )
         }
     }
-    return GpgAgentMetadataResolution(
-        metadata = metadata,
-        authorization = GpgAgentAuthorizationSnapshot(
-            evaluatedAtEpochSeconds = evaluatedAtEpochSeconds,
-            policyRevision = policyRevision,
-            keys = keys,
-            renewals = certificates
-                .asSequence()
-                .flatMap { certificate -> certificate.policy.asSequence() }
-                .associate { policy ->
-                    val renewal = if (
-                        policyRevision == GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION &&
-                        policy.revocationStatus == NativeOpenPgpRevocationStatus.NOT_REVOKED
-                    ) {
-                        policy.renewal.toDomain()
-                    } else {
-                        GpgRenewalAuthorization.NONE
-                    }
-                    policy.fingerprint.normalizeGpgFingerprint() to renewal
-                },
-            revocations = certificates
-                .asSequence()
-                .flatMap { certificate ->
-                    certificate.index.components.asSequence().map { component ->
-                        val policy = certificate.policy.firstOrNull { policy ->
-                            policy.fingerprint == component.fingerprint
-                        }
-                        val status = if (policyRevision == GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION) {
-                            policy?.revocationStatus?.toDomain() ?: GpgRevocationStatus.INDETERMINATE
-                        } else {
-                            GpgRevocationStatus.INDETERMINATE
-                        }
-                        component.fingerprint.normalizeGpgFingerprint() to status
-                    }
-                }
-                .toMap(),
-        ),
-    )
-}
 
 internal fun NativeOpenPgpCertificateIndex.toDomain(): GpgAgentKeyMetadata =
     GpgAgentKeyMetadata(

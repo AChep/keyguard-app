@@ -36,17 +36,24 @@ internal fun resolveGpgKeyserverRefreshKey(
         value?.takeIf(String::isNotBlank)
             ?: legacyField(name)?.takeIf(String::isNotBlank)
 
-    if (resolveField(key?.privateKeyArmored, GpgAgentFields.PRIVATE_KEY_ARMORED) != null) {
-        return null
-    }
-    val publicKeyArmored = resolveField(key?.publicKeyArmored, GpgAgentFields.PUBLIC_KEY_ARMORED)
-        ?: return null
-    val fingerprint = resolveGpgKeyserverFingerprint(
-        fingerprint = resolveField(key?.fingerprint, GpgAgentFields.FINGERPRINT),
-        metadata = key?.metadata,
-    ) ?: return null
-    return GpgKeyserverRefreshKey(
-        publicKeyArmored = publicKeyArmored,
-        fingerprint = fingerprint,
+    val privateKeyArmored = resolveField(
+        key?.privateKeyArmored,
+        GpgAgentFields.PRIVATE_KEY_ARMORED,
     )
+    return if (privateKeyArmored != null) {
+        null
+    } else {
+        resolveField(key?.publicKeyArmored, GpgAgentFields.PUBLIC_KEY_ARMORED)
+            ?.let { publicKeyArmored ->
+                resolveGpgKeyserverFingerprint(
+                    fingerprint = resolveField(key?.fingerprint, GpgAgentFields.FINGERPRINT),
+                    metadata = key?.metadata,
+                )?.let { fingerprint ->
+                    GpgKeyserverRefreshKey(
+                        publicKeyArmored = publicKeyArmored,
+                        fingerprint = fingerprint,
+                    )
+                }
+            }
+    }
 }

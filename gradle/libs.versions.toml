@@ -4,7 +4,7 @@ androidMinSdk = "26"
 # @keep
 androidCompileSdk = "37"
 # @keep
-androidTargetSdk = "36"
+androidTargetSdk = "37"
 # @keep
 androidNdk = "27.0.12077973"
 # @keep
@@ -217,6 +217,7 @@ androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidxCoreSplash" }
 androidx-core-shortcuts = { module = "androidx.core:core-google-shortcuts", version.ref = "androidxCoreShortcuts" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "androidxCredentials" }
+androidx-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "androidxCredentials" }
 androidx-credentials-providerevents = { module = "androidx.credentials.providerevents:providerevents", version.ref = "androidxCredentialsProviderEvents" }
 androidx-credentials-providerevents-play-services = { module = "androidx.credentials.providerevents:providerevents-play-services", version.ref = "androidxCredentialsProviderEvents" }
 androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "androidxDatastore" }

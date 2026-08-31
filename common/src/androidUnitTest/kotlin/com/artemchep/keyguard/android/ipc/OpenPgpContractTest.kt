@@ -167,7 +167,7 @@ class OpenPgpContractTest {
     }
 
     @Test
-    fun `signature statuses map to official API results`() {
+    fun `valid and missing signature statuses map to official API results`() {
         assertEquals(
             OpenPgpSignatureResult.RESULT_VALID_KEY_UNCONFIRMED,
             verification().toApiResult().result,
@@ -202,6 +202,10 @@ class OpenPgpContractTest {
                 .toApiResult()
                 .result,
         )
+    }
+
+    @Test
+    fun `invalid signature statuses map to official API results`() {
         assertEquals(
             OpenPgpSignatureResult.RESULT_INVALID_SIGNATURE,
             verification(status = GpgOpenPgpVerificationStatus.INVALID)

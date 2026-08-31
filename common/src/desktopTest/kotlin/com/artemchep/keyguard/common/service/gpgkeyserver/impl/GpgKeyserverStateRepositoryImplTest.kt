@@ -4,6 +4,7 @@ import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DGpgKeyserverState
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
@@ -37,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
@@ -57,31 +59,25 @@ import kotlin.time.Duration.Companion.minutes
 class GpgKeyserverStateRepositoryImplTest {
     @Test
     fun `retained signed restoration activates and expires on daily assessments without rewriting state`() = runTest {
-        val certificates = refreshRevocationCertificates(restorationExpirationSeconds = (1.days + 2.minutes).inWholeSeconds)
+        val certificates = refreshRevocationCertificates(
+            restorationExpirationSeconds = (1.days + 2.minutes).inWholeSeconds,
+        )
         for (recordedAtOffset in listOf(15L, 25L)) {
             val startedAt = testScheduler.currentTime
             val clock = object : Clock {
                 override fun now() = Instant.fromEpochSeconds(1_700_000_000 + recordedAtOffset) +
                     (testScheduler.currentTime - startedAt).milliseconds
             }
-            val resolver = object : GpgKeyMetadataResolver {
-                override fun resolve(
-                    privateKeyArmored: String?,
-                    publicKeyArmored: String?,
-                    fingerprint: String?,
-                    candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
-                ) = NativeCrypto.openPgp.resolveMetadata(
-                    privateKeyData = null,
-                    publicKeyData = publicKeyArmored?.encodeToByteArray(),
-                    normalizedFingerprint = fingerprint.orEmpty(),
-                    candidateRevocationKeys = candidateRevocationKeys.map { it.armored.encodeToByteArray() },
-                    referenceTimeEpochSeconds = clock.now().epochSeconds,
-                )?.toDomain()
-            }
+            val resolver = metadataResolver(clock)
             val initial = refreshTestCipher(publicKey = certificates.original, fingerprint = certificates.fingerprint)
             GpgKeyserverRefreshTestFixture(initial = listOf(initial)).use { fixture ->
                 val repository = fixture.stateRepository
-                val recorded = GpgKeyserverStateRecorder(repository, NativeGpgCertificateMaterialReconciler, resolver).record(
+                val recorder = GpgKeyserverStateRecorder(
+                    repository,
+                    NativeGpgCertificateMaterialReconciler,
+                    resolver,
+                )
+                val recorded = recorder.record(
                     fingerprint = certificates.fingerprint,
                     cipherIds = setOf(initial.cipherId),
                     publicCertificates = listOf(certificates.retired, certificates.restored),
@@ -92,45 +88,18 @@ class GpgKeyserverStateRepositoryImplTest {
                 ).bind()
                 assertEquals(GpgKeyserverVerificationStatus.VERIFIED, recorded.publicationStatus)
                 assertEquals(
-                    if (recordedAtOffset < 20) GpgKeyserverVerificationStatus.REVOKED else GpgKeyserverVerificationStatus.VERIFIED,
+                    if (recordedAtOffset < 20) {
+                        GpgKeyserverVerificationStatus.REVOKED
+                    } else {
+                        GpgKeyserverVerificationStatus.VERIFIED
+                    },
                     recorded.verificationStatus,
                 )
                 val cipher = initial.toDomain(UploadTestPasswordStrength)
-                val processor = WatchtowerGpgKeyPublishing(
-                    keyserverStateRepository = repository,
-                    getCiphers = object : GetCiphers {
-                        override fun invoke() = flowOf(listOf(cipher))
-                    },
-                    evaluator = GpgKeyserverStateEvaluator(NativeGpgCertificateMaterialReconciler, resolver),
-                    scope = backgroundScope,
-                    clock = clock,
-                    dispatcher = UnconfinedTestDispatcher(testScheduler),
-                )
-                val versions = mutableListOf<String>()
-                val subscription = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
-                    processor.version().collect(versions::add)
-                }
-                runCurrent()
-                assertEquals(if (recordedAtOffset < 20) "revoked" else null, processor.process(listOf(cipher)).single().value)
-
-                advanceTimeBy(1.minutes)
-                runCurrent()
-                assertEquals(if (recordedAtOffset < 20) "revoked" else null, processor.process(listOf(cipher)).single().value)
-                assertEquals(1, versions.size)
-
-                advanceTimeBy(1.days - 1.minutes)
-                runCurrent()
-                assertNull(processor.process(listOf(cipher)).single().value)
-
-                advanceTimeBy(1.days)
-                runCurrent()
-                assertEquals("revoked", processor.process(listOf(cipher)).single().value)
-                assertEquals(if (recordedAtOffset < 20) 3 else 2, versions.size)
+                assertPublishingTimeline(repository, resolver, cipher, clock, recordedAtOffset)
                 assertEquals(recorded, repository.getByFingerprint(certificates.fingerprint).first())
                 assertEquals(initial, fixture.row().data_)
                 assertTrue(fixture.lookups.isEmpty())
-                subscription.cancel()
-                runCurrent()
             }
         }
     }
@@ -140,7 +109,11 @@ class GpgKeyserverStateRepositoryImplTest {
         val repository = createRepository()
         val initial = model(REFRESH_FINGERPRINT).copy(revocationEvidenceArmored = REFRESH_PUBLIC_KEY)
         repository.put(initial).bind()
-        val recorder = GpgKeyserverStateRecorder(repository, NativeGpgCertificateMaterialReconciler, NativeGpgKeyMetadataResolver)
+        val recorder = GpgKeyserverStateRecorder(
+            repository,
+            NativeGpgCertificateMaterialReconciler,
+            NativeGpgKeyMetadataResolver,
+        )
 
         for (incoming in listOf("malformed", "A".repeat(4 * 1024 * 1024 + 1))) {
             assertFailsWith<IllegalStateException> {
@@ -161,7 +134,11 @@ class GpgKeyserverStateRepositoryImplTest {
     @Test
     fun `missing or unsupported revocation verdict retains evidence without clearing a warning`() = runTest {
         val certificates = refreshRevocationCertificates()
-        for (status in listOf(GpgKeyserverVerificationStatus.REVOKED, GpgKeyserverVerificationStatus.FOUND_UNVERIFIED)) {
+        val statuses = listOf(
+            GpgKeyserverVerificationStatus.REVOKED,
+            GpgKeyserverVerificationStatus.FOUND_UNVERIFIED,
+        )
+        for (status in statuses) {
             for (policyRevision in listOf(1, 2)) {
                 val repository = createRepository()
                 val initial = model(certificates.fingerprint, status = status).copy(
@@ -198,12 +175,23 @@ class GpgKeyserverStateRepositoryImplTest {
                 ).bind()
 
                 assertEquals(
-                    if (status == GpgKeyserverVerificationStatus.REVOKED) status else GpgKeyserverVerificationStatus.UNKNOWN,
+                    if (status == GpgKeyserverVerificationStatus.REVOKED) {
+                        status
+                    } else {
+                        GpgKeyserverVerificationStatus.UNKNOWN
+                    },
                     recorded.verificationStatus,
                 )
                 // The accepted restoration remains available for a later supported evaluation.
-                val accepted = NativeGpgKeyMetadataResolver.resolve(null, recorded.revocationEvidenceArmored, certificates.fingerprint)
-                assertEquals(GpgRevocationStatus.NOT_REVOKED, accepted?.authorization?.revocations?.get(certificates.fingerprint))
+                val accepted = NativeGpgKeyMetadataResolver.resolve(
+                    null,
+                    recorded.revocationEvidenceArmored,
+                    certificates.fingerprint,
+                )
+                assertEquals(
+                    GpgRevocationStatus.NOT_REVOKED,
+                    accepted?.authorization?.revocations?.get(certificates.fingerprint),
+                )
             }
         }
     }
@@ -374,28 +362,94 @@ class GpgKeyserverStateRepositoryImplTest {
         assertEquals(emptyList(), repository.getAll().first())
     }
 
-    private fun createRepository(database: Database = createUploadTestDatabase()): GpgKeyserverStateRepositoryImpl {
-        return GpgKeyserverStateRepositoryImpl(
-            databaseManager = UploadTestVaultDatabaseManager(database),
-            dispatcher = UnconfinedTestDispatcher(),
-        )
+}
+
+private fun metadataResolver(clock: Clock): GpgKeyMetadataResolver =
+    object : GpgKeyMetadataResolver {
+        override fun resolve(
+            privateKeyArmored: String?,
+            publicKeyArmored: String?,
+            fingerprint: String?,
+            candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
+        ) = NativeCrypto.openPgp.resolveMetadata(
+            privateKeyData = null,
+            publicKeyData = publicKeyArmored?.encodeToByteArray(),
+            normalizedFingerprint = fingerprint.orEmpty(),
+            candidateRevocationKeys = candidateRevocationKeys.map { it.armored.encodeToByteArray() },
+            referenceTimeEpochSeconds = clock.now().epochSeconds,
+        )?.toDomain()
     }
 
-    private fun model(
-        fingerprint: String,
-        cipherId: String? = null,
-        status: GpgKeyserverVerificationStatus = GpgKeyserverVerificationStatus.UNKNOWN,
-        checkedAt: Instant = Instant.parse("2024-01-01T00:00:00Z"),
-        refreshedAt: Instant? = null,
-        sourceKeyserver: String? = "https://keys.openpgp.org",
-    ) = DGpgKeyserverState(
-        fingerprint = fingerprint,
-        cipherId = cipherId,
-        verificationStatus = status,
-        publicationStatus = status.takeUnless { it == GpgKeyserverVerificationStatus.REVOKED }
-            ?: GpgKeyserverVerificationStatus.UNKNOWN,
-        lastCheckedAt = checkedAt,
-        lastRefreshedAt = refreshedAt,
-        sourceKeyserver = sourceKeyserver,
+@OptIn(ExperimentalCoroutinesApi::class)
+private suspend fun TestScope.assertPublishingTimeline(
+    repository: GpgKeyserverStateRepositoryImpl,
+    resolver: GpgKeyMetadataResolver,
+    cipher: DSecret,
+    clock: Clock,
+    recordedAtOffset: Long,
+) {
+    val processor = WatchtowerGpgKeyPublishing(
+        keyserverStateRepository = repository,
+        getCiphers = object : GetCiphers {
+            override fun invoke() = flowOf(listOf(cipher))
+        },
+        evaluator = GpgKeyserverStateEvaluator(NativeGpgCertificateMaterialReconciler, resolver),
+        scope = backgroundScope,
+        clock = clock,
+        dispatcher = UnconfinedTestDispatcher(testScheduler),
     )
+    val versions = mutableListOf<String>()
+    val subscription = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+        processor.version().collect(versions::add)
+    }
+    runCurrent()
+    assertEquals(
+        if (recordedAtOffset < 20) "revoked" else null,
+        processor.process(listOf(cipher)).single().value,
+    )
+
+    advanceTimeBy(1.minutes)
+    runCurrent()
+    assertEquals(
+        if (recordedAtOffset < 20) "revoked" else null,
+        processor.process(listOf(cipher)).single().value,
+    )
+    assertEquals(1, versions.size)
+
+    advanceTimeBy(1.days - 1.minutes)
+    runCurrent()
+    assertNull(processor.process(listOf(cipher)).single().value)
+
+    advanceTimeBy(1.days)
+    runCurrent()
+    assertEquals("revoked", processor.process(listOf(cipher)).single().value)
+    assertEquals(if (recordedAtOffset < 20) 3 else 2, versions.size)
+    subscription.cancel()
+    runCurrent()
 }
+
+@OptIn(ExperimentalCoroutinesApi::class)
+private fun createRepository(
+    database: Database = createUploadTestDatabase(),
+): GpgKeyserverStateRepositoryImpl = GpgKeyserverStateRepositoryImpl(
+    databaseManager = UploadTestVaultDatabaseManager(database),
+    dispatcher = UnconfinedTestDispatcher(),
+)
+
+private fun model(
+    fingerprint: String,
+    cipherId: String? = null,
+    status: GpgKeyserverVerificationStatus = GpgKeyserverVerificationStatus.UNKNOWN,
+    checkedAt: Instant = Instant.parse("2024-01-01T00:00:00Z"),
+    refreshedAt: Instant? = null,
+    sourceKeyserver: String? = "https://keys.openpgp.org",
+) = DGpgKeyserverState(
+    fingerprint = fingerprint,
+    cipherId = cipherId,
+    verificationStatus = status,
+    publicationStatus = status.takeUnless { it == GpgKeyserverVerificationStatus.REVOKED }
+        ?: GpgKeyserverVerificationStatus.UNKNOWN,
+    lastCheckedAt = checkedAt,
+    lastRefreshedAt = refreshedAt,
+    sourceKeyserver = sourceKeyserver,
+)

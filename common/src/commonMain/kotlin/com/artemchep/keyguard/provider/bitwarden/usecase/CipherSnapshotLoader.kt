@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
-import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.gpgagent.isCanonical
 import com.artemchep.keyguard.common.service.logging.LogLevel
@@ -170,14 +170,14 @@ internal class CipherSnapshotLoader(
             if (gpgKey.metadata?.isCanonical == true) {
                 return@map row
             }
-            val metadata = try {
+            val metadata = runCatchingNonFatal {
                 resolver.resolve(
                     privateKeyArmored = gpgKey.privateKeyArmored,
                     publicKeyArmored = gpgKey.publicKeyArmored,
                     fingerprint = gpgKey.fingerprint,
                 )?.metadata?.takeIf { it.isCanonical }
-            } catch (e: Exception) {
-                e.throwIfFatalOrCancellation()
+            }.getOrElse { e ->
+                if (e !is Exception) throw e
                 logRepository?.post(
                     tag = "GpgMetadataCanonicalizer",
                     message = "Failed to resolve GPG metadata for '${source.cipherId}': ${e.message}",
@@ -199,13 +199,16 @@ internal class CipherSnapshotLoader(
         return canonicalRows
     }
 
-    private fun sanitizeGpgMetadata(row: LoadedCipherPayload): LoadedCipherPayload {
-        val gpgKey = row.data.gpgKey ?: return row
-        if (gpgKey.metadata == null || gpgKey.metadata.isCanonical) return row
-        return row.copy(
-            data = row.data.copy(gpgKey = gpgKey.copy(metadata = null)),
-        )
-    }
+    private fun sanitizeGpgMetadata(row: LoadedCipherPayload): LoadedCipherPayload =
+        row.data.gpgKey?.let { gpgKey ->
+            if (gpgKey.metadata != null && !gpgKey.metadata.isCanonical) {
+                row.copy(
+                    data = row.data.copy(gpgKey = gpgKey.copy(metadata = null)),
+                )
+            } else {
+                row
+            }
+        } ?: row
 
     private suspend fun persistCanonicalGpgMetadata(
         db: Database,

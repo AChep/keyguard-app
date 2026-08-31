@@ -790,30 +790,38 @@ class BcGpgOpenPgpServiceTestOracle() : GpgOpenPgpService,
                 ?.verifiedUserIds
                 .orEmpty(),
             createdAt = signature.creationTime?.let { Instant.fromEpochMilliseconds(it.time) },
-            warnings = buildList {
-                if (
-                    signerKey != null &&
-                    (certificate?.primary?.revoked == true || signerKey.revoked)
-                ) {
-                    add(GpgOpenPgpVerificationWarning.KEY_REVOKED)
-                }
-                if (
-                    signerKey != null &&
-                    (
-                        certificate?.primary?.isExpired(now) == true ||
-                            signerKey.isExpired(now)
-                        )
-                ) {
-                    add(GpgOpenPgpVerificationWarning.KEY_EXPIRED)
-                }
-                if (signatureExpired) {
-                    add(GpgOpenPgpVerificationWarning.SIGNATURE_EXPIRED)
-                }
-                if (weakDigest) {
-                    add(GpgOpenPgpVerificationWarning.WEAK_DIGEST)
-                }
-            },
+            warnings = verificationWarnings(
+                certificate = certificate,
+                signerKey = signerKey,
+                signatureExpired = signatureExpired,
+                weakDigest = weakDigest,
+                referenceTime = now,
+            ),
         )
+    }
+
+    private fun verificationWarnings(
+        certificate: GpgCertificateInspectorJvm?,
+        signerKey: GpgVerifiedCertificateKeyJvm?,
+        signatureExpired: Boolean,
+        weakDigest: Boolean,
+        referenceTime: Instant,
+    ): List<GpgOpenPgpVerificationWarning> = buildList {
+        if (signerKey != null && (certificate?.primary?.revoked == true || signerKey.revoked)) {
+            add(GpgOpenPgpVerificationWarning.KEY_REVOKED)
+        }
+        if (
+            signerKey != null &&
+            (certificate?.primary?.isExpired(referenceTime) == true || signerKey.isExpired(referenceTime))
+        ) {
+            add(GpgOpenPgpVerificationWarning.KEY_EXPIRED)
+        }
+        if (signatureExpired) {
+            add(GpgOpenPgpVerificationWarning.SIGNATURE_EXPIRED)
+        }
+        if (weakDigest) {
+            add(GpgOpenPgpVerificationWarning.WEAK_DIGEST)
+        }
     }
 
     private fun findInspectedPublicKey(

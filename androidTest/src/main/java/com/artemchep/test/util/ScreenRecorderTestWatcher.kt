@@ -1,6 +1,8 @@
 package com.artemchep.test.util
 
+import android.os.Build
 import android.os.Environment
+import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
@@ -24,10 +26,19 @@ class ScreenRecorderTestWatcher : TestWatcher() {
         const val RECORDER_START_TIMEOUT_MS = 5_000L
         const val RECORDER_STOP_TIMEOUT_MS = 10_000L
         const val RECORDER_POLL_INTERVAL_MS = 100L
+
+        const val SHELL_STREAM_COUNT = 3
+        const val SHELL_STDOUT_INDEX = 0
+        const val SHELL_STDIN_INDEX = 1
+        const val SHELL_STDERR_INDEX = 2
+    }
+
+    private val instrumentation by lazy {
+        InstrumentationRegistry.getInstrumentation()
     }
 
     private val device by lazy {
-        UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+        UiDevice.getInstance(instrumentation)
     }
 
     @Volatile
@@ -53,7 +64,7 @@ class ScreenRecorderTestWatcher : TestWatcher() {
                 while (recordingRequested) {
                     val filePath = "$filePrefix-part-${segment.toString().padStart(3, '0')}.mp4"
                     try {
-                        device.executeShellCommand(
+                        executeShellCommand(
                             "screenrecord --time-limit $SEGMENT_DURATION_SECONDS " +
                                 "--bit-rate $BIT_RATE $filePath",
                         )
@@ -99,7 +110,7 @@ class ScreenRecorderTestWatcher : TestWatcher() {
         while (SystemClock.uptimeMillis() < deadline) {
             val pid =
                 runCatching {
-                    device.executeShellCommand("pidof screenrecord").trim()
+                    executeShellCommand("pidof screenrecord").trim()
                 }.getOrDefault("")
             if (pid.isNotEmpty()) return true
             SystemClock.sleep(RECORDER_POLL_INTERVAL_MS)
@@ -110,7 +121,7 @@ class ScreenRecorderTestWatcher : TestWatcher() {
     private fun stopRecorderProcess() {
         // SIGINT lets screenrecord finish writing the current MP4 before it exits.
         runCatching {
-            device.executeShellCommand("pkill -2 screenrecord")
+            executeShellCommand("pkill -2 screenrecord")
         }.onFailure { error ->
             Log.w(TAG, "Could not stop screenrecord gracefully.", error)
         }
@@ -141,14 +152,62 @@ class ScreenRecorderTestWatcher : TestWatcher() {
                     appendLine(error.stackTraceToString())
                     appendLine()
                     appendLine("===== dumpsys window windows =====")
-                    appendLine(device.executeShellCommand("dumpsys window windows"))
+                    appendLine(executeShellCommand("dumpsys window windows"))
                     appendLine("===== dumpsys accessibility =====")
-                    appendLine(device.executeShellCommand("dumpsys accessibility"))
+                    appendLine(executeShellCommand("dumpsys accessibility"))
                 },
             )
             reporter.reportToInstrumentation()
         }.onFailure { artifactError ->
             Log.e(TAG, "Could not report UI test failure artifacts.", artifactError)
+        }
+    }
+
+    private fun executeShellCommand(command: String): String {
+        val uiAutomation = instrumentation.uiAutomation
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            return ParcelFileDescriptor.AutoCloseInputStream(
+                uiAutomation.executeShellCommand(command),
+            ).bufferedReader(Charsets.UTF_8).use { reader -> reader.readText() }
+        }
+
+        val descriptors = uiAutomation.executeShellCommandRwe(command)
+        if (descriptors.size != SHELL_STREAM_COUNT) {
+            descriptors.forEach { descriptor -> runCatching { descriptor.close() } }
+            error("Expected stdout, stdin, and stderr descriptors for: $command")
+        }
+        val stdoutReader = ShellStreamReader(descriptors[SHELL_STDOUT_INDEX], "stdout")
+        val stderrReader = ShellStreamReader(descriptors[SHELL_STDERR_INDEX], "stderr")
+        ParcelFileDescriptor.AutoCloseOutputStream(
+            descriptors[SHELL_STDIN_INDEX],
+        ).close()
+
+        val stdoutResult = runCatching { stdoutReader.await() }
+        val stderrResult = runCatching { stderrReader.await() }
+        val stdout = stdoutResult.getOrThrow()
+        val stderr = stderrResult.getOrThrow()
+        if (stderr.isNotBlank()) {
+            Log.w(TAG, "Shell command wrote to stderr: $command\n${stderr.trimEnd()}")
+        }
+        return stdout
+    }
+
+    private class ShellStreamReader(
+        descriptor: ParcelFileDescriptor,
+        streamName: String,
+    ) {
+        private var result: Result<String>? = null
+        private val worker = thread(name = "keyguard-shell-$streamName") {
+            result = runCatching {
+                ParcelFileDescriptor.AutoCloseInputStream(descriptor)
+                    .bufferedReader(Charsets.UTF_8)
+                    .use { reader -> reader.readText() }
+            }
+        }
+
+        fun await(): String {
+            worker.join()
+            return checkNotNull(result).getOrThrow()
         }
     }
 }

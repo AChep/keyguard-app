@@ -199,7 +199,9 @@ class GpgPublicKeyModelsTest {
             evaluatedAtEpochSeconds = 1,
             policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
             keys = keys,
-            revocations = keys.associate { it.fingerprint.normalizeGpgFingerprint() to GpgRevocationStatus.NOT_REVOKED },
+            revocations = keys.associate {
+                it.fingerprint.normalizeGpgFingerprint() to GpgRevocationStatus.NOT_REVOKED
+            },
         ),
     )
 

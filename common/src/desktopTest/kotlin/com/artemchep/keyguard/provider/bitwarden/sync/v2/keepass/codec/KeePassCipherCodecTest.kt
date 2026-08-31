@@ -267,6 +267,10 @@ class KeePassCipherCodecTest {
         assertEquals(cipherId, encoded.entry.uuid.toString())
     }
 
+}
+
+class KeePassCipherCodecAttachmentTest {
+
     @Test
     fun `encode reads a staged attachment when the original uri is unavailable`() = runTest {
         val data = "staged attachment".encodeToByteArray()
@@ -351,6 +355,11 @@ class KeePassCipherCodecTest {
         assertKeyCleared(pendingUploadCoordinator.readFileKeyRefs.single())
     }
 
+}
+
+class KeePassCipherCodecLinkTest {
+    private val codec = createCodec()
+
     @Test
     fun `decode collapses duplicate cipher links by canonical target`() = runTest {
         val remote = buildEntry(
@@ -381,17 +390,18 @@ class KeePassCipherCodecTest {
         assertEquals(emptyList(), decoded.fields)
     }
 
-    private fun createCodec(
-        pendingUploadCoordinator: PendingUploadCoordinator = FailingPendingUploadCoordinator,
-        getPasswordStrength: GetPasswordStrength = UploadTestPasswordStrength,
-        gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
-    ) = createTestCipherCodec(
-        cryptoGenerator = AttachmentCryptoGenerator,
-        pendingUploadCoordinator = pendingUploadCoordinator,
-        getPasswordStrength = getPasswordStrength,
-        gpgKeyMetadataResolver = gpgKeyMetadataResolver,
-    )
 }
+
+private fun createCodec(
+    pendingUploadCoordinator: PendingUploadCoordinator = FailingPendingUploadCoordinator,
+    getPasswordStrength: GetPasswordStrength = UploadTestPasswordStrength,
+    gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
+) = createTestCipherCodec(
+    cryptoGenerator = AttachmentCryptoGenerator,
+    pendingUploadCoordinator = pendingUploadCoordinator,
+    getPasswordStrength = getPasswordStrength,
+    gpgKeyMetadataResolver = gpgKeyMetadataResolver,
+)
 
 private const val TARGET_REMOTE_ID = "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"
 private val REVISION_DATE = Instant.parse("2024-01-01T00:00:00Z")

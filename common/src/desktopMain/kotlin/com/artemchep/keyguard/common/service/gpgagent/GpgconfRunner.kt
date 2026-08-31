@@ -78,10 +78,14 @@ internal class GpgconfRunner {
 
     private fun resolveExecutable(): Path {
         val platform = CurrentPlatform
-        if (platform !is Platform.Desktop.Windows && platform !is Platform.Desktop.MacOS) {
-            return Path.of("gpgconf")
+        return if (platform !is Platform.Desktop.Windows && platform !is Platform.Desktop.MacOS) {
+            Path.of("gpgconf")
+        } else {
+            resolveDesktopExecutable(platform)
         }
+    }
 
+    private fun resolveDesktopExecutable(platform: Platform.Desktop): Path {
         val configuredBinDir = System.getProperty("keyguard.gpg.binDir")
             ?.takeIf { it.isNotBlank() }
             ?.let(Path::of)
@@ -94,23 +98,23 @@ internal class GpgconfRunner {
             .filter { it.isNotBlank() }
             .map(Path::of)
             .toList()
-        if (platform is Platform.Desktop.MacOS) {
-            return resolveMacosGpgconf(configuredBinDir, pathDirectories)
+        return if (platform is Platform.Desktop.MacOS) {
+            resolveMacosGpgconf(configuredBinDir, pathDirectories)
+        } else {
+            val programFilesRoots = listOfNotNull(
+                gpgEnvPath("ProgramFiles(x86)"),
+                gpgEnvPath("ProgramFiles"),
+            )
+            val binDir = findNativeWindowsGnuPgBinDir(
+                configuredBinDir = configuredBinDir,
+                programFilesRoots = programFilesRoots,
+                pathDirectories = pathDirectories,
+            ) ?: error(
+                "Could not find native gpg.exe and gpgconf.exe. " +
+                    "Set KEYGUARD_GPG_BIN_DIR or -Dkeyguard.gpg.binDir to the GnuPG bin directory.",
+            )
+            binDir.resolve(WINDOWS_GPGCONF_EXECUTABLE)
         }
-
-        val programFilesRoots = listOfNotNull(
-            gpgEnvPath("ProgramFiles(x86)"),
-            gpgEnvPath("ProgramFiles"),
-        )
-        val binDir = findNativeWindowsGnuPgBinDir(
-            configuredBinDir = configuredBinDir,
-            programFilesRoots = programFilesRoots,
-            pathDirectories = pathDirectories,
-        ) ?: error(
-            "Could not find native gpg.exe and gpgconf.exe. " +
-                "Set KEYGUARD_GPG_BIN_DIR or -Dkeyguard.gpg.binDir to the GnuPG bin directory.",
-        )
-        return binDir.resolve(WINDOWS_GPGCONF_EXECUTABLE)
     }
 
     private fun prependPath(

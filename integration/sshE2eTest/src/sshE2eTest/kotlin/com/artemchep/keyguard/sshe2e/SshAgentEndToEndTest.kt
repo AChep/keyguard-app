@@ -175,7 +175,10 @@ class SshAgentEndToEndTest {
                 val result = SshCli(socket.toString()).run("ssh-add", "-L")
                 assertTrue(result.isSuccess, result.describe())
                 keys.forEach { key ->
-                    assertTrue(result.stdout.lineSequence().any { sshPublicKeysMatch(it, key.publicKey) }, result.describe())
+                    val containsKey = result.stdout
+                        .lineSequence()
+                        .any { sshPublicKeysMatch(it, key.publicKey) }
+                    assertTrue(containsKey, result.describe())
                 }
                 assertEquals(PosixFilePermissions.fromString("rwx------"), Files.getPosixFilePermissions(keyguard))
                 assertEquals(sharedPermissions, Files.getPosixFilePermissions(userHome))

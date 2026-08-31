@@ -20,7 +20,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class GpgAgentManagerPlatformTest {
+class GpgAgentManagerLinuxHomeTest {
     @Test
     fun `linux home uses absolute XDG data directory or persistent default`() {
         val userHome = Path.of("home/alice").toAbsolutePath()
@@ -183,7 +183,12 @@ class GpgAgentManagerPlatformTest {
                     Files.createSymbolicLink(home, target)
 
                     val error = assertFailsWith<IllegalArgumentException> {
-                        prepareLinuxManagedGpgHome(home, root.resolve(".gnupg"), unixUid(root), layout.ownedDirectories(home))
+                        prepareLinuxManagedGpgHome(
+                            home,
+                            root.resolve(".gnupg"),
+                            unixUid(root),
+                            layout.ownedDirectories(home),
+                        )
                     }
 
                     assertContains(error.message.orEmpty(), "symbolic link")
@@ -208,7 +213,12 @@ class GpgAgentManagerPlatformTest {
                 val permissions = Files.getPosixFilePermissions(directory)
 
                 val error = assertFailsWith<IllegalArgumentException> {
-                    prepareLinuxManagedGpgHome(home, root.resolve(".gnupg"), unixUid(root) + 1L, layout.ownedDirectories(home))
+                    prepareLinuxManagedGpgHome(
+                        home,
+                        root.resolve(".gnupg"),
+                        unixUid(root) + 1L,
+                        layout.ownedDirectories(home),
+                    )
                 }
 
                 assertContains(error.message.orEmpty(), "not owned by the current user")
@@ -232,7 +242,12 @@ class GpgAgentManagerPlatformTest {
                 Files.createSymbolicLink(defaultHome, home)
 
                 val error = assertFailsWith<IllegalArgumentException> {
-                    prepareLinuxManagedGpgHome(home, defaultHome, unixUid(root), ownedDirectories = listOf(home.parent, home))
+                    prepareLinuxManagedGpgHome(
+                        home,
+                        defaultHome,
+                        unixUid(root),
+                        ownedDirectories = listOf(home.parent, home),
+                    )
                 }
 
                 assertContains(error.message.orEmpty(), "default user GnuPG home")
@@ -244,6 +259,10 @@ class GpgAgentManagerPlatformTest {
             }
         }
     }
+
+}
+
+class GpgAgentManagerLinuxConfigTest {
 
     @Test
     fun `linux common conf rejects symbolic and hard links without changing the target`() {
@@ -268,7 +287,12 @@ class GpgAgentManagerPlatformTest {
                     }
 
                     val error = assertFailsWith<IllegalArgumentException> {
-                        prepareLinuxManagedGpgHome(home, defaultHome, unixUid(root), ownedDirectories = listOf(home.parent, home))
+                        prepareLinuxManagedGpgHome(
+                            home,
+                            defaultHome,
+                            unixUid(root),
+                            ownedDirectories = listOf(home.parent, home),
+                        )
                     }
 
                     val expectedMessage = if (defaultTarget) {
@@ -378,6 +402,10 @@ class GpgAgentManagerPlatformTest {
             }
         }
     }
+
+}
+
+class GpgAgentManagerMacosHomeTest {
 
     @Test
     fun `macos release home is inside keyguard directory`() {
@@ -534,6 +562,10 @@ class GpgAgentManagerPlatformTest {
         }
     }
 
+}
+
+class GpgAgentManagerMacosConfigTest {
+
     @Test
     fun `managed macos common conf preserves existing content and is idempotent`() {
         assumeTrue(supportsUnixAttributes())
@@ -676,6 +708,10 @@ class GpgAgentManagerPlatformTest {
             root.toFile().deleteRecursively()
         }
     }
+
+}
+
+class GpgconfRunnerPlatformTest {
 
     @Test
     fun `macos gpgconf prefers explicit configuration then PATH order`() {

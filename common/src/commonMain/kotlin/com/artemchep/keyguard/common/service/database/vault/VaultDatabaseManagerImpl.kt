@@ -110,8 +110,14 @@ class VaultDatabaseManagerImpl(
                         createdAtAdapter = InstantToLongAdapter,
                     ),
                     gpgKeyserverStateAdapter = GpgKeyserverState.Adapter(
-                        verificationStatusAdapter = EnumCodeToLongAdapter(GpgKeyserverVerificationStatus::of) { it.code },
-                        publicationStatusAdapter = EnumCodeToLongAdapter(GpgKeyserverVerificationStatus::of) { it.code },
+                        verificationStatusAdapter = EnumCodeToLongAdapter(
+                            decoder = GpgKeyserverVerificationStatus::of,
+                            encoder = { it.code },
+                        ),
+                        publicationStatusAdapter = EnumCodeToLongAdapter(
+                            decoder = GpgKeyserverVerificationStatus::of,
+                            encoder = { it.code },
+                        ),
                         lastCheckedAtAdapter = InstantToLongAdapter,
                         lastRefreshedAtAdapter = InstantToLongAdapter,
                     ),

@@ -1219,7 +1219,22 @@ class NativeCryptoClientTest {
     @Test
     fun candidateRevocationKeysUseTheSchemaFieldsForEveryWritePath() {
         val candidate = byteArrayOf(0x5a)
-        val requests = listOf(
+        candidateRevocationKeyRequests(candidate).forEach { (encoded, fieldNumber) ->
+            assertContainsLengthDelimitedTag(encoded, fieldNumber)
+            assertTrue(
+                encoded.asList().windowed(3).contains(
+                    listOf(
+                        ((fieldNumber shl 3) or 2).toByte(),
+                        1.toByte(),
+                        candidate.single(),
+                    ),
+                ),
+            )
+        }
+    }
+
+    private fun candidateRevocationKeyRequests(candidate: ByteArray): List<Pair<ByteArray, Int>> =
+        listOf(
             ProtoBuf.encodeToByteArray(
                 OpenPgpSignRequestProto(
                     kind = OpenPgpSignKindProto.DETACHED,
@@ -1270,23 +1285,29 @@ class NativeCryptoClientTest {
             ) to 5,
         )
 
-        requests.forEach { (encoded, fieldNumber) ->
-            assertContainsLengthDelimitedTag(encoded, fieldNumber)
-            assertTrue(
-                encoded.asList().windowed(3).contains(
-                    listOf(
-                        ((fieldNumber shl 3) or 2).toByte(),
-                        1.toByte(),
-                        candidate.single(),
-                    ),
-                ),
-            )
-        }
-    }
-
     @Test
     fun openPgpProtocolExtensionsUseLockstepCapabilityBitsAndOperationTags() {
-        val extensions = listOf(
+        openPgpProtocolExtensions().forEachIndexed { index, (capability, operation, fieldNumber) ->
+            assertEquals(1L shl (29 + index), capability.bit)
+            val encoded = ProtoBuf.encodeToByteArray(
+                NativeRequestProto(
+                    protocolVersion = NativeCrypto.PROTOCOL_VERSION,
+                    operation = operation,
+                ),
+            )
+            assertContainsLengthDelimitedTag(encoded, fieldNumber)
+            assertEquals(
+                operation::class,
+                ProtoBuf.decodeFromByteArray<NativeRequestProto>(encoded).operation::class,
+            )
+        }
+        assertEquals(0x1_FFFF_FFFFL, allNativeCryptoCapabilitiesMask)
+    }
+
+    private fun openPgpProtocolExtensions(): List<
+        Triple<NativeCryptoCapability, NativeRequestOperationProto, Int>,
+        > =
+        listOf(
             Triple(
                 NativeCryptoCapability.OPENPGP_SIGNED_REVOCATION,
                 OpenPgpUserIdRevocationOperationProto(
@@ -1335,23 +1356,6 @@ class NativeCryptoClientTest {
                 57,
             ),
         )
-
-        extensions.forEachIndexed { index, (capability, operation, fieldNumber) ->
-            assertEquals(1L shl (29 + index), capability.bit)
-            val encoded = ProtoBuf.encodeToByteArray(
-                NativeRequestProto(
-                    protocolVersion = NativeCrypto.PROTOCOL_VERSION,
-                    operation = operation,
-                ),
-            )
-            assertContainsLengthDelimitedTag(encoded, fieldNumber)
-            assertEquals(
-                operation::class,
-                ProtoBuf.decodeFromByteArray<NativeRequestProto>(encoded).operation::class,
-            )
-        }
-        assertEquals(0x1_FFFF_FFFFL, allNativeCryptoCapabilitiesMask)
-    }
 
     @Test
     fun certificateMaterialReconcileV2UsesTag57AndRoundTripsSeparatedFields() {

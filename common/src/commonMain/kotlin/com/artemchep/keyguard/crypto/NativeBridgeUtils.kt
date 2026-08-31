@@ -102,33 +102,56 @@ private fun selectRevocationKeyCandidates(
     targetPublicKeys: List<EncodedRevocationTarget>,
     candidates: List<GpgOpenPgpPublicKey>,
     referenceTimeEpochSeconds: Long?,
+): List<GpgOpenPgpPublicKey> = when {
+    candidates.isEmpty() -> emptyList()
+    else -> {
+        val targetInspections = inspectRevocationTargets(
+            targetPrivateKeys = targetPrivateKeys,
+            targetPublicKeys = targetPublicKeys,
+            referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+        )
+        if (targetInspections.any { it is RevocationIndexInspection.Unknown }) {
+            candidates.distinct().requireNativeOpenPgpRevocationCandidateLimit()
+        } else {
+            selectKnownRevocationKeyCandidates(
+                targetInspections = targetInspections,
+                candidates = candidates,
+                referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            )
+        }
+    }
+}
+
+private fun inspectRevocationTargets(
+    targetPrivateKeys: List<EncodedRevocationTarget>,
+    targetPublicKeys: List<EncodedRevocationTarget>,
+    referenceTimeEpochSeconds: Long?,
+): List<RevocationIndexInspection> = buildList {
+    targetPrivateKeys.forEach { target ->
+        add(
+            inspectRevocationIndex(
+                privateKeyData = target.keyData,
+                publicKeyData = null,
+                referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            ).selectCertificate(target.preferredFingerprint),
+        )
+    }
+    targetPublicKeys.forEach { target ->
+        add(
+            inspectRevocationIndex(
+                privateKeyData = null,
+                publicKeyData = target.keyData,
+                referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            ).selectCertificate(target.preferredFingerprint),
+        )
+    }
+}
+
+private fun selectKnownRevocationKeyCandidates(
+    targetInspections: List<RevocationIndexInspection>,
+    candidates: List<GpgOpenPgpPublicKey>,
+    referenceTimeEpochSeconds: Long?,
 ): List<GpgOpenPgpPublicKey> {
-    if (candidates.isEmpty()) return emptyList()
-
-    val targetInspections = buildList {
-        targetPrivateKeys.forEach { target ->
-            add(
-                inspectRevocationIndex(
-                    privateKeyData = target.keyData,
-                    publicKeyData = null,
-                    referenceTimeEpochSeconds = referenceTimeEpochSeconds,
-                ).selectCertificate(target.preferredFingerprint),
-            )
-        }
-        targetPublicKeys.forEach { target ->
-            add(
-                inspectRevocationIndex(
-                    privateKeyData = null,
-                    publicKeyData = target.keyData,
-                    referenceTimeEpochSeconds = referenceTimeEpochSeconds,
-                ).selectCertificate(target.preferredFingerprint),
-            )
-        }
-    }
-    if (targetInspections.any { inspection -> inspection is RevocationIndexInspection.Unknown }) {
-        return candidates.distinct().requireNativeOpenPgpRevocationCandidateLimit()
-    }
-
     val requiredAuthorities = targetInspections
         .filterIsInstance<RevocationIndexInspection.Known>()
         .asSequence()
@@ -143,40 +166,41 @@ private fun selectRevocationKeyCandidates(
     if (requiredAuthorities.isEmpty()) return emptyList()
 
     val selection = RevocationCandidateSelection<GpgOpenPgpPublicKey>(requiredAuthorities)
-    val seenArmors = mutableSetOf<String>()
-    for (candidate in candidates) {
-        if (selection.isComplete) break
-        if (!seenArmors.add(candidate.armored)) continue
-        val keyData = candidate.armored.encodeToByteArray()
-        val inspection = try {
-            inspectRevocationIndex(
-                privateKeyData = null,
-                publicKeyData = keyData,
-                referenceTimeEpochSeconds = referenceTimeEpochSeconds,
-            )
-        } finally {
-            keyData.fill(0)
-        }
-        when (inspection) {
-            RevocationIndexInspection.Invalid -> Unit
-            RevocationIndexInspection.Unknown -> selection.consider(
-                candidate = candidate,
-                componentAuthorities = null,
-            )
-            is RevocationIndexInspection.Known -> {
-                val componentAuthorities = inspection.certificates
-                    .asSequence()
-                    .flatMap { certificate -> certificate.index.components.asSequence() }
-                    .mapTo(mutableSetOf()) { component ->
-                        RevocationAuthorityId(
-                            publicKeyAlgorithmId = component.publicKeyAlgorithmId,
-                            fingerprint = component.fingerprint,
-                        )
-                    }
-                selection.consider(candidate, componentAuthorities)
+    candidates
+        .asSequence()
+        .distinctBy(GpgOpenPgpPublicKey::armored)
+        .takeWhile { !selection.isComplete }
+        .forEach { candidate ->
+            val keyData = candidate.armored.encodeToByteArray()
+            val inspection = try {
+                inspectRevocationIndex(
+                    privateKeyData = null,
+                    publicKeyData = keyData,
+                    referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                )
+            } finally {
+                keyData.fill(0)
+            }
+            when (inspection) {
+                RevocationIndexInspection.Invalid -> Unit
+                RevocationIndexInspection.Unknown -> selection.consider(
+                    candidate = candidate,
+                    componentAuthorities = null,
+                )
+                is RevocationIndexInspection.Known -> {
+                    val componentAuthorities = inspection.certificates
+                        .asSequence()
+                        .flatMap { certificate -> certificate.index.components.asSequence() }
+                        .mapTo(mutableSetOf()) { component ->
+                            RevocationAuthorityId(
+                                publicKeyAlgorithmId = component.publicKeyAlgorithmId,
+                                fingerprint = component.fingerprint,
+                            )
+                        }
+                    selection.consider(candidate, componentAuthorities)
+                }
             }
         }
-    }
     return selection.result()
 }
 

@@ -39,12 +39,24 @@
         tools:node="remove" />
     <uses-feature
         android:name="android.hardware.camera.autofocus"
+        android:required="false"
         tools:node="remove" />
     <uses-feature
         android:name="android.hardware.usb.host"
         tools:node="remove" />
     <uses-feature
         android:name="android.hardware.nfc"
+        android:required="false"
+        tools:node="remove" />
+
+    <meta-data
+        android:name="WindowManagerPreference:SuppressWindowControlNavigationButton"
+        tools:node="remove" />
+    <meta-data
+        android:name="WindowManagerPreference:FreeformWindowSize"
+        tools:node="remove" />
+    <meta-data
+        android:name="WindowManagerPreference:FreeformWindowOrientation"
         tools:node="remove" />
 
     <application
@@ -55,51 +67,52 @@
         android:networkSecurityConfig="@xml/network_configuration"
         android:roundIcon="@mipmap/ic_launcher"
         android:theme="@style/WearTheme.Keyguard">
-        <meta-data
-            android:name="WindowManagerPreference:SuppressWindowControlNavigationButton"
-            tools:node="remove" />
-        <meta-data
-            android:name="WindowManagerPreference:FreeformWindowSize"
-            tools:node="remove" />
-        <meta-data
-            android:name="WindowManagerPreference:FreeformWindowOrientation"
-            tools:node="remove" />
-
         <activity
             android:name="com.artemchep.keyguard.android.MainActivity"
+            android:taskAffinity=""
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.GeneratorActivity"
+            android:taskAffinity=""
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.CompanionAuthActivity"
+            android:taskAffinity=""
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.LargeTypeActivity"
+            android:taskAffinity=""
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.AutofillActivity"
+            android:taskAffinity=""
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.AutofillSaveActivity"
+            android:taskAffinity=""
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.AutofillFakeAuthActivity"
+            android:taskAffinity=""
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.PasskeyCreateActivity"
+            android:taskAffinity=""
             tools:ignore="NewApi"
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.PasswordGetActivity"
+            android:taskAffinity=""
             tools:ignore="NewApi"
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.PasskeyGetActivity"
+            android:taskAffinity=""
             tools:ignore="NewApi"
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.CredentialGetUnlockActivity"
+            android:taskAffinity=""
             tools:ignore="NewApi"
             tools:node="remove" />
         <activity
@@ -131,6 +144,7 @@
             tools:ignore="NewApi" />
         <activity
             android:name="com.artemchep.keyguard.android.sshagent.SshRequestActivity"
+            android:taskAffinity=""
             tools:node="remove" />
 
         <receiver

@@ -79,72 +79,74 @@ class KeyguardAgentLauncher(
             runBlocking {
                 withTimeout(5_000) { onReady.await() }
             }
-
-            val verbose = System.getProperty("keyguard.gpgE2e.verbose") == "true"
-            val command = buildList {
-                add(binaryPath.toAbsolutePath().toString())
-                add("--ipc-socket")
-                add(ipcEndpoint.argument)
-                add("--parent-pid")
-                add(ProcessHandle.current().pid().toString())
-                if (gpgSocket != null) {
-                    add("--gpg-socket")
-                    add(gpgSocket)
-                }
-                if (verbose) add("--verbose")
-            }
-            val builder = ProcessBuilder(command)
-            GpgToolchain.current.applyToEnvironment(builder.environment())
-            environmentOverrides.forEach { (name, value) ->
-                if (value == null) builder.environment().remove(name) else builder.environment()[name] = value
-            }
-            val proc = builder.start()
-            this.process = proc
-            val startupReady = CompletableDeferred<Unit>()
-            val diagnostics = AgentProcessDiagnosticTail()
-            val outputDrains = drainAgentProcessOutput(
-                scope = scope,
-                process = proc,
-                displayName = BINARY_NAME,
-                readyRecord = AGENT_STARTUP_READY_RECORD,
-                ready = startupReady,
-                diagnostics = diagnostics,
-                logStdout = { line -> println("$BINARY_NAME stdout: $line") },
-                logStderr = { line -> System.err.println("$BINARY_NAME stderr: $line") },
-                logReadFailure = { message -> System.err.println(message) },
-            )
-            val processExit = observeProcessExit(proc)
-            check(expectedPeerProcess.complete(proc)) {
-                "Expected GPG IPC peer process was already published"
-            }
-            val procStdin = proc.outputStream
-            this.processStdin = procStdin
-
-            // The Rust binary reads the auth token as HEX + '\n' from its stdin.
-            // Keep this stream open until stop(): EOF is the agent's parent-death signal.
-            val authTokenHex = authToken.joinToString("") { "%02x".format(it) }
-            procStdin.write(authTokenHex.encodeToByteArray())
-            procStdin.write('\n'.code)
-            procStdin.flush()
-
-            runBlocking {
-                awaitAgentStartupReadiness(
-                    ready = startupReady,
-                    processExited = processExit,
-                    timeoutMs = AGENT_STARTUP_READY_TIMEOUT_MS,
-                    displayName = BINARY_NAME,
-                    diagnostics = diagnostics,
-                    outputDrains = outputDrains,
-                )
-            }
-            // The tail is only readable until readiness resolves; stop
-            // buffering the child's output for the rest of its lifetime.
-            diagnostics.close()
+            val proc = launchProcess(ipcEndpoint, gpgSocket, environmentOverrides)
+            process = proc
+            initializeProcess(proc, expectedPeerProcess)
         } catch (e: Exception) {
             expectedPeerProcess.completeExceptionally(e)
             stop()
             throw e
         }
+    }
+
+    private fun launchProcess(
+        ipcEndpoint: AgentIpcEndpoint,
+        gpgSocket: String?,
+        environmentOverrides: Map<String, String?>,
+    ): Process {
+        val verbose = System.getProperty("keyguard.gpgE2e.verbose") == "true"
+        val command = buildList {
+            add(binaryPath.toAbsolutePath().toString())
+            addAll(listOf("--ipc-socket", ipcEndpoint.argument))
+            addAll(listOf("--parent-pid", ProcessHandle.current().pid().toString()))
+            if (gpgSocket != null) addAll(listOf("--gpg-socket", gpgSocket))
+            if (verbose) add("--verbose")
+        }
+        return ProcessBuilder(command).apply {
+            GpgToolchain.current.applyToEnvironment(environment())
+            environmentOverrides.forEach { (name, value) ->
+                if (value == null) environment().remove(name) else environment()[name] = value
+            }
+        }.start()
+    }
+
+    private fun initializeProcess(
+        proc: Process,
+        expectedPeerProcess: CompletableDeferred<Process>,
+    ) {
+        val startupReady = CompletableDeferred<Unit>()
+        val diagnostics = AgentProcessDiagnosticTail()
+        val outputDrains = drainAgentProcessOutput(
+            scope = scope,
+            process = proc,
+            displayName = BINARY_NAME,
+            readyRecord = AGENT_STARTUP_READY_RECORD,
+            ready = startupReady,
+            diagnostics = diagnostics,
+            logStdout = { line -> println("$BINARY_NAME stdout: $line") },
+            logStderr = { line -> System.err.println("$BINARY_NAME stderr: $line") },
+            logReadFailure = { message -> System.err.println(message) },
+        )
+        val processExit = observeProcessExit(proc)
+        check(expectedPeerProcess.complete(proc)) {
+            "Expected GPG IPC peer process was already published"
+        }
+        val procStdin = proc.outputStream.also { processStdin = it }
+        val authTokenHex = authToken.joinToString("") { "%02x".format(it) }
+        procStdin.write(authTokenHex.encodeToByteArray())
+        procStdin.write('\n'.code)
+        procStdin.flush()
+        runBlocking {
+            awaitAgentStartupReadiness(
+                ready = startupReady,
+                processExited = processExit,
+                timeoutMs = AGENT_STARTUP_READY_TIMEOUT_MS,
+                displayName = BINARY_NAME,
+                diagnostics = diagnostics,
+                outputDrains = outputDrains,
+            )
+        }
+        diagnostics.close()
     }
 
     fun assuanTranscript(

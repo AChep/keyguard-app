@@ -93,6 +93,7 @@ import com.artemchep.keyguard.desktop.ui.GpgRequestWindow
 import com.artemchep.keyguard.desktop.ui.QuickSearchWindow
 import com.artemchep.keyguard.desktop.ui.SshRequestWindow
 import com.artemchep.keyguard.desktop.util.AppReopenedListenerEffect
+import com.artemchep.keyguard.desktop.util.SingleInstanceManager
 import com.artemchep.keyguard.desktop.util.handleNavigationIntent
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.keyguard.AppRoute
@@ -123,8 +124,7 @@ import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.util.foundation.crypto.ensurePlatformCryptoReady
-import com.kdroid.composetray.tray.api.Tray
-import com.kdroid.composetray.utils.SingleInstanceManager
+import dev.nucleusframework.composenativetray.tray.api.Tray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.NonCancellable
@@ -284,7 +284,7 @@ private fun runKeyguardApplication() {
     SingletonImageLoader.setFromDi(appDi)
 
     // Allow different builds to be run side-by-side.
-    SingleInstanceManager.configuration = SingleInstanceManager.Configuration(
+    val singleInstanceManager = SingleInstanceManager(
         lockIdentifier = if (isRelease) "keyguard" else "keyguard-dev",
     )
 
@@ -426,7 +426,7 @@ private fun runKeyguardApplication() {
 
             // Single instance check - restore existing window
             // if another instance is attempted.
-            val isSingleInstance = SingleInstanceManager.isSingleInstance(
+            val isSingleInstance = singleInstanceManager.isSingleInstance(
                 onRestoreRequest = {
                     onWindowOpen()
                 },

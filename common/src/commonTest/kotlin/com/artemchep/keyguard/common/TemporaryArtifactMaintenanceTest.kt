@@ -42,6 +42,7 @@ class TemporaryArtifactMaintenanceTest {
             temporaryArtifactMaintenance = TemporaryArtifactMaintenance {
                 maintenanceCalls += 1
             },
+            pendingUsageHistoryEnabled = false,
         )
         val job = worker.launch(
             scope = backgroundScope,

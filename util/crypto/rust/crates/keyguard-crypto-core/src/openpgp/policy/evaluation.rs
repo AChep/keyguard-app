@@ -125,7 +125,9 @@ impl PublicComponent {
         )
     }
 
-    fn verifies_certification_revocation(
+    /// Verifies a third-party certification signature over an identity; the
+    /// caller discriminates certifications from Certification Revocations.
+    fn verifies_third_party_certification(
         &self,
         signature: &Signature,
         primary: &PublicKey,
@@ -474,6 +476,66 @@ fn signature_target_digest_for_selectors<'a>(
         hash_algorithm: config.hash_alg,
         digest,
     }))
+}
+
+/// Returns whether one trusted component has an effective certification over
+/// this exact identity. Certification Revocations are resolved per signature,
+/// including Signature Target selectors and non-revocable certifications.
+pub(in crate::openpgp) fn trusted_authority_certifies_identity(
+    primary: &PublicKey,
+    tag: Tag,
+    identity: &impl Serialize,
+    signatures: &[Signature],
+    authority: &PublicComponent,
+    reference_time: u64,
+    budget: &mut OpenPgpPolicyBudget,
+) -> Result<bool, OpenPgpPolicyError> {
+    let mut certifications = Vec::new();
+    let mut revocations = Vec::new();
+    for signature in signatures {
+        if is_certification(signature.typ())
+            && third_party_certification_signature_acceptable(signature, reference_time)
+            && authority
+                .verifies_third_party_certification(signature, primary, tag, identity, budget)?
+        {
+            certifications.push(signature);
+        } else if signature.typ() == Some(SignatureType::CertRevocation)
+            && third_party_revocation_signature_acceptable(
+                signature,
+                reference_time,
+                reference_time,
+                RevocationTarget::Certification { revocable: true },
+            )
+            && authority
+                .verifies_third_party_certification(signature, primary, tag, identity, budget)?
+        {
+            revocations.push((signature, certification_revocation_selector(signature)));
+        }
+    }
+
+    for certification in certifications {
+        let target = signature_target_digest_for_selectors(
+            certification,
+            revocations.iter().map(|(_, selector)| *selector),
+            budget,
+            || certification_signature_digest(certification, primary, tag, identity),
+        )?;
+        let matching_revocations = revocations
+            .iter()
+            .filter(|(_, selector)| selector.targets(target.as_ref()))
+            .map(|(signature, _)| *signature);
+        if !revocation_is_effective(
+            matching_revocations,
+            Some(certification),
+            reference_time,
+            RevocationTarget::Certification {
+                revocable: signature_is_revocable(certification),
+            },
+        ) {
+            return Ok(true);
+        }
+    }
+    Ok(false)
 }
 
 pub(in crate::openpgp) fn all_components(
@@ -1235,7 +1297,7 @@ fn validate_certificate_intern<'a>(
                 )
             },
             |candidate, signature, budget| {
-                candidate.verifies_certification_revocation(
+                candidate.verifies_third_party_certification(
                     signature,
                     &certificate.primary_key,
                     Tag::UserId,
@@ -1324,7 +1386,7 @@ fn validate_certificate_intern<'a>(
                 )
             },
             |candidate, signature, budget| {
-                candidate.verifies_certification_revocation(
+                candidate.verifies_third_party_certification(
                     signature,
                     &certificate.primary_key,
                     Tag::UserAttribute,

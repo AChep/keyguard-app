@@ -136,7 +136,7 @@ private fun <T> resolveOpenPgpEmailRecipients(
     details: MutableList<OpenPgpRecipientLookupDetail>,
 ) {
     userIds.forEach { requested ->
-        val normalizedEmail = normalizeGpgUserIdEmail(requested)
+        val normalizedEmail = normalizeGpgMailboxAddress(requested)
         if (normalizedEmail == null) {
             details += OpenPgpRecipientLookupDetail(
                 kind = OpenPgpRecipientLookupKind.EMAIL,
@@ -149,7 +149,7 @@ private fun <T> resolveOpenPgpEmailRecipients(
         }
         val matches = candidates.filter { candidate ->
             val emails = candidateEmails(candidate)
-                .mapNotNull(::normalizeGpgUserIdEmail)
+                .mapNotNull(::normalizeGpgMailboxAddress)
             normalizedEmail in emails
         }
         val encryptionCapable = matches.filter(canEncrypt)

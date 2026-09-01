@@ -1,10 +1,8 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
-import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
-import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import kotlinx.serialization.Serializable
 
@@ -220,16 +218,12 @@ fun GpgAgentSecret.resolveAuthorizationOrClear(
     resolver: GpgKeyMetadataResolver,
     candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
     onError: (Exception) -> Unit = {},
-): GpgAgentSecret = runCatchingNonFatal {
+): GpgAgentSecret = resolveNonFatalOrNull(onError) {
     resolveAuthorization(
         resolver = resolver,
         candidateRevocationKeys = candidateRevocationKeys,
     )
-}.getOrElse { e ->
-    if (e !is Exception) throw e
-    onError(e)
-    copy(authorization = null)
-}
+} ?: copy(authorization = null)
 
 /**
  * Like [resolveAuthorizationOrClear], but with the shared error-reporting
@@ -243,13 +237,11 @@ fun GpgAgentSecret.resolveAuthorizationOrClear(
 ): GpgAgentSecret = resolveAuthorizationOrClear(
     resolver = resolver,
     candidateRevocationKeys = candidateRevocationKeys,
-    onError = { e ->
-        logRepository.post(
-            tag = tag,
-            message = "Failed to resolve live GPG authorization: ${e.message}",
-            level = LogLevel.ERROR,
-        )
-    },
+    onError = gpgResolverErrorLogger(
+        logRepository = logRepository,
+        tag = tag,
+        what = "live GPG authorization",
+    ),
 )
 
 val GpgAgentSecret.hasPrivateKey: Boolean
@@ -282,7 +274,7 @@ fun DSecret.toGpgAgentSecretOrNull(): GpgAgentSecret? {
     )
 }
 
-private fun DSecret.isGpgAgentSecretType(): Boolean =
+internal fun DSecret.isGpgAgentSecretType(): Boolean =
     type == DSecret.Type.GpgKey ||
             type == DSecret.Type.SecureNote
 

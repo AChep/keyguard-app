@@ -11,6 +11,7 @@ import com.artemchep.keyguard.ipctestclient.ipc.sshResultCodeName
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.openintents.openpgp.OpenPgpError
+import org.openintents.openpgp.OpenPgpSignatureResult
 import org.openintents.openpgp.util.OpenPgpApi
 import org.openintents.ssh.authentication.SshAuthenticationApi
 import org.openintents.ssh.authentication.SshAuthenticationApiError
@@ -34,6 +35,12 @@ fun IpcExchange.requireOpenPgpSuccess(): Intent {
     }
     return result
 }
+
+/** The signature result the provider attached, or a self-explaining failure. */
+@Suppress("DEPRECATION")
+fun Intent.requireSignatureResult(): OpenPgpSignatureResult =
+    getParcelableExtra(OpenPgpApi.RESULT_SIGNATURE)
+        ?: failWithExchangeLog("No OpenPgpSignatureResult in the result")
 
 fun IpcExchange.requireSshSuccess(): Intent {
     val result = requireResult()

@@ -19,6 +19,15 @@ interface GpgOpenPgpVerifier {
 }
 
 interface GpgOpenPgpService : GpgOpenPgpVerifier {
+    /**
+     * Returns exact target User IDs certified by a currently usable trusted
+     * primary key. Implementations that cannot evaluate certifications fail
+     * closed by returning no confirmed identities.
+     */
+    fun evaluateUserIdCertifications(
+        request: GpgOpenPgpUserIdCertificationRequest,
+    ): List<String> = emptyList()
+
     fun clearSignText(
         request: GpgOpenPgpSignTextRequest,
     ): String
@@ -126,6 +135,17 @@ data class GpgOpenPgpPrivateKey(
 
 data class GpgOpenPgpPublicKey(
     val armored: String,
+)
+
+data class GpgOpenPgpCertificationAuthority(
+    val publicKey: GpgOpenPgpPublicKey,
+    val primaryFingerprint: String,
+)
+
+data class GpgOpenPgpUserIdCertificationRequest(
+    val publicKey: GpgOpenPgpPublicKey,
+    val authorities: List<GpgOpenPgpCertificationAuthority>,
+    val referenceTime: Instant,
 )
 
 data class GpgOpenPgpExportPublicKeyRequest(
@@ -297,6 +317,12 @@ data class GpgOpenPgpVerification(
     val userIds: List<String>,
     val createdAt: Instant?,
     val warnings: List<GpgOpenPgpVerificationWarning> = emptyList(),
+    /**
+     * Exact entries from [userIds] certified by a trusted local authority.
+     * Never populated alongside a [GpgOpenPgpVerificationWarning.POLICY_CONFLICT]
+     * warning: a policy conflict makes every identity assertion ambiguous.
+     */
+    val confirmedUserIds: List<String> = emptyList(),
     /** One leaf result per input signature, in packet order. */
     val signatures: List<GpgOpenPgpVerification> = emptyList(),
 ) {

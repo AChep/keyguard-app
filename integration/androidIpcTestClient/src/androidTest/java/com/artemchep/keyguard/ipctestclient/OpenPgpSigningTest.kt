@@ -11,6 +11,7 @@ import com.artemchep.keyguard.ipctestclient.support.KeyguardProviderRule
 import com.artemchep.keyguard.ipctestclient.support.LocalCrypto
 import com.artemchep.keyguard.ipctestclient.support.SuiteState
 import com.artemchep.keyguard.ipctestclient.support.requireOpenPgpSuccess
+import com.artemchep.keyguard.ipctestclient.support.requireSignatureResult
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -79,21 +80,50 @@ class OpenPgpSigningTest {
                 OpenPgpRequestSpec(
                     operation = OpenPgpOperation.DECRYPT_VERIFY,
                     payload = signed,
+                    senderAddress = state.signingEmail(),
                 ),
             )
         val result = exchange.requireOpenPgpSuccess()
-        @Suppress("DEPRECATION")
-        val signature = requireNotNull(
-            result.getParcelableExtra<OpenPgpSignatureResult>(OpenPgpApi.RESULT_SIGNATURE),
-        )
+        val signature = result.requireSignatureResult()
         assertEquals(
-            openPgpSignatureStatusName(OpenPgpSignatureResult.RESULT_VALID_KEY_UNCONFIRMED),
+            openPgpSignatureStatusName(OpenPgpSignatureResult.RESULT_VALID_KEY_CONFIRMED),
             openPgpSignatureStatusName(signature.result),
         )
         assertEquals(signKeyId, signature.keyId)
+        assertTrue(signature.confirmedUserIds.isNotEmpty())
+        assertEquals(
+            OpenPgpSignatureResult.SenderStatusResult.USER_ID_CONFIRMED,
+            signature.senderStatusResult,
+        )
         assertTrue(
             "The verified body does not contain the payload",
             exchange.output.orEmptyBytes().decodeToString().contains(PAYLOAD.decodeToString()),
+        )
+    }
+
+    @Test
+    fun decryptVerifyReportsTheSenderStatusForADetachedSignature() {
+        val signature = requireNotNull(
+            detachedSign(armored = false)
+                .requireOpenPgpSuccess()
+                .getByteArrayExtra(OpenPgpApi.RESULT_DETACHED_SIGNATURE),
+        )
+        val result = provider
+            .openPgpRunner()
+            .run(
+                OpenPgpRequestSpec(
+                    operation = OpenPgpOperation.DECRYPT_VERIFY,
+                    payload = PAYLOAD,
+                    detachedSignature = signature,
+                    senderAddress = state.signingEmail(),
+                ),
+            )
+            .requireOpenPgpSuccess()
+        val verification = result.requireSignatureResult()
+        assertTrue(verification.confirmedUserIds.isNotEmpty())
+        assertEquals(
+            OpenPgpSignatureResult.SenderStatusResult.USER_ID_CONFIRMED,
+            verification.senderStatusResult,
         )
     }
 

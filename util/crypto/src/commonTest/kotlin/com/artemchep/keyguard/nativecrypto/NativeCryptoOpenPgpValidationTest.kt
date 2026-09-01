@@ -390,6 +390,41 @@ class NativeCryptoOpenPgpVerificationValidationTest {
     }
 
     @Test
+    fun certificationEvaluationRejectsDuplicateIdentitiesAndClearsTheWirePayload() {
+        val payload = ProtoBuf.encodeToByteArray(
+            OpenPgpUserIdCertificationEvaluateResultProto(
+                confirmedUserIds = listOf(
+                    "Alice <alice@example.test>".encodeToByteArray(),
+                    "Alice <alice@example.test>".encodeToByteArray(),
+                ),
+            ),
+        )
+
+        val failure = assertFailsWith<NativeCryptoException> {
+            decodeOpenPgpUserIdCertificationEvaluateResult(OPERATION, payload)
+        }
+
+        assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
+        assertTrue(payload.all { byte -> byte == 0.toByte() })
+    }
+
+    @Test
+    fun certificationEvaluationRejectsNonUtf8IdentitiesAndClearsTheWirePayload() {
+        val payload = ProtoBuf.encodeToByteArray(
+            OpenPgpUserIdCertificationEvaluateResultProto(
+                confirmedUserIds = listOf(byteArrayOf('A'.code.toByte(), 0xff.toByte())),
+            ),
+        )
+
+        val failure = assertFailsWith<NativeCryptoException> {
+            decodeOpenPgpUserIdCertificationEvaluateResult(OPERATION, payload)
+        }
+
+        assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
+        assertTrue(payload.all { byte -> byte == 0.toByte() })
+    }
+
+    @Test
     fun rejectsAuthenticatedMetadataOnMissingPublicKey() {
         for (
             response in listOf(

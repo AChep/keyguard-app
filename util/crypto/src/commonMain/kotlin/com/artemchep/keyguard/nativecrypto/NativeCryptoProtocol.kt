@@ -337,6 +337,13 @@ internal data class OpenPgpCertificateMaterialReconcileV2OperationProto(
 ) : NativeRequestOperationProto
 
 @Serializable
+@SerialName("open_pgp_user_id_certification_evaluate")
+internal data class OpenPgpUserIdCertificationEvaluateOperationProto(
+    @ProtoNumber(58)
+    val value: OpenPgpUserIdCertificationEvaluateRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
 @SerialName("open_pgp_agent_sign")
 internal data class OpenPgpAgentSignOperationProto(
     @ProtoNumber(43)
@@ -1106,6 +1113,30 @@ internal data class OpenPgpPublicKeyParseRequestProto(
     val keyData: ByteArray,
     @ProtoNumber(2)
     val referenceTimeEpochSeconds: Long? = null,
+)
+
+@Serializable
+internal data class OpenPgpCertificationAuthorityProto(
+    @ProtoNumber(1)
+    val publicKey: ByteArray,
+    @ProtoNumber(2)
+    val primaryFingerprint: String,
+)
+
+@Serializable
+internal data class OpenPgpUserIdCertificationEvaluateRequestProto(
+    @ProtoNumber(1)
+    val publicKey: ByteArray,
+    @ProtoNumber(2)
+    val authorities: List<OpenPgpCertificationAuthorityProto>,
+    @ProtoNumber(3)
+    val referenceTimeEpochSeconds: Long? = null,
+)
+
+@Serializable
+internal data class OpenPgpUserIdCertificationEvaluateResultProto(
+    @ProtoNumber(1)
+    val confirmedUserIds: List<ByteArray> = emptyList(),
 )
 
 @Serializable

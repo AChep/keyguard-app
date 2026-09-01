@@ -20,6 +20,7 @@ pub(in crate::openpgp) mod message;
 pub(in crate::openpgp) mod mutation;
 pub(in crate::openpgp) mod packet;
 pub(in crate::openpgp) mod policy;
+pub(in crate::openpgp) mod user_id;
 
 #[cfg(test)]
 mod tests {
@@ -74,6 +75,7 @@ mod tests {
         ),
         ("error", include_str!("error.rs")),
         ("format", include_str!("format.rs")),
+        ("User ID", include_str!("user_id.rs")),
     ];
 
     const POLICY_SOURCES: &[(&str, &str)] = &[

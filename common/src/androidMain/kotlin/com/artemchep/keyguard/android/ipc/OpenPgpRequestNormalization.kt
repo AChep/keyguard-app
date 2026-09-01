@@ -1,13 +1,14 @@
 package com.artemchep.keyguard.android.ipc
 
 import android.content.Intent
-import com.artemchep.keyguard.common.service.crypto.normalizeGpgUserIdEmail
+import com.artemchep.keyguard.common.service.crypto.normalizeGpgMailboxAddress
 import org.openintents.openpgp.util.OpenPgpApi
 
 internal const val MIN_API_VERSION = 7
 internal const val MAX_API_VERSION = 12
 
 private const val MAX_OPENPGP_FILENAME_LENGTH = 255
+private const val MAX_OPENPGP_USER_ID_LENGTH = 320
 private const val MAX_DETACHED_SIGNATURE_BYTES = 1024 * 1024
 private const val MAX_OPENPGP_KEY_COUNT = 64
 
@@ -27,6 +28,7 @@ internal class NormalizedOpenPgpExtras(
     val keyIds: LongArray,
     val signKeyId: Long?,
     val keyId: Long?,
+    val senderAddress: String?,
     val detachedSignature: ByteArray?,
 )
 
@@ -70,6 +72,7 @@ internal fun normalizeRequest(
         keyId = request
             .takeIf { it.hasExtra(OpenPgpApi.EXTRA_KEY_ID) }
             ?.getLongExtra(OpenPgpApi.EXTRA_KEY_ID, 0L),
+        senderAddress = request.getStringExtra(OpenPgpApi.EXTRA_SENDER_ADDRESS),
         detachedSignature = request.getByteArrayExtra(
             OpenPgpApi.EXTRA_DETACHED_SIGNATURE,
         ),
@@ -90,6 +93,9 @@ internal fun normalizeRequest(
         }
         extras.signKeyId?.let { putExtra(OpenPgpApi.EXTRA_SIGN_KEY_ID, it) }
         extras.keyId?.let { putExtra(OpenPgpApi.EXTRA_KEY_ID, it) }
+        extras.senderAddress?.let {
+            putExtra(OpenPgpApi.EXTRA_SENDER_ADDRESS, it)
+        }
         extras.detachedSignature?.let {
             putExtra(OpenPgpApi.EXTRA_DETACHED_SIGNATURE, it)
         }
@@ -120,6 +126,7 @@ internal fun normalizeOpenPgpExtras(
     selectedKeyIds: LongArray? = null,
     signKeyId: Long? = null,
     keyId: Long? = null,
+    senderAddress: String? = null,
     detachedSignature: ByteArray? = null,
 ): NormalizedOpenPgpExtras? {
     if (
@@ -129,14 +136,17 @@ internal fun normalizeOpenPgpExtras(
     ) {
         return null
     }
-    val normalizedUserIds = userIds
+    val requestedUserIds = userIds
         .orEmpty()
         .map(String::trim)
         .filter(String::isNotEmpty)
         .takeIf {
-            it.size <= 64 && it.all { value -> value.length <= 320 }
+            it.size <= 64 && it.all { value -> value.length <= MAX_OPENPGP_USER_ID_LENGTH }
         }
         ?: return null
+    val normalizedUserIds = requestedUserIds.map { value ->
+        normalizeGpgMailboxAddress(value) ?: return null
+    }
     val normalizedKeyIds = (keyIds ?: longArrayOf())
         .takeIf { it.size <= MAX_OPENPGP_KEY_COUNT }
         ?: return null
@@ -167,6 +177,14 @@ internal fun normalizeOpenPgpExtras(
         ?: return null
     val normalizedSignKeyId = signKeyId?.takeIf { it != 0L }
     val normalizedExportKeyId = keyId?.takeIf { it != 0L }
+    // Keep a supplied but invalid address ("") distinct from an absent address
+    // (null). The result contract maps the former to USER_ID_MISSING and the
+    // latter to UNKNOWN.
+    val normalizedSenderAddress = when {
+        senderAddress == null -> null
+        senderAddress.length > MAX_OPENPGP_USER_ID_LENGTH -> ""
+        else -> normalizeGpgMailboxAddress(senderAddress).orEmpty()
+    }
     return NormalizedOpenPgpExtras(
         digestParts = buildList {
             add("version=$apiVersion")
@@ -174,13 +192,11 @@ internal fun normalizeOpenPgpExtras(
             add("compression=$compression")
             add("opportunistic=$opportunistic")
             add("filename=${originalFilename.orEmpty()}")
-            normalizedUserIds
-                .map(::normalizeGpgUserIdEmail)
-                .sortedBy { it.orEmpty() }
-                .forEach { add("user_id=${it.orEmpty()}") }
+            normalizedUserIds.sorted().forEach { add("user_id=$it") }
             combinedKeyIds.sorted().forEach { add("key_id=$it") }
             add("sign_key_id=${normalizedSignKeyId ?: 0L}")
             add("export_key_id=${normalizedExportKeyId ?: 0L}")
+            normalizedSenderAddress?.let { add("sender_address=$it") }
             add("detached_size=${normalizedDetachedSignature?.size ?: 0}")
             normalizedDetachedSignature?.let {
                 add("detached_sha256=${androidIpcByteDigest(it)}")
@@ -194,6 +210,7 @@ internal fun normalizeOpenPgpExtras(
         keyIds = combinedKeyIds,
         signKeyId = normalizedSignKeyId,
         keyId = normalizedExportKeyId,
+        senderAddress = normalizedSenderAddress,
         detachedSignature = normalizedDetachedSignature,
     )
 }

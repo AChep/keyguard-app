@@ -27,7 +27,8 @@ pub(in crate::openpgp) use acceptance::{
 };
 pub(in crate::openpgp) use budget::{DesignatedRevokerId, OpenPgpPolicyBudget, OpenPgpPolicyError};
 pub(in crate::openpgp) use evaluation::{
-    all_components, certificate_components, revocation_key_id, validate_certificate,
+    all_components, certificate_components, revocation_key_id,
+    trusted_authority_certifies_identity, validate_certificate,
     validate_certificate_with_policy_time,
 };
 pub(in crate::openpgp) use index::certificate_index;
@@ -38,7 +39,7 @@ pub(in crate::openpgp) use model::{
 };
 pub(in crate::openpgp) use revocation::signature_is_revocable;
 pub(in crate::openpgp) use selection::{
-    authenticated_key_flags, can_encrypt, can_sign, component_expiration,
+    authenticated_key_flags, can_certify, can_encrypt, can_sign, component_expiration,
     select_newest_policy_signature_in, signature_is_primary,
 };
 

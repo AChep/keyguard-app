@@ -3,6 +3,8 @@ package com.artemchep.keyguard.common.service.androidipc
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.filterCiphers
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpCertificationAuthority
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpRing
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVault
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
@@ -38,44 +40,67 @@ internal class GpgOpenPgpVaultLoader(
         requestReference: String,
     ): GpgOpenPgpVault = withContext(Dispatchers.IO) {
         val session = getVaultSession.valueOrNull as? MasterSession.Key
-        val publicRows = publicKeyRepository.getPublicKeys().bind()
+        val snapshot = publicKeyRepository.getSnapshot().bind()
         val now = Clock.System.now()
-        var parseFailures = 0
-        val publicRings = publicRows
-            .mapNotNull { row ->
-                val info = runCatching {
+        // Parse each distinct document once, so the catalog and the trust
+        // authorities share one notion of a valid document.
+        val parsedInfoByDocument = buildList {
+            snapshot.publicKeys.mapTo(this) { row ->
+                row.publicKeyArmored to row.primaryFingerprint
+            }
+            snapshot.certificationAuthorities.mapTo(this) { row ->
+                row.publicKeyArmored to row.primaryFingerprint
+            }
+        }
+            .distinct()
+            .associateWith { (armored, fingerprint) ->
+                runCatching {
                     publicKeyParser.parsePrimaryKeyInfo(
-                        armored = row.publicKeyArmored,
-                        fingerprint = row.primaryFingerprint,
+                        armored = armored,
+                        fingerprint = fingerprint,
                     )
                 }.getOrNull()
-                if (info == null) {
-                    parseFailures += 1
-                    return@mapNotNull null
-                }
-                GpgOpenPgpRing(
-                    accountId = row.accountId,
-                    cipherId = row.cipherId,
-                    name = row.name ?: info.userIds.firstOrNull() ?: info.fingerprint,
-                    info = info,
-                    hasSigningPrivateMaterial = row.canSign,
-                    hasDecryptionPrivateMaterial = row.canDecrypt,
-                    privateKeyArmored = null,
-                    now = now,
-                )
             }
+        val rings = snapshot.publicKeys.mapNotNull { row ->
+            val info = parsedInfoByDocument[row.publicKeyArmored to row.primaryFingerprint]
+                ?: return@mapNotNull null
+            GpgOpenPgpRing(
+                accountId = row.accountId,
+                cipherId = row.cipherId,
+                name = row.name ?: info.userIds.firstOrNull() ?: info.fingerprint,
+                info = info,
+                hasSigningPrivateMaterial = row.canSign,
+                hasDecryptionPrivateMaterial = row.canDecrypt,
+                privateKeyArmored = null,
+                now = now,
+            )
+        }
+        val authorityRows = snapshot.certificationAuthorities
+            .distinctBy { row -> row.publicKeyArmored to row.primaryFingerprint }
+        val authorities = authorityRows.mapNotNull { row ->
+            parsedInfoByDocument[row.publicKeyArmored to row.primaryFingerprint]
+                ?: return@mapNotNull null
+            GpgOpenPgpCertificationAuthority(
+                publicKey = GpgOpenPgpPublicKey(row.publicKeyArmored),
+                primaryFingerprint = row.primaryFingerprint,
+            )
+        }
         logRepository.postDebug(TAG) {
-            "request=$requestReference catalog_rows=${publicRows.size} " +
-                    "parsed_rings=${publicRings.size} parse_failures=$parseFailures " +
-                    "certified_emails=${publicRings.sumOf { it.info.emails.size }} " +
-                    "encryption_capable=${publicRings.count(GpgOpenPgpRing::canEncrypt)} " +
-                    "encryption_incapable=${publicRings.count { !it.canEncrypt }} " +
-                    "revoked=${publicRings.count { it.info.revoked }} " +
-                    "expired=${publicRings.count { it.isExpired }}"
+            "request=$requestReference catalog_rows=${snapshot.publicKeys.size} " +
+                    "parsed_rings=${rings.size} " +
+                    "parse_failures=${snapshot.publicKeys.size - rings.size} " +
+                    "certified_emails=${rings.sumOf { it.info.emails.size }} " +
+                    "encryption_capable=${rings.count(GpgOpenPgpRing::canEncrypt)} " +
+                    "encryption_incapable=${rings.count { !it.canEncrypt }} " +
+                    "revoked=${rings.count { it.info.revoked }} " +
+                    "expired=${rings.count { it.isExpired }}" +
+                    " certification_authorities=${authorities.size}" +
+                    " authority_parse_failures=${authorityRows.size - authorities.size}"
         }
         GpgOpenPgpVault(
             session = session,
-            rings = publicRings,
+            rings = rings,
+            certificationAuthorities = authorities,
         )
     }
 
@@ -113,6 +138,7 @@ internal class GpgOpenPgpVaultLoader(
                     privateKeyArmored = material?.privateKeyArmored,
                 )
             },
+            certificationAuthorities = vault.certificationAuthorities,
         )
     }
 

@@ -1,0 +1,7 @@
+CREATE TABLE gpgCertificationAuthority (
+  accountId TEXT NOT NULL,
+  cipherId TEXT NOT NULL,
+  publicKeyArmored TEXT NOT NULL,
+  primaryFingerprint TEXT NOT NULL,
+  PRIMARY KEY (accountId, cipherId, primaryFingerprint)
+);

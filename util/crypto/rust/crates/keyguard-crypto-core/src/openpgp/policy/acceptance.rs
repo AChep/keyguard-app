@@ -133,11 +133,12 @@ pub(super) fn authentication_signature_acceptable_at(
         && !signature_expired(signature, times.certificate_time)
 }
 
-/// User Attributes may contain opaque binary data (most commonly images),
-/// which can conceal chosen-prefix collision blocks.  Unlike a textual User ID
-/// self-certification, authenticating one therefore requires
+/// A certification over data chosen by another party — an opaque User
+/// Attribute blob (most commonly an image) or a third-party identity
+/// certification — can conceal chosen-prefix collision blocks.  Unlike a
+/// textual User ID self-certification, authenticating one therefore requires
 /// collision resistance as well as the ordinary binding-signature policy.
-fn user_attribute_certification_signature_acceptable(
+fn collision_resistant_certification_signature_acceptable(
     signature: &Signature,
     times: CertificateValidationTimes,
 ) -> bool {
@@ -169,13 +170,23 @@ pub(super) fn user_attribute_certification_signature_tier(
     signature: &Signature,
     times: CertificateValidationTimes,
 ) -> SignatureTier {
-    if user_attribute_certification_signature_acceptable(signature, times) {
+    if collision_resistant_certification_signature_acceptable(signature, times) {
         SignatureTier::Authenticated
     } else if policy_inactive_template_acceptable(signature, times.certificate_time) {
         SignatureTier::Template
     } else {
         SignatureTier::Rejected
     }
+}
+
+pub(super) fn third_party_certification_signature_acceptable(
+    signature: &Signature,
+    reference_time: u64,
+) -> bool {
+    collision_resistant_certification_signature_acceptable(
+        signature,
+        CertificateValidationTimes::single(reference_time),
+    )
 }
 
 /// Returns whether a mathematically verified signature that the authentication

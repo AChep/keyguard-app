@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpClearSignFileRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpCertificationAuthority
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextResult
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptionWarning
@@ -23,6 +24,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpReadFileResult
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpService
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpSignFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpSignTextRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpUserIdCertificationRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
@@ -36,6 +38,8 @@ import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
+import com.artemchep.keyguard.nativecrypto.NativeCryptoOpenPgp
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpCertificationAuthority
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpDecryptionWarning
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyImportError
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyImportResult
@@ -236,6 +240,43 @@ object NativeGpgKeyImportService : GpgKeyImportService {
         ?.firstOrNull { key -> key.fingerprint == fingerprint }
 }
 
+private const val MAX_CERTIFICATION_AUTHORITIES_PER_REQUEST =
+    NativeCryptoOpenPgp.MAX_KEY_DOCUMENTS_PER_REQUEST - 1
+private const val CERTIFICATION_EVALUATION_OPERATION =
+    "open_pgp_user_id_certification_evaluate"
+
+/**
+ * Coalesces revisions of each explicitly trusted primary certificate so they
+ * can be evaluated together, in one request, with normalized fingerprints.
+ *
+ * Certification policy is not additive across requests: every authority document may also carry
+ * newer revisions and designated-revoker candidates needed by another authority. Keeping one
+ * request ensures that native certificate merging and policy evaluation see the complete bounded
+ * candidate set. If the coalesced roots cannot fit beside the target certificate, fail closed.
+ */
+internal fun List<GpgOpenPgpCertificationAuthority>.coalesceCertificationAuthorities():
+    List<GpgOpenPgpCertificationAuthority> =
+    groupBy { authority ->
+        authority.primaryFingerprint.normalizeGpgFingerprint()
+    }.entries
+        .sortedBy { (fingerprint, _) -> fingerprint }
+        .map { (fingerprint, revisions) ->
+            val publicKeyArmored =
+                revisions
+                    .map { authority -> authority.publicKey.armored }
+                    .distinct()
+                    .sorted()
+                    .joinToString(separator = "\n")
+            GpgOpenPgpCertificationAuthority(
+                publicKey = GpgOpenPgpPublicKey(publicKeyArmored),
+                primaryFingerprint = fingerprint,
+            )
+        }
+        .requireNativeOpenPgpKeyDocumentLimit(
+            operation = CERTIFICATION_EVALUATION_OPERATION,
+            max = MAX_CERTIFICATION_AUTHORITIES_PER_REQUEST,
+        )
+
 class NativeGpgOpenPgpService internal constructor(
     private val stagingSpoolFactory: StagingSpoolFactory =
         DefaultStagingSpoolFactory(),
@@ -247,6 +288,29 @@ class NativeGpgOpenPgpService internal constructor(
     ) : this(
         stagingSpoolFactory = directDI.instance(),
     )
+
+    override fun evaluateUserIdCertifications(
+        request: GpgOpenPgpUserIdCertificationRequest,
+    ): List<String> {
+        // At most MAX_KEY_DOCUMENTS_PER_REQUEST - 1 coalesced authorities, so
+        // neither withEncodedPublicKeys clamp below can drop a document.
+        val authorities = request.authorities.coalesceCertificationAuthorities()
+        return listOf(request.publicKey).withEncodedPublicKeys { publicKeys ->
+            authorities.map { authority -> authority.publicKey }
+                .withEncodedPublicKeys { authorityKeys ->
+                    NativeCrypto.openPgp.evaluateUserIdCertifications(
+                        publicKey = publicKeys.single(),
+                        authorities = authorities.zip(authorityKeys) { authority, keyData ->
+                            NativeOpenPgpCertificationAuthority(
+                                publicKey = keyData,
+                                primaryFingerprint = authority.primaryFingerprint,
+                            )
+                        },
+                        referenceTimeEpochSeconds = request.referenceTime.epochSeconds,
+                    )
+                }
+        }
+    }
 
     override fun clearSignText(
         request: GpgOpenPgpSignTextRequest,

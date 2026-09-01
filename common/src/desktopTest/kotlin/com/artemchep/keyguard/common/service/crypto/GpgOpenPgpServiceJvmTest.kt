@@ -52,6 +52,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 
 class GpgOpenPgpServiceJvmTest {
     private val service = NativeGpgOpenPgpService()
@@ -109,6 +110,30 @@ class GpgOpenPgpServiceJvmTest {
         )
 
         assertTrue("BEGIN PGP SIGNED MESSAGE" in signed)
+    }
+
+    @Test
+    fun `certification evaluation coalesces duplicate authorities beyond the native boundary`() {
+        val authority = GpgOpenPgpCertificationAuthority(
+            publicKey = publicKey,
+            primaryFingerprint = "D0BBCFBB250D3BB0658E5384F83D947D29EFECF7",
+        )
+
+        listOf(63, 64, 65).forEach { authorityCount ->
+            val confirmedUserIds = service.evaluateUserIdCertifications(
+                GpgOpenPgpUserIdCertificationRequest(
+                    publicKey = publicKey,
+                    authorities = List(authorityCount) { authority },
+                    referenceTime = Instant.fromEpochSeconds(1_782_541_300L),
+                ),
+            )
+
+            assertEquals(
+                listOf("Keyguard Test CV25519 <cv25519@test.invalid>"),
+                confirmedUserIds,
+                "authority count $authorityCount",
+            )
+        }
     }
 
     @Test

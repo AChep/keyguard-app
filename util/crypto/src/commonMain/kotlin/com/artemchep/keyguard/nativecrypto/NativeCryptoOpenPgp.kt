@@ -30,6 +30,11 @@ public enum class NativeOpenPgpPublicKeyParseError {
     MULTIPLE_CERTIFICATES,
 }
 
+public data class NativeOpenPgpCertificationAuthority(
+    val publicKey: ByteArray,
+    val primaryFingerprint: String,
+)
+
 public data class NativeOpenPgpUserIdInfo(
     /** Stable identifier derived from the exact OpenPGP identity packet body. */
     val identityId: String,
@@ -718,6 +723,43 @@ public object NativeCryptoOpenPgp {
             ),
         ).requireBytes("open_pgp_public_key_parse")
         return decodeOpenPgpPublicKeyParseResult("open_pgp_public_key_parse", payload)
+    }
+
+    public fun evaluateUserIdCertifications(
+        publicKey: ByteArray,
+        authorities: List<NativeOpenPgpCertificationAuthority>,
+        referenceTimeEpochSeconds: Long? = null,
+    ): List<String> {
+        require(publicKey.isNotEmpty()) { "OpenPGP public key must not be empty" }
+        require(authorities.size < MAX_KEY_DOCUMENTS_PER_REQUEST) {
+            "Too many OpenPGP certification authorities"
+        }
+        authorities.forEach { authority ->
+            require(authority.publicKey.isNotEmpty()) {
+                "OpenPGP certification authority must not be empty"
+            }
+            require(authority.primaryFingerprint.isValidOpenPgpFingerprint()) {
+                "Invalid OpenPGP certification authority fingerprint"
+            }
+        }
+        requireReferenceTime(referenceTimeEpochSeconds)
+        val operation = "open_pgp_user_id_certification_evaluate"
+        val payload = NativeCrypto.call(
+            operationName = operation,
+            operation = OpenPgpUserIdCertificationEvaluateOperationProto(
+                OpenPgpUserIdCertificationEvaluateRequestProto(
+                    publicKey = publicKey,
+                    authorities = authorities.map { authority ->
+                        OpenPgpCertificationAuthorityProto(
+                            publicKey = authority.publicKey,
+                            primaryFingerprint = authority.primaryFingerprint,
+                        )
+                    },
+                    referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                ),
+            ),
+        ).requireBytes(operation)
+        return decodeOpenPgpUserIdCertificationEvaluateResult(operation, payload)
     }
 
     public fun verifyClearSigned(
@@ -2873,6 +2915,27 @@ internal fun decodeOpenPgpPublicKeyParseResult(
 
         null -> malformedOpenPgp(operation)
     }
+}
+
+internal fun decodeOpenPgpUserIdCertificationEvaluateResult(
+    operation: String,
+    payload: ByteArray,
+): List<String> {
+    val result = decodePayload<OpenPgpUserIdCertificationEvaluateResultProto>(
+        operation = operation,
+        payload = payload,
+    )
+    val confirmedUserIds = result.confirmedUserIds.map { packetBody ->
+        try {
+            packetBody.decodeToString(throwOnInvalidSequence = true)
+        } catch (_: CharacterCodingException) {
+            malformedOpenPgp(operation)
+        }
+    }
+    if (confirmedUserIds.toSet().size != confirmedUserIds.size) {
+        malformedOpenPgp(operation)
+    }
+    return confirmedUserIds
 }
 
 internal fun decodeOpenPgpVerification(

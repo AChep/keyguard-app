@@ -8,16 +8,17 @@ import kotlin.test.assertTrue
 
 class GpgOpenPgpRecipientLookupTest {
     @Test
-    fun `certified email matching is trimmed and case insensitive`() {
+    fun `user id and mailbox normalization are distinct`() {
         assertEquals(
             "alice@example.com",
-            normalizeGpgUserIdEmail(" Alice Example <ALICE@Example.COM> "),
+            normalizeGpgUserIdEmail(" Alice Example <ALICE@Example.COM>"),
         )
         assertEquals(
             "alice@example.com",
-            normalizeGpgUserIdEmail("  ALICE@example.com "),
+            normalizeGpgMailboxAddress("  ALICE@example.com "),
         )
         assertNull(normalizeGpgUserIdEmail("Alice Example"))
+        assertNull(normalizeGpgMailboxAddress("Alice <alice@example.com>"))
     }
 
     @Test
@@ -25,7 +26,7 @@ class GpgOpenPgpRecipientLookupTest {
         val alice = Candidate(
             name = "alice",
             ids = setOf(1L, 11L),
-            emails = listOf("Alice Example <alice@example.com>"),
+            emails = listOf("alice@example.com"),
         )
         val bob = Candidate(
             name = "bob",
@@ -75,6 +76,7 @@ class GpgOpenPgpRecipientLookupTest {
                 "duplicate@example.com",
                 "unusable@example.com",
                 "not-an-email",
+                "Alice <alice@example.com>",
             ),
             keyIds = emptyList(),
             candidates = listOf(duplicateA, duplicateB, unusable),
@@ -89,6 +91,7 @@ class GpgOpenPgpRecipientLookupTest {
                 OpenPgpRecipientLookupOutcome.MISSING,
                 OpenPgpRecipientLookupOutcome.AMBIGUOUS,
                 OpenPgpRecipientLookupOutcome.NOT_ENCRYPTION_CAPABLE,
+                OpenPgpRecipientLookupOutcome.INVALID,
                 OpenPgpRecipientLookupOutcome.INVALID,
             ),
             result.details.map(OpenPgpRecipientLookupDetail::outcome),

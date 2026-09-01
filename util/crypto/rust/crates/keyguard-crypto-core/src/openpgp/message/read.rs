@@ -40,7 +40,7 @@ use pgp::{
         SignatureVersionSpecific,
     },
     ser::Serialize,
-    types::{Fingerprint, KeyDetails, KeyVersion, PublicParams},
+    types::{Fingerprint, KeyDetails, KeyVersion, PublicParams, Tag},
 };
 use thiserror::Error;
 use zeroize::Zeroizing;
@@ -67,21 +67,24 @@ use crate::openpgp::{
     policy::{
         EvaluatedComponent, MutationAuthorizationError, OpenPgpPolicyBudget, OpenPgpPolicyError,
         PublicComponent, RenewalAuthorization, RevocationStatus, SignatureIssuerMetadata,
-        ValidatedCertificate, all_components, can_encrypt, can_sign, certificate_components,
-        certificate_index, component_expiration, data_signature_acceptable, is_legacy_weak_hash,
-        key_signature_verification_acceptable, reference_time, revocation_key_id,
-        signature_creation_time, signature_expired, validate_certificate,
+        ValidatedCertificate, all_components, can_certify, can_encrypt, can_sign,
+        certificate_components, certificate_index, component_expiration, data_signature_acceptable,
+        is_legacy_weak_hash, key_signature_verification_acceptable, reference_time,
+        revocation_key_id, signature_creation_time, signature_expired,
+        trusted_authority_certifies_identity, validate_certificate,
         validate_certificate_with_policy_time,
     },
+    user_id::conventional_user_id_email,
 };
 
 mod model;
 
 pub(crate) use model::{
-    CertificateResolution, ClearVerificationResult, ClearVerifyInput, ComponentPolicySummary,
-    ComponentRevocationStatus, DetachedVerifyInput, MetadataResolution, MetadataResolveInput,
-    PolicyUse, PublicKeyInfo, PublicKeyParseFailure, PublicKeyParseInput, PublicKeyParseOutcome,
-    PublicKeyParseSuccess, PublicSubkeyInfo, RenewalCapability, UserIdInfo, Verification,
+    CertificateResolution, CertificationAuthorityInput, ClearVerificationResult, ClearVerifyInput,
+    ComponentPolicySummary, ComponentRevocationStatus, DetachedVerifyInput, MetadataResolution,
+    MetadataResolveInput, PolicyUse, PublicKeyInfo, PublicKeyParseFailure, PublicKeyParseInput,
+    PublicKeyParseOutcome, PublicKeyParseSuccess, PublicSubkeyInfo, RenewalCapability,
+    UserIdCertificationEvaluateInput, UserIdCertificationEvaluateResult, UserIdInfo, Verification,
     VerificationStatus, VerificationWarning, VerifyInput, VerifyKind,
 };
 
@@ -92,8 +95,6 @@ use crate::openpgp::policy::{
 };
 #[cfg(test)]
 use pgp::composed::{Deserializable, DetachedSignature};
-#[cfg(test)]
-use pgp::types::Tag;
 #[cfg(test)]
 use std::io::{BufRead, BufReader};
 
@@ -691,6 +692,202 @@ pub(crate) fn parse_public_key(
         keys,
         skipped_certificates: u32::try_from(skipped_certificates).unwrap_or(u32::MAX),
     }))
+}
+
+/// Evaluates OpenKeychain-compatible per-User-ID confirmation against an
+/// explicit set of locally trusted primary certification keys.
+pub(crate) fn evaluate_user_id_certifications(
+    request: UserIdCertificationEvaluateInput,
+) -> Result<UserIdCertificationEvaluateResult, OpenPgpReadError> {
+    let mut budget = OpenPgpReadBudget::default();
+    let mut targets = parse_public_key_documents(&[request.public_key], &mut budget)?;
+    if targets.len() != 1 {
+        return Err(OpenPgpReadError::InvalidArgument);
+    }
+    let target = targets.remove(0);
+
+    let (authorities, supporting_certificates) =
+        parse_certification_authorities(request.authorities, &mut budget)?;
+
+    // The target certificate consumes the remaining certificate slot.
+    if authorities
+        .len()
+        .saturating_add(supporting_certificates.len())
+        >= MAX_CERTIFICATES_PER_REQUEST
+    {
+        return Err(OpenPgpReadError::ResourceLimit);
+    }
+
+    let reference_time = reference_time(request.reference_time_epoch_seconds);
+    let mut candidates = certificate_components(&target).collect::<Vec<_>>();
+    candidates.extend(all_components(&authorities));
+    candidates.extend(all_components(&supporting_certificates));
+    let target_policy =
+        validate_certificate(&target, &candidates, reference_time, budget.policy_mut())?;
+    let trusted = trusted_certification_authorities(
+        &authorities,
+        &candidates,
+        reference_time,
+        budget.policy_mut(),
+    )?;
+
+    let target_fingerprint = target.primary_key.fingerprint();
+    let target_is_owned = trusted
+        .iter()
+        .any(|authority| authority.certificate().primary_key.fingerprint() == target_fingerprint);
+    if target_is_owned {
+        let confirmed_user_ids = target_policy
+            .authenticated_user_ids()
+            .map(|user_id| user_id.packet_body().to_vec())
+            .collect();
+        return Ok(UserIdCertificationEvaluateResult { confirmed_user_ids });
+    }
+
+    let trusted = trusted
+        .iter()
+        .map(|authority| {
+            let primary_key = &authority.certificate().primary_key;
+            (
+                primary_key.fingerprint(),
+                PublicComponent::Primary(primary_key.clone()),
+            )
+        })
+        .collect::<Vec<_>>();
+    let mut confirmed_user_ids = Vec::new();
+    for user_id in target_policy.authenticated_user_ids() {
+        let packet_body = user_id.packet_body();
+        let Some(signed_user_id) = target
+            .details
+            .users
+            .iter()
+            .find(|candidate| candidate.id.id() == packet_body)
+        else {
+            return Err(OpenPgpReadError::Internal);
+        };
+        let mut confirmed = false;
+        for (fingerprint, component) in &trusted {
+            let authority_certifies = match certification_authority_confirms_identity(
+                &target,
+                &signed_user_id.id,
+                &signed_user_id.signatures,
+                fingerprint,
+                component,
+                reference_time,
+                budget.policy_mut(),
+            ) {
+                Ok(certifies) => certifies,
+                Err(OpenPgpPolicyError::ResourceLimit) => continue,
+                Err(error) => return Err(error.into()),
+            };
+            if authority_certifies {
+                confirmed = true;
+                break;
+            }
+        }
+        if confirmed {
+            confirmed_user_ids.push(packet_body.to_vec());
+        }
+    }
+    Ok(UserIdCertificationEvaluateResult { confirmed_user_ids })
+}
+
+fn parse_certification_authorities(
+    authority_inputs: Vec<CertificationAuthorityInput>,
+    budget: &mut OpenPgpReadBudget,
+) -> Result<(Vec<SignedPublicKey>, Vec<SignedPublicKey>), OpenPgpReadError> {
+    // The target certificate consumes the remaining document slot.
+    if authority_inputs.len() >= MAX_PUBLIC_KEY_DOCUMENTS {
+        return Err(OpenPgpReadError::ResourceLimit);
+    }
+
+    let mut selected_fingerprints = Vec::new();
+    let mut packet_sets = Vec::new();
+    for authority in authority_inputs {
+        // A malformed fingerprint never matches a parsed certificate, so the
+        // membership check below also rejects invalid fingerprint input.
+        let normalized = normalize_fingerprint(&authority.primary_fingerprint);
+        let document = parse_document_packet_sets(&authority.public_key, budget)
+            .map_err(map_metadata_parse_failure)?;
+        if !document
+            .iter()
+            .any(|certificate| certificate.fingerprint_hex() == normalized)
+        {
+            return Err(OpenPgpReadError::InvalidArgument);
+        }
+        if !selected_fingerprints.contains(&normalized) {
+            selected_fingerprints.push(normalized);
+        }
+        if packet_sets.len() + document.len() > MAX_CERTIFICATES_PER_REQUEST {
+            return Err(OpenPgpReadError::ResourceLimit);
+        }
+        packet_sets.extend(document);
+    }
+
+    let merged = merge_public_certificate_packet_sets(packet_sets, MAX_CERTIFICATES_PER_REQUEST)
+        .map_err(map_certificate_merge_error)?;
+    let mut certificates = finalize_packet_sets(merged, budget)?;
+    let mut authorities = Vec::with_capacity(selected_fingerprints.len());
+    for fingerprint in selected_fingerprints {
+        let index = certificates
+            .iter()
+            .position(|certificate| certificate.fingerprint == fingerprint)
+            .ok_or(OpenPgpReadError::Internal)?;
+        authorities.push(certificates.remove(index).semantic);
+    }
+    let supporting_certificates = certificates
+        .into_iter()
+        .map(|certificate| certificate.semantic)
+        .collect();
+    Ok((authorities, supporting_certificates))
+}
+
+fn trusted_certification_authorities<'a>(
+    authorities: &'a [SignedPublicKey],
+    candidates: &[PublicComponent],
+    reference_time: u64,
+    budget: &mut OpenPgpPolicyBudget,
+) -> Result<Vec<ValidatedCertificate<'a>>, OpenPgpPolicyError> {
+    let mut trusted = Vec::new();
+    for authority in authorities {
+        let policy = match validate_certificate(authority, candidates, reference_time, budget) {
+            Ok(policy) => policy,
+            Err(OpenPgpPolicyError::ResourceLimit) => continue,
+            Err(error) => return Err(error),
+        };
+        let primary = policy.primary_component();
+        let primary_policy = primary.policy();
+        if policy.primary_available()
+            && key_signature_verification_acceptable(primary_policy.key)
+            && can_certify(
+                primary_policy.key.version(),
+                primary_policy.key_flags.as_ref(),
+            )
+        {
+            trusted.push(policy);
+        }
+    }
+    Ok(trusted)
+}
+
+fn certification_authority_confirms_identity(
+    target: &SignedPublicKey,
+    identity: &impl Serialize,
+    signatures: &[Signature],
+    authority_fingerprint: &Fingerprint,
+    authority: &PublicComponent,
+    reference_time: u64,
+    budget: &mut OpenPgpPolicyBudget,
+) -> Result<bool, OpenPgpPolicyError> {
+    budget.select_certificate(authority_fingerprint.as_bytes());
+    trusted_authority_certifies_identity(
+        &target.primary_key,
+        Tag::UserId,
+        identity,
+        signatures,
+        authority,
+        reference_time,
+        budget,
+    )
 }
 
 /// Verifies a clear-signed document or a one-shot detached signature.
@@ -2814,20 +3011,7 @@ fn legacy_curve_bit_strength(curve: ECCCurve) -> u32 {
 fn distinct_emails(user_ids: &[String]) -> Vec<String> {
     let mut emails = Vec::new();
     for user_id in user_ids {
-        let email = user_id
-            .find('<')
-            .and_then(|start| {
-                user_id[start + 1..]
-                    .find('>')
-                    .map(|end| &user_id[start + 1..start + 1 + end])
-            })
-            .map(str::trim)
-            .filter(|email| !email.is_empty())
-            .or_else(|| {
-                let value = user_id.trim();
-                (value.contains('@') && !value.contains(' ')).then_some(value)
-            });
-        if let Some(email) = email
+        if let Some(email) = conventional_user_id_email(user_id)
             && !emails.iter().any(|existing| existing == email)
         {
             emails.push(email.to_owned());

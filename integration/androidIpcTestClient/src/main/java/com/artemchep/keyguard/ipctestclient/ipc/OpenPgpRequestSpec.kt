@@ -24,6 +24,7 @@ data class OpenPgpRequestSpec(
     val signKeyId: Long? = null,
     val preselectKeyId: Long? = null,
     val keyId: Long? = null,
+    val senderAddress: String? = null,
     val originalFilename: String? = null,
     val asciiArmor: Boolean? = null,
     val enableCompression: Boolean? = null,
@@ -80,6 +81,7 @@ data class OpenPgpRequestSpec(
         signKeyId?.let { intent.putExtra(OpenPgpApi.EXTRA_SIGN_KEY_ID, it) }
         preselectKeyId?.let { intent.putExtra(OpenPgpApi.EXTRA_PRESELECT_KEY_ID, it) }
         keyId?.let { intent.putExtra(OpenPgpApi.EXTRA_KEY_ID, it) }
+        senderAddress?.let { intent.putExtra(OpenPgpApi.EXTRA_SENDER_ADDRESS, it) }
     }
 
     private fun putOptions(intent: Intent) {
@@ -114,6 +116,7 @@ data class OpenPgpRequestSpec(
             signKeyId == other.signKeyId &&
             preselectKeyId == other.preselectKeyId &&
             keyId == other.keyId &&
+            senderAddress == other.senderAddress &&
             originalFilename == other.originalFilename &&
             asciiArmor == other.asciiArmor &&
             enableCompression == other.enableCompression &&
@@ -136,6 +139,7 @@ data class OpenPgpRequestSpec(
         result = HASH_FACTOR * result + keyIds.hashCode()
         result = HASH_FACTOR * result + signKeyId.hashCode()
         result = HASH_FACTOR * result + keyId.hashCode()
+        result = HASH_FACTOR * result + senderAddress.hashCode()
         result = HASH_FACTOR * result + detachedSignature.contentHashCode()
         return result
     }

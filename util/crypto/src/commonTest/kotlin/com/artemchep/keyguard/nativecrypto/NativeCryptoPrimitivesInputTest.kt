@@ -307,5 +307,55 @@ class NativeCryptoPrimitivesInputTest {
                 referenceTimeEpochSeconds = -1L,
             )
         }
+        assertFailsWith<IllegalArgumentException> {
+            NativeCrypto.openPgp.evaluateUserIdCertifications(
+                publicKey = byteArrayOf(1),
+                authorities = emptyList(),
+                referenceTimeEpochSeconds = -1L,
+            )
+        }
+    }
+
+    @Test
+    fun rejectsInvalidOpenPgpCertificationAuthorityInputsBeforeCallingNativeCode() {
+        assertFailsWith<IllegalArgumentException> {
+            NativeCrypto.openPgp.evaluateUserIdCertifications(
+                publicKey = byteArrayOf(),
+                authorities = emptyList(),
+            )
+        }
+        assertFailsWith<IllegalArgumentException> {
+            NativeCrypto.openPgp.evaluateUserIdCertifications(
+                publicKey = byteArrayOf(1),
+                authorities = listOf(
+                    NativeOpenPgpCertificationAuthority(
+                        publicKey = byteArrayOf(),
+                        primaryFingerprint = "A".repeat(40),
+                    ),
+                ),
+            )
+        }
+        assertFailsWith<IllegalArgumentException> {
+            NativeCrypto.openPgp.evaluateUserIdCertifications(
+                publicKey = byteArrayOf(1),
+                authorities = listOf(
+                    NativeOpenPgpCertificationAuthority(
+                        publicKey = byteArrayOf(2),
+                        primaryFingerprint = "not-a-fingerprint",
+                    ),
+                ),
+            )
+        }
+        assertFailsWith<IllegalArgumentException> {
+            NativeCrypto.openPgp.evaluateUserIdCertifications(
+                publicKey = byteArrayOf(1),
+                authorities = List(NativeCryptoOpenPgp.MAX_KEY_DOCUMENTS_PER_REQUEST) {
+                    NativeOpenPgpCertificationAuthority(
+                        publicKey = byteArrayOf(2),
+                        primaryFingerprint = "A".repeat(40),
+                    )
+                },
+            )
+        }
     }
 }

@@ -4,11 +4,13 @@ use zeroize::Zeroizing;
 
 use crate::{
     openpgp::message::{
-        self as workflow, CertificateResolution, ClearVerificationResult, ClearVerifyInput,
-        ComponentPolicySummary, ComponentRevocationStatus, DetachedVerifyInput, MetadataResolution,
-        MetadataResolveInput, PolicyUse, PublicKeyInfo, PublicKeyParseFailure, PublicKeyParseInput,
+        self as workflow, CertificateResolution, CertificationAuthorityInput,
+        ClearVerificationResult, ClearVerifyInput, ComponentPolicySummary,
+        ComponentRevocationStatus, DetachedVerifyInput, MetadataResolution, MetadataResolveInput,
+        PolicyUse, PublicKeyInfo, PublicKeyParseFailure, PublicKeyParseInput,
         PublicKeyParseOutcome, PublicKeyParseSuccess, PublicSubkeyInfo, RenewalCapability,
-        UserIdInfo, Verification, VerificationStatus, VerificationWarning, VerifyInput, VerifyKind,
+        UserIdCertificationEvaluateInput, UserIdInfo, Verification, VerificationStatus,
+        VerificationWarning, VerifyInput, VerifyKind,
     },
     primitives::PrimitiveError,
 };
@@ -23,6 +25,7 @@ use super::{
         OpenPgpPublicKeyInfo, OpenPgpPublicKeyParseError, OpenPgpPublicKeyParseErrorReason,
         OpenPgpPublicKeyParseRequest, OpenPgpPublicKeyParseResult, OpenPgpPublicKeyParseSuccess,
         OpenPgpPublicSubKeyInfo, OpenPgpRenewalAuthorization, OpenPgpRevocationStatus,
+        OpenPgpUserIdCertificationEvaluateRequest, OpenPgpUserIdCertificationEvaluateResult,
         OpenPgpUserIdInfo, OpenPgpVerification, OpenPgpVerificationStatus,
         OpenPgpVerificationWarning, OpenPgpVerifyKind, OpenPgpVerifyRequest,
         open_pgp_public_key_parse_result,
@@ -38,6 +41,27 @@ pub(crate) fn parse_public_key(
     })
     .map_err(super::read_error)?;
     Ok(public_key_parse_outcome(outcome).encode_to_vec())
+}
+
+pub(crate) fn evaluate_user_id_certifications(
+    mut request: OpenPgpUserIdCertificationEvaluateRequest,
+) -> Result<Vec<u8>, PrimitiveError> {
+    let result = workflow::evaluate_user_id_certifications(UserIdCertificationEvaluateInput {
+        public_key: std::mem::take(&mut request.public_key),
+        authorities: std::mem::take(&mut request.authorities)
+            .into_iter()
+            .map(|mut authority| CertificationAuthorityInput {
+                public_key: std::mem::take(&mut authority.public_key),
+                primary_fingerprint: std::mem::take(&mut authority.primary_fingerprint),
+            })
+            .collect(),
+        reference_time_epoch_seconds: request.reference_time_epoch_seconds,
+    })
+    .map_err(super::read_error)?;
+    Ok(OpenPgpUserIdCertificationEvaluateResult {
+        confirmed_user_ids: result.confirmed_user_ids,
+    }
+    .encode_to_vec())
 }
 
 pub(crate) fn verify(mut request: OpenPgpVerifyRequest) -> Result<Vec<u8>, PrimitiveError> {

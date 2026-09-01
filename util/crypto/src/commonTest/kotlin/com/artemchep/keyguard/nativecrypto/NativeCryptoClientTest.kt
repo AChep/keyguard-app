@@ -77,6 +77,7 @@ class NativeCryptoClientTest {
             NativeCryptoCapability.OPENPGP_USER_ID_REPLACEMENT,
             NativeCryptoCapability.OPENPGP_CERTIFICATE_MATERIAL_RECONCILE,
             NativeCryptoCapability.OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2,
+            NativeCryptoCapability.OPENPGP_USER_ID_CERTIFICATION,
         ).forEach { missingCapability ->
             val bridge = FakeBridge(
                 capabilities = allNativeCryptoCapabilitiesMask and missingCapability.bit.inv(),
@@ -1301,7 +1302,7 @@ class NativeCryptoClientTest {
                 ProtoBuf.decodeFromByteArray<NativeRequestProto>(encoded).operation::class,
             )
         }
-        assertEquals(0x1_FFFF_FFFFL, allNativeCryptoCapabilitiesMask)
+        assertEquals(0x3_FFFF_FFFFL, allNativeCryptoCapabilitiesMask)
     }
 
     private fun openPgpProtocolExtensions(): List<
@@ -1354,6 +1355,16 @@ class NativeCryptoClientTest {
                     ),
                 ),
                 57,
+            ),
+            Triple(
+                NativeCryptoCapability.OPENPGP_USER_ID_CERTIFICATION,
+                OpenPgpUserIdCertificationEvaluateOperationProto(
+                    OpenPgpUserIdCertificationEvaluateRequestProto(
+                        publicKey = byteArrayOf(1),
+                        authorities = emptyList(),
+                    ),
+                ),
+                58,
             ),
         )
 

@@ -29,7 +29,9 @@ pub(crate) use mutation::{
     reconcile_certificate_material, reconcile_certificate_material_v2, replace_user_id,
     revoke_user_id, update_expiration,
 };
-pub(crate) use read::{parse_public_key, resolve_metadata, verify};
+pub(crate) use read::{
+    evaluate_user_id_certifications, parse_public_key, resolve_metadata, verify,
+};
 
 pub(crate) fn generate_key(request: OpenPgpKeyGenerateRequest) -> Result<Vec<u8>, PrimitiveError> {
     key::generate(request).map_err(write_error)

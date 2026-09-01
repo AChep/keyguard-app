@@ -15,6 +15,8 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationStatus
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationWarning
 import com.artemchep.keyguard.common.service.crypto.OPENPGP_HEX_RADIX
 import com.artemchep.keyguard.common.service.crypto.fingerprintToKeyId
+import com.artemchep.keyguard.common.service.crypto.normalizeGpgMailboxAddress
+import com.artemchep.keyguard.common.service.crypto.normalizeGpgUserIdEmail
 import com.artemchep.keyguard.common.service.crypto.normalized
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ipc_operation_openpgp_autocrypt_status
@@ -89,9 +91,11 @@ internal fun GpgOpenPgpLiteralMetadata.toOpenPgpMetadata(
     )
 }
 
-internal fun GpgOpenPgpVerification?.toApiResult(): OpenPgpSignatureResult = this
+internal fun GpgOpenPgpVerification?.toApiResult(
+    senderAddress: String?,
+): OpenPgpSignatureResult = this
     ?.selectOpenPgpApiSignature()
-    .toSingleSignatureApiResult()
+    .toSingleSignatureApiResult(senderAddress)
 
 /**
  * OpenIntents can expose only one signature result. Prefer a definite payload
@@ -119,6 +123,9 @@ private fun GpgOpenPgpVerification.openPgpApiResultPriority(): OpenPgpApiResultP
     status == GpgOpenPgpVerificationStatus.INVALID ->
         OpenPgpApiResultPriority.INVALID_SIGNATURE
 
+    GpgOpenPgpVerificationWarning.POLICY_CONFLICT in warnings ->
+        OpenPgpApiResultPriority.POLICY_CONFLICT
+
     else -> OpenPgpApiResultPriority.VALID
 }
 
@@ -127,10 +134,13 @@ private enum class OpenPgpApiResultPriority {
     INVALID_KEY_REVOKED,
     INVALID_KEY_EXPIRED,
     KEY_MISSING,
+    POLICY_CONFLICT,
     VALID,
 }
 
-private fun GpgOpenPgpVerification?.toSingleSignatureApiResult(): OpenPgpSignatureResult {
+private fun GpgOpenPgpVerification?.toSingleSignatureApiResult(
+    senderAddress: String?,
+): OpenPgpSignatureResult {
     this ?: return OpenPgpSignatureResult.createWithNoSignature()
     return when (openPgpApiResultPriority()) {
         OpenPgpApiResultPriority.KEY_MISSING ->
@@ -142,24 +152,36 @@ private fun GpgOpenPgpVerification?.toSingleSignatureApiResult(): OpenPgpSignatu
         OpenPgpApiResultPriority.INVALID_KEY_REVOKED ->
             createKnownKeySignatureResult(
                 result = OpenPgpSignatureResult.RESULT_INVALID_KEY_REVOKED,
+                senderAddress = senderAddress,
             )
 
         OpenPgpApiResultPriority.INVALID_KEY_EXPIRED ->
             createKnownKeySignatureResult(
                 result = OpenPgpSignatureResult.RESULT_INVALID_KEY_EXPIRED,
+                senderAddress = senderAddress,
             )
 
         OpenPgpApiResultPriority.INVALID_SIGNATURE ->
             OpenPgpSignatureResult.createWithInvalidSignature()
 
-        OpenPgpApiResultPriority.VALID -> createKnownKeySignatureResult(
-            result = OpenPgpSignatureResult.RESULT_VALID_KEY_UNCONFIRMED,
+        // A policy conflict empties [openPgpApiConfirmedUserIds], so the
+        // shared branch always reports the key as unconfirmed.
+        OpenPgpApiResultPriority.POLICY_CONFLICT,
+        OpenPgpApiResultPriority.VALID,
+        -> createKnownKeySignatureResult(
+            result = if (openPgpApiConfirmedUserIds.isNotEmpty()) {
+                OpenPgpSignatureResult.RESULT_VALID_KEY_CONFIRMED
+            } else {
+                OpenPgpSignatureResult.RESULT_VALID_KEY_UNCONFIRMED
+            },
+            senderAddress = senderAddress,
         )
     }
 }
 
 private fun GpgOpenPgpVerification.createKnownKeySignatureResult(
     result: Int,
+    senderAddress: String?,
 ): OpenPgpSignatureResult = OpenPgpSignatureResult.createWithValidSignature(
         result,
         userIds.firstOrNull(),
@@ -169,21 +191,57 @@ private fun GpgOpenPgpVerification.createKnownKeySignatureResult(
                 keyId.toULong(OPENPGP_HEX_RADIX).toLong()
             }.getOrDefault(0L),
         userIds,
-        emptyList(),
-        null,
+        openPgpApiConfirmedUserIds,
+        senderStatusResult(senderAddress),
         createdAt?.let { Date(it.toEpochMilliseconds()) },
     )
+
+/**
+ * A policy conflict makes every identity assertion ambiguous to API clients.
+ * The domain layer already strips confirmed identities from conflicted
+ * results; this guard keeps the API contract independent of that invariant.
+ */
+private val GpgOpenPgpVerification.openPgpApiConfirmedUserIds: List<String>
+    get() = if (GpgOpenPgpVerificationWarning.POLICY_CONFLICT in warnings) {
+        emptyList()
+    } else {
+        confirmedUserIds
+    }
+
+private fun GpgOpenPgpVerification.senderStatusResult(
+    senderAddress: String?,
+): OpenPgpSignatureResult.SenderStatusResult {
+    val normalizedSenderAddress = senderAddress?.let(::normalizeGpgMailboxAddress)
+    fun List<String>.matchesSender(): Boolean = any { userId ->
+        normalizeGpgUserIdEmail(userId) == normalizedSenderAddress
+    }
+    return when {
+        senderAddress == null -> OpenPgpSignatureResult.SenderStatusResult.UNKNOWN
+        normalizedSenderAddress == null ->
+            OpenPgpSignatureResult.SenderStatusResult.USER_ID_MISSING
+
+        openPgpApiConfirmedUserIds.matchesSender() ->
+            OpenPgpSignatureResult.SenderStatusResult.USER_ID_CONFIRMED
+
+        userIds.matchesSender() ->
+            OpenPgpSignatureResult.SenderStatusResult.USER_ID_UNCONFIRMED
+
+        else -> OpenPgpSignatureResult.SenderStatusResult.USER_ID_MISSING
+    }
+}
 
 internal fun Intent.putOpenPgpVerificationResults(
     apiVersion: Int,
     encrypted: Boolean,
     verification: GpgOpenPgpVerification?,
     metadata: OpenPgpMetadata?,
+    senderAddress: String?,
 ) {
     val compatibility = openPgpCompatibilityResults(
         apiVersion = apiVersion,
         encrypted = encrypted,
         verification = verification,
+        senderAddress = senderAddress,
     )
     compatibility.decryptionResult?.let { result ->
         putExtra(
@@ -211,8 +269,9 @@ internal fun openPgpCompatibilityResults(
     apiVersion: Int,
     encrypted: Boolean,
     verification: GpgOpenPgpVerification?,
+    senderAddress: String?,
 ): OpenPgpCompatibilityResults {
-    val signature = verification.toApiResult()
+    val signature = verification.toApiResult(senderAddress)
     if (apiVersion > OPENPGP_LEGACY_RESULT_MAX_API_VERSION) {
         return OpenPgpCompatibilityResults(
             decryptionResult = if (encrypted) {

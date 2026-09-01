@@ -153,8 +153,10 @@ pub(super) fn insert_designated_revoker(
     if revokers.contains(&candidate) {
         return Ok(false);
     }
+    // The cap is request-wide, so exhausting it must not be recoverable as a
+    // per-certificate skip.
     if revokers.len() >= MAX_DESIGNATED_REVOKERS_PER_REQUEST {
-        return Err(OpenPgpPolicyError::ResourceLimit);
+        return Err(OpenPgpPolicyError::RequestResourceLimit);
     }
     revokers.push(candidate);
     Ok(true)

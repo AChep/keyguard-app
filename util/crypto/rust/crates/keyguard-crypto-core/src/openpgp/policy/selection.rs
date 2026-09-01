@@ -7,7 +7,7 @@
 use pgp::{
     crypto::public_key::PublicKeyAlgorithm,
     packet::{KeyFlags, PublicKey, PublicSubkey, Signature, SubpacketData},
-    types::{KeyDetails, PublicParams},
+    types::{KeyDetails, KeyVersion, PublicParams},
 };
 
 use crate::openpgp::crypto::leading_mpi_bits;
@@ -411,6 +411,12 @@ pub(in crate::openpgp) fn can_sign(
     flags: Option<&KeyFlags>,
 ) -> bool {
     signature_algorithm_acceptable(algorithm) && flags.is_none_or(KeyFlags::sign)
+}
+
+/// RFC 9580 section 10.1 makes V4 primary keys certification-capable
+/// independently of an advertised Key Flags subpacket.
+pub(in crate::openpgp) fn can_certify(version: KeyVersion, flags: Option<&KeyFlags>) -> bool {
+    version == KeyVersion::V4 || flags.is_none_or(KeyFlags::certify)
 }
 
 pub(in crate::openpgp) fn can_encrypt(

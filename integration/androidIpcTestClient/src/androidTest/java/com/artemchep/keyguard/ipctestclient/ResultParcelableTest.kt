@@ -46,6 +46,22 @@ class ResultParcelableTest {
         assertEquals(OpenPgpSignatureResult.RESULT_KEY_MISSING, signature.result)
         assertEquals(KEY_ID, signature.keyId)
 
+        val knownSignature = OpenPgpSignatureResult
+            .createWithValidSignature(
+                OpenPgpSignatureResult.RESULT_VALID_KEY_UNCONFIRMED,
+                USER_ID,
+                KEY_ID,
+                listOf(USER_ID),
+                emptyList(),
+                OpenPgpSignatureResult.SenderStatusResult.USER_ID_UNCONFIRMED,
+                null,
+            )
+            .roundTrip(OpenPgpSignatureResult.CREATOR)
+        assertEquals(
+            OpenPgpSignatureResult.SenderStatusResult.USER_ID_UNCONFIRMED,
+            knownSignature.senderStatusResult,
+        )
+
         val openPgpError = OpenPgpError(OpenPgpError.INCOMPATIBLE_API_VERSIONS, "version")
             .roundTrip(OpenPgpError.CREATOR)
         assertEquals(OpenPgpError.INCOMPATIBLE_API_VERSIONS, openPgpError.errorId)
@@ -72,5 +88,6 @@ class ResultParcelableTest {
         const val MODIFICATION_TIME = 1_700_000_000_000L
         const val ORIGINAL_SIZE = 42L
         const val KEY_ID = 0x0123_4567_89AB_CDEFL
+        const val USER_ID = "Alice <alice@example.com>"
     }
 }

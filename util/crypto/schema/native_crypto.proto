@@ -54,6 +54,7 @@ message NativeRequest {
     OpenPgpUserIdReplacementRequest open_pgp_user_id_replacement = 55;
     OpenPgpCertificateMaterialReconcileRequest open_pgp_certificate_material_reconcile = 56;
     OpenPgpCertificateMaterialReconcileV2Request open_pgp_certificate_material_reconcile_v2 = 57;
+    OpenPgpUserIdCertificationEvaluateRequest open_pgp_user_id_certification_evaluate = 58;
   }
 }
 
@@ -480,6 +481,27 @@ message OpenPgpPublicKeyParseRequest {
   // Supplying the policy time makes expiry decisions deterministic. When
   // absent, the native library uses the current wall-clock second.
   optional uint64 reference_time_epoch_seconds = 2;
+}
+
+message OpenPgpCertificationAuthority {
+  // A public-key document that contains the explicitly selected primary key.
+  bytes public_key = 1;
+  // Only this primary key is trusted, even when the document is a keyring.
+  string primary_fingerprint = 2;
+}
+
+message OpenPgpUserIdCertificationEvaluateRequest {
+  // Exactly one target certificate, encoded as ASCII armor or binary packets.
+  bytes public_key = 1;
+  repeated OpenPgpCertificationAuthority authorities = 2;
+  optional uint64 reference_time_epoch_seconds = 3;
+}
+
+message OpenPgpUserIdCertificationEvaluateResult {
+  // Exact User ID packet bodies authenticated by the target certificate and
+  // certified by at least one currently usable trusted authority. Consumers
+  // that expose text must decode UTF-8 strictly.
+  repeated bytes confirmed_user_ids = 1;
 }
 
 enum OpenPgpVerifyKind {

@@ -250,19 +250,18 @@ internal fun List<ByteArray>.eraseAll() {
 internal fun <T> List<T>.clampToNativeOpenPgpKeyLimit(): List<T> =
     take(NativeCryptoOpenPgp.MAX_KEY_DOCUMENTS_PER_REQUEST)
 
-internal fun <T> List<T>.requireNativeOpenPgpRevocationCandidateLimit(): List<T> {
-    if (size > NativeCryptoOpenPgp.MAX_KEY_DOCUMENTS_PER_REQUEST) {
+internal fun <T> List<T>.requireNativeOpenPgpKeyDocumentLimit(
+    operation: String,
+    max: Int = NativeCryptoOpenPgp.MAX_KEY_DOCUMENTS_PER_REQUEST,
+): List<T> {
+    if (size > max) {
         throw NativeCryptoException(
-            operation = "open_pgp_revocation_candidates",
+            operation = operation,
             code = NativeCryptoErrorCode.RESOURCE_LIMIT,
         )
     }
     return this
 }
 
-internal fun throwLegacyAesUnsupported(): Nothing {
-    throw IllegalArgumentException(
-        "The support for AES CBC 256 (enc-type 0) is not longer provided! " +
-            "Please upgrade your vault to migrate to a newer encryption type!",
-    )
-}
+internal fun <T> List<T>.requireNativeOpenPgpRevocationCandidateLimit(): List<T> =
+    requireNativeOpenPgpKeyDocumentLimit(operation = "open_pgp_revocation_candidates")

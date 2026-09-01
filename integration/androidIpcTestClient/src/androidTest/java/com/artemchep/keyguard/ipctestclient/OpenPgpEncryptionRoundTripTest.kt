@@ -10,6 +10,7 @@ import com.artemchep.keyguard.ipctestclient.support.ApprovalRobot
 import com.artemchep.keyguard.ipctestclient.support.KeyguardProviderRule
 import com.artemchep.keyguard.ipctestclient.support.SuiteState
 import com.artemchep.keyguard.ipctestclient.support.requireOpenPgpSuccess
+import com.artemchep.keyguard.ipctestclient.support.requireSignatureResult
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -47,18 +48,35 @@ class OpenPgpEncryptionRoundTripTest {
     }
 
     @Test
-    fun signAndEncryptThenDecryptVerifiesTheSignature() {
+    fun signAndEncryptThenDecryptReportsTheSenderIdentityStatus() {
         state.signKeyId()
         val ciphertext = encrypt(OpenPgpOperation.SIGN_AND_ENCRYPT)
-        val result = decrypt(ciphertext, OpenPgpOperation.DECRYPT_VERIFY)
-            .requireOpenPgpSuccess()
-        @Suppress("DEPRECATION")
-        val signature = requireNotNull(
-            result.getParcelableExtra<OpenPgpSignatureResult>(OpenPgpApi.RESULT_SIGNATURE),
+        val result = decrypt(
+            ciphertext = ciphertext,
+            operation = OpenPgpOperation.DECRYPT_VERIFY,
+            senderAddress = state.signingEmail(),
         )
+            .requireOpenPgpSuccess()
+        val signature = result.requireSignatureResult()
         assertEquals(
-            openPgpSignatureStatusName(OpenPgpSignatureResult.RESULT_VALID_KEY_UNCONFIRMED),
+            openPgpSignatureStatusName(OpenPgpSignatureResult.RESULT_VALID_KEY_CONFIRMED),
             openPgpSignatureStatusName(signature.result),
+        )
+        assertTrue(signature.confirmedUserIds.isNotEmpty())
+        assertEquals(
+            OpenPgpSignatureResult.SenderStatusResult.USER_ID_CONFIRMED,
+            signature.senderStatusResult,
+        )
+
+        val mismatchedResult = decrypt(
+            ciphertext = ciphertext,
+            operation = OpenPgpOperation.DECRYPT_VERIFY,
+            senderAddress = "not-the-signer@example.invalid",
+        ).requireOpenPgpSuccess()
+        val mismatchedSignature = mismatchedResult.requireSignatureResult()
+        assertEquals(
+            OpenPgpSignatureResult.SenderStatusResult.USER_ID_MISSING,
+            mismatchedSignature.senderStatusResult,
         )
     }
 
@@ -150,9 +168,19 @@ class OpenPgpEncryptionRoundTripTest {
         return ciphertext
     }
 
-    private fun decrypt(ciphertext: ByteArray, operation: OpenPgpOperation) = provider
+    private fun decrypt(
+        ciphertext: ByteArray,
+        operation: OpenPgpOperation,
+        senderAddress: String? = null,
+    ) = provider
         .openPgpRunner()
-        .run(OpenPgpRequestSpec(operation = operation, payload = ciphertext))
+        .run(
+            OpenPgpRequestSpec(
+                operation = operation,
+                payload = ciphertext,
+                senderAddress = senderAddress,
+            ),
+        )
 
     private companion object {
         val PAYLOAD = "round trip through the OpenPGP provider".encodeToByteArray()

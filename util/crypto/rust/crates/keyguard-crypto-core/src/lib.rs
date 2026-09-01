@@ -104,6 +104,8 @@ pub const CAPABILITY_OPENPGP_USER_ID_REPLACEMENT: u64 = 1 << 30;
 pub const CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE: u64 = 1 << 31;
 /// OpenPGP reconciliation with separate local and transferable material outputs.
 pub const CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2: u64 = 1 << 32;
+/// Per-User-ID certification evaluation against explicit local trust roots.
+pub const CAPABILITY_OPENPGP_USER_ID_CERTIFICATION: u64 = 1 << 33;
 /// Complete capability set provided by this native library revision.
 pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_PBKDF2_SHA256
@@ -137,7 +139,8 @@ pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_OPENPGP_SIGNED_REVOCATION
     | CAPABILITY_OPENPGP_USER_ID_REPLACEMENT
     | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE
-    | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2;
+    | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2
+    | CAPABILITY_OPENPGP_USER_ID_CERTIFICATION;
 
 static PANIC_HOOK: Once = Once::new();
 
@@ -553,6 +556,9 @@ fn execute_one_shot(
         native_request::Operation::OpenPgpMetadataResolve(request) => {
             openpgp::adapter::resolve_metadata(request)?
         }
+        native_request::Operation::OpenPgpUserIdCertificationEvaluate(request) => {
+            openpgp::adapter::evaluate_user_id_certifications(request)?
+        }
         native_request::Operation::OpenPgpKeyGenerate(request) => {
             openpgp::adapter::generate_key(request)?
         }
@@ -629,6 +635,9 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::OpenPgpPublicKeyParse(_) => "open_pgp_public_key_parse",
         native_request::Operation::OpenPgpVerify(_) => "open_pgp_verify",
         native_request::Operation::OpenPgpMetadataResolve(_) => "open_pgp_metadata_resolve",
+        native_request::Operation::OpenPgpUserIdCertificationEvaluate(_) => {
+            "open_pgp_user_id_certification_evaluate"
+        }
         native_request::Operation::OpenPgpKeyGenerate(_) => "open_pgp_key_generate",
         native_request::Operation::OpenPgpKeyImport(_) => "open_pgp_key_import",
         native_request::Operation::OpenPgpSign(_) => "open_pgp_sign",
@@ -1290,7 +1299,7 @@ mod tests {
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
         assert_eq!(PROTOCOL_VERSION, 2);
-        assert_eq!(CAPABILITIES, 0x1ffffffff);
+        assert_eq!(CAPABILITIES, 0x3ffffffff);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256, 1 << 20);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256_FAST_PATH, 1 << 21);
         assert_eq!(CAPABILITY_RANDOM_FAST_PATH, 1 << 23);
@@ -1307,6 +1316,7 @@ mod tests {
             CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2,
             1 << 32
         );
+        assert_eq!(CAPABILITY_OPENPGP_USER_ID_CERTIFICATION, 1 << 33);
     }
 
     #[test]

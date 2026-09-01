@@ -270,6 +270,8 @@ class GpgKeyserverClientImplTest {
                 pub:0123456789ABCDEF:1:4096:1700000000:1731536000:
                 fpr:::::::::ABCDEF0123456789ABCDEF0123456789ABCDEF01:
                 uid:Alice%20Example%20%3Calice%40example.com%3E:::::::::
+                uid:Name%20%3Cfirst%40example.com%3E%20%3Csecond%40example.com%3E:::::::::
+                uid:%3Cbad%3Cgood%40example.com%3E:::::::::
             """.trimIndent(),
             contentType = ContentType.Text.Plain,
         )
@@ -299,7 +301,14 @@ class GpgKeyserverClientImplTest {
         val result = results.single()
         assertEquals("ABCDEF0123456789ABCDEF0123456789ABCDEF01", result.fingerprint)
         assertEquals("0123456789ABCDEF", result.keyId)
-        assertEquals(listOf("Alice Example <alice@example.com>"), result.userIds)
+        assertEquals(
+            listOf(
+                "Alice Example <alice@example.com>",
+                "Name <first@example.com> <second@example.com>",
+                "<bad<good@example.com>",
+            ),
+            result.userIds,
+        )
         assertEquals(listOf("alice@example.com"), result.emails)
         assertEquals("RSA", result.algorithm)
         assertEquals("https://keyserver.ubuntu.com", result.sourceKeyserver)

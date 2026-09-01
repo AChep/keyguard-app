@@ -53,6 +53,24 @@ class NativeCryptoOpenPgpFixtureTest {
     }
 
     @Test
+    fun confirmsOwnedUserIdAcrossTheNativeByteProtocol() {
+        val publicKey = PUBLIC_KEY.encodeToByteArray()
+
+        val confirmedUserIds = NativeCrypto.openPgp.evaluateUserIdCertifications(
+            publicKey = publicKey,
+            authorities = listOf(
+                NativeOpenPgpCertificationAuthority(
+                    publicKey = publicKey,
+                    primaryFingerprint = PRIMARY_FINGERPRINT,
+                ),
+            ),
+            referenceTimeEpochSeconds = REFERENCE_TIME,
+        )
+
+        assertEquals(listOf(USER_ID), confirmedUserIds)
+    }
+
+    @Test
     fun resolvesCanonicalMetadataFromSecretOrPublicFallback() {
         val metadata = NativeCrypto.openPgp.resolveMetadata(
             privateKeyData = SECRET_KEY.encodeToByteArray(),

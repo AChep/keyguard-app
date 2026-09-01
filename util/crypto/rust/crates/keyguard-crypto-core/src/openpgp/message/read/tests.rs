@@ -7,20 +7,25 @@ use pgp::{
     crypto::{ecc_curve::ECCCurve, hash::HashAlgorithm, public_key::PublicKeyAlgorithm},
     packet::{
         KeyFlags, PacketHeader, RevocationCode, SignatureConfig, SignatureType, SignatureVersion,
-        Subpacket, SubpacketData,
+        Subpacket, SubpacketData, UserId,
     },
-    types::{Password, RsaPublicParams, SignatureBytes, Timestamp},
+    types::{
+        Password, RevocationKey, RevocationKeyClass, RsaPublicParams, SignatureBytes, SignedUser,
+        Timestamp,
+    },
 };
 use rand::{SeedableRng, rngs::StdRng};
 
 use super::*;
 use crate::openpgp::adapter::wire::{
-    Message as _, OpenPgpClearVerifyResult, OpenPgpClearVerifyStreamOpenRequest,
-    OpenPgpComponentPolicyV2, OpenPgpDetachedVerifyStreamOpenRequest, OpenPgpKeyComponentRole,
-    OpenPgpKeyGenerateRequest, OpenPgpKeyKind, OpenPgpKeyMaterial, OpenPgpMetadataResolveRequest,
+    Message as _, OpenPgpCertificationAuthority, OpenPgpClearVerifyResult,
+    OpenPgpClearVerifyStreamOpenRequest, OpenPgpComponentPolicyV2,
+    OpenPgpDetachedVerifyStreamOpenRequest, OpenPgpKeyComponentRole, OpenPgpKeyGenerateRequest,
+    OpenPgpKeyKind, OpenPgpKeyMaterial, OpenPgpMetadataResolveRequest,
     OpenPgpMetadataResolveResult, OpenPgpPublicKeyInfo, OpenPgpPublicKeyParseErrorReason,
     OpenPgpPublicKeyParseRequest, OpenPgpPublicKeyParseResult, OpenPgpRenewalAuthorization,
-    OpenPgpRevocationStatus, OpenPgpVerification, OpenPgpVerificationStatus,
+    OpenPgpRevocationStatus, OpenPgpUserIdCertificationEvaluateRequest,
+    OpenPgpUserIdCertificationEvaluateResult, OpenPgpVerification, OpenPgpVerificationStatus,
     OpenPgpVerificationWarning, OpenPgpVerifyKind, OpenPgpVerifyRequest,
     open_pgp_public_key_parse_result,
 };
@@ -1037,6 +1042,456 @@ fn verification(request: OpenPgpVerifyRequest) -> OpenPgpVerification {
     .expect("verification result must decode")
 }
 
+fn user_id_certification_result(
+    request: OpenPgpUserIdCertificationEvaluateRequest,
+) -> OpenPgpUserIdCertificationEvaluateResult {
+    OpenPgpUserIdCertificationEvaluateResult::decode(
+        crate::openpgp::adapter::evaluate_user_id_certifications(request)
+            .expect("User ID certification evaluation")
+            .as_slice(),
+    )
+    .expect("decode User ID certification result")
+}
+
+#[test]
+fn owned_and_third_party_certified_user_ids_are_confirmed() {
+    let owned = user_id_certification_result(OpenPgpUserIdCertificationEvaluateRequest {
+        public_key: PUBLIC_KEY.to_vec(),
+        authorities: vec![OpenPgpCertificationAuthority {
+            public_key: PUBLIC_KEY.to_vec(),
+            primary_fingerprint: PRIMARY_FINGERPRINT.to_owned(),
+        }],
+        reference_time_epoch_seconds: Some(REFERENCE_TIME),
+    });
+    assert_eq!(owned.confirmed_user_ids, [USER_ID.as_bytes().to_vec()]);
+
+    let (authority_secret, authority_public) =
+        renewal_test_certificate("Authority <authority@example.test>");
+    let (mut target_secret, _) = renewal_test_certificate("Target <target@example.test>");
+    let unconfirmed_user_id = UserId::from_str(Default::default(), "Other <other@example.test>")
+        .expect("second target User ID");
+    let unconfirmed_self_certification = third_party_identity_statement(
+        &target_secret,
+        &target_secret,
+        &unconfirmed_user_id,
+        SignatureType::CertGeneric,
+        RENEWAL_TEST_SIGNATURE_TIME,
+    );
+    target_secret.details.users.push(SignedUser::new(
+        unconfirmed_user_id,
+        vec![unconfirmed_self_certification],
+    ));
+    let target_user_id = target_secret.details.users[0].id.clone();
+    let certification = third_party_identity_statement(
+        &authority_secret,
+        &target_secret,
+        &target_user_id,
+        SignatureType::CertGeneric,
+        RENEWAL_TEST_SIGNATURE_TIME,
+    );
+    target_secret.details.users[0]
+        .signatures
+        .push(certification);
+    let target_public = target_secret.to_public_key();
+    let authority = OpenPgpCertificationAuthority {
+        public_key: serialized_public_certificate(&authority_public),
+        primary_fingerprint: fingerprint_hex(&authority_public.primary_key),
+    };
+    let confirmed = user_id_certification_result(OpenPgpUserIdCertificationEvaluateRequest {
+        public_key: serialized_public_certificate(&target_public),
+        authorities: vec![authority.clone()],
+        reference_time_epoch_seconds: Some(RENEWAL_TEST_REFERENCE_TIME),
+    });
+    assert_eq!(
+        confirmed.confirmed_user_ids,
+        [b"Target <target@example.test>".to_vec()]
+    );
+
+    let revocation = third_party_identity_statement(
+        &authority_secret,
+        &target_secret,
+        &target_user_id,
+        SignatureType::CertRevocation,
+        RENEWAL_TEST_SIGNATURE_TIME + 1,
+    );
+    target_secret.details.users[0].signatures.push(revocation);
+    let revoked = user_id_certification_result(OpenPgpUserIdCertificationEvaluateRequest {
+        public_key: serialized_public_certificate(&target_secret.to_public_key()),
+        authorities: vec![authority],
+        reference_time_epoch_seconds: Some(RENEWAL_TEST_REFERENCE_TIME),
+    });
+    assert!(revoked.confirmed_user_ids.is_empty());
+}
+
+#[test]
+fn v4_primary_authority_can_certify_when_key_flags_omit_certify() {
+    let (mut authority, _) = renewal_test_certificate("Authority <authority@example.test>");
+    let (mut target, _) = renewal_test_certificate("Target <target@example.test>");
+    assert_eq!(authority.primary_key.version(), KeyVersion::V4);
+
+    let mut signing_only = KeyFlags::default();
+    signing_only.set_sign(true);
+    let authority_self_certification =
+        identity_policy_signature_at(&authority, signing_only, RENEWAL_TEST_SIGNATURE_TIME);
+    authority.details.users[0].signatures = vec![authority_self_certification];
+
+    let target_user_id = target.details.users[0].id.clone();
+    let certification = third_party_identity_statement(
+        &authority,
+        &target,
+        &target_user_id,
+        SignatureType::CertGeneric,
+        RENEWAL_TEST_SIGNATURE_TIME,
+    );
+    target.details.users[0].signatures.push(certification);
+
+    let result = user_id_certification_result(OpenPgpUserIdCertificationEvaluateRequest {
+        public_key: serialized_public_certificate(&target.to_public_key()),
+        authorities: vec![OpenPgpCertificationAuthority {
+            public_key: serialized_public_certificate(&authority.to_public_key()),
+            primary_fingerprint: fingerprint_hex(&authority.primary_key),
+        }],
+        reference_time_epoch_seconds: Some(RENEWAL_TEST_REFERENCE_TIME),
+    });
+
+    assert_eq!(
+        result.confirmed_user_ids,
+        [b"Target <target@example.test>".to_vec()],
+    );
+}
+
+#[test]
+fn duplicate_authority_views_merge_revocations_regardless_of_order() {
+    let (mut authority_secret, authority_public) =
+        renewal_test_certificate("Authority <authority@example.test>");
+    let (mut target_secret, _) = renewal_test_certificate("Target <target@example.test>");
+    let target_user_id = target_secret.details.users[0].id.clone();
+    let certification = third_party_identity_statement(
+        &authority_secret,
+        &target_secret,
+        &target_user_id,
+        SignatureType::CertGeneric,
+        RENEWAL_TEST_SIGNATURE_TIME,
+    );
+    target_secret.details.users[0]
+        .signatures
+        .push(certification);
+
+    let active_authority = serialized_public_certificate(&authority_public);
+    let authority_revocation = renewal_test_key_revocation(&authority_secret);
+    authority_secret
+        .details
+        .revocation_signatures
+        .push(authority_revocation);
+    let revoked_authority = serialized_public_certificate(&authority_secret.to_public_key());
+    let authority_fingerprint = fingerprint_hex(&authority_secret.primary_key);
+    let target = serialized_public_certificate(&target_secret.to_public_key());
+
+    for documents in [
+        vec![active_authority.clone(), revoked_authority.clone()],
+        vec![revoked_authority, active_authority],
+    ] {
+        let result = user_id_certification_result(OpenPgpUserIdCertificationEvaluateRequest {
+            public_key: target.clone(),
+            authorities: documents
+                .into_iter()
+                .map(|public_key| OpenPgpCertificationAuthority {
+                    public_key,
+                    primary_fingerprint: authority_fingerprint.clone(),
+                })
+                .collect(),
+            reference_time_epoch_seconds: Some(RENEWAL_TEST_REFERENCE_TIME),
+        });
+        assert!(
+            result.confirmed_user_ids.is_empty(),
+            "a revocation in either certificate view must disable the authority",
+        );
+    }
+}
+
+#[test]
+fn confirmed_non_utf8_user_ids_preserve_exact_packet_bodies() {
+    let (mut target_secret, _) = renewal_test_certificate("Placeholder <placeholder@example.test>");
+    let first_packet_body: &[u8] = b"J\xF6rg <joerg@example.test>";
+    let second_packet_body: &[u8] = b"J\xF7rg <joerg@example.test>";
+    let first_user_id = UserId::try_from_reader(
+        PacketHeader::new_fixed(
+            Tag::UserId,
+            u32::try_from(first_packet_body.len()).expect("User ID length"),
+        ),
+        first_packet_body,
+    )
+    .expect("construct first non-UTF-8 User ID");
+    let second_user_id = UserId::try_from_reader(
+        PacketHeader::new_fixed(
+            Tag::UserId,
+            u32::try_from(second_packet_body.len()).expect("User ID length"),
+        ),
+        second_packet_body,
+    )
+    .expect("construct second non-UTF-8 User ID");
+    let first_certification = third_party_identity_statement(
+        &target_secret,
+        &target_secret,
+        &first_user_id,
+        SignatureType::CertGeneric,
+        RENEWAL_TEST_SIGNATURE_TIME,
+    );
+    let second_certification = third_party_identity_statement(
+        &target_secret,
+        &target_secret,
+        &second_user_id,
+        SignatureType::CertGeneric,
+        RENEWAL_TEST_SIGNATURE_TIME,
+    );
+    target_secret.details.users = vec![
+        SignedUser::new(first_user_id, vec![first_certification]),
+        SignedUser::new(second_user_id, vec![second_certification]),
+    ];
+    let public_key = serialized_public_certificate(&target_secret.to_public_key());
+    let result = user_id_certification_result(OpenPgpUserIdCertificationEvaluateRequest {
+        public_key: public_key.clone(),
+        authorities: vec![OpenPgpCertificationAuthority {
+            public_key,
+            primary_fingerprint: fingerprint_hex(&target_secret.primary_key),
+        }],
+        reference_time_epoch_seconds: Some(RENEWAL_TEST_REFERENCE_TIME),
+    });
+
+    assert_eq!(
+        result.confirmed_user_ids,
+        [first_packet_body.to_vec(), second_packet_body.to_vec()],
+        "the native wire result must preserve byte-distinct identities",
+    );
+}
+
+#[test]
+fn authority_keyring_retains_an_issuerless_designated_revoker() {
+    let (mut authority, _) = renewal_test_certificate("Authority <authority@example.test>");
+    let (revoker, _) = renewal_test_certificate("Revoker <revoker@example.test>");
+    let (mut target, _) = renewal_test_certificate("Target <target@example.test>");
+
+    let declaration =
+        designated_revoker_declaration(&authority, &revoker, RENEWAL_TEST_SIGNATURE_TIME);
+    authority.details.direct_signatures.push(declaration);
+    let revocation =
+        issuerless_designated_key_revocation(&authority, &revoker, RENEWAL_TEST_SIGNATURE_TIME + 1);
+    authority.details.revocation_signatures.push(revocation);
+    let target_user_id = target.details.users[0].id.clone();
+    let certification = third_party_identity_statement(
+        &authority,
+        &target,
+        &target_user_id,
+        SignatureType::CertGeneric,
+        RENEWAL_TEST_SIGNATURE_TIME,
+    );
+    target.details.users[0].signatures.push(certification);
+
+    let authority_public = authority.to_public_key();
+    let revoker_public = revoker.to_public_key();
+    let mut authority_keyring = serialized_public_certificate(&authority_public);
+    authority_keyring.extend(serialized_public_certificate(&revoker_public));
+
+    let mut policy_budget = OpenPgpReadBudget::default();
+    let keyring = parse_public_key_documents(&[authority_keyring.clone()], &mut policy_budget)
+        .expect("parse authority keyring");
+    let candidates = all_components(&keyring);
+    let selected_authority = keyring
+        .iter()
+        .find(|certificate| {
+            certificate.primary_key.fingerprint() == authority_public.primary_key.fingerprint()
+        })
+        .expect("selected authority certificate");
+    let authority_policy = validate_certificate(
+        selected_authority,
+        &candidates,
+        RENEWAL_TEST_REFERENCE_TIME,
+        policy_budget.policy_mut(),
+    )
+    .expect("evaluate authority with its designated revoker");
+    assert!(!authority_policy.primary_available());
+
+    let result = user_id_certification_result(OpenPgpUserIdCertificationEvaluateRequest {
+        public_key: serialized_public_certificate(&target.to_public_key()),
+        authorities: vec![OpenPgpCertificationAuthority {
+            public_key: authority_keyring,
+            primary_fingerprint: fingerprint_hex(&authority_public.primary_key),
+        }],
+        reference_time_epoch_seconds: Some(RENEWAL_TEST_REFERENCE_TIME),
+    });
+    assert!(result.confirmed_user_ids.is_empty());
+}
+
+#[test]
+fn local_authority_policy_limit_does_not_suppress_other_authorities() {
+    let first = renewal_test_certificate("First authority <first@example.test>").1;
+    let second = renewal_test_certificate("Second authority <second@example.test>").1;
+    let authorities = [first, second];
+    let candidates = all_components(&authorities);
+    let mut budget = OpenPgpPolicyBudget::default();
+
+    budget.select_certificate(authorities[0].primary_key.fingerprint().as_bytes());
+    while budget.charge_public_key_verification().is_ok() {}
+
+    let trusted = trusted_certification_authorities(
+        &authorities,
+        &candidates,
+        RENEWAL_TEST_REFERENCE_TIME,
+        &mut budget,
+    )
+    .expect("a certificate-local limit must not abort authority evaluation");
+    assert_eq!(trusted.len(), 1);
+    assert_eq!(
+        trusted[0].certificate().primary_key.fingerprint(),
+        authorities[1].primary_key.fingerprint(),
+    );
+}
+
+#[test]
+fn authority_certification_work_uses_the_current_authority_budget() {
+    let (authority, authority_public) =
+        renewal_test_certificate("Authority <authority@example.test>");
+    let (_, unrelated_public) =
+        renewal_test_certificate("Unrelated authority <unrelated@example.test>");
+    let (mut target, _) = renewal_test_certificate("Target <target@example.test>");
+    let target_user_id = target.details.users[0].id.clone();
+    let certification = third_party_identity_statement(
+        &authority,
+        &target,
+        &target_user_id,
+        SignatureType::CertGeneric,
+        RENEWAL_TEST_SIGNATURE_TIME,
+    );
+    target.details.users[0].signatures.push(certification);
+    let target_public = target.to_public_key();
+    let certificates = [target_public, authority_public, unrelated_public];
+    let candidates = all_components(&certificates);
+    let mut budget = OpenPgpPolicyBudget::default();
+    validate_certificate(
+        &certificates[1],
+        &candidates,
+        RENEWAL_TEST_REFERENCE_TIME,
+        &mut budget,
+    )
+    .expect("validate certification authority");
+    validate_certificate(
+        &certificates[2],
+        &candidates,
+        RENEWAL_TEST_REFERENCE_TIME,
+        &mut budget,
+    )
+    .expect("validate unrelated last authority");
+    while budget.charge_public_key_verification().is_ok() {}
+
+    let signed_user_id = &certificates[0].details.users[0];
+    let authority_primary = &certificates[1].primary_key;
+    assert!(
+        certification_authority_confirms_identity(
+            &certificates[0],
+            &signed_user_id.id,
+            &signed_user_id.signatures,
+            &authority_primary.fingerprint(),
+            &PublicComponent::Primary(authority_primary.clone()),
+            RENEWAL_TEST_REFERENCE_TIME,
+            &mut budget,
+        )
+        .expect("the authority retains its independent budget")
+    );
+}
+
+fn third_party_identity_statement(
+    authority: &SignedSecretKey,
+    target: &SignedSecretKey,
+    user_id: &impl Serialize,
+    signature_type: SignatureType,
+    created_at: u32,
+) -> Signature {
+    let mut config = SignatureConfig::v4(
+        signature_type,
+        authority.primary_key.algorithm(),
+        HashAlgorithm::Sha256,
+    );
+    config.hashed_subpackets = vec![
+        Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+            created_at,
+        )))
+        .expect("third-party statement creation time"),
+        Subpacket::regular(SubpacketData::IssuerFingerprint(
+            authority.primary_key.fingerprint(),
+        ))
+        .expect("third-party statement issuer"),
+    ];
+    config
+        .sign_certification(
+            &authority.primary_key,
+            target.primary_key.public_key(),
+            &Password::empty(),
+            Tag::UserId,
+            user_id,
+        )
+        .expect("sign third-party identity statement")
+}
+
+fn designated_revoker_declaration(
+    authority: &SignedSecretKey,
+    revoker: &SignedSecretKey,
+    created_at: u32,
+) -> Signature {
+    let mut config = SignatureConfig::v4(
+        SignatureType::Key,
+        authority.primary_key.algorithm(),
+        HashAlgorithm::Sha256,
+    );
+    config.hashed_subpackets = vec![
+        Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+            created_at,
+        )))
+        .expect("designated-revoker declaration creation time"),
+        Subpacket::regular(SubpacketData::IssuerFingerprint(
+            authority.primary_key.fingerprint(),
+        ))
+        .expect("designated-revoker declaration issuer"),
+        Subpacket::regular(SubpacketData::RevocationKey(RevocationKey::new(
+            RevocationKeyClass::Default,
+            revoker.primary_key.algorithm(),
+            revoker.primary_key.fingerprint().as_bytes(),
+        )))
+        .expect("designated-revoker declaration"),
+    ];
+    config
+        .sign_key(
+            &authority.primary_key,
+            &Password::empty(),
+            authority.primary_key.public_key(),
+        )
+        .expect("sign designated-revoker declaration")
+}
+
+fn issuerless_designated_key_revocation(
+    authority: &SignedSecretKey,
+    revoker: &SignedSecretKey,
+    created_at: u32,
+) -> Signature {
+    let mut config = SignatureConfig::v4(
+        SignatureType::KeyRevocation,
+        revoker.primary_key.algorithm(),
+        HashAlgorithm::Sha256,
+    );
+    config.hashed_subpackets = vec![
+        Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+            created_at,
+        )))
+        .expect("issuerless designated revocation creation time"),
+    ];
+    config
+        .sign_key(
+            &revoker.primary_key,
+            &Password::empty(),
+            authority.primary_key.public_key(),
+        )
+        .expect("sign issuerless designated revocation")
+}
+
 fn serialized_public_certificate(certificate: &SignedPublicKey) -> Vec<u8> {
     let mut encoded = Vec::with_capacity(certificate.write_len());
     certificate
@@ -1672,6 +2127,20 @@ fn streamed_detached_verification(request: &OpenPgpVerifyRequest) -> OpenPgpVeri
             .as_slice(),
     )
     .expect("decode detached verification result")
+}
+
+#[test]
+fn derived_email_metadata_rejects_ambiguous_user_ids() {
+    let user_ids = [
+        "Alice <alice@example.com>",
+        "attacker@example.com <alice@example.com>",
+        "Name <first@example.com> <second@example.com>",
+        "<bad<good@example.com>",
+        "Name <a@b> trailing@example.com",
+    ]
+    .map(str::to_owned);
+
+    assert_eq!(distinct_emails(&user_ids), ["alice@example.com"]);
 }
 
 #[test]

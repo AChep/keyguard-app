@@ -13,9 +13,11 @@ import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
 import com.artemchep.keyguard.common.service.androidipc.GpgOpenPgpVaultLoader
+import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpExportSelection
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpOperationKind
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpReadFileResult
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpReadKeyScope
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpRecipientSelection
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpRing
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpRingOperations
@@ -71,6 +73,7 @@ class OpenPgpService : Service(), DIAware {
 
     private val getGpgAgentFilter by instance<GetGpgAgentFilter>()
     private val getVaultSession by instance<GetVaultSession>()
+    private val certificateMaterialReconciler by instance<GpgCertificateMaterialReconciler>()
     private val openPgpService by instance<GpgOpenPgpService>()
     private val registrationRepository by instance<AndroidIpcRegistrationRepository>()
     private val publicKeyRepository by instance<GpgPublicKeyRepository>()
@@ -91,7 +94,10 @@ class OpenPgpService : Service(), DIAware {
     }
 
     private val ringOperations by lazy {
-        GpgOpenPgpRingOperations(openPgpService)
+        GpgOpenPgpRingOperations(
+            service = openPgpService,
+            certificateMaterialReconciler = certificateMaterialReconciler,
+        )
     }
 
     private val binder = object : IOpenPgpService2.Stub() {
@@ -1174,17 +1180,19 @@ class OpenPgpService : Service(), DIAware {
         outputPolicy: OpenPgpOutputPolicy,
     ): Intent {
         val outputSink = createOpenPgpOutputSink(output, outputPolicy)
+        val readKeyScope = vault.readKeyScope(selectedRings)
         if (normalized.extras.detachedSignature != null) {
             return verifyDetached(
-                selectedRings = selectedRings,
+                keys = readKeyScope,
                 input = input,
                 output = outputSink,
                 signature = normalized.extras.detachedSignature,
                 apiVersion = normalized.apiVersion,
+                senderAddress = normalized.extras.senderAddress,
             )
         }
         val result = ringOperations.read(
-            rings = selectedRings,
+            keys = readKeyScope,
             input = ParcelFileDescriptor
                 .AutoCloseInputStream(input)
                 .asSource()
@@ -1210,6 +1218,7 @@ class OpenPgpService : Service(), DIAware {
                     encrypted = result.encrypted,
                     verification = result.verification,
                     metadata = result.metadata?.toOpenPgpMetadata(result.declaredCharset),
+                    senderAddress = normalized.extras.senderAddress,
                 )
             }
 
@@ -1227,6 +1236,7 @@ class OpenPgpService : Service(), DIAware {
                             result.bodySize,
                             charset,
                         ),
+                        senderAddress = normalized.extras.senderAddress,
                     )
                 }
             }
@@ -1234,17 +1244,18 @@ class OpenPgpService : Service(), DIAware {
     }
 
     private suspend fun verifyDetached(
-        selectedRings: List<GpgOpenPgpRing>,
+        keys: GpgOpenPgpReadKeyScope,
         input: ParcelFileDescriptor,
         output: Sink,
         signature: ByteArray,
         apiVersion: Int,
+        senderAddress: String?,
     ): Intent {
         val result = ParcelFileDescriptor.AutoCloseInputStream(input).use { inputStream ->
             inputStream.asSource().buffered().use { inputSource ->
                 output.use { outputSink ->
                     ringOperations.verifyDetached(
-                        rings = selectedRings,
+                        keys = keys,
                         input = inputSource,
                         output = outputSink,
                         signature = signature,
@@ -1264,6 +1275,7 @@ class OpenPgpService : Service(), DIAware {
                     result.bodySize,
                     null,
                 ),
+                senderAddress = senderAddress,
             )
         }
     }

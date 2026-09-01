@@ -9,7 +9,7 @@ pub struct NativeRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_request::Operation",
-        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 56, 57"
+        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58"
     )]
     pub operation: ::core::option::Option<native_request::Operation>,
 }
@@ -112,6 +112,10 @@ pub mod native_request {
         #[prost(message, tag = "57")]
         OpenPgpCertificateMaterialReconcileV2(
             super::OpenPgpCertificateMaterialReconcileV2Request,
+        ),
+        #[prost(message, tag = "58")]
+        OpenPgpUserIdCertificationEvaluate(
+            super::OpenPgpUserIdCertificationEvaluateRequest,
         ),
     }
 }
@@ -651,6 +655,33 @@ pub struct OpenPgpPublicKeyParseRequest {
     /// absent, the native library uses the current wall-clock second.
     #[prost(uint64, optional, tag = "2")]
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpCertificationAuthority {
+    /// A public-key document that contains the explicitly selected primary key.
+    #[prost(bytes = "vec", tag = "1")]
+    pub public_key: ::prost::alloc::vec::Vec<u8>,
+    /// Only this primary key is trusted, even when the document is a keyring.
+    #[prost(string, tag = "2")]
+    pub primary_fingerprint: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpUserIdCertificationEvaluateRequest {
+    /// Exactly one target certificate, encoded as ASCII armor or binary packets.
+    #[prost(bytes = "vec", tag = "1")]
+    pub public_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(message, repeated, tag = "2")]
+    pub authorities: ::prost::alloc::vec::Vec<OpenPgpCertificationAuthority>,
+    #[prost(uint64, optional, tag = "3")]
+    pub reference_time_epoch_seconds: ::core::option::Option<u64>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpUserIdCertificationEvaluateResult {
+    /// Exact User ID packet bodies authenticated by the target certificate and
+    /// certified by at least one currently usable trusted authority. Consumers
+    /// that expose text must decode UTF-8 strictly.
+    #[prost(bytes = "vec", repeated, tag = "1")]
+    pub confirmed_user_ids: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpVerifyRequest {

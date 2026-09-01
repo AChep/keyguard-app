@@ -21,25 +21,95 @@ internal fun gpgAlgorithmName(
 internal fun extractGpgUserIdEmail(
     userId: String,
 ): String? {
-    val bracketed = GPG_EMAIL_IN_BRACKETS
-        .find(userId)
-        ?.groupValues
-        ?.getOrNull(1)
-    if (bracketed != null) {
-        return bracketed
-            .trim()
-            .takeIf { it.isNotEmpty() }
+    // Checked once up front; the substrings below split at BMP delimiters, so
+    // they cannot introduce a broken surrogate pair.
+    if (!userId.hasValidUnicodeScalars()) {
+        return null
     }
-    // Some user-ids are a bare e-mail without angle brackets.
-    return userId.trim().takeIf { it.contains('@') && !it.contains(' ') }
+    if (userId.isValidGpgMailboxStructure()) {
+        return userId
+    }
+    // OpenPGP User IDs have no required internal structure. For deriving an
+    // address, follow Sequoia's anchored "Conventional User ID" shape instead
+    // of recovering an address from malformed or ambiguous text.
+    val addressStart = userId.lastIndexOf('<')
+    return userId.takeIf { it.endsWith('>') && addressStart >= 0 }
+        ?.substring(addressStart + 1, userId.lastIndex)
+        ?.takeIf(String::isValidGpgMailboxStructure)
+        ?.takeIf {
+            userId.substring(0, addressStart).isValidGpgUserIdAddressPrefix()
+        }
 }
+
+/** Normalizes an input that is already specified to be a bare mailbox. */
+internal fun normalizeGpgMailboxAddress(
+    address: String,
+): String? = address
+    .trim()
+    .takeIf(String::isValidGpgMailboxAddress)
+    ?.lowercase()
 
 internal fun normalizeGpgUserIdEmail(
     userId: String,
 ): String? = extractGpgUserIdEmail(userId)
-    ?.trim()
     ?.lowercase()
-    ?.takeIf(GPG_EMAIL::matches)
 
-private val GPG_EMAIL_IN_BRACKETS = Regex("<([^<>]+)>")
-private val GPG_EMAIL = Regex("[^\\s@<>]+@[^\\s@<>]+")
+private fun String.isValidGpgMailboxAddress(): Boolean =
+    hasValidUnicodeScalars() && isValidGpgMailboxStructure()
+
+/** Requires the receiver to already be a valid Unicode scalar sequence. */
+private fun String.isValidGpgMailboxStructure(): Boolean {
+    val separator = indexOf('@')
+    return separator > 0 &&
+            separator == lastIndexOf('@') &&
+            substring(0, separator).isValidGpgDotAtom() &&
+            substring(separator + 1).isValidGpgDotAtom()
+}
+
+private fun String.isValidGpgDotAtom(): Boolean =
+    split('.').all { atom ->
+        atom.isNotEmpty() && atom.all(Char::isGpgAtext)
+    }
+
+private fun Char.isGpgAtext(): Boolean =
+    this in 'A'..'Z' ||
+            this in 'a'..'z' ||
+            this in '0'..'9' ||
+            this in GPG_ATEXT_PUNCTUATION ||
+            code >= GPG_NON_ASCII_CODE_POINT_START && !isISOControl()
+
+// The only caller has already validated the whole User ID, and the prefix is
+// split at a BMP delimiter, so no surrogate pair can be broken here.
+private fun String.isValidGpgUserIdAddressPrefix(): Boolean {
+    val value = trim { it == ' ' }
+    if (value.all(Char::isGpgNameChar)) {
+        return true
+    }
+    // A name may end with exactly one parenthesized comment.
+    if (!value.endsWith(')')) {
+        return false
+    }
+    val commentStart = value.lastIndexOf('(')
+    if (commentStart < 0) {
+        return false
+    }
+    val comment = value.substring(commentStart + 1, value.lastIndex)
+    if (!comment.all(Char::isGpgCommentChar)) {
+        return false
+    }
+    return value.substring(0, commentStart)
+        .trimEnd { it == ' ' }
+        .all(Char::isGpgNameChar)
+}
+
+private fun Char.isGpgNameChar(): Boolean =
+    !isISOControl() && this != '<' && this != '>'
+
+private fun Char.isGpgCommentChar(): Boolean =
+    !isISOControl() && this != '(' && this != ')'
+
+private fun String.hasValidUnicodeScalars(): Boolean =
+    runCatching { encodeToByteArray(throwOnInvalidSequence = true) }.isSuccess
+
+private const val GPG_ATEXT_PUNCTUATION = "!#$%&'*+-/=?^_`{|}~"
+private const val GPG_NON_ASCII_CODE_POINT_START = 0x80

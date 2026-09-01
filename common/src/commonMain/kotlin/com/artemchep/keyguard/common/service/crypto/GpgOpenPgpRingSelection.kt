@@ -209,10 +209,10 @@ internal fun gpgOpenPgpApprovalCandidates(
     )
     val emailMatches = userIds
         .flatMap { requested ->
-            val email = normalizeGpgUserIdEmail(requested)
+            val email = normalizeGpgMailboxAddress(requested)
                 ?: return@flatMap emptyList()
             vault.rings.filter { ring ->
-                email in ring.info.emails.mapNotNull(::normalizeGpgUserIdEmail)
+                email in ring.info.emails.mapNotNull(::normalizeGpgMailboxAddress)
             }
         }
     val narrowed = (explicitlyRequested + emailMatches).distinct()

@@ -3424,7 +3424,7 @@ fn designated_revoker_cap_deduplicates_before_accounting() {
             fingerprint: b"one-too-many".to_vec(),
             key_class: 0x80,
         }),
-        Err(OpenPgpPolicyError::ResourceLimit),
+        Err(OpenPgpPolicyError::RequestResourceLimit),
     );
 }
 

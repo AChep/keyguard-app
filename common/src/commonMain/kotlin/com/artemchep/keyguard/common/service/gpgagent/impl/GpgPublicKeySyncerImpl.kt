@@ -2,17 +2,22 @@ package com.artemchep.keyguard.common.service.gpgagent.impl
 
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
+import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.GpgAgentFilter
 import com.artemchep.keyguard.common.model.filterCiphers
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolverUnsupported
 import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentSecret
+import com.artemchep.keyguard.common.service.gpgagent.GpgCertificationAuthorityEntry
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyEntry
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySyncer
-import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
-import com.artemchep.keyguard.common.service.gpgagent.toGpgPublicKeyEntry
+import com.artemchep.keyguard.common.service.gpgagent.isGpgAgentSecretType
 import com.artemchep.keyguard.common.service.gpgagent.resolveAuthorizationOrClear
+import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
+import com.artemchep.keyguard.common.service.gpgagent.toGpgCertificationAuthorityEntries
+import com.artemchep.keyguard.common.service.gpgagent.toGpgPublicKeyEntry
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
@@ -89,48 +94,77 @@ class GpgPublicKeySyncerImpl(
                     return@flatMapLatest flowOf(SyncState.Disabled)
                 }
 
-                val filteredSecretsFlow = combine(
-                    getCiphers(),
-                    getGpgAgentFilter()
-                        .map { it.normalize() },
-                ) { ciphers, filter ->
-                    val candidateRevocationKeys = ciphers.toGpgRevocationKeyCandidates()
-                    val secrets = ciphers
-                        .mapNotNull { it.toGpgAgentSecretOrNull() }
-                    val filteredSecrets = filter.filterCiphers(
-                        directDI = directDI,
-                        items = secrets,
-                        cipherOf = { it.cipher },
-                    )
-                    logRepository.postDebug(TAG) {
-                        "catalog_input ciphers=${ciphers.size} gpg_items=${secrets.size} " +
-                                "filter_active=${filter.isActive} filtered=${filteredSecrets.size}"
-                    }
-                    filteredSecrets.map { secret ->
-                        secret.resolveAuthorizationOrClear(
-                            resolver = gpgKeyMetadataResolver,
-                            candidateRevocationKeys = candidateRevocationKeys,
-                            logRepository = logRepository,
-                            tag = TAG,
-                        )
-                    }
-                }.distinctUntilChanged()
-
                 combine(
-                    filteredSecretsFlow,
+                    catalogInputFlow(),
                     getGpgAgentDisplayKeyNames(),
-                ) { filteredSecrets, displayKeyNames ->
+                ) { catalogInput, displayKeyNames ->
                     SyncState.Enabled(
                         entries = mapSecretsToEntries(
-                            secrets = filteredSecrets,
+                            secrets = catalogInput.filteredSecrets,
                             displayKeyNames = displayKeyNames,
                         ),
+                        certificationAuthorities = catalogInput.certificationAuthorities,
                     )
                 }
             }
             .distinctUntilChanged()
             .flowOn(defaultDispatcher)
         return syncStateFlow
+    }
+
+    private fun catalogInputFlow(): Flow<CatalogInput> = combine(
+        getCiphers(),
+        getGpgAgentFilter().map { it.normalize() },
+    ) { ciphers, filter ->
+        createCatalogInput(ciphers, filter)
+    }.distinctUntilChanged()
+
+    private suspend fun createCatalogInput(
+        ciphers: List<DSecret>,
+        filter: GpgAgentFilter,
+    ): CatalogInput {
+        val candidateRevocationKeys = ciphers.toGpgRevocationKeyCandidates()
+        // One filter pass admits ciphers for both the catalog and the trust
+        // authorities, so the two surfaces provably see the same cipher set.
+        // Both surfaces only accept live GPG key ciphers, so the filter never
+        // needs to see the rest of the vault.
+        val filteredCiphers = filter.filterCiphers(
+            directDI = directDI,
+            ciphers = ciphers.filter { cipher ->
+                cipher.isGpgAgentSecretType() && !cipher.deleted
+            },
+        )
+        val filteredSecrets = mutableListOf<GpgAgentSecret>()
+        val certificationAuthorities = mutableListOf<GpgCertificationAuthorityEntry>()
+        filteredCiphers.forEach { cipher ->
+            val secret = cipher.toGpgAgentSecretOrNull()
+            if (secret != null) {
+                val resolved = secret.resolveAuthorizationOrClear(
+                    resolver = gpgKeyMetadataResolver,
+                    candidateRevocationKeys = candidateRevocationKeys,
+                    logRepository = logRepository,
+                    tag = TAG,
+                )
+                filteredSecrets += resolved
+                certificationAuthorities += resolved.toGpgCertificationAuthorityEntries()
+            } else {
+                certificationAuthorities += cipher.toGpgCertificationAuthorityEntries(
+                    resolver = gpgKeyMetadataResolver,
+                    candidateRevocationKeys = candidateRevocationKeys,
+                    logRepository = logRepository,
+                    tag = TAG,
+                )
+            }
+        }
+        logRepository.postDebug(TAG) {
+            "catalog_input ciphers=${ciphers.size} filtered=${filteredCiphers.size} " +
+                    "gpg_items=${filteredSecrets.size} filter_active=${filter.isActive} " +
+                    "certification_authorities=${certificationAuthorities.size}"
+        }
+        return CatalogInput(
+            filteredSecrets = filteredSecrets,
+            certificationAuthorities = certificationAuthorities,
+        )
     }
 
     private suspend fun applySyncState(state: SyncState) {
@@ -144,11 +178,16 @@ class GpgPublicKeySyncerImpl(
             }
 
             is SyncState.Enabled -> {
-                gpgPublicKeyRepository.replaceAll(state.entries)
+                gpgPublicKeyRepository
+                    .replaceSnapshot(
+                        publicKeys = state.entries,
+                        certificationAuthorities = state.certificationAuthorities,
+                    )
                     .bind()
                 logRepository.postDebug(TAG) {
                     "catalog_synced ciphers=${state.entries.size} " +
-                            "key_info=${state.entries.sumOf { it.keyInfo.size }}"
+                            "key_info=${state.entries.sumOf { it.keyInfo.size }} " +
+                            "certification_authorities=${state.certificationAuthorities.size}"
                 }
             }
         }
@@ -177,6 +216,12 @@ class GpgPublicKeySyncerImpl(
 
         data class Enabled(
             val entries: List<GpgPublicKeyEntry>,
+            val certificationAuthorities: List<GpgCertificationAuthorityEntry>,
         ) : SyncState
     }
+
+    private data class CatalogInput(
+        val filteredSecrets: List<GpgAgentSecret>,
+        val certificationAuthorities: List<GpgCertificationAuthorityEntry>,
+    )
 }

@@ -48,6 +48,8 @@ public enum class NativeCryptoCapability(
     OPENPGP_CERTIFICATE_MATERIAL_RECONCILE(bit = 1L shl 31),
     /** Native OpenPGP reconciliation exposes separate local and transferable V2 outputs. */
     OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2(bit = 1L shl 32),
+    /** Native OpenPGP evaluates exact User ID certifications against explicit trust roots. */
+    OPENPGP_USER_ID_CERTIFICATION(bit = 1L shl 33),
 }
 
 public object NativeCrypto {

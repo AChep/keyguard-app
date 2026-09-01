@@ -38,6 +38,23 @@ data class GpgPublicKeyRow(
     val name: String?,
 )
 
+/** A locally owned primary key trusted to certify exact OpenPGP User IDs. */
+data class GpgCertificationAuthorityEntry(
+    val accountId: String,
+    val cipherId: String,
+    val publicKeyArmored: String,
+    val primaryFingerprint: String,
+)
+
+/**
+ * A consistent read of the public key catalog and the authorities that
+ * certify identities in that catalog.
+ */
+data class GpgPublicKeySnapshot(
+    val publicKeys: List<GpgPublicKeyRow>,
+    val certificationAuthorities: List<GpgCertificationAuthorityEntry>,
+)
+
 /**
  * Builds the canonical catalog entry for a secret. Both the persisted
  * catalog and the live, unlocked-vault KEYINFO listing map through this

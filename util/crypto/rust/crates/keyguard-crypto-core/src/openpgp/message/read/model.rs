@@ -12,6 +12,21 @@ pub(crate) struct PublicKeyParseInput {
     pub(crate) reference_time_epoch_seconds: Option<u64>,
 }
 
+pub(crate) struct CertificationAuthorityInput {
+    pub(crate) public_key: Vec<u8>,
+    pub(crate) primary_fingerprint: String,
+}
+
+pub(crate) struct UserIdCertificationEvaluateInput {
+    pub(crate) public_key: Vec<u8>,
+    pub(crate) authorities: Vec<CertificationAuthorityInput>,
+    pub(crate) reference_time_epoch_seconds: Option<u64>,
+}
+
+pub(crate) struct UserIdCertificationEvaluateResult {
+    pub(crate) confirmed_user_ids: Vec<Vec<u8>>,
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum VerifyKind {
     ClearText,

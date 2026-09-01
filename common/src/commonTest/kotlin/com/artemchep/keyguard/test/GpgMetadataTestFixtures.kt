@@ -35,6 +35,7 @@ fun gpgCanonicalMetadata(
 
 fun gpgMetadata(
     vararg keys: GpgAgentKeyMetadataKey,
+    storedSecretMaterial: Boolean = true,
 ): GpgAgentKeyMetadata = GpgAgentKeyMetadata(
     certificates = keys
         .firstOrNull()
@@ -53,7 +54,7 @@ fun gpgMetadata(
                             publicKeyAlgorithmId = 0,
                             algorithm = key.algorithm,
                             keygrips = listOf(key.keygrip),
-                            storedSecretMaterial = true,
+                            storedSecretMaterial = storedSecretMaterial,
                             agentOperations = buildSet {
                                 if (key.canSign) add(GpgAgentOperation.SIGN)
                                 if (key.canDecrypt) add(GpgAgentOperation.DECRYPT)

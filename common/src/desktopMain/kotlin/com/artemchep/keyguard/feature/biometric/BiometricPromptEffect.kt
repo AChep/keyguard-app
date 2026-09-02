@@ -9,6 +9,7 @@ import arrow.core.left
 import arrow.core.right
 import com.artemchep.autotype.biometricsVerify
 import com.artemchep.keyguard.common.model.BiometricAuthException
+import com.artemchep.keyguard.common.model.BiometricAuthException.Companion.ERROR_CANCELED
 import com.artemchep.keyguard.common.model.BiometricAuthException.Companion.ERROR_UNKNOWN
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.BiometricAuthPromptSimple
@@ -45,8 +46,7 @@ actual fun BiometricPromptEffect(flow: Flow<PureBiometricAuthPrompt>) {
                             event.onComplete(result)
                         },
                         onFailure = {
-                            val message = it.message.orEmpty()
-                            val result = BiometricAuthException(ERROR_UNKNOWN, message)
+                            val result = it.toBiometricAuthException()
                                 .left()
                             event.onComplete(result)
                         },
@@ -65,8 +65,7 @@ actual fun BiometricPromptEffect(flow: Flow<PureBiometricAuthPrompt>) {
                             event.onComplete(result)
                         },
                         onFailure = {
-                            val message = it.message.orEmpty()
-                            val result = BiometricAuthException(ERROR_UNKNOWN, message)
+                            val result = it.toBiometricAuthException()
                                 .left()
                             event.onComplete(result)
                         },
@@ -75,4 +74,19 @@ actual fun BiometricPromptEffect(flow: Flow<PureBiometricAuthPrompt>) {
             }
         }
     }
+}
+
+private val backgroundWindowErrors = setOf(
+    "Keyguard does not have a foreground window",
+    "Keyguard is not the foreground application",
+)
+
+internal fun Throwable.toBiometricAuthException(): BiometricAuthException {
+    val message = message.orEmpty()
+    val code = if (message in backgroundWindowErrors) {
+        ERROR_CANCELED
+    } else {
+        ERROR_UNKNOWN
+    }
+    return BiometricAuthException(code, message)
 }

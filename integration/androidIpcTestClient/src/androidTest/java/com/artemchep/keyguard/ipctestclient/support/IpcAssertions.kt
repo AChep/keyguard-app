@@ -25,12 +25,19 @@ fun failWithExchangeLog(message: String): Nothing =
 fun IpcExchange.requireResult(): Intent = result
     ?: failWithExchangeLog("The provider returned no result\n${describe()}")
 
-fun IpcExchange.requireOpenPgpSuccess(): Intent {
+fun IpcExchange.requireOpenPgpSuccess(): Intent =
+    requireOpenPgpResultCode(OpenPgpApi.RESULT_CODE_SUCCESS)
+
+fun IpcExchange.requireOpenPgpUserInteraction(): Intent =
+    requireOpenPgpResultCode(OpenPgpApi.RESULT_CODE_USER_INTERACTION_REQUIRED)
+
+private fun IpcExchange.requireOpenPgpResultCode(expected: Int): Intent {
     val result = requireResult()
     val code = result.getIntExtra(OpenPgpApi.RESULT_CODE, IpcExchange.UNKNOWN_RESULT_CODE)
-    if (code != OpenPgpApi.RESULT_CODE_SUCCESS) {
+    if (code != expected) {
         failWithExchangeLog(
-            "Expected SUCCESS but got ${openPgpResultCodeName(code)}\n${describe()}",
+            "Expected ${openPgpResultCodeName(expected)} but got " +
+                "${openPgpResultCodeName(code)}\n${describe()}",
         )
     }
     return result

@@ -46,7 +46,7 @@ private const val OPENPGP_SHORT_KEY_ID_WIDTH = 8
 private const val OPENPGP_RECIPIENT_REFERENCE_LENGTH = 12
 
 internal fun <T> resolveOpenPgpRecipients(
-    userIds: List<String>,
+    recipientEmails: List<String>,
     keyIds: List<Long>,
     candidates: List<T>,
     candidateEmails: (T) -> List<String>,
@@ -64,7 +64,7 @@ internal fun <T> resolveOpenPgpRecipients(
         details = details,
     )
     resolveOpenPgpEmailRecipients(
-        userIds = userIds,
+        recipientEmails = recipientEmails,
         candidates = candidates,
         candidateEmails = candidateEmails,
         canEncrypt = canEncrypt,
@@ -128,14 +128,14 @@ private fun <T> resolveOpenPgpKeyIdRecipients(
 }
 
 private fun <T> resolveOpenPgpEmailRecipients(
-    userIds: List<String>,
+    recipientEmails: List<String>,
     candidates: List<T>,
     candidateEmails: (T) -> List<String>,
     canEncrypt: (T) -> Boolean,
     selected: MutableList<T>,
     details: MutableList<OpenPgpRecipientLookupDetail>,
 ) {
-    userIds.forEach { requested ->
+    recipientEmails.forEach { requested ->
         val normalizedEmail = normalizeGpgMailboxAddress(requested)
         if (normalizedEmail == null) {
             details += OpenPgpRecipientLookupDetail(
@@ -205,7 +205,7 @@ internal fun openPgpRecipientLookupLogMessage(
 }
 
 internal fun <T> selectedRingsCoverOpenPgpRecipients(
-    userIds: List<String>,
+    recipientEmails: List<String>,
     keyIds: List<Long>,
     selected: List<T>,
     candidateEmails: (T) -> List<String>,
@@ -216,7 +216,7 @@ internal fun <T> selectedRingsCoverOpenPgpRecipients(
         return false
     }
     val resolution = resolveOpenPgpRecipients(
-        userIds = userIds,
+        recipientEmails = recipientEmails,
         keyIds = keyIds,
         candidates = selected,
         candidateEmails = candidateEmails,

@@ -83,7 +83,9 @@ data class GpgPublicKeyInfo(
     val keyId: String,
     val algorithm: String,
     val bitStrength: Int?,
+    /** Authenticated full OpenPGP User ID strings. */
     val userIds: List<String>,
+    /** Mailboxes extracted from [userIds]; callers normalize them before comparison. */
     val emails: List<String>,
     val createdAt: Instant?,
     val expiresAt: Instant?,

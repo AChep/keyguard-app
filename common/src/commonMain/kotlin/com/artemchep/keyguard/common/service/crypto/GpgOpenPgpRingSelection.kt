@@ -195,19 +195,26 @@ internal fun resolveGpgOpenPgpAutomaticSelection(
 /**
  * The rings offered for interactive approval: the explicitly requested
  * keys and certified e-mail matches when present, the whole vault
- * otherwise, narrowed down to the rings capable of the operation.
+ * otherwise, plus preferred key hints and narrowed down to the rings
+ * capable of the operation. Preferred keys augment the chooser without
+ * narrowing it.
  */
 internal fun gpgOpenPgpApprovalCandidates(
     kind: GpgOpenPgpOperationKind,
     vault: GpgOpenPgpVault,
-    userIds: List<String>,
+    requestedEmails: List<String>,
     keyIds: List<Long>,
+    preferredKeyIds: List<Long> = emptyList(),
 ): List<GpgOpenPgpRing> {
     val explicitlyRequested = matchingGpgOpenPgpRequestedRings(
         vault = vault,
         keyIds = keyIds,
     )
-    val emailMatches = userIds
+    val preferred = matchingGpgOpenPgpRequestedRings(
+        vault = vault,
+        keyIds = preferredKeyIds,
+    )
+    val emailMatches = requestedEmails
         .flatMap { requested ->
             val email = normalizeGpgMailboxAddress(requested)
                 ?: return@flatMap emptyList()
@@ -217,7 +224,7 @@ internal fun gpgOpenPgpApprovalCandidates(
         }
     val narrowed = (explicitlyRequested + emailMatches).distinct()
     val base = narrowed.ifEmpty { vault.rings }
-    return base.filter { ring ->
+    return (base + preferred).distinct().filter { ring ->
         when (kind) {
             GpgOpenPgpOperationKind.CLEAR_SIGN,
             GpgOpenPgpOperationKind.DETACHED_SIGN,

@@ -4,12 +4,16 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.artemchep.keyguard.ipctestclient.ipc.OpenPgpOperation
 import com.artemchep.keyguard.ipctestclient.ipc.OpenPgpRequestSpec
 import com.artemchep.keyguard.ipctestclient.ipc.PgpArmor
+import com.artemchep.keyguard.ipctestclient.ipc.interactionPendingIntent
 import com.artemchep.keyguard.ipctestclient.ipc.orEmptyBytes
+import com.artemchep.keyguard.ipctestclient.support.ApprovalRobot
 import com.artemchep.keyguard.ipctestclient.support.KeyguardProviderRule
 import com.artemchep.keyguard.ipctestclient.support.LocalCrypto
 import com.artemchep.keyguard.ipctestclient.support.SuiteState
 import com.artemchep.keyguard.ipctestclient.support.assertOpenPgpError
+import com.artemchep.keyguard.ipctestclient.support.failWithExchangeLog
 import com.artemchep.keyguard.ipctestclient.support.requireOpenPgpSuccess
+import com.artemchep.keyguard.ipctestclient.support.requireOpenPgpUserInteraction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -50,20 +54,50 @@ class OpenPgpKeyQueryTest {
         )
     }
 
-    /** `preselect_key_id` is the older spelling of `sign_key_id`. */
     @Test
-    fun preselectKeyIdIsAcceptedInPlaceOfSignKeyId() {
+    fun k9ShapedRequestUsesInteractivePreselectedKey() {
         val expected = state.signKeyId()
-        val result = provider
-            .openPgpRunner()
-            .run(
-                OpenPgpRequestSpec(
-                    operation = OpenPgpOperation.GET_SIGN_KEY_ID,
-                    preselectKeyId = expected,
-                ),
-            )
+        val userId = "Alice <${state.signingEmail()}>"
+        val spec = OpenPgpRequestSpec(
+            operation = OpenPgpOperation.GET_SIGN_KEY_ID,
+            singleUserId = userId,
+            preselectKeyId = expected,
+        )
+        val runner = provider.openPgpRunner()
+        val first = runner.runOnce(spec)
+        first.requireOpenPgpUserInteraction()
+        val pendingIntent = first
+            .legs
+            .first()
+            .interactionPendingIntent(OpenPgpApi.RESULT_INTENT)
+            ?: failWithExchangeLog("The K-9-shaped request did not provide an approval intent")
+        val retry = provider
+            .robot()
+            .perform(pendingIntent, ApprovalRobot.Action.APPROVE)
+            .retryIntent
+            ?: failWithExchangeLog("The approval returned no retry intent")
+        // K-9's OpenPgpKeyPreference re-stamps its own request onto the returned
+        // intent before replaying it, and adds the Autocrypt hint on top.
+        retry.apply {
+            action = spec.action
+            putExtras(spec.toIntent())
+            putExtra(OpenPgpApi.EXTRA_SHOW_AUTOCRYPT_HINT, true)
+        }
+        val result = runner
+            .runIntent(spec, retry)
             .requireOpenPgpSuccess()
         assertEquals(expected, result.getLongExtra(OpenPgpApi.RESULT_SIGN_KEY_ID, 0L))
+
+        val second = runner.runOnce(spec)
+        second.requireOpenPgpUserInteraction()
+        val secondPendingIntent = second
+            .legs
+            .first()
+            .interactionPendingIntent(OpenPgpApi.RESULT_INTENT)
+            ?: failWithExchangeLog("The second request did not provide an approval intent")
+        provider
+            .robot()
+            .perform(secondPendingIntent, ApprovalRobot.Action.DENY)
     }
 
     @Test

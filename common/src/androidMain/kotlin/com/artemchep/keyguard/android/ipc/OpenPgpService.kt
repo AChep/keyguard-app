@@ -316,7 +316,7 @@ class OpenPgpService : Service(), DIAware {
         )?.let { rejection -> return AdmittedRequest.Rejected(rejection) }
         val kind = openPgpOperationKind(action)
 
-        val normalized = normalizeRequest(request, action, apiVersion)
+        val normalized = normalizeRequest(request, action, kind, apiVersion)
             ?: return rejected(
                 OpenPgpError.GENERIC_ERROR,
                 "The request contains invalid or unsupported extras.",
@@ -332,7 +332,7 @@ class OpenPgpService : Service(), DIAware {
         logRepository.postDebug(TAG) {
             "request=$requestReference caller=${caller.packageName} " +
                     "action=${action.substringAfterLast('.')} api=$apiVersion " +
-                    "recipients=${normalized.extras.userIds.size} " +
+                    "recipients=${normalized.extras.requestedEmails.size} " +
                     "direct_keys=${normalized.extras.keyIds.size}"
         }
         val admission = admitAndroidIpcCaller(
@@ -439,7 +439,7 @@ class OpenPgpService : Service(), DIAware {
             return null
         }
         return resolveOpenPgpRecipients(
-            userIds = normalized.extras.userIds,
+            recipientEmails = normalized.extras.requestedEmails,
             keyIds = normalized.extras.keyIds.toList(),
             candidates = vault.rings,
             candidateEmails = { it.info.emails },
@@ -698,7 +698,7 @@ class OpenPgpService : Service(), DIAware {
             (
                 approvedRings.size != approvedKeyIds.size ||
                         !selectedRingsCoverOpenPgpRecipients(
-                            userIds = normalized.extras.userIds,
+                            recipientEmails = normalized.extras.requestedEmails,
                             keyIds = normalized.extras.keyIds.toList(),
                             selected = approvedRings,
                             candidateEmails = { it.info.emails },
@@ -785,6 +785,8 @@ class OpenPgpService : Service(), DIAware {
         val approvalRegistrationRepository = registrationRepository
         val approvalSession = getVaultSession
         val approvalVaultLoader = vaultLoader
+        val extras = normalized.extras
+        val preselectKeyId = extras.preselectKeyId
         return AndroidIpcApprovalCoordinator.createPendingIntent(
             context = approvalContext,
             request = AndroidIpcApprovalCoordinator.Request(
@@ -815,17 +817,16 @@ class OpenPgpService : Service(), DIAware {
                     gpgOpenPgpApprovalCandidates(
                         kind = kind,
                         vault = vault,
-                        userIds = normalized.extras.userIds,
-                        keyIds = normalized.extras.keyIds.toList() +
-                                listOfNotNull(
-                                    normalized.extras.keyId,
-                                    normalized.extras.signKeyId,
-                                ),
+                        requestedEmails = extras.requestedEmails,
+                        keyIds = extras.approvalConstraintKeyIds,
+                        preferredKeyIds = listOfNotNull(preselectKeyId),
                     ).map { ring ->
                         AndroidIpcApprovalCoordinator.Candidate(
                             id = ring.cipherId,
                             name = ring.name,
                             description = ring.info.fingerprint,
+                            preselected = preselectKeyId != null &&
+                                    preselectKeyId in ring.allKeyIds,
                         )
                     }
                 },

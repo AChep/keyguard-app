@@ -88,6 +88,7 @@ class OpenPgpContractTest {
             keyIds = longArrayOf(3L, 1L),
             selectedKeyIds = longArrayOf(2L, 1L),
             userIds = arrayOf(" alice@example.com "),
+            preselectKeyId = 42L,
             senderAddress = " Alice@Example.com ",
         )
         assertNotNull(first)
@@ -98,9 +99,10 @@ class OpenPgpContractTest {
             compression = first.compression,
             opportunistic = first.opportunistic,
             originalFilename = first.originalFilename,
-            userIds = first.userIds.toTypedArray(),
+            userIds = first.requestedEmails.toTypedArray(),
             keyIds = first.keyIds,
             signKeyId = first.signKeyId,
+            preselectKeyId = first.preselectKeyId,
             keyId = first.keyId,
             senderAddress = first.senderAddress,
             detachedSignature = first.detachedSignature,
@@ -132,19 +134,87 @@ class OpenPgpContractTest {
     }
 
     @Test
-    fun `API mailbox extras do not accept certificate user id syntax`() {
+    fun `API user id extras accept conventional OpenPGP identity syntax`() {
+        val normalized = normalizeOpenPgpExtras(
+            apiVersion = 12,
+            userIds = arrayOf("Alice <ALICE@example.com>"),
+            allowUserIdSyntax = true,
+        )
+        assertNotNull(normalized)
+        assertEquals(listOf("alice@example.com"), normalized.requestedEmails)
+        assertTrue("user_id=alice@example.com" in normalized.digestParts)
+
+        val addressOnly = normalizeOpenPgpExtras(
+            apiVersion = 12,
+            userIds = arrayOf("<ALICE@example.com>"),
+            allowUserIdSyntax = true,
+        )
+        assertNotNull(addressOnly)
+        assertEquals(listOf("alice@example.com"), addressOnly.requestedEmails)
+
+        val bareMailbox = normalizeOpenPgpExtras(
+            apiVersion = 12,
+            userIds = arrayOf("ALICE@example.com"),
+            allowUserIdSyntax = true,
+        )
+        assertNotNull(bareMailbox)
+        assertEquals(normalized.requestedEmails, bareMailbox.requestedEmails)
+
         assertNull(
             normalizeOpenPgpExtras(
                 apiVersion = 12,
                 userIds = arrayOf("Alice <alice@example.com>"),
             ),
         )
+
         val sender = normalizeOpenPgpExtras(
             apiVersion = 12,
             senderAddress = "Alice <alice@example.com>",
         )
         assertNotNull(sender)
         assertEquals("", sender.senderAddress)
+    }
+
+    @Test
+    fun `preselected signing key remains a chooser hint`() {
+        val normalized = normalizeOpenPgpExtras(
+            apiVersion = 12,
+            preselectKeyId = 42L,
+        )
+        assertNotNull(normalized)
+        assertNull(normalized.signKeyId)
+        assertEquals(42L, normalized.preselectKeyId)
+        assertTrue("preselect_key_id=42" in normalized.digestParts)
+        assertEquals(emptyList(), normalized.approvalConstraintKeyIds)
+    }
+
+    @Test
+    fun `approval selection honors exactly one preselected candidate`() {
+        fun candidate(
+            id: String,
+            preselected: Boolean = false,
+        ) = AndroidIpcApprovalCoordinator.Candidate(
+            id = id,
+            name = id,
+            description = "",
+            preselected = preselected,
+        )
+
+        assertEquals(
+            setOf("second"),
+            initialAndroidIpcApprovalSelection(
+                listOf(candidate("first"), candidate("second", preselected = true)),
+            ),
+        )
+        assertEquals(
+            emptySet(),
+            initialAndroidIpcApprovalSelection(
+                listOf(
+                    candidate("first", preselected = true),
+                    candidate("second", preselected = true),
+                ),
+            ),
+        )
     }
 
     @Test

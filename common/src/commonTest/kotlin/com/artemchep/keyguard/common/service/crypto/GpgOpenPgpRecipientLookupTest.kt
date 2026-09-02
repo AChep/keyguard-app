@@ -35,7 +35,7 @@ class GpgOpenPgpRecipientLookupTest {
         )
 
         val result = resolveOpenPgpRecipients(
-            userIds = listOf(" ALICE@EXAMPLE.COM "),
+            recipientEmails = listOf(" ALICE@EXAMPLE.COM "),
             keyIds = listOf(22L),
             candidates = listOf(alice, bob),
             candidateEmails = Candidate::emails,
@@ -71,7 +71,7 @@ class GpgOpenPgpRecipientLookupTest {
         )
 
         val result = resolveOpenPgpRecipients(
-            userIds = listOf(
+            recipientEmails = listOf(
                 "missing@example.com",
                 "duplicate@example.com",
                 "unusable@example.com",
@@ -115,7 +115,7 @@ class GpgOpenPgpRecipientLookupTest {
         )
 
         val result = resolveOpenPgpRecipients(
-            userIds = listOf("duplicate@example.com"),
+            recipientEmails = listOf("duplicate@example.com"),
             keyIds = emptyList(),
             candidates = candidates,
             candidateEmails = Candidate::emails,
@@ -127,7 +127,7 @@ class GpgOpenPgpRecipientLookupTest {
         assertTrue(result.isAmbiguousOnly)
         assertTrue(
             selectedRingsCoverOpenPgpRecipients(
-                userIds = listOf("duplicate@example.com"),
+                recipientEmails = listOf("duplicate@example.com"),
                 keyIds = emptyList(),
                 selected = listOf(candidates.first()),
                 candidateEmails = Candidate::emails,
@@ -141,7 +141,7 @@ class GpgOpenPgpRecipientLookupTest {
     fun `recipient diagnostics never include the recipient address`() {
         val email = "Sensitive.Recipient+mail@example.com"
         val detail = resolveOpenPgpRecipients(
-            userIds = listOf(email),
+            recipientEmails = listOf(email),
             keyIds = emptyList(),
             candidates = emptyList<Candidate>(),
             candidateEmails = Candidate::emails,

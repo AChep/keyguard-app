@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpClearSignFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpCertificationAuthority
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpCertificationEvaluator
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextResult
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptionWarning
@@ -277,18 +278,7 @@ internal fun List<GpgOpenPgpCertificationAuthority>.coalesceCertificationAuthori
             max = MAX_CERTIFICATION_AUTHORITIES_PER_REQUEST,
         )
 
-class NativeGpgOpenPgpService internal constructor(
-    private val stagingSpoolFactory: StagingSpoolFactory =
-        DefaultStagingSpoolFactory(),
-    verifier: GpgOpenPgpVerifier = NativeGpgOpenPgpVerifier,
-) : GpgOpenPgpService,
-    GpgOpenPgpVerifier by verifier {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        stagingSpoolFactory = directDI.instance(),
-    )
-
+private object NativeGpgOpenPgpCertificationEvaluator : GpgOpenPgpCertificationEvaluator {
     override fun evaluateUserIdCertifications(
         request: GpgOpenPgpUserIdCertificationRequest,
     ): List<String> {
@@ -311,6 +301,22 @@ class NativeGpgOpenPgpService internal constructor(
                 }
         }
     }
+}
+
+class NativeGpgOpenPgpService internal constructor(
+    private val stagingSpoolFactory: StagingSpoolFactory =
+        DefaultStagingSpoolFactory(),
+    verifier: GpgOpenPgpVerifier = NativeGpgOpenPgpVerifier,
+    certificationEvaluator: GpgOpenPgpCertificationEvaluator =
+        NativeGpgOpenPgpCertificationEvaluator,
+) : GpgOpenPgpService,
+    GpgOpenPgpVerifier by verifier,
+    GpgOpenPgpCertificationEvaluator by certificationEvaluator {
+    constructor(
+        directDI: DirectDI,
+    ) : this(
+        stagingSpoolFactory = directDI.instance(),
+    )
 
     override fun clearSignText(
         request: GpgOpenPgpSignTextRequest,

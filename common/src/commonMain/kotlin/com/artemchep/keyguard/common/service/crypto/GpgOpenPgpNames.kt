@@ -20,20 +20,18 @@ internal fun gpgAlgorithmName(
 
 internal fun extractGpgUserIdEmail(
     userId: String,
-): String? {
+): String? = if (!userId.hasValidUnicodeScalars()) {
     // Checked once up front; the substrings below split at BMP delimiters, so
     // they cannot introduce a broken surrogate pair.
-    if (!userId.hasValidUnicodeScalars()) {
-        return null
-    }
-    if (userId.isValidGpgMailboxStructure()) {
-        return userId
-    }
+    null
+} else if (userId.isValidGpgMailboxStructure()) {
+    userId
+} else {
     // OpenPGP User IDs have no required internal structure. For deriving an
     // address, follow Sequoia's anchored "Conventional User ID" shape instead
     // of recovering an address from malformed or ambiguous text.
     val addressStart = userId.lastIndexOf('<')
-    return userId.takeIf { it.endsWith('>') && addressStart >= 0 }
+    userId.takeIf { it.endsWith('>') && addressStart >= 0 }
         ?.substring(addressStart + 1, userId.lastIndex)
         ?.takeIf(String::isValidGpgMailboxStructure)
         ?.takeIf {
@@ -82,24 +80,18 @@ private fun Char.isGpgAtext(): Boolean =
 // split at a BMP delimiter, so no surrogate pair can be broken here.
 private fun String.isValidGpgUserIdAddressPrefix(): Boolean {
     val value = trim { it == ' ' }
-    if (value.all(Char::isGpgNameChar)) {
-        return true
-    }
-    // A name may end with exactly one parenthesized comment.
-    if (!value.endsWith(')')) {
-        return false
-    }
-    val commentStart = value.lastIndexOf('(')
-    if (commentStart < 0) {
-        return false
-    }
-    val comment = value.substring(commentStart + 1, value.lastIndex)
-    if (!comment.all(Char::isGpgCommentChar)) {
-        return false
-    }
-    return value.substring(0, commentStart)
-        .trimEnd { it == ' ' }
-        .all(Char::isGpgNameChar)
+    return value.all(Char::isGpgNameChar) ||
+        // A name may end with exactly one parenthesized comment.
+        value.takeIf { it.endsWith(')') }
+            ?.lastIndexOf('(')
+            ?.takeIf { commentStart -> commentStart >= 0 }
+            ?.let { commentStart ->
+                val comment = value.substring(commentStart + 1, value.lastIndex)
+                comment.all(Char::isGpgCommentChar) &&
+                    value.substring(0, commentStart)
+                        .trimEnd { it == ' ' }
+                        .all(Char::isGpgNameChar)
+            } == true
 }
 
 private fun Char.isGpgNameChar(): Boolean =
@@ -107,9 +99,6 @@ private fun Char.isGpgNameChar(): Boolean =
 
 private fun Char.isGpgCommentChar(): Boolean =
     !isISOControl() && this != '(' && this != ')'
-
-private fun String.hasValidUnicodeScalars(): Boolean =
-    runCatching { encodeToByteArray(throwOnInvalidSequence = true) }.isSuccess
 
 private const val GPG_ATEXT_PUNCTUATION = "!#$%&'*+-/=?^_`{|}~"
 private const val GPG_NON_ASCII_CODE_POINT_START = 0x80

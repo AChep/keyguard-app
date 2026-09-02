@@ -30,10 +30,14 @@ internal class SingleInstanceManager(
     @Synchronized
     fun isSingleInstance(onRestoreRequest: () -> Unit): Boolean {
         check(!closed.get()) { "SingleInstanceManager is closed." }
-        if (fileLock?.isValid == true) {
-            return true
+        return if (fileLock?.isValid == true) {
+            true
+        } else {
+            acquireInstanceLock(onRestoreRequest)
         }
+    }
 
+    private fun acquireInstanceLock(onRestoreRequest: () -> Unit): Boolean {
         Files.createDirectories(lockFilesDir)
         val channel = FileChannel.open(
             lockFilePath,
@@ -45,25 +49,27 @@ internal class SingleInstanceManager(
         } catch (_: OverlappingFileLockException) {
             null
         }
-
-        if (lock == null) {
+        return if (lock == null) {
             channel.close()
             sendRestoreRequest()
-            return false
+            false
+        } else {
+            fileChannel = channel
+            fileLock = lock
+            var initialized = false
+            try {
+                startRestoreRequestWatcher(onRestoreRequest)
+                Runtime.getRuntime().addShutdownHook(
+                    Thread(::close, "keyguard-single-instance-shutdown"),
+                )
+                initialized = true
+            } finally {
+                if (!initialized) {
+                    close()
+                }
+            }
+            true
         }
-
-        fileChannel = channel
-        fileLock = lock
-        try {
-            startRestoreRequestWatcher(onRestoreRequest)
-            Runtime.getRuntime().addShutdownHook(
-                Thread(::close, "keyguard-single-instance-shutdown"),
-            )
-        } catch (e: Exception) {
-            close()
-            throw e
-        }
-        return true
     }
 
     private fun startRestoreRequestWatcher(onRestoreRequest: () -> Unit) {

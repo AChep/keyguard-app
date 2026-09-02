@@ -18,7 +18,7 @@ interface GpgOpenPgpVerifier {
     ): GpgOpenPgpVerification
 }
 
-interface GpgOpenPgpService : GpgOpenPgpVerifier {
+interface GpgOpenPgpCertificationEvaluator {
     /**
      * Returns exact target User IDs certified by a currently usable trusted
      * primary key. Implementations that cannot evaluate certifications fail
@@ -27,6 +27,11 @@ interface GpgOpenPgpService : GpgOpenPgpVerifier {
     fun evaluateUserIdCertifications(
         request: GpgOpenPgpUserIdCertificationRequest,
     ): List<String> = emptyList()
+}
+
+interface GpgOpenPgpService :
+    GpgOpenPgpVerifier,
+    GpgOpenPgpCertificationEvaluator {
 
     fun clearSignText(
         request: GpgOpenPgpSignTextRequest,

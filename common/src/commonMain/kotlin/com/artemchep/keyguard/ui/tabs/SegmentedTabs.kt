@@ -4,6 +4,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ButtonGroupMenuState
+import androidx.compose.material3.ButtonGroupScope
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -44,22 +46,7 @@ fun <T : TabItem> SegmentedButtonGroup(
 
     val updatedOnClick by rememberUpdatedState(onClick)
     ButtonGroup(
-        overflowIndicator = { menuState ->
-            FilledIconButton(
-                onClick = {
-                    if (menuState.isShowing) {
-                        menuState.dismiss()
-                    } else {
-                        menuState.show()
-                    }
-                },
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.MoreVert,
-                    contentDescription = null,
-                )
-            }
-        },
+        overflowIndicator = { menuState -> SegmentedOverflowIndicator(menuState) },
         expandedRatio = 0.05f,
         modifier = modifier,
     ) {
@@ -68,46 +55,85 @@ fun <T : TabItem> SegmentedButtonGroup(
                 ?: MutableInteractionSource()
             customItem(
                 buttonGroupContent = {
-                    val checked = tabState.value == tab
-                    ToggleButton(
-                        modifier = Modifier
-                            .animateWidth(interactionSource)
-                            .then(
-                                if (weight.isNaN()) {
-                                    Modifier
-                                } else Modifier
-                                    .weight(weight),
-                            ),
-                        checked = checked,
-                        onCheckedChange = {
-                            updatedOnClick(tab)
-                        },
+                    SegmentedToggleButton(
+                        tab = tab,
+                        checked = tabState.value == tab,
                         interactionSource = interactionSource,
-                    ) {
-                        Text(
-                            text = textResource(tab.title),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
+                        weight = weight,
+                        onClick = updatedOnClick,
+                    )
                 },
                 menuContent = { state ->
-                    DropdownMenuItem(
-                        enabled = true,
-                        text = {
-                            Text(
-                                text = textResource(tab.title),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        },
-                        onClick = {
-                            updatedOnClick(tab)
-                            state.dismiss()
-                        },
-                    )
+                    SegmentedMenuItem(tab, state, updatedOnClick)
                 },
             )
         }
     }
+}
+
+@Composable
+private fun SegmentedOverflowIndicator(menuState: ButtonGroupMenuState) {
+    FilledIconButton(
+        onClick = {
+            if (menuState.isShowing) {
+                menuState.dismiss()
+            } else {
+                menuState.show()
+            }
+        },
+    ) {
+        Icon(
+            imageVector = Icons.Filled.MoreVert,
+            contentDescription = null,
+        )
+    }
+}
+
+@Composable
+private fun <T : TabItem> ButtonGroupScope.SegmentedToggleButton(
+    tab: T,
+    checked: Boolean,
+    interactionSource: MutableInteractionSource,
+    weight: Float,
+    onClick: (T) -> Unit,
+) {
+    ToggleButton(
+        modifier = Modifier
+            .animateWidth(interactionSource)
+            .then(
+                if (weight.isNaN()) {
+                    Modifier
+                } else Modifier.weight(weight),
+            ),
+        checked = checked,
+        onCheckedChange = { onClick(tab) },
+        interactionSource = interactionSource,
+    ) {
+        SegmentedTabTitle(tab)
+    }
+}
+
+@Composable
+private fun <T : TabItem> SegmentedMenuItem(
+    tab: T,
+    menuState: ButtonGroupMenuState,
+    onClick: (T) -> Unit,
+) {
+    DropdownMenuItem(
+        enabled = true,
+        text = { SegmentedTabTitle(tab) },
+        onClick = {
+            onClick(tab)
+            menuState.dismiss()
+        },
+    )
+}
+
+@Composable
+private fun SegmentedTabTitle(tab: TabItem) {
+    Text(
+        text = textResource(tab.title),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
 }

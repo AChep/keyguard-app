@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVault
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
+import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySnapshot
 import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
@@ -85,18 +86,7 @@ internal class GpgOpenPgpVaultLoader(
                 primaryFingerprint = row.primaryFingerprint,
             )
         }
-        logRepository.postDebug(TAG) {
-            "request=$requestReference catalog_rows=${snapshot.publicKeys.size} " +
-                    "parsed_rings=${rings.size} " +
-                    "parse_failures=${snapshot.publicKeys.size - rings.size} " +
-                    "certified_emails=${rings.sumOf { it.info.emails.size }} " +
-                    "encryption_capable=${rings.count(GpgOpenPgpRing::canEncrypt)} " +
-                    "encryption_incapable=${rings.count { !it.canEncrypt }} " +
-                    "revoked=${rings.count { it.info.revoked }} " +
-                    "expired=${rings.count { it.isExpired }}" +
-                    " certification_authorities=${authorities.size}" +
-                    " authority_parse_failures=${authorityRows.size - authorities.size}"
-        }
+        logLoadedVault(requestReference, snapshot, rings, authorityRows.size, authorities.size)
         GpgOpenPgpVault(
             session = session,
             rings = rings,
@@ -140,6 +130,27 @@ internal class GpgOpenPgpVaultLoader(
             },
             certificationAuthorities = vault.certificationAuthorities,
         )
+    }
+
+    private fun logLoadedVault(
+        requestReference: String,
+        snapshot: GpgPublicKeySnapshot,
+        rings: List<GpgOpenPgpRing>,
+        authorityRowCount: Int,
+        authorityCount: Int,
+    ) {
+        logRepository.postDebug(TAG) {
+            "request=$requestReference catalog_rows=${snapshot.publicKeys.size} " +
+                "parsed_rings=${rings.size} " +
+                "parse_failures=${snapshot.publicKeys.size - rings.size} " +
+                "certified_emails=${rings.sumOf { it.info.emails.size }} " +
+                "encryption_capable=${rings.count(GpgOpenPgpRing::canEncrypt)} " +
+                "encryption_incapable=${rings.count { !it.canEncrypt }} " +
+                "revoked=${rings.count { it.info.revoked }} " +
+                "expired=${rings.count { it.isExpired }}" +
+                " certification_authorities=$authorityCount" +
+                " authority_parse_failures=${authorityRowCount - authorityCount}"
+        }
     }
 
     private companion object {

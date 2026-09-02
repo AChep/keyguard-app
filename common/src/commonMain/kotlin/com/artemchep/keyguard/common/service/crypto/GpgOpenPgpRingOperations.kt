@@ -202,15 +202,16 @@ internal class GpgOpenPgpRingOperations(
          * to more than one primary confirms nothing.
          */
         fun confirmedUserIdsFor(componentFingerprint: String?): List<String> {
-            if (evidence.certificationAuthorities.isEmpty()) {
-                return emptyList()
-            }
             val primaryFingerprint = componentFingerprint
                 ?.normalizeGpgFingerprint()
                 ?.let { fingerprint -> primariesByComponent[fingerprint] }
                 ?.singleOrNull()
-                ?: return emptyList()
-            return cache.getOrPut(primaryFingerprint) {
+            return if (
+                evidence.certificationAuthorities.isEmpty() ||
+                primaryFingerprint == null
+            ) {
+                emptyList()
+            } else cache.getOrPut(primaryFingerprint) {
                 confirmedUserIds(primaryFingerprint)
             }
         }
@@ -258,17 +259,18 @@ internal class GpgOpenPgpRingOperations(
         primaryFingerprint: String,
         revisions: List<String>,
     ): String? {
-        var merged = revisions.firstOrNull() ?: return null
+        var merged = revisions.firstOrNull()
         for (revision in revisions.drop(1)) {
-            merged = certificateMaterialReconciler.reconcile(
-                expectedPrimaryFingerprint = primaryFingerprint,
-                existingPublicCertificate = merged,
-                existingSecretCertificate = null,
-                incomingPublicCertificate = revision,
-                incomingSecretCertificate = null,
-            ).validSuccessOrNull(primaryFingerprint)
-                ?.localPublicMaterial
-                ?: return null
+            merged = merged?.let { existingPublicCertificate ->
+                certificateMaterialReconciler.reconcile(
+                    expectedPrimaryFingerprint = primaryFingerprint,
+                    existingPublicCertificate = existingPublicCertificate,
+                    existingSecretCertificate = null,
+                    incomingPublicCertificate = revision,
+                    incomingSecretCertificate = null,
+                ).validSuccessOrNull(primaryFingerprint)
+                    ?.localPublicMaterial
+            }
         }
         return merged
     }

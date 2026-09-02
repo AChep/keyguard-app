@@ -12,7 +12,7 @@ inputs:
   components:
     description: "Comma-separated Rust components"
     required: false
-    default: ""
+    default: "clippy,rustfmt"
 runs:
   using: "composite"
   steps:

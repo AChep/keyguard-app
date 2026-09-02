@@ -57,7 +57,7 @@ jobs:
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
         with:
-          components: "clippy"
+          components: "clippy,rustfmt"
       - uses: ./.github/actions/setup_protobuf
       - name: "Run Rust static analysis"
         run: |
@@ -117,7 +117,7 @@ jobs:
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
         with:
-          components: "clippy"
+          components: "clippy,rustfmt"
       - uses: ./.github/actions/setup_protobuf
       - name: "Run platform Rust static analysis"
         run: |

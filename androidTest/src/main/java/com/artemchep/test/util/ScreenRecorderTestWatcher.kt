@@ -1,5 +1,6 @@
 package com.artemchep.test.util
 
+import android.app.UiAutomation
 import android.os.Build
 import android.os.Environment
 import android.os.ParcelFileDescriptor
@@ -27,6 +28,9 @@ class ScreenRecorderTestWatcher : TestWatcher() {
         const val RECORDER_STOP_TIMEOUT_MS = 10_000L
         const val RECORDER_POLL_INTERVAL_MS = 100L
 
+        const val UI_AUTOMATION_CONNECTION_ATTEMPTS = 3
+        const val UI_AUTOMATION_CONNECTION_RETRY_INTERVAL_MS = 500L
+
         const val SHELL_STREAM_COUNT = 3
         const val SHELL_STDOUT_INDEX = 0
         const val SHELL_STDIN_INDEX = 1
@@ -35,6 +39,10 @@ class ScreenRecorderTestWatcher : TestWatcher() {
 
     private val instrumentation by lazy {
         InstrumentationRegistry.getInstrumentation()
+    }
+
+    private val uiAutomation: UiAutomation by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        acquireUiAutomation()
     }
 
     private val device by lazy {
@@ -46,6 +54,9 @@ class ScreenRecorderTestWatcher : TestWatcher() {
     private var recordingThread: Thread? = null
 
     override fun starting(description: Description) {
+        // Establish the shared connection before the recorder and polling threads use it.
+        executeShellCommand("true")
+
         val timestamp = SimpleDateFormat("HHmmss", Locale.US).format(Date())
         val testName =
             "${description.className}_${description.methodName}"
@@ -164,7 +175,6 @@ class ScreenRecorderTestWatcher : TestWatcher() {
     }
 
     private fun executeShellCommand(command: String): String {
-        val uiAutomation = instrumentation.uiAutomation
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             return ParcelFileDescriptor.AutoCloseInputStream(
                 uiAutomation.executeShellCommand(command),
@@ -190,6 +200,17 @@ class ScreenRecorderTestWatcher : TestWatcher() {
             Log.w(TAG, "Shell command wrote to stderr: $command\n${stderr.trimEnd()}")
         }
         return stdout
+    }
+
+    private fun acquireUiAutomation(): UiAutomation {
+        repeat(UI_AUTOMATION_CONNECTION_ATTEMPTS) { attempt ->
+            val candidate: UiAutomation? = instrumentation.uiAutomation
+            if (candidate != null) return candidate
+            if (attempt < UI_AUTOMATION_CONNECTION_ATTEMPTS - 1) {
+                SystemClock.sleep(UI_AUTOMATION_CONNECTION_RETRY_INTERVAL_MS)
+            }
+        }
+        error("Could not connect to UiAutomation.")
     }
 
     private class ShellStreamReader(

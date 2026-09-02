@@ -131,9 +131,14 @@ class BiometricStatusUseCaseImpl(
     )
 
     override fun invoke(): Flow<BiometricStatus> = flow {
-        // FIXME: Properly load native library on Flatpak platform
-        //  instead of just assuming that only MacOS supports biometrics.
-        val hasBiometrics = CurrentPlatform is Platform.Desktop.MacOS && hasBiometrics()
+        // Native biometric verification is currently implemented on macOS and Windows.
+        val hasBiometrics = when (CurrentPlatform) {
+            is Platform.Desktop.MacOS,
+            is Platform.Desktop.Windows,
+            -> hasBiometrics()
+
+            else -> false
+        }
         val event = if (hasBiometrics) {
             BiometricStatus.Available(
                 createCipher = { purpose ->

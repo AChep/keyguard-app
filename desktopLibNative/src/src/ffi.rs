@@ -101,12 +101,22 @@ mod tests {
     }
 
     #[test]
-    fn free_ptr_releases_strdup_allocation() {
+    fn free_ptr_releases_c_allocation() {
         let payload = CString::new("hello").unwrap();
-        // SAFETY: CString provides a valid NUL-terminated source pointer for
-        // the duration of the call; strdup returns a C-allocator allocation.
-        let duplicated = unsafe { libc::strdup(payload.as_ptr()) };
+        let bytes = payload.as_bytes_with_nul();
+        // SAFETY: malloc receives the exact positive byte count needed for the
+        // CString, and the returned pointer is checked before it is written.
+        let duplicated = unsafe { libc::malloc(bytes.len()) }.cast::<std::ffi::c_char>();
         assert!(!duplicated.is_null());
+        // SAFETY: `duplicated` points to a writable allocation of `bytes.len()`
+        // bytes, while the CString source remains readable for the whole copy.
+        unsafe {
+            std::ptr::copy_nonoverlapping(
+                bytes.as_ptr().cast::<std::ffi::c_char>(),
+                duplicated,
+                bytes.len(),
+            );
+        }
 
         free_ptr(duplicated.cast());
     }

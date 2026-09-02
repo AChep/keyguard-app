@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.core.store
 
+import app.cash.sqldelight.TransacterImpl
 import app.cash.sqldelight.db.AfterVersion
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
@@ -68,32 +69,11 @@ class DatabaseSqlManagerInFileJvm<Database>(
             file = file,
             key = masterKey.byteArray,
         )
-
-        // Create or migrate the database schema.
-        val targetVersion = databaseSchema.version
-        val currentVersion = runCatching {
-            driver.getCurrentVersion()
-        }.getOrDefault(0L)
-        if (currentVersion > targetVersion) {
+        try {
+            migrateDatabaseSchema(driver, databaseSchema, *callbacks)
+        } catch (e: Throwable) {
             driver.close()
-            throw DatabaseSchemaDowngradeException(
-                currentVersion = currentVersion,
-                targetVersion = targetVersion,
-            )
-        }
-        if (currentVersion == 0L) {
-            databaseSchema.create(driver)
-        } else if (targetVersion > currentVersion) {
-            databaseSchema.migrate(
-                driver,
-                currentVersion,
-                targetVersion,
-                *callbacks,
-            )
-        }
-        // Bump the version to the current one.
-        if (currentVersion < targetVersion) {
-            driver.setCurrentVersion(targetVersion)
+            throw e
         }
 
         val database = databaseFactory(driver)
@@ -147,28 +127,63 @@ class DatabaseSqlManagerInFileJvm<Database>(
         )
     }
 
-    // Version
+}
 
-    private suspend fun SqlDriver.getCurrentVersion(): Long {
-        val queryResult = executeQuery(
-            identifier = null,
-            sql = "PRAGMA user_version;",
-            mapper = { cursor ->
-                val version = cursor.getLong(0)
-                requireNotNull(version)
-
-                QueryResult.Value(version)
-            },
-            parameters = 0,
-            binders = null,
-        )
-        return queryResult.await()
+internal fun migrateDatabaseSchema(
+    driver: SqlDriver,
+    databaseSchema: SqlSchema<QueryResult.Value<Unit>>,
+    vararg callbacks: AfterVersion,
+) {
+    // DDL is transactional in SQLite. Keeping schema changes and the
+    // user_version bump in one transaction prevents an interrupted upgrade
+    // from replaying already-created tables on the next run.
+    val transacter = object : TransacterImpl(driver) {}
+    transacter.transaction {
+        val targetVersion = databaseSchema.version
+        val currentVersion = runCatching {
+            driver.getCurrentVersion()
+        }.getOrDefault(0L)
+        if (currentVersion > targetVersion) {
+            throw DatabaseSchemaDowngradeException(
+                currentVersion = currentVersion,
+                targetVersion = targetVersion,
+            )
+        }
+        if (currentVersion == 0L) {
+            databaseSchema.create(driver)
+        } else if (targetVersion > currentVersion) {
+            databaseSchema.migrate(
+                driver,
+                currentVersion,
+                targetVersion,
+                *callbacks,
+            )
+        }
+        if (currentVersion < targetVersion) {
+            driver.setCurrentVersion(targetVersion)
+        }
     }
+}
 
-    private suspend fun SqlDriver.setCurrentVersion(version: Long) {
-        execute(null, "PRAGMA user_version = $version;", 0, null)
-            .await()
-    }
+private fun SqlDriver.getCurrentVersion(): Long {
+    val queryResult = executeQuery(
+        identifier = null,
+        sql = "PRAGMA user_version;",
+        mapper = { cursor ->
+            val version = cursor.getLong(0)
+            requireNotNull(version)
+
+            QueryResult.Value(version)
+        },
+        parameters = 0,
+        binders = null,
+    )
+    return queryResult.value
+}
+
+private fun SqlDriver.setCurrentVersion(version: Long) {
+    execute(null, "PRAGMA user_version = $version;", 0, null)
+        .value
 }
 
 internal class DatabaseSchemaDowngradeException(

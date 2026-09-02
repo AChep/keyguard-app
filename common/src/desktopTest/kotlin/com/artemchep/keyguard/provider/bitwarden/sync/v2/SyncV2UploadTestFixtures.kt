@@ -84,6 +84,7 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.transform
 import com.artemchep.keyguard.provider.bitwarden.entity.AttachmentEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherAttachmentUploadEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.CipherListEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CollectionEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.ConnectTokenResponse
@@ -108,6 +109,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherAttachment
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherCreateRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherDeleteRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherRequest
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherUnarchiveRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.SendRequest
 import com.artemchep.keyguard.provider.bitwarden.upload.FailingPendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
@@ -169,6 +171,7 @@ internal class UploadTestServer {
     var nextCipherGetFailure: HttpStatusCode? = null
     var cipherGetFailureAfterSuccessfulGets: Int? = null
     var nextCipherPutFailure: HttpStatusCode? = null
+    var nextCipherUnarchiveFailure: HttpStatusCode? = null
     var nextCipherTrashFailure: HttpStatusCode? = null
     var nextCipherBulkDeleteFailure: HttpStatusCode? = null
     var nextCipherTrashException: Throwable? = null
@@ -294,6 +297,27 @@ internal class UploadTestServer {
                 }
             }
             respondText("")
+        }
+
+        request.method == HttpMethod.Put &&
+            request.path == "/api/ciphers/unarchive" -> {
+            val failure = nextCipherUnarchiveFailure
+            if (failure != null) {
+                nextCipherUnarchiveFailure = null
+                respondApiError(
+                    status = failure,
+                    description = "cipher unarchive failed",
+                )
+            } else {
+                val body = json.decodeFromString<CipherUnarchiveRequest>(request.body)
+                val unarchived = body.ids.map { cipherId ->
+                    requireNotNull(ciphers[cipherId]).copy(
+                        revisionDate = T4,
+                        archivedDate = null,
+                    ).also { ciphers[cipherId] = it }
+                }
+                respondJson(CipherListEntity(data = unarchived))
+            }
         }
 
         request.method == HttpMethod.Delete &&

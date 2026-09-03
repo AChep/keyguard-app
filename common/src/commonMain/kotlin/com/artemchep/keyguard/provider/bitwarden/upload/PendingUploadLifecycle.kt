@@ -1,21 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.upload
 
 /**
- * Uses caller-owned key material for one operation and clears the mutable
- * buffer when that operation completes, fails, or is cancelled.
- *
- * Inlining lets [block] suspend when the caller does, without forcing
- * non-suspending users to wrap their work in a suspending lambda.
- */
-internal inline fun <T> ByteArray.useAndClear(
-    block: (ByteArray) -> T,
-): T = try {
-    block(this)
-} finally {
-    fill(0)
-}
-
-/**
  * Deletes each distinct staged upload without allowing cleanup failures to
  * replace the result of the primary mutation or sync operation.
  */

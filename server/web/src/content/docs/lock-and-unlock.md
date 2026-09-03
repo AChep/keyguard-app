@@ -24,8 +24,8 @@ it any time via **Change app password** without touching your accounts.
 
 Besides typing the app password, you can unlock with:
 
-- **Biometrics** — fingerprint or face unlock on Android, Touch ID on macOS;
-  enable it during setup or later in the security settings;
+- **Biometrics** (Android, macOS, Windows) — enable it during setup or later in the
+  security settings;
 - **YubiKey** (Android) — unlock with a YubiKey over **USB** or **NFC**,
   using HMAC-SHA1 challenge-response. Keyguard provisions a key slot when
   you set it up.

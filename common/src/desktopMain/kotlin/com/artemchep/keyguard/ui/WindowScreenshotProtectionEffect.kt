@@ -2,8 +2,6 @@ package com.artemchep.keyguard.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.awt.ComposeDialog
-import androidx.compose.ui.awt.ComposeWindow
 import arrow.core.throwIfFatal
 import com.artemchep.jna.windows.setWindowExcludedFromCapture
 import com.artemchep.keyguard.common.model.AllowScreenshots
@@ -23,11 +21,8 @@ fun WindowScreenshotProtectionEffect() {
         return
     }
 
-    val windowHandle = when (val window = LocalComposeWindow.current) {
-        is ComposeWindow -> window.windowHandle
-        is ComposeDialog -> window.windowHandle
-        else -> return
-    }
+    val windowHandle = LocalComposeWindow.current.nativeWindowHandle
+        ?: return
     val getAllowScreenshots by rememberInstance<GetAllowScreenshots>()
     LaunchedEffect(
         getAllowScreenshots,

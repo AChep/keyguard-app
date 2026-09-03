@@ -361,7 +361,7 @@ private suspend fun createPromptOrNull(
                             -> return@fold
                     }
 
-                    val io = ioRaise<Unit>(exception)
+                    val io = fn.getFailureIo(exception)
                     executor.execute(io)
                 },
                 ifRight = {
@@ -399,6 +399,11 @@ private class UnlockVaultWithBiometric(
      */
     val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
     private val getCreateIo: () -> IO<Unit>,
+    /**
+     * Creates a failing action for a biometric prompt
+     * error, performing any clean-up the error requires.
+     */
+    val getFailureIo: (BiometricAuthException) -> IO<Unit>,
     val requireConfirmation: Boolean,
 ) : () -> Unit {
     // Create from vault state options
@@ -409,6 +414,7 @@ private class UnlockVaultWithBiometric(
         executor = executor,
         getCipher = options.getCipher,
         getCreateIo = options.getCreateIo,
+        getFailureIo = options.getFailureIo,
         requireConfirmation = options.requireConfirmation,
     )
 

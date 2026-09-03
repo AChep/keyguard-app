@@ -1,12 +1,10 @@
 package com.artemchep.keyguard.core.session
 
 import arrow.core.partially1
-import arrow.core.partially2
 import arrow.optics.Getter
 import com.artemchep.autotype.biometricsIsSupported
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.bindBlocking
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.ioEffect
@@ -14,7 +12,6 @@ import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.model.AutofillTarget
-import com.artemchep.keyguard.common.model.BiometricPurpose
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
@@ -32,9 +29,9 @@ import com.artemchep.keyguard.common.service.backup.BackupSchedulerWorker
 import com.artemchep.keyguard.common.service.backup.LocalFolderBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManagerImpl
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
@@ -52,8 +49,6 @@ import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
 import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentStatusServiceImpl
-import com.artemchep.keyguard.common.service.keychain.KeychainIds
-import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.FileJsonKeyValueStoreStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
@@ -65,7 +60,6 @@ import com.artemchep.keyguard.common.service.review.ReviewService
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentStatusServiceImpl
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
-import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.impl.TextServiceImpl
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
@@ -92,9 +86,12 @@ import com.artemchep.keyguard.copy.atomicDataDirectory
 import com.artemchep.keyguard.core.store.DatabaseSqlManagerInFileJvm
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
+import com.artemchep.keyguard.feature.biometric.BiometricKeyRepositoryDesktop
+import com.artemchep.keyguard.feature.biometric.BiometricPromptHost
+import com.artemchep.keyguard.feature.biometric.BiometricPromptHostKeychain
+import com.artemchep.keyguard.feature.biometric.BiometricPromptHostWindowsHello
 import com.artemchep.keyguard.feature.navigation.defaultNavigationModule
 import com.artemchep.keyguard.platform.CurrentPlatform
-import com.artemchep.keyguard.platform.LeBiometricCipherKeychain
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.Platform
@@ -120,72 +117,30 @@ import org.kodein.di.multiton
 import java.io.File
 
 class BiometricStatusUseCaseImpl(
-    private val base64Service: Base64Service,
-    private val cryptoGenerator: CryptoGenerator,
-    private val keychainRepository: KeychainRepository,
+    private val promptHost: BiometricPromptHost,
 ) : BiometricStatusUseCase {
     constructor(directDI: DirectDI) : this(
-        base64Service = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        keychainRepository = directDI.instance(),
+        promptHost = directDI.instance(),
     )
 
     override fun invoke(): Flow<BiometricStatus> = flow {
-        // FIXME: Properly load native library on Flatpak platform
-        //  instead of just assuming that only MacOS supports biometrics.
-        val hasBiometrics = CurrentPlatform is Platform.Desktop.MacOS && hasBiometrics()
+        // Only the platforms that have a biometric backend
+        // get to probe the native library.
+        val hasBiometrics = when (CurrentPlatform) {
+            is Platform.Desktop.MacOS,
+            is Platform.Desktop.Windows,
+                -> biometricsIsSupported()
+
+            else -> false
+        }
         val event = if (hasBiometrics) {
             BiometricStatus.Available(
-                createCipher = { purpose ->
-                    val cipher = LeBiometricCipherKeychain(
-                        defer = ::populateCipherWithParams
-                            .partially2(purpose),
-                        forEncryption = purpose is BiometricPurpose.Encrypt,
-                    )
-                    cipher
-                },
-                deleteCipher = {
-                    keychainRepository.delete(KeychainIds.BIOMETRIC_UNLOCK.value)
-                        .bind()
-                },
+                createCipher = promptHost::createCipher,
             )
         } else {
             BiometricStatus.Unavailable
         }
         emit(event)
-    }
-
-    private suspend fun hasBiometrics(): Boolean {
-        return biometricsIsSupported()
-    }
-
-    private fun populateCipherWithParams(
-        cipher: LeBiometricCipherKeychain,
-        purpose: BiometricPurpose,
-    ) {
-        when (purpose) {
-            is BiometricPurpose.Encrypt -> {
-                // Init cipher in encrypt mode with random iv
-                // seed. The user should persist iv for future use.
-                cipher._iv = cryptoGenerator.seed(length = 16)
-
-                val key = cryptoGenerator.seed(length = 32)
-                val keyBase64 = base64Service.encodeToString(key)
-                // Save the key in the login keychain.
-                keychainRepository.put(KeychainIds.BIOMETRIC_UNLOCK.value, keyBase64)
-                    .bindBlocking()
-                cipher._key = key
-            }
-
-            is BiometricPurpose.Decrypt -> {
-                cipher._iv = purpose.iv.byteArray
-                // Obtain the cipher key from the
-                // login keychain.
-                val keyBase64 = keychainRepository.get(KeychainIds.BIOMETRIC_UNLOCK.value)
-                    .bindBlocking()
-                cipher._key = base64Service.decode(keyBase64)
-            }
-        }
     }
 }
 
@@ -329,6 +284,17 @@ fun diFingerprintRepositoryModule() = DI.Module(
         BiometricStatusUseCaseImpl(
             directDI = this,
         )
+    }
+    bindSingleton<BiometricKeyRepository> {
+        BiometricKeyRepositoryDesktop(
+            directDI = this,
+        )
+    }
+    bindSingleton<BiometricPromptHost> {
+        when (CurrentPlatform) {
+            is Platform.Desktop.Windows -> BiometricPromptHostWindowsHello(directDI = this)
+            else -> BiometricPromptHostKeychain(directDI = this)
+        }
     }
     bindSingleton<YubiKeyUnlockAvailability> {
         YubiKeyUnlockAvailability { false }

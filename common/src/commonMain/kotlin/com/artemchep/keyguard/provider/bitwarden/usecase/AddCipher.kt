@@ -36,7 +36,7 @@ import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
-import com.artemchep.keyguard.provider.bitwarden.upload.useAndClear
+import com.artemchep.keyguard.common.util.useAndClear
 import kotlin.time.Clock
 import kotlin.time.Instant
 import org.kodein.di.DirectDI

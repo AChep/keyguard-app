@@ -81,14 +81,38 @@ public interface DesktopLibJna : Library {
     public fun biometricsIsSupported(): Boolean
 
     public fun biometricsVerify(
+        windowHandle: Long,
         title: Pointer,
         callback: BiometricsVerifyCallback,
     )
 
+    public fun biometricsDeleteCredential(): Int
+
+    public fun biometricsTransformSecret(
+        windowHandle: Long,
+        title: Pointer,
+        input: Pointer,
+        inputLength: Long,
+        decrypt: Int,
+        callback: BiometricsResultCallback,
+    ): Int
+
     public interface BiometricsVerifyCallback : Callback {
-        public fun invoke(success: Boolean, error: Pointer?)
+        /**
+         * @param status one of the `BiometricsStatus` codes, `0` on success.
+         * @param error optional message, only valid during the callback.
+         */
+        public fun invoke(status: Int, error: Pointer?)
     }
 
+    public interface BiometricsResultCallback : Callback {
+        public fun invoke(
+            status: Int,
+            result: Pointer?,
+            resultLength: Long,
+            error: Pointer?,
+        )
+    }
 
     // Keychain
 

@@ -1,7 +1,5 @@
 package com.artemchep.keyguard.common.exception
 
-actual fun Throwable.isKeyException(): Boolean = false
-
 actual fun Throwable.isOutOfMemoryError(): Boolean =
     this is OutOfMemoryError
 

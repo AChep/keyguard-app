@@ -9,7 +9,6 @@ sealed interface BiometricStatus {
          * prompt.
          */
         val createCipher: suspend (BiometricPurpose) -> LeBiometricCipher,
-        val deleteCipher: suspend () -> Unit,
     ) : BiometricStatus
 
     data object Unavailable : BiometricStatus

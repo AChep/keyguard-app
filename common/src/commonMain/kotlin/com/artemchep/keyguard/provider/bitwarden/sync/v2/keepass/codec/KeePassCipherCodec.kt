@@ -36,7 +36,7 @@ import com.artemchep.keyguard.core.store.bitwarden.withoutIdentityCanonicalPaths
 import com.artemchep.keyguard.provider.bitwarden.api.merge
 import com.artemchep.keyguard.provider.bitwarden.usecase.resolveGpgMetadata
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
-import com.artemchep.keyguard.provider.bitwarden.upload.useAndClear
+import com.artemchep.keyguard.common.util.useAndClear
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json

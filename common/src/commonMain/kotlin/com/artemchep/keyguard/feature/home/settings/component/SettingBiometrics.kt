@@ -19,6 +19,8 @@ import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import org.jetbrains.compose.resources.stringResource
@@ -82,9 +84,13 @@ private fun createSettingComponentFlow(
     SettingIi(
         search = SettingIi.Search(
             group = "biometric",
-            tokens = listOf(
-                "biometric",
-            ),
+            tokens = buildList {
+                add("biometric")
+                if (CurrentPlatform is Platform.Desktop.Windows) {
+                    add("windows")
+                    add("hello")
+                }
+            },
         ),
     ) {
         val promptSink = remember {
@@ -134,9 +140,14 @@ private fun SettingBiometrics(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
+    val title = if (CurrentPlatform is Platform.Desktop.Windows) {
+        Res.string.pref_item_windows_hello_unlock_title
+    } else {
+        Res.string.pref_item_biometric_unlock_title
+    }
     LocalSettingPaneComponents.current.KgSwitch(
         icon = Icons.Outlined.Fingerprint,
-        title = stringResource(Res.string.pref_item_biometric_unlock_title),
+        title = stringResource(title),
         checked = checked,
         onCheckedChange = onCheckedChange,
     )

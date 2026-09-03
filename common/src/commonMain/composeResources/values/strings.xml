@@ -1810,6 +1810,7 @@
     <string name="pref_item_license_sync_no_purchases">No eligible purchase found</string>
     <string name="pref_item_license_sync_failed">Could not obtain entitlement token</string>
     <string name="pref_item_biometric_unlock_title">Biometric unlock</string>
+    <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
     <string name="pref_item_yubikey_unlock_title">YubiKey unlock</string>

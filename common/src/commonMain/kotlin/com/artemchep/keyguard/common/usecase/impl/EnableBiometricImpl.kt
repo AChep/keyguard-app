@@ -1,17 +1,18 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import arrow.core.partially1
-import com.artemchep.keyguard.common.exception.isKeyException
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatten
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.toIO
+import com.artemchep.keyguard.common.model.BiometricBindingException
 import com.artemchep.keyguard.common.model.BiometricPurpose
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.FingerprintBiometric
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.WithBiometric
+import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
 import com.artemchep.keyguard.common.usecase.BiometricKeyEncryptUseCase
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
@@ -25,12 +26,14 @@ class EnableBiometricImpl(
     private val keyReadWriteRepository: FingerprintReadWriteRepository,
     private val getVaultSession: GetVaultSession,
     private val biometricStatusUseCase: BiometricStatusUseCase,
+    private val biometricKeyRepository: BiometricKeyRepository,
     private val biometricKeyEncryptUseCase: BiometricKeyEncryptUseCase,
 ) : EnableBiometric {
     constructor(directDI: DirectDI) : this(
         keyReadWriteRepository = directDI.instance(),
         getVaultSession = directDI.instance(),
         biometricStatusUseCase = directDI.instance(),
+        biometricKeyRepository = directDI.instance(),
         biometricKeyEncryptUseCase = directDI.instance(),
     )
 
@@ -60,10 +63,9 @@ class EnableBiometricImpl(
                 suspend {
                     try {
                         createCipher()
-                    } catch (e: Throwable) {
-                        if (!e.isKeyException()) throw e
+                    } catch (e: BiometricBindingException) {
                         // try to clear the cipher key...
-                        biometric.deleteCipher()
+                        biometricKeyRepository.delete().bind()
                         // ...and recreate it.
                         createCipher()
                     }

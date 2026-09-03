@@ -44,10 +44,6 @@ class BiometricStatusUseCaseApple(
                         forEncryption = purpose is BiometricPurpose.Encrypt,
                     )
                 },
-                deleteCipher = {
-                    keychainRepository.delete(KeychainIds.BIOMETRIC_UNLOCK.value)
-                        .bind()
-                },
             )
         } else {
             BiometricStatus.Unavailable

@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.model.Screen
 import com.artemchep.keyguard.common.model.Subscription
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
+import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
@@ -97,6 +98,7 @@ import com.artemchep.keyguard.copy.PowerServiceIos
 import com.artemchep.keyguard.copy.ReviewServiceIos
 import com.artemchep.keyguard.copy.SubscriptionServiceIos
 import com.artemchep.keyguard.copy.ZipServiceIos
+import com.artemchep.keyguard.core.session.usecase.BiometricKeyRepositoryApple
 import com.artemchep.keyguard.core.session.usecase.DatabaseSqlManagerInFileApple
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
@@ -326,6 +328,11 @@ internal fun DI.Builder.installIosAppModule() {
     }
     bindSingleton<BiometricStatusUseCase> {
         BiometricStatusUseCaseIos
+    }
+    bindSingleton<BiometricKeyRepository> {
+        BiometricKeyRepositoryApple(
+            directDI = this,
+        )
     }
     bindSingleton<YubiKeyUnlockAvailability> {
         YubiKeyUnlockAvailability { false }

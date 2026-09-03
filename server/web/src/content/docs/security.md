@@ -24,11 +24,7 @@ How the local copy on your device is protected, layer by layer:
   Inside it: the local data, your account sign-in tokens, generator history 
   and wordlists, usage history, and Watchtower
   results. Without the key, the file on disk is opaque.
-- **Biometric unlock goes through the hardware keystore.** On Android, the
-  key material needed to unlock is encrypted by an AES key that lives in
-  the **Android Keystore** and is released only after a successful
-  **Class 3 ("strong") biometric** — Keyguard never sees your fingerprint
-  or face, and the wrapped key is useless on another device.
+- **Biometric unlock uses platform-protected keys.**
 - **The vault key stays in memory by default.** Unless you enable the
   [persist vault key](/docs/lock-and-unlock/#auto-lock) option, the key that
   opens the database exists only in RAM — unloading the app locks the

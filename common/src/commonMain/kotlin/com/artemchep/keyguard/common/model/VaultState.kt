@@ -35,6 +35,12 @@ sealed interface VaultState {
         class WithBiometric(
             val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
             val getCreateIo: () -> IO<Unit>,
+            /**
+             * Handles a failed biometric prompt. The returned IO
+             * always fails with the given exception, after any
+             * clean-up the failure requires.
+             */
+            val getFailureIo: (BiometricAuthException) -> IO<Unit>,
             val requireConfirmation: Boolean,
         )
 

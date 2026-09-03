@@ -9,22 +9,24 @@ use windows::Security::Credentials::UI::{
     UserConsentVerificationResult, UserConsentVerifier, UserConsentVerifierAvailability,
 };
 use windows::Win32::Foundation::{
-    ERROR_CANCELLED, HANDLE, HWND, NTE_BAD_DATA, NTE_BAD_KEYSET, NTE_DEVICE_NOT_READY,
-    NTE_NOT_SUPPORTED, NTE_NO_KEY, NTE_PROV_DLL_NOT_FOUND, NTE_USER_CANCELLED, WAIT_ABANDONED,
-    WAIT_OBJECT_0,
+    ERROR_CANCELLED, ERROR_INVALID_SID, HANDLE, HWND, NTE_BAD_DATA, NTE_BAD_KEYSET,
+    NTE_DEVICE_NOT_READY, NTE_NOT_SUPPORTED, NTE_NO_KEY, NTE_PROV_DLL_NOT_FOUND,
+    NTE_USER_CANCELLED, WAIT_ABANDONED, WAIT_OBJECT_0,
 };
 use windows::Win32::Security::Cryptography::{
     NCryptCreatePersistedKey, NCryptDecrypt, NCryptDeleteKey, NCryptEncrypt, NCryptFinalizeKey,
     NCryptGetProperty, NCryptOpenKey, NCryptOpenStorageProvider, NCryptSetProperty,
-    BCRYPT_OAEP_PADDING_INFO, BCRYPT_RSA_ALGORITHM, BCRYPT_SHA256_ALGORITHM, CERT_KEY_SPEC,
-    MS_NGC_KEY_STORAGE_PROVIDER, NCRYPT_ALLOW_DECRYPT_FLAG, NCRYPT_ALLOW_KEY_IMPORT_FLAG,
-    NCRYPT_FLAGS, NCRYPT_HANDLE, NCRYPT_KEY_HANDLE, NCRYPT_KEY_USAGE_PROPERTY,
-    NCRYPT_LENGTH_PROPERTY, NCRYPT_PAD_OAEP_FLAG, NCRYPT_PROV_HANDLE, NCRYPT_SILENT_FLAG,
-    NCRYPT_USE_CONTEXT_PROPERTY, NCRYPT_WINDOW_HANDLE_PROPERTY,
+    BCRYPT_RSA_ALGORITHM, CERT_KEY_SPEC, MS_NGC_KEY_STORAGE_PROVIDER, NCRYPT_ALLOW_DECRYPT_FLAG,
+    NCRYPT_ALLOW_KEY_IMPORT_FLAG, NCRYPT_FLAGS, NCRYPT_HANDLE, NCRYPT_KEY_HANDLE,
+    NCRYPT_KEY_USAGE_PROPERTY, NCRYPT_LENGTH_PROPERTY, NCRYPT_PAD_PKCS1_FLAG, NCRYPT_PROV_HANDLE,
+    NCRYPT_SILENT_FLAG, NCRYPT_USE_CONTEXT_PROPERTY, NCRYPT_WINDOW_HANDLE_PROPERTY,
 };
-use windows::Win32::Security::OBJECT_SECURITY_INFORMATION;
+use windows::Win32::Security::{
+    GetSidIdentifierAuthority, GetSidSubAuthority, GetSidSubAuthorityCount, GetTokenInformation,
+    IsValidSid, TokenUser, OBJECT_SECURITY_INFORMATION, TOKEN_QUERY, TOKEN_USER,
+};
 use windows::Win32::System::Threading::{
-    CreateMutexW, ReleaseMutex, WaitForSingleObject, INFINITE,
+    CreateMutexW, GetCurrentProcess, OpenProcessToken, ReleaseMutex, WaitForSingleObject, INFINITE,
 };
 use windows::Win32::System::WinRT::{
     IUserConsentVerifierInterop, RoInitialize, RoUninitialize, RO_INIT_MULTITHREADED,
@@ -32,7 +34,7 @@ use windows::Win32::System::WinRT::{
 use windows_future::IAsyncOperation;
 use zeroize::Zeroizing;
 
-const CREDENTIAL_NAME: PCWSTR = windows::core::w!("Keyguard//biometric-unlock-v1");
+const CREDENTIAL_NAME_SUFFIX: &str = "Keyguard//biometric-unlock-v1";
 const CREDENTIAL_MUTEX_NAME: PCWSTR = windows::core::w!("Local\\KeyguardBiometricUnlockV1");
 const NGC_CACHE_TYPE_PROPERTY: PCWSTR = windows::core::w!("NgcCacheType");
 const NGC_CACHE_TYPE_PROPERTY_LEGACY: PCWSTR = windows::core::w!("NgcCacheTypeProperty");
@@ -384,7 +386,8 @@ pub(crate) fn delete_credential() -> bool {
 /// the key drop first.
 fn open_existing_key() -> windows::core::Result<(KeyHandle, ProviderHandle)> {
     let provider = ProviderHandle::open()?;
-    let key = KeyHandle::open(&provider, CREDENTIAL_NAME, true)?;
+    let credential_name = current_user_credential_name_wide()?;
+    let key = KeyHandle::open(&provider, PCWSTR::from_raw(credential_name.as_ptr()), true)?;
     Ok((key, provider))
 }
 
@@ -416,24 +419,30 @@ fn transform_secret_locked(
 ) -> Result<Zeroizing<Vec<u8>>, ChallengeResult> {
     let provider =
         ProviderHandle::open().map_err(|error| failure("Could not open Windows Hello", error))?;
-    let OpenedKey { key, created } =
-        open_or_create_key(&provider, CREDENTIAL_NAME, window_handle, title, decrypt).map_err(
-            |error| {
-                // During unwrap, open_or_create_key only opens an existing key.
-                // Keep missing-key classification scoped to that operation so
-                // the same NCrypt code from decrypt/configuration remains
-                // unknown.
-                let status = if decrypt {
-                    status_from_open_error(&error)
-                } else {
-                    status_from_error(&error)
-                };
-                ChallengeResult::failure(
-                    status,
-                    describe("Could not open the Windows Hello credential", &error),
-                )
-            },
-        )?;
+    let credential_name = current_user_credential_name_wide()
+        .map_err(|error| failure("Could not identify the Windows user", error))?;
+    let OpenedKey { key, created } = open_or_create_key(
+        &provider,
+        PCWSTR::from_raw(credential_name.as_ptr()),
+        window_handle,
+        title,
+        decrypt,
+    )
+    .map_err(|error| {
+        // During unwrap, open_or_create_key only opens an existing key.
+        // Keep missing-key classification scoped to that operation so
+        // the same NCrypt code from decrypt/configuration remains
+        // unknown.
+        let status = if decrypt {
+            status_from_open_error(&error)
+        } else {
+            status_from_error(&error)
+        };
+        ChallengeResult::failure(
+            status,
+            describe("Could not open the Windows Hello credential", &error),
+        )
+    })?;
 
     let outcome = (|| {
         // A freshly created key already carries the prompt context.
@@ -451,6 +460,80 @@ fn transform_secret_locked(
     outcome.map_err(|(context, error)| transform_failure(key, created, context, error))
 }
 
+fn credential_name(user_sid: &str) -> String {
+    format!("{user_sid}//{CREDENTIAL_NAME_SUFFIX}")
+}
+
+fn current_user_credential_name_wide() -> windows::core::Result<Vec<u16>> {
+    let name = credential_name(&current_user_sid()?);
+    Ok(name.encode_utf16().chain(std::iter::once(0)).collect())
+}
+
+fn current_user_sid() -> windows::core::Result<String> {
+    let mut token = HANDLE::default();
+    // SAFETY: GetCurrentProcess returns a process pseudo-handle, and `token`
+    // is a valid out pointer. The returned token is immediately owned.
+    unsafe { OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token)? };
+    // SAFETY: OpenProcessToken returned a uniquely owned token handle, and
+    // Owned releases it exactly once with CloseHandle.
+    let token = unsafe { Owned::new(token) };
+
+    let mut required_length = 0;
+    // SAFETY: A null buffer with length zero is the documented size-query
+    // form. `required_length` is a valid out pointer.
+    let _ = unsafe { GetTokenInformation(*token, TokenUser, None, 0, &mut required_length) };
+    if required_length == 0 {
+        return Err(WindowsError::from_thread());
+    }
+
+    // TOKEN_USER requires pointer alignment, so use machine words rather
+    // than a byte vector for the backing allocation.
+    let word_size = std::mem::size_of::<usize>();
+    let word_count = (required_length as usize).div_ceil(word_size);
+    let mut buffer = vec![0usize; word_count];
+    // SAFETY: `buffer` is writable for at least `required_length` bytes and
+    // has sufficient alignment for TOKEN_USER.
+    unsafe {
+        GetTokenInformation(
+            *token,
+            TokenUser,
+            Some(buffer.as_mut_ptr().cast()),
+            required_length,
+            &mut required_length,
+        )?;
+    }
+
+    // SAFETY: A successful TokenUser query starts with a TOKEN_USER value,
+    // whose SID pointer remains valid while `buffer` is alive.
+    let token_user = unsafe { &*(buffer.as_ptr().cast::<TOKEN_USER>()) };
+    let sid = token_user.User.Sid;
+    // SAFETY: The SID came from a successful TokenUser query.
+    if !unsafe { IsValidSid(sid) }.as_bool() {
+        return Err(WindowsError::from_hresult(HRESULT::from_win32(
+            ERROR_INVALID_SID.0,
+        )));
+    }
+
+    // SAFETY: IsValidSid succeeded, so the SID header, authority, count, and
+    // all indexed sub-authorities are readable.
+    let revision = unsafe { *sid.0.cast::<u8>() };
+    // SAFETY: IsValidSid succeeded, so the SID identifier authority is readable.
+    let authority_bytes = unsafe { (*GetSidIdentifierAuthority(sid)).Value };
+    let authority = authority_bytes
+        .into_iter()
+        .fold(0u64, |value, byte| (value << 8) | u64::from(byte));
+    // SAFETY: IsValidSid succeeded, so the SID sub-authority count is readable.
+    let sub_authority_count = unsafe { *GetSidSubAuthorityCount(sid) };
+    let mut value = format!("S-{revision}-{authority}");
+    for index in 0..u32::from(sub_authority_count) {
+        // SAFETY: IsValidSid succeeded and `index` is below the reported
+        // sub-authority count, so this sub-authority is readable.
+        let sub_authority = unsafe { *GetSidSubAuthority(sid, index) };
+        value.push_str(&format!("-{sub_authority}"));
+    }
+    Ok(value)
+}
+
 struct OpenedKey {
     key: KeyHandle,
     created: bool,
@@ -463,12 +546,11 @@ fn open_or_create_key(
     title: &str,
     decrypt: bool,
 ) -> windows::core::Result<OpenedKey> {
-    // Wrapping always starts from a usable key, recreating it when needed,
-    // and opens silently because encryption needs no gesture; unwrapping must
-    // use the existing key and lets NCrypt prompt.
+    // Both wrapping and unwrapping eventually decrypt with this same handle
+    // to require a Windows Hello gesture. A key opened with
+    // NCRYPT_SILENT_FLAG retains that context and cannot display the prompt.
     let create_if_missing = !decrypt;
-    let silent = !decrypt;
-    match KeyHandle::open(provider, credential_name, silent) {
+    match KeyHandle::open(provider, credential_name, false) {
         Ok(key) if key.has_expected_protection() => Ok(OpenedKey {
             key,
             created: false,
@@ -523,20 +605,18 @@ fn transform_failure(
 }
 
 fn encrypt_secret(key: &KeyHandle, input: &[u8]) -> windows::core::Result<Zeroizing<Vec<u8>>> {
-    let padding_info = oaep_padding_info();
-    let padding_info = Some(std::ptr::from_ref(&padding_info).cast::<c_void>());
     let mut output_len = 0_u32;
     // SAFETY: The key handle and input slice are live for the call. A null
-    // output buffer is the documented size-query form of NCryptEncrypt, and
-    // padding_info points to a live OAEP descriptor with no borrowed label.
+    // output buffer is the documented size-query form of NCryptEncrypt.
+    // Microsoft Passport KSP supports PKCS#1 padding for this RSA operation.
     unsafe {
         NCryptEncrypt(
             key.raw(),
             Some(input),
-            padding_info,
+            None,
             None,
             &mut output_len,
-            NCRYPT_PAD_OAEP_FLAG,
+            NCRYPT_PAD_PKCS1_FLAG,
         )?;
     }
 
@@ -547,10 +627,10 @@ fn encrypt_secret(key: &KeyHandle, input: &[u8]) -> windows::core::Result<Zeroiz
         NCryptEncrypt(
             key.raw(),
             Some(input),
-            padding_info,
+            None,
             Some(&mut output),
             &mut output_len,
-            NCRYPT_PAD_OAEP_FLAG,
+            NCRYPT_PAD_PKCS1_FLAG,
         )?;
     }
     output.truncate(output_len as usize);
@@ -563,35 +643,24 @@ fn decrypt_secret(key: &KeyHandle, input: &[u8]) -> windows::core::Result<Zeroiz
     // Windows Hello gesture instead of silently accepting a cached PIN.
     key.set_u32(PIN_CACHE_IS_GESTURE_REQUIRED_PROPERTY, 1)?;
 
-    let padding_info = oaep_padding_info();
-    let padding_info = Some(std::ptr::from_ref(&padding_info).cast::<c_void>());
     // RSA plaintext is always shorter than its ciphertext, so this avoids a
     // private-key size-query call that could otherwise display two prompts.
     let mut output = Zeroizing::new(vec![0_u8; input.len()]);
     let mut output_len = 0_u32;
     // SAFETY: The key and input are live, and output has at least the maximum
-    // possible OAEP plaintext capacity for this ciphertext. padding_info
-    // points to a live OAEP descriptor with no borrowed label.
+    // possible PKCS#1 plaintext capacity for this ciphertext.
     unsafe {
         NCryptDecrypt(
             key.raw(),
             Some(input),
-            padding_info,
+            None,
             Some(&mut output),
             &mut output_len,
-            NCRYPT_PAD_OAEP_FLAG,
+            NCRYPT_PAD_PKCS1_FLAG,
         )?;
     }
     output.truncate(output_len as usize);
     Ok(output)
-}
-
-fn oaep_padding_info() -> BCRYPT_OAEP_PADDING_INFO {
-    BCRYPT_OAEP_PADDING_INFO {
-        pszAlgId: BCRYPT_SHA256_ALGORITHM,
-        pbLabel: std::ptr::null_mut(),
-        cbLabel: 0,
-    }
 }
 
 fn failure(context: &str, error: WindowsError) -> ChallengeResult {
@@ -642,7 +711,7 @@ fn utf16_bytes(value: &str) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::{
-        is_consent_verifier_available, status_from_consent, status_from_error,
+        credential_name, is_consent_verifier_available, status_from_consent, status_from_error,
         status_from_open_error, utf16_bytes, ERROR_CANCELLED_HRESULT,
     };
     use crate::biometrics::ChallengeStatus;
@@ -655,6 +724,14 @@ mod tests {
     #[test]
     fn prompt_context_is_nul_terminated_utf16() {
         assert_eq!(utf16_bytes("A"), vec![65, 0, 0, 0]);
+    }
+
+    #[test]
+    fn credential_name_is_scoped_to_the_windows_user() {
+        assert_eq!(
+            credential_name("S-1-5-21-100-200-300-1001"),
+            "S-1-5-21-100-200-300-1001//Keyguard//biometric-unlock-v1",
+        );
     }
 
     #[test]

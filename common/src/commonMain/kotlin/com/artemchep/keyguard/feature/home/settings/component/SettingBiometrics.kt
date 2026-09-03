@@ -6,13 +6,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.BiometricAuthException
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.BiometricStatus
+import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.vault.FingerprintReadRepository
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.DisableBiometric
 import com.artemchep.keyguard.common.usecase.EnableBiometric
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
+import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
@@ -40,6 +43,7 @@ fun settingBiometricsProvider(
     getBiometricRequireConfirmation = directDI.instance(),
     enableBiometric = directDI.instance(),
     disableBiometric = directDI.instance(),
+    showMessage = directDI.instance(),
     windowCoroutineScope = directDI.instance(),
 )
 
@@ -49,6 +53,7 @@ fun settingBiometricsProvider(
     getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
     enableBiometric: EnableBiometric,
     disableBiometric: DisableBiometric,
+    showMessage: ShowMessage,
     windowCoroutineScope: WindowCoroutineScope,
 ): SettingComponent = biometricStatusUseCase()
     .map { it is BiometricStatus.Available }
@@ -60,6 +65,7 @@ fun settingBiometricsProvider(
                 getBiometricRequireConfirmation = getBiometricRequireConfirmation,
                 enableBiometric = enableBiometric,
                 disableBiometric = disableBiometric,
+                showMessage = showMessage,
                 windowCoroutineScope = windowCoroutineScope,
             )
         } else {
@@ -73,6 +79,7 @@ private fun createSettingComponentFlow(
     getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
     enableBiometric: EnableBiometric,
     disableBiometric: DisableBiometric,
+    showMessage: ShowMessage,
     windowCoroutineScope: WindowCoroutineScope,
 ) = combine(
     getBiometricRequireConfirmation(),
@@ -111,8 +118,20 @@ private fun createSettingComponentFlow(
                                 onComplete = { result ->
                                     result.fold(
                                         ifLeft = { exception ->
-                                            val message = exception.message
-                                            // biometricPromptErrorSink.emit(message)
+                                            when (exception.code) {
+                                                BiometricAuthException.ERROR_CANCELED,
+                                                BiometricAuthException.ERROR_USER_CANCELED,
+                                                BiometricAuthException.ERROR_NEGATIVE_BUTTON,
+                                                    -> return@fold
+                                            }
+
+                                            showMessage.copy(
+                                                ToastMessage(
+                                                    type = ToastMessage.Type.ERROR,
+                                                    title = exception.message
+                                                        ?: exception.toString(),
+                                                ),
+                                            )
                                         },
                                         ifRight = {
                                             d.getCreateIo()

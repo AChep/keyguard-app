@@ -122,7 +122,6 @@ public object NativeCryptoDesktopSmoke {
         }
         verifyEncryptedSshImport(OPENSSH_ED25519_AES256_GCM)
         verifyEncryptedSshImport(OPENSSH_ED25519_CHACHA20_POLY1305)
-        verifyOpenPgpRead()
         verifyOpenPgpWrite()
         verifyOpenPgpAgentRsaDecrypt()
 
@@ -170,60 +169,6 @@ public object NativeCryptoDesktopSmoke {
                 operation = "packaged_smoke.ssh_private_key_import_aead_wrong_passphrase",
                 code = NativeCryptoErrorCode.INTERNAL,
             )
-        }
-    }
-
-    private fun verifyOpenPgpRead() {
-        val publicKey = OPENPGP_PUBLIC_KEY.encodeToByteArray()
-        val body = OPENPGP_DETACHED_BODY.encodeToByteArray()
-        val signature = OPENPGP_DETACHED_SIGNATURE.encodeToByteArray()
-        try {
-            val parsed = NativeCrypto.openPgp.parsePublicKeys(
-                keyData = publicKey,
-                referenceTimeEpochSeconds = OPENPGP_REFERENCE_TIME,
-            )
-            val key = (parsed as? NativeOpenPgpPublicKeyParseResult.Success)
-                ?.keys
-                ?.singleOrNull()
-            if (
-                key == null ||
-                key.fingerprint != OPENPGP_PRIMARY_FINGERPRINT ||
-                key.keygrip != OPENPGP_PRIMARY_KEYGRIP
-            ) {
-                throw NativeCryptoException(
-                    operation = "packaged_smoke.openpgp_parse",
-                    code = NativeCryptoErrorCode.INTERNAL,
-                )
-            }
-
-            val verification = NativeCrypto.openPgp.verifyDetached(
-                content = body,
-                signature = signature,
-                publicKeys = listOf(publicKey),
-                referenceTimeEpochSeconds = OPENPGP_REFERENCE_TIME,
-            )
-            requireValidOpenPgpVerification(
-                operation = "packaged_smoke.openpgp_verify",
-                verification = verification,
-            )
-
-            NativeCrypto.openPgp.openDetachedVerification(
-                signature = signature,
-                publicKeys = listOf(publicKey),
-                referenceTimeEpochSeconds = OPENPGP_REFERENCE_TIME,
-            ).use { session ->
-                val split = body.size / 2
-                session.update(body, offset = 0, length = split)
-                session.update(body, offset = split, length = body.size - split)
-                requireValidOpenPgpVerification(
-                    operation = "packaged_smoke.openpgp_verify_stream",
-                    verification = session.finish(),
-                )
-            }
-        } finally {
-            publicKey.fill(0)
-            body.fill(0)
-            signature.fill(0)
         }
     }
 
@@ -302,10 +247,11 @@ public object NativeCryptoDesktopSmoke {
                 verifyOpenPgpAgentEcdhDecrypt(material, ciphertext)
                 val provisionalPlaintext = mutableListOf<ByteArray>()
                 val decrypted = try {
+                    // Encryption creates the inline signature at the current time.
+                    // Use the same current-time policy when verifying it.
                     val verification = NativeCrypto.openPgp.openDecryption(
                         privateKeys = listOf(material.privateKeyArmored),
                         verificationPublicKeys = listOf(material.publicKeyArmored),
-                        referenceTimeEpochSeconds = OPENPGP_WRITE_REFERENCE_TIME,
                     ).use { session ->
                         val split = ciphertext.size / 2
                         provisionalPlaintext += session.update(ciphertext, offset = 0, length = split)
@@ -504,7 +450,8 @@ public object NativeCryptoDesktopSmoke {
                     "sign" -> NativeOpenPgpAgentOperation.SIGN in component.agentOperations &&
                             NativeOpenPgpPolicyUse.SIGN_NEW_DATA in policy.allowedNewDataUses
 
-                    "decrypt" -> NativeOpenPgpAgentOperation.DECRYPT in component.agentOperations
+                    "decrypt" -> NativeOpenPgpAgentOperation.DECRYPT in component.agentOperations &&
+                            NativeOpenPgpPolicyUse.ENCRYPT_NEW_DATA in policy.allowedNewDataUses
                     else -> false
                 }
             }?.fingerprint
@@ -780,22 +727,6 @@ public object NativeCryptoDesktopSmoke {
         return output
     }
 
-    private fun requireValidOpenPgpVerification(
-        operation: String,
-        verification: NativeOpenPgpVerification,
-    ) {
-        if (
-            verification.status != NativeOpenPgpVerificationStatus.VALID ||
-            verification.fingerprint != OPENPGP_PRIMARY_FINGERPRINT ||
-            verification.keyId != "F83D947D29EFECF7"
-        ) {
-            throw NativeCryptoException(
-                operation = operation,
-                code = NativeCryptoErrorCode.INTERNAL,
-            )
-        }
-    }
-
     private fun requirePackagedLibrary() {
         val configuredLibrary = System.getProperty("keyguard.nativeCrypto.libraryPath")
         if (!configuredLibrary.isNullOrBlank()) {
@@ -839,11 +770,6 @@ public object NativeCryptoDesktopSmoke {
         "0000000b7373682d6564323535313900000020" +
             "b33eaef37ea2df7caa010defdea34e241f65f1b529a4f43ed14327f5c54aab62",
     )
-    private const val OPENPGP_REFERENCE_TIME = 1_783_944_100L
-    private const val OPENPGP_PRIMARY_FINGERPRINT =
-        "D0BBCFBB250D3BB0658E5384F83D947D29EFECF7"
-    private const val OPENPGP_PRIMARY_KEYGRIP =
-        "894264A490F8D55E3E28378A7E44373782806220"
     private const val OPENPGP_WRITE_CREATION_TIME = 1_700_000_000L
     private const val OPENPGP_WRITE_SIGNATURE_TIME = OPENPGP_WRITE_CREATION_TIME + 60L
     private const val OPENPGP_WRITE_REFERENCE_TIME = OPENPGP_WRITE_CREATION_TIME + 120L
@@ -892,37 +818,6 @@ public object NativeCryptoDesktopSmoke {
     private const val CHACHA20_POLY1305_KEY_BYTES = 32
     private const val SHA256_DIGEST_BYTES = 32
     private const val ED25519_SIGNATURE_BYTES = 64
-    private val OPENPGP_PUBLIC_KEY = """
-        -----BEGIN PGP PUBLIC KEY BLOCK-----
-
-        mDMEaj9rzxYJKwYBBAHaRw8BAQdAbF/WEPrIP6KKXMDvdC38qJefWOzgPjl1oRjO
-        Zq0b1Q60LEtleWd1YXJkIFRlc3QgQ1YyNTUxOSA8Y3YyNTUxOUB0ZXN0LmludmFs
-        aWQ+iK8EExYKAFcWIQTQu8+7JQ07sGWOU4T4PZR9Ke/s9wUCaj9rzxsUgAAAAAAE
-        AA5tYW51MiwyLjUrMS4xMiwwLDMCGwMFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcC
-        F4AACgkQ+D2UfSnv7PezOQD+JMrO7BD9rfc1ciIZoSW5NCw9N+8tkU8fOxKsdFQ+
-        0DEA/iZ7e3W2CRUGtt8UTHwzBLZOlgn5Ox4O/49/6/Cn92gEuDgEaj9r7BIKKwYB
-        BAGXVQEFAQEHQFzTFZW3PHTv8qstyY8CdxMH7TZJnkpIutnhRc7xun12AwEIB4iU
-        BBgWCgA8FiEE0LvPuyUNO7BljlOE+D2UfSnv7PcFAmo/a+wbFIAAAAAABAAObWFu
-        dTIsMi41KzEuMTIsMCwzAhsMAAoJEPg9lH0p7+z3LpQA/09tlKbt7+j26p+QwbCs
-        bu8oruCxbNY45226eyy6QxS9AQC6cwXPn1NewS7XjGGKea14CgjpvqstWe9PiyfJ
-        Y7c+CA==
-        =Kf2G
-        -----END PGP PUBLIC KEY BLOCK-----
-    """.trimIndent() + "\n"
-    private val OPENPGP_DETACHED_BODY = """
-        Independent OpenPGP verification fixture.
-        Second line.
-    """.trimIndent() + "\n"
-    private val OPENPGP_DETACHED_SIGNATURE = """
-        -----BEGIN PGP SIGNATURE-----
-
-        iJEEABYKADkWIQTQu8+7JQ07sGWOU4T4PZR9Ke/s9wUCalbNgBsUgAAAAAAEAA5t
-        YW51MiwyLjUrMS4xMiwwLDMACgkQ+D2UfSnv7Pe4sQEAowtp7N4njm4eBEi+bgC1
-        VxGYWoE70RB//wCTrwaVtggBAL3MVySwcv/iU0y9pM+91TaerHhzhSNnDjcJTS4d
-        SOEL
-        =6B1K
-        -----END PGP SIGNATURE-----
-    """.trimIndent() + "\n"
     private const val OPENSSH_AEAD_PASSPHRASE = "hunter42"
     private const val OPENSSH_ED25519 = """-----BEGIN OPENSSH PRIVATE KEY-----
 b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW

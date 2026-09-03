@@ -52,6 +52,7 @@ Key features include:
 3. **Filtering:** Ignore "chore", "build", "deps", version bumps, CI/CD, tests, merge commits, and internal-only refactors unless they directly produce a user-visible change. Treat automatic localization or data refresh commits as low priority unless they represent a notable feature change.
 4. **Style:** Use concrete verbs and plain, professional language. No emojis, fluff, marketing adjectives, generic openers, or implementation details.
 5. **Flow:** Combine related changes by user impact and readability, not commit order or rigid categories. Name platforms and features only when needed for clarity.
+6. **Less is better.**
 
 **Output Rules:**
 * Output **only** the Markdown release notes; do not include analysis or commentary.

@@ -7,6 +7,7 @@ import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupMenuState
 import androidx.compose.material3.ButtonGroupScope
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -22,6 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.artemchep.keyguard.feature.localization.textResource
 import kotlinx.collections.immutable.ImmutableList
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun <T : TabItem> SegmentedButtonGroup(
     tabState: State<T?>,
@@ -89,6 +91,7 @@ private fun SegmentedOverflowIndicator(menuState: ButtonGroupMenuState) {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun <T : TabItem> ButtonGroupScope.SegmentedToggleButton(
     tab: T,

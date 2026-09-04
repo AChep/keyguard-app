@@ -328,8 +328,27 @@ fun KeyguardTheme(
     val typography = if (font.value == null) {
         Typography()
     } else {
+        val defaultTypography = Typography()
         Typography(
-            fontFamily = sansFontFamily,
+            displayLarge = defaultTypography.displayLarge.copy(fontFamily = sansFontFamily),
+            displayMedium = defaultTypography.displayMedium.copy(fontFamily = sansFontFamily),
+            displaySmall = defaultTypography.displaySmall.copy(fontFamily = sansFontFamily),
+
+            headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = sansFontFamily),
+            headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = sansFontFamily),
+            headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = sansFontFamily),
+
+            titleLarge = defaultTypography.titleLarge.copy(fontFamily = sansFontFamily),
+            titleMedium = defaultTypography.titleMedium.copy(fontFamily = sansFontFamily),
+            titleSmall = defaultTypography.titleSmall.copy(fontFamily = sansFontFamily),
+
+            bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = sansFontFamily),
+            bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = sansFontFamily),
+            bodySmall = defaultTypography.bodySmall.copy(fontFamily = sansFontFamily),
+
+            labelLarge = defaultTypography.labelLarge.copy(fontFamily = sansFontFamily),
+            labelMedium = defaultTypography.labelMedium.copy(fontFamily = sansFontFamily),
+            labelSmall = defaultTypography.labelSmall.copy(fontFamily = sansFontFamily),
         )
     }
     MaterialExpressiveTheme(

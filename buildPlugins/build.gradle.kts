@@ -43,6 +43,11 @@ gradlePlugin {
             id = "keyguard.native-io-consumer"
             implementationClass = "com.artemchep.keyguard.buildplugins.nativeio.NativeIoConsumerPlugin"
         }
+        register("nativeZxcvbnConsumer") {
+            id = "keyguard.native-zxcvbn-consumer"
+            implementationClass =
+                "com.artemchep.keyguard.buildplugins.nativezxcvbn.NativeZxcvbnConsumerPlugin"
+        }
         register("cryptoDependencyPolicy") {
             id = "keyguard.crypto-dependency-policy"
             implementationClass = "com.artemchep.keyguard.buildplugins.nativecrypto.CryptoDependencyPolicyPlugin"

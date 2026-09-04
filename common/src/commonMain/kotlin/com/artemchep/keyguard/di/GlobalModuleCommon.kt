@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.crypto.SshKeyPkcs8Exporter
+import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GpgKeyExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
@@ -342,6 +343,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetMinimizeOnCopyImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavAnimationImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavAnimationVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavLabelImpl
+import com.artemchep.keyguard.common.usecase.impl.GetPasswordStrengthImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPersistedNavItemsConfigImpl
 import com.artemchep.keyguard.common.usecase.impl.GetOnboardingLastVisitInstantImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPasskeysImpl
@@ -1679,6 +1681,11 @@ fun globalModuleCommon() = DI.Module(
     }
     bindSingleton<WordlistService> {
         WordlistServiceImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetPasswordStrength> {
+        GetPasswordStrengthImpl(
             directDI = this,
         )
     }

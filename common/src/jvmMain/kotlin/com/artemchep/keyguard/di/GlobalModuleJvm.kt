@@ -24,7 +24,6 @@ import com.artemchep.keyguard.common.usecase.CheckWebDavConnection
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAppBuildDate
 import com.artemchep.keyguard.common.usecase.GetAppBuildRef
-import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -41,7 +40,6 @@ import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.copy.DateFormatterJvm
 import com.artemchep.keyguard.copy.GetAppBuildDateImpl
 import com.artemchep.keyguard.copy.GetAppBuildRefImpl
-import com.artemchep.keyguard.copy.GetPasswordStrengthJvm
 import com.artemchep.keyguard.copy.NumberFormatterJvm
 import com.artemchep.keyguard.copy.ZipServiceJvm
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -202,11 +200,6 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<ZipService> {
         ZipServiceJvm(
-            directDI = this,
-        )
-    }
-    bindSingleton<GetPasswordStrength> {
-        GetPasswordStrengthJvm(
             directDI = this,
         )
     }

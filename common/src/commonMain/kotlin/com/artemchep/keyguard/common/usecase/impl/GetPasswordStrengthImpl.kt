@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.copy
+package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
@@ -9,15 +9,13 @@ import com.artemchep.keyguard.common.io.handleError
 import com.artemchep.keyguard.common.io.handleErrorTap
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.timeout
 import com.artemchep.keyguard.common.model.PasswordStrength
-import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.wordlist.WordlistService
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.platform.recordException
-import com.nulabinc.zxcvbn.Strength
-import com.nulabinc.zxcvbn.Zxcvbn
+import com.artemchep.keyguard.util.zxcvbn.Zxcvbn
+import com.artemchep.keyguard.util.zxcvbn.ZxcvbnResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.kodein.di.DirectDI
@@ -32,8 +30,26 @@ private const val PASSWORD_STRENGTH_TIMEOUT = 5000L
 // a huge password that will take ages to process.
 private const val PASSWORD_LENGTH_UPPER_LIMIT = 32
 
-class GetPasswordStrengthJvm(
-    private val logRepository: LogRepository,
+// A passphrase must consist of at least this many words, each
+// of them at least this long, to be recognized as one.
+private const val PASSPHRASE_MIN_WORDS = 2
+private const val PASSPHRASE_MIN_WORD_LENGTH = 3
+
+private const val PASSPHRASE_WORDS_TIER_1 = 3
+private const val PASSPHRASE_WORDS_TIER_2 = 4
+private const val PASSPHRASE_WORDS_TIER_3 = 5
+private const val PASSPHRASE_WORDS_TIER_4 = 6
+
+private const val PASSPHRASE_CRACK_TIME_TIER_1 = 1000L
+private const val PASSPHRASE_CRACK_TIME_TIER_2 = 100000L
+private const val PASSPHRASE_CRACK_TIME_TIER_2_DIGITS = 1000000L
+private const val PASSPHRASE_CRACK_TIME_TIER_3 = 1000000L
+private const val PASSPHRASE_CRACK_TIME_TIER_3_DIGITS = 100000000000L
+private const val PASSPHRASE_CRACK_TIME_TIER_4 = 100000000000L
+private const val PASSPHRASE_CRACK_TIME_TIER_4_DIGITS = 100000000001L
+private const val PASSPHRASE_CRACK_TIME_TIER_5 = 100000000001L
+
+class GetPasswordStrengthImpl(
     private val wordlistService: WordlistService,
 ) : GetPasswordStrength {
     companion object {
@@ -44,10 +60,6 @@ class GetPasswordStrengthJvm(
 
     private val digitCharacterRegex = "[0-9]".toRegex()
 
-    private val zxcvbn by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        Zxcvbn()
-    }
-
     // Computing a password strength is a fairly memory intensive
     // task. Limit parallelism to avoid hitting the memory limit and
     // being heavily throttled by the garbage collector.
@@ -57,7 +69,6 @@ class GetPasswordStrengthJvm(
     private class PasswordStrengthException(message: String) : RuntimeException(message)
 
     constructor(directDI: DirectDI) : this(
-        logRepository = directDI.instance(),
         wordlistService = directDI.instance(),
     )
 
@@ -74,7 +85,7 @@ class GetPasswordStrengthJvm(
             }
 
             val truncatedPassword = password.take(PASSWORD_LENGTH_UPPER_LIMIT)
-            zxcvbn.measure(truncatedPassword).toDomain()
+            Zxcvbn.estimate(truncatedPassword).toDomain()
         }
         .timeout(PASSWORD_STRENGTH_TIMEOUT)
         .handleErrorTap { e ->
@@ -94,12 +105,12 @@ class GetPasswordStrengthJvm(
             .splitToSequence(specialCharacterRegex)
             .filter { it.isNotEmpty() }
             .toList()
-        if (parts.size < 2) {
+        if (parts.size < PASSPHRASE_MIN_WORDS) {
             return@ioEffect null
         }
         // Minimum length of the word from the passphrase dictionary
         // is 3 letters.
-        if (parts.any { it.length < 3 }) {
+        if (parts.any { it.length < PASSPHRASE_MIN_WORD_LENGTH }) {
             return@ioEffect null
         }
 
@@ -120,17 +131,29 @@ class GetPasswordStrengthJvm(
         }
 
         val crackTime = when {
-            parts.size <= 3 -> 1000L
-            parts.size <= 4 ->
-                if (hasDigit) 1000000L else 100000L
+            parts.size <= PASSPHRASE_WORDS_TIER_1 -> PASSPHRASE_CRACK_TIME_TIER_1
+            parts.size <= PASSPHRASE_WORDS_TIER_2 ->
+                if (hasDigit) {
+                    PASSPHRASE_CRACK_TIME_TIER_2_DIGITS
+                } else {
+                    PASSPHRASE_CRACK_TIME_TIER_2
+                }
 
-            parts.size <= 5 ->
-                if (hasDigit) 100000000000L else 1000000L
+            parts.size <= PASSPHRASE_WORDS_TIER_3 ->
+                if (hasDigit) {
+                    PASSPHRASE_CRACK_TIME_TIER_3_DIGITS
+                } else {
+                    PASSPHRASE_CRACK_TIME_TIER_3
+                }
 
-            parts.size <= 6 ->
-                if (hasDigit) 100000000001L else 100000000000L
+            parts.size <= PASSPHRASE_WORDS_TIER_4 ->
+                if (hasDigit) {
+                    PASSPHRASE_CRACK_TIME_TIER_4_DIGITS
+                } else {
+                    PASSPHRASE_CRACK_TIME_TIER_4
+                }
 
-            else -> 100000000001L
+            else -> PASSPHRASE_CRACK_TIME_TIER_5
         }
         PasswordStrength(
             crackTimeSeconds = crackTime,
@@ -139,7 +162,7 @@ class GetPasswordStrengthJvm(
     }
 }
 
-private fun Strength.toDomain(): PasswordStrength = PasswordStrength(
-    crackTimeSeconds = crackTimeSeconds.offlineSlowHashing1e4perSecond.toLong(),
+private fun ZxcvbnResult.toDomain(): PasswordStrength = PasswordStrength(
+    crackTimeSeconds = crackTimes.offlineSlowHashing1e4PerSecond.toLong(),
     version = PASSWORD_STRENGTH_VERSION,
 )

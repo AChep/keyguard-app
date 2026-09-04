@@ -191,9 +191,6 @@ windowStyler = "0.3.2"
 yubiKit = "3.2.0"
 # https://github.com/srikanth-lingala/zip4j
 zip4j = "2.11.6"
-# https://github.com/nulab/zxcvbn4j
-# We use it to calculate password strength.
-zxcvbn4j = "1.9.0"
 # https://github.com/zxing/zxing
 zxing = "3.5.4"
 
@@ -354,7 +351,6 @@ mayakapps-window-styler = { module = "com.mayakapps.compose:window-styler", vers
 mm2d-touchicon = { module = "net.mm2d.touchicon:touchicon", version.ref = "touchIcon" }
 mm2d-touchicon-http-okhttp = { module = "net.mm2d.touchicon:touchicon-http-okhttp", version.ref = "touchIcon" }
 lingala-zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
-nulabinc-zxcvbn = { module = "com.nulab-inc:zxcvbn", version.ref = "zxcvbn4j" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 sqlcipher-android = { module = "net.zetetic:sqlcipher-android", version.ref = "sqlcipherAndroid" }
 squareup-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor" }

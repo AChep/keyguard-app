@@ -71,7 +71,6 @@ import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.ClearData
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetLocale
-import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.common.usecase.PutLocale
@@ -90,7 +89,6 @@ import com.artemchep.keyguard.copy.FileServiceIos
 import com.artemchep.keyguard.copy.GetAppBuildDateIos
 import com.artemchep.keyguard.copy.GetAppBuildRefIos
 import com.artemchep.keyguard.copy.GetBarcodeImageIos
-import com.artemchep.keyguard.copy.GetPasswordStrengthIos
 import com.artemchep.keyguard.copy.GetPurchasedIos
 import com.artemchep.keyguard.copy.NumberFormatterApple
 import com.artemchep.keyguard.copy.PermissionServiceIos
@@ -316,9 +314,6 @@ internal fun DI.Builder.installIosAppModule() {
     }
     bindSingleton<GetPurchased> {
         GetPurchasedIos
-    }
-    bindSingleton<GetPasswordStrength> {
-        GetPasswordStrengthIos
     }
     bindSingleton<NumberFormatter> {
         NumberFormatterApple(this)

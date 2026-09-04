@@ -22,6 +22,7 @@ plugins {
     id("keyguard.resources-common")
     id("keyguard.native-crypto-consumer")
     id("keyguard.native-io-consumer")
+    id("keyguard.native-zxcvbn-consumer")
     id("keyguard.detekt-custom-rules")
 }
 
@@ -137,6 +138,7 @@ kotlin {
                 api(libs.ktor.ktor.serialization.kotlinx)
                 api(project(":util:foundation"))
                 api(project(":util:io"))
+                api(project(":util:zxcvbn"))
                 api(project(":util:kdbx"))
                 api(project(":util:crypto"))
                 api(project(":util:signalr"))
@@ -254,7 +256,6 @@ kotlin {
                 implementation(libs.lingala.zip4j)
                 implementation(libs.kdrag0n.colorkt)
                 implementation(libs.kyant0.m3color)
-                implementation(libs.nulabinc.zxcvbn)
                 implementation(libs.commons.codec)
                 implementation(libs.halilibo.richtext.ui.material3)
                 implementation(libs.halilibo.richtext.commonmark)

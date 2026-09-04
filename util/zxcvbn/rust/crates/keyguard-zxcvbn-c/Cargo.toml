@@ -1,0 +1,18 @@
+[package]
+name = "keyguard-zxcvbn-c"
+description = "Stable C ABI for Keyguard native password strength estimation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+keyguard-zxcvbn-core = { path = "../keyguard-zxcvbn-core" }
+
+[lints]
+workspace = true

@@ -67,14 +67,14 @@ import org.jetbrains.compose.resources.stringResource
 fun UrlOverrideListScreen() {
     val loadableState = produceUrlOverrideListState(
     )
-    EmailRelayListScreen(
+    UrlOverrideListScreen(
         loadableState = loadableState,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun EmailRelayListScreen(
+fun UrlOverrideListScreen(
     loadableState: Loadable<UrlOverrideListState>,
 ) {
     val scrollBehavior = ToolbarBehavior.behavior()

@@ -64,14 +64,14 @@ fun WebsiteLeakScreen(
     Dialog(
         icon = icon(Icons.AutoMirrored.Outlined.FactCheck),
         title = {
-            Text(stringResource(Res.string.emailleak_title))
+            Text(stringResource(Res.string.websiteleak_title))
         },
         content = {
             Column {
                 Text(
                     modifier = Modifier
                         .padding(horizontal = Dimens.horizontalPadding),
-                    text = stringResource(Res.string.emailleak_note),
+                    text = stringResource(Res.string.websiteleak_note),
                     style = MaterialTheme.typography.bodySmall,
                     color = LocalContentColor.current
                         .combineAlpha(MediumEmphasisAlpha),
@@ -148,15 +148,15 @@ private fun ColumnScope.Content(
     if (leaks.isNotEmpty()) {
         FlatSimpleNote(
             type = SimpleNote.Type.WARNING,
-            title = stringResource(Res.string.emailleak_breach_found_title),
+            title = stringResource(Res.string.websiteleak_breach_found_title),
         )
         Section(
-            text = stringResource(Res.string.emailleak_breach_section),
+            text = stringResource(Res.string.websiteleak_breach_section),
         )
     } else {
         FlatSimpleNote(
             type = SimpleNote.Type.OK,
-            title = stringResource(Res.string.emailleak_breach_not_found_title),
+            title = stringResource(Res.string.websiteleak_breach_not_found_title),
         )
     }
     leaks.forEachIndexed { index, item ->
@@ -245,7 +245,7 @@ private fun BreachItem(
             if (item.occurredAt != null) {
                 Text(
                     text = stringResource(
-                        Res.string.emailleak_breach_occurred_at,
+                        Res.string.websiteleak_breach_occurred_at,
                         item.occurredAt,
                     ),
                     style = MaterialTheme.typography.labelSmall,
@@ -256,7 +256,7 @@ private fun BreachItem(
             if (item.reportedAt != null) {
                 Text(
                     text = stringResource(
-                        Res.string.emailleak_breach_reported_at,
+                        Res.string.websiteleak_breach_reported_at,
                         item.reportedAt,
                     ),
                     style = MaterialTheme.typography.labelSmall,

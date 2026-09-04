@@ -35,12 +35,8 @@ import io.ktor.http.decodeURLQueryComponent
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import kotlin.time.Clock
 import kotlin.time.Instant
 
 class GpgKeyserverClientImpl(
@@ -65,9 +61,9 @@ class GpgKeyserverClientImpl(
         private const val VKS_BY_EMAIL_THROTTLE_MILLIS = 65_000L
     }
 
-    // Guards the by-email throttle state below. Accessed only under the mutex.
-    private val vksByEmailMutex = Mutex()
-    private var lastVksByEmailAtMillis: Long? = null
+    private val vksByEmailGate = GpgKeyserverVksByEmailGate<List<DGpgKeyserverResult>>(
+        intervalMillis = VKS_BY_EMAIL_THROTTLE_MILLIS,
+    )
 
     constructor(
         directDI: DirectDI,
@@ -175,7 +171,12 @@ class GpgKeyserverClientImpl(
         }
 
         when (config.protocol) {
-            GpgKeyserverConfig.Protocol.VKS -> throttleVksByEmail {
+            GpgKeyserverConfig.Protocol.VKS -> vksByEmailGate.execute(
+                key = vksByEmailCacheKey(
+                    email = query,
+                    config = config,
+                ),
+            ) {
                 searchVks(
                     query = query,
                     mode = SearchGpgPublicKeyRequest.Mode.EMAIL,
@@ -213,29 +214,10 @@ class GpgKeyserverClientImpl(
         }
     }
 
-    /**
-     * Serializes VKS by-email lookups and spaces them at least
-     * [VKS_BY_EMAIL_THROTTLE_MILLIS] apart, waiting (never skipping or
-     * erroring) when a call arrives too soon after the previous one.
-     */
-    private suspend fun <T> throttleVksByEmail(
-        block: suspend () -> T,
-    ): T = vksByEmailMutex.withLock {
-        val last = lastVksByEmailAtMillis
-        val now = Clock.System.now().toEpochMilliseconds()
-        if (last != null) {
-            val remaining = VKS_BY_EMAIL_THROTTLE_MILLIS - (now - last)
-            if (remaining > 0L) {
-                delay(remaining)
-            }
-        }
-
-        try {
-            block()
-        } finally {
-            lastVksByEmailAtMillis = Clock.System.now().toEpochMilliseconds()
-        }
-    }
+    private fun vksByEmailCacheKey(
+        email: String,
+        config: GpgKeyserverConfig,
+    ): String = config.url + "|" + email.lowercase()
 
     private suspend fun searchVks(
         query: String,

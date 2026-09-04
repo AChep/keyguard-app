@@ -3,7 +3,6 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.util.zip.ZipConfig
 import com.artemchep.keyguard.util.zip.ZipEntry
@@ -28,22 +27,22 @@ class GpgKeyExportImpl(
     )
 
     override fun invoke(
-        key: GeneratedGpgKey,
+        request: GpgKeyExport.Request,
     ): IO<String?> = ioEffect {
-        val filePrefix = "gpg_${key.fingerprint.gpgFileSafeSuffix()}"
+        val filePrefix = "gpg_${request.fingerprint.gpgFileSafeSuffix()}"
         val fileName = "${filePrefix}_${dateFormatter.gpgExportDateSuffix()}.zip"
         dirsService.saveToDownloads(fileName) { os ->
             val entries = listOf(
                 ZipEntry(
                     name = "$filePrefix.public.asc",
                     data = ZipEntry.Data.Out { sink ->
-                        sink.writeText(key.publicKeyArmored)
+                        sink.writeText(request.publicKeyArmored)
                     },
                 ),
                 ZipEntry(
                     name = "$filePrefix.private.asc",
                     data = ZipEntry.Data.Out { sink ->
-                        sink.writeText(key.privateKeyArmored)
+                        sink.writeText(request.privateKeyArmored)
                     },
                 ),
             )

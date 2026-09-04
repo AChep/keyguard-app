@@ -3,7 +3,6 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
@@ -23,11 +22,11 @@ class GpgKeyPublicExportImpl(
     )
 
     override fun invoke(
-        parameter: GeneratedGpgKey,
+        request: GpgKeyPublicExport.Request,
     ): IO<String?> = ioEffect {
-        val fileName = "gpg_${parameter.fingerprint.gpgFileSafeSuffix()}_${dateFormatter.gpgExportDateSuffix()}.public.asc"
+        val fileName = "gpg_${request.fingerprint.gpgFileSafeSuffix()}_${dateFormatter.gpgExportDateSuffix()}.public.asc"
         dirsService.saveToDownloads(fileName) { os ->
-            os.writeText(parameter.publicKeyArmored)
+            os.writeText(request.publicKeyArmored)
         }.bind()
     }
 }

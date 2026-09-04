@@ -153,6 +153,9 @@ import com.artemchep.keyguard.common.usecase.GetUrlOverrides
 import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
+import com.artemchep.keyguard.common.usecase.GpgKeyExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertAsRead
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
@@ -188,6 +191,7 @@ import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
 import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
+import com.artemchep.keyguard.feature.generator.gpgkey.GpgKeyActions
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
@@ -339,6 +343,9 @@ fun vaultViewScreenState(
             ?: GpgPublicKeyParserUnsupported,
         keyPrivateExport = instance(),
         keyPublicExport = instance(),
+        gpgKeyExport = instance(),
+        gpgPublicKeyExport = instance(),
+        gpgPrivateKeyExport = instance(),
         cipherUnsecureUrlCheck = instance(),
         cipherUnsecureUrlAutoFix = instance(),
         cipherFieldSwitchToggle = instance(),
@@ -447,6 +454,9 @@ fun vaultViewScreenState(
     gpgPublicKeyParser: GpgPublicKeyParser,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
+    gpgKeyExport: GpgKeyExport,
+    gpgPublicKeyExport: GpgKeyPublicExport,
+    gpgPrivateKeyExport: GpgKeyPrivateExport,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     cipherFieldSwitchToggle: CipherFieldSwitchToggle,
@@ -549,6 +559,9 @@ fun vaultViewScreenState(
         gpgPublicKeyParser = gpgPublicKeyParser,
         keyPrivateExport = keyPrivateExport,
         keyPublicExport = keyPublicExport,
+        gpgKeyExport = gpgKeyExport,
+        gpgPublicKeyExport = gpgPublicKeyExport,
+        gpgPrivateKeyExport = gpgPrivateKeyExport,
         cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
         cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
         cipherFieldSwitchToggle = cipherFieldSwitchToggle,
@@ -630,6 +643,9 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
     gpgPublicKeyParser: GpgPublicKeyParser,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
+    gpgKeyExport: GpgKeyExport,
+    gpgPublicKeyExport: GpgKeyPublicExport,
+    gpgPrivateKeyExport: GpgKeyPrivateExport,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     cipherFieldSwitchToggle: CipherFieldSwitchToggle,
@@ -1454,6 +1470,22 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                         )
                             .takeIf { secretOrNull.getGpgAgentPublicKeyArmored()?.isNotBlank() == true }
                             ?.verify(verify),
+                        kotlin.run {
+                            val publicKeyArmored = secretOrNull.getGpgAgentPublicKeyArmored()
+                                ?.takeIf { it.isNotBlank() }
+                                ?: return@run null
+                            val privateKeyArmored = secretOrNull.getGpgAgentPrivateKeyArmored()
+                                ?.takeIf { it.isNotBlank() }
+                                ?: return@run null
+                            GpgKeyActions.saveKeys(
+                                request = GpgKeyExport.Request(
+                                    fingerprint = secretOrNull.getGpgAgentFingerprint().orEmpty(),
+                                    publicKeyArmored = publicKeyArmored,
+                                    privateKeyArmored = privateKeyArmored,
+                                ),
+                                gpgKeyExport = gpgKeyExport,
+                            ).verify(verify)
+                        },
                         cipherExportAction(
                             ciphers = listOf(secretOrNull),
                         ),
@@ -1517,6 +1549,9 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                         gpgPublicKeyParser = gpgPublicKeyParser,
                         keyPrivateExport = keyPrivateExport,
                         keyPublicExport = keyPublicExport,
+                        gpgKeyExport = gpgKeyExport,
+                        gpgPublicKeyExport = gpgPublicKeyExport,
+                        gpgPrivateKeyExport = gpgPrivateKeyExport,
                         cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
                         cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
                         cipherFieldSwitchToggle = cipherFieldSwitchToggle,
@@ -1588,6 +1623,9 @@ private fun RememberStateFlowScope.oh(
     gpgPublicKeyParser: GpgPublicKeyParser,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
+    gpgKeyExport: GpgKeyExport,
+    gpgPublicKeyExport: GpgKeyPublicExport,
+    gpgPrivateKeyExport: GpgKeyPrivateExport,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     cipherFieldSwitchToggle: CipherFieldSwitchToggle,
@@ -1782,6 +1820,8 @@ private fun RememberStateFlowScope.oh(
         gpgFingerprint = gpgFingerprint,
         now = now,
         gpgPublicKeyParser = gpgPublicKeyParser,
+        gpgPublicKeyExport = gpgPublicKeyExport,
+        gpgPrivateKeyExport = gpgPrivateKeyExport,
         dateFormatter = dateFormatter,
         concealFields = concealFields,
         hasCanNotSeePassword = hasCanNotSeePassword,
@@ -4234,6 +4274,8 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
     gpgFingerprint: String?,
     now: Instant,
     gpgPublicKeyParser: GpgPublicKeyParser,
+    gpgPublicKeyExport: GpgKeyPublicExport,
+    gpgPrivateKeyExport: GpgKeyPrivateExport,
     dateFormatter: DateFormatter,
     concealFields: Boolean,
     hasCanNotSeePassword: Boolean,
@@ -4388,6 +4430,15 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
             maxLines = 4,
             monospace = true,
             elevated = true,
+            onBuildActions = {
+                this += GpgKeyActions.savePublicKey(
+                    request = GpgKeyPublicExport.Request(
+                        fingerprint = effectiveGpgFingerprint.orEmpty(),
+                        publicKeyArmored = gpgPublicKeyArmored,
+                    ),
+                    publicKeyExport = gpgPublicKeyExport,
+                )
+            },
         )
     }
     if (gpgPrivateKeyArmored != null) {
@@ -4416,6 +4467,15 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
                 transformUserEvent = visibilityGlobalUserTransform,
                 globalConfig = visibilityGlobalConfig,
             ),
+            onBuildActions = {
+                this += GpgKeyActions.savePrivateKey(
+                    request = GpgKeyPrivateExport.Request(
+                        fingerprint = effectiveGpgFingerprint.orEmpty(),
+                        privateKeyArmored = gpgPrivateKeyArmored,
+                    ),
+                    privateKeyExport = gpgPrivateKeyExport,
+                )
+            },
         )
     }
 

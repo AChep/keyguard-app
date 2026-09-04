@@ -5,14 +5,20 @@ import com.artemchep.jna.withDesktopLib
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+private const val CREDENTIAL_NOT_FOUND_CODE = 2
+private const val SECURITY_DEVICE_LOCKED_CODE = 3
+private const val UNAVAILABLE_CODE = 4
+private const val USER_PREFERS_PASSWORD_CODE = 5
+private const val UNKNOWN_CODE = 6
+
 public enum class BiometricsStatus(internal val code: Int) {
     SUCCESS(0),
     USER_CANCELED(1),
-    CREDENTIAL_NOT_FOUND(2),
-    SECURITY_DEVICE_LOCKED(3),
-    UNAVAILABLE(4),
-    USER_PREFERS_PASSWORD(5),
-    UNKNOWN(6),
+    CREDENTIAL_NOT_FOUND(CREDENTIAL_NOT_FOUND_CODE),
+    SECURITY_DEVICE_LOCKED(SECURITY_DEVICE_LOCKED_CODE),
+    UNAVAILABLE(UNAVAILABLE_CODE),
+    USER_PREFERS_PASSWORD(USER_PREFERS_PASSWORD_CODE),
+    UNKNOWN(UNKNOWN_CODE),
     ;
 
     internal companion object {

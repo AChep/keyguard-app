@@ -63,7 +63,7 @@ class EnableBiometricImpl(
                 suspend {
                     try {
                         createCipher()
-                    } catch (e: BiometricBindingException) {
+                    } catch (_: BiometricBindingException) {
                         // try to clear the cipher key...
                         biometricKeyRepository.delete().bind()
                         // ...and recreate it.

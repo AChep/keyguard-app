@@ -80,8 +80,14 @@ class LeBiometricCipherWindowsHello private constructor(
         private const val AES_KEY_SIZE_BYTES = 32
         private const val AES_IV_SIZE_BYTES = 16
         private const val WRAPPED_LENGTH_SIZE_BYTES = 2
-        private const val HEADER_SIZE = 4 + 1 + WRAPPED_LENGTH_SIZE_BYTES + AES_IV_SIZE_BYTES
+        private const val VERSION_OFFSET = 4
+        private const val WRAPPED_LENGTH_HIGH_BYTE_OFFSET = VERSION_OFFSET + 1
+        private const val WRAPPED_LENGTH_LOW_BYTE_OFFSET = WRAPPED_LENGTH_HIGH_BYTE_OFFSET + 1
+        private const val AES_IV_OFFSET = WRAPPED_LENGTH_LOW_BYTE_OFFSET + 1
+        private const val HEADER_SIZE = AES_IV_OFFSET + AES_IV_SIZE_BYTES
         private const val MAX_WRAPPED_SECRET_SIZE = 4096
+        private const val BYTE_SIZE_BITS = 8
+        private const val UNSIGNED_BYTE_MASK = 0xFF
 
         fun forEncryption(
             secret: ByteArray,
@@ -115,10 +121,11 @@ class LeBiometricCipherWindowsHello private constructor(
             require(wrappedSecret.isNotEmpty() && wrappedSecret.size <= MAX_WRAPPED_SECRET_SIZE)
             val result = ByteArray(HEADER_SIZE + wrappedSecret.size)
             MAGIC.copyInto(result)
-            result[4] = VERSION
-            result[5] = (wrappedSecret.size ushr 8).toByte()
-            result[6] = wrappedSecret.size.toByte()
-            aesIv.copyInto(result, destinationOffset = 7)
+            result[VERSION_OFFSET] = VERSION
+            result[WRAPPED_LENGTH_HIGH_BYTE_OFFSET] =
+                (wrappedSecret.size ushr BYTE_SIZE_BITS).toByte()
+            result[WRAPPED_LENGTH_LOW_BYTE_OFFSET] = wrappedSecret.size.toByte()
+            aesIv.copyInto(result, destinationOffset = AES_IV_OFFSET)
             wrappedSecret.copyInto(result, destinationOffset = HEADER_SIZE)
             return result
         }
@@ -131,10 +138,13 @@ class LeBiometricCipherWindowsHello private constructor(
 
             if (payload.size < HEADER_SIZE) invalid()
             if (!payload.copyOfRange(0, MAGIC.size).contentEquals(MAGIC)) invalid()
-            if (payload[4] != VERSION) invalid()
-            val wrappedLengthHighByte = payload[5].toInt() and 0xff
-            val wrappedLengthLowByte = payload[6].toInt() and 0xff
-            val wrappedLength = (wrappedLengthHighByte shl 8) or wrappedLengthLowByte
+            if (payload[VERSION_OFFSET] != VERSION) invalid()
+            val wrappedLengthHighByte =
+                payload[WRAPPED_LENGTH_HIGH_BYTE_OFFSET].toInt() and UNSIGNED_BYTE_MASK
+            val wrappedLengthLowByte =
+                payload[WRAPPED_LENGTH_LOW_BYTE_OFFSET].toInt() and UNSIGNED_BYTE_MASK
+            val wrappedLength =
+                (wrappedLengthHighByte shl BYTE_SIZE_BITS) or wrappedLengthLowByte
             if (
                 wrappedLength <= 0 ||
                 wrappedLength > MAX_WRAPPED_SECRET_SIZE ||
@@ -143,7 +153,7 @@ class LeBiometricCipherWindowsHello private constructor(
                 invalid()
             }
             return ParsedPayload(
-                aesIv = payload.copyOfRange(7, HEADER_SIZE),
+                aesIv = payload.copyOfRange(AES_IV_OFFSET, HEADER_SIZE),
                 wrappedSecret = payload.copyOfRange(HEADER_SIZE, payload.size),
             )
         }

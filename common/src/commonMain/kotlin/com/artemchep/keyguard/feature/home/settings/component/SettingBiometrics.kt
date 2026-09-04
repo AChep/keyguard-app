@@ -108,41 +108,13 @@ private fun createSettingComponentFlow(
             checked = biometrics,
             onCheckedChange = { shouldBeChecked ->
                 if (shouldBeChecked) {
-                    enableBiometric(null) // use global session
-                        .effectMap { d ->
-                            val cipher = d.getCipher()
-                            val prompt = BiometricAuthPrompt(
-                                title = TextHolder.Res(Res.string.pref_item_biometric_unlock_confirm_title),
-                                cipher = cipher,
-                                requireConfirmation = requireConfirmation,
-                                onComplete = { result ->
-                                    result.fold(
-                                        ifLeft = { exception ->
-                                            when (exception.code) {
-                                                BiometricAuthException.ERROR_CANCELED,
-                                                BiometricAuthException.ERROR_USER_CANCELED,
-                                                BiometricAuthException.ERROR_NEGATIVE_BUTTON,
-                                                    -> return@fold
-                                            }
-
-                                            showMessage.copy(
-                                                ToastMessage(
-                                                    type = ToastMessage.Type.ERROR,
-                                                    title = exception.message
-                                                        ?: exception.toString(),
-                                                ),
-                                            )
-                                        },
-                                        ifRight = {
-                                            d.getCreateIo()
-                                                .launchIn(windowCoroutineScope)
-                                        },
-                                    )
-                                },
-                            )
-                            promptSink.emit(prompt)
-                        }
-                        .launchIn(windowCoroutineScope)
+                    enableBiometrics(
+                        requireConfirmation = requireConfirmation,
+                        enableBiometric = enableBiometric,
+                        showMessage = showMessage,
+                        windowCoroutineScope = windowCoroutineScope,
+                        promptSink = promptSink,
+                    )
                 } else {
                     disableBiometric()
                         .launchIn(windowCoroutineScope)
@@ -152,6 +124,50 @@ private fun createSettingComponentFlow(
 
         BiometricPromptEffect(promptSink)
     }
+}
+
+private fun enableBiometrics(
+    requireConfirmation: Boolean,
+    enableBiometric: EnableBiometric,
+    showMessage: ShowMessage,
+    windowCoroutineScope: WindowCoroutineScope,
+    promptSink: EventFlow<BiometricAuthPrompt>,
+) {
+    enableBiometric(null) // use global session
+        .effectMap { biometric ->
+            val cipher = biometric.getCipher()
+            val prompt = BiometricAuthPrompt(
+                title = TextHolder.Res(Res.string.pref_item_biometric_unlock_confirm_title),
+                cipher = cipher,
+                requireConfirmation = requireConfirmation,
+                onComplete = { result ->
+                    result.fold(
+                        ifLeft = { exception ->
+                            when (exception.code) {
+                                BiometricAuthException.ERROR_CANCELED,
+                                BiometricAuthException.ERROR_USER_CANCELED,
+                                BiometricAuthException.ERROR_NEGATIVE_BUTTON,
+                                    -> return@fold
+                            }
+
+                            showMessage.copy(
+                                ToastMessage(
+                                    type = ToastMessage.Type.ERROR,
+                                    title = exception.message
+                                        ?: exception.toString(),
+                                ),
+                            )
+                        },
+                        ifRight = {
+                            biometric.getCreateIo()
+                                .launchIn(windowCoroutineScope)
+                        },
+                    )
+                },
+            )
+            promptSink.emit(prompt)
+        }
+        .launchIn(windowCoroutineScope)
 }
 
 @Composable

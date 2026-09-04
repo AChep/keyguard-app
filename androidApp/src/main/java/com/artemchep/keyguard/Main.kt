@@ -15,6 +15,11 @@ import com.artemchep.keyguard.android.PhoneCredentialProviderPlatformConfig
 import com.artemchep.keyguard.android.coil3.AppIconFetcher
 import com.artemchep.keyguard.android.coil3.AppIconKeyer
 import com.artemchep.keyguard.android.downloader.worker.AttachmentDownloadAllWorker
+import com.artemchep.keyguard.android.installFavicons
+import com.artemchep.keyguard.android.installVaultKeepAlive
+import com.artemchep.keyguard.android.installVaultLock
+import com.artemchep.keyguard.android.installVaultPersistedSession
+import com.artemchep.keyguard.android.installWorkers
 import com.artemchep.keyguard.android.ipc.installAndroidIpcProviders
 import com.artemchep.keyguard.android.worker.BackupWorker
 import com.artemchep.keyguard.android.passkeysModule
@@ -22,37 +27,24 @@ import com.artemchep.keyguard.android.util.ShortcutIds
 import com.artemchep.keyguard.android.util.ShortcutInfo
 import com.artemchep.keyguard.billing.BillingManager
 import com.artemchep.keyguard.billing.BillingManagerImpl
-import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.di.imageLoaderModule
 import com.artemchep.keyguard.common.di.setFromDi
 import com.artemchep.keyguard.common.io.*
-import com.artemchep.keyguard.common.model.LockReason
-import com.artemchep.keyguard.common.model.Screen
 import com.artemchep.keyguard.common.service.backup.AutomaticBackupPolicy
 import com.artemchep.keyguard.common.service.backup.automaticBackupScheduleStateFlow
 import com.artemchep.keyguard.common.service.download.DownloadRepository
-import com.artemchep.keyguard.common.service.logging.LogRepository
-import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.usecase.*
 import com.artemchep.keyguard.common.usecase.impl.CleanUpAttachmentImpl
 import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
 import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
-import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.service.vault.SessionReadRepository
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
-import com.artemchep.keyguard.common.service.session.VaultSessionLocker
-import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
-import com.artemchep.keyguard.feature.favicon.Favicon
-import com.artemchep.keyguard.feature.localization.TextHolder
-import com.artemchep.keyguard.platform.lifecycle.toCommon
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlin.time.Clock
 import org.kodein.di.*
 import org.kodein.di.android.x.androidXModule
 import java.util.*
@@ -122,31 +114,19 @@ class Main : BaseApp(), DIAware {
         super.onCreate()
         installAndroidIpcProviders()
 
-        val logRepository: LogRepository by instance()
         val getVaultSession: GetVaultSession by instance()
-        val putVaultSession: PutVaultSession by instance()
-        val getVaultPersist: GetVaultPersist by instance()
-        val keyReadWriteRepository: KeyReadWriteRepository by instance()
-        val clearVaultSession: ClearVaultSession by instance()
         val downloadRepository: DownloadRepository by instance()
         val cleanUpAttachment: CleanUpAttachment by instance()
         val sessionReadRepository: SessionReadRepository by instance()
-        val appWorker: AppWorker by instance(tag = AppWorker.Feature.SYNC)
         val companionAuthBridge: CompanionAuthBridgeAndroid = di.direct.instance()
-//        val cleanUpDownload: CleanUpDownloadImpl by instance()
+
+        installWorkers()
+        installFavicons()
+        installVaultPersistedSession()
+        installVaultKeepAlive()
+        installVaultLock()
 
         val processLifecycleOwner = ProcessLifecycleOwner.get()
-        val processLifecycle = processLifecycleOwner.lifecycle
-        val processLifecycleFlow = processLifecycle
-            .currentStateFlow
-            // Convert to platform agnostic
-            // lifecycle state.
-            .map { state ->
-                state.toCommon()
-            }
-        processLifecycleOwner.lifecycleScope.launch {
-            appWorker.launch(this, processLifecycleFlow)
-        }
         processLifecycleOwner.lifecycleScope.launch(Dispatchers.Default) {
             companionAuthBridge.sweepExpiredArtifacts()
         }
@@ -177,119 +157,6 @@ class Main : BaseApp(), DIAware {
                     cleanUpAttachment = cleanUpAttachment,
                 )
             }
-        }
-
-        val workers by allInstances<Wrker>()
-        workers.forEach {
-            ProcessLifecycleOwner.get().bindBlock {
-                coroutineScope {
-                    it.start(this, processLifecycleFlow)
-                }
-            }
-        }
-
-        // favicon
-        ProcessLifecycleOwner.get().bindBlock {
-            getVaultSession()
-                .map { session ->
-                    val key = session as? MasterSession.Key
-                    key?.di?.direct?.instance<GetAccounts>()
-                }
-                .collectLatest { getAccounts ->
-                    if (getAccounts != null) {
-                        coroutineScope {
-                            Favicon.launch(this, getAccounts)
-                        }
-                    }
-                }
-        }
-
-        // persist
-        ProcessLifecycleOwner.get().bindBlock {
-            combine(
-                getVaultSession(),
-                getVaultPersist(),
-            ) { session, persist ->
-                val persistedMasterKey = if (persist && session is MasterSession.Key) {
-                    session.masterKey
-                } else {
-                    null
-                }
-                persistedMasterKey
-            }
-                .onEach { masterKey ->
-                    val persistedSession = if (masterKey != null) {
-                        PersistedSession(
-                            masterKey = masterKey,
-                            createdAt = Clock.System.now(),
-                            persistedAt = Clock.System.now(),
-                        )
-                    } else {
-                        null
-                    }
-                    keyReadWriteRepository.put(persistedSession)
-                        .attempt()
-                        .bind()
-                }
-                .collect()
-        }
-
-        // timeout
-        val vaultSessionLocker: VaultSessionLocker by instance()
-        ProcessLifecycleOwner.get().bindBlock {
-            vaultSessionLocker.keepAlive()
-        }
-
-        // screen lock
-        val getVaultLockAfterScreenOff: GetVaultLockAfterScreenOff by instance()
-        val powerService: PowerService by instance()
-        ProcessLifecycleOwner.get().lifecycleScope.launch {
-            val screenFlow = powerService
-                .getScreenState()
-                .map { screen ->
-                    val instant = Clock.System.now()
-                    instant to screen
-                }
-                .shareIn(this, SharingStarted.Eagerly, replay = 1)
-            getVaultLockAfterScreenOff()
-                .flatMapLatest { screenLock ->
-                    if (screenLock) {
-                        getVaultSession()
-                    } else {
-                        val emptyVaultSession = MasterSession.Empty()
-                        flowOf(emptyVaultSession)
-                    }
-                }
-                .map { session ->
-                    when (session) {
-                        is MasterSession.Key -> true
-                        is MasterSession.Empty -> false
-                    }
-                }
-                .distinctUntilChanged()
-                .map { sessionExists ->
-                    val instant = Clock.System.now()
-                    instant to sessionExists
-                }
-                .flatMapLatest { (sessionTimestamp, sessionExists) ->
-                    if (sessionExists) {
-                        return@flatMapLatest screenFlow
-                            .mapNotNull { (screenTimestamp, screen) ->
-                                screen
-                                    .takeIf { screenTimestamp > sessionTimestamp }
-                            }
-                    }
-
-                    emptyFlow()
-                }
-                .filter { it is Screen.Off }
-                .onEach {
-                    val lockReason = TextHolder.Res(Res.string.lock_reason_screen_off)
-                    clearVaultSession(LockReason.TIMEOUT, lockReason)
-                        .attempt()
-                        .launchIn(this)
-                }
-                .launchIn(this)
         }
 
         // shortcuts

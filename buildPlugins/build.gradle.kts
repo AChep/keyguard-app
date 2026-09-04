@@ -31,6 +31,11 @@ gradlePlugin {
             implementationClass =
                 "com.artemchep.keyguard.buildplugins.cargo.RustMultiplatformLibraryPlugin"
         }
+        register("rustAppleLibrary") {
+            id = "keyguard.rust-apple-library"
+            implementationClass =
+                "com.artemchep.keyguard.buildplugins.cargo.RustAppleLibraryPlugin"
+        }
         register("androidSshAgent") {
             id = "keyguard.android-ssh-agent"
             implementationClass = "com.artemchep.keyguard.buildplugins.androidssh.AndroidSshAgentPlugin"

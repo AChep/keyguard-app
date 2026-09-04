@@ -74,6 +74,7 @@ jobs:
               :util:planeta:desktopTest
               :util:signalr:desktopTest
               :util:webdav:desktopTest
+              :util:zip:desktopTest
               :util:zxcvbn:desktopTest
           - id: util-android-host
             name: Util Android Host
@@ -85,6 +86,7 @@ jobs:
               :util:planeta:testAndroidHostTest
               :util:signalr:testAndroidHostTest
               :util:webdav:testAndroidHostTest
+              :util:zip:testAndroidHostTest
               :util:zxcvbn:testAndroidHostTest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -177,6 +179,7 @@ jobs:
           :util:planeta:iosSimulatorArm64Test
           :util:signalr:iosSimulatorArm64Test
           :util:webdav:iosSimulatorArm64Test
+          :util:zip:iosSimulatorArm64Test
           :util:zxcvbn:iosSimulatorArm64Test
       - name: "Upload test reports"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

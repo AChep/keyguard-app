@@ -65,7 +65,6 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.service.text.impl.TextServiceImpl
-import com.artemchep.keyguard.common.service.zip.ZipService
 import com.artemchep.keyguard.common.usecase.*
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.ClearData
@@ -95,7 +94,6 @@ import com.artemchep.keyguard.copy.PermissionServiceIos
 import com.artemchep.keyguard.copy.PowerServiceIos
 import com.artemchep.keyguard.copy.ReviewServiceIos
 import com.artemchep.keyguard.copy.SubscriptionServiceIos
-import com.artemchep.keyguard.copy.ZipServiceIos
 import com.artemchep.keyguard.core.session.usecase.BiometricKeyRepositoryApple
 import com.artemchep.keyguard.core.session.usecase.DatabaseSqlManagerInFileApple
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -305,9 +303,6 @@ internal fun DI.Builder.installIosAppModule() {
     }
     bindSingleton<EncryptedFilePendingUploadService> {
         EncryptedFilePendingUploadServiceIos
-    }
-    bindSingleton<ZipService> {
-        ZipServiceIos
     }
     bindSingleton<ExecuteCommand> {
         ExecuteCommandImpl(this)

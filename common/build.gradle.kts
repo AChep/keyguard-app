@@ -139,6 +139,7 @@ kotlin {
                 api(project(":util:foundation"))
                 api(project(":util:io"))
                 api(project(":util:zxcvbn"))
+                api(project(":util:zip"))
                 api(project(":util:kdbx"))
                 api(project(":util:crypto"))
                 api(project(":util:signalr"))
@@ -243,6 +244,9 @@ kotlin {
                 implementation(kotlin("test"))
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.ktor.ktor.client.mock)
+                // The backup tests inspect the archives the repository wrote
+                // with zip4j's own reader, independently of `util/zip`.
+                implementation(libs.lingala.zip4j)
             }
         }
 
@@ -253,7 +257,6 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 api(libs.html.text)
-                implementation(libs.lingala.zip4j)
                 implementation(libs.kdrag0n.colorkt)
                 implementation(libs.kyant0.m3color)
                 implementation(libs.commons.codec)

@@ -4,26 +4,24 @@ import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.util.RetryPolicy
 import com.artemchep.keyguard.common.util.retryWithPolicy
-import com.artemchep.keyguard.util.io.withBufferedSink
+import com.artemchep.keyguard.util.io.toSource
+import com.artemchep.keyguard.util.zip.ZipConfig
+import com.artemchep.keyguard.util.zip.ZipEntry
+import com.artemchep.keyguard.util.zip.ZipReader
+import com.artemchep.keyguard.util.zip.ZipReaderEntry
+import com.artemchep.keyguard.util.zip.ZipService
 import kotlinx.io.Sink
-import kotlinx.io.asInputStream
-import kotlinx.io.asOutputStream
+import kotlinx.io.discardingSink
+import kotlinx.io.readString
 import kotlinx.serialization.json.Json
-import net.lingala.zip4j.io.inputstream.ZipInputStream
-import net.lingala.zip4j.io.outputstream.ZipOutputStream
-import net.lingala.zip4j.model.ZipParameters
-import net.lingala.zip4j.model.enums.AesKeyStrength
-import net.lingala.zip4j.model.enums.CompressionMethod
-import net.lingala.zip4j.model.enums.EncryptionMethod
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.io.FilterOutputStream
-import java.io.OutputStream
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 class BackupRepositoryZipImpl(
     private val json: Json,
+    private val zipService: ZipService,
 ) : BackupRepository {
     companion object {
         private const val REPO_FILE = "repo.zip"
@@ -49,6 +47,7 @@ class BackupRepositoryZipImpl(
         directDI: DirectDI,
     ) : this(
         json = directDI.instance(),
+        zipService = directDI.instance(),
     )
 
     override suspend fun getOrCreateMetadata(
@@ -86,7 +85,7 @@ class BackupRepositoryZipImpl(
                 mode = BackupWriteMode.Create,
                 password = password,
                 entries = listOf(
-                    ZipEntryWriter.Text(
+                    textEntry(
                         name = REPO_ENTRY,
                         text = json.encodeToString(metadata),
                     ),
@@ -165,7 +164,7 @@ class BackupRepositoryZipImpl(
             mode = BackupWriteMode.Create,
             password = password,
             entries = listOf(
-                ZipEntryWriter.Text(
+                textEntry(
                     name = INDEX_ENTRY,
                     text = json.encodeToString(index),
                 ),
@@ -235,9 +234,9 @@ class BackupRepositoryZipImpl(
                 mode = BackupWriteMode.Create,
                 password = objectPassword,
                 entries = listOf(
-                    ZipEntryWriter.Sink(
+                    ZipEntry(
                         name = BLOB_ENTRY,
-                        write = write,
+                        data = ZipEntry.Data.Out(write),
                     ),
                 ),
             )
@@ -265,11 +264,11 @@ class BackupRepositoryZipImpl(
                 mode = BackupWriteMode.Create,
                 password = objectPassword,
                 entries = listOf(
-                    ZipEntryWriter.Text(
+                    textEntry(
                         name = MANIFEST_ENTRY,
                         text = json.encodeToString(manifest),
                     ),
-                    ZipEntryWriter.Text(
+                    textEntry(
                         name = VAULT_ENTRY,
                         text = vaultJson,
                     ),
@@ -354,21 +353,11 @@ class BackupRepositoryZipImpl(
             } catch (_: BackupObjectStoreException.NotFound) {
                 return@retryTransientObjectRead null
             }
-            source.use { source ->
-                var result: String? = null
-                createZipInputStream(source.asInputStream(), password).use { zipStream ->
-                    while (true) {
-                        val header = zipStream.getNextEntry()
-                            ?: break
-                        if (header.fileName == entryName) {
-                            result = zipStream
-                                .bufferedReader()
-                                .use { it.readText() }
-                            break
-                        }
-                    }
-                }
-                result
+            ZipReader(source, password?.value).use { reader ->
+                reader.entries()
+                    .firstOrNull { entry -> entry.name == entryName }
+                    ?.source
+                    ?.readString()
             }
         }
     }
@@ -434,36 +423,17 @@ class BackupRepositoryZipImpl(
         key: BackupObjectKey,
         mode: BackupWriteMode,
         password: Password?,
-        entries: List<ZipEntryWriter>,
+        entries: List<ZipEntry>,
     ): BackupObjectInfo = store
         .write(
             key = key,
             mode = mode,
         ) { sink ->
-            val stream = NonClosingOutputStream(sink.asOutputStream())
-            createZipOutputStream(stream, password).use { zipStream ->
-                entries.forEach { entry ->
-                    zipStream.putNextEntry(
-                        createZipParameters(
-                            fileName = entry.name,
-                            password = password,
-                        ),
-                    )
-                    try {
-                        when (entry) {
-                            is ZipEntryWriter.Text -> {
-                                zipStream.write(entry.text.encodeToByteArray())
-                            }
-
-                            is ZipEntryWriter.Sink -> {
-                                zipStream.withBufferedSink(entry.write)
-                            }
-                        }
-                    } finally {
-                        zipStream.closeEntry()
-                    }
-                }
-            }
+            zipService.zip(
+                outputStream = sink,
+                config = zipConfig(password),
+                entries = entries,
+            )
         }
         .requireAtomicCleanupComplete()
 
@@ -491,19 +461,9 @@ class BackupRepositoryZipImpl(
     ): Boolean = try {
         retryTransientObjectRead {
             val source = store.read(key)
-            source.use { source ->
-                createZipInputStream(source.asInputStream(), password).use { zipStream ->
-                    var found = false
-                    while (true) {
-                        val header = zipStream.getNextEntry()
-                            ?: break
-                        if (header.fileName == entryName) {
-                            found = true
-                            break
-                        }
-                    }
-                    found
-                }
+            ZipReader(source, password?.value).use { reader ->
+                reader.entries()
+                    .any { entry -> entry.name == entryName }
             }
         }
     } catch (_: BackupObjectStoreException.NotFound) {
@@ -522,20 +482,13 @@ class BackupRepositoryZipImpl(
         entryName: String,
     ): Boolean = retryTransientObjectRead {
         val source = store.read(key)
-        source.use { source ->
-            createZipInputStream(source.asInputStream(), password).use { zipStream ->
-                var found = false
-                while (true) {
-                    val header = zipStream.getNextEntry()
-                        ?: break
-                    if (header.fileName == entryName) {
-                        zipStream.drain()
-                        found = true
-                        break
-                    }
-                }
-                found
-            }
+        ZipReader(source, password?.value).use { reader ->
+            val entry = reader.entries()
+                .firstOrNull { entry -> entry.name == entryName }
+            // Reading the entry to its end is what proves it decrypts and
+            // inflates; a matching name alone does not.
+            entry?.source?.transferTo(discardingSink())
+            entry != null
         }
     }
 
@@ -544,43 +497,6 @@ class BackupRepositoryZipImpl(
     private suspend fun <T> retryTransientObjectRead(
         block: suspend () -> T,
     ): T = retryWithPolicy(objectReadRetryPolicy) { block() }
-
-    private fun java.io.InputStream.drain() {
-        val buffer = ByteArray(8192)
-        while (read(buffer) != -1) {
-        }
-    }
-
-    private fun createZipInputStream(
-        stream: java.io.InputStream,
-        password: Password?,
-    ): ZipInputStream = if (password.isNullOrEmpty()) {
-        ZipInputStream(stream)
-    } else {
-        ZipInputStream(stream, requireNotNull(password).value.toCharArray())
-    }
-
-    private fun createZipOutputStream(
-        stream: OutputStream,
-        password: Password?,
-    ): ZipOutputStream = if (password.isNullOrEmpty()) {
-        ZipOutputStream(stream)
-    } else {
-        ZipOutputStream(stream, requireNotNull(password).value.toCharArray())
-    }
-
-    private fun createZipParameters(
-        fileName: String,
-        password: Password?,
-    ): ZipParameters = ZipParameters().apply {
-        compressionMethod = CompressionMethod.DEFLATE
-        if (!password.isNullOrEmpty()) {
-            encryptionMethod = EncryptionMethod.AES
-            aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256
-            isEncryptFiles = true
-        }
-        fileNameInZip = fileName
-    }
 
     private fun snapshotKey(
         snapshotId: String,
@@ -599,34 +515,38 @@ class BackupRepositoryZipImpl(
         value: String,
     ): BackupObjectKey = BackupObjectKey(value)
 
-    private sealed interface ZipEntryWriter {
-        val name: String
-
-        data class Text(
-            override val name: String,
-            val text: String,
-        ) : ZipEntryWriter
-
-        data class Sink(
-            override val name: String,
-            val write: suspend (kotlinx.io.Sink) -> Unit,
-        ) : ZipEntryWriter
-    }
-
     private data class IndexGenerationKey(
         val key: BackupObjectKey,
         val generation: Long,
         val indexId: String,
     )
-
-    private class NonClosingOutputStream(
-        outputStream: OutputStream,
-    ) : FilterOutputStream(outputStream) {
-        override fun close() {
-            flush()
-        }
-    }
 }
+
+/** The archive options an object of this repository is written with. */
+private fun zipConfig(
+    password: Password?,
+): ZipConfig = ZipConfig(
+    encryption = password?.value
+        ?.takeIf { it.isNotEmpty() }
+        ?.let(ZipConfig::Encryption),
+)
+
+/** An entry holding a short, already materialised text payload. */
+private fun textEntry(
+    name: String,
+    text: String,
+): ZipEntry = ZipEntry(
+    name = name,
+    data = ZipEntry.Data.In { text.toSource() },
+)
+
+/**
+ * The archive's entries, in the order they were written.
+ *
+ * Only one entry is readable at a time, so the sequence must be consumed
+ * lazily and only once.
+ */
+private fun ZipReader.entries(): Sequence<ZipReaderEntry> = generateSequence { nextEntry() }
 
 private fun backupRepositoryFeatures(
     password: Password?,

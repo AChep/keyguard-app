@@ -8,6 +8,9 @@ import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
 import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
+import com.artemchep.keyguard.common.service.backup.BackupRepository
+import com.artemchep.keyguard.common.service.backup.BackupRepositoryZipImpl
+import com.artemchep.keyguard.common.service.backup.BackupRunService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
@@ -544,6 +547,8 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlDuplicateCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfaImpl
+import com.artemchep.keyguard.util.zip.ZipService
+import com.artemchep.keyguard.util.zip.createZipService
 import org.kodein.di.DI
 import org.kodein.di.bindProvider
 import org.kodein.di.bindSingleton
@@ -1686,6 +1691,19 @@ fun globalModuleCommon() = DI.Module(
     }
     bindSingleton<GetPasswordStrength> {
         GetPasswordStrengthImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<ZipService> {
+        createZipService()
+    }
+    bindSingleton<BackupRepository> {
+        BackupRepositoryZipImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<BackupRunService> {
+        BackupRunService(
             directDI = this,
         )
     }

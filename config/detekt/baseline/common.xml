@@ -1646,7 +1646,6 @@
     <ID>NestedBlockDepth:DefaultVaultSearchLexer.kt:DefaultVaultSearchLexer$override fun lex: LexedQuery</ID>
     <ID>NestedBlockDepth:NativeGpgWrite.kt:NativeGpgKeyImportService$override fun import: GpgKeyImportResult</ID>
     <ID>NestedBlockDepth:SecureStorageCoordinator.kt:SecureStorageCoordinator$private suspend fun &lt;P : Any&gt; probeStore: P</ID>
-    <ID>NestedBlockDepth:ZipServiceJvm.kt:ZipServiceJvm$override suspend fun zip</ID>
     <ID>NewLineAtEndOfFile:AccountListSelection.kt:com.artemchep.keyguard.feature.home.settings.accounts.AccountListSelection.kt</ID>
     <ID>NewLineAtEndOfFile:AddScreenScope.kt:com.artemchep.keyguard.feature.add.AddScreenScope.kt</ID>
     <ID>NewLineAtEndOfFile:AndroidAppFDroidParser.kt:com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser.kt</ID>

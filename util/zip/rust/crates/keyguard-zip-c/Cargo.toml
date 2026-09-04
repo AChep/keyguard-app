@@ -1,0 +1,21 @@
+[package]
+name = "keyguard-zip-c"
+description = "Stable C ABI for Keyguard native ZIP archive writing"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+keyguard-zip-core = { path = "../keyguard-zip-core" }
+
+[dev-dependencies]
+zip.workspace = true
+
+[lints]
+workspace = true

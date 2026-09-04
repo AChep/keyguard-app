@@ -1,8 +1,5 @@
 package com.artemchep.keyguard.di
 
-import com.artemchep.keyguard.common.service.backup.BackupRepository
-import com.artemchep.keyguard.common.service.backup.BackupRepositoryZipImpl
-import com.artemchep.keyguard.common.service.backup.BackupRunService
 import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
 import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
@@ -19,7 +16,6 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalWindowMemory
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.common.service.zip.ZipService
 import com.artemchep.keyguard.common.usecase.CheckWebDavConnection
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAppBuildDate
@@ -41,7 +37,6 @@ import com.artemchep.keyguard.copy.DateFormatterJvm
 import com.artemchep.keyguard.copy.GetAppBuildDateImpl
 import com.artemchep.keyguard.copy.GetAppBuildRefImpl
 import com.artemchep.keyguard.copy.NumberFormatterJvm
-import com.artemchep.keyguard.copy.ZipServiceJvm
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
@@ -168,16 +163,6 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
-    bindSingleton<BackupRepository> {
-        BackupRepositoryZipImpl(
-            directDI = this,
-        )
-    }
-    bindSingleton<BackupRunService> {
-        BackupRunService(
-            directDI = this,
-        )
-    }
     bindSingleton<RunBackupNow> {
         RunBackupNowImpl(
             directDI = this,
@@ -195,11 +180,6 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<TestBackupLocation> {
         TestBackupLocationImpl(
-            directDI = this,
-        )
-    }
-    bindSingleton<ZipService> {
-        ZipServiceJvm(
             directDI = this,
         )
     }

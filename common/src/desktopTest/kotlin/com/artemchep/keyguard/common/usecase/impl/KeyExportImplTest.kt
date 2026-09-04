@@ -6,7 +6,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.usecase.DateFormatter
-import com.artemchep.keyguard.copy.ZipServiceJvm
+import com.artemchep.keyguard.util.zip.createZipService
 import java.io.ByteArrayInputStream
 import java.util.zip.ZipInputStream
 import kotlin.test.Test
@@ -59,7 +59,7 @@ class KeyExportImplTest {
         val dirsService = RecordingDirsService()
         val useCase = KeyPairExportImpl(
             dirsService = dirsService,
-            zipService = ZipServiceJvm(),
+            zipService = createZipService(),
             dateFormatter = FixedDateFormatter,
         )
 

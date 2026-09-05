@@ -400,22 +400,11 @@ abstract class AgentManager(
         val process = agentProcess
         agentProcess = null
 
-        // Closing the transport is what releases a blocking Unix accept() or
-        // Windows ConnectNamedPipe() call. Coroutine cancellation alone cannot
-        // make progress until that blocking call returns.
-        val ipcServerRunner = ipcServerRunner
-        this.ipcServerRunner = null
-        try {
-            ipcServerRunner?.stop()
-        } catch (e: Exception) {
-            logRepository.post(
-                config.tag,
-                "Error stopping IPC server: ${e.message}",
-                LogLevel.ERROR,
-            )
-        }
-
-        // Kill the agent process.
+        // Stop the agent process before closing the IPC transport. The agent
+        // holds an open IPC connection that our server is blocked reading
+        // from. On Windows the pipe handles are synchronous, so closing a
+        // handle waits for that pending read, and the read only ends once the
+        // agent disconnects, which it does after seeing stdin EOF or dying.
         process?.let {
             try {
                 it.closeStdinQuietly()
@@ -433,6 +422,21 @@ abstract class AgentManager(
                     LogLevel.ERROR,
                 )
             }
+        }
+
+        // Closing the transport is what releases a blocking Unix accept() or
+        // Windows ConnectNamedPipe() call. Coroutine cancellation alone cannot
+        // make progress until that blocking call returns.
+        val ipcServerRunner = ipcServerRunner
+        this.ipcServerRunner = null
+        try {
+            ipcServerRunner?.stop()
+        } catch (e: Exception) {
+            logRepository.post(
+                config.tag,
+                "Error stopping IPC server: ${e.message}",
+                LogLevel.ERROR,
+            )
         }
 
         // Cancel the IPC server.

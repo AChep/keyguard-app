@@ -36,6 +36,7 @@ fun GpgAgentApprovalContent(
         messageUnknownApp = messageUnknownApp,
         keyName = request.keyName,
         keyFingerprint = request.keyFingerprint.ifBlank { request.keygrip },
+        cipherId = request.cipherId,
         onDismiss = onDismiss,
     )
 }

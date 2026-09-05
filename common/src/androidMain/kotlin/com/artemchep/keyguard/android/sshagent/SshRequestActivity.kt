@@ -43,6 +43,7 @@ import com.artemchep.keyguard.feature.sshagent.SshAgentApprovalContent
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ssh_client_request
 import kotlinx.coroutines.delay
+import org.kodein.di.compose.withDI
 import kotlin.time.Clock
 
 internal class SshRequestActivity : BaseActivity() {
@@ -209,10 +210,14 @@ internal class SshRequestActivity : BaseActivity() {
                     is VaultState.Main -> when (activeRequest) {
                         null -> ManualAppScreenOnLoading()
                         is SshAgentApprovalRequest -> {
-                            SshAgentApprovalContent(
-                                request = activeRequest,
-                                onDismiss = {},
-                            )
+                            // Provide the session DI so that the content can
+                            // read the vault, e.g. to resolve the key's title.
+                            withDI(vaultState.di) {
+                                SshAgentApprovalContent(
+                                    request = activeRequest,
+                                    onDismiss = {},
+                                )
+                            }
                         }
 
                         is SshAgentGetListRequest -> {

@@ -313,7 +313,7 @@ internal fun createKeePassCredentials(
     passphrase != null -> Credentials.from(passphrase)
     keyData != null -> Credentials.from(keyData)
     else -> {
-        val msg = "KeePass credentials require a password or a key file.",
+        val msg = "KeePass credentials require a password or a key file."
         throw IllegalArgumentException(msg)
     }
 }

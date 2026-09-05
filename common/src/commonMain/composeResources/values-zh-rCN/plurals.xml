@@ -105,4 +105,7 @@
     <plurals name="years_plural">
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 年</item>
     </plurals>
+    <plurals name="gpg_keyserver_upload_verify_requested_plural">
+        <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+    </plurals>
 </resources>

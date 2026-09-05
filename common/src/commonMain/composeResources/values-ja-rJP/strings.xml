@@ -383,6 +383,7 @@
     <string name="ciphers_action_upload_gpg_public_key_title">GPG 公開鍵をアップロード</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">キーサーバーに公開鍵をアップロードしますか？</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard は、このアイテムの ASCII アーマー形式の GPG 公開鍵を、設定されたキーサーバーへ送信します。公開鍵には、フィンガープリント、名前やメールアドレスなどのユーザー ID、サブキー、日付、失効状態が含まれる場合があります。キーサーバーはこの公開データを保存し再配布することがあります。このアップロードでは確認メールを要求しません。</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Select the e-mail addresses that should receive a verification e-mail from the keyserver. Until an address is verified, the key cannot be found by that address.</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">GPG 公開鍵を更新</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">キーサーバーから公開鍵を更新しますか？</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard は、このキーのフィンガープリントを使用して、設定された GPG キーサーバーに問い合わせます。一致する公開鍵が見つかった場合、このアイテムの保存済み公開鍵、キーのメタデータ、キーサーバーの状態を更新します。</string>
@@ -832,6 +833,14 @@
     <string name="emailleak_breach_reported_at">報告日: <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">データ漏洩のチェックに失敗しました。現在オフラインになっている可能性があります。</string>
     <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
+    <!-- Title of the 'Website data breach' dialog -->
+    <string name="websiteleak_title">Data breach</string>
+    <string name="websiteleak_note">Breached website data can provide malicious actors with access to sensitive personal and financial information, potentially compromising user accounts across that service.</string>
+    <string name="websiteleak_breach_not_found_title">No breaches found</string>
+    <string name="websiteleak_breach_found_title">Website breaches found</string>
+    <string name="websiteleak_breach_section">Breaches</string>
+    <string name="websiteleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="websiteleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="passwordleak_title">データ漏洩</string>
     <string name="passwordleak_note">データ漏洩で流出したパスワードは、解読にかかる時間が大幅に短く、決して使用すべきではありません。</string>
     <string name="passwordleak_occurrences_found_title">パスワードは漏洩しています</string>
@@ -1987,6 +1996,7 @@
     <string name="gpg_keyserver_search_index_label">インデックス</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">GPG 公開鍵がキーサーバーに見つかりません</string>
     <string name="gpg_keyserver_upload_success_title">GPG 公開鍵をアップロードしました</string>
+    <string name="gpg_keyserver_upload_verify_already_published_text">The selected e-mail addresses are already verified.</string>
     <string name="gpg_keyserver_refresh_success_title">GPG 公開鍵を更新しました</string>
     <string name="gpg_keyserver_refresh_not_found_title">GPG 公開鍵がキーサーバーに見つかりません</string>
     <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>

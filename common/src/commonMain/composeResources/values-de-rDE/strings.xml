@@ -383,6 +383,7 @@
     <string name="ciphers_action_upload_gpg_public_key_title">Öffentlichen GPG-Schlüssel hochladen</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Öffentlichen Schlüssel auf Schlüsselserver hochladen?</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard sendet den ASCII-Armor-kodierten öffentlichen GPG-Schlüssel dieses Elements an Ihren konfigurierten Schlüsselserver. Der öffentliche Schlüssel kann Fingerabdrücke, Benutzer-IDs wie Namen und E-Mail-Adressen, Unterschlüssel, Daten und den Widerrufsstatus enthalten. Der Schlüsselserver kann diese öffentlichen Daten speichern und weiterverbreiten. Bei diesem Hochladen werden keine Verifizierungs-E-Mails angefordert.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Select the e-mail addresses that should receive a verification e-mail from the keyserver. Until an address is verified, the key cannot be found by that address.</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">Öffentlichen GPG-Schlüssel aktualisieren</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Öffentlichen Schlüssel vom Schlüsselserver aktualisieren?</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard kontaktiert Ihren konfigurierten GPG-Schlüsselserver mit dem Fingerabdruck dieses Schlüssels. Wenn ein passender öffentlicher Schlüssel gefunden wird, aktualisiert Keyguard den gespeicherten öffentlichen Schlüssel, die Schlüssel-Metadaten und den Schlüsselserver-Status für dieses Element.</string>
@@ -832,6 +833,14 @@
     <string name="emailleak_breach_reported_at">Gemeldet am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Konnte nicht auf Datenlecks überprüfen. Möglicherweise sind Sie derzeit Offline</string>
     <string name="emailleak_failed_no_api_found_text">Datenlecks konnten nicht überprüft werden. Der Endpunkt ist nicht verfügbar</string>
+    <!-- Title of the 'Website data breach' dialog -->
+    <string name="websiteleak_title">Data breach</string>
+    <string name="websiteleak_note">Breached website data can provide malicious actors with access to sensitive personal and financial information, potentially compromising user accounts across that service.</string>
+    <string name="websiteleak_breach_not_found_title">No breaches found</string>
+    <string name="websiteleak_breach_found_title">Website breaches found</string>
+    <string name="websiteleak_breach_section">Breaches</string>
+    <string name="websiteleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="websiteleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="passwordleak_title">Datenleck</string>
     <string name="passwordleak_note">Ein Passwort, das in den Datenlecks gefunden wird, dauert deutlich weniger Zeit zum Brechen und wird nicht empfohlen zu verwenden.</string>
     <string name="passwordleak_occurrences_found_title">Gebrochene Passwörter gefunden</string>
@@ -1987,6 +1996,7 @@
     <string name="gpg_keyserver_search_index_label">Index</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">Öffentlicher GPG-Schlüssel nicht auf dem Schlüsselserver gefunden</string>
     <string name="gpg_keyserver_upload_success_title">Öffentlicher GPG-Schlüssel hochgeladen</string>
+    <string name="gpg_keyserver_upload_verify_already_published_text">The selected e-mail addresses are already verified.</string>
     <string name="gpg_keyserver_refresh_success_title">Öffentlicher GPG-Schlüssel aktualisiert</string>
     <string name="gpg_keyserver_refresh_not_found_title">Öffentlicher GPG-Schlüssel nicht auf dem Schlüsselserver gefunden</string>
     <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>

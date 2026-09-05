@@ -383,6 +383,7 @@
     <string name="ciphers_action_upload_gpg_public_key_title">Subir la clave pública GPG</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">¿Subir la clave pública al servidor de claves?</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard enviará la clave pública GPG blindada de este elemento al servidor de claves configurado. La clave pública puede incluir huellas digitales, IDs de usuario como nombres y direcciones de correo electrónico, subclaves, fechas y el estado de revocación. El servidor de claves puede almacenar y redistribuir estos datos públicos. Esta subida no solicita correos de verificación.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Select the e-mail addresses that should receive a verification e-mail from the keyserver. Until an address is verified, the key cannot be found by that address.</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">Actualizar la clave pública GPG</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">¿Actualizar la clave pública desde el servidor de claves?</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard se pondrá en contacto con el servidor de claves GPG configurado usando la huella digital de esta clave. Si se encuentra una clave pública coincidente, Keyguard actualizará la clave pública almacenada, los metadatos de la clave y el estado del servidor de claves de este elemento.</string>
@@ -832,6 +833,14 @@
     <string name="emailleak_breach_reported_at">Reportado en <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">No se pudieron comprobar las filtraciones de datos. Es posible que estés fuera de línea</string>
     <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
+    <!-- Title of the 'Website data breach' dialog -->
+    <string name="websiteleak_title">Data breach</string>
+    <string name="websiteleak_note">Breached website data can provide malicious actors with access to sensitive personal and financial information, potentially compromising user accounts across that service.</string>
+    <string name="websiteleak_breach_not_found_title">No breaches found</string>
+    <string name="websiteleak_breach_found_title">Website breaches found</string>
+    <string name="websiteleak_breach_section">Breaches</string>
+    <string name="websiteleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="websiteleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="passwordleak_title">Filtraciones de datos</string>
     <string name="passwordleak_note">Una contraseña que se encuentra en las filtraciones de datos toma mucho menos tiempo para vulnerarse y no debería ser utilizada.</string>
     <string name="passwordleak_occurrences_found_title">La contraseña está comprometida</string>
@@ -1987,6 +1996,7 @@
     <string name="gpg_keyserver_search_index_label">Índice</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">Clave pública GPG no encontrada en el servidor de claves</string>
     <string name="gpg_keyserver_upload_success_title">Clave pública GPG subida</string>
+    <string name="gpg_keyserver_upload_verify_already_published_text">The selected e-mail addresses are already verified.</string>
     <string name="gpg_keyserver_refresh_success_title">Clave pública GPG actualizada</string>
     <string name="gpg_keyserver_refresh_not_found_title">Clave pública GPG no encontrada en el servidor de claves</string>
     <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>

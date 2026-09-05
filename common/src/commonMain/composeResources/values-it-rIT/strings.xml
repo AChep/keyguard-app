@@ -383,6 +383,7 @@
     <string name="ciphers_action_upload_gpg_public_key_title">Carica la chiave pubblica GPG</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Caricare la chiave pubblica sul keyserver?</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard invierà la chiave pubblica GPG armored di questo elemento al keyserver configurato. La chiave pubblica può includere impronte digitali, ID utente come nomi e indirizzi e-mail, sottochiavi, date e stato di revoca. Il keyserver può memorizzare e ridistribuire questi dati pubblici. Questo caricamento non richiede e-mail di verifica.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Select the e-mail addresses that should receive a verification e-mail from the keyserver. Until an address is verified, the key cannot be found by that address.</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">Aggiorna la chiave pubblica GPG</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Aggiornare la chiave pubblica dal keyserver?</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard contatterà il keyserver GPG configurato con l'impronta digitale di questa chiave. Se viene trovata una chiave pubblica corrispondente, Keyguard aggiornerà la chiave pubblica memorizzata, i metadati della chiave e lo stato del keyserver per questo elemento.</string>
@@ -832,6 +833,14 @@
     <string name="emailleak_breach_reported_at">Segnalata il <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Impossibile controllare le violazioni dei dati. Al momento potresti essere offline</string>
     <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
+    <!-- Title of the 'Website data breach' dialog -->
+    <string name="websiteleak_title">Data breach</string>
+    <string name="websiteleak_note">Breached website data can provide malicious actors with access to sensitive personal and financial information, potentially compromising user accounts across that service.</string>
+    <string name="websiteleak_breach_not_found_title">No breaches found</string>
+    <string name="websiteleak_breach_found_title">Website breaches found</string>
+    <string name="websiteleak_breach_section">Breaches</string>
+    <string name="websiteleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="websiteleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="passwordleak_title">Violazioni dei dati</string>
     <string name="passwordleak_note">Una password trovata nelle violazioni dei dati richiede molto meno tempo per essere violata e non dovrebbe mai essere utilizzata.</string>
     <string name="passwordleak_occurrences_found_title">La password è compromessa</string>
@@ -1987,6 +1996,7 @@
     <string name="gpg_keyserver_search_index_label">Indice</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">Chiave pubblica GPG non trovata sul keyserver</string>
     <string name="gpg_keyserver_upload_success_title">Chiave pubblica GPG caricata</string>
+    <string name="gpg_keyserver_upload_verify_already_published_text">The selected e-mail addresses are already verified.</string>
     <string name="gpg_keyserver_refresh_success_title">Chiave pubblica GPG aggiornata</string>
     <string name="gpg_keyserver_refresh_not_found_title">Chiave pubblica GPG non trovata sul keyserver</string>
     <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>

@@ -383,6 +383,7 @@
     <string name="ciphers_action_upload_gpg_public_key_title">GPG publieke sleutel uploaden</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Publieke sleutel uploaden naar de sleutelserver?</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard verstuurt de armored GPG publieke sleutel van dit item naar de door jou ingestelde sleutelserver. De publieke sleutel kan vingerafdrukken, gebruikers-ID's zoals namen en e-mailadressen, subsleutels, datums en de intrekkingsstatus bevatten. De sleutelserver kan deze publieke gegevens opslaan en verder verspreiden. Bij deze upload worden geen verificatie-e-mails aangevraagd.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Select the e-mail addresses that should receive a verification e-mail from the keyserver. Until an address is verified, the key cannot be found by that address.</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">GPG publieke sleutel vernieuwen</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Publieke sleutel vernieuwen vanaf de sleutelserver?</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard neemt met de vingerafdruk van deze sleutel contact op met de door jou ingestelde GPG-sleutelserver. Als er een overeenkomende publieke sleutel wordt gevonden, werkt Keyguard de opgeslagen publieke sleutel, de sleutelmetadata en de sleutelserverstatus van dit item bij.</string>
@@ -832,6 +833,14 @@
     <string name="emailleak_breach_reported_at">Gerapporteerd op <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Gegevenslekken kunnen niet worden gecontroleerd. Mogelijk ben je momenteel offline</string>
     <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
+    <!-- Title of the 'Website data breach' dialog -->
+    <string name="websiteleak_title">Data breach</string>
+    <string name="websiteleak_note">Breached website data can provide malicious actors with access to sensitive personal and financial information, potentially compromising user accounts across that service.</string>
+    <string name="websiteleak_breach_not_found_title">No breaches found</string>
+    <string name="websiteleak_breach_found_title">Website breaches found</string>
+    <string name="websiteleak_breach_section">Breaches</string>
+    <string name="websiteleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="websiteleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="passwordleak_title">Datalek</string>
     <string name="passwordleak_note">Een wachtwoord dat in een datalek aangetroffen is kan makkelijker gekraakt worden en mag nooit gebruikt worden.</string>
     <string name="passwordleak_occurrences_found_title">Wachtwoord is gelekt</string>
@@ -1987,6 +1996,7 @@
     <string name="gpg_keyserver_search_index_label">Index</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">GPG publieke sleutel niet gevonden op de sleutelserver</string>
     <string name="gpg_keyserver_upload_success_title">GPG publieke sleutel geüpload</string>
+    <string name="gpg_keyserver_upload_verify_already_published_text">The selected e-mail addresses are already verified.</string>
     <string name="gpg_keyserver_refresh_success_title">GPG publieke sleutel vernieuwd</string>
     <string name="gpg_keyserver_refresh_not_found_title">GPG publieke sleutel niet gevonden op de sleutelserver</string>
     <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>

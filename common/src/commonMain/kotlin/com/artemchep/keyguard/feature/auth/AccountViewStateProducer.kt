@@ -296,7 +296,10 @@ suspend fun RememberStateFlowScope.accountStateProducer(
                     email = email,
                     emailEditable = false,
                     env = env,
-                    envEditable = false,
+                    // A self-hosted server can move or change ports while the
+                    // account is offline. Let re-login repair the endpoint
+                    // without requiring a destructive sign-out first.
+                    envEditable = true,
                 ),
             ),
         ) {

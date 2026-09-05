@@ -24,7 +24,13 @@ class GpgKeyPublicExportImpl(
     override fun invoke(
         request: GpgKeyPublicExport.Request,
     ): IO<String?> = ioEffect {
-        val fileName = "gpg_${request.fingerprint.gpgFileSafeSuffix()}_${dateFormatter.gpgExportDateSuffix()}.public.asc"
+        val fileName = buildString {
+            append("gpg_")
+            append(request.fingerprint.gpgFileSafeSuffix())
+            append('_')
+            append(dateFormatter.gpgExportDateSuffix())
+            append(".public.asc")
+        }
         dirsService.saveToDownloads(fileName) { os ->
             os.writeText(request.publicKeyArmored)
         }.bind()

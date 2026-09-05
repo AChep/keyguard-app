@@ -160,7 +160,9 @@ Email lookups against VKS are rate-limited.
 You can:
 
 - **search** a keyserver and import a result;
-- **upload** a public key to publish it;
+- **upload** a public key to publish it; on a VKS keyserver you can pick the
+  e-mail addresses that receive a verification e-mail, which makes the key
+  searchable by those addresses once confirmed;
 - **verify** a stored public key against the keyserver, recording whether it is
   *found & verified*, *found but unverified*, *not found*, or *revoked*.
 

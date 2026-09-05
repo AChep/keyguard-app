@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DGpgKeyserverResult
 import com.artemchep.keyguard.common.model.DGpgKeyserverSubKey
+import com.artemchep.keyguard.common.model.DGpgKeyserverUploadResult
 import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.SearchGpgPublicKeyRequest
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
@@ -26,15 +27,22 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.appendPathSegments
+import io.ktor.http.content.TextContent
 import io.ktor.http.decodeURLQueryComponent
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.time.Instant
@@ -42,6 +50,9 @@ import kotlin.time.Instant
 class GpgKeyserverClientImpl(
     private val httpClient: HttpClient,
     private val parser: GpgPublicKeyParser,
+    private val json: Json = Json {
+        ignoreUnknownKeys = true
+    },
 ) : GpgKeyserverClient {
     companion object {
         const val ROUTE_VKS_BY_FINGERPRINT = "gpg-keyserver-vks-by-fingerprint"
@@ -50,6 +61,7 @@ class GpgKeyserverClientImpl(
         const val ROUTE_HKP_INDEX = "gpg-keyserver-hkp-index"
         const val ROUTE_HKP_GET = "gpg-keyserver-hkp-get"
         const val ROUTE_VKS_UPLOAD = "gpg-keyserver-vks-upload"
+        const val ROUTE_VKS_REQUEST_VERIFY = "gpg-keyserver-vks-request-verify"
         const val ROUTE_HKP_ADD = "gpg-keyserver-hkp-add"
 
         private val emailRegex = Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")
@@ -70,6 +82,7 @@ class GpgKeyserverClientImpl(
     ) : this(
         httpClient = directDI.instance(),
         parser = directDI.instance(),
+        json = directDI.instance(),
     )
 
     override fun search(
@@ -195,21 +208,61 @@ class GpgKeyserverClientImpl(
     override fun upload(
         publicKeyArmored: String,
         config: GpgKeyserverConfig,
-    ): IO<Unit> = ioEffect(Dispatchers.IO) {
+    ): IO<DGpgKeyserverUploadResult> = ioEffect(Dispatchers.IO) {
         val keytext = publicKeyArmored.trim()
         if (keytext.isEmpty()) {
             throw IllegalArgumentException("The public GPG key is empty.")
         }
 
         when (config.protocol) {
-            GpgKeyserverConfig.Protocol.VKS -> uploadVks(
-                keytext = keytext,
+            GpgKeyserverConfig.Protocol.VKS -> postVks(
+                path = "upload",
+                route = ROUTE_VKS_UPLOAD,
+                body = json.encodeToString(VksUploadRequest(keytext = keytext)),
                 config = config,
             )
 
-            GpgKeyserverConfig.Protocol.HKP -> uploadHkp(
-                keytext = keytext,
+            GpgKeyserverConfig.Protocol.HKP -> {
+                uploadHkp(
+                    keytext = keytext,
+                    config = config,
+                )
+                DGpgKeyserverUploadResult()
+            }
+        }
+    }
+
+    override fun requestVerify(
+        token: String,
+        addresses: Collection<String>,
+        config: GpgKeyserverConfig,
+    ): IO<DGpgKeyserverUploadResult> = ioEffect(Dispatchers.IO) {
+        if (token.isBlank()) {
+            throw IllegalArgumentException("The keyserver upload token is empty.")
+        }
+        val normalizedAddresses = addresses
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+        if (normalizedAddresses.isEmpty()) {
+            throw IllegalArgumentException("No e-mail addresses to verify.")
+        }
+
+        when (config.protocol) {
+            GpgKeyserverConfig.Protocol.VKS -> postVks(
+                path = "request-verify",
+                route = ROUTE_VKS_REQUEST_VERIFY,
+                body = json.encodeToString(
+                    VksRequestVerifyRequest(
+                        token = token,
+                        addresses = normalizedAddresses,
+                    ),
+                ),
                 config = config,
+            )
+
+            GpgKeyserverConfig.Protocol.HKP -> throw UnsupportedOperationException(
+                "HKP keyservers do not verify e-mail addresses.",
             )
         }
     }
@@ -277,18 +330,55 @@ class GpgKeyserverClientImpl(
         )
     }
 
-    private suspend fun uploadVks(
-        keytext: String,
+    /**
+     * Upload and request-verify accept only a JSON [body] and share the same
+     * response shape, see https://keys.openpgp.org/about/api
+     */
+    private suspend fun postVks(
+        path: String,
+        route: String,
+        body: String,
         config: GpgKeyserverConfig,
-    ) {
+    ): DGpgKeyserverUploadResult {
         val url = buildUrl(config.url) {
-            appendPathSegments("vks", "v1", "upload")
+            appendPathSegments("vks", "v1", path)
         }
         val response = httpClient.post(url) {
-            attributes.put(routeAttribute, ROUTE_VKS_UPLOAD)
-            setBody(keytextForm(keytext))
+            attributes.put(routeAttribute, route)
+            setBody(
+                TextContent(
+                    text = body,
+                    contentType = ContentType.Application.Json,
+                ),
+            )
         }
         response.requireSuccess()
+
+        val text = response.bodyAsText()
+        val result = try {
+            json.decodeFromString(
+                VksUploadResponse.serializer(),
+                text,
+            )
+        } catch (e: SerializationException) {
+            throw IllegalStateException("Keyserver returned a malformed upload response.", e)
+        }
+        val fingerprint = result.fingerprint.normalizeGpgFingerprint()
+        check(fingerprint.isNotEmpty()) {
+            "Keyserver did not confirm the uploaded GPG key fingerprint."
+        }
+        return DGpgKeyserverUploadResult(
+            fingerprint = fingerprint,
+            // Unknown statuses are dropped rather than failing the upload.
+            emailStatus = result.status
+                .mapNotNull { (email, status) ->
+                    DGpgKeyserverUploadResult.EmailStatus.entries
+                        .firstOrNull { it.name.equals(status, ignoreCase = true) }
+                        ?.let { email to it }
+                }
+                .toMap(),
+            token = result.token?.takeIf { it.isNotBlank() },
+        )
     }
 
     private suspend fun uploadHkp(
@@ -561,6 +651,30 @@ class GpgKeyserverClientImpl(
     ): String = URLBuilder(Url(baseUrl.ensureSuffix("/")))
         .apply(block)
         .buildString()
+
+    @Serializable
+    private data class VksUploadRequest(
+        @SerialName("keytext")
+        val keytext: String,
+    )
+
+    @Serializable
+    private data class VksRequestVerifyRequest(
+        @SerialName("token")
+        val token: String,
+        @SerialName("addresses")
+        val addresses: List<String>,
+    )
+
+    @Serializable
+    private data class VksUploadResponse(
+        @SerialName("key_fpr")
+        val fingerprint: String = "",
+        @SerialName("status")
+        val status: Map<String, String> = emptyMap(),
+        @SerialName("token")
+        val token: String? = null,
+    )
 
     private data class VksLookup(
         val path: String,

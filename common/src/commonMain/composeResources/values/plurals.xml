@@ -280,4 +280,12 @@
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> years</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
     </plurals>
+    <plurals name="gpg_keyserver_upload_verify_requested_plural">
+        <item quantity="zero">Verification e-mail requested for <xliff:g id="number" example="0">%1$s</xliff:g> addresses</item>
+        <item quantity="one">Verification e-mail requested for <xliff:g id="number" example="1">%1$s</xliff:g> address</item>
+        <item quantity="two">Verification e-mail requested for <xliff:g id="number" example="2">%1$s</xliff:g> addresses</item>
+        <item quantity="few">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+        <item quantity="many">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+        <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+    </plurals>
 </resources>

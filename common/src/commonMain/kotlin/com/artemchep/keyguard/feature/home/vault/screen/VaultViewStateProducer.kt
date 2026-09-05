@@ -140,6 +140,7 @@ import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetConcealFields
 import com.artemchep.keyguard.common.usecase.GetFolderTreeById
 import com.artemchep.keyguard.common.usecase.GetFolders
+import com.artemchep.keyguard.common.usecase.GetGpgKeyserverConfig
 import com.artemchep.keyguard.common.usecase.GetGravatarUrl
 import com.artemchep.keyguard.common.usecase.GetJustDeleteMeByUrl
 import com.artemchep.keyguard.common.usecase.GetJustGetMyDataByUrl
@@ -359,6 +360,7 @@ fun vaultViewScreenState(
         changeGpgKeyExpirationById = instance(),
         checkPasswordLeak = instance(),
         uploadGpgPublicKey = instance(),
+        getGpgKeyserverConfig = instance(),
         refreshGpgPublicKeys = instance(),
         verifyGpgPublicKey = instance(),
         retryCipher = instance(),
@@ -470,6 +472,7 @@ fun vaultViewScreenState(
     changeGpgKeyExpirationById: ChangeGpgKeyExpirationById,
     checkPasswordLeak: CheckPasswordLeak,
     uploadGpgPublicKey: UploadGpgPublicKey,
+    getGpgKeyserverConfig: GetGpgKeyserverConfig,
     refreshGpgPublicKeys: RefreshGpgPublicKeys,
     verifyGpgPublicKey: VerifyGpgPublicKey,
     retryCipher: RetryCipher,
@@ -575,6 +578,7 @@ fun vaultViewScreenState(
         changeGpgKeyExpirationById = changeGpgKeyExpirationById,
         checkPasswordLeak = checkPasswordLeak,
         uploadGpgPublicKey = uploadGpgPublicKey,
+        getGpgKeyserverConfig = getGpgKeyserverConfig,
         refreshGpgPublicKeys = refreshGpgPublicKeys,
         verifyGpgPublicKey = verifyGpgPublicKey,
         retryCipher = retryCipher,
@@ -659,6 +663,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
     changeGpgKeyExpirationById: ChangeGpgKeyExpirationById,
     checkPasswordLeak: CheckPasswordLeak,
     uploadGpgPublicKey: UploadGpgPublicKey,
+    getGpgKeyserverConfig: GetGpgKeyserverConfig,
     refreshGpgPublicKeys: RefreshGpgPublicKeys,
     verifyGpgPublicKey: VerifyGpgPublicKey,
     retryCipher: RetryCipher,
@@ -1466,6 +1471,8 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                         cipherUploadGpgPublicKeyAction(
                             confirmationRouteFactory = confirmationRouteFactory,
                             uploadGpgPublicKey = uploadGpgPublicKey,
+                            getGpgKeyserverConfig = getGpgKeyserverConfig,
+                            gpgPublicKeyParser = gpgPublicKeyParser,
                             cipher = secretOrNull,
                         )
                             .takeIf { secretOrNull.getGpgAgentPublicKeyArmored()?.isNotBlank() == true }
@@ -1549,7 +1556,6 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                         gpgPublicKeyParser = gpgPublicKeyParser,
                         keyPrivateExport = keyPrivateExport,
                         keyPublicExport = keyPublicExport,
-                        gpgKeyExport = gpgKeyExport,
                         gpgPublicKeyExport = gpgPublicKeyExport,
                         gpgPrivateKeyExport = gpgPrivateKeyExport,
                         cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
@@ -1623,7 +1629,6 @@ private fun RememberStateFlowScope.oh(
     gpgPublicKeyParser: GpgPublicKeyParser,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
-    gpgKeyExport: GpgKeyExport,
     gpgPublicKeyExport: GpgKeyPublicExport,
     gpgPrivateKeyExport: GpgKeyPrivateExport,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,

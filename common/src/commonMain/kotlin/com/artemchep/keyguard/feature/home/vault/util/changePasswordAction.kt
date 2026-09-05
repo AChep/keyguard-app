@@ -41,14 +41,20 @@ import com.artemchep.keyguard.common.model.PatchWatchtowerAlertCipherRequest
 import com.artemchep.keyguard.common.model.RefreshGpgPublicKeysRequest
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.UploadGpgPublicKeyRequest
+import com.artemchep.keyguard.common.model.UploadGpgPublicKeyResult
 import com.artemchep.keyguard.common.model.VerifyGpgPublicKeyRequest
 import com.artemchep.keyguard.common.model.create.CreateRequest
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
+import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPublicKeyArmored
 import com.artemchep.keyguard.common.usecase.ArchiveCipherById
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
 import com.artemchep.keyguard.common.usecase.ChangeCipherTagsById
 import com.artemchep.keyguard.common.usecase.CipherMerge
 import com.artemchep.keyguard.common.usecase.CopyCipherById
+import com.artemchep.keyguard.common.usecase.GetGpgKeyserverConfig
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
 import com.artemchep.keyguard.common.usecase.RePromptCipherById
@@ -93,7 +99,10 @@ import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlin.uuid.Uuid
 
 fun RememberStateFlowScope.cipherEnableConfirmAccessAction(
@@ -272,6 +281,8 @@ fun RememberStateFlowScope.cipherExportAction(
 fun RememberStateFlowScope.cipherUploadGpgPublicKeyAction(
     confirmationRouteFactory: ConfirmationRouteFactory,
     uploadGpgPublicKey: UploadGpgPublicKey,
+    getGpgKeyserverConfig: GetGpgKeyserverConfig,
+    gpgPublicKeyParser: GpgPublicKeyParser,
     cipher: DSecret,
     before: (() -> Unit)? = null,
     after: ((Boolean) -> Unit)? = null,
@@ -284,20 +295,31 @@ fun RememberStateFlowScope.cipherUploadGpgPublicKeyAction(
             before?.invoke()
 
             action {
+                val config = getGpgKeyserverConfig().first()
+                val emails = if (config.supportsEmailVerification && gpgPublicKeyParser.isSupported) {
+                    withContext(Dispatchers.Default) {
+                        cipher.getGpgAgentPublicKeyEmails(gpgPublicKeyParser)
+                    }
+                } else {
+                    emptyList()
+                }
+
                 val route = confirmationRouteFactory.registerRouteResultReceiver(
-                    args = ConfirmationRoute.Args(
-                        title = translate(Res.string.ciphers_action_upload_gpg_public_key_confirmation_title),
-                        message = translate(Res.string.ciphers_action_upload_gpg_public_key_confirmation_text),
-                    ),
+                    args = uploadGpgPublicKeyConfirmationArgs(emails),
                 ) { result ->
                     if (result !is ConfirmationResult.Confirm) {
                         return@registerRouteResultReceiver
                     }
 
+                    val verifyEmails = emails
+                        .filterTo(mutableSetOf()) { email ->
+                            result.data[email] as? Boolean == true
+                        }
                     uploadGpgPublicKey(
                         UploadGpgPublicKeyRequest(
                             cipherId = cipher.id,
                             accountId = cipher.accountId,
+                            verifyEmails = verifyEmails,
                         ),
                     )
                         .biFlatTap(
@@ -307,14 +329,9 @@ fun RememberStateFlowScope.cipherUploadGpgPublicKeyAction(
                                     after?.invoke(false)
                                 }
                             },
-                            ifSuccess = {
+                            ifSuccess = { uploadResult ->
                                 ioEffect {
-                                    message(
-                                        ToastMessage(
-                                            title = translate(Res.string.gpg_keyserver_upload_success_title),
-                                            type = ToastMessage.Type.SUCCESS,
-                                        ),
-                                    )
+                                    message(uploadGpgPublicKeySuccessMessage(uploadResult))
                                     after?.invoke(true)
                                 }
                             },
@@ -326,6 +343,66 @@ fun RememberStateFlowScope.cipherUploadGpgPublicKeyAction(
             }
         },
     )
+}
+
+/** The [emails] are offered as checkboxes to request a verification e-mail for. */
+private suspend fun RememberStateFlowScope.uploadGpgPublicKeyConfirmationArgs(
+    emails: List<String>,
+): ConfirmationRoute.Args {
+    val message = listOfNotNull(
+        translate(Res.string.ciphers_action_upload_gpg_public_key_confirmation_text),
+        translate(Res.string.ciphers_action_upload_gpg_public_key_confirmation_verify_text)
+            .takeIf { emails.isNotEmpty() },
+    ).joinToString(separator = "\n\n")
+    return ConfirmationRoute.Args(
+        title = translate(Res.string.ciphers_action_upload_gpg_public_key_confirmation_title),
+        message = message,
+        items = emails
+            .map { email ->
+                ConfirmationRoute.Args.Item.BooleanItem(
+                    key = email,
+                    title = email,
+                    value = false,
+                )
+            },
+    )
+}
+
+private suspend fun RememberStateFlowScope.uploadGpgPublicKeySuccessMessage(
+    result: UploadGpgPublicKeyResult,
+): ToastMessage {
+    val requested = result.verificationRequestedEmails.size
+    val text = when {
+        requested > 0 -> translate(
+            Res.plurals.gpg_keyserver_upload_verify_requested_plural,
+            requested,
+            requested,
+        )
+
+        result.alreadyPublishedEmails.isNotEmpty() -> translate(
+            Res.string.gpg_keyserver_upload_verify_already_published_text,
+        )
+
+        else -> null
+    }
+    return ToastMessage(
+        title = translate(Res.string.gpg_keyserver_upload_success_title),
+        text = text,
+        type = ToastMessage.Type.SUCCESS,
+    )
+}
+
+/** E-mail addresses of the item's public GPG key, empty if missing or unparsable. */
+private fun DSecret.getGpgAgentPublicKeyEmails(
+    parser: GpgPublicKeyParser,
+): List<String> {
+    val armored = getGpgAgentPublicKeyArmored()
+        ?.takeIf { it.isNotBlank() }
+        ?: return emptyList()
+    return parser.parsePrimaryKeyInfo(armored, getGpgAgentFingerprint())
+        ?.emails
+        .orEmpty()
+        .distinctBy { it.lowercase() }
 }
 
 fun RememberStateFlowScope.cipherRefreshGpgPublicKeyAction(

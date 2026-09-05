@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DGpgKeyserverResult
+import com.artemchep.keyguard.common.model.DGpgKeyserverUploadResult
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.RefreshGpgPublicKeysRequest
@@ -182,7 +183,13 @@ internal class GpgKeyserverRefreshTestFixture(
             override fun upload(
                 publicKeyArmored: String,
                 config: GpgKeyserverConfig,
-            ): IO<Unit> = error("Unexpected upload")
+            ): IO<DGpgKeyserverUploadResult> = error("Unexpected upload")
+
+            override fun requestVerify(
+                token: String,
+                addresses: Collection<String>,
+                config: GpgKeyserverConfig,
+            ): IO<DGpgKeyserverUploadResult> = error("Unexpected verification request")
         },
         keyserverStateRepository = stateRepository,
         modifyCipherById = ModifyCipherById(modifyDatabase),

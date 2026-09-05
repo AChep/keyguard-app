@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.gpgkeyserver
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.DGpgKeyserverResult
+import com.artemchep.keyguard.common.model.DGpgKeyserverUploadResult
 import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.SearchGpgPublicKeyRequest
 
@@ -42,8 +43,19 @@ interface GpgKeyserverClient {
         config: GpgKeyserverConfig,
     ): IO<List<DGpgKeyserverResult>>
 
+    /** On VKS the result carries per-address status and a token for [requestVerify]; empty on HKP. */
     fun upload(
         publicKeyArmored: String,
         config: GpgKeyserverConfig,
-    ): IO<Unit>
+    ): IO<DGpgKeyserverUploadResult>
+
+    /**
+     * Asks a VKS keyserver to e-mail a verification link to each of the [addresses].
+     * The [token] comes from a preceding [upload]. Fails on HKP.
+     */
+    fun requestVerify(
+        token: String,
+        addresses: Collection<String>,
+        config: GpgKeyserverConfig,
+    ): IO<DGpgKeyserverUploadResult>
 }

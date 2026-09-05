@@ -100,6 +100,33 @@ class KeePassLoginStateProducerTest {
     }
 
     @Test
+    fun `empty password with key file creates action`() {
+        var submittedPassword: String? = null
+
+        val action = createKeePassLoginAction(
+            mode = "open",
+            dbFile = KeePassLoginState.FileItem.File(
+                uri = "content://db",
+                name = "vault.kdbx",
+                size = 123L,
+            ),
+            keyFile = KeePassLoginState.FileItem.File(
+                uri = "content://key",
+                name = "vault.key",
+                size = 12L,
+            ),
+            webDav = null,
+            passwordValidated = Validated.Success(""),
+        ) { _, _, _, _, password ->
+            submittedPassword = password
+        }
+
+        assertNotNull(action)
+        action.onClick()
+        assertEquals("", submittedPassword)
+    }
+
+    @Test
     fun `invalid password does not create action`() {
         val action = createKeePassLoginAction(
             mode = "open",

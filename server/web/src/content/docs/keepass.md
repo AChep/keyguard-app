@@ -26,7 +26,8 @@ database** or **create a new one**. Keyguard supports these file providers:
 New databases are created in the **KDBX 4.x** format.
 
 To unlock a database you enter its **master password** and, if the database
-uses one, select its **key file**.
+uses one, select its **key file**. A database protected by a key file doesn't
+require a password.
 
 ## Editing
 

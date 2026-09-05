@@ -77,7 +77,7 @@ internal class KeePassAttachmentReader(
             ?.let(base64Service::decode)
         val credentials = try {
             createKeePassCredentials(
-                passphrase = EncryptedValue.fromBase64(token.key.passwordBase64),
+                passphrase = token.key.toPassphraseOrNull(),
                 keyData = keyData,
             )
         } finally {

@@ -161,13 +161,18 @@ fun produceKeePassLoginScreenState(
     }
 
     val passwordHandle = textFieldHandle("password", initial = defaultPassword)
-    val passwordPairFlow = passwordHandle.sink
-        .map { cell ->
-            cell to validatedPassword(
-                password = cell.text,
-                minLength = 1,
-            )
-        }
+    val passwordPairFlow = combine(
+        passwordHandle.sink,
+        keyFileSink,
+    ) { cell, keyFile ->
+        // A database protected by a key file alone
+        // does not need a password.
+        val minLength = if (keyFile != null) 0 else 1
+        cell to validatedPassword(
+            password = cell.text,
+            minLength = minLength,
+        )
+    }
         .shareInScreenScope()
     val passwordValidatedFlow = passwordPairFlow
         .map { it.second }

@@ -12,7 +12,7 @@ internal class PythonKdbxOracle(
         seed: Path,
         database: Path,
         manifest: Path,
-        password: String,
+        password: String?,
         keyfile: Path?,
     ) {
         run(
@@ -24,8 +24,10 @@ internal class PythonKdbxOracle(
                 add(database.toString())
                 add("--manifest")
                 add(manifest.toString())
-                add("--password")
-                add(password)
+                if (password != null) {
+                    add("--password")
+                    add(password)
+                }
                 if (keyfile != null) {
                     add("--keyfile")
                     add(keyfile.toString())
@@ -37,7 +39,7 @@ internal class PythonKdbxOracle(
     fun verify(
         database: Path,
         manifest: Path,
-        password: String,
+        password: String?,
         keyfile: Path?,
     ) {
         run(
@@ -47,8 +49,10 @@ internal class PythonKdbxOracle(
                 add(database.toString())
                 add("--manifest")
                 add(manifest.toString())
-                add("--password")
-                add(password)
+                if (password != null) {
+                    add("--password")
+                    add(password)
+                }
                 if (keyfile != null) {
                     add("--keyfile")
                     add(keyfile.toString())

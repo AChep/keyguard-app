@@ -75,7 +75,7 @@ suspend fun openKeePassDatabase(
     webDavClientFactory: WebDavClientFactory? = null,
 ): KeePassDatabase = withContext(Dispatchers.IO) {
     val credentials = createKeePassCredentials(
-        passphrase = EncryptedValue.fromBase64(base64 = token.key.passwordBase64),
+        passphrase = token.key.toPassphraseOrNull(),
         keyData = keyData,
     )
     openKeePassDatabase(
@@ -99,7 +99,7 @@ suspend fun prepareKeePassDatabase(
         keyAccessToken = params.keyAccessToken,
     )
     val credentials = createKeePassCredentials(
-        passphrase = EncryptedValue.fromString(text = params.password),
+        passphrase = params.password.toPassphraseOrNull(),
         keyData = keyData,
     )
     val storage = createKeePassDatabaseStorage(
@@ -182,7 +182,7 @@ suspend fun saveKeePassDatabase(
         val keyData = token.key.keyBase64
             ?.let(base64Service::decode)
         createKeePassCredentials(
-            passphrase = EncryptedValue.fromBase64(base64 = token.key.passwordBase64),
+            passphrase = token.key.toPassphraseOrNull(),
             keyData = keyData,
         )
     }
@@ -301,15 +301,33 @@ suspend fun getKeePassDatabaseMetadata(
     storage.stat()
 }
 
+/**
+ * Builds the KDBX credentials. A `null` [passphrase] means the database
+ * has no password component and is protected by the key file alone.
+ */
 internal fun createKeePassCredentials(
-    passphrase: EncryptedValue,
+    passphrase: EncryptedValue?,
     keyData: ByteArray?,
-): Credentials =
-    if (keyData != null) {
-        Credentials.from(passphrase, keyData)
-    } else {
-        Credentials.from(passphrase)
+): Credentials = when {
+    passphrase != null && keyData != null -> Credentials.from(passphrase, keyData)
+    passphrase != null -> Credentials.from(passphrase)
+    keyData != null -> Credentials.from(keyData)
+    else -> {
+        val msg = "KeePass credentials require a password or a key file.",
+        throw IllegalArgumentException(msg)
     }
+}
+
+/**
+ * An empty password means the database has no password component,
+ * see [createKeePassCredentials].
+ */
+internal fun KeePassToken.Key.toPassphraseOrNull(): EncryptedValue? = passwordBase64
+    .takeIf { it.isNotEmpty() }
+    ?.let { EncryptedValue.fromBase64(base64 = it) }
+
+internal fun String.toPassphraseOrNull(): EncryptedValue? = takeIf { it.isNotEmpty() }
+    ?.let { EncryptedValue.fromString(text = it) }
 
 private suspend fun openKeePassDatabase(
     storage: KeePassDatabaseStorage,

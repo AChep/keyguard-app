@@ -869,6 +869,8 @@ def command_generate(args):
         args.keyfile.parent.mkdir(parents=True, exist_ok=True)
         args.keyfile.write_bytes(KEYFILE_BYTES)
         keyfile = str(args.keyfile)
+    if args.password is None and keyfile is None:
+        raise SystemExit("Either --password or --keyfile is required")
     kp.password = args.password
     kp.keyfile = keyfile
     kp.credchange_date = BASE_TIME + timedelta(seconds=4)
@@ -909,14 +911,14 @@ def build_parser():
     generate.add_argument("--seed", type=pathlib.Path, required=True)
     generate.add_argument("--database", type=pathlib.Path, required=True)
     generate.add_argument("--manifest", type=pathlib.Path, required=True)
-    generate.add_argument("--password", required=True)
+    generate.add_argument("--password", help="Omit for a key-file-only database")
     generate.add_argument("--keyfile", type=pathlib.Path)
     generate.set_defaults(handler=command_generate)
 
     verify = commands.add_parser("verify", help="Verify a KDBX database against a manifest")
     verify.add_argument("--database", type=pathlib.Path, required=True)
     verify.add_argument("--manifest", type=pathlib.Path, required=True)
-    verify.add_argument("--password", required=True)
+    verify.add_argument("--password", help="Omit for a key-file-only database")
     verify.add_argument("--keyfile", type=pathlib.Path)
     verify.set_defaults(handler=command_verify)
     return parser

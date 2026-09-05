@@ -1,13 +1,29 @@
 package com.artemchep.keyguard.desktop.util
 
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.logging.LogLevel
+import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.ShowMessage
+import com.artemchep.keyguard.feature.loading.ReadableExceptionMessage
+import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.platform.recordException
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.error_failed_open_app_for
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import java.io.IOException
+
+private const val NAV_TAG = "Navigation"
 
 internal fun handleNavigationIntent(
     exitApplication: () -> Unit,
     intent: NavigationIntent,
     showMessage: ShowMessage,
+    translatorScope: TranslatorScope,
+    logRepository: LogRepository,
+    scope: CoroutineScope,
 ) = runCatching {
     when (intent) {
         is NavigationIntent.NavigateToPreview -> handleNavigationIntent(intent, showMessage)
@@ -37,7 +53,13 @@ internal fun handleNavigationIntent(
     }
     null // handled
 }.onFailure { e ->
-    showMessage.internalShowNavigationErrorMessage(e)
+    showMessage.internalShowNavigationErrorMessage(
+        e = e,
+        intent = intent,
+        translatorScope = translatorScope,
+        logRepository = logRepository,
+        scope = scope,
+    )
 }.getOrNull()
 
 private fun handleNavigationIntent(
@@ -120,14 +142,46 @@ private fun handleNavigationIntent(
     )
 }
 
-private fun ShowMessage.internalShowNavigationErrorMessage(e: Throwable) {
-    e.printStackTrace()
-
-    val model = ToastMessage(
-        type = ToastMessage.Type.ERROR,
-        title = when (e) {
-            else -> "Something went wrong"
-        },
+private fun ShowMessage.internalShowNavigationErrorMessage(
+    e: Throwable,
+    intent: NavigationIntent,
+    translatorScope: TranslatorScope,
+    logRepository: LogRepository,
+    scope: CoroutineScope,
+) {
+    recordException(e)
+    // Keep a copy in the in-app logs, so a user can
+    // report the failure without having to launch the
+    // app from a terminal.
+    logRepository.post(
+        tag = NAV_TAG,
+        message = "Failed to handle ${intent::class.simpleName}: $e",
+        level = LogLevel.ERROR,
     )
-    copy(model)
+
+    scope.launch {
+        val msg = when (e) {
+            // Thrown when the AWT Desktop API is not available or the
+            // fallback command could not be launched. Both mean that
+            // we did not find anything to handle the request with.
+            is UnsupportedOperationException,
+            is IOException,
+            -> {
+                val title = translatorScope.translate(Res.string.error_failed_open_app_for)
+                ReadableExceptionMessage(
+                    title = title,
+                    text = e.message,
+                )
+            }
+
+            else -> getErrorReadableMessage(e, translatorScope)
+        }
+
+        val model = ToastMessage(
+            type = ToastMessage.Type.ERROR,
+            title = msg.title,
+            text = msg.text,
+        )
+        copy(model)
+    }
 }

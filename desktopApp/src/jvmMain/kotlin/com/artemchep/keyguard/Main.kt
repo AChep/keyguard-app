@@ -938,6 +938,11 @@ private fun Navigation(
     },
 ) {
     val showMessage by rememberInstance<ShowMessage>()
+    val logRepository by rememberInstance<LogRepository>()
+    val translatorScope = remember {
+        val context = LeContext()
+        TranslatorScope.of(context)
+    }
     NavigationController(
         scope = GlobalScope,
         canPop = flowOf(false),
@@ -946,6 +951,9 @@ private fun Navigation(
                 exitApplication = exitApplication,
                 intent = intent,
                 showMessage = showMessage,
+                translatorScope = translatorScope,
+                logRepository = logRepository,
+                scope = GlobalScope,
             )
         },
     ) { controller ->

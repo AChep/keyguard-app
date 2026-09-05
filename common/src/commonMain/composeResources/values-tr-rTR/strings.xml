@@ -10,20 +10,20 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">İsim</string>
     <string name="description">Açıklama</string>
-    <string name="result">Result</string>
+    <string name="result">Sonuç</string>
     <!-- Text input -->
-    <string name="input">Input</string>
+    <string name="input">Giriş</string>
     <!-- Text output -->
-    <string name="output">Output</string>
-    <string name="run_action">Run</string>
+    <string name="output">Çıktı</string>
+    <string name="run_action">Çalıştır</string>
     <string name="account_name">Hesap adı</string>
     <string name="database_name">Veritabanı adı</string>
     <string name="enabled">Etkin</string>
     <string name="disabled">Devre Dışı</string>
-    <string name="sign">Sign</string>
-    <string name="encrypt">Encrypt</string>
-    <string name="verify">Verify</string>
-    <string name="decrypt">Decrypt</string>
+    <string name="sign">İmza</string>
+    <string name="encrypt">Şifrele</string>
+    <string name="verify">Doğrula</string>
+    <string name="decrypt">Şifreyi çöz</string>
     <string name="wordlist">Kelime listesi</string>
     <string name="username">Kullanıcı adı</string>
     <string name="password">Parola</string>
@@ -33,9 +33,9 @@
     <string name="no_password">Parola yok</string>
     <string name="advanced_options">Gelişmiş</string>
     <string name="file">Dosya</string>
-    <string name="choose_file">Choose file</string>
+    <string name="choose_file">Dosyayı seç</string>
     <string name="file_name_placeholder">Dosya adı</string>
-    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_pending_upload">Yükleme bekleniyor</string>
     <string name="file_status_auto_resume">Auto-resumes</string>
     <string name="file_status_downloading_failed">Yükleme başarısız oldu</string>
     <string name="email">E-posta</string>
@@ -55,8 +55,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Maksimum erişim sayısı</string>
-    <string name="package_name">Package name</string>
-    <string name="status">Status</string>
+    <string name="package_name">Paket ismi</string>
+    <string name="status">Durum</string>
     <string name="ready_status_beta">Beta</string>
     <string name="ready_status_alpha">Alfa</string>
     <string name="learn_more">Daha fazla bilgi edin</string>
@@ -76,7 +76,7 @@
     <string name="expiry_date">Son kullanma tarihi</string>
     <string name="company">Şirket</string>
     <string name="sync">Eşitle</string>
-    <string name="sync_requested">Sync was requested</string>
+    <string name="sync_requested">Senkronizasyon istendi</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Gizli</string>
     <!-- Opposite of 'hidden' -->
@@ -108,7 +108,7 @@
     <!-- (certificate/credit card) expired -->
     <string name="expired">Süresi doldu</string>
     <!-- (certificate) revoked -->
-    <string name="revoked">Revoked</string>
+    <string name="revoked">İptal edildi</string>
     <string name="expiring_soon">Süresi yakında dolacak</string>
     <string name="item_incomplete_title">Eksik veri</string>
     <string name="item_incomplete_text">Bu ögede bazı önemli bilgiler eksik.</string>
@@ -176,8 +176,8 @@
     <string name="expiration_date_never">Asla</string>
     <string name="select_linked_type">Bir tür seçin</string>
     <string name="select_file">Bir dosya seçin</string>
-    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
-    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
+    <string name="additem_attachments_drop_here">Bir dosyayı buraya sürükleyip bırakarak ek olarak ekleyin</string>
+    <string name="addsend_drop_file_to_replace">Seçili dosyanın yerine yeni bir dosya sürükleyin</string>
     <string name="autofill">Otomatik Doldurma</string>
     <string name="autofill_and_save_uri">Uygulama veya web sitesi bilgilerini otomatik doldur ve kaydet</string>
     <string name="backup_disclaimer_title">Verileriniz sizin sorumluluğunuzdadır.</string>
@@ -210,16 +210,16 @@
     <string name="api_key">API anahtarı</string>
     <string name="api_token">API token</string>
     <string name="zone_id">Zone ID</string>
-    <string name="destination_email">Destination email</string>
+    <string name="destination_email">Hedef email</string>
     <string name="domain">Alan adı</string>
     <string name="add_to_home_screen">Ana ekrana ekle</string>
     <string name="edit">Düzenle</string>
     <string name="delete">Sil</string>
     <string name="remove">Kaldır</string>
     <string name="remove_from_history">Geçmişten kaldır</string>
-    <string name="pkcs12_password">PKCS#12 password</string>
-    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
-    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
+    <string name="pkcs12_password">PKCS#12 şifre</string>
+    <string name="pkcs12_password_title">PKCS#12 şifresini girin</string>
+    <string name="pkcs12_password_note">Bu PKCS#12 paketi şifrelenmiştir.</string>
     <string name="reused_password">Yeniden kullanılan parola</string>
     <string name="reused_passwords">Yeniden kullanılan parolalar</string>
     <string name="one_time_password">Tek kullanımlık parola</string>
@@ -280,9 +280,9 @@
     <string name="key_type">Anahtar türü</string>
     <string name="key_pair">Anahtar çifti</string>
     <string name="key_id">Key ID</string>
-    <string name="algorithm">Algorithm</string>
-    <string name="created">Created</string>
-    <string name="expires">Expires</string>
+    <string name="algorithm">Algoritma</string>
+    <string name="created">Oluşturuldu</string>
+    <string name="expires">Süresi doluyor</string>
     <string name="capabilities">Capabilities</string>
     <string name="subkeys">Subkeys</string>
     <string name="key_ssh">SSH Anahtarı</string>
@@ -382,7 +382,8 @@
     <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
     <string name="ciphers_action_upload_gpg_public_key_title">Upload GPG public key</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Upload public key to keyserver?</string>
-    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard will send this item's armored GPG public key to your configured keyserver. The public key may include fingerprints, user IDs such as names and e-mail addresses, subkeys, dates, and revocation status. The keyserver may store and redistribute this public data. This upload does not request verification e-mails.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard will send this item's armored GPG public key to your configured keyserver. The public key may include fingerprints, user IDs such as names and e-mail addresses, subkeys, dates, and revocation status. The keyserver may store and redistribute this public data.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Select the e-mail addresses that should receive a verification e-mail from the keyserver. Until an address is verified, the key cannot be found by that address.</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">Refresh GPG public key</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Refresh public key from keyserver?</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard will contact your configured GPG keyserver with this key's fingerprint. If a matching public key is found, Keyguard will update the stored public key, key metadata, and keyserver status for this item.</string>
@@ -832,6 +833,14 @@
     <string name="emailleak_breach_reported_at">Bildirildiği tarih: <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Veri ihlalleri kontrol edilemedi. Çevrimdışı olabilirsiniz</string>
     <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
+    <!-- Title of the 'Website data breach' dialog -->
+    <string name="websiteleak_title">Data breach</string>
+    <string name="websiteleak_note">Breached website data can provide malicious actors with access to sensitive personal and financial information, potentially compromising user accounts across that service.</string>
+    <string name="websiteleak_breach_not_found_title">No breaches found</string>
+    <string name="websiteleak_breach_found_title">Website breaches found</string>
+    <string name="websiteleak_breach_section">Breaches</string>
+    <string name="websiteleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="websiteleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="passwordleak_title">Veri ihlali</string>
     <string name="passwordleak_note">Veri ihlallerinde açığa çıkmış bir parolanın kırılması çok daha az zaman alır ve asla kullanılmamalıdır.</string>
     <string name="passwordleak_occurrences_found_title">Parola ele geçirilmiş</string>
@@ -1987,6 +1996,7 @@
     <string name="gpg_keyserver_search_index_label">Index</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">GPG public key not found on keyserver</string>
     <string name="gpg_keyserver_upload_success_title">GPG public key uploaded</string>
+    <string name="gpg_keyserver_upload_verify_already_published_text">The selected e-mail addresses are already verified.</string>
     <string name="gpg_keyserver_refresh_success_title">GPG public key refreshed</string>
     <string name="gpg_keyserver_refresh_not_found_title">GPG public key not found on keyserver</string>
     <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>

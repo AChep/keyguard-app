@@ -382,7 +382,8 @@
     <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
     <string name="ciphers_action_upload_gpg_public_key_title">Upload GPG public key</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Upload public key to keyserver?</string>
-    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard will send this item's armored GPG public key to your configured keyserver. The public key may include fingerprints, user IDs such as names and e-mail addresses, subkeys, dates, and revocation status. The keyserver may store and redistribute this public data. This upload does not request verification e-mails.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard will send this item's armored GPG public key to your configured keyserver. The public key may include fingerprints, user IDs such as names and e-mail addresses, subkeys, dates, and revocation status. The keyserver may store and redistribute this public data.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Select the e-mail addresses that should receive a verification e-mail from the keyserver. Until an address is verified, the key cannot be found by that address.</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">Refresh GPG public key</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Refresh public key from keyserver?</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard will contact your configured GPG keyserver with this key's fingerprint. If a matching public key is found, Keyguard will update the stored public key, key metadata, and keyserver status for this item.</string>
@@ -832,6 +833,14 @@
     <string name="emailleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Failed to check data breaches. You might currently be offline</string>
     <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
+    <!-- Title of the 'Website data breach' dialog -->
+    <string name="websiteleak_title">Data breach</string>
+    <string name="websiteleak_note">Breached website data can provide malicious actors with access to sensitive personal and financial information, potentially compromising user accounts across that service.</string>
+    <string name="websiteleak_breach_not_found_title">No breaches found</string>
+    <string name="websiteleak_breach_found_title">Website breaches found</string>
+    <string name="websiteleak_breach_section">Breaches</string>
+    <string name="websiteleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="websiteleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="passwordleak_title">Data breach</string>
     <string name="passwordleak_note">A password that is found in the data breaches takes significantly less time to break and should never be used.</string>
     <string name="passwordleak_occurrences_found_title">Password is compromised</string>
@@ -1987,6 +1996,7 @@
     <string name="gpg_keyserver_search_index_label">Index</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">GPG public key not found on keyserver</string>
     <string name="gpg_keyserver_upload_success_title">GPG public key uploaded</string>
+    <string name="gpg_keyserver_upload_verify_already_published_text">The selected e-mail addresses are already verified.</string>
     <string name="gpg_keyserver_refresh_success_title">GPG public key refreshed</string>
     <string name="gpg_keyserver_refresh_not_found_title">GPG public key not found on keyserver</string>
     <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>

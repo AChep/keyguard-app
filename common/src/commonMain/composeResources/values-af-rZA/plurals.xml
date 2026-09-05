@@ -140,4 +140,8 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> jaar</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> jare</item>
     </plurals>
+    <plurals name="gpg_keyserver_upload_verify_requested_plural">
+        <item quantity="one">Verification e-mail requested for <xliff:g id="number" example="1">%1$s</xliff:g> address</item>
+        <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+    </plurals>
 </resources>

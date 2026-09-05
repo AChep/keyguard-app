@@ -383,6 +383,7 @@
     <string name="ciphers_action_upload_gpg_public_key_title">Last opp offentlig GPG-nøkkel</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Laste opp offentlig nøkkel til nøkkelserver?</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard vil sende dette elementets ASCII-beskyttede offentlige GPG-nøkkel til den konfigurerte nøkkelserveren. Den offentlige nøkkelen kan inneholde fingeravtrykk, bruker-ID-er som navn og e-postadresser, undernøkler, datoer og tilbakekallingsstatus. Nøkkelserveren kan lagre og videredistribuere disse offentlige dataene. Denne opplastingen ber ikke om verifiserings-e-poster.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Select the e-mail addresses that should receive a verification e-mail from the keyserver. Until an address is verified, the key cannot be found by that address.</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">Oppdater offentlig GPG-nøkkel</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Oppdatere offentlig nøkkel fra nøkkelserver?</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard vil kontakte den konfigurerte GPG-nøkkelserveren med fingeravtrykket til denne nøkkelen. Hvis en samsvarende offentlig nøkkel blir funnet, oppdaterer Keyguard den lagrede offentlige nøkkelen, nøkkelmetadataene og nøkkelserverstatusen for dette elementet.</string>
@@ -832,6 +833,14 @@
     <string name="emailleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Failed to check data breaches. You might be offline</string>
     <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
+    <!-- Title of the 'Website data breach' dialog -->
+    <string name="websiteleak_title">Data breach</string>
+    <string name="websiteleak_note">Breached website data can provide malicious actors with access to sensitive personal and financial information, potentially compromising user accounts across that service.</string>
+    <string name="websiteleak_breach_not_found_title">No breaches found</string>
+    <string name="websiteleak_breach_found_title">Website breaches found</string>
+    <string name="websiteleak_breach_section">Breaches</string>
+    <string name="websiteleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="websiteleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="passwordleak_title">Data breach</string>
     <string name="passwordleak_note">A password that is found in the data breaches takes significantly less time to break and should never be used.</string>
     <string name="passwordleak_occurrences_found_title">Password is compromised</string>
@@ -1987,6 +1996,7 @@
     <string name="gpg_keyserver_search_index_label">Indeks</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">Offentlig GPG-nøkkel ikke funnet på nøkkelserveren</string>
     <string name="gpg_keyserver_upload_success_title">Offentlig GPG-nøkkel lastet opp</string>
+    <string name="gpg_keyserver_upload_verify_already_published_text">The selected e-mail addresses are already verified.</string>
     <string name="gpg_keyserver_refresh_success_title">Offentlig GPG-nøkkel oppdatert</string>
     <string name="gpg_keyserver_refresh_not_found_title">Offentlig GPG-nøkkel ikke funnet på nøkkelserveren</string>
     <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>

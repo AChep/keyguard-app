@@ -14,6 +14,8 @@ pub mod linux_identity;
 #[cfg(target_os = "macos")]
 pub mod macos;
 #[cfg(unix)]
+pub mod socket_lifecycle;
+#[cfg(unix)]
 pub mod unix_caller_identity;
 
 /// Size of opaque authorization fingerprints carried over protobuf IPC.
@@ -21,6 +23,21 @@ pub const PRINCIPAL_FINGERPRINT_LEN: usize = 32;
 
 /// Exact IPC contract revision required by current desktop agents and apps.
 pub const IPC_PROTOCOL_REVISION: u32 = 1;
+
+/// Exact stdout record an agent binary emits once its public endpoint is
+/// ready. Must stay byte-identical to the desktop app's expectation
+/// (`AGENT_STARTUP_READY_RECORD` on the Kotlin side).
+pub const STARTUP_READY_RECORD: &[u8] = b"KEYGUARD_AGENT_READY 1\n";
+
+/// Writes [`STARTUP_READY_RECORD`] to `writer` and flushes it.
+///
+/// # Errors
+///
+/// Propagates the underlying write or flush failure.
+pub fn write_startup_ready_record_to(mut writer: impl std::io::Write) -> std::io::Result<()> {
+    writer.write_all(STARTUP_READY_RECORD)?;
+    writer.flush()
+}
 
 const SUBJECT_FINGERPRINT_DOMAIN: &[u8] = b"keyguard-agent-subject-v2\0";
 const CONTEXT_FINGERPRINT_DOMAIN: &[u8] = b"keyguard-agent-context-v2\0";
@@ -243,6 +260,14 @@ pub enum IdentityError {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn startup_ready_record_is_exact_and_newline_terminated() {
+        let mut output = Vec::new();
+        write_startup_ready_record_to(&mut output).unwrap();
+
+        assert_eq!(output, b"KEYGUARD_AGENT_READY 1\n");
+    }
 
     #[test]
     fn connection_principal_round_trips_fixed_bytes() {

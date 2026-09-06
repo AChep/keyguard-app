@@ -1,0 +1,20 @@
+[package]
+name = "keyguard-zip-core"
+description = "Native ZIP archive writing for Keyguard"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+self_cell.workspace = true
+zeroize.workspace = true
+zip.workspace = true
+
+[dev-dependencies]
+sha2.workspace = true
+
+[lints]
+workspace = true

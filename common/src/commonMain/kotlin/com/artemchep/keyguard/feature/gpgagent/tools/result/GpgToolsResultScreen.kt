@@ -43,18 +43,23 @@ fun GpgToolsResultScreen(
                 modifier = Modifier
                     .fillMaxWidth(),
             ) {
-                val verification = args.verification
-                if (verification != null) {
+                args.notes.forEachIndexed { index, note ->
+                    if (index > 0) {
+                        Spacer(
+                            modifier = Modifier
+                                .height(8.dp),
+                        )
+                    }
                     FlatSimpleNote(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        note = verification,
+                        note = note,
                     )
                 }
 
                 val output = args.output
                 if (output != null) {
-                    if (verification != null) {
+                    if (args.notes.isNotEmpty()) {
                         Spacer(
                             modifier = Modifier
                                 .height(16.dp),

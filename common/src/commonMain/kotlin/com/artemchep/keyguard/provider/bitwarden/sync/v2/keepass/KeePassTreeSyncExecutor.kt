@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass
 
-import com.artemchep.keyguard.common.io.throwIfCancellation
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntitySyncPlan
@@ -134,7 +134,7 @@ class KeePassTreeSyncExecutor(
             diagnostics.entityCompleted(entityName = name, result = result)
             EntityTypeOutcome.Completed(result)
         } catch (e: Throwable) {
-            e.throwIfCancellation()
+            e.throwIfFatalOrCancellation()
             diagnostics.entityFailed(entityName = name, error = e)
             EntityTypeOutcome.Failed(error = e)
         }

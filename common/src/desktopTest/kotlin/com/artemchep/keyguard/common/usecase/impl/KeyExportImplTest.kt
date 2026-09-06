@@ -6,7 +6,9 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.usecase.DateFormatter
-import com.artemchep.keyguard.copy.ZipServiceJvm
+import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
+import com.artemchep.keyguard.util.zip.createZipService
 import java.io.ByteArrayInputStream
 import java.util.zip.ZipInputStream
 import kotlin.test.Test
@@ -55,11 +57,52 @@ class KeyExportImplTest {
     }
 
     @Test
+    fun `gpg public export writes armored text into asc file`() {
+        val dirsService = RecordingDirsService()
+        val useCase = GpgKeyPublicExportImpl(
+            dirsService = dirsService,
+            dateFormatter = FixedDateFormatter,
+        )
+
+        val request = GpgKeyPublicExport.Request(
+            fingerprint = "ABCD 1234 EF56 7890 ABCD 1234 EF56 7890 ABCD 1234",
+            publicKeyArmored = "public gpg",
+        )
+        val uri = useCase(request)
+            .bindBlocking()
+
+        assertEquals("file:///downloads/gpg_EF567890ABCD1234_20260312T030405.public.asc", uri)
+        val savedFile = dirsService.saved.single()
+        assertEquals("gpg_EF567890ABCD1234_20260312T030405.public.asc", savedFile.fileName)
+        assertContentEquals("public gpg".encodeToByteArray(), savedFile.bytes)
+    }
+
+    @Test
+    fun `gpg private export without fingerprint falls back to key suffix`() {
+        val dirsService = RecordingDirsService()
+        val useCase = GpgKeyPrivateExportImpl(
+            dirsService = dirsService,
+            dateFormatter = FixedDateFormatter,
+        )
+
+        val request = GpgKeyPrivateExport.Request(
+            fingerprint = "",
+            privateKeyArmored = "private gpg",
+        )
+        val uri = useCase(request)
+            .bindBlocking()
+
+        assertEquals("file:///downloads/gpg_key_20260312T030405.private.asc", uri)
+        val savedFile = dirsService.saved.single()
+        assertContentEquals("private gpg".encodeToByteArray(), savedFile.bytes)
+    }
+
+    @Test
     fun `key pair export writes zip entries with same text payloads`() {
         val dirsService = RecordingDirsService()
         val useCase = KeyPairExportImpl(
             dirsService = dirsService,
-            zipService = ZipServiceJvm(),
+            zipService = createZipService(),
             dateFormatter = FixedDateFormatter,
         )
 

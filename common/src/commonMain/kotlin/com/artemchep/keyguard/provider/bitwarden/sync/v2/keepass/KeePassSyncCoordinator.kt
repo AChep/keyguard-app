@@ -6,7 +6,9 @@ import app.keemobile.kotpass.models.Group
 import com.artemchep.keyguard.common.exception.KeePassDatabaseModifiedExternallyException
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.throwIfCancellation
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.file.FileService
@@ -58,6 +60,7 @@ class KeePassSyncCoordinator(
     private val db: VaultDatabaseManager,
     private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val webDavClientFactory: WebDavClientFactory? = null,
+    private val gpgCertificateMaterialReconciler: GpgCertificateMaterialReconciler,
     private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
 ) {
     companion object {
@@ -116,7 +119,7 @@ class KeePassSyncCoordinator(
             try {
                 recordSyncFailure(token, e, now = now)
             } catch (recordError: Throwable) {
-                recordError.throwIfCancellation()
+                recordError.throwIfFatalOrCancellation()
             }
             throw e
         }
@@ -263,6 +266,8 @@ class KeePassSyncCoordinator(
                             mutator = mutator,
                             remoteToLocalFolders = folderIdMappings.remoteToLocalFolders,
                             localToRemoteFolders = folderIdMappings.localToRemoteFolders,
+                            gpgCertificateMaterialReconciler = gpgCertificateMaterialReconciler,
+                            gpgKeyMetadataResolver = gpgKeyMetadataResolver,
                         ),
                     )
                 },

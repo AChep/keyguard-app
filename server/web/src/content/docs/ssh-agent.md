@@ -26,7 +26,7 @@ and **RSA** keys are supported.
      Flatpak builds use
      `$XDG_RUNTIME_DIR/app/com.artemchep.keyguard/ssh-agent.sock`);
    - **macOS** —
-     `~/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock`;
+     `~/.keyguard/ssh-agent.sock`;
    - **Windows** — `\\.\pipe\keyguard-ssh-agent`.
 2. Point your SSH tooling at it by setting `SSH_AUTH_SOCK` to Keyguard's
    endpoint — the setup screen offers this as an option. For example, in your
@@ -36,13 +36,26 @@ and **RSA** keys are supported.
    export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/keyguard-ssh-agent.sock"
    ```
 
+   On macOS:
+
+   ```sh
+   export SSH_AUTH_SOCK="$HOME/.keyguard/ssh-agent.sock"
+   ```
+
+   Or set the macOS endpoint in `~/.ssh/config`:
+
+   ```sshconfig
+   Host *
+     IdentityAgent "${HOME}/.keyguard/ssh-agent.sock"
+   ```
+
    In PowerShell on Windows:
 
    ```powershell
    $env:SSH_AUTH_SOCK="\\.\pipe\keyguard-ssh-agent"
    ```
 
-   You can also pin it in `~/.ssh/config`:
+   Or set the Windows endpoint in `~/.ssh/config`:
 
    ```sshconfig
    Host *

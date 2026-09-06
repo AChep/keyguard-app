@@ -2,11 +2,15 @@ package com.artemchep.keyguard.core.session.usecase
 
 import android.app.Application
 import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.model.BiometricBindingException
 import com.artemchep.keyguard.common.model.BiometricPurpose
 import com.artemchep.keyguard.common.model.BiometricStatus
+import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.platform.LeBiometricCipher
 import com.artemchep.keyguard.platform.LeBiometricCipherJvm
@@ -14,12 +18,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.security.KeyStore
+import java.security.UnrecoverableKeyException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 
 private const val KEY_ALIAS = "biometrics"
+
+class BiometricKeyRepositoryAndroid : BiometricKeyRepository {
+    override fun delete() = ioEffect {
+        deleteCipher()
+    }
+}
 
 class BiometricStatusUseCaseImpl(
     private val application: Application,
@@ -34,7 +45,6 @@ class BiometricStatusUseCaseImpl(
             if (hasStrongBiometric) {
                 BiometricStatus.Available(
                     createCipher = ::createCipher,
-                    deleteCipher = ::deleteCipher,
                 )
             } else {
                 BiometricStatus.Unavailable
@@ -86,20 +96,35 @@ private fun deleteCipher() {
 
 private fun createCipher(
     biometricPurpose: BiometricPurpose,
-): LeBiometricCipher = createEmptyCipher().apply {
-    val key = getSecretKey()
-    when (biometricPurpose) {
-        // Init cipher in encrypt mode with random iv
-        // seed. The user should persist iv for future use.
-        is BiometricPurpose.Encrypt -> init(Cipher.ENCRYPT_MODE, key)
-        is BiometricPurpose.Decrypt -> {
-            val spec = IvParameterSpec(biometricPurpose.iv.byteArray)
-            init(Cipher.DECRYPT_MODE, key, spec)
+): LeBiometricCipher = withBiometricBindingFailureMapping {
+    createEmptyCipher().apply {
+        val key = getSecretKey()
+        when (biometricPurpose) {
+            // Init cipher in encrypt mode with random iv
+            // seed. The user should persist iv for future use.
+            is BiometricPurpose.Encrypt -> init(Cipher.ENCRYPT_MODE, key)
+            is BiometricPurpose.Decrypt -> {
+                val spec = IvParameterSpec(biometricPurpose.iv.byteArray)
+                init(Cipher.DECRYPT_MODE, key, spec)
+            }
         }
     }
-}.let { platformCipher ->
-    LeBiometricCipherJvm(platformCipher)
+        .let(::LeBiometricCipherJvm)
 }
+
+internal fun <T> withBiometricBindingFailureMapping(block: () -> T): T = try {
+    block()
+} catch (e: KeyPermanentlyInvalidatedException) {
+    throw invalidBiometricBinding(e)
+} catch (e: UnrecoverableKeyException) {
+    throw invalidBiometricBinding(e)
+}
+
+private fun invalidBiometricBinding(cause: Exception) =
+    BiometricBindingException(
+        message = "The biometric encryption key was invalidated.",
+        cause = cause,
+    )
 
 private fun createEmptyCipher(): Cipher = Cipher
     .getInstance(

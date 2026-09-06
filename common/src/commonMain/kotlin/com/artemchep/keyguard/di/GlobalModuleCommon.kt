@@ -8,15 +8,23 @@ import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
 import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
+import com.artemchep.keyguard.common.service.backup.BackupRepository
+import com.artemchep.keyguard.common.service.backup.BackupRepositoryZipImpl
+import com.artemchep.keyguard.common.service.backup.BackupRunService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
+import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
+import com.artemchep.keyguard.common.service.crypto.GpgKeyEditorImportReconciler
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementService
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationService
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.crypto.SshKeyPkcs8Exporter
+import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GpgKeyExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
@@ -338,6 +346,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetMinimizeOnCopyImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavAnimationImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavAnimationVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavLabelImpl
+import com.artemchep.keyguard.common.usecase.impl.GetPasswordStrengthImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPersistedNavItemsConfigImpl
 import com.artemchep.keyguard.common.usecase.impl.GetOnboardingLastVisitInstantImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPasskeysImpl
@@ -531,10 +540,13 @@ import com.artemchep.keyguard.crypto.NativeCipherEncryptor
 import com.artemchep.keyguard.crypto.NativeCryptoGenerator
 import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
 import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
+import com.artemchep.keyguard.crypto.NativeGpgUserIdReplacementService
+import com.artemchep.keyguard.crypto.NativeGpgUserIdRevocationService
 import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
 import com.artemchep.keyguard.crypto.NativePasskeyCrypto
 import com.artemchep.keyguard.crypto.NativeSshKeyImportService
 import com.artemchep.keyguard.crypto.NativeSshKeyPkcs8Exporter
+import com.artemchep.keyguard.crypto.NativeGpgCertificateMaterialReconciler
 import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadCoordinatorImpl
@@ -545,6 +557,8 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlDuplicateCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfaImpl
+import com.artemchep.keyguard.util.zip.ZipService
+import com.artemchep.keyguard.util.zip.createZipService
 import org.kodein.di.DI
 import org.kodein.di.bindProvider
 import org.kodein.di.bindSingleton
@@ -596,8 +610,24 @@ fun globalModuleCommon() = DI.Module(
     bindSingleton<GpgPublicKeyParser> {
         NativeGpgPublicKeyParser
     }
+    bindSingleton<GpgCertificateMaterialReconciler> {
+        NativeGpgCertificateMaterialReconciler
+    }
+    bindSingleton<GpgUserIdRevocationService> {
+        NativeGpgUserIdRevocationService
+    }
+    bindSingleton<GpgUserIdReplacementService> {
+        NativeGpgUserIdReplacementService
+    }
     bindSingleton<GpgKeyMetadataResolver> {
         NativeGpgKeyMetadataResolver
+    }
+    bindSingleton {
+        GpgKeyEditorImportReconciler(
+            materialReconciler = instance(),
+            metadataResolver = instance(),
+            publicKeyParser = instance(),
+        )
     }
     bindSingleton<LicenseServerConfig> {
         LicenseServerConfig.Default
@@ -1681,6 +1711,24 @@ fun globalModuleCommon() = DI.Module(
     }
     bindSingleton<WordlistService> {
         WordlistServiceImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetPasswordStrength> {
+        GetPasswordStrengthImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<ZipService> {
+        createZipService()
+    }
+    bindSingleton<BackupRepository> {
+        BackupRepositoryZipImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<BackupRunService> {
+        BackupRunService(
             directDI = this,
         )
     }

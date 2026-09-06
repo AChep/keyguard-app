@@ -12,8 +12,11 @@ import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryF
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.UpdateVersionLog
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.platform.lifecycle.onState
+import com.artemchep.keyguard.platform.util.hasWatch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -33,6 +36,7 @@ class AppWorkerIm(
     private val getVaultSession: GetVaultSession,
     private val updateVersionLog: UpdateVersionLog,
     private val temporaryArtifactMaintenance: TemporaryArtifactMaintenance,
+    private val pendingUsageHistoryEnabled: Boolean,
 ) : AppWorker {
     companion object {
         private const val FILE_CLEANUP_DELAY_MS = 15_000L
@@ -42,6 +46,7 @@ class AppWorkerIm(
         getVaultSession = directDI.instance(),
         updateVersionLog = directDI.instance(),
         temporaryArtifactMaintenance = directDI.instance(),
+        pendingUsageHistoryEnabled = shouldLaunchPendingUsageHistoryFlush(CurrentPlatform),
     )
 
     override fun launch(
@@ -62,6 +67,7 @@ class AppWorkerIm(
                 launchPendingUsageHistoryFlushWhenAvailable(
                     scope = this,
                     getVaultSession = getVaultSession,
+                    enabled = pendingUsageHistoryEnabled,
                 )
             }
             .launchIn(this)
@@ -209,18 +215,28 @@ class AppWorkerIm(
 internal fun launchPendingUsageHistoryFlushWhenAvailable(
     scope: CoroutineScope,
     getVaultSession: GetVaultSession,
-) = getVaultSession()
-    .map { session ->
-        val key = session as? MasterSession.Key
-        key?.di?.direct?.instance<PendingUsageHistoryFlushRunner>()
+    enabled: Boolean,
+): Job? {
+    if (!enabled) {
+        return null
     }
-    .distinctUntilChanged { old, new -> old === new }
-    .mapLatest { runner ->
-        runner?.run()
-            ?.attempt()
-            ?.bind()
-    }
-    .launchIn(scope)
+    return getVaultSession()
+        .map { session ->
+            val key = session as? MasterSession.Key
+            key?.di?.direct?.instance<PendingUsageHistoryFlushRunner>()
+        }
+        .distinctUntilChanged { old, new -> old === new }
+        .mapLatest { runner ->
+            runner?.run()
+                ?.attempt()
+                ?.bind()
+        }
+        .launchIn(scope)
+}
+
+internal fun shouldLaunchPendingUsageHistoryFlush(
+    platform: Platform,
+): Boolean = !platform.hasWatch()
 
 interface AppWorker {
     enum class Feature {

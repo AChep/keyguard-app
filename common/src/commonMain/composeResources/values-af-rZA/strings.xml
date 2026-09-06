@@ -453,6 +453,7 @@
     <string name="email_action_check_data_breach_title">Kontroleer die e-pos teen bekende datalekkasies</string>
     <string name="username_action_check_data_breach_title">Kontroleer die gebruikersnaam teen bekende datalekkasies</string>
     <string name="password_action_check_data_breach_title">Kontroleer die wagwoord teen bekende datalekkasies</string>
+    <string name="password_action_test_memory_title">Type from memory</string>
     <string name="website_action_check_data_breach_title">Kontroleer die webwerf teen bekende datalekkasies</string>
     <string name="uri_action_launch_app_title">Maak toep oop</string>
     <string name="uri_action_launch_website_title">Maak webwerf oop</string>
@@ -536,9 +537,15 @@
     <string name="gpg_key_import_error_unsupported_platform">GPG key import is not supported on this platform.</string>
     <string name="gpg_key_import_error_invalid_passphrase">The GPG key passphrase is invalid.</string>
     <string name="gpg_key_import_error_malformed_key">The GPG key file is malformed.</string>
+    <string name="gpg_key_import_error_multiple_keys">The file contains more than one GPG key. Export and import the keys one at a time.</string>
     <string name="gpg_key_import_error_read">Unable to read the selected file.</string>
     <string name="gpg_key_import_error_passphrase_required">A passphrase is required to unlock this GPG key.</string>
     <string name="gpg_key_import_error_key_changed">The GPG key changed while the import was in progress. Try importing it again.</string>
+    <string name="gpg_key_import_error_mismatched_key">The imported key does not match the GPG key in this item.</string>
+    <string name="gpg_key_import_error_existing_malformed">The GPG key stored in this item is malformed and cannot be merged.</string>
+    <string name="gpg_key_import_error_secret_conflict">The imported secret key material conflicts with the secret key stored in this item.</string>
+    <string name="gpg_key_import_error_resource_limit">The GPG key is too large or complex to import.</string>
+    <string name="gpg_key_import_error_reconcile">The GPG key could not be safely merged.</string>
     <string name="gpg_key_import_passphrase_title">Passphrase</string>
     <string name="gpg_key_import_passphrase_hint">Enter GPG key passphrase</string>
     <string name="gpg_key_import_passphrase_dialog_title">Enter GPG key passphrase</string>
@@ -555,6 +562,7 @@
     <string name="gpg_key_expiry_primary">Primary key</string>
     <string name="gpg_key_expiry_subkey">Subkey <xliff:g id="key_id" example="0A1B2C3D">%1$s</xliff:g></string>
     <string name="gpg_key_expiry_subkey_capabilities">Capabilities: <xliff:g id="capabilities" example="sign, encrypt">%1$s</xliff:g>. Current expiry: <xliff:g id="expiry" example="Jan 1, 2030">%2$s</xliff:g></string>
+    <string name="gpg_key_expiry_subkey_weak_self_signature">Signed with a weak algorithm (SHA-1). Renewing re-signs it with a modern one.</string>
     <string name="gpg_key_expiry_capability_sign">sign</string>
     <string name="gpg_key_expiry_capability_encrypt">encrypt</string>
     <string name="gpg_key_expiry_preset_one_year">One year</string>
@@ -572,6 +580,45 @@
     <string name="gpg_key_expiry_invalid_message">Choose a valid future expiry date.</string>
     <string name="gpg_key_expiry_revoked_message">A revoked key component cannot be renewed.</string>
     <string name="gpg_key_expiry_unresolved_revocation_message">A designated revocation cannot be verified because the revoker's public key is unavailable. Import it and try again.</string>
+    <string name="gpg_key_expiry_unsupported_signing_hash_message">This key can only be re-certified with an insecure digest algorithm. Migrate to a modern key instead.</string>
+    <string name="gpg_key_expiry_missing_self_signature_message">This key has no valid self-signature, so it cannot be renewed. It may be corrupted or incomplete.</string>
+    <string name="gpg_user_id_revocation_dialog_title">Revoke GPG User ID</string>
+    <string name="gpg_user_id_revocation_dialog_message">Select the User ID to revoke. Revocation adds a signed statement to the certificate and does not erase the identity or its history.</string>
+    <string name="gpg_user_id_revocation_confirm">Revoke</string>
+    <string name="gpg_user_id_revocation_last_identity_message">A GPG key must keep at least one usable User ID. Add a replacement before revoking this one.</string>
+    <string name="gpg_user_id_revocation_no_identity_message">This key has no active User ID that can be revoked.</string>
+    <string name="gpg_user_id_replacement_dialog_title">Replace GPG User ID</string>
+    <string name="gpg_user_id_replacement_dialog_message">Select the old User ID. Keyguard will add the replacement and revoke this exact User ID in one update.</string>
+    <string name="gpg_user_id_replacement_confirm_next">Next</string>
+    <string name="gpg_user_id_replacement_no_identity_message">This key has no active User ID that can be replaced.</string>
+    <string name="gpg_user_id_replacement_value_title">New GPG User ID</string>
+    <string name="gpg_user_id_replacement_value_message">Enter the exact new OpenPGP User ID. Keyguard will not trim or normalize it.</string>
+    <string name="gpg_user_id_replacement_value_label">User ID</string>
+    <string name="gpg_user_id_replacement_value_hint">Name &lt;email@example.com&gt;</string>
+    <string name="gpg_user_id_replacement_value_confirm">Replace</string>
+    <string name="gpg_user_id_replacement_invalid_message">Enter a non-empty User ID of at most 1024 UTF-8 bytes without control characters.</string>
+    <string name="gpg_user_id_replacement_same_identity_message">Enter a User ID different from the selected identity.</string>
+    <string name="gpg_user_id_replacement_duplicate_message">That User ID is already active on this key.</string>
+    <string name="gpg_user_id_replacement_title">Replace User ID</string>
+    <string name="gpg_user_id_replacement_success_title">GPG User ID replaced</string>
+    <string name="gpg_user_id_replacement_success_message">Save this item, then redistribute or upload its public key to publish the replacement.</string>
+    <string name="gpg_user_id_replacement_already_done_message">This replacement was already applied. No new signatures were created.</string>
+    <string name="gpg_user_id_replacement_failed_title">Failed to replace GPG User ID</string>
+    <string name="gpg_user_id_replacement_failed_message">The User ID could not be replaced. The original key was left unchanged.</string>
+    <string name="gpg_user_id_replacement_retired_message">That exact User ID was previously revoked and cannot be added again.</string>
+    <string name="gpg_user_id_replacement_target_missing">The selected User ID changed or is no longer active. Reopen the key and try again.</string>
+    <string name="gpg_user_id_replacement_private_key_required">Import the private key to replace one of its User IDs.</string>
+    <string name="gpg_user_id_replacement_unavailable">GPG User-ID replacement is not supported on this platform.</string>
+    <string name="gpg_user_id_revocation_title">Revoke User ID</string>
+    <string name="gpg_user_id_revocation_success_title">GPG User ID revoked</string>
+    <string name="gpg_user_id_revocation_success_message">Save this item, then redistribute or upload its public key to publish the revocation.</string>
+    <string name="gpg_user_id_revocation_already_done_message">This User ID was already revoked. No new signature was created.</string>
+    <string name="gpg_user_id_revocation_failed_title">Failed to revoke GPG User ID</string>
+    <string name="gpg_user_id_revocation_failed_message">The User ID could not be revoked. The original key was left unchanged.</string>
+    <string name="gpg_user_id_revocation_target_missing">The selected User ID changed or is no longer eligible. Reopen the key and try again.</string>
+    <string name="gpg_user_id_revocation_private_key_required">Import the private key to revoke one of its User IDs.</string>
+    <string name="gpg_user_id_revocation_unavailable">GPG User-ID revocation is not supported on this platform.</string>
+    <string name="gpg_user_id_mutation_key_revoked_message">A revoked GPG key cannot be changed.</string>
     <string name="ssh_key_import_title">Import SSH key</string>
     <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
@@ -791,6 +838,8 @@
     <string name="passwordleak_occurrences_found_text">Die wagwoord is in bekende datalekkasies geïdentifiseer. Verander dit asseblief onmiddellik om jou aanlyn sekuriteit te beskerm</string>
     <string name="passwordleak_occurrences_not_found_title">Geen lekkasies gevind nie</string>
     <string name="passwordleak_failed_to_load_status_text">Kon nie nagaan vir datalekkasies nie. Miskien is jy vanlyn</string>
+    <string name="password_memory_test_note">Enter this password from memory. Keyguard compares it with the saved password on this device.</string>
+    <string name="password_memory_test_success">Password matches</string>
     <!-- Title of the 'Show in Large Type' dialog -->
     <string name="largetype_title">Groot Teks</string>
     <string name="largetype_action_show_in_large_type_title">Wys in Groot Teks</string>
@@ -1661,6 +1710,7 @@
     <string name="pref_item_license_sync_no_purchases">No eligible purchase found</string>
     <string name="pref_item_license_sync_failed">Could not obtain entitlement token</string>
     <string name="pref_item_biometric_unlock_title">Biometriese ontsluiting</string>
+    <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Vereis bevestiging</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Vereis 'n bykomende bevestigingsknoppie-tik na 'n suksesvolle biometriese verifikasie</string>
     <string name="pref_item_yubikey_unlock_title">YubiKey-ontsluiting</string>
@@ -1856,7 +1906,6 @@
     <string name="gpg_agent_setup_step_1_text">Open GPG settings, enable GPG agent, and make sure the vault contains a GPG key the agent is allowed to use.</string>
     <string name="gpg_agent_setup_step_2_title">2. Configure GNUPGHOME</string>
     <string name="gpg_agent_setup_step_2_text">Run GnuPG commands from a shell that points to Keyguard's agent home. Keyguard listens on the agent socket that GnuPG resolves for this home.</string>
-    <string name="gpg_agent_setup_linux_home_fallback_note">If XDG_RUNTIME_DIR is not set, use this fallback instead:</string>
     <string name="gpg_agent_setup_step_3_title">3. Import the public key</string>
     <string name="gpg_agent_setup_step_3_text">Export the public key from the GPG Key item in Keyguard, then import it into this GnuPG home. This exposes only public key material.</string>
     <string name="gpg_agent_setup_step_4_title">4. Verify</string>
@@ -1871,6 +1920,10 @@
     <string name="gpg_key_status">GPG key status</string>
     <string name="gpg_key_status_revoked_text">This GPG key has been revoked and should not be used.</string>
     <string name="gpg_key_status_expired_text">This GPG key has expired and should not be used.</string>
+    <string name="gpg_key_status_weak_self_signature_title">Weak self-signature</string>
+    <string name="gpg_key_status_weak_self_signature_text">This key's self-signatures use a weak algorithm (SHA-1). Renew the key to re-sign it with a modern one.</string>
+    <string name="gpg_key_status_missing_self_signature_title">No valid self-signature</string>
+    <string name="gpg_key_status_missing_self_signature_text">This key has no valid self-signature, so it cannot be renewed. It may be corrupted or incomplete.</string>
     <string name="gpg_key_user_ids">User IDs</string>
     <string name="gpg_key_does_not_expire">Does not expire</string>
     <string name="gpg_key_capability_encrypt_decrypt">Encrypt/decrypt</string>
@@ -1915,6 +1968,10 @@
     <string name="gpg_tools_warning_key_revoked">Warning: signing key is revoked</string>
     <string name="gpg_tools_warning_key_expired">Warning: signing key is expired</string>
     <string name="gpg_tools_warning_signature_expired">Warning: signature is expired</string>
+    <string name="gpg_tools_warning_policy_conflict">Warning: signing key has conflicting policy information</string>
+    <string name="gpg_tools_warning_weak_digest">Warning: signature uses a weak digest algorithm</string>
+    <string name="gpg_tools_warning_weak_rsa_decryption_key">Warning: message was decrypted with a weak RSA key</string>
+    <string name="gpg_tools_warning_elgamal_decryption_key">Warning: message was decrypted with a legacy ElGamal key</string>
     <string name="gpg_tools_file_required">Choose an input file</string>
     <string name="gpg_tools_signature_file_required">Choose a signature file</string>
     <string name="gpg_tools_text_required">Enter text to process</string>
@@ -1932,6 +1989,8 @@
     <string name="gpg_keyserver_upload_success_title">GPG public key uploaded</string>
     <string name="gpg_keyserver_refresh_success_title">GPG public key refreshed</string>
     <string name="gpg_keyserver_refresh_not_found_title">GPG public key not found on keyserver</string>
+    <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>
+    <string name="gpg_keyserver_refresh_skipped_title">GPG public key cannot be refreshed</string>
     <string name="gpg_keyserver_verify_unknown_title">GPG public key verification status is unknown</string>
     <string name="gpg_keyserver_verify_not_found_title">GPG public key not found on keyserver</string>
     <string name="gpg_keyserver_verify_unverified_title">GPG public key found without verified e-mail</string>

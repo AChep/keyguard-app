@@ -4,8 +4,11 @@ import com.artemchep.keyguard.common.model.GpgKeyConfig
 import com.artemchep.keyguard.common.model.GpgKeyExpiry
 import com.artemchep.keyguard.crypto.BcGpgKeyGeneratorTestOracle
 import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
+import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
 import com.artemchep.keyguard.crypto.NativeGpgOpenPgpService
 import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
+import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
+import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
@@ -205,7 +208,7 @@ class GpgKeyGeneratorJvmTest {
             assertEquals(0, listing.exitCode, listing.stderr)
             val gpgKeygrips = parseColonKeygrips(listing.stdout)
 
-            for (key in generated.metadata.keys) {
+            for (key in assertNotNull(generated.metadata).routableAgentKeys) {
                 val gpgKeygrip = gpgKeygrips[key.fingerprint]
                 assertNotNull(
                     gpgKeygrip,
@@ -260,6 +263,14 @@ class GpgKeyGeneratorJvmTest {
         config: GpgKeyConfig,
     ) {
         val generated = generator.generate(config)
+        val metadata = assertNotNull(generated.metadata)
+        val authorization = assertNotNull(
+            NativeGpgKeyMetadataResolver.resolve(
+                privateKeyArmored = generated.privateKeyArmored,
+                publicKeyArmored = generated.publicKeyArmored,
+                fingerprint = generated.fingerprint,
+            ),
+        )
 
         assertTrue(
             "BEGIN PGP PRIVATE KEY BLOCK" in generated.privateKeyArmored,
@@ -274,19 +285,23 @@ class GpgKeyGeneratorJvmTest {
             "fingerprint should be uppercase SHA-1 hex",
         )
         assertTrue(
-            generated.metadata.keys.any { it.fingerprint == generated.fingerprint },
+            metadata.routableAgentKeys.any { it.fingerprint == generated.fingerprint },
             "metadata should contain the primary fingerprint",
         )
         assertTrue(
-            generated.metadata.keys.all { it.keygrip.matches(Regex("[0-9A-F]{40}")) },
+            metadata.routableAgentKeys.all { it.keygrip.matches(Regex("[0-9A-F]{40}")) },
             "all generated keygrips should be nonblank uppercase SHA-1 hex",
         )
         assertTrue(
-            generated.metadata.keys.any { it.canSign },
+            metadata.routableAgentKeys.isNotEmpty(),
+            "metadata should expose at least one routable component",
+        )
+        assertTrue(
+            authorization.authorizedAgentKeys.any { it.canSign },
             "metadata should include a signing-capable key",
         )
         assertTrue(
-            generated.metadata.keys.any { it.canDecrypt },
+            authorization.authorizedAgentKeys.any { it.canDecrypt },
             "metadata should include a decrypt-capable key",
         )
 
@@ -307,6 +322,7 @@ class GpgKeyGeneratorJvmTest {
         val message = "hello from generated ${generated.typeLabel}"
         val signed = openPgpService.clearSignText(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = message,
                 privateKey = privateKey,
             ),
@@ -319,7 +335,7 @@ class GpgKeyGeneratorJvmTest {
         )
         assertEquals(GpgOpenPgpVerificationStatus.VALID, verification.status)
         assertTrue(
-            generated.metadata.keys.any { key ->
+            authorization.authorizedAgentKeys.any { key ->
                 key.canSign && key.fingerprint == verification.fingerprint
             },
             "verification should identify an authenticated signing component",
@@ -327,6 +343,7 @@ class GpgKeyGeneratorJvmTest {
 
         val encrypted = openPgpService.encryptText(
             GpgOpenPgpEncryptTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = message,
                 publicKeys = listOf(publicKey),
             ),

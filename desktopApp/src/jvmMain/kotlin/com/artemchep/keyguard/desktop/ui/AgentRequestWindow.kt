@@ -37,6 +37,7 @@ import com.artemchep.keyguard.ui.theme.GlobalExpressive
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.artemchep.keyguard.ui.theme.LocalExpressive
 import org.jetbrains.compose.resources.painterResource
+import org.kodein.di.compose.withDI
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -147,7 +148,11 @@ private fun <T : AgentRequest> AgentUnlockWindow(
                     is Loadable.Loading -> ManualAppScreenOnLoading()
                     is Loadable.Ok -> {
                         val v = requestUiState.value
-                        requestContent(v.request, v.onRequestHandled)
+                        // Provide the session DI so that the content can
+                        // read the vault, e.g. to resolve the key's title.
+                        withDI(vaultState.di) {
+                            requestContent(v.request, v.onRequestHandled)
+                        }
                     }
                 }
             }

@@ -38,11 +38,23 @@ public enum class NativeCryptoCapability(
     SSH_CXF_EXPORT(bit = 1L shl 25),
     SSH_PUBLIC_KEY_DECODE(bit = 1L shl 26),
     OPENPGP_CLEAR_VERIFY(bit = 1L shl 27),
+    /** Native OpenPGP sign/encrypt operations enforce external designated revocations. */
+    OPENPGP_EXTERNAL_REVOCATION_POLICY(bit = 1L shl 28),
+    /** Native OpenPGP operations can emit signed User ID revocations. */
+    OPENPGP_SIGNED_REVOCATION(bit = 1L shl 29),
+    /** Native OpenPGP operations can replace textual User IDs atomically. */
+    OPENPGP_USER_ID_REPLACEMENT(bit = 1L shl 30),
+    /** Native OpenPGP operations can reconcile public and secret certificate material. */
+    OPENPGP_CERTIFICATE_MATERIAL_RECONCILE(bit = 1L shl 31),
+    /** Native OpenPGP reconciliation exposes separate local and transferable V2 outputs. */
+    OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2(bit = 1L shl 32),
+    /** Native OpenPGP evaluates exact User ID certifications against explicit trust roots. */
+    OPENPGP_USER_ID_CERTIFICATION(bit = 1L shl 33),
 }
 
 public object NativeCrypto {
     public const val EXPECTED_ABI_VERSION: Int = 1
-    public const val PROTOCOL_VERSION: Int = 1
+    public const val PROTOCOL_VERSION: Int = 2
     public const val MAX_CONTROL_ENVELOPE_BYTES: Int = 16 * 1024 * 1024
 
     private val client: NativeCryptoClient by lazy {
@@ -182,12 +194,14 @@ public object NativeCrypto {
 
     internal fun openPgpDetachedSigning(
         privateKey: ByteArray,
+        candidateRevocationKeys: List<ByteArray>,
         preferredFingerprint: String,
         armored: Boolean,
         signatureTimeEpochSeconds: Long?,
         referenceTimeEpochSeconds: Long?,
     ): NativeCryptoSession = client.openPgpDetachedSigning(
         privateKey = privateKey,
+        candidateRevocationKeys = candidateRevocationKeys,
         preferredFingerprint = preferredFingerprint,
         armored = armored,
         signatureTimeEpochSeconds = signatureTimeEpochSeconds,
@@ -196,11 +210,13 @@ public object NativeCrypto {
 
     internal fun openPgpClearSigning(
         privateKey: ByteArray,
+        candidateRevocationKeys: List<ByteArray>,
         preferredFingerprint: String,
         signatureTimeEpochSeconds: Long?,
         referenceTimeEpochSeconds: Long?,
     ): NativeCryptoSession = client.openPgpClearSigning(
         privateKey = privateKey,
+        candidateRevocationKeys = candidateRevocationKeys,
         preferredFingerprint = preferredFingerprint,
         signatureTimeEpochSeconds = signatureTimeEpochSeconds,
         referenceTimeEpochSeconds = referenceTimeEpochSeconds,
@@ -208,6 +224,7 @@ public object NativeCrypto {
 
     internal fun openPgpEncryption(
         publicKeys: List<ByteArray>,
+        candidateRevocationKeys: List<ByteArray>,
         signingPrivateKey: ByteArray?,
         preferredSigningFingerprint: String,
         fileName: String,
@@ -217,6 +234,7 @@ public object NativeCrypto {
         enableCompression: Boolean,
     ): NativeCryptoSession = client.openPgpEncryption(
         publicKeys = publicKeys,
+        candidateRevocationKeys = candidateRevocationKeys,
         signingPrivateKey = signingPrivateKey,
         preferredSigningFingerprint = preferredSigningFingerprint,
         fileName = fileName,
@@ -520,6 +538,7 @@ internal class NativeCryptoClient(
 
     fun openPgpDetachedSigning(
         privateKey: ByteArray,
+        candidateRevocationKeys: List<ByteArray>,
         preferredFingerprint: String,
         armored: Boolean,
         signatureTimeEpochSeconds: Long?,
@@ -533,12 +552,14 @@ internal class NativeCryptoClient(
                 armored = armored,
                 signatureTimeEpochSeconds = signatureTimeEpochSeconds,
                 referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                candidateRevocationKeys = candidateRevocationKeys,
             ),
         ),
     )
 
     fun openPgpClearSigning(
         privateKey: ByteArray,
+        candidateRevocationKeys: List<ByteArray>,
         preferredFingerprint: String,
         signatureTimeEpochSeconds: Long?,
         referenceTimeEpochSeconds: Long?,
@@ -550,12 +571,14 @@ internal class NativeCryptoClient(
                 preferredFingerprint = preferredFingerprint,
                 signatureTimeEpochSeconds = signatureTimeEpochSeconds,
                 referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                candidateRevocationKeys = candidateRevocationKeys,
             ),
         ),
     )
 
     fun openPgpEncryption(
         publicKeys: List<ByteArray>,
+        candidateRevocationKeys: List<ByteArray>,
         signingPrivateKey: ByteArray?,
         preferredSigningFingerprint: String,
         fileName: String,
@@ -575,6 +598,7 @@ internal class NativeCryptoClient(
                 literalTimeEpochSeconds = literalTimeEpochSeconds,
                 referenceTimeEpochSeconds = referenceTimeEpochSeconds,
                 enableCompression = enableCompression,
+                candidateRevocationKeys = candidateRevocationKeys,
             ),
         ),
     )

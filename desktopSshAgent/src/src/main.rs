@@ -38,7 +38,7 @@ struct Args {
     #[arg(long)]
     ssh_socket: Option<PathBuf>,
 
-    /// Enable verbose logging.
+    /// Enable debug logging. Otherwise RUST_LOG applies, defaulting to warnings and errors.
     #[arg(long, short)]
     verbose: bool,
 }
@@ -104,17 +104,28 @@ fn zeroize_string(buf: &mut String) {
     buf.clear();
 }
 
+fn write_startup_ready_record() -> Result<()> {
+    let stdout = std::io::stdout();
+    keyguard_agent_identity::write_startup_ready_record_to(stdout.lock())
+        .context("Failed to write SSH agent startup readiness record")
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
 
-    // Initialize logging.
+    // Keep routine activity out of logs in every build unless explicitly enabled.
     let filter = if args.verbose {
         EnvFilter::new("debug")
     } else {
-        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"))
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("warn"))
     };
-    tracing_subscriber::fmt().with_env_filter(filter).init();
+    // Stdout is reserved for the machine-readable startup handshake consumed
+    // by the desktop app. Keep all human-readable tracing on stderr.
+    tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .with_writer(std::io::stderr)
+        .init();
 
     info!("keyguard-ssh-agent starting");
 
@@ -167,12 +178,17 @@ async fn main() -> Result<()> {
         ssh_socket = %ssh_socket_path.display(),
         "Starting SSH agent"
     );
-    socket::serve(agent, &ssh_socket_path, parent_stdin_closed)
-        .await
-        .map_err(|e| {
-            error!("SSH agent server failed: {}", e);
-            e
-        })?;
+    socket::serve(
+        agent,
+        &ssh_socket_path,
+        parent_stdin_closed,
+        write_startup_ready_record,
+    )
+    .await
+    .map_err(|e| {
+        error!("SSH agent server failed: {}", e);
+        e
+    })?;
 
     Ok(())
 }

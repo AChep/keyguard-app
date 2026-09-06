@@ -24,7 +24,7 @@ data class GpgKeyExpirationRequest(
     val key: GpgKeyMaterial,
     val change: GpgKeyExpirationChange,
     /** Vault-local public keys that may authenticate external designated revocations. */
-    val candidateRevocationKeys: List<GpgOpenPgpPublicKey> = emptyList(),
+    val candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
 )
 
 data class GpgKeyExpirationChange(
@@ -59,6 +59,12 @@ enum class GpgKeyExpirationError {
     SignatureVerificationFailed,
     MetadataResolutionFailed,
     InternalFailure,
+
+    /**
+     * The certificate can only be re-certified with a digest algorithm the native core
+     * refuses to emit (SHA-1 or weaker).
+     */
+    UnsupportedSigningHash,
     UnsupportedPlatform,
 }
 

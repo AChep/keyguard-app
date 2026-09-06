@@ -95,6 +95,20 @@ class OpenPgpNormalizationTest {
         assertFalse("user_id survived normalization", retry.hasExtra(OpenPgpApi.EXTRA_USER_ID))
     }
 
+    @Test
+    fun senderAddressIsCanonicalizedAndPreservedInTheRetryIntent() {
+        val retry = approvedRetryIntent(
+            OpenPgpRequestSpec(
+                operation = OpenPgpOperation.GET_SIGN_KEY_ID,
+                senderAddress = " Sender@Example.com ",
+            ),
+        )
+        assertEquals(
+            "sender@example.com",
+            retry.getStringExtra(OpenPgpApi.EXTRA_SENDER_ADDRESS),
+        )
+    }
+
     private fun approvedRetryIntent(
         spec: OpenPgpRequestSpec,
         action: ApprovalRobot.Action = ApprovalRobot.Action.APPROVE,

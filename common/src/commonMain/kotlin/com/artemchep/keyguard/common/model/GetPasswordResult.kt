@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.model
 
 import com.artemchep.keyguard.common.service.gpgagent.isUsableAgentKey
+import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
 
 sealed interface GetPasswordResult {
     fun message(): String
@@ -29,6 +30,6 @@ sealed interface GetPasswordResult {
             gpgKey.privateKeyArmored.isNotBlank() &&
                     gpgKey.publicKeyArmored.isNotBlank() &&
                     gpgKey.fingerprint.isNotBlank() &&
-                    gpgKey.metadata.keys.any { it.isUsableAgentKey }
+                    gpgKey.metadata?.routableAgentKeys?.any { it.isUsableAgentKey } == true
     }
 }

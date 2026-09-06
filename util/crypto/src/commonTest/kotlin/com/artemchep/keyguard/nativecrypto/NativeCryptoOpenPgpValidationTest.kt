@@ -2,14 +2,49 @@
 
 package com.artemchep.keyguard.nativecrypto
 
+import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class NativeCryptoOpenPgpValidationTest {
+    @Test
+    fun validatesUserIdsUsingStrictUtf8Encoding() {
+        assertFalse("\uD800".isValidOpenPgpUserId())
+        assertFalse("\uDC00".isValidOpenPgpUserId())
+        assertFalse("\uD800A".isValidOpenPgpUserId())
+        assertFalse("A\uDC00".isValidOpenPgpUserId())
+
+        assertTrue("Alice \uD83D\uDE00".isValidOpenPgpUserId())
+        assertTrue("A".repeat(1_024).isValidOpenPgpUserId())
+        assertTrue("é".repeat(512).isValidOpenPgpUserId())
+        assertFalse("é".repeat(513).isValidOpenPgpUserId())
+    }
+
+    @Test
+    fun policyAcceptanceRequiresValidStatusWithoutWarnings() {
+        val valid = NativeOpenPgpVerification(
+            status = NativeOpenPgpVerificationStatus.VALID,
+            keyId = KEY_ID,
+            fingerprint = FINGERPRINT,
+            userIds = emptyList(),
+            createdAtEpochSeconds = null,
+            warnings = emptyList(),
+        )
+
+        assertTrue(valid.isPolicyAccepted)
+        NativeOpenPgpVerificationWarning.entries.forEach { warning ->
+            assertFalse(valid.copy(warnings = listOf(warning)).isPolicyAccepted, warning.name)
+        }
+        assertFalse(
+            valid.copy(status = NativeOpenPgpVerificationStatus.INVALID).isPolicyAccepted,
+        )
+    }
+
     @Test
     fun rejectsInvalidKeyGenerationInputsBeforeLoadingNativeCode() {
         assertInvalidInput {
@@ -62,6 +97,7 @@ class NativeCryptoOpenPgpValidationTest {
             NativeCrypto.openPgp.clearSign(
                 content = byteArrayOf(1),
                 privateKey = byteArrayOf(),
+                candidateRevocationKeys = emptyList(),
             )
         }
         for (
@@ -77,6 +113,7 @@ class NativeCryptoOpenPgpValidationTest {
                 NativeCrypto.openPgp.signDetached(
                     content = byteArrayOf(1),
                     privateKey = byteArrayOf(2),
+                    candidateRevocationKeys = emptyList(),
                     preferredFingerprint = fingerprint,
                 )
             }
@@ -85,12 +122,14 @@ class NativeCryptoOpenPgpValidationTest {
             NativeCrypto.openPgp.signDetached(
                 content = byteArrayOf(1),
                 privateKey = byteArrayOf(2),
+                candidateRevocationKeys = emptyList(),
                 signatureTimeEpochSeconds = -1L,
             )
         }
         assertInvalidInput {
             NativeCrypto.openPgp.openDetachedSigning(
                 privateKey = byteArrayOf(2),
+                candidateRevocationKeys = emptyList(),
                 referenceTimeEpochSeconds = -1L,
             )
         }
@@ -109,6 +148,7 @@ class NativeCryptoOpenPgpValidationTest {
             NativeCrypto.openPgp.encrypt(
                 content = byteArrayOf(2),
                 publicKeys = publicKeys,
+                candidateRevocationKeys = emptyList(),
                 signingPrivateKey = signingPrivateKey,
                 preferredSigningFingerprint = preferredSigningFingerprint,
                 fileName = fileName,
@@ -131,6 +171,7 @@ class NativeCryptoOpenPgpValidationTest {
         assertInvalidInput {
             NativeCrypto.openPgp.openEncryption(
                 publicKeys = emptyList(),
+                candidateRevocationKeys = emptyList(),
                 fileName = "message.txt",
                 armored = false,
             )
@@ -145,6 +186,7 @@ class NativeCryptoOpenPgpValidationTest {
                 NativeCrypto.openPgp.encrypt(
                     content = content,
                     publicKeys = listOf(byteArrayOf(1)),
+                    candidateRevocationKeys = emptyList(),
                     fileName = "message.txt",
                     armored = false,
                 )
@@ -200,6 +242,81 @@ class NativeCryptoOpenPgpValidationTest {
     }
 
     @Test
+    fun decodesCanonicalMetadataAndFailsClosedOnUnknownOperations() {
+        val payload = ProtoBuf.encodeToByteArray(
+            OpenPgpMetadataResolveResultProto(
+                resolution = OpenPgpMetadataResolutionV2Proto(
+                    evaluatedAtEpochSeconds = 1_700_000_000L,
+                    policyRevision = 2,
+                    certificates = listOf(
+                        OpenPgpCertificateResolutionV2Proto(
+                            index = validMetadataV2Index(
+                                agentOperations = listOf(1, 99),
+                            ),
+                            policy = listOf(
+                                OpenPgpComponentPolicyV2Proto(
+                                    fingerprint = FINGERPRINT,
+                                    allowedNewDataUses = listOf(1, 99),
+                                    revocationStatus = 1,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val metadata = decodeOpenPgpMetadataResolution(OPERATION, payload)
+            ?: error("v2 metadata must be present")
+
+        assertEquals(1, metadata.certificates.size)
+        val certificate = metadata.certificates.single()
+        assertEquals(FINGERPRINT, certificate.index.primaryFingerprint)
+        assertEquals(
+            setOf(NativeOpenPgpAgentOperation.SIGN),
+            certificate.index.components.single().agentOperations,
+        )
+        assertEquals(
+            setOf(NativeOpenPgpPolicyUse.SIGN_NEW_DATA),
+            certificate.policy.single().allowedNewDataUses,
+        )
+        assertTrue(payload.all { byte -> byte == 0.toByte() })
+    }
+
+    @Test
+    fun acceptsCertificateWithNoAgentRoutableComponents() {
+        val payload = ProtoBuf.encodeToByteArray(
+            OpenPgpMetadataResolveResultProto(
+                resolution = OpenPgpMetadataResolutionV2Proto(
+                    evaluatedAtEpochSeconds = 1_700_000_000L,
+                    policyRevision = 2,
+                    certificates = listOf(
+                        OpenPgpCertificateResolutionV2Proto(
+                            index = validMetadataV2Index(
+                                keygrips = emptyList(),
+                                agentOperations = emptyList(),
+                                storedSecretMaterial = false,
+                            ),
+                            policy = listOf(
+                                OpenPgpComponentPolicyV2Proto(
+                                    fingerprint = FINGERPRINT,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val metadata = decodeOpenPgpMetadataResolution(OPERATION, payload)
+            ?: error("v2 metadata must be present")
+
+        assertFalse(metadata.certificates.single().index.components.single().storedSecretMaterial)
+    }
+}
+
+class NativeCryptoOpenPgpVerificationValidationTest {
+    @Test
     fun acceptsMissingPublicKeyWithoutAuthenticatedMetadata() {
         val result = decode(
             OpenPgpVerificationProto(
@@ -214,18 +331,93 @@ class NativeCryptoOpenPgpValidationTest {
     }
 
     @Test
+    fun acceptsPolicyConflictAsAnAuthenticatedSignerWarning() {
+        val result = decode(
+            validVerification().copy(
+                warnings = listOf(OpenPgpVerificationWarningProto.POLICY_CONFLICT.wireValue),
+            ),
+        )
+
+        assertEquals(NativeOpenPgpVerificationStatus.VALID, result.status)
+        assertEquals(
+            listOf(NativeOpenPgpVerificationWarning.POLICY_CONFLICT),
+            result.warnings,
+        )
+    }
+
+    @Test
+    fun preservesEveryLeafSignatureResultAndRejectsNestedResultTrees() {
+        val invalid = validVerification().copy(status = OpenPgpVerificationStatusProto.INVALID)
+        val missing = OpenPgpVerificationProto(
+            status = OpenPgpVerificationStatusProto.MISSING_PUBLIC_KEY,
+            keyId = KEY_ID,
+        )
+        val result = decode(
+            validVerification().copy(signatures = listOf(invalid, missing)),
+        )
+
+        assertEquals(
+            listOf(
+                NativeOpenPgpVerificationStatus.INVALID,
+                NativeOpenPgpVerificationStatus.MISSING_PUBLIC_KEY,
+            ),
+            result.signatures.map { signature -> signature.status },
+        )
+        assertMalformed(
+            validVerification().copy(
+                signatures = listOf(invalid.copy(signatures = listOf(missing))),
+            ),
+        )
+    }
+
+    @Test
     fun rejectsDuplicateWarningsAndClearsTheWirePayload() {
         val payload = ProtoBuf.encodeToByteArray(
             validVerification().copy(
                 warnings = listOf(
-                    OpenPgpVerificationWarningProto.KEY_EXPIRED.wireValue,
-                    OpenPgpVerificationWarningProto.KEY_EXPIRED.wireValue,
+                    OpenPgpVerificationWarningProto.POLICY_CONFLICT.wireValue,
+                    OpenPgpVerificationWarningProto.POLICY_CONFLICT.wireValue,
                 ),
             ),
         )
 
         val failure = assertFailsWith<NativeCryptoException> {
             decodeOpenPgpVerification(OPERATION, payload)
+        }
+
+        assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
+        assertTrue(payload.all { byte -> byte == 0.toByte() })
+    }
+
+    @Test
+    fun certificationEvaluationRejectsDuplicateIdentitiesAndClearsTheWirePayload() {
+        val payload = ProtoBuf.encodeToByteArray(
+            OpenPgpUserIdCertificationEvaluateResultProto(
+                confirmedUserIds = listOf(
+                    "Alice <alice@example.test>".encodeToByteArray(),
+                    "Alice <alice@example.test>".encodeToByteArray(),
+                ),
+            ),
+        )
+
+        val failure = assertFailsWith<NativeCryptoException> {
+            decodeOpenPgpUserIdCertificationEvaluateResult(OPERATION, payload)
+        }
+
+        assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
+        assertTrue(payload.all { byte -> byte == 0.toByte() })
+    }
+
+    @Test
+    fun certificationEvaluationRejectsNonUtf8IdentitiesAndClearsTheWirePayload() {
+        val payload = ProtoBuf.encodeToByteArray(
+            OpenPgpUserIdCertificationEvaluateResultProto(
+                confirmedUserIds = listOf(byteArrayOf('A'.code.toByte(), 0xff.toByte())),
+            ),
+        )
+
+        val failure = assertFailsWith<NativeCryptoException> {
+            decodeOpenPgpUserIdCertificationEvaluateResult(OPERATION, payload)
         }
 
         assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
@@ -313,8 +505,13 @@ class NativeCryptoOpenPgpValidationTest {
         val attributed = OpenPgpDecryptFinalProto(
             encrypted = true,
             decryptionKeyFingerprint = FINGERPRINT,
+            warnings = listOf(OpenPgpDecryptionWarningProto.WEAK_RSA_KEY.wireValue),
         ).toPublicDecryptFinal("open_pgp_decrypt.stream_finish")
         assertEquals(FINGERPRINT, attributed.decryptionKeyFingerprint)
+        assertEquals(
+            listOf(NativeOpenPgpDecryptionWarning.WEAK_RSA_KEY),
+            attributed.warnings,
+        )
 
         val compatible = OpenPgpDecryptFinalProto(
             encrypted = true,
@@ -331,6 +528,29 @@ class NativeCryptoOpenPgpValidationTest {
                 data = byteArrayOf(1, 2, 3),
                 encrypted = false,
                 decryptionKeyFingerprint = FINGERPRINT,
+            ),
+            OpenPgpDecryptFinalProto(
+                data = byteArrayOf(1, 2, 3),
+                encrypted = false,
+                warnings = listOf(OpenPgpDecryptionWarningProto.WEAK_RSA_KEY.wireValue),
+            ),
+            OpenPgpDecryptFinalProto(
+                data = byteArrayOf(1, 2, 3),
+                encrypted = true,
+                warnings = listOf(OpenPgpDecryptionWarningProto.UNSPECIFIED.wireValue),
+            ),
+            OpenPgpDecryptFinalProto(
+                data = byteArrayOf(1, 2, 3),
+                encrypted = true,
+                warnings = listOf(99),
+            ),
+            OpenPgpDecryptFinalProto(
+                data = byteArrayOf(1, 2, 3),
+                encrypted = true,
+                warnings = listOf(
+                    OpenPgpDecryptionWarningProto.ELGAMAL_KEY.wireValue,
+                    OpenPgpDecryptionWarningProto.ELGAMAL_KEY.wireValue,
+                ),
             ),
         )) {
             val failure = assertFailsWith<NativeCryptoException> {
@@ -372,7 +592,7 @@ class NativeCryptoOpenPgpValidationTest {
         val response = expirationResult(
             privateKey = privateKey,
             publicKey = publicKey,
-            metadata = null,
+            certificateIndex = null,
         )
 
         assertMalformedExpiration(response)
@@ -430,10 +650,6 @@ class NativeCryptoOpenPgpValidationTest {
         assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
     }
 
-    private fun assertInvalidInput(block: () -> Unit) {
-        assertFailsWith<IllegalArgumentException> { block() }
-    }
-
     private fun decode(response: OpenPgpVerificationProto): NativeOpenPgpVerification =
         decodeOpenPgpVerification(
             operation = OPERATION,
@@ -450,7 +666,7 @@ class NativeCryptoOpenPgpValidationTest {
         privateKey: ByteArray,
         publicKey: ByteArray,
         fingerprint: String = FINGERPRINT,
-        metadata: OpenPgpKeyMetadataProto? = validMetadata(),
+        certificateIndex: OpenPgpCertificateIndexV2Proto? = validMetadataV2Index(),
     ) = OpenPgpExpirationUpdateResultProto(
         OpenPgpExpirationUpdateSuccessOutcomeProto(
             OpenPgpExpirationUpdateSuccessProto(
@@ -459,27 +675,331 @@ class NativeCryptoOpenPgpValidationTest {
                     publicKeyArmored = publicKey,
                     fingerprint = fingerprint,
                 ),
-                metadata = metadata,
+                certificateIndex = certificateIndex,
             ),
         ),
     )
+}
 
-    private fun validMetadata() = OpenPgpKeyMetadataProto(
-        version = 1,
-        keys = listOf(
-            OpenPgpKeyMetadataKeyProto(
-                keygrip = "A".repeat(40),
-                fingerprint = FINGERPRINT,
-                algorithm = "rsa",
-                capabilities = listOf("sign"),
+class NativeCryptoOpenPgpMetadataPolicyValidationTest {
+    @Test
+    fun decodesRenewalAuthorizationAndDegradesUnknownValuesToNone() {
+        // An unknown or unspecified renewal value must read as "no renewal", never
+        // fail the payload: the field is additive and older or newer natives may
+        // send anything.
+        val expected = mapOf(
+            0 to NativeOpenPgpRenewalAuthorization.NONE,
+            1 to NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
+            2 to NativeOpenPgpRenewalAuthorization.TEMPLATE_ONLY,
+            3 to NativeOpenPgpRenewalAuthorization.NONE,
+            99 to NativeOpenPgpRenewalAuthorization.NONE,
+            -1 to NativeOpenPgpRenewalAuthorization.NONE,
+        )
+        expected.forEach { (wireValue, renewal) ->
+            val payload = ProtoBuf.encodeToByteArray(
+                OpenPgpMetadataResolveResultProto(
+                    resolution = OpenPgpMetadataResolutionV2Proto(
+                        evaluatedAtEpochSeconds = 1_700_000_000L,
+                        policyRevision = 2,
+                        certificates = listOf(
+                            OpenPgpCertificateResolutionV2Proto(
+                                index = validMetadataV2Index(),
+                                policy = listOf(
+                                    OpenPgpComponentPolicyV2Proto(
+                                        fingerprint = FINGERPRINT,
+                                        allowedNewDataUses = listOf(1),
+                                        renewal = wireValue,
+                                        revocationStatus = 1,
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            )
+
+            val metadata = decodeOpenPgpMetadataResolution(OPERATION, payload)
+                ?: error("v2 metadata must be present")
+            assertEquals(
+                renewal,
+                metadata.certificates.single().policy.single().renewal,
+            )
+        }
+    }
+
+    @Test
+    fun unsupportedPolicyRevisionReportsNoRenewalAuthorization() {
+        val payload = ProtoBuf.encodeToByteArray(
+            OpenPgpMetadataResolveResultProto(
+                resolution = OpenPgpMetadataResolutionV2Proto(
+                    evaluatedAtEpochSeconds = 1_700_000_000L,
+                    policyRevision = 3,
+                    certificates = listOf(
+                        OpenPgpCertificateResolutionV2Proto(
+                            index = validMetadataV2Index(),
+                            policy = listOf(
+                                OpenPgpComponentPolicyV2Proto(
+                                    fingerprint = FINGERPRINT,
+                                    allowedNewDataUses = listOf(1),
+                                    renewal = 1,
+                                    revocationStatus = 1,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
             ),
-        ),
-    )
+        )
 
-    private companion object {
-        const val OPERATION = "open_pgp_verify"
-        const val EXPIRATION_OPERATION = "open_pgp_expiration_update"
-        const val KEY_ID = "0123456789ABCDEF"
-        const val FINGERPRINT = "0123456789ABCDEF0123456789ABCDEF01234567"
+        val metadata = decodeOpenPgpMetadataResolution(OPERATION, payload)
+            ?: error("v2 metadata must be present")
+        val policy = metadata.certificates.single().policy.single()
+        assertTrue(policy.allowedNewDataUses.isEmpty())
+        assertEquals(NativeOpenPgpRenewalAuthorization.NONE, policy.renewal)
+        assertEquals(NativeOpenPgpRevocationStatus.INDETERMINATE, policy.revocationStatus)
+    }
+
+    @Test
+    fun revocationStatusDefaultsAndUnknownValuesNeverAuthorizeUse() {
+        val expected = mapOf(
+            0 to NativeOpenPgpRevocationStatus.INDETERMINATE,
+            1 to NativeOpenPgpRevocationStatus.NOT_REVOKED,
+            2 to NativeOpenPgpRevocationStatus.REVOKED,
+            3 to NativeOpenPgpRevocationStatus.INDETERMINATE,
+            99 to NativeOpenPgpRevocationStatus.INDETERMINATE,
+            -1 to NativeOpenPgpRevocationStatus.INDETERMINATE,
+        )
+        for (revision in listOf(1, 2, 3)) {
+            for ((wireValue, status) in expected) {
+                val payload = ProtoBuf.encodeToByteArray(
+                    OpenPgpMetadataResolveResultProto(
+                        resolution = OpenPgpMetadataResolutionV2Proto(
+                            evaluatedAtEpochSeconds = 1_700_000_000L,
+                            policyRevision = revision,
+                            certificates = listOf(
+                                OpenPgpCertificateResolutionV2Proto(
+                                    index = validMetadataV2Index(),
+                                    policy = listOf(
+                                        OpenPgpComponentPolicyV2Proto(
+                                            fingerprint = FINGERPRINT,
+                                            allowedNewDataUses = listOf(1, 2),
+                                            renewal = 1,
+                                            revocationStatus = wireValue,
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+                val metadata = decodeOpenPgpMetadataResolution(OPERATION, payload)
+                    ?: error("metadata must be present")
+                val policy = metadata.certificates.single().policy.single()
+                val expectedStatus = if (revision == 2) status else NativeOpenPgpRevocationStatus.INDETERMINATE
+                assertEquals(expectedStatus, policy.revocationStatus)
+                if (expectedStatus == NativeOpenPgpRevocationStatus.NOT_REVOKED) {
+                    assertEquals(
+                        setOf(NativeOpenPgpPolicyUse.SIGN_NEW_DATA, NativeOpenPgpPolicyUse.ENCRYPT_NEW_DATA),
+                        policy.allowedNewDataUses,
+                    )
+                    assertEquals(NativeOpenPgpRenewalAuthorization.AUTHENTICATED, policy.renewal)
+                } else {
+                    assertTrue(policy.allowedNewDataUses.isEmpty())
+                    assertEquals(NativeOpenPgpRenewalAuthorization.NONE, policy.renewal)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun publicKeyAuthenticationFlagsRoundTripAndDefaultToFalseOnOldPayloads() {
+        val proto = OpenPgpPublicKeyInfoProto(
+            fingerprint = FINGERPRINT,
+            keyId = KEY_ID,
+            algorithm = "RSA",
+            publicKeyArmored = "public",
+            authenticated = true,
+            renewal = 2,
+            subkeys = listOf(
+                OpenPgpPublicSubKeyInfoProto(
+                    fingerprint = FINGERPRINT,
+                    keyId = KEY_ID,
+                    algorithm = "RSA",
+                    authenticated = false,
+                ),
+            ),
+        )
+        val decoded = ProtoBuf.decodeFromByteArray<OpenPgpPublicKeyInfoProto>(
+            ProtoBuf.encodeToByteArray(proto),
+        )
+        assertEquals(proto, decoded)
+        assertTrue(decoded.authenticated)
+        assertEquals(2, decoded.renewal)
+        assertFalse(decoded.subkeys.single().authenticated)
+
+        // A payload from a native build that predates the field.
+        val legacy = ProtoBuf.decodeFromByteArray<OpenPgpPublicKeyInfoProto>(
+            ProtoBuf.encodeToByteArray(
+                OpenPgpPublicKeyInfoProto(
+                    fingerprint = FINGERPRINT,
+                    keyId = KEY_ID,
+                    algorithm = "RSA",
+                    publicKeyArmored = "public",
+                ),
+            ),
+        )
+        assertFalse(legacy.authenticated)
+        assertEquals(0, legacy.renewal)
+    }
+
+    @Test
+    fun publicKeyUserIdDetailsRoundTripAndRejectMalformedIdentityIds() {
+        val identityId = "v1:${"A".repeat(64)}"
+        val detail = OpenPgpUserIdInfoProto(
+            identityId = identityId,
+            userId = "Alice <alice@example.com>",
+        )
+        val payload = publicKeyParsePayloadWithUserIdDetail(detail)
+
+        val result = decodeOpenPgpPublicKeyParseResult(PARSE_OPERATION, payload)
+        val key = (result as NativeOpenPgpPublicKeyParseResult.Success).keys.single()
+        assertEquals(
+            listOf(
+                NativeOpenPgpUserIdInfo(
+                    identityId = identityId,
+                    userId = detail.userId,
+                ),
+            ),
+            key.userIdDetails,
+        )
+
+        listOf(
+            "v2:${"A".repeat(64)}",
+            "v1:${"A".repeat(63)}",
+            "v1:${"a".repeat(64)}",
+            "v1:${"G".repeat(64)}",
+        ).forEach { malformedIdentityId ->
+            val malformedPayload = publicKeyParsePayloadWithUserIdDetail(
+                detail.copy(identityId = malformedIdentityId),
+            )
+
+            val failure = assertFailsWith<NativeCryptoException>(malformedIdentityId) {
+                decodeOpenPgpPublicKeyParseResult(PARSE_OPERATION, malformedPayload)
+            }
+            assertEquals(PARSE_OPERATION, failure.operation)
+            assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
+        }
+    }
+
+    @Test
+    fun publicKeyRenewalTierDecodesAndDegradesUnknownValuesToNone() {
+        // The parse path's renewal tier is what tells an unauthenticated but
+        // renewable key from one no renewal can repair. An unspecified or
+        // unknown value must read as "no renewal", never fail the payload.
+        val expected = mapOf(
+            0 to NativeOpenPgpRenewalAuthorization.NONE,
+            1 to NativeOpenPgpRenewalAuthorization.AUTHENTICATED,
+            2 to NativeOpenPgpRenewalAuthorization.TEMPLATE_ONLY,
+            3 to NativeOpenPgpRenewalAuthorization.NONE,
+            99 to NativeOpenPgpRenewalAuthorization.NONE,
+            -1 to NativeOpenPgpRenewalAuthorization.NONE,
+        )
+        expected.forEach { (wireValue, renewal) ->
+            val payload = ProtoBuf.encodeToByteArray(
+                OpenPgpPublicKeyParseResultProto(
+                    OpenPgpPublicKeyParseSuccessOutcomeProto(
+                        OpenPgpPublicKeyParseSuccessProto(
+                            keys = listOf(
+                                OpenPgpPublicKeyInfoProto(
+                                    fingerprint = FINGERPRINT,
+                                    keyId = KEY_ID,
+                                    algorithm = "RSA",
+                                    publicKeyArmored = "public",
+                                    renewal = wireValue,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            )
+
+            val result = decodeOpenPgpPublicKeyParseResult(PARSE_OPERATION, payload)
+            val key = (result as NativeOpenPgpPublicKeyParseResult.Success).keys.single()
+            assertEquals(renewal, key.renewal)
+        }
+
+        // A payload from a native build that predates the field.
+        val legacyPayload = ProtoBuf.encodeToByteArray(
+            OpenPgpPublicKeyParseResultProto(
+                OpenPgpPublicKeyParseSuccessOutcomeProto(
+                    OpenPgpPublicKeyParseSuccessProto(
+                        keys = listOf(
+                            OpenPgpPublicKeyInfoProto(
+                                fingerprint = FINGERPRINT,
+                                keyId = KEY_ID,
+                                algorithm = "RSA",
+                                publicKeyArmored = "public",
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val legacy = decodeOpenPgpPublicKeyParseResult(PARSE_OPERATION, legacyPayload)
+        val legacyKey = (legacy as NativeOpenPgpPublicKeyParseResult.Success).keys.single()
+        assertEquals(
+            NativeOpenPgpRenewalAuthorization.NONE,
+            legacyKey.renewal,
+        )
+        assertTrue(legacyKey.userIdDetails.isEmpty())
     }
 }
+
+private fun publicKeyParsePayloadWithUserIdDetail(
+    detail: OpenPgpUserIdInfoProto,
+): ByteArray = ProtoBuf.encodeToByteArray(
+    OpenPgpPublicKeyParseResultProto(
+        OpenPgpPublicKeyParseSuccessOutcomeProto(
+            OpenPgpPublicKeyParseSuccessProto(
+                keys = listOf(
+                    OpenPgpPublicKeyInfoProto(
+                        fingerprint = FINGERPRINT,
+                        keyId = KEY_ID,
+                        algorithm = "RSA",
+                        publicKeyArmored = "public",
+                        userIdDetails = listOf(detail),
+                    ),
+                ),
+            ),
+        ),
+    ),
+)
+
+private fun assertInvalidInput(block: () -> Unit) {
+    assertFailsWith<IllegalArgumentException> { block() }
+}
+
+private fun validMetadataV2Index(
+    keygrips: List<String> = listOf("A".repeat(40)),
+    agentOperations: List<Int> = listOf(1),
+    storedSecretMaterial: Boolean = true,
+) = OpenPgpCertificateIndexV2Proto(
+    primaryFingerprint = FINGERPRINT,
+    components = listOf(
+        OpenPgpKeyComponentIndexV2Proto(
+            fingerprint = FINGERPRINT,
+            role = 1,
+            publicKeyAlgorithmId = 1,
+            algorithm = "RSA",
+            keygrips = keygrips,
+            storedSecretMaterial = storedSecretMaterial,
+            agentOperations = agentOperations,
+        ),
+    ),
+)
+
+private const val OPERATION = "open_pgp_verify"
+private const val PARSE_OPERATION = "open_pgp_public_key_parse"
+private const val EXPIRATION_OPERATION = "open_pgp_expiration_update"
+private const val KEY_ID = "0123456789ABCDEF"
+private const val FINGERPRINT = "0123456789ABCDEF0123456789ABCDEF01234567"

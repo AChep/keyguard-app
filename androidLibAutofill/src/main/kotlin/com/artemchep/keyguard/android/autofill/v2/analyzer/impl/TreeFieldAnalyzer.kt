@@ -5,6 +5,7 @@ import com.artemchep.keyguard.android.autofill.v2.model.AnalysisContext
 import com.artemchep.keyguard.android.autofill.v2.model.FieldNode
 import com.artemchep.keyguard.android.autofill.v2.model.FieldProposal
 import com.artemchep.keyguard.android.autofill.v2.model.SemanticType
+import java.util.Locale
 
 /**
  * Field analyzer backed by the corpus-trained CART decision tree.
@@ -30,7 +31,7 @@ class TreeFieldAnalyzer : FieldAnalyzer {
                 semanticType = semanticType,
                 analyzerId = id,
                 confidence = probability.toFloat(),
-                reason = "tree:$label:p=${String.format("%.4f", probability)}",
+                reason = "tree:$label:p=${String.format(Locale.ROOT, "%.4f", probability)}",
             )
         }
     }

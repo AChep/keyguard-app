@@ -20,6 +20,7 @@ import com.artemchep.keyguard.crypto.FileEncryptionCodecJvm
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
@@ -94,6 +95,45 @@ class GetAttachmentPreviewImplTest {
 
         assertEquals(AttachmentPreviewLimits.MAX_ENCRYPTED_BYTES, payload.encryptedSize)
         assertContentEquals(bytes, payload.bytes)
+    }
+
+    @Test
+    fun `url source bypasses installed response cache`() = runTest {
+        val bytes = "preview".encodeToByteArray()
+        var requestCount = 0
+        val useCase = useCase(
+            metadata = metadata(
+                source = DownloadAttachmentRequestData.UrlSource(
+                    url = "https://example.com/attachment",
+                    urlIsOneTime = true,
+                ),
+            ),
+            httpClient = HttpClient(
+                MockEngine { request ->
+                    requestCount += 1
+                    assertEquals("no-store", request.headers[HttpHeaders.CacheControl])
+                    respond(
+                        content = ByteReadChannel(bytes),
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(
+                            HttpHeaders.CacheControl,
+                            "public, max-age=3600",
+                        ),
+                    )
+                },
+            ) {
+                install(HttpCache)
+            },
+        )
+
+        repeat(2) {
+            val payload = useCase(request)()
+
+            assertEquals(bytes.size.toLong(), payload.encryptedSize)
+            assertContentEquals(bytes, payload.bytes)
+        }
+
+        assertEquals(2, requestCount)
     }
 
     @Test

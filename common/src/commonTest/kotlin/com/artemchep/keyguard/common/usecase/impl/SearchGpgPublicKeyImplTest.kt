@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DGpgKeyserverResult
+import com.artemchep.keyguard.common.model.DGpgKeyserverUploadResult
 import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.SearchGpgPublicKeyRequest
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
@@ -155,7 +156,15 @@ class SearchGpgPublicKeyImplTest {
         override fun upload(
             publicKeyArmored: String,
             config: GpgKeyserverConfig,
-        ): IO<Unit> = ioEffect {
+        ): IO<DGpgKeyserverUploadResult> = ioEffect {
+            error("Not used by search.")
+        }
+
+        override fun requestVerify(
+            token: String,
+            addresses: Collection<String>,
+            config: GpgKeyserverConfig,
+        ): IO<DGpgKeyserverUploadResult> = ioEffect {
             error("Not used by search.")
         }
     }

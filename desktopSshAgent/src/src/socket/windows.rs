@@ -146,11 +146,16 @@ unsafe extern "system" {
 /// Serves the SSH agent protocol over a Windows named pipe.
 ///
 /// The pipe name is expected to be in the format `\\.\pipe\keyguard-ssh-agent`.
-pub async fn serve<K: KeyProvider>(
+pub async fn serve<K, F>(
     agent: KeyguardAgentFactory<K>,
     pipe_path: &Path,
     parent_stdin_closed: oneshot::Receiver<()>,
-) -> Result<()> {
+    on_ready: F,
+) -> Result<()>
+where
+    K: KeyProvider,
+    F: FnOnce() -> Result<()>,
+{
     let pipe_name = pipe_path
         .to_str()
         .context("Invalid pipe name (not valid UTF-8)")?;
@@ -165,6 +170,9 @@ pub async fn serve<K: KeyProvider>(
     // current owner. The local server retains bounded framing and deadlines.
     let listener = OwnerOnlyNamedPipeListener::bind(pipe_name)
         .with_context(|| format!("Failed to bind named pipe: {}", pipe_name))?;
+
+    // The first named-pipe instance now exists with the owner-only DACL.
+    on_ready().context("Failed to report SSH agent named-pipe readiness")?;
 
     super::server::listen_until(listener, agent, async move {
         let _ = parent_stdin_closed.await;

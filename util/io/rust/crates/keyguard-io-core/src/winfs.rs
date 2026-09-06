@@ -15,15 +15,15 @@ use windows_sys::Win32::{
         GetSecurityDescriptorDacl, GetSecurityDescriptorLength, GetSecurityDescriptorOwner,
         GetTokenInformation, IsValidAcl, IsValidSecurityDescriptor, IsValidSid,
         OWNER_SECURITY_INFORMATION, PROTECTED_DACL_SECURITY_INFORMATION, PSECURITY_DESCRIPTOR,
-        PSID, SE_DACL_PROTECTED, SE_SELF_RELATIVE, TOKEN_QUERY, TOKEN_USER, TokenUser,
-        UNPROTECTED_DACL_SECURITY_INFORMATION,
+        PSID, SE_DACL_PROTECTED, SE_SELF_RELATIVE, TOKEN_INFORMATION_CLASS, TOKEN_QUERY,
+        TOKEN_USER, TokenUser, UNPROTECTED_DACL_SECURITY_INFORMATION,
     },
     System::Threading::{GetCurrentProcess, OpenProcessToken},
 };
 
 #[cfg(test)]
 use windows_sys::Win32::{
-    Security::{ACCESS_ALLOWED_ACE, GetAce, INHERITED_ACE},
+    Security::{ACCESS_ALLOWED_ACE, GetAce, INHERITED_ACE, TOKEN_OWNER, TokenOwner},
     Storage::FileSystem::FILE_ALL_ACCESS,
 };
 
@@ -436,10 +436,14 @@ pub(crate) fn verify_inherited_owner_only_child(
     let expected_descriptor: PSECURITY_DESCRIPTOR = expected_parent.descriptor.0.cast();
     let expected_owner = descriptor_owner(expected_descriptor)?;
     let actual_owner = descriptor_owner(actual_descriptor)?;
+    // Children created without an explicit descriptor take the token's
+    // default owner. Under an elevated token that is BUILTIN\Administrators
+    // rather than the user SID the parent was stamped with, so accept either.
     // SAFETY: Both SIDs belong to validated, live security descriptors.
-    if unsafe { EqualSid(expected_owner, actual_owner) } == 0 {
+    let owned_by_parent_owner = unsafe { EqualSid(expected_owner, actual_owner) } != 0;
+    if !owned_by_parent_owner && !current_process_default_owner_matches(actual_owner)? {
         return Err(io::Error::other(
-            "inherited child owner differs from the protected directory owner",
+            "inherited child owner differs from both the directory owner and the process token's default owner",
         ));
     }
     if descriptor_control(actual_descriptor)? & SE_DACL_PROTECTED != 0 {
@@ -683,7 +687,12 @@ fn dacl_bytes(dacl: *const ACL) -> io::Result<Vec<u8>> {
     Ok(unsafe { std::slice::from_raw_parts(dacl.cast::<u8>(), length) }.to_vec())
 }
 
-fn current_process_user_sid() -> io::Result<String> {
+/// Reads one information class of the current process token into an owned
+/// byte buffer of at least `min_len` bytes.
+fn current_process_token_information(
+    class: TOKEN_INFORMATION_CLASS,
+    min_len: usize,
+) -> io::Result<Vec<u8>> {
     let mut token: HANDLE = ptr::null_mut();
     // SAFETY: token points to a writable HANDLE slot and the pseudo process
     // handle remains valid for the call.
@@ -695,8 +704,8 @@ fn current_process_user_sid() -> io::Result<String> {
 
     let mut required = 0_u32;
     // SAFETY: A null buffer with length zero is the documented size query.
-    let _ = unsafe { GetTokenInformation(token.0, TokenUser, ptr::null_mut(), 0, &mut required) };
-    if required < size_of::<TOKEN_USER>() as u32 {
+    let _ = unsafe { GetTokenInformation(token.0, class, ptr::null_mut(), 0, &mut required) };
+    if (required as usize) < min_len {
         return Err(io::Error::last_os_error());
     }
     let mut buffer = vec![0_u8; required as usize];
@@ -705,7 +714,7 @@ fn current_process_user_sid() -> io::Result<String> {
     let populated = unsafe {
         GetTokenInformation(
             token.0,
-            TokenUser,
+            class,
             buffer.as_mut_ptr().cast(),
             required,
             &mut required,
@@ -714,6 +723,11 @@ fn current_process_user_sid() -> io::Result<String> {
     if populated == 0 {
         return Err(io::Error::last_os_error());
     }
+    Ok(buffer)
+}
+
+fn current_process_user_sid() -> io::Result<String> {
+    let buffer = current_process_token_information(TokenUser, size_of::<TOKEN_USER>())?;
     // SAFETY: GetTokenInformation populated at least TOKEN_USER bytes. An
     // unaligned read avoids relying on Vec<u8>'s alignment.
     let token_user = unsafe { buffer.as_ptr().cast::<TOKEN_USER>().read_unaligned() };
@@ -753,6 +767,28 @@ fn current_process_user_sid() -> io::Result<String> {
         .map_err(|_| io::Error::from_raw_os_error(ERROR_INVALID_PARAMETER))?;
     drop(string_sid_allocation);
     Ok(sid)
+}
+
+#[cfg(test)]
+fn current_process_default_owner_matches(actual_owner: PSID) -> io::Result<bool> {
+    let buffer = current_process_token_information(TokenOwner, size_of::<TOKEN_OWNER>())?;
+    // SAFETY: GetTokenInformation populated at least TOKEN_OWNER bytes. An
+    // unaligned read avoids relying on Vec<u8>'s alignment.
+    let token_owner = unsafe { buffer.as_ptr().cast::<TOKEN_OWNER>().read_unaligned() };
+    if token_owner.Owner.is_null() {
+        return Err(io::Error::from_raw_os_error(ERROR_INVALID_PARAMETER));
+    }
+    // SAFETY: `token_owner.Owner` points into the live token-information
+    // buffer returned above.
+    if unsafe { IsValidSid(token_owner.Owner) } == 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "process token default owner SID is invalid",
+        ));
+    }
+
+    // SAFETY: Both SIDs are validated and remain live through the comparison.
+    Ok(unsafe { EqualSid(token_owner.Owner, actual_owner) } != 0)
 }
 
 fn null_terminated_wide(value: &std::ffi::OsStr) -> io::Result<Vec<u16>> {

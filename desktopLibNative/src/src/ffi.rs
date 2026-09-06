@@ -1,8 +1,10 @@
-use std::ffi::c_char;
-use std::ffi::c_void;
+use std::ffi::{c_char, c_int, c_void, CStr, CString};
 use std::panic::UnwindSafe;
+use std::ptr;
 
-pub(crate) type BiometricsVerifyCallback = Option<unsafe extern "C" fn(bool, *const c_char)>;
+pub(crate) type BiometricsVerifyCallback = Option<extern "C" fn(i32, *const c_char)>;
+pub(crate) type BiometricsResultCallback =
+    Option<extern "C" fn(i32, *const u8, u64, *const c_char)>;
 pub(crate) type HotKeyPressedCallback = Option<unsafe extern "C" fn(i32)>;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -11,16 +13,30 @@ enum FailureLogDetail {
     Redacted,
 }
 
-pub(crate) fn require_string(ptr: *const c_char, label: &str) -> Result<String, String> {
-    use std::ffi::CStr;
-
+/// Copies a required C string into a Rust string.
+///
+/// # Safety
+///
+/// If `ptr` is non-null, it must point to an immutable, readable,
+/// NUL-terminated byte sequence contained in one allocation and remain valid
+/// for the duration of this call.
+pub(crate) unsafe fn require_string(ptr: *const c_char, label: &str) -> Result<String, String> {
     let ptr = require_non_null(ptr, label)?;
-    // SAFETY: This helper is only used for C string arguments supplied through
-    // the exported FFI. That contract requires a readable, NUL-terminated byte
-    // sequence; the check above additionally establishes that it is non-null.
+    // SAFETY: The caller guarantees the `CStr::from_ptr` requirements above.
     Ok(unsafe { CStr::from_ptr(ptr) }
         .to_string_lossy()
         .into_owned())
+}
+
+/// Converts an optional message into a C string, dropping messages that
+/// cannot be represented. Pair with [optional_cstring_ptr].
+pub(crate) fn optional_cstring(value: Option<&str>) -> Option<CString> {
+    value.and_then(|value| CString::new(value).ok())
+}
+
+/// Borrows a pointer for a callback; null when there is no message.
+pub(crate) fn optional_cstring_ptr(value: &Option<CString>) -> *const c_char {
+    value.as_ref().map_or(ptr::null(), |value| value.as_ptr())
 }
 
 pub(crate) fn require_non_null<T>(ptr: *const T, label: &str) -> Result<*const T, String> {
@@ -29,6 +45,14 @@ pub(crate) fn require_non_null<T>(ptr: *const T, label: &str) -> Result<*const T
     }
 
     Ok(ptr)
+}
+
+pub(crate) fn bool_from_c_int(value: c_int, label: &str) -> Result<bool, String> {
+    match value {
+        0 => Ok(false),
+        1 => Ok(true),
+        _ => Err(format!("{label} must be either 0 or 1")),
+    }
 }
 
 pub(crate) fn with_ffi_boundary<T>(
@@ -84,7 +108,10 @@ pub(crate) fn free_ptr(ptr: *mut c_void) {
 
 #[cfg(test)]
 mod tests {
-    use super::{format_failure_log, free_ptr, require_non_null, require_string, FailureLogDetail};
+    use super::{
+        bool_from_c_int, format_failure_log, free_ptr, optional_cstring, optional_cstring_ptr,
+        require_non_null, require_string, FailureLogDetail,
+    };
     use std::ffi::CString;
 
     #[test]
@@ -96,8 +123,27 @@ mod tests {
     #[test]
     fn require_string_reads_utf8_string() {
         let value = CString::new("hello").unwrap();
-        let result = require_string(value.as_ptr(), "payload").unwrap();
+        // SAFETY: `value` is an immutable, readable, NUL-terminated C string
+        // that remains alive for the duration of the conversion.
+        let result = unsafe { require_string(value.as_ptr(), "payload") }.unwrap();
         assert_eq!(result, "hello");
+    }
+
+    #[test]
+    fn c_int_boolean_conversion_accepts_only_canonical_values() {
+        assert!(!bool_from_c_int(0, "value").unwrap());
+        assert!(bool_from_c_int(1, "value").unwrap());
+        assert_eq!(
+            bool_from_c_int(-1, "value").unwrap_err(),
+            "value must be either 0 or 1",
+        );
+    }
+
+    #[test]
+    fn optional_cstring_is_null_when_absent_or_invalid() {
+        assert!(optional_cstring_ptr(&optional_cstring(None)).is_null());
+        assert!(optional_cstring_ptr(&optional_cstring(Some("a\0b"))).is_null());
+        assert!(!optional_cstring_ptr(&optional_cstring(Some("ok"))).is_null());
     }
 
     #[test]

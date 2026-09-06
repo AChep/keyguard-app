@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.model.SyncProgress
 import com.artemchep.keyguard.common.model.SyncScope
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.logging.LogLevel
@@ -136,6 +137,7 @@ class SyncByBitwardenTokenV2Impl(
     private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val watchdog: Watchdog,
     private val markBackupAsDirty: MarkBackupAsDirty,
+    private val gpgCertificateMaterialReconciler: GpgCertificateMaterialReconciler,
     private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
 ) : SyncByBitwardenToken {
     companion object {
@@ -158,6 +160,7 @@ class SyncByBitwardenTokenV2Impl(
         pendingUploadCoordinator = directDI.instance(),
         watchdog = directDI.instance(),
         markBackupAsDirty = directDI.instance(),
+        gpgCertificateMaterialReconciler = directDI.instance(),
     )
 
     override fun invoke(user: BitwardenToken): IO<Unit> =
@@ -475,6 +478,7 @@ class SyncByBitwardenTokenV2Impl(
                     cryptoGenerator = cryptoGenerator,
                     base64Service = base64Service,
                     getPasswordStrength = getPasswordStrength,
+                    gpgCertificateMaterialReconciler = gpgCertificateMaterialReconciler,
                     gpgKeyMetadataResolver = gpgKeyMetadataResolver,
                     logRepository = logRepository,
                     httpClient = httpClient,

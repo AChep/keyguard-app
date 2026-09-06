@@ -3,8 +3,10 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec
 import app.keemobile.kotpass.cryptography.EncryptedValue
 import app.keemobile.kotpass.models.Entry
 import app.keemobile.kotpass.models.EntryValue
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.decodeOrNull
+import com.artemchep.keyguard.common.service.text.url
 import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.CipherSourceCanonicalPaths
@@ -335,13 +337,16 @@ internal class KeePassPasskeyCodec(
     ): String? {
         val body = pemBody(value) ?: return null
         val der = base64Service.decodeOrNull(body) ?: return null
-        return base64Service.encodeToString(der)
+        return PasskeyBase64.encodeToString(der)
     }
 
     private fun privateKeyBase64DerToPem(
         value: String,
     ): String? {
-        val der = base64Service.decodeOrNull(value) ?: return null
+        // Legacy key values may still use standard base64 encoding.
+        val der = runCatchingNonFatal {
+            PasskeyBase64.decode(base64Service.url(value))
+        }.getOrNull() ?: return null
         val body = base64Service.encodeToString(der)
             .chunked(PEM_LINE_LENGTH)
             .joinToString("\n")
@@ -369,7 +374,7 @@ internal class KeePassPasskeyCodec(
         value: String,
     ): Boolean {
         if (!BASE64_URL_REGEX.matches(value)) return false
-        return runCatching {
+        return runCatchingNonFatal {
             PasskeyBase64.decode(value).isNotEmpty()
         }.getOrDefault(false)
     }

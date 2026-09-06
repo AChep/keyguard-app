@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.test.gpgMetadata
 import com.artemchep.keyguard.common.usecase.ChangeGpgKeyExpirationByIdRequest
 import com.artemchep.keyguard.common.usecase.ChangeGpgKeyExpirationByIdResult
 import com.artemchep.keyguard.common.usecase.GetCiphers
@@ -421,22 +422,18 @@ class ChangeGpgKeyExpirationByIdImplTest {
     private companion object {
         const val CIPHER_ID = "cipher"
 
-        val sourceMetadata = GpgAgentKeyMetadata(
-            keys = listOf(
-                GpgAgentKeyMetadataKey(
+        val sourceMetadata = gpgMetadata(
+            GpgAgentKeyMetadataKey(
                     keygrip = "SOURCE-GRIP",
                     fingerprint = "PRIMARY",
                     capabilities = setOf("sign"),
-                ),
             ),
         )
-        val updatedMetadata = GpgAgentKeyMetadata(
-            keys = listOf(
-                GpgAgentKeyMetadataKey(
+        val updatedMetadata = gpgMetadata(
+            GpgAgentKeyMetadataKey(
                     keygrip = "SOURCE-GRIP",
                     fingerprint = "PRIMARY",
                     capabilities = setOf("sign"),
-                ),
             ),
         )
         val sourceMaterial = GpgKeyMaterial(

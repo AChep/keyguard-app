@@ -2,6 +2,7 @@ package com.artemchep.keyguard.wear.feature.vault.organizations
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import com.artemchep.keyguard.common.model.map
 import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsRoute
 import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsState
@@ -39,8 +40,8 @@ fun WearOrganizationsScreen(
 
 @Composable
 private fun WearOrganizationsListItem(
-    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
     item: OrganizationsState.Content.Item,
+    modifier: Modifier = Modifier,
     transformation: androidx.wear.compose.material3.SurfaceTransformation? = null,
 ) {
     val text = run {

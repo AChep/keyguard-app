@@ -30,12 +30,7 @@ internal fun produceAndroidIpcApprovalState(
             AndroidIpcApprovalState.Loading
         }
     var selectedKeyIds by remember(current.id) {
-        mutableStateOf(
-            current.candidates
-                .singleOrNull()
-                ?.let { setOf(it.id) }
-                .orEmpty(),
-        )
+        mutableStateOf(initialAndroidIpcApprovalSelection(current.candidates))
     }
     return AndroidIpcApprovalState.Ready(
         appLabel = current.appLabel,
@@ -66,4 +61,13 @@ internal fun produceAndroidIpcApprovalState(
         },
         onDeny = onDeny,
     )
+}
+
+internal fun initialAndroidIpcApprovalSelection(
+    candidates: List<AndroidIpcApprovalCoordinator.Candidate>,
+): Set<String> {
+    val candidate = candidates
+        .singleOrNull(AndroidIpcApprovalCoordinator.Candidate::preselected)
+        ?: candidates.singleOrNull()
+    return setOfNotNull(candidate?.id)
 }

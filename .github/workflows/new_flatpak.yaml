@@ -30,8 +30,10 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: ${{ matrix.rust-target }}
-      - name: "Prefetch locked native crypto graph"
-        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+      - name: "Prefetch locked native graphs"
+        run: |
+          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+          cargo fetch --manifest-path util/zxcvbn/rust/Cargo.toml --locked
       - uses: ./.github/actions/setup_protobuf
       - uses: ./.github/actions/setup_linux_desktop
       - uses: ./.github/actions/setup_python

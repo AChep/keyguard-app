@@ -7,7 +7,9 @@
 //! Secret erasure remains handwritten because it expresses security policy
 //! that cannot be inferred from the protobuf schema.
 
-#[allow(missing_docs)]
+// Prost oneof enums intentionally store generated message values inline. The
+// wire schema, rather than Rust enum layout, is the compatibility boundary.
+#[allow(clippy::large_enum_variant, missing_docs)]
 #[rustfmt::skip]
 mod generated;
 mod secret_erasure;

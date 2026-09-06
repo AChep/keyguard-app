@@ -8,7 +8,6 @@ import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.model.ignores
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
-import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgKeygrip
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.similarity.SimilarityService
@@ -740,15 +739,8 @@ class CipherDuplicatesCheckImpl(
             fingerprint = gpgKey.fingerprint
                 ?.normalizeGpgFingerprint()
                 ?.takeIf(String::isNotEmpty),
-            metadata = gpgKey.metadata?.copy(
-                keys = gpgKey.metadata.keys
-                    .map { key ->
-                        key.copy(
-                            keygrip = key.keygrip.normalizeGpgKeygrip(),
-                            fingerprint = key.fingerprint.normalizeGpgFingerprint(),
-                        )
-                    },
-            ),
+            // Metadata is a derived local cache and is not part of the key's identity.
+            metadata = null,
         )
     }
 
@@ -779,20 +771,6 @@ class CipherDuplicatesCheckImpl(
             fingerprint
                 ?.takeIf(String::isNotBlank)
                 ?.let { add("fingerprint:$it") }
-            metadata
-                ?.keys
-                .orEmpty()
-                .flatMap { key ->
-                    listOfNotNull(
-                        key.fingerprint
-                            .takeIf(String::isNotBlank)
-                            ?.let { "fingerprint:$it" },
-                        key.keygrip
-                            .takeIf(String::isNotBlank)
-                            ?.let { "keygrip:$it" },
-                    )
-                }
-                .let(::addAll)
         }.distinct()
 
     private fun String?.normalizeGpgArmor(): String? = this

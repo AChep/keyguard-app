@@ -11,6 +11,7 @@ import com.artemchep.keyguard.ipctestclient.ipc.sshResultCodeName
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.openintents.openpgp.OpenPgpError
+import org.openintents.openpgp.OpenPgpSignatureResult
 import org.openintents.openpgp.util.OpenPgpApi
 import org.openintents.ssh.authentication.SshAuthenticationApi
 import org.openintents.ssh.authentication.SshAuthenticationApiError
@@ -24,16 +25,29 @@ fun failWithExchangeLog(message: String): Nothing =
 fun IpcExchange.requireResult(): Intent = result
     ?: failWithExchangeLog("The provider returned no result\n${describe()}")
 
-fun IpcExchange.requireOpenPgpSuccess(): Intent {
+fun IpcExchange.requireOpenPgpSuccess(): Intent =
+    requireOpenPgpResultCode(OpenPgpApi.RESULT_CODE_SUCCESS)
+
+fun IpcExchange.requireOpenPgpUserInteraction(): Intent =
+    requireOpenPgpResultCode(OpenPgpApi.RESULT_CODE_USER_INTERACTION_REQUIRED)
+
+private fun IpcExchange.requireOpenPgpResultCode(expected: Int): Intent {
     val result = requireResult()
     val code = result.getIntExtra(OpenPgpApi.RESULT_CODE, IpcExchange.UNKNOWN_RESULT_CODE)
-    if (code != OpenPgpApi.RESULT_CODE_SUCCESS) {
+    if (code != expected) {
         failWithExchangeLog(
-            "Expected SUCCESS but got ${openPgpResultCodeName(code)}\n${describe()}",
+            "Expected ${openPgpResultCodeName(expected)} but got " +
+                "${openPgpResultCodeName(code)}\n${describe()}",
         )
     }
     return result
 }
+
+/** The signature result the provider attached, or a self-explaining failure. */
+@Suppress("DEPRECATION")
+fun Intent.requireSignatureResult(): OpenPgpSignatureResult =
+    getParcelableExtra(OpenPgpApi.RESULT_SIGNATURE)
+        ?: failWithExchangeLog("No OpenPgpSignatureResult in the result")
 
 fun IpcExchange.requireSshSuccess(): Intent {
     val result = requireResult()

@@ -45,7 +45,7 @@ class OpenPgpAutocryptTest {
 
     @Test
     fun aKnownRecipientIsDiscouraged() {
-        val email = knownEmail()
+        val email = state.signingEmail()
         val result = query(email).requireOpenPgpSuccess()
         assertEquals(
             openPgpAutocryptStatusName(OpenPgpApi.AUTOCRYPT_STATUS_DISCOURAGE),
@@ -56,7 +56,7 @@ class OpenPgpAutocryptTest {
     /** Keyguard never certifies a peer, so these two values must never appear. */
     @Test
     fun availableAndMutualAreNeverReported() {
-        listOf(UNKNOWN_RECIPIENT, knownEmail()).forEach { recipient ->
+        listOf(UNKNOWN_RECIPIENT, state.signingEmail()).forEach { recipient ->
             val result = query(recipient).requireOpenPgpSuccess()
             assertTrue(
                 "Autocrypt reported ${openPgpAutocryptStatusName(status(result))}",
@@ -75,7 +75,7 @@ class OpenPgpAutocryptTest {
      */
     @Test
     fun anAmbiguousRecipientCanBeResolvedWithoutReplayingTheToken() {
-        val email = knownEmail()
+        val email = state.signingEmail()
         val exchange = query(email)
         val result = exchange.requireOpenPgpSuccess()
         val pendingIntent = exchange
@@ -104,14 +104,6 @@ class OpenPgpAutocryptTest {
         OpenPgpApi.RESULT_AUTOCRYPT_STATUS,
         IpcExchange.UNKNOWN_RESULT_CODE,
     )
-
-    private fun knownEmail(): String {
-        val userId = state.primaryUserId()
-        val email = userId?.substringAfter('<', "")?.substringBefore('>')?.ifBlank { null }
-            ?: userId?.takeIf { it.contains('@') }
-        assumeTrue("The signing key's primary user id has no e-mail: $userId", email != null)
-        return email!!
-    }
 
     private companion object {
         const val UNKNOWN_RECIPIENT = "missing-recipient@example.invalid"

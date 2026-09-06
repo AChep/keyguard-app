@@ -18,6 +18,21 @@ val ByteArray.int: Int
 
 fun ByteArray.toHex(): String = hex(this)
 
+/**
+ * Uses caller-owned key material for one operation and clears the mutable
+ * buffer when that operation completes, fails, or is cancelled.
+ *
+ * Inlining lets [block] suspend when the caller does, without forcing
+ * non-suspending users to wrap their work in a suspending lambda.
+ */
+inline fun <T> ByteArray.useAndClear(
+    block: (ByteArray) -> T,
+): T = try {
+    block(this)
+} finally {
+    fill(0)
+}
+
 fun String.hexToByteArray(): ByteArray {
     require(length % 2 == 0) {
         "Hex string must contain an even number of characters."

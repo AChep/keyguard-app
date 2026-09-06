@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyInfoRow
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.test.gpgMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentSecret
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
@@ -213,14 +214,12 @@ class GpgAgentListKeysContractTest {
             privateKeyArmored = "private-key",
             publicKeyArmored = "public-key",
             fingerprint = fingerprint,
-            metadata = GpgAgentKeyMetadata(
-                keys = listOf(
-                    GpgAgentKeyMetadataKey(
+            metadata = gpgMetadata(
+                GpgAgentKeyMetadataKey(
                         keygrip = keygrip,
                         fingerprint = fingerprint,
                         algorithm = "ED25519",
                         capabilities = setOf("sign", "decrypt"),
-                    ),
                 ),
             ),
         ),

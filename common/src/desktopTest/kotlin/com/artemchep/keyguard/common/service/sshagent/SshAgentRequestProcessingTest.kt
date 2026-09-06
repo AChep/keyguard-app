@@ -10,7 +10,9 @@ import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
+import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
+import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
 import com.artemchep.keyguard.common.service.logging.LogLevel
@@ -1068,6 +1070,116 @@ class SshAgentRequestProcessingTest {
     }
 
     @Test
+    fun `macos terminal approval is reused by new processes with or without an application subject`() = runTest {
+        listOf<Byte?>(40, null).forEach { application ->
+            assertMacosApprovalCount(
+                callers = listOf(
+                    macosCaller(connection = 1, application = application),
+                    macosCaller(connection = 2, application = application),
+                ),
+                expected = 1,
+            )
+        }
+    }
+
+    @Test
+    fun `macos terminal sessions share only when application scope is selected`() = runTest {
+        val callers = listOf(
+            macosCaller(connection = 1, terminal = 30),
+            macosCaller(connection = 2, terminal = 31),
+            macosCaller(connection = 3, terminal = 32, application = 41),
+        )
+        assertMacosApprovalCount(callers = callers, expected = 3)
+        assertMacosApprovalCount(
+            policy = AgentApprovalCachePolicy.Application,
+            callers = callers,
+            expected = 2,
+        )
+    }
+
+    @Test
+    fun `macos subjects cannot widen connection or process approval scopes`() = runTest {
+        val callers = listOf(
+            macosCaller(connection = 1, process = 11),
+            macosCaller(connection = 2, process = 11),
+            macosCaller(connection = 3, process = 12),
+        )
+        assertMacosApprovalCount(
+            policy = AgentApprovalCachePolicy.Connection,
+            callers = callers,
+            expected = 3,
+        )
+        assertMacosApprovalCount(
+            policy = AgentApprovalCachePolicy.Process,
+            callers = callers,
+            expected = 2,
+        )
+    }
+
+    @Test
+    fun `macos failed joint proof cannot reuse approval through its application label`() = runTest {
+        val callers = listOf(
+            macosCaller(connection = 1, terminal = null, application = null),
+            macosCaller(connection = 2, terminal = null, application = null),
+        )
+        listOf(AgentApprovalCachePolicy.Default, AgentApprovalCachePolicy.Application).forEach { policy ->
+            assertMacosApprovalCount(policy = policy, callers = callers, expected = 2)
+        }
+    }
+
+    @Test
+    fun `macos session approval remains partitioned by SSH authorization context`() = runTest {
+        assertMacosApprovalCount(
+            callers = listOf(
+                macosCaller(connection = 1, context = 50),
+                macosCaller(connection = 2, context = 50),
+                macosCaller(connection = 3, context = 51),
+            ),
+            expected = 2,
+        )
+    }
+
+    private suspend fun assertMacosApprovalCount(
+        callers: List<SshAgentMessages.CallerIdentity>,
+        expected: Int,
+        policy: AgentApprovalCachePolicy = AgentApprovalCachePolicy.Default,
+    ) {
+        var approvalPromptCount = 0
+        val keyPair = signerKeyPair
+        val server = createServer(
+            vaultSession = MutableVaultSession(
+                createUnlockedSession(
+                    createSshSecret(
+                        name = "Signer",
+                        publicKey = keyPair.publicKeyOpenSsh,
+                        fingerprint = "SHA256:signer",
+                        privateKey = keyPair.privateKeyPem,
+                    ),
+                ),
+            ),
+            approvalWindow = 5.minutes,
+            approvalCachePolicyFlow = flowOf(policy),
+            onApprovalRequest = {
+                approvalPromptCount++
+                true
+            },
+        )
+        callers.forEachIndexed { index, caller ->
+            val response = server.handleSignData(
+                requestId = index.toLong(),
+                req = SshAgentMessages.SignDataRequest(
+                    publicKey = keyPair.publicKeyOpenSsh,
+                    data = byteArrayOf(1, 2, 3),
+                    flags = 0x02,
+                    caller = caller,
+                ),
+            )
+            assertNull(response.error, "Request $index with $policy")
+        }
+        assertEquals(expected, approvalPromptCount, "Approval count with $policy")
+    }
+
+    @Test
     fun `handleSignData never remembers legacy callers with the same app name`() = runTest {
         var approvalPromptCount = 0
         val keyPair = signerKeyPair
@@ -1537,6 +1649,48 @@ class SshAgentRequestProcessingTest {
         appName = appName,
         authorization = CallerAuthorization(
             connectionFingerprint = ByteArray(32) { fingerprintByte },
+        ),
+    )
+
+    private fun macosCaller(
+        connection: Byte,
+        process: Byte = (connection + 10).toByte(),
+        terminal: Byte? = 30,
+        application: Byte? = 40,
+        context: Byte? = null,
+    ) = SshAgentMessages.CallerIdentity(
+        appName = "iTerm2",
+        authorization = CallerAuthorization(
+            connectionFingerprint = ByteArray(32) { connection },
+            subjects = buildList {
+                add(
+                    CallerAuthorizationSubject(
+                        kind = AgentCallerAuthorizationSchema.SubjectKind.PROCESS,
+                        evidenceSource = AgentCallerAuthorizationSchema.EvidenceSource.MACOS_AUDIT_TOKEN,
+                        fingerprint = ByteArray(32) { process },
+                    ),
+                )
+                terminal?.let { fingerprint ->
+                    add(
+                        CallerAuthorizationSubject(
+                            kind = AgentCallerAuthorizationSchema.SubjectKind.TERMINAL_SESSION,
+                            evidenceSource = AgentCallerAuthorizationSchema.EvidenceSource.MACOS_TERMINAL_SESSION,
+                            fingerprint = ByteArray(32) { fingerprint },
+                        ),
+                    )
+                }
+                application?.let { fingerprint ->
+                    add(
+                        CallerAuthorizationSubject(
+                            kind = AgentCallerAuthorizationSchema.SubjectKind.STABLE_APPLICATION,
+                            evidenceSource = AgentCallerAuthorizationSchema.EvidenceSource.MACOS_CODE_SIGNING,
+                            fingerprint = ByteArray(32) { fingerprint },
+                        ),
+                    )
+                }
+            },
+            authorizationContextFingerprint = context?.let { value -> ByteArray(32) { value } }
+                ?: byteArrayOf(),
         ),
     )
 

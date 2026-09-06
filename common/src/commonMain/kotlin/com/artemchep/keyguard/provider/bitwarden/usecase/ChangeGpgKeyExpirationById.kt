@@ -149,14 +149,14 @@ private fun DSecret.GpgKey.toGpgKeyMaterial(): GpgKeyMaterial = GpgKeyMaterial(
     privateKeyArmored = privateKeyArmored.orEmpty(),
     publicKeyArmored = publicKeyArmored.orEmpty(),
     fingerprint = fingerprint.orEmpty(),
-    metadata = metadata ?: GpgAgentKeyMetadata(),
+    metadata = metadata,
 )
 
 private fun BitwardenCipher.GpgKey.toGpgKeyMaterial(): GpgKeyMaterial = GpgKeyMaterial(
     privateKeyArmored = privateKeyArmored.orEmpty(),
     publicKeyArmored = publicKeyArmored.orEmpty(),
     fingerprint = fingerprint.orEmpty(),
-    metadata = metadata ?: GpgAgentKeyMetadata(),
+    metadata = metadata,
 )
 
 private fun BitwardenCipher.GpgKey.withGpgKeyMaterial(

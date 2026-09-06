@@ -11,6 +11,7 @@ import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.TimeData
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.KEEPASS_FILE_UPLOAD_MAX_BYTES
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
@@ -32,9 +33,10 @@ import com.artemchep.keyguard.core.store.bitwarden.SourceBinding
 import com.artemchep.keyguard.core.store.bitwarden.withoutCardCanonicalPaths
 import com.artemchep.keyguard.core.store.bitwarden.withoutCanonicalPath
 import com.artemchep.keyguard.core.store.bitwarden.withoutIdentityCanonicalPaths
+import com.artemchep.keyguard.provider.bitwarden.api.merge
 import com.artemchep.keyguard.provider.bitwarden.usecase.resolveGpgMetadata
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
-import com.artemchep.keyguard.provider.bitwarden.upload.useAndClear
+import com.artemchep.keyguard.common.util.useAndClear
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
@@ -257,7 +259,7 @@ class KeePassCipherCodec(
         // makes the write idempotent if the KDBX file is saved but the
         // corresponding SQLite write-back is interrupted.
         val uuid = remote?.uuid
-            ?: runCatching {
+            ?: runCatchingNonFatal {
                 Uuid.parse(local.cipherId)
             }.getOrElse { Uuid.random() }
         val icon = local.customIcon?.toPredefinedIcon()
@@ -325,6 +327,26 @@ class KeePassCipherCodec(
             binaryAdditions = encodedAttachments.additions,
             sourceData = sourceData,
         )
+    }
+
+    private fun decodePasswordHistory(
+        remote: Entry,
+    ): List<BitwardenCipher.Login.PasswordHistory> {
+        val history = mutableListOf<BitwardenCipher.Login.PasswordHistory>()
+        var lastPassword = getPassword(remote)
+        remote.history
+            .sortedByDescending { it.times?.lastModificationTime }
+            .forEach { entry ->
+                val currentPassword = getPassword(entry)
+                if (currentPassword != null && currentPassword != lastPassword) {
+                    lastPassword = currentPassword
+                    history += BitwardenCipher.Login.PasswordHistory(
+                        password = currentPassword,
+                        lastUsedDate = entry.times?.lastModificationTime,
+                    )
+                }
+            }
+        return history
     }
 
     suspend fun decode(
@@ -410,26 +432,7 @@ class KeePassCipherCodec(
                 parsedDate
             }
 
-        fun getPassword(entry: Entry) = entry.fields.password?.content
-            .takeUnless { it.isNullOrEmpty() }
-
-        val passwordHistory = run {
-            val history = mutableListOf<BitwardenCipher.Login.PasswordHistory>()
-            var lastPassword = getPassword(remote)
-            remote.history
-                .sortedByDescending { it.times?.lastModificationTime }
-                .forEach { entry ->
-                    val curPassword = getPassword(entry)
-                    if (curPassword != null && curPassword != lastPassword) {
-                        lastPassword = curPassword
-                        history += BitwardenCipher.Login.PasswordHistory(
-                            password = curPassword,
-                            lastUsedDate = entry.times?.lastModificationTime,
-                        )
-                    }
-                }
-            history
-        }
+        val passwordHistory = decodePasswordHistory(remote)
 
         val reprompt = run {
             val enabled = scope
@@ -510,7 +513,7 @@ class KeePassCipherCodec(
                     )
                 }
             }
-        return BitwardenCipher(
+        val decodedRemote = BitwardenCipher(
             accountId = accountId,
             cipherId = cipherId,
             folderId = folderId,
@@ -560,6 +563,22 @@ class KeePassCipherCodec(
             archivedDate = archivedDate,
             deletedDate = deletedDate,
             revisionDate = revisionDate,
+        )
+        // decodedRemote carries no remoteEntity or keyBase64 of its own, so it
+        // doubles as the one-level canonical snapshot of the KDBX entry.
+        val merged = merge(
+            remote = decodedRemote.copy(remoteEntity = decodedRemote),
+            local = local,
+            getPasswordStrength = getPasswordStrength,
+            // The decoded remote GPG key was already enriched above. Passing
+            // the resolver again would repeat the potentially expensive parse.
+            gpgKeyMetadataResolver = null,
+        )
+        return merged.copy(
+            // KDBX does not store Bitwarden's per-cipher encryption key. Keep
+            // the local value on the live model while the canonical remote
+            // snapshot remains an exact representation of the KDBX entry.
+            keyBase64 = local?.keyBase64,
         )
     }
 
@@ -656,9 +675,6 @@ class KeePassCipherCodec(
                 ?: kotlin.time.Clock.System.now(),
         )
 
-        fun getPassword(entry: Entry) = entry.fields.password?.content
-            .takeUnless { it.isNullOrEmpty() }
-
         val passwordRevDate = run {
             val explicitRevDateRaw = scope
                 .consumeFieldAndReturnContent(KeePassFieldKey.PASSWORD_REVISION_DATE)
@@ -694,7 +710,7 @@ class KeePassCipherCodec(
                 .mapNotNull { field ->
                     val ordinal = field.key.removePrefix(prefix).toIntOrNull()
                         ?: return@mapNotNull null
-                    val credentials = runCatching {
+                    val credentials = runCatchingNonFatal {
                         val data = base64Service.decodeToString(field.value.content)
                         json.decodeFromString<BitwardenCipher.Login.Fido2Credentials>(data)
                     }.getOrElse { return@mapNotNull null }
@@ -895,6 +911,9 @@ class KeePassCipherCodec(
 
     // endregion
 }
+
+private fun getPassword(entry: Entry): String? = entry.fields.password?.content
+    .takeUnless { it.isNullOrEmpty() }
 
 private fun BitwardenCipher.Attachment.keepassFileName(): String = when (this) {
     is BitwardenCipher.Attachment.Remote -> fileName

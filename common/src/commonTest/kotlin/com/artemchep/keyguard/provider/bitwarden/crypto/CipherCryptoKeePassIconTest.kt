@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.crypto
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.test.gpgMetadata
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.KeePassIcon
@@ -368,14 +369,12 @@ private fun gpgKey() = BitwardenCipher.GpgKey(
     privateKeyArmored = PRIVATE_KEY_ARMORED,
     publicKeyArmored = PUBLIC_KEY_ARMORED,
     fingerprint = FINGERPRINT,
-    metadata = GpgAgentKeyMetadata(
-        keys = listOf(
-            GpgAgentKeyMetadataKey(
+    metadata = gpgMetadata(
+        GpgAgentKeyMetadataKey(
                 keygrip = "keygrip-1",
                 fingerprint = FINGERPRINT,
                 algorithm = "rsa4096",
                 capabilities = setOf("sign", "decrypt"),
-            ),
         ),
     ),
 )

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@array/android_wear_capabilities">
     <string-array name="android_wear_capabilities">
         <item>com.artemchep.keyguard.debug.phone_companion_auth</item>
     </string-array>

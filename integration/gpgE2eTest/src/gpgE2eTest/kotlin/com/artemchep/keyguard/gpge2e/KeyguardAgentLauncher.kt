@@ -1,6 +1,12 @@
 package com.artemchep.keyguard.gpge2e
 
+import com.artemchep.keyguard.common.service.agent.AGENT_STARTUP_READY_RECORD
+import com.artemchep.keyguard.common.service.agent.AGENT_STARTUP_READY_TIMEOUT_MS
 import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
+import com.artemchep.keyguard.common.service.agent.AgentProcessDiagnosticTail
+import com.artemchep.keyguard.common.service.agent.awaitAgentStartupReadiness
+import com.artemchep.keyguard.common.service.agent.drainAgentProcessOutput
+import com.artemchep.keyguard.common.service.agent.observeProcessExit
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentIpcServer
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
 import kotlinx.coroutines.CompletableDeferred
@@ -39,11 +45,12 @@ class KeyguardAgentLauncher(
 
     /**
      * @param ipcEndpoint endpoint for the Kotlin <-> Rust IPC channel.
-     * @param gpgSocket the endpoint the Rust binary binds for gpg or raw Assuan clients.
+     * @param gpgSocket the endpoint to bind, or null to exercise the platform default.
      */
     fun start(
         ipcEndpoint: AgentIpcEndpoint,
-        gpgSocket: String,
+        gpgSocket: String? = null,
+        environmentOverrides: Map<String, String?> = emptyMap(),
     ) {
         this.ipcEndpoint = ipcEndpoint
 
@@ -72,38 +79,9 @@ class KeyguardAgentLauncher(
             runBlocking {
                 withTimeout(5_000) { onReady.await() }
             }
-
-            val verbose = System.getProperty("keyguard.gpgE2e.verbose") == "true"
-            val command = buildList {
-                add(binaryPath.toAbsolutePath().toString())
-                add("--ipc-socket")
-                add(ipcEndpoint.argument)
-                add("--parent-pid")
-                add(ProcessHandle.current().pid().toString())
-                add("--gpg-socket")
-                add(gpgSocket)
-                if (verbose) add("--verbose")
-            }
-            val builder = ProcessBuilder(command)
-            builder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-            builder.redirectError(ProcessBuilder.Redirect.INHERIT)
-            val proc = builder.start()
-            this.process = proc
-            check(expectedPeerProcess.complete(proc)) {
-                "Expected GPG IPC peer process was already published"
-            }
-            val procStdin = proc.outputStream
-            this.processStdin = procStdin
-
-            // The Rust binary reads the auth token as HEX + '\n' from its stdin.
-            // Keep this stream open until stop(): EOF is the agent's parent-death signal.
-            val authTokenHex = authToken.joinToString("") { "%02x".format(it) }
-            procStdin.write(authTokenHex.encodeToByteArray())
-            procStdin.write('\n'.code)
-            procStdin.flush()
-
-            // Wait for the Rust binary to bind the gpg socket before any client gpg runs.
-            waitForSocket(gpgSocket, proc)
+            val proc = launchProcess(ipcEndpoint, gpgSocket, environmentOverrides)
+            process = proc
+            initializeProcess(proc, expectedPeerProcess)
         } catch (e: Exception) {
             expectedPeerProcess.completeExceptionally(e)
             stop()
@@ -111,31 +89,65 @@ class KeyguardAgentLauncher(
         }
     }
 
-    private fun waitForSocket(
-        gpgSocket: String,
-        proc: Process,
-    ) {
-        val deadline = System.currentTimeMillis() + 10_000
-        while (System.currentTimeMillis() < deadline) {
-            if (!proc.isAlive) {
-                error("keyguard-gpg-agent exited early with code ${proc.exitValue()}")
-            }
-            if (canConnectToSocket(gpgSocket)) {
-                Thread.sleep(250)
-                if (!proc.isAlive) {
-                    error("keyguard-gpg-agent exited after binding $gpgSocket with code ${proc.exitValue()}")
-                }
-                return
-            }
-            Thread.sleep(50)
+    private fun launchProcess(
+        ipcEndpoint: AgentIpcEndpoint,
+        gpgSocket: String?,
+        environmentOverrides: Map<String, String?>,
+    ): Process {
+        val verbose = System.getProperty("keyguard.gpgE2e.verbose") == "true"
+        val command = buildList {
+            add(binaryPath.toAbsolutePath().toString())
+            addAll(listOf("--ipc-socket", ipcEndpoint.argument))
+            addAll(listOf("--parent-pid", ProcessHandle.current().pid().toString()))
+            if (gpgSocket != null) addAll(listOf("--gpg-socket", gpgSocket))
+            if (verbose) add("--verbose")
         }
-        error("Timed out waiting for the gpg socket to appear at $gpgSocket")
+        return ProcessBuilder(command).apply {
+            GpgToolchain.current.applyToEnvironment(environment())
+            environmentOverrides.forEach { (name, value) ->
+                if (value == null) environment().remove(name) else environment()[name] = value
+            }
+        }.start()
     }
 
-    private fun canConnectToSocket(gpgSocket: String): Boolean = runCatching {
-        assuanTranscript(gpgSocket, listOf("BYE\n"))
-            .any { it == "OK" || it.startsWith("OK ") }
-    }.getOrDefault(false)
+    private fun initializeProcess(
+        proc: Process,
+        expectedPeerProcess: CompletableDeferred<Process>,
+    ) {
+        val startupReady = CompletableDeferred<Unit>()
+        val diagnostics = AgentProcessDiagnosticTail()
+        val outputDrains = drainAgentProcessOutput(
+            scope = scope,
+            process = proc,
+            displayName = BINARY_NAME,
+            readyRecord = AGENT_STARTUP_READY_RECORD,
+            ready = startupReady,
+            diagnostics = diagnostics,
+            logStdout = { line -> println("$BINARY_NAME stdout: $line") },
+            logStderr = { line -> System.err.println("$BINARY_NAME stderr: $line") },
+            logReadFailure = { message -> System.err.println(message) },
+        )
+        val processExit = observeProcessExit(proc)
+        check(expectedPeerProcess.complete(proc)) {
+            "Expected GPG IPC peer process was already published"
+        }
+        val procStdin = proc.outputStream.also { processStdin = it }
+        val authTokenHex = authToken.joinToString("") { "%02x".format(it) }
+        procStdin.write(authTokenHex.encodeToByteArray())
+        procStdin.write('\n'.code)
+        procStdin.flush()
+        runBlocking {
+            awaitAgentStartupReadiness(
+                ready = startupReady,
+                processExited = processExit,
+                timeoutMs = AGENT_STARTUP_READY_TIMEOUT_MS,
+                displayName = BINARY_NAME,
+                diagnostics = diagnostics,
+                outputDrains = outputDrains,
+            )
+        }
+        diagnostics.close()
+    }
 
     fun assuanTranscript(
         gpgSocket: String,
@@ -294,6 +306,7 @@ class KeyguardAgentLauncher(
     )
 
     companion object {
+        private const val BINARY_NAME = "keyguard-gpg-agent"
         private const val WINDOWS_ASSUAN_NONCE_SIZE = 16
     }
 }

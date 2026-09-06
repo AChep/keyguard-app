@@ -7,6 +7,7 @@ import com.artemchep.keyguard.util.io.atomic.AtomicWriteReceipt
 import com.artemchep.keyguard.util.io.atomic.SyncLevel
 import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
 import com.artemchep.keyguard.util.io.toLocalPath
+import com.artemchep.keyguard.util.zip.createZipService
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
@@ -35,6 +36,7 @@ abstract class BackupRepositoryZipTestBase {
 
     protected val repository = BackupRepositoryZipImpl(
         json = json,
+        zipService = createZipService(),
     )
 
     protected fun manifest(

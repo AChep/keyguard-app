@@ -14,7 +14,9 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdInfo
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
@@ -43,7 +45,10 @@ object NativeGpgPublicKeyParser : GpgPublicKeyParser {
         return try {
             when (val result = NativeCrypto.openPgp.parsePublicKeys(keyData)) {
                 is NativeOpenPgpPublicKeyParseResult.Success ->
-                    GpgPublicKeyParseResult.Success(result.keys.map { it.toDomain() })
+                    GpgPublicKeyParseResult.Success(
+                        keys = result.keys.map { it.toDomain() },
+                        skippedCertificates = result.skippedCertificates,
+                    )
 
                 is NativeOpenPgpPublicKeyParseResult.Error -> GpgPublicKeyParseResult.Error(
                     reason = when (result.reason) {
@@ -51,6 +56,8 @@ object NativeGpgPublicKeyParser : GpgPublicKeyParser {
                         NativeOpenPgpPublicKeyParseError.MALFORMED -> GpgPublicKeyParseError.Malformed
                         NativeOpenPgpPublicKeyParseError.UNSUPPORTED_KEY_VERSION ->
                             GpgPublicKeyParseError.UnsupportedKeyVersion
+                        NativeOpenPgpPublicKeyParseError.MULTIPLE_CERTIFICATES ->
+                            GpgPublicKeyParseError.MultipleCertificates
                     },
                 )
             }
@@ -71,7 +78,7 @@ object NativeGpgKeyMetadataResolver : GpgKeyMetadataResolver {
         publicKeyArmored: String?,
         fingerprint: String?,
         candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
-    ): GpgAgentKeyMetadata? {
+    ): GpgAgentMetadataResolution? {
         val normalizedFingerprint = fingerprint
             ?.normalizeGpgFingerprint()
             .orEmpty()
@@ -84,20 +91,30 @@ object NativeGpgKeyMetadataResolver : GpgKeyMetadataResolver {
         val publicKeyData = publicKeyArmored
             ?.takeIf { it.isNotBlank() }
             ?.encodeToByteArray()
-        val candidates = candidateRevocationKeys
-            .clampToNativeOpenPgpKeyLimit()
-            .map { key -> key.armored.encodeToByteArray() }
         return try {
-            NativeCrypto.openPgp.resolveMetadata(
-                privateKeyData = privateKeyData,
-                publicKeyData = publicKeyData,
-                normalizedFingerprint = normalizedFingerprint,
-                candidateRevocationKeys = candidates,
-            )?.toDomain()
+            candidateRevocationKeys.withEncodedRevocationKeyCandidates(
+                targetPrivateKeys = listOfNotNull(
+                    privateKeyData?.let { keyData ->
+                        EncodedRevocationTarget(keyData, normalizedFingerprint)
+                    },
+                ),
+                targetPublicKeys = listOfNotNull(
+                    publicKeyData?.let { keyData ->
+                        EncodedRevocationTarget(keyData, normalizedFingerprint)
+                    },
+                ),
+            ) { candidates, referenceTimeEpochSeconds ->
+                NativeCrypto.openPgp.resolveMetadata(
+                    privateKeyData = privateKeyData,
+                    publicKeyData = publicKeyData,
+                    normalizedFingerprint = normalizedFingerprint,
+                    candidateRevocationKeys = candidates,
+                    referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                )?.toDomain()
+            }
         } finally {
             privateKeyData?.fill(0)
             publicKeyData?.fill(0)
-            candidates.forEach { candidate -> candidate.fill(0) }
         }
     }
 }
@@ -189,7 +206,7 @@ private fun Source.readBoundedAndClose(
     }
 }
 
-private fun NativeOpenPgpPublicKeyInfo.toDomain(): GpgPublicKeyInfo = GpgPublicKeyInfo(
+internal fun NativeOpenPgpPublicKeyInfo.toDomain(): GpgPublicKeyInfo = GpgPublicKeyInfo(
     fingerprint = fingerprint,
     keygrip = keygrip,
     keyId = keyId,
@@ -204,6 +221,14 @@ private fun NativeOpenPgpPublicKeyInfo.toDomain(): GpgPublicKeyInfo = GpgPublicK
     canEncrypt = canEncrypt,
     publicKeyArmored = publicKeyArmored,
     subKeys = subkeys.map { it.toDomain() },
+    authenticated = authenticated,
+    renewal = renewal.toDomain(),
+    userIdDetails = userIdDetails.map { value ->
+        GpgUserIdInfo(
+            identityId = value.identityId,
+            userId = value.userId,
+        )
+    },
 )
 
 private fun NativeOpenPgpPublicSubKeyInfo.toDomain(): GpgPublicSubKeyInfo = GpgPublicSubKeyInfo(
@@ -217,6 +242,7 @@ private fun NativeOpenPgpPublicSubKeyInfo.toDomain(): GpgPublicSubKeyInfo = GpgP
     revoked = revoked,
     createdAt = createdAtEpochSeconds?.let(Instant::fromEpochSeconds),
     expiresAt = expiresAtEpochSeconds?.let(Instant::fromEpochSeconds),
+    authenticated = authenticated,
 )
 
 internal fun NativeOpenPgpVerification.toDomain(): GpgOpenPgpVerification =
@@ -241,6 +267,13 @@ internal fun NativeOpenPgpVerification.toDomain(): GpgOpenPgpVerification =
 
                 NativeOpenPgpVerificationWarning.SIGNATURE_EXPIRED ->
                     GpgOpenPgpVerificationWarning.SIGNATURE_EXPIRED
+
+                NativeOpenPgpVerificationWarning.POLICY_CONFLICT ->
+                    GpgOpenPgpVerificationWarning.POLICY_CONFLICT
+
+                NativeOpenPgpVerificationWarning.WEAK_DIGEST ->
+                    GpgOpenPgpVerificationWarning.WEAK_DIGEST
             }
         },
+        signatures = signatures.map { result -> result.toDomain() },
     )

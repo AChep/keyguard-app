@@ -1,10 +1,14 @@
 package com.artemchep.keyguard.common.service.gpgagent.impl
 
+import app.cash.sqldelight.Transacter
+import app.cash.sqldelight.db.QueryResult
+import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
+import com.artemchep.keyguard.common.service.gpgagent.GpgCertificationAuthorityEntry
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyEntry
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.dataexposed.UrlBlock
@@ -18,7 +22,7 @@ import kotlin.test.assertTrue
 
 class GpgPublicKeyRepositoryImplTest {
     @Test
-    fun `replaceAll restores public-only key rows from exposed database`() = runTest {
+    fun `replaceSnapshot restores public-only key rows from exposed database`() = runTest {
         val repository = createRepository()
         val publicOnly = createEntry(
             cipherId = "public-only",
@@ -27,9 +31,12 @@ class GpgPublicKeyRepositoryImplTest {
             keygrip = "0123456789abcdef0123456789abcdef01234567",
         )
 
-        repository.replaceAll(listOf(publicOnly)).invoke()
+        repository.replaceSnapshot(
+            publicKeys = listOf(publicOnly),
+            certificationAuthorities = emptyList(),
+        ).invoke()
 
-        val row = repository.getPublicKeys().invoke().single()
+        val row = repository.getSnapshot().invoke().publicKeys.single()
         assertEquals(publicOnly.accountId, row.accountId)
         assertEquals(publicOnly.cipherId, row.cipherId)
         assertEquals(publicOnly.publicKeyArmored, row.publicKeyArmored)
@@ -44,8 +51,38 @@ class GpgPublicKeyRepositoryImplTest {
 
         repository.clearNames().invoke()
 
-        assertNull(repository.getPublicKeys().invoke().single().name)
+        assertNull(repository.getSnapshot().invoke().publicKeys.single().name)
         assertNull(repository.getKeyInfo().invoke().single().name)
+    }
+
+    @Test
+    fun `snapshot stores and clears public keys and authorities together`() = runTest {
+        val repository = createRepository()
+        val publicKey = createEntry(
+            cipherId = "public",
+            name = "Public",
+            fingerprint = "ABCDEF0123456789ABCDEF0123456789ABCDEF01",
+            keygrip = "0123456789ABCDEF0123456789ABCDEF01234567",
+        )
+        val authority = createAuthority("authority")
+
+        repository.replaceSnapshot(
+            publicKeys = listOf(publicKey),
+            certificationAuthorities = listOf(authority),
+        ).invoke()
+
+        val snapshot = repository.getSnapshot().invoke()
+        assertEquals(publicKey.cipherId, snapshot.publicKeys.single().cipherId)
+        val row = snapshot.certificationAuthorities.single()
+        assertEquals(authority.accountId, row.accountId)
+        assertEquals(authority.cipherId, row.cipherId)
+        assertEquals(authority.publicKeyArmored, row.publicKeyArmored)
+        assertEquals(authority.primaryFingerprint, row.primaryFingerprint)
+
+        repository.clear().invoke()
+        val cleared = repository.getSnapshot().invoke()
+        assertTrue(cleared.publicKeys.isEmpty())
+        assertTrue(cleared.certificationAuthorities.isEmpty())
     }
 
     @Test
@@ -58,9 +95,12 @@ class GpgPublicKeyRepositoryImplTest {
             keygrip = "1123456789ABCDEF0123456789ABCDEF01234567",
         ).copy(publicKeyArmored = null)
 
-        repository.replaceAll(listOf(incomplete)).invoke()
+        repository.replaceSnapshot(
+            publicKeys = listOf(incomplete),
+            certificationAuthorities = emptyList(),
+        ).invoke()
 
-        assertTrue(repository.getPublicKeys().invoke().isEmpty())
+        assertTrue(repository.getSnapshot().invoke().publicKeys.isEmpty())
         assertEquals(1, repository.getKeyInfo().invoke().size)
     }
 
@@ -103,8 +143,8 @@ class GpgPublicKeyRepositoryImplTest {
             fingerprint = "ABCDEF0123456789ABCDEF0123456789ABCDEF03",
             keygrip = "2123456789ABCDEF0123456789ABCDEF01234567",
         )
-        repository.replaceAll(listOf(first)).invoke()
-        repository.replaceAll(listOf(second)).invoke()
+        repository.replaceSnapshot(listOf(first), emptyList()).invoke()
+        repository.replaceSnapshot(listOf(second), emptyList()).invoke()
         assertEquals(
             listOf("second"),
             repository.getKeyInfo().invoke().map { it.cipherId },
@@ -130,10 +170,86 @@ class GpgPublicKeyRepositoryImplTest {
             keygrip = keygrip,
         )
 
-        repository.replaceAll(listOf(first, second)).invoke()
+        repository.replaceSnapshot(listOf(first, second), emptyList()).invoke()
 
         val rows = repository.getKeyInfoByKeygrip(keygrip).invoke()
         assertEquals(listOf("first", "second"), rows.map { it.cipherId })
+    }
+
+    @Test
+    fun `snapshot read and replacement each use one database transaction`() = runTest {
+        val delegate = createSqlDriver()
+        DatabaseExposed.Schema.create(delegate)
+        val recordingDriver = RecordingSqlDriver(delegate)
+        val database = createExposedDatabase(recordingDriver)
+        val repository = createRepository(database)
+
+        repository.replaceSnapshot(
+            publicKeys = listOf(
+                createEntry(
+                    cipherId = "public",
+                    name = "Public",
+                    fingerprint = "ABCDEF0123456789ABCDEF0123456789ABCDEF01",
+                    keygrip = "0123456789ABCDEF0123456789ABCDEF01234567",
+                ),
+            ),
+            certificationAuthorities = listOf(createAuthority("authority")),
+        ).invoke()
+        assertEquals(1, recordingDriver.transactionCount)
+
+        repository.getSnapshot().invoke()
+        assertEquals(2, recordingDriver.transactionCount)
+    }
+
+    @Test
+    fun `failed authority replacement rolls back the complete snapshot`() = runTest {
+        val driver = createSqlDriver()
+        DatabaseExposed.Schema.create(driver)
+        val database = createExposedDatabase(driver)
+        val repository = createRepository(database)
+        val oldPublicKey = createEntry(
+            cipherId = "old-public",
+            name = "Old public",
+            fingerprint = "ABCDEF0123456789ABCDEF0123456789ABCDEF01",
+            keygrip = "0123456789ABCDEF0123456789ABCDEF01234567",
+        )
+        val oldAuthority = createAuthority("old-authority")
+        repository.replaceSnapshot(listOf(oldPublicKey), listOf(oldAuthority)).invoke()
+        driver.execute(
+            identifier = null,
+            sql = """
+                CREATE TRIGGER reject_authority
+                BEFORE INSERT ON gpgCertificationAuthority
+                WHEN NEW.cipherId = 'reject'
+                BEGIN
+                    SELECT RAISE(ABORT, 'rejected authority');
+                END
+            """.trimIndent(),
+            parameters = 0,
+        )
+
+        val failure = runCatching {
+            repository.replaceSnapshot(
+                publicKeys = listOf(
+                    createEntry(
+                        cipherId = "new-public",
+                        name = "New public",
+                        fingerprint = "ABCDEF0123456789ABCDEF0123456789ABCDEF02",
+                        keygrip = "1123456789ABCDEF0123456789ABCDEF01234567",
+                    ),
+                ),
+                certificationAuthorities = listOf(createAuthority("reject")),
+            ).invoke()
+        }
+        assertTrue(failure.isFailure)
+
+        val snapshot = repository.getSnapshot().invoke()
+        assertEquals(listOf("old-public"), snapshot.publicKeys.map { it.cipherId })
+        assertEquals(
+            listOf("old-authority"),
+            snapshot.certificationAuthorities.map { it.cipherId },
+        )
+        assertEquals(listOf("old-public"), repository.getKeyInfo().invoke().map { it.cipherId })
     }
 
     private fun createEntry(
@@ -160,10 +276,33 @@ class GpgPublicKeyRepositoryImplTest {
         ),
     )
 
-    private fun createRepository() = GpgPublicKeyRepositoryImpl(
-        exposedDatabaseManager = TestExposedDatabaseManager(),
+    private fun createAuthority(
+        cipherId: String,
+    ) = GpgCertificationAuthorityEntry(
+        accountId = "account",
+        cipherId = cipherId,
+        publicKeyArmored = "-----BEGIN PGP PUBLIC KEY BLOCK-----",
+        primaryFingerprint = "ABCDEF0123456789ABCDEF0123456789ABCDEF99",
+    )
+
+    private fun createRepository(
+        database: DatabaseExposed = createExposedTestDatabase(),
+    ) = GpgPublicKeyRepositoryImpl(
+        exposedDatabaseManager = TestExposedDatabaseManager(database),
         dispatcher = Dispatchers.Unconfined,
     )
+
+    private class RecordingSqlDriver(
+        private val delegate: SqlDriver,
+    ) : SqlDriver by delegate {
+        var transactionCount: Int = 0
+            private set
+
+        override fun newTransaction(): QueryResult<Transacter.Transaction> {
+            transactionCount += 1
+            return delegate.newTransaction()
+        }
+    }
 
     private class TestExposedDatabaseManager(
         private val database: DatabaseExposed = createExposedTestDatabase(),
@@ -186,7 +325,7 @@ class GpgPublicKeyRepositoryImplTest {
     }
 
     private companion object {
-        fun createExposedTestDatabase(): DatabaseExposed {
+        fun createSqlDriver(): JdbcSqliteDriver {
             // Both production drivers enforce foreign keys — the JVM one
             // via this same property, the Android one via
             // setForeignKeyConstraintsEnabled — so the tests must run
@@ -194,12 +333,20 @@ class GpgPublicKeyRepositoryImplTest {
             val properties = Properties().apply {
                 put("foreign_keys", "true")
             }
-            val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY, properties)
-            DatabaseExposed.Schema.create(driver)
-            return DatabaseExposed(
-                driver = driver,
-                urlBlockAdapter = UrlBlock.Adapter(InstantToLongAdapter),
-            )
+            return JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY, properties)
         }
+
+        fun createExposedTestDatabase(): DatabaseExposed {
+            val driver = createSqlDriver()
+            DatabaseExposed.Schema.create(driver)
+            return createExposedDatabase(driver)
+        }
+
+        fun createExposedDatabase(
+            driver: SqlDriver,
+        ) = DatabaseExposed(
+            driver = driver,
+            urlBlockAdapter = UrlBlock.Adapter(InstantToLongAdapter),
+        )
     }
 }

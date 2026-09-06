@@ -2,6 +2,7 @@ package com.artemchep.keyguard.wear.feature.vault.collections
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.map
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
@@ -41,8 +42,8 @@ fun WearCollectionsScreen(
 
 @Composable
 private fun WearCollectionsListItem(
-    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
     item: CollectionsState.Content.Item,
+    modifier: Modifier = Modifier,
     transformation: androidx.wear.compose.material3.SurfaceTransformation? = null,
 ) = when (item) {
     is CollectionsState.Content.Item.Section -> WearVaultRouteSectionItem(

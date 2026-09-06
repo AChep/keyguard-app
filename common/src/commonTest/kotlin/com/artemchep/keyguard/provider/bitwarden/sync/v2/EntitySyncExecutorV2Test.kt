@@ -297,6 +297,27 @@ class EntitySyncExecutorV2Test {
     }
 
     @Test
+    fun `insert locally fatal error propagates`() = runTest {
+        val failure = AssertionError("cipher decoder runtime is broken")
+        val server = TestServer(id = "remote-1")
+        val ops = TestEntitySyncOps(emptyList())
+        ops.onInsertOrUpdate = { throw failure }
+        val executor = EntitySyncExecutor(TestSyncStrategy, ops)
+
+        val actual = kotlin.test.assertFailsWith<AssertionError> {
+            executor.execute(
+                plan(
+                    locals = emptyList(),
+                    servers = listOf(server),
+                    actions = listOf(SyncAction.InsertLocally(serverId = "remote-1")),
+                ),
+            )
+        }
+
+        assertTrue(actual === failure)
+    }
+
+    @Test
     fun `delete cancellation prevents later insert phase from starting`() = runTest {
         val local = syncedLocal(localId = "local-1", remoteId = "remote-1")
         val server = TestServer(id = "remote-insert")
@@ -858,6 +879,66 @@ class EntitySyncExecutorV2Test {
     }
 
     @Test
+    fun `fatal cause in typed remote failure propagates when executor consumes outcome`() = runTest {
+        val failure = AssertionError("remote outcome is fatal")
+        val outcome = RemoteWriteOutcome.Failure<TestLocal>(
+            partialRemoteLocal = null,
+            cause = failure,
+        )
+        val local = changedLocal(localId = "local-1", remoteId = "remote-1", revisionDate = T1)
+        val ops = TestEntitySyncOps(listOf(local))
+        ops.onPushToServer = { _, _, _ -> outcome }
+        val executor = EntitySyncExecutor(TestSyncStrategy, ops)
+
+        val actual = kotlin.test.assertFailsWith<AssertionError> {
+            executor.execute(
+                plan(
+                    locals = listOf(local),
+                    servers = listOf(TestServer(id = "remote-1", revisionDate = T0)),
+                    actions = listOf(
+                        SyncAction.PushToServer(
+                            localId = "local-1",
+                            serverId = "remote-1",
+                        ),
+                    ),
+                ),
+            )
+        }
+
+        assertTrue(actual === failure)
+    }
+
+    @Test
+    fun `cancellation cause in typed remote failure propagates when executor consumes outcome`() = runTest {
+        val failure = CancellationException("remote outcome was cancelled")
+        val outcome = RemoteWriteOutcome.Failure<TestLocal>(
+            partialRemoteLocal = null,
+            cause = failure,
+        )
+        val local = changedLocal(localId = "local-1", remoteId = "remote-1", revisionDate = T1)
+        val ops = TestEntitySyncOps(listOf(local))
+        ops.onPushToServer = { _, _, _ -> outcome }
+        val executor = EntitySyncExecutor(TestSyncStrategy, ops)
+
+        val actual = kotlin.test.assertFailsWith<CancellationException> {
+            executor.execute(
+                plan(
+                    locals = listOf(local),
+                    servers = listOf(TestServer(id = "remote-1", revisionDate = T0)),
+                    actions = listOf(
+                        SyncAction.PushToServer(
+                            localId = "local-1",
+                            serverId = "remote-1",
+                        ),
+                    ),
+                ),
+            )
+        }
+
+        assertTrue(actual === failure)
+    }
+
+    @Test
     fun `markRemoteFailure extracts ApiException HttpException and generic error codes`() = runTest {
         val local = changedLocal(localId = "local-1", remoteId = "remote-1", revisionDate = T1)
         val ops = TestEntitySyncOps(listOf(local))
@@ -1002,6 +1083,32 @@ class EntitySyncExecutorV2Test {
                 ),
             )
         }
+    }
+
+    @Test
+    fun `fatal error during remote write propagates`() = runTest {
+        val failure = AssertionError("remote reconciliation runtime is broken")
+        val local = changedLocal(localId = "local-1", remoteId = "remote-1", revisionDate = T1)
+        val ops = TestEntitySyncOps(listOf(local))
+        ops.onPushToServer = { _, _, _ -> throw failure }
+        val executor = EntitySyncExecutor(TestSyncStrategy, ops)
+
+        val actual = kotlin.test.assertFailsWith<AssertionError> {
+            executor.execute(
+                plan(
+                    locals = listOf(local),
+                    servers = listOf(TestServer(id = "remote-1", revisionDate = T0)),
+                    actions = listOf(
+                        SyncAction.PushToServer(
+                            localId = "local-1",
+                            serverId = "remote-1",
+                        ),
+                    ),
+                ),
+            )
+        }
+
+        assertTrue(actual === failure)
     }
 
     @Test

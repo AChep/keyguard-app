@@ -49,11 +49,15 @@ const MAX_SID_STRING_UTF16: usize = 256;
 ///
 /// Native GnuPG represents an Assuan socket on Windows as a marker file that
 /// contains a loopback TCP port and a 16-byte nonce.
-pub async fn serve(
+pub async fn serve<F>(
     ipc_client: IpcClient,
     socket_path: &Path,
     parent_stdin_closed: oneshot::Receiver<()>,
-) -> Result<()> {
+    on_ready: F,
+) -> Result<()>
+where
+    F: FnOnce() -> Result<()>,
+{
     require_libassuan_marker_path(socket_path)?;
 
     let listener = TcpListener::bind(("127.0.0.1", 0))
@@ -67,8 +71,14 @@ pub async fn serve(
     let mut nonce = [0u8; ASSUAN_NONCE_LEN];
     getrandom::getrandom(&mut nonce)
         .map_err(|e| anyhow::anyhow!("failed to generate Windows Assuan socket nonce: {e}"))?;
+    // The marker guard stays alive for the rest of this function, so a broken
+    // stdout pipe below removes the marker before startup fails.
     let _marker = AssuanSocketMarker::publish(socket_path, port, nonce)?;
     let socket_name = socket_path.to_string_lossy().into_owned();
+
+    // The loopback listener is bound and the owner-only libassuan marker is
+    // now visible.
+    on_ready().context("failed to report GPG agent socket readiness")?;
 
     info!(
         path = %socket_path.display(),

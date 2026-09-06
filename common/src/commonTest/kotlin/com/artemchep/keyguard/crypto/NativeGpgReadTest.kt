@@ -2,22 +2,58 @@ package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationStatus
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationWarning
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdInfo
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpVerification
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpVerificationStatus
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpVerificationWarning
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
 import kotlinx.io.buffered
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class NativeGpgReadTest {
+    @Test
+    fun `public key parser maps stable user id details to the domain`() {
+        val result = assertIs<GpgPublicKeyParseResult.Success>(
+            NativeGpgPublicKeyParser.parse(PUBLIC_KEY),
+        )
+
+        assertEquals(
+            listOf(GpgUserIdInfo(USER_ID_IDENTITY_ID, USER_ID)),
+            result.keys.single().userIdDetails,
+        )
+    }
+
+    @Test
+    fun `policy conflict warning maps to the domain without changing validity`() {
+        val verification = NativeOpenPgpVerification(
+            status = NativeOpenPgpVerificationStatus.VALID,
+            keyId = "0123456789ABCDEF",
+            fingerprint = PRIMARY_FINGERPRINT,
+            userIds = emptyList(),
+            createdAtEpochSeconds = 1_700_000_000L,
+            warnings = listOf(NativeOpenPgpVerificationWarning.POLICY_CONFLICT),
+        ).toDomain()
+
+        assertEquals(GpgOpenPgpVerificationStatus.VALID, verification.status)
+        assertEquals(
+            listOf(GpgOpenPgpVerificationWarning.POLICY_CONFLICT),
+            verification.warnings,
+        )
+    }
+
     @Test
     fun `resource limited public key returns malformed`() {
         val oversizedInput = "A".repeat(NativeCrypto.MAX_CONTROL_ENVELOPE_BYTES + 1)
@@ -104,24 +140,11 @@ class NativeGpgReadTest {
     }
 
     private companion object {
-        const val PRIMARY_FINGERPRINT = "D0BBCFBB250D3BB0658E5384F83D947D29EFECF7"
-        val PUBLIC_KEY = """
-            -----BEGIN PGP PUBLIC KEY BLOCK-----
-
-            mDMEaj9rzxYJKwYBBAHaRw8BAQdAbF/WEPrIP6KKXMDvdC38qJefWOzgPjl1oRjO
-            Zq0b1Q60LEtleWd1YXJkIFRlc3QgQ1YyNTUxOSA8Y3YyNTUxOUB0ZXN0LmludmFs
-            aWQ+iK8EExYKAFcWIQTQu8+7JQ07sGWOU4T4PZR9Ke/s9wUCaj9rzxsUgAAAAAAE
-            AA5tYW51MiwyLjUrMS4xMiwwLDMCGwMFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcC
-            F4AACgkQ+D2UfSnv7PezOQD+JMrO7BD9rfc1ciIZoSW5NCw9N+8tkU8fOxKsdFQ+
-            0DEA/iZ7e3W2CRUGtt8UTHwzBLZOlgn5Ox4O/49/6/Cn92gEuDgEaj9r7BIKKwYB
-            BAGXVQEFAQEHQFzTFZW3PHTv8qstyY8CdxMH7TZJnkpIutnhRc7xun12AwEIB4iU
-            BBgWCgA8FiEE0LvPuyUNO7BljlOE+D2UfSnv7PcFAmo/a+wbFIAAAAAABAAObWFu
-            dTIsMi41KzEuMTIsMCwzAhsMAAoJEPg9lH0p7+z3LpQA/09tlKbt7+j26p+QwbCs
-            bu8oruCxbNY45226eyy6QxS9AQC6cwXPn1NewS7XjGGKea14CgjpvqstWe9PiyfJ
-            Y7c+CA==
-            =Kf2G
-            -----END PGP PUBLIC KEY BLOCK-----
-        """.trimIndent() + "\n"
+        const val PRIMARY_FINGERPRINT = GPG_TEST_CV25519_PRIMARY_FINGERPRINT
+        const val USER_ID = "Keyguard Test CV25519 <cv25519@test.invalid>"
+        const val USER_ID_IDENTITY_ID =
+            "v1:B61DCC1472153EBE2718B1C06B0F7A14ABE33038B7E02CFC9E47AD146B5935F7"
+        val PUBLIC_KEY = GPG_TEST_CV25519_PUBLIC_KEY
         val DETACHED_BODY = """
             Independent OpenPGP verification fixture.
             Second line.

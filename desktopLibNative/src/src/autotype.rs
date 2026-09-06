@@ -500,6 +500,8 @@ mod tests {
     #[test]
     fn exported_autotype_returns_false_for_invalid_payload() {
         let payload = CString::new("Ä").unwrap();
-        assert!(!autoType(payload.as_ptr()));
+        // SAFETY: `payload` is an immutable, readable, NUL-terminated C string
+        // that remains alive for the duration of the call.
+        assert!(!unsafe { autoType(payload.as_ptr()) });
     }
 }

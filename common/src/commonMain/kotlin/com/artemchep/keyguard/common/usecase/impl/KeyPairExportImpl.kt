@@ -6,9 +6,9 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.util.io.writeText
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.service.dirs.DirsService
-import com.artemchep.keyguard.common.service.zip.ZipConfig
-import com.artemchep.keyguard.common.service.zip.ZipEntry
-import com.artemchep.keyguard.common.service.zip.ZipService
+import com.artemchep.keyguard.util.zip.ZipConfig
+import com.artemchep.keyguard.util.zip.ZipEntry
+import com.artemchep.keyguard.util.zip.ZipService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.KeyPairExport
 import kotlin.time.Clock

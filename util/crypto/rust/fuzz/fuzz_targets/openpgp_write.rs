@@ -46,6 +46,7 @@ fuzz_target!(|input: &[u8]| {
         armored: selector & 2 == 0,
         signature_time_epoch_seconds: Some(REFERENCE_TIME - 1),
         reference_time_epoch_seconds: Some(REFERENCE_TIME),
+        candidate_revocation_keys: Vec::new(),
     }));
     call(native_request::Operation::OpenPgpEncrypt(
         OpenPgpEncryptRequest {
@@ -58,6 +59,7 @@ fuzz_target!(|input: &[u8]| {
             literal_time_epoch_seconds: Some(REFERENCE_TIME - 1),
             reference_time_epoch_seconds: Some(REFERENCE_TIME),
             enable_compression: None,
+            candidate_revocation_keys: Vec::new(),
         },
     ));
     call(native_request::Operation::OpenPgpDecrypt(
@@ -78,6 +80,7 @@ fuzz_target!(|input: &[u8]| {
                 armored: selector & 0x10 == 0,
                 signature_time_epoch_seconds: Some(REFERENCE_TIME - 1),
                 reference_time_epoch_seconds: Some(REFERENCE_TIME),
+                candidate_revocation_keys: Vec::new(),
             },
         ),
         native_stream_open_request::Operation::OpenPgpClearSign(
@@ -86,6 +89,7 @@ fuzz_target!(|input: &[u8]| {
                 preferred_fingerprint: String::new(),
                 signature_time_epoch_seconds: Some(REFERENCE_TIME - 1),
                 reference_time_epoch_seconds: Some(REFERENCE_TIME),
+                candidate_revocation_keys: Vec::new(),
             },
         ),
         native_stream_open_request::Operation::OpenPgpEncrypt(OpenPgpEncryptStreamOpenRequest {
@@ -97,6 +101,7 @@ fuzz_target!(|input: &[u8]| {
             literal_time_epoch_seconds: Some(REFERENCE_TIME - 1),
             reference_time_epoch_seconds: Some(REFERENCE_TIME),
             enable_compression: None,
+            candidate_revocation_keys: Vec::new(),
         }),
         native_stream_open_request::Operation::OpenPgpDecrypt(OpenPgpDecryptStreamOpenRequest {
             private_keys: vec![private_key],

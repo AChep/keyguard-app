@@ -43,12 +43,23 @@ class KdbxInteroperabilityTest {
         TestCase("kdbx4-aes-argon2d-composite", "ver4_argon2.kdbx", useKeyfile = true),
     )
 
+    @Test
+    fun keyfileOnlyRoundTripWithPykeepass() = runCase(
+        TestCase(
+            id = "kdbx4-aes-argon2d-keyfile-only",
+            seedFile = "ver4_argon2.kdbx",
+            useKeyfile = true,
+            usePassword = false,
+        ),
+    )
+
     private fun runCase(testCase: TestCase) {
         val caseDirectory = artifactsDirectory.resolve(testCase.id)
         Files.createDirectories(caseDirectory)
         val sourceDatabase = caseDirectory.resolve("python-source.kdbx")
         val manifest = caseDirectory.resolve("python-manifest.json")
         val keyfile = if (testCase.useKeyfile) caseDirectory.resolve("composite-key.bin") else null
+        val password = if (testCase.usePassword) Password else null
         val kotlinDatabase = caseDirectory.resolve("kotlin-roundtrip.kdbx")
         val oracle = PythonKdbxOracle(python, driver, repoRoot)
 
@@ -57,11 +68,11 @@ class KdbxInteroperabilityTest {
                 seed = seedDirectory.resolve(testCase.seedFile),
                 database = sourceDatabase,
                 manifest = manifest,
-                password = Password,
+                password = password,
                 keyfile = keyfile,
             )
             val expected = Json.parseToJsonElement(Files.readString(manifest))
-            val credentials = credentials(keyfile)
+            val credentials = credentials(password, keyfile)
             val decoded = KeePassDatabase.decode(
                 data = Files.readAllBytes(sourceDatabase),
                 credentials = credentials,
@@ -93,7 +104,7 @@ class KdbxInteroperabilityTest {
             oracle.verify(
                 database = kotlinDatabase,
                 manifest = manifest,
-                password = Password,
+                password = password,
                 keyfile = keyfile,
             )
         } catch (error: Throwable) {
@@ -105,12 +116,14 @@ class KdbxInteroperabilityTest {
         }
     }
 
-    private fun credentials(keyfile: Path?): Credentials {
-        val password = EncryptedValue.fromString(Password)
-        return if (keyfile == null) {
-            Credentials.from(password)
-        } else {
-            Credentials.from(password, Files.readAllBytes(keyfile))
+    private fun credentials(password: String?, keyfile: Path?): Credentials {
+        val passphrase = password?.let(EncryptedValue::fromString)
+        return when {
+            passphrase != null && keyfile != null ->
+                Credentials.from(passphrase, Files.readAllBytes(keyfile))
+            passphrase != null -> Credentials.from(passphrase)
+            keyfile != null -> Credentials.from(Files.readAllBytes(keyfile))
+            else -> error("A test case needs a password or a key file")
         }
     }
 
@@ -132,6 +145,7 @@ class KdbxInteroperabilityTest {
         val id: String,
         val seedFile: String,
         val useKeyfile: Boolean = false,
+        val usePassword: Boolean = true,
     )
 
     private companion object {

@@ -50,26 +50,26 @@ object GpgKeyActions {
             }
             section {
                 this += savePublicKey(
-                    gpgKey = gpgKey,
+                    request = GpgKeyPublicExport.Request(
+                        fingerprint = gpgKey.fingerprint,
+                        publicKeyArmored = gpgKey.publicKeyArmored,
+                    ),
                     publicKeyExport = publicKeyExport,
                 )
                 this += savePrivateKey(
-                    gpgKey = gpgKey,
+                    request = GpgKeyPrivateExport.Request(
+                        fingerprint = gpgKey.fingerprint,
+                        privateKeyArmored = gpgKey.privateKeyArmored,
+                    ),
                     privateKeyExport = privateKeyExport,
                 )
-                this += FlatItemAction(
-                    leading = icon(Icons.Outlined.Save),
-                    title = Res.string.gpg_key_action_save_unencrypted_keys_title.wrap(),
-                    onClick = {
-                        gpgKeyExport(gpgKey)
-                            .effectTap { uri ->
-                                sendSuccessMessage(
-                                    title = Res.string.gpg_key_action_save_unencrypted_keys_saved_downloads_success_title,
-                                    uri = uri,
-                                )
-                            }
-                            .launchIn(appScope)
-                    },
+                this += saveKeys(
+                    request = GpgKeyExport.Request(
+                        fingerprint = gpgKey.fingerprint,
+                        publicKeyArmored = gpgKey.publicKeyArmored,
+                        privateKeyArmored = gpgKey.privateKeyArmored,
+                    ),
+                    gpgKeyExport = gpgKeyExport,
                 )
             }
         }
@@ -77,14 +77,15 @@ object GpgKeyActions {
 
     context(stateScope: RememberStateFlowScope)
     fun savePublicKey(
-        gpgKey: GeneratedGpgKey,
+        request: GpgKeyPublicExport.Request,
         publicKeyExport: GpgKeyPublicExport,
     ): FlatItemAction = with(stateScope) {
         FlatItemAction(
+            id = "gpgKey.savePublicKey",
             leading = icon(Icons.Outlined.Save),
             title = Res.string.gpg_key_action_save_public_key_title.wrap(),
             onClick = {
-                publicKeyExport(gpgKey)
+                publicKeyExport(request)
                     .effectTap { uri ->
                         sendSuccessMessage(
                             title = Res.string.gpg_key_action_save_public_key_saved_downloads_success_title,
@@ -98,17 +99,40 @@ object GpgKeyActions {
 
     context(stateScope: RememberStateFlowScope)
     fun savePrivateKey(
-        gpgKey: GeneratedGpgKey,
+        request: GpgKeyPrivateExport.Request,
         privateKeyExport: GpgKeyPrivateExport,
     ): FlatItemAction = with(stateScope) {
         FlatItemAction(
+            id = "gpgKey.savePrivateKey",
             leading = icon(Icons.Outlined.Save),
             title = Res.string.gpg_key_action_save_unencrypted_private_key_title.wrap(),
             onClick = {
-                privateKeyExport(gpgKey)
+                privateKeyExport(request)
                     .effectTap { uri ->
                         sendSuccessMessage(
                             title = Res.string.gpg_key_action_save_unencrypted_private_key_saved_downloads_success_title,
+                            uri = uri,
+                        )
+                    }
+                    .launchIn(appScope)
+            },
+        )
+    }
+
+    context(stateScope: RememberStateFlowScope)
+    fun saveKeys(
+        request: GpgKeyExport.Request,
+        gpgKeyExport: GpgKeyExport,
+    ): FlatItemAction = with(stateScope) {
+        FlatItemAction(
+            id = "gpgKey.saveKeys",
+            leading = icon(Icons.Outlined.Save),
+            title = Res.string.gpg_key_action_save_unencrypted_keys_title.wrap(),
+            onClick = {
+                gpgKeyExport(request)
+                    .effectTap { uri ->
+                        sendSuccessMessage(
+                            title = Res.string.gpg_key_action_save_unencrypted_keys_saved_downloads_success_title,
                             uri = uri,
                         )
                     }

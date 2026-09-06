@@ -36,6 +36,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.autofill.contentType
@@ -485,8 +486,9 @@ private fun ExpandedHardwareUnlockIfExists(
         val onYubiKeyButtonClick by rememberUpdatedState(unlockState.yubiKey?.onClick)
         Row(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(top = 32.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
         ) {
             if (unlockState.biometric != null) {
                 Button(

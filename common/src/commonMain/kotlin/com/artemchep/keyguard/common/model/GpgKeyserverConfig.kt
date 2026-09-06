@@ -11,6 +11,10 @@ data class GpgKeyserverConfig(
     val url: String = DEFAULT_URL,
     val protocol: Protocol = Protocol.VKS,
 ) {
+    /** Only VKS keyservers verify e-mail addresses. */
+    val supportsEmailVerification: Boolean
+        get() = protocol == Protocol.VKS
+
     enum class Protocol {
         /** keys.openpgp.org VKS JSON API. */
         VKS,

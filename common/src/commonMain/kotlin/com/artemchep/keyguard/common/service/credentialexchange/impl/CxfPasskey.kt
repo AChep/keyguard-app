@@ -66,9 +66,9 @@ internal fun mapCredentialId(
 /**
  * Validates a stored PKCS#8 DER private key and emits the native service's
  * canonical P-256 form as base64url. Keyguard's own creation flow persists the
- * value as standard base64, while synced vaults may carry base64url; both
- * alphabets are accepted, but strictly. Undecodable, malformed, or unsupported
- * keys return `null` and become counted skips.
+ * value as base64url, while legacy and imported vaults may carry standard
+ * base64; both alphabets are accepted, but strictly. Undecodable, malformed,
+ * or unsupported keys return `null` and become counted skips.
  */
 internal fun mapKey(
     keyValue: String,

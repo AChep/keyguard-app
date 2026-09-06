@@ -1,0 +1,20 @@
+[package]
+name = "keyguard-zxcvbn-jni"
+description = "JNI bridge for Keyguard native password strength estimation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+jni.workspace = true
+keyguard-zxcvbn-core = { path = "../keyguard-zxcvbn-core" }
+zeroize.workspace = true
+
+[lints]
+workspace = true

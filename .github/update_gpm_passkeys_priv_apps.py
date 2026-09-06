@@ -116,6 +116,20 @@ EXTRA_APPS = [
             ]
         }
     },
+    # Titanium browser
+    # https://github.com/jqssun/android-titanium-browser
+    {
+        "type": "android",
+        "info": {
+            "package_name": "io.github.jqssun.helium",
+            "signatures": [
+                {
+                    "build": "release",
+                    "cert_fingerprint_sha256": "09:55:40:49:4D:53:F4:8C:A0:51:BC:86:C3:92:C4:6E:DB:29:72:5D:A5:59:2B:D8:AF:3C:3D:02:7B:31:66:BB"
+                }
+            ]
+        }
+    },
 ]
 
 response = requests.get(

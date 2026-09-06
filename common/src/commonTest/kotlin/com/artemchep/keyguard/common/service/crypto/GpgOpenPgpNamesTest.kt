@@ -6,16 +6,19 @@ import kotlin.test.assertNull
 
 class GpgOpenPgpNamesTest {
     @Test
-    fun `normalizes bracketed and bare email addresses`() {
+    fun `normalizes conventional user id email addresses`() {
         assertEquals(
             "alice@example.com",
-            normalizeGpgUserIdEmail(" Alice Example <ALICE@Example.COM> "),
+            normalizeGpgUserIdEmail(" Alice Example <ALICE@Example.COM>"),
         )
         assertEquals(
             "alice@example.com",
-            normalizeGpgUserIdEmail("  ALICE@example.com "),
+            normalizeGpgUserIdEmail("attacker@example.com <ALICE@example.com>"),
         )
-        assertEquals("a@b", normalizeGpgUserIdEmail("Name < a@b >"))
+        assertEquals(
+            "alice@example.com",
+            normalizeGpgUserIdEmail("Alice (work) <ALICE@example.com>"),
+        )
         assertEquals(
             "müller@例子.测试",
             normalizeGpgUserIdEmail("MÜLLER@例子.测试"),
@@ -23,24 +26,40 @@ class GpgOpenPgpNamesTest {
     }
 
     @Test
-    fun `uses the first bracketed email address`() {
+    fun `normalizes bare mailbox inputs independently`() {
         assertEquals(
-            "first@example.com",
-            normalizeGpgUserIdEmail(
-                "Name <first@example.com> <second@example.com>",
-            ),
+            "alice@example.com",
+            normalizeGpgMailboxAddress("  ALICE@example.com "),
         )
-        assertEquals(
-            "a@b",
-            normalizeGpgUserIdEmail("Name <a@b> trailing@example.com"),
-        )
+        assertNull(normalizeGpgMailboxAddress("Alice <alice@example.com>"))
     }
 
     @Test
-    fun `preserves nested bracket compatibility`() {
+    fun `rejects ambiguous or malformed conventional user ids`() {
+        listOf(
+            "Name < a@b >",
+            "Name <first@example.com> <second@example.com>",
+            "Name <a@b> trailing@example.com",
+            "<bad<good@example.com>",
+            "Name <a@b> ",
+            "\"first.last\"@example.com",
+            " first@example.com ",
+        ).forEach { value ->
+            assertNull(normalizeGpgUserIdEmail(value), value)
+        }
+    }
+
+    @Test
+    fun `accepts punctuation utf8 and comments in conventional user ids`() {
         assertEquals(
-            "good@example.com",
-            normalizeGpgUserIdEmail("<bad<good@example.com>"),
+            "first.last+tag@example.com",
+            normalizeGpgUserIdEmail(
+                "Acme Industries, Inc. (work) <first.last+tag@example.com>",
+            ),
+        )
+        assertEquals(
+            "emoji😀@example.com",
+            normalizeGpgUserIdEmail("Emoji <emoji😀@example.com>"),
         )
     }
 
@@ -54,6 +73,11 @@ class GpgOpenPgpNamesTest {
             "a@\tb",
             "a@",
             "@b",
+            ".a@b",
+            "a.@b",
+            "a..b@c",
+            "a@.b",
+            "a@b.",
         ).forEach { value ->
             assertNull(normalizeGpgUserIdEmail(value), value)
         }

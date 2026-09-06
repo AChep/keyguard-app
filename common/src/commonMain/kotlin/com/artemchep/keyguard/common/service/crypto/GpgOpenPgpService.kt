@@ -18,7 +18,21 @@ interface GpgOpenPgpVerifier {
     ): GpgOpenPgpVerification
 }
 
-interface GpgOpenPgpService : GpgOpenPgpVerifier {
+interface GpgOpenPgpCertificationEvaluator {
+    /**
+     * Returns exact target User IDs certified by a currently usable trusted
+     * primary key. Implementations that cannot evaluate certifications fail
+     * closed by returning no confirmed identities.
+     */
+    fun evaluateUserIdCertifications(
+        request: GpgOpenPgpUserIdCertificationRequest,
+    ): List<String> = emptyList()
+}
+
+interface GpgOpenPgpService :
+    GpgOpenPgpVerifier,
+    GpgOpenPgpCertificationEvaluator {
+
     fun clearSignText(
         request: GpgOpenPgpSignTextRequest,
     ): String
@@ -106,6 +120,8 @@ sealed interface GpgOpenPgpReadFileResult {
         val declaredCharset: String? = null,
         /** Exact primary key or subkey component that recovered the session key. */
         val decryptionKeyFingerprint: String? = null,
+        /** Deprecation warnings for the component that recovered the session key. */
+        val warnings: List<GpgOpenPgpDecryptionWarning> = emptyList(),
     ) : GpgOpenPgpReadFileResult
 
     data class ClearSigned(
@@ -126,6 +142,17 @@ data class GpgOpenPgpPublicKey(
     val armored: String,
 )
 
+data class GpgOpenPgpCertificationAuthority(
+    val publicKey: GpgOpenPgpPublicKey,
+    val primaryFingerprint: String,
+)
+
+data class GpgOpenPgpUserIdCertificationRequest(
+    val publicKey: GpgOpenPgpPublicKey,
+    val authorities: List<GpgOpenPgpCertificationAuthority>,
+    val referenceTime: Instant,
+)
+
 data class GpgOpenPgpExportPublicKeyRequest(
     val publicKey: GpgOpenPgpPublicKey,
     val output: Sink,
@@ -135,6 +162,7 @@ data class GpgOpenPgpExportPublicKeyRequest(
 data class GpgOpenPgpSignTextRequest(
     val text: String,
     val privateKey: GpgOpenPgpPrivateKey,
+    val candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
 )
 
 data class GpgOpenPgpVerifyTextRequest(
@@ -151,6 +179,7 @@ data class GpgOpenPgpVerifyDetachedTextRequest(
 data class GpgOpenPgpEncryptTextRequest(
     val text: String,
     val publicKeys: List<GpgOpenPgpPublicKey>,
+    val candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
     val signingPrivateKey: GpgOpenPgpPrivateKey? = null,
 )
 
@@ -164,12 +193,19 @@ data class GpgOpenPgpDecryptTextResult(
     val text: String,
     val verification: GpgOpenPgpVerification? = null,
     val decryptionKeyFingerprint: String? = null,
+    val warnings: List<GpgOpenPgpDecryptionWarning> = emptyList(),
 )
+
+enum class GpgOpenPgpDecryptionWarning {
+    WEAK_RSA_KEY,
+    ELGAMAL_KEY,
+}
 
 data class GpgOpenPgpSignFileRequest(
     val input: Source,
     val signatureOutput: Sink,
     val privateKey: GpgOpenPgpPrivateKey,
+    val candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
     val armored: Boolean = true,
 )
 
@@ -177,6 +213,7 @@ data class GpgOpenPgpClearSignFileRequest(
     val input: Source,
     val output: Sink,
     val privateKey: GpgOpenPgpPrivateKey,
+    val candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
 )
 
 data class GpgOpenPgpVerifyFileRequest(
@@ -189,6 +226,7 @@ data class GpgOpenPgpEncryptFileRequest(
     val input: Source,
     val output: Sink,
     val publicKeys: List<GpgOpenPgpPublicKey>,
+    val candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
     val fileName: GpgOpenPgpLiteralFileName,
     val armored: Boolean = true,
     val signingPrivateKey: GpgOpenPgpPrivateKey? = null,
@@ -284,8 +322,21 @@ data class GpgOpenPgpVerification(
     val userIds: List<String>,
     val createdAt: Instant?,
     val warnings: List<GpgOpenPgpVerificationWarning> = emptyList(),
-)
+    /**
+     * Exact entries from [userIds] certified by a trusted local authority.
+     * Never populated alongside a [GpgOpenPgpVerificationWarning.POLICY_CONFLICT]
+     * warning: a policy conflict makes every identity assertion ambiguous.
+     */
+    val confirmedUserIds: List<String> = emptyList(),
+    /** One leaf result per input signature, in packet order. */
+    val signatures: List<GpgOpenPgpVerification> = emptyList(),
+) {
+    /** True only for an unqualified valid result under Keyguard's caller policy. */
+    val isPolicyAccepted: Boolean
+        get() = status == GpgOpenPgpVerificationStatus.VALID && warnings.isEmpty()
+}
 
+/** Payload signature result; signing-key policy is reported separately in `warnings`. */
 enum class GpgOpenPgpVerificationStatus {
     VALID,
     INVALID,
@@ -293,7 +344,21 @@ enum class GpgOpenPgpVerificationStatus {
 }
 
 enum class GpgOpenPgpVerificationWarning {
+    /** The signature may verify mathematically, but the signing authority is revoked. */
     KEY_REVOKED,
+
+    /** The signature may verify mathematically, but the signing authority is expired. */
     KEY_EXPIRED,
+
+    /** The signature statement has expired and is therefore reported as invalid. */
     SIGNATURE_EXPIRED,
+
+    /** The payload may be valid, but equally recent authenticated key policies disagree. */
+    POLICY_CONFLICT,
+
+    /**
+     * The signature is bound to a digest algorithm that is no longer collision resistant
+     * (SHA-1 or MD5). Such a signature is never reported as valid.
+     */
+    WEAK_DIGEST,
 }

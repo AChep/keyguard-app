@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import app.cash.sqldelight.coroutines.asFlow
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -33,6 +34,7 @@ internal class GetCipherSnapshotsImpl(
     private val getPasswordStrength: GetPasswordStrength,
     private val windowCoroutineScope: WindowCoroutineScope,
     private val dbDispatcher: CoroutineDispatcher,
+    private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
     private val defaultDispatcher: CoroutineContext = Dispatchers.Default,
 ) : GetCipherSnapshots {
     companion object {
@@ -45,6 +47,7 @@ internal class GetCipherSnapshotsImpl(
         getPasswordStrength = directDI.instance(),
         windowCoroutineScope = directDI.instance(),
         dbDispatcher = directDI.instance(tag = DatabaseDispatcher),
+        gpgKeyMetadataResolver = directDI.instance(),
     )
 
     private val sharedFlow = databaseManager
@@ -55,6 +58,8 @@ internal class GetCipherSnapshotsImpl(
             val loader = CipherSnapshotLoader(
                 dbDispatcher = dbDispatcher,
                 getPasswordStrength = getPasswordStrength,
+                gpgKeyMetadataResolver = gpgKeyMetadataResolver,
+                logRepository = logRepository,
             )
             db.cipherQueries
                 .getCipherSnapshotKeys()

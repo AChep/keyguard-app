@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AccountTask
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -35,6 +36,7 @@ class SyncByKeePassTokenImpl(
     private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val webDavClientFactory: WebDavClientFactory,
     private val watchdog: Watchdog,
+    private val gpgCertificateMaterialReconciler: GpgCertificateMaterialReconciler,
     private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
 ) : SyncByKeePassToken {
     companion object {
@@ -48,6 +50,7 @@ class SyncByKeePassTokenImpl(
         base64Service = directDI.instance(),
         fileService = directDI.instance(),
         getPasswordStrength = directDI.instance(),
+        gpgCertificateMaterialReconciler = directDI.instance(),
         gpgKeyMetadataResolver = directDI.instanceOrNull(),
         json = directDI.instance(),
         db = directDI.instance(),
@@ -70,6 +73,7 @@ class SyncByKeePassTokenImpl(
                 base64Service = base64Service,
                 fileService = fileService,
                 getPasswordStrength = getPasswordStrength,
+                gpgCertificateMaterialReconciler = gpgCertificateMaterialReconciler,
                 gpgKeyMetadataResolver = gpgKeyMetadataResolver,
                 json = json,
                 db = db,

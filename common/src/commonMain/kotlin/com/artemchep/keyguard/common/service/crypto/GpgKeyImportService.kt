@@ -34,6 +34,9 @@ enum class GpgKeyImportError {
     UnsupportedPlatform,
     InvalidPassphrase,
     MalformedKey,
+
+    /** The file holds several keys, while an item stores exactly one. */
+    MultipleKeys,
 }
 
 object GpgKeyImportServiceUnsupported : GpgKeyImportService {

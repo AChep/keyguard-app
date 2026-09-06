@@ -925,12 +925,19 @@ private fun GpgKeyField(
         containerPadding = defaultFlatItemPaddingValues(),
         fileDrop = item.fileDrop,
     ) {
-        val expiration = state.expiration
+        val supportingRows = listOfNotNull(
+            state.expiration
+                ?.let { row -> Res.string.gpg_key_expiry_title to row },
+            state.identityReplacement
+                ?.let { row -> Res.string.gpg_user_id_replacement_title to row },
+            state.identityRevocation
+                ?.let { row -> Res.string.gpg_user_id_revocation_title to row },
+        )
         Column {
             FlatItemLayoutExpressive(
                 backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                 leading = icon<RowScope>(Icons.Outlined.Key),
-                shapeState = if (expiration != null) {
+                shapeState = if (supportingRows.isNotEmpty()) {
                     shapeState and ShapeState.END.inv()
                 } else {
                     shapeState
@@ -988,28 +995,48 @@ private fun GpgKeyField(
                 },
                 enabled = state.enabled,
             )
-            if (expiration != null) {
+            supportingRows.forEachIndexed { index, (titleRes, row) ->
+                val rowShapeState = if (index == supportingRows.lastIndex) {
+                    shapeState and ShapeState.START.inv()
+                } else {
+                    shapeState and ShapeState.START.inv() and ShapeState.END.inv()
+                }
                 FlatItemSimpleExpressive(
                     modifier = Modifier
                         .padding(top = 3.dp),
                     backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                    shapeState = shapeState and ShapeState.START.inv(),
+                    shapeState = rowShapeState,
                     padding = PaddingValues(0.dp),
                     title = {
-                        Text(text = stringResource(Res.string.gpg_key_expiry_title))
+                        Text(text = stringResource(titleRes))
                     },
-                    text = {
-                        Column {
-                            Text(text = expiration.value)
-                            expiration.text?.let { text ->
+                    text = when {
+                        row.value != null -> {
+                            {
+                                Column {
+                                    Text(text = row.value)
+                                    row.text?.let { text ->
+                                        Text(
+                                            modifier = Modifier.alpha(MediumEmphasisAlpha),
+                                            text = text,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        row.text != null -> {
+                            {
                                 Text(
                                     modifier = Modifier.alpha(MediumEmphasisAlpha),
-                                    text = text,
+                                    text = row.text,
                                 )
                             }
                         }
+
+                        else -> null
                     },
-                    trailing = if (expiration.onClick != null) {
+                    trailing = if (row.onClick != null) {
                         {
                             Icon(
                                 imageVector = Icons.Outlined.ArrowDropDown,
@@ -1019,8 +1046,8 @@ private fun GpgKeyField(
                     } else {
                         null
                     },
-                    onClick = expiration.onClick,
-                    enabled = expiration.onClick != null,
+                    onClick = row.onClick,
+                    enabled = row.onClick != null,
                 )
             }
         }

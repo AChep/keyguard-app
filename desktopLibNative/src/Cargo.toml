@@ -14,6 +14,20 @@ crate-type = ["cdylib"]
 
 [dependencies]
 libc = "0.2"
+zeroize = "=1.9.0"
+
+[target.'cfg(windows)'.dependencies]
+subtle = "2.6"
+windows = { version = "0.62.2", features = [
+    "Foundation",
+    "Security_Credentials_UI",
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Cryptography",
+    "Win32_System_WinRT",
+    "Win32_System_Threading",
+] }
+windows-future = "0.3.2"
 
 [build-dependencies]
 cc = "1"

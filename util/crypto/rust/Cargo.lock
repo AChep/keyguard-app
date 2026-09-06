@@ -1143,6 +1143,7 @@ dependencies = [
  "cipher",
  "criterion",
  "des",
+ "digest",
  "ed25519-dalek",
  "flate2",
  "k256",

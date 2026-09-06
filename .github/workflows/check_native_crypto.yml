@@ -455,7 +455,7 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: ${{ matrix.rust-targets }}
-          components: ${{ matrix.inspect-apple && 'clippy,llvm-tools' || 'clippy' }}
+          components: ${{ matrix.inspect-apple && 'clippy,rustfmt,llvm-tools' || 'clippy,rustfmt' }}
       - name: "Expose Rust LLVM tools"
         if: matrix.inspect-apple
         shell: bash

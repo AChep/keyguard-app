@@ -1,0 +1,3 @@
+headers = keyguard_zxcvbn.h
+headerFilter = keyguard_zxcvbn.h
+staticLibraries = libkeyguard_zxcvbn_c.a

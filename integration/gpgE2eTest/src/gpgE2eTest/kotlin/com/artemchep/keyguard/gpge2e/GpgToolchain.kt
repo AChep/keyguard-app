@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.gpge2e
 
+import com.artemchep.keyguard.common.service.gpgagent.isKnownIncompatibleWindowsGnuPgPath
+import com.artemchep.keyguard.common.service.gpgagent.isWindowsNamedPipePath
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -263,18 +265,7 @@ data class GpgToolchain(
 
         private fun GpgToolchain.isKnownIncompatibleOnWindows(): Boolean {
             if (!isWindowsHost()) return false
-
-            val gpgPath = gpg.toAbsolutePath()
-                .normalize()
-                .toString()
-                .replace('/', '\\')
-                .lowercase()
-            return listOf(
-                "\\git\\usr\\bin\\",
-                "\\msys64\\usr\\bin\\",
-                "\\cygwin\\bin\\",
-                "\\cygwin64\\bin\\",
-            ).any { it in gpgPath }
+            return binDir.isKnownIncompatibleWindowsGnuPgPath()
         }
 
         private fun executableName(name: String): String =
@@ -297,8 +288,3 @@ private fun String.parseGpgconfListDirValue(): String =
 
 internal fun isWindowsHost(): Boolean =
     System.getProperty("os.name").startsWith("Windows", ignoreCase = true)
-
-internal fun isWindowsNamedPipePath(value: String): Boolean =
-    value
-        .replace('/', '\\')
-        .startsWith("\\\\.\\pipe\\", ignoreCase = true)

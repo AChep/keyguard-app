@@ -52,6 +52,19 @@ class SuiteState(private val rule: KeyguardProviderRule) {
         return cachedPrimaryUserId
     }
 
+    /**
+     * The e-mail of the signing key's primary user id.
+     *
+     * Skips the calling test when the user id carries no e-mail.
+     */
+    fun signingEmail(): String {
+        val userId = primaryUserId().orEmpty()
+        val email = userId.substringAfter('<', "").substringBefore('>').ifBlank { null }
+            ?: userId.takeIf { it.contains('@') }
+        assumeTrue("The signing key's primary user id has no e-mail: $userId", email != null)
+        return email!!
+    }
+
     /** Every encryption-capable key id the provider will admit for this client. */
     fun encryptionKeyIds(): List<Long> {
         cachedKeyIds?.let { return it }

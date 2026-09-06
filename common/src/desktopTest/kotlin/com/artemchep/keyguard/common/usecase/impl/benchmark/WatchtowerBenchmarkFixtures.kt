@@ -22,8 +22,17 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.test.gpgMetadata
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverLocalKey
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateEvaluator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnapshot
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
+import com.artemchep.keyguard.common.service.gpgagent.GpgRevocationStatus
+import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
@@ -54,6 +63,7 @@ import com.artemchep.keyguard.common.usecase.impl.WatchtowerClientTyped
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerDuplicateUris
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerExpiring
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerGpgKeyPublishing
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerGpgFakeReconciler
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerGpgKeyUnusable
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
@@ -79,6 +89,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlBroadCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlDuplicateCheckImpl
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.datetime.LocalDate
 import kotlinx.io.Source
@@ -87,6 +98,7 @@ import org.kodein.di.direct
 import kotlin.time.Instant
 
 internal class WatchtowerBenchmarkFixtures(
+    scope: CoroutineScope,
     corpusSize: Int = DEFAULT_CORPUS_SIZE,
     duplicateCorpusSize: Int = DUPLICATE_CORPUS_SIZE,
     serviceCount: Int = DEFAULT_SERVICE_COUNT,
@@ -123,6 +135,11 @@ internal class WatchtowerBenchmarkFixtures(
         ),
         DWatchtowerAlertType.GPG_KEY_PUBLISHING to WatchtowerGpgKeyPublishing(
             keyserverStateRepository = BenchmarkGpgStateRepository(gpgStates),
+            getCiphers = object : GetCiphers {
+                override fun invoke() = flowOf(corpus)
+            },
+            evaluator = GpgKeyserverStateEvaluator(WatchtowerGpgFakeReconciler, BenchmarkGpgResolver),
+            scope = scope,
         ),
         DWatchtowerAlertType.PWNED_PASSWORD to WatchtowerPasswordPwned(
             checkPasswordSetLeak = BenchmarkPasswordSetLeak,
@@ -298,15 +315,18 @@ internal class WatchtowerBenchmarkFixtures(
         .asSequence()
         .filter { it.type == DSecret.Type.GpgKey }
         .mapIndexed { index, cipher ->
+            val status = when (index % 4) {
+                0 -> GpgKeyserverVerificationStatus.VERIFIED
+                1 -> GpgKeyserverVerificationStatus.FOUND_UNVERIFIED
+                2 -> GpgKeyserverVerificationStatus.NOT_FOUND
+                else -> GpgKeyserverVerificationStatus.REVOKED
+            }
             DGpgKeyserverState(
                 fingerprint = BENCHMARK_GPG_FINGERPRINT,
                 cipherId = cipher.id,
-                verificationStatus = when (index % 4) {
-                    0 -> GpgKeyserverVerificationStatus.VERIFIED
-                    1 -> GpgKeyserverVerificationStatus.FOUND_UNVERIFIED
-                    2 -> GpgKeyserverVerificationStatus.NOT_FOUND
-                    else -> GpgKeyserverVerificationStatus.REVOKED
-                },
+                verificationStatus = status,
+                publicationStatus = status.takeUnless { it == GpgKeyserverVerificationStatus.REVOKED }
+                    ?: GpgKeyserverVerificationStatus.UNKNOWN,
                 lastCheckedAt = FIXED_INSTANT,
             )
         }
@@ -317,6 +337,23 @@ internal class WatchtowerBenchmarkFixtures(
         const val DUPLICATE_CORPUS_SIZE = 500
         const val DEFAULT_SERVICE_COUNT = 256
     }
+}
+
+private object BenchmarkGpgResolver : GpgKeyMetadataResolver {
+    override fun resolve(
+        privateKeyArmored: String?,
+        publicKeyArmored: String?,
+        fingerprint: String?,
+        candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
+    ) = GpgAgentMetadataResolution(
+        metadata = GpgAgentKeyMetadata(),
+        authorization = GpgAgentAuthorizationSnapshot(
+            evaluatedAtEpochSeconds = FIXED_INSTANT.epochSeconds,
+            policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
+            keys = emptyList(),
+            revocations = mapOf(requireNotNull(fingerprint) to GpgRevocationStatus.NOT_REVOKED),
+        ),
+    )
 }
 
 private fun createSecret(
@@ -386,14 +423,12 @@ private fun createSecret(
                 "benchmark-public-key-weak"
             },
             fingerprint = BENCHMARK_GPG_FINGERPRINT,
-            metadata = GpgAgentKeyMetadata(
-                keys = listOf(
-                    GpgAgentKeyMetadataKey(
+            metadata = gpgMetadata(
+                GpgAgentKeyMetadataKey(
                         keygrip = "benchmark-keygrip",
                         fingerprint = BENCHMARK_GPG_FINGERPRINT,
                         algorithm = "RSA",
                         capabilities = setOf("sign", "decrypt"),
-                    ),
                 ),
             ),
         )
@@ -630,6 +665,11 @@ private class BenchmarkGpgStateRepository(
     )
 
     override fun put(model: DGpgKeyserverState): IO<Unit> = io(Unit)
+
+    override fun update(
+        fingerprint: String,
+        transform: (DGpgKeyserverState?, List<GpgKeyserverLocalKey>) -> DGpgKeyserverState,
+    ): IO<DGpgKeyserverState> = error("Benchmark does not update keyserver state.")
 
     override fun removeByFingerprint(fingerprint: String): IO<Unit> = io(Unit)
 

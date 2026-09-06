@@ -1,6 +1,11 @@
 package com.artemchep.keyguard.common.usecase
 
 import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.model.GeneratedGpgKey
 
-interface GpgKeyExport : (GeneratedGpgKey) -> IO<String?>
+interface GpgKeyExport : (GpgKeyExport.Request) -> IO<String?> {
+    data class Request(
+        val fingerprint: String,
+        val publicKeyArmored: String,
+        val privateKeyArmored: String,
+    )
+}

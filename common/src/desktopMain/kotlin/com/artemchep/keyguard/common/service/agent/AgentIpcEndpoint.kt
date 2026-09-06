@@ -108,8 +108,13 @@ private fun agentIpcSocketTempRoot(): Path {
 internal fun isWindows(): Boolean =
     System.getProperty("os.name").startsWith("Windows", ignoreCase = true)
 
-private val OWNER_ONLY_DIRECTORY_PERMISSIONS = setOf(
+internal val OWNER_ONLY_DIRECTORY_PERMISSIONS = setOf(
     PosixFilePermission.OWNER_READ,
     PosixFilePermission.OWNER_WRITE,
     PosixFilePermission.OWNER_EXECUTE,
+)
+
+internal val OWNER_ONLY_FILE_PERMISSIONS = setOf(
+    PosixFilePermission.OWNER_READ,
+    PosixFilePermission.OWNER_WRITE,
 )

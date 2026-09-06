@@ -49,6 +49,7 @@ internal object AndroidIpcApprovalCoordinator {
         val id: String,
         val name: String,
         val description: String,
+        val preselected: Boolean = false,
     )
 
     class Request(

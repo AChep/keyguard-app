@@ -453,6 +453,7 @@
     <string name="email_action_check_data_breach_title">Verifique o e-mail em vazamentos de dados conhecidos</string>
     <string name="username_action_check_data_breach_title">Verifique o nome de usuário em vazamentos de dados conhecidos</string>
     <string name="password_action_check_data_breach_title">Verifique a senha em vazamentos de dados conhecidos</string>
+    <string name="password_action_test_memory_title">Digite da memória</string>
     <string name="website_action_check_data_breach_title">Verifique o site em vazamentos de dados conhecidos</string>
     <string name="uri_action_launch_app_title">Iniciar aplicativo</string>
     <string name="uri_action_launch_website_title">Abrir site</string>
@@ -536,9 +537,15 @@
     <string name="gpg_key_import_error_unsupported_platform">A importação de chave GPG não é suportada nesta plataforma.</string>
     <string name="gpg_key_import_error_invalid_passphrase">A senha da chave GPG é inválida.</string>
     <string name="gpg_key_import_error_malformed_key">O arquivo de chave GPG está malformado.</string>
+    <string name="gpg_key_import_error_multiple_keys">O arquivo contém mais de uma chave GPG. Exporte e importe as chaves, uma de cada vez.</string>
     <string name="gpg_key_import_error_read">Não é possível ler o arquivo selecionado.</string>
     <string name="gpg_key_import_error_passphrase_required">Uma senha é necessária para desbloquear esta chave GPG.</string>
     <string name="gpg_key_import_error_key_changed">A chave GPG foi alterada durante a importação. Tente importá-la novamente.</string>
+    <string name="gpg_key_import_error_mismatched_key">A chave importada não corresponde à chave GPG neste item.</string>
+    <string name="gpg_key_import_error_existing_malformed">A chave GPG armazenada neste item está malformada e não pode ser mesclada.</string>
+    <string name="gpg_key_import_error_secret_conflict">O material da chave secreta importado entra em conflito com a chave secreta armazenada neste item.</string>
+    <string name="gpg_key_import_error_resource_limit">A chave GPG é muito grande ou complexa para importar.</string>
+    <string name="gpg_key_import_error_reconcile">A chave GPG não pôde ser mesclada com segurança.</string>
     <string name="gpg_key_import_passphrase_title">Senha</string>
     <string name="gpg_key_import_passphrase_hint">Insira a senha da chave GPG</string>
     <string name="gpg_key_import_passphrase_dialog_title">Insira a senha da chave GPG</string>
@@ -555,6 +562,7 @@
     <string name="gpg_key_expiry_primary">Chave primária</string>
     <string name="gpg_key_expiry_subkey">Subchave <xliff:g id="key_id" example="0A1B2C3D">%1$s</xliff:g></string>
     <string name="gpg_key_expiry_subkey_capabilities">Capacidades: <xliff:g id="capabilities" example="sign, encrypt">%1$s</xliff:g>. Validade atual:<xliff:g id="expiry" example="Jan 1, 2030">%2$s</xliff:g></string>
+    <string name="gpg_key_expiry_subkey_weak_self_signature">Assinado com um algoritmo fraco (SHA-1). Renovar o re-assina com um moderno.</string>
     <string name="gpg_key_expiry_capability_sign">assinar</string>
     <string name="gpg_key_expiry_capability_encrypt">criptografar</string>
     <string name="gpg_key_expiry_preset_one_year">Um ano</string>
@@ -572,6 +580,45 @@
     <string name="gpg_key_expiry_invalid_message">Escolha uma data de validade futura válida.</string>
     <string name="gpg_key_expiry_revoked_message">Um componente de chave revogado não pode ser renovado.</string>
     <string name="gpg_key_expiry_unresolved_revocation_message">Não é possível verificar uma revogação designada porque a chave pública do revogador não está disponível. Importe-a e tente novamente.</string>
+    <string name="gpg_key_expiry_unsupported_signing_hash_message">Esta chave só pode ser recertificada com um algoritmo de resumo inseguro. Migre para uma chave moderna.</string>
+    <string name="gpg_key_expiry_missing_self_signature_message">Esta chave não possui autoassinatura válida, portanto não pode ser renovada. Ele pode estar corrompido ou incompleto.</string>
+    <string name="gpg_user_id_revocation_dialog_title">Revogar ID de usuário GPG</string>
+    <string name="gpg_user_id_revocation_dialog_message">Selecione o ID do usuário a ser revogado. A revogação adiciona uma declaração assinada ao certificado e não apaga a identidade ou o seu histórico.</string>
+    <string name="gpg_user_id_revocation_confirm">Revogar</string>
+    <string name="gpg_user_id_revocation_last_identity_message">Uma chave GPG deve manter pelo menos um ID de usuário utilizável. Adicione um substituto antes de revogar este.</string>
+    <string name="gpg_user_id_revocation_no_identity_message">Esta chave não possui ID de usuário ativo que possa ser revogada.</string>
+    <string name="gpg_user_id_replacement_dialog_title">Substituir ID de usuário GPG</string>
+    <string name="gpg_user_id_replacement_dialog_message">Selecione o ID de usuário antigo. O Keyguard adicionará a substituição e revogará esse ID de usuário exato em uma atualização.</string>
+    <string name="gpg_user_id_replacement_confirm_next">Próximo</string>
+    <string name="gpg_user_id_replacement_no_identity_message">Esta chave não possui ID de usuário ativo que possa ser substituído.</string>
+    <string name="gpg_user_id_replacement_value_title">Nova ID de usuário GPG</string>
+    <string name="gpg_user_id_replacement_value_message">Insira a nova ID de usuário OpenPGP exato. O Keyguard não irá cortá-la ou normalizá-la.</string>
+    <string name="gpg_user_id_replacement_value_label">ID do Usuário</string>
+    <string name="gpg_user_id_replacement_value_hint">Nome &lt;email@example.com&gt;</string>
+    <string name="gpg_user_id_replacement_value_confirm">Substituir</string>
+    <string name="gpg_user_id_replacement_invalid_message">Insira uma ID de usuário não vazia de no máximo 1.024 bytes UTF-8 sem caracteres de controle.</string>
+    <string name="gpg_user_id_replacement_same_identity_message">Insira um ID de usuário diferente da identidade selecionada.</string>
+    <string name="gpg_user_id_replacement_duplicate_message">Esse ID de usuário já está ativo nesta chave.</string>
+    <string name="gpg_user_id_replacement_title">Substituir ID do Usuário</string>
+    <string name="gpg_user_id_replacement_success_title">ID de usuário GPG substituído</string>
+    <string name="gpg_user_id_replacement_success_message">Salve este item e redistribua ou carregue sua chave pública para publicar a substituição.</string>
+    <string name="gpg_user_id_replacement_already_done_message">Esta substituição já foi aplicada. Nenhuma nova assinatura foi criada.</string>
+    <string name="gpg_user_id_replacement_failed_title">Falha ao substituir o ID de usuário GPG</string>
+    <string name="gpg_user_id_replacement_failed_message">O ID do usuário não pôde ser substituído. A chave original permaneceu inalterada.</string>
+    <string name="gpg_user_id_replacement_retired_message">Esse ID de usuário exato foi revogado anteriormente e não pode ser adicionado novamente.</string>
+    <string name="gpg_user_id_replacement_target_missing">O ID do usuário selecionado foi alterado ou não está mais ativo. Reabra a chave e tente novamente.</string>
+    <string name="gpg_user_id_replacement_private_key_required">Importe a chave privada para substituir um de seus IDs de usuário.</string>
+    <string name="gpg_user_id_replacement_unavailable">A substituição do ID do usuário GPG não é suportada nesta plataforma.</string>
+    <string name="gpg_user_id_revocation_title">Revogar ID do Usuário</string>
+    <string name="gpg_user_id_revocation_success_title">ID de usuário GPG revogado</string>
+    <string name="gpg_user_id_revocation_success_message">Salve este item e redistribua ou carregue sua chave pública para publicar a revogação.</string>
+    <string name="gpg_user_id_revocation_already_done_message">Este ID de usuário já foi revogado. Nenhuma nova assinatura foi criada.</string>
+    <string name="gpg_user_id_revocation_failed_title">Falha ao revogar o ID de usuário do GPG</string>
+    <string name="gpg_user_id_revocation_failed_message">O ID do usuário não pôde ser revogado. A chave original permaneceu inalterada.</string>
+    <string name="gpg_user_id_revocation_target_missing">O ID do usuário selecionado foi alterado ou não é mais elegível. Reabra a chave e tente novamente.</string>
+    <string name="gpg_user_id_revocation_private_key_required">Importe a chave privada para revogar um de seus IDs de usuário.</string>
+    <string name="gpg_user_id_revocation_unavailable">A revogação do ID do usuário GPG não é suportada nesta plataforma.</string>
+    <string name="gpg_user_id_mutation_key_revoked_message">Uma chave GPG revogada não pode ser alterada.</string>
     <string name="ssh_key_import_title">Importar chave SSH</string>
     <string name="ssh_key_import_drop_here">Solte um arquivo para importar uma chave SSH</string>
     <string name="ssh_key_import_failed_title">Falha ao importar a chave SSH</string>
@@ -791,6 +838,8 @@
     <string name="passwordleak_occurrences_found_text">A senha foi identificada em vazamentos de dados conhecidos. Altere-a imediatamente para proteger sua segurança on-line</string>
     <string name="passwordleak_occurrences_not_found_title">Não foram encontrados vazamentos</string>
     <string name="passwordleak_failed_to_load_status_text">Falha na verificação de vazamentos de dados. Você pode estar off-line no momento</string>
+    <string name="password_memory_test_note">Digite esta senha da memória. O Keyguard compara-o com a senha salva neste dispositivo.</string>
+    <string name="password_memory_test_success">Correspondências de senha</string>
     <!-- Title of the 'Show in Large Type' dialog -->
     <string name="largetype_title">Tipo Grande</string>
     <string name="largetype_action_show_in_large_type_title">Mostrar em Tipo Grande</string>
@@ -1661,6 +1710,7 @@
     <string name="pref_item_license_sync_no_purchases">Nenhuma compra elegível encontrada</string>
     <string name="pref_item_license_sync_failed">Não foi possível obter o token de titularidade</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueio biométrico</string>
+    <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Exigir confirmação</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Exigir uma confirmação adicional via um toque de botão depois de uma autenticação biométrica</string>
     <string name="pref_item_yubikey_unlock_title">Desbloqueio YubiKey</string>
@@ -1856,7 +1906,6 @@
     <string name="gpg_agent_setup_step_1_text">Abra as configurações do GPG, habilite o agente GPG e certifique-se de que o cofre contenha uma chave GPG que o agente tenha permissão para usar.</string>
     <string name="gpg_agent_setup_step_2_title">2. Configure o GNUPGHOME</string>
     <string name="gpg_agent_setup_step_2_text">Execute comandos GnuPG a partir de um shell que aponta para a página inicial do agente do Keyguard. O Keyguard escuta no S.gpg-agent dentro deste diretório.</string>
-    <string name="gpg_agent_setup_linux_home_fallback_note">Se XDG_RUNTIME_DIR não estiver definido, use este substituto:</string>
     <string name="gpg_agent_setup_step_3_title">3. Importe a chave pública</string>
     <string name="gpg_agent_setup_step_3_text">Exporte a chave pública do item Chave GPG no Keyguard e importe-a para esta página inicial do GnuPG. Isso expõe apenas material de chave pública.</string>
     <string name="gpg_agent_setup_step_4_title">4. Verificar</string>
@@ -1871,6 +1920,10 @@
     <string name="gpg_key_status">Status da chave GPG</string>
     <string name="gpg_key_status_revoked_text">Esta chave GPG foi revogada e não deve ser usada.</string>
     <string name="gpg_key_status_expired_text">Esta chave GPG expirou e não deve ser usada.</string>
+    <string name="gpg_key_status_weak_self_signature_title">Autoassinatura fraca</string>
+    <string name="gpg_key_status_weak_self_signature_text">As autoassinaturas desta chave usam um algoritmo fraco (SHA-1). Renove a chave para assiná-la novamente com uma moderna.</string>
+    <string name="gpg_key_status_missing_self_signature_title">Nenhuma autoassinatura válida</string>
+    <string name="gpg_key_status_missing_self_signature_text">Esta chave não possui autoassinatura válida, portanto não pode ser renovada. Ele pode estar corrompido ou incompleto.</string>
     <string name="gpg_key_user_ids">IDs de usuário</string>
     <string name="gpg_key_does_not_expire">Não expira</string>
     <string name="gpg_key_capability_encrypt_decrypt">Criptografar/descriptografar</string>
@@ -1915,6 +1968,10 @@
     <string name="gpg_tools_warning_key_revoked">Aviso: a chave de assinatura foi revogada</string>
     <string name="gpg_tools_warning_key_expired">Aviso: a chave de assinatura expirou</string>
     <string name="gpg_tools_warning_signature_expired">Aviso: a assinatura expirou</string>
+    <string name="gpg_tools_warning_policy_conflict">Aviso: a chave de assinatura contém informações de política conflitantes</string>
+    <string name="gpg_tools_warning_weak_digest">Aviso: a assinatura usa um algoritmo de resumo fraco</string>
+    <string name="gpg_tools_warning_weak_rsa_decryption_key">Aviso: a mensagem foi descriptografada com uma chave RSA fraca</string>
+    <string name="gpg_tools_warning_elgamal_decryption_key">Aviso: a mensagem foi descriptografada com uma chave ElGamal herdada</string>
     <string name="gpg_tools_file_required">Escolher um arquivo de entrada</string>
     <string name="gpg_tools_signature_file_required">Escolher um arquivo de assinatura</string>
     <string name="gpg_tools_text_required">Digite o texto a ser processado</string>
@@ -1932,6 +1989,8 @@
     <string name="gpg_keyserver_upload_success_title">Chave pública GPG enviada</string>
     <string name="gpg_keyserver_refresh_success_title">Chave pública GPG atualizada</string>
     <string name="gpg_keyserver_refresh_not_found_title">Chave pública GPG não encontrada no servidor de chaves</string>
+    <string name="gpg_keyserver_refresh_failed_title">Não foi possível atualizar a chave pública GPG</string>
+    <string name="gpg_keyserver_refresh_skipped_title">A chave pública GPG não pode ser atualizada</string>
     <string name="gpg_keyserver_verify_unknown_title">O status de verificação da chave pública GPG é desconhecido</string>
     <string name="gpg_keyserver_verify_not_found_title">Chave pública GPG não encontrada no servidor de chaves</string>
     <string name="gpg_keyserver_verify_unverified_title">Chave pública GPG encontrada sem e-mail verificado</string>

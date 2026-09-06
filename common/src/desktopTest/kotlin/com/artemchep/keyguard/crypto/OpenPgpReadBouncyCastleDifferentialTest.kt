@@ -3,7 +3,10 @@ package com.artemchep.keyguard.crypto
 import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.GpgKeyConfig
 import com.artemchep.keyguard.common.model.GpgKeyExpiry
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpExportPublicKeyRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPrivateKey
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpReadFileRequest
@@ -23,10 +26,20 @@ import com.artemchep.keyguard.common.service.crypto.gpgAlgorithmName
 import com.artemchep.keyguard.common.service.crypto.parseClearSignedMessage
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnapshot
+import com.artemchep.keyguard.common.service.gpgagent.GpgRevocationStatus
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentCertificateMetadata
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyComponentMetadata
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyComponentRole
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
+import com.artemchep.keyguard.common.service.gpgagent.GpgRenewalAuthorization
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.util.io.toSource
+import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
 import kotlinx.datetime.TimeZone
 import kotlinx.io.Buffer
+import kotlinx.io.readByteArray
 import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.bcpg.BCPGInputStream
 import org.bouncycastle.bcpg.BCPGOutputStream
@@ -54,6 +67,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Clock
@@ -72,12 +86,12 @@ import kotlin.time.Instant
  * The repository has no checked-in OpenPGP v6 certificate fixture yet; the existing
  * RSA, legacy Curve25519, and NIST ECDSA fixtures are all exercised here.
  */
+private val nativeParser = NativeGpgPublicKeyParser
+private val nativeMetadataResolver = NativeGpgKeyMetadataResolver
+private val nativeVerifier = NativeGpgOpenPgpVerifier
+
 class OpenPgpReadBouncyCastleDifferentialTest {
-    private val nativeParser = NativeGpgPublicKeyParser
-    private val nativeMetadataResolver = NativeGpgKeyMetadataResolver
-    private val nativeVerifier = NativeGpgOpenPgpVerifier
     private val nativeService = NativeGpgOpenPgpService()
-    private val bcSigner = BcGpgOpenPgpServiceTestOracle()
 
     @BeforeTest
     fun assertPinnedOracleVersion() {
@@ -165,7 +179,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
                 ),
             )
         assertTrue(
-            modernMetadata.keys.any { key ->
+            modernMetadata.authorizedAgentKeys.any { key ->
                 key.fingerprint != modern.fingerprint && "sign" in key.capabilities
             },
             "the authenticated signing subkey must retain its cross-certified sign capability",
@@ -179,7 +193,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
                     publicKeyArmored = rsa.publicKeyArmored,
                     fingerprint = rsa.fingerprint,
                 ),
-            ).keys.single { key -> key.fingerprint == rsa.fingerprint }
+            ).authorization.keys.single { key -> key.fingerprint == rsa.fingerprint }
         assertFalse(
             "decrypt" in rsaPrimary.capabilities,
             "authenticated RSA key flags, not the raw RSA algorithm, define capabilities",
@@ -216,6 +230,42 @@ class OpenPgpReadBouncyCastleDifferentialTest {
                 .requireSuccess()
                 .single()
         assertFalse(forgedUserId in forgedParsed.userIds)
+        val expectedPackets = forgedRing.armored().canonicalGpgArmorForComparison()
+        assertEquals(
+            expectedPackets,
+            forgedParsed.publicKeyArmored.canonicalGpgArmorForComparison(),
+            "read DTO must retain third-party certification evidence",
+        )
+
+        val imported = assertIs<GpgKeyImportResult.Success>(
+            NativeGpgKeyImportService.import(
+                GpgKeyImportRequest(
+                    content = forgedRing.armored(),
+                    fileName = "third-party-certified-public.asc",
+                ),
+            ),
+        )
+        assertEquals(
+            expectedPackets,
+            imported.gpgKey.publicKeyArmored.canonicalGpgArmorForComparison(),
+            "public import must retain third-party certification evidence",
+        )
+
+        val exportOutput = Buffer()
+        nativeService.exportPublicKey(
+            GpgOpenPgpExportPublicKeyRequest(
+                publicKey = GpgOpenPgpPublicKey(forgedRing.armored()),
+                output = exportOutput,
+            ),
+        )
+        assertEquals(
+            expectedPackets,
+            exportOutput
+                .readByteArray()
+                .decodeToString()
+                .canonicalGpgArmorForComparison(),
+            "public export must retain third-party certification evidence",
+        )
 
         val inspected = assertNotNull(GpgCertificateInspectorJvm.inspect(victimRing))
         val signingSubkey =
@@ -271,7 +321,11 @@ class OpenPgpReadBouncyCastleDifferentialTest {
                     fingerprint = victimPrimary.fingerprintHex(),
                 ),
             )
-        assertFalse(metadata.keys.any { key -> key.fingerprint == signingSubkey.fingerprintHex() })
+        assertFalse(
+            metadata.authorizedAgentKeys.any { key ->
+                key.fingerprint == signingSubkey.fingerprintHex()
+            },
+        )
     }
 
     @Test
@@ -342,6 +396,16 @@ class OpenPgpReadBouncyCastleDifferentialTest {
         assertFalse(parsedVictim.canSign)
         assertFalse(parsedVictim.canEncrypt)
     }
+}
+
+class OpenPgpVerificationBouncyCastleDifferentialTest {
+    private val nativeService = NativeGpgOpenPgpService()
+    private val bcSigner = BcGpgOpenPgpServiceTestOracle()
+
+    @BeforeTest
+    fun assertPinnedOracleVersion() {
+        assertEquals("1.84", gpgBouncyCastleProvider.versionStr)
+    }
 
     @Test
     fun `native detached verification matches BC for valid invalid and missing-key cases`() {
@@ -349,6 +413,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
             val publicKey = GpgOpenPgpPublicKey(publicKeyArmoredOf(fixture.secretKeyArmored))
             val request =
                 GpgOpenPgpSignTextRequest(
+                    candidateRevocationKeys = emptyList(),
                     text = DETACHED_TEXT,
                     privateKey = GpgOpenPgpPrivateKey(fixture.secretKeyArmored),
                 )
@@ -391,6 +456,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
             val signed =
                 bcSigner.clearSignText(
                     GpgOpenPgpSignTextRequest(
+                        candidateRevocationKeys = emptyList(),
                         text = CLEAR_TEXT,
                         privateKey = GpgOpenPgpPrivateKey(fixture.secretKeyArmored),
                     ),
@@ -398,6 +464,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
 
             assertClearTextVerificationParity(
                 context = "${fixture.name} valid clear text",
+                nativeService = nativeService,
                 request =
                     GpgOpenPgpVerifyTextRequest(
                         signedText = signed,
@@ -406,6 +473,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
             )
             assertClearTextVerificationParity(
                 context = "${fixture.name} invalid clear text",
+                nativeService = nativeService,
                 request =
                     GpgOpenPgpVerifyTextRequest(
                         signedText = signed.replace("dash escaped", "tampered"),
@@ -414,6 +482,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
             )
             assertClearTextVerificationParity(
                 context = "${fixture.name} missing clear text",
+                nativeService = nativeService,
                 request =
                     GpgOpenPgpVerifyTextRequest(
                         signedText = signed,
@@ -424,7 +493,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
     }
 
     @Test
-    fun `native verification warning semantics match BC`() {
+    fun `native revoked-key warning semantics match BC`() {
         val fixture = signingFixtures.first { it.name == "legacy Ed25519 plus CV25519" }
         val secretRing = secretRingOf(fixture.secretKeyArmored)
         val publicRing = secretRing.toCertificate()
@@ -461,7 +530,10 @@ class OpenPgpReadBouncyCastleDifferentialTest {
             listOf(GpgOpenPgpVerificationWarning.KEY_REVOKED),
             revoked.warnings,
         )
+    }
 
+    @Test
+    fun `native expired-key warning semantics match BC`() {
         val expiredGenerated =
             generator(
                 creationTime = EXPIRED_KEY_CREATION_TIME,
@@ -472,9 +544,17 @@ class OpenPgpReadBouncyCastleDifferentialTest {
                 ),
             )
         val expiredSecretRing = secretRing(expiredGenerated)
+        // The generated primary carries certify-only key flags, and a data signature
+        // from a component whose flags omit signing is refused for wrong key usage.
+        // The expired-key warning must therefore be exercised through the signing
+        // subkey, which is what a real signer would use.
+        val expiredSigningSecretKey =
+            expiredSecretRing.secretKeys
+                .asSequence()
+                .first { key -> !key.publicKey.isMasterKey && key.publicKey.isSigningKey() }
         val expiredKeySignature =
             detachedSignature(
-                secretKey = expiredSecretRing.secretKey,
+                secretKey = expiredSigningSecretKey,
                 text = DETACHED_TEXT,
             )
         val expiredKey =
@@ -491,7 +571,13 @@ class OpenPgpReadBouncyCastleDifferentialTest {
             listOf(GpgOpenPgpVerificationWarning.KEY_EXPIRED),
             expiredKey.warnings,
         )
+    }
 
+    @Test
+    fun `native expired-signature warning semantics match BC`() {
+        val fixture = signingFixtures.first { it.name == "legacy Ed25519 plus CV25519" }
+        val secretRing = secretRingOf(fixture.secretKeyArmored)
+        val publicRing = secretRing.toCertificate()
         val expiredSignature =
             detachedSignature(
                 secretKey = secretRing.secretKey,
@@ -514,6 +600,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
             signatureExpired.warnings,
         )
     }
+}
 
     private fun assertParserParity(
         context: String,
@@ -544,21 +631,21 @@ class OpenPgpReadBouncyCastleDifferentialTest {
         fingerprint: String?,
         candidateRevocationKeys: List<GpgOpenPgpPublicKey> = emptyList(),
     ) {
+        val expected = BouncyCastleMetadataOracle.resolve(
+            privateKeyArmored = privateKeyArmored,
+            publicKeyArmored = publicKeyArmored,
+            fingerprint = fingerprint,
+            candidateRevocationKeys = candidateRevocationKeys,
+        )
+        val actual = nativeMetadataResolver.resolve(
+            privateKeyArmored = privateKeyArmored,
+            publicKeyArmored = publicKeyArmored,
+            fingerprint = fingerprint,
+            candidateRevocationKeys = candidateRevocationKeys,
+        )
         assertEquals(
-            expected =
-                BouncyCastleMetadataOracle.resolve(
-                    privateKeyArmored = privateKeyArmored,
-                    publicKeyArmored = publicKeyArmored,
-                    fingerprint = fingerprint,
-                    candidateRevocationKeys = candidateRevocationKeys,
-                ),
-            actual =
-                nativeMetadataResolver.resolve(
-                    privateKeyArmored = privateKeyArmored,
-                    publicKeyArmored = publicKeyArmored,
-                    fingerprint = fingerprint,
-                    candidateRevocationKeys = candidateRevocationKeys,
-                ),
+            expected = expected?.authorizedAgentKeys.orEmpty(),
+            actual = actual?.authorizedAgentKeys.orEmpty(),
             message = context,
         )
     }
@@ -575,6 +662,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
 
     private fun assertClearTextVerificationParity(
         context: String,
+        nativeService: NativeGpgOpenPgpService,
         request: GpgOpenPgpVerifyTextRequest,
     ) {
         val expected = BouncyCastleVerificationOracle.verifyClearSignedText(request)
@@ -702,30 +790,27 @@ class OpenPgpReadBouncyCastleDifferentialTest {
         )
     }
 
-    private companion object {
-        const val DETACHED_TEXT = "OpenPGP differential detached signature"
-        const val CLEAR_TEXT = "dash escaped\n- marker-like line\nOpenPGP clear text"
+    private const val DETACHED_TEXT = "OpenPGP differential detached signature"
+    private const val CLEAR_TEXT = "dash escaped\n- marker-like line\nOpenPGP clear text"
 
-        val CERTIFICATE_CREATION_TIME = Instant.parse("2025-01-02T03:04:05Z")
-        val CERTIFICATE_EXPIRY_TIME = Instant.parse("2030-01-02T03:04:05Z")
-        val EXPIRED_KEY_CREATION_TIME = Instant.parse("2020-01-02T03:04:05Z")
-        val EXPIRED_SIGNATURE_CREATION_TIME = Instant.parse("2021-02-03T04:05:06Z")
+    private val CERTIFICATE_CREATION_TIME = Instant.parse("2025-01-02T03:04:05Z")
+    private val CERTIFICATE_EXPIRY_TIME = Instant.parse("2030-01-02T03:04:05Z")
+    private val EXPIRED_KEY_CREATION_TIME = Instant.parse("2020-01-02T03:04:05Z")
+    private val EXPIRED_SIGNATURE_CREATION_TIME = Instant.parse("2021-02-03T04:05:06Z")
 
-        val algorithmFixtures =
-            listOf(
-                AlgorithmFixture("RSA", GpgTestKeyFixtures.RSA),
-                AlgorithmFixture("legacy Ed25519 plus CV25519", GpgTestKeyFixtures.CV25519),
-                AlgorithmFixture("legacy Ed25519", GpgTestKeyFixtures.ED25519),
-                AlgorithmFixture("NIST P-256 ECDSA plus ECDH", GpgTestKeyFixtures.NISTP256),
-                AlgorithmFixture("ECDSA", GpgTestKeyFixtures.ECDSA),
-            )
-        val signingFixtures =
-            algorithmFixtures.filter { fixture ->
-                fixture.name in setOf("RSA", "legacy Ed25519 plus CV25519", "ECDSA")
-            }
-        val clearTextSigningFixtures = signingFixtures
-    }
-}
+    private val algorithmFixtures =
+        listOf(
+            AlgorithmFixture("RSA", GpgTestKeyFixtures.RSA),
+            AlgorithmFixture("legacy Ed25519 plus CV25519", GpgTestKeyFixtures.CV25519),
+            AlgorithmFixture("legacy Ed25519", GpgTestKeyFixtures.ED25519),
+            AlgorithmFixture("NIST P-256 ECDSA plus ECDH", GpgTestKeyFixtures.NISTP256),
+            AlgorithmFixture("ECDSA", GpgTestKeyFixtures.ECDSA),
+        )
+    private val signingFixtures =
+        algorithmFixtures.filter { fixture ->
+            fixture.name in setOf("RSA", "legacy Ed25519 plus CV25519", "ECDSA")
+        }
+    private val clearTextSigningFixtures = signingFixtures
 
 private object BouncyCastleParserOracle {
     fun parse(armored: String): GpgPublicKeyParseResult {
@@ -837,7 +922,7 @@ private object BouncyCastleMetadataOracle : GpgKeyMetadataResolver {
         publicKeyArmored: String?,
         fingerprint: String?,
         candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
-    ): GpgAgentKeyMetadata? {
+    ): GpgAgentMetadataResolution? {
         val externalRevocationKeys = candidateRevocationKeys.parseGpgPublicKeyCandidates()
         return privateKeyArmored
             ?.takeIf { armored -> armored.isNotBlank() }
@@ -851,9 +936,15 @@ private object BouncyCastleMetadataOracle : GpgKeyMetadataResolver {
         armored: String,
         fingerprint: String?,
         externalRevocationKeys: List<PGPPublicKey>,
-    ): GpgAgentKeyMetadata? =
+    ): GpgAgentMetadataResolution? =
         runCatching {
             val rings = parseGpgSecretKeyRingCollection(armored).keyRings.asSequence().toList()
+            val secretFingerprints = rings
+                .asSequence()
+                .flatMap { ring -> ring.secretKeys.asSequence() }
+                .filterNot { key -> key.isPrivateKeyEmpty }
+                .map { key -> key.publicKey.fingerprintHex().normalizeGpgFingerprint() }
+                .toSet()
             val candidates =
                 buildList {
                     rings.forEach { ring -> ring.publicKeys.asSequence().forEach(::add) }
@@ -867,14 +958,14 @@ private object BouncyCastleMetadataOracle : GpgKeyMetadataResolver {
                         ring = ring.toCertificate(),
                         candidateRevocationKeys = candidates,
                     )
-                }.toMetadataOrNull()
+                }.toResolutionOrNull(secretFingerprints)
         }.getOrNull()
 
     private fun parsePublic(
         armored: String,
         fingerprint: String?,
         externalRevocationKeys: List<PGPPublicKey>,
-    ): GpgAgentKeyMetadata? =
+    ): GpgAgentMetadataResolution? =
         runCatching {
             val rings = parseGpgPublicKeyRingCollection(armored).keyRings.asSequence().toList()
             val candidates =
@@ -890,12 +981,17 @@ private object BouncyCastleMetadataOracle : GpgKeyMetadataResolver {
                         ring = ring,
                         candidateRevocationKeys = candidates,
                     )
-                }.toMetadataOrNull()
+                }.toResolutionOrNull()
         }.getOrNull()
 
-    private fun Sequence<GpgCertificateInspectorJvm>.toMetadataOrNull(): GpgAgentKeyMetadata? {
-        val keys =
-            flatMap { certificate ->
+    private fun Sequence<GpgCertificateInspectorJvm>.toResolutionOrNull(
+        secretFingerprints: Set<String> = emptySet(),
+    ): GpgAgentMetadataResolution? {
+        val inspectedCertificates = toList()
+        if (inspectedCertificates.isEmpty()) return null
+        val keys = inspectedCertificates
+            .asSequence()
+            .flatMap { certificate ->
                 if (!certificate.primary.authenticated || certificate.primary.revoked) {
                     return@flatMap emptySequence()
                 }
@@ -906,11 +1002,70 @@ private object BouncyCastleMetadataOracle : GpgKeyMetadataResolver {
                         certificateRevoked = certificate.primary.revoked,
                     )
                 }
+            }.filter { inspected ->
+                inspected.key.publicKey
+                    .fingerprintHex()
+                    .normalizeGpgFingerprint() in secretFingerprints
             }.mapNotNull { inspected -> inspected.toMetadataKeyOrNull() }
-                .toList()
-        return GpgAgentKeyMetadata(version = 1, keys = keys)
-            .takeIf { metadata -> metadata.keys.isNotEmpty() }
+            .toList()
+        val certificates = inspectedCertificates.map { certificate ->
+            certificate.toCertificateMetadata(secretFingerprints)
+        }
+        return GpgAgentMetadataResolution(
+            metadata = GpgAgentKeyMetadata(certificates = certificates),
+            authorization = GpgAgentAuthorizationSnapshot(
+                evaluatedAtEpochSeconds = 0,
+                policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
+                keys = keys,
+                revocations = inspectedCertificates.toRevocations(),
+            ),
+        )
     }
+
+    private fun GpgCertificateInspectorJvm.toCertificateMetadata(
+        secretFingerprints: Set<String>,
+    ) = GpgAgentCertificateMetadata(
+        primaryFingerprint = primary.publicKey.fingerprintHex(),
+        components = keys.map { key ->
+            val authorized = MetadataKey(
+                key = key,
+                primary = key === primary,
+                certificateRevoked = primary.revoked,
+            ).toMetadataKeyOrNull()
+            GpgAgentKeyComponentMetadata(
+                fingerprint = key.publicKey.fingerprintHex(),
+                role = if (key === primary) {
+                    GpgAgentKeyComponentRole.PRIMARY
+                } else {
+                    GpgAgentKeyComponentRole.SUBKEY
+                },
+                publicKeyAlgorithmId = key.publicKey.algorithm,
+                algorithm = gpgAlgorithmName(key.publicKey.algorithm),
+                keygrips = runCatching {
+                    listOf(GpgKeygripCalculatorJvm.calculate(key.publicKey))
+                }.getOrDefault(emptyList()),
+                storedSecretMaterial = key.publicKey
+                    .fingerprintHex()
+                    .normalizeGpgFingerprint() in secretFingerprints,
+                agentOperations = buildSet {
+                    if (authorized?.canSign == true) add(GpgAgentOperation.SIGN)
+                    if (authorized?.canDecrypt == true) add(GpgAgentOperation.DECRYPT)
+                },
+            )
+        },
+    )
+
+    private fun List<GpgCertificateInspectorJvm>.toRevocations() =
+        flatMap { certificate ->
+            certificate.keys.map { key ->
+                val status = if (key.revoked) {
+                    GpgRevocationStatus.REVOKED
+                } else {
+                    GpgRevocationStatus.NOT_REVOKED
+                }
+                key.publicKey.fingerprintHex().normalizeGpgFingerprint() to status
+            }
+        }.toMap()
 
     private fun MetadataKey.toMetadataKeyOrNull(): GpgAgentKeyMetadataKey? {
         val capabilities =
@@ -936,7 +1091,9 @@ private object BouncyCastleMetadataOracle : GpgKeyMetadataResolver {
         )
     }
 
-    private fun Sequence<PGPSecretKeyRing>.filterSecretRingsByFingerprint(fingerprint: String?): Sequence<PGPSecretKeyRing> {
+    private fun Sequence<PGPSecretKeyRing>.filterSecretRingsByFingerprint(
+        fingerprint: String?,
+    ): Sequence<PGPSecretKeyRing> {
         val normalized = fingerprint.normalizedOrNull() ?: return this
         return filter { ring ->
             ring.publicKeys.asSequence().any { key ->
@@ -945,7 +1102,9 @@ private object BouncyCastleMetadataOracle : GpgKeyMetadataResolver {
         }
     }
 
-    private fun Sequence<PGPPublicKeyRing>.filterPublicRingsByFingerprint(fingerprint: String?): Sequence<PGPPublicKeyRing> {
+    private fun Sequence<PGPPublicKeyRing>.filterPublicRingsByFingerprint(
+        fingerprint: String?,
+    ): Sequence<PGPPublicKeyRing> {
         val normalized = fingerprint.normalizedOrNull() ?: return this
         return filter { ring ->
             ring.publicKeys.asSequence().any { key ->
@@ -1068,9 +1227,14 @@ private object BouncyCastleVerificationOracle {
             inspected?.second?.takeIf { key ->
                 key.authenticated && (key.publicKey.isMasterKey || key.signingCrossCertified)
             }
+        // An arithmetically correct signature is still not "valid" when it has expired
+        // or is bound to a collision-prone digest: the contract is INVALID plus the
+        // warning that says why, never VALID.
+        val signatureExpired = signature.isExpiredAt(now)
+        val weakDigest = signature.hashAlgorithm in WEAK_DATA_SIGNATURE_DIGESTS
         return GpgOpenPgpVerification(
             status =
-                if (valid) {
+                if (valid && !signatureExpired && !weakDigest) {
                     GpgOpenPgpVerificationStatus.VALID
                 } else {
                     GpgOpenPgpVerificationStatus.INVALID
@@ -1082,22 +1246,38 @@ private object BouncyCastleVerificationOracle {
                 signature.creationTime?.let { date ->
                     Instant.fromEpochMilliseconds(date.time)
                 },
-            warnings =
-                buildList {
-                    if (signer != null && (certificate?.primary?.revoked == true || signer.revoked)) {
-                        add(GpgOpenPgpVerificationWarning.KEY_REVOKED)
-                    }
-                    if (
-                        signer != null &&
-                        (certificate?.primary?.isExpired(now) == true || signer.isExpired(now))
-                    ) {
-                        add(GpgOpenPgpVerificationWarning.KEY_EXPIRED)
-                    }
-                    if (signature.isExpiredAt(now)) {
-                        add(GpgOpenPgpVerificationWarning.SIGNATURE_EXPIRED)
-                    }
-                },
+            warnings = verificationWarnings(
+                certificate = certificate,
+                signer = signer,
+                signatureExpired = signatureExpired,
+                weakDigest = weakDigest,
+                referenceTime = now,
+            ),
         )
+    }
+
+    private fun verificationWarnings(
+        certificate: GpgCertificateInspectorJvm?,
+        signer: GpgVerifiedCertificateKeyJvm?,
+        signatureExpired: Boolean,
+        weakDigest: Boolean,
+        referenceTime: Instant,
+    ): List<GpgOpenPgpVerificationWarning> = buildList {
+        if (signer != null && (certificate?.primary?.revoked == true || signer.revoked)) {
+            add(GpgOpenPgpVerificationWarning.KEY_REVOKED)
+        }
+        if (
+            signer != null &&
+            (certificate?.primary?.isExpired(referenceTime) == true || signer.isExpired(referenceTime))
+        ) {
+            add(GpgOpenPgpVerificationWarning.KEY_EXPIRED)
+        }
+        if (signatureExpired) {
+            add(GpgOpenPgpVerificationWarning.SIGNATURE_EXPIRED)
+        }
+        if (weakDigest) {
+            add(GpgOpenPgpVerificationWarning.WEAK_DIGEST)
+        }
     }
 
     private fun missingPublicKey(signature: PGPSignature): GpgOpenPgpVerification =
@@ -1116,6 +1296,16 @@ private object BouncyCastleVerificationOracle {
         JcaPGPContentVerifierBuilderProvider().setProvider(gpgBouncyCastleProvider)
 }
 
+/**
+ * Canonicalizes the armor and drops fields that only the native parser exposes.
+ *
+ * The BC oracle models no renewal policy at all, so `renewal` is the one parse
+ * field the two sides cannot be compared on. Stable User-ID identities are also
+ * native-protocol metadata and have no Bouncy Castle equivalent. Agent authorization is compared
+ * only for components backed by secret fingerprints; public-only policy is
+ * covered by the parse DTO assertions. The tier itself is covered by the native
+ * parse-path tests and by `GpgKeyExpirationServiceJvmTest`.
+ */
 private fun GpgPublicKeyParseResult.withCanonicalArmorForComparison(): GpgPublicKeyParseResult =
     when (this) {
         is GpgPublicKeyParseResult.Error -> {
@@ -1128,6 +1318,8 @@ private fun GpgPublicKeyParseResult.withCanonicalArmorForComparison(): GpgPublic
                     keys.map { key ->
                         key.copy(
                             publicKeyArmored = key.publicKeyArmored.canonicalGpgArmorForComparison(),
+                            renewal = GpgRenewalAuthorization.NONE,
+                            userIdDetails = emptyList(),
                         )
                     },
             )
@@ -1186,7 +1378,8 @@ private fun GpgVerifiedCertificateKeyJvm.expiresAt(): Instant? {
     return Instant.fromEpochMilliseconds(creationTime.time + validSeconds * 1_000L)
 }
 
-private fun GpgVerifiedCertificateKeyJvm.isExpired(now: Instant): Boolean = expiresAt()?.let { expiry -> expiry <= now } == true
+private fun GpgVerifiedCertificateKeyJvm.isExpired(now: Instant): Boolean =
+    expiresAt()?.let { expiry -> expiry <= now } == true
 
 private fun Int.canSign(): Boolean = this and KeyFlags.SIGN_DATA != 0
 

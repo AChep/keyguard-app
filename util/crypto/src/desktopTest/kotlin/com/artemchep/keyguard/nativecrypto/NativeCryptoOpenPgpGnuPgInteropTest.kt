@@ -16,29 +16,32 @@ import kotlin.time.Clock
 /** External-client coverage for the intentionally modernized OpenPGP output selection. */
 class NativeCryptoOpenPgpGnuPgInteropTest {
     @Test
-    fun generatedModernRecipientSelectsTag20OcbAndGnuPgDecryptsIt() {
-        if (!gpgSupportsOcb()) return
+    fun currentGnuPgFixtureUsesTag20OcbAndPreservesPrivateLiteralDefaults() {
+        if (!isGpgAvailable()) return
 
-        val material = generateModern("OpenPGP OCB interop <openpgp-ocb@test.invalid>")
-        val plaintext = "native GnuPG OCB interoperability".encodeToByteArray()
+        val publicKey = fixture("cv25519-public.asc")
+        val privateKey = fixture("cv25519-secret.asc")
+        val plaintext = "native GnuPG fixture tag-20 OCB".encodeToByteArray()
         val encrypted = NativeCrypto.openPgp.encrypt(
             content = plaintext,
-            publicKeys = listOf(material.publicKeyArmored),
-            fileName = "ocb.txt",
+            publicKeys = listOf(publicKey),
+            candidateRevocationKeys = emptyList(),
+            fileName = "",
             armored = false,
         )
         try {
             assertEquals(NativeOpenPgpProtectionMode.GNUPG_OCB, encrypted.protectionMode)
-            val home = isolatedGpgHome("keyguard-openpgp-ocb")
+            val home = isolatedGpgHome("keyguard-openpgp-fixture-ocb")
             try {
                 val message = home.resolve("message.pgp").also { it.writeBytes(encrypted.data) }
-                importSecretKey(home, material.privateKeyArmored)
+                importSecretKey(home, privateKey)
                 val packets = runGpg(home, "--batch", "--list-packets", message.toString())
                 assertEquals(0, packets.exitCode, packets.stderr)
-                assertTrue(
-                    ":aead encrypted packet:" in packets.stdout || "tag=20" in packets.stdout,
-                    packets.stdout,
-                )
+                assertTrue(":aead encrypted packet:" in packets.stdout, packets.stdout)
+                assertTrue(":compressed packet: algo=1" in packets.stdout, packets.stdout)
+                assertTrue(":literal data packet:" in packets.stdout, packets.stdout)
+                assertTrue("name=\"\"" in packets.stdout, packets.stdout)
+                assertTrue("created 0" in packets.stdout, packets.stdout)
                 val decrypted = decryptWithGpg(home, message)
                 assertEquals(plaintext.decodeToString(), decrypted.stdout)
             } finally {
@@ -47,8 +50,8 @@ class NativeCryptoOpenPgpGnuPgInteropTest {
         } finally {
             plaintext.fill(0)
             encrypted.data.fill(0)
-            material.privateKeyArmored.fill(0)
-            material.publicKeyArmored.fill(0)
+            privateKey.fill(0)
+            publicKey.fill(0)
         }
     }
 
@@ -62,6 +65,7 @@ class NativeCryptoOpenPgpGnuPgInteropTest {
         val encrypted = NativeCrypto.openPgp.encrypt(
             content = plaintext,
             publicKeys = listOf(material.publicKeyArmored, mdcRecipient),
+            candidateRevocationKeys = emptyList(),
             fileName = "mdc.txt",
             armored = false,
         )
@@ -163,14 +167,6 @@ class NativeCryptoOpenPgpGnuPgInteropTest {
     private fun disposeGpgHome(home: Path) {
         runCatching { runGpgConf(home, "--kill", "gpg-agent") }
         home.toFile().deleteRecursively()
-    }
-
-    private fun gpgSupportsOcb(): Boolean {
-        if (!isGpgAvailable()) return false
-        val firstLine = runGpg(null, "--version").stdout.lineSequence().firstOrNull().orEmpty()
-        val match = Regex("(\\d+)\\.(\\d+)").find(firstLine) ?: return false
-        val (major, minor) = match.destructured
-        return major.toInt() > 2 || major.toInt() == 2 && minor.toInt() >= 3
     }
 
     private fun isGpgAvailable(): Boolean {

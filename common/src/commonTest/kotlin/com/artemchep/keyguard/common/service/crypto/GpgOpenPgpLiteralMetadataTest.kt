@@ -103,10 +103,12 @@ class GpgOpenPgpLiteralMetadataTest {
     }
 
     @Test
-    fun `creates a safe outbound literal filename`() {
+    fun `creates a privacy preserving outbound literal filename`() {
         assertEquals("message.txt", outboundFileName(" message.txt "))
         val unsafeNames = listOf<String?>(
             null,
+            "",
+            " \t",
             "../message.txt",
             "folder/message.txt",
             "folder\\message.txt",
@@ -117,7 +119,7 @@ class GpgOpenPgpLiteralMetadataTest {
             "message${character}.txt"
         }
         unsafeNames.forEach { value ->
-            assertEquals("_CONSOLE", outboundFileName(value))
+            assertEquals("", outboundFileName(value))
         }
 
         val unicode = outboundFileName("🔐".repeat(100))

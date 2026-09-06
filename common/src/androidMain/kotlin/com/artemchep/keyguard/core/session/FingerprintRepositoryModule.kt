@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.service.backup.BackupLocalObjectStoreFactor
 import com.artemchep.keyguard.common.service.backup.BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.credentialexchange.CredentialExchangeImportTransport
@@ -78,6 +79,7 @@ import com.artemchep.keyguard.copy.SharedPreferencesStoreFactoryV2
 import com.artemchep.keyguard.copy.SharedPreferencesTypes
 import com.artemchep.keyguard.copy.SubscriptionServiceAndroid
 import com.artemchep.keyguard.copy.TextServiceAndroid
+import com.artemchep.keyguard.core.session.usecase.BiometricKeyRepositoryAndroid
 import com.artemchep.keyguard.core.session.usecase.BiometricStatusUseCaseImpl
 import com.artemchep.keyguard.core.session.usecase.DatabaseSqlManagerInFileAndroid
 import com.artemchep.keyguard.core.session.usecase.GetLocaleAndroid
@@ -150,6 +152,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
         BiometricStatusUseCaseImpl(
             directDI = this,
         )
+    }
+    bindSingleton<BiometricKeyRepository> {
+        BiometricKeyRepositoryAndroid()
     }
     bindSingleton<YubiKeyUnlockAvailability> {
         YubiKeyUnlockAvailability { true }

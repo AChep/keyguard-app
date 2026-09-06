@@ -19,6 +19,9 @@ abstract class LeBiometricCipherNative(
                     "Entity needs to be populated from a Keychain before " +
                     "it can perform encoding operations."
         }
+        val iv = requireNotNull(_iv) {
+            "Cipher IV is missing!"
+        }
         return if (forEncryption) {
             NativeCryptoPrimitives.aesCbcPkcs7Encrypt(key, iv, data)
         } else {

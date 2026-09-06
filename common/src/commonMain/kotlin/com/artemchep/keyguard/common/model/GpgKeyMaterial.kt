@@ -14,7 +14,7 @@ data class GpgKeyMaterial(
     @SerialName("fingerprint")
     val fingerprint: String,
     @SerialName("metadata")
-    val metadata: GpgAgentKeyMetadata,
+    val metadata: GpgAgentKeyMetadata?,
 )
 
 fun GeneratedGpgKey.toGpgKeyMaterial(): GpgKeyMaterial = GpgKeyMaterial(

@@ -162,7 +162,7 @@ async fn handle_havekey<W: AsyncWriteExt + Unpin>(
     let keys = match list_keys(ipc_client, caller_guard, caller).await {
         Ok(keys) => keys,
         Err(e) => {
-            warn!("LIST_KEYS failed: {e}");
+            log_ipc_failure("LIST_KEYS", &e);
             write_ipc_or_general_error(write, &e, "key listing failed").await?;
             return Ok(());
         }
@@ -216,7 +216,7 @@ async fn handle_keyinfo<W: AsyncWriteExt + Unpin>(
     let keys = match list_keys(ipc_client, caller_guard, caller).await {
         Ok(keys) => keys,
         Err(e) => {
-            warn!("LIST_KEYS failed: {e}");
+            log_ipc_failure("LIST_KEYS", &e);
             write_ipc_or_general_error(write, &e, "key listing failed").await?;
             return Ok(());
         }
@@ -324,7 +324,7 @@ async fn handle_pksign<W: AsyncWriteExt + Unpin>(
     let keys = match list_keys(ipc_client, caller_guard, caller.clone()).await {
         Ok(keys) => keys,
         Err(e) => {
-            warn!("LIST_KEYS failed: {e}");
+            log_ipc_failure("LIST_KEYS", &e);
             write_ipc_or_general_error(write, &e, "key listing failed").await?;
             clear_sign_state(state);
             return Ok(());
@@ -371,7 +371,7 @@ async fn handle_pksign<W: AsyncWriteExt + Unpin>(
             write_ok(write, "").await?;
         }
         Err(e) => {
-            warn!("PKSIGN failed: {e}");
+            log_ipc_failure("PKSIGN", &e);
             write_ipc_or_general_error(write, &e, "signing failed").await?;
         }
     }
@@ -451,7 +451,7 @@ async fn handle_pkdecrypt<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
     let keys = match list_keys(ipc_client, caller_guard, caller.clone()).await {
         Ok(keys) => keys,
         Err(e) => {
-            warn!("LIST_KEYS failed: {e}");
+            log_ipc_failure("LIST_KEYS", &e);
             write_ipc_or_general_error(write, &e, "key listing failed").await?;
             clear_decrypt_state(state);
             return Ok(false);
@@ -500,7 +500,7 @@ async fn handle_pkdecrypt<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
             }
         }
         Err(e) => {
-            warn!("PKDECRYPT failed: {e}");
+            log_ipc_failure("PKDECRYPT", &e);
             write_ipc_or_general_error(write, &e, "decryption failed").await?;
         }
     }
@@ -597,6 +597,13 @@ struct AssuanError {
     message: &'static str,
 }
 
+fn log_ipc_failure(operation: &'static str, error: &anyhow::Error) {
+    // The app's free-form error message may contain vault data. Log only the
+    // operation and protocol error code, including when verbose logging is on.
+    let error_code = error.downcast_ref::<IpcError>().map(IpcError::code);
+    warn!(operation, ?error_code, "Keyguard operation failed");
+}
+
 async fn write_ipc_or_general_error<W: AsyncWriteExt + Unpin>(
     write: &mut W,
     error: &anyhow::Error,
@@ -658,6 +665,32 @@ fn clear_decrypt_state(state: &mut SessionState) {
 mod tests {
     use super::*;
     use tokio::io::BufReader;
+
+    #[test]
+    fn ipc_failure_logs_exclude_backend_payloads() {
+        let output = tempfile::NamedTempFile::new().unwrap();
+        let subscriber = tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::TRACE)
+            .with_ansi(false)
+            .with_writer(output.reopen().unwrap())
+            .finish();
+        let error = anyhow::Error::new(IpcError::new(
+            ErrorCode::UserDenied,
+            "private-backend-detail",
+        ))
+        .context("private-error-context");
+
+        tracing::subscriber::with_default(subscriber, || {
+            log_ipc_failure("PKSIGN", &error);
+            log_ipc_failure("LIST_KEYS", &anyhow::anyhow!("private-transport-detail"));
+        });
+
+        let logs = std::fs::read_to_string(output.path()).unwrap();
+        assert!(logs.contains("PKSIGN"), "{logs}");
+        assert!(logs.contains("UserDenied"), "{logs}");
+        assert!(logs.contains("LIST_KEYS"), "{logs}");
+        assert!(!logs.contains("private-"), "{logs}");
+    }
 
     #[test]
     fn ipc_error_mapping_preserves_specific_assuan_codes() {

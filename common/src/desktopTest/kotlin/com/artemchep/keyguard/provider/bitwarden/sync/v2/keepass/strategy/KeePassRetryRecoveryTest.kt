@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.strategy
 
 import app.keemobile.kotpass.models.Group
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncAction
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.buildEntry
@@ -10,6 +11,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenCi
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenFolder
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.toKeePassDiffKey
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncPlanBuilder
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Instant
@@ -17,6 +19,106 @@ import kotlin.uuid.Uuid
 
 @Suppress("FunctionNaming")
 class KeePassRetryRecoveryTest {
+    @Test
+    fun `cipher with no merge base refreshes when dates match`() {
+        val remote = remoteCipher(revisionDate = REVISION_DATE)
+        val local = syncedCipher(remoteEntity = null)
+        val strategy = KeePassCipherSyncStrategy(
+            remoteFolderIdToLocalId = { null },
+        )
+
+        val plan = EntitySyncPlanBuilder(strategy).buildPlan(
+            localEntities = listOf(local),
+            serverEntities = listOf(remote),
+        )
+
+        assertEquals(
+            listOf(
+                SyncAction.UpdateLocally(
+                    localId = ITEM_ID,
+                    serverId = ITEM_ID,
+                ),
+            ),
+            plan.actions,
+        )
+    }
+
+    @Test
+    fun `cipher with a pending attachment pushes when dates match`() {
+        val remote = remoteCipher(revisionDate = REVISION_DATE)
+        val snapshot = syncedCipher(remoteEntity = null)
+        val local = snapshot.copy(
+            remoteEntity = snapshot,
+            attachments = listOf(
+                BitwardenCipher.Attachment.Local(
+                    id = "local-attachment",
+                    url = "content://attachment",
+                    fileName = "attachment.txt",
+                    pendingUpload = PendingUploadFile(
+                        path = "/pending/attachment",
+                        plainSize = 10L,
+                        encryptedSize = 59L,
+                    ),
+                ),
+            ),
+        )
+        val strategy = KeePassCipherSyncStrategy(
+            remoteFolderIdToLocalId = { null },
+        )
+
+        val plan = EntitySyncPlanBuilder(strategy).buildPlan(
+            localEntities = listOf(local),
+            serverEntities = listOf(remote),
+        )
+
+        assertEquals(
+            listOf(
+                SyncAction.PushToServer(
+                    localId = ITEM_ID,
+                    serverId = ITEM_ID,
+                ),
+            ),
+            plan.actions,
+        )
+    }
+
+    @Test
+    fun `cipher with a pending attachment deletion pushes when dates match`() {
+        val remote = remoteCipher(revisionDate = REVISION_DATE)
+        val snapshot = syncedCipher(remoteEntity = null).copy(
+            attachments = listOf(
+                BitwardenCipher.Attachment.Remote(
+                    id = "remote-attachment",
+                    url = "keepass://attachment",
+                    fileName = "attachment.txt",
+                    size = 10L,
+                ),
+            ),
+        )
+        val local = snapshot.copy(
+            remoteEntity = snapshot,
+            attachments = emptyList(),
+        )
+        val strategy = KeePassCipherSyncStrategy(
+            remoteFolderIdToLocalId = { null },
+        )
+
+        val plan = EntitySyncPlanBuilder(strategy).buildPlan(
+            localEntities = listOf(local),
+            serverEntities = listOf(remote),
+        )
+
+        assertEquals(
+            listOf(
+                SyncAction.PushToServer(
+                    localId = ITEM_ID,
+                    serverId = ITEM_ID,
+                ),
+            ),
+            plan.actions,
+        )
+    }
+
     @Test
     fun `cipher retry adopts an already published entry`() {
         val remote = remoteCipher(revisionDate = REVISION_DATE)
@@ -148,6 +250,20 @@ class KeePassRetryRecoveryTest {
             ),
             revisionDate = revisionDate,
         )
+
+    private fun syncedCipher(
+        remoteEntity: BitwardenCipher?,
+    ): BitwardenCipher = testBitwardenCipher(cipherId = ITEM_ID).copy(
+        service = BitwardenService(
+            remote = BitwardenService.Remote(
+                id = ITEM_ID,
+                revisionDate = REVISION_DATE,
+                deletedDate = null,
+            ),
+            version = BitwardenService.VERSION,
+        ),
+        remoteEntity = remoteEntity,
+    )
 }
 
 private const val ITEM_ID = "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"

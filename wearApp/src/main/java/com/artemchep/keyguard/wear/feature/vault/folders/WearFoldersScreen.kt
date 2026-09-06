@@ -3,6 +3,7 @@ package com.artemchep.keyguard.wear.feature.vault.folders
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import com.artemchep.keyguard.common.model.map
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersState
@@ -40,8 +41,8 @@ fun WearFoldersScreen(
 
 @Composable
 private fun WearFoldersListItem(
-    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
     item: FoldersState.Content.Item,
+    modifier: Modifier = Modifier,
     transformation: androidx.wear.compose.material3.SurfaceTransformation? = null,
 ) = when (item) {
     is FoldersState.Content.Item.Section -> WearVaultRouteSectionItem(

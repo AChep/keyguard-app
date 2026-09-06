@@ -22,9 +22,9 @@ import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.service.export.ExportVaultDataService
 import com.artemchep.keyguard.common.service.export.model.ExportRequest
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
-import com.artemchep.keyguard.common.service.zip.ZipConfig
-import com.artemchep.keyguard.common.service.zip.ZipEntry
-import com.artemchep.keyguard.common.service.zip.ZipService
+import com.artemchep.keyguard.util.zip.ZipConfig
+import com.artemchep.keyguard.util.zip.ZipEntry
+import com.artemchep.keyguard.util.zip.ZipService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope

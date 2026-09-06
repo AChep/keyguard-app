@@ -19,7 +19,8 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Keyguard.Splash"
-        tools:ignore="Instantiatable">
+        tools:ignore="Instantiatable"
+        tools:targetApi="tiramisu">
 
         <provider
             android:name="androidx.core.content.FileProvider"

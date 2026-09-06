@@ -179,7 +179,7 @@ detect_default_paths() {
     case "$(uname -s)" in
         Darwin)
             add_candidate_home "/tmp/keyguard-${uid}/gnupg"
-            add_candidate_home "$HOME/Library/Group Containers/com.artemchep.keyguard/gnupg"
+            add_candidate_home "$HOME/.keyguard/gnupg"
             ;;
         Linux)
             if [ "${container:-}" = "flatpak" ]; then
@@ -188,11 +188,15 @@ detect_default_paths() {
                 else
                     add_candidate_home "${HOME}/.var/app/${FLATPAK_ID:-com.artemchep.keyguard}/data/gnupg"
                 fi
+            else
+                local gpg_home
+                case "${XDG_DATA_HOME:-}" in
+                    /*) gpg_home="${XDG_DATA_HOME}/keyguard/gnupg" ;;
+                    *) gpg_home="${HOME}/.local/share/keyguard/gnupg" ;;
+                esac
+                # Match the application's lexical path without resolving symlinks.
+                add_candidate_home "$(printf '%s' "$gpg_home" | tr -s '/')"
             fi
-            if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
-                add_candidate_home "${XDG_RUNTIME_DIR}/keyguard-gpg-agent"
-            fi
-            add_candidate_home "/tmp/keyguard-${uid}/gnupg"
             ;;
         *)
             return

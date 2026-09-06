@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.compose
 import arrow.core.getOrElse
 import arrow.core.partially1
-import com.artemchep.keyguard.common.exception.isKeyException
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyDecryptException
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyEncryptException
 import com.artemchep.keyguard.common.exception.YubiKeyUnlockDecryptException
@@ -22,6 +21,8 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AuthResult
+import com.artemchep.keyguard.common.model.BiometricAuthException
+import com.artemchep.keyguard.common.model.BiometricBindingException
 import com.artemchep.keyguard.common.model.BiometricPurpose
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.DKey
@@ -367,6 +368,18 @@ class UnlockUseCaseImpl(
                             .flatMap(::unlock)
                             .dispatchOn(Dispatchers.Default)
                     },
+                    getFailureIo = { exception ->
+                        ioRaise<Unit>(exception)
+                            .handleErrorTap(
+                                predicate = {
+                                    exception.code == BiometricAuthException.ERROR_KEY_INVALIDATED
+                                },
+                            ) {
+                                // The saved binding can never succeed again.
+                                disableBiometricQuietly()
+                                    .bind()
+                            }
+                    },
                     requireConfirmation = requireConfirmation,
                 )
             } else {
@@ -550,18 +563,21 @@ class UnlockUseCaseImpl(
             suspend {
                 try {
                     createCipher()
-                } catch (e: Throwable) {
-                    if (!e.isKeyException()) throw e
-                    // If the key is not valid, then we want to disable the
-                    // biometrics for now.
-                    disableBiometric()
-                        .crashlyticsTap()
-                        .attempt()
+                } catch (e: BiometricBindingException) {
+                    disableBiometricQuietly()
                         .bind()
                     throw e
                 }
             }
         }
+
+    /**
+     * Removes the biometric unlock without failing the
+     * caller: the binding is already unusable at this point.
+     */
+    private fun disableBiometricQuietly() = disableBiometric()
+        .crashlyticsTap()
+        .attempt()
 
     /**
      * Save the current vault tokens to the persistent

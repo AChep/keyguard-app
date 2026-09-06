@@ -162,8 +162,10 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: ${{ matrix.rust-target }}
-      - name: "Prefetch locked native crypto graph"
-        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+      - name: "Prefetch locked native graphs"
+        run: |
+          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+          cargo fetch --manifest-path util/zxcvbn/rust/Cargo.toml --locked
       - uses: ./.github/actions/setup_protobuf
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Decode signing certificate"
@@ -192,21 +194,16 @@ jobs:
           ./gradlew
           :desktopApp:createReleaseDistributable
           -Pkeyguard.nativeCrypto.cargoOffline=true
-      - name: "Mark bundled helpers executable"
+      - name: "Inspect bundled native crypto"
         run: |
           set -euo pipefail
 
           APP_RESOURCES_DIR="desktopApp/build/compose/binaries/main-release/app/Keyguard.app/Contents/app/resources"
-          SSH_AGENT_BINARY="$APP_RESOURCES_DIR/keyguard-ssh-agent"
-          DESKTOP_LIB_BINARY="$APP_RESOURCES_DIR/keyguard-lib"
           NATIVE_CRYPTO_BINARY="$APP_RESOURCES_DIR/libkeyguard_crypto_jni.dylib"
 
-          test -f "$SSH_AGENT_BINARY"
-          test -f "$DESKTOP_LIB_BINARY"
           test -f "$NATIVE_CRYPTO_BINARY"
 
-          chmod +x "$SSH_AGENT_BINARY" "$DESKTOP_LIB_BINARY"
-          ls -l "$SSH_AGENT_BINARY" "$DESKTOP_LIB_BINARY" "$NATIVE_CRYPTO_BINARY"
+          ls -l "$NATIVE_CRYPTO_BINARY"
           python scripts/inspect_native_crypto_desktop.py "$NATIVE_CRYPTO_BINARY"
           python scripts/check_bouncycastle_policy.py --artifact desktopApp/build/compose/binaries/main-release/app
           codesign --verify --strict --verbose=2 "$NATIVE_CRYPTO_BINARY"
@@ -244,8 +241,12 @@ jobs:
           mounted=true
           apps=("$mount_point"/*.app)
           test "${#apps[@]}" -eq 1
-          native_crypto_binary="${apps[0]}/Contents/app/resources/libkeyguard_crypto_jni.dylib"
+          resources_dir="${apps[0]}/Contents/app/resources"
+          native_crypto_binary="$resources_dir/libkeyguard_crypto_jni.dylib"
           test -f "$native_crypto_binary"
+          for helper in keyguard-ssh-agent keyguard-gpg-agent keyguard-lib; do
+            test -x "$resources_dir/$helper"
+          done
           python3 scripts/inspect_native_crypto_desktop.py "$native_crypto_binary"
           python3 scripts/run_native_crypto_desktop_package_smoke.py "$mount_point"
           python3 scripts/check_bouncycastle_policy.py --artifact "$mount_point"
@@ -298,8 +299,10 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: ${{ matrix.rust-target }}
-      - name: "Prefetch locked native crypto graph"
-        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+      - name: "Prefetch locked native graphs"
+        run: |
+          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+          cargo fetch --manifest-path util/zxcvbn/rust/Cargo.toml --locked
       - uses: ./.github/actions/setup_protobuf
       - uses: ./.github/actions/setup_linux_desktop
       - name: "Setup build env"
@@ -458,8 +461,10 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: "x86_64-pc-windows-msvc"
-      - name: "Prefetch locked native crypto graph"
-        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+      - name: "Prefetch locked native graphs"
+        run: |
+          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+          cargo fetch --manifest-path util/zxcvbn/rust/Cargo.toml --locked
       - uses: ./.github/actions/setup_protobuf
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Setup build env"
@@ -540,8 +545,10 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
-      - name: "Prefetch locked native crypto graph"
-        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+      - name: "Prefetch locked native graphs"
+        run: |
+          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+          cargo fetch --manifest-path util/zxcvbn/rust/Cargo.toml --locked
       - name: "Prepare env"
         run: |
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat > wearApp/keyguard-release.keystore
@@ -620,8 +627,10 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
-      - name: "Prefetch locked native crypto graph"
-        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+      - name: "Prefetch locked native graphs"
+        run: |
+          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+          cargo fetch --manifest-path util/zxcvbn/rust/Cargo.toml --locked
       - name: "Prepare env"
         run: |
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat > androidApp/keyguard-release.keystore

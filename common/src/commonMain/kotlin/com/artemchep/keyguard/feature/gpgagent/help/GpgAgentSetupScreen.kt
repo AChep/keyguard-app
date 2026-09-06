@@ -23,13 +23,17 @@ private const val BUILD_TYPE_DEV = "DEV"
 private const val GPG_AGENT_SETUP_MACOS_DEV_HOME =
     $$"/tmp/keyguard-$(id -u)/gnupg"
 private const val GPG_AGENT_SETUP_MACOS_RELEASE_HOME =
-    $$"${HOME}/Library/Group Containers/com.artemchep.keyguard/gnupg"
-private const val GPG_AGENT_SETUP_LINUX_HOME =
-    $$"${XDG_RUNTIME_DIR}/keyguard-gpg-agent"
+    $$"${HOME}/.keyguard/gnupg"
 private const val GPG_AGENT_SETUP_LINUX_FLATPAK_HOME =
     $$"${HOME}/.var/app/com.artemchep.keyguard/data/gnupg"
-private const val GPG_AGENT_SETUP_LINUX_HOME_FALLBACK =
-    $$"/tmp/keyguard-$(id -u)/gnupg"
+// Match java.nio.file.Path's separator normalization without resolving symlinks:
+// GnuPG hashes the lexical home path when selecting an external agent socket.
+internal const val GPG_AGENT_SETUP_LINUX_HOME_COMMAND = $$"""case "${XDG_DATA_HOME:-}" in
+  /*) GNUPGHOME="$XDG_DATA_HOME/keyguard/gnupg" ;;
+  *) GNUPGHOME="$HOME/.local/share/keyguard/gnupg" ;;
+esac
+GNUPGHOME="$(printf '%s' "$GNUPGHOME" | tr -s '/')"
+export GNUPGHOME"""
 private const val GPG_AGENT_SETUP_WINDOWS_RELEASE_HOME =
     "\$env:LOCALAPPDATA\\ArtemChepurnyi\\keyguard\\gnupg"
 private const val GPG_AGENT_SETUP_WINDOWS_DEV_HOME =
@@ -80,30 +84,25 @@ private fun ColumnScope.GpgAgentSetupScreenContent() {
         is Platform.Desktop.MacOS -> {
             val gpgHome = gpgAgentSetupMacosHome()
             GpgAgentSetupSupportedPlatformContent(
-                commands = unixGpgAgentSetupCommands(gpgHome),
-                fallbackHomeCommand = null,
+                commands = unixGpgAgentSetupCommands(exportGpgHomeCommand(gpgHome)),
                 prerequisiteNote = null,
             )
         }
 
         is Platform.Desktop.Linux -> {
-            val gpgHome = if (platform.isFlatpak) {
-                GPG_AGENT_SETUP_LINUX_FLATPAK_HOME
+            val commands = if (platform.isFlatpak) {
+                unixGpgAgentSetupCommands(exportGpgHomeCommand(GPG_AGENT_SETUP_LINUX_FLATPAK_HOME))
             } else {
-                GPG_AGENT_SETUP_LINUX_HOME
+                linuxGpgAgentSetupCommands()
             }
-            val fallbackHome = GPG_AGENT_SETUP_LINUX_HOME_FALLBACK
-                .takeUnless { platform.isFlatpak }
             GpgAgentSetupSupportedPlatformContent(
-                commands = unixGpgAgentSetupCommands(gpgHome),
-                fallbackHomeCommand = fallbackHome?.let(::exportGpgHomeCommand),
+                commands = commands,
                 prerequisiteNote = null,
             )
         }
 
         is Platform.Desktop.Windows -> GpgAgentSetupSupportedPlatformContent(
             commands = windowsGpgAgentSetupCommands(gpgAgentSetupWindowsHome()),
-            fallbackHomeCommand = null,
             prerequisiteNote = stringResource(Res.string.gpg_agent_setup_windows_native_gnupg_note),
         )
 
@@ -130,7 +129,6 @@ private fun gpgAgentSetupWindowsHome(): String =
 @Composable
 private fun ColumnScope.GpgAgentSetupSupportedPlatformContent(
     commands: GpgAgentSetupCommands,
-    fallbackHomeCommand: String?,
     prerequisiteNote: String?,
 ) {
     Section(
@@ -161,22 +159,6 @@ private fun ColumnScope.GpgAgentSetupSupportedPlatformContent(
     AgentSetupCodeBlock(
         text = commands.configureHome,
     )
-    fallbackHomeCommand?.let { command ->
-        Spacer(
-            modifier = Modifier
-                .height(16.dp),
-        )
-        AgentSetupBodyLabel(
-            text = stringResource(Res.string.gpg_agent_setup_linux_home_fallback_note),
-        )
-        Spacer(
-            modifier = Modifier
-                .height(4.dp),
-        )
-        AgentSetupCodeBlock(
-            text = command,
-        )
-    }
     AgentSetupSectionDivider()
 
     Section(
@@ -243,14 +225,20 @@ private data class GpgAgentSetupCommands(
     val signGitCommit: String,
 )
 
-private fun unixGpgAgentSetupCommands(gpgHome: String) = GpgAgentSetupCommands(
-    configureHome = exportGpgHomeCommand(gpgHome),
+private fun linuxGpgAgentSetupCommands() = unixGpgAgentSetupCommands(
+    configureHome = GPG_AGENT_SETUP_LINUX_HOME_COMMAND,
+)
+
+private fun unixGpgAgentSetupCommands(
+    configureHome: String,
+) = GpgAgentSetupCommands(
+    configureHome = configureHome,
     importPublicKey = GPG_AGENT_SETUP_IMPORT_CMD,
     listKeys = GPG_AGENT_SETUP_LIST_KEYS_CMD,
     verifyAgent = GPG_AGENT_SETUP_VERIFY_CMD_LIST,
     signMessage = GPG_AGENT_SETUP_VERIFY_CMD_SIGN,
     configureGit = GPG_AGENT_SETUP_GIT_CONFIG_CMD,
-    signGitCommit = "GNUPGHOME=\"${gpgHome.escapeDoubleQuoted()}\" git commit -S",
+    signGitCommit = "$configureHome\ngit commit -S",
 )
 
 private fun windowsGpgAgentSetupCommands(gpgHome: String): GpgAgentSetupCommands {

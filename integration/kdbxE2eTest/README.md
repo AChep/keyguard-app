@@ -40,6 +40,7 @@ exact install command when the required `pykeepass` version is missing.
 - KDBX 4.0: AES cipher with Argon2d.
 - KDBX 4.0: Twofish cipher with Argon2d.
 - KDBX 4.0 AES/Argon2d with password-plus-keyfile credentials.
+- KDBX 4.0 AES/Argon2d with key-file-only credentials (no password).
 
 The Python driver copies the existing seed databases from `:util:kdbx` into the build directory;
 it never modifies the checked-in seeds. ChaCha20, Argon2id, KDBX 4.1-only fields, malformed input,

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2
 
 import com.artemchep.keyguard.common.exception.HttpException
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.core.store.DatabaseSyncer
@@ -14,6 +15,9 @@ import com.artemchep.keyguard.core.store.bitwarden.reconcilePendingLocalAttachme
 import com.artemchep.keyguard.core.store.bitwarden.withPendingAttachmentRemoteId
 import com.artemchep.keyguard.crypto.CipherEncryptorImpl
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
+import com.artemchep.keyguard.crypto.NativeGpgCertificateMaterialReconciler
+import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
+import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.provider.bitwarden.api.builder.api
 import com.artemchep.keyguard.provider.bitwarden.api.builder.delete
@@ -25,10 +29,14 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCr
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrCta
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrImpl
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrKey
+import com.artemchep.keyguard.provider.bitwarden.crypto.CryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.appendOrganizationToken2
+import com.artemchep.keyguard.provider.bitwarden.crypto.decodeSymmetricOrThrow
+import com.artemchep.keyguard.provider.bitwarden.crypto.transformString
 import com.artemchep.keyguard.provider.bitwarden.entity.AttachmentEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherAttachmentCreateRequest
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherRequest
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.SyncByBitwardenTokenV2Impl
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntityTypeOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.CipherSyncOps
@@ -39,12 +47,14 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateRes
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.RemoteWriteOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.SyncCoordinator
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.CipherSyncStrategy
+import com.artemchep.keyguard.provider.bitwarden.usecase.refreshRevocationCertificates
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.ensureActive
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -52,6 +62,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
@@ -672,6 +683,7 @@ class SyncV2CipherUploadIntegrationTest {
                 localToRemoteFolders = emptyMap(),
                 serverFolders = emptyList(),
                 pendingUploadCoordinator = coordinator,
+                gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
             )
 
             val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
@@ -1271,6 +1283,87 @@ class SyncV2CipherUploadIntegrationTest {
         assertEquals("cipher-created-1", outcome.local.service.remote?.id)
         assertNull(outcome.local.organizationId)
         assertEquals(listOf(HttpMethod.Post to "/api/ciphers/"), server.requests.map { it.method to it.path })
+    }
+
+    @Test
+    fun `production CipherSyncOps normalizes passkey keys before upload encryption`() = runTest {
+        val server = UploadTestServer()
+        val fixture = createProductionCipherOpsFixture(server)
+        val keyBase64 = fixture.cipherKeyBase64()
+
+        fun passkey(
+            credentialId: String,
+            keyValue: String,
+        ) = BitwardenCipher.Login.Fido2Credentials(
+            credentialId = credentialId,
+            keyType = "public-key",
+            keyAlgorithm = "ECDSA",
+            keyCurve = "P-256",
+            keyValue = keyValue,
+            rpId = "example.com",
+            rpName = "Example",
+            counter = "0",
+            userHandle = "dXNlcg",
+            userName = "alice@example.com",
+            userDisplayName = "Alice",
+            discoverable = "true",
+            creationDate = T0,
+        )
+
+        val local =
+            testCipher(
+                localId = "cipher-local-1",
+                remoteId = "unused-remote",
+                localRevisionDate = T2,
+                remoteRevisionDate = T0,
+                attachments = emptyList(),
+            ).copy(
+                keyBase64 = keyBase64,
+                service = BitwardenService(version = BitwardenService.VERSION),
+                type = BitwardenCipher.Type.Login,
+                secureNote = null,
+                login = BitwardenCipher.Login(
+                    uris = emptyList(),
+                    fido2Credentials = listOf(
+                        passkey(
+                            credentialId = "standard-base64",
+                            keyValue = "+/8=",
+                        ),
+                        passkey(
+                            credentialId = "base64url",
+                            keyValue = "-_8",
+                        ),
+                    ),
+                ),
+            )
+
+        assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.pushToServer(
+                local = local,
+                server = null,
+                force = false,
+            ),
+        )
+
+        val request = UploadTestServer.json.decodeFromString<CipherRequest>(
+            server.requests.single().body,
+        )
+        val itemKey = CryptoKey.decodeSymmetricOrThrow(
+            fixture.base64Service.decode(keyBase64),
+        )
+        val decryptor = fixture.crypto.cta(
+            env = BitwardenCrCta.BitwardenCrCtaEnv(
+                key = BitwardenCrKey.CryptoKey(symmetricCryptoKey = itemKey),
+            ),
+            mode = BitwardenCrCta.Mode.DECRYPT,
+        )
+        val uploadedKeyValues = requireNotNull(request.login)
+            .fido2Credentials
+            .map { credential ->
+                decryptor.transformString(credential.keyValue)
+            }
+
+        assertEquals(listOf("-_8", "-_8"), uploadedKeyValues)
     }
 
     @Test
@@ -2095,6 +2188,190 @@ class SyncV2CipherUploadIntegrationTest {
     }
 
     @Test
+    fun `production CipherSyncOps reconciles GPG certificate material before upload`() = runTest {
+        val server = UploadTestServer()
+        server.cipherPutAppliesRequestBody = true
+        val fixture = createProductionCipherOpsFixture(server)
+        val material = refreshRevocationCertificates()
+        val base =
+            testCipher(
+                localId = "cipher-local-1",
+                remoteId = "cipher-remote-1",
+                localRevisionDate = T0,
+                remoteRevisionDate = T0,
+                attachments = emptyList(),
+            ).copy(
+                keyBase64 = fixture.cipherKeyBase64(),
+                type = BitwardenCipher.Type.GpgKey,
+                gpgKey = BitwardenCipher.GpgKey(
+                    publicKeyArmored = material.original,
+                    fingerprint = material.fingerprint,
+                ),
+            )
+        val local = base.copy(
+            revisionDate = T2,
+            remoteEntity = base,
+            gpgKey = base.gpgKey?.copy(
+                privateKeyArmored = material.privateKey,
+            ),
+        )
+        val remote = base.copy(
+            revisionDate = T3,
+            service = requireNotNull(base.service.remote)
+                .copy(revisionDate = T3)
+                .let { base.service.copy(remote = it) },
+            gpgKey = base.gpgKey?.copy(
+                publicKeyArmored = material.compromised,
+            ),
+        )
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.mergeConflict(
+                local = local,
+                server = remote.toEncryptedCipherEntity(
+                    crypto = fixture.crypto,
+                    base64Service = fixture.base64Service,
+                ),
+            ),
+        )
+        val mergedKey = assertNotNull(outcome.local.gpgKey)
+        val parsed = assertIs<GpgPublicKeyParseResult.Success>(
+            NativeGpgPublicKeyParser.parse(assertNotNull(mergedKey.publicKeyArmored)),
+        )
+
+        assertTrue(parsed.keys.single().revoked)
+        assertNotNull(mergedKey.privateKeyArmored)
+        assertGpgMetadataHasComponents(mergedKey)
+        assertEquals(
+            listOf(
+                HttpMethod.Put to "/api/ciphers/cipher-remote-1",
+                HttpMethod.Get to "/api/ciphers/cipher-remote-1",
+            ),
+            server.requests.map { it.method to it.path },
+        )
+    }
+
+    @Test
+    fun `production CipherSyncOps publishes no-base GPG reconciliation`() = runTest {
+        val server = UploadTestServer()
+        server.cipherPutAppliesRequestBody = true
+        val fixture = createProductionCipherOpsFixture(server)
+        val material = refreshRevocationCertificates()
+        val base =
+            testCipher(
+                localId = "cipher-local-1",
+                remoteId = "cipher-remote-1",
+                localRevisionDate = T0,
+                remoteRevisionDate = T0,
+                attachments = emptyList(),
+            ).copy(
+                keyBase64 = fixture.cipherKeyBase64(),
+                type = BitwardenCipher.Type.GpgKey,
+                gpgKey = BitwardenCipher.GpgKey(
+                    publicKeyArmored = material.original,
+                    fingerprint = material.fingerprint,
+                ),
+            )
+        val local = base.copy(
+            revisionDate = T2,
+            remoteEntity = null,
+            gpgKey = base.gpgKey?.copy(
+                privateKeyArmored = material.privateKey,
+            ),
+        )
+        val remote = base.copy(
+            revisionDate = T3,
+            service = requireNotNull(base.service.remote)
+                .copy(revisionDate = T3)
+                .let { base.service.copy(remote = it) },
+            gpgKey = base.gpgKey?.copy(
+                publicKeyArmored = material.compromised,
+            ),
+        )
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.mergeConflict(
+                local = local,
+                server = remote.toEncryptedCipherEntity(
+                    crypto = fixture.crypto,
+                    base64Service = fixture.base64Service,
+                ),
+            ),
+        )
+        val mergedKey = assertNotNull(outcome.local.gpgKey)
+        val parsed = assertIs<GpgPublicKeyParseResult.Success>(
+            NativeGpgPublicKeyParser.parse(assertNotNull(mergedKey.publicKeyArmored)),
+        )
+
+        assertTrue(parsed.keys.single().revoked)
+        assertNotNull(mergedKey.privateKeyArmored)
+        assertGpgMetadataHasComponents(mergedKey)
+        assertEquals(
+            listOf(
+                HttpMethod.Put to "/api/ciphers/cipher-remote-1",
+                HttpMethod.Get to "/api/ciphers/cipher-remote-1",
+            ),
+            server.requests.map { it.method to it.path },
+        )
+    }
+
+    @Test
+    fun `production CipherSyncOps preserves selected GPG private material deletion`() = runTest {
+        val server = UploadTestServer()
+        server.cipherPutAppliesRequestBody = true
+        val fixture = createProductionCipherOpsFixture(server)
+        val material = refreshRevocationCertificates()
+        val base =
+            testCipher(
+                localId = "cipher-local-1",
+                remoteId = "cipher-remote-1",
+                localRevisionDate = T0,
+                remoteRevisionDate = T0,
+                attachments = emptyList(),
+            ).copy(
+                keyBase64 = fixture.cipherKeyBase64(),
+                type = BitwardenCipher.Type.GpgKey,
+                gpgKey = BitwardenCipher.GpgKey(
+                    privateKeyArmored = material.privateKey,
+                    publicKeyArmored = material.original,
+                    fingerprint = material.fingerprint,
+                ),
+            )
+        val local = base.copy(
+            revisionDate = T2,
+            remoteEntity = base,
+            gpgKey = base.gpgKey?.copy(privateKeyArmored = null),
+        )
+        val remote = base.copy(
+            revisionDate = T3,
+            service = requireNotNull(base.service.remote)
+                .copy(revisionDate = T3)
+                .let { base.service.copy(remote = it) },
+            notes = "remote notes",
+        )
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.mergeConflict(
+                local = local,
+                server = remote.toEncryptedCipherEntity(
+                    crypto = fixture.crypto,
+                    base64Service = fixture.base64Service,
+                ),
+            ),
+        )
+
+        assertEquals("remote notes", outcome.local.notes)
+        assertNull(assertNotNull(outcome.local.gpgKey).privateKeyArmored)
+        assertEquals(
+            listOf(
+                HttpMethod.Put to "/api/ciphers/cipher-remote-1",
+                HttpMethod.Get to "/api/ciphers/cipher-remote-1",
+            ),
+            server.requests.map { it.method to it.path },
+        )
+    }
+
+    @Test
     fun `production CipherSyncOps merge conflict fallback pushes merged local password history`() = runTest {
         val server = UploadTestServer()
         server.cipherPutAppliesRequestBody = true
@@ -2171,6 +2448,7 @@ class SyncV2CipherUploadIntegrationTest {
             localToRemoteFolders = emptyMap(),
             serverFolders = emptyList(),
             pendingUploadCoordinator = fixture.coordinator,
+            gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
         )
 
         assertFailsWith<CancellationException> {
@@ -2510,6 +2788,7 @@ class SyncV2CipherUploadIntegrationTest {
             pendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
             watchdog = UploadTestWatchdog,
             markBackupAsDirty = UploadTestMarkBackupAsDirty,
+            gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
         )
 
         sync.invoke(user).invoke()
@@ -2628,6 +2907,7 @@ class SyncV2CipherUploadIntegrationTest {
             pendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
             watchdog = UploadTestWatchdog,
             markBackupAsDirty = UploadTestMarkBackupAsDirty,
+            gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
         )
 
         val syncError = assertFailsWith<IllegalStateException> {
@@ -2985,6 +3265,8 @@ private fun createProductionCipherOpsFixture(
         localToRemoteFolders = emptyMap(),
         serverFolders = emptyList(),
         pendingUploadCoordinator = coordinator,
+        gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
+        gpgKeyMetadataResolver = NativeGpgKeyMetadataResolver,
     )
     return ProductionCipherOpsFixture(
         database = database,

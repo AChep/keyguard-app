@@ -5,8 +5,10 @@
 //! to identify the original process instance even if the numeric PID is later
 //! reused. The direct peer always receives a process subject. Independent
 //! application and terminal-session subjects require bounded ancestry and
-//! retained `EVFILT_PROC` lifecycle guards. Stable application identity also
-//! requires strict Security.framework validation.
+//! retained `EVFILT_PROC` lifecycle guards. A root-owned system login is crossed
+//! only through a joint, owner-bound terminal proof with explicit Apple code
+//! validation. Stable application identity also requires strict
+//! Security.framework validation.
 //!
 //! If `LOCAL_PEERTOKEN` is unavailable, collection fails. Callers may still use
 //! a fresh connection-only principal, but must not construct a reusable subject
@@ -18,7 +20,7 @@ use std::io;
 use std::mem::{size_of, MaybeUninit};
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
 use std::ptr::{self, NonNull};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use thiserror::Error;
 
 const SOL_LOCAL: c_int = 0;
@@ -39,8 +41,10 @@ const AUDIT_TOKEN_EVIDENCE_DOMAIN: &[u8] = b"keyguard.macos.audit-token-validate
 const APPLICATION_INSTANCE_EVIDENCE_DOMAIN: &[u8] = b"keyguard.macos.application-instance.v1";
 const APPLICATION_CODE_SIGNING_EVIDENCE_DOMAIN: &[u8] =
     b"keyguard.macos.application-code-signing.v1";
-const TERMINAL_SESSION_EVIDENCE_DOMAIN: &[u8] = b"keyguard.macos.terminal-session.v1";
+const TERMINAL_SESSION_EVIDENCE_DOMAIN: &[u8] = b"keyguard.macos.terminal-session.v2";
 const MAX_ANCESTRY_DEPTH: usize = 16;
+const SYSTEM_LOGIN_PATH: &str = "/usr/bin/login";
+const SYSTEM_LOGIN_REQUIREMENT: &str = "identifier \"com.apple.login\" and anchor apple";
 
 type CfTypeRef = *const c_void;
 type CfDataRef = *const c_void;
@@ -135,6 +139,7 @@ pub struct MacosTerminalSessionIdentity {
     leader: MacosProcessSnapshot,
     accepted_chain: Box<[MacosProcessSnapshot]>,
     lifecycle: Arc<MacosProcessLifecycleGuard>,
+    login: Option<Arc<MacosLoginSessionProof>>,
 }
 
 impl PartialEq for MacosTerminalSessionIdentity {
@@ -144,6 +149,7 @@ impl PartialEq for MacosTerminalSessionIdentity {
             && self.controlling_tty == other.controlling_tty
             && self.leader == other.leader
             && self.accepted_chain == other.accepted_chain
+            && self.login == other.login
     }
 }
 
@@ -173,6 +179,8 @@ pub struct MacosApplicationIdentity {
     team_identifier: Option<String>,
     signing_identifier: Option<String>,
     lifecycle: Arc<MacosProcessLifecycleGuard>,
+    accepted_chain: Box<[MacosProcessSnapshot]>,
+    login: Option<Arc<MacosLoginSessionProof>>,
 }
 
 impl PartialEq for MacosApplicationIdentity {
@@ -183,6 +191,8 @@ impl PartialEq for MacosApplicationIdentity {
             && self.bundle_path == other.bundle_path
             && self.team_identifier == other.team_identifier
             && self.signing_identifier == other.signing_identifier
+            && self.accepted_chain == other.accepted_chain
+            && self.login == other.login
     }
 }
 
@@ -191,10 +201,36 @@ impl Eq for MacosApplicationIdentity {}
 #[derive(Debug)]
 struct MacosProcessLifecycleGuard {
     kqueue: OwnedFd,
+    valid: Mutex<bool>,
 }
 
 impl MacosProcessLifecycleGuard {
     fn ensure_live(&self) -> Result<(), MacosIdentityError> {
+        self.ensure_live_with(|| self.poll())
+    }
+
+    fn ensure_live_with(
+        &self,
+        poll: impl FnOnce() -> Result<(), MacosIdentityError>,
+    ) -> Result<(), MacosIdentityError> {
+        // EV_CLEAR consumes an event. Serialize consumers and permanently
+        // invalidate every clone before releasing this lock, including on
+        // polling errors; a later empty poll must never resurrect the proof.
+        let mut valid = self
+            .valid
+            .lock()
+            .map_err(|_| MacosIdentityError::ProcessIdentityChanged)?;
+        if !*valid {
+            return Err(MacosIdentityError::ProcessIdentityChanged);
+        }
+        let result = poll();
+        if result.is_err() {
+            *valid = false;
+        }
+        result
+    }
+
+    fn poll(&self) -> Result<(), MacosIdentityError> {
         let mut event = MaybeUninit::<libc::kevent>::zeroed();
         let timeout = libc::timespec {
             tv_sec: 0,
@@ -322,6 +358,22 @@ impl MacosPeerIdentity {
         self.application.as_ref()
     }
 
+    /// Application authorization, distinct from authenticated display data.
+    /// An application reached through system login requires the matching
+    /// retained terminal proof; incomplete evidence never widens its scope.
+    #[must_use]
+    pub fn application_authorization_subject(&self) -> Option<VerifiedSubject> {
+        let application = self.application.as_ref()?;
+        if let Some(login) = &application.login {
+            let session = self.terminal_session.as_ref()?;
+            if session.login.as_deref() != Some(login.as_ref()) || session.subject != login.subject
+            {
+                return None;
+            }
+        }
+        Some(application.subject)
+    }
+
     /// Verified terminal-session subject, when the peer has a controlling TTY.
     #[must_use]
     pub fn terminal_session_subject(&self) -> Option<VerifiedSubject> {
@@ -345,6 +397,9 @@ impl MacosPeerIdentity {
     pub fn revalidate(&self) -> Result<(), MacosIdentityError> {
         if let Some(application) = &self.application {
             application.lifecycle.ensure_live()?;
+            if let Some(login) = &application.login {
+                login.lifecycle.ensure_live()?;
+            }
         }
         if let Some(session) = &self.terminal_session {
             session.lifecycle.ensure_live()?;
@@ -375,6 +430,9 @@ impl MacosPeerIdentity {
         }
         if let Some(application) = &self.application {
             application.lifecycle.ensure_live()?;
+            if let Some(login) = &application.login {
+                login.lifecycle.ensure_live()?;
+            }
         }
         if let Some(session) = &self.terminal_session {
             session.lifecycle.ensure_live()?;
@@ -453,8 +511,21 @@ fn collect_from_audit_token(
     require_owner_peer(peer, expected_uid)?;
 
     let validated = validated_code_subject(&token).map_err(MacosIdentityError::CodeSigning)?;
-    let application = collect_origin_application(peer.pid, expected_uid).unwrap_or_default();
-    let terminal_session = collect_terminal_session(peer.pid, expected_uid).unwrap_or_default();
+    let source = SystemAncestrySource;
+    let terminal_session = collect_terminal_session(&source, peer.pid, expected_uid)
+        .unwrap_or_else(|_| {
+            tracing::debug!(
+                stage = "terminal_session",
+                "macOS reusable ancestry unavailable"
+            );
+            None
+        });
+    let application =
+        collect_origin_application(&source, peer.pid, expected_uid, terminal_session.as_ref())
+            .unwrap_or_else(|_| {
+                tracing::debug!(stage = "application", "macOS reusable ancestry unavailable");
+                None
+            });
     let final_peer = read_peer_credentials(fd)?;
     let final_token = read_peer_audit_token(fd)?;
     if peer != final_peer || token != final_token {
@@ -551,7 +622,10 @@ fn retain_process_lifecycle(
             io::Error::last_os_error(),
         )));
     }
-    let guard = Arc::new(MacosProcessLifecycleGuard { kqueue });
+    let guard = Arc::new(MacosProcessLifecycleGuard {
+        kqueue,
+        valid: Mutex::new(true),
+    });
     guard
         .ensure_live()
         .map_err(|error| MacosCodeSigningFailure::new(error.to_string()))?;
@@ -688,45 +762,193 @@ struct MacosProcessSnapshot {
     session_id: u32,
     controlling_tty: u64,
     effective_uid: u32,
+    real_uid: u32,
     start_seconds: u64,
     start_microseconds: u64,
     executable_path: String,
     bundle_path: String,
 }
 
+/// This proof is shared by the session and any application reached through it.
+/// Its lifecycle descriptor is the session's existing descriptor, not another
+/// monitor. Per-connection ancestry never enters a reusable app fingerprint.
+#[derive(Clone, Debug)]
+struct MacosLoginSessionProof {
+    owner_uid: u32,
+    subject: VerifiedSubject,
+    leader: MacosProcessSnapshot,
+    parent: MacosProcessSnapshot,
+    accepted_chain: Box<[MacosProcessSnapshot]>,
+    code: MacosLoginCodeEvidence,
+    lifecycle: Arc<MacosProcessLifecycleGuard>,
+}
+
+impl PartialEq for MacosLoginSessionProof {
+    fn eq(&self, other: &Self) -> bool {
+        self.owner_uid == other.owner_uid
+            && self.subject == other.subject
+            && self.leader == other.leader
+            && self.parent == other.parent
+            && self.accepted_chain == other.accepted_chain
+            && self.code == other.code
+    }
+}
+
+impl Eq for MacosLoginSessionProof {}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct MacosLoginCodeEvidence {
+    requirement: Vec<u8>,
+    cdhash: Vec<u8>,
+}
+
+struct MacosApplicationCodeEvidence {
+    requirement: Vec<u8>,
+    cdhash: Vec<u8>,
+    team_identifier: Option<String>,
+    signing_identifier: Option<String>,
+    is_apple_platform_code: bool,
+}
+
+/// Private seam: fixtures exercise the same bounded walks, joint proof and
+/// recollection as the OS implementation, without spawning privileged code.
+trait MacosAncestrySource {
+    fn snapshot(&self, pid: u32) -> Result<MacosProcessSnapshot, MacosCodeSigningFailure>;
+    fn lifecycle(
+        &self,
+        pid: u32,
+    ) -> Result<Arc<MacosProcessLifecycleGuard>, MacosCodeSigningFailure>;
+    fn login_code(&self, pid: u32) -> Result<MacosLoginCodeEvidence, MacosCodeSigningFailure>;
+    fn application_code(
+        &self,
+        pid: u32,
+    ) -> Result<MacosApplicationCodeEvidence, MacosCodeSigningFailure>;
+}
+
+struct SystemAncestrySource;
+
+impl MacosAncestrySource for SystemAncestrySource {
+    fn snapshot(&self, pid: u32) -> Result<MacosProcessSnapshot, MacosCodeSigningFailure> {
+        read_process_snapshot(pid)
+    }
+
+    fn lifecycle(
+        &self,
+        pid: u32,
+    ) -> Result<Arc<MacosProcessLifecycleGuard>, MacosCodeSigningFailure> {
+        retain_process_lifecycle(pid)
+    }
+
+    fn login_code(&self, pid: u32) -> Result<MacosLoginCodeEvidence, MacosCodeSigningFailure> {
+        validate_system_login_code(pid)
+    }
+
+    fn application_code(
+        &self,
+        pid: u32,
+    ) -> Result<MacosApplicationCodeEvidence, MacosCodeSigningFailure> {
+        validate_application_code(pid)
+    }
+}
+
+fn valid_controlling_tty(tty: u64) -> bool {
+    tty != 0 && tty != u64::from(u32::MAX)
+}
+
 fn collect_terminal_session(
+    source: &impl MacosAncestrySource,
     peer_pid: u32,
     expected_uid: u32,
 ) -> Result<Option<MacosTerminalSessionIdentity>, MacosCodeSigningFailure> {
-    let peer = read_process_snapshot(peer_pid)?;
+    let peer = source.snapshot(peer_pid)?;
     if peer.effective_uid != expected_uid
         || peer.session_id <= 1
-        || peer.controlling_tty == 0
-        || peer.controlling_tty == u64::from(u32::MAX)
+        || !valid_controlling_tty(peer.controlling_tty)
     {
         return Ok(None);
     }
-    let first_chain = process_chain_to(peer_pid, peer.session_id, expected_uid)?;
+    let first_chain = process_chain_to(source, peer_pid, peer.session_id, expected_uid)?;
     let leader = first_chain
         .last()
         .filter(|snapshot| snapshot.pid == peer.session_id)
         .cloned()
         .ok_or_else(|| MacosCodeSigningFailure::new("session leader is not a bounded ancestor"))?;
-    if leader.session_id != peer.session_id || leader.controlling_tty != peer.controlling_tty {
-        return Ok(None);
+    if first_chain.first() != Some(&peer)
+        || leader.session_id != peer.session_id
+        || leader.controlling_tty != peer.controlling_tty
+    {
+        return Err(MacosCodeSigningFailure::new(
+            "terminal session snapshot disagrees",
+        ));
     }
-    let lifecycle = retain_process_lifecycle(leader.pid)?;
-    let confirmed_chain = process_chain_to(peer_pid, peer.session_id, expected_uid)?;
+    let login_parent = if leader.effective_uid != expected_uid {
+        // Include this required owner-side boundary in the same depth budget.
+        if first_chain.len() >= MAX_ANCESTRY_DEPTH || leader.parent_pid <= 1 {
+            return Err(MacosCodeSigningFailure::new(
+                "system login has no bounded owner parent",
+            ));
+        }
+        let parent = source.snapshot(leader.parent_pid)?;
+        if parent.effective_uid != expected_uid
+            || first_chain
+                .iter()
+                .any(|ancestor| ancestor.pid == parent.pid)
+        {
+            return Err(MacosCodeSigningFailure::new(
+                "system login parent is not owner-local",
+            ));
+        }
+        Some(parent)
+    } else {
+        None
+    };
+
+    let lifecycle = source.lifecycle(leader.pid).inspect_err(|_| {
+        tracing::debug!(
+            stage = "terminal_session",
+            reason = "lifecycle_unavailable",
+            "macOS reusable ancestry unavailable"
+        );
+    })?;
+    let login_code = login_parent
+        .as_ref()
+        .map(|_| {
+            source.login_code(leader.pid).inspect_err(|_| {
+                tracing::debug!(
+                    stage = "system_login",
+                    reason = "code_validation_failed",
+                    "macOS reusable ancestry unavailable"
+                );
+            })
+        })
+        .transpose()?;
+    let confirmed_chain = process_chain_to(source, peer_pid, peer.session_id, expected_uid)?;
     if first_chain != confirmed_chain {
         return Err(MacosCodeSigningFailure::new(
             "terminal session ancestry changed during collection",
         ));
     }
+    if let Some(parent) = &login_parent {
+        if source.snapshot(parent.pid)? != *parent {
+            return Err(MacosCodeSigningFailure::new("system login parent changed"));
+        }
+    }
     lifecycle
         .ensure_live()
         .map_err(|error| MacosCodeSigningFailure::new(error.to_string()))?;
 
-    let subject = terminal_session_subject_from_leader(&leader)?;
+    let subject = terminal_session_subject_from_leader(&leader, expected_uid)?;
+    let login = login_parent.zip(login_code).map(|(parent, code)| {
+        Arc::new(MacosLoginSessionProof {
+            owner_uid: expected_uid,
+            subject,
+            leader: leader.clone(),
+            parent,
+            accepted_chain: first_chain.clone().into_boxed_slice(),
+            code,
+            lifecycle: Arc::clone(&lifecycle),
+        })
+    });
     Ok(Some(MacosTerminalSessionIdentity {
         subject,
         session_id: peer.session_id,
@@ -734,13 +956,16 @@ fn collect_terminal_session(
         leader,
         accepted_chain: first_chain.into_boxed_slice(),
         lifecycle,
+        login,
     }))
 }
 
 fn terminal_session_subject_from_leader(
     leader: &MacosProcessSnapshot,
+    owner_uid: u32,
 ) -> Result<VerifiedSubject, MacosCodeSigningFailure> {
-    let mut canonical = Vec::with_capacity(128 + leader.executable_path.len());
+    let mut canonical = Vec::with_capacity(132 + leader.executable_path.len());
+    canonical.extend_from_slice(&owner_uid.to_be_bytes());
     canonical.extend_from_slice(&leader.pid.to_be_bytes());
     canonical.extend_from_slice(&leader.parent_pid.to_be_bytes());
     canonical.extend_from_slice(&leader.session_id.to_be_bytes());
@@ -757,17 +982,43 @@ fn terminal_session_subject_from_leader(
     ))
 }
 
+/// Build an untrusted candidate chain. The sole foreign-UID candidate must be
+/// the exact root login session leader. It is not reusable until its live code,
+/// owner parent, lifecycle and repeated snapshots have all been verified.
 fn process_chain_to(
+    source: &impl MacosAncestrySource,
     leaf_pid: u32,
     target_pid: u32,
     expected_uid: u32,
 ) -> Result<Vec<MacosProcessSnapshot>, MacosCodeSigningFailure> {
-    let mut chain = Vec::with_capacity(MAX_ANCESTRY_DEPTH);
+    let mut chain: Vec<MacosProcessSnapshot> = Vec::with_capacity(MAX_ANCESTRY_DEPTH);
     let mut current_pid = leaf_pid;
     for _ in 0..MAX_ANCESTRY_DEPTH {
-        let snapshot = read_process_snapshot(current_pid)?;
-        if snapshot.effective_uid != expected_uid {
+        if chain.iter().any(|ancestor| ancestor.pid == current_pid) {
             break;
+        }
+        let snapshot = source.snapshot(current_pid)?;
+        if snapshot.effective_uid != expected_uid {
+            let valid_login = snapshot.pid == target_pid
+                && snapshot.effective_uid == 0
+                && snapshot.real_uid == expected_uid
+                && snapshot.executable_path == SYSTEM_LOGIN_PATH
+                && snapshot.session_id == target_pid
+                && valid_controlling_tty(snapshot.controlling_tty)
+                && !chain.is_empty()
+                && chain.iter().all(|ancestor| {
+                    ancestor.effective_uid == expected_uid
+                        && ancestor.session_id == target_pid
+                        && ancestor.controlling_tty == snapshot.controlling_tty
+                });
+            if !valid_login {
+                tracing::debug!(
+                    stage = "system_login",
+                    reason = "boundary_not_verified",
+                    "macOS reusable ancestry unavailable"
+                );
+                break;
+            }
         }
         let parent_pid = snapshot.parent_pid;
         chain.push(snapshot);
@@ -780,54 +1031,30 @@ fn process_chain_to(
         current_pid = parent_pid;
     }
     Err(MacosCodeSigningFailure::new(
-        "target process is not a bounded same-user ancestor",
+        "target process is not a bounded owner-local or system-login ancestor",
     ))
 }
 
+#[derive(Debug, Eq, PartialEq)]
+struct MacosApplicationCandidate {
+    selected: MacosProcessSnapshot,
+    accepted_chain: Vec<MacosProcessSnapshot>,
+    login: Option<Arc<MacosLoginSessionProof>>,
+}
+
 fn collect_origin_application(
+    source: &impl MacosAncestrySource,
     peer_pid: u32,
     expected_uid: u32,
+    terminal_session: Option<&MacosTerminalSessionIdentity>,
 ) -> Result<Option<MacosApplicationIdentity>, MacosCodeSigningFailure> {
-    let Some(first) = find_origin_application(peer_pid, expected_uid)? else {
+    let Some(first) = find_origin_application(source, peer_pid, expected_uid, terminal_session)?
+    else {
         return Ok(None);
     };
-    let lifecycle = retain_process_lifecycle(first.pid)?;
-    let code = copy_code_for_pid(first.pid)?;
-    let requirement = copy_designated_requirement(code.as_ptr())?;
-    // SAFETY: retained Security.framework objects are valid for this call.
-    let status = unsafe { SecCodeCheckValidity(code.as_ptr(), 0, requirement.as_ptr()) };
-    require_status("SecCodeCheckValidity(application)", status)?;
-    strictly_validate_static_code(code.as_ptr(), requirement.as_ptr())?;
-
-    let requirement_data = copy_requirement_data(requirement.as_ptr())?;
-    let signing_info = copy_signing_information(code.as_ptr())?;
-    let cdhash = dictionary_data(
-        signing_info.as_ptr(),
-        // SAFETY: Security.framework exports this immortal CFString key.
-        unsafe { kSecCodeInfoUnique },
-        "application code-directory hash",
-    )?;
-    let team_identifier = dictionary_optional_string(
-        signing_info.as_ptr(),
-        // SAFETY: Security.framework exports this immortal CFString key.
-        unsafe { kSecCodeInfoTeamIdentifier },
-        "application team identifier",
-    )?;
-    let signing_identifier = dictionary_optional_string(
-        signing_info.as_ptr(),
-        // SAFETY: Security.framework exports this immortal CFString key.
-        unsafe { kSecCodeInfoIdentifier },
-        "application signing identifier",
-    )?;
-    let is_apple_platform_code = dictionary_value(
-        signing_info.as_ptr(),
-        // SAFETY: Security.framework exports this immortal CFString key.
-        unsafe { kSecCodeInfoPlatformIdentifier },
-        "application platform identifier",
-    )?
-    .is_some();
-
-    let confirmed = find_origin_application(peer_pid, expected_uid)?
+    let lifecycle = source.lifecycle(first.selected.pid)?;
+    let code = source.application_code(first.selected.pid)?;
+    let confirmed = find_origin_application(source, peer_pid, expected_uid, terminal_session)?
         .ok_or_else(|| MacosCodeSigningFailure::new("origin application disappeared"))?;
     if first != confirmed {
         return Err(MacosCodeSigningFailure::new(
@@ -837,14 +1064,20 @@ fn collect_origin_application(
     lifecycle
         .ensure_live()
         .map_err(|error| MacosCodeSigningFailure::new(error.to_string()))?;
+    if let Some(login) = &first.login {
+        login
+            .lifecycle
+            .ensure_live()
+            .map_err(|error| MacosCodeSigningFailure::new(error.to_string()))?;
+    }
 
-    let subject = if let Some(signing_identifier) = signing_identifier.as_deref() {
-        if is_apple_platform_code || team_identifier.is_some() {
+    let subject = if let Some(signing_identifier) = code.signing_identifier.as_deref() {
+        if code.is_apple_platform_code || code.team_identifier.is_some() {
             let canonical = canonical_application_code_signing_evidence(
-                is_apple_platform_code,
-                team_identifier.as_deref(),
+                code.is_apple_platform_code,
+                code.team_identifier.as_deref(),
                 signing_identifier,
-                &requirement_data,
+                &code.requirement,
             )?;
             verified_subject(
                 APPLICATION_CODE_SIGNING_EVIDENCE_DOMAIN,
@@ -853,43 +1086,99 @@ fn collect_origin_application(
             )
             .map_err(|error| MacosCodeSigningFailure::new(error.to_string()))?
         } else {
-            application_instance_subject(&first, &requirement_data, &cdhash)?
+            application_instance_subject(&first.selected, &code.requirement, &code.cdhash)?
         }
     } else {
-        application_instance_subject(&first, &requirement_data, &cdhash)?
+        application_instance_subject(&first.selected, &code.requirement, &code.cdhash)?
     };
 
-    let display_name = std::path::Path::new(&first.bundle_path)
+    let display_name = std::path::Path::new(&first.selected.bundle_path)
         .file_stem()
         .and_then(|name| name.to_str())
         .filter(|name| !name.is_empty())
         .unwrap_or("Application")
         .to_owned();
+    // Existing same-user applications keep their previous identity semantics.
+    // The newly enabled root path additionally retains its complete ancestry.
+    let accepted_chain = if first.login.is_some() {
+        first.accepted_chain.into_boxed_slice()
+    } else {
+        Box::new([])
+    };
     Ok(Some(MacosApplicationIdentity {
-        pid: first.pid,
+        pid: first.selected.pid,
         subject,
         display_name,
-        bundle_path: first.bundle_path,
-        team_identifier,
-        signing_identifier,
+        bundle_path: first.selected.bundle_path,
+        team_identifier: code.team_identifier,
+        signing_identifier: code.signing_identifier,
         lifecycle,
+        accepted_chain,
+        login: first.login,
     }))
 }
 
 fn find_origin_application(
+    source: &impl MacosAncestrySource,
     peer_pid: u32,
     expected_uid: u32,
-) -> Result<Option<MacosProcessSnapshot>, MacosCodeSigningFailure> {
+    terminal_session: Option<&MacosTerminalSessionIdentity>,
+) -> Result<Option<MacosApplicationCandidate>, MacosCodeSigningFailure> {
+    let permitted_login = terminal_session.and_then(|session| session.login.as_ref());
     let mut current_pid = peer_pid;
     let mut selected_bundle: Option<String> = None;
     let mut selected = None;
+    let mut chain: Vec<MacosProcessSnapshot> = Vec::with_capacity(MAX_ANCESTRY_DEPTH);
+    let mut crossed_login: Option<Arc<MacosLoginSessionProof>> = None;
+    let mut ended = false;
     for _ in 0..MAX_ANCESTRY_DEPTH {
-        let snapshot = read_process_snapshot(current_pid)?;
-        if snapshot.effective_uid != expected_uid {
-            break;
+        if chain.iter().any(|ancestor| ancestor.pid == current_pid) {
+            return Err(MacosCodeSigningFailure::new(
+                "application ancestry contains a cycle",
+            ));
         }
+        let snapshot = source.snapshot(current_pid)?;
+        if let Some(login) = &crossed_login {
+            if chain
+                .last()
+                .is_some_and(|previous| previous.pid == login.leader.pid)
+                && snapshot != login.parent
+            {
+                return Err(MacosCodeSigningFailure::new(
+                    "system login owner parent changed",
+                ));
+            }
+        }
+        if snapshot.effective_uid != expected_uid {
+            if crossed_login.is_some() {
+                return Err(MacosCodeSigningFailure::new(
+                    "application ancestry has another UID boundary",
+                ));
+            }
+            let Some(login) = permitted_login else {
+                ended = true;
+                break;
+            };
+            if login.owner_uid != expected_uid
+                || snapshot != login.leader
+                || chain.len() + 1 != login.accepted_chain.len()
+                || chain.as_slice() != &login.accepted_chain[..chain.len()]
+                || terminal_session.is_none_or(|session| session.subject != login.subject)
+            {
+                return Err(MacosCodeSigningFailure::new(
+                    "application does not match system login proof",
+                ));
+            }
+            login
+                .lifecycle
+                .ensure_live()
+                .map_err(|error| MacosCodeSigningFailure::new(error.to_string()))?;
+            crossed_login = Some(Arc::clone(login));
+        }
+        chain.push(snapshot.clone());
         if snapshot.bundle_path.is_empty() {
             if selected_bundle.is_some() {
+                ended = true;
                 break;
             }
         } else {
@@ -899,19 +1188,313 @@ fn find_origin_application(
                     selected = Some(snapshot.clone());
                 }
                 Some(bundle) if bundle == snapshot.bundle_path => {
-                    // Prefer the highest process in the same outer bundle so
-                    // helpers resolve to their owning app's main process.
                     selected = Some(snapshot.clone());
                 }
-                Some(_) => break,
+                Some(_) => {
+                    ended = true;
+                    break;
+                }
             }
         }
+        if snapshot.parent_pid == snapshot.pid && crossed_login.is_some() {
+            return Err(MacosCodeSigningFailure::new(
+                "system login application ancestry contains a self-cycle",
+            ));
+        }
         if snapshot.parent_pid <= 1 || snapshot.parent_pid == snapshot.pid {
+            ended = true;
             break;
         }
         current_pid = snapshot.parent_pid;
     }
-    Ok(selected)
+    if crossed_login.is_some() && !ended {
+        return Err(MacosCodeSigningFailure::new(
+            "system login application ancestry exceeds depth bound",
+        ));
+    }
+    Ok(selected.map(|selected| MacosApplicationCandidate {
+        selected,
+        accepted_chain: if crossed_login.is_some() {
+            chain
+        } else {
+            Vec::new()
+        },
+        login: crossed_login,
+    }))
+}
+
+fn validate_system_login_code(pid: u32) -> Result<MacosLoginCodeEvidence, MacosCodeSigningFailure> {
+    // The caller arms a lifecycle guard before this PID lookup and resamples
+    // the complete candidate afterwards. Never invent an ancestor audit token.
+    let code = copy_code_for_pid(pid)?;
+    let requirement = create_requirement(SYSTEM_LOGIN_REQUIREMENT)?;
+    // SAFETY: the retained code and explicit external requirement remain live.
+    let status = unsafe { SecCodeCheckValidity(code.as_ptr(), 0, requirement.as_ptr()) };
+    require_status("SecCodeCheckValidity(system login)", status)?;
+    strictly_validate_static_code(code.as_ptr(), requirement.as_ptr())?;
+    let signing_info = copy_signing_information(code.as_ptr())?;
+    let cdhash = dictionary_data(
+        signing_info.as_ptr(),
+        // SAFETY: Security.framework exports this immortal CFString key.
+        unsafe { kSecCodeInfoUnique },
+        "system login code-directory hash",
+    )?;
+    if cdhash.is_empty() || cdhash.len() > MAX_CDHASH_BYTES {
+        return Err(MacosCodeSigningFailure::new(
+            "system login has an invalid code-directory hash",
+        ));
+    }
+    Ok(MacosLoginCodeEvidence {
+        requirement: copy_requirement_data(requirement.as_ptr())?,
+        cdhash,
+    })
+}
+
+fn validate_application_code(
+    pid: u32,
+) -> Result<MacosApplicationCodeEvidence, MacosCodeSigningFailure> {
+    let code = copy_code_for_pid(pid)?;
+    let requirement = copy_designated_requirement(code.as_ptr())?;
+    // SAFETY: retained Security.framework objects are valid for this call.
+    let status = unsafe { SecCodeCheckValidity(code.as_ptr(), 0, requirement.as_ptr()) };
+    require_status("SecCodeCheckValidity(application)", status)?;
+    strictly_validate_static_code(code.as_ptr(), requirement.as_ptr())?;
+    let signing_info = copy_signing_information(code.as_ptr())?;
+    Ok(MacosApplicationCodeEvidence {
+        requirement: copy_requirement_data(requirement.as_ptr())?,
+        cdhash: dictionary_data(
+            signing_info.as_ptr(),
+            // SAFETY: Security.framework exports this immortal CFString key.
+            unsafe { kSecCodeInfoUnique },
+            "application code-directory hash",
+        )?,
+        team_identifier: dictionary_optional_string(
+            signing_info.as_ptr(),
+            // SAFETY: Security.framework exports this immortal CFString key.
+            unsafe { kSecCodeInfoTeamIdentifier },
+            "application team identifier",
+        )?,
+        signing_identifier: dictionary_optional_string(
+            signing_info.as_ptr(),
+            // SAFETY: Security.framework exports this immortal CFString key.
+            unsafe { kSecCodeInfoIdentifier },
+            "application signing identifier",
+        )?,
+        is_apple_platform_code: dictionary_value(
+            signing_info.as_ptr(),
+            // SAFETY: Security.framework exports this immortal CFString key.
+            unsafe { kSecCodeInfoPlatformIdentifier },
+            "application platform identifier",
+        )?
+        .is_some(),
+    })
+}
+
+// Darwin sysctl/proc ABI, mirrored because libc does not expose
+// kinfo_proc on macOS. Field types/order follow <sys/sysctl.h>, <sys/proc.h>
+// and <sys/vm.h>; SDK-backed tests assert every consumed offset and the total
+// sizes. Pointer-valued fields are opaque integer slots and never dereferenced.
+#[repr(C)]
+struct MacosExternProc {
+    start_time: libc::timeval,
+    _vmspace: usize,
+    _sigacts: usize,
+    _flag: c_int,
+    status: c_char,
+    pid: libc::pid_t,
+    _original_parent: libc::pid_t,
+    _duplicate_fd: c_int,
+    _user_stack: usize,
+    _exit_thread: usize,
+    _debugger: c_int,
+    _sigwait: u32,
+    _estcpu: u32,
+    _cpticks: c_int,
+    _pctcpu: u32,
+    _wchan: usize,
+    _wmesg: usize,
+    _swtime: u32,
+    _slptime: u32,
+    _realtimer: libc::itimerval,
+    _rtime: libc::timeval,
+    _uticks: u64,
+    _sticks: u64,
+    _iticks: u64,
+    _traceflag: c_int,
+    _tracep: usize,
+    _siglist: c_int,
+    _textvp: usize,
+    _holdcnt: c_int,
+    _sigmask: libc::sigset_t,
+    _sigignore: libc::sigset_t,
+    _sigcatch: libc::sigset_t,
+    _priority: u8,
+    _usrpri: u8,
+    _nice: c_char,
+    _comm: [c_char; 17],
+    _pgrp: usize,
+    _addr: usize,
+    _xstat: u16,
+    _acflag: u16,
+    _ru: usize,
+}
+
+#[repr(C)]
+struct MacosProcessCredentials {
+    _lock: [c_char; 72],
+    _credentials: usize,
+    real_uid: libc::uid_t,
+    _saved_uid: libc::uid_t,
+    _real_gid: libc::gid_t,
+    _saved_gid: libc::gid_t,
+    _references: c_int,
+}
+
+#[repr(C)]
+struct MacosUserCredentials {
+    _references: i32,
+    effective_uid: libc::uid_t,
+    _group_count: i16,
+    _groups: [libc::gid_t; 16],
+}
+
+#[repr(C)]
+struct MacosVmSpace {
+    _dummy: i32,
+    _dummy2: usize,
+    _dummy3: [i32; 5],
+    _dummy4: [usize; 3],
+}
+
+#[repr(C)]
+struct MacosEproc {
+    _process_address: usize,
+    _session: usize,
+    process_credentials: MacosProcessCredentials,
+    user_credentials: MacosUserCredentials,
+    _vm: MacosVmSpace,
+    parent_pid: libc::pid_t,
+    _process_group: libc::pid_t,
+    _job_count: i16,
+    controlling_tty: libc::dev_t,
+    _tty_process_group: libc::pid_t,
+    _tty_session: usize,
+    _wait_message: [c_char; 8],
+    _text_size: i32,
+    _text_resident_size: i16,
+    _text_references: i16,
+    _text_swapped_size: i16,
+    _flags: i32,
+    _login: [c_char; 12],
+    _spare: [i32; 4],
+}
+
+#[repr(C)]
+struct MacosKinfoProc {
+    process: MacosExternProc,
+    extended: MacosEproc,
+}
+
+fn read_kinfo_proc(pid: u32) -> Result<MacosKinfoProc, MacosCodeSigningFailure> {
+    let pid = i32::try_from(pid)
+        .map_err(|_| MacosCodeSigningFailure::new("sysctl PID does not fit pid_t"))?;
+    let mut mib = [libc::CTL_KERN, libc::KERN_PROC, libc::KERN_PROC_PID, pid];
+    let mut info = MaybeUninit::<MacosKinfoProc>::zeroed();
+    let mut length = size_of::<MacosKinfoProc>();
+    // SAFETY: the MIB selects one process; info and length are writable for
+    // the advertised sizes. Null newp makes this a read-only kernel query.
+    let status = unsafe {
+        libc::sysctl(
+            mib.as_mut_ptr(),
+            mib.len() as u32,
+            info.as_mut_ptr().cast(),
+            &mut length,
+            ptr::null_mut(),
+            0,
+        )
+    };
+    if status != 0 || length != size_of::<MacosKinfoProc>() {
+        return Err(MacosCodeSigningFailure::new(
+            "sysctl process snapshot unavailable or incomplete",
+        ));
+    }
+    // SAFETY: sysctl wrote the complete C-compatible structure. Every field
+    // has a numeric representation; opaque kernel addresses are not pointers.
+    let info = unsafe { info.assume_init() };
+    if info.process.pid != pid || pid <= 0 || info.process.status == libc::SZOMB as c_char {
+        return Err(MacosCodeSigningFailure::new(
+            "sysctl returned a stale process snapshot",
+        ));
+    }
+    Ok(info)
+}
+
+fn snapshot_from_kinfo(
+    info: &MacosKinfoProc,
+    executable_path: String,
+) -> Result<MacosProcessSnapshot, MacosCodeSigningFailure> {
+    let pid = u32::try_from(info.process.pid)
+        .map_err(|_| MacosCodeSigningFailure::new("invalid sysctl process PID"))?;
+    let parent_pid = u32::try_from(info.extended.parent_pid)
+        .map_err(|_| MacosCodeSigningFailure::new("invalid sysctl parent PID"))?;
+    let start_seconds = u64::try_from(info.process.start_time.tv_sec)
+        .map_err(|_| MacosCodeSigningFailure::new("invalid sysctl process start time"))?;
+    let start_microseconds = u64::try_from(info.process.start_time.tv_usec)
+        .map_err(|_| MacosCodeSigningFailure::new("invalid sysctl process start fraction"))?;
+    if pid == 0 || start_seconds == 0 || start_microseconds >= 1_000_000 {
+        return Err(MacosCodeSigningFailure::new(
+            "incomplete sysctl process-instance evidence",
+        ));
+    }
+    // Darwin dev_t is signed, while proc_bsdinfo exposes the same device bits
+    // as u32, including NODEV (-1). Preserve that representation for equality.
+    let controlling_tty = u64::from(u32::from_ne_bytes(
+        info.extended.controlling_tty.to_ne_bytes(),
+    ));
+    Ok(MacosProcessSnapshot {
+        pid,
+        parent_pid,
+        session_id: read_session_id(pid)?,
+        controlling_tty,
+        effective_uid: info.extended.user_credentials.effective_uid,
+        real_uid: info.extended.process_credentials.real_uid,
+        start_seconds,
+        start_microseconds,
+        bundle_path: outer_app_bundle_path(&executable_path).unwrap_or_default(),
+        executable_path,
+    })
+}
+
+fn read_system_login_snapshot(pid: u32) -> Result<MacosProcessSnapshot, MacosCodeSigningFailure> {
+    let path = process_path(pid)?;
+    if path != SYSTEM_LOGIN_PATH {
+        return Err(MacosCodeSigningFailure::new(
+            "foreign process is not the system login path",
+        ));
+    }
+    let info = read_kinfo_proc(pid)?;
+    if info.extended.user_credentials.effective_uid != 0
+        || info.extended.process_credentials.real_uid != effective_uid()
+    {
+        return Err(MacosCodeSigningFailure::new(
+            "foreign system login is not owner-local",
+        ));
+    }
+    snapshot_from_kinfo(&info, path)
+}
+
+fn read_session_id(pid: u32) -> Result<u32, MacosCodeSigningFailure> {
+    let pid = i32::try_from(pid)
+        .map_err(|_| MacosCodeSigningFailure::new("session PID does not fit pid_t"))?;
+    // SAFETY: getsid reads the kernel session associated with this numeric PID.
+    // The surrounding repeated snapshots and lifecycle guard detect changes.
+    let session_id = unsafe { libc::getsid(pid) };
+    if session_id <= 0 {
+        return Err(MacosCodeSigningFailure::new(
+            "kernel session ID unavailable",
+        ));
+    }
+    u32::try_from(session_id).map_err(|_| MacosCodeSigningFailure::new("invalid session ID"))
 }
 
 fn read_process_snapshot(pid: u32) -> Result<MacosProcessSnapshot, MacosCodeSigningFailure> {
@@ -927,9 +1510,15 @@ fn read_process_snapshot(pid: u32) -> Result<MacosProcessSnapshot, MacosCodeSign
         )
     };
     if size != size_of::<libc::proc_bsdinfo>() as c_int {
+        let error = io::Error::last_os_error();
+        if size <= 0 && error.raw_os_error() == Some(libc::EPERM) {
+            // Full BSD info is owner-EUID restricted; kernel KERN_PROC_PID
+            // supplies the same kernel fields for this narrowly checked root
+            // login candidate. No other error or foreign path gets a fallback.
+            return read_system_login_snapshot(pid);
+        }
         return Err(MacosCodeSigningFailure::new(format!(
-            "proc_pidinfo({pid}) failed: {}",
-            io::Error::last_os_error(),
+            "proc_pidinfo({pid}) failed: {error}",
         )));
     }
     // SAFETY: proc_pidinfo returned the complete structure size.
@@ -941,22 +1530,13 @@ fn read_process_snapshot(pid: u32) -> Result<MacosProcessSnapshot, MacosCodeSign
     }
     let executable_path = process_path(pid)?;
     let bundle_path = outer_app_bundle_path(&executable_path).unwrap_or_default();
-    // SAFETY: getsid reads the kernel session associated with this numeric PID.
-    // The surrounding repeated proc snapshot detects PID reuse/races.
-    let session_id = unsafe { libc::getsid(pid as libc::pid_t) };
-    if session_id <= 0 {
-        return Err(MacosCodeSigningFailure::new(format!(
-            "getsid({pid}) failed: {}",
-            io::Error::last_os_error(),
-        )));
-    }
     Ok(MacosProcessSnapshot {
         pid,
         parent_pid: info.pbi_ppid,
-        session_id: u32::try_from(session_id)
-            .map_err(|_| MacosCodeSigningFailure::new("invalid session ID"))?,
+        session_id: read_session_id(pid)?,
         controlling_tty: u64::from(info.e_tdev),
         effective_uid: info.pbi_uid,
+        real_uid: info.pbi_ruid,
         start_seconds: info.pbi_start_tvsec,
         start_microseconds: info.pbi_start_tvusec,
         executable_path,
@@ -1330,6 +1910,27 @@ fn copy_code_for_pid(pid: u32) -> Result<OwnedCf, MacosCodeSigningFailure> {
     OwnedCf::from_created(code, "SecCodeCopyGuestWithAttributes(application PID)")
 }
 
+fn create_requirement(expression: &str) -> Result<OwnedCf, MacosCodeSigningFailure> {
+    let length = CfIndex::try_from(expression.len())
+        .map_err(|_| MacosCodeSigningFailure::new("requirement expression is too large"))?;
+    // SAFETY: expression contains initialized UTF-8 bytes copied by the call.
+    let string = unsafe {
+        CFStringCreateWithBytes(
+            ptr::null(),
+            expression.as_ptr(),
+            length,
+            K_CF_STRING_ENCODING_UTF8,
+            0,
+        )
+    };
+    let string = OwnedCf::from_created(string, "CFStringCreateWithBytes(requirement)")?;
+    let mut requirement: SecRequirementRef = ptr::null();
+    // SAFETY: the retained string is live and requirement is writable output.
+    let status = unsafe { SecRequirementCreateWithString(string.as_ptr(), 0, &mut requirement) };
+    require_status("SecRequirementCreateWithString", status)?;
+    OwnedCf::from_created(requirement, "SecRequirementCreateWithString")
+}
+
 fn copy_designated_requirement(code: SecCodeRef) -> Result<OwnedCf, MacosCodeSigningFailure> {
     let mut requirement: SecRequirementRef = ptr::null();
     // SAFETY: `code` is a retained live SecCodeRef and `requirement` points to
@@ -1586,6 +2187,11 @@ unsafe extern "C" {
         flags: u32,
         data: *mut CfDataRef,
     ) -> OsStatus;
+    fn SecRequirementCreateWithString(
+        text: CfStringRef,
+        flags: u32,
+        requirement: *mut SecRequirementRef,
+    ) -> OsStatus;
     fn SecCodeCopySigningInformation(
         code: SecCodeRef,
         flags: u32,
@@ -1600,6 +2206,13 @@ unsafe extern "C" {
     fn CFDataGetTypeID() -> CfTypeId;
     fn CFStringGetTypeID() -> CfTypeId;
     fn CFDataCreate(allocator: CfTypeRef, bytes: *const u8, length: CfIndex) -> CfDataRef;
+    fn CFStringCreateWithBytes(
+        allocator: CfTypeRef,
+        bytes: *const u8,
+        length: CfIndex,
+        encoding: u32,
+        is_external_representation: CfBoolean,
+    ) -> CfStringRef;
     fn CFNumberCreate(
         allocator: CfTypeRef,
         number_type: CfIndex,
@@ -1636,6 +2249,768 @@ mod tests {
     use super::*;
     use std::os::fd::AsRawFd;
     use std::os::unix::net::UnixStream;
+
+    use std::cell::{Cell, RefCell};
+    use std::collections::BTreeMap;
+    use std::io::{BufRead, BufReader, Write};
+    use std::process::{Child, Command, Stdio};
+    use std::sync::Weak;
+    use std::time::{Duration, Instant};
+
+    #[derive(Clone, Copy, Eq, PartialEq)]
+    enum FixtureFailure {
+        None,
+        LoginCode,
+        ApplicationCode,
+        LifecycleCreate,
+        LifecyclePoll,
+    }
+
+    type SnapshotMutation = fn(&mut BTreeMap<u32, MacosProcessSnapshot>);
+    type InvalidTopologyCase = (&'static str, u32, fn(&mut MacosProcessSnapshot));
+
+    struct FixtureSource {
+        processes: RefCell<BTreeMap<u32, MacosProcessSnapshot>>,
+        failure: Cell<FixtureFailure>,
+        mutate_on_login: RefCell<Option<SnapshotMutation>>,
+        mutate_on_application: RefCell<Option<SnapshotMutation>>,
+        guards: RefCell<Vec<Weak<MacosProcessLifecycleGuard>>>,
+        peak_guards: Cell<usize>,
+        login_checks: Cell<usize>,
+    }
+
+    impl FixtureSource {
+        fn iterm() -> Self {
+            let mut processes = BTreeMap::new();
+            for (pid, parent_pid, effective_uid, executable_path) in [
+                (60, 50, 501, "/usr/bin/ssh"),
+                (50, 40, 501, "/bin/zsh"),
+                (40, 30, 0, SYSTEM_LOGIN_PATH),
+                (
+                    30,
+                    20,
+                    501,
+                    "/Users/test/Library/Application Support/iTerm2/iTermServer",
+                ),
+                (20, 1, 501, "/Applications/iTerm.app/Contents/MacOS/iTerm2"),
+            ] {
+                processes.insert(
+                    pid,
+                    MacosProcessSnapshot {
+                        pid,
+                        parent_pid,
+                        session_id: if pid >= 40 { 40 } else { 20 },
+                        controlling_tty: if pid >= 40 { 100 } else { 0 },
+                        effective_uid,
+                        real_uid: 501,
+                        start_seconds: 1000 + u64::from(pid),
+                        start_microseconds: 200,
+                        executable_path: executable_path.to_owned(),
+                        bundle_path: outer_app_bundle_path(executable_path).unwrap_or_default(),
+                    },
+                );
+            }
+            Self {
+                processes: RefCell::new(processes),
+                failure: Cell::new(FixtureFailure::None),
+                mutate_on_login: RefCell::new(None),
+                mutate_on_application: RefCell::new(None),
+                guards: RefCell::new(Vec::new()),
+                peak_guards: Cell::new(0),
+                login_checks: Cell::new(0),
+            }
+        }
+
+        fn change(&self, pid: u32, change: impl FnOnce(&mut MacosProcessSnapshot)) {
+            change(
+                self.processes
+                    .borrow_mut()
+                    .get_mut(&pid)
+                    .expect("fixture process"),
+            );
+        }
+
+        fn live_guards(&self) -> usize {
+            self.guards
+                .borrow()
+                .iter()
+                .filter(|guard| guard.strong_count() != 0)
+                .count()
+        }
+
+        fn collect(
+            &self,
+        ) -> (
+            Option<MacosTerminalSessionIdentity>,
+            Option<MacosApplicationIdentity>,
+        ) {
+            let session = collect_terminal_session(self, 60, 501).unwrap_or_default();
+            let app =
+                collect_origin_application(self, 60, 501, session.as_ref()).unwrap_or_default();
+            (session, app)
+        }
+    }
+
+    impl MacosAncestrySource for FixtureSource {
+        fn snapshot(&self, pid: u32) -> Result<MacosProcessSnapshot, MacosCodeSigningFailure> {
+            self.processes
+                .borrow()
+                .get(&pid)
+                .cloned()
+                .ok_or_else(|| MacosCodeSigningFailure::new("fixture snapshot unavailable"))
+        }
+
+        fn lifecycle(
+            &self,
+            _pid: u32,
+        ) -> Result<Arc<MacosProcessLifecycleGuard>, MacosCodeSigningFailure> {
+            if self.failure.get() == FixtureFailure::LifecycleCreate {
+                return Err(MacosCodeSigningFailure::new(
+                    "fixture lifecycle creation failed",
+                ));
+            }
+            let guard = retain_process_lifecycle(std::process::id())?;
+            if self.failure.get() == FixtureFailure::LifecyclePoll {
+                let _ = guard.ensure_live_with(|| Err(MacosIdentityError::ProcessIdentityChanged));
+            }
+            self.guards.borrow_mut().push(Arc::downgrade(&guard));
+            self.peak_guards
+                .set(self.peak_guards.get().max(self.live_guards()));
+            Ok(guard)
+        }
+
+        fn login_code(&self, _pid: u32) -> Result<MacosLoginCodeEvidence, MacosCodeSigningFailure> {
+            self.login_checks.set(self.login_checks.get() + 1);
+            if self.failure.get() == FixtureFailure::LoginCode {
+                return Err(MacosCodeSigningFailure::new(
+                    "fixture login signature rejected",
+                ));
+            }
+            if let Some(mutate) = self.mutate_on_login.borrow_mut().take() {
+                mutate(&mut self.processes.borrow_mut());
+            }
+            Ok(MacosLoginCodeEvidence {
+                requirement: b"apple-login-requirement".to_vec(),
+                cdhash: b"login-cdhash".to_vec(),
+            })
+        }
+
+        fn application_code(
+            &self,
+            _pid: u32,
+        ) -> Result<MacosApplicationCodeEvidence, MacosCodeSigningFailure> {
+            if self.failure.get() == FixtureFailure::ApplicationCode {
+                return Err(MacosCodeSigningFailure::new(
+                    "fixture app signature rejected",
+                ));
+            }
+            if let Some(mutate) = self.mutate_on_application.borrow_mut().take() {
+                mutate(&mut self.processes.borrow_mut());
+            }
+            Ok(MacosApplicationCodeEvidence {
+                requirement: b"iterm-requirement".to_vec(),
+                cdhash: b"iterm-cdhash".to_vec(),
+                team_identifier: Some("ITERMTEAM".to_owned()),
+                signing_identifier: Some("com.googlecode.iterm2".to_owned()),
+                is_apple_platform_code: false,
+            })
+        }
+    }
+
+    fn fixture_peer(
+        session: Option<MacosTerminalSessionIdentity>,
+        application: Option<MacosApplicationIdentity>,
+    ) -> (MacosPeerIdentity, UnixStream) {
+        let (client, server) = UnixStream::pair().expect("fixture socket pair");
+        (
+            MacosPeerIdentity {
+                pid: 60,
+                pid_version: 1,
+                effective_uid: 501,
+                subject: verified_subject(
+                    b"fixture-process",
+                    b"peer",
+                    VerifiedSubjectKind::Process,
+                )
+                .expect("fixture subject"),
+                evidence_class: MacosEvidenceClass::AuditToken,
+                code_signing_status: MacosCodeSigningStatus::Degraded(
+                    MacosCodeSigningFailure::new("fixture"),
+                ),
+                team_identifier: None,
+                signing_identifier: None,
+                application,
+                terminal_session: session,
+                audit_token: AuditToken {
+                    values: [501, 501, 20, 501, 20, 60, 1, 1],
+                },
+                retained_socket: Arc::new(server.into()),
+            },
+            client,
+        )
+    }
+
+    #[test]
+    fn verified_login_joint_proof_exports_app_and_session_without_extra_monitor() {
+        let source = FixtureSource::iterm();
+        let (session, app) = source.collect();
+        let session = session.expect("verified login session");
+        let app = app.expect("verified owning app");
+        let login = session.login.as_ref().expect("login proof");
+        assert!(Arc::ptr_eq(&session.lifecycle, &login.lifecycle));
+        assert!(Arc::ptr_eq(
+            login,
+            app.login.as_ref().expect("joint app proof")
+        ));
+        assert_eq!(app.display_name, "iTerm");
+        assert_eq!(app.accepted_chain.len(), 5);
+        assert_eq!(source.live_guards(), 2);
+        let (peer, _client) = fixture_peer(Some(session), Some(app));
+        let exported =
+            crate::caller_identity::macos_authorization_subjects(&peer).expect("exported subjects");
+        assert_eq!(exported.len(), 3);
+        assert_eq!(
+            peer.application_authorization_subject()
+                .expect("app subject")
+                .kind(),
+            VerifiedSubjectKind::StableApplication
+        );
+    }
+
+    #[test]
+    fn incomplete_joint_proof_never_exports_display_application() {
+        let source = FixtureSource::iterm();
+        let (session, app) = source.collect();
+        let (mut peer, _client) = fixture_peer(session, app);
+        assert!(peer.application_authorization_subject().is_some());
+        let original_session = peer.terminal_session.take().expect("session");
+        assert!(peer.application().is_some());
+        assert!(peer.application_authorization_subject().is_none());
+        assert_eq!(
+            crate::caller_identity::macos_authorization_subjects(&peer)
+                .expect("process only")
+                .len(),
+            1
+        );
+        let mut mismatched = original_session.clone();
+        mismatched.subject = verified_subject(
+            b"fixture-session",
+            b"other",
+            VerifiedSubjectKind::TerminalSession,
+        )
+        .expect("other subject");
+        peer.terminal_session = Some(mismatched);
+        assert!(peer.application_authorization_subject().is_none());
+        peer.terminal_session = Some(original_session);
+        peer.terminal_session.as_mut().expect("session").login = None;
+        assert!(peer.application_authorization_subject().is_none());
+    }
+
+    #[test]
+    fn login_scope_is_stable_across_children_and_distinct_across_tabs_and_owners() {
+        let first_source = FixtureSource::iterm();
+        let (first_session, first_app) = first_source.collect();
+        let first_session = first_session.expect("first session");
+        let first_app = first_app.expect("first app");
+        let other_child = FixtureSource::iterm();
+        other_child.change(60, |peer| peer.start_microseconds += 1);
+        let (second_session, second_app) = other_child.collect();
+        assert_eq!(
+            first_session.subject,
+            second_session.expect("same session").subject
+        );
+        assert_eq!(first_app.subject, second_app.expect("same app").subject);
+        let other_tab = FixtureSource::iterm();
+        {
+            let mut processes = other_tab.processes.borrow_mut();
+            let mut login = processes.remove(&40).expect("login");
+            login.pid = 41;
+            login.session_id = 41;
+            processes.insert(41, login);
+            for pid in [50, 60] {
+                let process = processes.get_mut(&pid).expect("child");
+                process.session_id = 41;
+                if pid == 50 {
+                    process.parent_pid = 41;
+                }
+            }
+        }
+        let (other_session, other_app) = other_tab.collect();
+        assert_ne!(
+            first_session.subject,
+            other_session.expect("new terminal").subject
+        );
+        assert_eq!(
+            first_app.subject,
+            other_app.expect("same application").subject
+        );
+        assert_ne!(
+            first_session.subject,
+            terminal_session_subject_from_leader(&first_session.leader, 502).expect("other owner")
+        );
+        let mut old_recipe = Vec::new();
+        let leader = &first_session.leader;
+        old_recipe.extend_from_slice(&leader.pid.to_be_bytes());
+        old_recipe.extend_from_slice(&leader.parent_pid.to_be_bytes());
+        old_recipe.extend_from_slice(&leader.session_id.to_be_bytes());
+        old_recipe.extend_from_slice(&leader.controlling_tty.to_be_bytes());
+        old_recipe.extend_from_slice(&leader.effective_uid.to_be_bytes());
+        old_recipe.extend_from_slice(&leader.start_seconds.to_be_bytes());
+        old_recipe.extend_from_slice(&leader.start_microseconds.to_be_bytes());
+        append_len_prefixed(&mut old_recipe, leader.executable_path.as_bytes()).expect("v1 recipe");
+        assert_ne!(
+            first_session.subject.fingerprint(),
+            SubjectFingerprint::derive(b"keyguard.macos.terminal-session.v1", &old_recipe)
+                .expect("v1 fingerprint")
+        );
+    }
+
+    #[test]
+    fn invalid_login_topologies_never_enable_application_fallback() {
+        let cases: &[InvalidTopologyCase] = &[
+            ("wrong path", 40, |p| {
+                p.executable_path = "/tmp/login".to_owned()
+            }),
+            ("other Apple tool", 40, |p| {
+                p.executable_path = "/usr/bin/su".to_owned()
+            }),
+            ("wrong effective UID", 40, |p| p.effective_uid = 502),
+            ("wrong real UID", 40, |p| p.real_uid = 502),
+            ("foreign intermediate", 50, |p| p.effective_uid = 502),
+            ("second root parent", 30, |p| p.effective_uid = 0),
+            ("wrong login SID", 40, |p| p.session_id = 99),
+            ("nested session", 50, |p| p.session_id = 99),
+            ("nonancestor leader", 60, |p| p.session_id = 99),
+            ("detached peer", 60, |p| p.controlling_tty = 0),
+            ("missing TTY", 60, |p| {
+                p.controlling_tty = u64::from(u32::MAX)
+            }),
+            ("wrong login TTY", 40, |p| p.controlling_tty = 101),
+            ("wrong intermediate TTY", 50, |p| p.controlling_tty = 101),
+            ("cycle below login", 50, |p| p.parent_pid = 60),
+            ("cycle at login parent", 40, |p| p.parent_pid = 60),
+        ];
+        for (name, pid, mutate) in cases {
+            let source = FixtureSource::iterm();
+            source.change(*pid, *mutate);
+            let (session, app) = source.collect();
+            assert!(session.is_none(), "{name}: no new session");
+            assert!(app.is_none(), "{name}: no app fallback");
+            assert_eq!(source.live_guards(), 0, "{name}: no retained monitor");
+        }
+    }
+
+    #[test]
+    fn rejected_signature_or_lifecycle_never_enables_bridge_application() {
+        for failure in [
+            FixtureFailure::LoginCode,
+            FixtureFailure::LifecycleCreate,
+            FixtureFailure::LifecyclePoll,
+        ] {
+            let source = FixtureSource::iterm();
+            source.failure.set(failure);
+            let (session, app) = source.collect();
+            assert!(session.is_none());
+            assert!(app.is_none());
+            assert_eq!(source.live_guards(), 0);
+        }
+        let source = FixtureSource::iterm();
+        source.failure.set(FixtureFailure::ApplicationCode);
+        let (session, app) = source.collect();
+        assert!(
+            session.is_some(),
+            "independent verified session survives app failure"
+        );
+        assert!(app.is_none());
+        assert_eq!(source.live_guards(), 1);
+    }
+
+    #[test]
+    fn login_and_application_recollection_rejects_changed_complete_ancestry() {
+        let changes: &[SnapshotMutation] = &[
+            |p| p.get_mut(&40).expect("login").start_microseconds += 1,
+            |p| p.get_mut(&40).expect("login").real_uid = 502,
+            |p| p.get_mut(&40).expect("login").parent_pid = 20,
+            |p| p.get_mut(&50).expect("shell").executable_path = "/bin/other".to_owned(),
+            |p| p.get_mut(&30).expect("helper").start_microseconds += 1,
+        ];
+        for mutate in changes {
+            let source = FixtureSource::iterm();
+            *source.mutate_on_login.borrow_mut() = Some(*mutate);
+            assert!(collect_terminal_session(&source, 60, 501).is_err());
+            assert_eq!(source.live_guards(), 0);
+        }
+        for mutate in changes {
+            let source = FixtureSource::iterm();
+            let session = collect_terminal_session(&source, 60, 501)
+                .expect("collection")
+                .expect("session");
+            *source.mutate_on_application.borrow_mut() = Some(*mutate);
+            assert!(collect_origin_application(&source, 60, 501, Some(&session)).is_err());
+            assert_eq!(source.live_guards(), 1, "only original session retained");
+        }
+    }
+
+    #[test]
+    fn depth_limit_is_global_for_login_application_and_rejects_second_boundary() {
+        let source = FixtureSource::iterm();
+        // Session evidence is valid, but additional foreign ancestors must not
+        // turn the already collected terminal proof into app authorization.
+        source.change(20, |app| app.effective_uid = 0);
+        let (session, app) = source.collect();
+        assert!(session.is_some());
+        assert!(app.is_none());
+        let source = FixtureSource::iterm();
+        source.change(30, |helper| helper.parent_pid = 100);
+        {
+            let mut processes = source.processes.borrow_mut();
+            let template = processes.get(&30).expect("helper").clone();
+            for pid in 100..115 {
+                let mut process = template.clone();
+                process.pid = pid;
+                process.parent_pid = if pid == 114 { 20 } else { pid + 1 };
+                processes.insert(pid, process);
+            }
+        }
+        let (session, app) = source.collect();
+        assert!(session.is_some());
+        assert!(app.is_none(), "cannot restart the depth budget above login");
+        for pid in [20, 30] {
+            let source = FixtureSource::iterm();
+            source.change(pid, |process| process.parent_pid = process.pid);
+            let (session, app) = source.collect();
+            assert!(session.is_some());
+            assert!(
+                app.is_none(),
+                "self-cycle above login cannot authorize the app"
+            );
+        }
+    }
+
+    #[test]
+    fn existing_same_user_and_gui_paths_do_not_need_login_proof() {
+        let source = FixtureSource::iterm();
+        source.change(40, |leader| {
+            leader.effective_uid = 501;
+            leader.executable_path = "/bin/zsh".to_owned();
+        });
+        let (session, app) = source.collect();
+        assert!(session.expect("same-user session").login.is_none());
+        assert!(app.expect("same-user application").login.is_none());
+        assert_eq!(source.login_checks.get(), 0);
+        let source = FixtureSource::iterm();
+        source.change(60, |peer| {
+            peer.parent_pid = 20;
+            peer.controlling_tty = 0;
+            peer.executable_path = "/Applications/iTerm.app/Contents/MacOS/helper".to_owned();
+            peer.bundle_path = "/Applications/iTerm.app".to_owned();
+        });
+        let (session, app) = source.collect();
+        assert!(session.is_none());
+        let (peer, _client) = fixture_peer(session, app);
+        assert!(
+            peer.application_authorization_subject().is_some(),
+            "existing GUI evidence remains independent"
+        );
+        assert_eq!(source.login_checks.get(), 0);
+    }
+
+    #[test]
+    fn recollection_peak_matches_descriptor_budget_and_proof_clones_release_monitors() {
+        let source = FixtureSource::iterm();
+        let original = source.collect();
+        assert_eq!(source.live_guards(), 2);
+        let cloned = original.clone();
+        for _ in 0..10 {
+            let current = source.collect();
+            assert_eq!(original, current);
+            assert_eq!(source.live_guards(), 4);
+            drop(current);
+            assert_eq!(source.live_guards(), 2);
+        }
+        // One retained socket duplicate plus original/recollected app/session
+        // monitors. Sharing login proof Arc adds no descriptors.
+        assert_eq!(
+            1 + source.peak_guards.get(),
+            MacosPeerIdentity::MAX_ADDITIONAL_FD_COUNT
+        );
+        drop(original);
+        assert_eq!(source.live_guards(), 2);
+        drop(cloned);
+        assert_eq!(source.live_guards(), 0);
+    }
+
+    struct TestChild(Child);
+
+    impl Drop for TestChild {
+        fn drop(&mut self) {
+            let _ = self.0.kill();
+            let _ = self.0.wait();
+        }
+    }
+
+    fn assert_child_event_stays_invalid(ending: &str) {
+        let mut child = TestChild(
+            Command::new("/bin/sh")
+                .args(["-c", &format!("printf 'ready\\n'; read marker; {ending}")])
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn()
+                .expect("test child"),
+        );
+        let mut ready = String::new();
+        BufReader::new(child.0.stdout.take().expect("child stdout"))
+            .read_line(&mut ready)
+            .expect("child handshake");
+        assert_eq!(ready, "ready\n");
+        let full = read_process_snapshot(child.0.id()).expect("child full BSD snapshot");
+        let kernel = read_kinfo_proc(child.0.id()).expect("child sysctl snapshot");
+        assert_eq!(
+            full,
+            snapshot_from_kinfo(&kernel, full.executable_path.clone())
+                .expect("child sysctl fields")
+        );
+        assert!(
+            validate_system_login_code(child.0.id()).is_err(),
+            "another Apple-signed component is not system login"
+        );
+        let guard = retain_process_lifecycle(child.0.id()).expect("retained test child");
+        let cloned = Arc::clone(&guard);
+        child
+            .0
+            .stdin
+            .as_mut()
+            .expect("child stdin")
+            .write_all(b"go\n")
+            .expect("release child");
+        let deadline = Instant::now() + Duration::from_secs(3);
+        while guard.ensure_live().is_ok() {
+            assert!(
+                Instant::now() < deadline,
+                "lifecycle event was not observed"
+            );
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        assert!(guard.ensure_live().is_err());
+        assert!(cloned.ensure_live().is_err());
+        assert!(cloned
+            .ensure_live_with(|| panic!("invalid guard must not poll again"))
+            .is_err());
+    }
+
+    #[test]
+    fn observed_child_exit_invalidates_original_and_cloned_guards_permanently() {
+        assert_child_event_stays_invalid("exit 0");
+    }
+
+    #[test]
+    fn observed_child_exec_invalidates_original_and_cloned_guards_permanently() {
+        assert_child_event_stays_invalid("exec /bin/cat");
+    }
+
+    #[test]
+    fn lifecycle_poll_failure_and_poisoned_lock_stay_invalid() {
+        let guard = retain_process_lifecycle(std::process::id()).expect("guard");
+        let clone = Arc::clone(&guard);
+        assert!(guard
+            .ensure_live_with(|| Err(MacosIdentityError::InvalidPeer("fixture poll failure")))
+            .is_err());
+        assert!(clone
+            .ensure_live_with(|| panic!("failed poll is latched"))
+            .is_err());
+        let guard = retain_process_lifecycle(std::process::id()).expect("guard");
+        let clone = Arc::clone(&guard);
+        let poisoned = std::thread::spawn(move || {
+            let _lock = clone.valid.lock().expect("guard lock");
+            panic!("fixture lock poisoning");
+        });
+        assert!(poisoned.join().is_err());
+        assert!(guard.ensure_live().is_err());
+        assert!(guard.ensure_live().is_err());
+    }
+
+    #[test]
+    fn darwin_sysctl_layout_matches_installed_sdk_for_both_desktop_architectures() {
+        let checks = [
+            ("sizeof(struct kinfo_proc)", size_of::<MacosKinfoProc>()),
+            (
+                "_Alignof(struct kinfo_proc)",
+                std::mem::align_of::<MacosKinfoProc>(),
+            ),
+            ("sizeof(struct extern_proc)", size_of::<MacosExternProc>()),
+            ("sizeof(struct eproc)", size_of::<MacosEproc>()),
+            (
+                "sizeof(struct _pcred)",
+                size_of::<MacosProcessCredentials>(),
+            ),
+            ("sizeof(struct _ucred)", size_of::<MacosUserCredentials>()),
+            ("sizeof(struct vmspace)", size_of::<MacosVmSpace>()),
+            (
+                "offsetof(struct kinfo_proc, kp_proc.p_starttime)",
+                std::mem::offset_of!(MacosKinfoProc, process.start_time),
+            ),
+            (
+                "offsetof(struct kinfo_proc, kp_proc.p_stat)",
+                std::mem::offset_of!(MacosKinfoProc, process.status),
+            ),
+            (
+                "offsetof(struct kinfo_proc, kp_proc.p_pid)",
+                std::mem::offset_of!(MacosKinfoProc, process.pid),
+            ),
+            (
+                "offsetof(struct kinfo_proc, kp_eproc.e_ppid)",
+                std::mem::offset_of!(MacosKinfoProc, extended.parent_pid),
+            ),
+            (
+                "offsetof(struct kinfo_proc, kp_eproc.e_tdev)",
+                std::mem::offset_of!(MacosKinfoProc, extended.controlling_tty),
+            ),
+            (
+                "offsetof(struct kinfo_proc, kp_eproc.e_pcred.p_ruid)",
+                std::mem::offset_of!(MacosKinfoProc, extended.process_credentials.real_uid),
+            ),
+            (
+                "offsetof(struct kinfo_proc, kp_eproc.e_ucred.cr_uid)",
+                std::mem::offset_of!(MacosKinfoProc, extended.user_credentials.effective_uid),
+            ),
+        ];
+        let mut source =
+            "#include <stddef.h>\n#include <sys/types.h>\n#include <sys/sysctl.h>\n".to_owned();
+        for (expression, expected) in checks {
+            source.push_str(&format!(
+                "_Static_assert(({expression}) == {expected}, \"{expression}\");\n"
+            ));
+        }
+        for target in ["arm64-apple-macos11", "x86_64-apple-macos10.15"] {
+            let mut compiler = Command::new("xcrun")
+                .args(["clang", "-x", "c", "-fsyntax-only", "-target", target, "-"])
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .spawn()
+                .expect("installed macOS SDK compiler");
+            compiler
+                .stdin
+                .take()
+                .expect("compiler stdin")
+                .write_all(source.as_bytes())
+                .expect("SDK layout assertions");
+            let output = compiler.wait_with_output().expect("SDK compiler result");
+            assert!(
+                output.status.success(),
+                "{target}: {}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+    }
+
+    #[test]
+    fn sysctl_snapshot_matches_full_bsd_fields_and_rejects_bad_numeric_evidence() {
+        let pid = std::process::id();
+        let full = read_process_snapshot(pid).expect("same-user full BSD snapshot");
+        let mut info = read_kinfo_proc(pid).expect("kernel sysctl snapshot");
+        assert_eq!(
+            full,
+            snapshot_from_kinfo(&info, process_path(pid).expect("process path"))
+                .expect("sysctl fields")
+        );
+        info.process.start_time.tv_usec = 1_000_000;
+        assert!(snapshot_from_kinfo(&info, full.executable_path.clone()).is_err());
+        info.process.start_time.tv_usec = -1;
+        assert!(snapshot_from_kinfo(&info, full.executable_path.clone()).is_err());
+        info.process.start_time.tv_usec = 0;
+        info.process.start_time.tv_sec = -1;
+        assert!(snapshot_from_kinfo(&info, full.executable_path.clone()).is_err());
+        info.process.start_time.tv_sec = 0;
+        assert!(snapshot_from_kinfo(&info, full.executable_path).is_err());
+        assert!(
+            read_system_login_snapshot(pid).is_err(),
+            "sysctl fallback never generalizes to another executable"
+        );
+    }
+
+    #[test]
+    fn login_requirement_rejects_an_adhoc_binary_with_the_exact_login_identifier() {
+        let directory = tempfile::tempdir().expect("disposable signature fixture");
+        let executable = directory.path().join("login");
+        std::fs::copy("/bin/cat", &executable).expect("copy test executable");
+        let signed = Command::new("/usr/bin/codesign")
+            .args(["--force", "--sign", "-", "--identifier", "com.apple.login"])
+            .arg(&executable)
+            .output()
+            .expect("ad-hoc fixture signing");
+        assert!(
+            signed.status.success(),
+            "{}",
+            String::from_utf8_lossy(&signed.stderr)
+        );
+        let mut child = TestChild(
+            Command::new(&executable)
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn()
+                .expect("disposable ad-hoc process"),
+        );
+        child
+            .0
+            .stdin
+            .as_mut()
+            .expect("stdin")
+            .write_all(b"ready\n")
+            .expect("fixture handshake");
+        let mut ready = String::new();
+        BufReader::new(child.0.stdout.take().expect("stdout"))
+            .read_line(&mut ready)
+            .expect("live ad-hoc process");
+        assert_eq!(ready, "ready\n");
+        assert!(
+            validate_system_login_code(child.0.id()).is_err(),
+            "identifier alone cannot satisfy Apple anchor"
+        );
+    }
+
+    #[test]
+    fn explicit_login_requirement_rejects_the_test_binary_and_differs_from_generic_anchor() {
+        assert!(validate_system_login_code(std::process::id()).is_err());
+        let exact = create_requirement(SYSTEM_LOGIN_REQUIREMENT).expect("fixed requirement");
+        let generic = create_requirement("identifier \"com.apple.login\" and anchor apple generic")
+            .expect("generic requirement");
+        assert_ne!(
+            copy_requirement_data(exact.as_ptr()).expect("fixed data"),
+            copy_requirement_data(generic.as_ptr()).expect("generic data")
+        );
+    }
+
+    #[test]
+    #[ignore = "requires KEYGUARD_TEST_TERMINAL_PID naming an existing same-user login terminal"]
+    fn existing_terminal_has_live_joint_login_application_proof() {
+        let pid = std::env::var("KEYGUARD_TEST_TERMINAL_PID")
+            .expect("set the existing terminal shell PID")
+            .parse::<u32>()
+            .expect("numeric shell PID");
+        let source = SystemAncestrySource;
+        let owner = effective_uid();
+        let session = collect_terminal_session(&source, pid, owner)
+            .expect("live session collection")
+            .expect("terminal session");
+        let login = session.login.as_ref().expect("verified system login");
+        assert_eq!(login.leader.effective_uid, 0);
+        assert_eq!(login.leader.real_uid, owner);
+        let app = collect_origin_application(&source, pid, owner, Some(&session))
+            .expect("live application collection")
+            .expect("verified application");
+        assert!(Arc::ptr_eq(login, app.login.as_ref().expect("joint proof")));
+        let repeated_session = collect_terminal_session(&source, pid, owner)
+            .expect("repeat session collection")
+            .expect("repeat session");
+        let repeated_app = collect_origin_application(&source, pid, owner, Some(&repeated_session))
+            .expect("repeat app collection")
+            .expect("repeat application");
+        assert_eq!(session, repeated_session);
+        assert_eq!(app, repeated_app);
+    }
 
     #[test]
     fn application_signing_recipe_binds_vendor_identifier_and_requirement() {
@@ -1764,25 +3139,26 @@ mod tests {
             session_id: 20,
             controlling_tty: 100,
             effective_uid: 501,
+            real_uid: 501,
             start_seconds: 1_000,
             start_microseconds: 200,
             executable_path: "/bin/zsh".to_string(),
             bundle_path: String::new(),
         };
-        let first = terminal_session_subject_from_leader(&leader).expect("terminal subject");
+        let first = terminal_session_subject_from_leader(&leader, 501).expect("terminal subject");
         // No child-process field participates in the recipe, so another child
         // of this retained leader produces the same subject.
         let another_child =
-            terminal_session_subject_from_leader(&leader).expect("terminal subject");
+            terminal_session_subject_from_leader(&leader, 501).expect("terminal subject");
         let mut changed_tty = leader.clone();
         changed_tty.controlling_tty += 1;
         let changed_tty =
-            terminal_session_subject_from_leader(&changed_tty).expect("terminal subject");
+            terminal_session_subject_from_leader(&changed_tty, 501).expect("terminal subject");
         let mut changed_leader = leader;
         changed_leader.pid += 1;
         changed_leader.session_id += 1;
         let changed_leader =
-            terminal_session_subject_from_leader(&changed_leader).expect("terminal subject");
+            terminal_session_subject_from_leader(&changed_leader, 501).expect("terminal subject");
 
         assert_eq!(first, another_child);
         assert_ne!(first, changed_tty);

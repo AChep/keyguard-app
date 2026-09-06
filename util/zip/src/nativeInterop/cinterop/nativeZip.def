@@ -1,0 +1,3 @@
+headers = keyguard_zip.h
+headerFilter = keyguard_zip.h
+staticLibraries = libkeyguard_zip_c.a

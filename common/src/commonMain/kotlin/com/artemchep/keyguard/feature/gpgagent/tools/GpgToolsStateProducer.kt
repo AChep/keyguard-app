@@ -3,7 +3,9 @@ package com.artemchep.keyguard.feature.gpgagent.tools
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptionWarning
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpEncryptFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpEncryptTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpLiteralFileName
@@ -21,12 +23,16 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyDetachedTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyTextRequest
+import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentSecret
+import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
 import com.artemchep.keyguard.common.service.gpgagent.chunkedGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.isUsableAgentKey
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.resolveAuthorizationOrClear
+import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
 import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetCiphers
@@ -53,15 +59,21 @@ import com.artemchep.keyguard.res.gpg_tools_signature_created_at
 import com.artemchep.keyguard.res.gpg_tools_signature_label
 import com.artemchep.keyguard.res.gpg_tools_signed_text_label
 import com.artemchep.keyguard.res.gpg_tools_valid_signature
+import com.artemchep.keyguard.res.gpg_tools_warning_elgamal_decryption_key
 import com.artemchep.keyguard.res.gpg_tools_warning_key_expired
 import com.artemchep.keyguard.res.gpg_tools_warning_key_revoked
+import com.artemchep.keyguard.res.gpg_tools_warning_policy_conflict
 import com.artemchep.keyguard.res.gpg_tools_warning_signature_expired
+import com.artemchep.keyguard.res.gpg_tools_warning_weak_digest
+import com.artemchep.keyguard.res.gpg_tools_warning_weak_rsa_decryption_key
 import com.artemchep.keyguard.res.output
 import com.artemchep.keyguard.res.result
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.util.io.writeText
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -83,6 +95,7 @@ fun produceGpgToolsState(
         operation = operation,
         getCiphers = instance(),
         fileService = instance(),
+        keyMetadataResolver = instance(),
         openPgpService = instance(),
         openPgpVerifier = instance(),
     )
@@ -93,6 +106,7 @@ fun produceGpgToolsState(
     operation: GpgToolsOperation,
     getCiphers: GetCiphers,
     fileService: FileService,
+    keyMetadataResolver: GpgKeyMetadataResolver,
     openPgpService: GpgOpenPgpService,
     openPgpVerifier: GpgOpenPgpVerifier,
 ): Loadable<GpgToolsState> = produceScreenState(
@@ -102,6 +116,7 @@ fun produceGpgToolsState(
         operation,
         getCiphers,
         fileService,
+        keyMetadataResolver,
         openPgpService,
         openPgpVerifier,
     ),
@@ -268,15 +283,15 @@ fun produceGpgToolsState(
 
     suspend fun showResultDialog(
         output: GpgToolsResultRoute.Args.Output? = null,
-        verification: SimpleNote? = null,
+        notes: List<SimpleNote> = emptyList(),
     ) {
-        if (output == null && verification == null) {
+        if (output == null && notes.isEmpty()) {
             return
         }
         val route = GpgToolsResultRoute(
             args = GpgToolsResultRoute.Args(
                 title = translate(Res.string.result),
-                verification = verification,
+                notes = notes,
                 output = output,
             ),
         )
@@ -335,6 +350,11 @@ fun produceGpgToolsState(
     ): List<GpgOpenPgpPublicKey> =
         mapNotNull { it.toPublicKeyOrNull() } + customPublicKeys.toPublicKeyList()
 
+    fun List<ResolvedGpgKey>.resolveRevocationKeyCandidates(
+        customPublicKeys: List<GpgToolsState.CustomPublicKeyItem>,
+    ): List<GpgOpenPgpPublicKey> =
+        resolveVerificationPublicKeys(customPublicKeys).distinct()
+
     fun List<ResolvedGpgKey>.resolveEncryptionPublicKeys(
         selection: GpgToolsSelection,
         customPublicKeys: List<GpgToolsState.CustomPublicKeyItem>,
@@ -359,10 +379,12 @@ fun produceGpgToolsState(
                 GpgToolsOperation.SIGN -> {
                     val text = requireInputText(form)
                     val privateKey = keys.resolveSigningKey(selection)
+                    val candidateRevocationKeys = keys.resolveRevocationKeyCandidates(customPublicKeys)
                     val output = withContext(Dispatchers.Default) {
                         val request = GpgOpenPgpSignTextRequest(
                             text = text,
                             privateKey = privateKey,
+                            candidateRevocationKeys = candidateRevocationKeys,
                         )
                         when (form.controls.signMode) {
                             GpgToolsSignMode.CLEAR_TEXT ->
@@ -384,11 +406,13 @@ fun produceGpgToolsState(
                     val text = requireInputText(form)
                     val publicKeys = keys.resolveEncryptionPublicKeys(selection, customPublicKeys)
                     val signingPrivateKey = keys.resolveOptionalEncryptionSigningKey(selection)
+                    val candidateRevocationKeys = keys.resolveRevocationKeyCandidates(customPublicKeys)
                     val output = withContext(Dispatchers.Default) {
                         openPgpService.encryptText(
                             GpgOpenPgpEncryptTextRequest(
                                 text = text,
                                 publicKeys = publicKeys,
+                                candidateRevocationKeys = candidateRevocationKeys,
                                 signingPrivateKey = signingPrivateKey,
                             ),
                         )
@@ -422,7 +446,7 @@ fun produceGpgToolsState(
                             )
                         }
                     }
-                    showResultDialog(verification = toVerificationNote(verification))
+                    showResultDialog(notes = toVerificationNotes(verification))
                 }
 
                 GpgToolsOperation.DECRYPT -> {
@@ -443,7 +467,10 @@ fun produceGpgToolsState(
                             text = result.text,
                             signMode = form.controls.signMode,
                         ),
-                        verification = result.verification?.let { toVerificationNote(it) },
+                        notes = toResultNotes(
+                            verification = result.verification,
+                            decryptionWarnings = result.warnings,
+                        ),
                     )
                 }
             }
@@ -461,6 +488,7 @@ fun produceGpgToolsState(
                 GpgToolsOperation.SIGN -> {
                     val input = requireInputFile(form)
                     val privateKey = keys.resolveSigningKey(selection)
+                    val candidateRevocationKeys = keys.resolveRevocationKeyCandidates(customPublicKeys)
                     val armored = form.controls.armor
                     saveAs(fileName = input.signatureOutputName(armored)) { output ->
                         launchOperation {
@@ -470,6 +498,7 @@ fun produceGpgToolsState(
                                         input = fileService.readFromFile(input.uri),
                                         signatureOutput = fileService.writeToFile(output.uri),
                                         privateKey = privateKey,
+                                        candidateRevocationKeys = candidateRevocationKeys,
                                         armored = armored,
                                     ),
                                 )
@@ -482,6 +511,7 @@ fun produceGpgToolsState(
                     val input = requireInputFile(form)
                     val publicKeys = keys.resolveEncryptionPublicKeys(selection, customPublicKeys)
                     val signingPrivateKey = keys.resolveOptionalEncryptionSigningKey(selection)
+                    val candidateRevocationKeys = keys.resolveRevocationKeyCandidates(customPublicKeys)
                     val armored = form.controls.armor
                     saveAs(fileName = input.encryptedOutputName(armored)) { output ->
                         launchOperation {
@@ -491,6 +521,7 @@ fun produceGpgToolsState(
                                         input = fileService.readFromFile(input.uri),
                                         output = fileService.writeToFile(output.uri),
                                         publicKeys = publicKeys,
+                                        candidateRevocationKeys = candidateRevocationKeys,
                                         fileName = GpgOpenPgpLiteralFileName.fromUntrusted(
                                             input.name ?: "message",
                                         ),
@@ -517,7 +548,7 @@ fun produceGpgToolsState(
                                 ),
                             )
                         }
-                        showResultDialog(verification = toVerificationNote(verification))
+                        showResultDialog(notes = toVerificationNotes(verification))
                     }
                 }
 
@@ -537,12 +568,17 @@ fun produceGpgToolsState(
                                     ),
                                 )
                             }
-                            val verification = when (result) {
-                                is GpgOpenPgpReadFileResult.Message -> result.verification
-                                is GpgOpenPgpReadFileResult.ClearSigned -> result.verification
+                            val notes = when (result) {
+                                is GpgOpenPgpReadFileResult.Message -> toResultNotes(
+                                    verification = result.verification,
+                                    decryptionWarnings = result.warnings,
+                                )
+
+                                is GpgOpenPgpReadFileResult.ClearSigned ->
+                                    toVerificationNotes(result.verification)
                             }
                             showResultDialog(
-                                verification = verification?.let { toVerificationNote(it) },
+                                notes = notes,
                             )
                         }
                     }
@@ -555,10 +591,22 @@ fun produceGpgToolsState(
 
     val keysFlow = getCiphers()
         .map { ciphers ->
-            ciphers
-                .mapNotNull { it.toGpgAgentSecretOrNull() }
-                .sortedBy { it.cipher.name.lowercase() }
-                .map { it.toResolvedGpgKey() }
+            withContext(Dispatchers.Default) {
+                val candidateRevocationKeys = ciphers.toGpgRevocationKeyCandidates()
+                ciphers
+                    .mapNotNull { it.toGpgAgentSecretOrNull() }
+                    .map { secret ->
+                        async {
+                            secret.resolveAuthorizationOrClear(
+                                resolver = keyMetadataResolver,
+                                candidateRevocationKeys = candidateRevocationKeys,
+                            )
+                        }
+                    }
+                    .awaitAll()
+                    .sortedBy { it.cipher.name.lowercase() }
+                    .map { it.toResolvedGpgKey() }
+            }
         }
         .distinctUntilChanged()
         .shareInScreenScope()
@@ -823,16 +871,17 @@ private data class ResolvedGpgKey(
     val privateKeyArmored: String?,
     val publicKeyArmored: String?,
     val fingerprint: String?,
-    val metadataKeys: List<GpgAgentKeyMetadataKey>,
+    val authorizedKeys: List<GpgAgentKeyMetadataKey>,
+    val routableKeys: List<GpgAgentKeyMetadataKey>,
 ) {
     private val hasPrivateKey: Boolean
         get() = privateKeyArmored?.isNotBlank() == true
 
     val canSign: Boolean
-        get() = hasPrivateKey && metadataKeys.any(GpgAgentKeyMetadataKey::canSign)
+        get() = hasPrivateKey && authorizedKeys.any(GpgAgentKeyMetadataKey::canSign)
 
     val canDecrypt: Boolean
-        get() = hasPrivateKey && metadataKeys.any(GpgAgentKeyMetadataKey::canDecrypt)
+        get() = hasPrivateKey && routableKeys.any(GpgAgentKeyMetadataKey::canDecrypt)
 
     fun toPrivateKey() = GpgOpenPgpPrivateKey(
         armored = privateKeyArmored
@@ -877,12 +926,13 @@ private fun List<ResolvedGpgKey>.resolveSelection(
 }
 
 private fun GpgAgentSecret.toResolvedGpgKey(): ResolvedGpgKey {
-    val metadataKeys = metadata.keys
+    val authorizedKeys = authorizedAgentKeys
+    val routableKeys = metadata.routableAgentKeys
         .filter { it.isUsableAgentKey }
     val fingerprint = fingerprint
         ?.normalizeGpgFingerprint()
         ?.takeIf { it.isNotBlank() }
-        ?: metadataKeys.firstNotNullOfOrNull {
+        ?: routableKeys.firstNotNullOfOrNull {
             it.fingerprint
                 .normalizeGpgFingerprint()
                 .takeIf(String::isNotBlank)
@@ -893,7 +943,8 @@ private fun GpgAgentSecret.toResolvedGpgKey(): ResolvedGpgKey {
         privateKeyArmored = privateKeyArmored,
         publicKeyArmored = publicKeyArmored,
         fingerprint = fingerprint,
-        metadataKeys = metadataKeys,
+        authorizedKeys = authorizedKeys,
+        routableKeys = routableKeys,
     )
 }
 
@@ -954,6 +1005,28 @@ private fun GpgToolsState.FileRef.decryptedOutputName(): String {
     }
 }
 
+private suspend fun RememberStateFlowScope.toVerificationNotes(
+    verification: GpgOpenPgpVerification,
+): List<SimpleNote> = verification.verificationLeaves().map { leaf ->
+    toVerificationNote(leaf)
+}
+
+private suspend fun RememberStateFlowScope.toResultNotes(
+    verification: GpgOpenPgpVerification?,
+    decryptionWarnings: List<GpgOpenPgpDecryptionWarning>,
+): List<SimpleNote> = buildList {
+    verification?.let { addAll(toVerificationNotes(it)) }
+    decryptionWarnings
+        .distinct()
+        .map { warning ->
+            SimpleNote(
+                type = SimpleNote.Type.WARNING,
+                text = translate(warning.decryptionWarningStringResource()),
+            )
+        }
+        .let(::addAll)
+}
+
 private suspend fun RememberStateFlowScope.toVerificationNote(
     verification: GpgOpenPgpVerification,
 ): SimpleNote {
@@ -979,15 +1052,32 @@ private suspend fun RememberStateFlowScope.toVerificationNote(
             .map { translateWarning(it) }
             .forEach(::add)
     }
-    val noteType = when (verification.status) {
-        GpgOpenPgpVerificationStatus.VALID -> SimpleNote.Type.OK
-        GpgOpenPgpVerificationStatus.INVALID -> SimpleNote.Type.ERROR
-        GpgOpenPgpVerificationStatus.MISSING_PUBLIC_KEY -> SimpleNote.Type.WARNING
-    }
     return SimpleNote(
-        type = noteType,
+        type = verification.verificationNoteType(),
         text = lines.joinToString(separator = "\n"),
     )
+}
+
+internal fun GpgOpenPgpVerification.verificationLeaves(): List<GpgOpenPgpVerification> =
+    signatures.ifEmpty { listOf(this) }
+
+internal fun GpgOpenPgpDecryptionWarning.decryptionWarningStringResource(): StringResource =
+    when (this) {
+        GpgOpenPgpDecryptionWarning.WEAK_RSA_KEY ->
+            Res.string.gpg_tools_warning_weak_rsa_decryption_key
+
+        GpgOpenPgpDecryptionWarning.ELGAMAL_KEY ->
+            Res.string.gpg_tools_warning_elgamal_decryption_key
+    }
+
+internal fun GpgOpenPgpVerification.verificationNoteType(): SimpleNote.Type = when (status) {
+    GpgOpenPgpVerificationStatus.VALID -> if (isPolicyAccepted) {
+        SimpleNote.Type.OK
+    } else {
+        SimpleNote.Type.WARNING
+    }
+    GpgOpenPgpVerificationStatus.INVALID -> SimpleNote.Type.ERROR
+    GpgOpenPgpVerificationStatus.MISSING_PUBLIC_KEY -> SimpleNote.Type.WARNING
 }
 
 private suspend fun RememberStateFlowScope.translateWarning(
@@ -996,4 +1086,6 @@ private suspend fun RememberStateFlowScope.translateWarning(
     GpgOpenPgpVerificationWarning.KEY_REVOKED -> translate(Res.string.gpg_tools_warning_key_revoked)
     GpgOpenPgpVerificationWarning.KEY_EXPIRED -> translate(Res.string.gpg_tools_warning_key_expired)
     GpgOpenPgpVerificationWarning.SIGNATURE_EXPIRED -> translate(Res.string.gpg_tools_warning_signature_expired)
+    GpgOpenPgpVerificationWarning.POLICY_CONFLICT -> translate(Res.string.gpg_tools_warning_policy_conflict)
+    GpgOpenPgpVerificationWarning.WEAK_DIGEST -> translate(Res.string.gpg_tools_warning_weak_digest)
 }

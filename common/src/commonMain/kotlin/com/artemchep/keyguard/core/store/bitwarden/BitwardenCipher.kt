@@ -545,6 +545,7 @@ private object DiffApplierByLoginUriList : DiffFinder<List<BitwardenCipher.Login
 
 private data class LoginPasswordRevision(
     val password: String?,
+    val passwordStrength: BitwardenCipher.Login.PasswordStrength?,
     val passwordRevisionDate: Instant?,
 )
 
@@ -553,12 +554,15 @@ private val loginPasswordRevision: Lens<BitwardenCipher.Login, LoginPasswordRevi
         get = { login: BitwardenCipher.Login ->
             LoginPasswordRevision(
                 password = login.password,
+                passwordStrength = login.passwordStrength,
                 passwordRevisionDate = login.passwordRevisionDate,
             )
         },
         set = { login, value ->
             login.copy(
                 password = value.password,
+                passwordStrength = value.passwordStrength
+                    ?.takeIf { it.password == value.password },
                 passwordRevisionDate = value.passwordRevisionDate,
             )
         },

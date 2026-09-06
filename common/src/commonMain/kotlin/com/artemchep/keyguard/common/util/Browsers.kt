@@ -50,6 +50,7 @@ val Browsers = setOf(
     "idm.internet.download.manager.adm.lite",
     "idm.internet.download.manager.plus",
     "io.github.forkmaintainers.iceraven",
+    "io.github.jqssun.helium",
     "mark.via",
     "mark.via.gp",
     "net.slions.fulguris.full.download",

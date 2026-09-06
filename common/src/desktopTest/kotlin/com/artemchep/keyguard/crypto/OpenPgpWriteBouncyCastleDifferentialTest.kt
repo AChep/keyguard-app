@@ -68,6 +68,7 @@ class OpenPgpWriteBouncyCastleDifferentialTest {
         val plaintext = "BC to native OpenPGP encryption"
         val encrypted = bcService.encryptText(
             GpgOpenPgpEncryptTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = plaintext,
                 publicKeys = listOf(key.publicKey()),
             ),
@@ -89,6 +90,7 @@ class OpenPgpWriteBouncyCastleDifferentialTest {
         val plaintext = "native to BC OpenPGP encryption"
         val encrypted = nativeService.encryptText(
             GpgOpenPgpEncryptTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = plaintext,
                 publicKeys = listOf(key.publicKey()),
             ),
@@ -109,7 +111,11 @@ class OpenPgpWriteBouncyCastleDifferentialTest {
         val key = bcGenerated
         val text = "BC signature verified by native"
         val signature = bcService.signTextDetached(
-            GpgOpenPgpSignTextRequest(text = text, privateKey = key.privateKey()),
+            GpgOpenPgpSignTextRequest(
+                text = text,
+                privateKey = key.privateKey(),
+                candidateRevocationKeys = emptyList(),
+            ),
         )
 
         val request = GpgOpenPgpVerifyDetachedTextRequest(
@@ -131,7 +137,11 @@ class OpenPgpWriteBouncyCastleDifferentialTest {
         val key = bcGenerated
         val text = "native signature verified by BC"
         val signature = nativeService.signTextDetached(
-            GpgOpenPgpSignTextRequest(text = text, privateKey = key.privateKey()),
+            GpgOpenPgpSignTextRequest(
+                text = text,
+                privateKey = key.privateKey(),
+                candidateRevocationKeys = emptyList(),
+            ),
         )
 
         assertTrue(verifyDetachedWithBc(text, signature, key.publicKeyArmored))

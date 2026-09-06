@@ -6,7 +6,6 @@ import com.sun.jna.NativeLibrary
 import com.sun.jna.NativeLong
 import com.sun.jna.Platform
 import com.sun.jna.Pointer
-import java.util.concurrent.atomic.AtomicReference
 
 // Apple's public option for keeping pasteboard contents off Universal Clipboard and on this Mac.
 // https://developer.apple.com/documentation/appkit/nspasteboard/contentsoptions/currenthostonly
@@ -54,12 +53,15 @@ private object NativeMacClipboardOperations : MacClipboardOperations {
     override val isMac: Boolean
         get() = Platform.isMac()
 
+    // NSPasteboard is a client of the pasteboard server and may be used from any thread.
+    // Do not hop onto the AppKit main queue with dispatch_sync here: AWT waits for the
+    // event dispatch thread by spinning the main run loop in a private mode that does not
+    // drain the GCD main queue, so a synchronous hop from the event dispatch thread can
+    // deadlock the app.
     override fun setText(
         value: String,
         concealed: Boolean,
-    ): Boolean = MacClipboardDispatch.runOnMainThread {
-        nativeSetText(value, concealed)
-    }
+    ): Boolean = nativeSetText(value, concealed)
 }
 
 private fun nativeSetText(
@@ -208,46 +210,4 @@ private object MacClipboardObjectiveC {
         selector,
         *args,
     )
-}
-
-private object MacClipboardDispatch {
-    private val library: NativeLibrary by lazy {
-        NativeLibrary.getInstance("System")
-    }
-    private val dispatchMainQueue: Pointer by lazy {
-        library.getGlobalVariableAddress("_dispatch_main_q")
-    }
-    private val dispatchSyncF: Function by lazy {
-        library.getFunction("dispatch_sync_f")
-    }
-
-    fun <T> runOnMainThread(block: () -> T): T {
-        if (isMainThread()) {
-            return block()
-        }
-
-        val result = AtomicReference<Result<T>?>()
-        val work = object : DispatchFunction {
-            override fun callback(context: Pointer?) {
-                result.set(runCatching(block))
-            }
-        }
-        dispatchSyncF.invokeVoid(
-            arrayOf(
-                dispatchMainQueue,
-                Pointer.NULL,
-                work,
-            ),
-        )
-        return checkNotNull(result.get()).getOrThrow()
-    }
-
-    private fun isMainThread(): Boolean = MacClipboardObjectiveC.sendBoolean(
-        receiver = MacClipboardObjectiveC.clazz("NSThread"),
-        selector = MacClipboardObjectiveC.selector("isMainThread"),
-    )
-
-    private interface DispatchFunction : com.sun.jna.Callback {
-        fun callback(context: Pointer?)
-    }
 }

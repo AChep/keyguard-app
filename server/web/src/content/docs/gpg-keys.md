@@ -94,12 +94,17 @@ produces and the current limitations.
 The add-item flow accepts existing keys in either **ASCII-armored** or **binary**
 form, and both **public** and **private** key material:
 
-- A **public key** is parsed and stored as-is.
+- A **public key** is parsed and stored as a certificate.
 - A **private key** is parsed; if it is passphrase-protected, Keyguard prompts
   for the passphrase, then stores it unencrypted (see the note above). A wrong
   passphrase is reported as such.
 
-Malformed input, empty input, and unsupported formats are reported distinctly.
+When importing into an item that already contains the same certificate, Keyguard
+combines its certificate data. Existing secret material, certifications, and
+revocations are retained. A different certificate or malformed material is
+rejected without changing the item.
+
+Empty input and unsupported formats are reported distinctly.
 
 ## Exporting and copying
 
@@ -155,7 +160,9 @@ Email lookups against VKS are rate-limited.
 You can:
 
 - **search** a keyserver and import a result;
-- **upload** a public key to publish it;
+- **upload** a public key to publish it; on a VKS keyserver you can pick the
+  e-mail addresses that receive a verification e-mail, which makes the key
+  searchable by those addresses once confirmed;
 - **verify** a stored public key against the keyserver, recording whether it is
   *found & verified*, *found but unverified*, *not found*, or *revoked*.
 

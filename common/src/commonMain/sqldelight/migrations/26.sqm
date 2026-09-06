@@ -1,0 +1,11 @@
+ALTER TABLE gpgKeyserverState ADD COLUMN revocationEvidenceArmored TEXT;
+ALTER TABLE gpgKeyserverState ADD COLUMN hasUnbackedRevocation INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE gpgKeyserverState ADD COLUMN publicationStatus INTEGER NOT NULL DEFAULT 0 CHECK (publicationStatus IN (0, 1, 2, 3));
+
+-- Older rows retained only a server verdict, not its signed evidence. A later
+-- incomplete response cannot establish that the historical warning was soft.
+UPDATE gpgKeyserverState SET hasUnbackedRevocation = 1 WHERE verificationStatus = 4;
+
+UPDATE gpgKeyserverState
+SET publicationStatus = verificationStatus
+WHERE verificationStatus IN (0, 1, 2, 3);

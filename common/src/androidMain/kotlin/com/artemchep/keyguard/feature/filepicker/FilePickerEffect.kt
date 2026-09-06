@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.filepicker
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -10,9 +11,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.ShowMessage
+import com.artemchep.keyguard.platform.recordException
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.error_failed_open_app_for
 import com.artemchep.keyguard.ui.CollectedEffect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.jetbrains.compose.resources.getString
 import org.kodein.di.compose.rememberInstance
 
 @Composable
@@ -149,28 +154,48 @@ actual fun FilePickerEffect(
     CollectedEffect(flow) { intent ->
         state.value = intent
 
-        when (intent) {
-            is FilePickerIntent.NewDocument -> {
-                newDocumentLauncher.launch(intent.fileName)
-            }
-
-            is FilePickerIntent.OpenDocument -> {
-                val mimeTypes = run {
-                    // On Android that MIME type doesn't do anything, showing no
-                    // available files if asked.
-                    val isKeePass = FilePickerMime.KEEPASS_KDBX in intent.mimeTypes ||
-                            FilePickerMime.KEEPASS_GENERIC in intent.mimeTypes
-                    if (isKeePass) {
-                        return@run FilePickerIntent.mimeTypesAll
-                    }
-
-                    intent.mimeTypes
+        try {
+            when (intent) {
+                is FilePickerIntent.NewDocument -> {
+                    newDocumentLauncher.launch(intent.fileName)
                 }
-                openDocumentLauncher.launch(mimeTypes)
-            }
 
-            is FilePickerIntent.OpenDirectory -> {
-                openDirectoryLauncher.launch(null)
+                is FilePickerIntent.OpenDocument -> {
+                    val mimeTypes = run {
+                        // On Android that MIME type doesn't do anything, showing no
+                        // available files if asked.
+                        val isKeePass = FilePickerMime.KEEPASS_KDBX in intent.mimeTypes ||
+                                FilePickerMime.KEEPASS_GENERIC in intent.mimeTypes
+                        if (isKeePass) {
+                            return@run FilePickerIntent.mimeTypesAll
+                        }
+
+                        intent.mimeTypes
+                    }
+                    openDocumentLauncher.launch(mimeTypes)
+                }
+
+                is FilePickerIntent.OpenDirectory -> {
+                    openDirectoryLauncher.launch(null)
+                }
+            }
+        } catch (e: ActivityNotFoundException) {
+            // Some devices do not ship a document provider UI, so there
+            // is no activity to handle the system file picker request.
+            recordException(e)
+            state.value = null
+
+            val message = ToastMessage(
+                type = ToastMessage.Type.ERROR,
+                title = getString(Res.string.error_failed_open_app_for),
+            )
+            showMessage.copy(message)
+            // Complete the request, so the caller does
+            // not wait for the result forever.
+            when (intent) {
+                is FilePickerIntent.NewDocument -> intent.onResult(null)
+                is FilePickerIntent.OpenDocument -> intent.onResult(null)
+                is FilePickerIntent.OpenDirectory -> intent.onResult(null)
             }
         }
     }

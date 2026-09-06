@@ -9,6 +9,8 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgSExpr
 import com.artemchep.keyguard.common.service.gpgagent.encodeCanonical
+import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
+import com.artemchep.keyguard.common.util.toHex
 import org.bouncycastle.openpgp.PGPPublicKey
 import org.bouncycastle.openpgp.PGPPublicKeyRing
 import org.bouncycastle.openpgp.PGPSecretKeyRing
@@ -45,6 +47,7 @@ class OpenPgpMutationAndAgentBouncyCastleDifferentialTest {
                 expiresAt = target,
                 componentFingerprints = setOf(primaryFingerprint),
             ),
+            candidateRevocationKeys = emptyList(),
         )
 
         val bc = assertIs<GpgKeyExpirationResult.Success>(
@@ -62,20 +65,26 @@ class OpenPgpMutationAndAgentBouncyCastleDifferentialTest {
         assertEquals(primaryFingerprint, native.fingerprint)
         assertEquals(target.epochSeconds, primaryExpirationEpochSeconds(bc.publicKeyArmored))
         assertEquals(target.epochSeconds, primaryExpirationEpochSeconds(native.publicKeyArmored))
-        assertEquals(bc.metadata, native.metadata)
+        // Mutation results contain the persisted certificate index only; policy output
+        // is transient and must be resolved separately.
+        assertEquals(
+            bc.metadata?.routableAgentKeys.orEmpty(),
+            native.metadata?.routableAgentKeys.orEmpty(),
+        )
 
         val originalSubkeys = originalPublic.publicKeys.asSequence()
             .filterNot(PGPPublicKey::isMasterKey)
-            .associate { key -> key.fingerprintHex() to key.encoded }
+            .associate { key -> key.fingerprintHex() to key.unchangedContent() }
         assertTrue(originalSubkeys.isNotEmpty())
-        listOf(bc, native).forEach { updated ->
+        listOf("bc" to bc, "native" to native).forEach { (label, updated) ->
             val updatedSubkeys = publicRing(updated.publicKeyArmored).publicKeys.asSequence()
                 .filterNot(PGPPublicKey::isMasterKey)
                 .associateBy(PGPPublicKey::fingerprintHex)
-            originalSubkeys.forEach { (fingerprint, encoded) ->
-                assertTrue(
-                    encoded.contentEquals(updatedSubkeys.getValue(fingerprint).encoded),
-                    "Unselected subkey packet changed for $fingerprint",
+            originalSubkeys.forEach { (fingerprint, content) ->
+                assertEquals(
+                    content,
+                    updatedSubkeys.getValue(fingerprint).unchangedContent(),
+                    "$label changed the unselected subkey $fingerprint",
                 )
             }
         }
@@ -95,12 +104,14 @@ class OpenPgpMutationAndAgentBouncyCastleDifferentialTest {
             metadataKey = metadataKey,
             hashAlgorithm = "sha256",
             hash = hash,
+            candidateRevocationKeys = emptyList(),
         )
         val native = NativeGpgAgentCrypto.signHash(
             privateKeyArmored = GpgTestKeyFixtures.ED25519,
             metadataKey = metadataKey,
             hashAlgorithm = "sha256",
             hash = hash,
+            candidateRevocationKeys = emptyList(),
         )
 
         assertEquals(bc.sexp, native.sexp)
@@ -181,4 +192,45 @@ class OpenPgpMutationAndAgentBouncyCastleDifferentialTest {
             PGPUtil.getDecoderStream(ByteArrayInputStream(armored.encodeToByteArray())),
             JcaKeyFingerprintCalculator(),
         ).keyRings.asSequence().single()
+}
+
+/**
+ * The subkey's key material and its certifications, re-encoded through Bouncy Castle so
+ * that OpenPGP packet framing does not register as a change. Mutation output is the
+ * canonical packet serialization, which uses new-format packet headers even where the
+ * input carried the old form; the packet *contents* must still be untouched.
+ */
+private fun PGPPublicKey.unchangedContent(): Pair<String, List<String>> =
+    publicKeyPacket.encoded.openPgpPacketBody().toHex() to
+        signatures.asSequence()
+            .map { signature -> signature.encoded.openPgpPacketBody().toHex() }
+            .sorted()
+            .toList()
+
+/**
+ * Drops the OpenPGP packet header, leaving the packet body.
+ *
+ * Bouncy Castle re-emits each packet with the header format it was parsed with, so an
+ * old-format input and a canonical new-format output differ in their first byte even when
+ * the packet contents are identical.
+ */
+private fun ByteArray.openPgpPacketBody(): ByteArray {
+    val tag = this[0].toInt() and 0xFF
+    require(tag and 0x80 != 0) { "not an OpenPGP packet header: $tag" }
+    val headerLength = if (tag and 0x40 != 0) {
+        when (val first = this[1].toInt() and 0xFF) {
+            in 0..191 -> 2
+            in 192..223 -> 3
+            255 -> 6
+            else -> error("unexpected partial body length $first")
+        }
+    } else {
+        when (tag and 0x03) {
+            0 -> 2
+            1 -> 3
+            2 -> 5
+            else -> error("unexpected indeterminate packet length")
+        }
+    }
+    return copyOfRange(headerLength, size)
 }

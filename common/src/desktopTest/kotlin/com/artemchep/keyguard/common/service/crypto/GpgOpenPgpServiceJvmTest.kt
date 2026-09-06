@@ -2,13 +2,16 @@ package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.common.model.GpgKeyConfig
 import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
+import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
 import com.artemchep.keyguard.crypto.NativeGpgOpenPgpService
 import com.artemchep.keyguard.crypto.GpgUnsupportedKeyVersionException
 import com.artemchep.keyguard.crypto.armored
 import com.artemchep.keyguard.crypto.extractPrivateKeyEmptyPassphrase
 import com.artemchep.keyguard.crypto.fingerprintHex
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
+import com.artemchep.keyguard.nativecrypto.NativeCryptoOpenPgp
 import com.artemchep.keyguard.util.io.toSource
+import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import org.bouncycastle.bcpg.ArmoredOutputStream
@@ -46,8 +49,10 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 
 class GpgOpenPgpServiceJvmTest {
     private val service = NativeGpgOpenPgpService()
@@ -71,6 +76,7 @@ class GpgOpenPgpServiceJvmTest {
     fun `clear-sign text then verify`() {
         val signed = service.clearSignText(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "hello from keyguard",
                 privateKey = privateKey,
             ),
@@ -90,9 +96,51 @@ class GpgOpenPgpServiceJvmTest {
     }
 
     @Test
+    fun `clear-sign ignores an oversized list of unrelated revocation candidates`() {
+        val signed = service.clearSignText(
+            GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = List(
+                    NativeCryptoOpenPgp.MAX_KEY_DOCUMENTS_PER_REQUEST + 1,
+                ) { index ->
+                    GpgOpenPgpPublicKey(publicKey.armored + "\n".repeat(index + 1))
+                },
+                text = "hello from a large vault",
+                privateKey = privateKey,
+            ),
+        )
+
+        assertTrue("BEGIN PGP SIGNED MESSAGE" in signed)
+    }
+
+    @Test
+    fun `certification evaluation coalesces duplicate authorities beyond the native boundary`() {
+        val authority = GpgOpenPgpCertificationAuthority(
+            publicKey = publicKey,
+            primaryFingerprint = "D0BBCFBB250D3BB0658E5384F83D947D29EFECF7",
+        )
+
+        listOf(63, 64, 65).forEach { authorityCount ->
+            val confirmedUserIds = service.evaluateUserIdCertifications(
+                GpgOpenPgpUserIdCertificationRequest(
+                    publicKey = publicKey,
+                    authorities = List(authorityCount) { authority },
+                    referenceTime = Instant.fromEpochSeconds(1_782_541_300L),
+                ),
+            )
+
+            assertEquals(
+                listOf("Keyguard Test CV25519 <cv25519@test.invalid>"),
+                confirmedUserIds,
+                "authority count $authorityCount",
+            )
+        }
+    }
+
+    @Test
     fun `legacy public key candidate does not hide a supported verification key`() {
         val signed = service.clearSignText(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "hello from keyguard",
                 privateKey = privateKey,
             ),
@@ -116,6 +164,7 @@ class GpgOpenPgpServiceJvmTest {
     fun `tampered clear-signed text fails verification`() {
         val signed = service.clearSignText(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "original body",
                 privateKey = privateKey,
             ),
@@ -139,6 +188,7 @@ class GpgOpenPgpServiceJvmTest {
 
         service.signFile(
             GpgOpenPgpSignFileRequest(
+                candidateRevocationKeys = emptyList(),
                 input = data.toSource(),
                 signatureOutput = signature,
                 privateKey = privateKey,
@@ -163,6 +213,7 @@ class GpgOpenPgpServiceJvmTest {
         val signature = Buffer()
         service.signFile(
             GpgOpenPgpSignFileRequest(
+                candidateRevocationKeys = emptyList(),
                 input = data.toSource(),
                 signatureOutput = signature,
                 privateKey = privateKey,
@@ -184,6 +235,7 @@ class GpgOpenPgpServiceJvmTest {
     fun `encrypt decrypt text round trip with stored public key`() {
         val encrypted = service.encryptText(
             GpgOpenPgpEncryptTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "secret text",
                 publicKeys = listOf(publicKey),
             ),
@@ -211,6 +263,7 @@ class GpgOpenPgpServiceJvmTest {
             assertFailsWith<GpgUnsupportedKeyVersionException> {
                 service.encryptText(
                     GpgOpenPgpEncryptTextRequest(
+                        candidateRevocationKeys = emptyList(),
                         text = "all recipients must be supported",
                         publicKeys = listOf(legacyKey, publicKey),
                     ),
@@ -223,6 +276,7 @@ class GpgOpenPgpServiceJvmTest {
     fun `legacy private key candidate does not hide a supported decryption key`() {
         val encrypted = service.encryptText(
             GpgOpenPgpEncryptTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "supported decryption key",
                 publicKeys = listOf(publicKey),
             ),
@@ -247,6 +301,7 @@ class GpgOpenPgpServiceJvmTest {
     fun `legacy-only private key candidates are rejected`() {
         val encrypted = service.encryptText(
             GpgOpenPgpEncryptTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "unsupported decryption key",
                 publicKeys = listOf(publicKey),
             ),
@@ -273,6 +328,7 @@ class GpgOpenPgpServiceJvmTest {
         val pastedPublicKey = GpgOpenPgpPublicKey(publicKey.armored)
         val encrypted = service.encryptText(
             GpgOpenPgpEncryptTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "pasted recipient",
                 publicKeys = listOf(pastedPublicKey),
             ),
@@ -293,6 +349,7 @@ class GpgOpenPgpServiceJvmTest {
         val text = "detached text payload"
         val signature = service.signTextDetached(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = text,
                 privateKey = privateKey,
             ),
@@ -311,9 +368,74 @@ class GpgOpenPgpServiceJvmTest {
     }
 
     @Test
+    fun `SHA-1 detached signature is invalid and reports the weak digest warning`() {
+        val text = "weak digest payload"
+        val signature = detachedSignatureWithHash(text, HashAlgorithmTags.SHA1)
+
+        val verification = service.verifyDetachedText(
+            GpgOpenPgpVerifyDetachedTextRequest(
+                text = text,
+                signature = signature,
+                publicKeys = listOf(publicKey),
+            ),
+        )
+
+        // A SHA-1 data signature stays mathematically verifiable, but the native policy
+        // refuses it. The caller must be able to tell "uses SHA-1" apart from "does not
+        // verify", so the status is INVALID *and* the warning is reported.
+        assertEquals(GpgOpenPgpVerificationStatus.INVALID, verification.status)
+        assertTrue(
+            GpgOpenPgpVerificationWarning.WEAK_DIGEST in verification.warnings,
+            "expected a weak-digest warning, got ${verification.warnings}",
+        )
+    }
+
+    @Test
+    fun `SHA-256 detached signature carries no weak digest warning`() {
+        val text = "modern digest payload"
+        val signature = detachedSignatureWithHash(text, HashAlgorithmTags.SHA256)
+
+        val verification = service.verifyDetachedText(
+            GpgOpenPgpVerifyDetachedTextRequest(
+                text = text,
+                signature = signature,
+                publicKeys = listOf(publicKey),
+            ),
+        )
+
+        assertEquals(GpgOpenPgpVerificationStatus.VALID, verification.status)
+        assertTrue(GpgOpenPgpVerificationWarning.WEAK_DIGEST !in verification.warnings)
+    }
+
+    /** Produces an armored detached signature over [text] bound to [hashAlgorithm]. */
+    private fun detachedSignatureWithHash(
+        text: String,
+        hashAlgorithm: Int,
+    ): String {
+        val secretRing = PGPSecretKeyRingCollection(
+            PGPUtil.getDecoderStream(ByteArrayInputStream(CV25519_SECRET_KEY.encodeToByteArray())),
+            JcaKeyFingerprintCalculator(),
+        ).keyRings.next()
+        // The CV25519 fixture signs with its Ed25519 primary; the X25519 subkey is
+        // encryption only.
+        val signingSecretKey = secretRing.secretKey
+        val generator = PGPSignatureGenerator(
+            JcaPGPContentSignerBuilder(signingSecretKey.publicKey.algorithm, hashAlgorithm)
+                .setProvider(BouncyCastleProvider.PROVIDER_NAME),
+        )
+        generator.init(PGPSignature.BINARY_DOCUMENT, signingSecretKey.extractPrivateKeyEmptyPassphrase())
+        generator.update(text.encodeToByteArray())
+        val signature = generator.generate()
+        val out = ByteArrayOutputStream()
+        ArmoredOutputStream(out).use { armored -> signature.encode(armored) }
+        return out.toString(Charsets.UTF_8)
+    }
+
+    @Test
     fun `tampered detached text fails verification`() {
         val signature = service.signTextDetached(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "original detached text",
                 privateKey = privateKey,
             ),
@@ -340,6 +462,7 @@ class GpgOpenPgpServiceJvmTest {
 
         service.encryptFile(
             GpgOpenPgpEncryptFileRequest(
+                candidateRevocationKeys = emptyList(),
                 input = data.toSource(),
                 output = encrypted,
                 publicKeys = listOf(publicKey),
@@ -364,6 +487,7 @@ class GpgOpenPgpServiceJvmTest {
         val encrypted = Buffer()
         service.encryptFile(
             GpgOpenPgpEncryptFileRequest(
+                candidateRevocationKeys = emptyList(),
                 input = "armored charset body".encodeToByteArray().toSource(),
                 output = encrypted,
                 publicKeys = listOf(publicKey),
@@ -401,6 +525,7 @@ class GpgOpenPgpServiceJvmTest {
 
         service.encryptFile(
             GpgOpenPgpEncryptFileRequest(
+                candidateRevocationKeys = emptyList(),
                 input = data.toSource(),
                 output = encrypted,
                 publicKeys = listOf(publicKey),
@@ -428,6 +553,7 @@ class GpgOpenPgpServiceJvmTest {
 
         service.signFile(
             GpgOpenPgpSignFileRequest(
+                candidateRevocationKeys = emptyList(),
                 input = data.toSource(),
                 signatureOutput = signature,
                 privateKey = privateKey,
@@ -452,6 +578,7 @@ class GpgOpenPgpServiceJvmTest {
     fun `sign encrypt text decrypts and verifies signer`() {
         val encrypted = service.encryptText(
             GpgOpenPgpEncryptTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "signed encrypted text",
                 publicKeys = listOf(publicKey),
                 signingPrivateKey = privateKey,
@@ -475,6 +602,7 @@ class GpgOpenPgpServiceJvmTest {
     fun `sign encrypt text decrypts with missing signer key verification`() {
         val encrypted = service.encryptText(
             GpgOpenPgpEncryptTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "signed encrypted text",
                 publicKeys = listOf(publicKey),
                 signingPrivateKey = privateKey,
@@ -497,6 +625,7 @@ class GpgOpenPgpServiceJvmTest {
     fun `missing public key returns missing key verification`() {
         val signed = service.clearSignText(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "missing public key",
                 privateKey = privateKey,
             ),
@@ -516,6 +645,7 @@ class GpgOpenPgpServiceJvmTest {
     fun `missing private key fails decryption`() {
         val encrypted = service.encryptText(
             GpgOpenPgpEncryptTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "needs private key",
                 publicKeys = listOf(publicKey),
             ),
@@ -536,6 +666,7 @@ class GpgOpenPgpServiceJvmTest {
         assertFailsWith<Exception> {
             service.encryptText(
                 GpgOpenPgpEncryptTextRequest(
+                    candidateRevocationKeys = emptyList(),
                     text = "cannot encrypt",
                     publicKeys = listOf(GpgOpenPgpPublicKey("not a public key")),
                 ),
@@ -569,6 +700,7 @@ class GpgOpenPgpServiceJvmTest {
         signedFile.writeText(
             service.clearSignText(
                 GpgOpenPgpSignTextRequest(
+                    candidateRevocationKeys = emptyList(),
                     text = "gpg verify clear text",
                     privateKey = privateKey,
                 ),
@@ -595,6 +727,7 @@ class GpgOpenPgpServiceJvmTest {
         val signature = Buffer()
         service.signFile(
             GpgOpenPgpSignFileRequest(
+                candidateRevocationKeys = emptyList(),
                 input = data.toSource(),
                 signatureOutput = signature,
                 privateKey = privateKey,
@@ -620,6 +753,7 @@ class GpgOpenPgpServiceJvmTest {
         val encryptedFile = home.resolve("message.asc")
         val encrypted = service.encryptText(
             GpgOpenPgpEncryptTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "gpg decrypt interop",
                 publicKeys = listOf(publicKey),
             ),
@@ -649,6 +783,7 @@ class GpgOpenPgpServiceJvmTest {
         // on signing and un-escapes them on verify, so the round trip must be VALID.
         val signed = service.clearSignText(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = MARKER_LINES_TEXT,
                 privateKey = privateKey,
             ),
@@ -673,6 +808,7 @@ class GpgOpenPgpServiceJvmTest {
         // signed bytes — so the signature must remain VALID.
         val signed = service.clearSignText(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "no trailing newline",
                 privateKey = privateKey,
             ),
@@ -697,6 +833,7 @@ class GpgOpenPgpServiceJvmTest {
     fun `verify clear-signed file recovers dash-escaped body and metadata`() {
         val signed = service.clearSignText(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = MARKER_LINES_TEXT,
                 privateKey = privateKey,
             ),
@@ -723,33 +860,38 @@ class GpgOpenPgpServiceJvmTest {
     }
 
     @Test
-    fun `verify clear-signed file rejects a non-hash armor header`() {
+    fun `verify clear-signed file skips an unknown armor header`() {
+        val text = "charset header body"
         val signed = service.clearSignText(
             GpgOpenPgpSignTextRequest(
-                text = "charset header body",
+                candidateRevocationKeys = emptyList(),
+                text = text,
                 privateKey = privateKey,
             ),
         )
-        // RFC 9580 cleartext signatures only permit Hash armor headers.
+        // Armor headers other than Hash are not part of the signed data, so a producer
+        // that emits one (gpg has historically emitted Charset) must not make an
+        // otherwise sound signature unverifiable. Unknown headers are skipped.
         val declared = signed.replace("Hash: SHA256", "Hash: SHA256\nCharset: ISO-8859-1")
 
         val body = Buffer()
-        assertFailsWith<NativeCryptoException> {
-            service.verifyClearSignedFile(
-                GpgOpenPgpReadFileRequest(
-                    input = declared.encodeToByteArray().toSource(),
-                    output = body,
-                    publicKeys = listOf(publicKey),
-                ),
-            )
-        }
-        assertEquals(0L, body.size)
+        val result = service.verifyClearSignedFile(
+            GpgOpenPgpReadFileRequest(
+                input = declared.encodeToByteArray().toSource(),
+                output = body,
+                publicKeys = listOf(publicKey),
+            ),
+        )
+
+        assertEquals(GpgOpenPgpVerificationStatus.VALID, result.verification.status)
+        assertEquals(text, body.readByteArray().decodeToString().trimEnd('\r', '\n'))
     }
 
     @Test
     fun `read file classifies clear-signed input without consuming its prefix`() {
         val signed = service.clearSignText(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "unified read body",
                 privateKey = privateKey,
             ),
@@ -774,6 +916,7 @@ class GpgOpenPgpServiceJvmTest {
     fun `read file classifies clear-signed input after a quoted preamble`() {
         val signed = service.clearSignText(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "preamble body",
                 privateKey = privateKey,
             ),
@@ -850,6 +993,7 @@ class GpgOpenPgpServiceJvmTest {
         val encrypted = Buffer()
         service.encryptFile(
             GpgOpenPgpEncryptFileRequest(
+                candidateRevocationKeys = emptyList(),
                 input = plaintext.toSource(),
                 output = encrypted,
                 publicKeys = listOf(publicKey),
@@ -889,6 +1033,7 @@ class GpgOpenPgpServiceJvmTest {
     fun `tampered clear-signed file fails while an omitted hash header still verifies`() {
         val signed = service.clearSignText(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "clear-signed file body",
                 privateKey = privateKey,
             ),
@@ -934,6 +1079,7 @@ class GpgOpenPgpServiceJvmTest {
         signedFile.writeText(
             service.clearSignText(
                 GpgOpenPgpSignTextRequest(
+                    candidateRevocationKeys = emptyList(),
                     text = MARKER_LINES_TEXT,
                     privateKey = privateKey,
                 ),
@@ -953,6 +1099,7 @@ class GpgOpenPgpServiceJvmTest {
         val rsaPublicKey = GpgOpenPgpPublicKey(publicKeyArmoredOf(GpgTestKeyFixtures.RSA))
         val encrypted = service.encryptText(
             GpgOpenPgpEncryptTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = "target the subkey",
                 publicKeys = listOf(rsaPublicKey),
             ),
@@ -984,11 +1131,18 @@ class GpgOpenPgpServiceJvmTest {
                 length = GpgKeyConfig.RsaLength.B3072,
             ),
         )
-        val signingFingerprint = generated.metadata.keys.single { it.canSign }.fingerprint
+        val signingFingerprint = assertNotNull(
+            NativeGpgKeyMetadataResolver.resolve(
+                privateKeyArmored = generated.privateKeyArmored,
+                publicKeyArmored = generated.publicKeyArmored,
+                fingerprint = generated.fingerprint,
+            ),
+        ).authorizedAgentKeys.single { it.canSign }.fingerprint
         val text = "sign with authenticated capability"
 
         val armoredSignature = service.signTextDetached(
             GpgOpenPgpSignTextRequest(
+                candidateRevocationKeys = emptyList(),
                 text = text,
                 privateKey = GpgOpenPgpPrivateKey(
                     armored = generated.privateKeyArmored,
@@ -1039,6 +1193,7 @@ class GpgOpenPgpServiceJvmTest {
         assertFailsWith<IllegalStateException> {
             service.encryptText(
                 GpgOpenPgpEncryptTextRequest(
+                    candidateRevocationKeys = emptyList(),
                     text = "do not encrypt",
                     publicKeys = listOf(
                         GpgOpenPgpPublicKey(out.toString(Charsets.UTF_8)),

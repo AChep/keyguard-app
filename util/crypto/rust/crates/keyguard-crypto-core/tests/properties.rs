@@ -30,7 +30,7 @@ const OPENPGP_CASES: u32 = 32;
 const OPENPGP_PUBLIC_KEY: &[u8] = include_bytes!("fixtures/openpgp/cv25519-public.asc");
 const OPENPGP_SECRET_KEY: &[u8] = include_bytes!("fixtures/openpgp/cv25519-secret.asc");
 const OPENPGP_SIGNATURE_TIME: u32 = 1_784_073_600;
-const OPENPGP_REFERENCE_TIME: u64 = 1_783_944_100;
+const OPENPGP_REFERENCE_TIME: u64 = 1_784_073_601;
 
 fn hash_algorithm() -> impl Strategy<Value = HashAlgorithm> {
     prop_oneof![
@@ -243,6 +243,7 @@ fn deterministic_clear_signed_document(body: &str) -> Vec<u8> {
         armored: true,
         signature_time_epoch_seconds: Some(u64::from(OPENPGP_SIGNATURE_TIME)),
         reference_time_epoch_seconds: Some(OPENPGP_REFERENCE_TIME),
+        candidate_revocation_keys: Vec::new(),
     }))
 }
 

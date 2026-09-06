@@ -1212,6 +1212,7 @@ internal fun createUploadTestDatabase(
         ),
         gpgKeyserverStateAdapter = GpgKeyserverState.Adapter(
             verificationStatusAdapter = EnumCodeToLongAdapter(GpgKeyserverVerificationStatus::of) { it.code },
+            publicationStatusAdapter = EnumCodeToLongAdapter(GpgKeyserverVerificationStatus::of) { it.code },
             lastCheckedAtAdapter = InstantToLongAdapter,
             lastRefreshedAtAdapter = InstantToLongAdapter,
         ),

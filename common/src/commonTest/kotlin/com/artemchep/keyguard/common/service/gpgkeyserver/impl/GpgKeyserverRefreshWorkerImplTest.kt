@@ -142,6 +142,41 @@ class GpgKeyserverRefreshWorkerImplTest {
         }
     }
 
+    @Test
+    fun `failed refresh is logged and waits a full interval before retrying`() = runTest {
+        var attempts = 0
+        val levels = mutableListOf<LogLevel>()
+        val worker = createWorker(
+            autoRefresh = MutableStateFlow(true),
+            interval = MutableStateFlow(interval),
+            lastRefresh = MutableStateFlow(null),
+            ciphers = MutableStateFlow(listOf(gpgSecret(id = "eligible"))),
+            refresh = object : RefreshGpgPublicKeys {
+                override fun invoke(request: RefreshGpgPublicKeysRequest): IO<RefreshGpgPublicKeysResult> = ioEffect {
+                    attempts += 1
+                    RefreshGpgPublicKeysResult(0, 0, 0, 1)
+                }
+            },
+            now = { Instant.fromEpochMilliseconds(testScheduler.currentTime) },
+            logRepository = object : LogRepository by NoOpLogRepository {
+                override fun post(tag: String, message: String, level: LogLevel) {
+                    levels += level
+                }
+            },
+        )
+        worker.launch(backgroundScope)
+
+        runCurrent()
+        assertEquals(1, attempts)
+        assertEquals(listOf(LogLevel.WARNING), levels)
+        advanceTimeBy(interval - 1.days)
+        runCurrent()
+        assertEquals(1, attempts)
+        advanceTimeBy(1.days)
+        runCurrent()
+        assertEquals(2, attempts)
+    }
+
     private fun createWorker(
         autoRefresh: Flow<Boolean>,
         interval: Flow<Duration>,
@@ -149,6 +184,7 @@ class GpgKeyserverRefreshWorkerImplTest {
         ciphers: Flow<List<DSecret>>,
         refresh: RefreshGpgPublicKeys,
         now: () -> Instant,
+        logRepository: LogRepository = NoOpLogRepository,
     ) = GpgKeyserverRefreshWorkerImpl(
         getGpgKeyserverAutoRefresh = object : GetGpgKeyserverAutoRefresh {
             override fun invoke(): Flow<Boolean> = autoRefresh
@@ -163,7 +199,7 @@ class GpgKeyserverRefreshWorkerImplTest {
             override fun invoke(): Flow<List<DSecret>> = ciphers
         },
         refreshGpgPublicKeys = refresh,
-        logRepository = NoOpLogRepository,
+        logRepository = logRepository,
         now = now,
     )
 

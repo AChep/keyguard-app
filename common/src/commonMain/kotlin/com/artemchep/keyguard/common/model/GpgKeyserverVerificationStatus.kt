@@ -27,7 +27,8 @@ enum class GpgKeyserverVerificationStatus(
     VERIFIED(3L),
 
     /**
-     * The keyserver reports the key as revoked.
+     * Retained signed evidence revokes the key, or a historical revocation
+     * warning cannot be resolved because its evidence was not retained.
      */
     REVOKED(4L),
     ;

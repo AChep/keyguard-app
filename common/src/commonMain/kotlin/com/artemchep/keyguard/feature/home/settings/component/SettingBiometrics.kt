@@ -6,19 +6,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.BiometricAuthException
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.BiometricStatus
+import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.vault.FingerprintReadRepository
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.DisableBiometric
 import com.artemchep.keyguard.common.usecase.EnableBiometric
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
+import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import org.jetbrains.compose.resources.stringResource
@@ -38,6 +43,7 @@ fun settingBiometricsProvider(
     getBiometricRequireConfirmation = directDI.instance(),
     enableBiometric = directDI.instance(),
     disableBiometric = directDI.instance(),
+    showMessage = directDI.instance(),
     windowCoroutineScope = directDI.instance(),
 )
 
@@ -47,6 +53,7 @@ fun settingBiometricsProvider(
     getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
     enableBiometric: EnableBiometric,
     disableBiometric: DisableBiometric,
+    showMessage: ShowMessage,
     windowCoroutineScope: WindowCoroutineScope,
 ): SettingComponent = biometricStatusUseCase()
     .map { it is BiometricStatus.Available }
@@ -58,6 +65,7 @@ fun settingBiometricsProvider(
                 getBiometricRequireConfirmation = getBiometricRequireConfirmation,
                 enableBiometric = enableBiometric,
                 disableBiometric = disableBiometric,
+                showMessage = showMessage,
                 windowCoroutineScope = windowCoroutineScope,
             )
         } else {
@@ -71,6 +79,7 @@ private fun createSettingComponentFlow(
     getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
     enableBiometric: EnableBiometric,
     disableBiometric: DisableBiometric,
+    showMessage: ShowMessage,
     windowCoroutineScope: WindowCoroutineScope,
 ) = combine(
     getBiometricRequireConfirmation(),
@@ -82,9 +91,13 @@ private fun createSettingComponentFlow(
     SettingIi(
         search = SettingIi.Search(
             group = "biometric",
-            tokens = listOf(
-                "biometric",
-            ),
+            tokens = buildList {
+                add("biometric")
+                if (CurrentPlatform is Platform.Desktop.Windows) {
+                    add("windows")
+                    add("hello")
+                }
+            },
         ),
     ) {
         val promptSink = remember {
@@ -95,29 +108,13 @@ private fun createSettingComponentFlow(
             checked = biometrics,
             onCheckedChange = { shouldBeChecked ->
                 if (shouldBeChecked) {
-                    enableBiometric(null) // use global session
-                        .effectMap { d ->
-                            val cipher = d.getCipher()
-                            val prompt = BiometricAuthPrompt(
-                                title = TextHolder.Res(Res.string.pref_item_biometric_unlock_confirm_title),
-                                cipher = cipher,
-                                requireConfirmation = requireConfirmation,
-                                onComplete = { result ->
-                                    result.fold(
-                                        ifLeft = { exception ->
-                                            val message = exception.message
-                                            // biometricPromptErrorSink.emit(message)
-                                        },
-                                        ifRight = {
-                                            d.getCreateIo()
-                                                .launchIn(windowCoroutineScope)
-                                        },
-                                    )
-                                },
-                            )
-                            promptSink.emit(prompt)
-                        }
-                        .launchIn(windowCoroutineScope)
+                    enableBiometrics(
+                        requireConfirmation = requireConfirmation,
+                        enableBiometric = enableBiometric,
+                        showMessage = showMessage,
+                        windowCoroutineScope = windowCoroutineScope,
+                        promptSink = promptSink,
+                    )
                 } else {
                     disableBiometric()
                         .launchIn(windowCoroutineScope)
@@ -129,14 +126,63 @@ private fun createSettingComponentFlow(
     }
 }
 
+private fun enableBiometrics(
+    requireConfirmation: Boolean,
+    enableBiometric: EnableBiometric,
+    showMessage: ShowMessage,
+    windowCoroutineScope: WindowCoroutineScope,
+    promptSink: EventFlow<BiometricAuthPrompt>,
+) {
+    enableBiometric(null) // use global session
+        .effectMap { biometric ->
+            val cipher = biometric.getCipher()
+            val prompt = BiometricAuthPrompt(
+                title = TextHolder.Res(Res.string.pref_item_biometric_unlock_confirm_title),
+                cipher = cipher,
+                requireConfirmation = requireConfirmation,
+                onComplete = { result ->
+                    result.fold(
+                        ifLeft = { exception ->
+                            when (exception.code) {
+                                BiometricAuthException.ERROR_CANCELED,
+                                BiometricAuthException.ERROR_USER_CANCELED,
+                                BiometricAuthException.ERROR_NEGATIVE_BUTTON,
+                                    -> return@fold
+                            }
+
+                            showMessage.copy(
+                                ToastMessage(
+                                    type = ToastMessage.Type.ERROR,
+                                    title = exception.message
+                                        ?: exception.toString(),
+                                ),
+                            )
+                        },
+                        ifRight = {
+                            biometric.getCreateIo()
+                                .launchIn(windowCoroutineScope)
+                        },
+                    )
+                },
+            )
+            promptSink.emit(prompt)
+        }
+        .launchIn(windowCoroutineScope)
+}
+
 @Composable
 private fun SettingBiometrics(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
+    val title = if (CurrentPlatform is Platform.Desktop.Windows) {
+        Res.string.pref_item_windows_hello_unlock_title
+    } else {
+        Res.string.pref_item_biometric_unlock_title
+    }
     LocalSettingPaneComponents.current.KgSwitch(
         icon = Icons.Outlined.Fingerprint,
-        title = stringResource(Res.string.pref_item_biometric_unlock_title),
+        title = stringResource(title),
         checked = checked,
         onCheckedChange = onCheckedChange,
     )

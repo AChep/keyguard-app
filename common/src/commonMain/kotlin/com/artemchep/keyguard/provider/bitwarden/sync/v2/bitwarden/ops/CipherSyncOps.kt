@@ -2,19 +2,22 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops
 
 import arrow.optics.dsl.notNull
 import com.artemchep.keyguard.common.exception.HttpException
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.io.throwIfCancellation
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
-import com.artemchep.keyguard.common.service.patch.ModelDiffUtil
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.service.text.url
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.util.causeChain
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.fields
-import com.artemchep.keyguard.core.store.bitwarden.getMergeRules
+import com.artemchep.keyguard.core.store.bitwarden.fido2Credentials
 import com.artemchep.keyguard.core.store.bitwarden.getUrlChecksumBase64
 import com.artemchep.keyguard.core.store.bitwarden.hasPendingAttachmentMutations
 import com.artemchep.keyguard.core.store.bitwarden.login
@@ -56,6 +59,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherDeleteRequ
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherRestoreRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherUpdate
 import com.artemchep.keyguard.provider.bitwarden.entity.request.of
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.CipherConflictResolution
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.BitwardenSyncDiagnostics
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.hasHttpStatusCode
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.BulkRemoteOps
@@ -64,11 +68,11 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateEnt
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateResult
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.RemoteWriteOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.writeIfCurrent
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.resolveCipherConflict
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteObsoletePendingUploads
-import com.artemchep.keyguard.provider.bitwarden.usecase.util.with3WayMergePasswordHistoryOrNull
 import io.ktor.client.HttpClient
 import io.ktor.client.call.NoTransformationFoundException
 import io.ktor.http.HttpStatusCode
@@ -84,7 +88,7 @@ import kotlin.time.Instant
  *
  * Ciphers are the most complex entity type: they support
  * **dual-key crypto** (per-item key + org/user key),
- * **three-way merge** via [ModelDiffUtil] with [BitwardenCipher.getMergeRules],
+ * **three-way merge** via [resolveCipherConflict],
  * and **bulk server operations** ([BulkRemoteOps]).
  *
  * **Push flow** for modifications (restore → PUT → trash → GET):
@@ -125,14 +129,13 @@ class CipherSyncOps(
     private val serverFolders: List<FolderEntity>,
     private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val diagnostics: BitwardenSyncDiagnostics = BitwardenSyncDiagnostics.NoOp,
+    private val gpgCertificateMaterialReconciler: GpgCertificateMaterialReconciler,
     private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
 ) : EntitySyncOps<BitwardenCipher, CipherEntity>,
     BulkRemoteOps<BitwardenCipher> {
     companion object {
         private const val TAG = "CipherSyncOps"
     }
-
-    private val mergeRules by lazy { BitwardenCipher.getMergeRules() }
 
     override suspend fun readLocal(localId: String): BitwardenCipher? =
         db.cipherQueries
@@ -336,7 +339,7 @@ class CipherSyncOps(
                     updatePartialRemoteLocal = { partialRemoteLocal = it },
                 )
             } catch (e: Throwable) {
-                e.throwIfCancellation()
+                e.throwIfFatalOrCancellation()
                 return RemoteWriteOutcome.Failure(partialRemoteLocal, e)
             }
 
@@ -347,7 +350,7 @@ class CipherSyncOps(
                     local = local,
                 )
             } catch (e: Throwable) {
-                e.throwIfCancellation()
+                e.throwIfFatalOrCancellation()
                 val partial =
                     partialRemoteLocal
                         ?: buildDecodeFailurePartial(
@@ -364,7 +367,7 @@ class CipherSyncOps(
                 updatePartialRemoteLocal = { partialRemoteLocal = it },
             )
         } catch (e: Throwable) {
-            e.throwIfCancellation()
+            e.throwIfFatalOrCancellation()
             return RemoteWriteOutcome.Failure(partialRemoteLocal, e)
         }
         return RemoteWriteOutcome.Upsert(decodedResponse)
@@ -406,9 +409,18 @@ class CipherSyncOps(
                     uri.copy(uriChecksumBase64 = uriChecksumBase64)
                 }
             }
+        val withNormalizedPasskeyKeys =
+            BitwardenCipher.login.notNull.fido2Credentials.modify(withUriChecksums) { credentials ->
+                // Old code have incorrectly used non URL-safe base64 encoding for the
+                // key value. We fix it by re-encoding it on the fly.
+                credentials.map { credential ->
+                    val keyValue = base64Service.url(credential.keyValue)
+                    credential.copy(keyValue = keyValue)
+                }
+            }
         val withTagsAsFields =
-            BitwardenCipher.fields.modify(withUriChecksums) { fields ->
-                fields + withUriChecksums.tags.map { tag ->
+            BitwardenCipher.fields.modify(withNormalizedPasskeyKeys) { fields ->
+                fields + withNormalizedPasskeyKeys.tags.map { tag ->
                     BitwardenCipher.Field(
                         name = "Tag",
                         value = tag.name,
@@ -587,7 +599,7 @@ class CipherSyncOps(
                     attachmentRemoteId = attachmentId,
                 )
                 val refreshedResponse =
-                    runCatching {
+                    runCatchingNonFatal {
                         cipherApi.get(
                             httpClient = httpClient,
                             env = env,
@@ -663,7 +675,7 @@ class CipherSyncOps(
                         requestedRemoteId = remoteAttachmentId,
                     )
                     if (remoteAttachmentId != null) {
-                        runCatching {
+                        runCatchingNonFatal {
                             cipherApi.attachments.focus(remoteAttachmentId).renew(
                                 httpClient = httpClient,
                                 env = env,
@@ -743,7 +755,7 @@ class CipherSyncOps(
                             // This sync reserved a new remote attachment slot. Always
                             // try to remove it before honoring cancellation so retries
                             // do not accumulate orphaned attachment placeholders.
-                            runCatching {
+                            runCatchingNonFatal {
                                 cipherApi.attachments.delete(
                                     httpClient = httpClient,
                                     env = env,
@@ -790,14 +802,13 @@ class CipherSyncOps(
             )
 
             val refreshedResponse =
-                runCatching {
+                runCatchingNonFatal {
                     cipherApi.get(
                         httpClient = httpClient,
                         env = env,
                         token = token,
                     )
                 }.getOrElse { e ->
-                    e.throwIfCancellation()
                     createResponse.cipherResponse
                         ?: createResponse.cipherMiniResponse
                         ?: throw e
@@ -867,7 +878,7 @@ class CipherSyncOps(
             try {
                 decodeServerCipher(server, local)
             } catch (e: Throwable) {
-                e.throwIfCancellation()
+                e.throwIfFatalOrCancellation()
                 recordCipherDecodeFailure(
                     server = server,
                     error = e,
@@ -889,56 +900,39 @@ class CipherSyncOps(
                 return RemoteWriteOutcome.Upsert(fallbackMerged)
             }
 
-        val base = local.remoteEntity
-        if (base != null) {
-            val diffUtil = ModelDiffUtil()
-            val merged =
-                with(diffUtil) {
-                    mergeRules.merge(base, local, remoteDecoded)
-                } as BitwardenCipher?
-
-            if (merged != null) {
+        val resolution = resolveCipherConflict(
+            base = local.remoteEntity,
+            local = local,
+            remote = remoteDecoded,
+            at = now,
+            preserveDisplacedSecretsInPasswordHistory = true,
+            gpgCertificateMaterialReconciler = gpgCertificateMaterialReconciler,
+            gpgKeyMetadataResolver = gpgKeyMetadataResolver,
+        )
+        when (resolution.mode) {
+            CipherConflictResolution.Mode.ThreeWay -> {
                 diagnostics.cipherMergeSucceeded(
                     localId = local.cipherId,
                     remoteId = remoteDecoded.cipherId,
                 )
+            }
 
-                var finalMerged = merged
-                // TODO: Password history merge re-introduces deleted password-history
-                //  entries during conflict merge. A remote/user deletion can be undone
-                //  and uploaded again if the local side still has that base entry.
-                finalMerged = finalMerged.with3WayMergePasswordHistoryOrNull(
-                    at = now,
-                    remoteDecoded,
-                    local,
-                ) ?: finalMerged
-                finalMerged = finalMerged.copy(revisionDate = now)
-                return pushToServer(
-                    local = finalMerged,
-                    server = server,
-                    force = false,
+            CipherConflictResolution.Mode.RemoteFallback -> {
+                diagnostics.cipherMergeFallback(
+                    localId = local.cipherId,
+                    remoteId = remoteDecoded.cipherId,
                 )
             }
         }
-
-        diagnostics.cipherMergeFallback(
-            localId = local.cipherId,
-            remoteId = remoteDecoded.cipherId,
-        )
-
-        var finalFallback = remoteDecoded
-        finalFallback = finalFallback.with3WayMergePasswordHistoryOrNull(
-            at = now,
-            local,
-        )
-            // We did not do any changes to the model with the password history
-            // merge, so we can skip pushing the update back to a server.
-            ?: return RemoteWriteOutcome.Upsert(remoteDecoded)
-        finalFallback = finalFallback.copy(revisionDate = now)
+        if (!resolution.requiresRemoteWrite) {
+            return RemoteWriteOutcome.Upsert(resolution.cipher)
+        }
         return pushToServer(
-            local = finalFallback,
+            local = resolution.cipher,
             server = server,
-            force = false,
+            // Remote fallback can require publishing reconciled material without
+            // changing the remote revision used by the normal write detector.
+            force = true,
         )
     }
 

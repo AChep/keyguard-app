@@ -1,7 +1,5 @@
 package com.artemchep.keyguard.common.model
 
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import kotlin.time.Instant
 
 /**
@@ -49,58 +47,4 @@ data class DGpgKeyserverSubKey(
     val canEncrypt: Boolean = false,
     val revoked: Boolean = false,
     val expiresAt: Instant? = null,
-)
-
-fun DGpgKeyserverResult.toGpgAgentKeyMetadataOrNull(): GpgAgentKeyMetadata? {
-    val keyParts = listOf(
-        GpgKeyserverKeyPart(
-            keygrip = keygrip,
-            fingerprint = fingerprint,
-            algorithm = algorithm,
-            canSign = canSign,
-            canEncrypt = canEncrypt,
-        ),
-    ) + subKeys.map { subKey ->
-        GpgKeyserverKeyPart(
-            keygrip = subKey.keygrip,
-            fingerprint = subKey.fingerprint,
-            algorithm = subKey.algorithm,
-            canSign = subKey.canSign,
-            canEncrypt = subKey.canEncrypt,
-        )
-    }
-
-    val keys = keyParts
-        .mapNotNull { part ->
-            val keygrip = part.keygrip
-                ?.takeIf { it.isNotBlank() }
-                ?: return@mapNotNull null
-            val capabilities = buildSet {
-                if (part.canSign) {
-                    add("sign")
-                }
-                if (part.canEncrypt) {
-                    add("encrypt")
-                }
-            }
-            if (capabilities.isEmpty()) {
-                return@mapNotNull null
-            }
-            GpgAgentKeyMetadataKey(
-                keygrip = keygrip,
-                fingerprint = part.fingerprint,
-                algorithm = part.algorithm.orEmpty(),
-                capabilities = capabilities,
-            )
-        }
-    return GpgAgentKeyMetadata(keys = keys)
-        .takeIf { it.keys.isNotEmpty() }
-}
-
-private data class GpgKeyserverKeyPart(
-    val keygrip: String?,
-    val fingerprint: String,
-    val algorithm: String?,
-    val canSign: Boolean,
-    val canEncrypt: Boolean,
 )

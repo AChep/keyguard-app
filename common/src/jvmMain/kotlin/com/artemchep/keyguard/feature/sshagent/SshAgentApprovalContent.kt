@@ -27,6 +27,7 @@ fun SshAgentApprovalContent(
         messageUnknownApp = Res.string.ssh_agent_request_approval_sign_message_unknown_app,
         keyName = request.keyName,
         keyFingerprint = request.keyFingerprint,
+        cipherId = request.cipherId,
         onDismiss = onDismiss,
     )
 }

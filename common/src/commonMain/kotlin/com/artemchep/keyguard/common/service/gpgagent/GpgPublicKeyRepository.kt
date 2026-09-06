@@ -4,10 +4,11 @@ import com.artemchep.keyguard.common.io.IO
 
 interface GpgPublicKeyRepository {
     /**
-     * Returns the complete catalog rows, skipping the ciphers that
-     * miss the armored public key or the primary fingerprint.
+     * Returns the complete public key catalog and its certification
+     * authorities from the same repository snapshot. Catalog rows that
+     * miss the armored public key or primary fingerprint are skipped.
      */
-    fun getPublicKeys(): IO<List<GpgPublicKeyRow>>
+    fun getSnapshot(): IO<GpgPublicKeySnapshot>
 
     fun getKeyInfo(): IO<List<GpgAgentKeyInfoRow>>
 
@@ -19,8 +20,10 @@ interface GpgPublicKeyRepository {
         keygrip: String,
     ): IO<List<GpgAgentKeyInfoRow>>
 
-    fun replaceAll(
-        entries: List<GpgPublicKeyEntry>,
+    /** Replaces the complete public key and authority snapshot as one operation. */
+    fun replaceSnapshot(
+        publicKeys: List<GpgPublicKeyEntry>,
+        certificationAuthorities: List<GpgCertificationAuthorityEntry>,
     ): IO<Unit>
 
     fun clear(): IO<Unit>
@@ -29,8 +32,11 @@ interface GpgPublicKeyRepository {
 }
 
 object GpgPublicKeyRepositoryEmpty : GpgPublicKeyRepository {
-    override fun getPublicKeys(): IO<List<GpgPublicKeyRow>> = {
-        emptyList()
+    override fun getSnapshot(): IO<GpgPublicKeySnapshot> = {
+        GpgPublicKeySnapshot(
+            publicKeys = emptyList(),
+            certificationAuthorities = emptyList(),
+        )
     }
 
     override fun getKeyInfo(): IO<List<GpgAgentKeyInfoRow>> = {
@@ -43,8 +49,9 @@ object GpgPublicKeyRepositoryEmpty : GpgPublicKeyRepository {
         emptyList()
     }
 
-    override fun replaceAll(
-        entries: List<GpgPublicKeyEntry>,
+    override fun replaceSnapshot(
+        publicKeys: List<GpgPublicKeyEntry>,
+        certificationAuthorities: List<GpgCertificationAuthorityEntry>,
     ): IO<Unit> = {
         Unit
     }

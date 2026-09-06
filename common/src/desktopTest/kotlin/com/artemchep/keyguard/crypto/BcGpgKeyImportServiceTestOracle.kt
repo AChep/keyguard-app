@@ -6,13 +6,10 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
-import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags
 import org.bouncycastle.openpgp.PGPException
 import org.bouncycastle.openpgp.PGPSecretKey
@@ -98,7 +95,7 @@ class BcGpgKeyImportServiceTestOracle(
             privateKeyArmored = privateKeyArmored,
             publicKeyArmored = publicKeyArmored,
             fingerprint = fingerprint,
-        ) ?: GpgAgentKeyMetadata()
+        )?.metadata ?: return GpgKeyImportResult.Error(GpgKeyImportError.MalformedKey)
         return GpgKeyImportResult.Success(
             GeneratedGpgKey(
                 privateKeyArmored = privateKeyArmored,
@@ -115,13 +112,18 @@ class BcGpgKeyImportServiceTestOracle(
         content: String,
     ): GpgKeyImportResult = when (val result = publicKeyParser.parse(content)) {
         is GpgPublicKeyParseResult.Success -> {
-            val key = result.keys.firstOrNull()
+            val containsMultipleCertificates = result.keys.size > 1 ||
+                result.keys.isNotEmpty() && result.skippedCertificates > 0
+            if (containsMultipleCertificates) {
+                return GpgKeyImportResult.Error(GpgKeyImportError.MultipleKeys)
+            }
+            val key = result.keys.singleOrNull()
                 ?: return GpgKeyImportResult.Error(GpgKeyImportError.MalformedKey)
             val metadata = metadataResolver.resolve(
                 privateKeyArmored = null,
                 publicKeyArmored = key.publicKeyArmored,
                 fingerprint = key.fingerprint,
-            ) ?: key.toMetadata()
+            )?.metadata ?: return GpgKeyImportResult.Error(GpgKeyImportError.MalformedKey)
             GpgKeyImportResult.Success(
                 GeneratedGpgKey(
                     privateKeyArmored = "",
@@ -139,6 +141,7 @@ class BcGpgKeyImportServiceTestOracle(
                 GpgPublicKeyParseError.Empty -> GpgKeyImportError.Empty
                 GpgPublicKeyParseError.Malformed -> GpgKeyImportError.MalformedKey
                 GpgPublicKeyParseError.UnsupportedKeyVersion -> GpgKeyImportError.UnsupportedFormat
+                GpgPublicKeyParseError.MultipleCertificates -> GpgKeyImportError.MultipleKeys
                 GpgPublicKeyParseError.Unsupported -> GpgKeyImportError.UnsupportedPlatform
             },
         )
@@ -164,57 +167,6 @@ class BcGpgKeyImportServiceTestOracle(
 
     private fun PGPSecretKey.isPassphraseProtected(): Boolean =
         !isPrivateKeyEmpty && keyEncryptionAlgorithm != SymmetricKeyAlgorithmTags.NULL
-
-    private fun GpgPublicKeyInfo.toMetadata(): GpgAgentKeyMetadata {
-        val keys = buildList {
-            addMetadataKey(
-                keygrip = keygrip,
-                fingerprint = fingerprint,
-                algorithm = algorithm,
-                canSign = canSign,
-                canEncrypt = canEncrypt,
-            )
-            subKeys.forEach { subKey ->
-                addMetadataKey(
-                    keygrip = subKey.keygrip,
-                    fingerprint = subKey.fingerprint,
-                    algorithm = subKey.algorithm,
-                    canSign = subKey.canSign,
-                    canEncrypt = subKey.canEncrypt,
-                )
-            }
-        }
-        return GpgAgentKeyMetadata(keys = keys)
-    }
-
-    private fun MutableList<GpgAgentKeyMetadataKey>.addMetadataKey(
-        keygrip: String?,
-        fingerprint: String,
-        algorithm: String,
-        canSign: Boolean,
-        canEncrypt: Boolean,
-    ) {
-        val normalizedKeygrip = keygrip?.takeIf { it.isNotBlank() } ?: return
-        val capabilities = buildSet {
-            if (canSign) {
-                add("sign")
-            }
-            if (canEncrypt) {
-                add("encrypt")
-            }
-        }
-        if (capabilities.isEmpty()) {
-            return
-        }
-        add(
-            GpgAgentKeyMetadataKey(
-                keygrip = normalizedKeygrip,
-                fingerprint = fingerprint,
-                algorithm = algorithm,
-                capabilities = capabilities,
-            ),
-        )
-    }
 
     private companion object {
         const val FORMAT_LABEL = "OpenPGP"

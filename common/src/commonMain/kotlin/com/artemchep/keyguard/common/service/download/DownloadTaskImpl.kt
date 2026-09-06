@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
+import com.artemchep.keyguard.common.service.download.util.disableCache
 import com.artemchep.keyguard.common.service.download.util.throwIfDownloadFailed
 import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
@@ -71,6 +72,7 @@ class DownloadTaskImpl internal constructor(
         val result = try {
             withContext(Dispatchers.IO) {
                 httpClient.prepareGet(url) {
+                    disableCache()
                     onDownload { downloaded, total ->
                         trySend(
                             DownloadProgress.Loading(

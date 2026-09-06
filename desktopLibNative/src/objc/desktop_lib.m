@@ -13,10 +13,18 @@
 #include <string.h>
 #include <math.h>
 
-typedef void (*kg_biometrics_callback_t)(bool success, const char *error);
+typedef void (*kg_biometrics_callback_t)(int32_t status, const char *error);
 typedef void (*kg_hotkey_callback_t)(int32_t hotkey_id);
 
 static NSString *const KGAccountName = @"com.artemchep.keyguard";
+
+// Mirrors `ChallengeStatus` in `biometrics.rs`.
+static const int32_t KGBiometricsStatusSuccess = 0;
+static const int32_t KGBiometricsStatusUserCanceled = 1;
+static const int32_t KGBiometricsStatusSecurityDeviceLocked = 3;
+static const int32_t KGBiometricsStatusUnavailable = 4;
+static const int32_t KGBiometricsStatusUserPrefersPassword = 5;
+static const int32_t KGBiometricsStatusUnknown = 6;
 static const OSType KGHotKeySignature = 'KGHK';
 static const int32_t KGHotKeyUnavailable = -4;
 static const int32_t KGHotKeyInternalError = -5;
@@ -303,6 +311,29 @@ bool kg_biometrics_is_supported(void) {
     return [context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error];
 }
 
+static int32_t kg_biometrics_status_from_error(NSError *error) {
+    if (error == nil || ![error.domain isEqualToString:LAErrorDomain]) {
+        return KGBiometricsStatusUnknown;
+    }
+
+    switch (error.code) {
+        case LAErrorUserCancel:
+        case LAErrorSystemCancel:
+        case LAErrorAppCancel:
+            return KGBiometricsStatusUserCanceled;
+        case LAErrorUserFallback:
+            return KGBiometricsStatusUserPrefersPassword;
+        case LAErrorBiometryLockout:
+            return KGBiometricsStatusSecurityDeviceLocked;
+        case LAErrorBiometryNotAvailable:
+        case LAErrorBiometryNotEnrolled:
+        case LAErrorPasscodeNotSet:
+            return KGBiometricsStatusUnavailable;
+        default:
+            return KGBiometricsStatusUnknown;
+    }
+}
+
 void kg_biometrics_verify(const char *title, kg_biometrics_callback_t callback) {
     if (callback == NULL) {
         return;
@@ -312,13 +343,14 @@ void kg_biometrics_verify(const char *title, kg_biometrics_callback_t callback) 
     NSError *error = nil;
     BOOL is_supported = [context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error];
     if (!is_supported) {
-        callback(false, NULL);
+        NSString *message = error.localizedDescription ?: @"Biometrics are unavailable";
+        callback(kg_biometrics_status_from_error(error), message.UTF8String);
         return;
     }
 
     NSString *localized_reason = kg_string_from_utf8(title);
     if (localized_reason == nil) {
-        callback(false, "Authentication failed");
+        callback(KGBiometricsStatusUnknown, "Authentication failed");
         return;
     }
 
@@ -326,12 +358,12 @@ void kg_biometrics_verify(const char *title, kg_biometrics_callback_t callback) 
             localizedReason:localized_reason
                       reply:^(BOOL success, NSError *reply_error) {
         if (success) {
-            callback(true, NULL);
+            callback(KGBiometricsStatusSuccess, NULL);
             return;
         }
 
         NSString *message = reply_error.localizedDescription ?: @"Authentication failed";
-        callback(false, message.UTF8String);
+        callback(kg_biometrics_status_from_error(reply_error), message.UTF8String);
     }];
 }
 

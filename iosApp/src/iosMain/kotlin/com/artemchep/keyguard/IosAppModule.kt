@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.model.Screen
 import com.artemchep.keyguard.common.model.Subscription
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
+import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
@@ -64,13 +65,11 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.service.text.impl.TextServiceImpl
-import com.artemchep.keyguard.common.service.zip.ZipService
 import com.artemchep.keyguard.common.usecase.*
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.ClearData
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetLocale
-import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.common.usecase.PutLocale
@@ -89,14 +88,13 @@ import com.artemchep.keyguard.copy.FileServiceIos
 import com.artemchep.keyguard.copy.GetAppBuildDateIos
 import com.artemchep.keyguard.copy.GetAppBuildRefIos
 import com.artemchep.keyguard.copy.GetBarcodeImageIos
-import com.artemchep.keyguard.copy.GetPasswordStrengthIos
 import com.artemchep.keyguard.copy.GetPurchasedIos
 import com.artemchep.keyguard.copy.NumberFormatterApple
 import com.artemchep.keyguard.copy.PermissionServiceIos
 import com.artemchep.keyguard.copy.PowerServiceIos
 import com.artemchep.keyguard.copy.ReviewServiceIos
 import com.artemchep.keyguard.copy.SubscriptionServiceIos
-import com.artemchep.keyguard.copy.ZipServiceIos
+import com.artemchep.keyguard.core.session.usecase.BiometricKeyRepositoryApple
 import com.artemchep.keyguard.core.session.usecase.DatabaseSqlManagerInFileApple
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
@@ -306,17 +304,11 @@ internal fun DI.Builder.installIosAppModule() {
     bindSingleton<EncryptedFilePendingUploadService> {
         EncryptedFilePendingUploadServiceIos
     }
-    bindSingleton<ZipService> {
-        ZipServiceIos
-    }
     bindSingleton<ExecuteCommand> {
         ExecuteCommandImpl(this)
     }
     bindSingleton<GetPurchased> {
         GetPurchasedIos
-    }
-    bindSingleton<GetPasswordStrength> {
-        GetPasswordStrengthIos
     }
     bindSingleton<NumberFormatter> {
         NumberFormatterApple(this)
@@ -326,6 +318,11 @@ internal fun DI.Builder.installIosAppModule() {
     }
     bindSingleton<BiometricStatusUseCase> {
         BiometricStatusUseCaseIos
+    }
+    bindSingleton<BiometricKeyRepository> {
+        BiometricKeyRepositoryApple(
+            directDI = this,
+        )
     }
     bindSingleton<YubiKeyUnlockAvailability> {
         YubiKeyUnlockAvailability { false }

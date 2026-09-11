@@ -104,8 +104,10 @@ import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.nativecrypto.NativeCryptoDesktopSmoke
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LocalWindowId
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.platform.lifecycle.LaunchLifecycleProviderEffect
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
@@ -235,6 +237,21 @@ private fun verifyPackagedDesktopTls(): String {
 
     return "OkHttp/$providerName/JDK$jdkFeature"
 }
+
+/**
+ * `true` if the app is able to show a tray icon.
+ *
+ * On Linux the tray icon is a StatusNotifierItem published on the session
+ * bus, while [isTraySupported] reports the availability of the legacy XEmbed
+ * tray. A session that implements only the modern protocol, as well as the
+ * Flatpak sandbox, reports no XEmbed tray even though the tray icon itself
+ * works there, so we never ask AWT about it.
+ */
+private val isTrayAvailable: Boolean
+    get() = when (CurrentPlatform) {
+        is Platform.Desktop.Linux -> true
+        else -> isTraySupported
+    }
 
 @OptIn(ExperimentalTime::class)
 private fun runKeyguardApplication() {
@@ -660,7 +677,7 @@ private fun runKeyguardApplication() {
 
             // Show a tray icon and allow the app to be collapsed into
             // the tray on supported platforms.
-            val getCloseToTrayState = if (isTraySupported) {
+            val getCloseToTrayState = if (isTrayAvailable) {
                 remember { getCloseToTray() }
                     .collectAsState(false)
             } else {

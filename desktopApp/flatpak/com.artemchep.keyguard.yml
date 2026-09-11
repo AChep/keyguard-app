@@ -12,6 +12,11 @@ finish-args:
   - --filesystem=xdg-download
   - --filesystem=xdg-run/gnupg:create
   - --talk-name=org.kde.StatusNotifierWatcher
+  # The tray backend requests this well-known name before it registers the
+  # icon with the watcher, and the number in it is the PID of the app inside
+  # of the sandbox. Can be dropped once the backend registers the icon under
+  # the unique connection name instead.
+  - --own-name=org.kde.StatusNotifierItem-2-1
 modules:
   - name: keyguard
     buildsystem: simple

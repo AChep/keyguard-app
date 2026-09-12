@@ -28,7 +28,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.CAMERA" />
 
     <!--
         I need this permission to write files (export vault) to the
@@ -47,17 +46,6 @@
         runtime prompt.
         -->
     <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
-
-    <!-- Camera -->
-    <uses-feature
-        android:name="android.hardware.camera"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.any"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.autofocus"
-        android:required="false" />
 
     <!-- Chrome OS -->
     <meta-data

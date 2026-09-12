@@ -16,8 +16,6 @@ import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
-import com.artemchep.keyguard.platform.CurrentPlatform
-import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
@@ -25,6 +23,9 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
+import org.kodein.di.compose.localDI
+import org.kodein.di.direct
+import org.kodein.di.instanceOrNull
 
 @Composable
 fun ScanQrButton(
@@ -41,22 +42,24 @@ fun ScanQrButton(
 
     val updatedOnValueChange by rememberUpdatedState(onValueChange)
     val controller by rememberUpdatedState(LocalNavigationController.current)
-    val onScan = remember {
-        // lambda
-        {
-            val route = registerRouteResultReceiver(ScanQrRoute) { rawValue ->
-                controller.queue(NavigationIntent.Pop)
-                // feed the result back
-                updatedOnValueChange?.invoke(rawValue)
+    val scanQrRouteFactory = localDI().direct.instanceOrNull<ScanQrRouteFactory>()
+    val onScan = remember(scanQrRouteFactory) {
+        scanQrRouteFactory?.let { routeFactory ->
+            {
+                val route = registerRouteResultReceiver(routeFactory.create()) { rawValue ->
+                    controller.queue(NavigationIntent.Pop)
+                    // feed the result back
+                    updatedOnValueChange?.invoke(rawValue)
+                }
+                val intent = NavigationIntent.NavigateToRoute(
+                    route = route,
+                )
+                controller.queue(intent)
             }
-            val intent = NavigationIntent.NavigateToRoute(
-                route = route,
-            )
-            controller.queue(intent)
         }
     }
 
-    val actions = remember(onSelectFile) {
+    val actions = remember(onSelectFile, onScan) {
         buildContextItems {
             if (onSelectFile != null) {
                 this += FlatItemAction(
@@ -65,7 +68,7 @@ fun ScanQrButton(
                     onClick = onSelectFile,
                 )
             }
-            if (CurrentPlatform is Platform.Mobile) {
+            if (onScan != null) {
                 this += FlatItemAction(
                     leading = icon(Icons.Outlined.Camera),
                     title = Res.string.scanqr_title.wrap(),

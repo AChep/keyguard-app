@@ -11,9 +11,10 @@ the parts of the app interact. For the details, see the
 
 ## Architecture
 
-Keyguard is a **Kotlin Multiplatform** project. The UI, the business logic,
-the sync engine, and the database live in one shared module called `common`.
-The apps you install are platform-specific wrappers around it:
+Keyguard is a **Kotlin Multiplatform** project. Most shared UI, business logic,
+the sync engine, and the database live in `common`. Smaller modules contain
+state producers without UI dependencies and optional features, such as the
+Android QR scanner. Each platform app selects the features it needs:
 
 - `androidApp` — the phone and tablet app;
 - `wearApp` — the [Wear OS](/docs/wear-os/) companion;

@@ -19,6 +19,15 @@ Main modules for different platforms:
 - `desktopApp/` JVM target for desktop platforms: Linux, Windows and macOS;
 - `iosApp/` native target for iOS (dev).
 
+The shared-module split is incremental:
+- `standard/presentation/` contains full-app state producers without Compose dependencies;
+- `feature/*/` contain the optional features.
+
+New pure presentation modules must not depend on `common/` or application modules,
+even transitively. During migration, adapters in `common/` connect pure producers to
+the existing screen lifecycle, persisted fields, navigation, and localized resources.
+Apply `keyguard.compose-free` to enforce this boundary.
+
 Utility modules each implement a library we wish existed; the modules are independent and granular.
 
 Integration modules implement projects that are useful for testing Keyguard. For example,

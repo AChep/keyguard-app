@@ -235,7 +235,6 @@
     <ID>EmptyFunctionBlock:MainThread.kt:{ }</ID>
     <ID>EmptyFunctionBlock:OrganizationConfirmationScreen.kt:{ }</ID>
     <ID>EmptyFunctionBlock:RememberStateFlowScopeImpl.kt:RememberStateFlowScopeImpl${ }</ID>
-    <ID>EmptyFunctionBlock:ScanQrRoute.kt:ScanQrRoute${ }</ID>
     <ID>EmptyFunctionBlock:SshAgentGetListContent.kt:{ }</ID>
     <ID>EmptyFunctionBlock:Theme.kt:{ }</ID>
     <ID>EmptyFunctionBlock:UploadAttachmentManager.kt:UploadAttachmentManager${ }</ID>
@@ -289,7 +288,6 @@
     <ID>ForbiddenComment:PutAccountMasterPasswordHintById.kt:PutBitwardenAccountMasterPasswordHintByIdImpl$// TODO: Instead of using cached profile model, use the one returned</ID>
     <ID>ForbiddenComment:PutAccountNameById.kt:PutBitwardenAccountNameByIdImpl$// TODO: Instead of using cached profile model, use the one returned</ID>
     <ID>ForbiddenComment:RefreshToken.kt:// TODO: This one may also crash the server!</ID>
-    <ID>ForbiddenComment:ScanQrScreen.kt:// TODO: Local lifecycle owner is a wrong guy!!!</ID>
     <ID>ForbiddenComment:SelectionBar.kt:// TODO: Consider using Icons.Outlined.Deselect</ID>
     <ID>ForbiddenComment:SendUtil.kt:SendUtil$// TODO: Seems like at this moment we can not change the file name</ID>
     <ID>ForbiddenComment:SendViewScreen.kt:// TODO: Why would I need it?</ID>
@@ -1499,7 +1497,6 @@
     <ID>MatchingDeclarationName:UiSettingsRoute.kt:UiSettingsRouteImpl : Route</ID>
     <ID>MatchingDeclarationName:UnarchiveCipherById.kt:UnarchiveCipherByIdImpl : UnarchiveCipherById</ID>
     <ID>MatchingDeclarationName:ValidatorEmail.kt:ValidationEmail</ID>
-    <ID>MatchingDeclarationName:ValidatorFeedback.kt:ValidationFeedback</ID>
     <ID>MatchingDeclarationName:ValidatorInteger.kt:ValidationInteger</ID>
     <ID>MatchingDeclarationName:ValidatorPassword.kt:ValidationPassword</ID>
     <ID>MatchingDeclarationName:ValidatorTitle.kt:ValidationTitle</ID>
@@ -2432,7 +2429,6 @@
     <ID>WildcardImport:ReadWordlistFromUrlImpl.kt:import io.ktor.client.*</ID>
     <ID>WildcardImport:ReadWordlistFromUrlImpl.kt:import io.ktor.client.request.*</ID>
     <ID>WildcardImport:ReadWordlistFromUrlImpl.kt:import io.ktor.client.statement.*</ID>
-    <ID>WildcardImport:ScanQrScreen.kt:import androidx.compose.runtime.*</ID>
     <ID>WildcardImport:SshAgentIpcComponentTest.kt:import kotlinx.coroutines.*</ID>
     <ID>WildcardImport:SshAgentManager.kt:import kotlinx.coroutines.*</ID>
     <ID>WildcardImport:ToastComposable.kt:import androidx.compose.runtime.*</ID>

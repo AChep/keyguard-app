@@ -22,25 +22,12 @@
         android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"
         tools:node="remove" />
     <uses-permission
-        android:name="android.permission.CAMERA"
-        tools:node="remove" />
-    <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:node="remove" />
     <uses-permission
         android:name="android.permission.NFC"
         tools:node="remove" />
 
-    <uses-feature
-        android:name="android.hardware.camera"
-        tools:node="remove" />
-    <uses-feature
-        android:name="android.hardware.camera.any"
-        tools:node="remove" />
-    <uses-feature
-        android:name="android.hardware.camera.autofocus"
-        android:required="false"
-        tools:node="remove" />
     <uses-feature
         android:name="android.hardware.usb.host"
         tools:node="remove" />

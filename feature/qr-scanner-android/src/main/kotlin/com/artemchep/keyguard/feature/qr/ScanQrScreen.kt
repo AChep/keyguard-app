@@ -18,7 +18,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -29,7 +33,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.grant_permission
+import com.artemchep.keyguard.res.scanqr_camera_permission_required_text
+import com.artemchep.keyguard.res.scanqr_title
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -50,8 +56,6 @@ fun ScanQrScreen(
     val state = scanQrScreenState()
 
     CollectedEffect(state.effects.onSuccessFlow) { rawValue ->
-        // Notify that we have successfully logged in, and that
-        // the caller can now decide what to do.
         transmitter.invoke(rawValue)
     }
 
@@ -84,7 +88,7 @@ fun ScanQrScreen(
             )
         },
     ) {
-        ScanQrCamera2(
+        ScanQrCameraWithPermission(
             state = state,
         )
     }
@@ -92,12 +96,11 @@ fun ScanQrScreen(
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-private fun ScanQrCamera2(
+private fun ScanQrCameraWithPermission(
     state: ScanQrState,
 ) {
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
-    when (val status = cameraPermissionState.status) {
-        // If the camera permission is granted, then show screen with the feature enabled
+    when (cameraPermissionState.status) {
         PermissionStatus.Granted -> {
             ScanQrCamera(
                 modifier = Modifier
@@ -113,14 +116,11 @@ private fun ScanQrCamera2(
                 modifier = Modifier
                     .padding(horizontal = Dimens.horizontalPadding),
             ) {
-                val textToShow = stringResource(Res.string.scanqr_camera_permission_required_text)
-                Text(textToShow)
+                Text(stringResource(Res.string.scanqr_camera_permission_required_text))
                 Button(
                     modifier = Modifier
                         .padding(top = Dimens.verticalPadding),
-                    onClick = {
-                        cameraPermissionState.launchPermissionRequest()
-                    },
+                    onClick = cameraPermissionState::launchPermissionRequest,
                 ) {
                     Text(
                         text = stringResource(Res.string.grant_permission),
@@ -131,7 +131,6 @@ private fun ScanQrCamera2(
     }
 }
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun ScanQrCamera(
     modifier: Modifier = Modifier,
@@ -143,16 +142,15 @@ private fun ScanQrCamera(
             onScan?.invoke(barcodes)
         }
     }
-    val analyserExecutor = remember {
+    val analyzerExecutor = remember {
         Executors.newSingleThreadExecutor()
     }
-    DisposableEffect(analyserExecutor) {
+    DisposableEffect(analyzerExecutor) {
         onDispose {
-            analyserExecutor.shutdown()
+            analyzerExecutor.shutdown()
         }
     }
 
-    // TODO: Local lifecycle owner is a wrong guy!!!
     val lifecycleOwner by rememberUpdatedState(LocalLifecycleOwner.current)
     AndroidView(
         modifier = modifier,
@@ -183,15 +181,13 @@ private fun ScanQrCamera(
                             preview,
                         )
                     } catch (_: Exception) {
-                        // Do nothing.
+                        // Camera is unavailable.
                     }
                 },
                 cameraExecutor,
             )
 
             previewView
-        },
-        update = { previewView ->
         },
     )
 }
@@ -214,7 +210,6 @@ private class QrImageAnalyzer(
                 .addOnCompleteListener {
                     imageProxy.close()
 
-                    // Send the barcodes.
                     if (it.isSuccessful) onReadBarcode(it.result as List<Barcode>)
                 }
         }

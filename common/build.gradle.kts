@@ -96,6 +96,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(project(":standard:presentation"))
                 implementation(libs.jetbrains.compose.runtime)
                 implementation(libs.jetbrains.compose.foundation)
                 implementation(libs.jetbrains.compose.material)
@@ -305,11 +306,6 @@ kotlin {
                 api(libs.androidx.room.ktx)
                 api(libs.androidx.room.runtime)
                 api(libs.androidx.security.crypto.ktx)
-                api(libs.androidx.camera.core)
-                api(libs.androidx.camera.camera2)
-                api(libs.androidx.camera.lifecycle)
-                api(libs.androidx.camera.view)
-                api(libs.androidx.camera.extensions)
                 api(libs.androidx.work.runtime)
                 api(libs.androidx.work.runtime.ktx)
                 api(libs.androidx.profileinstaller)
@@ -321,7 +317,6 @@ kotlin {
                 api(libs.google.accompanist.permissions)
                 api(libs.google.play.review.ktx)
                 api(libs.google.play.services.base)
-                api(libs.google.play.services.mlkit.barcode.scanning)
                 api(project.dependencies.platform(libs.squareup.okhttp.bom))
                 api(libs.squareup.okhttp)
                 api(libs.squareup.logging.interceptor)

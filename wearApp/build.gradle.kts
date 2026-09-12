@@ -4,6 +4,7 @@ import com.artemchep.keyguard.buildplugins.version.createVersionInfo
 plugins {
     id("keyguard.license-policy")
     id("keyguard.crypto-dependency-check")
+    id("keyguard.wear-dependency-check")
     id("keyguard.quality")
     alias(libs.plugins.android.application)
     id("keyguard.android-application")

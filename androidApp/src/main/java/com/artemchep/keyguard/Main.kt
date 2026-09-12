@@ -41,6 +41,8 @@ import com.artemchep.keyguard.common.service.vault.SessionReadRepository
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
+import com.artemchep.keyguard.feature.qr.ScanQrRouteFactory
+import com.artemchep.keyguard.feature.qr.ScanQrRouteFactoryAndroid
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.*
@@ -83,6 +85,9 @@ class Main : BaseApp(), DIAware {
             BillingManagerImpl(
                 context = this@Main,
             )
+        }
+        bindProvider<ScanQrRouteFactory> {
+            ScanQrRouteFactoryAndroid
         }
         bindSingleton {
             FlavorConfig(

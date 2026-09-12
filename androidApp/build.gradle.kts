@@ -66,6 +66,7 @@ androidComponents {
 
 dependencies {
     implementation(project(":common"))
+    implementation(project(":feature:qr-scanner-android"))
     baselineProfile(project(":androidBenchmark"))
 
     // Credential exchange (CXF/CXP) export registration relies on the

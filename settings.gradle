@@ -33,6 +33,8 @@ dependencyResolutionManagement {
 rootProject.name = "keyguard"
 
 include ':common'
+include ':standard:presentation'
+include ':feature:qr-scanner-android'
 include ':detektRules'
 include ':util:crypto'
 include ':util:foundation'

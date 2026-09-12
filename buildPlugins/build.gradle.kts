@@ -105,6 +105,15 @@ gradlePlugin {
             id = "keyguard.crypto-dependency-policy"
             implementationClass = "com.artemchep.keyguard.buildplugins.nativecrypto.CryptoDependencyPolicyPlugin"
         }
+        register("composeFree") {
+            id = "keyguard.compose-free"
+            implementationClass = "com.artemchep.keyguard.buildplugins.architecture.ComposeFreePlugin"
+        }
+        register("wearDependencyCheck") {
+            id = "keyguard.wear-dependency-check"
+            implementationClass =
+                "com.artemchep.keyguard.buildplugins.optionalfeatures.WearDependencyCheckPlugin"
+        }
         register("detektCustomRules") {
             id = "keyguard.detekt-custom-rules"
             implementationClass = "com.artemchep.keyguard.buildplugins.detekt.DetektCustomRulesPlugin"

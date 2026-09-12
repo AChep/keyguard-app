@@ -612,6 +612,13 @@ class UnlockUseCaseImpl(
             subDI(di, false, Copy.None) {
                 import(moduleDi, allowOverride = true)
             }
+        // Open the database before publishing the unlocked session. A valid
+        // password fingerprint does not guarantee that the database can be
+        // decrypted (for example, after restoring mismatched local files).
+        // Keep opening failures in the unlock action's error handling instead
+        // of exposing them to the session's background collectors.
+        val databaseManager by subDi.instance<VaultDatabaseManager>()
+        databaseManager.get().bind()
         MasterSession.Key(
             masterKey = masterKey,
             di = subDi,

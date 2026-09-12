@@ -4,10 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
-import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFilter
-import com.artemchep.keyguard.common.model.DFolder
-import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.fileName
@@ -31,6 +28,9 @@ import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.util.io.toSource
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
@@ -40,26 +40,18 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import kotlin.concurrent.Volatile
 import kotlin.concurrent.atomics.AtomicLong
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.time.Clock
@@ -141,84 +133,46 @@ open class ExportManagerBase(
     ) = kotlin.run {
         val id = cryptoGenerator.uuid()
 
-        val sharedScope = windowCoroutineScope + SupervisorJob()
-        val sharedFlow = flow {
-            val internalFlow = channelFlow<DownloadProgress> {
-                val result = try {
-                    invoke(
-                        filter = filter,
-                        password = password,
-                        exportAttachments = exportAttachments,
-                    )
-                } catch (e: Exception) {
-                    e.throwIfFatalOrCancellation()
-
-                    val result = e.left()
-                    DownloadProgress.Complete(
-                        result = result,
-                    )
-                }
-                send(result)
-            }
-
-            try {
-                emitAll(internalFlow)
-            } finally {
-                // Remove the export job
-                withContext(NonCancellable) {
-                    mutex.withLock {
-                        sink.update { state ->
-                            state.remove(id)
-                        }
-                    }
-                }
-            }
-        }
-            .onStart {
-                val event = DownloadProgress.Loading()
-                emit(event)
-            }
-            .shareIn(sharedScope, SharingStarted.Eagerly, replay = 1)
-
-        val finalFlow = channelFlow<DownloadProgress> {
-            val job = sharedScope.launch {
-                // Keep the session alive while the vault is
-                // being exported.
-                launch {
-                    vaultSessionLocker.keepAlive()
-                }
-
-                try {
-                    sharedFlow
-                        .onEach { status -> send(status) }
-                        .collect()
-                } finally {
-                    // The scope is dead, but the flow is still alive, therefore
-                    // someone has canceled the scope.
-                    if (!this@channelFlow.isClosedForSend) {
-                        val event = DownloadProgress.Complete(
-                            result = RuntimeException("Canceled").left(),
-                        )
-                        trySend(event)
-                    }
-                }
-            }
-
-            job.join()
-        }
-            .transformWhile { progress ->
-                emit(progress) // always emit progress
-                progress is DownloadProgress.Loading
-            }
-
+        val sharedScope = CoroutineScope(
+            windowCoroutineScope.coroutineContext +
+                SupervisorJob(windowCoroutineScope.coroutineContext[Job]) +
+                Dispatchers.Default,
+        )
+        val progress = MutableStateFlow<DownloadProgress>(DownloadProgress.Loading())
         val entry = PoolEntry(
             id = id,
             scope = sharedScope,
-            flow = finalFlow,
+            flow = progress.transformWhile { status ->
+                emit(status)
+                status is DownloadProgress.Loading
+            },
         )
         mutex.withLock {
-            sink.update { state ->
-                state.put(id, entry)
+            sink.update { it.put(id, entry) }
+        }
+        // Register before starting, and retain the terminal value for late subscribers.
+        sharedScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            try {
+                coroutineScope {
+                    val keepAlive = launch { vaultSessionLocker.keepAlive() }
+                    try {
+                        channelFlow {
+                            send(invoke(filter, password, exportAttachments))
+                        }.collect { progress.value = it }
+                    } finally {
+                        keepAlive.cancel()
+                    }
+                }
+            } catch (e: Exception) {
+                progress.value = DownloadProgress.Complete(e.left())
+                e.throwIfFatalOrCancellation()
+            } finally {
+                withContext(NonCancellable) {
+                    mutex.withLock {
+                        sink.update { it.remove(id) }
+                    }
+                }
+                sharedScope.cancel()
             }
         }
         entry

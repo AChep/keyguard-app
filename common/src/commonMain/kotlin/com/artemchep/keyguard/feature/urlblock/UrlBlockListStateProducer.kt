@@ -188,6 +188,23 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
                 ),
                 title = translate(Res.string.urlblock_header_title),
                 items = items2,
+                validate = { data ->
+                    val uri = data[uriKey] as? String
+                    val mode = (data[modeKey] as? String)?.let { value ->
+                        MatchDetection.entries.firstOrNull { it.name == value }
+                    }
+                    if (uri != null && mode != null && !isUrlBlockUriValid(uri, mode)) {
+                        mapOf(
+                            uriKey to if (uri.isBlank()) {
+                                Res.string.error_must_not_be_blank
+                            } else {
+                                Res.string.error_invalid_regex
+                            },
+                        )
+                    } else {
+                        emptyMap()
+                    }
+                },
             ),
         ) { result ->
             if (result is ConfirmationResult.Confirm) {
@@ -203,6 +220,7 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
                     ?: return@registerRouteResultReceiver
                 val mode = (result.data[modeKey] as? String)?.let(MatchDetection::valueOf)
                     ?: return@registerRouteResultReceiver
+                if (!isUrlBlockUriValid(uri, mode)) return@registerRouteResultReceiver
                 val createdAt = Clock.System.now()
                 val model = DGlobalUrlBlock(
                     id = entity?.id,
@@ -449,3 +467,7 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
             Loadable.Ok(state)
         }
 }
+
+/** Literal matching modes must keep accepting regex metacharacters in URLs. */
+internal fun isUrlBlockUriValid(uri: String, mode: MatchDetection): Boolean =
+    uri.isNotBlank() && (mode != MatchDetection.RegularExpression || runCatching { uri.toRegex() }.isSuccess)

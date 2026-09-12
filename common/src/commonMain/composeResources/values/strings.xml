@@ -760,6 +760,7 @@
         solely of whitespace characters. It's OK to translate it exactly the same
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Must not be blank</string>
+    <string name="error_invalid_regex">Invalid regular expression</string>
     <string name="error_must_be_custom_domain">Must be custom domain</string>
     <string name="error_must_be_number">Must be a number</string>
     <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from now</string>

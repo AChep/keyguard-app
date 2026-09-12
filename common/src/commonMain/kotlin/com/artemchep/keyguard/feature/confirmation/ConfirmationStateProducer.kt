@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
+import org.jetbrains.compose.resources.StringResource
 
 @Composable
 fun confirmationState(
@@ -62,6 +63,8 @@ fun confirmationState(
     )
 }
 
+// Keep the state flows and their session-scoped callbacks in one lifecycle scope.
+@Suppress("CyclomaticComplexMethod", "LongMethod")
 suspend fun RememberStateFlowScope.confirmationStateProducer(
     args: ConfirmationRoute.Args,
     transmitter: RouteResultTransmitter<ConfirmationResult>,
@@ -197,8 +200,21 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
         }
         .combineToList()
     return itemsFlow
-        .map { items ->
-            val valid = items.all { it.valid }
+        .map { rawItems ->
+            val errors = args.validate?.invoke(rawItems.associate { it.key to it.value }).orEmpty()
+            val items = rawItems.map { item ->
+                val error = errors[item.key]
+                if (item is ConfirmationState.Item.StringItem && item.valid && error != null) {
+                    item.copy(
+                        state = item.state.copy(
+                            state = item.state.state.copy(error = translate(error)),
+                        ),
+                    )
+                } else {
+                    item
+                }
+            }
+            val valid = items.all { it.valid } && errors.isEmpty()
             ConfirmationState(
                 sideEffects = sideEffects,
                 items = Loadable.Ok(items),
@@ -229,11 +245,7 @@ private suspend fun RememberStateFlowScope.confirmationStringItem(
     cell: TextCell,
     handle: TextFieldHandle,
 ): ConfirmationState.Item.StringItem {
-    val error = if (item.canBeEmpty || cell.text.isNotBlank()) {
-        null
-    } else {
-        translate(Res.string.error_must_not_be_blank)
-    }
+    val error = confirmationStringItemError(item, cell.text)?.let { translate(it) }
     val sensitive =
         item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password ||
                 item.type == ConfirmationRoute.Args.Item.StringItem.Type.Token
@@ -274,4 +286,14 @@ private suspend fun RememberStateFlowScope.confirmationStringItem(
         enabled = item.enabled,
         state = model,
     )
+}
+
+internal fun confirmationStringItemError(
+    item: ConfirmationRoute.Args.Item.StringItem,
+    text: String,
+): StringResource? = when {
+    !item.canBeEmpty && text.isBlank() -> Res.string.error_must_not_be_blank
+    item.type == ConfirmationRoute.Args.Item.StringItem.Type.Regex &&
+        runCatching { text.toRegex() }.isFailure -> Res.string.error_invalid_regex
+    else -> null
 }

@@ -9,7 +9,6 @@ import arrow.core.Option
 import arrow.core.andThen
 import arrow.core.getOrElse
 import arrow.core.identity
-import arrow.core.partially1
 import arrow.core.some
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
@@ -247,7 +246,18 @@ suspend fun RememberStateFlowScope.unlockStateProducer(
             ),
             isLoading = taskExecuting,
             unlockVaultByMasterPassword = if (canCreateVault) {
-                unlockVaultByMasterPasswordFn.partially1(validatedPassword.model)
+                {
+                    // The UI may submit before the latest edit has propagated
+                    // through the state flow. Read the canonical input now.
+                    val password = passwordHandle.sink.value.text
+                    screenScope.launch {
+                        val validated = validatedTitle(password)
+                        if (validated is Validated.Success) {
+                            unlockVaultByMasterPasswordFn(validated.model)
+                        }
+                    }
+                    Unit
+                }
             } else {
                 null
             },

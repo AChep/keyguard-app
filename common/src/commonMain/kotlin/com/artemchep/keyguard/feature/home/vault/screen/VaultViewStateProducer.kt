@@ -715,7 +715,6 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
 
     val equivalentDomainsBuilder = equivalentDomainsBuilderFactory.build()
     val selectionHandle = selectionHandle("selection")
-    val markdown = getMarkdown().first()
     val markdownParser = MarkdownParser()
 
     val accountFlow = getAccounts()
@@ -1266,6 +1265,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
         getAppIcons(),
         getWebsiteIcons(),
         getCanWrite(),
+        getMarkdown(),
     ) { array ->
         val accountOrNull = array[0] as DAccount?
         val secretSauceOrNull = array[1] as CipherSauce?
@@ -1278,6 +1278,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
         val appIcons = array[7] as Boolean
         val websiteIcons = array[8] as Boolean
         val canAddSecret = array[9] as Boolean
+        val markdown = array[10] as Boolean
 
         val content = when {
             accountOrNull == null || secretOrNull == null -> VaultViewState.Content.NotFound

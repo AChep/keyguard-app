@@ -237,6 +237,7 @@ internal class AgentIpcServer(
                                     is ResolvedAgentIpcPeerVerification.ExactProcess ->
                                         connection.verifyClient(peerVerification.process)
 
+                                    ResolvedAgentIpcPeerVerification.TokenOnly,
                                     ResolvedAgentIpcPeerVerification.TestOnlyUnverified -> Unit
                                 }
                             },
@@ -269,6 +270,7 @@ internal class AgentIpcServer(
                 is ResolvedAgentIpcPeerVerification.ExactProcess ->
                     verifyUnixAgentPeer(channel, peerVerification.process)
 
+                ResolvedAgentIpcPeerVerification.TokenOnly,
                 ResolvedAgentIpcPeerVerification.TestOnlyUnverified -> Unit
             }
         },
@@ -328,6 +330,12 @@ internal sealed interface AgentIpcPeerVerificationPolicy {
         val expectedProcess: Deferred<Process>,
     ) : AgentIpcPeerVerificationPolicy
 
+    /**
+     * Skip process identity verification; rely on the auth token only.
+     * Used in NM mode where the agent is launched by the browser, not the app.
+     */
+    data object TokenOnly : AgentIpcPeerVerificationPolicy
+
     @TestOnlyUnverifiedAgentIpcApi
     data object TestOnlyUnverified : AgentIpcPeerVerificationPolicy
 }
@@ -336,6 +344,8 @@ private sealed interface ResolvedAgentIpcPeerVerification {
     data class ExactProcess(
         val process: Process,
     ) : ResolvedAgentIpcPeerVerification
+
+    data object TokenOnly : ResolvedAgentIpcPeerVerification
 
     data object TestOnlyUnverified : ResolvedAgentIpcPeerVerification
 }
@@ -347,6 +357,10 @@ private suspend fun AgentIpcPeerVerificationPolicy.resolve(
 ): ResolvedAgentIpcPeerVerification = when (this) {
     is AgentIpcPeerVerificationPolicy.ExactProcess ->
         ResolvedAgentIpcPeerVerification.ExactProcess(expectedProcess.await())
+
+    AgentIpcPeerVerificationPolicy.TokenOnly -> {
+        ResolvedAgentIpcPeerVerification.TokenOnly
+    }
 
     AgentIpcPeerVerificationPolicy.TestOnlyUnverified -> {
         logRepository.post(

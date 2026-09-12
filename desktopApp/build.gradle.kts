@@ -44,6 +44,7 @@ val appId = "com.artemchep.keyguard"
 val executableAppResourceNames = setOf(
     "keyguard-ssh-agent",
     "keyguard-gpg-agent",
+    "keyguard-browser-agent",
     "keyguard-lib",
 )
 
@@ -67,6 +68,15 @@ dependencies {
         project(
             mapOf(
                 "path" to ":desktopGpgAgent",
+                "configuration" to "bundledAppResourcesElements",
+            ),
+        ),
+    )
+    add(
+        bundledAppResources.name,
+        project(
+            mapOf(
+                "path" to ":desktopBrowserAgent",
                 "configuration" to "bundledAppResourcesElements",
             ),
         ),

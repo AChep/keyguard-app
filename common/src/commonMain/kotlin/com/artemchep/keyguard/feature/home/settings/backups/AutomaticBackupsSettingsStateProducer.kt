@@ -194,8 +194,9 @@ suspend fun RememberStateFlowScope.automaticBackupsSettingsStateProducer(
         val io = ioEffect {
             try {
                 testBackupLocation(config).bind()
+                val retention = backupConfigRepository.getConfig().first().retention
                 backupConfigRepository
-                    .setConfig(config)
+                    .setConfig(config.copy(retention = retention))
                     .bind()
                 setupErrorSink.value = null
             } catch (e: Exception) {

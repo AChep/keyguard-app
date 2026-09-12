@@ -1,6 +1,9 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops
 
 import app.keemobile.kotpass.cryptography.EncryptedValue
+import app.keemobile.kotpass.database.getEntry
+import app.keemobile.kotpass.database.modifiers.modifyContent
+import app.keemobile.kotpass.models.Group
 import app.keemobile.kotpass.models.Entry
 import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.TimeData
@@ -39,6 +42,31 @@ import kotlin.uuid.Uuid
 
 @Suppress("FunctionNaming")
 class KeePassCipherSyncOpsMergeTest {
+    @Test
+    fun `existing entry moves to root and named folder without losing content`() = runTest {
+        val codec = createTestCipherCodec()
+        val entry = secureNoteEntry("Move audit", "Preserved notes", REMOTE_REVISION)
+        val source = Group(Uuid.random(), "Source", entries = listOf(entry))
+        val destination = Group(Uuid.random(), "Destination")
+        for (target in listOf(null, destination.uuid.toString())) {
+            val database = createTestKeePassDatabase().modifyContent {
+                copy(group = group.copy(groups = listOf(source, destination)))
+            }
+            val mutator = KeePassDbMutator(database)
+            val local = decode(codec, entry, REMOTE_REVISION).copy(folderId = target)
+            val outcome = assertIs<RemoteWriteOutcome.Upsert<*>>(
+                createOps(codec, mutator, mapOf(destination.uuid.toString() to destination.uuid.toString()))
+                    .pushToServer(local, KeePassCipher(source, entry, REMOTE_REVISION), force = false),
+            )
+            val (parent, published) = assertNotNull(mutator.database.getEntry { it.uuid == entry.uuid })
+            assertEquals(target?.let(Uuid::parse) ?: database.content.group.uuid, parent.uuid)
+            assertEquals(target, assertIs<BitwardenCipher>(outcome.local).folderId)
+            assertEquals("Move audit", published.fields.title?.content)
+            assertEquals("Preserved notes", published.fields.notes?.content)
+            assertTrue(mutator.database.content.group.groups.first { it.uuid == source.uuid }.entries.isEmpty())
+        }
+    }
+
     @Test
     fun `conflict merges independent edits writes KDBX and converges`() = runTest {
         val codec = createTestCipherCodec()
@@ -412,6 +440,7 @@ private suspend fun decode(
 private fun createOps(
     codec: KeePassCipherCodec,
     mutator: KeePassDbMutator,
+    folderMappings: Map<String, String?> = emptyMap(),
 ) = KeePassCipherSyncOps(
     accountId = ACCOUNT_ID,
     buffer = KeePassWriteBackBuffer(createTestDatabase()),
@@ -419,7 +448,7 @@ private fun createOps(
     cipherCodec = codec,
     mutator = mutator,
     remoteToLocalFolders = emptyMap(),
-    localToRemoteFolders = emptyMap(),
+    localToRemoteFolders = folderMappings,
     gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
     gpgKeyMetadataResolver = NativeGpgKeyMetadataResolver,
 )

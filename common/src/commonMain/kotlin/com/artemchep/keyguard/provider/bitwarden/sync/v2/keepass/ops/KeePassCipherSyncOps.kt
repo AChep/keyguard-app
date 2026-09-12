@@ -129,11 +129,11 @@ class KeePassCipherSyncOps(
         if (remoteUuid != null) {
             val updated = mutator.modifyEntry(remoteUuid) { newEntry }
             if (updated) {
-                val currentGroupUuid = server.group.uuid
-                val targetFolderUuid = remoteGroupUuidForLocalFolder(local.folderId)
-                if (targetFolderUuid != null && targetFolderUuid != currentGroupUuid) {
-                    mutator.moveEntry(remoteUuid, targetFolderUuid)
-                }
+                // A null local folder means the database root, not "keep the
+                // existing group". Otherwise a later sync restores the old
+                // folder. Moving is a no-op when the entry already sits in the
+                // target group, the root included.
+                mutator.moveEntry(remoteUuid, remoteGroupUuidForLocalFolder(local.folderId))
                 return RemoteWriteOutcome.Upsert(newLocal)
             }
         }

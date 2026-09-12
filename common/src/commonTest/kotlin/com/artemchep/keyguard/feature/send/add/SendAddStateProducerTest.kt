@@ -18,6 +18,28 @@ import kotlin.time.Instant
 
 class SendAddStateProducerTest {
     @Test
+    fun `prefilled text send requires an eligible account`() {
+        val output = CreateSendRequest(
+            type = DSend.Type.Text,
+            title = "Login",
+            text = CreateSendRequest.Text(text = "username"),
+            now = TEST_INSTANT,
+        )
+        assertFalse(canSaveSend(output, initialValue = null))
+        assertFalse(canSaveSend(output.copy(ownership = CreateSendRequest.Ownership(null)), null))
+        assertFalse(canSaveSend(output.copy(ownership = CreateSendRequest.Ownership("")), null))
+        assertTrue(canSaveSend(output.copy(ownership = CreateSendRequest.Ownership("bitwarden")), null))
+    }
+
+    @Test
+    fun `existing file send still requires an eligible account`() {
+        val output = CreateSendRequest(type = DSend.Type.File, now = TEST_INSTANT)
+        val existing = createExistingFileSend()
+        assertFalse(canSaveSend(output, existing))
+        assertTrue(canSaveSend(output.copy(ownership = CreateSendRequest.Ownership("bitwarden")), existing))
+    }
+
+    @Test
     fun `existing file send can still be saved without a local file`() {
         val canSave = canSaveFileSend(
             output = CreateSendRequest(

@@ -148,6 +148,19 @@ data class TmpOptions(
     val items: Flow<List<AddStateItem>>,
 )
 
+internal fun canSaveSend(
+    output: CreateSendRequest,
+    initialValue: DSend?,
+): Boolean {
+    // Ownership is restricted to eligible Bitwarden profiles. A KDBX-only vault
+    // has no destination, even when the text was prefilled from an existing item.
+    if (output.ownership?.accountId.isNullOrBlank()) return false
+    return when (output.type) {
+        DSend.Type.File -> canSaveFileSend(output, initialValue)
+        else -> true
+    }
+}
+
 internal fun canSaveFileSend(
     output: CreateSendRequest,
     initialValue: DSend?,
@@ -539,14 +552,10 @@ suspend fun RememberStateFlowScope.sendAddStateProducer(
         outputFlow,
         itemFlows,
     ) { actions, ownership, output, ddd ->
-        val canSave = when (output.type) {
-            DSend.Type.File -> canSaveFileSend(
-                output = output,
-                initialValue = args.initialValue,
-            )
-
-            else -> true
-        }
+        val canSave = canSaveSend(
+            output = output,
+            initialValue = args.initialValue,
+        )
         val state = SendAddState(
             title = title,
             ownership = ownership,

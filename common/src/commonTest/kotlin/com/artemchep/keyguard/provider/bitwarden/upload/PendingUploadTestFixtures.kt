@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.upload
 
 import kotlin.test.assertContentEquals
 import kotlin.time.Instant
+import kotlinx.io.Source
 
 /**
  * Asserts that borrowed key material was zeroed once its operation finished.
@@ -79,6 +80,14 @@ internal object FailingEncryptedFilePendingUploadService : EncryptedFilePendingU
         namespace: String,
         fileId: String,
         sourceUri: String,
+        fileKey: ByteArray,
+    ): PendingUploadFile = unexpectedCall("stage")
+
+    override suspend fun stage(
+        accountId: String,
+        namespace: String,
+        fileId: String,
+        source: Source,
         fileKey: ByteArray,
     ): PendingUploadFile = unexpectedCall("stage")
 

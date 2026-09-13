@@ -5,6 +5,7 @@ import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
+import kotlinx.io.Source
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.time.Instant
@@ -27,6 +28,18 @@ class PendingUploadCoordinatorImpl(
         namespace = target.namespace,
         fileId = target.fileId,
         sourceUri = sourceUri,
+        fileKey = fileKey,
+    )
+
+    override suspend fun stage(
+        target: PendingUploadTarget,
+        source: Source,
+        fileKey: ByteArray,
+    ): PendingUploadFile = encryptedFilePendingUploadService.stage(
+        accountId = target.accountId,
+        namespace = target.namespace,
+        fileId = target.fileId,
+        source = source,
         fileKey = fileKey,
     )
 

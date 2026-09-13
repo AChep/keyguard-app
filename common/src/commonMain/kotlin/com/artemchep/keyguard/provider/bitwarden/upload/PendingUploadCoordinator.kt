@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.upload
 
+import kotlinx.io.Source
 import kotlin.time.Instant
 
 /**
@@ -81,6 +82,25 @@ interface PendingUploadCoordinator {
     suspend fun stage(
         target: PendingUploadTarget,
         sourceUri: String,
+        fileKey: ByteArray,
+    ): PendingUploadFile
+
+    /**
+     * Stages caller-owned plaintext without creating a temporary plaintext file.
+     *
+     * Use this instead of [stage] with a `sourceUri` when the bytes already
+     * exist as a stream, such as an attachment read out of another vault.
+     *
+     * @param target Stable local destination for the staged encrypted file.
+     * @param source Borrowed plaintext stream. The caller keeps ownership and
+     * remains responsible for closing it.
+     * @param fileKey Caller-owned, ephemeral raw key used to encrypt the staged
+     * bytes. Implementations must not retain or use this mutable array after the
+     * call returns.
+     */
+    suspend fun stage(
+        target: PendingUploadTarget,
+        source: Source,
         fileKey: ByteArray,
     ): PendingUploadFile
 

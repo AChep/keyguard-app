@@ -182,6 +182,51 @@ class GpgOpenPgpServiceJvmTest {
     }
 
     @Test
+    fun `empty files encrypt decrypt and verify optional signatures in both encodings`() {
+        for (armored in listOf(false, true)) {
+            val encrypted = Buffer()
+            service.encryptFile(GpgOpenPgpEncryptFileRequest(
+                candidateRevocationKeys = emptyList(),
+                input = byteArrayOf().toSource(),
+                output = encrypted,
+                publicKeys = listOf(publicKey),
+                fileName = GpgOpenPgpLiteralFileName.fromUntrusted("empty"),
+                armored = armored,
+                signingPrivateKey = privateKey,
+            ))
+            val decrypted = Buffer()
+            val result = service.decryptFile(GpgOpenPgpReadFileRequest(
+                input = encrypted.readByteArray().toSource(),
+                output = decrypted,
+                privateKeys = listOf(privateKey),
+                publicKeys = listOf(publicKey),
+            ))
+            assertContentEquals(byteArrayOf(), decrypted.readByteArray())
+            assertEquals(GpgOpenPgpVerificationStatus.VALID, result.verification?.status)
+        }
+    }
+
+    @Test
+    fun `empty files support binary and armored detached signatures`() {
+        for (armored in listOf(false, true)) {
+            val signature = Buffer()
+            service.signFile(GpgOpenPgpSignFileRequest(
+                candidateRevocationKeys = emptyList(),
+                input = byteArrayOf().toSource(),
+                signatureOutput = signature,
+                privateKey = privateKey,
+                armored = armored,
+            ))
+            val result = service.verifyFile(GpgOpenPgpVerifyFileRequest(
+                input = byteArrayOf().toSource(),
+                signatureInput = signature.readByteArray().toSource(),
+                publicKeys = listOf(publicKey),
+            ))
+            assertEquals(GpgOpenPgpVerificationStatus.VALID, result.status)
+        }
+    }
+
+    @Test
     fun `detached file sign then verify`() {
         val data = "file payload\nwith multiple lines\n".encodeToByteArray()
         val signature = Buffer()

@@ -100,12 +100,11 @@ data class GpgPublicKeyInfo(
     val publicKeyArmored: String,
     val subKeys: List<GpgPublicSubKeyInfo>,
     /**
-     * Whether a self-signature that satisfies the current hash policy
-     * authenticates this key.
+     * Whether a self-signature satisfies the current authentication policy.
      *
-     * `false` means the key is bound only by a legacy weak-hash (SHA-1)
-     * self-signature: it authorizes nothing, but renewing it reissues that
-     * signature with a modern algorithm and repairs the key.
+     * `false` includes missing or invalid signatures and policy rejection,
+     * such as an undersized RSA key. [renewal] distinguishes a verified
+     * weak-hash template that can be repaired by recertification.
      */
     val authenticated: Boolean = true,
     /**
@@ -114,7 +113,8 @@ data class GpgPublicKeyInfo(
      * This is what tells the two `authenticated == false` keys apart:
      * [GpgRenewalAuthorization.TEMPLATE_ONLY] is the weak-hash key a renewal
      * repairs, [GpgRenewalAuthorization.NONE] is the key a renewal cannot
-     * touch — it has no verified self-signature at all, or it is revoked.
+     * touch — its self-signature is missing, invalid, or rejected by policy,
+     * or the key is revoked.
      * Subkeys carry no such field: an unauthenticated subkey is only reported
      * when it is template-renewable.
      */

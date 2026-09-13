@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.crypto
 
+import com.artemchep.keyguard.common.service.gpgagent.GpgRenewalAuthorization
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -88,6 +89,18 @@ class GpgKeyUsabilityTest {
         )
         assertFalse(encryptOnlySubKey.canSignAt(NOW))
         assertTrue(encryptOnlySubKey.canEncryptAt(NOW))
+    }
+
+    @Test
+    fun `metadata is authenticated for verified keys and renewal templates only`() {
+        assertTrue(primary().hasAuthenticatedMetadata)
+        assertTrue(
+            primary().copy(
+                authenticated = false,
+                renewal = GpgRenewalAuthorization.TEMPLATE_ONLY,
+            ).hasAuthenticatedMetadata,
+        )
+        assertFalse(primary().copy(authenticated = false).hasAuthenticatedMetadata)
     }
 
     private companion object {

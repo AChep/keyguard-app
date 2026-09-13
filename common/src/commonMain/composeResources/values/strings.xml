@@ -606,7 +606,7 @@
     <string name="gpg_key_expiry_revoked_message">A revoked key component cannot be renewed.</string>
     <string name="gpg_key_expiry_unresolved_revocation_message">A designated revocation cannot be verified because the revoker's public key is unavailable. Import it and try again.</string>
     <string name="gpg_key_expiry_unsupported_signing_hash_message">This key can only be re-certified with an insecure digest algorithm. Migrate to a modern key instead.</string>
-    <string name="gpg_key_expiry_missing_self_signature_message">This key has no valid self-signature, so it cannot be renewed. It may be corrupted or incomplete.</string>
+    <string name="gpg_key_expiry_missing_self_signature_message">This key cannot be renewed because its self-signature is missing, invalid, or rejected by security policy.</string>
     <string name="gpg_user_id_revocation_dialog_title">Revoke GPG User ID</string>
     <string name="gpg_user_id_revocation_dialog_message">Select the User ID to revoke. Revocation adds a signed statement to the certificate and does not erase the identity or its history.</string>
     <string name="gpg_user_id_revocation_confirm">Revoke</string>
@@ -2054,8 +2054,8 @@
     <string name="gpg_key_status_expired_text">This GPG key has expired and should not be used.</string>
     <string name="gpg_key_status_weak_self_signature_title">Weak self-signature</string>
     <string name="gpg_key_status_weak_self_signature_text">This key's self-signatures use a weak algorithm (SHA-1). Renew the key to re-sign it with a modern one.</string>
-    <string name="gpg_key_status_missing_self_signature_title">No valid self-signature</string>
-    <string name="gpg_key_status_missing_self_signature_text">This key has no valid self-signature, so it cannot be renewed. It may be corrupted or incomplete.</string>
+    <string name="gpg_key_status_unauthenticated_self_signature_title">No acceptable self-signature</string>
+    <string name="gpg_key_status_unauthenticated_self_signature_text">This key cannot be renewed because its self-signature is missing, invalid, or rejected by security policy.</string>
     <string name="gpg_key_user_ids">User IDs</string>
     <string name="gpg_key_does_not_expire">Does not expire</string>
     <string name="gpg_key_capability_encrypt_decrypt">Encrypt/decrypt</string>

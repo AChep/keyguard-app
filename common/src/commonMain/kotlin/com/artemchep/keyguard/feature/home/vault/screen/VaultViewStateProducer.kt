@@ -92,6 +92,7 @@ import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
+import com.artemchep.keyguard.common.service.crypto.hasAuthenticatedMetadata
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParserUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
@@ -101,7 +102,6 @@ import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.artemchep.keyguard.common.service.extract.LinkInfoRegistry
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
 import com.artemchep.keyguard.common.service.gpgagent.GpgRenewalAuthorization
 import com.artemchep.keyguard.common.service.gpgagent.chunkedGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
@@ -4324,12 +4324,13 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
     // The vault view has no live policy evaluation, so both self-signature
     // states are read off the parse result. `authenticated == false` alone does
     // not say which one it is: a weak-hash key that a renewal repairs and a key
-    // with no verified self-signature at all are both unauthenticated. The
-    // renewal tier is what separates them, so the remediation advice matches.
+    // whose self-signature is missing, invalid or policy-rejected are both
+    // unauthenticated. The renewal tier is what separates them, so the
+    // remediation advice matches.
     val gpgWeakSelfSignature =
         parsedGpgKey?.renewal == GpgRenewalAuthorization.TEMPLATE_ONLY
-    val gpgMissingSelfSignature = parsedGpgKey?.authenticated == false &&
-            !gpgWeakSelfSignature
+    val gpgUnauthenticatedSelfSignature = parsedGpgKey != null &&
+            !parsedGpgKey.hasAuthenticatedMetadata
     when {
         gpgRevoked -> {
             items += VaultViewItem.Info(
@@ -4355,11 +4356,11 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
             )
         }
 
-        gpgMissingSelfSignature -> {
+        gpgUnauthenticatedSelfSignature -> {
             items += VaultViewItem.Info(
-                id = "info.gpg.missingSelfSignature",
-                name = translate(Res.string.gpg_key_status_missing_self_signature_title),
-                message = translate(Res.string.gpg_key_status_missing_self_signature_text),
+                id = "info.gpg.unauthenticatedSelfSignature",
+                name = translate(Res.string.gpg_key_status_unauthenticated_self_signature_title),
+                message = translate(Res.string.gpg_key_status_unauthenticated_self_signature_text),
             )
         }
     }
@@ -4487,20 +4488,16 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
 
     val signCapability = translate(Res.string.gpg_keys_capability_sign)
     val encryptDecryptCapability = translate(Res.string.gpg_key_capability_encrypt_decrypt)
+    // Persisted agent operations describe algorithm support, not present
+    // policy authorization, so only the parser's verdict counts here.
     val gpgCapabilities = buildList {
-        if (
-            parsedGpgKey?.canSign == true ||
-            gpgMetadataKeys.any { GpgAgentOperation.SIGN in it.agentOperations }
-        ) {
+        if (parsedGpgKey?.canSign == true) {
             this += signCapability
         }
-        if (
-            parsedGpgKey?.canEncrypt == true ||
-            gpgMetadataKeys.any { GpgAgentOperation.DECRYPT in it.agentOperations }
-        ) {
+        if (parsedGpgKey?.canEncrypt == true) {
             this += encryptDecryptCapability
         }
-    }.distinct()
+    }
     val gpgAlgorithms = buildList {
         parsedGpgKey
             ?.formatGpgAlgorithm()
@@ -4530,7 +4527,13 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
             title = translate(Res.string.expires),
             value = expiresAt
                 ?.let(dateFormatter::formatDate)
-                ?: translate(Res.string.gpg_key_does_not_expire),
+                ?: translate(
+                    if (parsedGpgKey.hasAuthenticatedMetadata) {
+                        Res.string.gpg_key_does_not_expire
+                    } else {
+                        Res.string.gpg_key_expiry_unknown
+                    },
+                ),
         )
     }
     if (gpgCapabilities.isNotEmpty()) {

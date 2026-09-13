@@ -54,7 +54,7 @@ class ClipboardServiceJvmTest {
     fun `macos fallback selection contains concealed marker`() {
         val selection = SensitiveStringSelection(
             value = "password",
-            platform = Platform.Desktop.MacOS,
+            platform = Platform.Desktop.MacOS.Jvm,
         )
 
         assertContentEquals(

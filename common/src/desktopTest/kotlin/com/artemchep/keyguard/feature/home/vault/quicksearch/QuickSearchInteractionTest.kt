@@ -173,7 +173,7 @@ class QuickSearchInteractionTest {
                     key = Key.Delete,
                     isCtrlPressed = true,
                 ),
-                platform = Platform.Desktop.MacOS,
+                platform = Platform.Desktop.MacOS.Jvm,
             ),
         )
         assertTrue(

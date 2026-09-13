@@ -114,7 +114,6 @@ import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Instant
 import org.kodein.di.DirectDI
-import com.artemchep.keyguard.platform.leAllInstances
 import org.kodein.di.direct
 import org.kodein.di.instance
 
@@ -281,7 +280,25 @@ private class WatchtowerClient(
         databaseManager = directDI.instance(),
         logRepository = directDI.instance(),
         syncSupervisor = directDI.instance(),
-        list = directDI.leAllInstances(),
+        // FIXME: Kotlin/Native type tokens do not expose supertypes, so asking DI for
+        // all WatchtowerClientTyped instances cannot discover concrete bindings.
+        // Resolve the registered processors by their exact type on every platform.
+        list = listOf(
+            directDI.instance<WatchtowerInactivePasskey>(),
+            directDI.instance<WatchtowerInactiveTfa>(),
+            directDI.instance<WatchtowerDuplicateUris>(),
+            directDI.instance<WatchtowerBroadUris>(),
+            directDI.instance<WatchtowerPasswordStrength>(),
+            directDI.instance<WatchtowerSshKeyStrength>(),
+            directDI.instance<WatchtowerGpgKeyUnusable>(),
+            directDI.instance<WatchtowerWeakGpgKey>(),
+            directDI.instance<WatchtowerGpgKeyPublishing>(),
+            directDI.instance<WatchtowerPasswordPwned>(),
+            directDI.instance<WatchtowerWebsitePwned>(),
+            directDI.instance<WatchtowerIncomplete>(),
+            directDI.instance<WatchtowerExpiring>(),
+            directDI.instance<WatchtowerUnsecureWebsite>(),
+        ),
         defaultDispatcher = Dispatchers.Default.limitedParallelism(1),
         dbDispatcher = directDI.instance(tag = DatabaseDispatcher),
     )

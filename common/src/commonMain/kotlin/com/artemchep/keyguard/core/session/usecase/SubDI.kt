@@ -178,6 +178,7 @@ import com.artemchep.keyguard.common.usecase.MarkAllWatchtowerAlertAsNotRead
 import com.artemchep.keyguard.common.usecase.MarkAllWatchtowerAlertAsRead
 import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertAsRead
+import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertsAsRead
 import com.artemchep.keyguard.common.usecase.MergeFolderById
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.common.usecase.PatchSendById
@@ -388,6 +389,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.GetWordlistPrimitiveImp
 import com.artemchep.keyguard.provider.bitwarden.usecase.MarkAllWatchtowerAlertAsNotReadImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.MarkAllWatchtowerAlertAsReadImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.MarkWatchtowerAlertAsReadImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.MarkWatchtowerAlertsAsReadImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.MergeFolderByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.MoveCipherToFolderByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PatchSendByIdImpl
@@ -617,6 +619,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<MarkWatchtowerAlertAsRead> {
         MarkWatchtowerAlertAsReadImpl(this)
+    }
+    bindSingleton<MarkWatchtowerAlertsAsRead> {
+        MarkWatchtowerAlertsAsReadImpl(this)
     }
     bindSingleton<GetAccounts> {
         GetAccountsImpl(this)

@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectTap
+import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.CipherId
 import com.artemchep.keyguard.common.model.DNotificationChannel
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
@@ -24,6 +26,7 @@ import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.MarkAllWatchtowerAlertAsRead
+import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertsAsRead
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
@@ -54,6 +57,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -84,6 +88,7 @@ fun produceGeneratorHistoryState(
         directDI = this,
         args = args,
         markAllWatchtowerAlertAsRead = instance(),
+        markWatchtowerAlertsAsRead = instance(),
         getProfiles = instance(),
         getOrganizations = instance(),
         getCiphers = instance(),
@@ -103,6 +108,7 @@ fun produceGeneratorHistoryState(
     directDI: DirectDI,
     args: WatchtowerAlertsRoute.Args,
     markAllWatchtowerAlertAsRead: MarkAllWatchtowerAlertAsRead,
+    markWatchtowerAlertsAsRead: MarkWatchtowerAlertsAsRead,
     getProfiles: GetProfiles,
     getOrganizations: GetOrganizations,
     getCiphers: GetCiphers,
@@ -126,6 +132,7 @@ fun produceGeneratorHistoryState(
         directDI = directDI,
         args = args,
         markAllWatchtowerAlertAsRead = markAllWatchtowerAlertAsRead,
+        markWatchtowerAlertsAsRead = markWatchtowerAlertsAsRead,
         getProfiles = getProfiles,
         getOrganizations = getOrganizations,
         getCiphers = getCiphers,
@@ -144,6 +151,7 @@ suspend fun RememberStateFlowScope.watchtowerNewAlertsStateProducer(
     directDI: DirectDI,
     args: WatchtowerAlertsRoute.Args,
     markAllWatchtowerAlertAsRead: MarkAllWatchtowerAlertAsRead,
+    markWatchtowerAlertsAsRead: MarkWatchtowerAlertsAsRead,
     getProfiles: GetProfiles,
     getOrganizations: GetOrganizations,
     getCiphers: GetCiphers,
@@ -195,14 +203,6 @@ suspend fun RememberStateFlowScope.watchtowerNewAlertsStateProducer(
         navigate(intent)
     }
 
-    fun onMarkAllRead() {
-        markAllWatchtowerAlertAsRead()
-            .effectTap {
-                navigatePopAll()
-            }
-            .launchIn(appScope)
-    }
-
     val configFlow = combine(
         getConcealFields(),
         getAppIcons(),
@@ -240,6 +240,25 @@ suspend fun RememberStateFlowScope.watchtowerNewAlertsStateProducer(
                 .filter { secret -> !secret.deleted }
         }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
+
+    fun onMarkAllRead() {
+        val io = if (args.filter == null) {
+            markAllWatchtowerAlertAsRead()
+        } else {
+            ioEffect {
+                // Reuse the exact account/tag/custom-filter scope of this list.
+                val ids = ciphersFlow.first()
+                    .mapTo(mutableSetOf()) { CipherId(it.id) }
+                markWatchtowerAlertsAsRead(ids)
+                    .bind()
+            }
+        }
+        io
+            .effectTap {
+                navigatePopAll()
+            }
+            .launchIn(appScope)
+    }
 
     val itemSink = mutablePersistedFlow("alert") { "" }
     val selectionHandle = selectionHandle("selection")

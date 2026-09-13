@@ -2096,6 +2096,7 @@
     <string name="gpg_tools_clear_file">Clear</string>
     <string name="gpg_tools_run_success">GPG operation completed</string>
     <string name="gpg_tools_valid_signature">Valid signature</string>
+    <string name="gpg_tools_invalid_input">Could not read the OpenPGP input. Check the message, signature, and selected keys.</string>
     <string name="gpg_tools_invalid_signature">Invalid signature</string>
     <string name="gpg_tools_missing_public_key">Missing public key</string>
     <string name="gpg_tools_signature_by">Signed by <xliff:g id="signer" example="0123 ABCD">%1$s</xliff:g></string>

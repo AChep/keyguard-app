@@ -2062,6 +2062,9 @@
     <string name="gpg_key_sec_pub">sec/pub</string>
     <string name="gpg_key_secret_key">Secret key</string>
     <string name="gpg_key_subkey_n">Subkey <xliff:g id="index" example="1">%1$d</xliff:g></string>
+    <string name="gpg_tools_public_key_invalid">Paste valid armored public certificates. Unsupported or incomplete input cannot be added.</string>
+    <string name="gpg_tools_public_key_private">Paste public certificates only. Private keys cannot be added here.</string>
+    <string name="gpg_tools_public_key_not_encryptable">Every recipient must have a currently usable encryption key.</string>
     <string name="gpg_tools_header_title">GPG tools</string>
     <string name="gpg_tools_scope_text">Text</string>
     <string name="gpg_tools_scope_file">File</string>

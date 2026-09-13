@@ -790,18 +790,18 @@ fun produceGpgToolsState(
                     args = GpgToolsPublicKeyRoute.Args(
                         publicKey = "",
                     ),
-                ) { newValue ->
-                    if (newValue.isBlank()) {
-                        return@createGpgToolsPublicKeyDialogIntent
-                    }
-
-                    val nextId = customPublicKeyCounter + 1
-                    customPublicKeyCounter = nextId
+                ) { publicKeys ->
+                    // Stored keys are already trimmed, so a set difference dedups new input.
+                    val existingKeys = customPublicKeysSink.value.mapTo(HashSet()) { it.publicKey }
+                    val newItems = (publicKeys.map(String::trim).filter(String::isNotBlank).toSet() - existingKeys)
+                        .map { publicKey ->
+                            GpgToolsState.CustomPublicKeyItem(
+                                id = "custom_public_key_${++customPublicKeyCounter}",
+                                publicKey = publicKey,
+                            )
+                        }
                     customPublicKeysSink.update { items ->
-                        items + GpgToolsState.CustomPublicKeyItem(
-                            id = "custom_public_key_$nextId",
-                            publicKey = newValue,
-                        )
+                        items + newItems
                     }
                 }
                 navigate(intent)

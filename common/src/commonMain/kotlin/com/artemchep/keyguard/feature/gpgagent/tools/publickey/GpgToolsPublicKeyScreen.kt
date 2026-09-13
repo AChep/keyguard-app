@@ -96,7 +96,7 @@ fun GpgToolsPublicKeyScreen(
             }
             TextButton(
                 onClick = {
-                    deliver(GpgToolsPublicKeyResult.Confirm(text.trim()))
+                    deliver(GpgToolsPublicKeyResult.Confirm(listOf(text.trim())))
                 },
             ) {
                 Text(stringResource(Res.string.ok))

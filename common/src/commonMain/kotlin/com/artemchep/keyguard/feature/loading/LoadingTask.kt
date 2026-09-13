@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.loading
 
 import arrow.core.Either
 import com.artemchep.keyguard.common.exception.Readable
+import com.artemchep.keyguard.common.exception.readableMessageOrNull
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -102,7 +103,7 @@ suspend fun getErrorReadableMessage(e: Throwable, translator: TranslatorScope) =
         }
 
         else -> {
-            val title = e.message
+            val title = e.readableMessageOrNull()
                 ?: translator.translate(Res.string.error_failed_unknown)
             ReadableExceptionMessage(
                 title = title,

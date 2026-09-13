@@ -1532,7 +1532,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
         onHide = ::hideTip,
     )
     val gpgKeyRsaFilterTip = GeneratorState.Filter.Tip(
-        text = translate(Res.string.generator_key_rsa_note),
+        text = translate(Res.string.generator_gpg_key_rsa_note),
         onHide = ::hideTip,
         onLearnMore = {
             val url = "https://en.wikipedia.org/wiki/RSA_(cryptosystem)"

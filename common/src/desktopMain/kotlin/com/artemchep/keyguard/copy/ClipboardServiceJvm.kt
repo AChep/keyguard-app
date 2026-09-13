@@ -199,7 +199,7 @@ internal class SensitiveStringSelection(
             platform: Platform.Desktop,
         ): List<SensitiveClipboardMarker> = when (platform) {
             is Platform.Desktop.Linux -> listOf(kdePasswordManagerHint)
-            Platform.Desktop.MacOS -> listOf(macOsConcealed)
+            is Platform.Desktop.MacOS -> listOf(macOsConcealed)
             Platform.Desktop.Windows -> listOf(
                 windowsExcludeFromMonitorProcessing,
                 windowsCanIncludeInClipboardHistory,

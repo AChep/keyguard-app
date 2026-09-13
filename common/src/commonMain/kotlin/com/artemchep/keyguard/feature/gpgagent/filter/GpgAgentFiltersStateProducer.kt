@@ -22,9 +22,11 @@ import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.onClick
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -70,6 +72,34 @@ fun produceGpgAgentFiltersState(
     key = "gpg_agent_filters",
     initial = Loadable.Loading,
 ) {
+    gpgAgentFiltersStateProducer(
+        directDI = directDI,
+        getGpgAgentFilter = getGpgAgentFilter,
+        putGpgAgentFilter = putGpgAgentFilter,
+        getCiphers = getCiphers,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getTags = getTags,
+        getFolders = getFolders,
+        getCollections = getCollections,
+        getOrganizations = getOrganizations,
+    )
+}
+
+// Keep the state flows and their session-scoped callbacks in one lifecycle scope.
+@Suppress("LongMethod")
+suspend fun RememberStateFlowScope.gpgAgentFiltersStateProducer(
+    directDI: DirectDI,
+    getGpgAgentFilter: GetGpgAgentFilter,
+    putGpgAgentFilter: PutGpgAgentFilter,
+    getCiphers: GetCiphers,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getTags: GetTags,
+    getFolders: GetFolders,
+    getCollections: GetCollections,
+    getOrganizations: GetOrganizations,
+): Flow<Loadable<GpgAgentFiltersState>> {
     val savedFilterFlow = getGpgAgentFilter()
         .map { it.normalize() }
         .distinctUntilChanged()
@@ -188,7 +218,7 @@ fun produceGpgAgentFiltersState(
         .map { it.isActive }
         .distinctUntilChanged()
 
-    combine(
+    return combine(
         filterListFlow,
         filteredGpgKeysFlow.map { it.size }.distinctUntilChanged(),
         combine(

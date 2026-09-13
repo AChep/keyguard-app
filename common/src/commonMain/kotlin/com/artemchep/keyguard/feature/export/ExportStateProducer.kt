@@ -113,6 +113,8 @@ fun produceExportScreenState(
     )
 }
 
+// Keep the state flows and their session-scoped callbacks in one lifecycle scope.
+@Suppress("CyclomaticComplexMethod", "LongMethod")
 suspend fun RememberStateFlowScope.exportScreenStateProducer(
     directDI: DirectDI,
     args: ExportRoute.Args,
@@ -126,6 +128,7 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
     permissionService: PermissionService,
     exportManager: ExportManager,
     vaultRouteFactory: VaultRouteFactory,
+    onExportRequest: ((ExportRequest) -> Unit)? = null,
 ): Flow<Loadable<ExportState>> {
     val attachmentsSink = mutablePersistedFlow(
         key = "attachments",
@@ -143,6 +146,10 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
             password = password,
             attachments = attachments,
         )
+        if (onExportRequest != null) {
+            onExportRequest(request)
+            return
+        }
         ioEffect {
             exportManager.queue(request)
         }

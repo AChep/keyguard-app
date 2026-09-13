@@ -12,6 +12,8 @@ import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -44,6 +46,13 @@ fun tagsConfirmationState(
         windowCoroutineScope,
     ),
 ) {
+    tagsConfirmationStateProducer(args, transmitter)
+}
+
+suspend fun RememberStateFlowScope.tagsConfirmationStateProducer(
+    args: TagsConfirmationRoute.Args,
+    transmitter: RouteResultTransmitter<TagsConfirmationResult>,
+): Flow<TagsConfirmationState> {
     val tagHint = translate(Res.string.tag_value)
 
     val initialTagsById = args.initialTags
@@ -105,7 +114,7 @@ fun tagsConfirmationState(
                 .combineToList()
         }
 
-    combine(
+    return combine(
         itemsFlow,
         tagsFlow,
     ) { items, tags ->

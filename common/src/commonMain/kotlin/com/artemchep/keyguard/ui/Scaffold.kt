@@ -80,6 +80,8 @@ import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.persistentSetOf
 import kotlin.math.log10
 
 val screenMaxWidth = 768.dp
@@ -561,6 +563,8 @@ data class Selection(
     val actions: ImmutableList<ContextItem>,
     val onSelectAll: (() -> Unit)? = null,
     val onClear: (() -> Unit)? = null,
+    /** Item identities captured by these actions, when the producer exposes them. */
+    val selectedIds: ImmutableSet<String> = persistentSetOf(),
 )
 
 val scaffoldContentWindowInsets

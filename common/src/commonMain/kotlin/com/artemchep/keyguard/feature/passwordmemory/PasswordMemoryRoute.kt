@@ -12,12 +12,12 @@ import com.artemchep.keyguard.res.password_action_test_memory_title
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.icon
 
-internal data class PasswordMemoryRoute(
+data class PasswordMemoryRoute(
     val args: Args,
 ) : DialogRoute {
     override val descriptor get() = RouteDescriptor.PasswordMemory
 
-    internal data class Args(
+    data class Args(
         val password: String,
     )
 

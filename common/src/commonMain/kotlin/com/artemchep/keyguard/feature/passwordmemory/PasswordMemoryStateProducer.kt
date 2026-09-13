@@ -27,7 +27,7 @@ internal fun producePasswordMemoryState(
     )
 }
 
-internal suspend fun RememberStateFlowScope.passwordMemoryStateProducer(
+suspend fun RememberStateFlowScope.passwordMemoryStateProducer(
     args: PasswordMemoryRoute.Args,
 ): Flow<PasswordMemoryState> = passwordMemoryStateFlow(
     expectedPassword = args.password,

@@ -75,6 +75,7 @@ import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.SelectionHandle
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.collections.immutable.toPersistentSet
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -707,5 +708,6 @@ private fun RememberStateFlowScope.createCipherSelectionFlow(
         count = selectedCiphers.size,
         actions = actions.toPersistentList(),
         onClear = selectionHandle::clearSelection,
+        selectedIds = existingSelectedCipherIds.toPersistentSet(),
     )
 }

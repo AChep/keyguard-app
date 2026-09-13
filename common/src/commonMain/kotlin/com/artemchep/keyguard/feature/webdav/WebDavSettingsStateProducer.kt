@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.usecase.CheckWebDavConnection
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
@@ -19,6 +20,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.util.webdav.resolveWebDavResourceUrl
 import com.artemchep.keyguard.util.webdav.webDavRelativePathOrNull
 import io.ktor.http.Url
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.compose.localDI
@@ -60,6 +62,18 @@ fun produceWebDavSettingsState(
         checkWebDavConnection,
     ),
 ) {
+    webDavSettingsStateProducer(
+        route = route,
+        transmitter = transmitter,
+        checkWebDavConnection = checkWebDavConnection,
+    )
+}
+
+suspend fun RememberStateFlowScope.webDavSettingsStateProducer(
+    route: WebDavSettingsRoute,
+    transmitter: RouteResultTransmitter<WebDavSettingsResult>,
+    checkWebDavConnection: CheckWebDavConnection,
+): Flow<WebDavSettingsState> {
     val testExecutor = screenExecutor()
     val errorSink = MutableStateFlow<WebDavSettingsState.Error?>(null)
     val urlState = mutableStateOf(route.args.url)
@@ -155,7 +169,7 @@ fun produceWebDavSettingsState(
         }
     }
 
-    combine(
+    return combine(
         errorSink,
         testExecutor.isExecutingFlow,
     ) { error, isTestingConnection ->

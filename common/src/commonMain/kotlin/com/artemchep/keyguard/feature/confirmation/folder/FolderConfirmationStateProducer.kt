@@ -23,6 +23,8 @@ import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import kotlinx.coroutines.flow.Flow
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -121,6 +123,16 @@ fun folderConfirmationState(
         windowCoroutineScope,
     ),
 ) {
+    folderConfirmationStateProducer(args, transmitter, getFolders)
+}
+
+// Keep the state flows and their session-scoped callbacks in one lifecycle scope.
+@Suppress("CyclomaticComplexMethod", "LongMethod")
+suspend fun RememberStateFlowScope.folderConfirmationStateProducer(
+    args: FolderConfirmationRoute.Args,
+    transmitter: RouteResultTransmitter<FolderConfirmationResult>,
+    getFolders: GetFolders,
+): Flow<FolderConfirmationState> {
     val folderNameHandle = textFieldHandle("folder_name")
     val folderPairFlow = folderNameHandle.sink
         .map { cell -> cell to validatedTitle(cell.text) }
@@ -298,7 +310,7 @@ fun folderConfirmationState(
         }
         onConfirm
     }
-    combine(
+    return combine(
         contentFlow,
         confirmFlow,
     ) { content, onConfirm ->

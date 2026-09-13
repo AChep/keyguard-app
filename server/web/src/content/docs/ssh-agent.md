@@ -76,7 +76,16 @@ For OpenSSH in [Termux](https://termux.dev/), the agent uses a dedicated
 1. Enable the **SSH agent** in Keyguard's settings.
 2. Install Termux, then install the Keyguard SSH agent helper package from
    the custom APT repository (the setup screen walks you through it).
-3. Use `ssh` inside Termux as usual — the helper signals Keyguard, the two
+3. Run this in Termux, and add it to your shell startup file. Each shell exports
+   the socket path and starts or reuses the helper:
+
+   ```sh
+   if [ -x "$PREFIX/bin/keyguard-android-ssh-agent" ]; then
+     eval "$("$PREFIX/bin/keyguard-android-ssh-agent" --ensure -a "$PREFIX/tmp/keyguard-ssh-agent.sock")"
+   fi
+   ```
+
+4. Use `ssh` inside Termux as usual — the helper signals Keyguard, the two
    exchange encrypted messages over a local channel, and Keyguard shows the
    approval dialog.
 

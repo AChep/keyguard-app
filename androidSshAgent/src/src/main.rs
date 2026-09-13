@@ -7,13 +7,13 @@ mod rpc;
 mod secure_transport;
 mod socket_guard;
 
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use broadcast::{BroadcastCommandSpec, DEFAULT_COMPONENT};
 use clap::Parser;
 use daemon::{run_blocking, Config};
-use process::{kill_existing_agent, print_env_exports, redirect_null};
+use process::{kill_existing_agent, print_auth_socket_export, print_env_exports, redirect_null};
 use rand::RngCore;
-use socket_guard::SocketGuard;
+use socket_guard::{EnsureSocket, SocketGuard};
 use std::ffi::OsString;
 use std::path::PathBuf;
 use tokio::time::Duration;
@@ -37,6 +37,13 @@ struct Args {
 
     #[arg(short = 'd')]
     debug: bool,
+
+    #[arg(
+        long,
+        requires = "addr",
+        conflicts_with_all = ["foreground", "debug", "kill", "cmd"]
+    )]
+    ensure: bool,
 
     #[arg(short = 'k', conflicts_with_all = ["addr", "foreground", "debug", "cmd"])]
     kill: bool,
@@ -72,7 +79,18 @@ fn try_main() -> Result<i32> {
         return Ok(0);
     }
 
-    let mut socket_guard = SocketGuard::new(args.addr, pid, random_hex(8))?;
+    let mut socket_guard = if args.ensure {
+        let socket_path = args.addr.context("--ensure requires -a")?;
+        match SocketGuard::ensure(socket_path)? {
+            EnsureSocket::Existing(socket_path) => {
+                print_auth_socket_export(is_csh, &socket_path);
+                return Ok(0);
+            }
+            EnsureSocket::Start(socket_guard) => socket_guard,
+        }
+    } else {
+        SocketGuard::new(args.addr, pid, random_hex(8))?
+    };
     let socket_file = socket_guard.path().to_path_buf();
     let listener = socket_guard.bind_listener()?;
     let config = Config {
@@ -141,5 +159,17 @@ mod tests {
             args.android_component,
             "com.artemchep.keyguard/com.artemchep.keyguard.android.sshagent.SshAgentReceiver",
         );
+    }
+
+    #[test]
+    fn ensure_requires_explicit_socket_address() {
+        assert!(Args::try_parse_from(["keyguard-android-ssh-agent", "--ensure"]).is_err());
+        assert!(Args::try_parse_from([
+            "keyguard-android-ssh-agent",
+            "--ensure",
+            "-a",
+            "/tmp/agent.sock",
+        ])
+        .is_ok());
     }
 }

@@ -80,6 +80,10 @@ pub(crate) fn print_env_exports(is_csh: bool, socket_file: &Path, background_pid
     }
 }
 
+pub(crate) fn print_auth_socket_export(is_csh: bool, socket_file: &Path) {
+    println!("{}", render_auth_socket_export(is_csh, socket_file));
+}
+
 pub(crate) fn redirect_null(fd: i32, write: bool) -> Result<()> {
     let path = CString::new("/dev/null").context("Invalid /dev/null path")?;
     let null_fd = open_null_fd(&path, write)?;
@@ -104,27 +108,30 @@ fn render_env_exports(
     socket_file: &Path,
     background_pid: Option<i32>,
 ) -> Vec<String> {
-    let socket_value = shell_quote(&socket_file.to_string_lossy());
-
-    if is_csh {
-        let mut lines = vec![format!("setenv {} {};", AUTH_SOCK_ENV, socket_value)];
-        if let Some(pid) = background_pid {
-            lines.push(format!("setenv {} {};", AGENT_PID_ENV, pid));
-            lines.push(format!("echo Agent pid {};", pid));
-        } else {
-            lines.push(format!("echo Agent pid {};", process::id()));
-        }
-        return lines;
-    }
-
-    let mut lines = vec![format!("{}={}; export {0};", AUTH_SOCK_ENV, socket_value)];
+    let mut lines = vec![render_auth_socket_export(is_csh, socket_file)];
     if let Some(pid) = background_pid {
-        lines.push(format!("{}={}; export {0};", AGENT_PID_ENV, pid));
-        lines.push(format!("echo Agent pid {};", pid));
+        lines.push(render_export(is_csh, AGENT_PID_ENV, &pid.to_string()));
+        lines.push(format!("echo Agent pid {pid};"));
     } else {
         lines.push(format!("echo Agent pid {};", process::id()));
     }
     lines
+}
+
+fn render_auth_socket_export(is_csh: bool, socket_file: &Path) -> String {
+    render_export(
+        is_csh,
+        AUTH_SOCK_ENV,
+        &shell_quote(&socket_file.to_string_lossy()),
+    )
+}
+
+fn render_export(is_csh: bool, name: &str, quoted_value: &str) -> String {
+    if is_csh {
+        format!("setenv {name} {quoted_value};")
+    } else {
+        format!("{name}={quoted_value}; export {name};")
+    }
 }
 
 fn shell_quote(value: &str) -> String {

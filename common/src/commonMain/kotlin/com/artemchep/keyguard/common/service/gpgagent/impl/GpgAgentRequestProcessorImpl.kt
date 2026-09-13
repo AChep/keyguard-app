@@ -4,7 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.AddGpgUsageHistoryRequest
-import com.artemchep.keyguard.common.model.GpgAgentFilter
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.filterCiphers
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
@@ -52,9 +52,9 @@ import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import org.kodein.di.direct
@@ -81,9 +81,6 @@ class GpgAgentRequestProcessorImpl(
 
         internal const val APPROVAL_TIMEOUT_MS = 60_000L
     }
-
-    private val gpgAgentFilterState = getGpgAgentFilter()
-        .stateIn(scope, SharingStarted.Eagerly, GpgAgentFilter())
 
     private val approvalCacheConfig = getGpgAgentApprovalCachePolicy.approvalCacheConfig
         ?: flowBackedAgentApprovalCacheConfigProvider(
@@ -217,23 +214,16 @@ class GpgAgentRequestProcessorImpl(
         crypto: GpgVaultContext.(GpgKeyMatch) -> T,
     ): GpgAgentOperationResult<T> {
         val normalizedKeygrip = keygrip.normalizeGpgKeygrip()
-        var vault = getGpgKeysFromVault()
-        val wasVaultLocked = vault == null
+        var session = getVaultSession.valueOrNull as? MasterSession.Key
+        val wasVaultLocked = session == null
         if (wasVaultLocked) {
             approvalWindowMemory.clearSession()
         }
 
-        var approvalAccess = vault?.approvalWindowSession
-            ?.access(
-                operation = operation,
-                keygrip = normalizedKeygrip,
-                caller = caller,
-            )
-        val approvalRemembered = approvalAccess?.isRemembered == true
         var approvalGranted = false
+        val cachedKey = if (wasVaultLocked) getCachedGpgKey(normalizedKeygrip) else null
 
         if (wasVaultLocked) {
-            val cachedKey = getCachedGpgKey(normalizedKeygrip)
             val approved = requestApproval(
                 GpgAgentApprovalPrompt(
                     operation = operation,
@@ -259,23 +249,30 @@ class GpgAgentRequestProcessorImpl(
             }
             approvalGranted = true
 
-            vault = getGpgKeysFromVault()
-            if (vault == null) {
-                recordPendingGpgUsage(
-                    cipherId = cachedKey?.cipherId,
-                    caller = caller,
-                    request = usageRequestType,
-                    response = GpgUsageHistoryResponseType.VAULT_LOCKED,
-                    fingerprint = cachedKey?.fingerprint,
-                    keygrip = normalizedKeygrip,
-                )
-                return GpgAgentOperationResult.VaultLocked
-            }
-            approvalAccess = vault.approvalWindowSession.access(
-                operation = operation,
-                keygrip = normalizedKeygrip,
+            session = getVaultSession.valueOrNull as? MasterSession.Key
+        }
+
+        // Cache access can suspend while settings are persisted. Resolve the
+        // keys afterward so even remembered approvals use current eligibility.
+        val approvalSession = session?.let { key ->
+            approvalWindowMemory.getOrGenerateSession(key)
+        }
+        var approvalAccess = approvalSession?.access(
+            operation = operation,
+            keygrip = normalizedKeygrip,
+            caller = caller,
+        )
+        val vault = getGpgKeysFromVault(session)
+        if (vault == null) {
+            recordPendingGpgUsage(
+                cipherId = cachedKey?.cipherId,
                 caller = caller,
+                request = usageRequestType,
+                response = GpgUsageHistoryResponseType.VAULT_LOCKED,
+                fingerprint = cachedKey?.fingerprint,
+                keygrip = normalizedKeygrip,
             )
+            return GpgAgentOperationResult.VaultLocked
         }
 
         val match = vault.findKey(normalizedKeygrip)
@@ -292,6 +289,10 @@ class GpgAgentRequestProcessorImpl(
                 return GpgAgentOperationResult.KeyNotFound
             }
 
+        val fingerprint = match.metadataKey.fingerprint.ifBlank {
+            match.secret.fingerprint.orEmpty()
+        }
+
         // Record the GPG usage for this
         // specific key operation request.
         suspend fun recordGpgUsageForOperation(
@@ -302,21 +303,38 @@ class GpgAgentRequestProcessorImpl(
             caller = caller,
             request = usageRequestType,
             response = response,
-            fingerprint = match.metadataKey.fingerprint.ifBlank {
-                match.secret.fingerprint.orEmpty()
-            },
+            fingerprint = fingerprint,
             keygrip = normalizedKeygrip,
         )
 
-        if (!wasVaultLocked && !approvalRemembered) {
+        // Record the GPG usage when the vault is no
+        // longer available to store it.
+        suspend fun recordPendingVaultLockedForOperation() = recordPendingGpgUsage(
+            cipherId = match.secret.cipher.id,
+            caller = caller,
+            request = usageRequestType,
+            response = GpgUsageHistoryResponseType.VAULT_LOCKED,
+            fingerprint = fingerprint,
+            keygrip = normalizedKeygrip,
+        )
+
+        val requiresApproval = !wasVaultLocked && approvalAccess?.canReuseNow() != true
+        if (requiresApproval) {
+            if (approvalAccess?.isRemembered == true) {
+                // Bind the new prompt to the current policy. Any wait here is
+                // followed by approval and another key/filter read below.
+                approvalAccess = approvalSession?.access(
+                    operation = operation,
+                    keygrip = normalizedKeygrip,
+                    caller = caller,
+                )
+            }
             val approved = requestApproval(
                 GpgAgentApprovalPrompt(
                     operation = operation,
                     caller = caller,
                     keyName = match.secret.cipher.name,
-                    keyFingerprint = match.metadataKey.fingerprint.ifBlank {
-                        match.secret.fingerprint.orEmpty()
-                    },
+                    keyFingerprint = fingerprint,
                     keygrip = normalizedKeygrip,
                     accountId = match.secret.cipher.accountId,
                     cipherId = match.secret.cipher.id,
@@ -330,8 +348,33 @@ class GpgAgentRequestProcessorImpl(
             approvalGranted = true
         }
 
+        // Approval can remain on screen while the vault locks, its session is
+        // replaced, or the key/filter changes. Never use the captured secret
+        // after that suspension without resolving its current eligibility.
+        val currentVault = if (requiresApproval) getGpgKeysFromVault(vault.session) else vault
+        if (currentVault == null) {
+            recordPendingVaultLockedForOperation()
+            return GpgAgentOperationResult.VaultLocked
+        }
+        val currentMatch = if (requiresApproval) {
+            currentVault.restrictTo(match.secret.cipher).findKey(normalizedKeygrip)
+        } else {
+            match
+        }
+        if (currentMatch == null) {
+            recordGpgUsageForOperation(GpgUsageHistoryResponseType.KEY_NOT_FOUND)
+            return GpgAgentOperationResult.KeyNotFound
+        }
+        currentCoroutineContext().ensureActive()
+        // There is no suspension between this check and the synchronous native
+        // operation. Locking cannot revoke work already executing inside crypto.
+        if (getVaultSession.valueOrNull !== currentVault.session) {
+            recordPendingVaultLockedForOperation()
+            return GpgAgentOperationResult.VaultLocked
+        }
+
         return try {
-            val response = vault.crypto(match)
+            val response = currentVault.crypto(currentMatch)
             if (approvalGranted) {
                 approvalAccess?.remember()
             }
@@ -401,10 +444,13 @@ class GpgAgentRequestProcessorImpl(
                 )
             }
 
-    private suspend fun getGpgKeysFromVault(): GpgVaultContext? {
-        val session = getVaultSession.valueOrNull
-        val key = session as? MasterSession.Key ?: return null
-        val approvalWindowSession = approvalWindowMemory.getOrGenerateSession(key)
+    // Guard clauses reject unsupported or stale input before accessing the active session.
+    @Suppress("ReturnCount")
+    private suspend fun getGpgKeysFromVault(
+        session: MasterSession.Key? = getVaultSession.valueOrNull as? MasterSession.Key,
+    ): GpgVaultContext? {
+        val key = session ?: return null
+        if (getVaultSession.valueOrNull !== key) return null
 
         val getCiphers = key.di.direct.instance<GetCiphers>()
         val ciphers = getCiphers().first()
@@ -424,15 +470,17 @@ class GpgAgentRequestProcessorImpl(
         val addGpgUsageHistory = key.di.direct.instanceOrNull<AddGpgUsageHistory>()
             ?: NoOpAddGpgUsageHistory
 
+        val filteredSecrets = getGpgAgentFilter().first().filterCiphers(
+            directDI = key.di.direct,
+            items = gpgSecrets,
+            cipherOf = { it.cipher },
+        )
+        if (getVaultSession.valueOrNull !== key) return null
         return GpgVaultContext(
-            gpgSecrets = gpgAgentFilterState.value.filterCiphers(
-                directDI = key.di.direct,
-                items = gpgSecrets,
-                cipherOf = { it.cipher },
-            ),
+            session = key,
+            gpgSecrets = filteredSecrets,
             candidateRevocationKeys = candidateRevocationKeys,
             addGpgUsageHistory = addGpgUsageHistory,
-            approvalWindowSession = approvalWindowSession,
         )
     }
 
@@ -541,11 +589,18 @@ class GpgAgentRequestProcessorImpl(
         }
 
     private data class GpgVaultContext(
+        val session: MasterSession.Key,
         val gpgSecrets: List<GpgAgentSecret>,
         val candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
         val addGpgUsageHistory: AddGpgUsageHistory,
-        val approvalWindowSession: AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>.Session,
-    )
+    ) {
+        /** Keeps only the secrets that belong to the given cipher. */
+        fun restrictTo(cipher: DSecret) = copy(
+            gpgSecrets = gpgSecrets.filter {
+                it.cipher.id == cipher.id && it.cipher.accountId == cipher.accountId
+            },
+        )
+    }
 
     private data class GpgKeyMatch(
         val secret: GpgAgentSecret,

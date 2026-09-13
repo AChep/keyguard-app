@@ -23,6 +23,8 @@ import kotlin.time.TimeSource
  * one [Access] from [Session.access] and keeps it through the approval prompt;
  * this binds lookup and remember to the same policy epoch. If policy, window,
  * or vault state changes meanwhile, [Access.remember] is a no-op.
+ * After any suspending eligibility reads, use [Access.canReuseNow] for the
+ * final cached-approval decision and proceed to crypto without suspending.
  */
 class AgentApprovalWindowMemory<K : Any, P : Any>(
     private val approvalCacheConfig: AgentApprovalCacheConfigProvider<P>,
@@ -141,6 +143,35 @@ class AgentApprovalWindowMemory<K : Any, P : Any>(
         )
     }
 
+    // A cache miss or contention requires explicit approval, without suspending
+    // after the caller has resolved the current key and filter.
+    @Suppress("ReturnCount")
+    private fun canReuseNow(access: Access): Boolean {
+        if (!access.isRemembered || !mutex.tryLock()) return false
+        return try {
+            val config = approvalCacheConfig.peek() ?: return false
+            if (
+                config.revision != access.configRevision ||
+                config.approvalWindow != access.approvalWindow ||
+                config.approvalWindow <= Duration.ZERO
+            ) {
+                return false
+            }
+            if (
+                cacheEpoch != access.cacheEpoch ||
+                activeSession?.generation != access.sessionGeneration
+            ) {
+                return false
+            }
+
+            val key = access.key ?: return false
+            val entry = cache[CacheKey(access.sessionGeneration, key)] ?: return false
+            entry.approvalWindow == config.approvalWindow && !entry.isExpired()
+        } finally {
+            mutex.unlock()
+        }
+    }
+
     private suspend fun remember(
         access: Access,
     ) {
@@ -202,8 +233,16 @@ class AgentApprovalWindowMemory<K : Any, P : Any>(
         internal val configRevision: Long,
         internal val approvalWindow: Duration,
         internal val key: K?,
+        /** The original lookup result; use [canReuseNow] after suspending. */
         val isRemembered: Boolean,
     ) {
+        /**
+         * Checks the current grant without waiting or extending its expiry.
+         * An update completed before this decision prevents reuse; an operation
+         * already authorized by it may finish when a later update occurs.
+         */
+        fun canReuseNow(): Boolean = this@AgentApprovalWindowMemory.canReuseNow(this)
+
         suspend fun remember() {
             this@AgentApprovalWindowMemory.remember(this)
         }

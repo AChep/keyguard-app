@@ -1,8 +1,5 @@
 package com.artemchep.keyguard.common.service.pendinghistory
 
-import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.io.io
-import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.model.GpgAgentFilter
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
@@ -47,7 +44,7 @@ class PendingUsageHistoryLockedRecordingTest {
         private const val KEYGRIP = "0123456789ABCDEF0123456789ABCDEF01234567"
     }
 
-    private val queue = RecordingQueue()
+    private val queue = RecordingPendingUsageHistoryQueue()
 
     @Test
     fun `locked GPG list-keys is recorded into the pending queue`() = runTest {
@@ -178,19 +175,6 @@ class PendingUsageHistoryLockedRecordingTest {
         sessionId = SESSION_ID,
         onApprovalRequest = { approve() },
     )
-
-    private class RecordingQueue : PendingUsageHistoryQueue {
-        val items = mutableListOf<PendingUsageHistory>()
-
-        override fun get(): IO<List<SealedPendingUsageHistory>> = io(emptyList())
-
-        override fun enqueue(item: PendingUsageHistory): IO<Unit> {
-            items += item
-            return ioUnit()
-        }
-
-        override fun remove(id: String): IO<Unit> = ioUnit()
-    }
 
     private object LockedGetVaultSession : GetVaultSession {
         override val valueOrNull: MasterSession? = null

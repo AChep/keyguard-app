@@ -28,11 +28,10 @@ import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.util.io.toSource
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
@@ -47,9 +46,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.concurrent.atomics.AtomicLong
@@ -77,8 +73,6 @@ open class ExportManagerBase(
 
     private val sink =
         MutableStateFlow(persistentMapOf<String, PoolEntry>())
-
-    private val mutex = Mutex()
 
     constructor(
         directDI: DirectDI,
@@ -147,10 +141,10 @@ open class ExportManagerBase(
                 status is DownloadProgress.Loading
             },
         )
-        mutex.withLock {
-            sink.update { it.put(id, entry) }
-        }
         // Register before starting, and retain the terminal value for late subscribers.
+        sink.update { it.put(id, entry) }
+        // UNDISPATCHED enters try/finally even if the window scope is already cancelled,
+        // so cancellation completes progress and removes the registered entry.
         sharedScope.launch(start = CoroutineStart.UNDISPATCHED) {
             try {
                 coroutineScope {
@@ -163,15 +157,11 @@ open class ExportManagerBase(
                         keepAlive.cancel()
                     }
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 progress.value = DownloadProgress.Complete(e.left())
                 e.throwIfFatalOrCancellation()
             } finally {
-                withContext(NonCancellable) {
-                    mutex.withLock {
-                        sink.update { it.remove(id) }
-                    }
-                }
+                sink.update { it.remove(id) }
                 sharedScope.cancel()
             }
         }

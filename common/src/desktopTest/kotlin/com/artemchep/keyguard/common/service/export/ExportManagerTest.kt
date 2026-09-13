@@ -24,6 +24,7 @@ import com.artemchep.keyguard.util.zip.createZipService
 import java.lang.reflect.Proxy
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -50,6 +51,7 @@ import kotlin.test.assertFails
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlin.time.Duration
 
@@ -155,6 +157,61 @@ class ExportManagerTest {
         }
     }
 
+    @Test
+    fun fatalWriteFailureCompletesProgressAndIsRethrown() = runBlocking {
+        val windowJob = Job()
+        val handled = CompletableDeferred<Throwable>()
+        val handler = CoroutineExceptionHandler { _, error -> handled.complete(error) }
+        val window = object : WindowCoroutineScope {
+            override val coroutineContext = windowJob + Dispatchers.Default + handler
+        }
+        val failure = OutOfMemoryError("Synthetic export failure")
+        val manager = manager(window, object : DirsService {
+            override fun saveToDownloads(fileName: String, write: suspend (Sink) -> Unit) = ioEffect<String?> {
+                throw failure
+            }
+        }) {}
+        val existingJobs = windowJob.children.toSet()
+        try {
+            val result = manager.queue(ExportRequest(DFilter.All, "secret", false))
+            val reported = withTimeout(5000) { result.flow.awaitCompleteResult() }.leftOrNull()
+            assertIs<OutOfMemoryError>(reported)
+            assertEquals(failure.message, reported.message)
+            val uncaught = withTimeout(5000) { handled.await() }
+            assertIs<OutOfMemoryError>(uncaught)
+            assertEquals(failure.message, uncaught.message)
+            withTimeout(5000) { windowJob.children.filter { it !in existingJobs }.toList().forEach { it.join() } }
+            assertNull(manager.getProgressFlowByExportId(result.exportId).first())
+            // Completion remains available after the failed producer has been removed.
+            assertSame(reported, withTimeout(5000) { result.flow.awaitCompleteResult() }.leftOrNull())
+        } finally {
+            windowJob.cancelAndJoin()
+        }
+    }
+
+    @Test
+    fun alreadyCancelledWindowCompletesProgressAndRemovesEntry() = runBlocking {
+        val windowJob = Job()
+        val window = object : WindowCoroutineScope {
+            override val coroutineContext = windowJob + Dispatchers.Default
+        }
+        val manager = manager(window, object : DirsService {
+            override fun saveToDownloads(fileName: String, write: suspend (Sink) -> Unit) = ioEffect<String?> {
+                awaitCancellation()
+            }
+        }) {}
+        try {
+            windowJob.cancelAndJoin()
+            val result = manager.queue(ExportRequest(DFilter.All, "secret", false))
+            val reported = withTimeout(5000) { result.flow.awaitCompleteResult() }.leftOrNull()
+            assertIs<CancellationException>(reported)
+            withTimeout(5000) { manager.getProgressFlowByExportId(result.exportId).first { it == null } }
+            assertTrue(windowJob.children.none())
+        } finally {
+            windowJob.cancelAndJoin()
+        }
+    }
+
     private fun manager(
         window: WindowCoroutineScope,
         dirs: DirsService,
@@ -212,5 +269,18 @@ class ExportManagerTest {
     }
 
     private inline fun <reified T> stub(crossinline invoke: () -> Any?): T =
-        Proxy.newProxyInstance(T::class.java.classLoader, arrayOf(T::class.java)) { _, _, _ -> invoke() } as T
+        Proxy.newProxyInstance(T::class.java.classLoader, arrayOf(T::class.java)) { proxy, method, args ->
+            // Keep the Object methods working, so a failing assertion reports the
+            // assertion instead of the stub's own result.
+            if (method.declaringClass == Any::class.java) {
+                when (method.name) {
+                    "toString" -> "stub<" + T::class.java.simpleName + ">"
+                    "hashCode" -> System.identityHashCode(proxy)
+                    "equals" -> proxy === args?.firstOrNull()
+                    else -> invoke()
+                }
+            } else {
+                invoke()
+            }
+        } as T
 }

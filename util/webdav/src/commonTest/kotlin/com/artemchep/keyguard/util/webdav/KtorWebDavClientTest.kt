@@ -3,6 +3,7 @@ package com.artemchep.keyguard.util.webdav
 import com.artemchep.keyguard.util.io.artifact.KEYGUARD_TEMPORARY_ARTIFACT_PREFIX
 import com.artemchep.keyguard.util.io.artifact.TemporaryArtifactRole
 import com.artemchep.keyguard.util.io.artifact.temporaryArtifactName
+import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
@@ -997,6 +998,42 @@ class KtorWebDavClientTest {
         )
 
         assertTrue(client.listChildren("").isEmpty())
+    }
+
+    @Test
+    fun `range read bypasses cached full object response`() = runTest {
+        var gets = 0
+        val engine = MockEngine { request ->
+            when (request.method.value) {
+                "PROPFIND" -> respond(
+                    singleMultistatus(
+                        "/dav/root/object.zip",
+                        "<D:resourcetype/><D:getcontentlength>5</D:getcontentlength>",
+                    ),
+                    MULTI_STATUS,
+                )
+                "GET" -> {
+                    gets++
+                    if (request.headers[HttpHeaders.Range] == null) {
+                        respond("abcde", HttpStatusCode.OK, headersOf(HttpHeaders.CacheControl, "max-age=3600"))
+                    } else {
+                        respond("bcd", PARTIAL_CONTENT, headersOf(HttpHeaders.ContentRange, "bytes 1-3/5"))
+                    }
+                }
+                else -> error("Unexpected request")
+            }
+        }
+        val client = KtorWebDavClient(
+            httpClient = HttpClient(engine) { install(HttpCache) },
+            config = WebDavClientConfig(baseUrl = "https://example.com/dav/root/"),
+        )
+        assertContentEquals("abcde".encodeToByteArray(), client.read("object.zip").readBytesAndClose())
+        assertContentEquals(
+            "bcd".encodeToByteArray(),
+            client.read("object.zip", WebDavByteRange(1, 3)).readBytesAndClose(),
+        )
+        assertEquals(2, gets)
+        client.close()
     }
 
     @Test

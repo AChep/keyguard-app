@@ -168,6 +168,7 @@ class KtorWebDavClient(
             method = HttpMethod.Get,
             block = {
                 header(HEADER_ACCEPT_ENCODING, "identity")
+                header(HttpHeaders.CacheControl, "no-cache, no-store")
                 if (useConditionalGet) {
                     metadata.etag
                         ?.takeIf { etag -> etag.isStrongEtag() }

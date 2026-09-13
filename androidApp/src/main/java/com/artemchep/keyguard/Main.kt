@@ -20,6 +20,7 @@ import com.artemchep.keyguard.android.installVaultKeepAlive
 import com.artemchep.keyguard.android.installVaultLock
 import com.artemchep.keyguard.android.installVaultPersistedSession
 import com.artemchep.keyguard.android.installWorkers
+import com.artemchep.keyguard.android.ipc.androidIpcModule
 import com.artemchep.keyguard.android.ipc.installAndroidIpcProviders
 import com.artemchep.keyguard.android.worker.BackupWorker
 import com.artemchep.keyguard.android.passkeysModule
@@ -56,6 +57,10 @@ class Main : BaseApp(), DIAware {
     override val di by DI.lazy {
         import(androidXModule(this@Main))
         import(diFingerprintRepositoryModule())
+        import(
+            module = androidIpcModule(),
+            allowOverride = true,
+        )
 
         @SuppressLint("NewApi")
         fun importPasskeysModule() {

@@ -64,13 +64,6 @@ kotlin {
 
         androidResources.enable = true
 
-        optimization {
-            consumerKeepRules.apply {
-                publish = true
-                file("consumer-rules.pro")
-            }
-        }
-
         withHostTest {
             isIncludeAndroidResources = true
         }
@@ -328,8 +321,6 @@ kotlin {
                 api(libs.cash.sqldelight.android.driver)
                 api(libs.osipxd.security.crypto.datastore.preferences)
                 api(libs.fredporciuncula.flow.preferences)
-                api(libs.openkeychain.openpgp.api)
-                api(libs.openkeychain.sshauthentication.api)
             }
         }
     }

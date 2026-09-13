@@ -60,6 +60,8 @@ jobs:
               :common:checkBouncyCastleProductionDependencies
               :common:checkSshjDependencies
               :common:desktopTest
+              :feature:android-ipc-presentation:checkComposeFree
+              :feature:android-ipc-presentation:desktopTest
               :standard:presentation:checkComposeFree
               :standard:presentation:desktopTest
               :desktopApp:jvmTest
@@ -69,6 +71,7 @@ jobs:
             max_workers: 2
             tasks: >-
               :common:testAndroidHostTest
+              :feature:android-ipc-presentation:testAndroidHostTest
               :standard:presentation:testAndroidHostTest
           - id: util-desktop
             name: Util Desktop
@@ -154,6 +157,8 @@ jobs:
           :androidApp:checkBouncyCastleProductionDependencies
           :wearApp:checkBouncyCastleProductionDependencies
           :wearApp:checkOptionalFeatureDependencies
+          :wearApp:checkOptionalFeatureManifests
+          :feature:android-ipc-android:testDebugUnitTest
           :androidApp:testNoneDebugUnitTest
           :androidApp:testPlayStoreDebugUnitTest
           :wearApp:testNoneDebugUnitTest
@@ -189,6 +194,7 @@ jobs:
         run: >-
           ./gradlew --continue
           :common:iosSimulatorArm64Test
+          :feature:android-ipc-presentation:iosSimulatorArm64Test
           :standard:presentation:iosSimulatorArm64Test
           :iosApp:iosSimulatorArm64Test
           :util:crypto:iosSimulatorArm64Test

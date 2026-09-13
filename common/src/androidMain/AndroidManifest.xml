@@ -229,16 +229,6 @@
             android:taskAffinity=":termux_ssh"
             android:theme="@style/Theme.Keyguard.Dialog"
             android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name="com.artemchep.keyguard.android.ipc.AndroidIpcApprovalActivity"
-            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:noHistory="true"
-            android:taskAffinity=":openkeychain_ipc"
-            android:theme="@style/Theme.Keyguard.Dialog"
-            android:windowSoftInputMode="adjustResize" />
-
         <receiver
             android:name="com.artemchep.keyguard.android.downloader.receiver.AttachmentDownloadActionReceiver"
             android:exported="false">
@@ -291,24 +281,6 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Bridge SSH agent requests over a localhost socket" />
-        </service>
-
-        <service
-            android:name="com.artemchep.keyguard.android.ipc.SshAuthenticationService"
-            android:enabled="false"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="org.openintents.ssh.authentication.ISshAuthenticationService" />
-            </intent-filter>
-        </service>
-
-        <service
-            android:name="com.artemchep.keyguard.android.ipc.OpenPgpService"
-            android:enabled="false"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="org.openintents.openpgp.IOpenPgpService2" />
-            </intent-filter>
         </service>
 
         <service

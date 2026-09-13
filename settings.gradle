@@ -34,6 +34,8 @@ rootProject.name = "keyguard"
 
 include ':common'
 include ':standard:presentation'
+include ':feature:android-ipc-android'
+include ':feature:android-ipc-presentation'
 include ':feature:qr-scanner-android'
 include ':detektRules'
 include ':util:crypto'

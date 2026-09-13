@@ -66,6 +66,7 @@ androidComponents {
 
 dependencies {
     implementation(project(":common"))
+    implementation(project(":feature:android-ipc-android"))
     implementation(project(":feature:qr-scanner-android"))
     baselineProfile(project(":androidBenchmark"))
 

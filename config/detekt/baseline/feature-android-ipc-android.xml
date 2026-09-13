@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>LongMethod:AndroidIpcApprovalStoreTest.kt:AndroidIpcApprovalStoreTest$@Test fun `authorization is single use and bound to the complete caller identity`</ID>
+  </CurrentIssues>
+</SmellBaseline>

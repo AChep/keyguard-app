@@ -2436,7 +2436,6 @@
     <ID>WildcardImport:WatchtowerSyncerImpl.kt:import io.ktor.http.*</ID>
     <ID>WildcardImport:http.kt:import io.ktor.client.statement.*</ID>
     <ID>WildcardImport:http.kt:import io.ktor.http.*</ID>
-<ID>LongMethod:AndroidIpcApprovalStoreTest.kt:AndroidIpcApprovalStoreTest$@Test fun `authorization is single use and bound to the complete caller identity`</ID>
 <ID>MatchingDeclarationName:VaultAttachmentSelection.kt:VaultAttachmentSelectionResult</ID>
   </CurrentIssues>
 </SmellBaseline>

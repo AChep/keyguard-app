@@ -6,11 +6,11 @@ import android.content.pm.PackageManager
 import com.artemchep.keyguard.android.credentialexchange.CredentialExchangeImportTransportAndroid
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
-import com.artemchep.keyguard.android.ipc.AndroidIpcRegistrationRepository
 import com.artemchep.keyguard.android.notiifcation.NotificationRepositoryAndroid
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationService
+import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationServiceNone
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.backup.AndroidTreeBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.BackupLocalObjectStoreFactoryTag
@@ -328,11 +328,8 @@ fun diFingerprintRepositoryModule() = DI.Module(
         val factory = instance<SharedPreferencesStoreFactory>()
         factory.getStore(di, key)
     }
-    bindSingleton<AndroidIpcRegistrationRepository> {
-        AndroidIpcRegistrationRepository(this)
-    }
     bindSingleton<AndroidIpcRegistrationService> {
-        instance<AndroidIpcRegistrationRepository>()
+        AndroidIpcRegistrationServiceNone
     }
     bind<KeyValueStore>(SharedPreferencesTypes.SHARED_PREFS_ENCRYPTED) with multiton { arg: SharedPreferencesArg ->
         SecureSharedPrefsKeyValueStore(

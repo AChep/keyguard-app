@@ -24,8 +24,8 @@ The shared-module split is incremental:
 - `feature/*/` contain the optional features.
 
 New pure presentation modules must not depend on `common/` or application modules,
-even transitively. During migration, adapters in `common/` connect pure producers to
-the existing screen lifecycle, persisted fields, navigation, and localized resources.
+even transitively. During migration, adapters in `common/` or optional UI modules connect
+pure producers to the existing screen lifecycle, persisted fields, navigation, and localized resources.
 Apply `keyguard.compose-free` to enforce this boundary.
 
 Utility modules each implement a library we wish existed; the modules are independent and granular.

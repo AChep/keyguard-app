@@ -5,9 +5,12 @@ import com.artemchep.keyguard.util.zip.bridge.NATIVE_ZIP_STATUS_SUCCESS
 import com.artemchep.keyguard.util.zip.bridge.NativeZip
 import com.artemchep.keyguard.util.zip.bridge.isNativeZipFailure
 import com.artemchep.keyguard.util.zip.bridge.nativeZipFailureException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.io.Buffer
 import kotlinx.io.RawSink
 import kotlinx.io.Sink
+import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -26,6 +29,8 @@ internal class ZipServiceApple : ZipService {
         config: ZipConfig,
         entries: List<ZipEntry>,
     ) {
+        val context = currentCoroutineContext()
+        context.ensureActive()
         NativeZipAbi.ensureCompatible()
         val path = Path(SystemTemporaryDirectory, "keyguard-zip-${Uuid.random()}.zip")
         try {
@@ -35,9 +40,13 @@ internal class ZipServiceApple : ZipService {
                 entries = entries,
             )
             SystemFileSystem.source(path).buffered().use { source ->
-                outputStream.transferFrom(source)
+                source.transferTo(
+                    sink = outputStream,
+                    checkActive = { context.ensureActive() },
+                )
             }
             outputStream.flush()
+            context.ensureActive()
         } finally {
             SystemFileSystem.delete(path, mustExist = false)
         }
@@ -78,7 +87,9 @@ internal class ZipServiceApple : ZipService {
         entry: ZipEntry,
     ) {
         checkNativeZipStatus(NativeZip.beginEntry(handle, entry.name))
-        val entrySink = NativeZipRawSink(handle)
+        val context = currentCoroutineContext()
+        context.ensureActive()
+        val entrySink = NativeZipRawSink(handle, checkActive = { context.ensureActive() })
         when (val data = entry.data) {
             is ZipEntry.Data.In -> data.stream().use { source ->
                 source.transferTo(entrySink)
@@ -120,6 +131,7 @@ internal object NativeZipAbi {
  */
 private class NativeZipRawSink(
     private val handle: Long,
+    private val checkActive: () -> Unit,
 ) : RawSink {
     private val buffer = ByteArray(COPY_BUFFER_SIZE)
 
@@ -129,6 +141,7 @@ private class NativeZipRawSink(
         }
         var remaining = byteCount
         while (remaining > 0L) {
+            checkActive()
             val chunk = minOf(remaining, buffer.size.toLong()).toInt()
             val read = source.readAtMostTo(buffer, 0, chunk)
             if (read <= 0) {
@@ -142,6 +155,21 @@ private class NativeZipRawSink(
     override fun flush() = Unit
 
     override fun close() = Unit
+}
+
+private fun Source.transferTo(
+    sink: Sink,
+    checkActive: () -> Unit,
+) {
+    val buffer = Buffer()
+    while (true) {
+        checkActive()
+        val read = readAtMostTo(buffer, COPY_BUFFER_SIZE.toLong())
+        if (read == -1L) break
+        checkActive()
+        sink.write(buffer, read)
+    }
+    checkActive()
 }
 
 internal fun requireNativeZipHandle(handle: Long): Long {

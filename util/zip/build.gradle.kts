@@ -31,6 +31,9 @@ kotlin {
             implementation(libs.lingala.zip4j)
         }
         sharedAppleMain()
+        named("appleMain").dependencies {
+            implementation(libs.kotlinx.coroutines.core)
+        }
         sharedIosTest()
 
         all {

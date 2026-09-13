@@ -2,28 +2,35 @@ package com.artemchep.keyguard.android.worker
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.ContentResolver
 import android.content.Context
 import android.content.pm.ServiceInfo
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
+import androidx.core.net.toUri
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.Operation
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.work.await
 import com.artemchep.keyguard.android.worker.util.SessionWorker
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.parallel
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.usecase.SyncAll
 import com.artemchep.keyguard.common.usecase.SyncById
+import com.artemchep.keyguard.common.usecase.syncRequiresNetwork
+import com.artemchep.keyguard.core.store.bitwarden.FileLocation
+import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
+import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import org.kodein.di.DI
 import org.kodein.di.DIAware
 import org.kodein.di.direct
@@ -34,47 +41,77 @@ class SyncWorker(
     params: WorkerParameters,
 ) : SessionWorker(context, params), DIAware {
     companion object {
-        private const val WORK_ID = "AttachmentUploadWorker"
+        private const val WORK_ID_PREFIX = "vault-sync:"
+        private const val NETWORK_FALLBACK_WORK_ID_PREFIX = "vault-sync-network-fallback:"
 
         private const val KEY_ACCOUNT_IDS = "account_ids"
 
-        val constraints
-            get() = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
+        /**
+         * Set when a handled failure of this request should enqueue one
+         * connected retry, and a success should cancel a pending one.
+         */
+        private const val KEY_NETWORK_FALLBACK_ELIGIBLE = "network_fallback_eligible"
 
-        fun enqueueOnce(
+        suspend fun enqueueOnce(
             context: Context,
-            accounts: Set<AccountId> = emptySet(),
-        ): Operation {
-            val accountIdsArray = accounts
-                .map { it.id as String? }
-                .toTypedArray()
-            val uploadWorkRequest = OneTimeWorkRequestBuilder<SyncWorker>()
-                .setConstraints(constraints)
+            accounts: List<ServiceToken>,
+        ) {
+            val workManager = WorkManager.getInstance(context)
+            accounts.forEach { account ->
+                val networkType = if (account.syncRequiresNetwork()) {
+                    NetworkType.CONNECTED
+                } else {
+                    NetworkType.NOT_REQUIRED
+                }
+                workManager.enqueue(
+                    workId = WORK_ID_PREFIX + account.id,
+                    policy = ExistingWorkPolicy.REPLACE,
+                    accountId = AccountId(account.id),
+                    networkType = networkType,
+                    networkFallbackEligible = account.mayNeedNetworkFallback(),
+                )
+            }
+        }
+
+        private suspend fun WorkManager.enqueue(
+            workId: String,
+            policy: ExistingWorkPolicy,
+            accountId: AccountId,
+            networkType: NetworkType,
+            networkFallbackEligible: Boolean,
+        ) {
+            val request = OneTimeWorkRequestBuilder<SyncWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(networkType)
+                        .build(),
+                )
                 .setInputData(
                     Data.Builder()
-                        .putStringArray(KEY_ACCOUNT_IDS, accountIdsArray)
+                        .putStringArray(KEY_ACCOUNT_IDS, arrayOf(accountId.id))
+                        .putBoolean(KEY_NETWORK_FALLBACK_ELIGIBLE, networkFallbackEligible)
                         .build(),
                 )
                 .build()
-            return WorkManager
-                .getInstance(context)
-                .enqueueUniqueWork(WORK_ID, ExistingWorkPolicy.APPEND_OR_REPLACE, uploadWorkRequest)
+            enqueueUniqueWork(workId, policy, request).await()
         }
     }
 
     private val notificationManager = context.getSystemService<NotificationManager>()!!
 
     /**
-     * Set of accounts to update. When empty, we should
-     * update all existing accounts.
+     * New requests contain one account. Retain the array and empty-as-all
+     * semantics so persisted requests from older versions can still run.
      */
     private val accountIds by lazy {
         inputData.getStringArray(KEY_ACCOUNT_IDS)
             ?.asSequence()
             ?.map { AccountId(it) }
             ?.toSet().orEmpty()
+    }
+
+    private val networkFallbackEligible by lazy {
+        inputData.getBoolean(KEY_NETWORK_FALLBACK_ELIGIBLE, false)
     }
 
     override suspend fun DI.doWork(): Result {
@@ -89,17 +126,44 @@ class SyncWorker(
                 .parallel()
                 .map { Unit }
         }
-        return io
+        // Sync implementations record handled failures. Complete this request so
+        // a later replacement can run. attempt() still propagates fatal errors
+        // and cancellation.
+        val syncFailed = io
             .attempt()
             .bind()
-            .fold(
-                ifLeft = {
-                    Result.failure()
-                },
-                ifRight = {
-                    Result.success()
-                },
-            )
+            .isLeft()
+        if (networkFallbackEligible) {
+            accountIds.singleOrNull()?.let { accountId ->
+                updateNetworkFallback(
+                    accountId = accountId,
+                    syncFailed = syncFailed,
+                )
+            }
+        }
+        return Result.success()
+    }
+
+    private suspend fun updateNetworkFallback(
+        accountId: AccountId,
+        syncFailed: Boolean,
+    ) {
+        runCatchingNonFatal {
+            val workManager = WorkManager.getInstance(applicationContext)
+            val workId = NETWORK_FALLBACK_WORK_ID_PREFIX + accountId.id
+            if (syncFailed) {
+                workManager.enqueue(
+                    workId = workId,
+                    policy = ExistingWorkPolicy.KEEP,
+                    accountId = accountId,
+                    networkType = NetworkType.CONNECTED,
+                    // A failed fallback must not enqueue another one.
+                    networkFallbackEligible = false,
+                )
+            } else {
+                workManager.cancelUniqueWork(workId).await()
+            }
+        }
     }
 
     override suspend fun getForegroundInfo() = createForegroundInfo()
@@ -142,4 +206,14 @@ class SyncWorker(
         notificationManager.createNotificationChannel(channel)
         return channel.id
     }
+}
+
+/**
+ * Document providers may back a `content://` file with a remote copy, so a
+ * failed offline sync is worth one more attempt once connected.
+ */
+private fun ServiceToken.mayNeedNetworkFallback(): Boolean {
+    val location = (this as? KeePassToken)?.database?.location as? FileLocation.Local
+        ?: return false
+    return location.uri.toUri().scheme == ContentResolver.SCHEME_CONTENT
 }

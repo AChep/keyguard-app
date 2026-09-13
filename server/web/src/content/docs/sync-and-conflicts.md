@@ -6,7 +6,8 @@ order: 5
 ---
 
 Keyguard keeps a local copy of your vault, so you can view, add, and edit items
-without a connection. Changes sync back when you are online again. If the
+without a connection. Changes sync back to the cloud when you are online again;
+local providers such as KDBX do not need active Internet conenction. If the
 same item was edited in two places in the meantime, Keyguard merges both edits
 field by field.
 

@@ -176,7 +176,7 @@ class GetLocalNetworkAccessHintTest {
     }
 }
 
-private fun bitwardenToken(
+internal fun bitwardenToken(
     env: BitwardenToken.Environment = BitwardenToken.Environment(),
 ) = BitwardenToken(
     id = "bitwarden",
@@ -190,7 +190,7 @@ private fun bitwardenToken(
     env = env,
 )
 
-private fun keePassToken(location: FileLocation) = KeePassToken(
+internal fun keePassToken(location: FileLocation) = KeePassToken(
     id = "keepass",
     key = KeePassToken.Key(passwordBase64 = "password"),
     database = KeePassToken.Database(

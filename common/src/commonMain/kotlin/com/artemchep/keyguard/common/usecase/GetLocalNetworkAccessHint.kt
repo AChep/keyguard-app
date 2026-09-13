@@ -34,6 +34,18 @@ fun FileLocation.mayAccessLocalNetwork(): Boolean = when (this) {
     -> false
 }
 
+/**
+ * Reports whether syncing the account needs a network connection.
+ */
+fun ServiceToken.syncRequiresNetwork(): Boolean = when (this) {
+    is BitwardenToken -> true
+    is KeePassToken -> database.location.syncRequiresNetwork()
+}
+
+// Document providers may expose local or cached files. Let the provider
+// decide whether the file is accessible instead of blocking all URIs.
+fun FileLocation.syncRequiresNetwork(): Boolean = this !is FileLocation.Local
+
 fun BackupConfig.mayAccessLocalNetwork(): Boolean =
     enabled && store is BackupStoreConfig.WebDav && store.isConfigured
 

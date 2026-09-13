@@ -27,13 +27,9 @@ class SyncByIdImpl(
         syncByToken = directDI.instance(),
     )
 
-    override fun invoke(accountId: AccountId): IO<Boolean> = tokenRepository.getSnapshot()
-        // Find the correct account model
-        // by its account id.
-        .map { tokens ->
-            tokens
-                .firstOrNull { it.id == accountId.id }
-        }
+    // Queued work must see newly added, updated, or removed accounts even if
+    // the repository's shared list still has a cached snapshot.
+    override fun invoke(accountId: AccountId): IO<Boolean> = tokenRepository.getById(accountId)
         .flatMap { token ->
             if (token == null) {
                 // We could not find the tokens

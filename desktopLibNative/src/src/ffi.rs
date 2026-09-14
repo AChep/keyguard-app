@@ -147,14 +147,13 @@ mod tests {
     }
 
     #[test]
-    fn free_ptr_releases_strdup_allocation() {
-        let payload = CString::new("hello").unwrap();
-        // SAFETY: CString provides a valid NUL-terminated source pointer for
-        // the duration of the call; strdup returns a C-allocator allocation.
-        let duplicated = unsafe { libc::strdup(payload.as_ptr()) };
-        assert!(!duplicated.is_null());
+    fn free_ptr_releases_c_allocation() {
+        // SAFETY: Request a nonzero C allocation, check it below, and release
+        // it exactly once without reading its uninitialized contents.
+        let allocation = unsafe { libc::malloc(1) };
+        assert!(!allocation.is_null());
 
-        free_ptr(duplicated.cast());
+        free_ptr(allocation);
     }
 
     #[test]

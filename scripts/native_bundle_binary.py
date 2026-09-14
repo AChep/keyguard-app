@@ -198,18 +198,16 @@ def inspect_macho_hardening(
 
 
 def inspect_pe_hardening(path: Path, data: bytes) -> str:
-    """Require ASLR and NX compatibility in a Windows x64 DLL."""
+    """Require ASLR and NX compatibility in a Windows PE32+ DLL."""
 
     if len(data) < 64 or data[:2] != b"MZ":
         raise InspectionError(f"{path}: not a PE image")
     (pe_offset,) = unpack("<I", data, 0x3C, str(path))
     if data[pe_offset : pe_offset + 4] != b"PE\0\0":
         raise InspectionError(f"{path}: missing PE signature")
-    machine, _, _, _, _, optional_size, characteristics = unpack(
+    _, _, _, _, _, optional_size, characteristics = unpack(
         "<HHIIIHH", data, pe_offset + 4, str(path)
     )
-    if machine != 0x8664:
-        raise InspectionError(f"{path}: expected Windows x64 machine type")
     if not characteristics & IMAGE_FILE_DLL:
         raise InspectionError(f"{path}: PE image is not marked as a DLL")
     optional_offset = pe_offset + 24

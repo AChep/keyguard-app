@@ -60,13 +60,16 @@ def archive(member: bytes) -> bytes:
     return b"!<arch>\n" + header + member + (b"\n" if len(member) % 2 else b"")
 
 
-def pe_exports(symbols: tuple[str, ...] = ("exportedFunction",)) -> bytes:
+def pe_exports(
+    symbols: tuple[str, ...] = ("exportedFunction",),
+    machine: int = 0x8664,
+) -> bytes:
     """PE32+ DLL with real exports and no COFF symbols (a stripped release)."""
     data = bytearray(1536)
     data[:2] = b"MZ"
     struct.pack_into("<I", data, 0x3C, 64)
     data[64:68] = b"PE\0\0"
-    struct.pack_into("<HHIIIHH", data, 68, 0x8664, 1, 0, 0, 0, 240, 0x2000)
+    struct.pack_into("<HHIIIHH", data, 68, machine, 1, 0, 0, 0, 240, 0x2000)
     struct.pack_into("<H", data, 88, 0x20B)
     struct.pack_into("<I", data, 88 + 60, 512)
     struct.pack_into("<H", data, 88 + 70, 0x140)
@@ -206,6 +209,14 @@ class NativeBundleTest(unittest.TestCase):
             with patch.object(verify.binary, "read_symbol_output", side_effect=AssertionError("external tool")):
                 self.assertEqual(set(symbols), verify.read_exports(path, ".dll"))
             verify.binary.inspect_pe_hardening(path, path.read_bytes())
+
+    def test_pe_hardening_is_architecture_agnostic(self) -> None:
+        for machine in (0x8664, 0xAA64):
+            with self.subTest(machine=machine):
+                verify.binary.inspect_pe_hardening(
+                    Path("native.dll"),
+                    pe_exports(machine=machine),
+                )
 
     def test_pe_coff_symbols_do_not_satisfy_export_contract(self) -> None:
         data = bytearray(pe_exports())

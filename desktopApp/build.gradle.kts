@@ -251,17 +251,20 @@ tasks.named { it == "prepareAppResources" }.configureEach {
     dependsOn(prepareBundledAppResources)
 }
 
-if (Os.isFamily(Os.FAMILY_MAC)) {
+val isMac = Os.isFamily(Os.FAMILY_MAC)
+val isLinux = Os.isName("linux")
+
+if (isMac || isLinux) {
     tasks.withType<AbstractJPackageTask>().configureEach {
         if (targetFormat != TargetFormat.AppImage) {
             return@configureEach
         }
 
         fun appResourcesDirectory() = destinationDir.get().asFile
-            .resolve("${packageName.get()}.app/Contents/app/resources")
+            .resolve(packageName.get() + if (isMac) ".app/Contents/app/resources" else "/lib/app/resources")
 
         // Compose's app-resource copy does not preserve POSIX executable bits.
-        // Repair the app image before it is passed to the DMG packaging task.
+        // Repair the app image before verification or downstream packaging.
         outputs.upToDateWhen {
             executableAppResourceNames.all { name ->
                 appResourcesDirectory().resolve(name).canExecute()
@@ -277,6 +280,20 @@ if (Os.isFamily(Os.FAMILY_MAC)) {
                     "Could not mark bundled resource as executable: $executable"
                 }
             }
+        }
+    }
+}
+
+if (isLinux) {
+    // Package the repaired image instead of copying app resources again.
+    // Wiring the image task's output as input also adds the task dependency.
+    listOf(
+        "packageDeb" to "createDistributable",
+        "packageReleaseDeb" to "createReleaseDistributable",
+    ).forEach { (packageTaskName, imageTaskName) ->
+        val imageTask = tasks.named<AbstractJPackageTask>(imageTaskName)
+        tasks.named<AbstractJPackageTask>(packageTaskName) {
+            appImage.set(imageTask.flatMap { it.destinationDir.dir(it.packageName) })
         }
     }
 }

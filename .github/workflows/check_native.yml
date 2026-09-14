@@ -429,13 +429,13 @@ jobs:
         if: runner.os != 'Linux' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.instance == 'true')
         run: >-
           ${{ matrix.gradle }} --continue --max-workers=1
-          -Pkeyguard.nativeCargo.cargoOffline=true
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
           :util:io:desktopTest :util:instance:desktopTest :desktopApp:jvmTest
       - name: "Run Windows private staging regressions"
         if: runner.os == 'Windows' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.crypto == 'true')
         run: >-
           ${{ matrix.gradle }} --max-workers=1
-          -Pkeyguard.nativeCargo.cargoOffline=true
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
           :common:desktopTest
           --tests "com.artemchep.keyguard.crypto.PrivateTemporaryStorageDirectoryDesktopTest"
           --tests "com.artemchep.keyguard.common.service.keepass.KeePassDatabaseWindowsSpillTest"
@@ -449,7 +449,7 @@ jobs:
         if: needs.changes.outputs.desktop == 'true'
         run: >-
           ${{ matrix.gradle }} --max-workers=1
-          -Pkeyguard.nativeCargo.cargoOffline=true
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
           :desktopApp:createDistributable
       - name: "Verify desktop bundle"
         if: needs.changes.outputs.desktop == 'true'

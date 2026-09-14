@@ -287,14 +287,18 @@ if (isMac || isLinux) {
 if (isLinux) {
     // Package the repaired image instead of copying app resources again.
     // Wiring the image task's output as input also adds the task dependency.
+    // Compose registers desktop packaging tasks after project evaluation, so
+    // configure them through a live task collection instead of looking them up eagerly.
     listOf(
         "packageDeb" to "createDistributable",
         "packageReleaseDeb" to "createReleaseDistributable",
     ).forEach { (packageTaskName, imageTaskName) ->
-        val imageTask = tasks.named<AbstractJPackageTask>(imageTaskName)
-        tasks.named<AbstractJPackageTask>(packageTaskName) {
-            appImage.set(imageTask.flatMap { it.destinationDir.dir(it.packageName) })
-        }
+        tasks.withType<AbstractJPackageTask>()
+            .matching { it.name == packageTaskName }
+            .configureEach {
+                val imageTask = tasks.named<AbstractJPackageTask>(imageTaskName)
+                appImage.set(imageTask.flatMap { it.destinationDir.dir(it.packageName) })
+            }
     }
 }
 

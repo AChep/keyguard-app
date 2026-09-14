@@ -18,7 +18,7 @@
     ProcessorArchitecture="@PROCESSOR_ARCHITECTURE@" />
 
   <Properties>
-    <DisplayName>Keyguard</DisplayName>
+    <DisplayName>Keyguard App</DisplayName>
     <PublisherDisplayName>@PUBLISHER_DISPLAY_NAME@</PublisherDisplayName>
     <Description>Secure password manager that's also nice to use</Description>
     <Logo>Assets\StoreLogo.png</Logo>

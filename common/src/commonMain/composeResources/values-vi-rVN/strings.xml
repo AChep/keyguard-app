@@ -7,6 +7,13 @@
     <string name="no">Không</string>
     <!-- On click brings Keyguard app to the front -->
     <string name="show_keyguard">Hiện Keyguard</string>
+    <string name="instance_service_error_title">Keyguard instance service failed</string>
+    <string name="instance_service_error_text">Keyguard could not start or contact its instance service. If this continues after restarting Keyguard, include the details below in a bug report.</string>
+    <string name="instance_service_permission_text">Keyguard cannot safely access its instance files. Check ownership and permissions of its data and runtime directories and their parent directories.</string>
+    <string name="instance_service_timeout_text">Another Keyguard process did not respond in time. Close that process and try again.</string>
+    <string name="instance_service_unavailable_text">The native instance service is unavailable. Reinstall Keyguard if restarting it does not help.</string>
+    <string name="instance_service_configuration_text">The instance service configuration or protocol is invalid. Include the details below in a bug report.</string>
+    <string name="instance_service_stopped_text">The instance service stopped and could not recover. Finish any edits, then quit and reopen Keyguard. Further launches cannot activate this window until you restart.</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Tên</string>
     <string name="description">Description</string>
@@ -383,6 +390,7 @@
     <string name="ciphers_action_upload_gpg_public_key_title">Tải khóa công khai GPG lên</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Tải khóa công khai lên máy chủ khóa?</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard sẽ gửi khóa công khai GPG dạng armor của mục này đến máy chủ khóa mà bạn đã cấu hình. Khóa công khai có thể bao gồm dấu vân tay, ID người dùng như tên và địa chỉ e-mail, các khóa phụ, ngày tháng và trạng thái thu hồi. Máy chủ khóa có thể lưu trữ và phân phối lại dữ liệu công khai này. Việc tải lên này không yêu cầu gửi e-mail xác minh.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Select the e-mail addresses that should receive a verification e-mail from the keyserver. Until an address is verified, the key cannot be found by that address.</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">Làm mới khóa công khai GPG</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Làm mới khóa công khai từ máy chủ khóa?</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard sẽ liên hệ với máy chủ khóa GPG mà bạn đã cấu hình bằng dấu vân tay của khóa này. Nếu tìm thấy khóa công khai khớp, Keyguard sẽ cập nhật khóa công khai đã lưu, siêu dữ liệu khóa và trạng thái máy chủ khóa cho mục này.</string>
@@ -581,7 +589,7 @@
     <string name="gpg_key_expiry_revoked_message">Không thể gia hạn một thành phần khóa đã bị thu hồi.</string>
     <string name="gpg_key_expiry_unresolved_revocation_message">Không thể xác minh một thu hồi được chỉ định vì khóa công khai của bên thu hồi không khả dụng. Hãy nhập nó và thử lại.</string>
     <string name="gpg_key_expiry_unsupported_signing_hash_message">This key can only be re-certified with an insecure digest algorithm. Migrate to a modern key instead.</string>
-    <string name="gpg_key_expiry_missing_self_signature_message">This key has no valid self-signature, so it cannot be renewed. It may be corrupted or incomplete.</string>
+    <string name="gpg_key_expiry_missing_self_signature_message">This key cannot be renewed because its self-signature is missing, invalid, or rejected by security policy.</string>
     <string name="gpg_user_id_revocation_dialog_title">Revoke GPG User ID</string>
     <string name="gpg_user_id_revocation_dialog_message">Select the User ID to revoke. Revocation adds a signed statement to the certificate and does not erase the identity or its history.</string>
     <string name="gpg_user_id_revocation_confirm">Revoke</string>
@@ -724,6 +732,7 @@
         solely of whitespace characters. It's OK to translate it exactly the same
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Không được để trống</string>
+    <string name="error_invalid_regex">Invalid regular expression</string>
     <string name="error_must_be_custom_domain">Phải là tên miền tùy chỉnh</string>
     <string name="error_must_be_number">Phải là một số</string>
     <string name="error_must_be_less_than_days">Phải ít hơn <xliff:g id="days" example="15">%1$d</xliff:g> ngày kể từ thời điểm hiện tại</string>
@@ -776,6 +785,9 @@
     <string name="scanqr_camera_permission_required_text">Cần phải có quyền sử dụng máy ảnh để quét mã QR.</string>
     <string name="post_notifications_permission_banner_title">Thông báo đã bị vô hiệu hóa</string>
     <string name="post_notifications_permission_banner_text">Cấp quyền thông báo để cho phép Keyguard hiển thị mật khẩu một lần khi tự động điền &amp; nhiều hơn nữa.</string>
+    <string name="local_network_permission_banner_title">Allow local network access</string>
+    <string name="local_network_permission_banner_text">If your server is on your local network, allow access and retry the connection.</string>
+    <string name="local_network_permission_open_settings_action">Open app settings</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Mã vạch</string>
     <string name="barcodetype_action_show_in_barcode_title">Hiển thị dưới dạng mã vạch</string>
@@ -832,6 +844,14 @@
     <string name="emailleak_breach_reported_at">Công khai vào <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Không thể kiểm tra các dữ liệu bị rò rỉ. Bạn có thể đang ngoại tuyến</string>
     <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
+    <!-- Title of the 'Website data breach' dialog -->
+    <string name="websiteleak_title">Data breach</string>
+    <string name="websiteleak_note">Breached website data can provide malicious actors with access to sensitive personal and financial information, potentially compromising user accounts across that service.</string>
+    <string name="websiteleak_breach_not_found_title">No breaches found</string>
+    <string name="websiteleak_breach_found_title">Website breaches found</string>
+    <string name="websiteleak_breach_section">Breaches</string>
+    <string name="websiteleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="websiteleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="passwordleak_title">Rò rỉ thông tin</string>
     <string name="passwordleak_note">Mật khẩu đã bị rò rỉ tốn ít thời gian hơn để giải mã và ta không nên dùng nó cho bất kỳ việc gì.</string>
     <string name="passwordleak_occurrences_found_title">Mật khẩu bị rò rỉ</string>
@@ -1287,6 +1307,7 @@
     <string name="generator_gpg_key_name_title">Tên</string>
     <string name="generator_gpg_key_email_title">Email</string>
     <string name="generator_gpg_key_modern_note">Tạo khóa OpenPGP với khóa ký/chứng nhận Ed25519 và một khóa phụ mã hóa X25519.</string>
+    <string name="generator_gpg_key_rsa_note">Creates an OpenPGP key with an RSA certification key and separate RSA signing and encryption subkeys.</string>
     <string name="generator_gpg_key_modern_text">Dạng khóa OpenPGP hiện đại</string>
     <string name="generator_key_length_title">Độ dài</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
@@ -1777,6 +1798,8 @@
     <string name="pref_item_permission_write_external_storage_grant">Cấp quyền ghi bộ nhớ ngoài</string>
     <string name="pref_item_permission_camera_title">Máy ảnh</string>
     <string name="pref_item_permission_camera_text">Dùng để quét mã QR</string>
+    <string name="pref_item_permission_local_network_title">Local network</string>
+    <string name="pref_item_permission_local_network_text">Used to connect to self-hosted Bitwarden, WebDAV, and SFTP servers on your local network</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Cho phép bố trí hai bảng ở chế độ ngang</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">Cho phép bố trí hai bảng ở chế độ dọc</string>
     <string name="pref_item_gpg_agent_title">GPG agent</string>
@@ -1922,14 +1945,17 @@
     <string name="gpg_key_status_expired_text">Khóa GPG này đã hết hạn và không nên sử dụng.</string>
     <string name="gpg_key_status_weak_self_signature_title">Weak self-signature</string>
     <string name="gpg_key_status_weak_self_signature_text">This key's self-signatures use a weak algorithm (SHA-1). Renew the key to re-sign it with a modern one.</string>
-    <string name="gpg_key_status_missing_self_signature_title">No valid self-signature</string>
-    <string name="gpg_key_status_missing_self_signature_text">This key has no valid self-signature, so it cannot be renewed. It may be corrupted or incomplete.</string>
+    <string name="gpg_key_status_unauthenticated_self_signature_title">No acceptable self-signature</string>
+    <string name="gpg_key_status_unauthenticated_self_signature_text">This key cannot be renewed because its self-signature is missing, invalid, or rejected by security policy.</string>
     <string name="gpg_key_user_ids">ID người dùng</string>
     <string name="gpg_key_does_not_expire">Không hết hạn</string>
     <string name="gpg_key_capability_encrypt_decrypt">Mã hóa/giải mã</string>
     <string name="gpg_key_sec_pub">sec/pub</string>
     <string name="gpg_key_secret_key">Khóa bí mật</string>
     <string name="gpg_key_subkey_n">Khóa phụ <xliff:g id="index" example="1">%1$d</xliff:g></string>
+    <string name="gpg_tools_public_key_invalid">Paste valid armored public certificates. Unsupported or incomplete input cannot be added.</string>
+    <string name="gpg_tools_public_key_private">Paste public certificates only. Private keys cannot be added here.</string>
+    <string name="gpg_tools_public_key_not_encryptable">Every recipient must have a currently usable encryption key.</string>
     <string name="gpg_tools_header_title">Công cụ GPG</string>
     <string name="gpg_tools_scope_text">Văn bản</string>
     <string name="gpg_tools_scope_file">Tệp</string>
@@ -1961,6 +1987,7 @@
     <string name="gpg_tools_clear_file">Xóa</string>
     <string name="gpg_tools_run_success">Đã hoàn tất thao tác GPG</string>
     <string name="gpg_tools_valid_signature">Chữ ký hợp lệ</string>
+    <string name="gpg_tools_invalid_input">Could not read the OpenPGP input. Check the message, signature, and selected keys.</string>
     <string name="gpg_tools_invalid_signature">Chữ ký không hợp lệ</string>
     <string name="gpg_tools_missing_public_key">Thiếu khóa công khai</string>
     <string name="gpg_tools_signature_by">Ký bởi <xliff:g id="signer" example="0123 ABCD">%1$s</xliff:g></string>
@@ -1987,6 +2014,7 @@
     <string name="gpg_keyserver_search_index_label">Chỉ mục</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">Không tìm thấy khóa công khai GPG trên máy chủ khóa</string>
     <string name="gpg_keyserver_upload_success_title">Đã tải khóa công khai GPG lên</string>
+    <string name="gpg_keyserver_upload_verify_already_published_text">The selected e-mail addresses are already verified.</string>
     <string name="gpg_keyserver_refresh_success_title">Đã làm mới khóa công khai GPG</string>
     <string name="gpg_keyserver_refresh_not_found_title">Không tìm thấy khóa công khai GPG trên máy chủ khóa</string>
     <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>

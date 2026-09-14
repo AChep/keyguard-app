@@ -43,9 +43,8 @@ use windows_sys::Win32::{
         FILE_FLAG_OPEN_REPARSE_POINT, FILE_FLAG_OVERLAPPED, FILE_LIST_DIRECTORY, FILE_SHARE_DELETE,
         FILE_SHARE_READ, FILE_SHARE_WRITE, FILE_WRITE_ATTRIBUTES, FILE_WRITE_DATA, FILE_WRITE_EA,
         GetDriveTypeW, GetFileInformationByHandle, GetVolumePathNameW, LOCKFILE_EXCLUSIVE_LOCK,
-        LOCKFILE_FAIL_IMMEDIATELY, LockFileEx, MOVEFILE_REPLACE_EXISTING, MoveFileExW, OPEN_ALWAYS,
-        OPEN_EXISTING, PIPE_ACCESS_DUPLEX, READ_CONTROL, ReadFile, WRITE_DAC, WRITE_OWNER,
-        WriteFile,
+        LOCKFILE_FAIL_IMMEDIATELY, LockFileEx, OPEN_ALWAYS, OPEN_EXISTING, PIPE_ACCESS_DUPLEX,
+        READ_CONTROL, ReadFile, WRITE_DAC, WRITE_OWNER, WriteFile,
     },
     System::{
         IO::{CancelIoEx, GetOverlappedResult, OVERLAPPED},
@@ -593,19 +592,9 @@ impl Directory {
             let mut file = self.private_file(&temporary, GENERIC_WRITE, CREATE_NEW, false)?;
             file.write_all(data)?;
             drop(file);
-            let source = wide(temporary.as_os_str())?;
-            let destination = wide(path.as_os_str())?;
-            // SAFETY: Both path buffers are valid and NUL-terminated through the call.
-            if unsafe {
-                MoveFileExW(
-                    source.as_ptr(),
-                    destination.as_ptr(),
-                    MOVEFILE_REPLACE_EXISTING,
-                )
-            } == 0
-            {
-                return Err(last_error());
-            }
+            // std supplies the POSIX rename fallback needed for open metadata readers.
+            fs::rename(&temporary, path)
+                .map_err(|error| Failure::from(error).context("publish_endpoint_metadata"))?;
             Ok(())
         })();
         if result.is_err() {

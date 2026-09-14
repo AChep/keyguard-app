@@ -7,6 +7,13 @@
     <string name="no">Não</string>
     <!-- On click brings Keyguard app to the front -->
     <string name="show_keyguard">Mostrar Keyguard</string>
+    <string name="instance_service_error_title">O serviço de instância do Keyguard falhou</string>
+    <string name="instance_service_error_text">O Keyguard não conseguiu iniciar ou contactar o serviço de instância. Se o problema persistir após reiniciar o Keyguard, inclua os detalhes abaixo num relatório de erro.</string>
+    <string name="instance_service_permission_text">O Keyguard não consegue aceder aos seus ficheiros de instância com segurança. Verifique a propriedade e as permissões dos diretórios de dados e de tempo de execução, bem como dos seus diretórios pai.</string>
+    <string name="instance_service_timeout_text">Outro processo do Keyguard não respondeu a tempo. Feche esse processo e tente novamente.</string>
+    <string name="instance_service_unavailable_text">O serviço de instância nativo está indisponível. Reinstale o Keyguard se reiniciá-lo não resolver o problema.</string>
+    <string name="instance_service_configuration_text">A configuração ou o protocolo do serviço de instância é inválido. Inclua os detalhes abaixo num relatório de erro.</string>
+    <string name="instance_service_stopped_text">O serviço da instância foi interrompido e não pôde ser recuperado. Conclua quaisquer edições, feche e abra novamente o Keyguard. As futuras iniciações não ativarão esta janela até que reinicie o programa.</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nome</string>
     <string name="description">Descrição</string>
@@ -383,6 +390,7 @@
     <string name="ciphers_action_upload_gpg_public_key_title">Enviar chave pública GPG</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Enviar a chave pública para o servidor?</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">O Keyguard enviará a chave pública GPG protegida deste item para o seu servidor de chaves configurado. A chave pública pode incluir impressões digitais, IDs de utilizador como nomes e endereços de e-mail, sub-chaves, datas e estado de revogação. O servidor de chaves pode armazenar e redistribuir estes dados públicos. Este envio não solicita e-mails de verificação.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Selecione os endereços de e-mail que devem receber um e-mail de verificação do servidor de chaves. Até que um endereço seja verificado, a chave não poderá ser encontrada por esse endereço.</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">Atualizar chave pública GPG</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Atualizar chave pública do servidor de chaves?</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">O Keyguard entrará em contacto com o servidor de chaves GPG configurado através da impressão digital desta chave. Se for encontrada uma chave pública correspondente, o Keyguard atualizará a chave pública armazenada, os metadados da chave e o estado do servidor de chaves para este item.</string>
@@ -724,6 +732,7 @@
         solely of whitespace characters. It's OK to translate it exactly the same
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Não deve estar em branco</string>
+    <string name="error_invalid_regex">Expressão regular inválida</string>
     <string name="error_must_be_custom_domain">Deve ser um domínio personalizado</string>
     <string name="error_must_be_number">Deve ser um número</string>
     <string name="error_must_be_less_than_days">Deve ser menor que <xliff:g id="days" example="15">%1$d</xliff:g> dias a partir da data atual</string>
@@ -777,6 +786,9 @@
 à câmera para ler códigos QR.</string>
     <string name="post_notifications_permission_banner_title">As notificações estão desativadas</string>
     <string name="post_notifications_permission_banner_text">Conceder permissão de notificações para permitir que o teclado exiba códigos de uso único quando preencher automaticamente &amp; mais.</string>
+    <string name="local_network_permission_banner_title">Permitir acesso à rede local</string>
+    <string name="local_network_permission_banner_text">Se o seu servidor estiver na sua rede local, permita o acesso e tente novamente a ligação.</string>
+    <string name="local_network_permission_open_settings_action">Abrir definições da aplicação</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Código de barras</string>
     <string name="barcodetype_action_show_in_barcode_title">Mostrar como código de barras</string>
@@ -833,6 +845,14 @@
     <string name="emailleak_breach_reported_at">Relatado a <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Falha ao verificar violações de dados. Pode não haver acesso à internet</string>
     <string name="emailleak_failed_no_api_found_text">Falha na verificação de violações de dados. O endpoint não está disponível</string>
+    <!-- Title of the 'Website data breach' dialog -->
+    <string name="websiteleak_title">Violação de dados</string>
+    <string name="websiteleak_note">Os dados de sites comprometidos podem fornecer aos agentes maliciosos o acesso a informações pessoais e financeiras sensíveis, comprometendo potencialmente as contas dos utilizadores em todo o serviço.</string>
+    <string name="websiteleak_breach_not_found_title">Nenhuma violação de dados encontrada</string>
+    <string name="websiteleak_breach_found_title">Foram encontradas violações de segurança no site</string>
+    <string name="websiteleak_breach_section">Violações de dados</string>
+    <string name="websiteleak_breach_occurred_at">Ocorreu em <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="websiteleak_breach_reported_at">Reportado em <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="passwordleak_title">Violação de dados</string>
     <string name="passwordleak_note">Uma palavra-passe encontrada numa violação de dados leva significativamente menos tempo para decifrar e não é recomendado o seu uso.</string>
     <string name="passwordleak_occurrences_found_title">Palavra-passe encontrada em violação de dados</string>
@@ -1288,6 +1308,7 @@
     <string name="generator_gpg_key_name_title">Nome</string>
     <string name="generator_gpg_key_email_title">E-mail</string>
     <string name="generator_gpg_key_modern_note">Cria uma chave OpenPGP com chaves de assinatura/certificação Ed25519 e uma subchave de encriptação X25519.</string>
+    <string name="generator_gpg_key_rsa_note">Cria uma chave OpenPGP com uma chave de certificação RSA e subchaves RSA separadas para assinatura e encriptação.</string>
     <string name="generator_gpg_key_modern_text">Formato de chave OpenPGP moderno</string>
     <string name="generator_key_length_title">Nº de caracteres</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
@@ -1711,7 +1732,7 @@
     <string name="pref_item_license_sync_no_purchases">Nenhuma compra elegível encontrada</string>
     <string name="pref_item_license_sync_failed">Não foi possível obter token de titularidade</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueio biométrico</string>
-    <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_windows_hello_unlock_title">Desbloquear com Windows Hello</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Requer confirmação</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Exigir um toque adicional no botão de confirmação após uma autenticação biométrica bem sucedida</string>
     <string name="pref_item_yubikey_unlock_title">Desbloquear com YubiKey</string>
@@ -1778,6 +1799,8 @@
     <string name="pref_item_permission_write_external_storage_grant">Conceder permissão de armazenamento externo</string>
     <string name="pref_item_permission_camera_title">Câmera</string>
     <string name="pref_item_permission_camera_text">Usado para escanear códigos QR</string>
+    <string name="pref_item_permission_local_network_title">Rede local</string>
+    <string name="pref_item_permission_local_network_text">Utilizado para se ligar a servidores Bitwarden, WebDAV e SFTP hospedados na sua rede local</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Permitir visualização com dois painéis em modo paisagem</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">Permitir visualização com dois painéis em modo retrato</string>
     <string name="pref_item_gpg_agent_title">Agente GPG</string>
@@ -1923,14 +1946,17 @@
     <string name="gpg_key_status_expired_text">Esta chave GPG expirou e não deve ser utilizada.</string>
     <string name="gpg_key_status_weak_self_signature_title">Assinatura própria fraca</string>
     <string name="gpg_key_status_weak_self_signature_text">As assinaturas automáticas desta chave utilizam um algoritmo fraco (SHA-1). Renove a chave para voltar a assiná-la com um algoritmo mais moderno.</string>
-    <string name="gpg_key_status_missing_self_signature_title">Assinatura inválida</string>
-    <string name="gpg_key_status_missing_self_signature_text">Esta chave não tem uma assinatura própria válida, pelo que não pode ser renovada. Pode estar corrompida ou incompleta.</string>
+    <string name="gpg_key_status_unauthenticated_self_signature_title">Assinatura não aceite</string>
+    <string name="gpg_key_status_unauthenticated_self_signature_text">Esta chave não pode ser renovada porque a sua subscrição está em falta, é inválida ou foi rejeitada pela política de segurança.</string>
     <string name="gpg_key_user_ids">IDs de utilizador</string>
     <string name="gpg_key_does_not_expire">Não expira</string>
     <string name="gpg_key_capability_encrypt_decrypt">Encriptar/desencriptar</string>
     <string name="gpg_key_sec_pub">sec/pub</string>
     <string name="gpg_key_secret_key">Chave secreta</string>
     <string name="gpg_key_subkey_n">Sub-chave <xliff:g id="index" example="1">%1$d</xliff:g></string>
+    <string name="gpg_tools_public_key_invalid">Cole certificados públicos blindados válidos. Não é possível adicionar dados de entrada não suportados ou incompletos.</string>
+    <string name="gpg_tools_public_key_private">Cole apenas certificados públicos. Não é possível adicionar chaves privadas aqui.</string>
+    <string name="gpg_tools_public_key_not_encryptable">Cada destinatário deve possuir uma chave de encriptação atualmente utilizável.</string>
     <string name="gpg_tools_header_title">Ferramentas GPG</string>
     <string name="gpg_tools_scope_text">Texto</string>
     <string name="gpg_tools_scope_file">Ficheiro</string>
@@ -1962,6 +1988,7 @@
     <string name="gpg_tools_clear_file">Limpar</string>
     <string name="gpg_tools_run_success">Operação GPG concluída</string>
     <string name="gpg_tools_valid_signature">Assinatura válida</string>
+    <string name="gpg_tools_invalid_input">Não foi possível ler a entrada OpenPGP. Verifique a mensagem, a assinatura e as chaves selecionadas.</string>
     <string name="gpg_tools_invalid_signature">Assinatura inválida</string>
     <string name="gpg_tools_missing_public_key">Falta chave pública</string>
     <string name="gpg_tools_signature_by">Assinado por <xliff:g id="signer" example="0123 ABCD">%1$s</xliff:g></string>
@@ -1988,6 +2015,7 @@
     <string name="gpg_keyserver_search_index_label">Índice</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">Chave pública GPG não encontrada no servidor de chaves</string>
     <string name="gpg_keyserver_upload_success_title">Chave pública GPG enviada</string>
+    <string name="gpg_keyserver_upload_verify_already_published_text">Os endereços de e-mail selecionados já foram verificados.</string>
     <string name="gpg_keyserver_refresh_success_title">Chave pública GPG atualizada</string>
     <string name="gpg_keyserver_refresh_not_found_title">Chave pública GPG não encontrada no servidor de chaves</string>
     <string name="gpg_keyserver_refresh_failed_title">Não foi possível atualizar a chave pública GPG</string>

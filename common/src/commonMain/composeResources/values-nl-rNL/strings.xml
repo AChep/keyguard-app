@@ -7,6 +7,13 @@
     <string name="no">No</string>
     <!-- On click brings Keyguard app to the front -->
     <string name="show_keyguard">Open Keyguard</string>
+    <string name="instance_service_error_title">Keyguard instance service failed</string>
+    <string name="instance_service_error_text">Keyguard could not start or contact its instance service. If this continues after restarting Keyguard, include the details below in a bug report.</string>
+    <string name="instance_service_permission_text">Keyguard cannot safely access its instance files. Check ownership and permissions of its data and runtime directories and their parent directories.</string>
+    <string name="instance_service_timeout_text">Another Keyguard process did not respond in time. Close that process and try again.</string>
+    <string name="instance_service_unavailable_text">The native instance service is unavailable. Reinstall Keyguard if restarting it does not help.</string>
+    <string name="instance_service_configuration_text">The instance service configuration or protocol is invalid. Include the details below in a bug report.</string>
+    <string name="instance_service_stopped_text">The instance service stopped and could not recover. Finish any edits, then quit and reopen Keyguard. Further launches cannot activate this window until you restart.</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Naam</string>
     <string name="description">Description</string>
@@ -383,6 +390,7 @@
     <string name="ciphers_action_upload_gpg_public_key_title">GPG publieke sleutel uploaden</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Publieke sleutel uploaden naar de sleutelserver?</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard verstuurt de armored GPG publieke sleutel van dit item naar de door jou ingestelde sleutelserver. De publieke sleutel kan vingerafdrukken, gebruikers-ID's zoals namen en e-mailadressen, subsleutels, datums en de intrekkingsstatus bevatten. De sleutelserver kan deze publieke gegevens opslaan en verder verspreiden. Bij deze upload worden geen verificatie-e-mails aangevraagd.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Select the e-mail addresses that should receive a verification e-mail from the keyserver. Until an address is verified, the key cannot be found by that address.</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">GPG publieke sleutel vernieuwen</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Publieke sleutel vernieuwen vanaf de sleutelserver?</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard neemt met de vingerafdruk van deze sleutel contact op met de door jou ingestelde GPG-sleutelserver. Als er een overeenkomende publieke sleutel wordt gevonden, werkt Keyguard de opgeslagen publieke sleutel, de sleutelmetadata en de sleutelserverstatus van dit item bij.</string>
@@ -581,7 +589,7 @@
     <string name="gpg_key_expiry_revoked_message">Een ingetrokken sleutelcomponent kan niet worden vernieuwd.</string>
     <string name="gpg_key_expiry_unresolved_revocation_message">Een aangewezen intrekking kan niet worden geverifieerd omdat de publieke sleutel van de intrekker niet beschikbaar is. Importeer deze en probeer het opnieuw.</string>
     <string name="gpg_key_expiry_unsupported_signing_hash_message">This key can only be re-certified with an insecure digest algorithm. Migrate to a modern key instead.</string>
-    <string name="gpg_key_expiry_missing_self_signature_message">This key has no valid self-signature, so it cannot be renewed. It may be corrupted or incomplete.</string>
+    <string name="gpg_key_expiry_missing_self_signature_message">This key cannot be renewed because its self-signature is missing, invalid, or rejected by security policy.</string>
     <string name="gpg_user_id_revocation_dialog_title">Revoke GPG User ID</string>
     <string name="gpg_user_id_revocation_dialog_message">Select the User ID to revoke. Revocation adds a signed statement to the certificate and does not erase the identity or its history.</string>
     <string name="gpg_user_id_revocation_confirm">Revoke</string>
@@ -724,6 +732,7 @@
         solely of whitespace characters. It's OK to translate it exactly the same
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Veld mag niet leeg zijn</string>
+    <string name="error_invalid_regex">Invalid regular expression</string>
     <string name="error_must_be_custom_domain">Moet een aangepast domein zijn</string>
     <string name="error_must_be_number">Moet een getal zijn</string>
     <string name="error_must_be_less_than_days">Moet kleiner zijn dan <xliff:g id="days" example="15">%1$d</xliff:g> dagen vanaf de huidige tijd</string>
@@ -776,6 +785,9 @@
     <string name="scanqr_camera_permission_required_text">Camera machtiging vereist voor het scannen van QR-codes.</string>
     <string name="post_notifications_permission_banner_title">Meldingen zijn uitgeschakeld</string>
     <string name="post_notifications_permission_banner_text">Sta notificaties toe om Keyguard tijdelijke toegangscodes te tonen in een notificatie tijdens het automatisch aanvullen van account gegevens.</string>
+    <string name="local_network_permission_banner_title">Allow local network access</string>
+    <string name="local_network_permission_banner_text">If your server is on your local network, allow access and retry the connection.</string>
+    <string name="local_network_permission_open_settings_action">Open app settings</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
     <string name="barcodetype_action_show_in_barcode_title">Toon als barcode</string>
@@ -832,6 +844,14 @@
     <string name="emailleak_breach_reported_at">Gerapporteerd op <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Gegevenslekken kunnen niet worden gecontroleerd. Mogelijk ben je momenteel offline</string>
     <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
+    <!-- Title of the 'Website data breach' dialog -->
+    <string name="websiteleak_title">Data breach</string>
+    <string name="websiteleak_note">Breached website data can provide malicious actors with access to sensitive personal and financial information, potentially compromising user accounts across that service.</string>
+    <string name="websiteleak_breach_not_found_title">No breaches found</string>
+    <string name="websiteleak_breach_found_title">Website breaches found</string>
+    <string name="websiteleak_breach_section">Breaches</string>
+    <string name="websiteleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="websiteleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="passwordleak_title">Datalek</string>
     <string name="passwordleak_note">Een wachtwoord dat in een datalek aangetroffen is kan makkelijker gekraakt worden en mag nooit gebruikt worden.</string>
     <string name="passwordleak_occurrences_found_title">Wachtwoord is gelekt</string>
@@ -1287,6 +1307,7 @@
     <string name="generator_gpg_key_name_title">Naam</string>
     <string name="generator_gpg_key_email_title">E-mail</string>
     <string name="generator_gpg_key_modern_note">Maakt een OpenPGP-sleutel met Ed25519-sleutels voor ondertekening/certificering en een X25519-subsleutel voor versleuteling.</string>
+    <string name="generator_gpg_key_rsa_note">Creates an OpenPGP key with an RSA certification key and separate RSA signing and encryption subkeys.</string>
     <string name="generator_gpg_key_modern_text">Moderne OpenPGP-sleutelvorm</string>
     <string name="generator_key_length_title">Lengte</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
@@ -1777,6 +1798,8 @@
     <string name="pref_item_permission_write_external_storage_grant">Sta schrijfrechten toe voor externe opslag</string>
     <string name="pref_item_permission_camera_title">Camera</string>
     <string name="pref_item_permission_camera_text">Wordt gebruikt om QR-codes te scannen</string>
+    <string name="pref_item_permission_local_network_title">Local network</string>
+    <string name="pref_item_permission_local_network_text">Used to connect to self-hosted Bitwarden, WebDAV, and SFTP servers on your local network</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Twee panelen indeling in landschap modus toestaan</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">Twee panelen indeling in portret modus toestaan</string>
     <string name="pref_item_gpg_agent_title">GPG agent</string>
@@ -1922,14 +1945,17 @@
     <string name="gpg_key_status_expired_text">Deze GPG-sleutel is verlopen en mag niet worden gebruikt.</string>
     <string name="gpg_key_status_weak_self_signature_title">Weak self-signature</string>
     <string name="gpg_key_status_weak_self_signature_text">This key's self-signatures use a weak algorithm (SHA-1). Renew the key to re-sign it with a modern one.</string>
-    <string name="gpg_key_status_missing_self_signature_title">No valid self-signature</string>
-    <string name="gpg_key_status_missing_self_signature_text">This key has no valid self-signature, so it cannot be renewed. It may be corrupted or incomplete.</string>
+    <string name="gpg_key_status_unauthenticated_self_signature_title">No acceptable self-signature</string>
+    <string name="gpg_key_status_unauthenticated_self_signature_text">This key cannot be renewed because its self-signature is missing, invalid, or rejected by security policy.</string>
     <string name="gpg_key_user_ids">Gebruikers-ID's</string>
     <string name="gpg_key_does_not_expire">Verloopt niet</string>
     <string name="gpg_key_capability_encrypt_decrypt">Versleutelen/ontsleutelen</string>
     <string name="gpg_key_sec_pub">sec/pub</string>
     <string name="gpg_key_secret_key">Geheime sleutel</string>
     <string name="gpg_key_subkey_n">Subsleutel <xliff:g id="index" example="1">%1$d</xliff:g></string>
+    <string name="gpg_tools_public_key_invalid">Paste valid armored public certificates. Unsupported or incomplete input cannot be added.</string>
+    <string name="gpg_tools_public_key_private">Paste public certificates only. Private keys cannot be added here.</string>
+    <string name="gpg_tools_public_key_not_encryptable">Every recipient must have a currently usable encryption key.</string>
     <string name="gpg_tools_header_title">GPG-hulpmiddelen</string>
     <string name="gpg_tools_scope_text">Tekst</string>
     <string name="gpg_tools_scope_file">Bestand</string>
@@ -1961,6 +1987,7 @@
     <string name="gpg_tools_clear_file">Wissen</string>
     <string name="gpg_tools_run_success">GPG-bewerking voltooid</string>
     <string name="gpg_tools_valid_signature">Geldige handtekening</string>
+    <string name="gpg_tools_invalid_input">Could not read the OpenPGP input. Check the message, signature, and selected keys.</string>
     <string name="gpg_tools_invalid_signature">Ongeldige handtekening</string>
     <string name="gpg_tools_missing_public_key">Ontbrekende publieke sleutel</string>
     <string name="gpg_tools_signature_by">Ondertekend door <xliff:g id="signer" example="0123 ABCD">%1$s</xliff:g></string>
@@ -1987,6 +2014,7 @@
     <string name="gpg_keyserver_search_index_label">Index</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">GPG publieke sleutel niet gevonden op de sleutelserver</string>
     <string name="gpg_keyserver_upload_success_title">GPG publieke sleutel geüpload</string>
+    <string name="gpg_keyserver_upload_verify_already_published_text">The selected e-mail addresses are already verified.</string>
     <string name="gpg_keyserver_refresh_success_title">GPG publieke sleutel vernieuwd</string>
     <string name="gpg_keyserver_refresh_not_found_title">GPG publieke sleutel niet gevonden op de sleutelserver</string>
     <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>

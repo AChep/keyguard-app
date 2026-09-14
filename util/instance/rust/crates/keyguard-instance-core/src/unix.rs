@@ -108,13 +108,17 @@ fn validate_aliases(path: &Path, depth: usize) -> Result<()> {
     Ok(())
 }
 
+fn validate_file_metadata(metadata: &fs::Metadata) -> Result<()> {
+    if !metadata.is_file() || metadata.uid() != uid() || metadata.mode() & 0o077 != 0 {
+        return Err(Error::Permission.into());
+    }
+    Ok(())
+}
+
 fn validate_file(file: &File) -> Result<()> {
     let metadata = file.metadata()?;
-    if !metadata.is_file()
-        || metadata.uid() != uid()
-        || metadata.mode() & 0o077 != 0
-        || metadata.nlink() != 1
-    {
+    validate_file_metadata(&metadata)?;
+    if metadata.nlink() != 1 {
         return Err(Error::Permission.into());
     }
     Ok(())
@@ -154,7 +158,19 @@ fn read_private(path: &Path, max: usize) -> Result<Vec<u8>> {
         .read(true)
         .custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC | libc::O_NONBLOCK)
         .open(path)?;
-    validate_file(&file)?;
+    read_private_file(file, max)
+}
+
+fn read_private_file(file: File, max: usize) -> Result<Vec<u8>> {
+    let metadata = file.metadata()?;
+    validate_file_metadata(&metadata)?;
+    match metadata.nlink() {
+        // Recovery can remove or replace the endpoint after open. Retry through
+        // the same bounded acquisition loop used when open finds no endpoint.
+        0 => return Err(io::Error::from(io::ErrorKind::NotFound).into()),
+        1 => {}
+        _ => return Err(Error::Permission.into()),
+    }
     let mut data = Vec::with_capacity(max.min(1024));
     file.take(max as u64 + 1).read_to_end(&mut data)?;
     if data.len() > max {
@@ -883,10 +899,81 @@ mod tests {
         let directory = Directory::new();
         let path = directory.0.join("app.endpoint");
         publish_private(&path, b"first").unwrap();
+        let previous = File::open(&path).unwrap();
         publish_private(&path, b"second").unwrap();
+        assert_eq!(
+            read_private_file(previous, 6).unwrap_err().io_kind(),
+            Some(io::ErrorKind::NotFound)
+        );
         assert_eq!(read_private(&path, 6).unwrap(), b"second");
         assert_eq!(read_private(&path, 5).unwrap_err().kind(), Error::Protocol);
         assert_eq!(fs::metadata(path).unwrap().mode() & 0o777, 0o600);
+    }
+
+    #[test]
+    fn private_metadata_unlinked_after_open_is_retryable() {
+        let directory = Directory::new();
+        let path = directory.0.join("app.endpoint");
+        publish_private(&path, b"first").unwrap();
+        let file = File::open(&path).unwrap();
+        fs::remove_file(&path).unwrap();
+
+        assert_eq!(
+            read_private_file(file, 6).unwrap_err().io_kind(),
+            Some(io::ErrorKind::NotFound)
+        );
+        publish_private(&path, b"second").unwrap();
+        assert_eq!(read_private(&path, 6).unwrap(), b"second");
+    }
+
+    #[test]
+    fn ownership_file_validation_rejects_unlinked_handles() {
+        let directory = Directory::new();
+        let path = directory.0.join("app.lock");
+        let lease = try_lock(&path).unwrap().unwrap();
+        fs::remove_file(path).unwrap();
+
+        assert_eq!(
+            validate_file(&lease._file).unwrap_err().kind(),
+            Error::Permission
+        );
+    }
+
+    #[test]
+    fn private_metadata_rejects_hardlinks() {
+        let directory = Directory::new();
+        let path = directory.0.join("app.endpoint");
+        publish_private(&path, b"first").unwrap();
+        let link = directory.0.join("endpoint-link");
+        fs::hard_link(&path, &link).unwrap();
+
+        assert_eq!(
+            read_private(&path, 6).unwrap_err().kind(),
+            Error::Permission
+        );
+        assert_eq!(
+            read_private(&link, 6).unwrap_err().kind(),
+            Error::Permission
+        );
+    }
+
+    #[test]
+    fn private_metadata_rejects_shared_permissions_even_after_unlink() {
+        let directory = Directory::new();
+        let path = directory.0.join("app.endpoint");
+        publish_private(&path, b"first").unwrap();
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o644)).unwrap();
+        let file = File::open(&path).unwrap();
+
+        assert_eq!(
+            read_private(&path, 6).unwrap_err().kind(),
+            Error::Permission
+        );
+        fs::remove_file(path).unwrap();
+        assert_eq!(
+            read_private_file(file, 6).unwrap_err().kind(),
+            Error::Permission
+        );
     }
 
     #[test]

@@ -1,4 +1,7 @@
+import groovy.xml.XmlUtil
+import org.apache.tools.ant.filters.ReplaceTokens
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.Sync
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
@@ -372,4 +375,172 @@ tasks.register<Tar>("packageDistributable") {
 
 tasks.register<Tar>("packageReleaseDistributable") {
     installPackageDistributable("createReleaseDistributable")
+}
+
+// MSIX packaging (Windows only). jpackage can not produce MSIX, so we pack
+// the app image together with the manifest and the tile assets from the
+// 'msix' directory using the Windows SDK tools. See msix/README.md.
+if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    val appVersion = libs.versions.appVersionName.get()
+    val msixArchitecture = when (val osArch = System.getProperty("os.arch").lowercase()) {
+        "amd64", "x86_64", "x64" -> "x64"
+        "aarch64", "arm64" -> "arm64"
+        else -> error("Unsupported Windows MSIX architecture: $osArch")
+    }
+
+    fun msixProperty(name: String): String? = (findProperty(name) as String?)
+        ?.takeIf { it.isNotBlank() }
+
+    // Finds a Windows SDK tool, preferring the highest installed SDK version.
+    fun windowsSdkTool(name: String): File {
+        msixProperty("msix_sdk_bin_dir")?.let { return File(it, name) }
+        // The ARM64 SDK tools are not present in every SDK installation. The
+        // x64 tools can still pack and sign ARM64 packages under emulation.
+        val toolArchitectures = listOf(msixArchitecture, "x64").distinct()
+        val tool = listOfNotNull(System.getenv("ProgramFiles(x86)"), System.getenv("ProgramFiles"))
+            .map { File(it, "Windows Kits/10/bin") }
+            .flatMap { it.listFiles()?.toList().orEmpty() }
+            .filter { it.name.startsWith("10.") }
+            .sortedByDescending { dir ->
+                dir.name.split('.')
+                    .fold(0L) { acc, part -> acc * 100000 + (part.toLongOrNull() ?: 0L) }
+            }
+            .asSequence()
+            .flatMap { dir ->
+                toolArchitectures.asSequence().map { architecture ->
+                    dir.resolve("$architecture/$name")
+                }
+            }
+            .firstOrNull { it.isFile }
+        return tool
+            ?: error(
+                "$name was not found for $msixArchitecture. " +
+                    "Install the Windows 10/11 SDK or set -Pmsix_sdk_bin_dir=<dir>.",
+            )
+    }
+
+    data class MsixFlavor(
+        val id: String,
+        val fileName: String,
+        val identityName: String?,
+        val publisher: String?,
+    ) {
+        val isConfigured get() = identityName != null && publisher != null
+    }
+
+    val msixVersion = msixProperty("msix_version") ?: "$appVersion.0"
+    val msixPublisherDisplayName = msixProperty("msix_publisher_display_name") ?: "Artem Chepurnyi"
+    val msixFlavors = listOf(
+        // Identity values come from the Partner Center, the Store
+        // signs the package itself.
+        MsixFlavor(
+            id = "store",
+            fileName = "Keyguard-$appVersion-$msixArchitecture-store.msix",
+            identityName = msixProperty("msix_store_identity_name"),
+            publisher = msixProperty("msix_store_publisher"),
+        ),
+        // Publisher must match the subject of the signing certificate.
+        MsixFlavor(
+            id = "sideload",
+            fileName = "Keyguard-$appVersion-$msixArchitecture.msix",
+            identityName = msixProperty("msix_sideload_identity_name") ?: "ArtemChepurnyi.Keyguard",
+            publisher = msixProperty("msix_sideload_publisher") ?: "CN=Artem Chepurnyi",
+        ),
+    )
+
+    fun registerMsixTasks(
+        buildType: String,
+        binariesDirName: String,
+    ) {
+        val binariesDir = layout.buildDirectory.dir("compose/binaries/$binariesDirName")
+        val appImageDir = binariesDir.map { it.dir("app/Keyguard") }
+        val outputDir = binariesDir.map { it.dir("msix") }
+
+        val packageTasks = msixFlavors.map { flavor ->
+            val flavorName = flavor.id.replaceFirstChar { it.uppercase() }
+            val stagingDir = binariesDir.map { it.dir("msix-staging/${flavor.id}") }
+            val prepareTask = tasks.register<Sync>("prepare${buildType}Msix$flavorName") {
+                val manifestTokens = mapOf(
+                    "IDENTITY_NAME" to flavor.identityName.orEmpty(),
+                    "PUBLISHER" to flavor.publisher.orEmpty(),
+                    "PUBLISHER_DISPLAY_NAME" to msixPublisherDisplayName,
+                    "PROCESSOR_ARCHITECTURE" to msixArchitecture,
+                    "VERSION" to msixVersion,
+                ).mapValues { (_, value) -> XmlUtil.escapeXml(value) }
+                inputs.property("manifestTokens", manifestTokens)
+                dependsOn("create${buildType}Distributable")
+                onlyIf { flavor.isConfigured }
+                filteringCharset = "UTF-8"
+                from(appImageDir)
+                from(project.file("msix/Assets")) {
+                    into("Assets")
+                }
+                from(project.file("msix/AppxManifest.xml")) {
+                    filter<ReplaceTokens>(
+                        "tokens" to manifestTokens,
+                    )
+                }
+                into(stagingDir)
+            }
+            tasks.register<Exec>("package${buildType}Msix$flavorName") {
+                group = "compose desktop"
+                description = "Packs the ${flavor.id} MSIX package."
+                dependsOn(prepareTask)
+                onlyIf { flavor.isConfigured }
+                val output = outputDir.map { it.file(flavor.fileName) }
+                inputs.dir(stagingDir)
+                outputs.file(output)
+                doFirst {
+                    val file = output.get().asFile
+                    file.parentFile.mkdirs()
+                    file.delete()
+                    commandLine(
+                        windowsSdkTool("makeappx.exe").absolutePath,
+                        "pack", "/o",
+                        "/d", stagingDir.get().asFile.absolutePath,
+                        "/p", file.absolutePath,
+                    )
+                }
+            }
+        }
+
+        val sideloadFlavor = msixFlavors.first { it.id == "sideload" }
+        val signTask = tasks.register<Exec>("sign${buildType}Msix") {
+            group = "compose desktop"
+            description = "Signs the sideload MSIX package, if a certificate is configured."
+            dependsOn(packageTasks)
+            val pfxPath = msixProperty("msix_sideload_pfx_path")
+            onlyIf {
+                if (pfxPath == null) {
+                    println("No MSIX signing certificate, the sideload package is left unsigned!")
+                }
+                pfxPath != null
+            }
+            doFirst {
+                val args = mutableListOf(
+                    windowsSdkTool("signtool.exe").absolutePath,
+                    "sign",
+                    "/fd", "SHA256",
+                    "/td", "SHA256",
+                    "/tr", "http://timestamp.digicert.com",
+                    "/f", pfxPath!!,
+                )
+                providers.gradleProperty("msix_sideload_pfx_password").orNull
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let { args += listOf("/p", it) }
+                args += outputDir.get().file(sideloadFlavor.fileName).asFile.absolutePath
+                commandLine(args)
+            }
+        }
+
+        tasks.register("package${buildType}Msix") {
+            group = "compose desktop"
+            description = "Packs the store and sideload MSIX packages."
+            dependsOn(packageTasks)
+            dependsOn(signTask)
+        }
+    }
+
+    registerMsixTasks(buildType = "", binariesDirName = "main")
+    registerMsixTasks(buildType = "Release", binariesDirName = "main-release")
 }

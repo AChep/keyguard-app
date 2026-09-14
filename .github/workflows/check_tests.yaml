@@ -46,6 +46,18 @@ jobs:
           if-no-files-found: ignore
           retention-days: 21
 
+  check-release-scripts:
+    name: Check Release Scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_python
+      - name: "Run release script tests"
+        working-directory: .github
+        run: python3 -m unittest discover -s . -p 'test_*.py'
+
   check-kmp-host-tests:
     name: Check KMP Host Tests (${{ matrix.name }})
     runs-on: ubuntu-latest

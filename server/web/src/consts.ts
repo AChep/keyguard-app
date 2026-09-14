@@ -84,8 +84,10 @@ export const PLATFORMS: DownloadPlatform[] = [
   },
   {
     name: 'Windows',
-    note: 'MSI installer',
-    stores: [],
+    note: 'MSI installer & Microsoft Store',
+    stores: [
+      { label: 'Microsoft Store', href: 'https://apps.microsoft.com/detail/9NN4SMXJN5SF' },
+    ],
     commands: [
       { label: 'WinGet', code: 'winget install --id ArtemChepurnyi.Keyguard' },
       { label: 'Scoop', code: 'scoop bucket add extras\nscoop install keyguard' },

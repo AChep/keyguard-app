@@ -36,6 +36,12 @@ enum class HostPlatform(
         isMacOs = false,
         isWindows = true,
     ),
+    WindowsArm64(
+        composeResourceDir = "windows-arm64",
+        rustTarget = "aarch64-pc-windows-msvc",
+        isMacOs = false,
+        isWindows = true,
+    ),
 }
 
 fun detectHostPlatform(
@@ -53,7 +59,7 @@ fun detectHostPlatform(
             if (isArm) HostPlatform.MacosArm64 else HostPlatform.MacosX64
 
         osName.startsWith("Windows", ignoreCase = true) ->
-            HostPlatform.WindowsX64
+            if (isArm) HostPlatform.WindowsArm64 else HostPlatform.WindowsX64
 
         else -> error("Unsupported host platform: osName=$osName, osArch=$osArch")
     }

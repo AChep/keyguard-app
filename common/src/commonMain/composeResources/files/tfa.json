@@ -515,6 +515,16 @@
     "name": "American Kennel Club"
   },
   {
+    "domain": "alaskaair.com",
+    "additional-domains": [
+      "hawaiianairlines.com"
+    ],
+    "tfa": [
+      "sms"
+    ],
+    "name": "Atmos Rewards"
+  },
+  {
     "domain": "alchemer.com",
     "tfa": [
       "totp",
@@ -779,6 +789,13 @@
     "name": "AnyDesk"
   },
   {
+    "domain": "ao.com",
+    "tfa": [
+      "sms"
+    ],
+    "name": "ao.com"
+  },
+  {
     "domain": "aok.de",
     "tfa": [
       "sms"
@@ -902,9 +919,10 @@
   {
     "domain": "appwrite.io",
     "tfa": [
+      "email",
       "totp"
     ],
-    "documentation": "https://appwrite.io/docs/advanced/security/2fa",
+    "documentation": "https://appwrite.io/docs/advanced/security/mfa",
     "name": "Appwrite"
   },
   {
@@ -1315,6 +1333,16 @@
       "email"
     ],
     "name": "Axos"
+  },
+  {
+    "domain": "axs.com",
+    "tfa": [
+      "sms",
+      "call",
+      "email"
+    ],
+    "documentation": "https://support.axs.com/hc/articles/360017633759",
+    "name": "AXS"
   },
   {
     "domain": "azure.microsoft.com",
@@ -2774,11 +2802,9 @@
   {
     "domain": "canva.com",
     "tfa": [
-      "sms",
       "totp"
     ],
     "documentation": "https://www.canva.com/help/login-verification/",
-    "notes": "SMS 2FA only available to users from Australia, Philippines, UK, and USA.",
     "name": "Canva"
   },
   {
@@ -5295,6 +5321,18 @@
     "documentation": "https://help.dropbox.com/account-access/enable-2-factor-authentication",
     "notes": "Hardware 2FA requires also enabling Software or SMS 2FA as a back-up.",
     "name": "Dropbox"
+  },
+  {
+    "domain": "drs.ct.gov",
+    "url": "https://drs.ct.gov/eservices/",
+    "tfa": [
+      "sms",
+      "email",
+      "totp",
+      "u2f"
+    ],
+    "documentation": "https://portal.ct.gov/drs/myconnect/myconnect-2/faq",
+    "name": "Connecticut DRS myconneCT"
   },
   {
     "domain": "druide.com",
@@ -9774,6 +9812,7 @@
   {
     "domain": "m365.cloud.microsoft",
     "additional-domains": [
+      "copilot.microsoft.com",
       "login.microsoftonline.com",
       "office.microsoft.com",
       "microsoft365.com",
@@ -9792,7 +9831,7 @@
       "Microsoft Authenticator"
     ],
     "documentation": "https://support.microsoft.com/account-billing/c7910146-672f-01e9-50a0-93b4585e7eb4",
-    "name": "Microsoft 365 Copilot"
+    "name": "Microsoft Copilot"
   },
   {
     "domain": "macquarie.com.au",
@@ -10952,6 +10991,19 @@
     "name": "myPrimobox"
   },
   {
+    "domain": "myringgo.co.uk",
+    "additional-domains": [
+      "ringgo.co.uk",
+      "myringgo.com"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://www.ringgo.co.uk/multi-factor-authentication-mfa",
+    "name": "RingGo"
+  },
+  {
     "domain": "mytax.illinois.gov",
     "tfa": [
       "email",
@@ -11703,7 +11755,6 @@
   {
     "domain": "npmjs.com",
     "tfa": [
-      "totp",
       "u2f"
     ],
     "documentation": "https://docs.npmjs.com/configuring-two-factor-authentication",
@@ -11751,15 +11802,6 @@
     ],
     "documentation": "https://support.nulab.com/hc/en-us/articles/7732936736537",
     "name": "Nulab"
-  },
-  {
-    "domain": "nutmeg.com",
-    "url": "https://www.nutmeg.com/",
-    "tfa": [
-      "totp"
-    ],
-    "documentation": "https://support.nutmeg.com/?article=115000495111-How-to-set-up-and-manage-2-step-verification",
-    "name": "Nutmeg"
   },
   {
     "domain": "nyu.edu",
@@ -12344,6 +12386,17 @@
     "name": "Panorama9"
   },
   {
+    "domain": "panther.com",
+    "additional-domains": [
+      "runpanther.io"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.panther.com/articles/7050426254",
+    "name": "Panther"
+  },
+  {
     "domain": "parallels.com",
     "tfa": [
       "email",
@@ -12698,6 +12751,18 @@
     "name": "Personal Capital"
   },
   {
+    "domain": "personalinvesting.jpmorgan.com",
+    "additional-domains": [
+      "nutmeg.com"
+    ],
+    "tfa": [
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://support.personalinvesting.jpmorgan.com/?article=115000495111-How-to-set-up-and-manage-2-step-verification",
+    "name": "J.P. Morgan Personal Investing"
+  },
+  {
     "domain": "personalsavings.americanexpress.com",
     "tfa": [
       "email",
@@ -12706,6 +12771,19 @@
     ],
     "documentation": "https://www.americanexpress.com/en-us/banking/online-savings/login-security-and-help/",
     "name": "American Express Savings"
+  },
+  {
+    "domain": "personifyhealth.com",
+    "additional-domains": [
+      "healthcomp.com"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://personifyhealth.zendesk.com/hc/articles/28007677707675",
+    "notes": "SMS 2FA is only available for US and Canada phone numbers.",
+    "name": "Personify Health"
   },
   {
     "domain": "pge.com",
@@ -14316,13 +14394,6 @@
     ],
     "documentation": "https://support.runescape.com/hc/en-gb/articles/206811835",
     "name": "RuneScape"
-  },
-  {
-    "domain": "runpanther.io",
-    "tfa": [
-      "totp"
-    ],
-    "name": "Panther"
   },
   {
     "domain": "runsignup.com",
@@ -16552,9 +16623,10 @@
   {
     "domain": "tfl.gov.uk",
     "tfa": [
-      "sms"
+      "sms",
+      "totp"
     ],
-    "documentation": "https://tfl.gov.uk/corporate/privacy-and-cookies/protecting-your-account",
+    "documentation": "https://tfl.gov.uk/help-and-contact/protecting-your-account",
     "name": "Transport for London"
   },
   {
@@ -18385,16 +18457,6 @@
     "name": "Virgin Plus"
   },
   {
-    "domain": "virginpulse.com",
-    "tfa": [
-      "sms",
-      "email"
-    ],
-    "documentation": "https://virginpulse.zendesk.com/hc/en-us/articles/6667851174171",
-    "notes": "SMS 2FA is only available for US and Canada phone numbers.",
-    "name": "Virgin Pulse"
-  },
-  {
     "domain": "virustotal.com",
     "tfa": [
       "totp"
@@ -18879,6 +18941,15 @@
     ],
     "documentation": "https://help.wetransfer.com/hc/en-us/articles/360056666872",
     "name": "WeTransfer"
+  },
+  {
+    "domain": "wetravel.com",
+    "tfa": [
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://help.wetravel.com/articles/3601445",
+    "name": "WeTravel"
   },
   {
     "domain": "whalefin.com",

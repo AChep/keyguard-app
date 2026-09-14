@@ -344,11 +344,13 @@ jobs:
           tarball: ${{ steps.linux-package.outputs.tarball }}
           arch: ${{ matrix.arch }}
           version: ${{ needs.generate-versions.outputs.version-semantic }}
-      - name: "Upload .AppImage"
+      - name: "Upload .AppImage and .zsync"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-linux-appimage-${{ matrix.arch }}
-          path: ${{ steps.appimage.outputs.path }}
+          path: |
+            ${{ steps.appimage.outputs.path }}
+            ${{ steps.appimage.outputs.zsync-path }}
           if-no-files-found: error
       - name: "Build and verify Flatpak"
         id: flatpak

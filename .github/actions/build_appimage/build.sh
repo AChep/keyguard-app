@@ -10,6 +10,10 @@ case "$arch" in
 esac
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
 test -s "$tarball"
+command -v zsyncmake > /dev/null || {
+  echo "zsyncmake is required to generate AppImage delta updates" >&2
+  exit 1
+}
 
 repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd)
 output_dir="$repo_dir/desktopApp/build/appimage"
@@ -47,10 +51,56 @@ chmod 755 "$tool"
 
 filename="Keyguard-$version-linux-$arch.AppImage"
 appimage="$work_dir/$filename"
-ARCH="$arch" VERSION="$version" "$tool" --appimage-extract-and-run \
-  --runtime-file "$runtime" "$app_dir" "$appimage"
+zsync="$appimage.zsync"
+repository=${GITHUB_REPOSITORY:-AChep/keyguard-app}
+update_information="gh-releases-zsync|${repository%/*}|${repository#*/}|latest|Keyguard-*-linux-$arch.AppImage.zsync"
+(
+  # zsyncmake writes its output in the current working directory.
+  cd "$work_dir"
+  ARCH="$arch" VERSION="$version" "$tool" --appimage-extract-and-run \
+    --runtime-file "$runtime" --updateinformation "$update_information" \
+    --file-url "$filename" "$app_dir" "$filename"
+)
 test -s "$appimage"
 test -x "$appimage"
+test -s "$zsync"
+embedded_update_information=$("$appimage" --appimage-updateinformation)
+if [[ "$embedded_update_information" != "$update_information" ]]; then
+  echo "AppImage update information does not match $update_information" >&2
+  exit 1
+fi
+
+# Read only the text header; zsync's block checksums are binary.
+python3 - "$appimage" "$zsync" <<'PY'
+import hashlib
+from pathlib import Path
+import sys
+
+appimage, zsync = map(Path, sys.argv[1:])
+header = {}
+with zsync.open("rb") as stream:
+    for line in stream:
+        if line == b"\n":
+            break
+        key, value = line.decode("ascii").rstrip("\n").split(": ", 1)
+        header[key] = value
+    else:
+        sys.exit(f"{zsync}: missing zsync header terminator")
+
+digest = hashlib.sha1()
+with appimage.open("rb") as stream:
+    for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+        digest.update(chunk)
+expected = {
+    "Filename": appimage.name,
+    "URL": appimage.name,
+    "Length": str(appimage.stat().st_size),
+    "SHA-1": digest.hexdigest(),
+}
+for key, value in expected.items():
+    if header.get(key) != value:
+        sys.exit(f"{zsync}: {key} does not match the AppImage (expected {value!r})")
+PY
 
 # Inspect the final SquashFS payload, then exercise the AppImage launcher without FUSE.
 (
@@ -60,9 +110,10 @@ test -x "$appimage"
 APPIMAGE_EXTRACT_AND_RUN=1 python3 "$repo_dir/scripts/verify_native_bundle.py" \
   desktop "$work_dir/squashfs-root" --platform linux --arch "$arch" --launcher "$appimage"
 
-# Publish the output only after all validation succeeds.
-mv -f -- "$appimage" "$output_dir/$filename"
+# Publish the outputs only after all validation succeeds.
+mv -f -- "$appimage" "$zsync" "$output_dir/"
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
   echo "path=$output_dir/$filename" >> "$GITHUB_OUTPUT"
+  echo "zsync-path=$output_dir/$filename.zsync" >> "$GITHUB_OUTPUT"
 fi
-echo "Built $output_dir/$filename"
+echo "Built $output_dir/$filename and $output_dir/$filename.zsync"

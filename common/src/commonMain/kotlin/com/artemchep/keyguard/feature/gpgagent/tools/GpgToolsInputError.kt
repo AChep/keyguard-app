@@ -10,16 +10,14 @@ internal fun Throwable.gpgToolsInputErrorResource(
     toolOperation: GpgToolsOperation,
 ): StringResource? {
     val failure = this as? NativeCryptoException ?: return null
-    if (failure.code != NativeCryptoErrorCode.INVALID_ARGUMENT) {
-        return null
-    }
-    val parsesUntrustedInput = when (toolOperation) {
-        GpgToolsOperation.DECRYPT -> failure.operation in DECRYPT_INPUT_OPERATIONS
-        GpgToolsOperation.VERIFY -> failure.operation in VERIFY_INPUT_OPERATIONS
-        GpgToolsOperation.SIGN,
-        GpgToolsOperation.ENCRYPT,
-        -> false
-    }
+    val parsesUntrustedInput = failure.code == NativeCryptoErrorCode.INVALID_ARGUMENT &&
+        when (toolOperation) {
+            GpgToolsOperation.DECRYPT -> failure.operation in DECRYPT_INPUT_OPERATIONS
+            GpgToolsOperation.VERIFY -> failure.operation in VERIFY_INPUT_OPERATIONS
+            GpgToolsOperation.SIGN,
+            GpgToolsOperation.ENCRYPT,
+            -> false
+        }
     return if (parsesUntrustedInput) {
         Res.string.gpg_tools_invalid_input
     } else {

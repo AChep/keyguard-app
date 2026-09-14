@@ -280,7 +280,7 @@ private class WatchtowerClient(
         databaseManager = directDI.instance(),
         logRepository = directDI.instance(),
         syncSupervisor = directDI.instance(),
-        // FIXME: Kotlin/Native type tokens do not expose supertypes, so asking DI for
+        // Kotlin/Native type tokens do not expose supertypes, so asking DI for
         // all WatchtowerClientTyped instances cannot discover concrete bindings.
         // Resolve the registered processors by their exact type on every platform.
         list = listOf(

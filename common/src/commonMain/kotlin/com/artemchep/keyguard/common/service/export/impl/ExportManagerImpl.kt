@@ -120,6 +120,7 @@ open class ExportManagerBase(
         )
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun invoke2(
         filter: DFilter,
         password: String,

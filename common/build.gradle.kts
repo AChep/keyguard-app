@@ -36,7 +36,9 @@ plugins {
 detektCustomRules {
     kmpCompilation(targetName = "android", compilationName = "main")
     kmpCompilation(targetName = "desktop", compilationName = "main")
-    requireCoverageFor("mutablePersistedFlow")
+    // Host-only tests do not become part of an Android artifact.
+    excludeSourcePathFromCoverage("src/commonTest")
+    excludeSourcePathFromCoverage("src/desktopTest")
 }
 
 //

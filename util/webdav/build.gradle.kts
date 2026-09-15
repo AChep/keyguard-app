@@ -1,6 +1,11 @@
 plugins {
     id("keyguard.quality")
     id("keyguard.kotlin-multiplatform-library")
+    id("keyguard.detekt-custom-rules")
+}
+
+detektCustomRules {
+    kmpCompilation(targetName = "android", compilationName = "main")
 }
 
 kotlin {

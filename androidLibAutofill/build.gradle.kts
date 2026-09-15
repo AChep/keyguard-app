@@ -2,6 +2,11 @@ plugins {
     id("keyguard.quality")
     alias(libs.plugins.android.library)
     id("keyguard.android-library")
+    id("keyguard.detekt-custom-rules")
+}
+
+detektCustomRules {
+    androidVariant("debug")
 }
 
 android {

@@ -4,6 +4,11 @@ plugins {
     id("keyguard.android-application")
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)
+    id("keyguard.detekt-custom-rules")
+}
+
+detektCustomRules {
+    androidVariant("debug")
 }
 
 android {

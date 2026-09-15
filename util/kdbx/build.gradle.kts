@@ -9,6 +9,13 @@ plugins {
     id("keyguard.quality")
     id("keyguard.kotlin-multiplatform-library")
     id("keyguard.native-crypto-consumer")
+    id("keyguard.detekt-custom-rules")
+}
+
+detektCustomRules {
+    kmpCompilation(targetName = "android", compilationName = "main")
+    // Host-only tests do not become part of an Android artifact.
+    excludeSourcePathFromCoverage("src/jvmCommonTest")
 }
 
 kotlin {

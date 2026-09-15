@@ -15,12 +15,12 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
  * type resolution in that mode, and the shared baselines must never suppress a hand-written
  * project invariant.
  *
- * A module declares the compilations to analyse and the APIs whose call sites must be covered:
+ * A module declares the compilations to analyse; every file mentioning one of
+ * [GUARDED_API_MARKERS] must be covered by one of them:
  *
  * ```
  * detektCustomRules {
  *     kmpCompilation(targetName = "android", compilationName = "main")
- *     requireCoverageFor("mutablePersistedFlow")
  * }
  * ```
  */
@@ -33,13 +33,13 @@ class DetektCustomRulesPlugin : Plugin<Project> {
         )
 
         val analysedSources = objects.fileCollection()
-        val guardedApiMarkers = objects.setProperty(String::class.java)
+        val coverageExemptions = objects.setProperty(String::class.java)
 
         val coverage = tasks.register<VerifyDetektMarkerCoverageTask>(COVERAGE_TASK_NAME) {
             group = LifecycleBasePlugin.VERIFICATION_GROUP
             description = "Fails if a guarded API is used in ${target.path} without being " +
                 "covered by a custom-rule Detekt task."
-            markers.set(guardedApiMarkers)
+            markers.set(GUARDED_API_MARKERS)
             rootDirectory.set(target.rootProject.layout.projectDirectory)
             candidateFiles.from(
                 target.fileTree(target.layout.projectDirectory.dir("src")) {
@@ -47,7 +47,7 @@ class DetektCustomRulesPlugin : Plugin<Project> {
                 },
             )
             analysedFiles.from(analysedSources)
-            allowedPathPrefixes.convention(emptySet())
+            allowedPathPrefixes.set(coverageExemptions)
             expectsAnalysedSources.set(true)
             stamp.set(
                 target.layout.buildDirectory.file("reports/detekt/custom-rules-coverage.txt"),
@@ -71,16 +71,30 @@ class DetektCustomRulesPlugin : Plugin<Project> {
             EXTENSION_NAME,
             target,
             analysedSources,
-            guardedApiMarkers,
+            coverageExemptions,
             aggregate,
         )
         Unit
     }
 
-    internal companion object {
-        const val AGGREGATE_TASK_NAME = "detektCustomRules"
-        const val COVERAGE_TASK_NAME = "verifyDetektCustomRulesCoverage"
-        const val TASK_PREFIX = "detektCustomRules"
+    companion object {
+        /**
+         * Text whose presence marks a file as using an API guarded by a custom rule. The rules
+         * themselves are repository-wide, so the same list feeds every module's coverage check
+         * and the root ownership check.
+         */
+        val GUARDED_API_MARKERS: Set<String> = setOf(
+            // MutablePersistedFlowTypeSafety, MutablePersistedFlowDuplicateKey
+            "mutablePersistedFlow",
+            // AndroidIncompatibleListOperation. Match the name alone to include callable
+            // references and implicit receivers; the rule resolves the actual operation.
+            "removeFirst",
+            "removeLast",
+        )
+
+        internal const val AGGREGATE_TASK_NAME = "detektCustomRules"
+        internal const val COVERAGE_TASK_NAME = "verifyDetektCustomRulesCoverage"
+        internal const val TASK_PREFIX = "detektCustomRules"
 
         private const val EXTENSION_NAME = "detektCustomRules"
         private const val DETEKT_PLUGINS_CONFIGURATION = "detektPlugins"

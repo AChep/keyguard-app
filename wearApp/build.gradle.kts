@@ -21,7 +21,6 @@ plugins {
 // The flavors share src/main/java, so one production variant covers every call site.
 detektCustomRules {
     androidVariant("noneDebug")
-    requireCoverageFor("mutablePersistedFlow")
 }
 
 val versionInfo = createVersionInfo(

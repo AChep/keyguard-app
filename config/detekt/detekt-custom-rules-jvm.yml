@@ -1,0 +1,5 @@
+# Layered on top of detekt-custom-rules.yml for compilations of desktop JVM targets. Later
+# config files take precedence in Detekt, so this only turns off the Android-only rules.
+keyguard:
+  AndroidIncompatibleListOperation:
+    active: false

@@ -47,11 +47,18 @@ tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
 // `keyguard.detekt-custom-rules` and registering the compilations to analyse.
 //
 
-val customRuleModules = listOf(":common", ":wearApp")
+val customRuleModules = listOf(
+    ":androidLibAutofill",
+    ":common",
+    ":integration:androidIpcTestClient",
+    ":util:kdbx",
+    ":util:webdav",
+    ":wearApp",
+)
 
-// The APIs guarded by the custom rules. Each opted-in module repeats the ones it uses via
-// `requireCoverageFor(...)`; this list is the repository-wide view used by the ownership check.
-val guardedApiMarkers = listOf("mutablePersistedFlow")
+// The APIs guarded by the custom rules, shared with every opted-in module's coverage check.
+val guardedApiMarkers =
+    com.artemchep.keyguard.buildplugins.detekt.DetektCustomRulesPlugin.GUARDED_API_MARKERS
 
 // Catches a module that starts using a guarded API without opting into the custom-rule tasks.
 val verifyDetektCustomRulesOwnership by tasks.registering(

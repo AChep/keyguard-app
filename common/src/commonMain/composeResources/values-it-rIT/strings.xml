@@ -769,6 +769,7 @@
     <string name="error_failed_decrypt_biometric_key">Impossibile decrittografare la chiave biometrica</string>
     <string name="error_failed_ssh_agent_start">Impossibile avviare l'agente SSH</string>
     <string name="error_failed_gpg_agent_start">Impossibile avviare l'agente GPG</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">L'app chiamante non è nell'elenco delle app con privilegi e non può richiedere l'autenticazione per conto di altre app.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1049,7 @@
     <string name="home_settings_label">Impostazioni</string>
     <string name="lock_reason_inactivity">Bloccato per inattività</string>
     <string name="lock_reason_screen_off">Bloccato per schermo spento</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">Bloccato manualmente</string>
     <string name="send_type_text">Testo</string>
     <string name="send_type_file">File</string>
@@ -1666,6 +1668,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">Blocca la cassaforte dopo un riavvio del dispositivo</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Blocca quando lo schermo viene si spegne</string>
     <string name="pref_item_lock_vault_after_screen_off_text">Blocca la cassaforte dopo alcuni secondi una volta che lo schermo è spento</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">Blocca dopo un ritardo</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Immediatamente</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Mai</string>

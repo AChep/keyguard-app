@@ -31,6 +31,7 @@ pub enum Error {
 pub struct Failure {
     kind: Error,
     operation: Option<&'static str>,
+    reason: Option<&'static str>,
     io_kind: Option<io::ErrorKind>,
     os_code: Option<i32>,
 }
@@ -62,6 +63,12 @@ impl Failure {
         self
     }
 
+    #[cfg(windows)]
+    pub(crate) fn reason(mut self, reason: &'static str) -> Self {
+        self.reason.get_or_insert(reason);
+        self
+    }
+
     pub(crate) fn into_timeout(mut self) -> Self {
         // Keep the last failed contact's diagnostics after exhausting the overall deadline.
         self.kind = Error::Timeout;
@@ -74,6 +81,7 @@ impl From<Error> for Failure {
         Self {
             kind,
             operation: None,
+            reason: None,
             io_kind: None,
             os_code: None,
         }
@@ -92,6 +100,7 @@ impl From<io::Error> for Failure {
         Self {
             kind,
             operation: None,
+            reason: None,
             io_kind: Some(io_kind),
             os_code: error.raw_os_error(),
         }
@@ -103,6 +112,9 @@ impl fmt::Display for Failure {
         write!(formatter, "kind={:?}", self.kind)?;
         if let Some(operation) = self.operation {
             write!(formatter, " operation={operation}")?;
+        }
+        if let Some(reason) = self.reason {
+            write!(formatter, " reason={reason}")?;
         }
         if let Some(kind) = self.io_kind {
             write!(formatter, " io_kind={kind:?}")?;

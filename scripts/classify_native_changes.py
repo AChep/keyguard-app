@@ -73,6 +73,9 @@ def classify(paths, *, full=False, all_checks=False):
         module = re.match(r"util/(crypto|io|zxcvbn|zip|instance)/(.+)", path)
         if module:
             name, relative = module.groups()
+            # The Windows instance backend consumes IO's native filesystem core.
+            if name == "io" and relative.startswith("rust/"):
+                enable("instance", "desktop_regressions")
             source_match = re.match(r"src/([^/]+)/", relative)
             source_set = source_match.group(1) if source_match else ""
             test_source = source_set.endswith("Test")

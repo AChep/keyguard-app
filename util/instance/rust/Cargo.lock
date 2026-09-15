@@ -98,6 +98,7 @@ name = "keyguard-instance-core"
 version = "0.1.0"
 dependencies = [
  "getrandom",
+ "keyguard-io-core",
  "libc",
  "windows-sys 0.61.2",
 ]
@@ -108,6 +109,15 @@ version = "0.1.0"
 dependencies = [
  "jni",
  "keyguard-instance-core",
+]
+
+[[package]]
+name = "keyguard-io-core"
+version = "0.1.0"
+dependencies = [
+ "getrandom",
+ "libc",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

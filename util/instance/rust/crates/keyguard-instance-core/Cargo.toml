@@ -19,7 +19,11 @@ getrandom.workspace = true
 libc.workspace = true
 
 [target.'cfg(windows)'.dependencies]
+keyguard-io-core = { path = "../../../../io/rust/crates/keyguard-io-core" }
 windows-sys.workspace = true
+
+[target.'cfg(windows)'.dev-dependencies]
+windows-sys = { workspace = true, features = ["Win32_System_Ioctl", "Win32_System_SystemServices"] }
 
 [lints]
 workspace = true

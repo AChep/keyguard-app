@@ -2,7 +2,7 @@
 
 use std::{
     ffi::OsStr,
-    fs::{self, File},
+    fs::File,
     io::{self, Read, Write},
     mem::{offset_of, size_of, zeroed},
     os::windows::{
@@ -16,11 +16,13 @@ use std::{
     time::{Duration, Instant},
 };
 
+use keyguard_io_core::windows_file::{self, OpenOptions as FileOpenOptions};
+
 use windows_sys::Win32::{
     Foundation::{
-        ERROR_ALREADY_EXISTS, ERROR_BROKEN_PIPE, ERROR_IO_PENDING, ERROR_LOCK_VIOLATION,
-        ERROR_NO_DATA, ERROR_PIPE_CONNECTED, ERROR_PIPE_NOT_CONNECTED, GENERIC_ALL, GENERIC_READ,
-        GENERIC_WRITE, HANDLE, INVALID_HANDLE_VALUE, LocalFree, WAIT_OBJECT_0, WAIT_TIMEOUT,
+        ERROR_BROKEN_PIPE, ERROR_IO_PENDING, ERROR_LOCK_VIOLATION, ERROR_NO_DATA,
+        ERROR_PIPE_CONNECTED, ERROR_PIPE_NOT_CONNECTED, GENERIC_READ, GENERIC_WRITE, HANDLE,
+        INVALID_HANDLE_VALUE, LocalFree, WAIT_OBJECT_0, WAIT_TIMEOUT,
     },
     Security::{
         ACCESS_ALLOWED_ACE, ACE_HEADER, ACL,
@@ -29,22 +31,18 @@ use windows_sys::Win32::{
             GetSecurityInfo, SE_FILE_OBJECT,
         },
         DACL_SECURITY_INFORMATION, EqualSid, GetAce, GetSecurityDescriptorControl,
-        GetSecurityDescriptorDacl, GetSecurityDescriptorOwner, GetSidIdentifierAuthority,
-        GetSidSubAuthority, GetSidSubAuthorityCount, GetTokenInformation, INHERIT_ONLY_ACE,
-        IsValidAcl, IsValidSecurityDescriptor, IsValidSid, IsWellKnownSid,
+        GetSecurityDescriptorDacl, GetSecurityDescriptorOwner, GetSidSubAuthorityCount,
+        GetTokenInformation, IsValidAcl, IsValidSecurityDescriptor, IsValidSid,
         OWNER_SECURITY_INFORMATION, PSECURITY_DESCRIPTOR, SE_DACL_PROTECTED, SECURITY_ATTRIBUTES,
-        TOKEN_QUERY, TOKEN_USER, TokenUser, WinBuiltinAdministratorsSid, WinCreatorOwnerRightsSid,
-        WinLocalSystemSid,
+        TOKEN_QUERY, TOKEN_USER, TokenUser,
     },
     Storage::FileSystem::{
-        BY_HANDLE_FILE_INFORMATION, CREATE_NEW, CreateDirectoryW, CreateFileW, DELETE,
-        FILE_ATTRIBUTE_DIRECTORY, FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_REPARSE_POINT,
-        FILE_DELETE_CHILD, FILE_FLAG_BACKUP_SEMANTICS, FILE_FLAG_FIRST_PIPE_INSTANCE,
-        FILE_FLAG_OPEN_REPARSE_POINT, FILE_FLAG_OVERLAPPED, FILE_LIST_DIRECTORY, FILE_SHARE_DELETE,
-        FILE_SHARE_READ, FILE_SHARE_WRITE, FILE_WRITE_ATTRIBUTES, FILE_WRITE_DATA, FILE_WRITE_EA,
-        GetDriveTypeW, GetFileInformationByHandle, GetVolumePathNameW, LOCKFILE_EXCLUSIVE_LOCK,
+        BY_HANDLE_FILE_INFORMATION, CREATE_NEW, CreateFileW, DELETE, FILE_ATTRIBUTE_DIRECTORY,
+        FILE_ATTRIBUTE_REPARSE_POINT, FILE_FLAG_FIRST_PIPE_INSTANCE, FILE_FLAG_OVERLAPPED,
+        FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE, FILE_TRAVERSE, GetDriveTypeW,
+        GetFileInformationByHandle, GetVolumePathNameW, LOCKFILE_EXCLUSIVE_LOCK,
         LOCKFILE_FAIL_IMMEDIATELY, LockFileEx, OPEN_ALWAYS, OPEN_EXISTING, PIPE_ACCESS_DUPLEX,
-        READ_CONTROL, ReadFile, WRITE_DAC, WRITE_OWNER, WriteFile,
+        READ_CONTROL, ReadFile, WriteFile,
     },
     System::{
         IO::{CancelIoEx, GetOverlappedResult, OVERLAPPED},
@@ -192,78 +190,22 @@ impl Security {
         }
     }
 
-    fn verify(&self, handle: &OwnedHandle) -> Result<()> {
+    fn verify(&self, handle: &impl AsRawHandle) -> Result<()> {
         let actual =
             security_info(handle).map_err(|failure| failure.context("read_security_descriptor"))?;
         self.verify_descriptor(&actual)
     }
 
     fn verify_descriptor(&self, actual: &LocalAllocation) -> Result<()> {
-        let (actual_owner, actual_acl) = descriptor_parts(actual, true)?;
-        let (expected_owner, expected_acl) = descriptor_parts(&self.0, true)?;
+        let (actual_owner, actual_acl) =
+            descriptor_parts(actual).map_err(|failure| failure.reason("private_acl_mismatch"))?;
+        let (expected_owner, expected_acl) = descriptor_parts(&self.0)?;
         // SAFETY: descriptor_parts validated both SIDs and both descriptors remain alive.
-        if unsafe { EqualSid(actual_owner, expected_owner) } == 0
-            || !private_acl_matches(actual_acl, expected_acl)?
-        {
-            return Err(Error::Permission.into());
+        if unsafe { EqualSid(actual_owner, expected_owner) } == 0 {
+            return Err(Failure::from(Error::Permission).reason("owner_mismatch"));
         }
-        Ok(())
-    }
-
-    fn verify_ancestor(&self, handle: &OwnedHandle) -> Result<()> {
-        let actual = security_info(handle)?;
-        let (owner, acl) = descriptor_parts(&actual, false)?;
-        let (user, _) = descriptor_parts(&self.0, true)?;
-        if !trusted_sid(owner, user) {
-            return Err(Error::Permission.into());
-        }
-        let count = acl.AceCount;
-        for index in 0..u32::from(count) {
-            let mut entry = ptr::null_mut();
-            // SAFETY: index lies inside the validated ACL and entry is writable.
-            if unsafe { GetAce(acl, index, &mut entry) } == 0 || entry.is_null() {
-                return Err(Error::Permission.into());
-            }
-            // SAFETY: GetAce returned a live ACE inside the validated ACL.
-            let header = unsafe { &*entry.cast::<ACE_HEADER>() };
-            if u32::from(header.AceFlags) & INHERIT_ONLY_ACE != 0 {
-                continue;
-            }
-            // Deny ACEs cannot grant another account the ability to alter this ancestor.
-            if matches!(header.AceType, 1 | 6 | 10 | 12) {
-                continue;
-            }
-            if header.AceType != 0 || usize::from(header.AceSize) < size_of::<ACCESS_ALLOWED_ACE>()
-            {
-                return Err(Error::Permission.into());
-            }
-            // SAFETY: The validated ACE has the ACCESS_ALLOWED_ACE layout and minimum size.
-            let allowed = unsafe { &*entry.cast::<ACCESS_ALLOWED_ACE>() };
-            let changes_namespace = GENERIC_ALL
-                | GENERIC_WRITE
-                | DELETE
-                | WRITE_DAC
-                | WRITE_OWNER
-                | FILE_DELETE_CHILD
-                | FILE_WRITE_DATA
-                | FILE_WRITE_EA
-                | FILE_WRITE_ATTRIBUTES;
-            if allowed.Mask & changes_namespace == 0 {
-                continue;
-            }
-            let sid = ptr::from_ref(&allowed.SidStart)
-                .cast::<core::ffi::c_void>()
-                .cast_mut();
-            // SAFETY: The SID begins inside the validated access-allowed ACE.
-            if unsafe { IsValidSid(sid) } == 0 {
-                return Err(Error::Permission.into());
-            }
-            // OWNER RIGHTS refers to the owner already validated above.
-            // SAFETY: sid was validated and user remains live in self's descriptor.
-            let owner_rights = unsafe { IsWellKnownSid(sid, WinCreatorOwnerRightsSid) } != 0;
-            if !trusted_sid(sid, user) && !owner_rights {
-                return Err(Error::Permission.into());
-            }
+        if !private_acl_matches(actual_acl, expected_acl)? {
+            return Err(Failure::from(Error::Permission).reason("private_acl_mismatch"));
         }
         Ok(())
     }
@@ -319,7 +261,7 @@ fn private_acl_matches(actual: &ACL, expected: &ACL) -> Result<bool> {
     Ok(unsafe { EqualSid(actual_sid, expected_sid) } != 0)
 }
 
-fn security_info(handle: &OwnedHandle) -> Result<LocalAllocation> {
+fn security_info(handle: &impl AsRawHandle) -> Result<LocalAllocation> {
     let mut descriptor = ptr::null_mut();
     // SAFETY: The handle includes READ_CONTROL access and descriptor is writable.
     let status = unsafe {
@@ -340,31 +282,8 @@ fn security_info(handle: &OwnedHandle) -> Result<LocalAllocation> {
     Ok(LocalAllocation(descriptor))
 }
 
-fn trusted_sid(sid: *mut core::ffi::c_void, user: *mut core::ffi::c_void) -> bool {
-    // SAFETY: Both SIDs were validated by their live security descriptors.
-    if unsafe {
-        EqualSid(sid, user) != 0
-            || IsWellKnownSid(sid, WinLocalSystemSid) != 0
-            || IsWellKnownSid(sid, WinBuiltinAdministratorsSid) != 0
-    } {
-        return true;
-    }
-    // Windows service identities (NT SERVICE, S-1-5-80-*) are assigned by the
-    // service manager. Ordinary user processes cannot impersonate these SIDs.
-    // This includes TrustedInstaller, the usual owner of system ancestors.
-    // SAFETY: The SID was validated; subauthority zero is only read when it exists.
-    unsafe {
-        (*GetSidIdentifierAuthority(sid)).Value == [0, 0, 0, 0, 0, 5]
-            && *GetSidSubAuthorityCount(sid) > 0
-            && *GetSidSubAuthority(sid, 0) == 80
-    }
-}
-
 /// The output ACL borrows the descriptor allocation supplied by the caller.
-fn descriptor_parts(
-    allocation: &LocalAllocation,
-    protected: bool,
-) -> Result<(*mut core::ffi::c_void, &ACL)> {
+fn descriptor_parts(allocation: &LocalAllocation) -> Result<(*mut core::ffi::c_void, &ACL)> {
     let descriptor = allocation.0;
     // SAFETY: Callers supply a live descriptor from a Windows security API.
     if descriptor.is_null() || unsafe { IsValidSecurityDescriptor(descriptor) } == 0 {
@@ -386,7 +305,7 @@ fn descriptor_parts(
         || owner.is_null()
         || present == 0
         || acl.is_null()
-        || (protected && control & SE_DACL_PROTECTED == 0)
+        || control & SE_DACL_PROTECTED == 0
     {
         return Err(Error::Permission.into());
     }
@@ -399,44 +318,29 @@ fn descriptor_parts(
     Ok((owner, acl))
 }
 
-fn check_kind(handle: &OwnedHandle, directory: bool) -> Result<()> {
+fn check_private_file_kind(handle: &impl AsRawHandle) -> Result<()> {
     // SAFETY: Zero is a valid initial representation of this output record.
     let mut info: BY_HANDLE_FILE_INFORMATION = unsafe { zeroed() };
     // SAFETY: handle is valid and info is writable.
     if unsafe { GetFileInformationByHandle(handle.as_raw_handle(), &mut info) } == 0 {
         return Err(last_error());
     }
-    if info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT != 0
-        || (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY != 0) != directory
-        || (!directory && info.nNumberOfLinks != 1)
-    {
-        return Err(Error::Permission.into());
+    if info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT != 0 {
+        return Err(Failure::from(Error::Permission).reason("reparse_point"));
+    }
+    if info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY != 0 {
+        return Err(Failure::from(Error::Permission).reason("unexpected_file_type"));
+    }
+    if info.nNumberOfLinks != 1 {
+        return Err(Failure::from(Error::Permission).reason("hard_link"));
     }
     Ok(())
-}
-
-fn directory_handle(path: &Path) -> Result<OwnedHandle> {
-    let path = wide(path.as_os_str())?;
-    // SAFETY: path is NUL-terminated; no handle or pointer is retained from parameters.
-    let handle = owned(unsafe {
-        CreateFileW(
-            path.as_ptr(),
-            READ_CONTROL | FILE_LIST_DIRECTORY,
-            FILE_SHARE_READ | FILE_SHARE_WRITE,
-            ptr::null(),
-            OPEN_EXISTING,
-            FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
-            ptr::null_mut(),
-        )
-    })?;
-    check_kind(&handle, true)?;
-    Ok(handle)
 }
 
 /// A validated coordination namespace pinned for the entire acquisition attempt.
 pub(crate) struct Directory {
     path: PathBuf,
-    directories: Arc<Vec<OwnedHandle>>,
+    directories: Arc<Vec<File>>,
     file_security: Security,
 }
 
@@ -444,7 +348,7 @@ pub(crate) struct Directory {
 pub(crate) struct Lease {
     // Drop the ownership file before unpinning its directory namespace.
     _file: File,
-    _directories: Arc<Vec<OwnedHandle>>,
+    _directories: Arc<Vec<File>>,
 }
 
 pub(crate) fn prepare_directory(path: &Path) -> Result<Directory> {
@@ -459,36 +363,40 @@ pub(crate) fn prepare_directory(path: &Path) -> Result<Directory> {
     }
     let user = Security::current_user_sid()?;
     let security = Security::for_user(&user, true)?;
-    // Walk existing ancestors before creating children. Reparse points are never followed.
+    // Pin the namespace from the drive root down. Inspect only our own leaf's
+    // security: ordinary ancestor ACLs need not be private. Relative opens keep
+    // creation and lookup attached to the retained handles, even during races.
     let mut ancestors: Vec<_> = path.ancestors().collect();
     ancestors.reverse();
+    let root = windows_file::open_drive_root(ancestors[0])
+        .map_err(|error| Failure::from(error).context("open_ancestor_directory"))?;
     let mut directories = Vec::with_capacity(ancestors.len());
-    for ancestor in ancestors {
-        match fs::symlink_metadata(ancestor) {
-            Ok(_) => {}
-            Err(error) if error.kind() == io::ErrorKind::NotFound => {
-                let name = wide(ancestor.as_os_str())?;
-                // SAFETY: name and attributes are valid for the duration of the call.
-                if unsafe { CreateDirectoryW(name.as_ptr(), &security.attributes()) } == 0 {
-                    let error = io::Error::last_os_error();
-                    if error.raw_os_error() != Some(ERROR_ALREADY_EXISTS as i32) {
-                        return Err(error.into());
-                    }
-                }
-            }
-            Err(error) => return Err(error.into()),
-        }
-        let handle = directory_handle(ancestor)
-            .map_err(|failure| failure.context("open_ancestor_directory"))?;
-        security
-            .verify_ancestor(&handle)
-            .map_err(|failure| failure.context("validate_ancestor_permissions"))?;
-        if ancestor == path {
+    directories.push(root);
+    for ancestor in ancestors.into_iter().skip(1) {
+        let leaf = ancestor == path;
+        let parent = directories.last().ok_or(Error::Internal)?;
+        let name = ancestor.file_name().ok_or(Error::InvalidArgument)?;
+        let handle = windows_file::open_at(
+            parent,
+            name,
+            &FileOpenOptions {
+                access: FILE_TRAVERSE | if leaf { READ_CONTROL } else { 0 },
+                sharing: FILE_SHARE_READ | FILE_SHARE_WRITE,
+                disposition: OPEN_ALWAYS,
+                directory: true,
+            },
+        )
+        .map_err(|error| Failure::from(error).context("open_ancestor_directory"))?;
+        if leaf {
             security
                 .verify(&handle)
                 .map_err(|failure| failure.context("validate_coordination_permissions"))?;
         }
         directories.push(handle);
+    }
+    if directories.len() == 1 {
+        // A drive root is not an application-owned coordination directory.
+        return Err(Error::InvalidArgument.into());
     }
     let name = wide(path.as_os_str())?;
     let mut volume = vec![0u16; 32768];
@@ -519,31 +427,29 @@ impl Directory {
         if path.parent() != Some(self.path.as_path()) {
             return Err(Error::InvalidArgument.into());
         }
-        let security = &self.file_security;
-        let name = wide(path.as_os_str())?;
         let mut sharing = FILE_SHARE_READ | FILE_SHARE_WRITE;
         if share_delete {
             sharing |= FILE_SHARE_DELETE;
         }
-        // SAFETY: All inputs are valid and CreateFileW returns a uniquely owned handle.
-        let handle = owned(unsafe {
-            CreateFileW(
-                name.as_ptr(),
-                access | READ_CONTROL,
+        let parent = self.directories.last().ok_or(Error::Internal)?;
+        let name = path.file_name().ok_or(Error::InvalidArgument)?;
+        let handle = windows_file::open_at(
+            parent,
+            name,
+            &FileOpenOptions {
+                access: access | READ_CONTROL,
                 sharing,
-                &security.attributes(),
                 disposition,
-                FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OPEN_REPARSE_POINT,
-                ptr::null_mut(),
-            )
-        })
-        .map_err(|failure| failure.context("open_private_file"))?;
-        check_kind(&handle, false)
+                directory: false,
+            },
+        )
+        .map_err(|error| Failure::from(error).context("open_private_file"))?;
+        check_private_file_kind(&handle)
             .map_err(|failure| failure.context("validate_private_file_kind"))?;
-        security
+        self.file_security
             .verify(&handle)
             .map_err(|failure| failure.context("validate_private_file_permissions"))?;
-        Ok(File::from(handle))
+        Ok(handle)
     }
 
     pub(crate) fn try_lock(&self, path: &Path) -> Result<Option<Lease>> {
@@ -588,17 +494,21 @@ impl Directory {
         let mut nonce = [0u8; 16];
         getrandom::fill(&mut nonce).map_err(|_| Error::Internal)?;
         let temporary = path.with_extension(format!("{}.tmp", protocol::hex(&nonce)));
+        let parent = self.directories.last().ok_or(Error::Internal)?;
+        let name = path.file_name().ok_or(Error::InvalidArgument)?;
+        let temporary_name = temporary.file_name().ok_or(Error::InvalidArgument)?;
         let result = (|| {
-            let mut file = self.private_file(&temporary, GENERIC_WRITE, CREATE_NEW, false)?;
+            let mut file =
+                self.private_file(&temporary, GENERIC_WRITE | DELETE, CREATE_NEW, false)?;
             file.write_all(data)?;
-            drop(file);
-            // std supplies the POSIX rename fallback needed for open metadata readers.
-            fs::rename(&temporary, path)
+            windows_file::replace_at(&file, parent, name)
                 .map_err(|error| Failure::from(error).context("publish_endpoint_metadata"))?;
             Ok(())
         })();
         if result.is_err() {
-            let _ = fs::remove_file(temporary);
+            // Rename failures can be reported after publication. Remove only
+            // the old staging name, never the possibly-published file handle.
+            let _ = windows_file::remove_at(parent, temporary_name);
         }
         result
     }
@@ -1044,8 +954,9 @@ pub(crate) fn cleanup_endpoint(_endpoint: &str, _token: &[u8; TOKEN_LEN]) -> Res
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{path::PathBuf, sync::mpsc};
+    use std::{fs, path::PathBuf, sync::mpsc};
     use windows_sys::Win32::Foundation::ERROR_PIPE_BUSY;
+    use windows_sys::Win32::Storage::FileSystem::CreateDirectoryW;
 
     #[test]
     fn disconnected_accept_completions_are_local_but_invalid_handles_are_fatal() {
@@ -1177,7 +1088,7 @@ mod tests {
     fn private_acl_accepts_equivalent_unused_capacity() {
         for directory in [false, true] {
             let security = Security::new(directory).unwrap();
-            let (_, original) = descriptor_parts(&security.0, true).unwrap();
+            let (_, original) = descriptor_parts(&security.0).unwrap();
             let size = usize::from(original.AclSize);
             let expanded_size = size + 32;
             // Word alignment preserves the alignment required by Windows ACL APIs.
@@ -1216,17 +1127,18 @@ mod tests {
         for sddl in rejected {
             let actual = Security::from_sddl(&sddl).unwrap();
             assert_eq!(
-                expected.verify_descriptor(&actual.0),
-                Err(Error::Permission.into()),
+                expected.verify_descriptor(&actual.0).unwrap_err().kind(),
+                Error::Permission
             );
         }
         let expected = Security::for_user(&sid, true).unwrap();
         let missing_container_inheritance =
             Security::from_sddl(&format!("O:{sid}D:P(A;OI;FA;;;{sid})")).unwrap();
-        assert_eq!(
-            expected.verify_descriptor(&missing_container_inheritance.0),
-            Err(Error::Permission.into()),
-        );
+        let failure = expected
+            .verify_descriptor(&missing_container_inheritance.0)
+            .unwrap_err();
+        assert_eq!(failure.kind(), Error::Permission);
+        assert!(failure.to_string().contains("reason=private_acl_mismatch"));
     }
 
     #[test]
@@ -1239,32 +1151,262 @@ mod tests {
         );
     }
 
+    fn create_directory_with_security(path: &Path, sddl: &str) {
+        let security = Security::from_sddl(sddl).unwrap();
+        let name = wide(path.as_os_str()).unwrap();
+        assert_ne!(
+            // SAFETY: Both the path and descriptor remain live through creation.
+            unsafe { CreateDirectoryW(name.as_ptr(), &security.attributes()) },
+            0
+        );
+    }
+
     #[test]
-    fn another_account_cannot_modify_an_ancestor_namespace() {
+    fn broad_ancestor_grants_are_accepted_but_namespace_and_leaf_remain_protected() {
         let directory = TestDirectory::new();
+        let sid = Security::current_user_sid().unwrap();
+        for (index, grant) in ["0x2", "GW", "FA"].into_iter().enumerate() {
+            let broad = directory.0.join(format!("broad-{index}"));
+            create_directory_with_security(
+                &broad,
+                &format!("O:{sid}D:P(A;OICI;FA;;;{sid})(A;OICI;{grant};;;WD)"),
+            );
+            let child = broad.join("coordination");
+            let prepared = prepare_directory(&child).unwrap();
+            let lease = prepared
+                .try_lock(&child.join("ownership.lock"))
+                .unwrap()
+                .unwrap();
+            let metadata = child.join("endpoint");
+            prepared.publish_private(&metadata, b"private").unwrap();
+            assert_eq!(prepared.read_private(&metadata, 32).unwrap(), b"private");
+            // Private-file validation also proves the broad grants were not inherited.
+            assert!(fs::rename(&broad, broad.with_extension("moved")).is_err());
+            assert!(fs::rename(&child, child.with_extension("moved")).is_err());
+            assert!(fs::remove_file(child.join("ownership.lock")).is_err());
+            drop(prepared);
+            assert!(fs::rename(&broad, broad.with_extension("moved")).is_err());
+            drop(lease);
+            let moved = broad.with_extension("moved");
+            fs::rename(&broad, &moved).unwrap();
+            fs::rename(&moved, &broad).unwrap();
+        }
+    }
+
+    #[test]
+    fn broad_coordination_directory_is_still_rejected_without_repair() {
+        let directory = TestDirectory::new();
+        let sid = Security::current_user_sid().unwrap();
         let broad = directory.0.join("broad");
-        let sddl = wide(OsStr::new("D:P(A;OICI;FA;;;WD)")).unwrap();
-        let mut descriptor = ptr::null_mut();
-        // SAFETY: The test supplies a NUL-terminated descriptor and writable output.
-        let converted = unsafe {
-            ConvertStringSecurityDescriptorToSecurityDescriptorW(
-                sddl.as_ptr(),
-                1,
-                &mut descriptor,
+        create_directory_with_security(&broad, &format!("O:{sid}D:P(A;OICI;FA;;;WD)"));
+        let before = fs::read_dir(&broad).unwrap().count();
+        let error = prepare_directory(&broad).err().unwrap();
+        assert_eq!(error.kind(), Error::Permission);
+        assert!(error.to_string().contains("reason=private_acl_mismatch"));
+        assert_eq!(fs::read_dir(&broad).unwrap().count(), before);
+        assert!(prepare_directory(&broad).is_err());
+    }
+
+    #[test]
+    fn ancestors_need_neither_acl_reads_nor_listing_nor_synchronize_access() {
+        use windows_sys::Win32::Security::{
+            Authorization::SetNamedSecurityInfoW, PROTECTED_DACL_SECURITY_INFORMATION,
+        };
+        let directory = TestDirectory::new();
+        let ancestor = directory.0.join("traverse-only");
+        let child = ancestor.join("coordination");
+        drop(prepare_directory(&child).unwrap());
+        let sid = Security::current_user_sid().unwrap();
+        let original = Security::for_user(&sid, true).unwrap();
+        // Owner-rights ACE suppresses the owner's implicit READ_CONTROL. Keep
+        // WRITE_DAC so this fixture can restore permissions before cleanup.
+        let restricted =
+            Security::from_sddl(&format!("O:{sid}D:P(A;;0xa0;;;{sid})(A;;WD;;;OW)")).unwrap();
+        let set_dacl = |security: &Security| {
+            let (_, acl) = descriptor_parts(&security.0).unwrap();
+            let mut name = wide(ancestor.as_os_str()).unwrap();
+            // SAFETY: The descriptor and mutable terminated name outlive the call.
+            let status = unsafe {
+                SetNamedSecurityInfoW(
+                    name.as_mut_ptr(),
+                    SE_FILE_OBJECT,
+                    DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION,
+                    ptr::null_mut(),
+                    ptr::null_mut(),
+                    ptr::from_ref(acl).cast_mut(),
+                    ptr::null(),
+                )
+            };
+            assert_eq!(status, 0);
+        };
+        set_dacl(&restricted);
+        let result = prepare_directory(&child);
+        set_dacl(&original);
+        let prepared = result.unwrap();
+        let metadata = child.join("endpoint");
+        prepared.publish_private(&metadata, b"private").unwrap();
+        assert_eq!(prepared.read_private(&metadata, 32).unwrap(), b"private");
+    }
+
+    #[test]
+    fn hard_linked_metadata_is_rejected() {
+        let directory = TestDirectory::new();
+        let prepared = prepare_directory(&directory.0).unwrap();
+        let metadata = directory.0.join("endpoint");
+        prepared.publish_private(&metadata, b"private").unwrap();
+        fs::hard_link(&metadata, directory.0.join("alias")).unwrap();
+        let failure = prepared.read_private(&metadata, 32).unwrap_err();
+        assert_eq!(failure.kind(), Error::Permission);
+        assert!(failure.to_string().contains("reason=hard_link"));
+    }
+
+    #[test]
+    fn coordination_junction_never_creates_files_in_its_target() {
+        let directory = TestDirectory::new();
+        let target = directory.0.join("target");
+        let link = directory.0.join("link");
+        fs::create_dir(&target).unwrap();
+        // Directory junctions work without the symlink privilege or Developer Mode.
+        let result = std::process::Command::new("cmd.exe")
+            .args(["/d", "/c", "mklink", "/J"])
+            .arg(&link)
+            .arg(&target)
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success(),
+            "junction creation failed: {result:?}"
+        );
+        assert!(prepare_directory(&link).is_err());
+        assert!(prepare_directory(&link.join("coordination")).is_err());
+        assert_eq!(fs::read_dir(&target).unwrap().count(), 0);
+        fs::remove_dir(&link).unwrap();
+    }
+
+    #[test]
+    fn junction_inserted_after_parent_open_cannot_redirect_relative_creation() {
+        use windows_sys::Win32::{
+            Storage::FileSystem::{FILE_FLAG_BACKUP_SEMANTICS, FILE_FLAG_OPEN_REPARSE_POINT},
+            System::{
+                IO::DeviceIoControl,
+                Ioctl::{FSCTL_DELETE_REPARSE_POINT, FSCTL_SET_REPARSE_POINT},
+                SystemServices::IO_REPARSE_TAG_MOUNT_POINT,
+            },
+        };
+
+        let directory = TestDirectory::new();
+        let parent_path = directory.0.join("parent");
+        let target = directory.0.join("target");
+        fs::create_dir(&target).unwrap();
+        let prepared = prepare_directory(&parent_path).unwrap();
+        let parent = prepared.directories.last().unwrap();
+        let name = wide(parent_path.as_os_str()).unwrap();
+        // The attacker gets write access to the already-open, still-empty ancestor.
+        // SAFETY: The name is terminated and the returned handle is uniquely owned.
+        let attacker = owned(unsafe {
+            CreateFileW(
+                name.as_ptr(),
+                GENERIC_WRITE,
+                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                ptr::null(),
+                OPEN_EXISTING,
+                FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
                 ptr::null_mut(),
             )
-        };
-        assert_ne!(converted, 0);
-        let security = Security(LocalAllocation(descriptor));
-        let name = wide(broad.as_os_str()).unwrap();
-        // SAFETY: Both name and attributes are live through directory creation.
-        let created = unsafe { CreateDirectoryW(name.as_ptr(), &security.attributes()) };
-        assert_ne!(created, 0);
-        let child = broad.join("coordination");
-        assert!(
-            matches!(prepare_directory(&child), Err(error) if error.kind() == Error::Permission)
+        })
+        .unwrap();
+        let substitute = format!(r"\??\{}", target.display());
+        let substitute: Vec<u16> = OsStr::new(&substitute).encode_wide().collect();
+        // REPARSE_DATA_BUFFER: tag, data length, reserved, then mount-point
+        // substitute/print offsets and lengths followed by two terminated names.
+        let mut buffer = vec![
+            IO_REPARSE_TAG_MOUNT_POINT as u16,
+            (IO_REPARSE_TAG_MOUNT_POINT >> 16) as u16,
+            (8 + (substitute.len() + 2) * 2) as u16,
+            0,
+            0,
+            (substitute.len() * 2) as u16,
+            ((substitute.len() + 1) * 2) as u16,
+            0,
+        ];
+        buffer.extend(substitute);
+        buffer.extend([0, 0]);
+        let mut returned = 0;
+        assert_ne!(
+            // SAFETY: The word-aligned buffer contains its complete declared payload.
+            unsafe {
+                DeviceIoControl(
+                    attacker.as_raw_handle(),
+                    FSCTL_SET_REPARSE_POINT,
+                    buffer.as_ptr().cast(),
+                    (buffer.len() * 2) as u32,
+                    ptr::null_mut(),
+                    0,
+                    &mut returned,
+                    ptr::null_mut(),
+                )
+            },
+            0
         );
-        assert!(!child.exists());
+        let result = windows_file::open_at(
+            parent,
+            OsStr::new("child"),
+            &FileOpenOptions {
+                access: FILE_TRAVERSE | READ_CONTROL,
+                sharing: FILE_SHARE_READ | FILE_SHARE_WRITE,
+                disposition: CREATE_NEW,
+                directory: true,
+            },
+        );
+        // Both refusing the changed root and staying on the original directory
+        // capability are safe. Following its newly-inserted junction is not.
+        assert!(!target.join("child").exists());
+        drop(result);
+        buffer[2] = 0;
+        assert_ne!(
+            // SAFETY: Deletion uses the eight-byte tag/length/reserved header.
+            unsafe {
+                DeviceIoControl(
+                    attacker.as_raw_handle(),
+                    FSCTL_DELETE_REPARSE_POINT,
+                    buffer.as_ptr().cast(),
+                    8,
+                    ptr::null_mut(),
+                    0,
+                    &mut returned,
+                    ptr::null_mut(),
+                )
+            },
+            0
+        );
+    }
+
+    #[test]
+    fn relative_file_names_cannot_escape_the_coordination_directory() {
+        let directory = TestDirectory::new();
+        let prepared = prepare_directory(&directory.0).unwrap();
+        let parent = prepared.directories.last().unwrap();
+        for name in [
+            "..",
+            r"..\outside",
+            "../outside",
+            "endpoint:stream",
+            r"C:\outside",
+        ] {
+            let error = windows_file::open_at(
+                parent,
+                OsStr::new(name),
+                &FileOpenOptions {
+                    access: GENERIC_WRITE,
+                    sharing: FILE_SHARE_READ | FILE_SHARE_WRITE,
+                    disposition: CREATE_NEW,
+                    directory: false,
+                },
+            )
+            .unwrap_err();
+            assert_eq!(error.kind(), io::ErrorKind::InvalidInput);
+        }
+        assert_eq!(fs::read_dir(&directory.0).unwrap().count(), 0);
     }
 
     #[test]

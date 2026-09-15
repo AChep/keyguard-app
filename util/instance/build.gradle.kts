@@ -1,4 +1,5 @@
 import com.artemchep.keyguard.buildplugins.cargo.CargoBuildTask
+import com.artemchep.keyguard.buildplugins.cargo.RustMultiplatformLibraryExtension
 import com.artemchep.keyguard.buildplugins.cargo.binaryName
 import com.artemchep.keyguard.buildplugins.cargo.detectHostPlatform
 import com.artemchep.keyguard.buildplugins.cargo.dynamicLibraryName
@@ -15,6 +16,14 @@ kotlin {
     macosArm64()
 }
 
+// Windows instance coordination reuses IO's handle-relative filesystem primitives.
+val ioRustSources = rootProject.fileTree("util/io/rust") {
+    exclude("target/**", "**/target/**")
+}
+extensions.configure<RustMultiplatformLibraryExtension> {
+    extraSourceInputs.from(ioRustSources)
+}
+
 val hostPlatform = detectHostPlatform()
 val desktopLibrary = layout.buildDirectory.file(
     "cargo-target/${hostPlatform.rustTarget}/release/" +
@@ -26,6 +35,7 @@ val nativeFixture = tasks.register<CargoBuildTask>("cargoBuildNativeInstanceFixt
     mustRunAfter("cargoBuildNativeInstanceDesktop")
     sourceDir.set(layout.projectDirectory.dir("rust"))
     sourceFiles.from(fileTree("rust") { exclude("target/**", "**/target/**") })
+    sourceFiles.from(ioRustSources)
     cargoTargetDir.set(layout.buildDirectory.dir("cargo-target"))
     rustTarget.set(hostPlatform.rustTarget)
     cargoPackage.set("keyguard-instance-core")

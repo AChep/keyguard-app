@@ -186,6 +186,18 @@ class NativeChangeClassificationTest(unittest.TestCase):
         self.assertIn("windows", [row["platform"] for row in result["desktop_matrix"]["include"]])
         self.assertFalse(result["desktop"])
 
+    def test_io_native_changes_also_check_the_instance_consumer(self):
+        for path in (
+            "util/io/rust/crates/keyguard-io-core/src/windows_file.rs",
+            "util/io/rust/crates/keyguard-io-core/src/windows_nt.rs",
+            "util/io/rust/Cargo.toml",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                self.assertTrue(result["instance"])
+                self.assertTrue(result["desktop_regressions"])
+                self.assertIn("windows", [row["platform"] for row in result["desktop_matrix"]["include"]])
+
     def test_crypto_test_change_keeps_quality_without_fuzz_or_packages(self):
         result = classify(["util/crypto/rust/crates/keyguard-crypto-core/tests/properties.rs"])
         self.assertTrue(result["crypto"])

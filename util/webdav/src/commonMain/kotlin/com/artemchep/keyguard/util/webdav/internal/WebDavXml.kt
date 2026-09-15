@@ -138,7 +138,7 @@ private class XmlParser(
                 input.startsWith("</", index) -> {
                     readEndTag()
                     if (stack.size > 1) {
-                        stack.removeLast()
+                        stack.removeAt(stack.lastIndex)
                     }
                 }
                 input[index] == '<' -> {

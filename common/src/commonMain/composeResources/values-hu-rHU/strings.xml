@@ -769,6 +769,7 @@
     <string name="error_failed_decrypt_biometric_key">Nem sikerült visszafejteni a biometrikus kulcsot</string>
     <string name="error_failed_ssh_agent_start">Nem sikerült elindítani az SSH ügynököt</string>
     <string name="error_failed_gpg_agent_start">Failed to start the GPG agent</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">A hívó alkalmazás nem szerepel a kiváltságos listán, és nem kérhet hitelesítést a többi alkalmazás nevében.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1049,7 @@
     <string name="home_settings_label">Beállítások</string>
     <string name="lock_reason_inactivity">Tétlenség miatt zárolva van</string>
     <string name="lock_reason_screen_off">Zárolva a képernyő kikapcsolása miatt</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">Manuálisan zárolva</string>
     <string name="send_type_text">Szöveg</string>
     <string name="send_type_file">Fájl</string>
@@ -1666,6 +1668,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">Széf zárolása az eszköz újraindítása után</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Zárolás a képernyő kikapcsolásakor</string>
     <string name="pref_item_lock_vault_after_screen_off_text">Széf zárolása néhány másodperccel azután, hogy a képernyő kikapcsolt</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">Zárolás késleltetéssel</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Azonnal</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Soha</string>

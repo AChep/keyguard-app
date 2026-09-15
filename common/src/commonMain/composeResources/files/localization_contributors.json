@@ -187,8 +187,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 5958,
-    "target": 6660,
+    "translated": 6040,
+    "target": 6755,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -1973,6 +1973,28 @@
     ],
     "translated": 263,
     "target": 390,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "17898117",
+      "username": "LeDimigit",
+      "fullName": "LeDimigit",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17898117/medium/56c72032deede0f05e8aa3912d247340.png",
+      "joined": "2026-09-14 11:49:18"
+    },
+    "languages": [
+      {
+        "id": "fr",
+        "name": "French"
+      }
+    ],
+    "translated": 1223,
+    "target": 1404,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

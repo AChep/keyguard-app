@@ -769,6 +769,7 @@
     <string name="error_failed_decrypt_biometric_key">Fehler beim Entschlüsseln des biometrischen Schlüssels</string>
     <string name="error_failed_ssh_agent_start">SSH-Agent konnte nicht gestartet werden</string>
     <string name="error_failed_gpg_agent_start">GPG-Agent konnte nicht gestartet werden</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">Die aufrufende App steht nicht auf der Liste der privilegierten Apps und kann keine Authentifizierung im Namen anderer Apps anfordern.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1049,7 @@
     <string name="home_settings_label">Einstellungen</string>
     <string name="lock_reason_inactivity">Wegen Inaktivität gesperrt</string>
     <string name="lock_reason_screen_off">Gesperrt wegen ausgeschaltetem Bildschirm</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">Manuell gesperrt</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">Datei</string>
@@ -1666,6 +1668,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">Tresor nach einem Neustart des Geräts sperren</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Sperren, wenn der Bildschirm ausgeschaltet wird</string>
     <string name="pref_item_lock_vault_after_screen_off_text">Sperrt den Tresor nach ein paar Sekunden, sobald der Bildschirm ausgeschaltet ist</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">Nach Verzögerung sperren</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Sofort</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Nie</string>

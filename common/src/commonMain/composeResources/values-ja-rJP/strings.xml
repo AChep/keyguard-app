@@ -769,6 +769,7 @@
     <string name="error_failed_decrypt_biometric_key">生体認証キーの復号化に失敗しました</string>
     <string name="error_failed_ssh_agent_start">SSHエージェントの起動に失敗しました</string>
     <string name="error_failed_gpg_agent_start">GPGエージェントの起動に失敗しました</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">呼び出し元のアプリは特権アプリケーションのリストに含まれておらず、他のアプリの代わりに認証をリクエストすることはできません。</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1049,7 @@
     <string name="home_settings_label">設定</string>
     <string name="lock_reason_inactivity">ロックされています</string>
     <string name="lock_reason_screen_off">画面オフのためロック中</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">手動でロック中</string>
     <string name="send_type_text">テキスト</string>
     <string name="send_type_file">ファイル</string>
@@ -1666,6 +1668,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">デバイスの再起動後に保管庫をロック</string>
     <string name="pref_item_lock_vault_after_screen_off_title">画面消灯時にロック</string>
     <string name="pref_item_lock_vault_after_screen_off_text">画面がオフになってから数秒後に保管庫をロックします。</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">保管庫のタイムアウト</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">即時</string>
     <string name="pref_item_lock_vault_after_delay_never_text">なし</string>

@@ -27,6 +27,7 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasAutofill
 import com.artemchep.keyguard.platform.util.hasSubscription
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.pref_item_appearance_text
@@ -131,8 +132,9 @@ fun rememberSettingsRouteListItems(
                 icon = Icons.Outlined.Backup,
                 route = AutomaticBackupsSettingsRoute,
             ).takeIf {
-                CurrentPlatform is Platform.Desktop ||
-                        CurrentPlatform is Platform.Mobile.Android
+                (CurrentPlatform is Platform.Desktop ||
+                        CurrentPlatform is Platform.Mobile.Android) &&
+                        (!CurrentPlatform.hasWatch() || !isRelease)
             },
             SettingsRouteListAction(
                 id = "developer",

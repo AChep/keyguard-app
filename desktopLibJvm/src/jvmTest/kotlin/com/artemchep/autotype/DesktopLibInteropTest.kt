@@ -303,6 +303,10 @@ class DesktopLibInteropTest {
         var nativeSystemAccentColor: Int = 0
         val freedPointers = mutableListOf<Pointer>()
 
+        override fun registerNativePowerEvents(callback: DesktopLibJna.PowerEventCallback): Int = -1
+
+        override fun unregisterNativePowerEvents(id: Int): Boolean = false
+
         override fun autoType(payload: Pointer): Boolean = true
 
         override fun getSystemAccentColor(): Int = nativeSystemAccentColor

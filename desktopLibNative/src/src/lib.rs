@@ -7,8 +7,11 @@ mod ffi;
 mod hotkey;
 mod keychain;
 mod notification;
+mod power;
 
-use ffi::{BiometricsResultCallback, BiometricsVerifyCallback, HotKeyPressedCallback};
+use ffi::{
+    BiometricsResultCallback, BiometricsVerifyCallback, HotKeyPressedCallback, PowerEventCallback,
+};
 use std::ffi::c_char;
 use std::ffi::c_int;
 use std::ffi::c_void;
@@ -187,6 +190,31 @@ pub extern "C" fn registerNativeGlobalHotKey(
 pub extern "C" fn unregisterNativeGlobalHotKey(id: c_int) -> bool {
     ffi::with_ffi_boundary("unregisterNativeGlobalHotKey", false, || {
         Ok(hotkey::unregister(id))
+    })
+}
+
+/// Registers synchronous power notifications. Returns a positive registration ID,
+/// `REGISTER_STATUS_UNSUPPORTED_PLATFORM`, or `REGISTER_STATUS_INTERNAL_ERROR`.
+///
+/// # Safety
+/// A non-null callback must remain callable until successful unregistration. It
+/// must not unwind, unregister itself, or wait for work on the AppKit main thread.
+#[cfg_attr(not(test), no_mangle)]
+pub unsafe extern "C" fn registerNativePowerEvents(callback: PowerEventCallback) -> c_int {
+    ffi::with_ffi_boundary(
+        "registerNativePowerEvents",
+        ffi::REGISTER_STATUS_INTERNAL_ERROR,
+        || {
+            let callback = callback.ok_or("callback pointer was null")?;
+            Ok(power::register(Some(callback)))
+        },
+    )
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn unregisterNativePowerEvents(id: c_int) -> bool {
+    ffi::with_ffi_boundary("unregisterNativePowerEvents", false, || {
+        Ok(power::unregister(id))
     })
 }
 

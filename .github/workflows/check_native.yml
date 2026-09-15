@@ -412,6 +412,9 @@ jobs:
       - name: "Run platform helper Rust tests"
         if: needs.changes.outputs.desktop_native == 'true'
         run: cargo test --manifest-path desktopLibNative/src/Cargo.toml --all-targets --locked --offline
+      - name: "Run macOS power observer tests"
+        if: runner.os == 'macOS' && needs.changes.outputs.desktop_native == 'true'
+        run: bash desktopLibNative/src/objc/tests/run.sh
       - name: "Run OS-specific native Rust regressions"
         if: runner.os != 'Linux' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.instance == 'true')
         shell: bash

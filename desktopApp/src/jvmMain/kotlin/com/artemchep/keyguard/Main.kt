@@ -59,6 +59,7 @@ import com.artemchep.keyguard.common.service.quicksearch.DesktopLibGlobalHotKeyR
 import com.artemchep.keyguard.common.service.quicksearch.QuickSearchHotkeyService
 import com.artemchep.keyguard.common.service.quicksearch.QuickSearchWindowManager
 import com.artemchep.keyguard.common.service.session.VaultLockHotkeyService
+import com.artemchep.keyguard.common.service.session.VaultPowerLockService
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
@@ -420,6 +421,18 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance) {
                 onDispose(stop)
             }
 
+            val showMessage by rememberInstance<ShowMessage>()
+            LaunchedEffect(appDi) {
+                withContext(Dispatchers.Default) {
+                    VaultPowerLockService(
+                        getVaultLockAfterScreenOff = appDi.direct.instance(),
+                        sessionRepository = appDi.direct.instance(),
+                        clearVaultSession = clearVaultSession,
+                        showMessage = showMessage,
+                    ).run()
+                }
+            }
+
             // SSH Agent: Start the SSH agent if the binary is available.
             // The binary is bundled in the app resources during distribution.
             // This is placed after the single-instance check so that a
@@ -436,7 +449,6 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance) {
                     pendingUsageHistoryQueue = pendingUsageHistoryQueue,
                 )
             }
-            val showMessage by rememberInstance<ShowMessage>()
             val getSshAgentState = remember { getSshAgent() }
                 .collectAsState(false)
             val getSshAgentStateValue = getSshAgentState.value

@@ -41,7 +41,8 @@ app password or biometrics.
 The security settings control when the vault locks itself:
 
 - **Lock after a delay** — from *immediately* to *never*, after inactivity;
-- **Lock when screen turns off** — locks as soon as the screen goes dark;
+- **Lock when screen turns off** (Android, macOS) — locks when the display or device
+  sleeps;
 - **Persist vault key on a disk** — with this off, the vault also locks
   whenever the app is unloaded from memory.
 

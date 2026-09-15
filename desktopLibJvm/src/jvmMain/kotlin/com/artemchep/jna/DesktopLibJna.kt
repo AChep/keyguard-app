@@ -78,6 +78,16 @@ public interface DesktopLibJna : Library {
 
     public fun autoType(payload: Pointer): Boolean
 
+    // Power notifications
+
+    public fun registerNativePowerEvents(callback: PowerEventCallback): Int
+
+    public fun unregisterNativePowerEvents(id: Int): Boolean
+
+    public interface PowerEventCallback : Callback {
+        public fun invoke(event: Int)
+    }
+
     // System accent color
 
     public fun getSystemAccentColor(): Int

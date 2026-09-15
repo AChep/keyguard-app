@@ -6,6 +6,13 @@ pub(crate) type BiometricsVerifyCallback = Option<extern "C" fn(i32, *const c_ch
 pub(crate) type BiometricsResultCallback =
     Option<extern "C" fn(i32, *const u8, u64, *const c_char)>;
 pub(crate) type HotKeyPressedCallback = Option<unsafe extern "C" fn(i32)>;
+pub(crate) type PowerEventCallback = Option<unsafe extern "C" fn(i32)>;
+
+/// Registration status codes shared by every native registration export.
+/// Mirrors the JVM bridge contract and the ObjC shim.
+#[allow(dead_code)]
+pub(crate) const REGISTER_STATUS_UNSUPPORTED_PLATFORM: i32 = -1;
+pub(crate) const REGISTER_STATUS_INTERNAL_ERROR: i32 = -5;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum FailureLogDetail {

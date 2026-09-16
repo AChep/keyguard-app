@@ -50,12 +50,15 @@ class LoadingTask(
      *
      * Returns `true` when this call claimed the executor and scheduled the
      * task, or `false` when another task already owns it.
+     * [onCompletion] runs even if the task is skipped or cancelled before starting.
      */
     fun execute(
         io: IO<*>,
         tag: String? = null,
+        onCompletion: (() -> Unit)? = null,
     ): Boolean {
         if (!isWorkingSink.compareAndSet(expect = false, update = true)) {
+            onCompletion?.invoke()
             return false
         }
         val job = scope.launch {
@@ -80,7 +83,11 @@ class LoadingTask(
         // so releasing from the body alone can leave the executor stuck. A job
         // completion handler also covers that path and is invoked exactly once.
         job.invokeOnCompletion {
-            isWorkingSink.value = false
+            try {
+                onCompletion?.invoke()
+            } finally {
+                isWorkingSink.value = false
+            }
         }
         return true
     }

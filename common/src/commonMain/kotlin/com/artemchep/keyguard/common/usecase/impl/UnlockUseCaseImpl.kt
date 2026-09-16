@@ -34,6 +34,7 @@ import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.YUBIKEY_UNLOCK_HKDF_INFO
+import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
@@ -81,6 +82,7 @@ import org.kodein.di.subDI
 class UnlockUseCaseImpl(
     private val di: DI,
     private val biometricStatusUseCase: BiometricStatusUseCase,
+    private val biometricKeyRepository: BiometricKeyRepository,
     private val getVaultSession: GetVaultSession,
     private val putVaultSession: PutVaultSession,
     private val disableBiometric: DisableBiometric,
@@ -152,13 +154,24 @@ class UnlockUseCaseImpl(
                     lockInfo = session.lockInfo,
                 )
 
-            persistableUserTokens != null && session is MasterSession.Key ->
+            persistableUserTokens != null && session is MasterSession.Key -> {
+                // The vault is open, so the master key is at hand: restore the
+                // platform key behind the saved biometric binding if it is gone.
+                // Doing it here, rather than inside the unlock action, covers a
+                // restored persisted session and avoids re-emitting the Unlock
+                // state while the unlock action is still running.
+                rearmBiometricIfNeeded(
+                    persistableUserTokens,
+                    biometric.forCreate,
+                    session.masterKey,
+                ).bind()
                 createMainVaultState(
                     tokens = persistableUserTokens,
                     biometric = biometric.forCreate,
                     masterKey = session.masterKey,
                     di = session.di,
                 )
+            }
 
             else -> error("Unreachable statement")
         }
@@ -175,6 +188,7 @@ class UnlockUseCaseImpl(
     constructor(directDI: DirectDI) : this(
         di = directDI.di,
         biometricStatusUseCase = directDI.instance(),
+        biometricKeyRepository = directDI.instance(),
         getVaultSession = directDI.instance(),
         putVaultSession = directDI.instance(),
         disableBiometric = directDI.instance(),
@@ -326,10 +340,11 @@ class UnlockUseCaseImpl(
                         .dispatchOn(Dispatchers.Default)
                 },
             ),
-            unlockWithBiometric = if (biometric is BiometricStatus.Available && tokens.biometric != null) {
+            unlockWithBiometric = if (biometric is BiometricStatus.Available && hasBiometricKey(tokens)) {
+                val biometricTokens = requireNotNull(tokens.biometric)
                 val getCipherForDecryption = biometric
                     .createCipher
-                    .partially1(BiometricPurpose.Decrypt(DKey(tokens.biometric.iv)))
+                    .partially1(BiometricPurpose.Decrypt(DKey(biometricTokens.iv)))
                     // Handle key invalidation
                     .createCipherOrDisableBiometrics()
                     .let { block ->
@@ -345,7 +360,7 @@ class UnlockUseCaseImpl(
                 VaultState.Unlock.WithBiometric(
                     getCipher = getCipherForDecryption,
                     getCreateIo = {
-                        val encryptedMasterKey = tokens.biometric.encryptedMasterKey
+                        val encryptedMasterKey = biometricTokens.encryptedMasterKey
                         val cipherIo = ioEffect {
                             getCipherForDecryption()
                                 .getOrElse { e ->
@@ -556,6 +571,54 @@ class UnlockUseCaseImpl(
             di = di,
         )
     }
+
+    /**
+     * `true` if there is a saved biometric binding and the platform
+     * still holds the key that protects it.
+     */
+    private val hasBiometricKey: suspend (Fingerprint) -> Boolean = { tokens ->
+        if (tokens.biometric == null) {
+            false
+        } else {
+            // If the check itself fails, keep the option and let the
+            // unlock attempt report the actual problem.
+            biometricKeyRepository.exists()
+                .attempt()
+                .bind()
+                .getOrElse { true }
+        }
+    }
+
+    /**
+     * Re-creates the platform key behind the saved biometric binding
+     * when the platform has lost it: Linux keeps the key in memory only
+     * and drops it when the app exits. Runs whenever the vault is open,
+     * so the master key is already available and no prompt is needed.
+     * Never fails.
+     */
+    private fun rearmBiometricIfNeeded(
+        tokens: Fingerprint,
+        biometric: BiometricStatus,
+        masterKey: MasterKey,
+    ): IO<Unit> = ioEffect {
+        if (tokens.biometric == null || biometric !is BiometricStatus.Available) {
+            return@ioEffect
+        }
+        val rearmed = rearmBiometricBinding(
+            tokens = tokens,
+            masterKey = masterKey,
+            biometric = biometric,
+            biometricKeyRepository = biometricKeyRepository,
+            keyReadWriteRepository = keyReadWriteRepository,
+            biometricKeyEncryptUseCase = biometricKeyEncryptUseCase,
+        )
+        if (rearmed) {
+            logRepository.post(TAG, "Re-created the biometric unlock key.", level = LogLevel.INFO)
+        }
+    }
+        .crashlyticsTap()
+        .attempt()
+        .map { }
 
     private fun (suspend () -> LeBiometricCipher).createCipherOrDisableBiometrics() = this
         .let { createCipher ->

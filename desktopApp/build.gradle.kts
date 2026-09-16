@@ -351,6 +351,13 @@ fun Tar.installPackageDistributable(
                 include("com.artemchep.keyguard.metainfo.xml")
                 into("Keyguard/share/metainfo")
             }
+            // polkit policy of the system authentication unlock. polkitd
+            // only reads the host's /usr/share, the copy here is what the
+            // documented install command reads.
+            from(rootProject.file("desktopLibNative/src/src/biometrics/linux")) {
+                include("com.artemchep.keyguard.policy")
+                into("Keyguard/share/polkit-1/actions")
+            }
             from(flatpakSources) {
                 include("icon.svg")
                 // Rename happens on the fly during the copy

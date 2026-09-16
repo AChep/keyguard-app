@@ -88,6 +88,31 @@ internal suspend fun biometricsVerifyOrThrow(
     windowHandle: Long,
     title: String,
     callbackRetention: BiometricsCallbackRetention = biometricsCallbackRetention,
+) = awaitBiometricsStatus(callbackRetention) { scope, callback ->
+    lib.biometricsVerify(
+        windowHandle = windowHandle,
+        title = title
+            .asMemory()
+            .let(scope::register),
+        callback = callback,
+    )
+}
+
+internal suspend fun biometricsPrepareEnrollmentOrThrow(
+    lib: DesktopLibJna,
+    callbackRetention: BiometricsCallbackRetention = biometricsCallbackRetention,
+) = awaitBiometricsStatus(callbackRetention) { _, callback ->
+    lib.biometricsPrepareEnrollment(callback)
+}
+
+/**
+ * Invokes a native call that reports a `BiometricsStatus` through a
+ * [DesktopLibJna.BiometricsVerifyCallback], possibly asynchronously, and
+ * suspends until it does. Any status other than success is thrown.
+ */
+private suspend fun awaitBiometricsStatus(
+    callbackRetention: BiometricsCallbackRetention,
+    invoke: (DisposableScope, DesktopLibJna.BiometricsVerifyCallback) -> Unit,
 ) {
     suspendCancellableCoroutine<Unit> { continuation ->
         val scope = DisposableScope()
@@ -118,13 +143,7 @@ internal suspend fun biometricsVerifyOrThrow(
         callbackRetention.retain(callback)
 
         try {
-            lib.biometricsVerify(
-                windowHandle = windowHandle,
-                title = title
-                    .asMemory()
-                    .let(scope::register),
-                callback = callback,
-            )
+            invoke(scope, callback)
         } catch (e: Throwable) {
             if (callbackRetention.release(callback) && continuation.isActive) {
                 continuation.resumeWithException(e)

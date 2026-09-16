@@ -227,6 +227,10 @@ class GlobalHotKeyInteropTest {
             callback: DesktopLibJna.BiometricsVerifyCallback,
         ) = Unit
 
+        override fun biometricsPrepareEnrollment(
+            callback: DesktopLibJna.BiometricsVerifyCallback,
+        ) = Unit
+
         override fun biometricsDeleteCredential(): Int = 1
 
         override fun biometricsTransformSecret(

@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.model.BiometricBindingException
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class LeBiometricCipherWindowsHelloTest {
     @Test
@@ -23,6 +24,25 @@ class LeBiometricCipherWindowsHelloTest {
             plaintext,
             decryptCipher.encode(encryptCipher.encode(plaintext)),
         )
+    }
+
+    @Test
+    fun `clear erases the key and a new materialization restores it`() {
+        val secret = ByteArray(32) { it.toByte() }
+        val encryptCipher = LeBiometricCipherWindowsHello.forEncryption(secret, ByteArray(16))
+        encryptCipher.completeEncryption(ByteArray(256) { 1 })
+        val decryptCipher = LeBiometricCipherWindowsHello.forDecryption(encryptCipher.iv)
+        decryptCipher.completeDecryption(secret)
+        val key = decryptCipher._key!!
+        val plaintext = "Windows Hello unlock".encodeToByteArray()
+        val encrypted = encryptCipher.encode(plaintext)
+
+        decryptCipher.clear()
+
+        assertTrue(key.all { it == 0.toByte() })
+        assertFailsWith<IllegalArgumentException> { decryptCipher.encode(encrypted) }
+        decryptCipher.completeDecryption(secret)
+        assertContentEquals(plaintext, decryptCipher.encode(encrypted))
     }
 
     @Test

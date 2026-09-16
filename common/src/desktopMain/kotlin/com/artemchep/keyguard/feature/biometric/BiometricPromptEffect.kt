@@ -46,11 +46,15 @@ actual fun BiometricPromptEffect(flow: Flow<PureBiometricAuthPrompt>) {
                         )
                     }.fold(
                         onSuccess = {
-                            val result = event.cipher.right()
-                            event.onComplete(result)
+                            runCatching {
+                                event.onComplete(event.cipher.right())
+                            }
+                                .onFailure { event.cipher.clear() }
+                                .getOrThrow()
                         },
                         onFailure = {
-                            val result = it.toBiometricAuthException()
+                            event.cipher.clear()
+                            val result = it.toBiometricAuthException(context)
                                 .left()
                             event.onComplete(result)
                         },
@@ -70,7 +74,7 @@ actual fun BiometricPromptEffect(flow: Flow<PureBiometricAuthPrompt>) {
                             event.onComplete(result)
                         },
                         onFailure = {
-                            val result = it.toBiometricAuthException()
+                            val result = it.toBiometricAuthException(context)
                                 .left()
                             event.onComplete(result)
                         },

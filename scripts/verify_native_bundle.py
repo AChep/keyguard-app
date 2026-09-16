@@ -75,7 +75,8 @@ ANDROID_MODULES = ("crypto", "io", "zxcvbn")
 APPLE_APP_MODULES = ("crypto", "io", "zxcvbn", "zip")
 BRIDGE_EXPORTS = frozenset((
     "autoType", "getSystemAccentColor", "biometricsIsSupported", "biometricsVerify",
-    "biometricsDeleteCredential", "biometricsTransformSecret", "keychainAddPassword",
+    "biometricsPrepareEnrollment", "biometricsDeleteCredential", "biometricsTransformSecret",
+    "keychainAddPassword",
     "keychainGetPassword", "keychainDeletePassword", "keychainContainsPassword",
     "postNotification", "registerNativeGlobalHotKey", "unregisterNativeGlobalHotKey", "freePointer",
 ))

@@ -14,8 +14,8 @@ import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
 /**
- * Verifies the user with the platform biometrics and then loads
- * the cipher key from the login keychain. Used on macOS.
+ * Verifies the user with the platform authentication and then loads
+ * the cipher key from the macOS login keychain after Touch ID.
  */
 class BiometricPromptHostKeychain(
     private val base64Service: Base64Service,

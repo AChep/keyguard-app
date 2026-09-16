@@ -404,14 +404,23 @@ jobs:
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && (needs.changes.outputs.apple == 'true' || needs.changes.outputs.apple_regressions == 'true')
         with:
           profile: apple
+      - name: "Check platform helper formatting"
+        if: needs.changes.outputs.desktop_native == 'true'
+        run: cargo fmt --manifest-path desktopLibNative/src/Cargo.toml --check
       - name: "Check platform helper code"
         if: needs.changes.outputs.desktop_native == 'true'
         run: >-
           cargo clippy --manifest-path desktopLibNative/src/Cargo.toml
-          --all-targets --locked --offline -- -D clippy::undocumented_unsafe_blocks
+          --all-targets --locked --offline -- -D warnings -D clippy::undocumented_unsafe_blocks
       - name: "Run platform helper Rust tests"
         if: needs.changes.outputs.desktop_native == 'true'
         run: cargo test --manifest-path desktopLibNative/src/Cargo.toml --all-targets --locked --offline
+      - name: "Test Linux kernel credential protection"
+        if: runner.os == 'Linux' && needs.changes.outputs.desktop_native == 'true'
+        run: cargo test --manifest-path desktopLibNative/src/Cargo.toml --locked --offline keychain::memory::protected::tests -- --ignored
+      - name: "Test trusted Linux system bus"
+        if: runner.os == 'Linux' && needs.changes.outputs.desktop_native == 'true'
+        run: cargo test --manifest-path desktopLibNative/src/Cargo.toml --locked --offline system_bus_ignores_environment_override -- --ignored
       - name: "Run macOS power observer tests"
         if: runner.os == 'macOS' && needs.changes.outputs.desktop_native == 'true'
         run: bash desktopLibNative/src/objc/tests/run.sh

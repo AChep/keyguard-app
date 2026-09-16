@@ -13,6 +13,10 @@ pub(crate) fn verify(_window_handle: i64, _title: &str, callback: BiometricsVeri
     );
 }
 
+pub(crate) fn prepare_enrollment(callback: BiometricsVerifyCallback) {
+    report_verify_result(callback, ChallengeStatus::Success, None);
+}
+
 pub(crate) fn delete_credential() -> bool {
     false
 }

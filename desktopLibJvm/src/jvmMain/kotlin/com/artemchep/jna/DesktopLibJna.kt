@@ -102,6 +102,10 @@ public interface DesktopLibJna : Library {
         callback: BiometricsVerifyCallback,
     )
 
+    public fun biometricsPrepareEnrollment(
+        callback: BiometricsVerifyCallback,
+    )
+
     public fun biometricsDeleteCredential(): Int
 
     public fun biometricsTransformSecret(

@@ -26,6 +26,8 @@ Besides typing the app password, you can unlock with:
 
 - **Biometrics** (Android, macOS, Windows) — enable it during setup or later in the
   security settings;
+- **System authentication** (Linux) — the desktop's polkit dialog, which accepts a
+  fingerprint or your login password. See [Linux](#linux) below;
 - **YubiKey** (Android) — unlock with a YubiKey over **USB** or **NFC**,
   using HMAC-SHA1 challenge-response. Keyguard provisions a key slot when
   you set it up.
@@ -35,6 +37,26 @@ viewed or autofilled — see the
 [authentication re-prompt](/docs/items/#per-item-protection). When such an
 item is opened, Keyguard shows a **Confirm access** prompt that accepts your
 app password or biometrics.
+
+### Linux
+
+The option requires polkit and protected storage: memfd_secret, or the Linux process keyring when
+memfd_secret is unavailable. Keyguard hides the option if neither is available.
+
+> Keyguard blocks hibernation while the key is held.
+> Disable system authentication or exit Keyguard before hibernating.
+
+The key lives in memory only. After Keyguard restarts, the first unlock needs
+the app password unless the vault key is persisted; the option is available
+again from the next lock.
+
+polkit needs a rule that declares the Keyguard action. The first time you
+enable the option, Keyguard installs it and asks for administrator approval.
+Flatpak cannot write to the host, so run this once instead:
+
+```sh
+flatpak run --command=cat com.artemchep.keyguard /app/share/polkit-1/actions/com.artemchep.keyguard.policy | sudo install -D -m 0644 /dev/stdin /usr/share/polkit-1/actions/com.artemchep.keyguard.policy
+```
 
 ## Auto-lock
 

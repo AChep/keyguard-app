@@ -89,6 +89,7 @@ import com.artemchep.keyguard.di.globalModuleJvm
 import com.artemchep.keyguard.feature.biometric.BiometricKeyRepositoryDesktop
 import com.artemchep.keyguard.feature.biometric.BiometricPromptHost
 import com.artemchep.keyguard.feature.biometric.BiometricPromptHostKeychain
+import com.artemchep.keyguard.feature.biometric.BiometricPromptHostLinux
 import com.artemchep.keyguard.feature.biometric.BiometricPromptHostWindowsHello
 import com.artemchep.keyguard.feature.navigation.defaultNavigationModule
 import com.artemchep.keyguard.platform.CurrentPlatform
@@ -129,6 +130,7 @@ class BiometricStatusUseCaseImpl(
         val hasBiometrics = when (CurrentPlatform) {
             is Platform.Desktop.MacOS,
             is Platform.Desktop.Windows,
+            is Platform.Desktop.Linux,
                 -> biometricsIsSupported()
 
             else -> false
@@ -293,6 +295,7 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bindSingleton<BiometricPromptHost> {
         when (CurrentPlatform) {
             is Platform.Desktop.Windows -> BiometricPromptHostWindowsHello(directDI = this)
+            is Platform.Desktop.Linux -> BiometricPromptHostLinux()
             else -> BiometricPromptHostKeychain(directDI = this)
         }
     }

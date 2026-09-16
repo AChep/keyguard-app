@@ -71,6 +71,18 @@ pub unsafe extern "C" fn biometricsVerify(
 }
 
 #[cfg_attr(not(test), no_mangle)]
+/// Prepares the platform for enrolling the biometric unlock credential and
+/// reports a `BiometricsStatus` code to `callback`. On Linux this installs
+/// the polkit policy and may show an administrator prompt; elsewhere it
+/// reports success without prompting.
+pub extern "C" fn biometricsPrepareEnrollment(callback: BiometricsVerifyCallback) {
+    ffi::with_ffi_boundary("biometricsPrepareEnrollment", (), || {
+        biometrics::prepare_enrollment(callback);
+        Ok(())
+    });
+}
+
+#[cfg_attr(not(test), no_mangle)]
 pub extern "C" fn biometricsDeleteCredential() -> c_int {
     ffi::with_ffi_boundary("biometricsDeleteCredential", 0, || {
         Ok(c_int::from(biometrics::delete_credential()))

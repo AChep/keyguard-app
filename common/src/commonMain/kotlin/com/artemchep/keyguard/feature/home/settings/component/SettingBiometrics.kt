@@ -93,9 +93,21 @@ private fun createSettingComponentFlow(
             group = "biometric",
             tokens = buildList {
                 add("biometric")
-                if (CurrentPlatform is Platform.Desktop.Windows) {
-                    add("windows")
-                    add("hello")
+                when (CurrentPlatform) {
+                    is Platform.Desktop.Windows -> {
+                        add("windows")
+                        add("hello")
+                    }
+
+                    is Platform.Desktop.Linux -> {
+                        add("linux")
+                        add("polkit")
+                        add("system")
+                    }
+
+                    else -> {
+                        // Do nothing
+                    }
                 }
             },
         ),
@@ -175,10 +187,10 @@ private fun SettingBiometrics(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    val title = if (CurrentPlatform is Platform.Desktop.Windows) {
-        Res.string.pref_item_windows_hello_unlock_title
-    } else {
-        Res.string.pref_item_biometric_unlock_title
+    val title = when (CurrentPlatform) {
+        is Platform.Desktop.Windows -> Res.string.pref_item_windows_hello_unlock_title
+        is Platform.Desktop.Linux -> Res.string.pref_item_system_auth_unlock_title
+        else -> Res.string.pref_item_biometric_unlock_title
     }
     LocalSettingPaneComponents.current.KgSwitch(
         icon = Icons.Outlined.Fingerprint,

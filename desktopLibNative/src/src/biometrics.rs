@@ -3,11 +3,15 @@ use zeroize::Zeroizing;
 
 #[cfg_attr(target_os = "windows", path = "biometrics/windows.rs")]
 #[cfg_attr(target_os = "macos", path = "biometrics/macos.rs")]
+#[cfg_attr(target_os = "linux", path = "biometrics/linux.rs")]
 #[cfg_attr(
-    not(any(target_os = "macos", target_os = "windows")),
+    not(any(target_os = "macos", target_os = "windows", target_os = "linux")),
     path = "biometrics/stub.rs"
 )]
 mod imp;
+
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+mod linux_shared;
 
 /// Status codes shared with the JVM side and the macOS shim. Not every
 /// platform produces every variant, but the wire contract needs them all.
@@ -22,6 +26,9 @@ pub(crate) enum ChallengeStatus {
     Unavailable = 4,
     UserPrefersPassword = 5,
     Unknown = 6,
+    /// Linux only: the polkit policy that declares our action is missing
+    /// and could not be installed from here.
+    PolicyNotInstalled = 7,
 }
 
 pub(crate) struct ChallengeResult {
@@ -31,7 +38,7 @@ pub(crate) struct ChallengeResult {
 }
 
 impl ChallengeResult {
-    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+    #[cfg_attr(not(any(target_os = "windows", target_os = "linux")), allow(dead_code))]
     pub(crate) fn success(value: impl Into<Zeroizing<Vec<u8>>>) -> Self {
         Self {
             status: ChallengeStatus::Success,
@@ -49,7 +56,7 @@ impl ChallengeResult {
     }
 
     /// Fallback for platforms without a protected key store.
-    #[cfg_attr(target_os = "windows", allow(dead_code))]
+    #[cfg_attr(any(target_os = "windows", target_os = "linux"), allow(dead_code))]
     pub(crate) fn unavailable() -> Self {
         Self::failure(
             ChallengeStatus::Unavailable,
@@ -67,6 +74,14 @@ pub(crate) fn is_supported() -> bool {
 /// message that is only valid for the duration of the callback.
 pub(crate) fn verify(window_handle: i64, title: &str, callback: BiometricsVerifyCallback) {
     imp::verify(window_handle, title, callback);
+}
+
+/// Prepares the platform for enrolling the unlock credential and reports a
+/// [ChallengeStatus] code to `callback`. Linux installs the polkit policy
+/// here, which may ask for administrator approval; other platforms have
+/// nothing to prepare and report success.
+pub(crate) fn prepare_enrollment(callback: BiometricsVerifyCallback) {
+    imp::prepare_enrollment(callback);
 }
 
 /// Invokes a verify callback with a status and an optional message. Both

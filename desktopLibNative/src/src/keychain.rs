@@ -1,8 +1,15 @@
 use std::ffi::c_char;
 
 #[cfg_attr(target_os = "macos", path = "keychain/macos.rs")]
-#[cfg_attr(not(target_os = "macos"), path = "keychain/stub.rs")]
+#[cfg_attr(target_os = "linux", path = "keychain/linux.rs")]
+#[cfg_attr(
+    not(any(target_os = "macos", target_os = "linux")),
+    path = "keychain/stub.rs"
+)]
 mod imp;
+
+#[cfg(target_os = "linux")]
+pub(crate) mod memory;
 
 pub(crate) fn add_password(id: *const c_char, password: *const c_char) -> bool {
     imp::add_password(id, password)

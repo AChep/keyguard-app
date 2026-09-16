@@ -33,12 +33,14 @@ pub(crate) fn unregister(_id: i32) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::ffi::{REGISTER_STATUS_INTERNAL_ERROR, REGISTER_STATUS_UNSUPPORTED_PLATFORM};
+    use crate::ffi::REGISTER_STATUS_INTERNAL_ERROR;
+    #[cfg(not(target_os = "macos"))]
+    use crate::ffi::REGISTER_STATUS_UNSUPPORTED_PLATFORM;
 
     #[test]
     fn null_callback_is_rejected_before_platform_registration() {
-        // SAFETY: A null callback is rejected without dereferencing it.
         assert_eq!(
+            // SAFETY: A null callback is rejected without dereferencing it.
             unsafe { crate::registerNativePowerEvents(None) },
             REGISTER_STATUS_INTERNAL_ERROR
         );

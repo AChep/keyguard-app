@@ -324,6 +324,13 @@ class DesktopLibInteropTest {
             biometricsVerifyFailure?.let { throw it }
         }
 
+        override fun biometricsPrepareEnrollment(
+            callback: DesktopLibJna.BiometricsVerifyCallback,
+        ) {
+            biometricsCallback = callback
+            biometricsVerifyFailure?.let { throw it }
+        }
+
         override fun biometricsDeleteCredential(): Int = 1
 
         override fun biometricsTransformSecret(

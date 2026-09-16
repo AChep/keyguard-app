@@ -37,7 +37,7 @@ num-integer = { version = "=0.1.46", default-features = false }
 ocb3 = { version = "=0.1.0", default-features = false, features = ["alloc", "zeroize"] }
 # `alloc` is what gates `EncodePublicKey` alongside `pkcs8`; passkeys.rs relies
 # on it directly, so declare it rather than inherit it from `pgp`'s defaults.
-p256 = { version = "=0.13.2", default-features = false, features = ["alloc", "ecdh", "ecdsa", "pkcs8"] }
+p256 = { version = "=0.14.0", default-features = false, features = ["alloc", "ecdh", "ecdsa", "pkcs8"] }
 p384 = { version = "=0.13.1", default-features = false, features = ["ecdh", "ecdsa"] }
 p521 = { version = "=0.13.3", default-features = false, features = ["ecdh", "ecdsa"] }
 pkcs8 = { version = "=0.10.2", default-features = false }

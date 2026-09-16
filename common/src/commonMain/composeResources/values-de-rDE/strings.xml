@@ -766,9 +766,12 @@
     <string name="error_failed_open_app_for">Keine installierte App kann diese Anfrage bearbeiten</string>
     <string name="error_failed_unknown">Etwas ist schiefgelaufen</string>
     <string name="error_failed_encrypt_biometric_key">Fehler beim Verschlüsseln des biometrischen Schlüssels</string>
+    <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Fehler beim Entschlüsseln des biometrischen Schlüssels</string>
     <string name="error_failed_ssh_agent_start">SSH-Agent konnte nicht gestartet werden</string>
     <string name="error_failed_gpg_agent_start">GPG-Agent konnte nicht gestartet werden</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">Die aufrufende App steht nicht auf der Liste der privilegierten Apps und kann keine Authentifizierung im Namen anderer Apps anfordern.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1051,7 @@
     <string name="home_settings_label">Einstellungen</string>
     <string name="lock_reason_inactivity">Wegen Inaktivität gesperrt</string>
     <string name="lock_reason_screen_off">Gesperrt wegen ausgeschaltetem Bildschirm</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">Manuell gesperrt</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">Datei</string>
@@ -1666,6 +1670,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">Tresor nach einem Neustart des Geräts sperren</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Sperren, wenn der Bildschirm ausgeschaltet wird</string>
     <string name="pref_item_lock_vault_after_screen_off_text">Sperrt den Tresor nach ein paar Sekunden, sobald der Bildschirm ausgeschaltet ist</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">Nach Verzögerung sperren</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Sofort</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Nie</string>
@@ -1732,6 +1738,7 @@
     <string name="pref_item_license_sync_failed">Berechtigungscode konnte nicht abgerufen werden</string>
     <string name="pref_item_biometric_unlock_title">Biometrisches Entsperren</string>
     <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_system_auth_unlock_title">System authentication unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Bestätigung erforderlich</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Erfordert eine zusätzliche Bestätigung nach erfolgreicher biometrischer Authentifizierung</string>
     <string name="pref_item_yubikey_unlock_title">Entsperren mit YubiKey</string>

@@ -766,9 +766,12 @@
     <string name="error_failed_open_app_for">Žádná nainstalovaná aplikace nemůže zpracovat tento požadavek</string>
     <string name="error_failed_unknown">Něco se pokazilo</string>
     <string name="error_failed_encrypt_biometric_key">Biometrický klíč se nepodařilo zašifrovat</string>
+    <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Biometrický klíč se nepodařilo dešifrovat</string>
     <string name="error_failed_ssh_agent_start">Spuštění SSH agenta selhalo</string>
     <string name="error_failed_gpg_agent_start">Failed to start the GPG agent</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">Volající aplikace není na seznamu privilegovaných a nemůže žádat o ověření jménem jiných aplikací.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1051,7 @@
     <string name="home_settings_label">Nastavení</string>
     <string name="lock_reason_inactivity">Uzamčeno z důvodu neaktivity</string>
     <string name="lock_reason_screen_off">Uzamčeno z důvodu zhasnutí obrazovky</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">Zamknuto manuálně</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">Soubor</string>
@@ -1666,6 +1670,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">Uzamknout trezor po restartu zařízení</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Uzamknout po vypnutí obrazovky</string>
     <string name="pref_item_lock_vault_after_screen_off_text">Uzamknout trezor po několika sekundách po vypnutí obrazovky</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">Uzamknout po prodlevě</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Ihned</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Nikdy</string>
@@ -1732,6 +1738,7 @@
     <string name="pref_item_license_sync_failed">Could not obtain entitlement token</string>
     <string name="pref_item_biometric_unlock_title">Biometrické odemčení</string>
     <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_system_auth_unlock_title">System authentication unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Vyžadovat potvrzení</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Vyžadovat dodatečné klepnutí na tlačítko potvrzení po úspěšném biometrickém přihlášení</string>
     <string name="pref_item_yubikey_unlock_title">Odemčení pomocí YubiKey</string>

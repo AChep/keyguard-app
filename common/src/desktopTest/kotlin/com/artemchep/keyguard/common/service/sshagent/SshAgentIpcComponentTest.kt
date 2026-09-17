@@ -6,8 +6,21 @@ import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import java.io.IOException
+import java.net.StandardProtocolFamily
+import java.net.UnixDomainSocketAddress
+import java.nio.ByteBuffer
+import java.nio.channels.SocketChannel
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -16,18 +29,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
-import java.net.StandardProtocolFamily
-import java.net.UnixDomainSocketAddress
-import java.nio.ByteBuffer
-import java.nio.channels.SocketChannel
-import java.nio.file.Files
-import java.nio.file.Path
-import java.io.IOException
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /**
  * Component tests for [SshAgentIpcServer] using a real Unix domain socket.
@@ -76,6 +77,7 @@ class SshAgentIpcComponentTest {
             val server = SshAgentIpcServer(
                 logRepository = logRepository,
                 getVaultSession = lockedVaultSession,
+                sessionAccess = testDomainSessionAccess(),
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,
@@ -130,6 +132,7 @@ class SshAgentIpcComponentTest {
             val server = SshAgentIpcServer(
                 logRepository = logRepository,
                 getVaultSession = lockedVaultSession,
+                sessionAccess = testDomainSessionAccess(),
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,
@@ -194,6 +197,7 @@ class SshAgentIpcComponentTest {
             val server = SshAgentIpcServer(
                 logRepository = logRepository,
                 getVaultSession = lockedVaultSession,
+                sessionAccess = testDomainSessionAccess(),
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,
@@ -248,6 +252,7 @@ class SshAgentIpcComponentTest {
             val server = SshAgentIpcServer(
                 logRepository = logRepository,
                 getVaultSession = lockedVaultSession,
+                sessionAccess = testDomainSessionAccess(),
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,
@@ -301,6 +306,7 @@ class SshAgentIpcComponentTest {
             val server = SshAgentIpcServer(
                 logRepository = logRepository,
                 getVaultSession = lockedVaultSession,
+                sessionAccess = testDomainSessionAccess(),
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,
@@ -380,6 +386,7 @@ class SshAgentIpcComponentTest {
             val server = SshAgentIpcServer(
                 logRepository = logRepository,
                 getVaultSession = lockedVaultSession,
+                sessionAccess = testDomainSessionAccess(),
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,
@@ -447,6 +454,7 @@ class SshAgentIpcComponentTest {
             val server = SshAgentIpcServer(
                 logRepository = logRepository,
                 getVaultSession = lockedVaultSession,
+                sessionAccess = testDomainSessionAccess(),
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,

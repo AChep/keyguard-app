@@ -7,15 +7,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetLocaleAndroid(
     settingsReadRepository: SettingsReadRepository,
 ) : GetLocale {
-    constructor(directDI: DirectDI) : this(
-        settingsReadRepository = directDI.instance(),
-    )
 
     override fun invoke(): Flow<String?> = flow<String?> {
         val localeList = AppCompatDelegate.getApplicationLocales()

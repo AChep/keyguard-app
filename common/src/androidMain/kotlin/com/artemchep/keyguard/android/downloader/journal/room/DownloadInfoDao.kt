@@ -19,9 +19,9 @@ interface DownloadInfoDao {
 
     @Query(
         """
-            SELECT * FROM DownloadInfoEntity WHERE 
-                localCipherId = :localCipherId AND 
-                remoteCipherId = :remoteCipherId AND 
+            SELECT * FROM DownloadInfoEntity WHERE
+                localCipherId = :localCipherId AND
+                remoteCipherId = :remoteCipherId AND
                 attachmentId = :attachmentId
                 """,
     )
@@ -35,7 +35,7 @@ interface DownloadInfoDao {
         """
             SELECT * FROM DownloadInfoEntity WHERE
                 localCipherId = :localCipherId AND
-                remoteCipherId = :remoteCipherId AND 
+                remoteCipherId = :remoteCipherId AND
                 attachmentId = :attachmentId
                 """,
     )
@@ -53,9 +53,9 @@ interface DownloadInfoDao {
 
     @Query(
         """
-            DELETE FROM DownloadInfoEntity WHERE 
-                localCipherId = :localCipherId AND 
-                remoteCipherId = :remoteCipherId AND 
+            DELETE FROM DownloadInfoEntity WHERE
+                localCipherId = :localCipherId AND
+                remoteCipherId = :remoteCipherId AND
                 attachmentId = :attachmentId
                 """,
     )

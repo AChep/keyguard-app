@@ -24,6 +24,7 @@ import com.artemchep.keyguard.common.model.LinkInfo
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
+import com.artemchep.keyguard.common.service.extract.LinkInfoExtractorRegistry
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
@@ -44,10 +45,9 @@ import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.RetryCipher
 import com.artemchep.keyguard.common.usecase.SendToolbox
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
-import com.artemchep.keyguard.ui.icons.FaviconIcon
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
@@ -66,16 +66,17 @@ import com.artemchep.keyguard.feature.send.add.SendAddRoute
 import com.artemchep.keyguard.feature.send.toVaultItemIcon
 import com.artemchep.keyguard.feature.send.util.SendUtil
 import com.artemchep.keyguard.feature.send.util.SendUtil.deleteActionOrNull
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardView
-import com.artemchep.keyguard.ui.text.annotate
 import com.artemchep.keyguard.ui.markdown.MarkdownParser
+import com.artemchep.keyguard.ui.text.annotate
 import io.ktor.http.Url
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
@@ -86,11 +87,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
-import com.artemchep.keyguard.platform.leAllInstances
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun sendViewScreenState(
@@ -98,31 +95,31 @@ fun sendViewScreenState(
     disabledContentColor: Color,
     sendId: String,
     accountId: String,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     sendViewScreenState(
-        getAccounts = instance(),
-        getCanWrite = instance(),
-        getSends = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
-        getFolders = instance(),
-        getConcealFields = instance(),
-        getMarkdown = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        getPasswordStrength = instance(),
-        retryCipher = instance(),
-        toolbox = instance(),
-        downloadManager = instance(),
-        downloadAttachment = instance(),
-        tfaService = instance(),
-        clipboardService = instance(),
-        getGravatarUrl = instance(),
-        getEnvSendUrl = instance(),
-        dateFormatter = instance(),
-        windowCoroutineScope = instance(),
-        linkInfoExtractors = leAllInstances(),
-        confirmationRouteFactory = instance(),
+        getAccounts = get(),
+        getCanWrite = get(),
+        getSends = get(),
+        getCollections = get(),
+        getOrganizations = get(),
+        getFolders = get(),
+        getConcealFields = get(),
+        getMarkdown = get(),
+        getAppIcons = get(),
+        getWebsiteIcons = get(),
+        getPasswordStrength = get(),
+        retryCipher = get(),
+        toolbox = get(),
+        downloadManager = get(),
+        downloadAttachment = get(),
+        tfaService = get(),
+        clipboardService = get(),
+        getGravatarUrl = get(),
+        getEnvSendUrl = get(),
+        dateFormatter = get(),
+        windowCoroutineScope = get(),
+        linkInfoExtractors = get<LinkInfoExtractorRegistry>().values,
+        confirmationRouteFactory = get(),
         contentColor = contentColor,
         disabledContentColor = disabledContentColor,
         sendId = sendId,
@@ -212,44 +209,6 @@ fun sendViewScreenState(
         windowCoroutineScope = windowCoroutineScope,
         linkInfoExtractors = linkInfoExtractors,
         confirmationRouteFactory = confirmationRouteFactory,
-        sendId = sendId,
-        accountId = accountId,
-    )
-}
-
-suspend fun RememberStateFlowScope.sendViewScreenStateProducer(
-    directDI: DirectDI,
-    contentColor: Color,
-    disabledContentColor: Color,
-    sendId: String,
-    accountId: String,
-): Flow<SendViewState> = with(directDI) {
-    sendViewScreenStateProducer(
-        contentColor = contentColor,
-        disabledContentColor = disabledContentColor,
-        getAccounts = instance(),
-        getCanWrite = instance(),
-        getSends = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
-        getFolders = instance(),
-        getConcealFields = instance(),
-        getMarkdown = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        getPasswordStrength = instance(),
-        retryCipher = instance(),
-        toolbox = instance(),
-        downloadManager = instance(),
-        downloadAttachment = instance(),
-        tfaService = instance(),
-        clipboardService = instance(),
-        getGravatarUrl = instance(),
-        getEnvSendUrl = instance(),
-        dateFormatter = instance(),
-        windowCoroutineScope = instance(),
-        linkInfoExtractors = leAllInstances(),
-        confirmationRouteFactory = instance(),
         sendId = sendId,
         accountId = accountId,
     )

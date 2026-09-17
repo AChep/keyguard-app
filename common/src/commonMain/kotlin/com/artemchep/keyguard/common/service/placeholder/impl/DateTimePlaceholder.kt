@@ -9,7 +9,6 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import org.kodein.di.DirectDI
 
 class DateTimePlaceholder(
     private val now: Instant,
@@ -108,13 +107,7 @@ class DateTimePlaceholder(
         else -> null
     }
 
-    class Factory(
-    ) : Placeholder.Factory {
-        constructor(
-            directDI: DirectDI,
-        ) : this(
-        )
-
+    class Factory : Placeholder.Factory {
         override fun createOrNull(
             scope: PlaceholderScope,
         ) = DateTimePlaceholder(

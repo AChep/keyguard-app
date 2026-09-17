@@ -11,8 +11,8 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
-import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -26,12 +26,16 @@ import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProviderArgument
 import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProviderType
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLParserException
 import io.ktor.http.Url
 import io.ktor.http.appendPathSegments
+import kotlin.collections.get
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -45,30 +49,24 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlin.time.Clock
-import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import kotlin.collections.get
-import kotlin.time.Duration
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceLoginTwofaScreenState(
     args: BitwardenLoginTwofaRoute.Args,
     transmitter: RouteResultTransmitter<Unit>,
     defaultRememberMe: Boolean = false,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceLoginTwofaScreenState(
-        cryptoGenerator = instance(),
-        base64Service = instance(),
-        deeplinkService = instance(),
-        json = instance(),
-        addAccount = instance(),
-        requestEmailTfa = instance(),
+        cryptoGenerator = get(),
+        base64Service = get(),
+        deeplinkService = get(),
+        json = get(),
+        addAccount = get(),
+        requestEmailTfa = get(),
         args = args,
         transmitter = transmitter,
         defaultRememberMe = defaultRememberMe,

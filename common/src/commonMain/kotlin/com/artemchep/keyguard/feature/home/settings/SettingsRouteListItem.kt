@@ -52,7 +52,7 @@ import com.artemchep.keyguard.res.pref_item_watchtower_text
 import com.artemchep.keyguard.res.pref_item_watchtower_title
 import com.artemchep.keyguard.res.pref_section_options_title
 import com.artemchep.keyguard.res.pref_section_premium_title
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 sealed interface SettingsRouteListItem {
     val id: String
@@ -83,7 +83,7 @@ fun rememberSettingsRouteListItems(
     includeNotifications: Boolean = !isRelease,
     includeDebug: Boolean = !isRelease,
 ): List<SettingsRouteListItem> {
-    val config by rememberInstance<FlavorConfig>()
+    val config = koinInject<FlavorConfig>()
     return remember(
         config,
         autofillRoute,

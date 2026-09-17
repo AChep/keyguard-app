@@ -32,16 +32,15 @@ import com.artemchep.keyguard.common.usecase.GetAutofillCopyTotp
 import com.artemchep.keyguard.common.usecase.GetAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.keyguardKoin
+import com.artemchep.keyguard.di.resolve
 import com.artemchep.keyguard.platform.recordLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.parcelize.Parcelize
-import org.kodein.di.DI
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.instance
 
-class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
+class AutofillFakeAuthActivity : AppCompatActivity(), KeyguardKoinOwner {
     companion object {
         private const val KEY_ARGS = "argsv2"
 
@@ -81,7 +80,7 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
         val structure: AutofillStructure2? = null,
     ) : Parcelable
 
-    override val di: DI by closestDI { this }
+    override val koin get() = this.keyguardKoin()
 
     private val args by lazy {
         val extras = intent.extras
@@ -116,8 +115,8 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
     }
 
     private fun launchCopyTotpService() {
-        val windowCoroutineScope: WindowCoroutineScope by instance()
-        val getVaultSession: GetVaultSession by instance()
+        val windowCoroutineScope: WindowCoroutineScope by lazy { koin.get() }
+        val getVaultSession: GetVaultSession by lazy { koin.get() }
 
         getVaultSession()
             .toIO()
@@ -125,7 +124,8 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
                 val a = session as? MasterSession.Key
                     ?: return@effectMap io(false)
 
-                val getAutofillCopyTotp: GetAutofillCopyTotp by a.di.instance()
+                val getAutofillCopyTotp = a.session.resolve { get<GetAutofillCopyTotp>() }
+                    ?: return@effectMap io(false)
                 getAutofillCopyTotp()
                     .toIO()
             }
@@ -158,8 +158,8 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
     }
 
     private fun launchEditService() {
-        val windowCoroutineScope: WindowCoroutineScope by instance()
-        val getVaultSession: GetVaultSession by instance()
+        val windowCoroutineScope: WindowCoroutineScope by lazy { koin.get() }
+        val getVaultSession: GetVaultSession by lazy { koin.get() }
 
         getVaultSession()
             .toIO()
@@ -167,7 +167,8 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
                 val a = session as? MasterSession.Key
                     ?: return@effectMap ioUnit()
 
-                val getAutofillSaveUri: GetAutofillSaveUri by a.di.instance()
+                val getAutofillSaveUri = a.session.resolve { get<GetAutofillSaveUri>() }
+                    ?: return@effectMap ioUnit()
                 // Check if the option to save uris is actually
                 // enabled.
                 val shouldSaveUri = args!!.forceAddUri ||
@@ -176,7 +177,8 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
                     return@effectMap ioUnit()
                 }
 
-                val addUriCipher: AddUriCipher by a.di.instance()
+                val addUriCipher = a.session.resolve { get<AddUriCipher>() }
+                    ?: return@effectMap ioUnit()
                 val request = AddUriCipherRequest(
                     cipherId = args!!.cipherId,
                     applicationId = args?.structure?.applicationId,
@@ -192,8 +194,8 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
     }
 
     private fun launchHistoryService() {
-        val windowCoroutineScope: WindowCoroutineScope by instance()
-        val getVaultSession: GetVaultSession by instance()
+        val windowCoroutineScope: WindowCoroutineScope by lazy { koin.get() }
+        val getVaultSession: GetVaultSession by lazy { koin.get() }
 
         getVaultSession()
             .toIO()
@@ -201,7 +203,8 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
                 val a = session as? MasterSession.Key
                     ?: return@effectMap ioUnit()
 
-                val addCipherUsedAutofillHistory: AddCipherUsedAutofillHistory by a.di.instance()
+                val addCipherUsedAutofillHistory = a.session.resolve { get<AddCipherUsedAutofillHistory>() }
+                    ?: return@effectMap ioUnit()
                 val request = AddCipherOpenedHistoryRequest(
                     accountId = args!!.accountId,
                     cipherId = args!!.cipherId,

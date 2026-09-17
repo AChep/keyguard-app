@@ -59,8 +59,8 @@ import com.artemchep.keyguard.feature.permissions.LocalNetworkPermissionNote
 import com.artemchep.keyguard.feature.permissions.rememberLocalNetworkPermission
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.BiFlatTextField
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.ConcealedFlatTextField
@@ -88,12 +88,10 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import com.artemchep.keyguard.ui.util.HorizontalDivider
-import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.flow.map
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
 import kotlin.collections.firstOrNull
+import kotlinx.coroutines.flow.map
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun BitwardenLoginScreen(
@@ -122,7 +120,7 @@ fun BitwardenLoginScreen(
     state: LoginState,
 ) {
     val controller by rememberUpdatedState(LocalNavigationController.current)
-    val bitwardenLoginTwofaRouteFactory = localDI().direct.instance<BitwardenLoginTwofaRouteFactory>()
+    val bitwardenLoginTwofaRouteFactory = currentKoinScope().get<BitwardenLoginTwofaRouteFactory>()
     CollectedEffect(state.effects.onSuccessFlow) {
         // Notify that we have successfully logged in, and that
         // the caller can now decide what to do.

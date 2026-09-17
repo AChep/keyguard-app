@@ -10,8 +10,8 @@ import androidx.compose.material.icons.outlined.DeveloperMode
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
@@ -20,22 +20,21 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 actual fun settingPermissionDetailsProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingPermissionDetailsProvider(
-    permissionsSettingsRouteFactory = directDI.instance(),
+    permissionsSettingsRouteFactory = koinScope.get(),
 )
 
 fun settingPermissionDetailsProvider(

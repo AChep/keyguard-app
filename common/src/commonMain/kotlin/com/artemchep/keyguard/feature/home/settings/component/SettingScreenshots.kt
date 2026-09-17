@@ -27,27 +27,26 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import kotlin.collections.map
 import kotlinx.coroutines.flow.combine
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.collections.map
+import org.koin.core.scope.Scope
 
 fun settingScreenshotsProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingScreenshotsProvider(
-    getAllowScreenshots = directDI.instance(),
-    getAllowScreenshotsVariants = directDI.instance(),
-    putAllowScreenshots = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
-    context = directDI.instance(),
+    getAllowScreenshots = koinScope.get(),
+    getAllowScreenshotsVariants = koinScope.get(),
+    putAllowScreenshots = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
+    context = koinScope.get(),
 )
 
 fun settingScreenshotsProvider(

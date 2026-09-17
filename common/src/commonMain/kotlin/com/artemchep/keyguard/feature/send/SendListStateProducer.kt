@@ -35,19 +35,19 @@ import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
-import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.auth.common.TextCell
-import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
-import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
+import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.find
@@ -74,13 +74,14 @@ import com.artemchep.keyguard.feature.send.search.filter.FilterSendHolder
 import com.artemchep.keyguard.feature.send.util.SendUtil
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
+import kotlin.time.measureTimedValue
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -98,11 +99,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.Serializable
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import kotlin.time.measureTimedValue
+import org.koin.compose.currentKoinScope
 
 @LeParcelize
 data class ScrollPositionState(
@@ -145,33 +142,31 @@ fun sendListScreenState(
     highlightBackgroundColor: Color,
     highlightContentColor: Color,
     mode: AppMode,
-): SendListState = with(localDI().direct) {
+): SendListState = with(currentKoinScope()) {
     sendListScreenState(
-        directDI = this,
         args = args,
         highlightBackgroundColor = highlightBackgroundColor,
         highlightContentColor = highlightContentColor,
         mode = mode,
-        clearVaultSession = instance(),
-        getAccounts = instance(),
-        getCanWrite = instance(),
-        getSends = instance(),
-        getProfiles = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        toolbox = instance(),
-        queueSyncAll = instance(),
-        syncSupervisor = instance(),
-        dateFormatter = instance(),
-        clipboardService = instance(),
-        bitwardenLoginRouteFactory = instance(),
-        confirmationRouteFactory = instance(),
+        clearVaultSession = get(),
+        getAccounts = get(),
+        getCanWrite = get(),
+        getSends = get(),
+        getProfiles = get(),
+        getAppIcons = get(),
+        getWebsiteIcons = get(),
+        toolbox = get(),
+        queueSyncAll = get(),
+        syncSupervisor = get(),
+        dateFormatter = get(),
+        clipboardService = get(),
+        bitwardenLoginRouteFactory = get(),
+        confirmationRouteFactory = get(),
     )
 }
 
 @Composable
 fun sendListScreenState(
-    directDI: DirectDI,
     args: SendRoute.Args,
     highlightBackgroundColor: Color,
     highlightContentColor: Color,
@@ -200,7 +195,6 @@ fun sendListScreenState(
     ),
 ) {
     sendListScreenStateProducer(
-        directDI = directDI,
         args = args,
         highlightBackgroundColor = highlightBackgroundColor,
         highlightContentColor = highlightContentColor,
@@ -223,37 +217,6 @@ fun sendListScreenState(
 }
 
 suspend fun RememberStateFlowScope.sendListScreenStateProducer(
-    directDI: DirectDI,
-    args: SendRoute.Args,
-    highlightBackgroundColor: Color,
-    highlightContentColor: Color,
-    mode: AppMode,
-): Flow<SendListState> = with(directDI) {
-    sendListScreenStateProducer(
-        directDI = directDI,
-        args = args,
-        highlightBackgroundColor = highlightBackgroundColor,
-        highlightContentColor = highlightContentColor,
-        mode = mode,
-        clearVaultSession = instance(),
-        getAccounts = instance(),
-        getCanWrite = instance(),
-        getSends = instance(),
-        getProfiles = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        toolbox = instance(),
-        queueSyncAll = instance(),
-        syncSupervisor = instance(),
-        dateFormatter = instance(),
-        clipboardService = instance(),
-        bitwardenLoginRouteFactory = instance(),
-        confirmationRouteFactory = instance(),
-    )
-}
-
-suspend fun RememberStateFlowScope.sendListScreenStateProducer(
-    directDI: DirectDI,
     args: SendRoute.Args,
     highlightBackgroundColor: Color,
     highlightContentColor: Color,
@@ -604,7 +567,7 @@ suspend fun RememberStateFlowScope.sendListScreenStateProducer(
                 .run {
                     if (args.filter != null) {
                         val ciphers = map { it.model.source }
-                        val predicate = args.filter.prepare(directDI, ciphers)
+                        val predicate = args.filter.prepare(ciphers)
                         this
                             .filter { predicate(it.model.source) }
                     } else {
@@ -636,7 +599,6 @@ suspend fun RememberStateFlowScope.sendListScreenStateProducer(
     )
 
     val ciphersFilteredFlow = createFilteredSendsFlow(
-        directDI = directDI,
         ciphersFlow = ciphersFlow,
         orderFlow = sortSink,
         filterFlow = filterResult.filterFlow,
@@ -659,7 +621,6 @@ suspend fun RememberStateFlowScope.sendListScreenStateProducer(
         .shareIn(this, SharingStarted.WhileSubscribed(), replay = 1)
 
     val filterListFlow = createFilterItemsFlow(
-        directDI = directDI,
         outputGetter = { it.source },
         outputFlow = ciphersFilteredFlow
             .map { state ->
@@ -953,7 +914,6 @@ private data class Preferences(
 )
 
 private fun createFilteredSendsFlow(
-    directDI: DirectDI,
     ciphersFlow: Flow<List<IndexedModel<SendItem.Item>>>,
     orderFlow: Flow<ComparatorHolder>,
     filterFlow: Flow<FilterSendHolder>,
@@ -1011,14 +971,14 @@ private fun createFilteredSendsFlow(
             .list
             .run {
                 val ciphers = map { it.model.source }
-                val predicate = filterConfig.filter.prepare(directDI, ciphers)
+                val predicate = filterConfig.filter.prepare(ciphers)
                 filter { predicate(it.model.source) }
             }
         val filteredPreferredItems = state
             .preferredList
             .run {
                 val ciphers = map { it.model.source }
-                val predicate = filterConfig.filter.prepare(directDI, ciphers)
+                val predicate = filterConfig.filter.prepare(ciphers)
                 filter { predicate(it.model.source) }
             }
         state.copy(

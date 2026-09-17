@@ -21,11 +21,11 @@ import com.artemchep.keyguard.res.local_network_permission_open_settings_action
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.SimpleNote
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @Composable
 fun rememberLocalNetworkPermission(): PermissionState.Declined? {
-    val service by rememberInstance<PermissionService>()
+    val service = koinInject<PermissionService>()
     val state by remember(service) {
         service.getState(Permission.LOCAL_NETWORK)
     }.collectAsState(initial = PermissionState.Granted)
@@ -35,7 +35,7 @@ fun rememberLocalNetworkPermission(): PermissionState.Declined? {
 @Composable
 fun rememberLocalNetworkPermissionHint(): PermissionState.Declined? {
     val permission = rememberLocalNetworkPermission() ?: return null
-    val getHint by rememberInstance<GetLocalNetworkAccessHint>()
+    val getHint = koinInject<GetLocalNetworkAccessHint>()
     val showHint by remember(getHint) { getHint() }.collectAsState(initial = false)
     return permission.takeIf { showHint }
 }

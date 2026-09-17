@@ -4,16 +4,14 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.Log
 import com.artemchep.keyguard.common.service.logging.LogLevel
+import kotlin.time.Clock
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.time.Clock
-import org.kodein.di.DirectDI
 
-class InMemoryLogRepositoryImpl(
-) : InMemoryLogRepository {
+class InMemoryLogRepositoryImpl : InMemoryLogRepository {
     companion object {
         private const val DEFAULT_ENABLED = false
     }
@@ -23,10 +21,6 @@ class InMemoryLogRepositoryImpl(
     private val logsSink = MutableStateFlow(persistentListOf<Log>())
 
     override val isEnabled: Boolean get() = switchSink.value
-
-    constructor(
-        directDI: DirectDI,
-    ) : this()
 
     override fun setEnabled(enabled: Boolean): IO<Unit> = ioEffect {
         switchSink.value = enabled

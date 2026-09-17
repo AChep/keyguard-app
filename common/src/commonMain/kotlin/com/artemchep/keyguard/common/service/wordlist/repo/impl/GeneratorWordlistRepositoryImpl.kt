@@ -3,29 +3,20 @@ package com.artemchep.keyguard.common.service.wordlist.repo.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.DGeneratorWordlist
-import com.artemchep.keyguard.common.service.wordlist.repo.GeneratorWordlistRepository
-import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.common.service.wordlist.repo.GeneratorWordlistRepository
+import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
 import com.artemchep.keyguard.data.GeneratorWordlistQueries
+import kotlin.time.Clock
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GeneratorWordlistRepositoryImpl(
     private val databaseManager: VaultDatabaseManager,
     private val dispatcher: CoroutineDispatcher,
 ) : GeneratorWordlistRepository {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        databaseManager = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
-
     override fun get(): Flow<List<DGeneratorWordlist>> =
         daoEffect { dao ->
             dao.get()

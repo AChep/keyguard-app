@@ -31,8 +31,8 @@ import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
@@ -45,27 +45,25 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceCipherFilterViewState(
     args: CipherFilterViewDialogRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceCipherFilterViewState(
         args = args,
-        getCipherFilters = instance(),
-        removeCipherFilterById = instance(),
-        renameCipherFilter = instance(),
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getOrganizations = instance(),
-        getCollections = instance(),
-        getTags = instance(),
-        getFolders = instance(),
-        getCiphers = instance(),
-        confirmationRouteFactory = instance(),
+        getCipherFilters = get(),
+        removeCipherFilterById = get(),
+        renameCipherFilter = get(),
+        getAccounts = get(),
+        getProfiles = get(),
+        getOrganizations = get(),
+        getCollections = get(),
+        getTags = get(),
+        getFolders = get(),
+        getCiphers = get(),
+        confirmationRouteFactory = get(),
     )
 }
 

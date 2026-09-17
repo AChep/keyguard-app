@@ -15,8 +15,6 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.isSecure
 import io.ktor.http.isSuccess
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -25,11 +23,6 @@ class CipherUnsecureUrlAutoFixImpl(
     private val httpClient: HttpClient,
     private val modifyCipherById: ModifyCipherById,
 ) : CipherUnsecureUrlAutoFix {
-    constructor(directDI: DirectDI) : this(
-        httpClient = directDI.instance(),
-        modifyCipherById = directDI.instance(),
-    )
-
     override fun invoke(
         cipherIdsToUrls: Map<String, Set<String>>,
     ): IO<Unit> = modifyCipherById(

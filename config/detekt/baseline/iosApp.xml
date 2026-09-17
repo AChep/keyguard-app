@@ -3,8 +3,8 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>FunctionNaming:MainViewController.kt:fun MainViewController: UIViewController</ID>
-    <ID>LongMethod:IosAppModule.kt:internal fun DI.Builder.installIosAppModule</ID>
-    <ID>MagicNumber:IosAppModule.kt:20_000</ID>
-    <ID>WildcardImport:IosAppModule.kt:import com.artemchep.keyguard.common.usecase.*</ID>
+    <ID>LongMethod:IosPlatformModule.kt:internal fun DI.Builder.installIosAppModule</ID>
+    <ID>MagicNumber:IosPlatformModule.kt:20_000</ID>
+    <ID>WildcardImport:IosPlatformModule.kt:import com.artemchep.keyguard.common.usecase.*</ID>
   </CurrentIssues>
 </SmellBaseline>

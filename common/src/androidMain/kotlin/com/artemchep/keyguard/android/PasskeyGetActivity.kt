@@ -25,6 +25,7 @@ import com.artemchep.keyguard.common.usecase.AddCipherUsedPasskeyHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.di.KeyguardKoinOwner
 import com.artemchep.keyguard.feature.auth.userverification.UserVerificationRoute
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnCreate
@@ -33,24 +34,23 @@ import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnUnlock
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.recordLog
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import org.jetbrains.compose.resources.getString as getComposeString
-import org.jetbrains.compose.resources.stringResource
+import com.artemchep.keyguard.res.Res
+import kotlin.time.Clock
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.Clock
 import kotlinx.parcelize.Parcelize
-import org.kodein.di.*
+import org.jetbrains.compose.resources.getString as getComposeString
+import org.jetbrains.compose.resources.stringResource
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-class PasskeyGetActivity : BaseActivity(), DIAware {
+class PasskeyGetActivity : BaseActivity(), KeyguardKoinOwner {
     companion object {
         const val KEY_ARGUMENTS = "arguments"
     }
@@ -61,9 +61,9 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
 
     protected val args: PasskeyProviderGetActivityArgs get() = requireNotNull(_args)
 
-    private val getVaultSession by instance<GetVaultSession>()
+    private val getVaultSession by lazy { koin.get<GetVaultSession>() }
 
-    private val passkeyProviderGetFlow by instance<PasskeyProviderGetFlow>()
+    private val passkeyProviderGetFlow by lazy { koin.get<PasskeyProviderGetFlow>() }
 
     private val getCredentialRequest by lazy {
         val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)

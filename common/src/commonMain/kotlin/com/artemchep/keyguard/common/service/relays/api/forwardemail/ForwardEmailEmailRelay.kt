@@ -8,8 +8,8 @@ import com.artemchep.keyguard.common.service.relays.api.EmailRelaySchema
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.header
@@ -26,8 +26,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.DrawableResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class ForwardEmailEmailRelay(
     private val base64Service: Base64Service,
@@ -62,11 +60,6 @@ class ForwardEmailEmailRelay(
             hint = TextHolder.Value(HINT_DOMAIN),
             canBeEmpty = false,
         ),
-    )
-
-    constructor(directDI: DirectDI) : this(
-        base64Service = directDI.instance(),
-        httpClient = directDI.instance(),
     )
 
     override fun generate(

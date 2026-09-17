@@ -2,17 +2,16 @@ package com.artemchep.keyguard.feature.home.settings.component
 
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.usecase.GetAppVersion
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import org.jetbrains.compose.resources.stringResource
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingAboutAppProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingAboutAppProvider(
-    getAppVersion = directDI.instance(),
+    getAppVersion = koinScope.get(),
 )
 
 fun settingAboutAppProvider(

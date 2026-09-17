@@ -77,8 +77,8 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasAutofill
 import com.artemchep.keyguard.platform.util.hasSubscription
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
@@ -88,10 +88,8 @@ import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.localDI
-import org.kodein.di.compose.rememberInstance
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
+import org.koin.compose.koinInject
 
 sealed interface SettingsItem2 {
     val id: String
@@ -131,11 +129,11 @@ data class SettingsAccountsItem(
 @Composable
 fun SettingListScreen() {
     val controller by rememberUpdatedState(LocalNavigationController.current)
-    val bitwardenLoginRouteFactory = localDI().direct.instance<BitwardenLoginRouteFactory>()
-    val autofillSettingsRouteFactory = localDI().direct.instance<AutofillSettingsRouteFactory>()
-    val securitySettingsRouteFactory = localDI().direct.instance<SecuritySettingsRouteFactory>()
-    val uiSettingsRouteFactory = localDI().direct.instance<UiSettingsRouteFactory>()
-    val otherSettingsRouteFactory = localDI().direct.instance<OtherSettingsRouteFactory>()
+    val bitwardenLoginRouteFactory = currentKoinScope().get<BitwardenLoginRouteFactory>()
+    val autofillSettingsRouteFactory = currentKoinScope().get<AutofillSettingsRouteFactory>()
+    val securitySettingsRouteFactory = currentKoinScope().get<SecuritySettingsRouteFactory>()
+    val uiSettingsRouteFactory = currentKoinScope().get<UiSettingsRouteFactory>()
+    val otherSettingsRouteFactory = currentKoinScope().get<OtherSettingsRouteFactory>()
     val r1 = registerRouteResultReceiver(bitwardenLoginRouteFactory.create()) {
         controller.queue(NavigationIntent.Pop)
     }
@@ -228,7 +226,7 @@ fun rememberSettingsItems(
                             iconShape = if (isSubscription) premiumShape else optionsShape,
                             leading = if (isSubscription) {
                                 {
-                                    val getPurchased by rememberInstance<GetPurchased>()
+                                    val getPurchased = koinInject<GetPurchased>()
                                     val isPurchased by remember(getPurchased) {
                                         getPurchased()
                                     }.collectAsState(false)

@@ -6,12 +6,6 @@ import com.artemchep.keyguard.common.usecase.GetClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
@@ -19,17 +13,15 @@ import java.awt.datatransfer.SystemFlavorMap
 import java.awt.datatransfer.Transferable
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class ClipboardServiceJvm(
     private val getClipboardAutoClear: GetClipboardAutoClear,
     private val windowCoroutineScope: WindowCoroutineScope,
 ) : ClipboardService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        getClipboardAutoClear = directDI.instance(),
-        windowCoroutineScope = directDI.instance(),
-    )
 
     private val autoClearRequestCounter = AtomicLong()
 

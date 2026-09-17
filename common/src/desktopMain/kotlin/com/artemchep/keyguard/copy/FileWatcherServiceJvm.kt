@@ -7,6 +7,10 @@ import com.artemchep.keyguard.util.io.toJavaFile
 import com.artemchep.keyguard.util.io.toLocalPath
 import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryWatcher
+import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
@@ -19,17 +23,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import org.kodein.di.DirectDI
-import java.io.File
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Path
 
-class FileWatcherServiceJvm(
-) : FileWatcherService {
-    constructor(
-        directDI: DirectDI,
-    ) : this()
+class FileWatcherServiceJvm : FileWatcherService {
 
     override fun fileChangedFlow(
         file: LocalPath,

@@ -4,8 +4,8 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
@@ -15,8 +15,6 @@ import com.artemchep.keyguard.common.util.parseHttpUrlHostOrNull
 import io.ktor.http.DEFAULT_PORT
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -26,10 +24,6 @@ class CipherUrlCheckImpl(
     private val tldService: TldService,
 ) : CipherUrlCheck {
     private val neverMatchResult = io(false)
-
-    constructor(directDI: DirectDI) : this(
-        tldService = directDI.instance(),
-    )
 
     override fun invoke(
         uri: DSecret.Uri,

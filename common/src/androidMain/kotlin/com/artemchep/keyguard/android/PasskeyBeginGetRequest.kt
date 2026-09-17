@@ -41,13 +41,11 @@ import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PasskeyTarget
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
 import io.ktor.http.Url
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Instant
-import kotlin.time.toJavaInstant
 
 @SuppressLint("RestrictedApi")
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -94,19 +92,6 @@ class PasskeyBeginGetRequest(
             val transports: List<String> = emptyList(),
         )
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance<Application>(),
-        json = directDI.instance(),
-        getAutofillPasskeysEnabled = directDI.instance(),
-        getAutofillPasswordsEnabled = directDI.instance(),
-        passkeyTargetCheck = directDI.instance(),
-        privilegedAppsService = directDI.instance(),
-        credentialProviderPlatformConfig = directDI.instance(),
-        passkeyUtils = directDI.instance(),
-    )
 
     suspend fun processGetCredentialsRequest(
         cipherHistoryOpenedRepository: CipherHistoryOpenedRepository,

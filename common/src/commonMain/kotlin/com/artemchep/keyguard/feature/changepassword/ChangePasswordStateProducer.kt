@@ -20,8 +20,8 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -30,9 +30,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 private const val KEY_PASSWORD_OLD = "password.old"
 private const val KEY_PASSWORD_NEW = "password.new"
@@ -40,11 +38,12 @@ private const val KEY_PASSWORD_NEW = "password.new"
 private const val KEY_BIOMETRIC_ENABLED = "biometric.enabled"
 
 @Composable
-fun changePasswordState(): Loadable<ChangePasswordState> = with(localDI().direct) {
+fun changePasswordState(): Loadable<ChangePasswordState> = with(currentKoinScope()) {
     changePasswordState(
-        unlockUseCase = instance(),
-        getBiometricRequireConfirmation = instance(),
-        windowCoroutineScope = instance(),
+        unlockUseCase = get(),
+        getBiometricRequireConfirmation = get(),
+        // Rotation replaces the vault scope before recording success and closing this screen.
+        windowCoroutineScope = getKoin().get<WindowCoroutineScope>(),
     )
 }
 

@@ -24,14 +24,16 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.selection.selectionHandle
+import kotlin.collections.mapIndexed
+import kotlin.uuid.Uuid
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,23 +41,19 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import kotlin.collections.mapIndexed
-import kotlin.uuid.Uuid
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun collectionsScreenState(
     args: CollectionsRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     collectionsScreenState(
         args = args,
-        getOrganizations = instance(),
-        getCollections = instance(),
-        getCiphers = instance(),
-        getCanWrite = instance(),
-        vaultRouteFactory = instance(),
+        getOrganizations = get(),
+        getCollections = get(),
+        getCiphers = get(),
+        getCanWrite = get(),
+        vaultRouteFactory = get(),
     )
 }
 

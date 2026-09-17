@@ -13,11 +13,14 @@ import com.artemchep.keyguard.android.Notifications
 import com.artemchep.keyguard.android.util.canPostNotifications
 import com.artemchep.keyguard.android.util.getAndroidPackageSigningCertificates
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
-import com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProtocol
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
+import com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProtocol
 import com.artemchep.keyguard.common.service.sshagent.buildAndroidFrameworkPackageAuthorization
 import com.artemchep.keyguard.common.service.sshagent.buildAndroidSshAgentCallerIdentity
 import com.artemchep.keyguard.common.usecase.GetSshAgent
+import com.artemchep.keyguard.di.keyguardKoin
+import java.util.Base64
+import kotlin.getValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -25,10 +28,6 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import org.kodein.di.android.closestDI
-import org.kodein.di.instance
-import java.util.Base64
-import kotlin.getValue
 
 class SshAgentReceiver : BroadcastReceiver() {
     companion object {
@@ -99,10 +98,10 @@ class SshAgentReceiver : BroadcastReceiver() {
         }
 
         try {
-            val di by closestDI { context }
+            val koin = (context ).keyguardKoin()
             // Verify that the SSH agent is enabled
             // in the settings.
-            val sshAgent by di.instance<GetSshAgent>()
+            val sshAgent by lazy { koin.get<GetSshAgent>() }
             CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
                 var outcome = SshAgentContract.BroadcastOutcome.INTERNAL_ERROR
                 try {

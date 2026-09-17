@@ -9,8 +9,6 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -22,11 +20,6 @@ class AddFolderImpl(
     companion object {
         private const val TAG = "AddFolder.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyDatabase = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-    )
 
     override fun invoke(
         requests: Collection<AddFolderRequest>,

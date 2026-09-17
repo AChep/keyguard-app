@@ -19,24 +19,22 @@ import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
 import org.jetbrains.compose.resources.StringResource
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun confirmationState(
     args: ConfirmationRoute.Args,
     transmitter: RouteResultTransmitter<ConfirmationResult>,
-): ConfirmationState = with(localDI().direct) {
+): ConfirmationState = with(currentKoinScope()) {
     confirmationState(
         args = args,
         transmitter = transmitter,
-        windowCoroutineScope = instance(),
+        windowCoroutineScope = get(),
     )
 }
 
@@ -238,7 +236,6 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
             )
         }
 }
-
 
 private suspend fun RememberStateFlowScope.confirmationStringItem(
     item: ConfirmationRoute.Args.Item.StringItem,

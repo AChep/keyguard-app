@@ -8,8 +8,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetAutofillDefaultMatchDetectionImpl(
     settingsReadRepository: SettingsReadRepository,
@@ -22,10 +20,6 @@ class GetAutofillDefaultMatchDetectionImpl(
             started = SharingStarted.WhileSubscribed(5000L),
             replay = 1,
         )
-
-    constructor(directDI: DirectDI) : this(
-        settingsReadRepository = directDI.instance(),
-    )
 
     override fun invoke() = sharedFlow
 

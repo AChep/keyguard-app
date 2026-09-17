@@ -6,8 +6,6 @@ import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.common.service.placeholder.util.Parser
 import com.artemchep.keyguard.common.usecase.GetTotpCode
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class TextReplaceRegexPlaceholder(
 ) : Placeholder {
@@ -36,13 +34,7 @@ class TextReplaceRegexPlaceholder(
         }
     }
 
-    class Factory(
-    ) : Placeholder.Factory {
-        constructor(
-            directDI: DirectDI,
-        ) : this(
-        )
-
+    class Factory : Placeholder.Factory {
         override fun createOrNull(
             scope: PlaceholderScope,
         ) = TextReplaceRegexPlaceholder()

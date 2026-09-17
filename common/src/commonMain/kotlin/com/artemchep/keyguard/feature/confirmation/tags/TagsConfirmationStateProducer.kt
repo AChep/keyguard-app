@@ -8,29 +8,27 @@ import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.res.Res
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import kotlin.uuid.Uuid
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun tagsConfirmationState(
     args: TagsConfirmationRoute.Args,
     transmitter: RouteResultTransmitter<TagsConfirmationResult>,
-): TagsConfirmationState = with(localDI().direct) {
+): TagsConfirmationState = with(currentKoinScope()) {
     tagsConfirmationState(
         args = args,
         transmitter = transmitter,
-        windowCoroutineScope = instance(),
+        windowCoroutineScope = get(),
     )
 }
 

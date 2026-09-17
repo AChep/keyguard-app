@@ -18,10 +18,8 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItemAvatar
 import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.wear.ui.WearScaffoldScreen
 import com.artemchep.keyguard.wear.ui.skeletonItems
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
 import kotlin.collections.orEmpty
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun WearSendListScreen(
@@ -31,8 +29,8 @@ fun WearSendListScreen(
         args = args,
     )
 
-    val routeFactory = with(localDI().direct) {
-        instance<SendViewRouteFactory>()
+    val routeFactory = with(currentKoinScope()) {
+        get<SendViewRouteFactory>()
     }
     val xd by rememberUpdatedState(LocalNavigationEntry.current.id)
     val controller by rememberUpdatedState(LocalNavigationController.current)

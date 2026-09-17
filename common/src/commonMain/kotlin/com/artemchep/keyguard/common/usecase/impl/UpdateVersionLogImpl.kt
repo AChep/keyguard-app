@@ -8,22 +8,14 @@ import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepositor
 import com.artemchep.keyguard.common.usecase.GetAppBuildRef
 import com.artemchep.keyguard.common.usecase.GetAppVersionName
 import com.artemchep.keyguard.common.usecase.UpdateVersionLog
-import kotlinx.coroutines.flow.first
 import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import kotlinx.coroutines.flow.first
 
 class UpdateVersionLogImpl(
     private val settingsReadWriteRepository: SettingsReadWriteRepository,
     private val getAppBuildRef: GetAppBuildRef,
     private val getAppVersionName: GetAppVersionName,
 ) : UpdateVersionLog {
-    constructor(directDI: DirectDI) : this(
-        settingsReadWriteRepository = directDI.instance(),
-        getAppBuildRef = directDI.instance(),
-        getAppVersionName = directDI.instance(),
-    )
-
     override fun invoke(): IO<Unit> = ioEffect {
         val log = settingsReadWriteRepository
             .getAppVersionLog()

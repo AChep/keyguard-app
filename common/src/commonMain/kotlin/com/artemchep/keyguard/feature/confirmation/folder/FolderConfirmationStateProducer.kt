@@ -11,29 +11,27 @@ import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
-import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfoType
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.Flow
-import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 private data class FolderVariant(
     val accountId: String,
@@ -100,12 +98,12 @@ private fun FooBar.withFolderId(folder: FolderVariant.FolderInfo): FooBar {
 fun folderConfirmationState(
     args: FolderConfirmationRoute.Args,
     transmitter: RouteResultTransmitter<FolderConfirmationResult>,
-): FolderConfirmationState = with(localDI().direct) {
+): FolderConfirmationState = with(currentKoinScope()) {
     folderConfirmationState(
         args = args,
         transmitter = transmitter,
-        getFolders = instance(),
-        windowCoroutineScope = instance(),
+        getFolders = get(),
+        windowCoroutineScope = get(),
     )
 }
 

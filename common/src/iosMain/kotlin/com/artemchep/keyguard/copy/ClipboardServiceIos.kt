@@ -3,6 +3,7 @@ package com.artemchep.keyguard.copy
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import kotlin.time.Duration
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -11,8 +12,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import platform.Foundation.NSDate
 import platform.Foundation.NSThread
 import platform.Foundation.dateWithTimeIntervalSinceNow
@@ -22,16 +21,11 @@ import platform.UIKit.UIPasteboardOptionLocalOnly
 import platform.UIKit.UIPasteboardTypeAutomatic
 import platform.darwin.dispatch_get_main_queue
 import platform.darwin.dispatch_sync
-import kotlin.time.Duration
 
 class ClipboardServiceIos(
     private val getClipboardAutoClear: GetClipboardAutoClear,
     private val windowCoroutineScope: WindowCoroutineScope,
 ) : ClipboardService {
-    constructor(directDI: DirectDI) : this(
-        getClipboardAutoClear = directDI.instance(),
-        windowCoroutineScope = directDI.instance(),
-    )
 
     private val autoClearRequestCounter = atomic(0L)
 

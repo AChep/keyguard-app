@@ -9,20 +9,11 @@ import com.artemchep.keyguard.common.model.SearchGpgPublicKeyRequest
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverConfig
 import com.artemchep.keyguard.common.usecase.SearchGpgPublicKey
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class SearchGpgPublicKeyImpl(
     private val getGpgKeyserverConfig: GetGpgKeyserverConfig,
     private val keyserverClient: GpgKeyserverClient,
 ) : SearchGpgPublicKey {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        getGpgKeyserverConfig = directDI.instance(),
-        keyserverClient = directDI.instance(),
-    )
-
     override fun invoke(
         request: SearchGpgPublicKeyRequest,
     ): IO<List<DGpgKeyserverResult>> =

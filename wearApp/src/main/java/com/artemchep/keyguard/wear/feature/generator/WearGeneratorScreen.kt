@@ -67,9 +67,7 @@ import com.artemchep.keyguard.wear.ui.WearScaffoldScreen
 import com.artemchep.keyguard.wear.ui.WearSectionHeader
 import com.artemchep.keyguard.wear.ui.skeletonItems
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun WearGeneratorScreen(
@@ -377,7 +375,7 @@ private fun WearGeneratorSwitchItem(
 @Composable
 private fun wearGeneratorScreenState(
     args: GeneratorRoute.Args,
-): Loadable<GeneratorState> = with(localDI().direct) {
+): Loadable<GeneratorState> = with(currentKoinScope()) {
     val config = wearGeneratorConfig()
     produceGeneratorState(
         mode = LocalAppMode.current,
@@ -389,24 +387,24 @@ private fun wearGeneratorScreenState(
         ),
         key = "wear_generator",
         addGeneratorHistory = null,
-        getPassword = instance<GetPassword>(),
-        getPasswordStrength = instance<GetPasswordStrength>(),
+        getPassword = get<GetPassword>(),
+        getPasswordStrength = get<GetPasswordStrength>(),
         getProfiles = null,
         getEmailRelays = null,
         getWordlists = null,
         getWordlistPrimitive = null,
-        cryptoGenerator = instance<CryptoGenerator>(),
-        keyPairExport = instance<KeyPairExport>(),
-        publicKeyExport = instance<KeyPublicExport>(),
-        privateKeyExport = instance<KeyPrivateExport>(),
-        gpgKeyExport = instance<GpgKeyExport>(),
-        gpgPublicKeyExport = instance<GpgKeyPublicExport>(),
-        gpgPrivateKeyExport = instance<GpgKeyPrivateExport>(),
-        numberFormatter = instance<NumberFormatter>(),
-        dateFormatter = instance<DateFormatter>(),
+        cryptoGenerator = get<CryptoGenerator>(),
+        keyPairExport = get<KeyPairExport>(),
+        publicKeyExport = get<KeyPublicExport>(),
+        privateKeyExport = get<KeyPrivateExport>(),
+        gpgKeyExport = get<GpgKeyExport>(),
+        gpgPublicKeyExport = get<GpgKeyPublicExport>(),
+        gpgPrivateKeyExport = get<GpgKeyPrivateExport>(),
+        numberFormatter = get<NumberFormatter>(),
+        dateFormatter = get<DateFormatter>(),
         getCanWrite = GetCanWriteStub(),
-        tldService = instance<TldService>(),
-        clipboardService = instance<ClipboardService>(),
+        tldService = get<TldService>(),
+        clipboardService = get<ClipboardService>(),
         emailRelays = emptyList<EmailRelay>(),
     )
 }

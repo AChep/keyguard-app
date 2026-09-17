@@ -15,25 +15,24 @@ import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.ok
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingSshAgentProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingSshAgentProvider(
-    getSshAgent = directDI.instance(),
-    getSshAgentStatus = directDI.instance(),
-    putSshAgent = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getSshAgent = koinScope.get(),
+    getSshAgentStatus = koinScope.get(),
+    putSshAgent = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingSshAgentProvider(

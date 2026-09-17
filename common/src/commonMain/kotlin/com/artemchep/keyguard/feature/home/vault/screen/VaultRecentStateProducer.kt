@@ -42,45 +42,40 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun vaultRecentScreenState(
     highlightBackgroundColor: Color,
     highlightContentColor: Color,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     vaultRecentScreenState(
-        directDI = this,
         highlightBackgroundColor = highlightBackgroundColor,
         highlightContentColor = highlightContentColor,
-        clearVaultSession = instance(),
-        getAccounts = instance(),
-        getCanWrite = instance(),
-        getCiphers = instance(),
-        getProfiles = instance(),
-        getFolders = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
-        getTotpCode = instance(),
-        getConcealFields = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        getPasswordStrength = instance(),
-        getCipherOpenedHistory = instance(),
-        toolbox = instance(),
-        queueSyncAll = instance(),
-        syncSupervisor = instance(),
-        dateFormatter = instance(),
-        clipboardService = instance(),
+        clearVaultSession = get(),
+        getAccounts = get(),
+        getCanWrite = get(),
+        getCiphers = get(),
+        getProfiles = get(),
+        getFolders = get(),
+        getCollections = get(),
+        getOrganizations = get(),
+        getTotpCode = get(),
+        getConcealFields = get(),
+        getAppIcons = get(),
+        getWebsiteIcons = get(),
+        getPasswordStrength = get(),
+        getCipherOpenedHistory = get(),
+        toolbox = get(),
+        queueSyncAll = get(),
+        syncSupervisor = get(),
+        dateFormatter = get(),
+        clipboardService = get(),
     )
 }
 
 @Composable
 fun vaultRecentScreenState(
-    directDI: DirectDI,
     highlightBackgroundColor: Color,
     highlightContentColor: Color,
     getAccounts: GetAccounts,
@@ -114,7 +109,6 @@ fun vaultRecentScreenState(
     ),
 ) {
     vaultRecentScreenStateProducer(
-        directDI = directDI,
         highlightBackgroundColor = highlightBackgroundColor,
         highlightContentColor = highlightContentColor,
         getAccounts = getAccounts,
@@ -139,39 +133,7 @@ fun vaultRecentScreenState(
     )
 }
 
-suspend fun RememberStateFlowScope.vaultRecentScreenStateProducer(
-    directDI: DirectDI,
-    highlightBackgroundColor: Color,
-    highlightContentColor: Color,
-): Flow<Loadable<VaultRecentState>> = with(directDI) {
-    vaultRecentScreenStateProducer(
-        directDI = directDI,
-        highlightBackgroundColor = highlightBackgroundColor,
-        highlightContentColor = highlightContentColor,
-        clearVaultSession = instance(),
-        getAccounts = instance(),
-        getCanWrite = instance(),
-        getCiphers = instance(),
-        getProfiles = instance(),
-        getFolders = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
-        getTotpCode = instance(),
-        getConcealFields = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        getPasswordStrength = instance(),
-        getCipherOpenedHistory = instance(),
-        toolbox = instance(),
-        queueSyncAll = instance(),
-        syncSupervisor = instance(),
-        dateFormatter = instance(),
-        clipboardService = instance(),
-    )
-}
-
 internal suspend fun RememberStateFlowScope.vaultRecentScreenStateProducer(
-    directDI: DirectDI,
     highlightBackgroundColor: Color,
     highlightContentColor: Color,
     getAccounts: GetAccounts,

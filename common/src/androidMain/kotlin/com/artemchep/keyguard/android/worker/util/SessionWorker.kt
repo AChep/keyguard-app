@@ -5,28 +5,26 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.keyguardKoin
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import org.kodein.di.DI
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.instance
 
 abstract class SessionWorker(
     context: Context,
     params: WorkerParameters,
-) : CoroutineWorker(context, params), DIAware {
+) : CoroutineWorker(context, params), KeyguardKoinOwner {
     companion object {
         private const val SESSION_TIMEOUT_MS = 1000L
     }
 
-    final override val di by closestDI { applicationContext }
+    final override val koin get() = applicationContext.keyguardKoin()
 
-    private val getVaultSession: GetVaultSession by di.instance()
+    private val getVaultSession: GetVaultSession by lazy { koin.get() }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun doWork(): Result = getVaultSession()
@@ -34,7 +32,7 @@ abstract class SessionWorker(
         .flatMapLatest { session ->
             when (session) {
                 is MasterSession.Key -> flow<Result> {
-                    val result = session.di.doWork()
+                    val result = doWork(session)
                     emit(result)
                 }
 
@@ -47,5 +45,5 @@ abstract class SessionWorker(
         }
         .first()
 
-    abstract suspend fun DI.doWork(): Result
+    abstract suspend fun doWork(session: MasterSession.Key): Result
 }

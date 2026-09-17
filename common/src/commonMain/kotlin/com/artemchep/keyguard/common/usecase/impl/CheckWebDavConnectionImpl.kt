@@ -15,8 +15,6 @@ import com.artemchep.keyguard.util.webdav.WebDavWriteMode
 import io.ktor.client.HttpClient
 import kotlin.random.Random
 import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class CheckWebDavConnectionImpl internal constructor(
     private val clientFactory: WebDavClientFactory,
@@ -25,12 +23,6 @@ class CheckWebDavConnectionImpl internal constructor(
         httpClient: HttpClient,
     ) : this(
         clientFactory = KtorWebDavClientFactory(httpClient),
-    )
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        httpClient = directDI.instance(),
     )
 
     override fun invoke(

@@ -1,5 +1,6 @@
 plugins {
     id("keyguard.quality")
+    id("keyguard.koin")
     alias(libs.plugins.android.library)
     id("keyguard.android-library")
     alias(libs.plugins.kotlin.plugin.serialization)
@@ -37,8 +38,9 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.io.core)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kodein.kodein.di)
-    implementation(libs.kodein.kodein.di.framework.android.x.viewmodel.savedstate)
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose)
     implementation(libs.openkeychain.openpgp.api)
     implementation(libs.openkeychain.sshauthentication.api)
 

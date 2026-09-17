@@ -10,11 +10,10 @@ import com.artemchep.keyguard.util.encode
 import com.google.zxing.client.j2se.MatrixToImageConfig
 import com.google.zxing.client.j2se.MatrixToImageWriter
 import com.google.zxing.common.BitMatrix
-import kotlinx.coroutines.Dispatchers
-import org.jetbrains.skia.Image
-import org.kodein.di.DirectDI
 import java.io.ByteArrayOutputStream
 import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.Dispatchers
+import org.jetbrains.skia.Image
 
 /**
  * @author Artem Chepurnyi
@@ -22,7 +21,6 @@ import kotlin.coroutines.CoroutineContext
 class GetBarcodeImageJvm(
     private val dispatcher: CoroutineContext = Dispatchers.Default,
 ) : GetBarcodeImage {
-    constructor(directDI: DirectDI) : this()
 
     override fun invoke(
         request: BarcodeImageRequest,

@@ -4,7 +4,6 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
-import org.kodein.di.DirectDI
 
 class CommentPlaceholder(
 ) : Placeholder {
@@ -18,13 +17,7 @@ class CommentPlaceholder(
         else -> null
     }
 
-    class Factory(
-    ) : Placeholder.Factory {
-        constructor(
-            directDI: DirectDI,
-        ) : this(
-        )
-
+    class Factory : Placeholder.Factory {
         override fun createOrNull(
             scope: PlaceholderScope,
         ) = CommentPlaceholder()

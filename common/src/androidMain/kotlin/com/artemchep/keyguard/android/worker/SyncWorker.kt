@@ -25,21 +25,20 @@ import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.AccountId
+import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.usecase.SyncAll
 import com.artemchep.keyguard.common.usecase.SyncById
 import com.artemchep.keyguard.common.usecase.syncRequiresNetwork
 import com.artemchep.keyguard.core.store.bitwarden.FileLocation
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
-import org.kodein.di.DI
-import org.kodein.di.DIAware
-import org.kodein.di.direct
-import org.kodein.di.instance
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.resolve
 
 class SyncWorker(
     context: Context,
     params: WorkerParameters,
-) : SessionWorker(context, params), DIAware {
+) : SessionWorker(context, params), KeyguardKoinOwner {
     companion object {
         private const val WORK_ID_PREFIX = "vault-sync:"
         private const val NETWORK_FALLBACK_WORK_ID_PREFIX = "vault-sync-network-fallback:"
@@ -114,18 +113,20 @@ class SyncWorker(
         inputData.getBoolean(KEY_NETWORK_FALLBACK_ELIGIBLE, false)
     }
 
-    override suspend fun DI.doWork(): Result {
-        val io = if (accountIds.isEmpty()) {
-            val syncAll = direct.instance<SyncAll>()
-            syncAll()
-                .map { Unit }
-        } else {
-            val syncById = direct.instance<SyncById>()
-            accountIds
-                .map(syncById)
-                .parallel()
-                .map { Unit }
-        }
+    override suspend fun doWork(session: MasterSession.Key): Result {
+        val io = session.session.resolve {
+            if (accountIds.isEmpty()) {
+                val syncAll = get<SyncAll>()
+                syncAll()
+                    .map { Unit }
+            } else {
+                val syncById = get<SyncById>()
+                accountIds
+                    .map(syncById)
+                    .parallel()
+                    .map { Unit }
+            }
+        } ?: return Result.success()
         // Sync implementations record handled failures. Complete this request so
         // a later replacement can run. attempt() still propagates fatal errors
         // and cancellation.

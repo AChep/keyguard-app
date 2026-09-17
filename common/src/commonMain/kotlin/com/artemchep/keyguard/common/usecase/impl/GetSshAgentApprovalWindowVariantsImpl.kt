@@ -1,12 +1,11 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowVariants
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
-import kotlin.time.Duration
 
-class GetSshAgentApprovalWindowVariantsImpl() : GetSshAgentApprovalWindowVariants {
+class GetSshAgentApprovalWindowVariantsImpl : GetSshAgentApprovalWindowVariants {
     companion object {
         private val DEFAULT_DURATION_VARIANTS
             get() = with(Duration) {
@@ -21,8 +20,6 @@ class GetSshAgentApprovalWindowVariantsImpl() : GetSshAgentApprovalWindowVariant
                 )
             }
     }
-
-    constructor(directDI: DirectDI) : this()
 
     override fun invoke(): Flow<List<Duration>> = flowOf(DEFAULT_DURATION_VARIANTS)
 }

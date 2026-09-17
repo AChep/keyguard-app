@@ -9,8 +9,6 @@ import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 @Serializable
 data class TfaEntity(
@@ -55,13 +53,6 @@ class TwoFaServiceImpl(
 
     override val version: String
         get() = FileHashes.tfa
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        textService = directDI.instance(),
-        json = directDI.instance(),
-    )
 
     override fun get() = listIo
 }

@@ -6,25 +6,18 @@ import androidx.credentials.GetCredentialResponse
 import androidx.credentials.provider.ProviderGetCredentialRequest
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.model.AddCipherOpenedHistoryRequest
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.model.AddCipherOpenedHistoryRequest
 import com.artemchep.keyguard.common.usecase.AddCipherUsedAutofillHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.di.resolveOrCancel
 import kotlinx.coroutines.flow.first
-import org.kodein.di.DirectDI
-import org.kodein.di.direct
-import org.kodein.di.instance
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 class PasswordProviderGetFlow(
     private val getCredentialRequestUtils: PasswordProviderGetRequest,
 ) {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        getCredentialRequestUtils = directDI.instance(),
-    )
 
     suspend fun processUnlockedVault(
         session: MasterSession.Key,
@@ -32,7 +25,7 @@ class PasswordProviderGetFlow(
         args: PasswordProviderGetActivityArgs,
         userVerified: Boolean,
     ): GetCredentialResponse {
-        val getCiphers = session.di.direct.instance<GetCiphers>()
+        val getCiphers = session.session.resolveOrCancel { get<GetCiphers>() }
         val ciphers = getCiphers()
             .first()
         val credential = findPasswordCipherOrNull(
@@ -51,7 +44,7 @@ class PasswordProviderGetFlow(
         session: MasterSession.Key,
         args: PasswordProviderGetActivityArgs,
     ) {
-        val addCipherUsedAutofillHistory = session.di.direct.instance<AddCipherUsedAutofillHistory>()
+        val addCipherUsedAutofillHistory = session.session.resolveOrCancel { get<AddCipherUsedAutofillHistory>() }
         addCipherUsedAutofillHistory(
             AddCipherOpenedHistoryRequest(
                 accountId = args.accountId,

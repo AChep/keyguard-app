@@ -7,8 +7,6 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.platform.LeBiometricCipher
 import com.artemchep.keyguard.platform.LeBiometricCipherWindowsHello
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * Wraps and unwraps the cipher secret with a Windows Hello
@@ -22,10 +20,6 @@ class BiometricPromptHostWindowsHello internal constructor(
     constructor(cryptoGenerator: CryptoGenerator) : this(
         cryptoGenerator = cryptoGenerator,
         operations = NativeWindowsHelloBiometricOperations,
-    )
-
-    constructor(directDI: DirectDI) : this(
-        cryptoGenerator = directDI.instance(),
     )
 
     override suspend fun createCipher(purpose: BiometricPurpose): LeBiometricCipher =

@@ -11,13 +11,12 @@ import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 actual fun settingEmitTotpProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = settingEmitTotpProvider(
-    context = directDI.instance<Application>(),
+    context = koinScope.get<Application>(),
 )
 
 fun settingEmitTotpProvider(

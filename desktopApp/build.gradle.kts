@@ -13,9 +13,15 @@ plugins {
     id("keyguard.license-policy")
     id("keyguard.crypto-dependency-check")
     id("keyguard.quality")
+    id("keyguard.koin")
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)
     alias(libs.plugins.kotlin.multiplatform)
+}
+
+// Application roots always revalidate the assembled dependency graph.
+koinCompiler {
+    strictSafety.set(true)
 }
 
 kotlin {
@@ -24,6 +30,8 @@ kotlin {
     sourceSets {
         val jvmMain by getting {
             dependencies {
+                implementation(libs.koin.core)
+                implementation(libs.koin.compose)
                 implementation(libs.jetbrains.compose.runtime)
                 implementation(libs.jetbrains.compose.foundation)
                 implementation(libs.jetbrains.compose.material)

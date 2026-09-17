@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.usecase.GetCipherSnapshots
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.withLogTimeOfFirstEvent
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,9 +21,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.coroutines.CoroutineContext
 
 /**
  * @author Artem Chepurnyi
@@ -40,15 +38,6 @@ internal class GetCipherSnapshotsImpl(
     companion object {
         private const val TAG = "GetCipherSnapshots.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        logRepository = directDI.instance(),
-        databaseManager = directDI.instance(),
-        getPasswordStrength = directDI.instance(),
-        windowCoroutineScope = directDI.instance(),
-        dbDispatcher = directDI.instance(tag = DatabaseDispatcher),
-        gpgKeyMetadataResolver = directDI.instance(),
-    )
 
     private val sharedFlow = databaseManager
         .get()

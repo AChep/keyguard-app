@@ -7,8 +7,8 @@ import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.service.relays.api.EmailRelaySchema
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.header
@@ -24,8 +24,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.DrawableResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class FirefoxRelayEmailRelay(
     private val httpClient: HttpClient,
@@ -54,10 +52,6 @@ class FirefoxRelayEmailRelay(
             type = ConfirmationRoute.Args.Item.StringItem.Type.Token,
             canBeEmpty = false,
         ),
-    )
-
-    constructor(directDI: DirectDI) : this(
-        httpClient = directDI.instance(),
     )
 
     override fun generate(

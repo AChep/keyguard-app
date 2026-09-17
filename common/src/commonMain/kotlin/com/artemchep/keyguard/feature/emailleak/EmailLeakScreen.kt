@@ -34,16 +34,16 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.feature.dialog.Dialog
-import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.home.vault.component.Section
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.FlatTextFieldBadge
 import com.artemchep.keyguard.ui.HtmlText
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.SimpleNote
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.poweredby.PoweredByHaveibeenpwned
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
@@ -54,7 +54,7 @@ import com.artemchep.keyguard.ui.util.HorizontalDivider
 import io.ktor.http.HttpStatusCode
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @Composable
 fun EmailLeakScreen(
@@ -249,7 +249,7 @@ private fun BreachItem(
         }
         Column {
             if (item.count != null) {
-                val numberFormatter: NumberFormatter by rememberInstance()
+                val numberFormatter: NumberFormatter = koinInject()
                 Text(
                     text = pluralStringResource(
                         Res.plurals.emailleak_breach_accounts_count_plural,

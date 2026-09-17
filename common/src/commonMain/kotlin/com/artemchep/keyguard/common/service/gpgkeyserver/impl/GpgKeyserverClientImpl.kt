@@ -14,14 +14,14 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.extractGpgUserIdEmail
 import com.artemchep.keyguard.common.service.crypto.gpgAlgorithmName
-import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
 import com.artemchep.keyguard.common.util.isHexDigit
 import com.artemchep.keyguard.provider.bitwarden.api.builder.ensureSuffix
 import com.artemchep.keyguard.provider.bitwarden.api.builder.routeAttribute
 import io.ktor.client.HttpClient
-import io.ktor.client.request.get
 import io.ktor.client.request.forms.FormDataContent
+import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -36,16 +36,14 @@ import io.ktor.http.appendPathSegments
 import io.ktor.http.content.TextContent
 import io.ktor.http.decodeURLQueryComponent
 import io.ktor.http.isSuccess
+import kotlin.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Instant
 
 class GpgKeyserverClientImpl(
     private val httpClient: HttpClient,
@@ -75,14 +73,6 @@ class GpgKeyserverClientImpl(
 
     private val vksByEmailGate = GpgKeyserverVksByEmailGate<List<DGpgKeyserverResult>>(
         intervalMillis = VKS_BY_EMAIL_THROTTLE_MILLIS,
-    )
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        httpClient = directDI.instance(),
-        parser = directDI.instance(),
-        json = directDI.instance(),
     )
 
     override fun search(

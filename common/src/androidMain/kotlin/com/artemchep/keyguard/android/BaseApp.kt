@@ -22,13 +22,18 @@ import com.artemchep.keyguard.common.usecase.GetVaultLockAfterScreenOff
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
+import com.artemchep.keyguard.common.worker.WorkerRegistry
 import com.artemchep.keyguard.common.worker.Wrker
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.resolve
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.platform.lifecycle.toCommon
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.lock_reason_screen_off
 import com.artemchep.keyguard.util.foundation.crypto.ensurePlatformCryptoReady
+import kotlin.getValue
+import kotlin.time.Clock
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
@@ -45,14 +50,14 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import org.kodein.di.DIAware
-import org.kodein.di.allInstances
-import org.kodein.di.direct
-import org.kodein.di.instance
-import kotlin.getValue
-import kotlin.time.Clock
+import org.koin.core.qualifier.named
 
-abstract class BaseApp : Application() {
+abstract class BaseApp : Application(), KeyguardKoinOwner {
+    abstract val koinApplication: org.koin.core.KoinApplication
+
+    final override val koin: org.koin.core.Koin
+        get() = koinApplication.koin
+
     companion object {
         var context: Context? = null
     }
@@ -67,7 +72,7 @@ abstract class BaseApp : Application() {
     }
 }
 
-fun <T> T.installWorkers() where T : BaseApp, T : DIAware {
+fun <T> T.installWorkers() where T : BaseApp, T : KeyguardKoinOwner {
     val processLifecycleOwner = ProcessLifecycleOwner.get()
     val processLifecycle = processLifecycleOwner.lifecycle
     val processLifecycleFlow = processLifecycle
@@ -79,13 +84,13 @@ fun <T> T.installWorkers() where T : BaseApp, T : DIAware {
         }
 
     // App worker
-    val appWorker: AppWorker by instance(tag = AppWorker.Feature.SYNC)
+    val appWorker: AppWorker by lazy { koin.get(qualifier = named(AppWorker.Feature.SYNC)) }
     processLifecycleOwner.lifecycleScope.launch {
         appWorker.launch(this, processLifecycleFlow)
     }
 
     // All workers
-    val workers by allInstances<Wrker>()
+    val workers = koin.get<WorkerRegistry>().values
     workers.forEach {
         ProcessLifecycleOwner.get().bindBlock {
             coroutineScope {
@@ -95,15 +100,15 @@ fun <T> T.installWorkers() where T : BaseApp, T : DIAware {
     }
 }
 
-fun <T> T.installFavicons() where T : BaseApp, T : DIAware {
-    val getVaultSession: GetVaultSession by instance()
+fun <T> T.installFavicons() where T : BaseApp, T : KeyguardKoinOwner {
+    val getVaultSession: GetVaultSession by lazy { koin.get() }
 
     // favicon
     ProcessLifecycleOwner.get().bindBlock {
         getVaultSession()
             .map { session ->
                 val key = session as? MasterSession.Key
-                key?.di?.direct?.instance<GetAccounts>()
+                key?.session?.resolve { get<GetAccounts>() }
             }
             .collectLatest { getAccounts ->
                 if (getAccounts != null) {
@@ -115,13 +120,13 @@ fun <T> T.installFavicons() where T : BaseApp, T : DIAware {
     }
 }
 
-fun <T> T.installVaultLock() where T : BaseApp, T : DIAware {
-    val getVaultSession: GetVaultSession by instance()
-    val clearVaultSession: ClearVaultSession by instance()
+fun <T> T.installVaultLock() where T : BaseApp, T : KeyguardKoinOwner {
+    val getVaultSession: GetVaultSession by lazy { koin.get() }
+    val clearVaultSession: ClearVaultSession by lazy { koin.get() }
 
     // screen lock
-    val getVaultLockAfterScreenOff: GetVaultLockAfterScreenOff by instance()
-    val powerService: PowerService by instance()
+    val getVaultLockAfterScreenOff: GetVaultLockAfterScreenOff by lazy { koin.get() }
+    val powerService: PowerService by lazy { koin.get() }
     ProcessLifecycleOwner.get().lifecycleScope.launch {
         val screenFlow = powerService
             .getScreenState()
@@ -172,17 +177,17 @@ fun <T> T.installVaultLock() where T : BaseApp, T : DIAware {
     }
 }
 
-fun <T> T.installVaultKeepAlive() where T : BaseApp, T : DIAware {
-    val vaultSessionLocker: VaultSessionLocker by instance()
+fun <T> T.installVaultKeepAlive() where T : BaseApp, T : KeyguardKoinOwner {
+    val vaultSessionLocker: VaultSessionLocker by lazy { koin.get() }
     ProcessLifecycleOwner.get().bindBlock {
         vaultSessionLocker.keepAlive()
     }
 }
 
-fun <T> T.installVaultPersistedSession() where T : BaseApp, T : DIAware {
-    val getVaultSession: GetVaultSession by instance()
-    val getVaultPersist: GetVaultPersist by instance()
-    val keyReadWriteRepository: KeyReadWriteRepository by instance()
+fun <T> T.installVaultPersistedSession() where T : BaseApp, T : KeyguardKoinOwner {
+    val getVaultSession: GetVaultSession by lazy { koin.get() }
+    val getVaultPersist: GetVaultPersist by lazy { koin.get() }
+    val keyReadWriteRepository: KeyReadWriteRepository by lazy { koin.get() }
 
     val processLifecycleOwner = ProcessLifecycleOwner.get()
 

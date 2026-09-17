@@ -75,7 +75,9 @@ Platform entrypoints bootstrap DI and platform services:
 - Desktop app bootstrap: `desktopApp/src/jvmMain/kotlin/com/artemchep/keyguard/Main.kt`
 - there are also common shared DI entrypoints.
 
-Note that there are fundamentally two different layers of the dependencies. One is global and is available in every moment and the second is tied to the vault's lifecycle and only available when the vault is unlocked.
+We use Koin with the compiler plugin. Apply `keyguard.koin` to modules that own DI wiring, group definitions into explicit modules per domain, and prefer the compiler DSL for constructor injection. Keep domain and presentation constructors free of Koin; resolve dependencies at composition boundaries. Vault-scoped definitions live in a typed scope that is created on unlock and closed on lock.
+
+Keep module holders as `val module = module { ... }` referenced directly from `modules(...)`/`includes(...)`, avoid runtime module loading and blanket `@Provided`, and treat `KOIN-W003` as a failed build. Only compiling an application root validates the full graph; the iOS root is covered by `IosKoinGraphTest` instead.
 
 #### Navigation + screens
 

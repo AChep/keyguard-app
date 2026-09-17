@@ -9,8 +9,8 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AddUriCipherRequest
-import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.usecase.AddUriCipher
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
 import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
@@ -21,8 +21,6 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
 import kotlinx.coroutines.flow.first
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -36,13 +34,6 @@ class AddUriCipherImpl(
     companion object {
         private const val TAG = "AddUriCipher.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyCipherById = directDI.instance(),
-        getAutofillDefaultMatchDetection = directDI.instance(),
-        cipherUrlDuplicateCheck = directDI.instance(),
-        equivalentDomainsBuilderFactory = directDI.instance(),
-    )
 
     override fun invoke(
         request: AddUriCipherRequest,

@@ -18,15 +18,13 @@ import com.google.zxing.NotFoundException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
-actual fun produceLoadQrState(): Loadable<LoadQrState> = with(localDI().direct) {
+actual fun produceLoadQrState(): Loadable<LoadQrState> = with(currentKoinScope()) {
     produceLoadQrState(
-        context = instance(),
-        windowCoroutineScope = instance(),
+        context = get(),
+        windowCoroutineScope = get(),
     )
 }
 

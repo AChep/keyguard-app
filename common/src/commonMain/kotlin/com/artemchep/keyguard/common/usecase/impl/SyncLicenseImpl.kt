@@ -11,19 +11,11 @@ import com.artemchep.keyguard.common.service.licensekey.model.selectBestLicenseC
 import com.artemchep.keyguard.common.usecase.SyncLicense
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
 
 class SyncLicenseImpl(
     private val licenseManager: LicenseManager,
     private val licenseClaimSource: LicenseClaimSource?,
 ) : SyncLicense {
-    constructor(directDI: DirectDI) : this(
-        licenseManager = directDI.instance(),
-        licenseClaimSource = directDI.instanceOrNull(),
-    )
-
     override fun invoke(): IO<SyncLicense.Result> = ioEffect {
         val source = licenseClaimSource
             ?: return@ioEffect SyncLicense.Result.Unsupported

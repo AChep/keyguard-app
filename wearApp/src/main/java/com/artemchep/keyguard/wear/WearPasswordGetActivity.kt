@@ -30,6 +30,7 @@ import com.artemchep.keyguard.res.error_failed_use_password
 import com.artemchep.keyguard.wear.feature.WearCreateVaultScreen
 import com.artemchep.keyguard.wear.feature.WearLoadingScreen
 import com.artemchep.keyguard.wear.feature.WearUnlockVaultScreen
+import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -39,8 +40,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString as getComposeString
-import org.kodein.di.instance
-import kotlin.time.Clock
 
 @RequiresApi(34)
 class WearPasswordGetActivity : WearCredentialProviderActivity() {
@@ -65,9 +64,9 @@ class WearPasswordGetActivity : WearCredentialProviderActivity() {
 
     private val args: PasswordProviderGetActivityArgs get() = requireNotNull(_args)
 
-    private val getVaultSession by instance<GetVaultSession>()
+    private val getVaultSession by lazy { koin.get<GetVaultSession>() }
 
-    private val passwordProviderGetFlow by instance<PasswordProviderGetFlow>()
+    private val passwordProviderGetFlow by lazy { koin.get<PasswordProviderGetFlow>() }
 
     private val getCredentialRequest by lazy {
         val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)

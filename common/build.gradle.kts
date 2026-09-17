@@ -10,6 +10,7 @@ import java.time.Duration
 
 plugins {
     id("keyguard.quality")
+    id("keyguard.koin")
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kmp.library)
     alias(libs.plugins.kotlin.plugin.parcelize)
@@ -112,8 +113,8 @@ kotlin {
                 api(libs.arrow.arrow.core)
                 api(libs.arrow.arrow.functions)
                 api(libs.arrow.arrow.optics)
-                api(libs.kodein.kodein.di)
-                api(libs.kodein.kodein.di.framework.compose.runtime)
+                api(libs.koin.core)
+                implementation(libs.koin.compose)
                 api(libs.androidx.lifecycle.common)
                 api(libs.androidx.lifecycle.runtime)
                 api(libs.androidx.lifecycle.runtime.compose)
@@ -317,7 +318,7 @@ kotlin {
                 api(libs.squareup.logging.interceptor)
                 api(libs.sqlcipher.android)
                 api(libs.kotlinx.coroutines.android)
-                api(libs.kodein.kodein.di.framework.android.x.viewmodel.savedstate)
+                implementation(libs.koin.android)
                 api(libs.yubico.yubikit.android)
                 api(libs.yubico.yubikit.yubiotp)
                 api(libs.cash.sqldelight.android.driver)

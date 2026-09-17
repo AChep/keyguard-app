@@ -11,12 +11,12 @@ import com.artemchep.keyguard.common.usecase.RequestAppReview
 import com.artemchep.keyguard.platform.LocalLeContext
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.first
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @Composable
 fun RequestAppReviewEffect() {
-    val getShouldRequestAppReview: GetShouldRequestAppReview by rememberInstance()
-    val requestAppReview: RequestAppReview by rememberInstance()
+    val getShouldRequestAppReview: GetShouldRequestAppReview = koinInject()
+    val requestAppReview: RequestAppReview = koinInject()
 
     val context by rememberUpdatedState(LocalLeContext)
     LaunchedEffect(Unit) {

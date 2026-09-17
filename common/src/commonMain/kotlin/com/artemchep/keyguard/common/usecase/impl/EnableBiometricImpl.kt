@@ -19,8 +19,6 @@ import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.EnableBiometric
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.util.memoize
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class EnableBiometricImpl(
     private val keyReadWriteRepository: FingerprintReadWriteRepository,
@@ -29,14 +27,6 @@ class EnableBiometricImpl(
     private val biometricKeyRepository: BiometricKeyRepository,
     private val biometricKeyEncryptUseCase: BiometricKeyEncryptUseCase,
 ) : EnableBiometric {
-    constructor(directDI: DirectDI) : this(
-        keyReadWriteRepository = directDI.instance(),
-        getVaultSession = directDI.instance(),
-        biometricStatusUseCase = directDI.instance(),
-        biometricKeyRepository = directDI.instance(),
-        biometricKeyEncryptUseCase = directDI.instance(),
-    )
-
     override fun invoke(
         masterSession: MasterSession.Key?,
     ) = ioEffect {

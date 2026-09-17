@@ -35,8 +35,8 @@ import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardAuthReprompt
 import com.artemchep.keyguard.ui.icons.KeyguardBroadWebsites
@@ -53,18 +53,6 @@ import com.artemchep.keyguard.ui.icons.KeyguardReusedPassword
 import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardUnsecureWebsites
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.count
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toSet
-import kotlin.time.Clock
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.collections.Collection
 import kotlin.collections.List
 import kotlin.collections.Map
@@ -89,6 +77,16 @@ import kotlin.collections.mutableMapOf
 import kotlin.collections.orEmpty
 import kotlin.collections.toSet
 import kotlin.reflect.KClass
+import kotlin.time.Clock
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toSet
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 sealed interface DFilter {
@@ -230,14 +228,14 @@ sealed interface DFilter {
     }
 
     suspend fun prepare(
-        directDI: DirectDI,
+        context: CipherFilterContext,
         ciphers: List<DSecret>,
     ): (DSecret) -> Boolean
 
     suspend fun prepareFolders(
-        directDI: DirectDI,
+        context: CipherFilterContext,
         folders: List<DFolder>,
-    ): (DFolder) -> Boolean = All.prepareFolders(directDI, folders)
+    ): (DFolder) -> Boolean = All.prepareFolders(context, folders)
 
     @Serializable
     sealed interface Primitive : DFilter {
@@ -265,22 +263,22 @@ sealed interface DFilter {
         val filters: Collection<DFilter>,
     ) : DFilter {
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val list = filters
-                .map { it.prepare(directDI, ciphers) }
+                .map { it.prepare(context, ciphers) }
             return@run { cipher: DSecret ->
                 list.isEmpty() || list.any { predicate -> predicate(cipher) }
             }
         }
 
         override suspend fun prepareFolders(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             folders: List<DFolder>,
         ) = kotlin.run {
             val list = filters
-                .map { it.prepareFolders(directDI, folders) }
+                .map { it.prepareFolders(context, folders) }
             return@run { folder: DFolder ->
                 list.isEmpty() || list.any { predicate -> predicate(folder) }
             }
@@ -293,22 +291,22 @@ sealed interface DFilter {
         val filters: Collection<DFilter>,
     ) : DFilter {
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val list = filters
-                .map { it.prepare(directDI, ciphers) }
+                .map { it.prepare(context, ciphers) }
             return@run { cipher: DSecret ->
                 list.isEmpty() || list.all { predicate -> predicate(cipher) }
             }
         }
 
         override suspend fun prepareFolders(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             folders: List<DFolder>,
         ) = kotlin.run {
             val list = filters
-                .map { it.prepareFolders(directDI, folders) }
+                .map { it.prepareFolders(context, folders) }
             return@run { folder: DFolder ->
                 list.isEmpty() || list.all { predicate -> predicate(folder) }
             }
@@ -321,11 +319,11 @@ sealed interface DFilter {
         val filter: DFilter,
     ) : DFilter {
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val predicate = filter.prepare(
-                directDI = directDI,
+                context = context,
                 ciphers = ciphers,
             )
             return@run { cipher: DSecret ->
@@ -334,11 +332,11 @@ sealed interface DFilter {
         }
 
         override suspend fun prepareFolders(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             folders: List<DFolder>,
         ) = kotlin.run {
             val predicate = filter.prepareFolders(
-                directDI = directDI,
+                context = context,
                 folders = folders,
             )
             return@run { folder: DFolder ->
@@ -351,12 +349,12 @@ sealed interface DFilter {
     @SerialName("all")
     data object All : DFilter {
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = ::predicateCipher
 
         override suspend fun prepareFolders(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             folders: List<DFolder>,
         ) = ::predicateFolder
 
@@ -398,12 +396,12 @@ sealed interface DFilter {
         }
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = ::predicateCipher
 
         override suspend fun prepareFolders(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             folders: List<DFolder>,
         ) = ::predicateFolder
 
@@ -467,7 +465,7 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = ::predicate
 
@@ -493,7 +491,7 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = ::predicate
 
@@ -516,7 +514,7 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = ::predicate
 
@@ -539,7 +537,7 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = ::predicate
 
@@ -562,7 +560,7 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = ::predicate
 
@@ -587,7 +585,7 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = ::predicate
 
@@ -618,7 +616,7 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = ::predicate
 
@@ -642,10 +640,10 @@ sealed interface DFilter {
             )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
-            val ids = filterWeakSshKeys(directDI, ciphers)
+            val ids = filterWeakSshKeys(context, ciphers)
                 .map { it.id }
                 .toSet()
             ::predicate.partially1(ids)
@@ -658,15 +656,15 @@ sealed interface DFilter {
 
         /** Counts a number of SSH key ciphers with weak key material. */
         fun count(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
-        ) = filterWeakSshKeys(directDI, ciphers).count()
+        ) = filterWeakSshKeys(context, ciphers).count()
 
         private fun filterWeakSshKeys(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
-            val cipherSshKeyWeakCheck = directDI.instance<CipherSshKeyWeakCheck>()
+            val cipherSshKeyWeakCheck = context.cipherSshKeyWeakCheck
             ciphers
                 .asSequence()
                 .filter { !shouldIgnore(it) }
@@ -693,11 +691,11 @@ sealed interface DFilter {
             )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val ids = filterWatchtowerAlert(
-                directDI = directDI,
+                context = context,
                 ciphers = ciphers,
                 type = DWatchtowerAlertType.GPG_KEY_UNUSABLE,
             )
@@ -727,11 +725,11 @@ sealed interface DFilter {
             )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val ids = filterWatchtowerAlert(
-                directDI = directDI,
+                context = context,
                 ciphers = ciphers,
                 type = DWatchtowerAlertType.WEAK_GPG_KEY,
             )
@@ -761,11 +759,11 @@ sealed interface DFilter {
             )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val ids = filterWatchtowerAlert(
-                directDI = directDI,
+                context = context,
                 ciphers = ciphers,
                 type = DWatchtowerAlertType.GPG_KEY_PUBLISHING,
             )
@@ -799,7 +797,7 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val set = buildDuplicatesState(ciphers = ciphers)
@@ -813,7 +811,7 @@ sealed interface DFilter {
 
         /** Counts a number of ciphers with duplicate password */
         fun count(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = buildDuplicatesState(ciphers = ciphers)
             .asSequence()
@@ -876,10 +874,10 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
-            val set = buildPwnedPasswordsState(directDI = directDI, ciphers = ciphers)
+            val set = buildPwnedPasswordsState(context = context, ciphers = ciphers)
                 .asSequence()
                 .mapNotNull { entry ->
                     entry.key.takeIf { entry.value > 0 }
@@ -890,19 +888,19 @@ sealed interface DFilter {
 
         /** Counts a number of ciphers with pwned password */
         suspend fun count(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
-        ) = buildPwnedPasswordsState(directDI = directDI, ciphers = ciphers)
+        ) = buildPwnedPasswordsState(context = context, ciphers = ciphers)
             .asSequence()
             .count { entry ->
                 entry.value > 0
             }
 
         private suspend fun buildPwnedPasswordsState(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ): Map<String, Int> = ioEffect {
-            val checkPasswordSetLeak: CheckPasswordSetLeak = directDI.instance()
+            val checkPasswordSetLeak: CheckPasswordSetLeak = context.checkPasswordSetLeak
             val passwords = ciphers
                 .asSequence()
                 .mapNotNull { cipher ->
@@ -952,29 +950,29 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
-            val set = buildDuplicatesState(directDI = directDI, ciphers = ciphers)
+            val set = buildDuplicatesState(context = context, ciphers = ciphers)
             ::predicate.partially1(set)
         }
 
         /** Counts a number of ciphers with pwned password */
         suspend fun count(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
-        ) = buildDuplicatesState(directDI = directDI, ciphers = ciphers)
+        ) = buildDuplicatesState(context = context, ciphers = ciphers)
             .size
 
         private suspend fun buildDuplicatesState(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ): Set<String> = ioEffect {
             val getAutofillDefaultMatchDetection =
-                directDI.instance<GetAutofillDefaultMatchDetection>()
-            val check: CipherBreachCheck = directDI.instance()
-            val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory = directDI.instance()
-            val getBreaches: GetBreaches = directDI.instance()
+                context.getAutofillDefaultMatchDetection
+            val check: CipherBreachCheck = context.cipherBreachCheck
+            val equivalentDomainsBuilderFactory = context.equivalentDomainsBuilderFactory
+            val getBreaches: GetBreaches = context.getBreaches
 
             val breaches = getBreaches(false)
                 .handleError {
@@ -1031,10 +1029,10 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
-            val ids = filterIncomplete(directDI, ciphers)
+            val ids = filterIncomplete(context, ciphers)
                 .map { it.id }
                 .toSet()
             ::predicate.partially1(ids)
@@ -1047,15 +1045,15 @@ sealed interface DFilter {
 
         /** Counts a number of ciphers that might be incomplete */
         fun count(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
-        ) = filterIncomplete(directDI, ciphers).count()
+        ) = filterIncomplete(context, ciphers).count()
 
         private fun filterIncomplete(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
-            val cipherIncompleteCheck = directDI.instance<CipherIncompleteCheck>()
+            val cipherIncompleteCheck = context.cipherIncompleteCheck
             ciphers
                 .asSequence()
                 .filter { cipher ->
@@ -1088,10 +1086,10 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
-            val ids = filterExpiring(directDI, ciphers)
+            val ids = filterExpiring(context, ciphers)
                 .map { it.id }
                 .toSet()
             ::predicate.partially1(ids)
@@ -1104,16 +1102,16 @@ sealed interface DFilter {
 
         /** Counts a number of ciphers that might be incomplete */
         fun count(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
-        ) = filterExpiring(directDI, ciphers).count()
+        ) = filterExpiring(context, ciphers).count()
 
         private fun filterExpiring(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val now = Clock.System.now()
-            val cipherExpiringCheck = directDI.instance<CipherExpiringCheck>()
+            val cipherExpiringCheck = context.cipherExpiringCheck
             ciphers
                 .asSequence()
                 .filter { cipher ->
@@ -1146,10 +1144,10 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
-            val ids = filterUnsecure(directDI, ciphers)
+            val ids = filterUnsecure(context, ciphers)
                 .map { it.id }
                 .toSet()
             ::predicate.partially1(ids)
@@ -1162,15 +1160,15 @@ sealed interface DFilter {
 
         /** Counts a number of ciphers that contain unsecure websites */
         fun count(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
-        ) = filterUnsecure(directDI, ciphers).count()
+        ) = filterUnsecure(context, ciphers).count()
 
         private fun filterUnsecure(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
-            val cipherUnsecureUrlCheck = directDI.instance<CipherUnsecureUrlCheck>()
+            val cipherUnsecureUrlCheck = context.cipherUnsecureUrlCheck
             ciphers
                 .asSequence()
                 .filter { cipher ->
@@ -1205,11 +1203,11 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val ids = filterTfa(
-                directDI = directDI,
+                context = context,
                 ciphers = ciphers,
             )
                 .map { it.id }
@@ -1224,18 +1222,18 @@ sealed interface DFilter {
 
         /** Counts a number of ciphers that contain unsecure websites */
         suspend fun count(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
-        ) = filterTfa(directDI, ciphers).count()
+        ) = filterTfa(context, ciphers).count()
 
         private suspend fun filterTfa(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
-            val tldService: TldService = directDI.instance()
-            val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory = directDI.instance()
+            val tldService: TldService = context.tldService
+            val equivalentDomainsBuilderFactory = context.equivalentDomainsBuilderFactory
 
-            val tfaService = directDI.instance<GetTwoFa>()
+            val tfaService = context.getTwoFa
             val tfaLibrary = tfaService()
                 .crashlyticsTap()
                 .attempt()
@@ -1274,11 +1272,11 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val ids = filterTfa(
-                directDI = directDI,
+                context = context,
                 ciphers = ciphers,
             )
                 .map { it.id }
@@ -1293,17 +1291,17 @@ sealed interface DFilter {
 
         /** Counts a number of ciphers that contain unsecure websites */
         suspend fun count(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
-        ) = filterTfa(directDI, ciphers).count()
+        ) = filterTfa(context, ciphers).count()
 
         private suspend fun filterTfa(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
-            val tldService: TldService = directDI.instance()
-            val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory = directDI.instance()
-            val getPasskeys = directDI.instance<GetPasskeys>()
+            val tldService: TldService = context.tldService
+            val equivalentDomainsBuilderFactory = context.equivalentDomainsBuilderFactory
+            val getPasskeys = context.getPasskeys
 
             val equivalentDomainsBuilder = equivalentDomainsBuilderFactory.build()
             val passkeyLibrary = getPasskeys()
@@ -1341,11 +1339,11 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val ids = filterDuplicateWebsites(
-                directDI = directDI,
+                context = context,
                 ciphers = ciphers,
             )
                 .map { it.id }
@@ -1360,18 +1358,18 @@ sealed interface DFilter {
 
         /** Counts a number of ciphers that contain unsecure websites */
         suspend fun count(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
-        ) = filterDuplicateWebsites(directDI, ciphers).count()
+        ) = filterDuplicateWebsites(context, ciphers).count()
 
         private suspend fun filterDuplicateWebsites(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val getAutofillDefaultMatchDetection =
-                directDI.instance<GetAutofillDefaultMatchDetection>()
-            val cipherUrlDuplicateCheck = directDI.instance<CipherUrlDuplicateCheck>()
-            val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory = directDI.instance()
+                context.getAutofillDefaultMatchDetection
+            val cipherUrlDuplicateCheck = context.cipherUrlDuplicateCheck
+            val equivalentDomainsBuilderFactory = context.equivalentDomainsBuilderFactory
 
             val equivalentDomainsBuilder = equivalentDomainsBuilderFactory
                 .build()
@@ -1435,11 +1433,11 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val ids = filterBroadWebsites(
-                directDI = directDI,
+                context = context,
                 ciphers = ciphers,
             )
                 .map { it.id }
@@ -1454,18 +1452,18 @@ sealed interface DFilter {
 
         /** Counts a number of ciphers that contain broad websites */
         suspend fun count(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
-        ) = filterBroadWebsites(directDI, ciphers).count()
+        ) = filterBroadWebsites(context, ciphers).count()
 
         private suspend fun filterBroadWebsites(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = kotlin.run {
             val getAutofillDefaultMatchDetection =
-                directDI.instance<GetAutofillDefaultMatchDetection>()
-            val cipherUrlBroadCheck = directDI.instance<CipherUrlBroadCheck>()
-            val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory = directDI.instance()
+                context.getAutofillDefaultMatchDetection
+            val cipherUrlBroadCheck = context.cipherUrlBroadCheck
+            val equivalentDomainsBuilderFactory = context.equivalentDomainsBuilderFactory
 
             val equivalentDomainsBuilder = equivalentDomainsBuilderFactory
                 .build()
@@ -1506,12 +1504,12 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = ::predicateCipher
 
         override suspend fun prepareFolders(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             folders: List<DFolder>,
         ) = ::predicateFolder
 
@@ -1540,7 +1538,7 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = ::predicateCipher
 
@@ -1565,12 +1563,12 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = ::predicateCipher
 
         override suspend fun prepareFolders(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             folders: List<DFolder>,
         ) = ::predicateFolder
 
@@ -1597,7 +1595,7 @@ sealed interface DFilter {
         )
 
         override suspend fun prepare(
-            directDI: DirectDI,
+            context: CipherFilterContext,
             ciphers: List<DSecret>,
         ) = ::predicate
 
@@ -1608,11 +1606,11 @@ sealed interface DFilter {
 }
 
 private suspend fun filterWatchtowerAlert(
-    directDI: DirectDI,
+    context: CipherFilterContext,
     ciphers: List<DSecret>,
     type: DWatchtowerAlertType,
 ): Sequence<DSecret> {
-    val getWatchtowerAlerts = directDI.instance<GetWatchtowerAlerts>()
+    val getWatchtowerAlerts = context.getWatchtowerAlerts
     val cipherIds = getWatchtowerAlerts()
         .first()
         .asSequence()

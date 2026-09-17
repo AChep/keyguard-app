@@ -2,10 +2,8 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.model.AddCipherOpenedHistoryRequest
 import com.artemchep.keyguard.common.model.CipherHistoryType
-import com.artemchep.keyguard.common.usecase.AddCipherUsedAutofillHistory
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import com.artemchep.keyguard.common.usecase.AddCipherUsedAutofillHistory
 
 class AddCipherUsedAutofillHistoryImpl(
     private val db: VaultDatabaseManager,
@@ -13,10 +11,6 @@ class AddCipherUsedAutofillHistoryImpl(
     companion object {
         private const val TAG = "AddCipherUsedAutofill"
     }
-
-    constructor(directDI: DirectDI) : this(
-        db = directDI.instance(),
-    )
 
     override fun invoke(request: AddCipherOpenedHistoryRequest) = db
         .mutate(TAG) {

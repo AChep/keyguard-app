@@ -21,6 +21,8 @@ import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.keyguardKoin
 import com.artemchep.keyguard.feature.auth.userverification.UserVerificationRoute
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnCreate
@@ -32,6 +34,7 @@ import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.error_failed_use_password
 import com.artemchep.keyguard.res.passkey_auth_via_header
+import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -42,18 +45,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString as getComposeString
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.instance
-import kotlin.time.Clock
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-class PasswordGetActivity : BaseActivity(), DIAware {
+class PasswordGetActivity : BaseActivity(), KeyguardKoinOwner {
     companion object {
         const val KEY_ARGUMENTS = "arguments"
     }
 
-    override val di by closestDI { this }
+    override val koin get() = this.keyguardKoin()
 
     private val _args by lazy {
         intent.extras?.getParcelableCompat<PasswordProviderGetActivityArgs>(KEY_ARGUMENTS)
@@ -61,9 +60,9 @@ class PasswordGetActivity : BaseActivity(), DIAware {
 
     protected val args: PasswordProviderGetActivityArgs get() = requireNotNull(_args)
 
-    private val getVaultSession by instance<GetVaultSession>()
+    private val getVaultSession by lazy { koin.get<GetVaultSession>() }
 
-    private val passwordProviderGetFlow by instance<PasswordProviderGetFlow>()
+    private val passwordProviderGetFlow by lazy { koin.get<PasswordProviderGetFlow>() }
 
     private val getCredentialRequest by lazy {
         val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)

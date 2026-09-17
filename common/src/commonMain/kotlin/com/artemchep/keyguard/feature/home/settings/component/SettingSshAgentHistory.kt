@@ -14,18 +14,17 @@ import com.artemchep.keyguard.feature.sshagent.history.SshAgentHistoryRoute
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingSshAgentHistoryProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingSshAgentHistoryProvider(
-    getSshUsageHistoryCount = directDI.instance(),
+    getSshUsageHistoryCount = koinScope.get(),
 )
 
 fun settingSshAgentHistoryProvider(

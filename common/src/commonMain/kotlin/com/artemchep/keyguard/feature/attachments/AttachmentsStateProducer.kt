@@ -13,16 +13,19 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.runtime.Composable
 import arrow.core.identity
 import arrow.core.partially1
-import com.artemchep.keyguard.common.service.download.DownloadRepository
-import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.RemoveAttachmentRequest
+import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.service.download.DownloadManager
+import com.artemchep.keyguard.common.service.download.DownloadRepository
+import com.artemchep.keyguard.common.service.filter.AddCipherFilter
+import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.DownloadAttachment
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -35,9 +38,10 @@ import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.usecase.RemoveAttachment
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.foldAsList
-import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactory
+import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
@@ -59,8 +63,8 @@ import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.recordException
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
@@ -86,29 +90,29 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
-fun produceAttachmentsScreenState() = with(localDI().direct) {
+fun produceAttachmentsScreenState() = with(currentKoinScope()) {
     produceAttachmentsScreenState(
-        directDI = this,
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getCiphers = instance(),
-        getFolders = instance(),
-        getTags = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
-        downloadRepository = instance(),
-        downloadManager = instance(),
-        downloadAttachment = instance(),
-        removeAttachment = instance(),
-        canPreviewAttachment = instance(),
-        attachmentPreviewRouteFactory = instance(),
-        vaultViewRouteFactory = instance(),
+        filterContext = get(),
+        addCipherFilter = get(),
+        confirmationRouteFactory = get(),
+        getCipherFilters = get(),
+        getAccounts = get(),
+        getProfiles = get(),
+        getCiphers = get(),
+        getFolders = get(),
+        getTags = get(),
+        getCollections = get(),
+        getOrganizations = get(),
+        downloadRepository = get(),
+        downloadManager = get(),
+        downloadAttachment = get(),
+        removeAttachment = get(),
+        canPreviewAttachment = get(),
+        attachmentPreviewRouteFactory = get(),
+        vaultViewRouteFactory = get(),
     )
 }
 
@@ -132,7 +136,10 @@ private data class FilteredList<T>(
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun produceAttachmentsScreenState(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    addCipherFilter: AddCipherFilter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    getCipherFilters: GetCipherFilters,
     getAccounts: GetAccounts,
     getProfiles: GetProfiles,
     getCiphers: GetCiphers,
@@ -155,7 +162,10 @@ fun produceAttachmentsScreenState(
     initial = Loadable.Loading,
 ) {
     attachmentsScreenStateProducer(
-        directDI = directDI,
+        filterContext = filterContext,
+        addCipherFilter = addCipherFilter,
+        confirmationRouteFactory = confirmationRouteFactory,
+        getCipherFilters = getCipherFilters,
         getAccounts = getAccounts,
         getProfiles = getProfiles,
         getCiphers = getCiphers,
@@ -175,7 +185,10 @@ fun produceAttachmentsScreenState(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    addCipherFilter: AddCipherFilter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    getCipherFilters: GetCipherFilters,
     getAccounts: GetAccounts,
     getProfiles: GetProfiles,
     getCiphers: GetCiphers,
@@ -193,7 +206,7 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
 ): Flow<Loadable<AttachmentsState>> {
     val selectionHandle = selectionHandle("selection")
 
-    val filterResult = createFilter(directDI)
+    val filterResult = createFilter(addCipherFilter, confirmationRouteFactory)
 
     val ciphersFlow = getCiphers()
 
@@ -463,7 +476,7 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
                 .list
                 .run {
                     val ciphers = map { it.cipher }
-                    val predicate = filterConfig.filter.prepare(directDI, ciphers)
+                    val predicate = filterConfig.filter.prepare(filterContext, ciphers)
                     filter { predicate(it.cipher) }
                 }
             state.copy(
@@ -474,7 +487,7 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
         .shareInScreenScope()
 
     val filterListFlow = createFilterItemsFlow(
-        directDI = directDI,
+        getCipherFilters = getCipherFilters,
         outputGetter = { it.cipher },
         outputFlow = itemsFilteredFlow
             .map { it.list },

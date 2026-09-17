@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepositor
 import com.artemchep.keyguard.common.usecase.GetGpgAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.di.KeyguardKoinOwner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -21,16 +22,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.kodein.di.DIAware
-import org.kodein.di.instance
 
-fun <T> T.installAndroidIpcProviders() where T : BaseApp, T : DIAware {
-    val getSshAgent by instance<GetSshAgent>()
-    val getGpgAgent by instance<GetGpgAgent>()
-    val getVaultSession by instance<GetVaultSession>()
-    val openPgpPublicKeyRepository by instance<GpgPublicKeyRepository>()
-    val sshPublicKeyRepository by instance<SshAgentPublicKeyRepository>()
-    val logRepository by instance<LogRepository>()
+fun <T> T.installAndroidIpcProviders() where T : BaseApp, T : KeyguardKoinOwner {
+    val getSshAgent by lazy { koin.get<GetSshAgent>() }
+    val getGpgAgent by lazy { koin.get<GetGpgAgent>() }
+    val getVaultSession by lazy { koin.get<GetVaultSession>() }
+    val openPgpPublicKeyRepository by lazy { koin.get<GpgPublicKeyRepository>() }
+    val sshPublicKeyRepository by lazy { koin.get<SshAgentPublicKeyRepository>() }
+    val logRepository by lazy { koin.get<LogRepository>() }
     val scope = ProcessLifecycleOwner.get().lifecycleScope
 
     scope.launch {

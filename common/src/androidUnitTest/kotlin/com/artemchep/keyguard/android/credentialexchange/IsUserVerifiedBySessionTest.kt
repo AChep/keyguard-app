@@ -3,7 +3,7 @@ package com.artemchep.keyguard.android.credentialexchange
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
-import org.kodein.di.DI
+import com.artemchep.keyguard.common.service.vault.testVaultSession
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -26,7 +26,7 @@ class IsUserVerifiedBySessionTest {
             version = MasterKdfVersion.V1,
             byteArray = byteArrayOf(1, 2, 3),
         ),
-        di = DI {},
+        session = testVaultSession {},
         origin = origin,
         createdAt = createdAt,
     )

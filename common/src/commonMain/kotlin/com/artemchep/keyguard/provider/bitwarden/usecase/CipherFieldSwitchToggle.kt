@@ -7,8 +7,6 @@ import com.artemchep.keyguard.common.usecase.CipherFieldSwitchToggle
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.fields
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -16,10 +14,6 @@ import org.kodein.di.instance
 class CipherFieldSwitchToggleImpl(
     private val modifyCipherById: ModifyCipherById,
 ) : CipherFieldSwitchToggle {
-    constructor(directDI: DirectDI) : this(
-        modifyCipherById = directDI.instance(),
-    )
-
     override fun invoke(
         cipherIdsToRequests: Map<String, List<CipherFieldSwitchToggleRequest>>,
     ): IO<Unit> = modifyCipherById(

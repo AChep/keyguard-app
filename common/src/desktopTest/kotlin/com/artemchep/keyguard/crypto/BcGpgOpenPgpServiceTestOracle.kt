@@ -1,10 +1,8 @@
 package com.artemchep.keyguard.crypto
 
-import com.artemchep.keyguard.util.io.toInputStream
-import com.artemchep.keyguard.util.io.toOutputStream
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextResult
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpClearSignFileRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextResult
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpEncryptFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpEncryptTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpExportPublicKeyRequest
@@ -21,6 +19,16 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationWarnin
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
 import com.artemchep.keyguard.common.service.crypto.splitClearTextLines
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.util.io.toInputStream
+import com.artemchep.keyguard.util.io.toOutputStream
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.io.OutputStream
+import java.security.SecureRandom
+import java.util.Date
+import kotlin.time.Clock
+import kotlin.time.Instant
 import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.bcpg.BCPGOutputStream
 import org.bouncycastle.bcpg.HashAlgorithmTags
@@ -35,8 +43,8 @@ import org.bouncycastle.openpgp.PGPLiteralDataGenerator
 import org.bouncycastle.openpgp.PGPOnePassSignatureList
 import org.bouncycastle.openpgp.PGPPrivateKey
 import org.bouncycastle.openpgp.PGPPublicKey
-import org.bouncycastle.openpgp.PGPPublicKeyRing
 import org.bouncycastle.openpgp.PGPPublicKeyEncryptedData
+import org.bouncycastle.openpgp.PGPPublicKeyRing
 import org.bouncycastle.openpgp.PGPSecretKey
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
 import org.bouncycastle.openpgp.PGPSignature
@@ -51,23 +59,10 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyDataDecryptorFactoryBuilder
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator
 import org.bouncycastle.util.io.Streams
-import org.kodein.di.DirectDI
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
-import java.io.OutputStream
-import java.security.SecureRandom
-import java.util.Date
-import kotlin.time.Clock
-import kotlin.time.Instant
 
 @Suppress("LargeClass", "TooManyFunctions")
-class BcGpgOpenPgpServiceTestOracle() : GpgOpenPgpService,
+class BcGpgOpenPgpServiceTestOracle : GpgOpenPgpService,
     GpgOpenPgpVerifier by NativeGpgOpenPgpVerifier {
-    constructor(
-        directDI: DirectDI,
-    ) : this()
-
     override fun clearSignText(
         request: GpgOpenPgpSignTextRequest,
     ): String {

@@ -12,18 +12,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class BitwardenCollectionRepositoryImpl(
     private val databaseManager: VaultDatabaseManager,
     private val dispatcher: CoroutineDispatcher,
 ) : BitwardenCollectionRepository {
-    constructor(directDI: DirectDI) : this(
-        databaseManager = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
-
     override fun get(): Flow<List<BitwardenCollection>> = databaseManager
         .get()
         .asFlow()

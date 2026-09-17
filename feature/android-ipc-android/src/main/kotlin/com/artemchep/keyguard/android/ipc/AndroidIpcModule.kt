@@ -1,17 +1,21 @@
 package com.artemchep.keyguard.android.ipc
 
+import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationService
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
-import org.kodein.di.instance
+import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
+import org.koin.dsl.module
 
-fun androidIpcModule() = DI.Module(
-    name = "com.artemchep.keyguard.android.ipc",
-) {
-    bindSingleton {
-        AndroidIpcRegistrationRepository(this)
-    }
-    bindSingleton<AndroidIpcRegistrationService>(overrides = true) {
-        instance<AndroidIpcRegistrationRepository>()
+class AndroidIpcModule {
+    val module = module {
+        single {
+            AndroidIpcRegistrationRepository(
+                store = get<KeyValueStoreFactory>().get(Files.ANDROID_IPC),
+                json = get(),
+                context = get(),
+            )
+        }
+        single<AndroidIpcRegistrationService> {
+            get<AndroidIpcRegistrationRepository>()
+        }
     }
 }

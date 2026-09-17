@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 interface Watchdog {
     fun <T> track(
@@ -49,10 +47,6 @@ class WatchdogImpl(
 
     private val sink = MutableStateFlow(
         value = persistentMapOf<AccountTask, PersistentMap<AccountId, Int>>(),
-    )
-
-    constructor(directDI: DirectDI) : this(
-        logRepository = directDI.instance(),
     )
 
     override fun <T> track(

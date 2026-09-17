@@ -5,20 +5,14 @@ import com.artemchep.keyguard.common.model.TotpCode
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.service.totp.TotpService
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
+import kotlin.time.Clock
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetTotpCodeWithOffsetImpl(
     private val totpService: TotpService,
 ) : GetTotpCodeWithOffset {
-    constructor(directDI: DirectDI) : this(
-        totpService = directDI.instance(),
-    )
-
     override fun invoke(
         token: TotpToken,
         offset: Int,

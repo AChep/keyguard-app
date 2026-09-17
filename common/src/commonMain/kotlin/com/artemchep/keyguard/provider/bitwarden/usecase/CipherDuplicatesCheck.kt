@@ -15,8 +15,6 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
 import com.artemchep.keyguard.platform.LeSystem
 import com.artemchep.keyguard.platform.util.isRelease
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.math.absoluteValue
 import kotlin.time.measureTimedValue
 
@@ -88,13 +86,6 @@ class CipherDuplicatesCheckImpl(
     data class ProcessedUri(
         val value: DSecret.Uri,
         val domain: String,
-    )
-
-    constructor(directDI: DirectDI) : this(
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-        similarityService = directDI.instance(),
-        logRepository = directDI.instance(),
     )
 
     override fun invoke(

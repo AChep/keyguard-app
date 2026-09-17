@@ -23,27 +23,25 @@ import com.artemchep.keyguard.feature.home.navigation.normalizeHomeNavigationCon
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.KeyguardCipherFilter
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceNavigationItemsSettingsState(): Loadable<NavigationItemsSettingsState> =
-    with(localDI().direct) {
+    with(currentKoinScope()) {
         produceNavigationItemsSettingsState(
-            getNavItemsConfig = instance(),
-            getPersistedNavItemsConfig = instance(),
-            putNavItemsConfig = instance(),
-            getCipherFilters = instance(),
-            confirmationRouteFactory = instance(),
+            getNavItemsConfig = get(),
+            getPersistedNavItemsConfig = get(),
+            putNavItemsConfig = get(),
+            getCipherFilters = get(),
+            confirmationRouteFactory = get(),
         )
     }
 

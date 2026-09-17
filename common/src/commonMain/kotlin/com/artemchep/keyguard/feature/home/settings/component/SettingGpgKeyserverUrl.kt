@@ -21,24 +21,23 @@ import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 private const val GPG_KEYSERVER_URL_ITEM_KEY = "gpg_keyserver_url"
 
 fun settingGpgKeyserverUrlProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingGpgKeyserverUrlProvider(
-    getGpgKeyserverConfig = directDI.instance(),
-    putGpgKeyserverConfig = directDI.instance(),
-    confirmationRouteFactory = directDI.instance(),
-    showMessage = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getGpgKeyserverConfig = koinScope.get(),
+    putGpgKeyserverConfig = koinScope.get(),
+    confirmationRouteFactory = koinScope.get(),
+    showMessage = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingGpgKeyserverUrlProvider(

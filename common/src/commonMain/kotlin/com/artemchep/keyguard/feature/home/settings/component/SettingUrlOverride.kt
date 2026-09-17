@@ -12,15 +12,15 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.urloverride.UrlOverrideListRoute
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.ChevronIcon
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingUrlOverrideProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingUrlOverrideProvider()
 
 fun settingUrlOverrideProvider(): SettingComponent = kotlin.run {

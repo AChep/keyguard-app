@@ -53,8 +53,8 @@ import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldColumn
@@ -65,10 +65,10 @@ import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
-import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.GlobalScope
 import kotlin.time.Clock
-import org.kodein.di.compose.rememberInstance
+import kotlinx.coroutines.GlobalScope
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 val onboardingItemsPremium = listOfNotNull(
     OnboardingItem(
@@ -193,7 +193,7 @@ val onboardingSections = listOfNotNull(
 
 @Composable
 fun OnboardingScreen() {
-    val putInstant by rememberInstance<PutOnboardingLastVisitInstant>()
+    val putInstant = koinInject<PutOnboardingLastVisitInstant>()
     LaunchedEffect(putInstant) {
         putInstant(Clock.System.now())
             .attempt()

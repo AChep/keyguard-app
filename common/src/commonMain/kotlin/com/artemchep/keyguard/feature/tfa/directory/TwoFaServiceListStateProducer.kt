@@ -14,9 +14,7 @@ import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.feature.servicedirectory.serviceDirectoryItemsFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 private class TwoFaServiceListUiException(
     msg: String,
@@ -25,9 +23,9 @@ private class TwoFaServiceListUiException(
 
 @Composable
 fun produceTwoFaServiceListState(
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceTwoFaServiceListState(
-        getTwoFa = instance(),
+        getTwoFa = get(),
     )
 }
 

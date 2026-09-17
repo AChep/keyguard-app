@@ -5,7 +5,6 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.platform.LeEnvironment
-import org.kodein.di.DirectDI
 
 class EnvironmentPlaceholder(
 ) : Placeholder {
@@ -26,13 +25,7 @@ class EnvironmentPlaceholder(
         }
     }
 
-    class Factory(
-    ) : Placeholder.Factory {
-        constructor(
-            directDI: DirectDI,
-        ) : this(
-        )
-
+    class Factory : Placeholder.Factory {
         override fun createOrNull(
             scope: PlaceholderScope,
         ) = EnvironmentPlaceholder()

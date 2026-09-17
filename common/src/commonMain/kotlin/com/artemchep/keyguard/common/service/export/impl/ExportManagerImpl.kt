@@ -19,14 +19,17 @@ import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.service.export.ExportVaultDataService
 import com.artemchep.keyguard.common.service.export.model.ExportRequest
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
-import com.artemchep.keyguard.util.zip.ZipConfig
-import com.artemchep.keyguard.util.zip.ZipEntry
-import com.artemchep.keyguard.util.zip.ZipService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.util.io.toSource
+import com.artemchep.keyguard.util.zip.ZipConfig
+import com.artemchep.keyguard.util.zip.ZipEntry
+import com.artemchep.keyguard.util.zip.ZipService
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.time.Clock
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -46,14 +49,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.concurrent.atomics.AtomicLong
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import kotlin.time.Clock
 
 open class ExportManagerBase(
-    private val directDI: DirectDI,
     private val windowCoroutineScope: WindowCoroutineScope,
     private val cryptoGenerator: CryptoGenerator,
     private val exportVaultDataService: ExportVaultDataService,
@@ -73,23 +70,6 @@ open class ExportManagerBase(
 
     private val sink =
         MutableStateFlow(persistentMapOf<String, PoolEntry>())
-
-    constructor(
-        directDI: DirectDI,
-        onLaunch: ExportManager.(String) -> Unit,
-    ) : this(
-        directDI = directDI,
-        windowCoroutineScope = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        exportVaultDataService = directDI.instance(),
-        dirsService = directDI.instance(),
-        zipService = directDI.instance(),
-        dateFormatter = directDI.instance(),
-        downloadSourceLoader = directDI.instance(),
-        downloadAttachmentMetadata = directDI.instance(),
-        vaultSessionLocker = directDI.instance(),
-        onLaunch = onLaunch,
-    )
 
     override fun getProgressFlowByExportId(
         exportId: String,

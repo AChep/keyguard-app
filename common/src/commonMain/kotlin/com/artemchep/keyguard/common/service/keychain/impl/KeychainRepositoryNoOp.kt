@@ -2,12 +2,8 @@ package com.artemchep.keyguard.common.service.keychain.impl
 
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
-import org.kodein.di.DirectDI
 
-class KeychainRepositoryNoOp(
-) : KeychainRepository {
-    constructor(directDI: DirectDI) : this()
-
+class KeychainRepositoryNoOp : KeychainRepository {
     override fun put(
         id: String,
         password: String,

@@ -17,6 +17,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.getSystemService
+import androidx.core.net.toUri
 import com.artemchep.keyguard.android.Notifications
 import com.artemchep.keyguard.android.downloader.receiver.CopyActionReceiver
 import com.artemchep.keyguard.android.util.getParcelableCompat
@@ -29,9 +30,15 @@ import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.GetTotpCode
-import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.keyguardKoin
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.totp.formatCodeStr
+import kotlin.coroutines.CoroutineContext
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -49,26 +56,18 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.lastOrNull
-import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.yield
-import kotlin.time.Clock
-import kotlin.time.Instant
 import kotlinx.parcelize.Parcelize
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.instance
-import kotlin.coroutines.CoroutineContext
-import kotlin.time.Duration
-import androidx.core.net.toUri
-import kotlinx.coroutines.flow.map
 
-class KeyguardClipboardService : Service(), DIAware {
+class KeyguardClipboardService : Service(), KeyguardKoinOwner {
     companion object {
         private const val KEY_ARGUMENTS = "arguments"
 
@@ -178,12 +177,12 @@ class KeyguardClipboardService : Service(), DIAware {
         override val coroutineContext: CoroutineContext = Dispatchers.Main + Job()
     }
 
-    override val di by closestDI { this }
+    override val koin get() = this.keyguardKoin()
 
-    private val clipboardService: ClipboardService by instance()
+    private val clipboardService: ClipboardService by lazy { koin.get() }
 
     private val clipboardAutoRefreshFlow by lazy {
-        val getClipboardAutoRefresh: GetClipboardAutoRefresh by instance()
+        val getClipboardAutoRefresh: GetClipboardAutoRefresh by lazy { koin.get() }
         getClipboardAutoRefresh()
             .shareIn(scope, SharingStarted.Eagerly, replay = 1)
     }
@@ -240,7 +239,7 @@ class KeyguardClipboardService : Service(), DIAware {
         // The token should always be valid, because we
         // verified it before creating a service.
             ?: return null
-        val getTotpCode: GetTotpCode by instance()
+        val getTotpCode: GetTotpCode by lazy { koin.get() }
         return getTotpCode(token)
             .mapNotNull { it.getOrNull() }
             .map {

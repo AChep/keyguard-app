@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.model.create.CreateSendRequest
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.AddSend
+import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
@@ -16,18 +17,15 @@ import com.artemchep.keyguard.feature.auth.common.util.ValidationEmail
 import com.artemchep.keyguard.feature.auth.common.util.validateEmail
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKeyMaterial
-import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
-import com.artemchep.keyguard.common.util.useAndClear
+import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Duration
 
 /**
  * @author Artem Chepurnyi
@@ -41,13 +39,6 @@ class AddSendImpl(
     companion object {
         private const val TAG = "AddSend.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyDatabase = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-        pendingUploadCoordinator = directDI.instance(),
-    )
 
     override fun invoke(
         sendIdsToRequests: Map<String?, CreateSendRequest>,

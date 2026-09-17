@@ -19,18 +19,16 @@ import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
 import kotlinx.datetime.toInstant
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceWebsiteLeakState(
     args: WebsiteLeakRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceWebsiteLeakState(
         args = args,
-        getBreaches = instance(),
-        dateFormatter = instance(),
+        getBreaches = get(),
+        dateFormatter = get(),
     )
 }
 

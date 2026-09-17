@@ -15,12 +15,12 @@ import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
 
 class GpgOpenPgpVaultLoaderTest {
     @Test
@@ -52,6 +52,7 @@ class GpgOpenPgpVaultLoaderTest {
         )
         val loader = GpgOpenPgpVaultLoader(
             getVaultSession = LockedVaultSession,
+            sessionAccess = { error("Locked vault must not resolve session dependencies") },
             getGpgAgentFilter = object : GetGpgAgentFilter {
                 override fun invoke(): Flow<GpgAgentFilter> = flowOf(GpgAgentFilter())
             },

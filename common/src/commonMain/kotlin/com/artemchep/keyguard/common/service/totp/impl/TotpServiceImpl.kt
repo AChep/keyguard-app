@@ -13,12 +13,10 @@ import com.artemchep.keyguard.common.service.totp.TotpService
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.common.util.millis
 import com.artemchep.keyguard.common.util.toHex
-import kotlin.time.Instant
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.experimental.and
 import kotlin.math.roundToLong
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 // Code largely based on the
 // https://github.com/marcelkliemannel/kotlin-onetimepassword
@@ -29,13 +27,6 @@ class TotpServiceImpl(
     companion object {
         private const val STEAM_ALLOWED_CHARS = "23456789BCDFGHJKMNPQRTVWXY"
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        base32Service = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-    )
 
     override fun generate(
         token: TotpToken,

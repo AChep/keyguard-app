@@ -8,8 +8,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetNavAnimationImpl(
     settingsReadRepository: SettingsReadRepository,
@@ -22,10 +20,6 @@ class GetNavAnimationImpl(
             started = SharingStarted.Eagerly,
             initialValue = NavAnimation.default,
         )
-
-    constructor(directDI: DirectDI) : this(
-        settingsReadRepository = directDI.instance(),
-    )
 
     override fun invoke() = sharedFlow
 }

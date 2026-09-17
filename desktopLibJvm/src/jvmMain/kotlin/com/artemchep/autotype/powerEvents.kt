@@ -43,6 +43,9 @@ private val powerCallbacks: MutableSet<DesktopLibJna.PowerEventCallback> =
  * Callbacks must finish promptly, must not unregister themselves, and must not
  * wait for AppKit/UI work. [onError] must also return promptly.
  */
+// Any failure of the native library is reported as a Failure result, so the caller
+// never has to handle an exception from the FFI boundary.
+@Suppress("TooGenericExceptionCaught")
 public fun registerDesktopPowerEvents(
     onEvent: (DesktopPowerEvent) -> Unit,
     onError: (Throwable) -> Unit,
@@ -52,6 +55,9 @@ public fun registerDesktopPowerEvents(
     DesktopPowerRegistrationResult.Failure(DesktopPowerRegistrationFailureReason.InternalError, e)
 }
 
+// No JVM exception may escape into a C callback, and every native failure is turned
+// into a Failure result instead of being thrown at the caller.
+@Suppress("TooGenericExceptionCaught")
 internal fun registerDesktopPowerEvents(
     lib: DesktopLibJna,
     onEvent: (DesktopPowerEvent) -> Unit,
@@ -87,7 +93,7 @@ internal fun registerDesktopPowerEvents(
         // alive when ownership is uncertain rather than risking a dangling FFI pointer.
         return DesktopPowerRegistrationResult.Failure(DesktopPowerRegistrationFailureReason.InternalError, e)
     }
-    if (id <= 0) {
+    val failure = if (id <= 0) {
         closed.set(true)
         retention.remove(callback)
         val reason = if (id == POWER_RESULT_UNSUPPORTED_PLATFORM) {
@@ -95,29 +101,32 @@ internal fun registerDesktopPowerEvents(
         } else {
             DesktopPowerRegistrationFailureReason.InternalError
         }
-        return DesktopPowerRegistrationResult.Failure(reason)
+        DesktopPowerRegistrationResult.Failure(reason)
+    } else {
+        null
     }
-    val registration = object : DesktopPowerRegistration {
-        private var unregistered = false
+    return failure ?: DesktopPowerRegistrationResult.Success(
+        object : DesktopPowerRegistration {
+            private var unregistered = false
 
-        @Synchronized
-        override fun unregister(): Boolean {
-            if (unregistered) return false
-            closed.set(true)
-            // The callback never takes this object's monitor. Native removal
-            // can therefore wait for AppKit without a callback/cleanup deadlock.
-            val success = try {
-                lib.unregisterNativePowerEvents(id)
-            } catch (e: Throwable) {
-                runCatching { onError(e) }
-                false
+            @Synchronized
+            override fun unregister(): Boolean {
+                if (unregistered) return false
+                closed.set(true)
+                // The callback never takes this object's monitor. Native removal
+                // can therefore wait for AppKit without a callback/cleanup deadlock.
+                val success = try {
+                    lib.unregisterNativePowerEvents(id)
+                } catch (e: Throwable) {
+                    runCatching { onError(e) }
+                    false
+                }
+                if (success) {
+                    unregistered = true
+                    retention.remove(callback)
+                }
+                return success
             }
-            if (success) {
-                unregistered = true
-                retention.remove(callback)
-            }
-            return success
-        }
-    }
-    return DesktopPowerRegistrationResult.Success(registration)
+        },
+    )
 }

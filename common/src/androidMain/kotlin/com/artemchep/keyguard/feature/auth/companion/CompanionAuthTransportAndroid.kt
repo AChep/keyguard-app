@@ -4,9 +4,9 @@ import android.app.Application
 import android.content.Intent
 import androidx.wear.remote.interactions.RemoteActivityHelper
 import com.artemchep.keyguard.android.util.await
+import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.util.io.readByteArrayAndClose
 import com.artemchep.keyguard.util.io.toInputStream
-import com.artemchep.keyguard.common.service.file.FileService
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.Node
@@ -22,8 +22,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 internal interface CompanionAuthPhoneCapabilitySource {
     suspend fun getReachablePhoneNodes(): List<Node>
@@ -104,13 +102,6 @@ internal class CompanionAuthTransportAndroid(
             capability = capability,
         )
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        application = directDI.instance(),
-        fileService = directDI.instance(),
-    )
 
     fun phoneAvailabilityFlow(): Flow<Boolean> =
         companionAuthPhoneAvailabilityFlow(phoneCapabilitySource)

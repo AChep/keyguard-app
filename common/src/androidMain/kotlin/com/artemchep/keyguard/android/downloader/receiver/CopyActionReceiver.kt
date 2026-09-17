@@ -6,8 +6,7 @@ import android.content.Context
 import android.content.Intent
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import org.kodein.di.android.closestDI
-import org.kodein.di.instance
+import com.artemchep.keyguard.di.keyguardKoin
 
 class CopyActionReceiver : BroadcastReceiver() {
     companion object {
@@ -44,13 +43,13 @@ class CopyActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
             ?: return
-        val di by closestDI { context }
+        val koin = (context ).keyguardKoin()
         when {
             action.endsWith(ACTION_ATTACHMENT_DOWNLOAD_CANCEL) -> {
                 val value = intent.extras?.getString(KEY_DOWNLOAD_ID)
                     ?: return
-                val windowCoroutineScope: WindowCoroutineScope by di.instance()
-                val clipboardService: ClipboardService by di.instance()
+                val windowCoroutineScope: WindowCoroutineScope by lazy { koin.get() }
+                val clipboardService: ClipboardService by lazy { koin.get() }
                 clipboardService.setPrimaryClip(value, false)
             }
         }

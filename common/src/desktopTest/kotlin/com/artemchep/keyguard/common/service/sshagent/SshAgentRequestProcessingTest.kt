@@ -2,8 +2,8 @@ package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AddSshUsageHistoryRequest
-import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DFilter
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
@@ -12,18 +12,20 @@ import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigState
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
-import com.artemchep.keyguard.common.service.agent.ApprovalCacheInvalidation
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
+import com.artemchep.keyguard.common.service.agent.ApprovalCacheInvalidation
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
-import com.artemchep.keyguard.common.service.agent.finishAfterBlockedApprovalCacheAccess
-import com.artemchep.keyguard.common.service.agent.finishAfterBlockedAgentRead
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
+import com.artemchep.keyguard.common.service.agent.finishAfterBlockedAgentRead
+import com.artemchep.keyguard.common.service.agent.finishAfterBlockedApprovalCacheAccess
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.pendinghistory.RecordingPendingUsageHistoryQueue
+import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
+import com.artemchep.keyguard.common.service.vault.testVaultSession
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
@@ -32,6 +34,15 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
+import java.util.Base64
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,21 +52,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import java.util.Base64
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Instant
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
 
 /**
  * Tests for request processing logic in [SshAgentIpcServer].
@@ -114,6 +114,7 @@ class SshAgentRequestProcessingTest {
     ) = SshAgentIpcServer(
         logRepository = logRepository,
         getVaultSession = vaultSession,
+        sessionAccess = testDomainSessionAccess(),
         getSshAgentApprovalWindow = object : GetSshAgentApprovalWindow {
             override fun invoke(): Flow<Duration> = approvalCacheConfigState
                 ?.approvalWindow()
@@ -1996,14 +1997,14 @@ class SshAgentRequestProcessingTest {
             version = MasterKdfVersion.LATEST,
             byteArray = byteArrayOf(1, 2, 3),
         ),
-        di = DI {
-            bindSingleton<GetCiphers> {
+        session = testVaultSession {
+            scoped<GetCiphers> {
                 object : GetCiphers {
                     override fun invoke(): Flow<List<DSecret>> = ciphers
                 }
             }
             if (history != null) {
-                bindSingleton<AddSshUsageHistory> {
+                scoped<AddSshUsageHistory> {
                     object : AddSshUsageHistory {
                         override fun invoke(request: AddSshUsageHistoryRequest): IO<Unit> = {
                             history += request

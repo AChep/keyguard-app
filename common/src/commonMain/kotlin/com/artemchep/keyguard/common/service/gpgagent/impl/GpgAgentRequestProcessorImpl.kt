@@ -6,9 +6,9 @@ import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.AddGpgUsageHistoryRequest
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
-import com.artemchep.keyguard.common.model.filterCiphers
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.model.filterCiphers
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheIdentity
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentApprovalWindowMemory
@@ -20,17 +20,17 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentApprovalPrompt
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentCrypto
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyInfoRow
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyNotFoundException
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyInfoRow
-import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
-import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepositoryEmpty
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor.GpgAgentOperationResult
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentSecret
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentUnsupportedAlgorithmException
+import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
+import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepositoryEmpty
 import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
 import com.artemchep.keyguard.common.service.gpgagent.hasPrivateKey
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgKeygrip
@@ -43,6 +43,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistory
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.pendinghistory.enqueueEvent
+import com.artemchep.keyguard.common.service.session.GpgAgentSessionAccess
 import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
@@ -57,14 +58,12 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
-import org.kodein.di.direct
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
 
 class GpgAgentRequestProcessorImpl(
     private val logRepository: LogRepository,
     private val crypto: GpgAgentCrypto,
     private val getVaultSession: GetVaultSession,
+    private val sessionAccess: GpgAgentSessionAccess,
     getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow,
     getGpgAgentApprovalCachePolicy: GetGpgAgentApprovalCachePolicy =
         GetGpgAgentApprovalCachePolicyNoOp,
@@ -450,12 +449,13 @@ class GpgAgentRequestProcessorImpl(
         session: MasterSession.Key? = getVaultSession.valueOrNull as? MasterSession.Key,
     ): GpgVaultContext? {
         val key = session ?: return null
-        if (getVaultSession.valueOrNull !== key) return null
+        if (getVaultSession.valueOrNull !== key || !key.session.active.value) return null
 
-        val getCiphers = key.di.direct.instance<GetCiphers>()
+        val dependencies = sessionAccess(key) ?: return null
+        val getCiphers = dependencies.getCiphers
         val ciphers = getCiphers().first()
         val candidateRevocationKeys = ciphers.toGpgRevocationKeyCandidates()
-        val metadataResolver = key.di.direct.instanceOrNull<GpgKeyMetadataResolver>()
+        val metadataResolver = dependencies.metadataResolver
             ?: GpgKeyMetadataResolverUnsupported
         val gpgSecrets = ciphers
             .mapNotNull { it.toGpgAgentSecretOrNull() }
@@ -467,15 +467,15 @@ class GpgAgentRequestProcessorImpl(
                     tag = TAG,
                 )
             }
-        val addGpgUsageHistory = key.di.direct.instanceOrNull<AddGpgUsageHistory>()
+        val addGpgUsageHistory = dependencies.addGpgUsageHistory
             ?: NoOpAddGpgUsageHistory
 
         val filteredSecrets = getGpgAgentFilter().first().filterCiphers(
-            directDI = key.di.direct,
+            context = dependencies.filterContext,
             items = gpgSecrets,
             cipherOf = { it.cipher },
         )
-        if (getVaultSession.valueOrNull !== key) return null
+        if (getVaultSession.valueOrNull !== key || !key.session.active.value) return null
         return GpgVaultContext(
             session = key,
             gpgSecrets = filteredSecrets,

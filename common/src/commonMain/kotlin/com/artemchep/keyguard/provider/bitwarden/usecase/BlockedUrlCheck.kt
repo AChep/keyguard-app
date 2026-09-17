@@ -2,12 +2,10 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.DGlobalUrlBlock
-import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.usecase.BlockedUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -15,10 +13,6 @@ import org.kodein.di.instance
 class BlockedUrlCheckImpl(
     private val cipherUrlCheck: CipherUrlCheck,
 ) : BlockedUrlCheck {
-    constructor(directDI: DirectDI) : this(
-        cipherUrlCheck = directDI.instance(),
-    )
-
     override fun invoke(
         uri: DGlobalUrlBlock,
         url: String,

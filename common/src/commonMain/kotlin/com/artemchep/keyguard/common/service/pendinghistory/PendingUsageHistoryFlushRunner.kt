@@ -8,11 +8,9 @@ import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.util.RetryPolicy
 import com.artemchep.keyguard.common.util.retryWithPolicy
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Duration.Companion.seconds
 
 interface PendingUsageHistoryFlushRunner {
     fun run(): IO<Unit>
@@ -39,11 +37,6 @@ internal class PendingUsageHistoryFlushRunnerImpl(
             shouldRetry = { true },
         )
     }
-
-    constructor(directDI: DirectDI) : this(
-        flush = directDI.instance<PendingUsageHistoryFlusher>()::flush,
-        logRepository = directDI.instance(),
-    )
 
     @Suppress("TooGenericExceptionCaught")
     override fun run(): IO<Unit> = ioEffect(defaultDispatcher) {

@@ -9,12 +9,12 @@ import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigState
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
-import com.artemchep.keyguard.common.service.agent.ApprovalCacheInvalidation
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
+import com.artemchep.keyguard.common.service.agent.ApprovalCacheInvalidation
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
-import com.artemchep.keyguard.common.service.agent.finishAfterBlockedApprovalCacheAccess
 import com.artemchep.keyguard.common.service.agent.finishAfterBlockedAgentRead
+import com.artemchep.keyguard.common.service.agent.finishAfterBlockedApprovalCacheAccess
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnapshot
@@ -29,6 +29,8 @@ import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.RecordingPendingUsageHistoryQueue
+import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
+import com.artemchep.keyguard.common.service.vault.testVaultSession
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
@@ -36,6 +38,11 @@ import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.test.gpgMetadata
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -46,13 +53,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
-import kotlin.time.Duration
-import kotlin.time.Instant
 
 // Keep the cases together so they share the same fixtures and lifecycle assertions.
 @Suppress("TooManyFunctions")
@@ -438,6 +438,7 @@ class GpgAgentApprovalReuseTest {
         var approvals = 0
         var onApproval: suspend () -> Boolean = { true }
         private val processor = GpgAgentRequestProcessorImpl(
+            sessionAccess = testDomainSessionAccess(),
             logRepository = NoOpLogRepository,
             crypto = crypto,
             getVaultSession = vault,
@@ -542,8 +543,8 @@ class GpgAgentApprovalReuseTest {
     ): MasterSession.Key {
         return MasterSession.Key(
             masterKey = MasterKey(version = MasterKdfVersion.LATEST, byteArray = ByteArray(32)),
-            di = DI {
-                bindSingleton<GetCiphers> {
+            session = testVaultSession {
+                scoped<GetCiphers> {
                     object : GetCiphers {
                         override fun invoke(): Flow<List<DSecret>> = flow {
                             beforeRead()
@@ -551,7 +552,7 @@ class GpgAgentApprovalReuseTest {
                         }
                     }
                 }
-                bindSingleton<GpgKeyMetadataResolver> {
+                scoped<GpgKeyMetadataResolver> {
                     object : GpgKeyMetadataResolver {
                         override fun resolve(
                             privateKeyArmored: String?,

@@ -31,8 +31,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 // TODO: Add a support for window positioning via
 //  the alignment and not absolute values.
@@ -72,13 +70,6 @@ class WindowStateManager(
 
     private val requestForegroundSink = Channel<Unit>(Channel.CONFLATED)
     val foregroundRequests = requestForegroundSink.receiveAsFlow()
-
-    constructor(directDI: DirectDI) : this(
-        store = directDI.instance<Files, KeyValueStore>(
-            arg = Files.WINDOW_STATE,
-        ),
-        json = directDI.instance(),
-    )
 
     fun requestForeground() {
         requestForegroundSink.trySend(Unit)

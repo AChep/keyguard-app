@@ -21,21 +21,20 @@ import com.artemchep.keyguard.feature.sshagent.filter.SshAgentFiltersRoute
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardCipherFilter
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingSshAgentFiltersProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingSshAgentFiltersProvider(
-    getSshAgentFilter = directDI.instance(),
+    getSshAgentFilter = koinScope.get(),
 )
 
 fun settingSshAgentFiltersProvider(

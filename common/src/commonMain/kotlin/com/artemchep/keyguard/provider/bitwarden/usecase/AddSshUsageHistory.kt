@@ -4,16 +4,10 @@ import com.artemchep.keyguard.android.downloader.journal.SshUsageHistoryReposito
 import com.artemchep.keyguard.common.model.AddSshUsageHistoryRequest
 import com.artemchep.keyguard.common.model.DSshUsageHistory
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class AddSshUsageHistoryImpl(
     private val sshUsageHistoryRepository: SshUsageHistoryRepository,
 ) : AddSshUsageHistory {
-    constructor(directDI: DirectDI) : this(
-        sshUsageHistoryRepository = directDI.instance(),
-    )
-
     override fun invoke(request: AddSshUsageHistoryRequest) = kotlin.run {
         val model = DSshUsageHistory(
             cipherId = request.cipherId,

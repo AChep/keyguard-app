@@ -17,11 +17,11 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRow
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.keyguardKoin
+import com.artemchep.keyguard.di.resolve
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeSshPublicKey
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ipc_operation_ssh_get_public_key
 import com.artemchep.keyguard.res.ipc_operation_ssh_get_ssh_public_key
@@ -29,12 +29,12 @@ import com.artemchep.keyguard.res.ipc_operation_ssh_other
 import com.artemchep.keyguard.res.ipc_operation_ssh_select_key
 import com.artemchep.keyguard.res.ipc_operation_ssh_sign
 import com.artemchep.keyguard.res.ipc_protocol_ssh
+import kotlin.getValue
+import kotlin.time.Instant
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.StringResource
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
 import org.openintents.openpgp.util.OpenPgpApi
 import org.openintents.ssh.authentication.ISshAuthenticationService
 import org.openintents.ssh.authentication.SshAuthenticationApi
@@ -43,10 +43,8 @@ import org.openintents.ssh.authentication.response.KeySelectionResponse
 import org.openintents.ssh.authentication.response.PublicKeyResponse
 import org.openintents.ssh.authentication.response.SigningResponse
 import org.openintents.ssh.authentication.response.SshPublicKeyResponse
-import kotlin.getValue
-import kotlin.time.Instant
 
-class SshAuthenticationService : Service(), DIAware {
+class SshAuthenticationService : Service(), KeyguardKoinOwner {
     companion object {
         private const val MAX_KEY_ID_LENGTH = 512
         private const val MAX_CHALLENGE_BYTES = 1024 * 1024
@@ -59,17 +57,18 @@ class SshAuthenticationService : Service(), DIAware {
         )
     }
 
-    override val di by closestDI { this }
+    override val koin get() = this.keyguardKoin()
 
-    private val getSshAgentFilter by instance<GetSshAgentFilter>()
-    private val getVaultSession by instance<GetVaultSession>()
-    private val registrationRepository by instance<AndroidIpcRegistrationRepository>()
-    private val publicKeyRepository by instance<SshAgentPublicKeyRepository>()
-    private val historyQueue by instance<PendingUsageHistoryQueue>()
-    private val json by instance<Json>()
+    private val getSshAgentFilter by lazy { koin.get<GetSshAgentFilter>() }
+    private val getVaultSession by lazy { koin.get<GetVaultSession>() }
+    private val registrationRepository by lazy { koin.get<AndroidIpcRegistrationRepository>() }
+    private val publicKeyRepository by lazy { koin.get<SshAgentPublicKeyRepository>() }
+    private val historyQueue by lazy { koin.get<PendingUsageHistoryQueue>() }
+    private val json by lazy { koin.get<Json>() }
 
     private val vaultLoader by lazy {
         SshVaultLoader(
+            sessionAccess = koin.get(),
             getVaultSession = getVaultSession,
             getSshAgentFilter = getSshAgentFilter,
         )
@@ -579,9 +578,7 @@ class SshAuthenticationService : Service(), DIAware {
     ) {
         val session = getVaultSession.valueOrNull as? MasterSession.Key
         val addHistory = session
-            ?.di
-            ?.direct
-            ?.instanceOrNull<AddSshUsageHistory>()
+            ?.session?.resolve { getOrNull<AddSshUsageHistory>() }
         recordAndroidIpcUsage(
             directRecorder = addHistory,
             historyQueue = historyQueue,

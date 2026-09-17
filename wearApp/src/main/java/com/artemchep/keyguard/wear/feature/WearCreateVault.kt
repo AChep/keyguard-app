@@ -22,10 +22,10 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -35,18 +35,17 @@ import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.lazy.TransformationSpec
+import androidx.wear.compose.material3.lazy.transformedHeight
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.VaultState
-import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
-import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.wear.ui.WearScaffoldScreen
-import androidx.wear.compose.material3.lazy.transformedHeight
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
+import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.keyguard.setup.SetupState
 import com.artemchep.keyguard.feature.keyguard.setup.keyguardSpan
 import com.artemchep.keyguard.feature.keyguard.setup.setupScreenState
 import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenTitlePadding
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.setup_button_create_vault
 import com.artemchep.keyguard.res.setup_free_text
 import com.artemchep.keyguard.res.setup_header_text
@@ -57,10 +56,10 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.wear.ui.DefaultEdgeButton
 import com.artemchep.keyguard.wear.ui.ProxyMaterial3Styles
 import com.artemchep.keyguard.wear.ui.WearScaffoldLoader
+import com.artemchep.keyguard.wear.ui.WearScaffoldScreen
 import com.artemchep.keyguard.wear.ui.surfaceTransformation
-import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
 import kotlin.getValue
+import org.jetbrains.compose.resources.stringResource
 
 private const val AppTitle = "Keyguard"
 

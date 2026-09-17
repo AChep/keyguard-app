@@ -10,15 +10,15 @@ import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.settings.experimental.ExperimentalSettingsRoute
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.ChevronIcon
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingExperimentalProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingExperimentalProvider()
 
 fun settingExperimentalProvider(): SettingComponent = kotlin.run {

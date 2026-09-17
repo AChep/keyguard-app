@@ -9,8 +9,6 @@ import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.service.gpmprivapps.UserPrivilegedAppRepository
 import com.artemchep.keyguard.common.usecase.AddPrivilegedApp
 import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -21,10 +19,6 @@ class AddPrivilegedAppImpl(
     companion object {
         private const val TAG = "AddPrivilegedApp"
     }
-
-    constructor(directDI: DirectDI) : this(
-        userPrivilegedAppRepository = directDI.instance(),
-    )
 
     override fun invoke(
         request: AddPrivilegedAppRequest,

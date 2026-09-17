@@ -8,8 +8,6 @@ import com.artemchep.keyguard.common.service.text.TextService
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 @Serializable
 data class JustDeleteMeEntity(
@@ -55,13 +53,6 @@ class JustDeleteMeServiceImpl(
     ) { entity: JustDeleteMeEntity ->
         entity.toDomain()
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        textService = directDI.instance(),
-        json = directDI.instance(),
-    )
 
     override fun get() = listIo
 }

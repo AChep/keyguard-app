@@ -61,7 +61,7 @@ import dev.snipme.highlights.model.SyntaxThemes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -136,7 +136,7 @@ internal fun AgentSetupCodeBlock(
         Modifier
     }
 
-    val clipboardService by rememberInstance<ClipboardService>()
+    val clipboardService = koinInject<ClipboardService>()
     val copyDescription = stringResource(Res.string.copy)
     Row(
         modifier = Modifier

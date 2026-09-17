@@ -9,6 +9,9 @@ import com.artemchep.keyguard.util.io.LocalPath
 import com.artemchep.keyguard.util.io.artifact.SweepReport
 import com.artemchep.keyguard.util.io.artifact.SweepStatus
 import com.artemchep.keyguard.util.io.artifact.sweepTemporaryArtifacts
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
@@ -16,12 +19,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
 
 /**
  * Reclaims stale Keyguard temporary artifacts from application-owned roots.
@@ -59,41 +56,6 @@ internal class TemporaryArtifactMaintenanceImpl(
             "Temporary artifact root labels must not be blank."
         }
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        roots = buildList {
-            add(
-                TemporaryArtifactRoot(
-                    label = PRIVATE_ROOT_LABEL,
-                    provideDirectory = {
-                        withContext(Dispatchers.IO) {
-                            privateTemporaryStorageDirectory()
-                        }
-                    },
-                ),
-            )
-            directDI.instanceOrNull<CacheDirProvider>()?.let { cacheDirProvider ->
-                add(
-                    TemporaryArtifactRoot(
-                        label = CACHE_ROOT_LABEL,
-                        provideDirectory = cacheDirProvider::get,
-                    ),
-                )
-            }
-            addAll(platformTemporaryArtifactRoots())
-        },
-        sweeper = { directory, olderThan ->
-            withContext(Dispatchers.IO) {
-                sweepTemporaryArtifacts(
-                    directory = directory,
-                    olderThan = olderThan,
-                )
-            }
-        },
-        logRepository = directDI.instance(),
-    )
 
     override suspend fun invoke() {
         val resolvedRoots = resolveRoots()

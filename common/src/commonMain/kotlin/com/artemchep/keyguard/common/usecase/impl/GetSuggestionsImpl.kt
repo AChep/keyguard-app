@@ -11,10 +11,10 @@ import com.artemchep.keyguard.common.io.parallelSearch
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AutofillHint
 import com.artemchep.keyguard.common.model.AutofillTarget
-import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
-import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilder
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.LinkInfoAndroid
 import com.artemchep.keyguard.common.model.LinkInfoPlatform
 import com.artemchep.keyguard.common.model.contains
@@ -123,8 +123,8 @@ private const val scoreThreshold = 0.1f
 class GetSuggestionsImpl(
     // Platform link extractors that resolve an app id → related web domains. Android
     // binds real ones; Apple has none (web/host matching is what iOS AutoFill needs),
-    // so this defaults to empty. Constructed explicitly per platform in `createSubDi`
-    // because kodein's `allInstances` is JVM/Android-only (not in commonMain).
+    // so this defaults to empty. The platform vault module supplies the available
+    // Android extractors explicitly.
     private val androidExtractors: List<LinkInfoExtractor<LinkInfoPlatform.Android, LinkInfoAndroid>> = emptyList(),
     private val getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
     private val getUrlBlocks: GetUrlBlocks,
@@ -196,7 +196,6 @@ class GetSuggestionsImpl(
                     if (cachedValueWrapper2 is Some<T?>) {
                         return cachedValueWrapper2.value
                     }
-
 
                     val result = kotlin.run {
                         val eqDomains = equivalentDomainsHolder.getAndCache(accountId.id)

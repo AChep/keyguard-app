@@ -10,8 +10,6 @@ import com.artemchep.keyguard.common.service.keychain.KeychainIds
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * Removes the platform credential of the desktop biometric unlock:
@@ -22,9 +20,6 @@ class BiometricKeyRepositoryDesktop(
     private val keychainRepository: KeychainRepository,
     private val platform: Platform = CurrentPlatform,
 ) : BiometricKeyRepository {
-    constructor(directDI: DirectDI) : this(
-        keychainRepository = directDI.instance(),
-    )
 
     override fun delete() = ioEffect {
         when (platform) {

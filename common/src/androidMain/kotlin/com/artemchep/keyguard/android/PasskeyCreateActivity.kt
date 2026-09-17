@@ -22,14 +22,18 @@ import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
-import com.artemchep.keyguard.common.model.AddCredentialCipherRequestData
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequest
+import com.artemchep.keyguard.common.model.AddCredentialCipherRequestData
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.VaultState
+import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
 import com.artemchep.keyguard.common.usecase.AddCredentialCipher
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.resolveOrCancel
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnCreate
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnLoading
@@ -37,10 +41,10 @@ import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnMain
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnUnlock
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.recordLog
-import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
-import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
+import kotlin.String
+import kotlin.time.Clock
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,26 +55,23 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.Clock
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString as getComposeString
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.*
-import kotlin.String
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-class PasskeyCreateActivity : BaseActivity(), DIAware {
+class PasskeyCreateActivity : BaseActivity(), KeyguardKoinOwner {
     companion object {
         fun getIntent(
             context: Context,
         ): Intent = Intent(context, PasskeyCreateActivity::class.java)
     }
 
-    private val getVaultSession by instance<GetVaultSession>()
+    private val getVaultSession by lazy { koin.get<GetVaultSession>() }
 
-    private val json by instance<Json>()
+    private val json by lazy { koin.get<Json>() }
 
-    private val createCredentialRequestUtils by instance<PasskeyCreateRequest>()
+    private val createCredentialRequestUtils by lazy { koin.get<PasskeyCreateRequest>() }
 
     private val createCredentialRequest by lazy {
         val request = PendingIntentHandler.retrieveProviderCreateCredentialRequest(intent)
@@ -105,7 +106,6 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
             }
         }.getOrNull()
     }
-
 
     private sealed interface CreateCredentialData {
         data class Password(
@@ -222,7 +222,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
                 cipherId = cipher.id,
                 data = local,
             )
-            val addCredential = session.di.direct.instance<AddCredentialCipher>()
+            val addCredential = session.session.resolveOrCancel { get<AddCredentialCipher>() }
             addCredential(request)
                 .attempt()
                 .bind()
@@ -433,7 +433,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
         session: MasterSession.Key,
     ): PasskeyCreateRequest.PreparedCreateCredentialRequest {
         val privilegedApps = kotlin.run {
-            val getPrivilegedApps = session.di.direct.instance<GetPrivilegedApps>()
+            val getPrivilegedApps = session.session.resolveOrCancel { get<GetPrivilegedApps>() }
             getPrivilegedApps()
                 .first()
         }
@@ -450,7 +450,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
     ): Pair<CreateCredentialResponse, AddCredentialCipherRequestData> {
         val ciphers = when (preparedRequest) {
             is PasskeyCreateRequest.PreparedCreateCredentialRequest.PublicKey -> {
-                val getCiphers = session.di.direct.instance<GetCiphers>()
+                val getCiphers = session.session.resolveOrCancel { get<GetCiphers>() }
                 getCiphers()
                     .first()
             }

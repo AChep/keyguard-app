@@ -5,16 +5,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import com.artemchep.keyguard.common.usecase.GetKeepScreenOn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun OptionallyKeepScreenOnEffect() {
     val shouldKeepScreenOn by run {
-        val di = localDI()
+        val di = currentKoinScope()
         val get = remember(di) {
-            di.direct.instance<GetKeepScreenOn>()
+            di.get<GetKeepScreenOn>()
         }
         remember(get) {
             get()

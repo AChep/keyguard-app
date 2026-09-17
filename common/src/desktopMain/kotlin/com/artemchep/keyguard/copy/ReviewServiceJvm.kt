@@ -4,12 +4,8 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.review.ReviewService
 import com.artemchep.keyguard.platform.LeContext
-import org.kodein.di.DirectDI
 
-class ReviewServiceJvm() : ReviewService {
-    constructor(
-        directDI: DirectDI,
-    ) : this()
+class ReviewServiceJvm : ReviewService {
 
     override fun request(
         context: LeContext,

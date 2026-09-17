@@ -12,8 +12,6 @@ import com.artemchep.keyguard.provider.bitwarden.api.builder.requestEmailCode
 import com.artemchep.keyguard.provider.bitwarden.api.obtainSecrets
 import com.artemchep.keyguard.provider.bitwarden.entity.TwoFactorEmailRequestEntity
 import io.ktor.client.HttpClient
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 interface RequestEmailTfa : (
     ServerEnv,
@@ -27,13 +25,6 @@ class RequestEmailTfaImpl(
     private val base64Service: Base64Service,
     private val httpClient: HttpClient,
 ) : RequestEmailTfa {
-    constructor(directDI: DirectDI) : this(
-        deviceIdUseCase = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-        httpClient = directDI.instance(),
-    )
-
     override fun invoke(
         env: ServerEnv,
         email: String,

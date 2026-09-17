@@ -14,16 +14,15 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySnapshot
 import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
+import com.artemchep.keyguard.common.service.session.GpgAgentSessionAccess
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import org.kodein.di.direct
-import org.kodein.di.instance
-import kotlin.time.Clock
 
 /**
  * Loads the OpenPGP key rings available over Android IPC: the public
@@ -32,6 +31,7 @@ import kotlin.time.Clock
  */
 internal class GpgOpenPgpVaultLoader(
     private val getVaultSession: GetVaultSession,
+    private val sessionAccess: GpgAgentSessionAccess,
     private val getGpgAgentFilter: GetGpgAgentFilter,
     private val publicKeyParser: GpgPublicKeyParser,
     private val publicKeyRepository: GpgPublicKeyRepository,
@@ -101,7 +101,8 @@ internal class GpgOpenPgpVaultLoader(
         // request was waiting for approval.
         val session = getVaultSession.valueOrNull as? MasterSession.Key
             ?: return@withContext vault
-        val getCiphers = session.di.direct.instance<GetCiphers>()
+        val dependencies = sessionAccess(session) ?: return@withContext vault
+        val getCiphers = dependencies.getCiphers
         val eligible = getCiphers()
             .first()
             .mapNotNull { cipher ->
@@ -112,7 +113,7 @@ internal class GpgOpenPgpVaultLoader(
         val filtered = getGpgAgentFilter()
             .first()
             .filterCiphers(
-                directDI = session.di.direct,
+                context = dependencies.filterContext,
                 items = eligible,
                 cipherOf = { it.first },
             )

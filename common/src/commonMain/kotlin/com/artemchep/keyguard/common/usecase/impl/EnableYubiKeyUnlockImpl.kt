@@ -11,8 +11,6 @@ import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepositor
 import com.artemchep.keyguard.common.usecase.EnableYubiKeyUnlock
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class EnableYubiKeyUnlockImpl(
     private val keyReadWriteRepository: FingerprintReadWriteRepository,
@@ -24,13 +22,6 @@ class EnableYubiKeyUnlockImpl(
         private const val HKDF_LENGTH = 64
         private const val HKDF_SALT_LENGTH = 32
     }
-
-    constructor(directDI: DirectDI) : this(
-        keyReadWriteRepository = directDI.instance(),
-        getVaultSession = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        cipherEncryptor = directDI.instance(),
-    )
 
     override fun invoke(
         slot: Int,

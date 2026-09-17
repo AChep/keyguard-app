@@ -3,18 +3,16 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.util.io.toSource
 import com.artemchep.keyguard.common.service.dirs.DirsService
-import com.artemchep.keyguard.util.zip.ZipConfig
-import com.artemchep.keyguard.util.zip.ZipEntry
-import com.artemchep.keyguard.util.zip.ZipService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.ExportLogs
 import com.artemchep.keyguard.common.usecase.GetInMemoryLogs
-import kotlinx.coroutines.flow.first
+import com.artemchep.keyguard.util.io.toSource
+import com.artemchep.keyguard.util.zip.ZipConfig
+import com.artemchep.keyguard.util.zip.ZipEntry
+import com.artemchep.keyguard.util.zip.ZipService
 import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import kotlinx.coroutines.flow.first
 
 /**
  * @author Artem Chepurnyi
@@ -28,13 +26,6 @@ class ExportLogsImpl(
     companion object {
         private const val TAG = "ExportLogs.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        dirsService = directDI.instance(),
-        zipService = directDI.instance(),
-        dateFormatter = directDI.instance(),
-        getInMemoryLogs = directDI.instance(),
-    )
 
     override fun invoke(
     ): IO<Unit> = ioEffect {

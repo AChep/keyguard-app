@@ -70,7 +70,7 @@ import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 /**
  * Renders the content for an agent (SSH/GPG) signing approval window.
@@ -295,7 +295,7 @@ private fun rememberCipherName(
     cipherId
         ?: return initialValue
 
-    val getCiphers by rememberInstance<GetCiphers>()
+    val getCiphers = koinInject<GetCiphers>()
     val cipherNameFlow = remember(getCiphers, cipherId) {
         getCiphers()
             .map { ciphers ->
@@ -328,7 +328,7 @@ internal fun buildAgentApprovalCallerInfo(
     val processName = caller.processName
         .sanitizedAgentDisplayValue(MAX_AGENT_CALLER_NAME_LENGTH)
     // Native collectors include an authenticated signing identifier or a
-    // verified instance prefix in appName. Keep that security label primary;
+    // verified get prefix in appName. Keep that security label primary;
     // the OS-resolved friendly name and icon are presentation-only hints.
     val primaryLabel = appName ?: resolvedName ?: appBundlePath ?: processName
     val secondaryLabel = buildSet {

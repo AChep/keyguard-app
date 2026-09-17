@@ -13,7 +13,7 @@ import com.artemchep.keyguard.platform.recordLog
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @Composable
 fun WindowScreenshotProtectionEffect() {
@@ -23,7 +23,7 @@ fun WindowScreenshotProtectionEffect() {
 
     val windowHandle = LocalComposeWindow.current.nativeWindowHandle
         ?: return
-    val getAllowScreenshots by rememberInstance<GetAllowScreenshots>()
+    val getAllowScreenshots = koinInject<GetAllowScreenshots>()
     LaunchedEffect(
         getAllowScreenshots,
         windowHandle,

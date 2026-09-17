@@ -10,14 +10,12 @@ import com.artemchep.keyguard.util.zip.ZipEntry
 import com.artemchep.keyguard.util.zip.ZipReader
 import com.artemchep.keyguard.util.zip.ZipReaderEntry
 import com.artemchep.keyguard.util.zip.ZipService
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 import kotlinx.io.Sink
 import kotlinx.io.discardingSink
 import kotlinx.io.readString
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Instant
 
 class BackupRepositoryZipImpl(
     private val json: Json,
@@ -42,13 +40,6 @@ class BackupRepositoryZipImpl(
 
         private val INDEX_GENERATION_FILE_REGEX = Regex("""(\d{20})-(.+)\.zip""")
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        json = directDI.instance(),
-        zipService = directDI.instance(),
-    )
 
     override suspend fun getOrCreateMetadata(
         store: BackupObjectStore,

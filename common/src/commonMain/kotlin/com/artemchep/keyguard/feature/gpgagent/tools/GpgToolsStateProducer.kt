@@ -37,8 +37,8 @@ import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.util.flow.EventFlow
-import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
@@ -88,21 +88,19 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.StringResource
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceGpgToolsState(
     operation: GpgToolsOperation,
-): Loadable<GpgToolsState> = with(localDI().direct) {
+): Loadable<GpgToolsState> = with(currentKoinScope()) {
     produceGpgToolsState(
         operation = operation,
-        getCiphers = instance(),
-        fileService = instance(),
-        keyMetadataResolver = instance(),
-        openPgpService = instance(),
-        openPgpVerifier = instance(),
+        getCiphers = get(),
+        fileService = get(),
+        keyMetadataResolver = get(),
+        openPgpService = get(),
+        openPgpVerifier = get(),
     )
 }
 

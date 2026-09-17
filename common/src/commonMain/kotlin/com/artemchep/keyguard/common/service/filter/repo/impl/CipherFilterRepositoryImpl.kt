@@ -8,27 +8,25 @@ import com.artemchep.keyguard.common.model.DCipherFilter
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.iconImageVector
+import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.filter.entity.FilterEntity
 import com.artemchep.keyguard.common.service.filter.model.AddCipherFilterRequest
 import com.artemchep.keyguard.common.service.filter.repo.CipherFilterRepository
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
-import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.data.CipherFilter
 import com.artemchep.keyguard.data.CipherFilterQueries
 import com.artemchep.keyguard.feature.home.vault.screen.FilterSection
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
-import org.jetbrains.compose.resources.StringResource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.StringResource
 
 class CipherFilterRepositoryImpl(
     private val context: LeContext,
@@ -144,15 +142,6 @@ class CipherFilterRepositoryImpl(
                 ),
             ),
         ),
-    )
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance(),
-        databaseManager = directDI.instance(),
-        json = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
     )
 
     override fun get(): Flow<List<DCipherFilter>> =

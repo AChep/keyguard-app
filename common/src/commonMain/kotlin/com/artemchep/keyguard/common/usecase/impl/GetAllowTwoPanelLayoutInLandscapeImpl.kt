@@ -5,8 +5,6 @@ import com.artemchep.keyguard.common.usecase.GetAllowTwoPanelLayoutInLandscape
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetAllowTwoPanelLayoutInLandscapeImpl(
     settingsReadRepository: SettingsReadRepository,
@@ -17,10 +15,6 @@ class GetAllowTwoPanelLayoutInLandscapeImpl(
             started = SharingStarted.Eagerly,
             initialValue = true,
         )
-
-    constructor(directDI: DirectDI) : this(
-        settingsReadRepository = directDI.instance(),
-    )
 
     override fun invoke() = sharedFlow
 }

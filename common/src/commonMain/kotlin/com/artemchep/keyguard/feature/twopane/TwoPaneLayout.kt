@@ -54,7 +54,7 @@ import com.artemchep.keyguard.ui.surface.splitHigh
 import com.artemchep.keyguard.ui.surface.splitLow
 import com.artemchep.keyguard.ui.surface.surfaceElevationColor
 import com.artemchep.keyguard.ui.text.AutoSizeText
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @Composable
 fun TwoPaneScaffold(
@@ -65,12 +65,12 @@ fun TwoPaneScaffold(
     ratio: Float = 0.5f,
     content: @Composable TwoPaneScaffoldScope.() -> Unit,
 ) {
-    val getAllowTwoPanelLayoutInPortrait by rememberInstance<GetAllowTwoPanelLayoutInPortrait>()
+    val getAllowTwoPanelLayoutInPortrait = koinInject<GetAllowTwoPanelLayoutInPortrait>()
     val allowTwoPanelLayoutInPortrait = remember(getAllowTwoPanelLayoutInPortrait) {
         getAllowTwoPanelLayoutInPortrait()
     }.collectAsState()
 
-    val getAllowTwoPanelLayoutInLandscape by rememberInstance<GetAllowTwoPanelLayoutInLandscape>()
+    val getAllowTwoPanelLayoutInLandscape = koinInject<GetAllowTwoPanelLayoutInLandscape>()
     val allowTwoPanelLayoutInLandscape = remember(getAllowTwoPanelLayoutInLandscape) {
         getAllowTwoPanelLayoutInLandscape()
     }.collectAsState()
@@ -126,7 +126,7 @@ fun TwoPaneScaffoldScope.TwoPaneLayout(
     masterPane: @Composable BoxScope.() -> Unit,
 ) {
     val surfaceElevation = LocalSurfaceElevation.current
-    val getNavAnimation by rememberInstance<GetNavAnimation>()
+    val getNavAnimation = koinInject<GetNavAnimation>()
     Row(
         modifier = Modifier
             .background(surfaceElevationColor(surfaceElevation.from)),

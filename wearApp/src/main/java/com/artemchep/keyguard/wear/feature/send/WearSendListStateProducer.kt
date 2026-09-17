@@ -35,8 +35,8 @@ import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
-import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
+import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
@@ -76,6 +76,7 @@ import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
+import kotlin.time.measureTimedValue
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
@@ -92,32 +93,26 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.Serializable
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import kotlin.time.measureTimedValue
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun wearSendListScreenState(
     args: SendRoute.Args,
-): WearSendListState = with(localDI().direct) {
+): WearSendListState = with(currentKoinScope()) {
     wearSendListScreenState(
-        directDI = this,
         args = args,
-        getAccounts = instance(),
-        getSends = instance(),
-        getProfiles = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        dateFormatter = instance(),
-        clipboardService = instance(),
+        getAccounts = get(),
+        getSends = get(),
+        getProfiles = get(),
+        getAppIcons = get(),
+        getWebsiteIcons = get(),
+        dateFormatter = get(),
+        clipboardService = get(),
     )
 }
 
 @Composable
 fun wearSendListScreenState(
-    directDI: DirectDI,
     args: SendRoute.Args,
     getAccounts: GetAccounts,
     getSends: GetSends,
@@ -237,7 +232,7 @@ fun wearSendListScreenState(
                     val filter = args.filter
                     if (filter != null) {
                         val ciphers = map { it.source }
-                        val predicate = filter.prepare(directDI, ciphers)
+                        val predicate = filter.prepare(ciphers)
                         this
                             .filter { predicate(it.source) }
                     } else {
@@ -258,7 +253,6 @@ fun wearSendListScreenState(
     )
 
     val ciphersFilteredFlow = createFilteredSendsFlow(
-        directDI = directDI,
         ciphersFlow = ciphersFlow,
         orderFlow = sortSink,
         filterFlow = filterResult.filterFlow,
@@ -276,7 +270,6 @@ fun wearSendListScreenState(
         .shareIn(this, SharingStarted.WhileSubscribed(), replay = 1)
 
     val filterListFlow = createFilterItemsFlow(
-        directDI = directDI,
         outputGetter = { it.source },
         outputFlow = ciphersFilteredFlow
             .map { state ->
@@ -420,7 +413,6 @@ private data class FilteredList<T>(
 )
 
 private fun createFilteredSendsFlow(
-    directDI: DirectDI,
     ciphersFlow: Flow<List<SendItem.Item>>,
     orderFlow: Flow<ComparatorHolder>,
     filterFlow: Flow<FilterSendHolder>,
@@ -471,7 +463,7 @@ private fun createFilteredSendsFlow(
             .list
             .run {
                 val ciphers = map { it.source }
-                val predicate = filterConfig.filter.prepare(directDI, ciphers)
+                val predicate = filterConfig.filter.prepare(ciphers)
                 filter { predicate(it.source) }
             }
         state.copy(

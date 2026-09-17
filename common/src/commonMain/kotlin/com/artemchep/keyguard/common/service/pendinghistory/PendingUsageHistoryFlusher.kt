@@ -20,13 +20,11 @@ import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
 import com.artemchep.keyguard.nativecrypto.NativeSshKeyType
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Instant
 
 /**
  * Drains the pending usage-history queue into the vault database.
@@ -61,17 +59,6 @@ class PendingUsageHistoryFlusher(
          */
         private val envelopeKeyMutex = Mutex()
     }
-
-    constructor(directDI: DirectDI) : this(
-        queue = directDI.instance(),
-        addGpgUsageHistory = directDI.instance(),
-        addSshUsageHistory = directDI.instance(),
-        vaultSettingsStore = directDI.instance(),
-        settingsRepository = directDI.instance(),
-        base64Service = directDI.instance(),
-        json = directDI.instance(),
-        logRepository = directDI.instance(),
-    )
 
     fun flush(): IO<PendingUsageHistoryFlushResult> = ioEffect {
         val privateKeyPkcs8 = ensureEnvelopeKeys()

@@ -3,8 +3,10 @@ package com.artemchep.keyguard.feature.gpgagent.filter
 import androidx.compose.runtime.Composable
 import arrow.core.identity
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.GpgAgentFilter
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.service.gpgagent.isEligibleForGpgAgent
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCiphers
@@ -20,13 +22,13 @@ import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.OurFilterResult
 import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.onClick
-import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -35,30 +37,29 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
-fun produceGpgAgentFiltersState() = with(localDI().direct) {
+fun produceGpgAgentFiltersState() = with(currentKoinScope()) {
     produceGpgAgentFiltersState(
-        directDI = this,
-        getGpgAgentFilter = instance(),
-        putGpgAgentFilter = instance(),
-        getCiphers = instance(),
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getTags = instance(),
-        getFolders = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
+        filterContext = get(),
+        getCipherFilters = get(),
+        getGpgAgentFilter = get(),
+        putGpgAgentFilter = get(),
+        getCiphers = get(),
+        getAccounts = get(),
+        getProfiles = get(),
+        getTags = get(),
+        getFolders = get(),
+        getCollections = get(),
+        getOrganizations = get(),
     )
 }
 
 @Composable
 fun produceGpgAgentFiltersState(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    getCipherFilters: GetCipherFilters,
     getGpgAgentFilter: GetGpgAgentFilter,
     putGpgAgentFilter: PutGpgAgentFilter,
     getCiphers: GetCiphers,
@@ -73,7 +74,8 @@ fun produceGpgAgentFiltersState(
     initial = Loadable.Loading,
 ) {
     gpgAgentFiltersStateProducer(
-        directDI = directDI,
+        filterContext = filterContext,
+        getCipherFilters = getCipherFilters,
         getGpgAgentFilter = getGpgAgentFilter,
         putGpgAgentFilter = putGpgAgentFilter,
         getCiphers = getCiphers,
@@ -89,7 +91,8 @@ fun produceGpgAgentFiltersState(
 // Keep the state flows and their session-scoped callbacks in one lifecycle scope.
 @Suppress("LongMethod")
 suspend fun RememberStateFlowScope.gpgAgentFiltersStateProducer(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    getCipherFilters: GetCipherFilters,
     getGpgAgentFilter: GetGpgAgentFilter,
     putGpgAgentFilter: PutGpgAgentFilter,
     getCiphers: GetCiphers,
@@ -179,7 +182,7 @@ suspend fun RememberStateFlowScope.gpgAgentFiltersStateProducer(
                 return@mapLatest ciphers
             }
             val predicate = filterHolder.filter.prepare(
-                directDI = directDI,
+                context = filterContext,
                 ciphers = ciphers,
             )
             ciphers.filter(predicate)
@@ -187,7 +190,7 @@ suspend fun RememberStateFlowScope.gpgAgentFiltersStateProducer(
         .distinctUntilChanged()
 
     val filterListFlow = createFilterItemsFlow(
-        directDI = directDI,
+        getCipherFilters = getCipherFilters,
         outputGetter = ::identity,
         outputFlow = filteredGpgKeysFlow,
         accountGetter = ::identity,

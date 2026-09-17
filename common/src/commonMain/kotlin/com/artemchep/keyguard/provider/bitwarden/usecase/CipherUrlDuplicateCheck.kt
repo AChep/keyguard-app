@@ -3,12 +3,10 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.io
-import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -22,10 +20,6 @@ class CipherUrlDuplicateCheckImpl(
 
     private val emptyEquivalentDomains = EquivalentDomains(
         domains = emptyMap(),
-    )
-
-    constructor(directDI: DirectDI) : this(
-        cipherUrlCheck = directDI.instance(),
     )
 
     override fun invoke(

@@ -16,17 +16,10 @@ import com.artemchep.keyguard.common.model.DNotification
 import com.artemchep.keyguard.common.model.DNotificationChannel
 import com.artemchep.keyguard.common.model.DNotificationKey
 import com.artemchep.keyguard.common.service.notification.NotificationRepository
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class NotificationRepositoryAndroid(
     private val context: Context,
 ) : NotificationRepository {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance(),
-    )
 
     override fun post(
         notification: DNotification,

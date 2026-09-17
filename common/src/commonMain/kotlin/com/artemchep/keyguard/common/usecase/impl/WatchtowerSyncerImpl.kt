@@ -18,29 +18,31 @@ import com.artemchep.keyguard.common.model.CheckPasswordSetLeakRequest
 import com.artemchep.keyguard.common.model.DNotification
 import com.artemchep.keyguard.common.model.DNotificationChannel
 import com.artemchep.keyguard.common.model.DNotificationId
-import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
-import com.artemchep.keyguard.common.model.EquivalentDomainsBuilder
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.EquivalentDomains
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilder
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.ignores
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
+import com.artemchep.keyguard.common.service.session.WatchtowerSessionAccess
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
 import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
 import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
-import com.artemchep.keyguard.common.usecase.CipherSnapshot
-import com.artemchep.keyguard.common.usecase.CipherSnapshotKey
 import com.artemchep.keyguard.common.usecase.CipherBreachCheck
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
+import com.artemchep.keyguard.common.usecase.CipherSnapshot
+import com.artemchep.keyguard.common.usecase.CipherSnapshotKey
 import com.artemchep.keyguard.common.usecase.CipherSshKeyWeakCheck
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlBroadCheck
@@ -65,19 +67,20 @@ import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.common.util.parseHttpUrlHostOrNull
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.util.withLogTimeOfFirstEvent
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.platform.lifecycle.onState
 import com.artemchep.keyguard.platform.recordException
-import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import io.ktor.http.*
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -111,24 +114,11 @@ import kotlinx.coroutines.flow.runningReduce
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
-import kotlin.time.Instant
-import org.kodein.di.DirectDI
-import org.kodein.di.direct
-import org.kodein.di.instance
 
 class WatchtowerSyncerImpl(
     private val getVaultSession: GetVaultSession,
+    private val sessionAccess: WatchtowerSessionAccess,
 ) : WatchtowerSyncer {
-    private class Holder(
-        val client: WatchtowerClient,
-        val notifications: WatchtowerNotifications,
-    )
-
-    constructor(directDI: DirectDI) : this(
-        getVaultSession = directDI.instance(),
-    )
-
     override fun start(
         scope: CoroutineScope,
         flow: Flow<LeLifecycleState>,
@@ -138,18 +128,12 @@ class WatchtowerSyncerImpl(
                 getVaultSession()
                     .map { session ->
                         val key = session as? MasterSession.Key
-                        key?.di?.direct?.let { direct ->
-                            Holder(
-                                client = WatchtowerClient(direct),
-                                notifications = WatchtowerNotifications(direct),
-                            )
-                        }
+                        key?.let(sessionAccess::invoke)
                     }
                     .collectLatest { holder ->
                         if (holder != null) {
                             coroutineScope {
-                                holder.client.launch(this)
-                                holder.notifications.launch(this)
+                                holder.launch(this)
                             }
                         }
                     }
@@ -158,7 +142,7 @@ class WatchtowerSyncerImpl(
     }
 }
 
-private class WatchtowerNotifications(
+internal class WatchtowerNotifications(
     private val context: LeContext,
     private val getWatchtowerUnreadAlerts: GetWatchtowerUnreadAlerts,
     private val getCiphers: GetCiphers,
@@ -169,15 +153,6 @@ private class WatchtowerNotifications(
     companion object {
         private const val FLOW_DEBOUNCE_MS = 1000L
     }
-
-    constructor(directDI: DirectDI) : this(
-        context = directDI.instance(),
-        getWatchtowerUnreadAlerts = directDI.instance(),
-        getCiphers = directDI.instance(),
-        getProfiles = directDI.instance(),
-        showNotification = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-    )
 
     fun launch(scope: CoroutineScope) = scope.launch {
         // A set of profiles that are not
@@ -260,7 +235,7 @@ private class WatchtowerNotifications(
     }
 }
 
-private class WatchtowerClient(
+internal class WatchtowerClient(
     private val getBreaches: GetBreaches,
     private val getCipherSnapshots: GetCipherSnapshots,
     private val databaseManager: VaultDatabaseManager,
@@ -273,35 +248,6 @@ private class WatchtowerClient(
     companion object {
         private const val TAG = "WatchtowerAlertClient"
     }
-
-    constructor(directDI: DirectDI) : this(
-        getBreaches = directDI.instance(),
-        getCipherSnapshots = directDI.instance(),
-        databaseManager = directDI.instance(),
-        logRepository = directDI.instance(),
-        syncSupervisor = directDI.instance(),
-        // Kotlin/Native type tokens do not expose supertypes, so asking DI for
-        // all WatchtowerClientTyped instances cannot discover concrete bindings.
-        // Resolve the registered processors by their exact type on every platform.
-        list = listOf(
-            directDI.instance<WatchtowerInactivePasskey>(),
-            directDI.instance<WatchtowerInactiveTfa>(),
-            directDI.instance<WatchtowerDuplicateUris>(),
-            directDI.instance<WatchtowerBroadUris>(),
-            directDI.instance<WatchtowerPasswordStrength>(),
-            directDI.instance<WatchtowerSshKeyStrength>(),
-            directDI.instance<WatchtowerGpgKeyUnusable>(),
-            directDI.instance<WatchtowerWeakGpgKey>(),
-            directDI.instance<WatchtowerGpgKeyPublishing>(),
-            directDI.instance<WatchtowerPasswordPwned>(),
-            directDI.instance<WatchtowerWebsitePwned>(),
-            directDI.instance<WatchtowerIncomplete>(),
-            directDI.instance<WatchtowerExpiring>(),
-            directDI.instance<WatchtowerUnsecureWebsite>(),
-        ),
-        defaultDispatcher = Dispatchers.Default.limitedParallelism(1),
-        dbDispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
 
     fun launch(scope: CoroutineScope) = scope.launch {
         val processingAllowedFlow = syncSupervisor
@@ -590,13 +536,9 @@ interface WatchtowerClientTyped {
     ): List<WatchtowerClientResult>
 }
 
-class WatchtowerPasswordStrength(
-) : WatchtowerClientTyped {
+class WatchtowerPasswordStrength : WatchtowerClientTyped {
     override val type: Long
         get() = DWatchtowerAlertType.WEAK_PASSWORD.value
-
-    constructor(directDI: DirectDI) : this(
-    )
 
     override fun version() = flowOf("1")
 
@@ -621,10 +563,6 @@ class WatchtowerSshKeyStrength(
 ) : WatchtowerClientTyped {
     override val type: Long
         get() = DWatchtowerAlertType.WEAK_SSH_KEY.value
-
-    constructor(directDI: DirectDI) : this(
-        cipherSshKeyWeakCheck = directDI.instance(),
-    )
 
     override fun version() = flowOf("1")
 
@@ -655,12 +593,6 @@ class WatchtowerPasswordPwned(
 ) : WatchtowerClientTyped {
     override val type: Long
         get() = DWatchtowerAlertType.PWNED_PASSWORD.value
-
-    constructor(directDI: DirectDI) : this(
-        checkPasswordSetLeak = directDI.instance(),
-        getBreachesLatestDate = directDI.instance(),
-        getCheckPwnedPasswords = directDI.instance(),
-    )
 
     override fun version() = combineJoinToVersion(
         getDatabaseVersionFlow(),
@@ -745,16 +677,6 @@ class WatchtowerWebsitePwned(
 ) : WatchtowerClientTyped {
     override val type: Long
         get() = DWatchtowerAlertType.PWNED_WEBSITE.value
-
-    constructor(directDI: DirectDI) : this(
-        getAutofillDefaultMatchDetection = directDI.instance(),
-        cipherBreachCheck = directDI.instance(),
-        equivalentDomainsBuilderFactory = directDI.instance(),
-        getBreaches = directDI.instance(),
-        getBreachesLatestDate = directDI.instance(),
-        getEquivalentDomains = directDI.instance(),
-        getCheckPwnedServices = directDI.instance(),
-    )
 
     override fun version() = combineJoinToVersion(
         getDatabaseVersionFlow(),
@@ -1004,15 +926,6 @@ class WatchtowerInactivePasskey(
     override val type: Long
         get() = DWatchtowerAlertType.PASSKEY_WEBSITE.value
 
-    constructor(directDI: DirectDI) : this(
-        tldService = directDI.instance(),
-        passKeyService = directDI.instance(),
-        getPasskeys = directDI.instance(),
-        equivalentDomainsBuilderFactory = directDI.instance(),
-        getEquivalentDomains = directDI.instance(),
-        getCheckPasskeys = directDI.instance(),
-    )
-
     override fun version() = combineJoinToVersion(
         flowOf(passKeyService.version),
         flowOf(tldService.version),
@@ -1131,10 +1044,6 @@ class WatchtowerIncomplete(
     override val type: Long
         get() = DWatchtowerAlertType.INCOMPLETE.value
 
-    constructor(directDI: DirectDI) : this(
-        cipherIncompleteCheck = directDI.instance(),
-    )
-
     override fun version() = flowOf("1")
 
     override suspend fun process(
@@ -1185,10 +1094,6 @@ class WatchtowerExpiring(
 ) : WatchtowerClientTyped {
     override val type: Long
         get() = DWatchtowerAlertType.EXPIRING.value
-
-    constructor(directDI: DirectDI) : this(
-        cipherExpiringCheck = directDI.instance(),
-    )
 
     override fun version() = flow {
         // Refresh daily
@@ -1248,10 +1153,6 @@ class WatchtowerUnsecureWebsite(
 ) : WatchtowerClientTyped {
     override val type: Long
         get() = DWatchtowerAlertType.UNSECURE_WEBSITE.value
-
-    constructor(directDI: DirectDI) : this(
-        cipherUnsecureUrlCheck = directDI.instance(),
-    )
 
     override fun version() = flowOf(FileHashes.public_suffix_list)
 
@@ -1460,15 +1361,6 @@ class WatchtowerInactiveTfa(
     override val type: Long
         get() = DWatchtowerAlertType.TWO_FA_WEBSITE.value
 
-    constructor(directDI: DirectDI) : this(
-        tldService = directDI.instance(),
-        tfaService = directDI.instance(),
-        getTwoFa = directDI.instance(),
-        equivalentDomainsBuilderFactory = directDI.instance(),
-        getEquivalentDomains = directDI.instance(),
-        getCheckTwoFA = directDI.instance(),
-    )
-
     override fun version() = combineJoinToVersion(
         flowOf(tfaService.version),
         flowOf(tldService.version),
@@ -1529,12 +1421,6 @@ class WatchtowerDuplicateUris(
 ) : WatchtowerClientTyped {
     override val type: Long
         get() = DWatchtowerAlertType.DUPLICATE_URIS.value
-
-    constructor(directDI: DirectDI) : this(
-        getAutofillDefaultMatchDetection = directDI.instance(),
-        cipherUrlDuplicateCheck = directDI.instance(),
-        equivalentDomainsBuilderFactory = directDI.instance(),
-    )
 
     override fun version() = combineJoinToVersion(
         getAutofillDefaultMatchDetection()
@@ -1643,12 +1529,6 @@ class WatchtowerBroadUris(
 
     override val mode: WatchtowerClientMode
         get() = WatchtowerClientMode.ALL
-
-    constructor(directDI: DirectDI) : this(
-        getAutofillDefaultMatchDetection = directDI.instance(),
-        cipherUrlBroadCheck = directDI.instance(),
-        equivalentDomainsBuilderFactory = directDI.instance(),
-    )
 
     override fun version() = combineJoinToVersion(
         getAutofillDefaultMatchDetection()

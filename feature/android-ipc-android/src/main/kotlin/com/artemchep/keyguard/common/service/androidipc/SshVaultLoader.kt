@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.androidipc
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.filterCiphers
+import com.artemchep.keyguard.common.service.session.SshAgentSessionAccess
 import com.artemchep.keyguard.common.service.sshagent.isEligibleForSshAgent
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
@@ -11,8 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import org.kodein.di.direct
-import org.kodein.di.instance
 
 internal data class SshVault(
     val session: MasterSession.Key,
@@ -25,19 +24,21 @@ internal data class SshVault(
  */
 internal class SshVaultLoader(
     private val getVaultSession: GetVaultSession,
+    private val sessionAccess: SshAgentSessionAccess,
     private val getSshAgentFilter: GetSshAgentFilter,
 ) {
     suspend fun load(): SshVault? = withContext(Dispatchers.IO) {
         val session = getVaultSession.valueOrNull as? MasterSession.Key
             ?: return@withContext null
-        val getCiphers = session.di.direct.instance<GetCiphers>()
+        val dependencies = sessionAccess(session) ?: return@withContext null
+        val getCiphers = dependencies.getCiphers
         val eligible = getCiphers()
             .first()
             .filter(DSecret::isEligibleForSshAgent)
         val keys = getSshAgentFilter()
             .first()
             .filterCiphers(
-                directDI = session.di.direct,
+                context = dependencies.filterContext,
                 ciphers = eligible,
             )
         SshVault(

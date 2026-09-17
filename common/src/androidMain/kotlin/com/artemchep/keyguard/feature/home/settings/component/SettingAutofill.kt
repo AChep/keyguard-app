@@ -30,28 +30,27 @@ import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.SmartBadge
 import com.artemchep.keyguard.feature.home.vault.component.SmartBadgeListContainer
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.ok
 import com.artemchep.keyguard.ui.theme.warning
-import kotlinx.coroutines.flow.combine
-import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
+import kotlinx.coroutines.flow.combine
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 actual fun settingAutofillProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = settingAutofillProvider(
-    autofillService = directDI.instance(),
-    appContext = directDI.instance(),
-    showMessage = directDI.instance(),
+    autofillService = koinScope.get(),
+    appContext = koinScope.get(),
+    showMessage = koinScope.get(),
 )
 
 fun settingAutofillProvider(

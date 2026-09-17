@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsServiceHost
+import kotlin.uuid.Uuid
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -15,8 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import org.kodein.di.compose.rememberInstance
-import kotlin.uuid.Uuid
+import org.koin.compose.koinInject
 
 /**
  * Owns a nested navigation pile for the current [NavigationEntry].
@@ -89,7 +89,7 @@ fun NavigationRouter(
         }
     }
 
-    val keyboardShortcutsService by rememberInstance<KeyboardShortcutsServiceHost>()
+    val keyboardShortcutsService = koinInject<KeyboardShortcutsServiceHost>()
     DisposableEffect(navPile) {
         val unregister = keyboardShortcutsService.register { keyEvent ->
             navPile.value

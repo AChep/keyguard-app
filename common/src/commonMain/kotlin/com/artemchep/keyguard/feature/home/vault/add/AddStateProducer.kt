@@ -42,7 +42,6 @@ import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.UsernameVariation2
 import com.artemchep.keyguard.common.model.buildDocs
-import com.artemchep.keyguard.common.model.map
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.model.create.address1
 import com.artemchep.keyguard.common.model.create.address2
@@ -78,21 +77,23 @@ import com.artemchep.keyguard.common.model.create.username
 import com.artemchep.keyguard.common.model.creditCards
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
+import com.artemchep.keyguard.common.model.map
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
+import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.GpgKeyEditorImportError
 import com.artemchep.keyguard.common.service.crypto.GpgKeyEditorImportReconciler
 import com.artemchep.keyguard.common.service.crypto.GpgKeyEditorImportResult
-import com.artemchep.keyguard.common.service.crypto.GpgKeyImportError
-import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
-import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
-import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
-import com.artemchep.keyguard.common.service.crypto.GpgKeyImportServiceUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationChange
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationError
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationResult
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationServiceUnsupported
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportError
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportServiceUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParserUnsupported
@@ -104,16 +105,15 @@ import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationError
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationResult
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationService
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationServiceUnsupported
-import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
-import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportError
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
-import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
+import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
+import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.isCanonical
-import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromFileAsText
@@ -156,9 +156,9 @@ import com.artemchep.keyguard.feature.auth.common.util.ValidationUri
 import com.artemchep.keyguard.feature.auth.common.util.format
 import com.artemchep.keyguard.feature.auth.common.util.validateUri
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
-import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
-import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
@@ -176,18 +176,18 @@ import com.artemchep.keyguard.feature.gpgkey.revocation.createLocalizedGpgUserId
 import com.artemchep.keyguard.feature.gpgkey.selection.GpgUserIdSelectionIdentity
 import com.artemchep.keyguard.feature.gpgkey.selection.GpgUserIdSelectionRoute
 import com.artemchep.keyguard.feature.gpgkey.selection.requestGpgUserIdSelection
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachmentItemFactory
 import com.artemchep.keyguard.feature.home.vault.add.attachment.handleVaultAttachmentSelection
-import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
 import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerResult
 import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerRoute
 import com.artemchep.keyguard.feature.home.vault.link.CipherLinkTarget
 import com.artemchep.keyguard.feature.home.vault.link.cipherLinkTargetsByRemoteId
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
-import com.artemchep.keyguard.feature.home.vault.screen.toVaultItemPresentation
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
+import com.artemchep.keyguard.feature.home.vault.screen.toVaultItemPresentation
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -201,9 +201,8 @@ import com.artemchep.keyguard.platform.leParseUri
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.provider.bitwarden.usecase.autofill
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import org.jetbrains.compose.resources.StringResource
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.buildContextItems
@@ -211,6 +210,9 @@ import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.icon
+import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlin.uuid.Uuid
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -241,13 +243,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.SerialName
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
-import kotlin.time.Clock
-import kotlin.time.Instant
-import kotlin.uuid.Uuid
+import org.jetbrains.compose.resources.StringResource
+import org.koin.compose.currentKoinScope
 
 private const val SHARING_STOP_TIMEOUT_MS = 5_000L
 
@@ -255,37 +252,37 @@ private const val SHARING_STOP_TIMEOUT_MS = 5_000L
 @Composable
 fun produceAddScreenState(
     args: AddRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceAddScreenState(
         args = args,
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getOrganizations = instance(),
-        getCollections = instance(),
-        getFolders = instance(),
-        getCiphers = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        getTotpCode = instance(),
-        getGravatarUrl = instance(),
-        getMarkdown = instance(),
-        textService = instance(),
-        dateFormatter = instance(),
-        sshKeyImportService = instance(),
-        gpgKeyImportService = instanceOrNull() ?: GpgKeyImportServiceUnsupported,
-        gpgKeyEditorImportReconciler = instance(),
-        gpgPublicKeyParser = instanceOrNull() ?: GpgPublicKeyParserUnsupported,
-        gpgKeyExpirationService = instanceOrNull() ?: GpgKeyExpirationServiceUnsupported,
-        gpgUserIdReplacementService = instanceOrNull() ?: GpgUserIdReplacementServiceUnsupported,
-        gpgUserIdRevocationService = instanceOrNull() ?: GpgUserIdRevocationServiceUnsupported,
-        logRepository = instance(),
-        clipboardService = instance(),
-        otpMigrationService = instance(),
-        getAutofillDefaultMatchDetection = instance(),
-        cipherUnsecureUrlCheck = instance(),
-        showMessage = instance(),
-        addCipher = instance(),
-        confirmationRouteFactory = instance(),
+        getAccounts = get(),
+        getProfiles = get(),
+        getOrganizations = get(),
+        getCollections = get(),
+        getFolders = get(),
+        getCiphers = get(),
+        getAppIcons = get(),
+        getWebsiteIcons = get(),
+        getTotpCode = get(),
+        getGravatarUrl = get(),
+        getMarkdown = get(),
+        textService = get(),
+        dateFormatter = get(),
+        sshKeyImportService = get(),
+        gpgKeyImportService = getOrNull() ?: GpgKeyImportServiceUnsupported,
+        gpgKeyEditorImportReconciler = get(),
+        gpgPublicKeyParser = getOrNull() ?: GpgPublicKeyParserUnsupported,
+        gpgKeyExpirationService = getOrNull() ?: GpgKeyExpirationServiceUnsupported,
+        gpgUserIdReplacementService = getOrNull() ?: GpgUserIdReplacementServiceUnsupported,
+        gpgUserIdRevocationService = getOrNull() ?: GpgUserIdRevocationServiceUnsupported,
+        logRepository = get(),
+        clipboardService = get(),
+        otpMigrationService = get(),
+        getAutofillDefaultMatchDetection = get(),
+        cipherUnsecureUrlCheck = get(),
+        showMessage = get(),
+        addCipher = get(),
+        confirmationRouteFactory = get(),
     )
 }
 

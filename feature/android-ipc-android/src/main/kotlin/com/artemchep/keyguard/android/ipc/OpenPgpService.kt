@@ -11,7 +11,6 @@ import com.artemchep.keyguard.common.model.AddGpgUsageHistoryRequest
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
 import com.artemchep.keyguard.common.service.androidipc.GpgOpenPgpVaultLoader
 import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpExportSelection
@@ -35,6 +34,7 @@ import com.artemchep.keyguard.common.service.crypto.selectGpgOpenPgpEncryptionRe
 import com.artemchep.keyguard.common.service.crypto.selectGpgOpenPgpExportKey
 import com.artemchep.keyguard.common.service.crypto.selectGpgOpenPgpSigner
 import com.artemchep.keyguard.common.service.crypto.selectedRingsCoverOpenPgpRecipients
+import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistory
@@ -42,49 +42,48 @@ import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQ
 import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.keyguardKoin
+import com.artemchep.keyguard.di.resolve
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.ipc_protocol_openpgp
+import kotlin.getValue
+import kotlin.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 import kotlinx.io.Sink
 import kotlinx.io.asSink
 import kotlinx.io.asSource
 import kotlinx.io.buffered
 import kotlinx.io.discardingSink
-import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.ipc_protocol_openpgp
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.StringResource
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
 import org.openintents.openpgp.IOpenPgpService2
 import org.openintents.openpgp.OpenPgpError
 import org.openintents.openpgp.OpenPgpMetadata
 import org.openintents.openpgp.util.OpenPgpApi
-import kotlin.getValue
-import kotlin.time.Instant
 
 @Suppress("LargeClass", "TooManyFunctions")
-class OpenPgpService : Service(), DIAware {
-    override val di by closestDI { this }
+class OpenPgpService : Service(), KeyguardKoinOwner {
+    override val koin get() = this.keyguardKoin()
 
-    private val getGpgAgentFilter by instance<GetGpgAgentFilter>()
-    private val getVaultSession by instance<GetVaultSession>()
-    private val certificateMaterialReconciler by instance<GpgCertificateMaterialReconciler>()
-    private val openPgpService by instance<GpgOpenPgpService>()
-    private val registrationRepository by instance<AndroidIpcRegistrationRepository>()
-    private val publicKeyRepository by instance<GpgPublicKeyRepository>()
-    private val historyQueue by instance<PendingUsageHistoryQueue>()
-    private val json by instance<Json>()
-    private val logRepository by instance<LogRepository>()
-    private val publicKeyParser by instance<GpgPublicKeyParser>()
+    private val getGpgAgentFilter by lazy { koin.get<GetGpgAgentFilter>() }
+    private val getVaultSession by lazy { koin.get<GetVaultSession>() }
+    private val certificateMaterialReconciler by lazy { koin.get<GpgCertificateMaterialReconciler>() }
+    private val openPgpService by lazy { koin.get<GpgOpenPgpService>() }
+    private val registrationRepository by lazy { koin.get<AndroidIpcRegistrationRepository>() }
+    private val publicKeyRepository by lazy { koin.get<GpgPublicKeyRepository>() }
+    private val historyQueue by lazy { koin.get<PendingUsageHistoryQueue>() }
+    private val json by lazy { koin.get<Json>() }
+    private val logRepository by lazy { koin.get<LogRepository>() }
+    private val publicKeyParser by lazy { koin.get<GpgPublicKeyParser>() }
     private val outputPipes = OpenPgpOutputPipeRegistry()
 
     private val vaultLoader by lazy {
         GpgOpenPgpVaultLoader(
+            sessionAccess = koin.get(),
             getVaultSession = getVaultSession,
             getGpgAgentFilter = getGpgAgentFilter,
             publicKeyParser = publicKeyParser,
@@ -1289,9 +1288,7 @@ class OpenPgpService : Service(), DIAware {
         response: GpgUsageHistoryResponseType,
     ) {
         val addHistory = vault.session
-            ?.di
-            ?.direct
-            ?.instanceOrNull<AddGpgUsageHistory>()
+            ?.session?.resolve { getOrNull<AddGpgUsageHistory>() }
         rings.distinct().forEach { ring ->
             recordUsage(
                 vault = vault,
@@ -1315,9 +1312,7 @@ class OpenPgpService : Service(), DIAware {
         type: GpgUsageHistoryRequestType,
         response: GpgUsageHistoryResponseType,
         addHistory: AddGpgUsageHistory? = vault.session
-            ?.di
-            ?.direct
-            ?.instanceOrNull<AddGpgUsageHistory>(),
+            ?.session?.resolve { getOrNull<AddGpgUsageHistory>() },
     ) {
         recordAndroidIpcUsage(
             directRecorder = addHistory,

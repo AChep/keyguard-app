@@ -12,6 +12,7 @@ java {
 dependencies {
     implementation("com.android.tools.build:gradle:${libs.versions.androidPlugin.get()}")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlin.get()}")
+    implementation("io.insert-koin:koin-compiler-gradle-plugin:${libs.versions.koinCompiler.get()}")
     compileOnly("dev.detekt:detekt-gradle-plugin:${libs.versions.detekt.get()}")
     compileOnly("org.jlleitschuh.gradle:ktlint-gradle:${libs.versions.ktlintPlugin.get()}")
     compileOnly("app.cash.licensee:licensee-gradle-plugin:${libs.versions.licenseCheckPlugin.get()}")
@@ -22,10 +23,15 @@ dependencies {
 tasks.withType<Test>().configureEach {
     systemProperty("keyguard.test.gradleUserHome", gradle.gradleUserHomeDir.absolutePath)
     systemProperty("keyguard.test.offline", gradle.startParameter.isOffline.toString())
+    systemProperty("keyguard.test.koinVersion", libs.versions.koin.get())
 }
 
 gradlePlugin {
     plugins {
+        register("koin") {
+            id = "keyguard.koin"
+            implementationClass = "com.artemchep.keyguard.buildplugins.di.KoinConventionPlugin"
+        }
         register("jvmE2e") {
             id = "keyguard.jvm-e2e"
             implementationClass = "com.artemchep.keyguard.buildplugins.testing.JvmE2eConventionPlugin"

@@ -7,13 +7,14 @@ import com.artemchep.keyguard.common.model.AddSshUsageHistoryRequest
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
-import com.artemchep.keyguard.common.model.filterCiphers
 import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
+import com.artemchep.keyguard.common.model.filterCiphers
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistory
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.pendinghistory.enqueueEvent
+import com.artemchep.keyguard.common.service.session.SshAgentSessionAccess
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
@@ -30,13 +31,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
-import org.kodein.di.direct
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
 
 class SshAgentRequestProcessorImpl(
     private val logRepository: LogRepository,
     private val getVaultSession: GetVaultSession,
+    private val sessionAccess: SshAgentSessionAccess,
     getSshAgentApprovalWindow: GetSshAgentApprovalWindow,
     getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy =
         GetSshAgentApprovalCachePolicyNoOp,
@@ -330,22 +329,23 @@ class SshAgentRequestProcessorImpl(
         session: MasterSession.Key? = getVaultSession.valueOrNull as? MasterSession.Key,
     ): SshVaultContext? {
         val key = session ?: return null
-        if (getVaultSession.valueOrNull !== key) return null
+        if (getVaultSession.valueOrNull !== key || !key.session.active.value) return null
 
-        val getCiphers = key.di.direct.instance<GetCiphers>()
+        val dependencies = sessionAccess(key) ?: return null
+        val getCiphers = dependencies.getCiphers
         val sshKeys = getCiphers()
             .map { ciphers ->
                 ciphers.filter { it.isEligibleForSshAgent() }
             }
             .first()
-        val addSshUsageHistory = key.di.direct.instanceOrNull<AddSshUsageHistory>()
+        val addSshUsageHistory = dependencies.addSshUsageHistory
             ?: NoOpAddSshUsageHistory
 
         val filteredKeys = getSshAgentFilter().first().filterCiphers(
-            directDI = key.di.direct,
+            context = dependencies.filterContext,
             ciphers = sshKeys,
         )
-        if (getVaultSession.valueOrNull !== key) return null
+        if (getVaultSession.valueOrNull !== key || !key.session.active.value) return null
         return SshVaultContext(
             session = key,
             sshKeys = filteredKeys,

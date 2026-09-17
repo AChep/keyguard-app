@@ -6,8 +6,6 @@ import com.artemchep.keyguard.common.usecase.CipherRemovePasswordHistory
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.passwordHistory
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -18,10 +16,6 @@ class CipherRemovePasswordHistoryImpl(
     companion object {
         private const val TAG = "CipherRemovePasswordHistory.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyCipherById = directDI.instance(),
-    )
 
     override fun invoke(
         cipherId: String,

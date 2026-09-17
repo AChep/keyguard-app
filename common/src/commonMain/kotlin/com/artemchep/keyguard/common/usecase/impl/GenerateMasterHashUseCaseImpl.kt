@@ -10,8 +10,6 @@ import com.artemchep.keyguard.common.model.MasterPasswordSalt
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.GenerateMasterHashUseCase
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GenerateMasterHashUseCaseImpl(
     private val logRepository: LogRepository,
@@ -23,11 +21,6 @@ class GenerateMasterHashUseCaseImpl(
 
     private val utils = GenerateMasterHashUtils(
         cryptoGenerator = cryptoGenerator,
-    )
-
-    constructor(directDI: DirectDI) : this(
-        logRepository = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
     )
 
     override fun invoke(

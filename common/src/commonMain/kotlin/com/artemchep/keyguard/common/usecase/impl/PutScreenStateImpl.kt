@@ -8,16 +8,10 @@ import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import kotlinx.io.IOException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class PutScreenStateImpl(
     private val stateRepository: StateRepository,
 ) : PutScreenState {
-    constructor(directDI: DirectDI) : this(
-        stateRepository = directDI.instance(),
-    )
-
     private class FailedToSaveScreenStateException(
         message: String,
         e: Throwable,

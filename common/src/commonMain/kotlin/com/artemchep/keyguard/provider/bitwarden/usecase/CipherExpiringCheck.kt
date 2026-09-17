@@ -2,20 +2,17 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
-import kotlinx.datetime.DateTimeUnit
 import kotlin.time.Instant
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
-import org.kodein.di.DirectDI
 
 /**
  * @author Artem Chepurnyi
  */
-class CipherExpiringCheckImpl() : CipherExpiringCheck {
-    constructor(directDI: DirectDI) : this()
-
+class CipherExpiringCheckImpl : CipherExpiringCheck {
     private val timeZone get() = TimeZone.currentSystemDefault()
 
     override fun invoke(secret: DSecret, now: Instant): Instant? {

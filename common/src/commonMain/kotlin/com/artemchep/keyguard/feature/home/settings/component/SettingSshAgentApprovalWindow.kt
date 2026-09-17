@@ -17,24 +17,23 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.format
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.combine
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Duration
+import org.koin.core.scope.Scope
 
 fun settingSshAgentApprovalWindowProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingSshAgentApprovalWindowProvider(
-    getSshAgentApprovalWindow = directDI.instance(),
-    getSshAgentApprovalWindowVariants = directDI.instance(),
-    putSshAgentApprovalWindow = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
-    context = directDI.instance(),
+    getSshAgentApprovalWindow = koinScope.get(),
+    getSshAgentApprovalWindowVariants = koinScope.get(),
+    putSshAgentApprovalWindow = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
+    context = koinScope.get(),
 )
 
 fun settingSshAgentApprovalWindowProvider(

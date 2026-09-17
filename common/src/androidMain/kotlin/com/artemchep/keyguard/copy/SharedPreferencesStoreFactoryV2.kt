@@ -1,21 +1,39 @@
 package com.artemchep.keyguard.copy
 
+import android.content.Context
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
-import org.kodein.di.DI
-import org.kodein.di.DirectDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import com.artemchep.keyguard.common.service.logging.LogRepository
+import db_key_value.datastore.DataStoreKeyValueStore
+import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
+import db_key_value.datastore.encrypted.SecureStorageCoordinator
 
 /**
  * @author Artem Chepurnyi
  */
-class SharedPreferencesStoreFactoryV2(
-    private val factoryV1: SharedPreferencesStoreFactoryV1,
+class SharedPreferencesStoreFactoryV2 internal constructor(
+    private val factoryV1: SharedPreferencesStoreFactory,
+    private val plaintextStore: (Files, KeyValueStore) -> KeyValueStore,
+    private val encryptedStore: (Files, KeyValueStore) -> KeyValueStore,
 ) : SharedPreferencesStoreFactory {
-    companion object {
-        private const val VERSION = 2
+    internal constructor(
+        factoryV1: SharedPreferencesStoreFactoryV1,
+        context: Context,
+        logRepository: LogRepository,
+        secureStorageCoordinator: SecureStorageCoordinator,
+    ) : this(
+        factoryV1 = factoryV1,
+        plaintextStore = { file, backingStore ->
+            DataStoreKeyValueStore(context, file.filename, logRepository, backingStore)
+        },
+        encryptedStore = { file, backingStore ->
+            SecureDataStoreKeyValueStore(
+                context, file.filename, logRepository, secureStorageCoordinator, backingStore,
+            )
+        },
+    )
 
+    companion object {
         /**
          * The [Files] stored as plaintext DataStores. Every other entry is routed to an
          * encrypted DataStore; this is the single source of truth for that decision (see
@@ -32,23 +50,16 @@ class SharedPreferencesStoreFactoryV2(
             )
     }
 
-    constructor(directDI: DirectDI) : this(
-        factoryV1 = directDI.instance(),
-    )
+    private val stores = mutableMapOf<Files, KeyValueStore>()
 
-    override fun getStore(di: DI, key: Files): KeyValueStore = run {
-        val arg = SharedPreferencesArg(
-            version = VERSION,
-            key = key,
-            store = factoryV1.getStore(di, key),
-        )
-        di.direct.instance(
-            tag = if (key in PLAINTEXT_FILES) {
-                SharedPreferencesTypes.DATA_STORE
+    override fun get(file: Files): KeyValueStore = synchronized(stores) {
+        stores.getOrPut(file) {
+            val backingStore = factoryV1.get(file)
+            if (file in PLAINTEXT_FILES) {
+                plaintextStore(file, backingStore)
             } else {
-                SharedPreferencesTypes.DATA_STORE_ENCRYPTED
-            },
-            arg = arg,
-        )
+                encryptedStore(file, backingStore)
+            }
+        }
     }
 }

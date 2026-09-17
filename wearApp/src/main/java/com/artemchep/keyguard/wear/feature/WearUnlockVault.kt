@@ -11,8 +11,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material3.TextField
-import androidx.wear.compose.material3.LocalContentColor
-import androidx.wear.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.rememberUpdatedState
@@ -29,30 +27,31 @@ import androidx.wear.compose.foundation.lazy.TransformingLazyColumnItemScope
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumnScope
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.ListHeader
+import androidx.wear.compose.material3.LocalContentColor
+import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.lazy.TransformationSpec
+import androidx.wear.compose.material3.lazy.transformedHeight
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.VaultState
+import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.usecase.ClearData
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
-import com.artemchep.keyguard.feature.keyguard.setup.setupScreenState
-import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenState
-import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.setup_button_create_vault
-import com.artemchep.keyguard.res.unlock_button_unlock
-import com.artemchep.keyguard.wear.ui.WearScaffoldScreen
-import androidx.wear.compose.material3.lazy.transformedHeight
-import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.feature.changepassword.ChangePasswordState
 import com.artemchep.keyguard.feature.keyguard.LocalAuthScreen
 import com.artemchep.keyguard.feature.keyguard.setup.SetupState
+import com.artemchep.keyguard.feature.keyguard.setup.setupScreenState
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockScreenTheVaultIsLockedTitle
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockState
+import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenState
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.TextHolder.Value
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.yubikey.YubiKeyPromptEffect
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.setup_button_create_vault
+import com.artemchep.keyguard.res.unlock_button_unlock
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FabState
@@ -63,9 +62,10 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.wear.ui.DefaultEdgeButton
 import com.artemchep.keyguard.wear.ui.ProxyMaterial3Styles
 import com.artemchep.keyguard.wear.ui.WearScaffoldLoader
+import com.artemchep.keyguard.wear.ui.WearScaffoldScreen
 import com.artemchep.keyguard.wear.ui.surfaceTransformation
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 private const val AppTitle = "Keyguard"
 
@@ -73,7 +73,7 @@ private const val AppTitle = "Keyguard"
 fun WearUnlockVaultScreen(
     state: VaultState.Unlock,
 ) {
-    val clearData by rememberInstance<ClearData>()
+    val clearData = koinInject<ClearData>()
     val loadableState = unlockScreenState(
         clearData = clearData,
         unlockVaultByMasterPassword = state.unlockWithMasterPassword,

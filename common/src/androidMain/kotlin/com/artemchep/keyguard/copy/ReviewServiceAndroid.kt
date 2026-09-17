@@ -9,23 +9,15 @@ import com.artemchep.keyguard.common.service.review.ReviewService
 import com.artemchep.keyguard.platform.LeContext
 import com.google.android.gms.tasks.Task
 import com.google.android.play.core.review.ReviewManagerFactory
-import kotlinx.coroutines.Dispatchers
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
+import kotlinx.coroutines.Dispatchers
 
 class ReviewServiceAndroid(
     private val context: Context,
 ) : ReviewService {
     private val reviewManager = ReviewManagerFactory.create(context.applicationContext)
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance<Application>(),
-    )
 
     override fun request(
         context: LeContext,

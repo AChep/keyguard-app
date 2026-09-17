@@ -21,8 +21,8 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
@@ -30,14 +30,12 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun AccountListScreen() {
     val controller by rememberUpdatedState(LocalNavigationController.current)
-    val bitwardenLoginRouteFactory = localDI().direct.instance<BitwardenLoginRouteFactory>()
+    val bitwardenLoginRouteFactory = currentKoinScope().get<BitwardenLoginRouteFactory>()
     val r = registerRouteResultReceiver(bitwardenLoginRouteFactory.create()) {
         controller.queue(NavigationIntent.Pop)
     }

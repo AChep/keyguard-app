@@ -5,8 +5,6 @@ import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.service.urlblock.UrlBlockRepository
 import com.artemchep.keyguard.common.usecase.RemoveUrlBlockById
 import com.artemchep.keyguard.common.usecase.RemoveUrlOverrideById
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -14,10 +12,6 @@ import org.kodein.di.instance
 class RemoveUrlBlockByIdImpl(
     private val urlBlockRepository: UrlBlockRepository,
 ) : RemoveUrlBlockById {
-    constructor(directDI: DirectDI) : this(
-        urlBlockRepository = directDI.instance(),
-    )
-
     override fun invoke(
         urlBlockIds: Set<String>,
     ): IO<Unit> = performRemoveUrlBlock(

@@ -14,26 +14,21 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceEquivalentDomainsScreenState(
     args: EquivalentDomainsRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceEquivalentDomainsScreenState(
         args = args,
-        directDI = this,
-        getEquivalentDomains = instance(),
+        getEquivalentDomains = get(),
     )
 }
 
 @Composable
 fun produceEquivalentDomainsScreenState(
     args: EquivalentDomainsRoute.Args,
-    directDI: DirectDI,
     getEquivalentDomains: GetEquivalentDomains,
 ): EquivalentDomainsState = produceScreenState(
     key = "equivalent_domains",

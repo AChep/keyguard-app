@@ -36,8 +36,8 @@ import com.artemchep.keyguard.common.service.filter.model.AddCipherFilterRequest
 import com.artemchep.keyguard.common.util.FolderHierarchyKey
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.createFolderHierarchyIndex
-import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
@@ -47,8 +47,8 @@ import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.feature.search.filter.model.FilterItemModel
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.AccentColors
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardAuthReprompt
@@ -69,8 +69,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 private fun <T, R> mapCiphers(
     flow: Flow<List<T>>,
@@ -131,10 +129,9 @@ enum class FilterSection(
 }
 
 suspend fun RememberStateFlowScope.createFilter(
-    directDI: DirectDI,
+    addCipherFilter: AddCipherFilter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): CreateFilterResult {
-    val addCipherFilter: AddCipherFilter = directDI.instance()
-    val confirmationRouteFactory: ConfirmationRouteFactory = directDI.instance()
 
     val emptyState = FilterHolder(
         state = mapOf(),
@@ -405,7 +402,7 @@ suspend fun <
         Collection,
         Organization,
         > RememberStateFlowScope.createFilterItemsFlow(
-    directDI: DirectDI,
+    getCipherFilters: GetCipherFilters,
     outputGetter: (Output) -> DSecret,
     outputFlow: Flow<List<Output>>,
     accountGetter: (Account) -> DAccount,
@@ -424,7 +421,6 @@ suspend fun <
     input: CreateFilterResult,
     params: FilterParams = FilterParams(),
 ): Flow<OurFilterResult> {
-    val getCipherFilters: GetCipherFilters = directDI.instance()
 
     val storage = kotlin.run {
         val disk = loadDiskHandle("ciphers.filter")

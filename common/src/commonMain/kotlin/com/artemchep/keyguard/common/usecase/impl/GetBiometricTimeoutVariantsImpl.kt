@@ -1,12 +1,11 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.usecase.GetBiometricTimeoutVariants
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
-import kotlin.time.Duration
 
-class GetBiometricTimeoutVariantsImpl() : GetBiometricTimeoutVariants {
+class GetBiometricTimeoutVariantsImpl : GetBiometricTimeoutVariants {
     companion object {
         private val DEFAULT_DURATION_VARIANTS
             get() = with(Duration) {
@@ -20,8 +19,6 @@ class GetBiometricTimeoutVariantsImpl() : GetBiometricTimeoutVariants {
                 )
             }
     }
-
-    constructor(directDI: DirectDI) : this()
 
     override fun invoke(): Flow<List<Duration>> = flowOf(DEFAULT_DURATION_VARIANTS)
 }

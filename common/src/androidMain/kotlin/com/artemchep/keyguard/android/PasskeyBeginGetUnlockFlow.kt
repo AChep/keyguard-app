@@ -11,32 +11,24 @@ import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
+import com.artemchep.keyguard.di.resolveOrCancel
 import kotlinx.coroutines.flow.first
-import org.kodein.di.DirectDI
-import org.kodein.di.direct
-import org.kodein.di.instance
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 class PasskeyBeginGetUnlockFlow(
     private val passkeyBeginGetRequest: PasskeyBeginGetRequest,
 ) {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        passkeyBeginGetRequest = directDI.instance(),
-    )
 
     suspend fun processUnlockedVault(
         session: MasterSession.Key,
         request: BeginGetCredentialRequest,
         userVerified: Boolean,
     ): BeginGetCredentialResponse {
-        val getCiphers = session.di.direct.instance<GetCiphers>()
-        val getProfiles = session.di.direct.instance<GetProfiles>()
-        val getSuggestions = session.di.direct.instance<GetSuggestions<Any?>>()
-        val getPrivilegedApps = session.di.direct.instance<GetPrivilegedApps>()
-        val equivalentDomainsBuilderFactory = session.di.direct
-            .instance<EquivalentDomainsBuilderFactory>()
+        val getCiphers = session.session.resolveOrCancel { get<GetCiphers>() }
+        val getProfiles = session.session.resolveOrCancel { get<GetProfiles>() }
+        val getSuggestions = session.session.resolveOrCancel { get<GetSuggestions<Any?>>() }
+        val getPrivilegedApps = session.session.resolveOrCancel { get<GetPrivilegedApps>() }
+        val equivalentDomainsBuilderFactory = session.session.resolveOrCancel { get<EquivalentDomainsBuilderFactory>() }
         val ciphers = filterHiddenProfiles(
             getProfiles = getProfiles,
             getCiphers = getCiphers,
@@ -45,7 +37,7 @@ class PasskeyBeginGetUnlockFlow(
         val privilegedApps = getPrivilegedApps()
             .first()
         return passkeyBeginGetRequest.processGetCredentialsRequest(
-            cipherHistoryOpenedRepository = session.di.direct.instance(),
+            cipherHistoryOpenedRepository = session.session.resolveOrCancel { get() },
             getSuggestions = getSuggestions,
             equivalentDomainsBuilderFactory = equivalentDomainsBuilderFactory,
             request = request,

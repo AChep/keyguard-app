@@ -15,18 +15,11 @@ import com.artemchep.keyguard.common.model.MasterPasswordSalt
 import com.artemchep.keyguard.common.usecase.AuthConfirmMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.GenerateMasterHashUseCase
 import com.artemchep.keyguard.common.usecase.GenerateMasterKeyUseCase
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class AuthConfirmMasterKeyUseCaseImpl(
     private val generateMasterHashUseCase: GenerateMasterHashUseCase,
     private val generateMasterKeyUseCase: GenerateMasterKeyUseCase,
 ) : AuthConfirmMasterKeyUseCase {
-    constructor(directDI: DirectDI) : this(
-        generateMasterHashUseCase = directDI.instance(),
-        generateMasterKeyUseCase = directDI.instance(),
-    )
-
     override fun invoke(
         salt: MasterPasswordSalt,
         hash: MasterPasswordHash,

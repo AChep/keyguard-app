@@ -5,8 +5,6 @@ import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.usecase.RemoveSendById
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifySendById
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -18,11 +16,6 @@ class RemoveSendByIdImpl(
     companion object {
         private const val TAG = "RemoveSendById.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifySendById = directDI.instance(),
-        pendingUploadCoordinator = directDI.instance(),
-    )
 
     override fun invoke(
         sendIds: Set<String>,

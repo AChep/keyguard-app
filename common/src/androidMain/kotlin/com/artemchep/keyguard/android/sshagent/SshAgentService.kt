@@ -34,7 +34,12 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.util.toHex
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.keyguardKoin
 import java.util.LinkedHashSet
+import kotlin.coroutines.CoroutineContext
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -45,14 +50,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.CoroutineContext
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.instance
 
-class SshAgentService : Service(), DIAware {
+class SshAgentService : Service(), KeyguardKoinOwner {
     companion object {
         private const val TAG = "SshAgentService"
         private const val EXTRA_SENDER_APP_NAME = "com.artemchep.keyguard.extra.SSH_AGENT_SENDER_APP_NAME"
@@ -85,17 +84,17 @@ class SshAgentService : Service(), DIAware {
         override val coroutineContext: CoroutineContext = SupervisorJob() + Dispatchers.Main
     }
 
-    override val di by closestDI { this }
+    override val koin get() = this.keyguardKoin()
 
-    private val logRepository: LogRepository by instance()
-    private val base64Service: Base64Service by instance()
-    private val getVaultSession: GetVaultSession by instance()
-    private val getSshAgentApprovalWindow: GetSshAgentApprovalWindow by instance()
-    private val getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy by instance()
-    private val getSshAgentFilter: GetSshAgentFilter by instance()
-    private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository by instance()
-    private val pendingUsageHistoryQueue: PendingUsageHistoryQueue by instance()
-    private val approvalWindowMemory: SshAgentApprovalWindowMemory by instance()
+    private val logRepository: LogRepository by lazy { koin.get() }
+    private val base64Service: Base64Service by lazy { koin.get() }
+    private val getVaultSession: GetVaultSession by lazy { koin.get() }
+    private val getSshAgentApprovalWindow: GetSshAgentApprovalWindow by lazy { koin.get() }
+    private val getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy by lazy { koin.get() }
+    private val getSshAgentFilter: GetSshAgentFilter by lazy { koin.get() }
+    private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository by lazy { koin.get() }
+    private val pendingUsageHistoryQueue: PendingUsageHistoryQueue by lazy { koin.get() }
+    private val approvalWindowMemory: SshAgentApprovalWindowMemory by lazy { koin.get() }
 
     private val notificationIdPool = Notifications.sshAgent
     private var notificationId: Int? = null
@@ -133,6 +132,7 @@ class SshAgentService : Service(), DIAware {
         notificationTag: String,
     ): SshAgentRequestProcessor =
         SshAgentRequestProcessorImpl(
+            sessionAccess = koin.get(),
             logRepository = logRepository,
             getVaultSession = getVaultSession,
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,

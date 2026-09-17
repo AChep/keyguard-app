@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegisteredApp
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationService
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.getSerializable
+import kotlin.time.Clock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -14,9 +15,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Clock
 
 internal class AndroidIpcRegistrationRepository(
     private val store: KeyValueStore,
@@ -51,12 +49,6 @@ internal class AndroidIpcRegistrationRepository(
         json = json,
         key = KEY_REGISTRY,
         defaultValue = RegistryEntity(),
-    )
-
-    constructor(directDI: DirectDI) : this(
-        store = directDI.instance<Files, KeyValueStore>(arg = Files.ANDROID_IPC),
-        json = directDI.instance(),
-        context = directDI.instance(),
     )
 
     override fun registrations(): Flow<List<AndroidIpcRegisteredApp>> =

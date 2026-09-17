@@ -11,20 +11,11 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.wordlist.WordlistService
 import com.artemchep.keyguard.common.usecase.GetPassphrase
 import kotlinx.coroutines.Dispatchers
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class PasswordGeneratorDiceware(
     private val wordlistService: WordlistService,
     private val cryptoGenerator: CryptoGenerator,
 ) : GetPassphrase {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        wordlistService = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-    )
-
     override fun invoke(
         config: PasswordGeneratorConfig.Passphrase,
     ): IO<String> = run {

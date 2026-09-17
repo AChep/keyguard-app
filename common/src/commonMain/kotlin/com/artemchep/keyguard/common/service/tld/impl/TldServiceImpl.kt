@@ -7,18 +7,16 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.sharedSoftRef
-import com.artemchep.keyguard.util.io.useLines
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.tld.TldService
+import com.artemchep.keyguard.util.io.useLines
+import kotlin.time.measureTimedValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.measureTimedValue
 
 private const val PREFIX_EXCEPTION = "!"
 
@@ -42,13 +40,6 @@ class TldServiceImpl(
             }
         }
         .sharedSoftRef(TAG)
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        textService = directDI.instance(),
-        logRepository = directDI.instance(),
-    )
 
     override fun getDomainName(
         host: String,

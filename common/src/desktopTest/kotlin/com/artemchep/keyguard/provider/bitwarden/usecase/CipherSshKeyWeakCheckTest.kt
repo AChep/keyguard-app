@@ -4,21 +4,19 @@ import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.KeyPair
+import com.artemchep.keyguard.common.model.testCipherFilterContext
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.usecase.CipherSshKeyWeakCheck
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerSshKeyStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Instant
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
-import org.kodein.di.direct
+import kotlinx.coroutines.test.runTest
 
 class CipherSshKeyWeakCheckTest {
     private val keyPairGenerator = NativeKeyPairGenerator(Base64ServiceImpl())
@@ -194,19 +192,17 @@ class CipherSshKeyWeakCheckTest {
             ignoredAlerts = mapOf(DWatchtowerAlertType.WEAK_SSH_KEY to TEST_INSTANT),
         )
         val ciphers = listOf(weak, strong, ignored)
-        val directDI = DI {
-            bindSingleton<CipherSshKeyWeakCheck> { check }
-        }.direct
+        val filterContext = testCipherFilterContext(cipherSshKeyWeakCheck = check)
 
         val predicate = DFilter.ByWeakSshKeys.prepare(
-            directDI = directDI,
+            context = filterContext,
             ciphers = ciphers,
         )
 
         assertTrue(predicate(weak))
         assertFalse(predicate(strong))
         assertFalse(predicate(ignored))
-        assertEquals(1, DFilter.ByWeakSshKeys.count(directDI, ciphers))
+        assertEquals(1, DFilter.ByWeakSshKeys.count(filterContext, ciphers))
     }
 
     private fun generateKeyPair(

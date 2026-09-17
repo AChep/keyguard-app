@@ -38,8 +38,8 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.GetBarcodeImage
 import com.artemchep.keyguard.feature.dialog.Dialog
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.KeepScreenOnEffect
@@ -47,7 +47,7 @@ import com.artemchep.keyguard.ui.animation.animateContentHeight
 import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.icons.icon
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @Composable
 fun BarcodeTypeScreen(
@@ -169,7 +169,7 @@ fun BarcodeImage(
         mutableStateOf<Either<Throwable, ImageBitmap>?>(null)
     }
 
-    val getBarcodeImage: GetBarcodeImage by rememberInstance()
+    val getBarcodeImage: GetBarcodeImage = koinInject()
     LaunchedEffect(
         getBarcodeImage,
         imageModel,

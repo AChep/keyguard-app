@@ -10,21 +10,20 @@ import com.artemchep.keyguard.common.usecase.PutCheckTwoFA
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.poweredby.PoweredBy2factorauth
 import com.artemchep.keyguard.ui.theme.Dimens
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingCheckTwoFAProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingCheckTwoFAProvider(
-    getCheckTwoFA = directDI.instance(),
-    putCheckTwoFA = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getCheckTwoFA = koinScope.get(),
+    putCheckTwoFA = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingCheckTwoFAProvider(

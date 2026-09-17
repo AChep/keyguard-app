@@ -6,6 +6,7 @@ plugins {
     id("keyguard.crypto-dependency-check")
     id("keyguard.wear-dependency-check")
     id("keyguard.quality")
+    id("keyguard.koin")
     alias(libs.plugins.android.application)
     id("keyguard.android-application")
     alias(libs.plugins.compose)
@@ -16,6 +17,11 @@ plugins {
     alias(libs.plugins.crashlytics)
     id("keyguard.resources-common") apply false
     id("keyguard.detekt-custom-rules")
+}
+
+// Application roots always revalidate the assembled dependency graph.
+koinCompiler {
+    strictSafety.set(true)
 }
 
 // The flavors share src/main/java, so one production variant covers every call site.
@@ -46,6 +52,9 @@ android {
 }
 
 dependencies {
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose)
     implementation(project(":common"))
 
     implementation(libs.jetbrains.compose.material3)

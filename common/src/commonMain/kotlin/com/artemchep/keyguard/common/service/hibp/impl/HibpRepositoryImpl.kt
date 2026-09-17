@@ -23,8 +23,6 @@ import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readLine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class HibpRepositoryImpl(
     private val httpClient: HttpClient,
@@ -39,10 +37,6 @@ class HibpRepositoryImpl(
         private const val PWNED_PASSWORDS_API_BASE_URL = "https://api.pwnedpasswords.com"
         private const val USER_AGENT = "Keyguard"
     }
-
-    constructor(directDI: DirectDI) : this(
-        httpClient = directDI.instance(),
-    )
 
     override fun getBreaches(): IO<HibpBreachGroup> = ioEffect(Dispatchers.IO) {
         val url = "$HIBP_API_BASE_URL/breaches"

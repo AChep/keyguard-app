@@ -16,12 +16,10 @@ import com.artemchep.keyguard.common.service.webauthn.canonicalizeWebAuthnRpId
 import com.artemchep.keyguard.common.service.webauthn.isValidCanonicalWebAuthnRpId
 import com.artemchep.keyguard.common.service.webauthn.webAuthnUserVerifiedFlag
 import io.ktor.client.HttpClient
+import java.lang.IllegalStateException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import java.lang.IllegalStateException
 
 class PasskeyUtils(
     private val cryptoService: CryptoGenerator,
@@ -65,15 +63,6 @@ class PasskeyUtils(
     )
     private val authenticatorDataFactory = WebAuthnAuthenticatorDataFactory(
         cryptoService = cryptoService,
-    )
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        cryptoService = directDI.instance(),
-        privilegedAppsService = directDI.instance(),
-        tldService = directDI.instance(),
-        httpClient = directDI.instance(tag = "curl"),
     )
 
     @RequiresApi(Build.VERSION_CODES.P)

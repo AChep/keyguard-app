@@ -8,8 +8,8 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.model.AccountId
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keepass.prepareKeePassDatabase
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -25,8 +25,6 @@ import com.artemchep.keyguard.common.usecase.premium
 import com.artemchep.keyguard.core.store.bitwarden.FileLocation
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import kotlinx.coroutines.Dispatchers
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class AddKeePassAccountImpl(
     private val getPurchased: GetPurchased,
@@ -44,22 +42,6 @@ class AddKeePassAccountImpl(
     companion object {
         private const val TAG = "AddAccount.keepass"
     }
-
-    constructor(directDI: DirectDI) : this(
-        getPurchased = directDI.instance(),
-        getAccounts = directDI.instance(),
-        queueSyncById = directDI.instance(),
-        syncById = directDI.instance(),
-        windowCoroutineScope = directDI.instance(),
-        logRepository = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        fileService = directDI.instance(),
-        base64Service = directDI.instance(),
-        webDavClientFactory = KtorWebDavClientFactory(
-            httpClient = directDI.instance(),
-        ),
-        db = directDI.instance(),
-    )
 
     override fun invoke(
         params: AddKeePassAccountParams,

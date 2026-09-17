@@ -34,27 +34,26 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LeLocale
 import com.artemchep.keyguard.platform.util.hasBrowser
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingSelectLocaleProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingSelectLocaleProvider(
-    getLocale = directDI.instance(),
-    getLocaleVariants = directDI.instance(),
-    putLocale = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
-    context = directDI.instance(),
+    getLocale = koinScope.get(),
+    getLocaleVariants = koinScope.get(),
+    putLocale = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
+    context = koinScope.get(),
 )
 
 fun settingSelectLocaleProvider(

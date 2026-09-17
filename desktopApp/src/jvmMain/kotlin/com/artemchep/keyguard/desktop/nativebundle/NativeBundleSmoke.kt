@@ -1,7 +1,15 @@
 package com.artemchep.keyguard.desktop.nativebundle
 
 import com.artemchep.jna.ensureDesktopLibAvailable
+import com.artemchep.keyguard.common.model.MasterKdfVersion
+import com.artemchep.keyguard.common.model.MasterKey
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.vault.VaultSessionFactory
+import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.createDesktopKoinApplication
 import com.artemchep.keyguard.desktop.instance.verifyPackagedInstanceService
+import com.artemchep.keyguard.di.resolve
 import com.artemchep.keyguard.nativebundle.NativeBundleProbe
 import com.artemchep.keyguard.nativebundle.nativeProbe
 import com.artemchep.keyguard.util.io.LocalPath
@@ -14,6 +22,8 @@ import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocket
 import kotlin.system.exitProcess
+import kotlinx.coroutines.CoroutineDispatcher
+import org.koin.core.qualifier.named
 
 internal const val NATIVE_PACKAGED_SMOKE_ARGUMENT = "--native-packaged-smoke"
 private const val RESULT_PATH_ENV = "KEYGUARD_NATIVE_SMOKE_RESULT_PATH"
@@ -37,9 +47,10 @@ internal fun runNativePackagedSmoke() {
         nativeProbe("desktopBridge") { ensureDesktopLibAvailable() }
         nativeProbe("sshHelper") { verifyHelper(resources, "keyguard-ssh-agent") }
         nativeProbe("gpgHelper") { verifyHelper(resources, "keyguard-gpg-agent") }
+        nativeProbe("koin") { verifyPackagedKoinGraph() }
         val tls = nativeProbe("tls") { verifyPackagedDesktopTls() }
         val success = "native packaged smoke passed: crypto=PASS io=PASS zxcvbn=PASS " +
-            "instance=PASS desktopBridge=PASS sshHelper=PASS gpgHelper=PASS tls=PASS tlsRuntime=$tls"
+            "instance=PASS desktopBridge=PASS sshHelper=PASS gpgHelper=PASS koin=PASS tls=PASS tlsRuntime=$tls"
         publishResult(success)
         println(success)
     } catch (error: Throwable) {
@@ -69,6 +80,26 @@ private fun verifyHelper(resources: Path, name: String) {
         check(output.startsWith("$name ")) { "Unexpected packaged helper identity: $name" }
     } finally {
         if (process.isAlive) process.destroyForcibly()
+    }
+}
+
+/** Assembles the shrunk application graph and one vault scope without touching user data. */
+private fun verifyPackagedKoinGraph() {
+    val application = createDesktopKoinApplication()
+    try {
+        val koin = application.koin
+        koin.get<CryptoGenerator>()
+        koin.get<CoroutineDispatcher>(named<DatabaseDispatcher>())
+        val session = koin.get<VaultSessionFactory>()
+            .create(MasterKey(MasterKdfVersion.LATEST, ByteArray(32)))
+        try {
+            checkNotNull(session.resolve { get<WindowCoroutineScope>() })
+        } finally {
+            session.close()
+        }
+        check(!session.active.value) { "Vault scope did not retire on close" }
+    } finally {
+        application.close()
     }
 }
 

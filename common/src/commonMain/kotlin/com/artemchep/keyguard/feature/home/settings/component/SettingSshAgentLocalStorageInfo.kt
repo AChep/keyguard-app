@@ -13,8 +13,8 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.SimpleNote
@@ -22,10 +22,10 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
+import org.koin.core.scope.Scope
 
 fun settingSshAgentLocalStorageInfoProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingSshAgentLocalStorageInfoProvider()
 
 fun settingSshAgentLocalStorageInfoProvider(): SettingComponent = kotlin.run {

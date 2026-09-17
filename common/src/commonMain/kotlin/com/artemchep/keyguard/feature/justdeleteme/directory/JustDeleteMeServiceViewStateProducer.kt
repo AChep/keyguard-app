@@ -11,18 +11,16 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceJustDeleteMeServiceViewState(
     args: JustDeleteMeServiceViewDialogRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceJustDeleteMeServiceViewState(
         args = args,
-        checkUsernameLeak = instance(),
-        dateFormatter = instance(),
+        checkUsernameLeak = get(),
+        dateFormatter = get(),
     )
 }
 

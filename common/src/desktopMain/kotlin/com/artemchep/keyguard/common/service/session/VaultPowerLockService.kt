@@ -109,6 +109,9 @@ internal class VaultPowerLockHandler(
         stopped.set(true)
     }
 
+    // Called from the native power notification thread: no failure of the lock attempt
+    // may escape into it, so every throwable is handed to the error handler instead.
+    @Suppress("TooGenericExceptionCaught")
     @Synchronized
     fun onEvent(event: DesktopPowerEvent) {
         if (stopped.get()) return

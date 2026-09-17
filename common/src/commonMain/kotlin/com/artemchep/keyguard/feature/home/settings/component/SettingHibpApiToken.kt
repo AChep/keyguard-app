@@ -72,8 +72,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 private val HIBP_API_TOKEN_REGEX = Regex("^[0-9a-fA-F]{32}$")
 
@@ -87,14 +86,14 @@ private enum class HibpApiTokenCheckState {
 }
 
 fun settingHibpApiTokenProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingHibpApiTokenProvider(
-    getHibpApiToken = directDI.instance(),
-    putHibpApiToken = directDI.instance(),
-    checkHibpApiToken = directDI.instance(),
-    confirmationRouteFactory = directDI.instance(),
-    showMessage = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getHibpApiToken = koinScope.get(),
+    putHibpApiToken = koinScope.get(),
+    checkHibpApiToken = koinScope.get(),
+    confirmationRouteFactory = koinScope.get(),
+    showMessage = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingHibpApiTokenProvider(

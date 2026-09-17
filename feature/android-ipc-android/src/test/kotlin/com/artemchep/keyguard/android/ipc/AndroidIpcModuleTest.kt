@@ -1,39 +1,36 @@
 package com.artemchep.keyguard.android.ipc
 
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationService
-import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationServiceNone
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
-import kotlinx.serialization.json.Json
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
-import org.kodein.di.direct
-import org.kodein.di.instance
 import kotlin.test.Test
 import kotlin.test.assertSame
+import kotlinx.serialization.json.Json
+import org.koin.core.Koin
+import org.koin.dsl.module
 
 class AndroidIpcModuleTest {
     @Test
-    fun `registration service overrides the common fallback`() {
+    fun `registration service uses the same repository instance`() {
         val repository = AndroidIpcRegistrationRepository(
             store = JsonKeyValueStore(),
             json = Json,
         )
-        val di = DI {
-            bindSingleton<AndroidIpcRegistrationService> {
-                AndroidIpcRegistrationServiceNone
-            }
-            import(
-                module = androidIpcModule(),
-                allowOverride = true,
-            )
-            bindSingleton<AndroidIpcRegistrationRepository>(overrides = true) {
-                repository
-            }
-        }
-
-        assertSame(
-            expected = repository,
-            actual = di.direct.instance<AndroidIpcRegistrationService>(),
+        // This fixture verifies only the alias; application roots validate the complete graph.
+        val koin = Koin()
+        koin.loadModules(
+            listOf(AndroidIpcModule().module, module {
+                single<AndroidIpcRegistrationRepository> { repository }
+            }),
+            allowOverride = true,
         )
+
+        try {
+            assertSame(
+                expected = repository,
+                actual = koin.get<AndroidIpcRegistrationService>(),
+            )
+        } finally {
+            koin.close()
+        }
     }
 }

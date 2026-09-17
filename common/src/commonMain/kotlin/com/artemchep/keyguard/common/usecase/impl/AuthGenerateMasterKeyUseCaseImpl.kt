@@ -10,20 +10,12 @@ import com.artemchep.keyguard.common.usecase.AuthGenerateMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.GenerateMasterHashUseCase
 import com.artemchep.keyguard.common.usecase.GenerateMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.GenerateMasterSaltUseCase
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class AuthGenerateMasterKeyUseCaseImpl(
     private val generateMasterHashUseCase: GenerateMasterHashUseCase,
     private val generateMasterKeyUseCase: GenerateMasterKeyUseCase,
     private val generateMasterSaltUseCase: GenerateMasterSaltUseCase,
 ) : AuthGenerateMasterKeyUseCase {
-    constructor(directDI: DirectDI) : this(
-        generateMasterHashUseCase = directDI.instance(),
-        generateMasterKeyUseCase = directDI.instance(),
-        generateMasterSaltUseCase = directDI.instance(),
-    )
-
     override fun invoke(
         version: MasterKdfVersion,
     ) = { password: MasterPassword ->

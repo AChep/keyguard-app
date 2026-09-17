@@ -18,23 +18,22 @@ import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingSshAgentDisplayKeyNamesProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingSshAgentDisplayKeyNamesProvider(
-    getSshAgentDisplayKeyNames = directDI.instance(),
-    putSshAgentDisplayKeyNames = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getSshAgentDisplayKeyNames = koinScope.get(),
+    putSshAgentDisplayKeyNames = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingSshAgentDisplayKeyNamesProvider(

@@ -7,8 +7,8 @@ import com.artemchep.keyguard.common.model.FingerprintYubiKey
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterPasswordHash
 import com.artemchep.keyguard.common.model.MasterPasswordSalt
-import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.Files
+import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.SecureKeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.getObject
@@ -17,8 +17,6 @@ import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepositor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -97,12 +95,6 @@ class FingerprintRepositoryImpl(
                     "Current use of ${store::class.simpleName} is probably a mistake."
         }
     }
-
-    constructor(directDI: DirectDI) : this(
-        store = directDI.instance<Files, KeyValueStore>(arg = Files.FINGERPRINT),
-        json = directDI.instance(),
-        base64Service = directDI.instance(),
-    )
 
     override fun put(key: Fingerprint?) = dataPref.setAndCommit(key)
 

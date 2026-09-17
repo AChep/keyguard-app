@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.SshAgentFilter
+import com.artemchep.keyguard.common.model.testCipherFilterContext
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
@@ -18,6 +19,10 @@ import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.util.Base64
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -25,12 +30,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.kodein.di.DI
-import org.kodein.di.direct
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SshAgentPublicKeySyncerImplTest {
@@ -189,7 +188,7 @@ class SshAgentPublicKeySyncerImplTest {
         filter: Flow<SshAgentFilter>,
         defaultDispatcher: CoroutineDispatcher,
     ) = SshAgentPublicKeySyncerImpl(
-        directDI = DI {}.direct,
+        filterContext = testCipherFilterContext(),
         getCiphers = object : GetCiphers {
             override fun invoke(): Flow<List<DSecret>> = ciphers
         },

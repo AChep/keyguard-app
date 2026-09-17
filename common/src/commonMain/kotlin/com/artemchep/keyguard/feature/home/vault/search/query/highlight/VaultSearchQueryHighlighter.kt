@@ -3,17 +3,15 @@ package com.artemchep.keyguard.feature.home.vault.search.query.highlight
 import androidx.compose.runtime.Immutable
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.search.query.VaultSearchQualifierCatalog
-import com.artemchep.keyguard.feature.home.vault.search.query.defaultVaultSearchQualifierCatalog
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultQueryClauseSemanticKind
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.semanticKindForHighlight
+import com.artemchep.keyguard.feature.home.vault.search.query.defaultVaultSearchQualifierCatalog
 import com.artemchep.keyguard.feature.home.vault.search.query.model.ClauseNode
 import com.artemchep.keyguard.feature.home.vault.search.query.model.NegatedNode
 import com.artemchep.keyguard.feature.home.vault.search.query.model.QualifiedTermNode
 import com.artemchep.keyguard.feature.home.vault.search.query.model.QueryValueNode
 import com.artemchep.keyguard.feature.home.vault.search.query.model.SourceSpan
 import com.artemchep.keyguard.feature.home.vault.search.query.parser.VaultSearchParser
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 @Immutable
 data class QueryHighlighting(
@@ -60,9 +58,6 @@ interface VaultSearchQueryHighlighter {
 class DefaultVaultSearchQueryHighlighter(
     private val parser: VaultSearchParser,
 ) : VaultSearchQueryHighlighter {
-    constructor(directDI: DirectDI) : this(
-        parser = directDI.instance(),
-    )
 
     override fun highlight(
         query: String,

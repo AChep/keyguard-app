@@ -6,6 +6,7 @@ import com.artemchep.keyguard.android.CompanionAuthActivity
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.di.resolveOrCancel
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccount
@@ -20,8 +21,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -29,9 +30,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.direct
-import org.kodein.di.instance
 
 internal class CompanionAuthCoordinatorAndroid(
     private val application: Application,
@@ -45,16 +43,6 @@ internal class CompanionAuthCoordinatorAndroid(
     private val pendingKeePassTransfers = mutableMapOf<String, PendingKeePassTransfer>()
     private val pendingKeePassTransfersMutex = Mutex()
     private val receiverSessionMutex = Mutex()
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        application = directDI.instance(),
-        json = directDI.instance(),
-        transport = directDI.instance(),
-        security = directDI.instance(),
-        getVaultSession = directDI.instance(),
-    )
 
     fun phoneAvailabilityFlow(): Flow<Boolean> =
         transport.phoneAvailabilityFlow()
@@ -904,7 +892,7 @@ internal class CompanionAuthCoordinatorAndroid(
         val session = getVaultSession.valueOrNull ?: getVaultSession().first()
         val keySession = session as? MasterSession.Key
             ?: error("A vault session is required to import a companion account.")
-        return keySession.di.direct.instance()
+        return keySession.session.resolveOrCancel { get() }
     }
 
     private fun encode(

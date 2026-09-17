@@ -1,48 +1,48 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
+import org.koin.core.scope.Scope
 
 actual fun settingAutofillProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = flowOf(null)
 
 actual fun settingClipboardNotificationSettingsProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = flowOf(null)
 
 actual fun settingCredentialProviderProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = flowOf(null)
 
 actual fun settingEmitTotpProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = flowOf(null)
 
 actual fun settingPermissionDetailsProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = flowOf(null)
 
 actual fun settingPermissionCameraProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = flowOf(null)
 
 actual fun settingPermissionOtherProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = flowOf(null)
 
 actual fun settingPermissionPostNotificationsProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = flowOf(null)
 
 actual fun settingPermissionWriteExternalStorageProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = flowOf(null)
 
 actual fun settingSubscriptionsPlayStoreProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = flowOf(null)
 
 actual fun settingYubiKeyUnlockProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = flowOf(null)

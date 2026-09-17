@@ -37,16 +37,14 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.platform.util.isRelease
+import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Duration
-import kotlin.time.Instant
 
 /**
  * @author Artem Chepurnyi
@@ -596,12 +594,6 @@ class SettingsRepositoryImpl(
             versionLogPref,
         )
     }
-
-    constructor(directDI: DirectDI) : this(
-        store = directDI.instance<Files, KeyValueStore>(arg = Files.SETTINGS),
-        json = directDI.instance(),
-        base64Service = directDI.instance(),
-    )
 
     override fun getPrefs(
         includeInternalPrefs: Boolean,

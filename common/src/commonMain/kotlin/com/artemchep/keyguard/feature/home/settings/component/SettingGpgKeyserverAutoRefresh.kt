@@ -18,22 +18,21 @@ import com.artemchep.keyguard.common.usecase.PutGpgKeyserverAutoRefresh
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.coroutines.flow.combine
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingGpgKeyserverAutoRefreshProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingGpgKeyserverAutoRefreshProvider(
-    getGpgKeyserverAutoRefresh = directDI.instance(),
-    getGpgKeyserverLastRefresh = directDI.instance(),
-    putGpgKeyserverAutoRefresh = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getGpgKeyserverAutoRefresh = koinScope.get(),
+    getGpgKeyserverLastRefresh = koinScope.get(),
+    putGpgKeyserverAutoRefresh = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingGpgKeyserverAutoRefreshProvider(

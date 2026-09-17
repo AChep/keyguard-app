@@ -32,15 +32,15 @@ import com.artemchep.keyguard.common.usecase.GetThemeExpressive
 import com.artemchep.keyguard.common.usecase.GetThemeUseAmoledDark
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.theme.hasDarkThemeEnabled
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.m3.dynamicColorScheme
+import kotlin.Boolean
 import kotlinx.coroutines.flow.combine
 import org.jetbrains.compose.resources.Font
-import org.kodein.di.compose.rememberInstance
-import kotlin.Boolean
+import org.koin.compose.koinInject
 
 val ColorScheme.selectedContainer
     @ReadOnlyComposable
@@ -260,7 +260,7 @@ val robotoMonoFontFamily: FontFamily
 val robotoSansFontFamily: FontFamily
     @Composable
     get() {
-        val getFont by rememberInstance<GetFont>()
+        val getFont = koinInject<GetFont>()
         val font = remember(getFont) {
             getFont()
         }.collectAsState(null)
@@ -272,7 +272,6 @@ val robotoSansFontFamily: FontFamily
         }
         return FontFamily(Font(res))
     }
-
 
 @Composable
 fun KeyguardTheme(
@@ -320,7 +319,7 @@ fun KeyguardTheme(
         )
     }
 
-    val getFont by rememberInstance<GetFont>()
+    val getFont = koinInject<GetFont>()
     val font = remember(getFont) {
         getFont()
     }.collectAsState(null)
@@ -384,10 +383,10 @@ data class ThemeConfig(
 
 @Composable
 fun rememberThemeConfigState(): State<ThemeConfig> {
-    val getTheme by rememberInstance<GetTheme>()
-    val getThemeUseAmoledDark by rememberInstance<GetThemeUseAmoledDark>()
-    val getThemeExpressive by rememberInstance<GetThemeExpressive>()
-    val getColors by rememberInstance<GetColors>()
+    val getTheme = koinInject<GetTheme>()
+    val getThemeUseAmoledDark = koinInject<GetThemeUseAmoledDark>()
+    val getThemeExpressive = koinInject<GetThemeExpressive>()
+    val getColors = koinInject<GetColors>()
     return remember(
         getTheme,
         getThemeUseAmoledDark,

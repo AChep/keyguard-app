@@ -12,19 +12,18 @@ import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasBrowser
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import org.jetbrains.compose.resources.stringResource
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingUseExternalBrowserProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingUseExternalBrowserProvider(
-    getUseExternalBrowser = directDI.instance(),
-    putUseExternalBrowser = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getUseExternalBrowser = koinScope.get(),
+    putUseExternalBrowser = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingUseExternalBrowserProvider(

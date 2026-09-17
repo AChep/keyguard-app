@@ -28,6 +28,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.nullable
 import com.artemchep.keyguard.common.model.AccountTask
 import com.artemchep.keyguard.common.model.AutofillTarget
+import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DSecret
@@ -38,6 +39,8 @@ import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
+import com.artemchep.keyguard.common.service.filter.AddCipherFilter
+import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.usecase.CipherToolbox
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.DateFormatter
@@ -119,8 +122,8 @@ import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ContextItemBuilder
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.buildContextItems
@@ -151,10 +154,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @LeParcelize
 data class ScrollPositionState(
@@ -207,50 +207,56 @@ internal fun vaultListScreenState(
     highlightBackgroundColor: Color,
     highlightContentColor: Color,
     mode: AppMode,
-): VaultListState = with(localDI().direct) {
+): VaultListState = with(currentKoinScope()) {
     vaultListScreenState(
-        directDI = this,
+        filterContext = get(),
+        addCipherFilter = get(),
+        confirmationRouteFactory = get(),
+        getCipherFilters = get(),
         args = args,
         highlightBackgroundColor = highlightBackgroundColor,
         highlightContentColor = highlightContentColor,
         mode = mode,
-        deeplinkService = instance(),
-        clearVaultSession = instance(),
-        equivalentDomainsBuilderFactory = instance(),
-        getSuggestions = instance(),
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getCanWrite = instance(),
-        getCiphers = instance(),
-        getFolders = instance(),
-        getTags = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
-        getVaultSearchIndex = instance(),
-        getVaultSearchQualifierCatalog = instance(),
-        searchTraceSink = instance(),
-        queryHighlighter = instance(),
-        getTotpCode = instance(),
-        getConcealFields = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        getPasswordStrength = instance(),
-        getCipherOpenedHistory = instance(),
-        passkeyTargetCheck = instance(),
-        renameFolderById = instance(),
-        toolbox = instance(),
-        queueSyncAll = instance(),
-        syncSupervisor = instance(),
-        dateFormatter = instance(),
-        clipboardService = instance(),
-        bitwardenLoginRouteFactory = instance(),
-        passkeysCredentialViewRouteFactory = instance(),
+        deeplinkService = get(),
+        clearVaultSession = get(),
+        equivalentDomainsBuilderFactory = get(),
+        getSuggestions = get(),
+        getAccounts = get(),
+        getProfiles = get(),
+        getCanWrite = get(),
+        getCiphers = get(),
+        getFolders = get(),
+        getTags = get(),
+        getCollections = get(),
+        getOrganizations = get(),
+        getVaultSearchIndex = get(),
+        getVaultSearchQualifierCatalog = get(),
+        searchTraceSink = get(),
+        queryHighlighter = get(),
+        getTotpCode = get(),
+        getConcealFields = get(),
+        getAppIcons = get(),
+        getWebsiteIcons = get(),
+        getPasswordStrength = get(),
+        getCipherOpenedHistory = get(),
+        passkeyTargetCheck = get(),
+        renameFolderById = get(),
+        toolbox = get(),
+        queueSyncAll = get(),
+        syncSupervisor = get(),
+        dateFormatter = get(),
+        clipboardService = get(),
+        bitwardenLoginRouteFactory = get(),
+        passkeysCredentialViewRouteFactory = get(),
     )
 }
 
 @Composable
 internal fun vaultListScreenState(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    addCipherFilter: AddCipherFilter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    getCipherFilters: GetCipherFilters,
     args: VaultRoute.Args,
     highlightBackgroundColor: Color,
     highlightContentColor: Color,
@@ -298,7 +304,10 @@ internal fun vaultListScreenState(
     ),
 ) {
     vaultListScreenStateProducer(
-        directDI = directDI,
+        filterContext = filterContext,
+        addCipherFilter = addCipherFilter,
+        confirmationRouteFactory = confirmationRouteFactory,
+        getCipherFilters = getCipherFilters,
         args = args,
         highlightBackgroundColor = highlightBackgroundColor,
         highlightContentColor = highlightContentColor,
@@ -337,55 +346,11 @@ internal fun vaultListScreenState(
     )
 }
 
-suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
-    directDI: DirectDI,
-    args: VaultRoute.Args,
-    highlightBackgroundColor: Color,
-    highlightContentColor: Color,
-    mode: AppMode,
-): Flow<VaultListState> = with(directDI) {
-    vaultListScreenStateProducer(
-        directDI = directDI,
-        args = args,
-        highlightBackgroundColor = highlightBackgroundColor,
-        highlightContentColor = highlightContentColor,
-        mode = mode,
-        deeplinkService = instance(),
-        clearVaultSession = instance(),
-        equivalentDomainsBuilderFactory = instance(),
-        getSuggestions = instance(),
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getCanWrite = instance(),
-        getCiphers = instance(),
-        getFolders = instance(),
-        getTags = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
-        getVaultSearchIndex = instance(),
-        getVaultSearchQualifierCatalog = instance(),
-        searchTraceSink = instance(),
-        queryHighlighter = instance(),
-        getTotpCode = instance(),
-        getConcealFields = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        getPasswordStrength = instance(),
-        getCipherOpenedHistory = instance(),
-        passkeyTargetCheck = instance(),
-        renameFolderById = instance(),
-        toolbox = instance(),
-        queueSyncAll = instance(),
-        syncSupervisor = instance(),
-        dateFormatter = instance(),
-        clipboardService = instance(),
-        bitwardenLoginRouteFactory = instance(),
-        passkeysCredentialViewRouteFactory = instance(),
-    )
-}
-
 internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    addCipherFilter: AddCipherFilter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    getCipherFilters: GetCipherFilters,
     args: VaultRoute.Args,
     highlightBackgroundColor: Color,
     highlightContentColor: Color,
@@ -422,7 +387,6 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
     bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
     passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
 ): Flow<VaultListState> {
-    val confirmationRouteFactory: ConfirmationRouteFactory = directDI.instance()
     // Start all repository-backed session sources before the disk restore. The
     // hub invokes each use case once and owns replay only for this screen/session
     // scope, so the persisted-state read can overlap repository readiness.
@@ -750,7 +714,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
     var scrollPositionKey: Any? = null
     val scrollPositionSink = mutablePersistedFlow<ScrollPositionState>("scroll_state") { ScrollPositionState() }
 
-    val filterResult = createFilter(directDI)
+    val filterResult = createFilter(addCipherFilter, confirmationRouteFactory)
     val actionsFlow = kotlin.run {
         val actionArchiveItem = FlatItemAction(
             id = "vaultList.archive",
@@ -1275,7 +1239,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                 .run {
                     if (args.filter != null) {
                         val ciphers = map { it.source }
-                        val predicate = args.filter.prepare(directDI, ciphers)
+                        val predicate = args.filter.prepare(filterContext, ciphers)
                         this
                             .filter { predicate(it.source) }
                     } else {
@@ -1301,7 +1265,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
 
     val autofillTarget = mode.autofillTarget
     val ciphersFilteredStateFlow = createFilteredCiphersFlow(
-        directDI = directDI,
+        filterContext = filterContext,
         ciphersFlow = ciphersFlow,
         orderFlow = sortSink,
         filterFlow = filterResult.filterFlow,
@@ -1405,7 +1369,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         .take(1)
         .flatMapLatest {
             createFilterItemsFlow(
-                directDI = directDI,
+                getCipherFilters = getCipherFilters,
                 outputGetter = { it.source },
                 outputFlow = ciphersFilteredFlow
                     .map { state ->
@@ -1817,7 +1781,7 @@ private data class Preferences(
 )
 
 private fun createFilteredCiphersFlow(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
     ciphersFlow: Flow<List<VaultItem2.Item>>,
     orderFlow: Flow<ComparatorHolder>,
     filterFlow: Flow<FilterHolder>,
@@ -1901,14 +1865,14 @@ private fun createFilteredCiphersFlow(
             .list
             .run {
                 val ciphers = map { it.source }
-                val predicate = filterConfig.filter.prepare(directDI, ciphers)
+                val predicate = filterConfig.filter.prepare(filterContext, ciphers)
                 filter { predicate(it.source) }
             }
         val filteredPreferredItems = state
             .preferredList
             ?.run {
                 val ciphers = map { it.source }
-                val predicate = filterConfig.filter.prepare(directDI, ciphers)
+                val predicate = filterConfig.filter.prepare(filterContext, ciphers)
                 filter { predicate(it.source) }
             }
         state.copy(

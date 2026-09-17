@@ -20,33 +20,32 @@ import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.format
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Duration
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingRequireMasterPasswordProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingRequireMasterPasswordProvider(
-    fingerprintReadRepository = directDI.instance(),
-    biometricStatusUseCase = directDI.instance(),
-    getBiometricTimeout = directDI.instance(),
-    getBiometricTimeoutVariants = directDI.instance(),
-    putBiometricTimeout = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
-    context = directDI.instance(),
+    fingerprintReadRepository = koinScope.get(),
+    biometricStatusUseCase = koinScope.get(),
+    getBiometricTimeout = koinScope.get(),
+    getBiometricTimeoutVariants = koinScope.get(),
+    putBiometricTimeout = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
+    context = koinScope.get(),
 )
 
 fun settingRequireMasterPasswordProvider(

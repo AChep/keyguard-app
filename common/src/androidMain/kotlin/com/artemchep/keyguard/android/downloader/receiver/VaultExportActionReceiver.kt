@@ -8,9 +8,8 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import org.kodein.di.android.closestDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import com.artemchep.keyguard.di.keyguardKoin
+import com.artemchep.keyguard.di.resolve
 
 class VaultExportActionReceiver : BroadcastReceiver() {
     companion object {
@@ -47,20 +46,20 @@ class VaultExportActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
             ?: return
-        val di by closestDI { context }
+        val koin = (context ).keyguardKoin()
         when {
             action.endsWith(ACTION_VAULT_EXPORT_CANCEL) -> {
                 val exportId = intent.extras?.getString(KEY_EXPORT_ID)
                     ?: return
-                val windowCoroutineScope: WindowCoroutineScope by di.instance()
+                val windowCoroutineScope: WindowCoroutineScope by lazy { koin.get() }
 
                 // Try to get the export manager from
                 // a current session.
                 val exportManager: ExportManager = kotlin.run {
-                    val getSession: GetVaultSession = di.direct.instance()
+                    val getSession: GetVaultSession = koin.get()
                     val s = getSession.valueOrNull as? MasterSession.Key
                         ?: return@run null
-                    s.di.direct.instance()
+                    s.session.resolve { get<ExportManager>() }
                 } ?: return
                 exportManager.cancel(exportId)
             }

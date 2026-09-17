@@ -30,8 +30,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.runningReduce
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetPurchasedImpl(
     private val context: Context,
@@ -43,16 +41,6 @@ class GetPurchasedImpl(
     private val putCachePremium: PutCachePremium,
     private val windowCoroutineScope: WindowCoroutineScope,
 ) : GetPurchased {
-    constructor(directDI: DirectDI) : this(
-        context = directDI.instance(),
-        config = directDI.instance(),
-        subscriptionService = directDI.instance(),
-        getLicensePremium = directDI.instance(),
-        getDebugPremium = directDI.instance(),
-        getCachePremium = directDI.instance(),
-        putCachePremium = directDI.instance(),
-        windowCoroutineScope = directDI.instance(),
-    )
 
     private val sharedFlow = merge(
         upstreamStatusFlow(),

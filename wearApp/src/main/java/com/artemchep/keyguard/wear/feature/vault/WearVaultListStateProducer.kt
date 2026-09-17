@@ -8,11 +8,14 @@ import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.nullable
+import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
+import com.artemchep.keyguard.common.service.filter.AddCipherFilter
+import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetAppIcons
@@ -33,14 +36,15 @@ import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.screen.ComparatorHolder
-import com.artemchep.keyguard.feature.home.vault.screen.ScrollPositionState
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.OurFilterResult
+import com.artemchep.keyguard.feature.home.vault.screen.ScrollPositionState
 import com.artemchep.keyguard.feature.home.vault.screen.VaultListState
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
 import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
@@ -77,42 +81,45 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 internal fun wearVaultListScreenState(
     args: VaultRoute.Args,
-): WearVaultListState = with(localDI().direct) {
+): WearVaultListState = with(currentKoinScope()) {
     wearVaultListScreenState(
-        directDI = this,
+        filterContext = get(),
+        addCipherFilter = get(),
+        confirmationRouteFactory = get(),
+        getCipherFilters = get(),
         args = args,
-        deeplinkService = instance(),
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getCanWrite = instance(),
-        getCiphers = instance(),
-        getFolders = instance(),
-        getTags = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
-        getTotpCode = instance(),
-        getConcealFields = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        passkeyTargetCheck = instance(),
-        syncSupervisor = instance(),
-        dateFormatter = instance(),
-        clipboardService = instance(),
-        passkeysCredentialViewRouteFactory = instance(),
+        deeplinkService = get(),
+        getAccounts = get(),
+        getProfiles = get(),
+        getCanWrite = get(),
+        getCiphers = get(),
+        getFolders = get(),
+        getTags = get(),
+        getCollections = get(),
+        getOrganizations = get(),
+        getTotpCode = get(),
+        getConcealFields = get(),
+        getAppIcons = get(),
+        getWebsiteIcons = get(),
+        passkeyTargetCheck = get(),
+        syncSupervisor = get(),
+        dateFormatter = get(),
+        clipboardService = get(),
+        passkeysCredentialViewRouteFactory = get(),
     )
 }
 
 @Composable
 internal fun wearVaultListScreenState(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    addCipherFilter: AddCipherFilter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    getCipherFilters: GetCipherFilters,
     args: VaultRoute.Args,
     deeplinkService: DeeplinkService,
     getAccounts: GetAccounts,
@@ -233,7 +240,7 @@ internal fun wearVaultListScreenState(
     var scrollPositionKey: Any? = null
     val scrollPositionSink = mutablePersistedFlow<ScrollPositionState>("scroll_state") { ScrollPositionState() }
 
-    val filterResult = createFilter(directDI)
+    val filterResult = createFilter(addCipherFilter, confirmationRouteFactory)
 
     data class ConfigMapper(
         val concealFields: Boolean,
@@ -362,7 +369,7 @@ internal fun wearVaultListScreenState(
                     val filter = args.filter
                     if (filter != null) {
                         val ciphers = map { it.source }
-                        val predicate = filter.prepare(directDI, ciphers)
+                        val predicate = filter.prepare(filterContext, ciphers)
                         this
                             .filter { predicate(it.source) }
                     } else {
@@ -383,7 +390,7 @@ internal fun wearVaultListScreenState(
     )
 
     val ciphersFilteredStateFlow = createFilteredCiphersFlow(
-        directDI = directDI,
+        filterContext = filterContext,
         ciphersFlow = ciphersFlow,
         orderFlow = sortSink,
         filterFlow = filterResult.filterFlow,
@@ -465,7 +472,7 @@ internal fun wearVaultListScreenState(
         null
     }
     val filterListFlow = createFilterItemsFlow(
-        directDI = directDI,
+        getCipherFilters = getCipherFilters,
         outputGetter = { it.source },
         outputFlow = ciphersFilteredFlow
             .map { state ->
@@ -639,7 +646,7 @@ private data class FilteredList<T>(
 )
 
 private fun createFilteredCiphersFlow(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
     ciphersFlow: Flow<List<VaultItem2.Item>>,
     orderFlow: Flow<ComparatorHolder>,
     filterFlow: Flow<FilterHolder>,
@@ -695,7 +702,7 @@ private fun createFilteredCiphersFlow(
             .list
             .run {
                 val ciphers = map { it.source }
-                val predicate = filterConfig.filter.prepare(directDI, ciphers)
+                val predicate = filterConfig.filter.prepare(filterContext, ciphers)
                 filter { predicate(it.source) }
             }
         state.copy(

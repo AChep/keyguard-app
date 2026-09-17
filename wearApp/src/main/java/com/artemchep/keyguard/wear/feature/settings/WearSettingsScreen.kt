@@ -16,8 +16,8 @@ import com.artemchep.keyguard.feature.home.settings.accounts.accountListScreenSt
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountItem
 import com.artemchep.keyguard.feature.home.settings.autofill.AutofillSettingsRouteFactory
 import com.artemchep.keyguard.feature.home.settings.display.UiSettingsRouteFactory
-import com.artemchep.keyguard.feature.home.settings.rememberSettingsRouteListItems
 import com.artemchep.keyguard.feature.home.settings.other.OtherSettingsRouteFactory
+import com.artemchep.keyguard.feature.home.settings.rememberSettingsRouteListItems
 import com.artemchep.keyguard.feature.home.settings.security.SecuritySettingsRouteFactory
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -30,17 +30,17 @@ import com.artemchep.keyguard.res.settings_main_header_title
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.wear.feature.auth.WearLoginMethodRoute
 import com.artemchep.keyguard.wear.ui.WearScaffoldScreen
-import org.jetbrains.compose.resources.stringResource
 import kotlin.getValue
-import org.kodein.di.compose.rememberInstance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 @Composable
 fun WearSettingsScreen() {
     val controller by rememberUpdatedState(LocalNavigationController.current)
-    val autofillSettingsRouteFactory by rememberInstance<AutofillSettingsRouteFactory>()
-    val securitySettingsRouteFactory by rememberInstance<SecuritySettingsRouteFactory>()
-    val uiSettingsRouteFactory by rememberInstance<UiSettingsRouteFactory>()
-    val otherSettingsRouteFactory by rememberInstance<OtherSettingsRouteFactory>()
+    val autofillSettingsRouteFactory = koinInject<AutofillSettingsRouteFactory>()
+    val securitySettingsRouteFactory = koinInject<SecuritySettingsRouteFactory>()
+    val uiSettingsRouteFactory = koinInject<UiSettingsRouteFactory>()
+    val otherSettingsRouteFactory = koinInject<OtherSettingsRouteFactory>()
 
     val accountListStateWrapper = accountListScreenState(
         rootRouterName = null,

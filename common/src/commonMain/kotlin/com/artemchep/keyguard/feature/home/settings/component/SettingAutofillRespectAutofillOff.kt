@@ -14,21 +14,20 @@ import com.artemchep.keyguard.common.usecase.GetAutofillRespectAutofillOff
 import com.artemchep.keyguard.common.usecase.PutAutofillRespectAutofillOff
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingAutofillRespectAutofillOffProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingAutofillRespectAutofillOffProvider(
-    getAutofillRespectAutofillOff = directDI.instance(),
-    putAutofillRespectAutofillOff = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getAutofillRespectAutofillOff = koinScope.get(),
+    putAutofillRespectAutofillOff = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingAutofillRespectAutofillOffProvider(

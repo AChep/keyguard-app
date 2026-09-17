@@ -9,9 +9,9 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.cipherlink.CipherLinkFields
 import com.artemchep.keyguard.common.service.export.JsonExportService
 import com.artemchep.keyguard.common.service.export.entity.CollectionExportEntity
-import com.artemchep.keyguard.common.service.export.entity.ItemFieldExportEntity
 import com.artemchep.keyguard.common.service.export.entity.FolderExportEntity
 import com.artemchep.keyguard.common.service.export.entity.ItemCardExportEntity
+import com.artemchep.keyguard.common.service.export.entity.ItemFieldExportEntity
 import com.artemchep.keyguard.common.service.export.entity.ItemIdentityExportEntity
 import com.artemchep.keyguard.common.service.export.entity.ItemLoginExportEntity
 import com.artemchep.keyguard.common.service.export.entity.ItemLoginFido2CredentialsExportEntity
@@ -37,18 +37,10 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class JsonExportServiceImpl(
     private val json: Json,
 ) : JsonExportService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        json = directDI.instance(),
-    )
-
     override fun export(
         organizations: List<DOrganization>,
         collections: List<DCollection>,

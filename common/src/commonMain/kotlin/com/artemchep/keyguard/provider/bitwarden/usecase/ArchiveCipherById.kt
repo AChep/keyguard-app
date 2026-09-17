@@ -8,8 +8,6 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.archivedDate
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
 import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -24,10 +22,6 @@ class ArchiveCipherByIdImpl(
         // archive functionality under the paywall lock.
         private const val RESPECT_BW_ARCHIVE_PREMIUM_GATE = false
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyCipherById = directDI.instance(),
-    )
 
     override fun invoke(
         cipherIds: Set<String>,

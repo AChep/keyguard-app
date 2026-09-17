@@ -26,8 +26,8 @@ import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
 import com.artemchep.keyguard.feature.search.search.mapListShape
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
@@ -45,23 +45,21 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun vaultViewPasswordHistoryScreenState(
     itemId: String,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     vaultViewPasswordHistoryScreenState(
-        getCanWrite = instance(),
-        getAccounts = instance(),
-        getCiphers = instance(),
-        cipherRemovePasswordHistory = instance(),
-        cipherRemovePasswordHistoryById = instance(),
-        clipboardService = instance(),
-        dateFormatter = instance(),
-        confirmationRouteFactory = instance(),
+        getCanWrite = get(),
+        getAccounts = get(),
+        getCiphers = get(),
+        cipherRemovePasswordHistory = get(),
+        cipherRemovePasswordHistoryById = get(),
+        clipboardService = get(),
+        dateFormatter = get(),
+        confirmationRouteFactory = get(),
         itemId = itemId,
     )
 }

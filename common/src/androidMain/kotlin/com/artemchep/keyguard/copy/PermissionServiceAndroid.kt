@@ -19,8 +19,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class PermissionServiceAndroid(
     private val context: Context,
@@ -30,12 +28,6 @@ class PermissionServiceAndroid(
     }
 
     private val refreshSink = EventFlow<Unit>()
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance<Application>(),
-    )
 
     override fun getState(
         permission: Permission,

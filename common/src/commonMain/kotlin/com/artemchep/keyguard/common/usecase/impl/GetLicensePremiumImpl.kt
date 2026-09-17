@@ -4,11 +4,9 @@ import com.artemchep.keyguard.common.service.licensekey.model.isCurrentlyLicense
 import com.artemchep.keyguard.common.usecase.GetLicenseEntitlement
 import com.artemchep.keyguard.common.usecase.GetLicensePremium
 import com.artemchep.keyguard.common.util.flowOfTime
+import kotlin.time.DurationUnit
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.DurationUnit
 
 class GetLicensePremiumImpl(
     private val getLicenseEntitlement: GetLicenseEntitlement,
@@ -23,10 +21,6 @@ class GetLicensePremiumImpl(
         entitlement?.isCurrentlyLicensed(now = now)
             ?: false
     }
-
-    constructor(directDI: DirectDI) : this(
-        getLicenseEntitlement = directDI.instance(),
-    )
 
     override fun invoke(): Flow<Boolean> = premiumFlow
 }

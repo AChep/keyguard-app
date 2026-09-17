@@ -15,27 +15,25 @@ import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.util.webdav.resolveWebDavResourceUrl
 import com.artemchep.keyguard.util.webdav.webDavRelativePathOrNull
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceWebDavSettingsState(
     route: WebDavSettingsRoute,
     transmitter: RouteResultTransmitter<WebDavSettingsResult>,
-): WebDavSettingsState = with(localDI().direct) {
+): WebDavSettingsState = with(currentKoinScope()) {
     produceWebDavSettingsState(
         route = route,
         transmitter = transmitter,
-        checkWebDavConnection = instance(),
+        checkWebDavConnection = get(),
     )
 }
 

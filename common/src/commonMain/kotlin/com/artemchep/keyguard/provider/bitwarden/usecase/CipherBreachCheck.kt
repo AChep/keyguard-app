@@ -3,15 +3,13 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.usecase.CipherBreachCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -42,10 +40,6 @@ class CipherBreachCheckImpl(
         "Private messages",
         "Purchases",
         "Security questions and answers",
-    )
-
-    constructor(directDI: DirectDI) : this(
-        cipherUrlCheck = directDI.instance(),
     )
 
     override fun invoke(

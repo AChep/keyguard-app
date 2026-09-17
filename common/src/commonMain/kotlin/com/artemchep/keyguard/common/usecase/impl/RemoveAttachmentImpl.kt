@@ -6,8 +6,6 @@ import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.RemoveAttachmentRequest
 import com.artemchep.keyguard.common.service.download.DownloadService
 import com.artemchep.keyguard.common.usecase.RemoveAttachment
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -18,10 +16,6 @@ class RemoveAttachmentImpl(
     companion object {
         private const val THREAD_BUCKET_SIZE = 10
     }
-
-    constructor(directDI: DirectDI) : this(
-        downloadService = directDI.instance(),
-    )
 
     override fun invoke(
         requests: List<RemoveAttachmentRequest>,

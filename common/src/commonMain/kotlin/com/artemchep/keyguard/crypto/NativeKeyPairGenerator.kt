@@ -10,18 +10,10 @@ import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeSshKeyMaterial
 import com.artemchep.keyguard.nativecrypto.NativeSshKeyType
 import com.artemchep.keyguard.platform.util.isRelease
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class NativeKeyPairGenerator(
     private val base64Service: Base64Service,
 ) : KeyPairGenerator {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        base64Service = directDI.instance(),
-    )
-
     override fun ed25519(): KeyParameterRawZero = NativeCrypto.ssh
         .generate(type = NativeSshKeyType.ED25519)
         .toDomain()

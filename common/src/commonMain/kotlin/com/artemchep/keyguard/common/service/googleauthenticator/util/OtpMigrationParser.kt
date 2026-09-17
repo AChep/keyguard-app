@@ -7,18 +7,10 @@ import io.ktor.http.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class OtpMigrationParser(
     private val base64Service: Base64Service,
 ) {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        base64Service = directDI.instance(),
-    )
-
     fun parse(
         uri: String,
     ): Either<Throwable, OtpAuthMigrationData> = Either.catch {

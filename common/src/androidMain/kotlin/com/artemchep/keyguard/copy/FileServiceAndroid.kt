@@ -19,8 +19,6 @@ import kotlinx.io.Source
 import kotlinx.io.asSink
 import kotlinx.io.asSource
 import kotlinx.io.buffered
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class FileServiceAndroid(
     private val context: Context,
@@ -31,12 +29,6 @@ class FileServiceAndroid(
         // providers may or may not truncate for that mode.
         private const val WRITE_MODE_TRUNCATE = "wt"
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance<Application>(),
-    )
 
     override fun exists(uri: String): Boolean {
         val parsedUri = uri.toUri()

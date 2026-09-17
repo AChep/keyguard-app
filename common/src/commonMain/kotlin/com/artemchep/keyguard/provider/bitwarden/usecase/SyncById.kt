@@ -8,8 +8,6 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.usecase.SyncById
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByToken
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -21,11 +19,6 @@ class SyncByIdImpl(
     companion object {
         private const val TAG = "SyncById"
     }
-
-    constructor(directDI: DirectDI) : this(
-        tokenRepository = directDI.instance(),
-        syncByToken = directDI.instance(),
-    )
 
     // Queued work must see newly added, updated, or removed accounts even if
     // the repository's shared list still has a cached snapshot.

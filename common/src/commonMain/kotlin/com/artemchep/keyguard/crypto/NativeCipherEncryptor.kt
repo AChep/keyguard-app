@@ -9,20 +9,11 @@ import com.artemchep.keyguard.nativecrypto.NativeRsaOaepHash
 import com.artemchep.keyguard.provider.bitwarden.crypto.AsymmetricCryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.DecodeResult
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class NativeCipherEncryptor(
     private val cryptoGenerator: CryptoGenerator,
     private val base64Service: Base64Service,
 ) : CipherEncryptor {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-    )
-
     override fun decode2(
         cipher: String,
         symmetricCryptoKey: SymmetricCryptoKey2?,

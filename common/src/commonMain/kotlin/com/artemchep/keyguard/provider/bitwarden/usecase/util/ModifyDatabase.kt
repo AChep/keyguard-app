@@ -7,17 +7,15 @@ import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AccountId
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetWriteAccess
 import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.premium
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.data.Database
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.combine
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -46,14 +44,6 @@ class ModifyDatabase(
             )
         }
     }
-
-    constructor(directDI: DirectDI) : this(
-        db = directDI.instance(),
-        getCanWrite = directDI.instance(),
-        getWriteAccess = directDI.instance(),
-        queueSyncById = directDI.instance(),
-        markBackupAsDirty = directDI.instance(),
-    )
 
     operator fun <T> invoke(
         block: suspend (Database) -> Result<T>,

@@ -41,7 +41,7 @@ import com.artemchep.keyguard.common.model.LinkInfoAndroid
 import com.artemchep.keyguard.common.model.LinkInfoPlatform
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
-import com.artemchep.keyguard.ui.icons.FaviconIcon
+import com.artemchep.keyguard.copy.AndroidLinkInfoExtractorRegistry
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.keyguard.AppRoute
 import com.artemchep.keyguard.feature.navigation.NavigationNode
@@ -49,9 +49,9 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.composable
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import org.kodein.di.allInstances
-import org.kodein.di.compose.rememberDI
+import org.koin.compose.koinInject
 
 @Composable
 fun AutofillScaffold(
@@ -191,9 +191,7 @@ private fun AppInfoWeb(
 private fun AppInfoAndroid(
     packageName: String,
 ) {
-    val linkInfoExtractors: List<LinkInfoExtractor<LinkInfoPlatform.Android, LinkInfoAndroid>> by rememberDI {
-        allInstances()
-    }
+    val linkInfoExtractors = koinInject<AndroidLinkInfoExtractorRegistry>().values
 
     var state by remember(packageName) {
         mutableStateOf<Loadable<AppInfoData>>(Loadable.Loading)

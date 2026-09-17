@@ -34,8 +34,6 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DownloadManagerImpl(
@@ -76,18 +74,6 @@ class DownloadManagerImpl(
     private val activeScopesMutex = Mutex()
 
     private val activeScopesByDownloadId = mutableMapOf<String, CoroutineScope>()
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        windowCoroutineScope = directDI.instance(),
-        downloadRepository = directDI.instance(),
-        sourceLoader = directDI.instance(),
-        downloadFileStore = directDI.instance(),
-        downloadBackgroundScheduler = directDI.instance(),
-        base64Service = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-    )
 
     override fun statusByDownloadId2(downloadId: String): Flow<DownloadProgress> = progressById
         .map { state -> state[downloadId] }

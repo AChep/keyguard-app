@@ -5,6 +5,7 @@ plugins {
     id("keyguard.license-policy")
     id("keyguard.crypto-dependency-check")
     id("keyguard.quality")
+    id("keyguard.koin")
     alias(libs.plugins.android.application)
     id("keyguard.android-application")
     alias(libs.plugins.compose)
@@ -16,6 +17,11 @@ plugins {
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.baseline.profile)
     id("keyguard.resources-common") apply false
+}
+
+// Application roots always revalidate the assembled dependency graph.
+koinCompiler {
+    strictSafety.set(true)
 }
 
 val versionInfo = createVersionInfo(
@@ -65,6 +71,9 @@ androidComponents {
 }
 
 dependencies {
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose)
     implementation(project(":common"))
     implementation(project(":feature:android-ipc-android"))
     implementation(project(":feature:qr-scanner-android"))

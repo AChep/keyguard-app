@@ -16,17 +16,15 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Instant
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Clock
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Instant
 
 /**
  * Creates backup snapshots from exported vault data,
@@ -43,20 +41,6 @@ class BackupRunner(
     private val downloadAttachmentMetadata: DownloadAttachmentMetadata,
     private val diagnostics: BackupDiagnostics = BackupDiagnostics.NoOp,
 ) {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        exportVaultDataService = directDI.instance(),
-        backupRepository = directDI.instance(),
-        backupObjectStoreFactory = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-        dateFormatter = directDI.instance(),
-        downloadSourceLoader = directDI.instance(),
-        downloadAttachmentMetadata = directDI.instance(),
-        diagnostics = BackupDiagnostics(logRepository = directDI.instance<LogRepository>()),
-    )
-
     private val mutex = Mutex()
 
     suspend fun run(

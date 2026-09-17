@@ -7,8 +7,6 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.SyncAll
 import kotlinx.coroutines.GlobalScope
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -19,10 +17,6 @@ class QueueSyncAllImpl(
     companion object {
         private const val TAG = "QueueSyncById.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        syncAll = directDI.instance(),
-    )
 
     override fun invoke(): IO<Unit> = ioEffect {
         syncAll()

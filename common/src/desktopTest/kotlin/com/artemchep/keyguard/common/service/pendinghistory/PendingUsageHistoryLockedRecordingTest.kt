@@ -15,22 +15,23 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorImpl
+import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindowNoOp
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowNoOp
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.crypto.NativeGpgAgentCrypto
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 
 /**
  * The agent request processors cannot reach the usage-history tables
@@ -148,6 +149,7 @@ class PendingUsageHistoryLockedRecordingTest {
     private fun TestScope.createGpgProcessor(
         approve: suspend () -> Boolean,
     ) = GpgAgentRequestProcessorImpl(
+        sessionAccess = testDomainSessionAccess(),
         logRepository = NoOpLogRepository,
         crypto = NativeGpgAgentCrypto,
         getVaultSession = LockedGetVaultSession,
@@ -164,6 +166,7 @@ class PendingUsageHistoryLockedRecordingTest {
     private fun TestScope.createSshProcessor(
         approve: suspend () -> Boolean,
     ) = SshAgentRequestProcessorImpl(
+        sessionAccess = testDomainSessionAccess(),
         logRepository = NoOpLogRepository,
         getVaultSession = LockedGetVaultSession,
         getSshAgentApprovalWindow = GetSshAgentApprovalWindowNoOp,

@@ -17,8 +17,6 @@ import com.artemchep.keyguard.common.service.credentialexchange.CredentialExchan
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.platform.LeContext
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * Runs the Android 15+/GMS "Transfer passwords & passkeys" flow in the
@@ -32,12 +30,6 @@ class CredentialExchangeImportTransportAndroid(
     companion object {
         private const val TAG = "CredentialExchangeImportTransport"
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        logRepository = directDI.instance(),
-    )
 
     override suspend fun importCredentials(
         context: LeContext,

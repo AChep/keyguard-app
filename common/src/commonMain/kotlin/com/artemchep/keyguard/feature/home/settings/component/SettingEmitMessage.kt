@@ -7,15 +7,14 @@ import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
-import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.flow.flowOf
+import org.koin.core.scope.Scope
 
 fun settingEmitMessageProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingEmitMessageProvider(
-    showMessage = directDI.instance(),
+    showMessage = koinScope.get(),
 )
 
 fun settingEmitMessageProvider(

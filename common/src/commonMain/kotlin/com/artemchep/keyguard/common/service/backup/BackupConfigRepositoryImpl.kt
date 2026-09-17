@@ -7,6 +7,8 @@ import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.VaultSettingsKeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.getSerializable
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -14,10 +16,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Clock
-import kotlin.time.Instant
 
 class BackupConfigRepositoryImpl(
     store: KeyValueStore,
@@ -27,13 +25,6 @@ class BackupConfigRepositoryImpl(
         private const val KEY_CONFIG = "backup.config"
         private const val KEY_STATUS = "backup.status"
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        store = directDI.instance<VaultSettingsKeyValueStore>(),
-        json = directDI.instance(),
-    )
 
     private val config: KeyValuePreference<BackupConfig> = store.getSerializable(
         json = json,

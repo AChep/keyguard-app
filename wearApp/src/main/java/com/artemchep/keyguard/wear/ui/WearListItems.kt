@@ -25,13 +25,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumnItemScope
-import androidx.wear.compose.material3.LocalTextStyle
 import androidx.wear.compose.material3.Card
 import androidx.wear.compose.material3.CardDefaults
 import androidx.wear.compose.material3.FilledTonalButton
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.ListSubHeader
 import androidx.wear.compose.material3.LocalContentColor
+import androidx.wear.compose.material3.LocalTextStyle
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.SurfaceTransformation
@@ -127,7 +127,6 @@ fun WearListCard(
         )
     }
 }
-
 
 @Composable
 internal fun WearListAction(
@@ -325,7 +324,6 @@ fun WearListEmpty(
         )
     }
 }
-
 
 @Composable
 fun WearContextAction(

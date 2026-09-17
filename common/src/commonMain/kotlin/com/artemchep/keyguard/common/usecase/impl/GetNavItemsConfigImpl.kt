@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.usecase.impl
 
-import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.NavItemRef
 import com.artemchep.keyguard.common.model.NavItemsConfig
@@ -17,20 +17,18 @@ import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.feature.home.navigation.applyHomeNavigationAvailability
 import com.artemchep.keyguard.feature.home.navigation.normalizeHomeNavigationConfig
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.runningReduce
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetNavItemsConfigImpl(
     private val getAccounts: GetAccounts,
@@ -74,15 +72,6 @@ class GetNavItemsConfigImpl(
         getCachedConfig = settingsReadRepository::getCacheNavItemsConfig,
         putCachedConfig = settingsReadWriteRepository::setCacheNavItemsConfig,
         windowCoroutineScope = windowCoroutineScope,
-    )
-
-    constructor(directDI: DirectDI) : this(
-        getAccounts = directDI.instance(),
-        getProfiles = directDI.instance(),
-        getCiphers = directDI.instance(),
-        settingsReadRepository = directDI.instance(),
-        settingsReadWriteRepository = directDI.instance(),
-        windowCoroutineScope = directDI.instance(),
     )
 
     override fun invoke() = sharedFlow

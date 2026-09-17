@@ -10,8 +10,6 @@ import com.artemchep.keyguard.common.model.CheckPasswordLeakRequest
 import com.artemchep.keyguard.common.service.hibp.passwords.PasswordPwnageRepository
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -20,11 +18,6 @@ class CheckPasswordLeakImpl(
     private val passwordPwnageRepository: PasswordPwnageRepository,
     private val getCheckPwnedPasswords: GetCheckPwnedPasswords,
 ) : CheckPasswordLeak {
-    constructor(directDI: DirectDI) : this(
-        passwordPwnageRepository = directDI.instance(),
-        getCheckPwnedPasswords = directDI.instance(),
-    )
-
     override fun invoke(
         request: CheckPasswordLeakRequest,
     ): IO<Int> = getCheckPwnedPasswords()

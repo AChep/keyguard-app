@@ -3,7 +3,18 @@ package com.artemchep.keyguard.common.service.agent
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.service.vault.testVaultSession
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
+import kotlin.time.TestTimeSource
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -11,17 +22,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import org.kodein.di.DI
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
-import kotlin.time.TestTimeSource
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Suppress("TooManyFunctions")
@@ -346,7 +346,7 @@ class AgentApprovalWindowMemoryTest {
             version = MasterKdfVersion.LATEST,
             byteArray = byteArrayOf(1, 2, 3),
         ),
-        di = DI {},
+        session = testVaultSession {},
         origin = MasterSession.Key.Authenticated,
         createdAt = Instant.parse("2024-01-01T00:00:00Z"),
     )

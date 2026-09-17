@@ -5,18 +5,11 @@ import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepositor
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.PutAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.premium
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class PutAutofillSaveUriImpl(
     private val settingsReadWriteRepository: SettingsReadWriteRepository,
     private val getCanWrite: GetCanWrite,
 ) : PutAutofillSaveUri {
-    constructor(directDI: DirectDI) : this(
-        settingsReadWriteRepository = directDI.instance(),
-        getCanWrite = directDI.instance(),
-    )
-
     override fun invoke(saveUri: Boolean): IO<Unit> = settingsReadWriteRepository
         .setAutofillSaveUri(saveUri)
         .premium(

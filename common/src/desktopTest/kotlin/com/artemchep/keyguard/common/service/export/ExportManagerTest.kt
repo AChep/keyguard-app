@@ -1,50 +1,26 @@
 package com.artemchep.keyguard.common.service.export
 
-import com.artemchep.keyguard.common.io.ioEffect
 import arrow.core.right
+import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
-import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLoader
-import com.artemchep.keyguard.common.service.download.DownloadWriter
-import com.artemchep.keyguard.common.service.download.writeBytes
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
-import kotlin.time.Instant
-import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.dirs.DirsService
+import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLoader
 import com.artemchep.keyguard.common.service.download.DownloadProgress
+import com.artemchep.keyguard.common.service.download.DownloadWriter
 import com.artemchep.keyguard.common.service.download.awaitCompleteResult
+import com.artemchep.keyguard.common.service.download.writeBytes
 import com.artemchep.keyguard.common.service.export.impl.ExportManagerBase
 import com.artemchep.keyguard.common.service.export.model.ExportRequest
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.util.zip.ZipReader
 import com.artemchep.keyguard.util.zip.createZipService
 import java.lang.reflect.Proxy
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.toSet
-import kotlinx.io.Buffer
-import kotlinx.io.Sink
-import kotlinx.io.readByteArray
-import kotlinx.io.readString
-import org.kodein.di.DI
-import org.kodein.di.direct
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -54,6 +30,28 @@ import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlin.time.Duration
+import kotlin.time.Instant
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.io.Buffer
+import kotlinx.io.Sink
+import kotlinx.io.readByteArray
+import kotlinx.io.readString
 
 class ExportManagerTest {
     @Test
@@ -219,7 +217,6 @@ class ExportManagerTest {
     ): ExportManagerBase {
         val lockerScope = CoroutineScope(window.coroutineContext)
         return ExportManagerBase(
-            directDI = DI {}.direct,
             windowCoroutineScope = window,
             cryptoGenerator = stub<CryptoGenerator> { "export" },
             exportVaultDataService = object : ExportVaultDataService {

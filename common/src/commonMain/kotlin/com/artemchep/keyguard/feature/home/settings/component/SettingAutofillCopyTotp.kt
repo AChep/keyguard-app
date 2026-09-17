@@ -17,21 +17,20 @@ import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatItemTextContent
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingAutofillCopyTotpProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingAutofillCopyTotpProvider(
-    getAutofillCopyTotp = directDI.instance(),
-    putAutofillCopyTotp = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getAutofillCopyTotp = koinScope.get(),
+    putAutofillCopyTotp = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingAutofillCopyTotpProvider(

@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AccountBox
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AlternateEmail
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Domain
@@ -58,25 +58,26 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.model.isExpensive
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
-import com.artemchep.keyguard.common.usecase.GpgKeyExport
-import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
-import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
-import com.artemchep.keyguard.common.usecase.KeyPairExport
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
-import com.artemchep.keyguard.common.usecase.KeyPrivateExport
-import com.artemchep.keyguard.common.usecase.KeyPublicExport
+import com.artemchep.keyguard.common.service.relays.EmailRelayRegistry
 import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.AddGeneratorHistory
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetCanWrite
-import com.artemchep.keyguard.common.usecase.GetWordlists
 import com.artemchep.keyguard.common.usecase.GetEmailRelays
 import com.artemchep.keyguard.common.usecase.GetPassword
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
+import com.artemchep.keyguard.common.usecase.GetWordlists
+import com.artemchep.keyguard.common.usecase.GpgKeyExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
+import com.artemchep.keyguard.common.usecase.KeyPairExport
+import com.artemchep.keyguard.common.usecase.KeyPrivateExport
+import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
@@ -116,8 +117,8 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.generatorTarget
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemLayout
@@ -126,14 +127,15 @@ import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardIcons
 import com.artemchep.keyguard.ui.icons.KeyguardWordlist
-import com.artemchep.keyguard.ui.icons.icon
-import com.artemchep.keyguard.ui.icons.iconSmall
 import com.artemchep.keyguard.ui.icons.custom.FormatLetterCaseLower
 import com.artemchep.keyguard.ui.icons.custom.FormatLetterCaseUpper
 import com.artemchep.keyguard.ui.icons.custom.Numeric
 import com.artemchep.keyguard.ui.icons.custom.Symbol
+import com.artemchep.keyguard.ui.icons.icon
+import com.artemchep.keyguard.ui.icons.iconSmall
 import com.artemchep.keyguard.ui.theme.isDark
 import io.ktor.http.URLBuilder
+import kotlin.time.Clock
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -162,12 +164,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
-import com.artemchep.keyguard.platform.leAllInstances
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
+import org.koin.compose.currentKoinScope
 
 private const val TIP_VISIBLE = true
 
@@ -230,31 +227,31 @@ fun produceGeneratorState(
     mode: AppMode,
     args: GeneratorRoute.Args,
     key: String? = null,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceGeneratorState(
         mode = mode,
         args = args,
         key = key,
-        addGeneratorHistory = instanceOrNull(),
-        getPassword = instance(),
-        getPasswordStrength = instance(),
-        getProfiles = instanceOrNull(),
-        getEmailRelays = instanceOrNull(),
-        getWordlists = instanceOrNull(),
-        getWordlistPrimitive = instanceOrNull(),
-        cryptoGenerator = instance(),
-        keyPairExport = instance(),
-        publicKeyExport = instance(),
-        privateKeyExport = instance(),
-        gpgKeyExport = instance(),
-        gpgPublicKeyExport = instance(),
-        gpgPrivateKeyExport = instance(),
-        numberFormatter = instance(),
-        dateFormatter = instance(),
-        getCanWrite = instance(),
-        tldService = instance(),
-        clipboardService = instance(),
-        emailRelays = leAllInstances(),
+        addGeneratorHistory = getOrNull(),
+        getPassword = get(),
+        getPasswordStrength = get(),
+        getProfiles = getOrNull(),
+        getEmailRelays = getOrNull(),
+        getWordlists = getOrNull(),
+        getWordlistPrimitive = getOrNull(),
+        cryptoGenerator = get(),
+        keyPairExport = get(),
+        publicKeyExport = get(),
+        privateKeyExport = get(),
+        gpgKeyExport = get(),
+        gpgPublicKeyExport = get(),
+        gpgPrivateKeyExport = get(),
+        numberFormatter = get(),
+        dateFormatter = get(),
+        getCanWrite = get(),
+        tldService = get(),
+        clipboardService = get(),
+        emailRelays = get<EmailRelayRegistry>().values,
     )
 }
 

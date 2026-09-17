@@ -8,7 +8,6 @@ import com.artemchep.keyguard.common.service.placeholder.util.Parser
 import com.artemchep.keyguard.common.util.toHex
 import io.ktor.http.URLDecodeException
 import io.ktor.http.decodeURLQueryComponent
-import org.kodein.di.DirectDI
 import kotlin.io.encoding.Base64
 
 class TextTransformPlaceholder(
@@ -85,13 +84,7 @@ class TextTransformPlaceholder(
         throw IllegalArgumentException(e.message, e)
     }
 
-    class Factory(
-    ) : Placeholder.Factory {
-        constructor(
-            directDI: DirectDI,
-        ) : this(
-        )
-
+    class Factory : Placeholder.Factory {
         override fun createOrNull(
             scope: PlaceholderScope,
         ) = TextTransformPlaceholder()

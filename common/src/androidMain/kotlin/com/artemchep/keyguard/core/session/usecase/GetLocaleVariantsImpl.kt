@@ -8,10 +8,8 @@ import com.artemchep.keyguard.common.usecase.GetLocaleVariants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import org.kodein.di.DirectDI
 
-class GetLocaleVariantsAndroid() : GetLocaleVariants {
-    constructor(directDI: DirectDI) : this()
+class GetLocaleVariantsAndroid : GetLocaleVariants {
 
     private val sharedFlow = ioEffect(Dispatchers.Main) {
         val locales = mutableListOf<String?>()

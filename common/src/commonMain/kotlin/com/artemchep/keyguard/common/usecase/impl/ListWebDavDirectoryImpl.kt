@@ -8,8 +8,6 @@ import com.artemchep.keyguard.common.service.webdav.toWebDavAuthorization
 import com.artemchep.keyguard.common.usecase.ListWebDavDirectory
 import com.artemchep.keyguard.util.webdav.WebDavClientConfig
 import io.ktor.client.HttpClient
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class ListWebDavDirectoryImpl internal constructor(
     private val clientFactory: WebDavClientFactory,
@@ -18,12 +16,6 @@ class ListWebDavDirectoryImpl internal constructor(
         httpClient: HttpClient,
     ) : this(
         clientFactory = KtorWebDavClientFactory(httpClient),
-    )
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        httpClient = directDI.instance(),
     )
 
     override fun invoke(

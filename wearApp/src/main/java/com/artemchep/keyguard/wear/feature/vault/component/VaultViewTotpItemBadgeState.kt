@@ -27,16 +27,16 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material3.Card
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.LocalContentColor
@@ -61,13 +61,13 @@ import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.totp.formatCode2
 import com.artemchep.keyguard.ui.totp.remainingProgressAt
 import com.artemchep.keyguard.wear.ui.ProxyMaterial3Styles
+import kotlin.math.roundToInt
+import kotlin.time.Clock
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
-import kotlin.math.roundToInt
-import kotlin.time.Clock
+import org.koin.compose.koinInject
 
 private sealed interface VaultViewTotpCodeState {
     data object Loading : VaultViewTotpCodeState
@@ -424,7 +424,7 @@ private fun rememberTotpCodeState(
     totpToken: TotpToken,
     offset: Int = 0,
 ): VaultViewTotpState {
-    val getTotpCode by rememberInstance<GetTotpCodeWithOffset>()
+    val getTotpCode = koinInject<GetTotpCodeWithOffset>()
     val codeState = remember(totpToken, offset) {
         mutableStateOf<VaultViewTotpCodeState?>(VaultViewTotpCodeState.Loading)
     }

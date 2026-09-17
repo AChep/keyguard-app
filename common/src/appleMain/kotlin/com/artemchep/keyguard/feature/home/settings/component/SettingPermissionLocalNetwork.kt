@@ -1,8 +1,8 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
+import org.koin.core.scope.Scope
 
 actual fun settingPermissionLocalNetworkProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = flowOf(null)

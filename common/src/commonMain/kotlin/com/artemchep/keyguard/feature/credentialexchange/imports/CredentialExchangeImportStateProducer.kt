@@ -43,10 +43,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.StringResource
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
+import org.koin.compose.currentKoinScope
 
 /**
  * The CXF credential types requested from the source provider: everything the
@@ -61,18 +58,18 @@ internal const val CREDENTIAL_EXCHANGE_IMPORT_DOCS_URL =
 @Composable
 fun produceCredentialExchangeImportScreenState(
     args: CredentialExchangeImportRoute.Args,
-): Loadable<CredentialExchangeImportState> = with(localDI().direct) {
+): Loadable<CredentialExchangeImportState> = with(currentKoinScope()) {
     produceCredentialExchangeImportScreenState(
         args = args,
-        resolveFolderHierarchyMode = instance(),
-        getProfiles = instance(),
-        cxfImportService = instance(),
-        addFolder = instance(),
-        addCipher = instance(),
-        cryptoGenerator = instance(),
-        transport = instanceOrNull(),
-        dirsService = instance(),
-        dateFormatter = instance(),
+        resolveFolderHierarchyMode = get(),
+        getProfiles = get(),
+        cxfImportService = get(),
+        addFolder = get(),
+        addCipher = get(),
+        cryptoGenerator = get(),
+        transport = getOrNull(),
+        dirsService = get(),
+        dateFormatter = get(),
     )
 }
 
@@ -133,7 +130,7 @@ internal sealed interface Step {
         val selectedItemIndexes: Set<Int> = plan.items.indices.toSet(),
         val importing: Boolean = false,
     ) : Step {
-        // Derived once per step instance instead of on every state emission —
+        // Derived once per step get instead of on every state emission —
         // the plan is immutable while the review sits on screen. This matters more
         // for the rows than for the counts: a document can carry thousands of items.
         val selectedPlan = plan.selectItems(selectedItemIndexes)

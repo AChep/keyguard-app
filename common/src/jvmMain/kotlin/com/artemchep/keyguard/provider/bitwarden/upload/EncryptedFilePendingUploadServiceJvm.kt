@@ -23,6 +23,12 @@ import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
 import com.artemchep.keyguard.util.io.lastModifiedMillis
 import com.artemchep.keyguard.util.io.spool.buildSnapshot
 import com.artemchep.keyguard.util.io.toLocalPath
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
@@ -30,14 +36,6 @@ import kotlinx.io.Source
 import kotlinx.io.asSource
 import kotlinx.io.buffered
 import kotlinx.io.readByteArray
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.LinkOption
-import kotlin.time.Clock
-import kotlin.time.Duration
-import kotlin.time.Instant
 
 class EncryptedFilePendingUploadServiceJvm internal constructor(
     private val dirProvider: PendingUploadDirProvider,
@@ -52,14 +50,6 @@ class EncryptedFilePendingUploadServiceJvm internal constructor(
         Unit
     },
 ) : EncryptedFilePendingUploadService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        dirProvider = directDI.instance(),
-        fileService = directDI.instance(),
-        fileEncryptionCodec = directDI.instance(),
-        stagingSpoolFactory = directDI.instance(),
-    )
 
     override suspend fun stage(
         accountId: String,

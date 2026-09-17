@@ -17,6 +17,9 @@ import com.artemchep.keyguard.feature.filepicker.AndroidFileDropStorage
 import com.artemchep.keyguard.util.io.artifact.isReservedTemporaryArtifactName
 import com.artemchep.keyguard.util.io.artifact.sweepTemporaryArtifacts
 import com.artemchep.keyguard.util.io.toLocalPath
+import java.io.File
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -27,11 +30,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import java.io.File
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
 
 /**
  * @author Artem Chepurnyi
@@ -40,10 +38,6 @@ class CleanUpDownloadImpl(
     private val downloadRepository: DownloadRepository,
     private val getCiphers: GetCiphers,
 ) {
-    constructor(directDI: DirectDI) : this(
-        downloadRepository = directDI.instance(),
-        getCiphers = directDI.instance(),
-    )
 
     fun invoke(): IO<Unit> = ioEffect {
         val urls = getCiphers()
@@ -113,12 +107,6 @@ class CleanUpAttachmentImpl(
 //                .launchIn(scope)
         }
     }
-
-    constructor(directDI: DirectDI) : this(
-        context = directDI.instance<Application>(),
-        logRepository = directDI.instance(),
-        downloadRepository = directDI.instance(),
-    )
 
     override fun invoke(): IO<Int> = ioEffect(Dispatchers.IO) {
         val dir = DownloadFileStoreAndroid.getDir(context)

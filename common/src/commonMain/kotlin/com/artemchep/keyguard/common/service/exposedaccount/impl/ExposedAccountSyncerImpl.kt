@@ -18,8 +18,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class ExposedAccountSyncerImpl(
     private val getProfiles: GetProfiles,
@@ -30,14 +28,6 @@ class ExposedAccountSyncerImpl(
     companion object {
         private const val TAG = "ExposedAccountSyncer"
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        getProfiles = directDI.instance(),
-        exposedAccountRepository = directDI.instance(),
-        logRepository = directDI.instance(),
-    )
 
     override fun launch(scope: CoroutineScope): Job = scope.launch {
         val syncStateFlow = getProfiles()

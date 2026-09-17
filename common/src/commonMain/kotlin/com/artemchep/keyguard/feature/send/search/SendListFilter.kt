@@ -15,8 +15,8 @@ import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.DSendFilter
 import com.artemchep.keyguard.common.model.DSendFilterPresence
-import com.artemchep.keyguard.common.model.existsIn
 import com.artemchep.keyguard.common.model.displayName
+import com.artemchep.keyguard.common.model.existsIn
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
@@ -24,8 +24,8 @@ import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.send.search.filter.FilterSendHolder
 import com.artemchep.keyguard.feature.send.search.filter.SendFilterItem
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.AccentColors
 import com.artemchep.keyguard.ui.icons.IconBox
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +36,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import org.kodein.di.DirectDI
 
 private fun <T, R> mapCiphers(
     flow: Flow<List<T>>,
@@ -119,7 +118,6 @@ suspend fun <
         Output : Any,
         Secret,
         > RememberStateFlowScope.createFilterItemsFlow(
-    directDI: DirectDI,
     outputGetter: (Output) -> DSend,
     outputFlow: Flow<List<Output>>,
     profileFlow: Flow<List<DProfile>>,

@@ -9,17 +9,15 @@ import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceTwoFaServiceViewState(
     args: TwoFaServiceViewDialogRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceTwoFaServiceViewState(
         args = args,
-        twoFaService = instance(),
+        twoFaService = get(),
     )
 }
 

@@ -31,8 +31,8 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -50,9 +50,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 private class WordlistListUiException(
     msg: String,
@@ -61,14 +59,14 @@ private class WordlistListUiException(
 
 @Composable
 fun produceWordlistListState(
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceWordlistListState(
-        addWordlist = instance(),
-        editWordlist = instance(),
-        removeWordlistById = instance(),
-        getWordlists = instance(),
-        numberFormatter = instance(),
-        confirmationRouteFactory = instance(),
+        addWordlist = get(),
+        editWordlist = get(),
+        removeWordlistById = get(),
+        getWordlists = get(),
+        numberFormatter = get(),
+        confirmationRouteFactory = get(),
     )
 }
 

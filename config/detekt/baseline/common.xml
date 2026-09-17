@@ -239,7 +239,7 @@
     <ID>EmptyFunctionBlock:Theme.kt:{ }</ID>
     <ID>EmptyFunctionBlock:UploadAttachmentManager.kt:UploadAttachmentManager${ }</ID>
     <ID>EmptyFunctionBlock:WordlistViewStateProducer.kt:{ }</ID>
-    <ID>EmptyFunctionBlock:createSubDi.kt:AppleUnsupportedExportManager${ }</ID>
+    <ID>EmptyFunctionBlock:PlatformVaultModule.kt:AppleUnsupportedExportManager${ }</ID>
     <ID>EmptyFunctionBlock:recordException.kt:{ }</ID>
     <ID>EmptyKotlinFile:ContextItem.kt:com.artemchep.keyguard.ui.items.ContextItem.kt</ID>
     <ID>EmptyKotlinFile:LeAddRoute.kt:com.artemchep.keyguard.feature.home.vault.add.LeAddRoute.kt</ID>
@@ -369,7 +369,7 @@
     <ID>LargeClass:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest</ID>
     <ID>LargeClass:KeePassCipherCodec.kt:KeePassCipherCodec</ID>
     <ID>LargeClass:KeePassTotpCodec.kt:KeePassTotpCodec</ID>
-    <ID>LargeClass:KeyguardAutofillService.kt:KeyguardAutofillService : AutofillServiceDIAware</ID>
+    <ID>LargeClass:KeyguardAutofillService.kt:KeyguardAutofillService : AutofillServiceKeyguardKoinOwner</ID>
     <ID>LargeClass:PasskeyUtilsTest.kt:PasskeyUtilsTest</ID>
     <ID>LargeClass:SendSyncOps.kt:SendSyncOps : EntitySyncOps</ID>
     <ID>LargeClass:SendUtil.kt:SendUtil</ID>
@@ -750,7 +750,6 @@
     <ID>LongMethod:SshAgentTcpProxyBridge.kt:internal suspend fun runSshAgentProxyBridge</ID>
     <ID>LongMethod:SshAgentTcpProxySocketConnector.kt:internal suspend fun &lt;T&gt; withAndroidSshAgentProxySocket: T</ID>
     <ID>LongMethod:SshRequestActivity.kt:SshRequestActivity$@Composable override fun Content</ID>
-    <ID>LongMethod:SubDI.kt:fun DI.Builder.createSubDi2</ID>
     <ID>LongMethod:SubscriptionServiceAndroid.kt:SubscriptionServiceAndroid$override fun subscriptions: Flow&lt;List&lt;Subscription&gt;?&gt;</ID>
     <ID>LongMethod:SyncByBitwardenTokenV2Impl.kt:SyncByBitwardenTokenV2Impl$context(syncScope: SyncScope) private suspend fun syncV2</ID>
     <ID>LongMethod:SyncByBitwardenTokenV2Impl.kt:SyncByBitwardenTokenV2Impl$override fun invoke: IO&lt;Unit&gt;</ID>
@@ -1960,7 +1959,7 @@
     <ID>ReturnCount:WebAuthnRegistrableDomain.kt:internal suspend fun isWebAuthnRegistrableDomain: Boolean</ID>
     <ID>ReturnCount:WebAuthnRelatedOrigins.kt:WebAuthnRelatedOrigins$private suspend fun relatedOriginLabel: String?</ID>
     <ID>ReturnCount:WindowsNamedPipe.kt:WindowsNamedPipeConnection$fun read: Int</ID>
-    <ID>ReturnCount:createSubDi.kt:DatabaseSqlManagerInFileApple$private fun isPlaintextSqliteDatabaseFile: Boolean</ID>
+    <ID>ReturnCount:PlatformVaultModule.kt:DatabaseSqlManagerInFileApple$private fun isPlaintextSqliteDatabaseFile: Boolean</ID>
     <ID>ReturnCount:getHttpCode.kt:fun Throwable.getHttpCode: Int</ID>
     <ID>ReturnCount:screenFlow.kt:private fun Context.isScreenOn: Boolean</ID>
     <ID>ThrowsCount:AgentIpcPeerVerification.kt:UnixLibC$fun macosPeerCredentials: UnixAgentPeerCredentials</ID>
@@ -2076,7 +2075,7 @@
     <ID>TooGenericExceptionCaught:WindowScreenshotProtectionEffect.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:WindowsNamedPipe.kt:WindowsNamedPipeServer$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:WindowsOwnerOnlySecurity.kt:WindowsOwnerOnlySecurityAttributes.Companion$error: Throwable</ID>
-    <ID>TooGenericExceptionCaught:createSubDi.kt:DatabaseSqlManagerInFileApple$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:PlatformVaultModule.kt:DatabaseSqlManagerInFileApple$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:http.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:http.kt:f: Exception</ID>
     <ID>TooManyFunctions:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest</ID>
@@ -2094,8 +2093,9 @@
     <ID>TooManyFunctions:BackupDiagnostics.kt:BackupDiagnostics</ID>
     <ID>TooManyFunctions:BackupRepositoryZipImpl.kt:BackupRepositoryZipImpl : BackupRepository</ID>
     <ID>TooManyFunctions:BackupRunner.kt:BackupRunner</ID>
-    <ID>TooManyFunctions:BaseActivity.kt:BaseActivity : AppCompatActivityDIAware</ID>
+    <ID>TooManyFunctions:BaseActivity.kt:BaseActivity : AppCompatActivityKeyguardKoinOwner</ID>
     <ID>TooManyFunctions:BcGpgOpenPgpServiceTestOracle.kt:BcGpgOpenPgpServiceTestOracle : GpgOpenPgpService</ID>
+    <ID>TooManyFunctions:BiometricPromptHostLinuxTest.kt:BiometricPromptHostLinuxTest</ID>
     <ID>TooManyFunctions:BitwardenCrypto.kt:com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrypto.kt</ID>
     <ID>TooManyFunctions:BitwardenCryptoBenchmarkTest.kt:com.artemchep.keyguard.crypto.benchmark.BitwardenCryptoBenchmarkTest.kt</ID>
     <ID>TooManyFunctions:BitwardenLoginScreen.kt:com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginScreen.kt</ID>
@@ -2161,8 +2161,8 @@
     <ID>TooManyFunctions:KeePassTotpCodecTest.kt:KeePassTotpCodecTest</ID>
     <ID>TooManyFunctions:KeePassUrlCodec.kt:KeePassUrlCodec</ID>
     <ID>TooManyFunctions:KeePassWriteBackBuffer.kt:KeePassWriteBackBuffer</ID>
-    <ID>TooManyFunctions:KeyguardAutofillService.kt:KeyguardAutofillService : AutofillServiceDIAware</ID>
-    <ID>TooManyFunctions:KeyguardClipboardService.kt:KeyguardClipboardService : ServiceDIAware</ID>
+    <ID>TooManyFunctions:KeyguardAutofillService.kt:KeyguardAutofillService : AutofillServiceKeyguardKoinOwner</ID>
+    <ID>TooManyFunctions:KeyguardClipboardService.kt:KeyguardClipboardService : ServiceKeyguardKoinOwner</ID>
     <ID>TooManyFunctions:Kg2LicenseKeyDecoderTest.kt:Kg2LicenseKeyDecoderTest</ID>
     <ID>TooManyFunctions:LicenseManagerImpl.kt:LicenseManagerImpl : LicenseManager</ID>
     <ID>TooManyFunctions:LocalFolderBackupObjectStore.kt:LocalFolderBackupObjectStore : BackupObjectStore</ID>
@@ -2187,7 +2187,7 @@
     <ID>TooManyFunctions:SshAgentMessagesTest.kt:SshAgentMessagesTest</ID>
     <ID>TooManyFunctions:SshAgentNotifications.kt:SshAgentNotifications</ID>
     <ID>TooManyFunctions:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest</ID>
-    <ID>TooManyFunctions:SshAgentService.kt:SshAgentService : ServiceDIAware</ID>
+    <ID>TooManyFunctions:SshAgentService.kt:SshAgentService : ServiceKeyguardKoinOwner</ID>
     <ID>TooManyFunctions:SshAgentTcpProxyBridge.kt:com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProxyBridge.kt</ID>
     <ID>TooManyFunctions:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest</ID>
     <ID>TooManyFunctions:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest</ID>
@@ -2267,7 +2267,7 @@
     <ID>UnusedParameter:EmailLeakRoute.kt:EmailLeakRoute.Companion$translator: TranslatorScope</ID>
     <ID>UnusedParameter:EmailRelayListRoute.kt:EmailRelayListRoute$translator: TranslatorScope</ID>
     <ID>UnusedParameter:EquivalentDomainsCrypto.kt:crypto: BitwardenCrCta</ID>
-    <ID>UnusedParameter:EquivalentDomainsStateProducer.kt:directDI: DirectDI</ID>
+    <ID>UnusedParameter:EquivalentDomainsStateProducer.kt:koinScope: Scope</ID>
     <ID>UnusedParameter:GeneratorHistoryStateProducer.kt:clipboardService: ClipboardService</ID>
     <ID>UnusedParameter:GeneratorScreen.kt:modifier: Modifier = Modifier</ID>
     <ID>UnusedParameter:GeneratorStateProducer.kt:clipboardService: ClipboardService</ID>
@@ -2308,7 +2308,7 @@
     <ID>UnusedParameter:SendAddStateProducer.kt:getOrganizations: GetOrganizations</ID>
     <ID>UnusedParameter:SendAddStateProducer.kt:getSends: GetSends</ID>
     <ID>UnusedParameter:SendAddStateProducer.kt:getTotpCode: GetTotpCode</ID>
-    <ID>UnusedParameter:SendListFilter.kt:directDI: DirectDI</ID>
+    <ID>UnusedParameter:SendListFilter.kt:koinScope: Scope</ID>
     <ID>UnusedParameter:SendListItemMapping.kt:appIcons: Boolean</ID>
     <ID>UnusedParameter:SendListItemMapping.kt:copy: CopyText</ID>
     <ID>UnusedParameter:SendListItemMapping.kt:websiteIcons: Boolean</ID>
@@ -2329,27 +2329,27 @@
     <ID>UnusedParameter:SendViewStateProducer.kt:retryCipher: RetryCipher</ID>
     <ID>UnusedParameter:SendViewStateProducer.kt:tfaService: TwoFaService</ID>
     <ID>UnusedParameter:SendViewStateProducer.kt:windowCoroutineScope: WindowCoroutineScope</ID>
-    <ID>UnusedParameter:SettingAboutTelegram.kt:directDI: DirectDI</ID>
+    <ID>UnusedParameter:SettingAboutTelegram.kt:koinScope: Scope</ID>
     <ID>UnusedParameter:SettingAutofill.kt:platformWarning: AutofillPlatformWarning.Miui</ID>
     <ID>UnusedParameter:SettingAutofillBlockUri.kt:windowCoroutineScope: WindowCoroutineScope</ID>
-    <ID>UnusedParameter:SettingCrash.kt:directDI: DirectDI</ID>
-    <ID>UnusedParameter:SettingCrashlytics.kt:directDI: DirectDI</ID>
-    <ID>UnusedParameter:SettingExperimental.kt:directDI: DirectDI</ID>
-    <ID>UnusedParameter:SettingFeedbackApp.kt:directDI: DirectDI</ID>
-    <ID>UnusedParameter:SettingGitHub.kt:directDI: DirectDI</ID>
-    <ID>UnusedParameter:SettingGpgAgentLocalStorageInfo.kt:directDI: DirectDI</ID>
-    <ID>UnusedParameter:SettingGpgAgentSetup.kt:directDI: DirectDI</ID>
-    <ID>UnusedParameter:SettingGpgKeyserverSearch.kt:directDI: DirectDI</ID>
+    <ID>UnusedParameter:SettingCrash.kt:koinScope: Scope</ID>
+    <ID>UnusedParameter:SettingCrashlytics.kt:koinScope: Scope</ID>
+    <ID>UnusedParameter:SettingExperimental.kt:koinScope: Scope</ID>
+    <ID>UnusedParameter:SettingFeedbackApp.kt:koinScope: Scope</ID>
+    <ID>UnusedParameter:SettingGitHub.kt:koinScope: Scope</ID>
+    <ID>UnusedParameter:SettingGpgAgentLocalStorageInfo.kt:koinScope: Scope</ID>
+    <ID>UnusedParameter:SettingGpgAgentSetup.kt:koinScope: Scope</ID>
+    <ID>UnusedParameter:SettingGpgKeyserverSearch.kt:koinScope: Scope</ID>
     <ID>UnusedParameter:SettingGpgSettings.kt:windowCoroutineScope: WindowCoroutineScope</ID>
-    <ID>UnusedParameter:SettingLaunchYubiKey.kt:directDI: DirectDI</ID>
-    <ID>UnusedParameter:SettingLogs.kt:directDI: DirectDI</ID>
-    <ID>UnusedParameter:SettingPrivacyPolicy.kt:directDI: DirectDI</ID>
-    <ID>UnusedParameter:SettingRateApp.kt:directDI: DirectDI</ID>
-    <ID>UnusedParameter:SettingSection.kt:directDI: DirectDI</ID>
-    <ID>UnusedParameter:SettingSshAgentLocalStorageInfo.kt:directDI: DirectDI</ID>
-    <ID>UnusedParameter:SettingSshAgentSetup.kt:directDI: DirectDI</ID>
+    <ID>UnusedParameter:SettingLaunchYubiKey.kt:koinScope: Scope</ID>
+    <ID>UnusedParameter:SettingLogs.kt:koinScope: Scope</ID>
+    <ID>UnusedParameter:SettingPrivacyPolicy.kt:koinScope: Scope</ID>
+    <ID>UnusedParameter:SettingRateApp.kt:koinScope: Scope</ID>
+    <ID>UnusedParameter:SettingSection.kt:koinScope: Scope</ID>
+    <ID>UnusedParameter:SettingSshAgentLocalStorageInfo.kt:koinScope: Scope</ID>
+    <ID>UnusedParameter:SettingSshAgentSetup.kt:koinScope: Scope</ID>
     <ID>UnusedParameter:SettingSshSettings.kt:windowCoroutineScope: WindowCoroutineScope</ID>
-    <ID>UnusedParameter:SettingUrlOverride.kt:directDI: DirectDI</ID>
+    <ID>UnusedParameter:SettingUrlOverride.kt:koinScope: Scope</ID>
     <ID>UnusedParameter:SshAgentGetListContent.kt:onDismiss: () -&gt; Unit</ID>
     <ID>UnusedParameter:SshAgentGetListContent.kt:request: SshAgentGetListRequest</ID>
     <ID>UnusedParameter:SshRequestNotificationActionReceiver.kt:SshRequestNotificationActionReceiver$context: Context</ID>
@@ -2370,7 +2370,7 @@
     <ID>UnusedParameter:VaultRecentStateProducer.kt:clearVaultSession: ClearVaultSession</ID>
     <ID>UnusedParameter:VaultRecentStateProducer.kt:clipboardService: ClipboardService</ID>
     <ID>UnusedParameter:VaultRecentStateProducer.kt:dateFormatter: DateFormatter</ID>
-    <ID>UnusedParameter:VaultRecentStateProducer.kt:directDI: DirectDI</ID>
+    <ID>UnusedParameter:VaultRecentStateProducer.kt:koinScope: Scope</ID>
     <ID>UnusedParameter:VaultRecentStateProducer.kt:getAccounts: GetAccounts</ID>
     <ID>UnusedParameter:VaultRecentStateProducer.kt:getCanWrite: GetCanWrite</ID>
     <ID>UnusedParameter:VaultRecentStateProducer.kt:getCollections: GetCollections</ID>
@@ -2405,11 +2405,9 @@
     <ID>WildcardImport:CredentialGetUnlockActivity.kt:import androidx.compose.foundation.layout.*</ID>
     <ID>WildcardImport:CredentialGetUnlockActivity.kt:import androidx.compose.material3.*</ID>
     <ID>WildcardImport:CredentialGetUnlockActivity.kt:import androidx.compose.runtime.*</ID>
-    <ID>WildcardImport:CredentialGetUnlockActivity.kt:import org.kodein.di.*</ID>
     <ID>WildcardImport:DSecret.kt:import androidx.compose.material.icons.outlined.*</ID>
     <ID>WildcardImport:FileWatcherServiceAndroid.kt:import kotlinx.coroutines.*</ID>
     <ID>WildcardImport:GeneratorActivity.kt:import androidx.compose.runtime.*</ID>
-    <ID>WildcardImport:GeneratorActivity.kt:import org.kodein.di.*</ID>
     <ID>WildcardImport:KeyguardAutofillService.kt:import android.service.autofill.*</ID>
     <ID>WildcardImport:KeyguardAutofillService.kt:import arrow.core.*</ID>
     <ID>WildcardImport:KeyguardAutofillService.kt:import com.artemchep.keyguard.common.io.*</ID>
@@ -2421,11 +2419,9 @@
     <ID>WildcardImport:OtpMigrationParser.kt:import io.ktor.http.*</ID>
     <ID>WildcardImport:PasskeyCreateActivity.kt:import androidx.compose.material3.*</ID>
     <ID>WildcardImport:PasskeyCreateActivity.kt:import androidx.compose.runtime.*</ID>
-    <ID>WildcardImport:PasskeyCreateActivity.kt:import org.kodein.di.*</ID>
     <ID>WildcardImport:PasskeyGetActivity.kt:import androidx.compose.foundation.layout.*</ID>
     <ID>WildcardImport:PasskeyGetActivity.kt:import androidx.compose.material3.*</ID>
     <ID>WildcardImport:PasskeyGetActivity.kt:import androidx.compose.runtime.*</ID>
-    <ID>WildcardImport:PasskeyGetActivity.kt:import org.kodein.di.*</ID>
     <ID>WildcardImport:ReadWordlistFromUrlImpl.kt:import io.ktor.client.*</ID>
     <ID>WildcardImport:ReadWordlistFromUrlImpl.kt:import io.ktor.client.request.*</ID>
     <ID>WildcardImport:ReadWordlistFromUrlImpl.kt:import io.ktor.client.statement.*</ID>

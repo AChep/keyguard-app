@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
@@ -17,7 +18,6 @@ import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.premium
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerTwoFactorToken
@@ -25,8 +25,6 @@ import com.artemchep.keyguard.provider.bitwarden.api.login
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -48,21 +46,6 @@ class AddAccountImpl(
     companion object {
         private const val TAG = "AddAccount.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        getPurchased = directDI.instance(),
-        getAccounts = directDI.instance(),
-        queueSyncById = directDI.instance(),
-        windowCoroutineScope = directDI.instance(),
-        logRepository = directDI.instance(),
-        deviceIdUseCase = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-        httpClient = directDI.instance(),
-        json = directDI.instance(),
-        db = directDI.instance(),
-        markBackupAsDirty = directDI.instance(),
-    )
 
     override fun invoke(
         accountId: String?,

@@ -8,6 +8,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AccountId
+import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSecretDuplicateGroup
@@ -31,9 +32,9 @@ import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
-import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
 import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
@@ -65,8 +66,8 @@ import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.icons.KeyguardFavourite
@@ -83,10 +84,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 private data class ConfigMapper(
     val concealFields: Boolean,
@@ -102,29 +100,29 @@ private data class SelectionData(
 @Composable
 fun produceDuplicatesListState(
     args: DuplicatesRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceDuplicatesListState(
-        directDI = this,
+        filterContext = get(),
         args = args,
-        clipboardService = instance(),
-        getTotpCode = instance(),
-        getConcealFields = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        getOrganizations = instance(),
-        getCollections = instance(),
-        getCiphers = instance(),
-        getProfiles = instance(),
-        getCanWrite = instance(),
-        cipherToolbox = instance(),
-        cipherDuplicatesCheck = instance(),
-        confirmationRouteFactory = instance(),
+        clipboardService = get(),
+        getTotpCode = get(),
+        getConcealFields = get(),
+        getAppIcons = get(),
+        getWebsiteIcons = get(),
+        getOrganizations = get(),
+        getCollections = get(),
+        getCiphers = get(),
+        getProfiles = get(),
+        getCanWrite = get(),
+        cipherToolbox = get(),
+        cipherDuplicatesCheck = get(),
+        confirmationRouteFactory = get(),
     )
 }
 
 @Composable
 fun produceDuplicatesListState(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
     args: DuplicatesRoute.Args,
     clipboardService: ClipboardService,
     getTotpCode: GetTotpCode,
@@ -149,7 +147,7 @@ fun produceDuplicatesListState(
     ),
 ) {
     duplicatesListStateProducer(
-        directDI = directDI,
+        filterContext = filterContext,
         args = args,
         clipboardService = clipboardService,
         getTotpCode = getTotpCode,
@@ -168,7 +166,7 @@ fun produceDuplicatesListState(
 }
 
 suspend fun RememberStateFlowScope.duplicatesListStateProducer(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
     args: DuplicatesRoute.Args,
     clipboardService: ClipboardService,
     getTotpCode: GetTotpCode,
@@ -266,7 +264,7 @@ suspend fun RememberStateFlowScope.duplicatesListStateProducer(
                 .run {
                     val filter = args.filter
                     if (filter != null) {
-                        val predicate = filter.prepare(directDI, ciphers)
+                        val predicate = filter.prepare(filterContext, ciphers)
                         filter(predicate)
                     } else {
                         this

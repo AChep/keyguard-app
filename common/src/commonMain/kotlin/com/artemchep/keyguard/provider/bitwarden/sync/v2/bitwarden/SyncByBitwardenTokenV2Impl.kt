@@ -52,37 +52,34 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.transform
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.ProfileEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SyncEntity
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.CipherSyncOps
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.CollectionSyncOps
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.FolderSyncOps
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.OrganizationSyncOps
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.SendSyncOps
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.CipherSyncStrategy
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.CollectionSyncStrategy
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.FolderSyncStrategy
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.OrganizationSyncStrategy
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.SendSyncStrategy
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.buildFolderIdMappings
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntityTypeOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.LocalItemMeta
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncResult
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.requireCleanForRevisionCache
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.filterByAccountId
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.CipherSyncOps
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.CollectionSyncOps
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.FolderSyncOps
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.OrganizationSyncOps
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.SendSyncOps
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncConfig
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.SyncCoordinator
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.requireFolderSyncCompletedBeforeCiphers
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.CipherSyncStrategy
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.CollectionSyncStrategy
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.FolderSyncStrategy
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.OrganizationSyncStrategy
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.SendSyncStrategy
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByBitwardenToken
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.ensureActive
-import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
 import kotlin.coroutines.coroutineContext
 import kotlin.time.Clock
+import kotlinx.coroutines.ensureActive
+import kotlinx.serialization.json.Json
 
 /**
  * Entity types that can be selectively included in a sync run.
@@ -145,23 +142,6 @@ class SyncByBitwardenTokenV2Impl(
     }
 
     private val diagnostics = BitwardenSyncDiagnostics(logRepository)
-
-    constructor(directDI: DirectDI) : this(
-        logRepository = directDI.instance(),
-        cipherEncryptor = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-        getPasswordStrength = directDI.instance(),
-        gpgKeyMetadataResolver = directDI.instanceOrNull(),
-        json = directDI.instance(),
-        httpClient = directDI.instance(),
-        db = directDI.instance(),
-        dbSyncer = directDI.instance(),
-        pendingUploadCoordinator = directDI.instance(),
-        watchdog = directDI.instance(),
-        markBackupAsDirty = directDI.instance(),
-        gpgCertificateMaterialReconciler = directDI.instance(),
-    )
 
     override fun invoke(user: BitwardenToken): IO<Unit> =
         watchdog

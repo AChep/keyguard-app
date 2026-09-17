@@ -25,21 +25,12 @@ import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlinx.io.readByteArray
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 open class NativeFileEncryptionCodec internal constructor(
     private val cryptoGenerator: CryptoGenerator,
     private val stagingSpoolFactory: StagingSpoolFactory =
         DefaultStagingSpoolFactory(),
 ) : FileEncryptionCodec {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        cryptoGenerator = directDI.instance(),
-        stagingSpoolFactory = directDI.instance(),
-    )
-
     override fun decrypt(
         input: ByteArray,
         key: ByteArray,

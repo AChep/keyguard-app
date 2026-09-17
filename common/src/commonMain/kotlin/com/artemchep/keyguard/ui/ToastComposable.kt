@@ -47,20 +47,20 @@ import com.artemchep.keyguard.feature.navigation.navigationNodeStack
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LocalWindowId
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.ok
 import com.artemchep.keyguard.ui.theme.okContainer
 import com.artemchep.keyguard.ui.theme.onOkContainer
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.kodein.di.compose.rememberInstance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 @Composable
 fun ToastMessageHost(
@@ -103,7 +103,7 @@ fun ToastMessageHost(
         MutableStateFlow(initialState)
     }
 
-    val hub by rememberInstance<MessageHub>()
+    val hub = koinInject<MessageHub>()
     val nav = navigationNodeStack()
     val scope = rememberCoroutineScope()
 
@@ -280,7 +280,7 @@ fun ToastMessage(
             // people from the misery of retyping or screenshotting the
             // error message we add a button to copy the content.
             if (model.type == ToastMessage.Type.ERROR && !CurrentPlatform.hasWatch()) {
-                val clipboardService by rememberInstance<ClipboardService>()
+                val clipboardService = koinInject<ClipboardService>()
                 IconButton(
                     onClick = {
                         val value = listOfNotNull(
@@ -307,7 +307,6 @@ fun ToastMessage(
         }
     }
 }
-
 
 data class ToastMessageRenderDrawable(
     val key: String,

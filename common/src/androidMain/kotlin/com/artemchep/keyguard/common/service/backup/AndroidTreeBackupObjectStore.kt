@@ -10,19 +10,17 @@ import com.artemchep.keyguard.util.io.artifact.TemporaryArtifactRole
 import com.artemchep.keyguard.util.io.artifact.isReservedTemporaryArtifactName
 import com.artemchep.keyguard.util.io.artifact.newTemporaryArtifactName
 import com.artemchep.keyguard.util.io.useBufferedSink
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import kotlin.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
 import kotlinx.io.Source
 import kotlinx.io.asSource
 import kotlinx.io.buffered
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import kotlin.time.Instant
 
 class AndroidTreeBackupObjectStore internal constructor(
     private val documentClient: AndroidTreeDocumentClient,
@@ -803,11 +801,6 @@ private fun AndroidTreeDocumentProviderException.toBackupObjectStoreException(
 class AndroidTreeBackupObjectStoreFactory(
     private val context: Context,
 ) : BackupObjectStoreFactory {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance(),
-    )
 
     override suspend fun open(
         store: BackupStoreConfig,

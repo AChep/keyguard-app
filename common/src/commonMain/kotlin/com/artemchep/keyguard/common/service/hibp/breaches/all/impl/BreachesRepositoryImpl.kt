@@ -15,10 +15,8 @@ import com.artemchep.keyguard.common.service.hibp.breaches.all.model.LocalBreach
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
-import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.random.Random
+import kotlin.time.Clock
 import kotlin.time.Duration
 
 class BreachesRepositoryImpl(
@@ -35,12 +33,6 @@ class BreachesRepositoryImpl(
          */
         private val CACHE_DURATION = with(Duration) { 7.days }
     }
-
-    constructor(directDI: DirectDI) : this(
-        logRepository = directDI.instance(),
-        localDataSource = directDI.instance(),
-        remoteDataSource = directDI.instance(),
-    )
 
     override fun get(
         forceRefresh: Boolean,

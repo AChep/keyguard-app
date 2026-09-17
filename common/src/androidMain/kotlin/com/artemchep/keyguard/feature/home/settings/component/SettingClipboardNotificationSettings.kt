@@ -16,16 +16,16 @@ import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.ChevronIcon
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.rememberInstance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
+import org.koin.core.scope.Scope
 
 actual fun settingClipboardNotificationSettingsProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = settingClipboardNotificationSettingsProvider()
 
 fun settingClipboardNotificationSettingsProvider(
@@ -43,8 +43,8 @@ fun settingClipboardNotificationSettingsProvider(
 @Composable
 fun SettingClipboardNotificationSettings(
 ) {
-    val showMessage by rememberInstance<ShowMessage>()
-    val clipboardService by rememberInstance<ClipboardService>()
+    val showMessage = koinInject<ShowMessage>()
+    val clipboardService = koinInject<ClipboardService>()
 
     val updatedContext by rememberUpdatedState(LocalContext.current)
     LocalSettingPaneComponents.current.KgAction(

@@ -13,6 +13,8 @@ import com.artemchep.keyguard.common.service.keyvalue.RealKeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.VaultSettingsKeyValueStore
 import com.artemchep.keyguard.data.VaultSetting
 import com.artemchep.keyguard.platform.LocalPath
+import kotlin.coroutines.CoroutineContext
+import kotlin.reflect.KClass
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.catch
@@ -20,10 +22,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.coroutines.CoroutineContext
-import kotlin.reflect.KClass
 
 class SqlDelightVaultSettingsKeyValueStore(
     private val databaseManager: VaultDatabaseManager,
@@ -38,13 +36,6 @@ class SqlDelightVaultSettingsKeyValueStore(
         private const val TYPE_LONG = "long"
         private const val TYPE_STRING = "string"
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        databaseManager = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
 
     private class Codec<T : Any>(
         val type: String,

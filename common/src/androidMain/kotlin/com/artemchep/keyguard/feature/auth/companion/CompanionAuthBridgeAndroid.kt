@@ -7,19 +7,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
-class CompanionAuthBridgeAndroid private constructor(
+class CompanionAuthBridgeAndroid internal constructor(
     private val json: Json,
     private val coordinator: CompanionAuthCoordinatorAndroid,
 ) {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        json = directDI.instance(),
-        coordinator = directDI.instance(),
-    )
 
     fun phoneAvailabilityFlow(): Flow<Boolean> =
         coordinator.phoneAvailabilityFlow()

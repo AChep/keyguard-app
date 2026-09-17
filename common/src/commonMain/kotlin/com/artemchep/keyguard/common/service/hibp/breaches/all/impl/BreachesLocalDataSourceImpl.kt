@@ -14,8 +14,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class BreachesLocalDataSourceImpl(
     private val store: KeyValueStore,
@@ -50,12 +48,6 @@ class BreachesLocalDataSourceImpl(
                 }.getOrNull()
             },
         )
-
-    constructor(directDI: DirectDI) : this(
-        store = directDI.instance<Files, KeyValueStore>(arg = Files.BREACHES),
-        json = directDI.instance(),
-        passwordPwnageDataSourceLocal = directDI.instance(),
-    )
 
     override fun put(
         entity: LocalBreachesEntity?,

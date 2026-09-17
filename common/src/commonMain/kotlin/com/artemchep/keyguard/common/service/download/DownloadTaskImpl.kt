@@ -25,8 +25,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
 import kotlinx.io.buffered
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 @Suppress("TooGenericExceptionCaught")
 class DownloadTaskImpl internal constructor(
@@ -35,14 +33,6 @@ class DownloadTaskImpl internal constructor(
     private val stagingSpoolFactory: StagingSpoolFactory =
         DefaultStagingSpoolFactory(),
 ) : DownloadTask {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        httpClient = directDI.instance(),
-        fileEncryptionCodec = directDI.instance(),
-        stagingSpoolFactory = directDI.instance(),
-    )
-
     override fun fileLoader(
         data: ByteArray,
         key: ByteArray?,

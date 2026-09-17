@@ -9,8 +9,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 @Serializable
 data class PrivilegedAppListEntity(
@@ -49,14 +47,6 @@ class AppPrivilegedAppRepositoryImpl(
     private val json: Json,
     private val dispatcher: CoroutineDispatcher,
 ) : AppPrivilegedAppRepository {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        privilegedAppsService = directDI.instance(),
-        json = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
-
     override fun get(): Flow<List<DPrivilegedApp>> = privilegedAppsService
         .get()
         .asFlow()

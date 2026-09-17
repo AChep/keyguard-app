@@ -105,8 +105,10 @@ junit5Platform = "1.14.1"
 kdrag0nColorKt = "1.0.5"
 # https://github.com/Kyant0/m3color
 m3color = "2025.4"
-# https://github.com/Kodein-Framework/Kodein-DI
-kodeinDi = "7.32.0"
+# https://github.com/InsertKoinIO/koin
+koin = "4.2.2"
+# https://github.com/InsertKoinIO/koin-compiler-plugin
+koinCompiler = "1.2.1"
 # https://github.com/JetBrains/kotlin
 kotlin = "2.4.10"
 # https://github.com/Kotlin/kotlinx-atomicfu
@@ -310,9 +312,9 @@ junit5-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", ver
 junit5-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit5Platform" }
 kdrag0n-colorkt = { module = "dev.kdrag0n:colorkt", version.ref = "kdrag0nColorKt" }
 kyant0-m3color = { module = "com.github.Kyant0:m3color", version.ref = "m3color" }
-kodein-kodein-di = { module = "org.kodein.di:kodein-di", version.ref = "kodeinDi" }
-kodein-kodein-di-framework-android-x-viewmodel-savedstate = { module = "org.kodein.di:kodein-di-framework-android-x-viewmodel-savedstate", version.ref = "kodeinDi" }
-kodein-kodein-di-framework-compose-runtime = { module = "org.kodein.di:kodein-di-framework-compose-runtime", version.ref = "kodeinDi" }
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin" }
@@ -376,6 +378,7 @@ compose = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlyticsPlugin" }
 detekt = { id = "dev.detekt", version.ref = "detekt" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServicesPlugin" }
+koin-compiler = { id = "io.insert-koin.compiler.plugin", version.ref = "koinCompiler" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-plugin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

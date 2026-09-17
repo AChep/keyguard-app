@@ -6,8 +6,17 @@ import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryFlushRunner
+import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
+import com.artemchep.keyguard.common.service.vault.testVaultSession
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.platform.Platform
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -18,15 +27,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AppWorkerPendingUsageHistoryTest {
@@ -37,8 +37,8 @@ class AppWorkerPendingUsageHistoryTest {
                 version = MasterKdfVersion.V0,
                 byteArray = byteArrayOf(1, 2, 3),
             ),
-            di = DI {
-                bindSingleton<PendingUsageHistoryFlushRunner> {
+            session = testVaultSession {
+                scoped<PendingUsageHistoryFlushRunner> {
                     FailingPendingUsageHistoryFlushRunner
                 }
             },
@@ -55,6 +55,7 @@ class AppWorkerPendingUsageHistoryTest {
 
         try {
             val flushJob = launchPendingUsageHistoryFlushWhenAvailable(
+                sessionAccess = testDomainSessionAccess(),
                 scope = scope,
                 getVaultSession = FixedGetVaultSession(session),
                 enabled = true,
@@ -75,6 +76,7 @@ class AppWorkerPendingUsageHistoryTest {
         val getVaultSession = CountingGetVaultSession()
 
         val flushJob = launchPendingUsageHistoryFlushWhenAvailable(
+            sessionAccess = testDomainSessionAccess(),
             scope = backgroundScope,
             getVaultSession = getVaultSession,
             enabled = false,

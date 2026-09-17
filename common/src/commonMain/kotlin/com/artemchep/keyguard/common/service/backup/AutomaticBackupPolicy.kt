@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.backup
 
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.service.session.BackupConfigSessionAccess
 import com.artemchep.keyguard.common.service.vault.SessionReadRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -8,18 +9,16 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.direct
-import org.kodein.di.instance
 
 @OptIn(ExperimentalCoroutinesApi::class)
 fun automaticBackupScheduleStateFlow(
     sessionReadRepository: SessionReadRepository,
-    getBackupConfigRepository: (MasterSession.Key) -> BackupConfigRepository = { session ->
-        session.di.direct.instance()
-    },
+    getBackupConfigRepository: BackupConfigSessionAccess,
 ): Flow<AutomaticBackupScheduleState> = sessionReadRepository.get()
     .flatMapLatest { session ->
-        if (!AutomaticBackupPolicy.isAuthenticatedInMemory(session)) {
+        val backupConfigRepository = (session as? MasterSession.Key)
+            ?.let(getBackupConfigRepository::invoke)
+        if (!AutomaticBackupPolicy.isAuthenticatedInMemory(session) || backupConfigRepository == null) {
             flowOf(
                 AutomaticBackupPolicy.createState(
                     config = BackupConfig(),
@@ -28,8 +27,6 @@ fun automaticBackupScheduleStateFlow(
                 ),
             )
         } else {
-            val key = session as MasterSession.Key
-            val backupConfigRepository = getBackupConfigRepository(key)
             combine(
                 backupConfigRepository.getConfig(),
                 backupConfigRepository.getStatus(),
@@ -61,7 +58,7 @@ object AutomaticBackupPolicy {
 
     fun isAuthenticatedInMemory(
         session: MasterSession?,
-    ): Boolean = session is MasterSession.Key
+    ): Boolean = session is MasterSession.Key && session.session.active.value
 }
 
 data class AutomaticBackupScheduleState(

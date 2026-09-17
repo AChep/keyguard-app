@@ -1,14 +1,11 @@
 package com.artemchep.keyguard.common.usecase.impl
 
-import com.artemchep.keyguard.common.usecase.GetLocaleVariants
 import com.artemchep.keyguard.build.LocaleConfig
+import com.artemchep.keyguard.common.usecase.GetLocaleVariants
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
 
-class GetLocaleVariantsImpl() : GetLocaleVariants {
-    constructor(directDI: DirectDI) : this()
-
+class GetLocaleVariantsImpl : GetLocaleVariants {
     private val variants = listOf<String?>(null) + LocaleConfig.locales
 
     override fun invoke(): Flow<List<String?>> = flowOf(variants)

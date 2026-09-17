@@ -16,16 +16,14 @@ import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instanceOrNull
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun ScanQrButton(
@@ -42,7 +40,7 @@ fun ScanQrButton(
 
     val updatedOnValueChange by rememberUpdatedState(onValueChange)
     val controller by rememberUpdatedState(LocalNavigationController.current)
-    val scanQrRouteFactory = localDI().direct.instanceOrNull<ScanQrRouteFactory>()
+    val scanQrRouteFactory = currentKoinScope().getOrNull<ScanQrRouteFactory>()
     val onScan = remember(scanQrRouteFactory) {
         scanQrRouteFactory?.let { routeFactory ->
             {

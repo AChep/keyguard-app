@@ -15,6 +15,7 @@ import com.artemchep.keyguard.feature.home.vault.search.engine.SurfaceAwareVault
 import com.artemchep.keyguard.feature.home.vault.search.engine.VaultSearchIndex
 import com.artemchep.keyguard.feature.home.vault.search.engine.VaultSearchIndexBuilder
 import com.artemchep.keyguard.feature.home.vault.search.engine.VaultSearchIndexMetadata
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,9 +24,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.coroutines.CoroutineContext
 
 class GetVaultSearchIndexImpl internal constructor(
     private val logRepository: LogRepository,
@@ -42,18 +40,6 @@ class GetVaultSearchIndexImpl internal constructor(
     companion object {
         private const val TAG = "GetVaultSearchIndex"
     }
-
-    constructor(directDI: DirectDI) : this(
-        logRepository = directDI.instance(),
-        getCipherSnapshots = directDI.instance(),
-        getAccounts = directDI.instance(),
-        getFolders = directDI.instance(),
-        getTags = directDI.instance(),
-        getCollections = directDI.instance(),
-        getOrganizations = directDI.instance(),
-        searchIndexBuilder = directDI.instance(),
-        windowCoroutineScope = directDI.instance(),
-    )
 
     private val metadataFlow = combine(
         getAccounts(),

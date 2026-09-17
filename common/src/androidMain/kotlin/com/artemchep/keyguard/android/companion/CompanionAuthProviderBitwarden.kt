@@ -33,9 +33,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 internal data class CompanionBitwardenLoginRoute(
     val request: CompanionAuthActivity.Request,
@@ -71,22 +69,22 @@ internal data class CompanionBitwardenLoginTwofaRoute(
 private fun CompanionBitwardenLoginScreen(
     request: CompanionAuthActivity.Request,
     transmitter: RouteResultTransmitter<Unit>,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     val companionAddAccount = remember(request) {
         CompanionBitwardenAddAccount(
             request = request,
-            companionAuthBridge = instance(),
-            cryptoGenerator = instance(),
-            base64Service = instance(),
-            deviceIdUseCase = instance(),
-            httpClient = instance(),
-            json = instance(),
+            companionAuthBridge = get(),
+            cryptoGenerator = get(),
+            base64Service = get(),
+            deviceIdUseCase = get(),
+            httpClient = get(),
+            json = get(),
         )
     }
     val state = produceBitwardenLoginScreenState(
         addAccount = companionAddAccount,
-        cipherUnsecureUrlCheck = instance(),
-        confirmationRouteFactory = instance(),
+        cipherUnsecureUrlCheck = get(),
+        confirmationRouteFactory = get(),
         args = BitwardenLoginRoute.Args(),
         screenKey = "bitwardenlogin.companion",
     )
@@ -132,25 +130,25 @@ private fun CompanionBitwardenTwofaScreen(
     request: CompanionAuthActivity.Request,
     args: BitwardenLoginTwofaRoute.Args,
     transmitter: RouteResultTransmitter<Unit>,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     val companionAddAccount = remember(request) {
         CompanionBitwardenAddAccount(
             request = request,
-            companionAuthBridge = instance(),
-            cryptoGenerator = instance(),
-            base64Service = instance(),
-            deviceIdUseCase = instance(),
-            httpClient = instance(),
-            json = instance(),
+            companionAuthBridge = get(),
+            cryptoGenerator = get(),
+            base64Service = get(),
+            deviceIdUseCase = get(),
+            httpClient = get(),
+            json = get(),
         )
     }
     val state = produceLoginTwofaScreenState(
-        cryptoGenerator = instance(),
-        base64Service = instance(),
-        deeplinkService = instance(),
-        json = instance(),
+        cryptoGenerator = get(),
+        base64Service = get(),
+        deeplinkService = get(),
+        json = get(),
         addAccount = companionAddAccount,
-        requestEmailTfa = instance(),
+        requestEmailTfa = get(),
         args = args,
         transmitter = transmitter,
     )

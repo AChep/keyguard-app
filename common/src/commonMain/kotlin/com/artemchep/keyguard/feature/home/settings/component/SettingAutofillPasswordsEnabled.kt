@@ -7,19 +7,18 @@ import com.artemchep.keyguard.common.usecase.PutAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import org.jetbrains.compose.resources.stringResource
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingAutofillPasswordsEnabledProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingAutofillPasswordsEnabledProvider(
-    getAutofillPasswordsEnabled = directDI.instance(),
-    putAutofillPasswordsEnabled = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getAutofillPasswordsEnabled = koinScope.get(),
+    putAutofillPasswordsEnabled = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingAutofillPasswordsEnabledProvider(

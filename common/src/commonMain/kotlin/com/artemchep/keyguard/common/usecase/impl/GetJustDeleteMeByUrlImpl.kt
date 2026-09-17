@@ -6,16 +6,10 @@ import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeService
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeServiceInfo
 import com.artemchep.keyguard.common.usecase.GetJustDeleteMeByUrl
 import com.artemchep.keyguard.common.util.parseHttpUrlHostOrNull
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetJustDeleteMeByUrlImpl(
     private val justDeleteMeService: JustDeleteMeService,
 ) : GetJustDeleteMeByUrl {
-    constructor(directDI: DirectDI) : this(
-        justDeleteMeService = directDI.instance(),
-    )
-
     override fun invoke(
         url: String,
     ): IO<JustDeleteMeServiceInfo?> = justDeleteMeService.get()

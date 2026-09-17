@@ -5,8 +5,6 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.CipherId
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertsAsRead
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -18,10 +16,6 @@ class MarkWatchtowerAlertsAsReadImpl(
         // Stay below SQLite's traditional 999 bind-parameter limit.
         const val CIPHER_IDS_BATCH_SIZE = 900
     }
-
-    constructor(directDI: DirectDI) : this(
-        databaseManager = directDI.instance(),
-    )
 
     override fun invoke(
         cipherIds: Set<CipherId>,

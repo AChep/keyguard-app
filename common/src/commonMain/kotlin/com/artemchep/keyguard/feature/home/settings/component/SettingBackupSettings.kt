@@ -10,14 +10,13 @@ import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.flow.flow
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingBackupSettings(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingBackupSettings(
-    backupSettings = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    backupSettings = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingBackupSettings(

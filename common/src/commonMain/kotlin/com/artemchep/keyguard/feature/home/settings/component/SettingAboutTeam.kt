@@ -16,21 +16,20 @@ import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpress
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.team.AboutTeamRouteFactory
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingAboutTeamProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingAboutTeamProvider(
-    aboutTeamRouteFactory = directDI.instance(),
+    aboutTeamRouteFactory = koinScope.get(),
 )
 
 fun settingAboutTeamProvider(

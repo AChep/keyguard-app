@@ -8,22 +8,12 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.keepass.KeePassUtil
 import com.artemchep.keyguard.common.service.keepass.generateAttachmentUrl
 import com.artemchep.keyguard.common.service.text.Base32Service
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class DownloadServiceImpl(
     private val downloadManager: DownloadManager,
     private val cryptoGenerator: CryptoGenerator,
     private val base32Service: Base32Service,
 ) : DownloadService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        downloadManager = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        base32Service = directDI.instance(),
-    )
-
     override fun download(
         request: DownloadAttachmentRequestData,
     ): IO<Unit> = ioEffect {

@@ -29,9 +29,7 @@ import com.artemchep.keyguard.ui.icons.UserIcon
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 private class LocalizationContributorListUiException(
     msg: String,
@@ -40,9 +38,9 @@ private class LocalizationContributorListUiException(
 
 @Composable
 fun produceLocalizationContributorsListState(
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceJustDeleteMeServiceListState(
-        localizationContributorsService = instance(),
+        localizationContributorsService = get(),
     )
 }
 

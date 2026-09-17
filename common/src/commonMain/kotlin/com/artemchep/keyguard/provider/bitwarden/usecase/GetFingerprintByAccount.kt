@@ -7,14 +7,12 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.GetFingerprint
 import com.artemchep.keyguard.common.usecase.GetFingerprintByAccount
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenProfileRepository
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.coroutines.CoroutineContext
 
 /**
  * @author Artem Chepurnyi
@@ -32,12 +30,6 @@ class GetFingerprintByAccountImpl(
     private data class ProfileFingerprintData(
         val profileId: String,
         val privateKeyBase64: String,
-    )
-
-    constructor(directDI: DirectDI) : this(
-        profileRepository = directDI.instance(),
-        base64Service = directDI.instance(),
-        getFingerprint = directDI.instance(),
     )
 
     override fun invoke(

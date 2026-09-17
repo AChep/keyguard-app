@@ -1,10 +1,9 @@
 package com.artemchep.keyguard.common.model
 
 import arrow.core.Either
+import kotlin.reflect.KClass
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.kodein.di.DirectDI
-import kotlin.reflect.KClass
 
 @Serializable
 sealed interface DSendFilter {
@@ -83,7 +82,7 @@ sealed interface DSendFilter {
     }
 
     suspend fun prepare(
-        directDI: DirectDI,
+
         ciphers: List<DSend>,
     ): (DSend) -> Boolean
 
@@ -98,11 +97,11 @@ sealed interface DSendFilter {
         val filters: Collection<DSendFilter>,
     ) : DSendFilter {
         override suspend fun prepare(
-            directDI: DirectDI,
+
             ciphers: List<DSend>,
         ) = kotlin.run {
             val list = filters
-                .map { it.prepare(directDI, ciphers) }
+                .map { it.prepare(ciphers) }
             return@run { cipher: DSend ->
                 list.isEmpty() || list.any { predicate -> predicate(cipher) }
             }
@@ -115,11 +114,11 @@ sealed interface DSendFilter {
         val filters: Collection<DSendFilter>,
     ) : DSendFilter {
         override suspend fun prepare(
-            directDI: DirectDI,
+
             ciphers: List<DSend>,
         ) = kotlin.run {
             val list = filters
-                .map { it.prepare(directDI, ciphers) }
+                .map { it.prepare(ciphers) }
             return@run { cipher: DSend ->
                 list.isEmpty() || list.all { predicate -> predicate(cipher) }
             }
@@ -130,7 +129,7 @@ sealed interface DSendFilter {
     @SerialName("all")
     data object All : DSendFilter {
         override suspend fun prepare(
-            directDI: DirectDI,
+
             ciphers: List<DSend>,
         ) = ::predicateCipher
 
@@ -154,7 +153,7 @@ sealed interface DSendFilter {
         }
 
         override suspend fun prepare(
-            directDI: DirectDI,
+
             ciphers: List<DSend>,
         ) = ::predicateCipher
 
@@ -175,7 +174,7 @@ sealed interface DSendFilter {
         override val key: String = "$type"
 
         override suspend fun prepare(
-            directDI: DirectDI,
+
             ciphers: List<DSend>,
         ) = ::predicate
 

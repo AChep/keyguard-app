@@ -24,27 +24,26 @@ import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 private const val LICENSE_KEY_ITEM_KEY = "license_key"
 
 fun settingRedeemLicenseProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingRedeemLicenseProvider(
-    getLicenseEntitlement = directDI.instance(),
-    redeemLicenseKey = directDI.instance(),
-    removeLicense = directDI.instance(),
-    confirmationRouteFactory = directDI.instance(),
-    showMessage = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getLicenseEntitlement = koinScope.get(),
+    redeemLicenseKey = koinScope.get(),
+    removeLicense = koinScope.get(),
+    confirmationRouteFactory = koinScope.get(),
+    showMessage = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingRedeemLicenseProvider(

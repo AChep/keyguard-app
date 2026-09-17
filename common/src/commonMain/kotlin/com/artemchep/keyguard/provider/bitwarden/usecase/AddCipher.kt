@@ -23,25 +23,22 @@ import com.artemchep.keyguard.common.usecase.ArchiveCipherById
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.ResolveFolderHierarchyMode
 import com.artemchep.keyguard.common.usecase.TrashCipherById
+import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.CipherSourceDataReconciler
 import com.artemchep.keyguard.core.store.bitwarden.getUrlChecksumBase64
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
-import com.artemchep.keyguard.provider.bitwarden.crypto.makeCipherAttachmentCryptoKeyMaterial
 import com.artemchep.keyguard.provider.bitwarden.crypto.keyBase64OrGenerate
+import com.artemchep.keyguard.provider.bitwarden.crypto.makeCipherAttachmentCryptoKeyMaterial
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
-import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
-import com.artemchep.keyguard.common.util.useAndClear
+import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import kotlin.time.Clock
 import kotlin.time.Instant
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
 
 /**
  * @author Artem Chepurnyi
@@ -61,19 +58,6 @@ class AddCipherImpl(
     companion object {
         private const val TAG = "AddCipher.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyDatabase = directDI.instance(),
-        addFolder = directDI.instance(),
-        resolveFolderHierarchyMode = directDI.instance(),
-        archiveCipherById = directDI.instance(),
-        trashCipherById = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        getPasswordStrength = directDI.instance(),
-        gpgKeyMetadataResolver = directDI.instanceOrNull(),
-        base64Service = directDI.instance(),
-        pendingUploadCoordinator = directDI.instance(),
-    )
 
     override fun invoke(
         cipherIdsToRequests: Map<String?, CreateRequest>,

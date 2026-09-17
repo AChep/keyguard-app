@@ -5,14 +5,8 @@ import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.permission.PermissionState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.kodein.di.DirectDI
 
-class PermissionServiceJvm(
-) : PermissionService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-    )
+class PermissionServiceJvm : PermissionService {
 
     override fun getState(
         permission: Permission,

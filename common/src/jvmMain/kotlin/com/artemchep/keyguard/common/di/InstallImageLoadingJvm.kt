@@ -18,15 +18,14 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.discardRemaining
 import io.ktor.client.statement.readBytes
 import io.ktor.http.isSuccess
+import java.io.File
+import java.io.IOException
 import kotlinx.coroutines.runBlocking
 import net.mm2d.touchicon.IconComparator
 import net.mm2d.touchicon.TouchIconExtractor
 import net.mm2d.touchicon.http.HttpClientAdapter
 import net.mm2d.touchicon.http.HttpResponse
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import java.io.File
-import java.io.IOException
+import org.koin.core.scope.Scope
 
 internal actual fun ComponentRegistry.Builder.installFaviconUrlFetcherFactory(
     httpClient: () -> HttpClient,
@@ -39,12 +38,12 @@ internal actual fun ComponentRegistry.Builder.installFaviconUrlFetcherFactory(
 }
 
 internal actual fun ImageLoader.Builder.installPlatformDiskCache(
-    directDI: DirectDI,
+    scope: Scope,
 ): ImageLoader.Builder =
     diskCache {
         // This is getting called from a default dispatcher, according
         // to the coil documentation.
-        val cacheDirProvider = directDI.instance<CacheDirProvider>()
+        val cacheDirProvider = scope.get<CacheDirProvider>()
         val cacheDir = cacheDirProvider.getBlocking()
         DiskCache.Builder()
             .directory(File(cacheDir.value).resolve("coil3_disk_cache"))

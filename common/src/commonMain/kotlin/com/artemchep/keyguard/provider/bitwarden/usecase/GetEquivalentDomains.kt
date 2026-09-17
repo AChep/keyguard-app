@@ -8,15 +8,13 @@ import com.artemchep.keyguard.common.util.withLogTimeOfFirstEvent
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenEquivalentDomain
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenDomainRepository
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.coroutines.CoroutineContext
 
 /**
  * @author Artem Chepurnyi
@@ -30,12 +28,6 @@ class GetEquivalentDomainsImpl(
     companion object {
         private const val TAG = "GetEquivalentDomains.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        logRepository = directDI.instance(),
-        domainRepository = directDI.instance(),
-        windowCoroutineScope = directDI.instance(),
-    )
 
     private val sharedFlow = domainRepository
         .get()

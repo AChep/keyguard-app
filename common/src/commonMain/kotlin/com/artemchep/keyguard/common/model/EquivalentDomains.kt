@@ -14,8 +14,6 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 data class EquivalentDomains(
     val domains: Map<String, List<String>>,
@@ -36,13 +34,6 @@ class EquivalentDomainsBuilderFactory(
 
     private val ref = atomic<EquivalentDomainsBuilder?>(null)
     private val refLock = SynchronizedObject()
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        logRepository = directDI.instance(),
-        getEquivalentDomains = directDI.instance(),
-    )
 
     fun build(
     ): EquivalentDomainsBuilder {

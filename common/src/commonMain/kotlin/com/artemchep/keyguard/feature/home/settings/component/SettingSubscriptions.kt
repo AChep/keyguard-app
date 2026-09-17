@@ -50,8 +50,8 @@ import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevati
 import com.artemchep.keyguard.feature.onboarding.OnboardingCard
 import com.artemchep.keyguard.feature.onboarding.onboardingItemsPremium
 import com.artemchep.keyguard.platform.LocalLeContext
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DefaultEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.FlatTextFieldBadge
@@ -63,22 +63,21 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.infoContainer
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 private const val SubscriptionsCountDefault = 2
 private const val ProductsCountDefault = 1
 
 fun settingSubscriptionsProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingSubscriptionsProvider(
-    getSubscriptions = directDI.instance(),
-    getProducts = directDI.instance(),
+    getSubscriptions = koinScope.get(),
+    getProducts = koinScope.get(),
 )
 
 fun settingSubscriptionsProvider(

@@ -19,19 +19,17 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 internal fun wearPhoneLoginScreenState(
     accountType: AccountType,
     transmitter: RouteResultTransmitter<Unit>,
-): WearPhoneLoginState = with(localDI().direct) {
+): WearPhoneLoginState = with(currentKoinScope()) {
     wearPhoneLoginScreenState(
         accountType = accountType,
         transmitter = transmitter,
-        companionAuthBridge = instance(),
+        companionAuthBridge = get(),
     )
 }
 

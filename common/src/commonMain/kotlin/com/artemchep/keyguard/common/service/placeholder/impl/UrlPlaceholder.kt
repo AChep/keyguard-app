@@ -5,7 +5,6 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import io.ktor.http.*
-import org.kodein.di.DirectDI
 
 class UrlPlaceholder(
     private val url: String,
@@ -92,13 +91,7 @@ class UrlPlaceholder(
         else -> null
     }
 
-    class Factory(
-    ) : Placeholder.Factory {
-        constructor(
-            directDI: DirectDI,
-        ) : this(
-        )
-
+    class Factory : Placeholder.Factory {
         override fun createOrNull(
             scope: PlaceholderScope,
         ) = scope.url?.let(::UrlPlaceholder)

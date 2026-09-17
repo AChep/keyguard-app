@@ -44,8 +44,8 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -53,17 +53,16 @@ import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.icons.UserIcon
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 private const val CONTRIBUTORS_TOP_SIZE = 3
 
 fun settingLocalizationProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = settingLocalizationProvider(
-    localizationContributorsService = directDI.instance(),
+    localizationContributorsService = koinScope.get(),
 )
 
 fun settingLocalizationProvider(

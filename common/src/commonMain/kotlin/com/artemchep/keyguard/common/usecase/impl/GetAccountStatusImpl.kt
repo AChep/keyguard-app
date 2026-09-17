@@ -18,8 +18,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetAccountStatusImpl(
     private val permissionService: PermissionService,
@@ -30,16 +28,6 @@ class GetAccountStatusImpl(
     private val getSends: GetSends,
     private val getLocalNetworkAccessHint: GetLocalNetworkAccessHint,
 ) : GetAccountStatus {
-    constructor(directDI: DirectDI) : this(
-        permissionService = directDI.instance(),
-        getAccounts = directDI.instance(),
-        getMetas = directDI.instance(),
-        getCiphers = directDI.instance(),
-        getFolders = directDI.instance(),
-        getSends = directDI.instance(),
-        getLocalNetworkAccessHint = directDI.instance(),
-    )
-
     override fun invoke(): Flow<DAccountStatus> {
         val lastSyncTimestampFlow = getMetas()
             .map { metas ->

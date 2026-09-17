@@ -33,15 +33,14 @@ import com.artemchep.keyguard.ui.util.HorizontalDivider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingSshAgentApprovalCachePolicyProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingAgentApprovalCachePolicyProvider(
-    getPolicy = directDI.instance<GetSshAgentApprovalCachePolicy>()(),
-    putPolicy = directDI.instance<PutSshAgentApprovalCachePolicy>(),
-    windowCoroutineScope = directDI.instance(),
+    getPolicy = koinScope.get<GetSshAgentApprovalCachePolicy>()(),
+    putPolicy = koinScope.get<PutSshAgentApprovalCachePolicy>(),
+    windowCoroutineScope = koinScope.get(),
     idPrefix = "settings.sshAgentApprovalCachePolicy",
     platformClasses = listOf(
         Platform.Desktop.Linux::class,
@@ -52,11 +51,11 @@ fun settingSshAgentApprovalCachePolicyProvider(
 )
 
 fun settingGpgAgentApprovalCachePolicyProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingAgentApprovalCachePolicyProvider(
-    getPolicy = directDI.instance<GetGpgAgentApprovalCachePolicy>()(),
-    putPolicy = directDI.instance<PutGpgAgentApprovalCachePolicy>(),
-    windowCoroutineScope = directDI.instance(),
+    getPolicy = koinScope.get<GetGpgAgentApprovalCachePolicy>()(),
+    putPolicy = koinScope.get<PutGpgAgentApprovalCachePolicy>(),
+    windowCoroutineScope = koinScope.get(),
     idPrefix = "settings.gpgAgentApprovalCachePolicy",
     platformClasses = listOf(
         Platform.Desktop.Linux::class,

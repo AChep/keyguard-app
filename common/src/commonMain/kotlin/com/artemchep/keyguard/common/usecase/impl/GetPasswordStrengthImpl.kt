@@ -18,8 +18,6 @@ import com.artemchep.keyguard.util.zxcvbn.Zxcvbn
 import com.artemchep.keyguard.util.zxcvbn.ZxcvbnResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 private const val PASSWORD_STRENGTH_VERSION = 2L
 private const val PASSWORD_STRENGTH_TIMEOUT = 5000L
@@ -67,10 +65,6 @@ class GetPasswordStrengthImpl(
     private val dispatcher = Dispatchers.Default.limitedParallelism(2)
 
     private class PasswordStrengthException(message: String) : RuntimeException(message)
-
-    constructor(directDI: DirectDI) : this(
-        wordlistService = directDI.instance(),
-    )
 
     override fun invoke(
         password: String,

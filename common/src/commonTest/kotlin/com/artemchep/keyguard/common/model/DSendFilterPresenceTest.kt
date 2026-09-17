@@ -1,13 +1,11 @@
 package com.artemchep.keyguard.common.model
 
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
-import kotlinx.coroutines.test.runTest
-import org.kodein.di.DI
-import org.kodein.di.direct
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.time.Instant
+import kotlinx.coroutines.test.runTest
 
 class DSendFilterPresenceTest {
     @Test
@@ -25,7 +23,6 @@ class DSendFilterPresenceTest {
             ),
         )
         val presence = DSendFilterPresence.of(sends) { it }
-        val di = DI {}.direct
 
         val primitives = listOf(
             // ById / ACCOUNT.
@@ -40,7 +37,7 @@ class DSendFilterPresenceTest {
         )
 
         primitives.forEach { primitive ->
-            val predicate = primitive.prepare(di, sends)
+            val predicate = primitive.prepare(sends)
             val expected = sends.any(predicate)
             assertEquals(
                 expected = expected,

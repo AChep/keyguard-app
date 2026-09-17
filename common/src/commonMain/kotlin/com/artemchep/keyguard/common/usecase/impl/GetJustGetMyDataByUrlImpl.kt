@@ -6,16 +6,10 @@ import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataService
 import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataServiceInfo
 import com.artemchep.keyguard.common.usecase.GetJustGetMyDataByUrl
 import com.artemchep.keyguard.common.util.parseHttpUrlHostOrNull
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetJustGetMyDataByUrlImpl(
     private val justGetMyDataService: JustGetMyDataService,
 ) : GetJustGetMyDataByUrl {
-    constructor(directDI: DirectDI) : this(
-        justGetMyDataService = directDI.instance(),
-    )
-
     override fun invoke(
         url: String,
     ): IO<JustGetMyDataServiceInfo?> = justGetMyDataService.get()

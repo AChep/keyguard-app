@@ -22,9 +22,7 @@ import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountParams
 import kotlinx.coroutines.Dispatchers
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 internal data class CompanionKeePassLoginRoute(
     val request: CompanionAuthActivity.Request,
@@ -44,12 +42,12 @@ internal data class CompanionKeePassLoginRoute(
 private fun CompanionKeePassLoginScreen(
     request: CompanionAuthActivity.Request,
     transmitter: RouteResultTransmitter<Unit>,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     val companionAddKeePassAccount = remember(request) {
         CompanionKeePassAddAccount(
             request = request,
-            companionAuthBridge = instance(),
-            fileService = instance(),
+            companionAuthBridge = get(),
+            fileService = get(),
         )
     }
     val state = produceKeePassLoginScreenState(

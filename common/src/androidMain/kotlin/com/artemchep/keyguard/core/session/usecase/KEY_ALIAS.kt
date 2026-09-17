@@ -14,15 +14,13 @@ import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.platform.LeBiometricCipher
 import com.artemchep.keyguard.platform.LeBiometricCipherJvm
-import kotlinx.coroutines.flow.MutableStateFlow
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import java.security.KeyStore
 import java.security.UnrecoverableKeyException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
+import kotlinx.coroutines.flow.MutableStateFlow
 
 private const val KEY_ALIAS = "biometrics"
 
@@ -35,9 +33,6 @@ class BiometricKeyRepositoryAndroid : BiometricKeyRepository {
 class BiometricStatusUseCaseImpl(
     private val application: Application,
 ) : BiometricStatusUseCase {
-    constructor(directDI: DirectDI) : this(
-        application = directDI.instance(),
-    )
 
     override fun invoke() = kotlin.run {
         val state = kotlin.run {

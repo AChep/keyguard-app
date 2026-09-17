@@ -11,8 +11,6 @@ import io.ktor.http.isSuccess
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * Internal data class for parsing the iTunes Lookup API response.
@@ -49,11 +47,6 @@ class IosAppAppStoreParser(
     companion object {
         private const val ITUNES_LOOKUP_URL = "https://itunes.apple.com/lookup"
     }
-
-    constructor(directDI: DirectDI) : this(
-        httpClient = directDI.instance(tag = "curl"),
-        json = directDI.instance(),
-    )
 
     /**
      * Fetches and parses the app information for the given bundle ID.

@@ -51,11 +51,12 @@ import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.usecase.AddPrivilegedApp
 import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
+import com.artemchep.keyguard.di.resolveOrCancel
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -67,8 +68,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.filter
 import org.jetbrains.compose.resources.getString as getComposeString
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.direct
-import org.kodein.di.instance
 
 @Composable
 fun CredentialScaffold(
@@ -364,9 +363,9 @@ suspend fun getCredentialErrorUiState(
         // If the calling app is not privileged then we
         // should show an option to add it to the list.
         is CallingAppNotPrivilegedException -> {
-            val passkeyUtils = session.di.direct.instance<PasskeyUtils>()
-            val addPrivilegedApp = session.di.direct.instance<AddPrivilegedApp>()
-            val getPrivilegedApps = session.di.direct.instance<GetPrivilegedApps>()
+            val passkeyUtils = session.session.resolveOrCancel { get<PasskeyUtils>() }
+            val addPrivilegedApp = session.session.resolveOrCancel { get<AddPrivilegedApp>() }
+            val getPrivilegedApps = session.session.resolveOrCancel { get<GetPrivilegedApps>() }
 
             val action = CredentialErrorAdvanced.Action(
                 title = getComposeString(Res.string.error_credential_calling_app_not_privileged_add_as_privileged_app_title),

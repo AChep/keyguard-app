@@ -7,12 +7,8 @@ import com.artemchep.autotype.keychainGetPassword
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
-import org.kodein.di.DirectDI
 
-class KeychainRepositoryNative(
-) : KeychainRepository {
-    constructor(directDI: DirectDI) : this(
-    )
+class KeychainRepositoryNative : KeychainRepository {
 
     override fun put(
         id: String,

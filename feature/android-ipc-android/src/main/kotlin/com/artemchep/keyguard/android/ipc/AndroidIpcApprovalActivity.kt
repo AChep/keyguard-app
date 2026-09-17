@@ -29,14 +29,13 @@ import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnCreate
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnLoading
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnUnlock
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ipc_approval_auth_reason
-import com.artemchep.keyguard.feature.navigation.NavigationNode
 import kotlinx.coroutines.launch
-import org.kodein.di.instance
 
 internal class AndroidIpcApprovalActivity : BaseActivity() {
-    private val getVaultSession by instance<GetVaultSession>()
+    private val getVaultSession by lazy { koin.get<GetVaultSession>() }
 
     companion object {
         private const val EXTRA_REQUEST_ID =

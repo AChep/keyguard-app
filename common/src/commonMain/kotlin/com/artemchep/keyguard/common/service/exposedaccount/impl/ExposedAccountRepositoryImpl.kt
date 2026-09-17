@@ -18,8 +18,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class ExposedAccountRepositoryImpl(
     private val exposedDatabaseManager: ExposedDatabaseManager,
@@ -34,14 +32,6 @@ class ExposedAccountRepositoryImpl(
      * the platform holding an id that is not the persisted one.
      */
     private val mutex = Mutex()
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        exposedDatabaseManager = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
 
     override fun get(): Flow<List<ExposedAccount>> = daoEffect { db ->
         db.accountQueries.get()

@@ -16,11 +16,9 @@ import com.artemchep.keyguard.common.usecase.SyncById
 import com.artemchep.keyguard.common.usecase.premium
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.feature.auth.companion.CompanionBitwardenPayload
-import kotlinx.coroutines.Dispatchers
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.Dispatchers
 
 class ImportCompanionBitwardenAccountImpl(
     private val getPurchased: GetPurchased,
@@ -33,15 +31,6 @@ class ImportCompanionBitwardenAccountImpl(
     companion object {
         private const val TAG = "AddAccount.bitwarden.companion"
     }
-
-    constructor(directDI: DirectDI) : this(
-        getPurchased = directDI.instance(),
-        getAccounts = directDI.instance(),
-        syncById = directDI.instance(),
-        logRepository = directDI.instance(),
-        db = directDI.instance(),
-        markBackupAsDirty = directDI.instance(),
-    )
 
     override fun invoke(
         payload: CompanionBitwardenPayload,

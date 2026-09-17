@@ -5,17 +5,12 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.usecase.PasskeyTarget
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
-import org.kodein.di.DirectDI
 
 /**
  * @author Artem Chepurnyi
  */
 class PasskeyTargetCheckImpl : PasskeyTargetCheck {
-    constructor()
-
     @Suppress("UNUSED_PARAMETER")
-    constructor(directDI: DirectDI) : this()
-
     override fun invoke(
         credential: DSecret.Login.Fido2Credentials,
         target: PasskeyTarget,

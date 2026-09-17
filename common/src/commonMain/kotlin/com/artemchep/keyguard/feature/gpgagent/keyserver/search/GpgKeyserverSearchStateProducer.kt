@@ -1,9 +1,9 @@
 package com.artemchep.keyguard.feature.gpgagent.keyserver.search
 
-import androidx.compose.runtime.Composable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.runtime.Composable
 import arrow.core.Either
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -33,8 +33,8 @@ import com.artemchep.keyguard.feature.search.search.debounceSearch
 import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
@@ -43,16 +43,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
-fun produceGpgKeyserverSearchState() = with(localDI().direct) {
+fun produceGpgKeyserverSearchState() = with(currentKoinScope()) {
     produceGpgKeyserverSearchState(
-        getGpgKeyserverConfig = instance(),
-        searchGpgPublicKey = instance(),
-        gpgKeyMetadataResolver = instance(),
+        getGpgKeyserverConfig = get(),
+        searchGpgPublicKey = get(),
+        gpgKeyMetadataResolver = get(),
     )
 }
 

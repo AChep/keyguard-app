@@ -22,30 +22,28 @@ import com.artemchep.keyguard.common.usecase.PutInMemoryLogsEnabled
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 private const val MESSAGE_LENGTH_LIMIT = 300
 
 @Composable
-fun produceLogsState() = with(localDI().direct) {
+fun produceLogsState() = with(currentKoinScope()) {
     produceLogsState(
-        dateFormatter = instance(),
-        clipboardService = instance(),
-        getInMemoryLogs = instance(),
-        getInMemoryLogsEnabled = instance(),
-        putInMemoryLogsEnabled = instance(),
-        permissionService = instance(),
-        exportLogs = instance(),
+        dateFormatter = get(),
+        clipboardService = get(),
+        getInMemoryLogs = get(),
+        getInMemoryLogsEnabled = get(),
+        putInMemoryLogsEnabled = get(),
+        permissionService = get(),
+        exportLogs = get(),
     )
 }
 

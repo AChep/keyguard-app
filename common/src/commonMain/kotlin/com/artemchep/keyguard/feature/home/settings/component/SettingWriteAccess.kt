@@ -11,16 +11,15 @@ import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.ui.icons.Stub
 import kotlinx.coroutines.flow.combine
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingWriteAccessProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingWriteAccessProvider(
-    getWriteAccess = directDI.instance(),
-    putWriteAccess = directDI.instance(),
-    getPurchased = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getWriteAccess = koinScope.get(),
+    putWriteAccess = koinScope.get(),
+    getPurchased = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingWriteAccessProvider(

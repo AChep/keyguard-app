@@ -6,12 +6,15 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.service.export.model.ExportRequest
+import com.artemchep.keyguard.common.service.filter.AddCipherFilter
+import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.service.permission.Permission
 import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.permission.PermissionState
@@ -24,9 +27,10 @@ import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
-import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
@@ -40,8 +44,8 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -49,28 +53,28 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceExportScreenState(
     args: ExportRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceExportScreenState(
-        directDI = this,
+        filterContext = get(),
+        addCipherFilter = get(),
+        confirmationRouteFactory = get(),
+        getCipherFilters = get(),
         args = args,
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getCiphers = instance(),
-        getFolders = instance(),
-        getTags = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
-        permissionService = instance(),
-        exportManager = instance(),
-        vaultRouteFactory = instance(),
+        getAccounts = get(),
+        getProfiles = get(),
+        getCiphers = get(),
+        getFolders = get(),
+        getTags = get(),
+        getCollections = get(),
+        getOrganizations = get(),
+        permissionService = get(),
+        exportManager = get(),
+        vaultRouteFactory = get(),
     )
 }
 
@@ -81,7 +85,10 @@ private data class FilteredList<T>(
 
 @Composable
 fun produceExportScreenState(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    addCipherFilter: AddCipherFilter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    getCipherFilters: GetCipherFilters,
     args: ExportRoute.Args,
     getAccounts: GetAccounts,
     getProfiles: GetProfiles,
@@ -98,7 +105,10 @@ fun produceExportScreenState(
     initial = Loadable.Loading,
 ) {
     exportScreenStateProducer(
-        directDI = directDI,
+        filterContext = filterContext,
+        addCipherFilter = addCipherFilter,
+        confirmationRouteFactory = confirmationRouteFactory,
+        getCipherFilters = getCipherFilters,
         args = args,
         getAccounts = getAccounts,
         getProfiles = getProfiles,
@@ -116,7 +126,10 @@ fun produceExportScreenState(
 // Keep the state flows and their session-scoped callbacks in one lifecycle scope.
 @Suppress("CyclomaticComplexMethod", "LongMethod")
 suspend fun RememberStateFlowScope.exportScreenStateProducer(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    addCipherFilter: AddCipherFilter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    getCipherFilters: GetCipherFilters,
     args: ExportRoute.Args,
     getAccounts: GetAccounts,
     getProfiles: GetProfiles,
@@ -176,7 +189,7 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
     )
         .map { ciphers ->
             if (args.filter != null) {
-                val predicate = args.filter.prepare(directDI, ciphers)
+                val predicate = args.filter.prepare(filterContext, ciphers)
                 ciphers
                     .filter { predicate(it) }
             } else {
@@ -190,7 +203,7 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
         }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    val filterResult = createFilter(directDI)
+    val filterResult = createFilter(addCipherFilter, confirmationRouteFactory)
 
     val filteredCiphersFlow = ciphersFlow
         .map {
@@ -211,7 +224,7 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
 
             val filteredItems = kotlin.run {
                 val allItems = state.list
-                val predicate = filterConfig.filter.prepare(directDI, allItems)
+                val predicate = filterConfig.filter.prepare(filterContext, allItems)
                 allItems.filter(predicate)
             }
             state.copy(
@@ -222,7 +235,7 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
 
     val filterRawFlow = createFilterItemsFlow(
-        directDI = directDI,
+        getCipherFilters = getCipherFilters,
         outputGetter = ::identity,
         outputFlow = filteredCiphersFlow
             .map { state ->

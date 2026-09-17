@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.export
 
+import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
@@ -11,8 +12,6 @@ import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 data class ExportVaultData(
     val ciphers: List<DSecret>,
@@ -32,30 +31,19 @@ interface ExportVaultDataService {
 }
 
 class ExportVaultDataServiceImpl(
-    private val directDI: DirectDI,
+    private val filterContext: CipherFilterContext,
     private val jsonExportService: JsonExportService,
     private val getOrganizations: GetOrganizations,
     private val getCollections: GetCollections,
     private val getFolders: GetFolders,
     private val getCiphers: GetCiphers,
 ) : ExportVaultDataService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        directDI = directDI,
-        jsonExportService = directDI.instance(),
-        getOrganizations = directDI.instance(),
-        getCollections = directDI.instance(),
-        getFolders = directDI.instance(),
-        getCiphers = directDI.instance(),
-    )
-
     override suspend fun create(
         filter: DFilter,
     ): ExportVaultData {
         val ciphers = getCiphers()
             .map { ciphers ->
-                val predicate = filter.prepare(directDI, ciphers)
+                val predicate = filter.prepare(filterContext, ciphers)
                 ciphers
                     .filter(predicate)
             }

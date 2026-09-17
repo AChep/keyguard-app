@@ -18,10 +18,10 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
+import org.koin.core.scope.Scope
 
 actual fun settingPermissionLocalNetworkProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = settingPermissionLocalNetworkProvider2()
 
 @OptIn(ExperimentalPermissionsApi::class)

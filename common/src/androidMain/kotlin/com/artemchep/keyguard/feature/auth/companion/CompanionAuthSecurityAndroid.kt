@@ -24,8 +24,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 internal class CompanionAuthSecurityAndroid(
     private val application: Application,
@@ -43,16 +41,6 @@ internal class CompanionAuthSecurityAndroid(
         val publicKey = generator.generateKeyPair().public as ECPublicKey
         publicKey.params
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        application = directDI.instance(),
-        json = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        cipherEncryptor = directDI.instance(),
-        base64Service = directDI.instance(),
-    )
 
     suspend fun createEphemeralKeyPair(): CompanionAuthEphemeralKeyPair =
         withContext(Dispatchers.Default) {

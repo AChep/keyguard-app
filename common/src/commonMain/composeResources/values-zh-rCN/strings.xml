@@ -766,9 +766,12 @@
     <string name="error_failed_open_app_for">没有已安装的应用可以处理此请求</string>
     <string name="error_failed_unknown">出错了</string>
     <string name="error_failed_encrypt_biometric_key">加密生物识别密钥失败</string>
+    <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">解密生物识别密钥失败</string>
     <string name="error_failed_ssh_agent_start">启动 SSH 代理失败</string>
     <string name="error_failed_gpg_agent_start">启动 GPG 代理失败</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">发起调用的应用程序不在特权列表中，因此不能代表其他应用程序请求身份验证。</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1051,7 @@
     <string name="home_settings_label">设置</string>
     <string name="lock_reason_inactivity">因不活动而被锁定</string>
     <string name="lock_reason_screen_off">因屏幕关闭而锁定</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">手动锁定</string>
     <string name="send_type_text">文本</string>
     <string name="send_type_file">文件</string>
@@ -1668,6 +1672,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">设备重启后锁定密码库</string>
     <string name="pref_item_lock_vault_after_screen_off_title">屏幕关闭时锁定</string>
     <string name="pref_item_lock_vault_after_screen_off_text">屏幕关闭几秒后锁定密码库</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">锁定延迟</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">立即锁定</string>
     <string name="pref_item_lock_vault_after_delay_never_text">从不</string>
@@ -1734,6 +1740,7 @@
     <string name="pref_item_license_sync_failed">无法获取授权令牌</string>
     <string name="pref_item_biometric_unlock_title">生物识别解锁</string>
     <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_system_auth_unlock_title">System authentication unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">需要确认</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">需要在成功的生物识别认证后点击额外的确认按钮</string>
     <string name="pref_item_yubikey_unlock_title">YubiKey 解锁</string>

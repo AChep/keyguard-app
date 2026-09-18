@@ -766,9 +766,12 @@
     <string name="error_failed_open_app_for">لا يوجد تطبيق مثبت يمكنه التعامل مع هذا الطلب</string>
     <string name="error_failed_unknown">حدث خطأ ما</string>
     <string name="error_failed_encrypt_biometric_key">فشل تشفير المفتاح البيومتري</string>
+    <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">فشل فك تشفير المفتاح البيومتري</string>
     <string name="error_failed_ssh_agent_start">فشل بدء وكيل SSH</string>
     <string name="error_failed_gpg_agent_start">Failed to start the GPG agent</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">التطبيق المتصل ليس في قائمة التطبيقات ذات الامتيازات ولا يمكنه طلب المصادقة نيابة عن التطبيقات الأخرى.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1051,7 @@
     <string name="home_settings_label">إعدادات</string>
     <string name="lock_reason_inactivity">مغلق بسبب عدم النشاط</string>
     <string name="lock_reason_screen_off">قُفل بسبب إيقاف الشاشة</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">قُفل يدويًا</string>
     <string name="send_type_text">نص</string>
     <string name="send_type_file">ملف</string>
@@ -1666,6 +1670,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">قفل القبو بعد إعادة تشغيل الجهاز</string>
     <string name="pref_item_lock_vault_after_screen_off_title">القفل عند إيقاف تشغيل الشاشة</string>
     <string name="pref_item_lock_vault_after_screen_off_text">قم بقفل القبو بعد بضع ثوانٍ بمجرد إيقاف تشغيل الشاشة</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">قفل بعد تأخير</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">في الحال</string>
     <string name="pref_item_lock_vault_after_delay_never_text">أبداً</string>
@@ -1732,6 +1738,7 @@
     <string name="pref_item_license_sync_failed">Could not obtain entitlement token</string>
     <string name="pref_item_biometric_unlock_title">فتح البيومترية</string>
     <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_system_auth_unlock_title">System authentication unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">تتطلب التأكيد</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">يتطلب النقر على زر تأكيد إضافي بعد المصادقة البيومترية الناجحة</string>
     <string name="pref_item_yubikey_unlock_title">فتح القفل باستخدام YubiKey</string>

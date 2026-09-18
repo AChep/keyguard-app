@@ -766,9 +766,12 @@
     <string name="error_failed_open_app_for">No installed app can handle this request</string>
     <string name="error_failed_unknown">Something went wrong</string>
     <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
     <string name="error_failed_gpg_agent_start">Kunne ikke starte GPG-agenten</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1051,7 @@
     <string name="home_settings_label">Settings</string>
     <string name="lock_reason_inactivity">Locked due to inactivity</string>
     <string name="lock_reason_screen_off">Locked due to screen off</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">Locked manually</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">File</string>
@@ -1666,6 +1670,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">Lock the vault after a device reboot</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Lock when screen turns off</string>
     <string name="pref_item_lock_vault_after_screen_off_text">Lock the vault after a few seconds once the screen is off</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">Lock after a delay</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Immediately</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Never</string>
@@ -1732,6 +1738,7 @@
     <string name="pref_item_license_sync_failed">Kunne ikke hente rettighetskode</string>
     <string name="pref_item_biometric_unlock_title">Biometric unlock</string>
     <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_system_auth_unlock_title">System authentication unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
     <string name="pref_item_yubikey_unlock_title">YubiKey unlock</string>

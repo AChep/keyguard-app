@@ -766,9 +766,12 @@
     <string name="error_failed_open_app_for">이 요청을 처리할 수 있는 앱이 없습니다.</string>
     <string name="error_failed_unknown">알 수 없는 오류가 발생했습니다.</string>
     <string name="error_failed_encrypt_biometric_key">생체 정보 키를 암호화하지 못했습니다.</string>
+    <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">생체 정보 키를 복호화하지 못했습니다.</string>
     <string name="error_failed_ssh_agent_start">SSH 에이전트를 시작하지 못했습니다.</string>
     <string name="error_failed_gpg_agent_start">GPG 에이전트를 시작하지 못했습니다.</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">호출한 앱이 권한 목록에 없어 다른 앱을 대신해 인증을 요청할 수 없습니다.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1051,7 @@
     <string name="home_settings_label">설정</string>
     <string name="lock_reason_inactivity">일정 시간 미사용으로 잠김</string>
     <string name="lock_reason_screen_off">화면 꺼짐으로 인해 잠김</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">사용자에 의해 잠김</string>
     <string name="send_type_text">텍스트</string>
     <string name="send_type_file">파일</string>
@@ -1666,6 +1670,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">기기 다시 시작 이후 보관함을 잠급니다.</string>
     <string name="pref_item_lock_vault_after_screen_off_title">화면 꺼짐 이후 잠그기</string>
     <string name="pref_item_lock_vault_after_screen_off_text">기기 화면이 꺼지고 몇 초 뒤에 보관함을 잠급니다.</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">일정 시간 이후 잠그기</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">즉시</string>
     <string name="pref_item_lock_vault_after_delay_never_text">잠그지 않음</string>
@@ -1732,6 +1738,7 @@
     <string name="pref_item_license_sync_failed">이용 권한 코드를 받지 못했습니다</string>
     <string name="pref_item_biometric_unlock_title">생체 정보 잠금 해제</string>
     <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_system_auth_unlock_title">System authentication unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">확인 요청</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">생체 정보 인증 성공 후에 추가로 확인 버튼을 누르도록 요청</string>
     <string name="pref_item_yubikey_unlock_title">YubiKey 잠금 해제</string>

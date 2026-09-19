@@ -31,7 +31,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        val commonMain = getByName("commonMain") {
             dependencies {
                 implementation(libs.koin.core)
                 implementation(libs.koin.compose)
@@ -42,32 +42,32 @@ kotlin {
             }
         }
 
-        val commonTest by getting {
+        val commonTest = getByName("commonTest") {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(libs.kotlinx.coroutines.test)
             }
         }
 
-        val iosMain by creating {
+        val iosMain = create("iosMain") {
             dependsOn(commonMain)
         }
 
-        val iosTest by creating {
+        val iosTest = create("iosTest") {
             dependsOn(commonTest)
         }
-        val iosArm64Test by getting {
+        getByName("iosArm64Test") {
             dependsOn(iosTest)
         }
-        val iosSimulatorArm64Test by getting {
+        getByName("iosSimulatorArm64Test") {
             dependsOn(iosTest)
         }
 
-        val iosArm64Main by getting {
+        getByName("iosArm64Main") {
             dependsOn(iosMain)
         }
 
-        val iosSimulatorArm64Main by getting {
+        getByName("iosSimulatorArm64Main") {
             dependsOn(iosMain)
         }
     }

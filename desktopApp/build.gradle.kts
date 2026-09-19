@@ -28,7 +28,7 @@ kotlin {
     jvm {
     }
     sourceSets {
-        val jvmMain by getting {
+        getByName("jvmMain") {
             dependencies {
                 implementation(libs.koin.core)
                 implementation(libs.koin.compose)
@@ -48,7 +48,7 @@ kotlin {
                 implementation(project(":common"))
             }
         }
-        val jvmTest by getting {
+        getByName("jvmTest") {
             dependencies {
                 implementation(kotlin("test"))
             }
@@ -64,7 +64,7 @@ val executableAppResourceNames = setOf(
     "keyguard-lib",
 )
 
-val bundledAppResources by configurations.creating {
+val bundledAppResources = configurations.create("bundledAppResources") {
     isCanBeConsumed = false
     isCanBeResolved = true
 }

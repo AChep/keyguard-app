@@ -14,7 +14,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 implementation(project(":util:io"))
                 api(libs.ktor.ktor.client.core)
@@ -22,7 +22,7 @@ kotlin {
                 api(libs.kotlinx.io.core)
             }
         }
-        val commonTest by getting {
+        getByName("commonTest") {
             dependencies {
                 implementation(libs.ktor.ktor.client.mock)
                 implementation(libs.kotlinx.coroutines.test)

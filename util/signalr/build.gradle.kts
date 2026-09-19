@@ -10,7 +10,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 api(project(":util:messagepack"))
                 api(libs.ktor.ktor.client.core)
@@ -19,7 +19,7 @@ kotlin {
                 api(libs.kotlinx.serialization.json)
             }
         }
-        val commonTest by getting {
+        getByName("commonTest") {
             dependencies {
                 implementation(libs.ktor.ktor.client.mock)
                 implementation(libs.kotlinx.coroutines.test)

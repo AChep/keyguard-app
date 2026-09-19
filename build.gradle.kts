@@ -61,7 +61,8 @@ val guardedApiMarkers =
     com.artemchep.keyguard.buildplugins.detekt.DetektCustomRulesPlugin.GUARDED_API_MARKERS
 
 // Catches a module that starts using a guarded API without opting into the custom-rule tasks.
-val verifyDetektCustomRulesOwnership by tasks.registering(
+val verifyDetektCustomRulesOwnership = tasks.register(
+    "verifyDetektCustomRulesOwnership",
     com.artemchep.keyguard.buildplugins.detekt.VerifyDetektMarkerCoverageTask::class,
 ) {
     group = "verification"

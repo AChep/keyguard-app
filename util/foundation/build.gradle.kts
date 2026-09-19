@@ -15,7 +15,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 implementation(project(":util:crypto"))
                 api(libs.kotlinx.io.core)

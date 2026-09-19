@@ -90,7 +90,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        val commonMain = getByName("commonMain") {
             dependencies {
                 implementation(project(":standard:presentation"))
                 implementation(libs.jetbrains.compose.runtime)
@@ -146,7 +146,7 @@ kotlin {
         // html-text-material3 does not publish macOS klibs; the HtmlText
         // composable is provided via expect/actual instead (macOS gets a
         // plain-text fallback in macosMain).
-        val commonTest by getting {
+        val commonTest = getByName("commonTest") {
             kotlin.setSrcDirs(emptyList<String>())
             dependencies {
                 implementation(kotlin("test"))
@@ -154,7 +154,7 @@ kotlin {
             }
         }
 
-        val jvmTest by creating {
+        val jvmTest = create("jvmTest") {
             dependsOn(commonTest)
             kotlin.srcDir("src/commonTest/kotlin")
             dependencies {
@@ -165,7 +165,7 @@ kotlin {
             }
         }
 
-        val appleMain by creating {
+        val appleMain = create("appleMain") {
             dependsOn(commonMain)
             dependencies {
                 api(libs.ionspin.bignum)
@@ -174,54 +174,54 @@ kotlin {
             }
         }
 
-        val iosMain by creating {
+        val iosMain = create("iosMain") {
             dependsOn(appleMain)
             dependencies {
                 api(libs.html.text)
             }
         }
 
-        val iosArm64Main by getting {
+        getByName("iosArm64Main") {
             dependsOn(iosMain)
         }
 
-        val iosSimulatorArm64Main by getting {
+        getByName("iosSimulatorArm64Main") {
             dependsOn(iosMain)
         }
 
-        val macosMain by creating {
+        val macosMain = create("macosMain") {
             dependsOn(appleMain)
         }
 
-        val macosArm64Main by getting {
+        getByName("macosArm64Main") {
             dependsOn(macosMain)
         }
 
-        val iosTest by creating {
+        val iosTest = create("iosTest") {
             dependsOn(commonTest)
             dependencies {
                 implementation(libs.ktor.ktor.client.mock)
             }
         }
 
-        val iosArm64Test by getting {
+        getByName("iosArm64Test") {
             dependsOn(iosTest)
         }
 
-        val iosSimulatorArm64Test by getting {
+        getByName("iosSimulatorArm64Test") {
             dependsOn(iosTest)
         }
 
-        val macosArm64Test by getting {
+        getByName("macosArm64Test") {
             dependsOn(commonTest)
         }
 
-        val androidHostTest by getting {
+        getByName("androidHostTest") {
             dependsOn(jvmTest)
             kotlin.srcDir("src/androidUnitTest/kotlin")
         }
 
-        val desktopTest by getting {
+        getByName("desktopTest") {
             dependsOn(jvmTest)
             dependencies {
                 // The backup tests inspect the archives the repository wrote
@@ -233,7 +233,7 @@ kotlin {
         // Share jvm code between different JVM platforms, see:
         // https://youtrack.jetbrains.com/issue/KT-28194
         // for a proper implementation.
-        val jvmMain by creating {
+        val jvmMain = create("jvmMain") {
             dependsOn(commonMain)
             dependencies {
                 api(libs.html.text)
@@ -252,7 +252,7 @@ kotlin {
             }
         }
 
-        val desktopMain by getting {
+        getByName("desktopMain") {
             dependsOn(jvmMain)
             dependencies {
                 implementation(libs.icu4j)
@@ -276,7 +276,7 @@ kotlin {
                 api(project(":desktopLibJvm"))
             }
         }
-        val androidMain by getting {
+        getByName("androidMain") {
             dependsOn(jvmMain)
             dependencies {
                 api(project(":androidLibAutofill"))

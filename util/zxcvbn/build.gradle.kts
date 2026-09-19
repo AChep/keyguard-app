@@ -19,7 +19,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonTest by getting {
+        getByName("commonTest") {
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
                 // `runTest` is the only multiplatform way to await coroutines

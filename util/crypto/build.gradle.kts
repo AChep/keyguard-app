@@ -31,32 +31,32 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        val commonMain = getByName("commonMain") {
             dependencies {
                 implementation(libs.kotlinx.serialization.protobuf)
             }
         }
 
-        val jvmCommonMain by creating {
+        val jvmCommonMain = create("jvmCommonMain") {
             dependsOn(commonMain)
         }
-        val androidMain by getting {
+        getByName("androidMain") {
             dependsOn(jvmCommonMain)
         }
-        val desktopMain by getting {
+        getByName("desktopMain") {
             dependsOn(jvmCommonMain)
             dependencies {
                 implementation(libs.java.jna)
             }
         }
 
-        val iosArm64Main by getting {
+        getByName("iosArm64Main") {
             dependsOn(commonMain)
         }
-        val iosSimulatorArm64Main by getting {
+        getByName("iosSimulatorArm64Main") {
             dependsOn(commonMain)
         }
-        val macosArm64Main by getting {
+        getByName("macosArm64Main") {
             dependsOn(commonMain)
         }
     }

@@ -24,7 +24,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 api(libs.kotlinx.io.core)
                 api(libs.squareup.okio)

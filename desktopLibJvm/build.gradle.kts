@@ -13,7 +13,7 @@ kotlin {
     }
 
     sourceSets {
-        val jvmMain by getting {
+        getByName("jvmMain") {
             dependencies {
                 implementation(libs.java.jna)
                 implementation(libs.kotlinx.coroutines.core)
@@ -21,7 +21,7 @@ kotlin {
                 implementation(libs.dbus.java.transport)
             }
         }
-        val jvmTest by getting {
+        getByName("jvmTest") {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(libs.kotlinx.coroutines.test)

@@ -14,12 +14,12 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 api(libs.kotlinx.io.core)
             }
         }
-        val commonTest by getting {
+        getByName("commonTest") {
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
                 // `runBlocking` is not in the common surface; `runTest` is.

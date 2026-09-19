@@ -10,7 +10,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.serialization.msgpack)

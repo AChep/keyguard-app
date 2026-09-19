@@ -2,6 +2,7 @@ package com.artemchep.keyguard.buildplugins.cargo
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.create
@@ -21,17 +22,24 @@ class CargoCommonPlugin : Plugin<Project> {
             platformWindows.convention(hostPlatform.isWindows)
             certIdentity.convention(providers.gradleProperty("cert_identity"))
         }
+        // Gradle 9.6+ reads a `-resources` suffix on a Usage value as a legacy alias and fails
+        // on it in Gradle 10, so the artifact kind is carried by LibraryElements instead.
         createNativeElements(
             BUNDLED_APP_RESOURCES_ELEMENTS_CONFIGURATION_NAME,
-            "keyguard-bundled-app-resources",
+            usage = "keyguard-bundled-app",
+            libraryElements = LibraryElements.RESOURCES,
         )
         createNativeElements(
             NATIVE_DESKTOP_LIBRARY_ELEMENTS_CONFIGURATION_NAME,
-            "keyguard-native-desktop-library",
+            usage = "keyguard-native-desktop-library",
         )
     }
 
-    private fun Project.createNativeElements(name: String, usage: String) {
+    private fun Project.createNativeElements(
+        name: String,
+        usage: String,
+        libraryElements: String? = null,
+    ) {
         configurations.create(name) {
             isCanBeConsumed = true
             isCanBeResolved = false
@@ -40,6 +48,12 @@ class CargoCommonPlugin : Plugin<Project> {
                 Usage.USAGE_ATTRIBUTE,
                 objects.named(Usage::class.java, usage),
             )
+            if (libraryElements != null) {
+                attributes.attribute(
+                    LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                    objects.named(LibraryElements::class.java, libraryElements),
+                )
+            }
         }
     }
 

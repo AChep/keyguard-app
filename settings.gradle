@@ -20,14 +20,14 @@ dependencyResolutionManagement {
         // list exact so a compromised or typo-squatted repo cannot shadow a
         // dependency that should come from a first-party repository.
         maven {
-            url 'https://jitpack.io'
+            url = 'https://jitpack.io'
             content {
                 includeGroup 'com.github.AChep'
                 includeGroup 'com.github.Kyant0'
                 includeGroup 'com.github.open-keychain.open-keychain'
             }
         }
-        maven { url "https://maven.pkg.jetbrains.space/public/p/compose/dev" }
+        maven { url = "https://maven.pkg.jetbrains.space/public/p/compose/dev" }
     }
 }
 rootProject.name = "keyguard"

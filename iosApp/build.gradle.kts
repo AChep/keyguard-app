@@ -1,3 +1,5 @@
+import com.artemchep.keyguard.buildplugins.kotlin.configureComposeIosSwiftRuntime
+
 plugins {
     id("keyguard.quality")
     id("keyguard.koin")
@@ -74,3 +76,5 @@ kotlin {
 
     jvmToolchain(libs.versions.jdk.get().toInt())
 }
+
+configureComposeIosSwiftRuntime()

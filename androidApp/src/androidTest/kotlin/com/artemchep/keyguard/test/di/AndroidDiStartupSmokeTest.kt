@@ -3,7 +3,6 @@ package com.artemchep.keyguard.test.di
 import android.content.Context
 import android.content.ContextWrapper
 import android.os.Bundle
-import androidx.annotation.RequiresApi
 import androidx.credentials.provider.BeginGetCredentialRequest
 import androidx.credentials.provider.BeginGetPasswordOption
 import androidx.test.core.app.ApplicationProvider
@@ -85,7 +84,6 @@ class AndroidDiStartupSmokeTest {
 
     @Test
     @SdkSuppress(minSdkVersion = 34)
-    @RequiresApi(34)
     fun credentialProviderOffersUnlockForALockedVault() = runBlocking {
         withTimeout(TIMEOUT_MS) {
             val application = ApplicationProvider.getApplicationContext<Main>()

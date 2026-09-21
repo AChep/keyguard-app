@@ -1,3 +1,4 @@
+import com.artemchep.keyguard.buildplugins.kotlin.configureComposeIosSwiftRuntime
 import com.artemchep.keyguard.buildplugins.testing.benchmarkReport
 import com.artemchep.keyguard.buildplugins.testing.flightRecorder
 import com.artemchep.keyguard.buildplugins.testing.forwardSystemProperties
@@ -541,3 +542,5 @@ tasks.register("checkSshjDependencies") {
     description = "Compatibility alias for the root crypto dependency policy."
     dependsOn("checkBouncyCastleProductionDependencies")
 }
+
+configureComposeIosSwiftRuntime()

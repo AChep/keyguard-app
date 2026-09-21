@@ -79,7 +79,7 @@ fun FilterChipItemComposable(
                 ),
             checked = checked,
             enabled = enabled,
-            colors = ToggleButtonDefaults.toggleButtonColors(
+            colors = ToggleButtonDefaults.colors(
                 containerColor = LocalSurfaceColor.current,
                 disabledContainerColor = LocalSurfaceColor.current,
             ),
@@ -148,7 +148,7 @@ fun FilterListItemComposable(
                 ),
             checked = checked,
             enabled = enabled,
-            colors = ToggleButtonDefaults.toggleButtonColors(
+            colors = ToggleButtonDefaults.colors(
                 containerColor = LocalSurfaceColor.current,
                 disabledContainerColor = LocalSurfaceColor.current,
             ),

@@ -1,3 +1,5 @@
+import com.artemchep.keyguard.buildplugins.kotlin.configureComposeIosSwiftRuntime
+
 plugins {
     id("keyguard.quality")
     id("keyguard.kotlin-multiplatform-library")
@@ -19,3 +21,5 @@ kotlin {
         }
     }
 }
+
+configureComposeIosSwiftRuntime()

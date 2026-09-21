@@ -46,7 +46,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.serialization.json.Json
@@ -151,19 +150,18 @@ class RememberStateFlowScopeImpl(
     }
 
     override fun screenExecutor(): LoadingTask {
-        val executor = LoadingTask(this, appScope)
-        executor
-            .errorFlow
-            .onEach { message ->
+        return LoadingTask(
+            translator = this,
+            scope = appScope,
+            onFailure = { failure ->
                 val model = ToastMessage(
-                    title = message.title,
-                    text = message.text,
+                    title = failure.title,
+                    text = failure.text,
                     type = ToastMessage.Type.ERROR,
                 )
                 message(model)
-            }
-            .launchIn(screenScope)
-        return executor
+            },
+        )
     }
 
     override fun interceptExit(

@@ -66,8 +66,9 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
 import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -119,7 +120,9 @@ class UnlockUseCaseImpl(
         generateMasterKey(password, version)
     }
 
-    private val sharedFlow = combine(
+    private val creatingFrom = MutableStateFlow<MasterSession.Empty?>(null)
+
+    private val sharedFlow = combineTransform(
         keyReadWriteRepository.get()
             .measureTimeTillFirstEvent { d, _ ->
                 val msg = "Fetching the vault info took $d"
@@ -131,11 +134,23 @@ class UnlockUseCaseImpl(
                 logRepository.post(TAG, msg, level = LogLevel.INFO)
             },
         getVaultSession(),
-    ) { persistableUserTokens, biometric, session ->
-        when {
+        creatingFrom,
+    ) { persistableUserTokens, biometric, session, _ ->
+        // Read the guard directly: the fingerprint update can reach combine before
+        // its creation-start update. Preserve the existing setup screen until both
+        // writes are observed, or a subsequent lock replaces the starting session.
+        val startingSession = creatingFrom.value
+        if (startingSession != null) {
+            if (session === startingSession ||
+                session is MasterSession.Key && persistableUserTokens == null
+            ) return@combineTransform
+            creatingFrom.compareAndSet(startingSession, null)
+        }
+        val state = when {
             persistableUserTokens == null && session is MasterSession.Empty ->
                 createCreateVaultState(
                     biometric = biometric.forCreate,
+                    session = session,
                 )
 
             persistableUserTokens == null && session is MasterSession.Key -> {
@@ -173,6 +188,7 @@ class UnlockUseCaseImpl(
 
             else -> error("Unreachable statement")
         }
+        emit(state)
     }
         .distinctUntilChanged()
         .measureTimeTillFirstEvent(
@@ -215,7 +231,21 @@ class UnlockUseCaseImpl(
 
     private suspend fun createCreateVaultState(
         biometric: BiometricStatus,
+        session: MasterSession.Empty,
     ): VaultState {
+        // A failed or cancelled creation must release the guard so the persisted
+        // fingerprint determines whether the user can retry setup or unlock.
+        @Suppress("TooGenericExceptionCaught")
+        fun IO<Unit>.withCreationGuard(): IO<Unit> = ioEffect {
+            check(creatingFrom.compareAndSet(null, session)) { "Vault creation is already in progress" }
+            try {
+                bind()
+            } catch (e: Throwable) {
+                creatingFrom.compareAndSet(session, null)
+                throw e
+            }
+        }
+
         return VaultState.Create(
             createWithMasterPassword = VaultState.Create.WithPassword(
                 getCreateIo = { password ->
@@ -229,6 +259,7 @@ class UnlockUseCaseImpl(
                         .flatTap {
                             writeLastPasswordUseTimestamp()
                         }
+                        .withCreationGuard()
                         .dispatchOn(Dispatchers.Default)
                 },
             ),
@@ -281,6 +312,7 @@ class UnlockUseCaseImpl(
                             .flatTap {
                                 writeLastPasswordUseTimestamp()
                             }
+                            .withCreationGuard()
                             .dispatchOn(Dispatchers.Default)
                     },
                     requireConfirmation = requireConfirmation,

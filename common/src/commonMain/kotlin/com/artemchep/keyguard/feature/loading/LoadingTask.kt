@@ -29,6 +29,8 @@ class LoadingTask(
     private val exceptionHandler: suspend (Throwable) -> ReadableExceptionMessage = { e ->
         getErrorReadableMessage(e, translator)
     },
+    /** Reports failures in the task's scope, even after the originating screen is gone. */
+    private val onFailure: (Failure) -> Unit = {},
 ) {
     private val isWorkingSink = MutableStateFlow(false)
 
@@ -71,6 +73,7 @@ class LoadingTask(
                     text = parsedMessage.text,
                 )
                 result.value.printStackTrace()
+                onFailure(message)
                 errorSink.emit(message)
             } else {
                 // Normally executing a task navigates the user somewhere. We

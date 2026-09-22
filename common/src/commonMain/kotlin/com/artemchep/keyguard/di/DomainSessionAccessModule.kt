@@ -122,7 +122,6 @@ class DomainSessionAccessModule {
                     val notifications = WatchtowerNotifications(
                         context = get(),
                         getWatchtowerUnreadAlerts = get(),
-                        getCiphers = get(),
                         getProfiles = get(),
                         showNotification = get(),
                         cryptoGenerator = get(),

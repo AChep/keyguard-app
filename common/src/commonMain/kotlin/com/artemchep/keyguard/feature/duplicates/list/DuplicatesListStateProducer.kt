@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.canDelete
 import com.artemchep.keyguard.common.model.canEdit
 import com.artemchep.keyguard.common.model.getShapeState
+import com.artemchep.keyguard.common.model.isWatchtowerEligible
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
 import com.artemchep.keyguard.common.usecase.CipherToolbox
@@ -260,7 +261,7 @@ suspend fun RememberStateFlowScope.duplicatesListStateProducer(
     val ciphersFlow = ciphersRawFlow
         .map { ciphers ->
             ciphers
-                .filter { it.deletedDate == null }
+                .filter { it.isWatchtowerEligible }
                 .run {
                     val filter = args.filter
                     if (filter != null) {

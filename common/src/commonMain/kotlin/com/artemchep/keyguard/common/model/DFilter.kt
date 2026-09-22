@@ -830,6 +830,7 @@ sealed interface DFilter {
         ): Map<String, DuplicatesState> {
             val map = mutableMapOf<String, DuplicatesState>()
             ciphers.forEach { cipher ->
+                if (!cipher.isWatchtowerEligible) return@forEach
                 val password = cipher.login?.password
                 if (password != null) {
                     val holder = map.getOrPut(password) {
@@ -852,7 +853,8 @@ sealed interface DFilter {
         private fun predicate(
             passwords: Set<String>,
             cipher: DSecret,
-        ) = cipher.login?.password in passwords &&
+        ) = cipher.isWatchtowerEligible &&
+                cipher.login?.password in passwords &&
                 !shouldIgnore(cipher)
 
         private fun shouldIgnore(
@@ -1472,7 +1474,7 @@ sealed interface DFilter {
 
             val c = ciphers
                 .filter { cipher ->
-                    !cipher.deleted && !shouldIgnore(cipher)
+                    cipher.isWatchtowerEligible && !shouldIgnore(cipher)
                 }
             val result = cipherUrlBroadCheck(
                 c,

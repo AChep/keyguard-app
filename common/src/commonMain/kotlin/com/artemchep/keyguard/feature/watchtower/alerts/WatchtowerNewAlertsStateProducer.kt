@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.model.getShapeState
+import com.artemchep.keyguard.common.model.isWatchtowerEligible
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DismissNotificationsByChannel
@@ -235,7 +236,7 @@ suspend fun RememberStateFlowScope.watchtowerNewAlertsStateProducer(
     val ciphersFlow = ciphersRawFlow
         .map { secrets ->
             secrets
-                .filter { secret -> !secret.deleted }
+                .filter { secret -> secret.isWatchtowerEligible }
         }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
 

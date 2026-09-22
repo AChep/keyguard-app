@@ -27,6 +27,7 @@ import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.ignores
+import com.artemchep.keyguard.common.model.isWatchtowerEligible
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
@@ -55,7 +56,6 @@ import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.GetCheckTwoFA
 import com.artemchep.keyguard.common.usecase.GetCipherSnapshots
-import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
 import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.common.usecase.GetProfiles
@@ -145,7 +145,6 @@ class WatchtowerSyncerImpl(
 internal class WatchtowerNotifications(
     private val context: LeContext,
     private val getWatchtowerUnreadAlerts: GetWatchtowerUnreadAlerts,
-    private val getCiphers: GetCiphers,
     private val getProfiles: GetProfiles,
     private val showNotification: ShowNotification,
     private val cryptoGenerator: CryptoGenerator,
@@ -165,25 +164,12 @@ internal class WatchtowerNotifications(
                     .toSet()
             }
             .distinctUntilChanged()
-        val visibleCipherIdsFlow = getCiphers()
-            .map { ciphers ->
-                ciphers
-                    .mapNotNull { it.takeIf { !it.deleted }?.id }
-                    .toSet()
-            }
-            .distinctUntilChanged()
         val unreadAlertsFlow = getWatchtowerUnreadAlerts()
             // Hide the non-public (hidden) accounts
             // from the notifications.
             .combine(visibleAccountIdsFlow) { alerts, publicAccountIds ->
                 alerts
                     .filter { it.accountId.id in publicAccountIds }
-            }
-            // Hide the deleted ciphers
-            // from the notifications.
-            .combine(visibleCipherIdsFlow) { alerts, publicCipherIds ->
-                alerts
-                    .filter { it.cipherId.id in publicCipherIds }
             }
             .debounce(FLOW_DEBOUNCE_MS)
 
@@ -269,8 +255,7 @@ internal class WatchtowerClient(
                 WatchtowerClientMode.ALL -> 3000L
             }
 
-            val versionFlow = processor.version()
-            val requestsFlow = versionFlow
+            val requestsFlow = processor.version()
                 .distinctUntilChanged()
                 .flatMapLatest { version ->
                     val ciphersFlow = when (processor.mode) {
@@ -320,7 +305,7 @@ internal class WatchtowerClient(
 
                     val now = Clock.System.now()
                     val results = try {
-                        processor.process(ciphers)
+                        processor.processActiveCiphers(ciphers)
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
@@ -365,7 +350,7 @@ internal class WatchtowerClient(
                             runCatching {
                                 db.watchtowerThreatQueries.upsert(
                                     value = r.value,
-                                    threat = r.threat && !r.cipher.deleted,
+                                    threat = r.threat,
                                     cipherId = r.cipher.id,
                                     type = type,
                                     reportedAt = now,
@@ -534,6 +519,18 @@ interface WatchtowerClientTyped {
     suspend fun process(
         ciphers: List<DSecret>,
     ): List<WatchtowerClientResult>
+}
+
+internal suspend fun WatchtowerClientTyped.processActiveCiphers(
+    ciphers: List<DSecret>,
+): List<WatchtowerClientResult> {
+    val (active, inactive) = ciphers.partition { it.isWatchtowerEligible }
+    val results = if (active.isEmpty()) emptyList() else process(active)
+    // Still record the current revision for excluded items so old threats are
+    // cleared and the pending-cipher query does not repeatedly schedule them.
+    return results + inactive.map { cipher ->
+        WatchtowerClientResult(threat = false, cipher = cipher)
+    }
 }
 
 class WatchtowerPasswordStrength : WatchtowerClientTyped {
@@ -1533,7 +1530,7 @@ class WatchtowerBroadUris(
     override fun version() = combineJoinToVersion(
         getAutofillDefaultMatchDetection()
             .map { it.name },
-        version = "1",
+        version = "2",
     )
 
     override suspend fun process(
@@ -1544,7 +1541,7 @@ class WatchtowerBroadUris(
             .first()
 
         val allActiveCiphers = ciphers
-            .filter { !it.deleted && !shouldIgnore(it) }
+            .filter { !shouldIgnore(it) }
         val result = cipherUrlBroadCheck(
             allActiveCiphers,
             defaultMatchDetection,

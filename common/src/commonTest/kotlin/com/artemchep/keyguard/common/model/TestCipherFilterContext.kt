@@ -27,12 +27,27 @@ internal fun testCipherFilterContext(
     cipherSshKeyWeakCheck: CipherSshKeyWeakCheck = object : CipherSshKeyWeakCheck {
         override fun invoke(cipher: DSecret): Nothing = unusedFilterService()
     },
+    getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection = object : GetAutofillDefaultMatchDetection {
+        override fun invoke(): Nothing = unusedFilterService()
+    },
+    equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory = EquivalentDomainsBuilderFactory(
+        logRepository = LogRepositoryBridge(emptyList()),
+        getEquivalentDomains = object : GetEquivalentDomains {
+            override fun invoke(): Nothing = unusedFilterService()
+        },
+    ),
+    cipherUrlBroadCheck: CipherUrlBroadCheck = object : CipherUrlBroadCheck {
+        override fun invoke(
+            ciphers: List<DSecret>,
+            matchType: DSecret.Uri.MatchType,
+            equivalentDomains: EquivalentDomainsBuilder,
+        ): Nothing = unusedFilterService()
+    },
 ) = CipherFilterContext(
     checkPasswordSetLeak = checkPasswordSetLeak,
     cipherSshKeyWeakCheck = cipherSshKeyWeakCheck,
-    getAutofillDefaultMatchDetection = object : GetAutofillDefaultMatchDetection {
-        override fun invoke(): Nothing = unusedFilterService()
-    },
+    getAutofillDefaultMatchDetection = getAutofillDefaultMatchDetection,
+    equivalentDomainsBuilderFactory = equivalentDomainsBuilderFactory,
     cipherBreachCheck = object : CipherBreachCheck {
         override fun invoke(
             cipher: DSecret,
@@ -41,12 +56,6 @@ internal fun testCipherFilterContext(
             equivalentDomains: EquivalentDomains,
         ): Nothing = unusedFilterService()
     },
-    equivalentDomainsBuilderFactory = EquivalentDomainsBuilderFactory(
-        logRepository = LogRepositoryBridge(emptyList()),
-        getEquivalentDomains = object : GetEquivalentDomains {
-            override fun invoke(): Nothing = unusedFilterService()
-        },
-    ),
     getBreaches = object : GetBreaches {
         override fun invoke(forceRefresh: Boolean): Nothing = unusedFilterService()
     },
@@ -77,13 +86,7 @@ internal fun testCipherFilterContext(
             equivalentDomains: EquivalentDomains,
         ): Nothing = unusedFilterService()
     },
-    cipherUrlBroadCheck = object : CipherUrlBroadCheck {
-        override fun invoke(
-            ciphers: List<DSecret>,
-            matchType: DSecret.Uri.MatchType,
-            equivalentDomains: EquivalentDomainsBuilder,
-        ): Nothing = unusedFilterService()
-    },
+    cipherUrlBroadCheck = cipherUrlBroadCheck,
     getWatchtowerAlerts = object : GetWatchtowerAlerts {
         override fun invoke(): Nothing = unusedFilterService()
     },

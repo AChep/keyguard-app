@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.formatH2
+import com.artemchep.keyguard.common.model.isWatchtowerEligible
 import com.artemchep.keyguard.common.service.filter.AddCipherFilter
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
@@ -241,7 +242,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
     val ciphersFlow = ciphersRawFlow
         .map { secrets ->
             secrets
-                .filter { secret -> !secret.deleted }
+                .filter { secret -> secret.isWatchtowerEligible }
         }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
     val foldersRawFlow = filterHiddenProfiles(
@@ -404,7 +405,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
         // lambda's return type, so an identity serializer pins S to Int no matter how
         // the deserialize parameter is declared.
         val cachedCounterSink = mutablePersistedFlow<Int, Number>(
-            key = key,
+            key = "active.$key",
             storage = storage,
             serialize = { _, value -> value },
             deserialize = { _, value -> value.toInt() },
@@ -1446,10 +1447,12 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
     val emptyItemsFlow = createGenericAlertStateFlow(
         source = filteredFoldersFlow
             .combine(
-                ciphersFlow
+                // Archived items still occupy their folder.
+                ciphersRawFlow
                     .map { list ->
                         list
                             .asSequence()
+                            .filter { !it.deleted }
                             .map { it.folderId }
                             .toSet()
                     }

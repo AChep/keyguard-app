@@ -82,6 +82,7 @@ import com.artemchep.keyguard.common.model.canEdit
 import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.model.formatH
 import com.artemchep.keyguard.common.model.ignores
+import com.artemchep.keyguard.common.model.isWatchtowerEligible
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
@@ -750,7 +751,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
     val ciphersFlow = getCiphers()
         .map { secrets ->
             secrets
-                .filter { it.deletedDate == null }
+                .filter { it.isWatchtowerEligible }
         }
     val folderFlow = secretFlow
         .flatMapLatest { secret ->
@@ -2161,6 +2162,7 @@ private fun RememberStateFlowScope.oh(
                     }
             }
             if (
+                cipher.isWatchtowerEligible &&
                 !cipher.ignores(DWatchtowerAlertType.REUSED_PASSWORD) &&
                 reusedPasswords > 1
             ) {

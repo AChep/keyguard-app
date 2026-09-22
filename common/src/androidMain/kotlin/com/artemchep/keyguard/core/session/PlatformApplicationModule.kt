@@ -57,9 +57,7 @@ import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.CleanUpAttachment
 import com.artemchep.keyguard.common.usecase.ClearData
 import com.artemchep.keyguard.common.usecase.GetBarcodeImage
-import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
-import com.artemchep.keyguard.common.usecase.PutLocale
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.usecase.impl.CleanUpAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPurchasedImpl
@@ -87,8 +85,6 @@ import com.artemchep.keyguard.copy.TextServiceAndroid
 import com.artemchep.keyguard.core.session.usecase.BiometricKeyRepositoryAndroid
 import com.artemchep.keyguard.core.session.usecase.BiometricStatusUseCaseImpl
 import com.artemchep.keyguard.core.session.usecase.DatabaseSqlManagerInFileAndroid
-import com.artemchep.keyguard.core.session.usecase.GetLocaleAndroid
-import com.artemchep.keyguard.core.session.usecase.PutLocaleAndroid
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.GlobalModuleJvm
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
@@ -183,16 +179,6 @@ class PlatformApplicationModule {
         single<PendingUploadDirProvider> {
             PendingUploadDirProviderAndroid(
                 context = get(),
-            )
-        }
-        single<GetLocale> {
-            GetLocaleAndroid(
-                settingsReadRepository = get(),
-            )
-        }
-        single<PutLocale> {
-            PutLocaleAndroid(
-                settingsReadWriteRepository = get(),
             )
         }
         single<GetPurchased> {

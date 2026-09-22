@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.wear
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -12,20 +11,17 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import androidx.wear.compose.material3.MaterialTheme
 import com.artemchep.keyguard.android.BaseApp
-import com.artemchep.keyguard.di.KeyguardKoinOwner
-import com.artemchep.keyguard.di.keyguardKoin
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
+import com.artemchep.keyguard.wear.locale.WearLocalizedActivity
 import com.artemchep.keyguard.wear.ui.WearKeyguardTheme
 import kotlin.getValue
 import org.koin.compose.KoinIsolatedContext
 
-abstract class WearCredentialProviderActivity : ComponentActivity(), KeyguardKoinOwner {
-    override val koin get() = keyguardKoin()
-
+abstract class WearCredentialProviderActivity : WearLocalizedActivity() {
     val translatorScope by lazy {
         val context = LeContext(this)
         TranslatorScope.of(context)

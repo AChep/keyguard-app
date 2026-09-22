@@ -46,6 +46,7 @@ import com.artemchep.keyguard.common.service.vault.SessionReadRepository
 import com.artemchep.keyguard.common.usecase.*
 import com.artemchep.keyguard.common.usecase.impl.CleanUpAttachmentImpl
 import com.artemchep.keyguard.common.worker.WorkerRegistry
+import com.artemchep.keyguard.core.session.AndroidLocaleModule
 import com.artemchep.keyguard.core.session.PlatformApplicationModule
 import com.artemchep.keyguard.core.session.usecase.PlatformVaultModule
 import com.artemchep.keyguard.di.GlobalModuleCommon
@@ -91,6 +92,7 @@ internal fun createPhoneKoinApplication(
                 VaultModuleCommon().module,
                 PlatformVaultModule().module,
                 PlatformApplicationModule().module,
+                AndroidLocaleModule().module,
                 NavigationModule().module,
                 AndroidIpcModule().module,
                 applicationModule.module,
@@ -107,6 +109,7 @@ internal fun createPhoneKoinApplication(
                 VaultModuleCommon().module,
                 PlatformVaultModule().module,
                 PlatformApplicationModule().module,
+                AndroidLocaleModule().module,
                 NavigationModule().module,
                 AndroidIpcModule().module,
                 applicationModule.module,

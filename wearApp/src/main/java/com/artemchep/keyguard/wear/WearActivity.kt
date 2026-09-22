@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.wear
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,16 +12,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.wear.compose.material3.MaterialTheme
 import com.artemchep.keyguard.android.BaseApp
 import com.artemchep.keyguard.copy.PermissionServiceAndroid
-import com.artemchep.keyguard.di.KeyguardKoinOwner
-import com.artemchep.keyguard.di.keyguardKoin
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
+import com.artemchep.keyguard.wear.locale.WearLocalizedActivity
 import com.artemchep.keyguard.wear.ui.WearKeyguardTheme
 import kotlin.getValue
 import org.koin.compose.KoinIsolatedContext
 
-class WearActivity : ComponentActivity(), KeyguardKoinOwner {
-    override val koin get() = keyguardKoin()
-
+class WearActivity : WearLocalizedActivity() {
     private val permissionService: PermissionServiceAndroid by lazy { koin.get() }
 
     override fun onResume() {

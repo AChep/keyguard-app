@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.wear
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
 import android.os.Build
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -29,6 +30,9 @@ import com.artemchep.keyguard.di.GlobalModuleCommon
 import com.artemchep.keyguard.di.VaultModuleCommon
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
 import com.artemchep.keyguard.feature.navigation.NavigationModule
+import com.artemchep.keyguard.platform.recordException
+import com.artemchep.keyguard.wear.locale.WearLocaleController
+import com.artemchep.keyguard.wear.locale.WearLocaleModule
 import com.artemchep.keyguard.wear.credential.WearCredentialProviderPlatformConfig
 import com.artemchep.keyguard.wear.feature.navigation.WearNavigationModule
 import kotlinx.coroutines.Dispatchers
@@ -54,6 +58,7 @@ internal fun createWearKoinApplication(
                 VaultModuleCommon().module,
                 PlatformVaultModule().module,
                 PlatformApplicationModule().module,
+                WearLocaleModule().module,
                 WearNavigationModule().module,
                 applicationModule.module,
                 images.module,
@@ -69,6 +74,7 @@ internal fun createWearKoinApplication(
                 VaultModuleCommon().module,
                 PlatformVaultModule().module,
                 PlatformApplicationModule().module,
+                WearLocaleModule().module,
                 WearNavigationModule().module,
                 applicationModule.module,
                 images.module,
@@ -95,9 +101,18 @@ class WearApp : BaseApp() {
         createWearKoinApplication(application = { this })
     }
 
+    private val localeController: WearLocaleController by lazy { koin.get() }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        localeController.refresh()
+    }
+
     override fun onCreate() {
-        SingletonImageLoader.setFromKoin(koin)
         super.onCreate()
+        // Also runs for service-only starts. A failed migration remains pending for the next start.
+        runCatching { localeController.initialize() }.onFailure(::recordException)
+        SingletonImageLoader.setFromKoin(koin)
         val companionAuthBridge: CompanionAuthBridgeAndroid by lazy { koin.get() }
         ProcessLifecycleOwner.get().lifecycleScope.launch(Dispatchers.Default) {
             companionAuthBridge.sweepExpiredArtifacts()

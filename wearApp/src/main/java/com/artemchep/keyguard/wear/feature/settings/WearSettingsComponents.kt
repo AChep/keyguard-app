@@ -11,6 +11,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
@@ -24,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.FilledTonalButton
 import androidx.wear.compose.material3.Icon
+import androidx.wear.compose.material3.LocalContentColor
+import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.SwitchButton
 import com.artemchep.keyguard.feature.home.settings.SettingPaneComponents
@@ -224,14 +227,18 @@ class WearSettingsComponents : SettingPaneComponents {
                 transformation = transformation.takeIf { footer == null },
             )
             if (footer != null) {
-                ProxyMaterial3Styles {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        content = footer,
-                    )
+                CompositionLocalProvider(
+                    LocalContentColor provides MaterialTheme.colorScheme.onBackground,
+                ) {
+                    ProxyMaterial3Styles {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            content = footer,
+                        )
+                    }
                 }
             }
         }

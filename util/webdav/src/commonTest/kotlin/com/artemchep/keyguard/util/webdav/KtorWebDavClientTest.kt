@@ -71,6 +71,25 @@ class KtorWebDavClientTest {
     }
 
     @Test
+    fun `stat reports a too deeply nested multistatus as protocol error`() = runTest {
+        val depth = 20_000
+        val engine = MockEngine {
+            respond(
+                content = singleMultistatus(
+                    href = "/dav/root/object.kdbx",
+                    properties = "<D:x>".repeat(depth) + "</D:x>".repeat(depth),
+                ),
+                status = MULTI_STATUS,
+            )
+        }
+        val client = testClient(engine)
+
+        assertFailsWith<WebDavException.Protocol> {
+            client.stat("object.kdbx")
+        }
+    }
+
+    @Test
     fun `write creates missing parents and publishes via temp upload and MOVE`() = runTest {
         val payload = "payload".encodeToByteArray()
         val objectPath = "/dav/root/blobs/ab/object.zip"

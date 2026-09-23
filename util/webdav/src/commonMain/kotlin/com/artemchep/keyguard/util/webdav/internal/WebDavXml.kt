@@ -156,6 +156,14 @@ private class XmlParser(
                     val node = MutableXmlNode(resolveName(tag.name, namespaces))
                     stack.last().node.children += node
                     if (!tag.selfClosing) {
+                        // The tree is converted recursively, so the nesting
+                        // must be bounded. A multistatus response only nests
+                        // a few levels deep.
+                        if (stack.size > MAX_XML_DEPTH) {
+                            throw IllegalArgumentException(
+                                "XML document exceeds the $MAX_XML_DEPTH-level depth limit.",
+                            )
+                        }
                         stack += XmlFrame(
                             node = node,
                             namespaces = namespaces,
@@ -407,5 +415,6 @@ private fun decodeNumericEntity(
 private val SURROGATE_CODE_POINTS = Char.MIN_SURROGATE.code..Char.MAX_SURROGATE.code
 private const val MIN_SUPPLEMENTARY_CODE_POINT = 0x10000
 private const val MAX_CODE_POINT = 0x10FFFF
+private const val MAX_XML_DEPTH = 256
 
 private const val DAV_NAMESPACE = "DAV:"

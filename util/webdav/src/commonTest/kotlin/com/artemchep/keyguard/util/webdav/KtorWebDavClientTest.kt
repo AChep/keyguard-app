@@ -909,6 +909,41 @@ class KtorWebDavClientTest {
     }
 
     @Test
+    fun `list children decodes the same name from every href spelling`() = runTest {
+        val engine = MockEngine { request ->
+            assertEquals(HttpMethod("PROPFIND"), request.method)
+            respond(
+                content = multistatus(
+                    responseXml(
+                        href = "/dav/root/folder/",
+                        properties = "<D:resourcetype><D:collection/></D:resourcetype>",
+                    ),
+                    // Supplementary character: literal, hex entity, decimal
+                    // entity and percent-encoded UTF-8.
+                    responseXml("/dav/root/folder/😀.kdbx", "<D:resourcetype/>"),
+                    responseXml("/dav/root/folder/&#x1F600;.kdbx", "<D:resourcetype/>"),
+                    responseXml("/dav/root/folder/&#128512;.kdbx", "<D:resourcetype/>"),
+                    responseXml("/dav/root/folder/%F0%9F%98%80.kdbx", "<D:resourcetype/>"),
+                    // Basic plane character in the same four spellings.
+                    responseXml("/dav/root/folder/é.kdbx", "<D:resourcetype/>"),
+                    responseXml("/dav/root/folder/&#xE9;.kdbx", "<D:resourcetype/>"),
+                    responseXml("/dav/root/folder/&#233;.kdbx", "<D:resourcetype/>"),
+                    responseXml("/dav/root/folder/%C3%A9.kdbx", "<D:resourcetype/>"),
+                ),
+                status = MULTI_STATUS,
+            )
+        }
+        val client = testClient(engine)
+
+        val items = client.listChildren("folder/")
+
+        assertEquals(
+            listOf("folder/é.kdbx", "folder/😀.kdbx"),
+            items.map { item -> item.path }.sorted(),
+        )
+    }
+
+    @Test
     fun `list children throws not found for a missing collection`() = runTest {
         val engine = MockEngine { request ->
             assertEquals("1", request.headers["Depth"])

@@ -390,9 +390,22 @@ private fun decodeNumericEntity(
             .toIntOrNull()
         else -> null
     } ?: return null
-    return runCatching {
-        codePoint.toChar().toString()
-    }.getOrNull()
+    // Only Unicode scalar values are valid XML character references.
+    return when {
+        codePoint <= 0 || codePoint > MAX_CODE_POINT -> null
+        codePoint in SURROGATE_CODE_POINTS -> null
+        codePoint < MIN_SUPPLEMENTARY_CODE_POINT -> codePoint.toChar().toString()
+        else -> {
+            val offset = codePoint - MIN_SUPPLEMENTARY_CODE_POINT
+            val high = Char.MIN_HIGH_SURROGATE + (offset shr 10)
+            val low = Char.MIN_LOW_SURROGATE + (offset and 0x3FF)
+            charArrayOf(high, low).concatToString()
+        }
+    }
 }
+
+private val SURROGATE_CODE_POINTS = Char.MIN_SURROGATE.code..Char.MAX_SURROGATE.code
+private const val MIN_SUPPLEMENTARY_CODE_POINT = 0x10000
+private const val MAX_CODE_POINT = 0x10FFFF
 
 private const val DAV_NAMESPACE = "DAV:"

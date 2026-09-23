@@ -766,9 +766,12 @@
     <string name="error_failed_open_app_for">Nenhuma aplicação instalado pode realizar esta requisição</string>
     <string name="error_failed_unknown">Algo correu mal</string>
     <string name="error_failed_encrypt_biometric_key">Falha ao encriptar a chave biométrica</string>
+    <string name="biometric_error_policy_not_installed">O Keyguard não conseguiu instalar a regra de permissão do sistema necessária para a autenticação do sistema.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">O Keyguard necessita de uma regra de permissão de sistema única para utilizar a autenticação do sistema. Execute este comando num terminal no host e tente novamente:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Falha ao desencriptar a chave biométrica</string>
     <string name="error_failed_ssh_agent_start">Falha ao iniciar o agente SSH</string>
     <string name="error_failed_gpg_agent_start">Falha ao iniciar o agente GPG</string>
+    <string name="error_failed_power_lock_start">Não foi possível ativar o bloqueio quando o ecrã desliga ou o dispositivo entra em modo de repouso. Reinicie o Keyguard para tentar novamente.</string>
     <string name="error_credential_calling_app_not_privileged">A aplicação que está a fazer a chamada não está na lista de aplicações privilegiadas e não pode solicitar autenticação em nome das outras aplicações.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1049,6 +1052,7 @@
     <string name="home_settings_label">Definições</string>
     <string name="lock_reason_inactivity">Bloqueado devido a inatividade</string>
     <string name="lock_reason_screen_off">Bloqueado devido ao ecrã desligado</string>
+    <string name="lock_reason_system_sleep">Bloqueado porque o dispositivo entrou em modo de suspensão</string>
     <string name="lock_reason_manually">Bloqueado manualmente</string>
     <string name="send_type_text">Texto</string>
     <string name="send_type_file">Ficheiro</string>
@@ -1667,6 +1671,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">Bloquear o cofre após o dispositivo reiniciar</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Bloquear quando o ecrã desligar</string>
     <string name="pref_item_lock_vault_after_screen_off_text">Bloquear o cofre após alguns segundos depois do ecrã desligado</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Bloquear quando o ecrã desliga ou o dispositivo entra em modo de suspensão</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Bloquear o cofre quando o ecrã se desligar ou o dispositivo entrar em modo de suspensão</string>
     <string name="pref_item_lock_vault_after_delay_title">Bloquear após atraso</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Imediatamente</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Nunca</string>
@@ -1733,6 +1739,7 @@
     <string name="pref_item_license_sync_failed">Não foi possível obter token de titularidade</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueio biométrico</string>
     <string name="pref_item_windows_hello_unlock_title">Desbloquear com Windows Hello</string>
+    <string name="pref_item_system_auth_unlock_title">Desbloqueio da autenticação do sistema</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Requer confirmação</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Exigir um toque adicional no botão de confirmação após uma autenticação biométrica bem sucedida</string>
     <string name="pref_item_yubikey_unlock_title">Desbloquear com YubiKey</string>

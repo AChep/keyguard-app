@@ -766,9 +766,12 @@
     <string name="error_failed_open_app_for">Ingen installeret app kan håndtere denne anmodning</string>
     <string name="error_failed_unknown">Noget gik galt</string>
     <string name="error_failed_encrypt_biometric_key">Mislykkedes at kryptere den biometriske nøgle</string>
+    <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Mislykkedes at dekryptere den biometriske nøgle</string>
     <string name="error_failed_ssh_agent_start">Starten van de SSH agent mislukt</string>
     <string name="error_failed_gpg_agent_start">Failed to start the GPG agent</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">De aanroepende app staat niet in de lijst met bevoorrechte apps en kan niet namens andere apps om authenticatie vragen.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1051,7 @@
     <string name="home_settings_label">Indstillinger</string>
     <string name="lock_reason_inactivity">Låst grundet inaktivitet</string>
     <string name="lock_reason_screen_off">Vergrendeld wegens uitschakelen van scherm</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">Låst manuelt</string>
     <string name="send_type_text">Tekst</string>
     <string name="send_type_file">Fil</string>
@@ -1666,6 +1670,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">Lås boksen efter enhedsgenstart</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Lås, når skærmen slukkes</string>
     <string name="pref_item_lock_vault_after_screen_off_text">Lås boksen efter et par sekunder, når skærmen slukkes</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">Lås med forsinkelse</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Straks</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Aldrig</string>
@@ -1732,6 +1738,7 @@
     <string name="pref_item_license_sync_failed">Could not obtain entitlement token</string>
     <string name="pref_item_biometric_unlock_title">Biometrisk oplåsning</string>
     <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_system_auth_unlock_title">System authentication unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Kræv bekræftelse</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Kræv et ekstra tryk på bekræftelsesknappen efter biometrisk godkendelse</string>
     <string name="pref_item_yubikey_unlock_title">YubiKey-ontgrendeling</string>

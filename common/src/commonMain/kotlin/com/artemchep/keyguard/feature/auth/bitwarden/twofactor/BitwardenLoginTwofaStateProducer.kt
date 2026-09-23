@@ -5,6 +5,7 @@ import arrow.core.Either
 import arrow.core.right
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectTap
+import com.artemchep.keyguard.common.io.handleErrorTap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -870,8 +871,14 @@ private fun RememberStateFlowScope.createResendFlow(
                 .effectTap {
                     canResendAtSink.value = Clock.System.now() + resendDelay
                     // Remember the key only after the request succeeds, so a
-                    // failed request can be attempted again after resubscribing.
+                    // failed request is repeated when the screen is recreated
+                    // from its persisted state.
                     currentSink.value = key
+                }
+                .handleErrorTap {
+                    // Let the user retry right away. The error itself
+                    // is reported by the screen scope.
+                    canResendAtSink.value = Clock.System.now()
                 }
                 .launchIn(this)
         }

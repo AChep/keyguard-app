@@ -133,6 +133,20 @@ class PlaceholdersSpec {
             result[BasicField.UserName()]?.content shouldBe content2
             result[BasicField.Notes()]?.content shouldBe content2
         }
+
+        it("Returns a self-reference unresolved at zero depth") {
+            val uuid = Uuid.random()
+            val reference = "{REF:P@I:${uuid.toHexString()}}"
+            val entry = buildEntry(uuid) {
+                fields[BasicField.Password()] = EntryValue.Plain(reference)
+            }
+            val database = EmptyDatabase
+                .modifyParentGroup { copy(entries = listOf(entry)) }
+            val result = database
+                .resolveReference(reference, 0U)
+
+            result shouldBe reference
+        }
     }
     }
 }

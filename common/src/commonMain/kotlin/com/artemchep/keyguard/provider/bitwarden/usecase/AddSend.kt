@@ -14,7 +14,9 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullab
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.auth.common.util.ValidationEmail
+import com.artemchep.keyguard.feature.auth.common.util.ValidationInteger
 import com.artemchep.keyguard.feature.auth.common.util.validateEmail
+import com.artemchep.keyguard.feature.auth.common.util.validateInteger
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKeyMaterial
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
@@ -310,8 +312,7 @@ private suspend fun BitwardenSend.Companion.of(
         throw IllegalStateException(msg)
     }
 
-    val maxAccessCount = request.maxAccessCount
-        ?.toIntOrNull()
+    val maxAccessCount = parseSendMaxAccessCount(request.maxAccessCount)
     return BitwardenSend(
         accountId = accountId,
         sendId = cipherId,
@@ -350,6 +351,24 @@ private suspend fun BitwardenSend.Companion.of(
         text = text,
         file = file,
     )
+}
+
+/**
+ * Parses the max access count the same way the Send form validates it:
+ * surrounding whitespace is ignored, blank means "no limit". A non-blank
+ * value that is not a number is rejected instead of silently becoming
+ * "no limit".
+ */
+internal fun parseSendMaxAccessCount(text: String?): Int? {
+    val trimmed = text?.trim()
+    return when (validateInteger(trimmed)) {
+        ValidationInteger.OK -> trimmed?.toInt()
+        ValidationInteger.ERROR_EMPTY -> null
+        ValidationInteger.ERROR_INVALID -> {
+            val msg = "A Send's max access count must be a number!"
+            throw IllegalStateException(msg)
+        }
+    }
 }
 
 private fun DSend.AuthType.toBitwarden() = when (this) {

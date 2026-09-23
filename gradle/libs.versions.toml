@@ -157,7 +157,7 @@ logback = "3.0.0"
 mlkitBarcodeScanning = "18.3.1"
 # https://square.github.io/okhttp/changelogs/changelog/
 okHttp = "5.5.0"
-okio = "3.18.1"
+okio = "3.18.2"
 # https://github.com/open-keychain/openpgp-api
 # v5.7.1
 openKeychainApi = "43b85e12ea6c3e269b8dcafb21f1d04b7b61af72"

@@ -766,9 +766,12 @@
     <string name="error_failed_open_app_for">Немає встановленого застосунку, що може обробити цей запит</string>
     <string name="error_failed_unknown">Сталася помилка</string>
     <string name="error_failed_encrypt_biometric_key">Не вдалося зашифрувати біометричний ключ</string>
+    <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Не вдалося розшифрувати біометричний ключ</string>
     <string name="error_failed_ssh_agent_start">Не вдалося запустити SSH агент</string>
     <string name="error_failed_gpg_agent_start">Не вдалося запустити GPG-агент</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">Застосунок, що надіслав запит, відсутній у списку привілейованих і не може запитувати автентифікацію від імені інших застосунків.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1051,7 @@
     <string name="home_settings_label">Налашт.</string>
     <string name="lock_reason_inactivity">Заблоковано через неактивність</string>
     <string name="lock_reason_screen_off">Заблоковано через вимкнення екрану</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">Заблоковано вручну</string>
     <string name="send_type_text">Текст</string>
     <string name="send_type_file">Файл</string>
@@ -1666,6 +1670,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">Блокувати сховище після перезавантаження пристрою</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Блокувати сховище при вимкненні екрана</string>
     <string name="pref_item_lock_vault_after_screen_off_text">Блокувати сховище через кілька секунд після вимкнення екрану</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">Блокувати після затримки</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Негайно</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Ніколи</string>
@@ -1732,6 +1738,7 @@
     <string name="pref_item_license_sync_failed">Не вдалося отримати код підтвердження права доступу</string>
     <string name="pref_item_biometric_unlock_title">Біометричне розблокування</string>
     <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_system_auth_unlock_title">System authentication unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Вимагати підтвердження</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Вимагати додаткового підтвердження після успішної біометричної автентифікації</string>
     <string name="pref_item_yubikey_unlock_title">Розблокування YubiKey</string>

@@ -281,11 +281,11 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> سنوات أخرى</item>
     </plurals>
     <plurals name="gpg_keyserver_upload_verify_requested_plural">
-        <item quantity="zero">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
-        <item quantity="one">Verification e-mail requested for <xliff:g id="number" example="1">%1$s</xliff:g> address</item>
-        <item quantity="two">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
-        <item quantity="few">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
-        <item quantity="many">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
-        <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+        <item quantity="zero">تم طلب رسالة تحقق لـ <xliff:g id="number">%1$s</xliff:g> عنوان</item>
+        <item quantity="one">تم طلب رسالة تحقق لعنوان <xliff:g id="number" example="1">%1$s</xliff:g></item>
+        <item quantity="two">تم طلب رسالة تحقق لعنوانين (<xliff:g id="number">%1$s</xliff:g>)</item>
+        <item quantity="few">تم طلب رسالة تحقق لـ <xliff:g id="number">%1$s</xliff:g> عناوين</item>
+        <item quantity="many">تم طلب رسالة تحقق لـ <xliff:g id="number">%1$s</xliff:g> عنوانًا</item>
+        <item quantity="other">تم طلب رسالة تحقق لـ <xliff:g id="number">%1$s</xliff:g> عنوان</item>
     </plurals>
 </resources>

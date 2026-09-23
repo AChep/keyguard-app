@@ -732,7 +732,7 @@
         solely of whitespace characters. It's OK to translate it exactly the same
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Não pode estar vazio</string>
-    <string name="error_invalid_regex">Invalid regular expression</string>
+    <string name="error_invalid_regex">Expressão regular inválida</string>
     <string name="error_must_be_custom_domain">Deve ser um domínio personalizado</string>
     <string name="error_must_be_number">Deve ser um número</string>
     <string name="error_must_be_less_than_days">Deve ser menos que <xliff:g id="days" example="15">%1$d</xliff:g> dias do tempo atual</string>
@@ -766,9 +766,12 @@
     <string name="error_failed_open_app_for">Nenhum aplicativo instalado pode realizar esta requisição</string>
     <string name="error_failed_unknown">Algo deu errado</string>
     <string name="error_failed_encrypt_biometric_key">Falha ao criptografar a chave biométrica</string>
+    <string name="biometric_error_policy_not_installed">O Keyguard não pôde instalar a regra de permissão do sistema necessária para autenticação do sistema.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">O Keyguard precisa de uma regra única de permissão do sistema para usar a autenticação do sistema. Execute este comando em um terminal no host e tente novamente:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Falha ao descriptografar a chave biométrica</string>
     <string name="error_failed_ssh_agent_start">Falha ao iniciar o agente SSH</string>
     <string name="error_failed_gpg_agent_start">Falha ao iniciar o agente GPG</string>
+    <string name="error_failed_power_lock_start">Não foi possível ativar o bloqueio quando a tela é desligada ou o dispositivo entra em suspensão. Reinicie o Keyguard para tentar novamente.</string>
     <string name="error_credential_calling_app_not_privileged">O aplicativo de chamada não está na lista de privilégios e não pode solicitar autenticação em nome de outros aplicativos.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1051,7 @@
     <string name="home_settings_label">Configurações</string>
     <string name="lock_reason_inactivity">Bloqueado devido à inatividade</string>
     <string name="lock_reason_screen_off">Bloqueado devido à tela desligada</string>
+    <string name="lock_reason_system_sleep">Bloqueado porque o dispositivo entrou em suspensão</string>
     <string name="lock_reason_manually">Bloqueado manualmente</string>
     <string name="send_type_text">Texto</string>
     <string name="send_type_file">Arquivo</string>
@@ -1307,7 +1311,7 @@
     <string name="generator_gpg_key_name_title">Nome</string>
     <string name="generator_gpg_key_email_title">E-mail</string>
     <string name="generator_gpg_key_modern_note">Cria uma chave OpenPGP com chaves de assinatura/certificação Ed25519 e uma subchave de criptografia X25519.</string>
-    <string name="generator_gpg_key_rsa_note">Creates an OpenPGP key with an RSA certification key and separate RSA signing and encryption subkeys.</string>
+    <string name="generator_gpg_key_rsa_note">Cria uma chave OpenPGP com uma chave de certificação RSA e subchaves separadas de assinatura e criptografia RSA.</string>
     <string name="generator_gpg_key_modern_text">Formato de chave OpenPGP moderno</string>
     <string name="generator_key_length_title">Comprimento</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
@@ -1666,6 +1670,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">Bloqueie o cofre após uma reinicialização do dispositivo</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Bloquear quando a tela desligar</string>
     <string name="pref_item_lock_vault_after_screen_off_text">Bloqueie o cofre após alguns segundos depois que a tela estiver desligada</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Bloquear quando a tela for desligada ou o dispositivo entrar em suspensão</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Bloquear o cofre quando a tela for desligada ou o dispositivo entrar em suspensão</string>
     <string name="pref_item_lock_vault_after_delay_title">Bloquear após um intervalo</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Imediatamente</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Nunca</string>
@@ -1732,6 +1738,7 @@
     <string name="pref_item_license_sync_failed">Não foi possível obter o token de titularidade</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueio biométrico</string>
     <string name="pref_item_windows_hello_unlock_title">Desbloqueio do Windows Hello</string>
+    <string name="pref_item_system_auth_unlock_title">Desbloqueio de autenticação do sistema</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Exigir confirmação</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Exigir uma confirmação adicional via um toque de botão depois de uma autenticação biométrica</string>
     <string name="pref_item_yubikey_unlock_title">Desbloqueio YubiKey</string>
@@ -1945,17 +1952,17 @@
     <string name="gpg_key_status_expired_text">Esta chave GPG expirou e não deve ser usada.</string>
     <string name="gpg_key_status_weak_self_signature_title">Autoassinatura fraca</string>
     <string name="gpg_key_status_weak_self_signature_text">As autoassinaturas desta chave usam um algoritmo fraco (SHA-1). Renove a chave para assiná-la novamente com uma moderna.</string>
-    <string name="gpg_key_status_unauthenticated_self_signature_title">No acceptable self-signature</string>
-    <string name="gpg_key_status_unauthenticated_self_signature_text">This key cannot be renewed because its self-signature is missing, invalid, or rejected by security policy.</string>
+    <string name="gpg_key_status_unauthenticated_self_signature_title">Nenhuma autoassinatura aceitável</string>
+    <string name="gpg_key_status_unauthenticated_self_signature_text">Esta chave não pode ser renovada porque a sua autoassinatura está ausente, é inválida ou foi rejeitada pela política de segurança.</string>
     <string name="gpg_key_user_ids">IDs de usuário</string>
     <string name="gpg_key_does_not_expire">Não expira</string>
     <string name="gpg_key_capability_encrypt_decrypt">Criptografar/descriptografar</string>
     <string name="gpg_key_sec_pub">sec/pub (chave privada/pública)</string>
     <string name="gpg_key_secret_key">Chave privada</string>
     <string name="gpg_key_subkey_n">Subchave <xliff:g id="index" example="1">%1$d</xliff:g></string>
-    <string name="gpg_tools_public_key_invalid">Paste valid armored public certificates. Unsupported or incomplete input cannot be added.</string>
-    <string name="gpg_tools_public_key_private">Paste public certificates only. Private keys cannot be added here.</string>
-    <string name="gpg_tools_public_key_not_encryptable">Every recipient must have a currently usable encryption key.</string>
+    <string name="gpg_tools_public_key_invalid">Cole certificados públicos blindados válidos. Entradas incompatíveis ou incompletas não podem ser adicionadas.</string>
+    <string name="gpg_tools_public_key_private">Cole apenas certificados públicos. Chaves privadas não podem ser adicionadas aqui.</string>
+    <string name="gpg_tools_public_key_not_encryptable">Cada destinatário deve ter uma chave de criptografia utilizável no momento.</string>
     <string name="gpg_tools_header_title">Ferramentas de GPG</string>
     <string name="gpg_tools_scope_text">Texto</string>
     <string name="gpg_tools_scope_file">Arquivo</string>
@@ -1987,7 +1994,7 @@
     <string name="gpg_tools_clear_file">Limpar</string>
     <string name="gpg_tools_run_success">Operação GPG concluída</string>
     <string name="gpg_tools_valid_signature">Assinatura válida</string>
-    <string name="gpg_tools_invalid_input">Could not read the OpenPGP input. Check the message, signature, and selected keys.</string>
+    <string name="gpg_tools_invalid_input">Não foi possível ler a entrada do OpenPGP. Verifique a mensagem, assinatura e chaves selecionadas.</string>
     <string name="gpg_tools_invalid_signature">Assinatura inválida</string>
     <string name="gpg_tools_missing_public_key">Chave pública ausente</string>
     <string name="gpg_tools_signature_by">Assinado por <xliff:g id="signer" example="0123 ABCD">%1$s</xliff:g></string>

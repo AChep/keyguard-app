@@ -7,16 +7,16 @@
     <string name="no">No</string>
     <!-- On click brings Keyguard app to the front -->
     <string name="show_keyguard">Open Keyguard</string>
-    <string name="instance_service_error_title">Keyguard instance service failed</string>
-    <string name="instance_service_error_text">Keyguard could not start or contact its instance service. If this continues after restarting Keyguard, include the details below in a bug report.</string>
-    <string name="instance_service_permission_text">Keyguard cannot safely access its instance files. Check ownership and permissions of its data and runtime directories and their parent directories.</string>
-    <string name="instance_service_timeout_text">Another Keyguard process did not respond in time. Close that process and try again.</string>
-    <string name="instance_service_unavailable_text">The native instance service is unavailable. Reinstall Keyguard if restarting it does not help.</string>
-    <string name="instance_service_configuration_text">The instance service configuration or protocol is invalid. Include the details below in a bug report.</string>
-    <string name="instance_service_stopped_text">The instance service stopped and could not recover. Finish any edits, then quit and reopen Keyguard. Further launches cannot activate this window until you restart.</string>
+    <string name="instance_service_error_title">Keyguard service-instantie is vastgelopen</string>
+    <string name="instance_service_error_text">Keyguard kon geen contact maken met de service-instantie of de instantie starten. Als dit blijft gebeuren na het opnieuw opstarten van Keyguard, vermeld dan de details hieronder in een bugrapport.</string>
+    <string name="instance_service_permission_text">Keyguard krijgt geen toegang tot zijn taakbestanden. Controleer de eigendom en machtigingen van de data en runtime mappen en hun bovenliggende mappen.</string>
+    <string name="instance_service_timeout_text">Een ander Keyguard-proces heeft niet op tijd gereageerd. Sluit dat proces en probeer het opnieuw.</string>
+    <string name="instance_service_unavailable_text">De oorspronkelijke servicetaak is niet beschikbaar. Herinstalleer Keyguard als herstarten niet helpt.</string>
+    <string name="instance_service_configuration_text">De servicetaak configuratie of het protocol is ongeldig. Voeg de details hieronder toe in een bug rapport.</string>
+    <string name="instance_service_stopped_text">De servicetaak is gestopt en kon niet worden hersteld. Sla alle bewerkingen op, sluit daarna en herstart Keyguard. Verdere lanceringen kunnen dit venster niet activeren totdat u opnieuw opstart.</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Naam</string>
-    <string name="description">Description</string>
+    <string name="description">Omschrijving</string>
     <string name="result">Resultaat</string>
     <!-- Text input -->
     <string name="input">Invoer</string>
@@ -24,7 +24,7 @@
     <string name="output">Uitvoer</string>
     <string name="run_action">Uitvoeren</string>
     <string name="account_name">Accountnaam</string>
-    <string name="database_name">Database name</string>
+    <string name="database_name">Databasenaam</string>
     <string name="enabled">Ingeschakeld</string>
     <string name="disabled">Uitgeschakeld</string>
     <string name="sign">Ondertekenen</string>
@@ -38,13 +38,13 @@
     <string name="current_password">Huidig wachtwoord</string>
     <string name="new_password">Nieuw wachtwoord</string>
     <string name="no_password">Geen wachtwoord</string>
-    <string name="advanced_options">Advanced</string>
-    <string name="file">File</string>
+    <string name="advanced_options">Geavanceerd</string>
+    <string name="file">Bestand</string>
     <string name="choose_file">Kies bestand</string>
-    <string name="file_name_placeholder">File name</string>
-    <string name="file_status_pending_upload">Pending upload</string>
-    <string name="file_status_auto_resume">Auto-resumes</string>
-    <string name="file_status_downloading_failed">Downloading failed</string>
+    <string name="file_name_placeholder">Bestandsnaam</string>
+    <string name="file_status_pending_upload">Wachten op upload</string>
+    <string name="file_status_auto_resume">Automatische hervattingen</string>
+    <string name="file_status_downloading_failed">Downloaden mislukt</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Geverifieerd</string>
     <string name="email_not_verified">Niet geverifieerd</string>
@@ -54,7 +54,7 @@
     <string name="conceal_value">Verberg waarde</string>
     <string name="field_label">Label</string>
     <string name="field_value">Waarde</string>
-    <string name="tag_value">Value</string>
+    <string name="tag_value">Waarde</string>
     <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Aantal keer bekeken</string>
     <!--
@@ -62,9 +62,9 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Maximaal aantal toegangen</string>
-    <string name="package_name">Package name</string>
+    <string name="package_name">Pakketnaam</string>
     <string name="status">Status</string>
-    <string name="ready_status_beta">Beta</string>
+    <string name="ready_status_beta">Bèta</string>
     <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">Lees meer</string>
     <string name="phone_number">Telefoonnummer</string>
@@ -83,7 +83,7 @@
     <string name="expiry_date">Vervaldatum</string>
     <string name="company">Bedrijfsnaam</string>
     <string name="sync">Synchroniseren</string>
-    <string name="sync_requested">Sync was requested</string>
+    <string name="sync_requested">Synchronisatie aangevraagd</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Verborgen</string>
     <!-- Opposite of 'hidden' -->
@@ -130,10 +130,10 @@
     <string name="folder">Map</string>
     <string name="folders">Mappen</string>
     <string name="folders_empty_label">Geen mappen</string>
-    <string name="tag_none">No tag</string>
+    <string name="tag_none">Geen label</string>
     <string name="tag">Tag</string>
     <string name="tags">Tags</string>
-    <string name="tags_empty_label">No tags</string>
+    <string name="tags_empty_label">Geen tags</string>
     <string name="collection_none">Geen collectie</string>
     <string name="collection">Collectie</string>
     <string name="collections">Collecties</string>
@@ -144,12 +144,12 @@
     <string name="organizations_empty_label">Geen organisaties</string>
     <string name="equivalent_domains">Gelijkwaardige domeinen</string>
     <string name="equivalent_domains_empty_label">Geen gelijkwaardige domeinen</string>
-    <string name="retry">Retry</string>
+    <string name="retry">Opnieuw proberen</string>
     <string name="misc">Overige</string>
     <string name="category">Categorie</string>
     <string name="command">Opdracht</string>
     <string name="execute_command">Uitvoeren</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="context_based_suggestions">Context-gebaseerde suggesties</string>
     <!-- Add (something) -->
     <string name="add">Toevoegen</string>
     <string name="add_integration">Integratie toevoegen</string>
@@ -172,9 +172,9 @@
     <string name="address1">Adresregel 1</string>
     <string name="address2">Adresregel 2</string>
     <string name="address3">Adresregel 3</string>
-    <string name="ssh_agent">SSH agent</string>
-    <string name="ssh_client">SSH client</string>
-    <string name="gpg_agent">GPG agent</string>
+    <string name="ssh_agent">SSH-agent</string>
+    <string name="ssh_client">SSH-client</string>
+    <string name="gpg_agent">GPG-agent</string>
     <string name="rename">Hernoemen</string>
     <string name="deletion_date">Datum van verwijdering</string>
     <string name="deletion_date_custom">Aangepast</string>
@@ -183,15 +183,15 @@
     <string name="expiration_date_never">Nooit</string>
     <string name="select_linked_type">Selecteer type</string>
     <string name="select_file">Selecteer bestand</string>
-    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
-    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
+    <string name="additem_attachments_drop_here">Sleep hier een bestand om het als bijlage toe te voegen</string>
+    <string name="addsend_drop_file_to_replace">Sleep een bestand om het geselecteerde bestand te vervangen</string>
     <string name="autofill">Automatisch aanvullen</string>
     <string name="autofill_and_save_uri">Automatisch aanvullen en opslaan van app of website informatie</string>
-    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Uw gegevens vallen onder uw verantwoordelijkheid.</string>
+    <string name="backup_disclaimer_text">Om ervoor te zorgen dat uw kluis nooit verloren gaat, keur de 3-2-1 reservekopieregel aan: behoud drie kopieën van uw kluis op twee verschillende mediatypes en houd één kopie op een afzonderlijke, veilige locatie.</string>
     <string name="passkey">Toegangssleutel</string>
-    <string name="credential_login_create_header">Create a login</string>
-    <string name="credential_password_create_header">Create a password</string>
+    <string name="credential_login_create_header">Login aanmaken</string>
+    <string name="credential_password_create_header">Maak een wachtwoord aan</string>
     <string name="passkey_create_header">Maak een toegangssleutel</string>
     <string name="passkey_unlock_header">Keyguard ontgrendelen</string>
     <string name="passkey_auth_via_header">Bevestig autorisatieverzoek…</string>
@@ -215,24 +215,24 @@
     <string name="passkey_user_display_name">Weergavenaam</string>
     <string name="ignored_alerts">Genegeerde waarschuwingen</string>
     <string name="api_key">API sleutel</string>
-    <string name="api_token">API token</string>
+    <string name="api_token">API -token</string>
     <string name="zone_id">Zone ID</string>
-    <string name="destination_email">Destination email</string>
+    <string name="destination_email">Bestemming e-mailadres</string>
     <string name="domain">Domein</string>
     <string name="add_to_home_screen">Toevoegen aan startscherm</string>
     <string name="edit">Bewerken</string>
     <string name="delete">Verwijderen</string>
     <string name="remove">Verwijderen</string>
     <string name="remove_from_history">Verwijderen uit geschiedenis</string>
-    <string name="pkcs12_password">PKCS#12 password</string>
-    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
-    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
+    <string name="pkcs12_password">PKCS#12 wachtwoord</string>
+    <string name="pkcs12_password_title">PKCS#12 wachtwoord invoeren</string>
+    <string name="pkcs12_password_note">Deze PKCS#12-bundel is versleuteld.</string>
     <string name="reused_password">Hergebruikt wachtwoord</string>
     <string name="reused_passwords">Hergebruikte wachtwoorden</string>
     <string name="one_time_password">Verificatie code</string>
     <string name="one_time_password_authenticator_key">Verificatie sleutel</string>
     <string name="passkey_use_short">Gebruik</string>
-    <string name="password_save">Save password</string>
+    <string name="password_save">Wachtwoord opslaan</string>
     <string name="passkey_save">Toegangssleutel opslaan</string>
     <string name="passkey_available">Toegangssleutel beschikbaar</string>
     <string name="twofa_available">Tweestapsverificatie beschikbaar</string>
@@ -248,11 +248,11 @@
     <string name="requested_verification_email">Verificatie e-mail verzenden</string>
     <string name="web_vault">Webkluis</string>
     <string name="launch_web_vault">Open web kluis</string>
-    <string name="local_vault">Local vault</string>
+    <string name="local_vault">Lokale kluis</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Mijn gegevens onthouden</string>
     <!-- An Archive screen -->
-    <string name="archive">Archive</string>
+    <string name="archive">Archief</string>
     <!-- A Trash screen -->
     <string name="trash">Prullenbak</string>
     <!-- To download something -->
@@ -271,13 +271,13 @@
     <string name="encryption_random_bits_data">Willekeurige <xliff:g id="length" example="64">%1$d</xliff:g>-bits van gegevens</string>
     <string name="none">Geen</string>
     <string name="text">Tekst</string>
-    <string name="linked_app">Linked app</string>
+    <string name="linked_app">Gekoppelde app</string>
     <string name="linked_apps">Gekoppelde apps</string>
-    <string name="linked_uri">Linked URI</string>
+    <string name="linked_uri">Gekoppelde URI</string>
     <string name="linked_uris">Gekoppelde URI's</string>
-    <string name="custom_field">Custom field</string>
+    <string name="custom_field">Aangepast veld</string>
     <string name="custom_fields">Extra velden</string>
-    <string name="custom_field_toggle_boolean_value">Toggle value</string>
+    <string name="custom_field_toggle_boolean_value">Waarden wisselen</string>
     <string name="reveal_secure_note">Een beveiligde notitie onthullen</string>
     <string name="hide_secure_note">Verberg een beveiligde notitie</string>
     <string name="master_password_hint">Hint voor hoofdwachtwoord</string>
@@ -293,7 +293,7 @@
     <string name="capabilities">Mogelijkheden</string>
     <string name="subkeys">Subsleutels</string>
     <string name="key_ssh">SSH sleutel</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_ssh_value_placeholder">Het lijkt hier leeg. Genereer een SSH-sleutel om te beginnen!</string>
     <string name="key_gpg">GPG sleutel</string>
     <string name="key_gpg_value_placeholder">Het lijkt hier leeg. Genereer een GPG-sleutel om te beginnen!</string>
     <string name="fingerprint_phrase">Vingerafdrukzin</string>
@@ -549,11 +549,11 @@
     <string name="gpg_key_import_error_read">Kan het geselecteerde bestand niet lezen.</string>
     <string name="gpg_key_import_error_passphrase_required">Er is een wachtwoordzin vereist om deze GPG-sleutel te ontgrendelen.</string>
     <string name="gpg_key_import_error_key_changed">De GPG-sleutel is gewijzigd terwijl de import bezig was. Probeer deze opnieuw te importeren.</string>
-    <string name="gpg_key_import_error_mismatched_key">The imported key does not match the GPG key in this item.</string>
-    <string name="gpg_key_import_error_existing_malformed">The GPG key stored in this item is malformed and cannot be merged.</string>
-    <string name="gpg_key_import_error_secret_conflict">The imported secret key material conflicts with the secret key stored in this item.</string>
-    <string name="gpg_key_import_error_resource_limit">The GPG key is too large or complex to import.</string>
-    <string name="gpg_key_import_error_reconcile">The GPG key could not be safely merged.</string>
+    <string name="gpg_key_import_error_mismatched_key">De geïmporteerde sleutel komt niet overeen met de GPG-sleutel in dit item.</string>
+    <string name="gpg_key_import_error_existing_malformed">De GPG-sleutel die is opgeslagen in dit item is onjuist en kan niet worden samengevoegd.</string>
+    <string name="gpg_key_import_error_secret_conflict">Het geïmporteerde geheime sleutelmateriaal is in strijd met de geheime sleutel die in dit item is opgeslagen.</string>
+    <string name="gpg_key_import_error_resource_limit">De GPG-sleutel is te groot of te complex om te importeren.</string>
+    <string name="gpg_key_import_error_reconcile">De GPG-sleutel kon niet veilig worden samengevoegd.</string>
     <string name="gpg_key_import_passphrase_title">Wachtwoordzin</string>
     <string name="gpg_key_import_passphrase_hint">Voer de wachtwoordzin van de GPG-sleutel in</string>
     <string name="gpg_key_import_passphrase_dialog_title">Voer de wachtwoordzin van de GPG-sleutel in</string>
@@ -570,7 +570,7 @@
     <string name="gpg_key_expiry_primary">Primaire sleutel</string>
     <string name="gpg_key_expiry_subkey">Subsleutel <xliff:g id="key_id" example="0A1B2C3D">%1$s</xliff:g></string>
     <string name="gpg_key_expiry_subkey_capabilities">Mogelijkheden: <xliff:g id="capabilities" example="sign, encrypt">%1$s</xliff:g>. Huidige vervaldatum: <xliff:g id="expiry" example="Jan 1, 2030">%2$s</xliff:g></string>
-    <string name="gpg_key_expiry_subkey_weak_self_signature">Signed with a weak algorithm (SHA-1). Renewing re-signs it with a modern one.</string>
+    <string name="gpg_key_expiry_subkey_weak_self_signature">Getekend met een zwak algoritme (SHA-1). Vernieuwing schrijft het opnieuw met een modern algoritme.</string>
     <string name="gpg_key_expiry_capability_sign">ondertekenen</string>
     <string name="gpg_key_expiry_capability_encrypt">versleutelen</string>
     <string name="gpg_key_expiry_preset_one_year">Eén jaar</string>
@@ -588,34 +588,34 @@
     <string name="gpg_key_expiry_invalid_message">Kies een geldige toekomstige vervaldatum.</string>
     <string name="gpg_key_expiry_revoked_message">Een ingetrokken sleutelcomponent kan niet worden vernieuwd.</string>
     <string name="gpg_key_expiry_unresolved_revocation_message">Een aangewezen intrekking kan niet worden geverifieerd omdat de publieke sleutel van de intrekker niet beschikbaar is. Importeer deze en probeer het opnieuw.</string>
-    <string name="gpg_key_expiry_unsupported_signing_hash_message">This key can only be re-certified with an insecure digest algorithm. Migrate to a modern key instead.</string>
-    <string name="gpg_key_expiry_missing_self_signature_message">This key cannot be renewed because its self-signature is missing, invalid, or rejected by security policy.</string>
-    <string name="gpg_user_id_revocation_dialog_title">Revoke GPG User ID</string>
-    <string name="gpg_user_id_revocation_dialog_message">Select the User ID to revoke. Revocation adds a signed statement to the certificate and does not erase the identity or its history.</string>
-    <string name="gpg_user_id_revocation_confirm">Revoke</string>
-    <string name="gpg_user_id_revocation_last_identity_message">A GPG key must keep at least one usable User ID. Add a replacement before revoking this one.</string>
-    <string name="gpg_user_id_revocation_no_identity_message">This key has no active User ID that can be revoked.</string>
-    <string name="gpg_user_id_replacement_dialog_title">Replace GPG User ID</string>
-    <string name="gpg_user_id_replacement_dialog_message">Select the old User ID. Keyguard will add the replacement and revoke this exact User ID in one update.</string>
-    <string name="gpg_user_id_replacement_confirm_next">Next</string>
-    <string name="gpg_user_id_replacement_no_identity_message">This key has no active User ID that can be replaced.</string>
-    <string name="gpg_user_id_replacement_value_title">New GPG User ID</string>
-    <string name="gpg_user_id_replacement_value_message">Enter the exact new OpenPGP User ID. Keyguard will not trim or normalize it.</string>
-    <string name="gpg_user_id_replacement_value_label">User ID</string>
+    <string name="gpg_key_expiry_unsupported_signing_hash_message">Deze sleutel kan alleen opnieuw gecertificeerd worden met een onbeveiligd digest algoritme. Migreer in plaats daarvan naar een moderne sleutel.</string>
+    <string name="gpg_key_expiry_missing_self_signature_message">Deze sleutel kan niet worden vernieuwd omdat zijn zelfhandtekening ontbreekt, ongeldig is of wordt afgewezen door het veiligheidsbeleid.</string>
+    <string name="gpg_user_id_revocation_dialog_title">GPG gebruikers-ID intrekken</string>
+    <string name="gpg_user_id_revocation_dialog_message">Selecteer het gebruikers-ID om in te trekken. Intrekking voegt een ondertekende verklaring toe aan het certificaat en wist de identiteit of de geschiedenis niet uit.</string>
+    <string name="gpg_user_id_revocation_confirm">Intrekken</string>
+    <string name="gpg_user_id_revocation_last_identity_message">Een GPG-sleutel moet ten minste één bruikbare gebruikers-ID behouden. Voeg een vervanging toe voordat deze wordt ingetrokken.</string>
+    <string name="gpg_user_id_revocation_no_identity_message">Deze sleutel heeft geen actieve gebruikers-ID die kan worden ingetrokken.</string>
+    <string name="gpg_user_id_replacement_dialog_title">GPG gebruikers-ID vervangen</string>
+    <string name="gpg_user_id_replacement_dialog_message">Selecteer het oude gebruikers-ID. Keyguard voegt de vervanging toe en trekt deze exacte gebruikers-ID in, in één update.</string>
+    <string name="gpg_user_id_replacement_confirm_next">Volgende</string>
+    <string name="gpg_user_id_replacement_no_identity_message">Deze sleutel heeft geen actieve gebruikers-ID die kan worden vervangen.</string>
+    <string name="gpg_user_id_replacement_value_title">Nieuwe GPG gebruikers-ID</string>
+    <string name="gpg_user_id_replacement_value_message">Voer de exacte nieuwe OpenPGP-gebruikers-ID in. Toetsenblokkering zal niet bijknippen of normaliseren.</string>
+    <string name="gpg_user_id_replacement_value_label">Gebruikers-ID</string>
     <string name="gpg_user_id_replacement_value_hint">Name &lt;email@example.com&gt;</string>
-    <string name="gpg_user_id_replacement_value_confirm">Replace</string>
-    <string name="gpg_user_id_replacement_invalid_message">Enter a non-empty User ID of at most 1024 UTF-8 bytes without control characters.</string>
-    <string name="gpg_user_id_replacement_same_identity_message">Enter a User ID different from the selected identity.</string>
-    <string name="gpg_user_id_replacement_duplicate_message">That User ID is already active on this key.</string>
-    <string name="gpg_user_id_replacement_title">Replace User ID</string>
-    <string name="gpg_user_id_replacement_success_title">GPG User ID replaced</string>
-    <string name="gpg_user_id_replacement_success_message">Save this item, then redistribute or upload its public key to publish the replacement.</string>
-    <string name="gpg_user_id_replacement_already_done_message">This replacement was already applied. No new signatures were created.</string>
-    <string name="gpg_user_id_replacement_failed_title">Failed to replace GPG User ID</string>
-    <string name="gpg_user_id_replacement_failed_message">The User ID could not be replaced. The original key was left unchanged.</string>
-    <string name="gpg_user_id_replacement_retired_message">That exact User ID was previously revoked and cannot be added again.</string>
-    <string name="gpg_user_id_replacement_target_missing">The selected User ID changed or is no longer active. Reopen the key and try again.</string>
-    <string name="gpg_user_id_replacement_private_key_required">Import the private key to replace one of its User IDs.</string>
+    <string name="gpg_user_id_replacement_value_confirm">Vervangen</string>
+    <string name="gpg_user_id_replacement_invalid_message">Voer een niet-leeg gebruikers-ID in van maximaal 1024 UTF-8 bytes zonder besturingstekens.</string>
+    <string name="gpg_user_id_replacement_same_identity_message">Voer een gebruikers-ID in die verschilt van de geselecteerde identiteit.</string>
+    <string name="gpg_user_id_replacement_duplicate_message">Deze gebruikers-ID is al actief op deze sleutel.</string>
+    <string name="gpg_user_id_replacement_title">Gebruikers-ID vervangen</string>
+    <string name="gpg_user_id_replacement_success_title">GPG gebruikers-ID is vervangen</string>
+    <string name="gpg_user_id_replacement_success_message">Sla dit item op, herdistribueer of upload de publieke sleutel om de vervanging te publiceren.</string>
+    <string name="gpg_user_id_replacement_already_done_message">Deze vervanging is al toegepast. Er zijn geen nieuwe handtekeningen aangemaakt.</string>
+    <string name="gpg_user_id_replacement_failed_title">Fout bij het vervangen van GPG gebruikers-ID</string>
+    <string name="gpg_user_id_replacement_failed_message">De gebruikers-ID kan niet worden vervangen. De oorspronkelijke sleutel is ongewijzigd.</string>
+    <string name="gpg_user_id_replacement_retired_message">Dit exacte gebruikers-ID werd eerder ingetrokken en kan niet opnieuw worden toegevoegd.</string>
+    <string name="gpg_user_id_replacement_target_missing">De geselecteerde gebruikers-ID gewijzigd of is niet langer actief. Heropen de sleutel en probeer het opnieuw.</string>
+    <string name="gpg_user_id_replacement_private_key_required">Importeer de privésleutel om één van de gebruikers-ID's te vervangen.</string>
     <string name="gpg_user_id_replacement_unavailable">GPG User-ID replacement is not supported on this platform.</string>
     <string name="gpg_user_id_revocation_title">Revoke User ID</string>
     <string name="gpg_user_id_revocation_success_title">GPG User ID revoked</string>
@@ -766,9 +766,12 @@
     <string name="error_failed_open_app_for">Geen geïnstalleerde app gevonden die dit verzoek kan verwerken</string>
     <string name="error_failed_unknown">Oeps, er ging iets mis</string>
     <string name="error_failed_encrypt_biometric_key">Kan de biometrische sleutel niet versleutelen</string>
+    <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Kan de biometrische sleutel niet ontsleutelen</string>
     <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
     <string name="error_failed_gpg_agent_start">Het starten van de GPG agent is mislukt</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1051,7 @@
     <string name="home_settings_label">Instellingen</string>
     <string name="lock_reason_inactivity">Vergrendeld door inactiviteit</string>
     <string name="lock_reason_screen_off">Locked due to screen off</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">Handmatig vergrendeld</string>
     <string name="send_type_text">Tekst</string>
     <string name="send_type_file">Bestand</string>
@@ -1666,6 +1670,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">Vergrendel de kluis na een systeem herstart</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Vergrendelen wanneer het scherm wordt uitgeschakeld</string>
     <string name="pref_item_lock_vault_after_screen_off_text">Vergrendel de kluis na enkele seconden nadat het scherm uitgeschakeld is</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">Vergrendelen na vertraging</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Onmiddelijk</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Nooit</string>
@@ -1732,6 +1738,7 @@
     <string name="pref_item_license_sync_failed">Kon de rechtencode niet verkrijgen</string>
     <string name="pref_item_biometric_unlock_title">Biometrische ontgrendeling</string>
     <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_system_auth_unlock_title">System authentication unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Bevestiging vereisen</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Vereis een extra druk op de bevestigingsknop na geslaagde biometrische verificatie</string>
     <string name="pref_item_yubikey_unlock_title">YubiKey unlock</string>

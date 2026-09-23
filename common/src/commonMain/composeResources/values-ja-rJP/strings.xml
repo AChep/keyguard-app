@@ -766,9 +766,12 @@
     <string name="error_failed_open_app_for">インストールされているアプリはこのリクエストを処理できません</string>
     <string name="error_failed_unknown">何らかの問題が発生しました</string>
     <string name="error_failed_encrypt_biometric_key">生体認証キーの暗号化に失敗しました</string>
+    <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">生体認証キーの復号化に失敗しました</string>
     <string name="error_failed_ssh_agent_start">SSHエージェントの起動に失敗しました</string>
     <string name="error_failed_gpg_agent_start">GPGエージェントの起動に失敗しました</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">呼び出し元のアプリは特権アプリケーションのリストに含まれておらず、他のアプリの代わりに認証をリクエストすることはできません。</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1051,7 @@
     <string name="home_settings_label">設定</string>
     <string name="lock_reason_inactivity">ロックされています</string>
     <string name="lock_reason_screen_off">画面オフのためロック中</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">手動でロック中</string>
     <string name="send_type_text">テキスト</string>
     <string name="send_type_file">ファイル</string>
@@ -1666,6 +1670,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">デバイスの再起動後に保管庫をロック</string>
     <string name="pref_item_lock_vault_after_screen_off_title">画面消灯時にロック</string>
     <string name="pref_item_lock_vault_after_screen_off_text">画面がオフになってから数秒後に保管庫をロックします。</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">保管庫のタイムアウト</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">即時</string>
     <string name="pref_item_lock_vault_after_delay_never_text">なし</string>
@@ -1732,6 +1738,7 @@
     <string name="pref_item_license_sync_failed">利用権コードを取得できませんでした</string>
     <string name="pref_item_biometric_unlock_title">生体認証によるロック解除</string>
     <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_system_auth_unlock_title">System authentication unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">確認を求める</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">生体認証の成功後に追加の確認ボタンのタップを要求します。</string>
     <string name="pref_item_yubikey_unlock_title">YubiKey ロック解除</string>

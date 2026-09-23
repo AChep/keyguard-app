@@ -766,9 +766,12 @@
     <string name="error_failed_open_app_for">Chưa cài ứng dụng nào có thể xử lý yêu cầu này</string>
     <string name="error_failed_unknown">Có gì đó không ổn</string>
     <string name="error_failed_encrypt_biometric_key">Không mã hóa được khóa sinh trắc học</string>
+    <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Không giải mã được khóa sinh trắc học</string>
     <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
     <string name="error_failed_gpg_agent_start">Không khởi động được GPG agent</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1048,6 +1051,7 @@
     <string name="home_settings_label">Thiết đặt</string>
     <string name="lock_reason_inactivity">Bị khóa do không hoạt động</string>
     <string name="lock_reason_screen_off">Locked due to screen off</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">Đã khóa thủ công</string>
     <string name="send_type_text">Văn bản</string>
     <string name="send_type_file">Tệp</string>
@@ -1666,6 +1670,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">Khóa kho sau khi khởi động lại thiết bị</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Khóa khi màn hình tắt</string>
     <string name="pref_item_lock_vault_after_screen_off_text">Khóa kho sau vài giây khi màn hình tắt</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">Khóa sau một thời gian trì hoãn</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Ngay lập tức</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Không bao giờ</string>
@@ -1732,6 +1738,7 @@
     <string name="pref_item_license_sync_failed">Không thể lấy được mã quyền sử dụng</string>
     <string name="pref_item_biometric_unlock_title">Mở khóa sinh trắc học</string>
     <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_system_auth_unlock_title">System authentication unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Yêu cầu xác nhận</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Yêu cầu nhấn nút xác nhận bổ sung sau khi xác thực sinh trắc học thành công</string>
     <string name="pref_item_yubikey_unlock_title">YubiKey unlock</string>

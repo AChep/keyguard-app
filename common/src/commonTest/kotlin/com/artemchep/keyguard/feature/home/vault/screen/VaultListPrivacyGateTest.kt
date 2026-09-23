@@ -1,12 +1,17 @@
 package com.artemchep.keyguard.feature.home.vault.screen
 
 import com.artemchep.keyguard.common.model.DFilter
+import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.usecase.GetFolders
+import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.home.vault.search.createSecret
 import com.artemchep.keyguard.ui.icons.generateAccentColors
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -15,6 +20,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.time.Instant
 
 class VaultListPrivacyGateTest {
     @Test
@@ -88,7 +94,74 @@ class VaultListPrivacyGateTest {
         profilesFlow.emit(listOf(profile(accountId = "account", hidden = true)))
         assertEquals(emptyList(), output.first())
     }
+
+    @Test
+    fun `normal folder list hides hidden accounts' folders`() = runTest {
+        val folders = listOf(
+            folder(id = "visible", accountId = "visible-account"),
+            folder(id = "hidden", accountId = "hidden-account"),
+        )
+        val profiles = listOf(
+            profile(accountId = "visible-account", hidden = false),
+            profile(accountId = "hidden-account", hidden = true),
+        )
+
+        val result = filterHiddenProfiles(
+            getFolders = getFolders(folders),
+            getProfiles = getProfiles(flowOf(profiles)),
+        ).first()
+
+        assertEquals(listOf("visible"), result.map(DFolder::id))
+    }
+
+    @Test
+    fun `preset by-id route keeps hidden account's folders`() = runTest {
+        val hiddenFolder = folder(
+            id = "folder",
+            accountId = "hidden-account",
+        )
+        val neverEmittingProfiles = MutableSharedFlow<List<DProfile>>()
+
+        val result = filterHiddenProfiles(
+            getFolders = getFolders(listOf(hiddenFolder)),
+            getProfiles = getProfiles(neverEmittingProfiles),
+            filter = DFilter.ById(
+                id = hiddenFolder.accountId,
+                what = DFilter.ById.What.ACCOUNT,
+            ),
+        ).first()
+
+        assertEquals(listOf(hiddenFolder), result)
+        assertEquals(0, neverEmittingProfiles.subscriptionCount.value)
+    }
 }
+
+private fun getFolders(
+    folders: List<DFolder>,
+): GetFolders = object : GetFolders {
+    override fun invoke() = flowOf(folders)
+}
+
+private fun getProfiles(
+    profilesFlow: Flow<List<DProfile>>,
+): GetProfiles = object : GetProfiles {
+    override fun invoke() = profilesFlow
+}
+
+private fun folder(
+    id: String,
+    accountId: String,
+) = DFolder(
+    id = id,
+    accountId = accountId,
+    revisionDate = Instant.fromEpochMilliseconds(0),
+    service = BitwardenService(
+        version = BitwardenService.VERSION,
+    ),
+    deleted = false,
+    synced = true,
+    name = id,
+)
 
 private fun profile(
     accountId: String,

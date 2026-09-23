@@ -13,11 +13,14 @@ inline fun <T> observerFlow(
 ): Flow<T> = channelFlow {
     var unregister: (() -> Unit)? = null
     try {
-        unregister = withContext(Dispatchers.Main) {
+        withContext(Dispatchers.Main) {
             val setter: (T) -> Unit = { value: T ->
                 trySend(value)
             }
-            register(setter)
+            // Assign inside the block: a cancellation on the way out
+            // of withContext would otherwise discard the result and
+            // leak the registered observer.
+            unregister = register(setter)
         }
         suspendCancellableCoroutine<Unit> { cont ->
             invokeOnClose {

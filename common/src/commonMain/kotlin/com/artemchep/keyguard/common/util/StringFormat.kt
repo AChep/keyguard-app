@@ -3,6 +3,12 @@ package com.artemchep.keyguard.common.util
 private const val DIVIDER_START = '{'
 private const val DIVIDER_END = '}'
 
+/**
+ * Placeholders are evaluated recursively, one level per nesting. Input
+ * that nests deeper than this is returned as is, like unbalanced input.
+ */
+private const val MAX_NESTING_DEPTH = 32
+
 private sealed interface Node {
     suspend fun eval(): String
 
@@ -69,6 +75,7 @@ suspend fun String.simpleFormat2(
         }
     }
 
+    var depth = 0
     var i = 0
     while (true) {
         val c = getOrNull(i)
@@ -79,6 +86,10 @@ suspend fun String.simpleFormat2(
             }
 
             dividerStart -> {
+                if (depth >= MAX_NESTING_DEPTH) {
+                    return this
+                }
+                depth += 1
                 appendPrefixPlainTextToSelectedNode(i)
                 val placeholderNode = Node.Placeholder(
                     parent = node,
@@ -94,6 +105,7 @@ suspend fun String.simpleFormat2(
             dividerEnd -> {
                 val parent = node.parent
                 if (parent != null) {
+                    depth -= 1
                     appendPrefixPlainTextToSelectedNode(i)
                     node = parent
                     node.start = i + 1

@@ -394,6 +394,41 @@ class KeePassDatabaseSpec {
 
             cleanedEntry.history.size shouldBe 0
         }
+
+        it("Performing cleanup keeps recent history with default maintenance days") {
+            val now = Clock.System.now()
+            val entry = buildEntry(DatabaseRes.GroupsAndEntries.Entry1) {
+                history += Entry(uuid = Uuid.random(), times = TimeData.create(now - 1.days))
+            }
+            val (_, cleanedEntry) = EmptyDatabase
+                .modifyMeta { copy(maintenanceHistoryDays = 365U) }
+                .modifyParentGroup { copy(entries = listOf(entry)) }
+                .cleanupHistory(now)
+                .getEntry { it.uuid == DatabaseRes.GroupsAndEntries.Entry1 }!!
+
+            cleanedEntry.history.size shouldBe 1
+        }
+
+        it("Performing cleanup keeps recent history when maintenance days exceed Int.MAX_VALUE") {
+            val now = Clock.System.now()
+            val maintenanceDays = listOf(
+                Int.MAX_VALUE.toUInt() + 1U,
+                UInt.MAX_VALUE,
+            )
+            for (days in maintenanceDays) {
+                val entry = buildEntry(DatabaseRes.GroupsAndEntries.Entry1) {
+                    history += Entry(uuid = Uuid.random(), times = TimeData.create(now - 1.days))
+                    history += Entry(uuid = Uuid.random(), times = TimeData.create(now - 400.days))
+                }
+                val (_, cleanedEntry) = EmptyDatabase
+                    .modifyMeta { copy(maintenanceHistoryDays = days) }
+                    .modifyParentGroup { copy(entries = listOf(entry)) }
+                    .cleanupHistory(now)
+                    .getEntry { it.uuid == DatabaseRes.GroupsAndEntries.Entry1 }!!
+
+                cleanedEntry.history.size shouldBe 2
+            }
+        }
     }
     }
 }

@@ -42,6 +42,7 @@ import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFa
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
+import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
@@ -280,6 +281,17 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
                                 )
                                 removeAttachment(listOf(request))
                             }
+                            val verify: ((() -> Unit) -> Unit)? = if (cipher.reprompt) {
+                                // lambda
+                                { block ->
+                                    val intent = createElevatedAccessDialogIntent {
+                                        block()
+                                    }
+                                    navigate(intent)
+                                }
+                            } else {
+                                null
+                            }
                             flow<ItemCipher> {
                                 coroutineScope {
                                     val actualItem = createAttachmentItem(
@@ -297,6 +309,7 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
                                         attachmentPreviewRouteFactory = attachmentPreviewRouteFactory,
                                         downloadIo = downloadIo,
                                         removeIo = removeIo,
+                                        verify = verify,
                                     )
                                     val wrapperItem = ItemCipher(
                                         item = actualItem,

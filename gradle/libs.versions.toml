@@ -173,7 +173,7 @@ slf4j = "2.0.18"
 # https://github.com/bcgit/bc-java
 bouncycastle = "1.84"
 # https://github.com/sqlcipher/sqlcipher-android
-sqlcipherAndroid = "4.17.0"
+sqlcipherAndroid = "4.19.0"
 # https://github.com/cashapp/sqldelight
 sqldelight = "2.3.2"
 # https://github.com/Willena/sqlite-jdbc-crypt

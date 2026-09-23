@@ -6,5 +6,11 @@ data class ZipConfig(
 ) {
     data class Encryption(
         val password: String,
-    )
+    ) {
+        init {
+            // An empty password disables encryption in the native
+            // writer, which would silently produce a plaintext archive.
+            require(password.isNotEmpty()) { "Encryption password must not be empty" }
+        }
+    }
 }

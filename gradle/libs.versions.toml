@@ -110,7 +110,7 @@ koin = "4.2.2"
 # https://github.com/InsertKoinIO/koin-compiler-plugin
 koinCompiler = "1.2.1"
 # https://github.com/JetBrains/kotlin
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 # https://github.com/Kotlin/kotlinx-atomicfu
 atomicfu = "0.33.0"
 # https://github.com/Kotlin/kotlinx.collections.immutable

@@ -21,7 +21,7 @@ class UrlPlaceholder(
         key.equals("url:rmvscm", ignoreCase = true) ||
                 key.equals("base:rmvscm", ignoreCase = true) -> {
             // Cut out the scheme from the provided URL.
-            val regex = "^.*://".toRegex()
+            val regex = "^[A-Za-z][A-Za-z0-9+.-]*://".toRegex()
             url.replace(regex, "").let(::io)
         }
 
@@ -57,13 +57,13 @@ class UrlPlaceholder(
         }
 
         key.startsWith("url:parameter:", ignoreCase = true) -> {
-            val name = key.substringAfter("url:parameter:")
+            val name = key.substring("url:parameter:".length)
             uuu.parameters[name]
                 .let(::io)
         }
 
         key.startsWith("base:parameter:", ignoreCase = true) -> {
-            val name = key.substringAfter("base:parameter:")
+            val name = key.substring("base:parameter:".length)
             uuu.parameters[name]
                 .let(::io)
         }

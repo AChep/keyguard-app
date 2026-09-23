@@ -349,15 +349,54 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
         .onEach { ids -> selectionHandle.setSelection(ids) }
         .launchIn(screenScope)
 
+    val itemsFilteredFlow = itemsRawFlow
+        .map { attachments ->
+            FilteredList(
+                count = attachments.size,
+                list = attachments,
+            )
+        }
+        .combine(
+            flow = filterResult.filterFlow,
+        ) { state, filterConfig ->
+            // Fast path: if the there are no filters, then
+            // just return original list of items.
+            if (filterConfig.state.isEmpty()) {
+                return@combine state.copy(
+                    filterConfig = filterConfig,
+                )
+            }
+
+            val filteredAllItems = state
+                .list
+                .run {
+                    val ciphers = map { it.cipher }
+                    val predicate = filterConfig.filter.prepare(filterContext, ciphers)
+                    filter { predicate(it.cipher) }
+                }
+            state.copy(
+                list = filteredAllItems,
+                filterConfig = filterConfig,
+            )
+        }
+        .shareInScreenScope()
+
     val selectionFlow = combine(
         itemsRawFlow,
+        itemsFilteredFlow,
         selectionHandle.idsFlow,
-    ) { items, selectedCipherIds ->
+    ) { items, visibleItems, selectedCipherIds ->
         val selectedItems = items
             .filter { it.attachment.id in selectedCipherIds }
-        items to selectedItems
+        // Select all must only add the items that pass
+        // the active filter, the ones a user can see.
+        val visibleIds = visibleItems.list
+            .asSequence()
+            .map { it.attachment.id }
+            .toSet()
+        visibleIds to selectedItems
     }
-        .flatMapLatest { (allItems, selectedItems) ->
+        .flatMapLatest { (visibleIds, selectedItems) ->
             selectedItems
                 .map { item ->
                     item.item.statusState
@@ -369,9 +408,9 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
                         .distinctUntilChanged()
                 }
                 .foldAsList()
-                .map { allItems to it }
+                .map { visibleIds to it }
         }
-        .map { (allItems, selectedPairs) ->
+        .map { (visibleIds, selectedPairs) ->
             if (selectedPairs.isEmpty()) {
                 return@map null
             }
@@ -450,54 +489,22 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
                 )
             }
 
+            val selectedIds = selectedPairs
+                .asSequence()
+                .map { (i, _) -> i.attachment.id }
+                .toSet()
             Selection(
                 count = selectedPairs.size,
                 actions = actions.toPersistentList(),
-                onSelectAll = if (selectedPairs.size < allItems.size) {
-                    val allIds = allItems
-                        .asSequence()
-                        .map { it.attachment.id }
-                        .toSet()
+                onSelectAll = if (!selectedIds.containsAll(visibleIds)) {
                     selectionHandle::setSelection
-                        .partially1(allIds)
+                        .partially1(selectedIds + visibleIds)
                 } else {
                     null
                 },
                 onClear = selectionHandle::clearSelection,
             )
         }
-
-    val itemsFilteredFlow = itemsRawFlow
-        .map { attachments ->
-            FilteredList(
-                count = attachments.size,
-                list = attachments,
-            )
-        }
-        .combine(
-            flow = filterResult.filterFlow,
-        ) { state, filterConfig ->
-            // Fast path: if the there are no filters, then
-            // just return original list of items.
-            if (filterConfig.state.isEmpty()) {
-                return@combine state.copy(
-                    filterConfig = filterConfig,
-                )
-            }
-
-            val filteredAllItems = state
-                .list
-                .run {
-                    val ciphers = map { it.cipher }
-                    val predicate = filterConfig.filter.prepare(filterContext, ciphers)
-                    filter { predicate(it.cipher) }
-                }
-            state.copy(
-                list = filteredAllItems,
-                filterConfig = filterConfig,
-            )
-        }
-        .shareInScreenScope()
 
     val filterListFlow = createFilterItemsFlow(
         getCipherFilters = getCipherFilters,

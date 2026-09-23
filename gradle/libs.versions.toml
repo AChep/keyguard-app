@@ -75,8 +75,8 @@ composeMaterialIconsExtended = "1.7.3"
 composeOpenIcons = "1.1.1"
 # https://github.com/coil-kt/coil
 coil3 = "3.6.3"
-# https://github.com/kdroidFilter/ComposeNativeTray
-composeNativeTray = "1.3.3"
+# https://github.com/NucleusFramework/ComposeNativeTray
+composeNativeTray = "2.1.6"
 conscrypt = "2.6.1"
 crashlyticsPlugin = "3.0.7"
 dbusJava = "5.2.0"
@@ -179,7 +179,7 @@ sqldelight = "2.3.2"
 # https://github.com/Willena/sqlite-jdbc-crypt
 sqliteJdbcCrypt = "3.53.2.0"
 # https://github.com/vinceglb/FileKit
-filekit = "0.14.2"
+filekit = "0.16.0"
 # https://github.com/ohmae/touch-icon-extractor
 touchIcon = "0.9.12"
 # https://github.com/littlerobots/version-catalog-update-plugin
@@ -341,7 +341,7 @@ ktor-ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", versi
 ktor-ktor-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx", version.ref = "ktor" }
 ksoup-html = { module = "com.mohamedrejeb.ksoup:ksoup-html", version.ref = "ksoup" }
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
-kdroidfilter-composenativetray = { module = "io.github.kdroidfilter:composenativetray", version.ref = "composeNativeTray" }
+nucleusframework-composenativetray = { module = "dev.nucleusframework:composenativetray", version.ref = "composeNativeTray" }
 kdroidfilter-platformtools-darkmodedetector = { module = "io.github.kdroidfilter:platformtools.darkmodedetector", version.ref = "platformtools" }
 osipxd-security-crypto-datastore-preferences = { module = "io.github.osipxd:security-crypto-datastore-preferences", version.ref = "osipxdCryptoDatastore" }
 snipme-highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }

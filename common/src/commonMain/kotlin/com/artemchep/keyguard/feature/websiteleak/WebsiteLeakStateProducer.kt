@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.hibp.breaches.all.BreachesRepository
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetBreaches
+import com.artemchep.keyguard.common.usecase.impl.isSubdomain
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -61,9 +62,10 @@ suspend fun RememberStateFlowScope.websiteLeakStateProducer(
         .map {
             it.breaches
                 .filter {
-                    it.domain != null &&
-                            it.domain.isNotBlank() &&
-                            args.host.endsWith(it.domain)
+                    isBreachDomainMatch(
+                        host = args.host,
+                        domain = it.domain,
+                    )
                 }
                 .sortedByDescending { it.addedDate }
                 .map { leak ->
@@ -98,4 +100,21 @@ suspend fun RememberStateFlowScope.websiteLeakStateProducer(
         },
     )
     return flowOf(state)
+}
+
+/**
+ * Matches a breach domain against a host label-wise: the host must be
+ * equal to the domain or one of its subdomains
+ */
+internal fun isBreachDomainMatch(
+    host: String,
+    domain: String?,
+): Boolean {
+    if (domain.isNullOrBlank()) {
+        return false
+    }
+    return isSubdomain(
+        domain = domain.lowercase(),
+        request = host.lowercase(),
+    )
 }

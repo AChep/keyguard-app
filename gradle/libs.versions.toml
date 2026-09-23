@@ -127,7 +127,7 @@ kotlinSerialization = "1.11.0"
 kotlinSerializationMsgpack = "0.6.1"
 # https://github.com/detekt/detekt/releases
 # @keep
-detekt = "2.0.0-alpha.5"
+detekt = "2.0.0-alpha.6"
 # https://github.com/google/ksp/releases
 kspPlugin = "2.3.9"
 # https://github.com/pinterest/ktlint/releases

@@ -26,18 +26,32 @@ private class ZipReaderJvm(
         password = password,
     )
 
+    private var currentEntry: ZipEntryInputStream? = null
+
     override fun nextEntry(): ZipReaderEntry? {
+        // Otherwise the previous entry's source would hand out the new
+        // entry's bytes.
+        invalidateCurrentEntry()
+
         val header = zipStream.nextEntry
             ?: return null
+        // zip4j ends the stream at the end of the current entry.
+        val entryStream = ZipEntryInputStream(zipStream)
+        currentEntry = entryStream
         return ZipReaderEntry(
             name = header.fileName,
-            // zip4j ends the stream at the end of the current entry.
-            source = NonClosingInputStream(zipStream).asSource().buffered(),
+            source = entryStream.asSource().buffered(),
         )
     }
 
     override fun close() {
+        invalidateCurrentEntry()
         zipStream.close()
+    }
+
+    private fun invalidateCurrentEntry() {
+        currentEntry?.invalidate()
+        currentEntry = null
     }
 }
 
@@ -55,8 +69,39 @@ private fun createZipStream(
     }
 }
 
-private class NonClosingInputStream(
+/**
+ * The bytes of the archive's current entry. `close` is a no-op so closing an
+ * entry leaves the reader usable.
+ */
+private class ZipEntryInputStream(
     inputStream: InputStream,
 ) : FilterInputStream(inputStream) {
+    private var valid = true
+
+    fun invalidate() {
+        valid = false
+    }
+
+    override fun read(): Int {
+        checkValid()
+        return super.read()
+    }
+
+    override fun read(b: ByteArray, off: Int, len: Int): Int {
+        checkValid()
+        return super.read(b, off, len)
+    }
+
+    override fun skip(n: Long): Long {
+        checkValid()
+        return super.skip(n)
+    }
+
     override fun close() = Unit
+
+    private fun checkValid() {
+        if (!valid) {
+            throw ZipException("The archive has already moved past this entry")
+        }
+    }
 }

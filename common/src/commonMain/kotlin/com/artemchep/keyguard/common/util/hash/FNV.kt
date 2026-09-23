@@ -18,7 +18,8 @@ object FNV {
         var hash = init32
         for (b in data) {
             hash = hash.times(prime32).mod(mod32)
-            hash = hash.xor(b.toLong())
+            // Mask off the sign extension of a negative byte.
+            hash = hash.xor(b.toLong() and 0xffL)
         }
         return hash
     }

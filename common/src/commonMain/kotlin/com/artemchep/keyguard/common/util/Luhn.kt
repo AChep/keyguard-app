@@ -5,6 +5,9 @@ fun validLuhn(number: String): Boolean {
     if (number.isEmpty()) {
         return true
     }
+    if (number.any { it !in '0'..'9' }) {
+        return false
+    }
 
     val parity = number.length.rem(2)
     val checksum = number

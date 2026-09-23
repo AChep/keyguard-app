@@ -140,7 +140,7 @@ ktor = "3.5.1"
 # https://github.com/MohamedRejeb/Ksoup
 ksoup = "0.6.0"
 # https://github.com/pdvrieze/xmlutil
-xmlutil = "1.0.1"
+xmlutil = "1.0.2.1"
 # https://github.com/java-native-access/jna
 jna = "5.18.1"
 # https://github.com/kdroidFilter/Platform-Tool

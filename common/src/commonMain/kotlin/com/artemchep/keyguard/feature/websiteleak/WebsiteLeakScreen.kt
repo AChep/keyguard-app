@@ -144,7 +144,15 @@ private fun ColumnScope.ContentSkeleton() {
 private fun ColumnScope.Content(
     state: WebsiteLeakState,
 ) {
-    val leaks = state.content.breaches
+    val leaks = state.content.getOrNull()?.breaches
+    if (leaks == null) {
+        FlatSimpleNote(
+            type = SimpleNote.Type.WARNING,
+            text = stringResource(Res.string.emailleak_failed_to_load_status_text),
+        )
+        return
+    }
+
     if (leaks.isNotEmpty()) {
         FlatSimpleNote(
             type = SimpleNote.Type.WARNING,

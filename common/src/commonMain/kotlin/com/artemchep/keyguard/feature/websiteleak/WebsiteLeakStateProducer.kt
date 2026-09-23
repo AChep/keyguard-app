@@ -1,9 +1,9 @@
 package com.artemchep.keyguard.feature.websiteleak
 
 import androidx.compose.runtime.Composable
-import arrow.core.getOrElse
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.hibp.breaches.all.BreachesRepository
 import com.artemchep.keyguard.common.usecase.DateFormatter
@@ -55,12 +55,9 @@ suspend fun RememberStateFlowScope.websiteLeakStateProducer(
     getBreaches: GetBreaches,
     dateFormatter: DateFormatter,
 ): Flow<WebsiteLeakState> {
-    val breaches2 = getBreaches(false)
-        .attempt()
-        .bind()
-    val breach3 = breaches2
+    val content = getBreaches(false)
         .map {
-            it.breaches
+            val breaches = it.breaches
                 .filter {
                     isBreachDomainMatch(
                         host = args.host,
@@ -86,13 +83,13 @@ suspend fun RememberStateFlowScope.websiteLeakStateProducer(
                         dataClasses = leak.dataClasses,
                     )
                 }
+                .toImmutableList()
+            WebsiteLeakState.Content(
+                breaches = breaches,
+            )
         }
-        .getOrElse { emptyList() }
-
-    val content = WebsiteLeakState.Content(
-        breaches = breach3
-            .toImmutableList(),
-    )
+        .attempt()
+        .bind()
     val state = WebsiteLeakState(
         content = content,
         onClose = {

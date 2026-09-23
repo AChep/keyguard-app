@@ -31,6 +31,7 @@ class ConnectivityServiceAndroid(
         val networkRequest: NetworkRequest = NetworkRequest.Builder()
             .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
             .build()
         val connectivityManager = context.getSystemService<ConnectivityManager>()
         connectivityManager?.registerNetworkCallback(networkRequest, networkCallback)

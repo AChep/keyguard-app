@@ -183,7 +183,7 @@ filekit = "0.16.0"
 # https://github.com/ohmae/touch-icon-extractor
 touchIcon = "0.9.12"
 # https://github.com/littlerobots/version-catalog-update-plugin
-versionCatalogPlugin = "1.1.0"
+versionCatalogPlugin = "1.1.1"
 # https://github.com/ben-manes/gradle-versions-plugin
 versionsPlugin = "0.54.0"
 # https://github.com/MayakaApps/ComposeWindowStyler

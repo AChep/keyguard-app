@@ -13,7 +13,9 @@ fun <T> List<IO<T>>.parallel(
         "The `parallelism` must be greater than 0!"
     }
 
-    val window = size.div(parallelism).coerceAtLeast(1)
+    // Ceiling division: the number of windows, and therefore the number
+    // of concurrently running coroutines, never exceeds the `parallelism`.
+    val window = ((size + parallelism - 1) / parallelism).coerceAtLeast(1)
     coroutineScope {
         this@parallel
             .windowed(

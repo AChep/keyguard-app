@@ -114,7 +114,7 @@ kotlin = "2.4.20"
 # https://github.com/Kotlin/kotlinx-atomicfu
 atomicfu = "0.33.0"
 # https://github.com/Kotlin/kotlinx.collections.immutable
-kotlinCollections = "0.5.1"
+kotlinCollections = "0.5.2"
 # https://github.com/Kotlin/kotlinx.coroutines
 kotlinCoroutines = "1.11.0"
 # https://github.com/Kotlin/kotlinx-datetime

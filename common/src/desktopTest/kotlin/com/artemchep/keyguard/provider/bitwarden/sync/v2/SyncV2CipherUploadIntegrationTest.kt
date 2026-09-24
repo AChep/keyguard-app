@@ -37,6 +37,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.AttachmentEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherAttachmentCreateRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherRequest
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherUnarchiveRequest
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.SyncByBitwardenTokenV2Impl
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntityTypeOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.CipherSyncOps
@@ -2456,6 +2457,200 @@ class SyncV2CipherUploadIntegrationTest {
         }
 
         assertEquals(emptyList(), fixture.database.cipherQueries.getByAccountId(ACCOUNT_ID).executeAsList())
+    }
+
+    @Test
+    fun `production CipherSyncOps restores archived cipher through unarchive endpoint`() = runTest {
+        val server = UploadTestServer()
+        val fixture = createProductionCipherOpsFixture(server)
+        val remote =
+            testCipher(
+                localId = "cipher-local-1",
+                remoteId = "cipher-remote-1",
+                localRevisionDate = T0,
+                remoteRevisionDate = T0,
+                attachments = emptyList(),
+            ).copy(
+                keyBase64 = fixture.cipherKeyBase64(),
+                archivedDate = T0,
+            )
+        val local = remote.copy(archivedDate = null)
+        server.seedCipher(
+            remote.toEncryptedCipherEntity(
+                crypto = fixture.crypto,
+                base64Service = fixture.base64Service,
+            ),
+        )
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.pushToServer(
+                local = local,
+                server = server.ciphers.getValue("cipher-remote-1"),
+                force = false,
+            ),
+        )
+
+        assertNull(outcome.local.archivedDate)
+        val unarchiveRequest = server.requests.first { it.path == "/api/ciphers/unarchive" }
+        assertEquals(
+            listOf("cipher-remote-1"),
+            UploadTestServer.json.decodeFromString<CipherUnarchiveRequest>(unarchiveRequest.body).ids,
+        )
+        assertEquals(
+            listOf(
+                HttpMethod.Put to "/api/ciphers/unarchive",
+                HttpMethod.Get to "/api/ciphers/cipher-remote-1",
+            ),
+            server.requests.map { it.method to it.path },
+        )
+    }
+
+    @Test
+    fun `production CipherSyncOps puts changed cipher before unarchiving`() = runTest {
+        val server = UploadTestServer()
+        server.cipherPutAppliesRequestBody = true
+        val fixture = createProductionCipherOpsFixture(server)
+        val remote =
+            testCipher(
+                localId = "cipher-local-1",
+                remoteId = "cipher-remote-1",
+                localRevisionDate = T0,
+                remoteRevisionDate = T0,
+                attachments = emptyList(),
+            ).copy(
+                keyBase64 = fixture.cipherKeyBase64(),
+                name = "Archived Cipher",
+                archivedDate = T0,
+            )
+        val local = remote.copy(
+            name = "Restored Cipher",
+            revisionDate = T2,
+            archivedDate = null,
+        )
+        server.seedCipher(
+            remote.toEncryptedCipherEntity(
+                crypto = fixture.crypto,
+                base64Service = fixture.base64Service,
+            ),
+        )
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.pushToServer(
+                local = local,
+                server = server.ciphers.getValue("cipher-remote-1"),
+                force = false,
+            ),
+        )
+
+        assertEquals("Restored Cipher", outcome.local.name)
+        assertNull(outcome.local.archivedDate)
+        val unarchiveRequest = server.requests.first { it.path == "/api/ciphers/unarchive" }
+        assertEquals(
+            listOf("cipher-remote-1"),
+            UploadTestServer.json.decodeFromString<CipherUnarchiveRequest>(unarchiveRequest.body).ids,
+        )
+        assertEquals(
+            listOf(
+                HttpMethod.Put to "/api/ciphers/cipher-remote-1",
+                HttpMethod.Put to "/api/ciphers/unarchive",
+                HttpMethod.Get to "/api/ciphers/cipher-remote-1",
+            ),
+            server.requests.map { it.method to it.path },
+        )
+    }
+
+    @Test
+    fun `production CipherSyncOps skips unarchive when archive states match`() = runTest {
+        val server = UploadTestServer()
+        val fixture = createProductionCipherOpsFixture(server)
+        val local =
+            testCipher(
+                localId = "cipher-local-1",
+                remoteId = "cipher-remote-1",
+                localRevisionDate = T0,
+                remoteRevisionDate = T0,
+                attachments = emptyList(),
+            ).copy(
+                keyBase64 = fixture.cipherKeyBase64(),
+                archivedDate = T0,
+            )
+        server.seedCipher(
+            local.toEncryptedCipherEntity(
+                crypto = fixture.crypto,
+                base64Service = fixture.base64Service,
+            ),
+        )
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.pushToServer(
+                local = local,
+                server = server.ciphers.getValue("cipher-remote-1"),
+                force = false,
+            ),
+        )
+
+        assertEquals(T0, outcome.local.archivedDate)
+        assertEquals(
+            listOf(HttpMethod.Get to "/api/ciphers/cipher-remote-1"),
+            server.requests.map { it.method to it.path },
+        )
+    }
+
+    @Test
+    fun `production CipherSyncOps keeps put partial when unarchive fails`() = runTest {
+        val server = UploadTestServer()
+        val fixture = createProductionCipherOpsFixture(server)
+        val remote =
+            testCipher(
+                localId = "cipher-local-1",
+                remoteId = "cipher-remote-1",
+                localRevisionDate = T0,
+                remoteRevisionDate = T0,
+                attachments = emptyList(),
+            ).copy(
+                keyBase64 = fixture.cipherKeyBase64(),
+                name = "Archived Cipher",
+                archivedDate = T0,
+            )
+        val local = remote.copy(
+            name = "Restored Cipher",
+            revisionDate = T2,
+            archivedDate = null,
+        )
+        server.seedCipher(
+            remote.toEncryptedCipherEntity(
+                crypto = fixture.crypto,
+                base64Service = fixture.base64Service,
+            ),
+        )
+        server.nextCipherUnarchiveFailure = HttpStatusCode.InternalServerError
+
+        val error = assertCipherFailure {
+            fixture.ops.pushToServer(
+                local = local,
+                server = server.ciphers.getValue("cipher-remote-1"),
+                force = false,
+            )
+        }
+
+        val partial = assertIs<BitwardenCipher>(error.partialRemoteLocal)
+        assertEquals(T4, partial.service.remote?.revisionDate)
+        assertEquals(T0, partial.archivedDate)
+        assertEquals(T0, server.ciphers.getValue("cipher-remote-1").archivedDate)
+        val httpException = assertIs<HttpException>(error.cause)
+        assertEquals(HttpStatusCode.InternalServerError, httpException.statusCode)
+        val unarchiveRequest = server.requests.first { it.path == "/api/ciphers/unarchive" }
+        assertEquals(
+            listOf("cipher-remote-1"),
+            UploadTestServer.json.decodeFromString<CipherUnarchiveRequest>(unarchiveRequest.body).ids,
+        )
+        assertEquals(
+            listOf(
+                HttpMethod.Put to "/api/ciphers/cipher-remote-1",
+                HttpMethod.Put to "/api/ciphers/unarchive",
+            ),
+            server.requests.map { it.method to it.path },
+        )
     }
 
     @Test

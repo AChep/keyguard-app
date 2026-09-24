@@ -4,6 +4,7 @@ object FNV {
     private const val init32 = 0x811c9dc5L
     private const val prime32 = 0x01000193L
     private const val mod32 = 1L shl 32
+    private const val unsignedByteMask = 0xffL
 
     fun fnv1_32(data: String): Long {
         var hash = init32
@@ -19,7 +20,7 @@ object FNV {
         for (b in data) {
             hash = hash.times(prime32).mod(mod32)
             // Mask off the sign extension of a negative byte.
-            hash = hash.xor(b.toLong() and 0xffL)
+            hash = hash.xor(b.toLong() and unsignedByteMask)
         }
         return hash
     }

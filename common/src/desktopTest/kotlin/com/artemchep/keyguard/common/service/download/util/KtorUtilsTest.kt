@@ -113,7 +113,8 @@ class KtorUtilsTest {
         val writtenAtFailure = written.get()
         assertTrue(
             writtenAtFailure < OVERSIZED_TOTAL,
-            "Expected the body to be rejected mid-stream, but $writtenAtFailure of $OVERSIZED_TOTAL bytes were produced.",
+            "Expected the body to be rejected mid-stream, " +
+                "but $writtenAtFailure of $OVERSIZED_TOTAL bytes were produced.",
         )
     }
 

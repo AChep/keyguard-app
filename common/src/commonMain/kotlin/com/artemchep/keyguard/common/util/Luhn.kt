@@ -2,9 +2,6 @@ package com.artemchep.keyguard.common.util
 
 // https://en.wikipedia.org/wiki/Luhn_algorithm
 fun validLuhn(number: String): Boolean {
-    if (number.isEmpty()) {
-        return true
-    }
     if (number.any { it !in '0'..'9' }) {
         return false
     }

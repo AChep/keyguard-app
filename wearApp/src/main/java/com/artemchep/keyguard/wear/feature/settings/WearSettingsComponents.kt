@@ -227,19 +227,7 @@ class WearSettingsComponents : SettingPaneComponents {
                 transformation = transformation.takeIf { footer == null },
             )
             if (footer != null) {
-                CompositionLocalProvider(
-                    LocalContentColor provides MaterialTheme.colorScheme.onBackground,
-                ) {
-                    ProxyMaterial3Styles {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            content = footer,
-                        )
-                    }
-                }
+                WearSettingsFooter(content = footer)
             }
         }
     }
@@ -252,6 +240,25 @@ class WearSettingsComponents : SettingPaneComponents {
             Column {
                 content()
             }
+        }
+    }
+}
+
+@Composable
+private fun WearSettingsFooter(
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    CompositionLocalProvider(
+        LocalContentColor provides MaterialTheme.colorScheme.onBackground,
+    ) {
+        ProxyMaterial3Styles {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                content = content,
+            )
         }
     }
 }

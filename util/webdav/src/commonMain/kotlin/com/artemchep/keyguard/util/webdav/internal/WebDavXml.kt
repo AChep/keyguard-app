@@ -141,35 +141,7 @@ private class XmlParser(
                         stack.removeAt(stack.lastIndex)
                     }
                 }
-                input[index] == '<' -> {
-                    val tag = readStartTag()
-                    val namespaces = stack.last().namespaces.toMutableMap()
-                    tag.attributes.forEach { (name, value) ->
-                        when {
-                            name == "xmlns" -> namespaces[""] = value
-                            name.startsWith("xmlns:") -> {
-                                namespaces[name.substringAfter(':')] = value
-                            }
-                        }
-                    }
-
-                    val node = MutableXmlNode(resolveName(tag.name, namespaces))
-                    stack.last().node.children += node
-                    if (!tag.selfClosing) {
-                        // The tree is converted recursively, so the nesting
-                        // must be bounded. A multistatus response only nests
-                        // a few levels deep.
-                        if (stack.size > MAX_XML_DEPTH) {
-                            throw IllegalArgumentException(
-                                "XML document exceeds the $MAX_XML_DEPTH-level depth limit.",
-                            )
-                        }
-                        stack += XmlFrame(
-                            node = node,
-                            namespaces = namespaces,
-                        )
-                    }
-                }
+                input[index] == '<' -> readStartElement(stack)
                 else -> {
                     stack.last().node.textParts += decodeXmlEntities(readText())
                 }
@@ -182,6 +154,36 @@ private class XmlParser(
             }
         return children.singleOrNull()?.toImmutable()
             ?: root.toImmutable()
+    }
+
+    private fun readStartElement(stack: MutableList<XmlFrame>) {
+        val tag = readStartTag()
+        val namespaces = stack.last().namespaces.toMutableMap()
+        tag.attributes.forEach { (name, value) ->
+            when {
+                name == "xmlns" -> namespaces[""] = value
+                name.startsWith("xmlns:") -> {
+                    namespaces[name.substringAfter(':')] = value
+                }
+            }
+        }
+
+        val node = MutableXmlNode(resolveName(tag.name, namespaces))
+        stack.last().node.children += node
+        if (!tag.selfClosing) {
+            // The tree is converted recursively, so the nesting
+            // must be bounded. A multistatus response only nests
+            // a few levels deep.
+            if (stack.size > MAX_XML_DEPTH) {
+                throw IllegalArgumentException(
+                    "XML document exceeds the $MAX_XML_DEPTH-level depth limit.",
+                )
+            }
+            stack += XmlFrame(
+                node = node,
+                namespaces = namespaces,
+            )
+        }
     }
 
     private fun readStartTag(): StartTag {

@@ -114,8 +114,9 @@ suspend fun String.simpleFormat2(
         }
         i += 1
     }
-    if (root !== node) {
-        return this
+    return if (root !== node) {
+        this
+    } else {
+        root.eval()
     }
-    return root.eval()
 }

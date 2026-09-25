@@ -288,4 +288,9 @@
         <item quantity="many">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
         <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
     </plurals>
+    <!-- Automatic backups -->
+    <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
+        <item quantity="one">Keep %1$d snapshot</item>
+        <item quantity="other">Keep %1$d snapshots</item>
+    </plurals>
 </resources>

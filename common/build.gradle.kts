@@ -199,8 +199,27 @@ kotlin {
             dependsOn(macosMain)
         }
 
-        val iosTest = create("iosTest") {
+        val appleTest = create("appleTest") {
             dependsOn(commonTest)
+            kotlin.srcDir("src/commonTest/kotlin")
+            kotlin.include("com/artemchep/keyguard/common/model/TestCipherFilterContext.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/backup/**")
+            kotlin.include("com/artemchep/keyguard/common/service/directorywatcher/**")
+            kotlin.include("com/artemchep/keyguard/common/service/gpgagent/GpgAgentPacketSessionTest.kt")
+            kotlin.include("com/artemchep/keyguard/core/session/usecase/**")
+            kotlin.include("com/artemchep/keyguard/copy/DateFormatterAppleTest.kt")
+            kotlin.include("com/artemchep/keyguard/copy/FileWatcherServiceAppleTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/usecase/NotificationsImplTest.kt")
+            kotlin.include("com/artemchep/keyguard/feature/gpgagent/tools/GpgToolsInputErrorTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/download/TestDownloadAttachmentSourceLoader.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/vault/TestVaultSession.kt")
+            dependencies {
+                implementation(libs.ktor.ktor.client.mock)
+            }
+        }
+
+        val iosTest = create("iosTest") {
+            dependsOn(appleTest)
             dependencies {
                 implementation(libs.ktor.ktor.client.mock)
             }
@@ -215,7 +234,7 @@ kotlin {
         }
 
         getByName("macosArm64Test") {
-            dependsOn(commonTest)
+            dependsOn(appleTest)
         }
 
         getByName("androidHostTest") {

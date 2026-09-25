@@ -290,8 +290,8 @@ class EncryptedFilePendingUploadServiceJvmTest {
 
         assertFailsWith<AtomicCleanupIncompleteException> {
             enforcePendingUploadPostPublication(
-                markerPath = marker,
                 receipt = receipt,
+                deleteMarker = { Files.deleteIfExists(marker) },
             )
         }
 

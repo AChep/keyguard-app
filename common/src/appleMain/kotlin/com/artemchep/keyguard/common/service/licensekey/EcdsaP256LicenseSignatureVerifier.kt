@@ -1,20 +1,17 @@
 package com.artemchep.keyguard.common.service.licensekey
 
+import com.artemchep.keyguard.common.util.hexToByteArray
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.alloc
 import kotlinx.cinterop.convert
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
 import platform.CoreFoundation.CFDataCreate
 import platform.CoreFoundation.CFDataRef
 import platform.CoreFoundation.CFDictionaryCreateMutable
 import platform.CoreFoundation.CFDictionarySetValue
-import platform.CoreFoundation.CFErrorRefVar
 import platform.CoreFoundation.CFRelease
 import platform.Security.SecKeyCreateWithData
 import platform.Security.SecKeyIsAlgorithmSupported
@@ -46,18 +43,15 @@ class EcdsaP256LicenseSignatureVerifier : LicenseSignatureVerifier {
                 return@runCatching false
             }
 
-            memScoped {
-                val error = alloc<CFErrorRefVar>()
-                signingInput.useCFData { messageData ->
-                    signatureP1363ToDer(signature).useCFData { signatureData ->
-                        SecKeyVerifySignature(
-                            key = publicKey,
-                            algorithm = algorithm,
-                            signedData = messageData,
-                            signature = signatureData,
-                            error = error.ptr,
-                        )
-                    }
+            signingInput.useCFData { messageData ->
+                signatureP1363ToDer(signature).useCFData { signatureData ->
+                    SecKeyVerifySignature(
+                        key = publicKey,
+                        algorithm = algorithm,
+                        signedData = messageData,
+                        signature = signatureData,
+                        error = null,
+                    )
                 }
             }
         } finally {
@@ -67,7 +61,7 @@ class EcdsaP256LicenseSignatureVerifier : LicenseSignatureVerifier {
 
     private fun createPublicSecKey(
         publicKeyPem: String,
-    ): SecKeyRef = memScoped {
+    ): SecKeyRef {
         val attrs = CFDictionaryCreateMutable(
             allocator = null,
             capacity = 0,
@@ -77,16 +71,15 @@ class EcdsaP256LicenseSignatureVerifier : LicenseSignatureVerifier {
         checkNotNull(attrs) {
             "Could not allocate Security.framework key attributes."
         }
-        try {
+        return try {
             CFDictionarySetValue(attrs, kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom)
             CFDictionarySetValue(attrs, kSecAttrKeyClass, kSecAttrKeyClassPublic)
 
-            val error = alloc<CFErrorRefVar>()
-            decodePublicKeyPem(publicKeyPem).useCFData { keyData ->
+            p256SpkiToX963(decodePublicKeyPem(publicKeyPem)).useCFData { keyData ->
                 SecKeyCreateWithData(
                     keyData = keyData,
                     attributes = attrs,
-                    error = error.ptr,
+                    error = null,
                 )
             } ?: error("Could not import EC public key.")
         } finally {
@@ -101,6 +94,17 @@ private fun decodePublicKeyPem(publicKeyPem: String): ByteArray = publicKeyPem
     .filter { it.isNotBlank() }
     .joinToString(separator = "")
     .let(Base64.Default::decode)
+
+private fun p256SpkiToX963(spki: ByteArray): ByteArray {
+    // Security.framework imports EC public keys as an ANSI X9.63 point,
+    // whereas the license key ring contains SubjectPublicKeyInfo PEM.
+    // Require the exact ecPublicKey + prime256v1 algorithm identifiers.
+    val prefixSize = P256_SPKI_PREFIX.size
+    require(spki.size == prefixSize + UNCOMPRESSED_P256_POINT_BYTES)
+    require(spki.copyOfRange(0, prefixSize).contentEquals(P256_SPKI_PREFIX))
+    require(spki[prefixSize] == 0x04.toByte())
+    return spki.copyOfRange(prefixSize, spki.size)
+}
 
 private fun signatureP1363ToDer(signature: ByteArray): ByteArray {
     val r = derInteger(signature.copyOfRange(0, 32))
@@ -155,3 +159,8 @@ private inline fun <T> ByteArray.usePinnedOrNull(
         block(pinned.addressOf(0))
     }
 }
+
+// SEQUENCE { SEQUENCE { ecPublicKey, prime256v1 }, BIT STRING header }
+private val P256_SPKI_PREFIX = "3059301306072a8648ce3d020106082a8648ce3d030107034200".hexToByteArray()
+
+private const val UNCOMPRESSED_P256_POINT_BYTES = 65

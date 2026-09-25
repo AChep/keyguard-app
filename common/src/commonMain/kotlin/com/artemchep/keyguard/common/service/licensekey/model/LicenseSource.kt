@@ -19,6 +19,7 @@ data class LicenseSource(
     }
 
     companion object {
+        const val PROVIDER_APPLE = "apple_app_store"
         const val PROVIDER_GOOGLE_PLAY = "google_play"
     }
 }

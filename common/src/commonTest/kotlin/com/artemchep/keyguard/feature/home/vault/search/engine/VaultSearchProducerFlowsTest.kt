@@ -141,6 +141,18 @@ private class RecordingVaultSearchIndex : VaultSearchIndex {
         qualifierCatalog: VaultSearchQualifierCatalog,
     ): CompiledQueryPlan? = null
 
+    override suspend fun match(
+        plan: CompiledQueryPlan?,
+        candidates: List<VaultItem2.Item>,
+    ): List<VaultSearchMatch> = candidates.map { item ->
+        VaultSearchMatch(
+            item = item,
+            score = 0.0,
+            titleTerms = emptySet(),
+            context = null,
+        )
+    }
+
     override suspend fun evaluate(
         plan: CompiledQueryPlan?,
         candidates: List<VaultItem2.Item>,

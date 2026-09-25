@@ -5,10 +5,6 @@ import com.artemchep.keyguard.common.model.DSendFilter
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * A data-only, serializable identity for a [Route] — the "what + args" of a
- * navigation destination, decoupled from its `@Composable` rendering.
- */
 @Serializable
 sealed interface RouteDescriptor {
     @Serializable
@@ -142,7 +138,7 @@ sealed interface RouteDescriptor {
 
     @Serializable
     @SerialName("watchtower.alerts")
-    data object WatchtowerAlerts : RouteDescriptor
+    data class WatchtowerAlerts(val filter: DFilter? = null) : RouteDescriptor
 
     @Serializable
     @SerialName("vault.cipher_filters")
@@ -173,6 +169,10 @@ sealed interface RouteDescriptor {
     data object Feedback : RouteDescriptor
 
     @Serializable
+    @SerialName("settings.subscriptions")
+    data object Subscriptions : RouteDescriptor
+
+    @Serializable
     @SerialName("directory.two_fa")
     data object TwoFaServices : RouteDescriptor
 
@@ -188,10 +188,6 @@ sealed interface RouteDescriptor {
     @SerialName("directory.delete_me")
     data object JustDeleteMeServices : RouteDescriptor
 
-    /**
-     * Fallback for a route that has not been
-     * given a stable descriptor yet.
-     */
     @Serializable
     @SerialName("unmapped")
     data class Unmapped(

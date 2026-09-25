@@ -21,6 +21,12 @@ interface RouteForResult<T> {
 @Stable
 interface DialogRouteForResult<T> : RouteForResult<T>
 
+@Stable
+interface RouteResultReceiver<T> {
+    val innerRoute: RouteForResult<T>
+    val resultTransmitter: RouteResultTransmitter<T>
+}
+
 fun <T> registerRouteResultReceiver(
     route: RouteForResult<T>,
     block: (T) -> Unit,
@@ -30,7 +36,10 @@ fun <T> registerRouteResultReceiver(
             block(unit)
         }
     }
-    return object : Route {
+    return object : Route, RouteResultReceiver<T> {
+        override val innerRoute: RouteForResult<T> get() = route
+        override val resultTransmitter: RouteResultTransmitter<T> get() = transmitter
+
         @Composable
         override fun Content() {
             route.Content(
@@ -49,7 +58,10 @@ fun <T> registerRouteResultReceiver(
             block(unit)
         }
     }
-    return object : DialogRoute {
+    return object : DialogRoute, RouteResultReceiver<T> {
+        override val innerRoute: RouteForResult<T> get() = route
+        override val resultTransmitter: RouteResultTransmitter<T> get() = transmitter
+
         @Composable
         override fun Content() {
             route.Content(
@@ -59,8 +71,4 @@ fun <T> registerRouteResultReceiver(
     }
 }
 
-/**
- * A callback to pass the result back
- * to a caller.
- */
 interface RouteResultTransmitter<T> : (T) -> Unit

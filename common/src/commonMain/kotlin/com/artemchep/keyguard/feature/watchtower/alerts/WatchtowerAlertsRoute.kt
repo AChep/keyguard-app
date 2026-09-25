@@ -16,7 +16,7 @@ data class WatchtowerAlertsRoute(
         val filter: DFilter? = null,
     )
 
-    override val descriptor get() = RouteDescriptor.WatchtowerAlerts
+    override val descriptor get() = RouteDescriptor.WatchtowerAlerts(filter = args.filter)
 
     @Composable
     override fun Content() {

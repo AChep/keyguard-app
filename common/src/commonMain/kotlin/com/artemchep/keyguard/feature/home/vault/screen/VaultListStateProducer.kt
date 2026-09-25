@@ -1,42 +1,21 @@
 package com.artemchep.keyguard.feature.home.vault.screen
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Archive
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Keyboard
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Save
-import androidx.compose.material.icons.outlined.SortByAlpha
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import arrow.core.identity
-import arrow.core.partially1
-import arrow.optics.Getter
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.autofillTarget
-import com.artemchep.keyguard.common.io.attempt
-import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.nullable
 import com.artemchep.keyguard.common.model.AccountTask
 import com.artemchep.keyguard.common.model.AutofillTarget
 import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DFilter
-import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
-import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.getShapeState
-import com.artemchep.keyguard.common.model.iconImageVector
-import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.service.filter.AddCipherFilter
@@ -66,23 +45,16 @@ import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.RenameFolderById
 import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
-import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
-import com.artemchep.keyguard.feature.attachments.AttachmentsRoute
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.auth.common.TextCell
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
-import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
-import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
-import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.duplicates.list.createCipherSelectionFlow
-import com.artemchep.keyguard.feature.filter.CipherFiltersRoute
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
-import com.artemchep.keyguard.feature.home.settings.subscriptions.SubscriptionsSettingsRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
@@ -100,37 +72,20 @@ import com.artemchep.keyguard.feature.home.vault.search.query.compiler.CompiledQ
 import com.artemchep.keyguard.feature.home.vault.search.query.highlight.QueryHighlighting
 import com.artemchep.keyguard.feature.home.vault.search.query.highlight.VaultSearchQueryHighlighter
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
-import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordLastModifiedSort
-import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordStrengthSort
 import com.artemchep.keyguard.feature.home.vault.search.sort.Sort
-import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
-import com.artemchep.keyguard.feature.largetype.LargeTypeRoute.Args
-import com.artemchep.keyguard.feature.localization.TextHolder
-import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRouteFactory
 import com.artemchep.keyguard.leof
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
-import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.ui.ContextItemBuilder
-import com.artemchep.keyguard.ui.FlatItemAction
-import com.artemchep.keyguard.ui.buildContextItems
-import com.artemchep.keyguard.ui.icons.ChevronIcon
-import com.artemchep.keyguard.ui.icons.SyncIcon
-import com.artemchep.keyguard.ui.icons.icon
-import com.artemchep.keyguard.ui.icons.iconSmall
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentSet
@@ -293,7 +248,7 @@ internal fun vaultListScreenState(
     bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
     passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
 ): VaultListState = produceScreenState(
-    key = "vault_list",
+    key = VaultListPersistence.SCREEN_COMPOSE,
     initial = VaultListState(),
     args = arrayOf(
         getAccounts,
@@ -435,66 +390,16 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
             replay = 1,
         )
     val storage = kotlin.run {
-        val disk = loadDiskHandle("vault.list")
+        val disk = loadDiskHandle(VaultListPersistence.DISK)
         PersistedStorage.InDisk(disk)
     }
 
     val fffFilter = args.filter ?: DFilter.All
-//    val fffAccountId = DFilter
-//        .findOne<DFilter.ById>(fffFilter) { f ->
-//            f.what == DFilter.ById.What.ACCOUNT
-//        }
-//        ?.id
     val fffFolderId = DFilter
         .findOne<DFilter.ById>(fffFilter) { f ->
             f.what == DFilter.ById.What.FOLDER
         }
         ?.id
-//    val fffCollectionId = DFilter
-//        .findOne<DFilter.ById>(fffFilter) { f ->
-//            f.what == DFilter.ById.What.COLLECTION
-//        }
-//        ?.id
-//    val fffOrganizationId = DFilter
-//        .findOne<DFilter.ById>(fffFilter) { f ->
-//            f.what == DFilter.ById.What.ORGANIZATION
-//        }
-//        ?.id
-
-    fun onRename(
-        folders: List<DFolder>,
-    ) = action {
-        val route = confirmationRouteFactory.registerRouteResultReceiver(
-            args = ConfirmationRoute.Args(
-                icon = icon(Icons.Outlined.Edit),
-                title = if (folders.size > 1) {
-                    translate(Res.string.folder_action_change_names_title)
-                } else {
-                    translate(Res.string.folder_action_change_name_title)
-                },
-                items = folders
-                    .sortedWith(StringComparatorIgnoreCase { it.name })
-                    .map { folder ->
-                        ConfirmationRoute.Args.Item.StringItem(
-                            key = folder.id,
-                            value = folder.name,
-                            title = folder.name,
-                            type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
-                            canBeEmpty = false,
-                        )
-                    },
-            ),
-        ) {
-            if (it is ConfirmationResult.Confirm) {
-                val folderIdsToNames = it.data
-                    .mapValues { it.value as String }
-                renameFolderById(folderIdsToNames)
-                    .launchIn(appScope)
-            }
-        }
-        val intent = NavigationIntent.NavigateToRoute(route)
-        navigate(intent)
-    }
 
     val copy = copier()
 
@@ -510,7 +415,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         )
 
     val queryHandle = vaultSearchQueryHandle(
-        key = "query",
+        key = VaultListPersistence.KEY_QUERY,
         searchBy = args.searchBy,
         getVaultSearchQualifierCatalog = getVaultSearchQualifierCatalog,
         getVaultSearchIndex = getVaultSearchIndex,
@@ -603,9 +508,9 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
 
     val cipherSink = EventFlow<DSecret>()
 
-    val itemSink = mutablePersistedFlow("lole") { "" }
+    val itemSink = mutablePersistedFlow(VaultListPersistence.KEY_ITEM) { "" }
 
-    val selectionHandle = selectionHandle("selection")
+    val selectionHandle = selectionHandle(VaultListPersistence.KEY_SELECTION)
     val itemLocalStateSource = VaultItem2.Item.LocalStateSource.Shared(
         stateFlow = combine(
             selectionHandle.idsFlow,
@@ -654,13 +559,13 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         .launchIn(this)
 
     val showKeyboardSink = mutablePersistedFlow(
-        key = "keyboard",
+        key = VaultListPersistence.KEY_KEYBOARD,
         storage = if (args.canAlwaysShowKeyboard) {
             storage
         } else PersistedStorage.InMemory,
     ) { false }
     val rememberSortSink = mutablePersistedFlow(
-        key = "sort_persistent_enabled",
+        key = VaultListPersistence.KEY_SORT_PERSISTENT_ENABLED,
         storage = if (args.canAlwaysShowKeyboard) {
             storage
         } else PersistedStorage.InMemory,
@@ -678,7 +583,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
     // Alternative sort sink that is stored on the
     // disk storage. Mirrored from the in-memory sink.
     val sortPersistentSink = mutablePersistedFlow(
-        key = "sort_persistent",
+        key = VaultListPersistence.KEY_SORT_PERSISTENT,
         storage = storage,
         serialize = ComparatorHolder::serialize,
         deserialize = ComparatorHolder::deserialize,
@@ -686,7 +591,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         sortDefault
     }
     val sortSink = mutablePersistedFlow(
-        key = "sort",
+        key = VaultListPersistence.KEY_SORT,
         serialize = ComparatorHolder::serialize,
         deserialize = ComparatorHolder::deserialize,
     ) {
@@ -712,253 +617,29 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         .launchIn(screenScope)
 
     var scrollPositionKey: Any? = null
-    val scrollPositionSink = mutablePersistedFlow<ScrollPositionState>("scroll_state") { ScrollPositionState() }
+    val scrollPositionSink = mutablePersistedFlow<ScrollPositionState>(
+        VaultListPersistence.KEY_SCROLL_STATE,
+    ) { ScrollPositionState() }
 
     val filterResult = createFilter(addCipherFilter, confirmationRouteFactory)
-    val actionsFlow = kotlin.run {
-        val actionArchiveItem = FlatItemAction(
-            id = "vaultList.archive",
-            leading = {
-                Icon(Icons.Outlined.Archive, null)
-            },
-            title = Res.string.archive.wrap(),
-            trailing = {
-                ChevronIcon()
-            },
-            onClick = onClick {
-                val newArgs = args.copy(
-                    appBar = VaultRoute.Args.AppBar(
-                        subtitle = args.appBar?.subtitle
-                            ?: TextHolder.Res(Res.string.home_vault_label),
-                        title = translate(Res.string.archive),
-                    ),
-                    archive = true,
-                    preselect = false,
-                    canAddSecrets = false,
-                )
-                val route = VaultListRoute(newArgs)
-                val intent = NavigationIntent.NavigateToRoute(route)
-                navigate(intent)
-            },
-        )
-        val actionArchiveFlow = flowOf(actionArchiveItem)
-        val actionTrashItem = FlatItemAction(
-            id = "vaultList.trash",
-            leading = {
-                Icon(Icons.Outlined.Delete, null)
-            },
-            title = Res.string.trash.wrap(),
-            trailing = {
-                ChevronIcon()
-            },
-            onClick = onClick {
-                val newArgs = args.copy(
-                    appBar = VaultRoute.Args.AppBar(
-                        subtitle = args.appBar?.subtitle
-                            ?: TextHolder.Res(Res.string.home_vault_label),
-                        title = translate(Res.string.trash),
-                    ),
-                    trash = true,
-                    preselect = false,
-                    canAddSecrets = false,
-                )
-                val route = VaultListRoute(newArgs)
-                val intent = NavigationIntent.NavigateToRoute(route)
-                navigate(intent)
-            },
-        )
-        val actionTrashFlow = flowOf(actionTrashItem)
-        val actionDownloadsItem = FlatItemAction(
-            id = "vaultList.downloads",
-            leading = {
-                Icon(Icons.Outlined.Download, null)
-            },
-            title = Res.string.downloads.wrap(),
-            trailing = {
-                ChevronIcon()
-            },
-            onClick = {
-                val route = AttachmentsRoute()
-                val intent = NavigationIntent.NavigateToRoute(route)
-                navigate(intent)
-            },
-        )
-        val actionDownloadsFlow = flowOf(actionDownloadsItem)
-        val actionFiltersItem = CipherFiltersRoute.actionOrNull(
-            translator = this,
-            navigate = ::navigate,
-        )
-        val actionFiltersFlow = flowOf(actionFiltersItem)
-        val actionGroupFlow = combine(
-            actionArchiveFlow,
-            actionTrashFlow,
-            actionDownloadsFlow,
-            actionFiltersFlow,
-        ) { array ->
-            buildContextItems {
-                section {
-                    array.forEach(this::plusAssign)
-                }
-            }
-        }
-
-        val actionAlwaysShowKeyboardFlow = showKeyboardSink
-            .map { showKeyboard ->
-                FlatItemAction(
-                    // The id is non-visual (it is not rendered and not used as a
-                    // Compose key); it carries the toggle's current on/off state so
-                    // the native iOS/macOS bridge can project a Switch/checkmark into
-                    // its overflow menu without re-running the producer. The Compose
-                    // UI ignores it and renders the [trailing] Switch as before.
-                    id = "vault.action.always_show_keyboard.$showKeyboard",
-                    leading = {
-                        Icon(
-                            Icons.Outlined.Keyboard,
-                            null,
-                        )
-                    },
-                    trailing = {
-                        Switch(
-                            checked = showKeyboard,
-                            onCheckedChange = showKeyboardSink::value::set,
-                        )
-                    },
-                    title = Res.string.vault_action_always_show_keyboard_title.wrap(),
-                    onClick = showKeyboardSink::value::set.partially1(!showKeyboard),
-                )
-            }
-        val actionRememberSortingFlow = rememberSortSink
-            .map { rememberSorting ->
-                FlatItemAction(
-                    // See the id note above: non-visual, carries the toggle state for
-                    // the native bridge only.
-                    id = "vault.action.remember_sorting.$rememberSorting",
-                    leading = {
-                        Icon(
-                            Icons.Outlined.SortByAlpha,
-                            null,
-                        )
-                    },
-                    trailing = {
-                        Switch(
-                            checked = rememberSorting,
-                            onCheckedChange = rememberSortSink::value::set,
-                        )
-                    },
-                    title = Res.string.vault_action_remember_sorting_title.wrap(),
-                    onClick = rememberSortSink::value::set.partially1(!rememberSorting),
-                )
-            }
-        val actionGroup2Flow = combine(
-            actionAlwaysShowKeyboardFlow,
-            actionRememberSortingFlow,
-        ) { array ->
-            buildContextItems {
-                section {
-                    array.forEach(this::plusAssign)
-                }
-            }
-        }
-        val actionSyncAccountsFlow = syncFlow
-            .map { syncing ->
-                FlatItemAction(
-                    id = "vaultList.sync",
-                    leading = {
-                        SyncIcon(
-                            rotating = syncing,
-                        )
-                    },
-                    title = Res.string.vault_action_sync_vault_title.wrap(),
-                    onClick = if (!syncing) {
-                        // lambda
-                        {
-                            queueSyncAll()
-                                .launchIn(appScope)
-                        }
-                    } else {
-                        null
-                    },
-                )
-            }
-        val actionLockVaultItem = FlatItemAction(
-            id = "vaultList.lock",
-            leading = {
-                Icon(Icons.Outlined.Lock, null)
-            },
-            title = Res.string.vault_action_lock_vault_title.wrap(),
-            onClick = {
-                val reason = TextHolder.Res(Res.string.lock_reason_manually)
-                clearVaultSession(LockReason.LOCK, reason)
-                    .launchIn(appScope)
-            },
-        )
-        val actionLockVaultFlow = flowOf(actionLockVaultItem)
-        val actionGroup3Flow = combine(
-            actionSyncAccountsFlow,
-            actionLockVaultFlow,
-        ) { array ->
-            buildContextItems {
-                section {
-                    array.forEach(this::plusAssign)
-                }
-            }
-        }
-        val actionFolderRenameFlow = foldersFlow
-            .map { folders ->
-                val folder = folders.firstOrNull { it.id == fffFolderId }
-                if (folder != null) {
-                    FlatItemAction(
-                        id = "vaultList.renameFolder",
-                        leading = {
-                            Icon(Icons.Outlined.Edit, null)
-                        },
-                        title = Res.string.vault_action_rename_folder_title.wrap(),
-                        onClick = {
-                            onRename(listOf(folder))
-                        },
-                    )
-                } else {
-                    null
-                }
-            }
-            .map {
-                buildContextItems {
-                    this += it
-                }
-            }
-        if (args.canAlwaysShowKeyboard) {
-            combine(
-                actionFolderRenameFlow,
-                actionGroupFlow,
-                actionGroup2Flow,
-                actionGroup3Flow,
-            ) { array ->
-                buildContextItems {
-                    array.forEach {
-                        section {
-                            it.forEach {
-                                this += it
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            combine(
-                actionFolderRenameFlow,
-            ) { array ->
-                buildContextItems {
-                    array.forEach {
-                        section {
-                            it.forEach {
-                                this += it
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    val actionsFlow = vaultListToolbarFlow(
+        args = args,
+        folderId = fffFolderId,
+        showKeyboardSink = showKeyboardSink,
+        rememberSortSink = rememberSortSink,
+        syncFlow = syncFlow,
+        getFolders = getFolders,
+        foldersFlow = foldersFlow,
+        queueSyncAll = queueSyncAll,
+        clearVaultSession = clearVaultSession,
+        onRename = { folders ->
+            vaultRenameFoldersAction(
+                folders = folders,
+                confirmationRouteFactory = confirmationRouteFactory,
+                renameFolderById = renameFolderById,
+            )
+        },
+    )
 
     data class ConfigMapper(
         val concealFields: Boolean,
@@ -1000,44 +681,19 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         configFlow,
     ) { secrets, organizationsById, cfg -> Triple(secrets, organizationsById, cfg) }
         .mapLatest { (secrets, organizationsById, cfg) ->
-            val items = secrets.run {
-                if (mode is AppMode.PickPasskey) {
-                    return@run this
-                        .filter { cipher ->
-                            val credentials = cipher.login?.fido2Credentials.orEmpty()
-                            credentials
-                                .any { credential ->
-                                    passkeyTargetCheck(credential, mode.target)
-                                        .attempt()
-                                        .bind()
-                                        .isRight { it }
-                                }
-                        }
-                }
-                if (mode is AppMode.HasType) {
-                    val type = mode.type
-                    if (type != null) {
-                        return@run this
-                            .filter { it.type == type }
-                    }
-                }
-
-                this
-            }
-                .filter {
-                    val passesTrashFilter = when (args.trash) {
-                        true -> it.deletedDate != null
-                        false -> it.deletedDate == null
-                        null -> true
-                    }
-                    val passesArchiveFilter = when (args.archive) {
-                        true -> it.archivedDate != null
-                        false -> it.archivedDate == null
-                        null -> true
-                    }
-                    passesTrashFilter && passesArchiveFilter
-                }
+            val items = filterVaultCiphersForMode(
+                ciphers = secrets,
+                mode = mode,
+                args = args,
+                passkeyTargetCheck = passkeyTargetCheck,
+            )
                 .map { secret ->
+                    val badgeTapActions = buildVaultBadgeTapActions(
+                        mode = mode,
+                        secret = secret,
+                        passkeyTargetCheck = passkeyTargetCheck,
+                        passkeysCredentialViewRouteFactory = passkeysCredentialViewRouteFactory,
+                    )
                     val item = secret.toVaultListItem(
                         copy = copy,
                         translator = this@vaultListScreenStateProducer,
@@ -1048,191 +704,17 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                         organizationsById = organizationsById,
                         localStateSource = itemLocalStateSource,
                         onClick = { actions ->
-                            fun buildContextItemsForSaveAction(
-                                block: ContextItemBuilder.() -> Unit,
-                            ) = buildContextItems {
-                                section {
-                                    block()
-                                }
-                                section {
-                                    this += FlatItemAction(
-                                        id = "vaultList.save.viewDetails",
-                                        icon = Icons.Outlined.Info,
-                                        title = Res.string.ciphers_view_details.wrap(),
-                                        trailing = {
-                                            ChevronIcon()
-                                        },
-                                        onClick = {
-                                            cipherSink.emit(secret)
-                                        },
-                                    )
-                                }
-                            }
-
-                            val dropdown = when (mode) {
-                                is AppMode.Pick -> buildContextItems {
-                                    section {
-                                        this += FlatItemAction(
-                                            id = "vaultList.pick.autofill",
-                                            icon = Icons.Outlined.AutoAwesome,
-                                            title = Res.string.autofill.wrap(),
-                                            onClick = {
-                                                val extra = AppMode.Pick.Extra()
-                                                mode.onAutofill(secret, extra)
-                                            },
-                                        )
-                                        if (cfg.writeCapability == WriteCapability.Allowed) {
-                                            this += FlatItemAction(
-                                                id = "vaultList.pick.autofillAndSave",
-                                                leading = iconSmall(
-                                                    Icons.Outlined.AutoAwesome,
-                                                    Icons.Outlined.Save,
-                                                ),
-                                                title = Res.string.autofill_and_save_uri.wrap(),
-                                                onClick = {
-                                                    val extra = AppMode.Pick.Extra(
-                                                        forceAddUri = true,
-                                                    )
-                                                    mode.onAutofill(secret, extra)
-                                                },
-                                            )
-                                        }
-                                    }
-                                    section {
-                                        actions.forEach { action ->
-                                            this += action
-                                        }
-                                    }
-                                    section {
-                                        this += FlatItemAction(
-                                            id = "vaultList.pick.viewDetails",
-                                            icon = Icons.Outlined.Info,
-                                            title = Res.string.ciphers_view_details.wrap(),
-                                            trailing = {
-                                                ChevronIcon()
-                                            },
-                                            onClick = {
-                                                cipherSink.emit(secret)
-                                            },
-                                        )
-                                    }
-                                }
-
-                                is AppMode.Save -> buildContextItemsForSaveAction {
-                                    this += FlatItemAction(
-                                        id = "vaultList.save.saveTo",
-                                        icon = Icons.Outlined.Save,
-                                        title = Res.string.ciphers_save_to.wrap(),
-                                        onClick = {
-                                            val route = LeAddRoute(
-                                                args = AddRoute.Args(
-                                                    behavior = AddRoute.Args.Behavior(
-                                                        // User wants to quickly check the updated
-                                                        // cipher data, not to fill the data :P
-                                                        autoShowKeyboard = false,
-                                                        launchEditedCipher = false,
-                                                    ),
-                                                    initialValue = secret,
-                                                    autofill = AddRoute.Args.Autofill.leof(mode.args),
-                                                ),
-                                            )
-                                            val intent = NavigationIntent.NavigateToRoute(route)
-                                            navigate(intent)
-                                        },
-                                    )
-                                }
-
-                                is AppMode.SavePasskey -> buildContextItemsForSaveAction {
-                                    this += FlatItemAction(
-                                        id = "vaultList.savePasskey.saveTo",
-                                        icon = Icons.Outlined.Save,
-                                        title = Res.string.ciphers_save_to.wrap(),
-                                        text = Res.string.ciphers_save_to_adds_credentials_passkey.wrap(),
-                                        onClick = {
-                                            mode.onComplete(secret)
-                                        },
-                                    )
-                                }
-
-                                is AppMode.SavePassword -> buildContextItemsForSaveAction {
-                                    this += FlatItemAction(
-                                        id = "vaultList.savePassword.saveTo",
-                                        icon = Icons.Outlined.Save,
-                                        title = Res.string.ciphers_save_to.wrap(),
-                                        text = Res.string.ciphers_save_to_replaces_credentials_username_password.wrap(),
-                                        onClick = {
-                                            mode.onComplete(secret)
-                                        },
-                                    )
-                                }
-
-                                is AppMode.PickPasskey ->
-                                    return@toVaultListItem VaultItem2.Item.Action.Go(
-                                        onClick = { cipherSink.emit(secret) },
-                                    )
-
-                                is AppMode.Main ->
-                                    return@toVaultListItem VaultItem2.Item.Action.Go(
-                                        onClick = { cipherSink.emit(secret) },
-                                    )
-
-                                is AppMode.QuickSearch ->
-                                    return@toVaultListItem VaultItem2.Item.Action.None
-                            }
-                            VaultItem2.Item.Action.Dropdown(
-                                actions = dropdown,
+                            buildVaultItemModeMenu(
+                                mode = mode,
+                                secret = secret,
+                                copyActions = actions,
+                                canWrite = cfg.writeCapability == WriteCapability.Allowed,
+                                cipherSink = cipherSink,
                             )
                         },
-                        onClickAttachment = { attachment ->
-                            // lambda
-                            {
-                                // Do nothing
-                            }
-                        },
-                        onClickPasskey = { credential ->
-                            if (mode is AppMode.PickPasskey) {
-                                val matches = passkeyTargetCheck(credential, mode.target)
-                                    .attempt()
-                                    .bind()
-                                    .isRight { it }
-                                if (matches) {
-                                    // lambda
-                                    {
-                                        mode.onComplete(credential)
-                                    }
-                                } else {
-                                    null
-                                }
-                            } else {
-                                // lambda
-                                {
-                                    val route = passkeysCredentialViewRouteFactory.create(
-                                        args = PasskeysCredentialViewRoute.Args(
-                                            cipherId = secret.id,
-                                            credentialId = credential.credentialId,
-                                            model = credential,
-                                        ),
-                                    )
-                                    val intent = NavigationIntent.NavigateToRoute(route)
-                                    navigate(intent)
-                                }
-                            }
-                        },
-                        onClickPassword = { credential ->
-                            // lambda
-                            {
-                                val password = credential.password
-                                    .orEmpty()
-                                val route = LargeTypeRoute(
-                                    args = Args(
-                                        phrases = listOf(password),
-                                        colorize = true,
-                                    ),
-                                )
-                                val intent = NavigationIntent.NavigateToRoute(route)
-                                navigate(intent)
-                            }
-                        },
+                        onClickAttachment = badgeTapActions.onClickAttachment,
+                        onClickPasskey = badgeTapActions.onClickPasskey,
+                        onClickPassword = badgeTapActions.onClickPassword,
                     )
                     item
                 }
@@ -1281,49 +763,22 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
 
     val ciphersFilteredFlow = ciphersFilteredStateFlow
         .map {
-            val userObservedFilterConfig = DFilter.And(
-                listOfNotNull(
-                    args.filter,
-                    it.filterConfig?.filter,
-                ),
-            )
-
-            val keepOtp = DFilter
-                .findAny<DFilter.ByOtp>(userObservedFilterConfig) != null
-            val keepAttachment = DFilter
-                .findAny<DFilter.ByAttachments>(userObservedFilterConfig) != null
-            val keepPasskey = DFilter
-                .findAny<DFilter.ByPasskeys>(userObservedFilterConfig) != null ||
-                    // If a user is in the pick a passkey mode,
-                    // then we want to always show it in the items.
-                    mode is AppMode.PickPasskey ||
-                    mode is AppMode.SavePasskey
-            val keepPassword = it.orderConfig
-                ?.let {
-                    // Regular password sort is not included here intentionally,
-                    // because if that is selected then the password will be
-                    // previewed as a section.
-                    val sort = it.comparator
-                    sort is PasswordLastModifiedSort ||
-                            sort is PasswordStrengthSort
-                } != false ||
-                    // If a user is in the pick a password mode,
-                    // then we want to always show it in the items.
-                    mode is AppMode.SavePassword
-            val l = pruneVaultListItemPresentation(
+            val l = trimVaultItemBadges(
                 list = it.list,
-                keepOtp = keepOtp,
-                keepPasskey = keepPasskey,
-                keepPassword = keepPassword,
-                keepAttachment = keepAttachment,
+                argsFilter = args.filter,
+                filterConfig = it.filterConfig,
+                orderConfig = it.orderConfig,
+                mode = mode,
             )
 
             Rev(
                 count = it.count,
                 list = l,
-                revision = (it.filterConfig?.id ?: 0) xor
-                        (it.queryConfig?.id ?: 0) xor
-                        (it.orderConfig?.hashCode() ?: 0),
+                revision = vaultListStructureRevision(
+                    filterConfig = it.filterConfig,
+                    queryConfig = it.queryConfig,
+                    orderConfig = it.orderConfig,
+                ),
             )
         }
         .flowOn(Dispatchers.Default)
@@ -1415,7 +870,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                 list.add(
                     0,
                     VaultItem2.QuickFilters(
-                        id = "quick_filters",
+                        id = VAULT_QUICK_FILTERS_ID,
                         items = persistentListOf(),
                     ),
                 )
@@ -1592,77 +1047,10 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
             )
         }
 
-        fun createTypeAction(
-            type: DSecret.Type,
-        ) = FlatItemAction(
-            id = "vaultList.create.${type.name}",
-            leading = icon(type.iconImageVector()),
-            title = type.titleH().wrap(),
-            onClick = {
-                val autofill = when (mode) {
-                    is AppMode.Main -> null
-                    is AppMode.QuickSearch -> null
-                    is AppMode.SavePasskey -> null
-                    is AppMode.PickPasskey -> null
-                    is AppMode.SavePassword -> null
-                    is AppMode.Save -> {
-                        AddRoute.Args.Autofill.leof(mode.args)
-                    }
-
-                    is AppMode.Pick -> {
-                        AddRoute.Args.Autofill.leof(mode.args)
-                    }
-                }
-                val route = LeAddRoute(
-                    args = AddRoute.Args(
-                        type = type,
-                        autofill = autofill,
-                        name = queryTrimmed.takeIf { it.isNotEmpty() },
-                    ),
-                )
-                val intent = NavigationIntent.NavigateToRoute(route)
-                navigate(intent)
-            },
+        val primaryActions = buildVaultCreateActions(
+            mode = mode,
+            queryTrimmed = queryTrimmed,
         )
-
-        val primaryActions = kotlin.run {
-            // You can not create a passkey at will, it
-            // must be a separate action. During the pick passkey
-            // request you can only select existing ones.
-            if (mode is AppMode.PickPasskey) {
-                return@run emptyList()
-            }
-            if (mode is AppMode.HasType) {
-                val type = mode.type
-                if (type != null) {
-                    return@run listOf<FlatItemAction>(
-                        createTypeAction(
-                            type = type,
-                        ),
-                    )
-                }
-            }
-            listOf(
-                createTypeAction(
-                    type = DSecret.Type.Login,
-                ),
-                createTypeAction(
-                    type = DSecret.Type.Card,
-                ),
-                createTypeAction(
-                    type = DSecret.Type.Identity,
-                ),
-                createTypeAction(
-                    type = DSecret.Type.SecureNote,
-                ),
-                createTypeAction(
-                    type = DSecret.Type.SshKey,
-                ),
-                createTypeAction(
-                    type = DSecret.Type.GpgKey,
-                ),
-            )
-        }
         val hasRenderableItems =
             hasAccounts == true ||
                 itemsContent is VaultListState.Content.Items
@@ -1709,14 +1097,6 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
             sideEffects = VaultListState.SideEffects(cipherSink),
         )
     }.combine(writeActionsFlow) { state, writeActionPolicy ->
-        // If the paywall is active, then replace actions with
-        // a link to the paywall. This is needed because too
-        // many users think that the app doesn't support adding
-        // new items.
-        //
-        // That's a bit unfortunate tho, because I'd like to
-        // keep the interface clean and hide stuff that is not
-        // active.
         when (writeActionPolicy) {
             VaultListWriteActionPolicy.Hide -> state.copy(
                 primaryActions = emptyList(),
@@ -1727,20 +1107,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                 if (state.primaryActions.isEmpty()) {
                     return@combine state
                 }
-                val primaryActions = listOf(
-                    FlatItemAction(
-                        id = "vaultList.subscriptions",
-                        title = TextHolder.Res(
-                            Res.string.settings_subscriptions_header_title,
-                        ),
-                        onClick = {
-                            val intent = NavigationIntent.NavigateToRoute(
-                                SubscriptionsSettingsRoute,
-                            )
-                            navigate(intent)
-                        },
-                    ),
-                )
+                val primaryActions = buildVaultCreatePaywallActions()
                 state.copy(
                     primaryActions = primaryActions,
                 )
@@ -1795,21 +1162,12 @@ private fun createFilteredCiphersFlow(
 ) = ciphersFlow
     .map { items ->
         val preferredList = if (autofillTarget != null) {
-            getSuggestions(
-                items,
-                Getter {
-                    val item = it as VaultItem2.Item
-                    item.source
-                },
-                autofillTarget,
-                equivalentDomainsBuilderFactory,
+            buildVaultPreferredItems(
+                items = items,
+                autofillTarget = autofillTarget,
+                getSuggestions = getSuggestions,
+                equivalentDomainsBuilderFactory = equivalentDomainsBuilderFactory,
             )
-                .bind().let { it as List<VaultItem2.Item> }
-                .map { item ->
-                    item.copy(
-                        id = "preferred." + item.id,
-                    )
-                }
         } else {
             null
         }
@@ -1824,23 +1182,7 @@ private fun createFilteredCiphersFlow(
     .combine(
         flow = orderFlow
             .map { orderConfig ->
-                val orderComparator = Comparator<VaultItem2.Item> { aModel, bModel ->
-
-                    var r = 0
-                    if (r == 0 && orderConfig.favourites) {
-                        // Place favourite items on top of the list.
-                        r = -compareValues(aModel.favourite, bModel.favourite)
-                    }
-                    if (r == 0) {
-                        r = orderConfig.comparator.compare(aModel, bModel)
-                        r = if (orderConfig.reversed) -r else r
-                    }
-                    if (r == 0) {
-                        r = aModel.id.compareTo(bModel.id)
-                        r = if (orderConfig.reversed) -r else r
-                    }
-                    r
-                }
+                val orderComparator = buildVaultComparator(orderConfig)
                 orderConfig to orderComparator
             },
     ) { state, (orderConfig, orderComparator) ->
@@ -1861,19 +1203,19 @@ private fun createFilteredCiphersFlow(
             )
         }
 
-        val filteredAllItems = state
-            .list
-            .run {
-                val ciphers = map { it.source }
-                val predicate = filterConfig.filter.prepare(filterContext, ciphers)
-                filter { predicate(it.source) }
-            }
+        val filteredAllItems = filterVaultItems(
+            filterContext = filterContext,
+            items = state.list,
+            filter = filterConfig.filter,
+        )
         val filteredPreferredItems = state
             .preferredList
-            ?.run {
-                val ciphers = map { it.source }
-                val predicate = filterConfig.filter.prepare(filterContext, ciphers)
-                filter { predicate(it.source) }
+            ?.let { preferredItems ->
+                filterVaultItems(
+                    filterContext = filterContext,
+                    items = preferredItems,
+                    filter = filterConfig.filter,
+                )
             }
         state.copy(
             list = filteredAllItems,
@@ -1900,19 +1242,17 @@ private fun createFilteredCiphersFlow(
             )
         }
 
-        val searchIndex = queryContext.searchIndex
-        val queryPlan = queryContext.queryPlan
-        val filteredAllItems = searchIndex.evaluate(
-            plan = queryPlan,
-            candidates = state.list,
+        val filteredAllItems = queryVaultItems(
+            searchContext = queryContext,
+            items = state.list,
             highlightBackgroundColor = highlightBackgroundColor,
             highlightContentColor = highlightContentColor,
         )
         val filteredPreferredItems = state.preferredList
             ?.let { preferredItems ->
-                searchIndex.evaluate(
-                    plan = queryPlan,
-                    candidates = preferredItems,
+                queryVaultItems(
+                    searchContext = queryContext,
+                    items = preferredItems,
                     highlightBackgroundColor = highlightBackgroundColor,
                     highlightContentColor = highlightContentColor,
                 )
@@ -1925,73 +1265,17 @@ private fun createFilteredCiphersFlow(
             preQueryPreferredCount = state.preQueryPreferredCount,
             orderConfig = state.orderConfig,
             filterConfig = state.filterConfig,
-            queryConfig = queryPlan,
+            queryConfig = queryContext.queryPlan,
         )
     }
     .map { state ->
-        val keys = mutableSetOf<String>()
-
-        val orderConfig = state.orderConfig
-        val decorator = when {
-            // Search does not guarantee meaningful order that we can
-            // show in the section.
-            state.queryConfig?.hasScoringClauses == true -> ItemDecoratorNone
-            else -> createVaultListSortDecorator(
-                orderConfig = orderConfig,
-                itemCount = state.list.size,
-                dateFormatter = dateFormatter,
-            )
-        }
-
-        val sectionIds = mutableSetOf<String>()
-        val items = run {
-            val out = mutableListOf<VaultItem2>()
-            if (state.preferredList != null) {
-                // We want to show the 'No suggestions' text if the suggestions
-                // target does exist, but searching for suggestions returns no
-                // items.
-                if (state.preferredList.isEmpty()) {
-                    out += VaultItem2.NoSuggestions
-                }
-                state.preferredList.forEach { item ->
-                    out += item
-                }
-
-                // A section item for all items.
-                if (state.list.isNotEmpty()) {
-                    val section = VaultItem2.Section(
-                        id = "preferred.end",
-                        text = TextHolder.Res(Res.string.items_all),
-                    )
-                    out += section
-                }
-            }
-            state.list.forEach { item ->
-                if (!item.favourite || orderConfig?.favourites != true) {
-                    val section = decorator.getOrNull(item)
-                    if (section != null) {
-                        // Some weird combinations of items might lead to
-                        // duplicate # being used.
-                        if (section.id !in sectionIds) {
-                            sectionIds += section.id
-                            out += section
-                        } else {
-                            val sections = sectionIds
-                                .joinToString()
-
-                            val msg =
-                                "Duplicate sections prevented @ VaultList: $sections, [${section.id}]"
-                            val exception = RuntimeException(msg)
-                            recordException(exception)
-                        }
-                    }
-                }
-                out += item
-            }
-            out
-        }.ifEmpty {
-            listOf(VaultItem2.NoItems)
-        }
+        val items = decorateVaultItems(
+            list = state.list,
+            preferredList = state.preferredList,
+            orderConfig = state.orderConfig,
+            queryConfig = state.queryConfig,
+            dateFormatter = dateFormatter,
+        )
         FilteredList(
             count = state.list.size,
             list = items,

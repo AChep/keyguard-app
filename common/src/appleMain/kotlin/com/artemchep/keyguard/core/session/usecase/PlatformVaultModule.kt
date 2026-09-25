@@ -5,6 +5,10 @@ import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlSchema
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
+import co.touchlab.sqliter.DatabaseConfiguration
+import co.touchlab.sqliter.NO_VERSION_CHECK
+import co.touchlab.sqliter.createDatabaseManager
+import co.touchlab.sqliter.withConnection
 import com.artemchep.keyguard.common.NotificationsWorker
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
@@ -135,39 +139,75 @@ class DatabaseSqlManagerInFileApple<Database>(
     ): IO<DatabaseSqlHelper<Database>> = ioEffect {
         SystemFileSystem.createDirectories(directory.toKotlinxIoPath())
 
-        fun openDriver(): SqlDriver {
-            val rawKey = masterKey.sqlCipherRawKey()
-            return NativeSqliteDriver(
-                schema = databaseSchema,
-                name = fileName,
-                onConfiguration = { configuration ->
-                    configuration.copy(
-                        extendedConfig = configuration.extendedConfig.copy(
-                            basePath = directory.value,
-                            foreignKeyConstraints = true,
-                        ),
-                        lifecycleConfig = configuration.lifecycleConfig.copy(
-                            onCreateConnection = { connection ->
-                                connection.rawExecSql("PRAGMA key = \"$rawKey\";")
-                                configuration.lifecycleConfig.onCreateConnection(connection)
-                            },
-                        ),
-                    )
-                },
-                callbacks = callbacks,
+        fun DatabaseConfiguration.withVaultKey(key: MasterKey): DatabaseConfiguration {
+            val rawKey = key.sqlCipherRawKey()
+            return copy(
+                extendedConfig = extendedConfig.copy(
+                    basePath = directory.value,
+                    foreignKeyConstraints = true,
+                ),
+                lifecycleConfig = lifecycleConfig.copy(
+                    onCreateConnection = { connection ->
+                        try {
+                            connection.rawExecSql("PRAGMA key = \"$rawKey\";")
+                            // PRAGMA key alone does not check whether the key can
+                            // decrypt the database. Force a read on this connection.
+                            connection.rawExecSql("SELECT count(*) FROM sqlite_master;")
+                            lifecycleConfig.onCreateConnection(connection)
+                        } catch (e: Throwable) {
+                            // SQLiter does not close connections when this callback fails.
+                            connection.close()
+                            throw e
+                        }
+                    },
+                ),
             )
         }
 
-        val driver = try {
-            openDriver()
+        fun openDriver(key: MasterKey): SqlDriver = NativeSqliteDriver(
+            schema = databaseSchema,
+            name = fileName,
+            onConfiguration = { it.withVaultKey(key) },
+            callbacks = callbacks,
+        )
+
+        // Bypasses SQLDelight's pools: its PRAGMA query pool is read-only,
+        // and its execute() rejects SQLCipher's status row.
+        fun openWritableDatabase(key: MasterKey) = createDatabaseManager(
+            DatabaseConfiguration(
+                name = fileName,
+                version = NO_VERSION_CHECK,
+                create = {},
+            ).withVaultKey(key),
+        )
+
+        val initialDriver = try {
+            openDriver(masterKey)
         } catch (e: Throwable) {
             if (isPlaintextSqliteDatabaseFile()) {
                 deleteDatabaseFiles()
-                openDriver()
+                openDriver(masterKey)
             } else {
                 throw e
             }
         }
+        val driver = RekeyableAppleSqlDriver(
+            initialDriver = initialDriver,
+            initialKey = masterKey,
+            openDriver = ::openDriver,
+            rekeyDatabase = { oldKey, newKey ->
+                openWritableDatabase(oldKey).withConnection { connection ->
+                    connection.rawExecSql("PRAGMA rekey = \"${newKey.sqlCipherRawKey()}\";")
+                }
+                // SQLCipher can report success even when rekey fails (e.g. SQLITE_BUSY).
+                // Opening a fresh connection verifies the new key before the wrapper
+                // adopts it and the caller persists the new credentials.
+                openWritableDatabase(newKey).withConnection { }
+            },
+            openTransactionConnection = { key ->
+                openWritableDatabase(key).createMultiThreadedConnection()
+            },
+        )
         try {
             driver.touchDatabase()
             ensureEncryptedDatabaseFile()
@@ -239,19 +279,13 @@ class DatabaseSqlManagerInFileApple<Database>(
     }
 
     private class Helper<Database>(
-        override val driver: SqlDriver,
+        override val driver: RekeyableAppleSqlDriver,
         override val database: Database,
     ) : DatabaseSqlHelper<Database> {
         override fun changePassword(
             newMasterKey: MasterKey,
         ): IO<Unit> = ioEffect {
-            val key = newMasterKey.sqlCipherRawKey()
-            driver.execute(
-                identifier = null,
-                sql = "PRAGMA rekey = \"$key\";",
-                parameters = 0,
-                binders = null,
-            ).await()
+            driver.rekey(newMasterKey)
         }
     }
 }

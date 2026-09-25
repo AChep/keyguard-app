@@ -7,6 +7,7 @@ import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import com.artemchep.keyguard.buildplugins.version.createVersionInfo
 import org.gradle.api.tasks.testing.Test
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import java.time.Duration
 
 plugins {
@@ -75,7 +76,32 @@ kotlin {
     jvm("desktop")
     iosArm64()
     iosSimulatorArm64()
-    macosArm64()
+    macosArm64 {
+        // SQLCipher is supplied by Xcode, so keep its integration tests opt-in.
+        // ./gradlew :common:macosArm64SqlCipherTest -PsqlCipherFrameworkDir=/path/containing/SQLCipher.framework
+        providers.gradleProperty("sqlCipherFrameworkDir").orNull?.let { frameworkDir ->
+            val mainCompilation = compilations.getByName("main")
+            val sqlCipherTest = compilations.create("sqlCipherTest") {
+                associateWith(mainCompilation)
+                defaultSourceSet.dependencies {
+                    implementation(kotlin("test"))
+                    implementation(libs.kotlinx.coroutines.test)
+                }
+            }
+            binaries.test("sqlCipher", listOf(NativeBuildType.DEBUG)) {
+                compilation = sqlCipherTest
+                linkerOpts("-F$frameworkDir", "-framework", "SQLCipher", "-rpath", frameworkDir)
+            }
+            val sqlCipherBinary = binaries.getTest("sqlCipher", NativeBuildType.DEBUG)
+            testRuns.create("sqlCipher") {
+                setExecutionSourceFrom(sqlCipherBinary)
+            }
+            // Both test compilations include the same common Compose resources.
+            tasks.withType<Copy>().matching { it.name == "copyTestComposeResourcesForMacosArm64" }.configureEach {
+                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
+        }
+    }
 
     sourceSets {
         all {

@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.vault.SessionReadWriteRepository
 import com.artemchep.keyguard.common.service.vault.VaultSessionFactory
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import kotlin.time.Clock
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,7 @@ class GetVaultSessionImpl(
     private val sessionFactory: VaultSessionFactory,
     private val sessionReadWriteRepository: SessionReadWriteRepository,
     private val keyReadWriteRepository: KeyReadWriteRepository,
+    private val scope: CoroutineScope = GlobalScope,
 ) : GetVaultSession {
     companion object {
         private const val TAG = "GetVaultSession"
@@ -60,7 +62,7 @@ class GetVaultSessionImpl(
                     }
             }
         }
-        .shareIn(GlobalScope, SharingStarted.WhileSubscribed(), replay = 1)
+        .shareIn(scope, SharingStarted.WhileSubscribed(), replay = 1)
 
     override val valueOrNull: MasterSession?
         get() = sharedFlow.replayCache.firstOrNull()

@@ -65,6 +65,7 @@ import com.artemchep.keyguard.platform.LeBiometricCipher
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
 import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -97,6 +98,7 @@ class UnlockUseCaseImpl(
     private val cryptoGenerator: CryptoGenerator,
     private val cipherEncryptor: CipherEncryptor,
     private val yubiKeyUnlockAvailability: YubiKeyUnlockAvailability,
+    private val scope: CoroutineScope = GlobalScope,
 ) : UnlockUseCase {
     companion object {
         private const val TAG = "UnlockFlow"
@@ -197,7 +199,7 @@ class UnlockUseCaseImpl(
             val msg = "Initializing the app took $d"
             logRepository.post(TAG, msg, level = LogLevel.INFO)
         }
-        .shareIn(GlobalScope, SharingStarted.WhileSubscribed(10000L), replay = 1)
+        .shareIn(scope, SharingStarted.WhileSubscribed(10000L), replay = 1)
 
 
     override fun invoke() = sharedFlow

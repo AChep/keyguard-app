@@ -149,7 +149,13 @@ internal class ApplicationAuthenticationModule {
 
         single<PutVaultLockAfterTimeoutImpl>() bind PutVaultLockAfterTimeout::class
 
-        single<GetVaultSessionImpl>() bind GetVaultSession::class
+        single {
+            GetVaultSessionImpl(
+                sessionFactory = get(),
+                sessionReadWriteRepository = get(),
+                keyReadWriteRepository = get(),
+            )
+        } bind GetVaultSession::class
 
         single<GetVaultPersistImpl>() bind GetVaultPersist::class
 

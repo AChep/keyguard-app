@@ -96,7 +96,29 @@ internal class ApplicationIntegrationsModule {
             )
         }
 
-        single<UnlockUseCaseImpl>() bind UnlockUseCase::class
+        single {
+            UnlockUseCaseImpl(
+                sessionFactory = get(),
+                vaultDatabaseSessionAccess = get(),
+                biometricStatusUseCase = get(),
+                biometricKeyRepository = get(),
+                getVaultSession = get(),
+                putVaultSession = get(),
+                disableBiometric = get(),
+                logRepository = get(),
+                keyReadWriteRepository = get(),
+                sessionMetadataReadWriteRepository = get(),
+                getBiometricRequireConfirmation = get(),
+                getBiometricRemainingDuration = get(),
+                biometricKeyEncryptUseCase = get(),
+                decryptBiometricKeyUseCase = get(),
+                authConfirmMasterKeyUseCase = get(),
+                authGenerateMasterKeyUseCase = get(),
+                cryptoGenerator = get(),
+                cipherEncryptor = get(),
+                yubiKeyUnlockAvailability = get(),
+            )
+        } bind UnlockUseCase::class
 
         single<SearchGpgPublicKeyImpl>() bind SearchGpgPublicKey::class
 

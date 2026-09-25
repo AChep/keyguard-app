@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.backup
 
+import com.artemchep.keyguard.common.service.file.FileAccessToken
+
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.Password
 import kotlin.time.Duration.Companion.hours
@@ -32,7 +34,11 @@ sealed interface BackupStoreConfig {
     @SerialName("local")
     data class Local(
         val path: String? = null,
+        val accessToken: FileAccessToken? = null,
     ) : BackupStoreConfig {
+        override fun toString(): String =
+            "Local(path=$path, accessToken=${if (accessToken == null) null else "<redacted>"})"
+
         override val isConfigured: Boolean
             get() = !path.isNullOrBlank()
 

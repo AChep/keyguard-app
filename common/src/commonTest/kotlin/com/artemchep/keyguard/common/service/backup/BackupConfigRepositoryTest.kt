@@ -22,6 +22,24 @@ class BackupConfigRepositoryTest {
     }
 
     @Test
+    fun `bookmark refresh preserves dirty state and cannot overwrite a changed destination`() = runTest {
+        val repository = BackupConfigRepositoryImpl(JsonKeyValueStore(), json)
+        val original = BackupStoreConfig.Local(
+            "/folder",
+            com.artemchep.keyguard.common.service.file.FileAccessToken("old"),
+        )
+        val refreshed = original.copy(accessToken = com.artemchep.keyguard.common.service.file.FileAccessToken("new"))
+        repository.setConfig(BackupConfig(enabled = true, store = original)).bind()
+        val status = repository.getStatus().first()
+        repository.refreshLocalAccess(original, refreshed).bind()
+        assertEquals(refreshed, repository.getConfig().first().store)
+        assertEquals(status, repository.getStatus().first())
+        repository.setConfig(BackupConfig()).bind()
+        repository.refreshLocalAccess(refreshed, original).bind()
+        assertEquals(BackupConfig(), repository.getConfig().first())
+    }
+
+    @Test
     fun `set status clears in-memory current run`() = runTest {
         val repository = BackupConfigRepositoryImpl(
             store = JsonKeyValueStore(),

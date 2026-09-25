@@ -17,6 +17,17 @@ class BackupModelsSerializationTest {
     }
 
     @Test
+    fun `local access token is optional serialized and redacted`() {
+        val old = json.decodeFromString<BackupStoreConfig.Local>("""{"path":"/tmp/backup"}""")
+        assertEquals(null, old.accessToken)
+        val current = old.copy(
+            accessToken = com.artemchep.keyguard.common.service.file.FileAccessToken("secret-bookmark"),
+        )
+        assertEquals(current, json.decodeFromString<BackupStoreConfig.Local>(json.encodeToString(current)))
+        assertFalse(current.toString().contains("secret-bookmark"))
+    }
+
+    @Test
     fun `backup config can run without password`() {
         assertEquals(
             true,

@@ -27,6 +27,7 @@ fun SendScreen(
         NavigationRouter(
             id = "send",
             initial = initialRoute,
+            persist = false,
         ) { backStack ->
             TwoPaneNavigationContent(backStack)
         }

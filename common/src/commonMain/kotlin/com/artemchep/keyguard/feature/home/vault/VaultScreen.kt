@@ -29,6 +29,7 @@ fun VaultScreen(
         NavigationRouter(
             id = "vault",
             initial = initialRoute,
+            persist = false,
         ) { backStack ->
             TwoPaneNavigationContent(backStack)
         }

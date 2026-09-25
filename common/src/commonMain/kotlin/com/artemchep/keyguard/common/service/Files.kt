@@ -14,4 +14,5 @@ enum class Files(
     REVIEW("review"),
     NOTIFICATIONS("notifications"),
     ANDROID_IPC("android_ipc"),
+    NAV_STACK("nav_stack"),
 }

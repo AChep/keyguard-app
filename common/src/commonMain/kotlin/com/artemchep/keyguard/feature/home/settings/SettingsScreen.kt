@@ -21,6 +21,7 @@ fun SettingsScreen() {
         NavigationRouter(
             id = SettingsRoute.ROUTER_NAME,
             initial = SettingListRoute,
+            persist = false,
         ) { backStack ->
             TwoPaneNavigationContent(
                 backStack,

@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,19 +19,19 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.koin.compose.koinInject
 
-/**
- * Owns a nested navigation pile for the current [NavigationEntry].
- *
- * A router receives intents from child content, mutates the active stack when it
- * can, and passes unhandled intents to the parent controller.
- */
 @Composable
 fun NavigationRouter(
     id: String,
     initial: Route,
+    // Opt-in cross-process back-stack restore. Only stable-id top-level (section) routers
+    // should enable it; the router [id] is the persistence key. Default off keeps every
+    // existing router's behavior unchanged.
+    persist: Boolean = false,
     content: @Composable (PersistentList<NavigationEntry>) -> Unit,
 ) {
     val store = LocalNavigationStore.current
+    // Resolved for all routers (a cheap singleton) but only used when [persist] is true.
+    val restoreRepo = koinInject<NavigationRestoreRepository>()
 
     // Find the top-level router and link the entry's lifecycle
     // to it, so if the top level gets destroyed we also get
@@ -52,6 +53,30 @@ fun NavigationRouter(
             return@getOrCreate savedStack
         }
 
+        // Cross-process restore (opt-in): rebuild the stack from persisted descriptors.
+        // All-or-nothing — if any entry cannot be reconstructed (a result route, or an
+        // unmapped descriptor), fall through to the fresh initial route below.
+        if (persist) {
+            val restoredRoutes = restoreRepo.peek(id)?.map { it.toRoute() }
+            if (!restoredRoutes.isNullOrEmpty() && restoredRoutes.all { it != null }) {
+                val entries = restoredRoutes.filterNotNull().map { route ->
+                    NavigationEntryImpl(
+                        source = "router restored (persisted)",
+                        id = generateRouteId(route),
+                        parent = parentScope,
+                        route = route,
+                    )
+                }
+                return@getOrCreate NavigationStack(
+                    id = NavigationStack.createId(
+                        prefix = navStackPrefix,
+                        suffix = NavigationStack.createIdSuffix(entries.first().route),
+                    ),
+                    entries = entries.toPersistentList(),
+                )
+            }
+        }
+
         val entry = NavigationEntryImpl(
             source = "router root",
             id = id,
@@ -65,6 +90,17 @@ fun NavigationRouter(
             ),
             entry = entry,
         )
+    }
+
+    if (persist) {
+        // Persist the active stack's restorable descriptors on every change, keyed by [id].
+        LaunchedEffect(navPile) {
+            snapshotFlow {
+                navPile.value.lastOrNull()?.value.orEmpty().map { it.route }
+            }.collect { routes ->
+                restoreRepo.save(id, routes.map { it.descriptor })
+            }
+        }
     }
 
     val navNodeParent = LocalNavigationRouterNode.current
@@ -277,11 +313,6 @@ private fun tryToRestore(
     return pile
 }
 
-/**
- * A group of stacks owned by one router.
- *
- * The last stack is active; switching stacks preserves inactive stack lifecycles.
- */
 class NavigationPile(
     val id: String,
     stack: NavigationStack,

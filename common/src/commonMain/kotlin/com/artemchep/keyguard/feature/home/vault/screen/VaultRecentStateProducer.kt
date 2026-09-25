@@ -133,7 +133,7 @@ fun vaultRecentScreenState(
     )
 }
 
-internal suspend fun RememberStateFlowScope.vaultRecentScreenStateProducer(
+suspend fun RememberStateFlowScope.vaultRecentScreenStateProducer(
     highlightBackgroundColor: Color,
     highlightContentColor: Color,
     getAccounts: GetAccounts,

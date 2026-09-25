@@ -5,6 +5,7 @@ import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
 import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
 import com.artemchep.keyguard.util.io.toLocalPath
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlin.io.path.createTempDirectory
@@ -68,4 +69,36 @@ class JsonKeyValueStoreTest {
 
         assertEquals(emptyMap(), store.getAll()())
     }
+
+    @Test
+    fun `clear after file deletion resets live preferences without restoring old values`() = runTest {
+        val root = createTempDirectory("json-store-clear")
+        val backing = FileJsonKeyValueStoreStore(
+            fileIo = {
+                AtomicFileDestination(
+                    root = root.toLocalPath(),
+                    relativePath = AtomicRelativePath.fromComponents(
+                        AtomicPathComponent.parse("preferences.json"),
+                    ),
+                )
+            },
+            json = json,
+        )
+        val store = JsonKeyValueStore(backing)
+        val customTabs = store.getString("custom_tabs", "")
+        val generatorVisible = store.getBoolean("generator_visible", true)
+        customTabs.setAndCommit("card,identity")()
+        generatorVisible.setAndCommit(false)()
+        assertEquals("card,identity", customTabs.first())
+        root.resolve("preferences.json").toFile().delete()
+
+        store.clearAndCommit()()
+
+        assertEquals("", customTabs.first())
+        assertEquals(true, generatorVisible.first())
+        assertEquals(emptyMap(), backing.read()())
+        store.getString("new_setting", "").setAndCommit("new")()
+        assertEquals(persistentMapOf<String, Any?>("new_setting" to "new"), backing.read()())
+    }
+
 }

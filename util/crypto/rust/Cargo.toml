@@ -32,7 +32,7 @@ ed25519-dalek = { version = "=2.2.0", default-features = false, features = ["fas
 flate2 = { version = "=1.1.9", default-features = false, features = ["zlib-rs"] }
 jni = { version = "=0.21.1", default-features = false }
 k256 = { version = "=0.13.4", default-features = false, features = ["ecdsa"] }
-num-bigint-dig = { version = "=0.8.6", default-features = false, features = ["zeroize"] }
+num-bigint-dig = { version = "=0.9.1", default-features = false, features = ["zeroize"] }
 num-integer = { version = "=0.1.46", default-features = false }
 ocb3 = { version = "=0.1.0", default-features = false, features = ["alloc", "zeroize"] }
 # `alloc` is what gates `EncodePublicKey` alongside `pkcs8`; passkeys.rs relies

@@ -1,26 +1,11 @@
 package com.artemchep.keyguard.common.service.backup
 
 import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.util.io.FileSystemFailureKind
-import com.artemchep.keyguard.util.io.FileSystemOperationException
 import com.artemchep.keyguard.util.io.InternalKeyguardIoApi
 import com.artemchep.keyguard.util.io.artifact.TemporaryArtifactRole
 import com.artemchep.keyguard.util.io.artifact.newTemporaryArtifactName
-import com.artemchep.keyguard.util.io.atomic.AtomicDestinationExistsException
 import com.artemchep.keyguard.util.io.atomic.AtomicDirectory
-import com.artemchep.keyguard.util.io.atomic.AtomicDirectoryPermissions
-import com.artemchep.keyguard.util.io.atomic.AtomicFilePermissions
-import com.artemchep.keyguard.util.io.atomic.AtomicPublicationPolicy
-import com.artemchep.keyguard.util.io.atomic.AtomicPublicationUnknownException
-import com.artemchep.keyguard.util.io.atomic.AtomicPublicationUnsupportedException
 import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
-import com.artemchep.keyguard.util.io.atomic.AtomicSynchronizationException
-import com.artemchep.keyguard.util.io.atomic.AtomicWriteOptions
-import com.artemchep.keyguard.util.io.atomic.ExistingParentLinkPolicy
-import com.artemchep.keyguard.util.io.atomic.ParentDirectoryPolicy
-import com.artemchep.keyguard.util.io.atomic.ReplacementAccessPolicy
-import com.artemchep.keyguard.util.io.atomic.SyncLevel
-import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
 import com.artemchep.keyguard.util.io.toJavaFile
 import com.artemchep.keyguard.util.io.toLocalPathFromFileUriOrNull
 import com.artemchep.keyguard.util.io.withBufferedSink
@@ -249,17 +234,7 @@ class LocalFolderBackupObjectStore : BackupObjectStore {
         val atomicWriteResult = atomicDirectoryOpen(root).use { directory ->
             directory.openAtomicFileTransaction(
                 relativeDestination = AtomicRelativePath.parse(key.value),
-                options = AtomicWriteOptions(
-                    publication = atomicPublicationPolicy(mode),
-                    parentDirectories = ParentDirectoryPolicy.CreateMissing(
-                        permissions = AtomicDirectoryPermissions.ProcessDefault,
-                    ),
-                    existingParentLinks = ExistingParentLinkPolicy.Reject,
-                    synchronization = SynchronizationPolicy.Prefer(
-                        preferred = SyncLevel.FileAndNamespaceSynchronized,
-                        minimum = SyncLevel.FileSynchronized,
-                    ),
-                ),
+                options = mode.toBackupAtomicWriteOptions(),
             ).use { transaction ->
                 transaction.writeAndCommitSuspending { transactionSink ->
                     val countingSink = CountingRawSink(transactionSink)
@@ -275,20 +250,6 @@ class LocalFolderBackupObjectStore : BackupObjectStore {
             size = atomicWriteResult.value,
             updatedAt = null,
             atomicWriteReceipt = atomicWriteResult.receipt,
-        )
-    }
-
-    private fun atomicPublicationPolicy(
-        mode: BackupWriteMode,
-    ): AtomicPublicationPolicy = when (mode) {
-        BackupWriteMode.Create -> AtomicPublicationPolicy.Create(
-            permissions = AtomicFilePermissions.ProcessDefault,
-        )
-
-        BackupWriteMode.CreateOrReplace -> AtomicPublicationPolicy.Replace(
-            access = ReplacementAccessPolicy.PreserveExistingBasicPermissions(
-                ifDestinationMissing = AtomicFilePermissions.ProcessDefault,
-            ),
         )
     }
 
@@ -661,29 +622,14 @@ private fun writeFailure(
     cause: Exception,
     isReadOnlyFileSystem: (BackupObjectKey) -> Boolean,
 ): Exception {
-    val alreadyExists = cause is AtomicDestinationExistsException ||
-        (cause is FileAlreadyExistsException && mode == BackupWriteMode.Create)
-    if (alreadyExists) {
+    atomicWriteFailureOrNull(key, cause)?.let { return it }
+    if (cause is FileAlreadyExistsException && mode == BackupWriteMode.Create) {
         return BackupObjectStoreException.AlreadyExists(
             key = key,
             cause = cause,
         )
     }
     return when (cause) {
-        is AtomicPublicationUnknownException -> publicationUnknownWriteFailure(key, cause)
-
-        is AtomicSynchronizationException -> publishedSynchronizationUnknownWriteFailure(
-            key = key,
-            cause = cause,
-        )
-
-        is AtomicPublicationUnsupportedException -> unsupportedWriteFailure(key, cause)
-
-        is FileSystemOperationException -> fileSystemOperationWriteFailure(
-            key = key,
-            cause = cause,
-        )
-
         is AccessDeniedException,
         is FileNotFoundException,
         is SecurityException,
@@ -717,24 +663,6 @@ private fun writeFailure(
     }
 }
 
-private fun publicationUnknownWriteFailure(
-    key: BackupObjectKey,
-    cause: Exception,
-) = BackupObjectStoreException.PublicationUnknown(
-    key = key,
-    cause = cause,
-)
-
-private fun publishedSynchronizationUnknownWriteFailure(
-    key: BackupObjectKey,
-    cause: AtomicSynchronizationException,
-) = BackupObjectStoreException.PublishedSynchronizationUnknown(
-    key = key,
-    achievedSyncLevel = cause.achievedSyncLevel,
-    cleanupIncomplete = cause.cleanupIncomplete,
-    cause = cause,
-)
-
 private fun unsupportedWriteFailure(
     key: BackupObjectKey,
     cause: Exception,
@@ -742,27 +670,6 @@ private fun unsupportedWriteFailure(
     key = key,
     cause = cause,
 )
-
-private fun fileSystemOperationWriteFailure(
-    key: BackupObjectKey,
-    cause: FileSystemOperationException,
-): Exception = when (cause.failure.kind) {
-    FileSystemFailureKind.PermissionDenied,
-    FileSystemFailureKind.ReadOnlyFilesystem,
-    -> permissionDeniedWriteFailure(key = key, cause = cause)
-
-    FileSystemFailureKind.Unsupported ->
-        BackupObjectStoreException.AtomicWriteUnsupported(
-            key = key,
-            cause = cause,
-        )
-
-    FileSystemFailureKind.InvalidInput,
-    FileSystemFailureKind.Internal,
-    -> cause
-
-    else -> transientWriteFailure(key = key, cause = cause)
-}
 
 private fun fileSystemWriteFailure(
     key: BackupObjectKey,

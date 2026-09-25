@@ -5,8 +5,7 @@ import com.artemchep.keyguard.common.service.file.FileAccessToken
 import com.artemchep.keyguard.common.service.file.FileMetadata
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.file.FileServiceImpl
-import com.artemchep.keyguard.platform.appleBookmarkResolutionOptions
-import com.artemchep.keyguard.platform.toSecurityScopedBookmarkDataOrNull
+import com.artemchep.keyguard.platform.resolveSecurityScopedUrlOrNull
 import com.artemchep.keyguard.platform.withSecurityScopedAccess
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.io.Buffer
@@ -14,7 +13,6 @@ import kotlinx.io.RawSink
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
-import platform.Foundation.NSURL
 
 class FileServiceApple(
     private val delegate: FileServiceImpl = FileServiceImpl(),
@@ -97,32 +95,18 @@ class FileServiceApple(
 
     override fun delete(uri: String): Boolean = delegate.delete(uri)
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun <T> withSecurityScopedUrl(
         uri: String,
         accessToken: FileAccessToken?,
         block: (String) -> T,
     ): T {
         val url = accessToken
-            ?.let(::resolveSecurityScopedUrl)
+            ?.resolveSecurityScopedUrlOrNull()
             ?: return block(uri)
         return url.withSecurityScopedAccess {
             block(url.absoluteString ?: uri)
         }
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    private fun resolveSecurityScopedUrl(
-        accessToken: FileAccessToken,
-    ): NSURL? {
-        val data = accessToken.value.toSecurityScopedBookmarkDataOrNull()
-            ?: return null
-        return NSURL.URLByResolvingBookmarkData(
-            bookmarkData = data,
-            options = appleBookmarkResolutionOptions,
-            relativeToURL = null,
-            bookmarkDataIsStale = null,
-            error = null,
-        )
     }
 
     private inner class SecurityScopedBufferedRawSink(

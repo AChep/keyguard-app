@@ -7,6 +7,7 @@ import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import com.artemchep.keyguard.buildplugins.version.createVersionInfo
 import org.gradle.api.tasks.testing.Test
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import java.time.Duration
 
@@ -106,6 +107,12 @@ kotlin {
             tasks.withType<Copy>().matching { it.name == "copyTestComposeResourcesForMacosArm64" }.configureEach {
                 duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             }
+        }
+    }
+
+    targets.withType<KotlinNativeTarget>().configureEach {
+        compilations.getByName("main").cinterops.create("backupPosix") {
+            definitionFile.set(project.file("src/nativeInterop/cinterop/backupPosix.def"))
         }
     }
 

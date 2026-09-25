@@ -9,6 +9,7 @@ import kotlinx.io.buffered
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.writeString
 import platform.Foundation.NSApplicationSupportDirectory
+import platform.Foundation.NSBundle
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUUID
@@ -20,7 +21,20 @@ import platform.Foundation.NSUserDomainMask
  * is the single high-leverage change that lets both see the same storage
  * (see IMPL.md G4).
  */
-private const val APP_GROUP_IDENTIFIER = "group.com.artemchep.keyguard"
+private const val DEFAULT_APP_GROUP_IDENTIFIER = "group.com.artemchep.keyguard"
+
+/**
+ * Reads the per-bundle `KeyguardAppGroupIdentifier` Info.plist key, set from
+ * `KEYGUARD_APP_GROUP_ID` (see "Signing and identifiers" in `appleUi/README.md`).
+ */
+private fun appGroupIdentifier(): String {
+    val value = NSBundle.mainBundle
+        .objectForInfoDictionaryKey("KeyguardAppGroupIdentifier") as? String
+    // An unsubstituted "$(...)" means the bundle was built without the setting;
+    // treat it the same as a missing key rather than asking for a bogus group.
+    return value?.takeIf { it.isNotBlank() && !it.startsWith("$") }
+        ?: DEFAULT_APP_GROUP_IDENTIFIER
+}
 
 /**
  * The Keyguard vault data directory. Prefers the **App Group container** so the
@@ -62,7 +76,7 @@ private val writableAppGroupContainerPath: String? by lazy {
 
 private fun appGroupContainerPath(): String? =
     NSFileManager.defaultManager
-        .containerURLForSecurityApplicationGroupIdentifier(APP_GROUP_IDENTIFIER)
+        .containerURLForSecurityApplicationGroupIdentifier(appGroupIdentifier())
         ?.path
 
 private fun resolveWritableAppGroupContainerPath(): String? {

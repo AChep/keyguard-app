@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioUnit
+import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.DatabaseSqlHelper
@@ -24,7 +25,6 @@ import com.artemchep.keyguard.common.service.directorywatcher.FileWatchEvent
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.service.export.impl.ExportManagerBase
-import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.QueueSyncById
@@ -47,20 +47,31 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.io.buffered
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
+import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
 class PlatformVaultModule {
     val module = module {
         scope<VaultSessionScope> {
+            // The AutoFill extension never syncs: its graph is disposable and must not
+            // start network work on behalf of a credential request.
             scoped<QueueSyncAll> {
-                QueueSyncAllImpl(
-                    syncAll = get(),
-                )
+                if (isAutofillSession()) {
+                    AppleNoOpQueueSyncAll
+                } else {
+                    QueueSyncAllImpl(
+                        syncAll = get(),
+                    )
+                }
             }
             scoped<QueueSyncById> {
-                QueueSyncByIdImpl(
-                    syncById = get(),
-                )
+                if (isAutofillSession()) {
+                    AppleNoOpQueueSyncById
+                } else {
+                    QueueSyncByIdImpl(
+                        syncById = get(),
+                    )
+                }
             }
             scoped<ExportManager> {
                 ExportManagerBase(
@@ -80,7 +91,7 @@ class PlatformVaultModule {
                 AppleAlwaysAvailableConnectivityService
             }
             scoped<FileWatcherService> {
-                if (getOrNull<AppleSessionMode>() == AppleSessionMode.AUTOFILL) {
+                if (isAutofillSession()) {
                     AppleNoOpFileWatcherService
                 } else {
                     FileWatcherServiceApple()
@@ -324,3 +335,14 @@ private object AppleNoOpFileWatcherService : FileWatcherService {
         file: LocalPath,
     ): Flow<FileWatchEvent> = emptyFlow()
 }
+
+private object AppleNoOpQueueSyncAll : QueueSyncAll {
+    override fun invoke() = ioUnit()
+}
+
+private object AppleNoOpQueueSyncById : QueueSyncById {
+    override fun invoke(accountId: AccountId) = ioUnit()
+}
+
+private fun Scope.isAutofillSession(): Boolean =
+    getOrNull<AppleSessionMode>() == AppleSessionMode.AUTOFILL

@@ -133,6 +133,35 @@ class BackupSchedulerWorkerTest {
         assertEquals(1, runs)
     }
 
+    @Test
+    fun `background cancels debounce and foreground catches up without settings observer`() = runTest {
+        val lifecycle = MutableStateFlow(LeLifecycleState.STARTED)
+        val config = MutableStateFlow(BackupConfig(enabled = true, store = BackupStoreConfig.Local("/backup")))
+        val status = MutableStateFlow(BackupStatus(changeGeneration = 1L))
+        val sessions = MutableStateFlow<MasterSession?>(authenticatedSession())
+        val repository = FakeBackupConfigRepository(config, status)
+        var runs = 0
+        BackupSchedulerWorker(FakeSessionReadRepository(sessions), { repository }, { runs++ })
+            .start(backgroundScope, lifecycle)
+        runCurrent()
+        advanceTimeBy(2_000)
+        lifecycle.value = LeLifecycleState.CREATED
+        runCurrent()
+        advanceTimeBy(10_000)
+        runCurrent()
+        assertEquals(0, runs)
+        lifecycle.value = LeLifecycleState.STARTED
+        runCurrent()
+        advanceTimeBy(AutomaticBackupPolicy.DEBOUNCE_DELAY_MS)
+        runCurrent()
+        assertEquals(1, runs)
+        config.value = config.value.copy(enabled = false)
+        status.value = status.value.copy(changeGeneration = 2L)
+        advanceTimeBy(AutomaticBackupPolicy.DEBOUNCE_DELAY_MS)
+        runCurrent()
+        assertEquals(1, runs)
+    }
+
     private fun authenticatedSession() = keySession(
         origin = MasterSession.Key.Authenticated,
     )

@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 
 /**
- * Desktop lifecycle worker that observes schedule state
+ * Active-app lifecycle worker that observes schedule state
  * and triggers [BackupRunService.runAutomatic].
  */
 @OptIn(FlowPreview::class)

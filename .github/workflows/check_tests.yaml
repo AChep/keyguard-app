@@ -206,6 +206,24 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: "aarch64-apple-ios-sim"
+      # :common runs non-standalone simulator tests, which need a booted device.
+      # Boot the device the Kotlin Gradle plugin picks by default: the first
+      # device of the last iOS runtime in `simctl list devices available`.
+      - name: "Boot iOS simulator"
+        run: |
+          device="$(xcrun simctl list devices available | awk '
+            /-- .* --/ { split($0, parts, " "); ios = parts[2] == "iOS"; next }
+            ios && match($0, /[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}/) {
+              device = substr($0, RSTART, RLENGTH)
+              ios = 0
+            }
+            END { print device }
+          ')"
+          if [ -z "$device" ]; then
+            echo "No available iOS simulator device." >&2
+            exit 1
+          fi
+          xcrun simctl bootstatus "$device" -b
       - name: "Run iOS simulator tests"
         run: >-
           ./gradlew --continue

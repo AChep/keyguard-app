@@ -57,6 +57,12 @@ tasks.withType<Test>().configureEach {
     timeout.set(Duration.ofMinutes(10))
 }
 
+tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest>().configureEach {
+    // Foundation file coordination requires the simulator's running system services.
+    // Standalone processes cannot coordinate access to Files-provider directories.
+    standalone.set(false)
+}
+
 kotlin {
     android {
         compileSdk = libs.versions.androidCompileSdk.get().toInt()

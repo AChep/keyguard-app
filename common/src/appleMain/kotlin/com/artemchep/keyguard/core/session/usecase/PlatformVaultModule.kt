@@ -30,8 +30,10 @@ import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.impl.GetSuggestionsImpl
 import com.artemchep.keyguard.common.util.toHex
+import com.artemchep.keyguard.copy.FileWatcherServiceApple
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.di.VaultSessionScope
+import com.artemchep.keyguard.platform.AppleSessionMode
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.appleKeyguardDataDirectory
 import com.artemchep.keyguard.provider.bitwarden.usecase.NotificationsImpl
@@ -78,7 +80,11 @@ class PlatformVaultModule {
                 AppleAlwaysAvailableConnectivityService
             }
             scoped<FileWatcherService> {
-                AppleNoOpFileWatcherService
+                if (getOrNull<AppleSessionMode>() == AppleSessionMode.AUTOFILL) {
+                    AppleNoOpFileWatcherService
+                } else {
+                    FileWatcherServiceApple()
+                }
             }
             scoped<NotificationsWorker> {
                 NotificationsImpl(

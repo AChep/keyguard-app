@@ -18,9 +18,8 @@ import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManagerImpl
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatchEvent
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
-import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.export.ExportManager
-import com.artemchep.keyguard.common.service.export.model.ExportRequest
+import com.artemchep.keyguard.common.service.export.impl.ExportManagerBase
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
@@ -58,7 +57,18 @@ class PlatformVaultModule {
                 )
             }
             scoped<ExportManager> {
-                AppleUnsupportedExportManager
+                ExportManagerBase(
+                    windowCoroutineScope = get(),
+                    cryptoGenerator = get(),
+                    exportVaultDataService = get(),
+                    dirsService = get(),
+                    zipService = get(),
+                    dateFormatter = get(),
+                    downloadSourceLoader = get(),
+                    downloadAttachmentMetadata = get(),
+                    vaultSessionLocker = get(),
+                    onLaunch = {},
+                )
             }
             scoped<ConnectivityService> {
                 AppleAlwaysAvailableConnectivityService
@@ -274,20 +284,3 @@ private object AppleNoOpFileWatcherService : FileWatcherService {
         file: LocalPath,
     ): Flow<FileWatchEvent> = emptyFlow()
 }
-
-private object AppleUnsupportedExportManager : ExportManager {
-    override fun getProgressFlowByExportId(
-        exportId: String,
-    ): Flow<Flow<DownloadProgress>?> = flowOf(null)
-
-    override fun cancel(exportId: String) {
-    }
-
-    override suspend fun queue(
-        request: ExportRequest,
-    ): ExportManager.QueueResult {
-        throw unsupported()
-    }
-}
-
-private fun unsupported() = UnsupportedOperationException("Export is not supported on iOS yet.")

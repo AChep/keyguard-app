@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.filepicker
 
+import com.artemchep.keyguard.copy.sanitizedExportFileName
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.util.io.artifact.isReservedTemporaryArtifactName
 import com.artemchep.keyguard.util.io.resolve

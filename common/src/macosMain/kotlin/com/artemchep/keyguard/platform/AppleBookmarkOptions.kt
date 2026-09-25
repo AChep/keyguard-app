@@ -1,0 +1,7 @@
+package com.artemchep.keyguard.platform
+
+import platform.Foundation.NSURLBookmarkCreationWithSecurityScope
+import platform.Foundation.NSURLBookmarkResolutionWithSecurityScope
+
+internal actual val appleBookmarkCreationOptions: ULong = NSURLBookmarkCreationWithSecurityScope
+internal actual val appleBookmarkResolutionOptions: ULong = NSURLBookmarkResolutionWithSecurityScope

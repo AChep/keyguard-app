@@ -1,4 +1,5 @@
 import com.artemchep.keyguard.buildplugins.kotlin.configureComposeIosSwiftRuntime
+import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleTest
 import com.artemchep.keyguard.buildplugins.testing.benchmarkReport
 import com.artemchep.keyguard.buildplugins.testing.flightRecorder
 import com.artemchep.keyguard.buildplugins.testing.forwardSystemProperties
@@ -257,25 +258,7 @@ kotlin {
             }
         }
 
-        val appleTest = create("appleTest") {
-            dependsOn(appleCommonTest)
-        }
-
-        val iosTest = create("iosTest") {
-            dependsOn(appleTest)
-        }
-
-        getByName("iosArm64Test") {
-            dependsOn(iosTest)
-        }
-
-        getByName("iosSimulatorArm64Test") {
-            dependsOn(iosTest)
-        }
-
-        getByName("macosArm64Test") {
-            dependsOn(appleTest)
-        }
+        sharedAppleTest(parent = appleCommonTest)
 
         getByName("androidHostTest") {
             dependsOn(jvmTest)

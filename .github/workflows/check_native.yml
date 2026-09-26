@@ -480,6 +480,8 @@ jobs:
           :util:webauthn:macosArm64Test
           :util:zip:macosArm64Test
           :util:zxcvbn:macosArm64Test
+          :common:macosArm64Test
+          :appleApp:macosArm64Test
       - name: "Link native consumers for device and simulator"
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
         run: >-
@@ -489,6 +491,7 @@ jobs:
           :iosApp:linkDebugTestIosSimulatorArm64
           :iosApp:linkDebugFrameworkIosArm64
           :iosApp:linkDebugFrameworkIosSimulatorArm64
+          :appleApp:assembleKeyguardSharedDebugXCFramework
           :util:crypto:linkDebugTestMacosArm64
       - name: "Run iOS native smoke on full manual checks"
         if: github.event_name == 'workflow_dispatch' && inputs.coverage == 'full' && matrix.platform == 'macos' && matrix.arch == 'aarch64'
@@ -534,6 +537,8 @@ jobs:
             desktopApp/build/test-results/
             iosApp/build/reports/tests/
             iosApp/build/test-results/
+            appleApp/build/reports/tests/
+            appleApp/build/test-results/
           if-no-files-found: ignore
           retention-days: 7
 

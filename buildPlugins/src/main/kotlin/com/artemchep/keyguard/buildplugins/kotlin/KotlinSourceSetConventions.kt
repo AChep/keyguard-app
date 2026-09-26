@@ -44,6 +44,17 @@ fun NamedDomainObjectContainer<KotlinSourceSet>.sharedAppleMain(
     getByName("macosArm64Main").dependsOn(macosMain)
 }
 
+/** Test counterpart of [sharedAppleMain]: `appleTest` is shared by the iOS and macOS tests. */
+fun NamedDomainObjectContainer<KotlinSourceSet>.sharedAppleTest(
+    parent: KotlinSourceSet = getByName("commonTest"),
+) {
+    val appleTest = create("appleTest") { dependsOn(parent) }
+    val iosTest = create("iosTest") { dependsOn(appleTest) }
+    getByName("iosArm64Test").dependsOn(iosTest)
+    getByName("iosSimulatorArm64Test").dependsOn(iosTest)
+    getByName("macosArm64Test").dependsOn(appleTest)
+}
+
 /** Adds the shared iOS test directory only to libraries that already use it. */
 fun NamedDomainObjectContainer<KotlinSourceSet>.sharedIosTest() {
     val commonTest = getByName("commonTest")

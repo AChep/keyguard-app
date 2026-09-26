@@ -172,7 +172,7 @@ class NativeChangeClassificationTest(unittest.TestCase):
             "util/io/src/desktopTest/kotlin/NativeIoTest.kt",
             "util/instance/src/commonTest/kotlin/InstanceTest.kt",
             "desktopApp/src/jvmTest/kotlin/com/artemchep/keyguard/desktop/instance/InstanceDirectoriesTest.kt",
-            "iosApp/src/iosTest/kotlin/NativeBundleSmokeTest.kt",
+            "appleApp/src/appleTest/kotlin/NativeBundleSmokeTest.kt",
             "util/io/rust/crates/keyguard-io-core/tests/atomic.rs",
             "util/crypto/rust/crates/keyguard-crypto-core/tests/properties.rs",
             "desktopLibNative/src/tests/encoding.rs",
@@ -284,9 +284,34 @@ class NativeChangeClassificationTest(unittest.TestCase):
         self.assertTrue(desktop["desktop"])
         self.assertFalse(desktop["android"])
 
-    def test_ios_ui_does_not_request_native_linking(self):
-        result = classify(["iosApp/src/iosMain/kotlin/com/artemchep/keyguard/UI.kt"])
+    def test_native_apple_app_changes_build_consumers(self):
+        for path in (
+            "appleApp/build.gradle.kts",
+            "appleApp/src/appleMain/kotlin/KeyguardCore.kt",
+            "appleUi/Sources/KeyguardUI/Screen.swift",
+            "appleAutofill/CredentialProviderViewController.swift",
+            "iosApp/iosApp/KeyguardIosApp.swift",
+            "macosApp/project.yml",
+            "xcode/keyguard-common.yml",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                self.assertTrue(result["apple"])
+                self.assertFalse(result["desktop"])
+                self.assertFalse(result["android_run"])
+
+    def test_apple_bridge_tests_select_macos_regressions(self):
+        result = classify(["appleApp/src/appleTest/kotlin/NativeBundleSmokeTest.kt"])
+        self.assertTrue(result["apple_regressions"])
+        self.assertTrue(result["desktop_run"])
         self.assertFalse(result["apple"])
+
+    def test_gpg_helper_changes_build_native_apple_consumers(self):
+        for path in ("desktopGpgAgent/src/main.rs", "commonAgent/src/lib.rs", "commonGpgAgent/src/lib.rs"):
+            with self.subTest(path=path):
+                result = classify([path])
+                self.assertTrue(result["apple"])
+                self.assertTrue(result["desktop"])
 
     def test_targeted_manual_keeps_representative_hosts(self):
         result = classify([], all_checks=True)

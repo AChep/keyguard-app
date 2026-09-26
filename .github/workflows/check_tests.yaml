@@ -231,6 +231,7 @@ jobs:
           :feature:android-ipc-presentation:iosSimulatorArm64Test
           :standard:presentation:iosSimulatorArm64Test
           :iosApp:iosSimulatorArm64Test
+          :appleApp:iosSimulatorArm64Test
           :util:crypto:iosSimulatorArm64Test
           :util:io:iosSimulatorArm64Test
           :util:foundation:iosSimulatorArm64Test

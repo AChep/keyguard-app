@@ -142,12 +142,16 @@ def classify(paths, *, full=False, all_checks=False):
                 # Agent tests are owned by Check SSH Agent / Check GPG Agent.
                 continue
             enable("desktop", "desktop_native")
+            if path.startswith(("desktopGpgAgent/", "commonAgent/", "commonGpgAgent/")):
+                enable("apple")
         if re.match(r"androidApp/src/androidTest/.+/(nativebundle|io|crypto)/", path):
             enable("android_runtime")
             if "/test/io/" in path:
                 enable("io")
             continue
         if re.match(r"[^/]+/src/[^/]*Test/", path):
+            if re.match(r"appleApp/src/(apple|macos|common)[^/]*Test/", path):
+                enable("apple_regressions")
             if path.startswith("desktopApp/") and "/instance/" in path:
                 enable("instance", "desktop_regressions")
             if path.startswith("common/") and ("PrivateTemporaryStorage" in path or "KeePassDatabaseWindowsSpillTest" in path):
@@ -177,7 +181,10 @@ def classify(paths, *, full=False, all_checks=False):
             enable("io", "android_runtime", "desktop_regressions")
         if path.startswith("common/src/") and "/nativebundle/" in path:
             enable("desktop", "android", "apple")
-        if path in {"iosApp/build.gradle.kts", "common/build.gradle.kts"} or path.startswith("iosApp/src/nativeInterop/"):
+        if (
+            path == "common/build.gradle.kts"
+            or path.startswith(("appleApp/", "appleUi/", "appleAutofill/", "iosApp/", "macosApp/", "xcode/"))
+        ):
             enable("apple")
         if path == ".github/workflows/new_tag_release.yaml":
             enable("desktop", "android")

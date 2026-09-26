@@ -71,6 +71,38 @@ class KtorWebDavClientTest {
     }
 
     @Test
+    fun `stat merges successful properties in response order`() = runTest {
+        val engine = MockEngine {
+            respond(
+                content = """
+                    <D:multistatus xmlns:D="DAV:">
+                        <D:response>
+                            <D:href>/dav/root/object.kdbx</D:href>
+                            <D:propstat>
+                                <D:prop><D:getcontentlength>1</D:getcontentlength></D:prop>
+                                <D:status>HTTP/1.1 200 OK</D:status>
+                            </D:propstat>
+                            <D:propstat>
+                                <D:prop><D:getcontentlength>2</D:getcontentlength></D:prop>
+                            </D:propstat>
+                            <D:propstat>
+                                <D:prop><D:getcontentlength>3</D:getcontentlength></D:prop>
+                                <D:status>HTTP/1.1 404 Not Found</D:status>
+                            </D:propstat>
+                        </D:response>
+                    </D:multistatus>
+                """.trimIndent(),
+                status = MULTI_STATUS,
+                headers = headersOf(HttpHeaders.ContentType, "application/xml"),
+            )
+        }
+
+        val resource = assertNotNull(testClient(engine).stat("object.kdbx"))
+
+        assertEquals(2L, resource.size)
+    }
+
+    @Test
     fun `stat reports a too deeply nested multistatus as protocol error`() = runTest {
         val depth = 20_000
         val engine = MockEngine {

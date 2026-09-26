@@ -26,7 +26,6 @@ import app.keemobile.kotpass.xml.DefaultXmlContentParser
 import app.keemobile.kotpass.xml.XmlContentParser
 import okio.Buffer
 import okio.BufferedSource
-import okio.ByteString.Companion.toByteString
 import okio.Source
 import okio.buffer
 import okio.use
@@ -236,22 +235,7 @@ private fun decodeVer4x(
     untitledLabel: String,
     limits: KdbxReadLimits,
 ): KeePassDatabase.Ver4x {
-    val expectedSha256 = source.readByteString(32)
-    val expectedHmacSha256 = source.readByteString(32)
-
-    if (validateHashes) {
-        if (rawHeaderData.sha256() != expectedSha256) {
-            throw FormatError.InvalidHeader("Header's Sha256 does not match.")
-        }
-        val hmacKey = KeyTransform.hmacKey(masterSeed, transformedKey)
-        try {
-            if (rawHeaderData.hmacSha256(hmacKey.toByteString()) != expectedHmacSha256) {
-                throw CryptoError.InvalidKey("Wrong key used for decryption.")
-            }
-        } finally {
-            hmacKey.fill(0)
-        }
-    }
+    authenticateVer4Header(source, rawHeaderData, validateHashes, masterSeed, transformedKey)
 
     val blocks =
         ContentBlocks.ver4Source(

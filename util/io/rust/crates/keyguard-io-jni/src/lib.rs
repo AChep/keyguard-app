@@ -139,8 +139,8 @@ fn java_bytes(
     Ok(buffer)
 }
 
-fn unwrap(result: Result<i64, i64>) -> jlong {
-    match result {
+fn unwrap(result: Result<Result<i64, i64>, i64>) -> jlong {
+    match result.and_then(std::convert::identity) {
         Ok(value) | Err(value) => value,
     }
 }
@@ -177,13 +177,10 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_directory
     _object: JObject<'_>,
     directory: JString<'_>,
 ) -> jlong {
-    unwrap(
-        contained(|| {
-            let directory = java_string(&mut environment, &directory)?;
-            Ok(bridge::directory_open(&directory))
-        })
-        .and_then(std::convert::identity),
-    )
+    unwrap(contained(|| {
+        let directory = java_string(&mut environment, &directory)?;
+        Ok(bridge::directory_open(&directory))
+    }))
 }
 
 /// Closes one retained-directory handle.
@@ -193,10 +190,9 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_directory
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
-    unwrap(
-        contained(|| Ok(bridge::directory_close(java_handle(handle)?)))
-            .and_then(std::convert::identity),
-    )
+    unwrap(contained(|| {
+        Ok(bridge::directory_close(java_handle(handle)?))
+    }))
 }
 
 /// Opens an atomic-write transaction; returns a positive handle or a packed
@@ -208,14 +204,11 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnBegin(
     destination: JString<'_>,
     options: JIntArray<'_>,
 ) -> jlong {
-    unwrap(
-        contained(|| {
-            let destination = java_string(&mut environment, &destination)?;
-            let options = java_txn_options(&environment, &options)?;
-            Ok(bridge::txn_begin(&destination, options))
-        })
-        .and_then(std::convert::identity),
-    )
+    unwrap(contained(|| {
+        let destination = java_string(&mut environment, &destination)?;
+        let options = java_txn_options(&environment, &options)?;
+        Ok(bridge::txn_begin(&destination, options))
+    }))
 }
 
 /// Opens an atomic-write transaction beneath a retained directory.
@@ -227,19 +220,16 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnBeginA
     relative_destination: JString<'_>,
     options: JIntArray<'_>,
 ) -> jlong {
-    unwrap(
-        contained(|| {
-            let directory_handle = java_handle(directory_handle)?;
-            let destination = java_string(&mut environment, &relative_destination)?;
-            let options = java_txn_options(&environment, &options)?;
-            Ok(bridge::txn_begin_at_directory(
-                directory_handle,
-                &destination,
-                options,
-            ))
-        })
-        .and_then(std::convert::identity),
-    )
+    unwrap(contained(|| {
+        let directory_handle = java_handle(directory_handle)?;
+        let destination = java_string(&mut environment, &relative_destination)?;
+        let options = java_txn_options(&environment, &options)?;
+        Ok(bridge::txn_begin_at_directory(
+            directory_handle,
+            &destination,
+            options,
+        ))
+    }))
 }
 
 /// Appends a Java byte-array range to a transaction; returns the byte count
@@ -258,14 +248,11 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnWrite(
     offset: jint,
     length: jint,
 ) -> jlong {
-    unwrap(
-        contained(|| {
-            let handle = java_handle(handle)?;
-            let bytes = java_bytes(&environment, &input, offset, length)?;
-            Ok(bridge::txn_write(handle, &bytes))
-        })
-        .and_then(std::convert::identity),
-    )
+    unwrap(contained(|| {
+        let handle = java_handle(handle)?;
+        let bytes = java_bytes(&environment, &input, offset, length)?;
+        Ok(bridge::txn_write(handle, &bytes))
+    }))
 }
 
 /// Commits a transaction, consuming its handle; returns a packed commit
@@ -276,9 +263,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnCommit
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
-    unwrap(
-        contained(|| Ok(bridge::txn_commit(java_handle(handle)?))).and_then(std::convert::identity),
-    )
+    unwrap(contained(|| Ok(bridge::txn_commit(java_handle(handle)?))))
 }
 
 /// Aborts a transaction, consuming its handle; returns zero or a packed
@@ -289,9 +274,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnAbort(
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
-    unwrap(
-        contained(|| Ok(bridge::txn_abort(java_handle(handle)?))).and_then(std::convert::identity),
-    )
+    unwrap(contained(|| Ok(bridge::txn_abort(java_handle(handle)?))))
 }
 
 /// Opens private scratch storage; returns a positive handle or a packed
@@ -302,13 +285,10 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchOp
     _object: JObject<'_>,
     directory: JString<'_>,
 ) -> jlong {
-    unwrap(
-        contained(|| {
-            let directory = java_string(&mut environment, &directory)?;
-            Ok(bridge::scratch_open(&directory))
-        })
-        .and_then(std::convert::identity),
-    )
+    unwrap(contained(|| {
+        let directory = java_string(&mut environment, &directory)?;
+        Ok(bridge::scratch_open(&directory))
+    }))
 }
 
 /// Appends a Java byte-array range to scratch storage; returns the byte
@@ -322,14 +302,11 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchWr
     offset: jint,
     length: jint,
 ) -> jlong {
-    unwrap(
-        contained(|| {
-            let handle = java_handle(handle)?;
-            let bytes = java_bytes(&environment, &input, offset, length)?;
-            Ok(bridge::scratch_write(handle, &bytes))
-        })
-        .and_then(std::convert::identity),
-    )
+    unwrap(contained(|| {
+        let handle = java_handle(handle)?;
+        let bytes = java_bytes(&environment, &input, offset, length)?;
+        Ok(bridge::scratch_write(handle, &bytes))
+    }))
 }
 
 /// Seals scratch storage for reading; returns zero or a packed failure.
@@ -339,10 +316,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchSe
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
-    unwrap(
-        contained(|| Ok(bridge::scratch_seal(java_handle(handle)?)))
-            .and_then(std::convert::identity),
-    )
+    unwrap(contained(|| Ok(bridge::scratch_seal(java_handle(handle)?))))
 }
 
 /// Returns the scratch length in bytes or a packed failure.
@@ -352,10 +326,9 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchLe
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
-    unwrap(
-        contained(|| Ok(bridge::scratch_length(java_handle(handle)?)))
-            .and_then(std::convert::identity),
-    )
+    unwrap(contained(|| {
+        Ok(bridge::scratch_length(java_handle(handle)?))
+    }))
 }
 
 /// Reads scratch bytes at a fixed position into a Java byte-array range;
@@ -370,31 +343,27 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchRe
     offset: jint,
     length: jint,
 ) -> jlong {
-    unwrap(
-        contained(|| {
-            let handle = java_handle(handle)?;
-            let position =
-                u64::try_from(position).map_err(|_| abi::pack_bridge_invalid_argument())?;
-            let array_length = environment
-                .get_array_length(&output)
-                .map_err(|_| abi::pack_bridge_invalid_argument())?;
-            let length = checked_range(array_length, offset, length)?;
-            let mut buffer = Zeroizing::new(vec![0_u8; length]);
-            let result = bridge::scratch_read_at(handle, position, &mut buffer);
-            if result <= 0 {
-                return Ok(result);
-            }
-            let read = result as usize;
-            // SAFETY: jbyte and u8 share size, alignment, and layout; the cast
-            // only changes signedness and `read` never exceeds the buffer length.
-            let signed = unsafe { std::slice::from_raw_parts(buffer.as_ptr().cast::<i8>(), read) };
-            environment
-                .set_byte_array_region(&output, offset, signed)
-                .map_err(|_| abi::pack_bridge_invalid_argument())?;
-            Ok(result)
-        })
-        .and_then(std::convert::identity),
-    )
+    unwrap(contained(|| {
+        let handle = java_handle(handle)?;
+        let position = u64::try_from(position).map_err(|_| abi::pack_bridge_invalid_argument())?;
+        let array_length = environment
+            .get_array_length(&output)
+            .map_err(|_| abi::pack_bridge_invalid_argument())?;
+        let length = checked_range(array_length, offset, length)?;
+        let mut buffer = Zeroizing::new(vec![0_u8; length]);
+        let result = bridge::scratch_read_at(handle, position, &mut buffer);
+        if result <= 0 {
+            return Ok(result);
+        }
+        let read = result as usize;
+        // SAFETY: jbyte and u8 share size, alignment, and layout; the cast
+        // only changes signedness and `read` never exceeds the buffer length.
+        let signed = unsafe { std::slice::from_raw_parts(buffer.as_ptr().cast::<i8>(), read) };
+        environment
+            .set_byte_array_region(&output, offset, signed)
+            .map_err(|_| abi::pack_bridge_invalid_argument())?;
+        Ok(result)
+    }))
 }
 
 /// Closes scratch storage, consuming its handle; returns zero or a packed
@@ -405,10 +374,9 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchCl
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
-    unwrap(
-        contained(|| Ok(bridge::scratch_close(java_handle(handle)?)))
-            .and_then(std::convert::identity),
-    )
+    unwrap(contained(|| {
+        Ok(bridge::scratch_close(java_handle(handle)?))
+    }))
 }
 
 /// Sweeps a directory for orphaned temporary artifacts.
@@ -468,13 +436,21 @@ mod tests {
     #[test]
     fn scalar_boundary_preserves_the_cleanup_incomplete_bit() {
         let packed = abi::pack_bridge_panic() | (1_i64 << 56);
-        assert_eq!(unwrap(Ok(packed)), packed);
+        assert_eq!(unwrap(Ok(Ok(packed))), packed);
     }
 
     #[test]
     fn scalar_boundary_preserves_publication_unknown_operation_bits() {
         let packed = 0x0E00_0000_0000_0BF7_i64;
-        assert_eq!(unwrap(Ok(packed)), packed);
+        assert_eq!(unwrap(Ok(Ok(packed))), packed);
+    }
+
+    #[test]
+    fn scalar_boundary_preserves_outer_and_inner_errors() {
+        let panic = abi::pack_bridge_panic();
+        let invalid_argument = abi::pack_bridge_invalid_argument();
+        assert_eq!(unwrap(Err(panic)), panic);
+        assert_eq!(unwrap(Ok(Err(invalid_argument))), invalid_argument);
     }
 
     #[test]

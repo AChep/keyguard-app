@@ -92,6 +92,63 @@ class NativeCryptoOpenPgpCertificateMaterialValidationTest {
     }
 
     @Test
+    fun certificateReconcileV2MapsPairAndAttributedInputErrors() {
+        val errors = listOf(
+            OpenPgpCertificateMaterialReconcileErrorProto(
+                pairError = OpenPgpCertificateMaterialPairErrorReasonProto.CONFLICTING_SECRET_MATERIAL,
+            ),
+            OpenPgpCertificateMaterialReconcileErrorProto(
+                incomingSecretInputError = OpenPgpCertificateMaterialInputErrorReasonProto.UNSUPPORTED_TSK_LAYOUT,
+            ),
+        )
+        errors.forEach { error ->
+            val v1 = OpenPgpCertificateMaterialReconcileResultProto(
+                OpenPgpCertificateMaterialReconcileErrorOutcomeProto(error),
+            ).toPublicCertificateMaterialReconcileResult(
+                operation = RECONCILE_OPERATION,
+                expectedPrimaryFingerprint = FINGERPRINT,
+                privateOutputRequired = true,
+            )
+            val v2 = OpenPgpCertificateMaterialReconcileV2ResultProto(
+                OpenPgpCertificateMaterialReconcileV2ErrorOutcomeProto(error),
+            ).toPublicCertificateMaterialReconcileV2Result(
+                operation = RECONCILE_V2_OPERATION,
+                expectedPrimaryFingerprint = FINGERPRINT,
+                expectedInputPresence = listOf(true, true, false, true),
+            )
+            assertEquals(
+                assertIs<NativeOpenPgpCertificateMaterialReconcileResult.Error>(v1).failure,
+                assertIs<NativeOpenPgpCertificateMaterialReconcileV2Result.Error>(v2).failure,
+            )
+        }
+    }
+
+    @Test
+    fun certificateReconcileV2RequiresExactlyOneErrorCategory() {
+        val errors = listOf(
+            OpenPgpCertificateMaterialReconcileErrorProto(),
+            OpenPgpCertificateMaterialReconcileErrorProto(
+                existingPublicInputError = OpenPgpCertificateMaterialInputErrorReasonProto.MALFORMED_CERTIFICATE,
+                pairError = OpenPgpCertificateMaterialPairErrorReasonProto.COMPONENT_COLLISION,
+            ),
+        )
+        errors.forEach { error ->
+            val response = OpenPgpCertificateMaterialReconcileV2ResultProto(
+                OpenPgpCertificateMaterialReconcileV2ErrorOutcomeProto(error),
+            )
+            val failure = assertFailsWith<NativeCryptoException> {
+                response.toPublicCertificateMaterialReconcileV2Result(
+                    operation = RECONCILE_V2_OPERATION,
+                    expectedPrimaryFingerprint = FINGERPRINT,
+                    expectedInputPresence = listOf(true, true, false, false),
+                )
+            }
+            assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
+            assertEquals(RECONCILE_V2_OPERATION, failure.operation)
+        }
+    }
+
+    @Test
     fun certificateReconcileV2TransfersSeparatedOutputsAndContributions() {
         val localPublic = byteArrayOf(1)
         val localSecret = byteArrayOf(2)

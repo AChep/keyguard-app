@@ -87,7 +87,37 @@ pub struct SweepReport {
     pub first_failure: Option<FileSystemFailure>,
 }
 
+enum CandidateOutcome {
+    Removed,
+    Young,
+    Busy,
+    Unsafe,
+    Changed,
+    InspectionFailed(io::Error),
+    RemovalFailed(io::Error),
+}
+
 impl SweepReport {
+    fn record_outcome(&mut self, outcome: CandidateOutcome) {
+        match outcome {
+            CandidateOutcome::Removed => self.removed = self.removed.saturating_add(1),
+            CandidateOutcome::Young => self.skipped_young = self.skipped_young.saturating_add(1),
+            CandidateOutcome::Busy => self.skipped_busy = self.skipped_busy.saturating_add(1),
+            CandidateOutcome::Unsafe => self.skipped_unsafe = self.skipped_unsafe.saturating_add(1),
+            CandidateOutcome::Changed => {
+                self.skipped_changed = self.skipped_changed.saturating_add(1);
+            }
+            CandidateOutcome::InspectionFailed(error) => {
+                self.inspection_failed = self.inspection_failed.saturating_add(1);
+                self.record_failure(&error);
+            }
+            CandidateOutcome::RemovalFailed(error) => {
+                self.removal_failed = self.removal_failed.saturating_add(1);
+                self.record_failure(&error);
+            }
+        }
+    }
+
     pub(crate) fn record_failure(&mut self, error: &io::Error) {
         self.status = SweepStatus::Incomplete;
         if self.first_failure.is_none() {
@@ -173,6 +203,59 @@ mod tests {
             ..SweepReport::default()
         };
         assert!(!overflow.candidate_partition_holds());
+    }
+
+    #[test]
+    fn outcomes_partition_candidates_and_preserve_the_first_failure() {
+        let inspection_error = io::Error::from(io::ErrorKind::PermissionDenied);
+        let expected_failure = FileSystemFailure::from_io_error(&inspection_error);
+        let mut report = SweepReport::default();
+        for outcome in [
+            CandidateOutcome::Removed,
+            CandidateOutcome::Young,
+            CandidateOutcome::Busy,
+            CandidateOutcome::Unsafe,
+            CandidateOutcome::Changed,
+            CandidateOutcome::InspectionFailed(inspection_error),
+            CandidateOutcome::RemovalFailed(io::Error::other("removal failed")),
+        ] {
+            report.candidate_names += 1;
+            report.record_outcome(outcome);
+            assert!(report.candidate_partition_holds());
+        }
+        assert_eq!(
+            report,
+            SweepReport {
+                status: SweepStatus::Incomplete,
+                candidate_names: 7,
+                removed: 1,
+                skipped_young: 1,
+                skipped_busy: 1,
+                skipped_unsafe: 1,
+                skipped_changed: 1,
+                inspection_failed: 1,
+                removal_failed: 1,
+                first_failure: Some(expected_failure),
+                ..SweepReport::default()
+            }
+        );
+    }
+
+    #[test]
+    fn outcome_counters_saturate_without_losing_failures() {
+        let mut report = SweepReport {
+            removed: u64::MAX,
+            removal_failed: u64::MAX,
+            ..SweepReport::default()
+        };
+        let error = io::Error::other("removal failed");
+        let expected_failure = FileSystemFailure::from_io_error(&error);
+        report.record_outcome(CandidateOutcome::Removed);
+        report.record_outcome(CandidateOutcome::RemovalFailed(error));
+        assert_eq!(report.removed, u64::MAX);
+        assert_eq!(report.removal_failed, u64::MAX);
+        assert_eq!(report.status, SweepStatus::Incomplete);
+        assert_eq!(report.first_failure, Some(expected_failure));
     }
 
     #[test]

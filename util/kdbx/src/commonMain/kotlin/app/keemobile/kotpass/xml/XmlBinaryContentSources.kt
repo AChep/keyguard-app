@@ -94,7 +94,6 @@ internal class XmlBase64Source(
 ) : Source {
     private val decoded = Buffer()
     private val encoded = StringBuilder(BASE64_DECODE_CHARS)
-    private var paddingStarted = false
     private var paddingChars = 0
     private var finished = false
     private var closed = false
@@ -151,12 +150,11 @@ internal class XmlBase64Source(
             if (char.isWhitespace()) return@forEach
             when {
                 char == '=' -> {
-                    paddingStarted = true
                     paddingChars += 1
                     if (paddingChars > 2) invalidBase64()
                 }
 
-                paddingStarted -> invalidBase64()
+                paddingChars > 0 -> invalidBase64()
             }
             encoded.append(char)
         }
@@ -174,7 +172,7 @@ internal class XmlBase64Source(
         } else {
             encoded.length - encoded.length % BASE64_QUANTUM_CHARS
         }
-        if (!final && paddingStarted) {
+        if (!final && paddingChars > 0) {
             count = (count - BASE64_QUANTUM_CHARS).coerceAtLeast(0)
         }
         if (count == 0 && !final) return

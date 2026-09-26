@@ -36,7 +36,7 @@ use windows_sys::{
     },
 };
 
-use super::{SweepOptions, SweepReport};
+use super::{CandidateOutcome, SweepOptions, SweepReport};
 use crate::{
     naming::{
         TemporaryArtifactEntryKind, TemporaryArtifactProtocol, parse_temporary_artifact_name,
@@ -66,31 +66,12 @@ pub(super) fn sweep_orphans(directory: &Path, options: SweepOptions) -> io::Resu
     let candidates = enumerate_candidates(root.as_raw(), options.role_mask, &mut report)?;
 
     for candidate in candidates {
-        match inspect_and_remove(root.as_raw(), &candidate, now, minimum_age) {
-            CandidateOutcome::Removed => {
-                report.removed = report.removed.saturating_add(1);
-            }
-            CandidateOutcome::Young => {
-                report.skipped_young = report.skipped_young.saturating_add(1);
-            }
-            CandidateOutcome::Busy => {
-                report.skipped_busy = report.skipped_busy.saturating_add(1);
-            }
-            CandidateOutcome::Unsafe => {
-                report.skipped_unsafe = report.skipped_unsafe.saturating_add(1);
-            }
-            CandidateOutcome::Changed => {
-                report.skipped_changed = report.skipped_changed.saturating_add(1);
-            }
-            CandidateOutcome::InspectionFailed(error) => {
-                report.inspection_failed = report.inspection_failed.saturating_add(1);
-                report.record_failure(&error);
-            }
-            CandidateOutcome::RemovalFailed(error) => {
-                report.removal_failed = report.removal_failed.saturating_add(1);
-                report.record_failure(&error);
-            }
-        }
+        report.record_outcome(inspect_and_remove(
+            root.as_raw(),
+            &candidate,
+            now,
+            minimum_age,
+        ));
     }
 
     debug_assert!(report.candidate_partition_holds());
@@ -123,16 +104,6 @@ enum EnumerationScheme {
 enum CandidateFileId {
     Extended([u8; 16]),
     Both(i64),
-}
-
-enum CandidateOutcome {
-    Removed,
-    Young,
-    Busy,
-    Unsafe,
-    Changed,
-    InspectionFailed(io::Error),
-    RemovalFailed(io::Error),
 }
 
 /// Opens the sweep root.

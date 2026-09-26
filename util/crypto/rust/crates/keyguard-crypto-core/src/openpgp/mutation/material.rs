@@ -256,7 +256,7 @@ impl MutationPreflight {
 
         let private_packets =
             rebuild_secret_certificate(&canonical.retained_bytes, &self.secret_overlay)?;
-        let private_key_armored =
+        let mut private_key_armored =
             armor_key_packets_zeroizing(&private_packets, BlockType::PrivateKey)?;
         // Mutation output feeds local key state. Keep unusable components that
         // the operation did not target; explicit external export applies the
@@ -265,7 +265,7 @@ impl MutationPreflight {
         Ok((
             MutationOutput {
                 key_material: KeyMaterial {
-                    private_key_armored: private_key_armored.to_vec(),
+                    private_key_armored: std::mem::take(&mut *private_key_armored),
                     public_key_armored,
                     fingerprint: canonical.fingerprint.clone(),
                 },

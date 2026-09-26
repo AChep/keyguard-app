@@ -20,7 +20,7 @@ use crate::{
         TemporaryArtifactEntryKind, TemporaryArtifactProtocol, TemporaryFileRole,
         parse_temporary_artifact_name, temporary_artifact_names_from_nonce,
     },
-    sweep::{SweepOptions, SweepReport, SweepStatus},
+    sweep::{CandidateOutcome, SweepOptions, SweepReport, SweepStatus},
 };
 
 pub(super) fn sweep_orphans(directory: &Path, options: SweepOptions) -> io::Result<SweepReport> {
@@ -274,7 +274,7 @@ fn process_candidate_group<F>(
                 options.older_than,
                 file_lease_probe,
             );
-            apply_outcome(report, outcome);
+            report.record_outcome(outcome);
         }
         TemporaryArtifactProtocol::DirectoryLeaseV1 => {
             if candidates.len() != 1 || candidates[0].entry_kind != TemporaryArtifactEntryKind::Data
@@ -283,15 +283,14 @@ fn process_candidate_group<F>(
                 return;
             }
             match directory_lease {
-                DirectoryLease::Acquired => apply_outcome(
-                    report,
-                    process_directory_lease_artifact(
+                DirectoryLease::Acquired => {
+                    report.record_outcome(process_directory_lease_artifact(
                         directory_fd,
                         &candidates[0],
                         now,
                         options.older_than,
-                    ),
-                ),
+                    ))
+                }
                 DirectoryLease::Unsupported => {
                     classify_many(report, 1, OutcomeClass::InspectionFailed);
                     report.record_failure(&io::Error::new(
@@ -323,16 +322,13 @@ fn process_candidate_group<F>(
                     file_lease_probe,
                     report,
                 ),
-                ([], [sidecar], 1) => apply_outcome(
-                    report,
-                    process_sidecar_only(
-                        directory_fd,
-                        sidecar,
-                        now,
-                        options.older_than,
-                        file_lease_probe,
-                    ),
-                ),
+                ([], [sidecar], 1) => report.record_outcome(process_sidecar_only(
+                    directory_fd,
+                    sidecar,
+                    now,
+                    options.older_than,
+                    file_lease_probe,
+                )),
                 ([_], [], 1) => {
                     classify_many(report, 1, OutcomeClass::InspectionFailed);
                     report.record_failure(&io::Error::other(
@@ -421,7 +417,7 @@ fn process_sidecar_pair<F>(
     ) {
         Ok(opened) => opened,
         Err(outcome) => {
-            apply_outcome(report, outcome);
+            report.record_outcome(outcome);
             classify_many(report, 1, OutcomeClass::Unsafe);
             return;
         }
@@ -452,7 +448,7 @@ fn process_sidecar_pair<F>(
         &sidecar_opened,
         Security::OwnerOnlySidecar,
     ) {
-        apply_outcome(report, outcome);
+        report.record_outcome(outcome);
         classify_many(report, 1, OutcomeClass::Unsafe);
         return;
     }
@@ -465,7 +461,7 @@ fn process_sidecar_pair<F>(
     ) {
         Ok(opened) => opened,
         Err(outcome) => {
-            apply_outcome(report, outcome);
+            report.record_outcome(outcome);
             classify_many(report, 1, OutcomeClass::Unsafe);
             return;
         }
@@ -505,9 +501,9 @@ fn process_sidecar_pair<F>(
         },
     );
     let data_removed = matches!(data_outcome, CandidateOutcome::Removed);
-    apply_outcome(report, data_outcome);
+    report.record_outcome(data_outcome);
     match sidecar_outcome {
-        Some(outcome) => apply_outcome(report, outcome),
+        Some(outcome) => report.record_outcome(outcome),
         None if data_removed => unreachable!("successful data removal must run sidecar cleanup"),
         None => classify_many(report, 1, OutcomeClass::Unsafe),
     }
@@ -727,42 +723,12 @@ fn classify_open_error(error: io::Error) -> CandidateOutcome {
     }
 }
 
-enum CandidateOutcome {
-    Removed,
-    Young,
-    Busy,
-    Unsafe,
-    Changed,
-    InspectionFailed(io::Error),
-    RemovalFailed(io::Error),
-}
-
 #[derive(Clone, Copy)]
 enum OutcomeClass {
     Busy,
     Unsafe,
     InspectionFailed,
     Young,
-}
-
-fn apply_outcome(report: &mut SweepReport, outcome: CandidateOutcome) {
-    match outcome {
-        CandidateOutcome::Removed => report.removed = report.removed.saturating_add(1),
-        CandidateOutcome::Young => report.skipped_young = report.skipped_young.saturating_add(1),
-        CandidateOutcome::Busy => report.skipped_busy = report.skipped_busy.saturating_add(1),
-        CandidateOutcome::Unsafe => report.skipped_unsafe = report.skipped_unsafe.saturating_add(1),
-        CandidateOutcome::Changed => {
-            report.skipped_changed = report.skipped_changed.saturating_add(1);
-        }
-        CandidateOutcome::InspectionFailed(error) => {
-            report.inspection_failed = report.inspection_failed.saturating_add(1);
-            report.record_failure(&error);
-        }
-        CandidateOutcome::RemovalFailed(error) => {
-            report.removal_failed = report.removal_failed.saturating_add(1);
-            report.record_failure(&error);
-        }
-    }
 }
 
 fn classify_many(report: &mut SweepReport, count: usize, class: OutcomeClass) {
@@ -1683,11 +1649,8 @@ mod tests {
             candidate_names: 2,
             ..SweepReport::default()
         };
-        apply_outcome(&mut report, data);
-        apply_outcome(
-            &mut report,
-            sidecar.expect("successful data removal runs sidecar cleanup"),
-        );
+        report.record_outcome(data);
+        report.record_outcome(sidecar.expect("successful data removal runs sidecar cleanup"));
 
         assert_eq!(report.status, SweepStatus::Incomplete);
         assert_eq!(report.removed, 1);

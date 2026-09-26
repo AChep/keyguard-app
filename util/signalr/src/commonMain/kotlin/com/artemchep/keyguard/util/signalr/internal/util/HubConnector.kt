@@ -9,24 +9,21 @@ import kotlinx.coroutines.withTimeoutOrNull
 internal suspend fun connect(
     options: HubConnectionOptions,
 ): EstablishedConnection {
-    var transport: Transport? = null
+    val negotiation = negotiate(options)
+    val transport = options.httpClient.connectTransport(
+        url = negotiation.url,
+        headers = negotiation.headers,
+        webSocketSessionConnector = options.webSocketSessionConnector,
+    )
     try {
-        val negotiation = negotiate(options)
-        val nextTransport = options.httpClient.connectTransport(
-            url = negotiation.url,
-            headers = negotiation.headers,
-            webSocketSessionConnector = options.webSocketSessionConnector,
-        )
-        transport = nextTransport
-
         val initialPayload = handshake(
             protocol = options.protocol,
             handshakeResponseTimeout = options.handshakeResponseTimeout,
-            transport = nextTransport,
+            transport = transport,
             json = options.json,
         )
         return EstablishedConnection(
-            transport = nextTransport,
+            transport = transport,
             connectionId = negotiation.connectionId,
             initialPayload = initialPayload,
         )
@@ -34,7 +31,7 @@ internal suspend fun connect(
         withContext(NonCancellable) {
             runCatching {
                 withTimeoutOrNull(options.closeTimeout) {
-                    transport?.stop()
+                    transport.stop()
                 }
             }
         }

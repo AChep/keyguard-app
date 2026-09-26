@@ -30,8 +30,6 @@ internal actual object NativeZxcvbn {
             NativeZxcvbnLibraryLoader.ensureLoaded()
             ensureCompatibleAbi()
             block()
-        } catch (error: ZxcvbnException) {
-            throw error
         } catch (error: UnsatisfiedLinkError) {
             nativeZxcvbnUnavailable(error)
         } catch (error: SecurityException) {
@@ -43,13 +41,7 @@ internal actual object NativeZxcvbn {
         if (abiVerified) return
         synchronized(this) {
             if (abiVerified) return
-            val actual = try {
-                NativeZxcvbnJni.abiVersion()
-            } catch (error: UnsatisfiedLinkError) {
-                nativeZxcvbnUnavailable(error)
-            } catch (error: SecurityException) {
-                nativeZxcvbnUnavailable(error)
-            }
+            val actual = NativeZxcvbnJni.abiVersion()
             if (actual != NATIVE_ZXCVBN_ABI_VERSION) {
                 throw ZxcvbnException(
                     "Unsupported native zxcvbn ABI $actual; expected $NATIVE_ZXCVBN_ABI_VERSION",

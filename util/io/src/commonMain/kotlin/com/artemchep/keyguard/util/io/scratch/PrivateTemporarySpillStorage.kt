@@ -29,7 +29,6 @@ class PrivateTemporarySpillStorage(
     private var sizeBytes = 0L
     private var sinkClaimed = false
     private var sealed = false
-    private var ownershipTransferred = false
     private var discarding = false
     private var closed = false
 
@@ -51,8 +50,8 @@ class PrivateTemporarySpillStorage(
         val sink = storageSink ?: sink()
         sink.close()
         storage.sealForReading()
+        // Successful sealing transfers storage ownership to the snapshot.
         sealed = true
-        ownershipTransferred = true
         return PrivateTemporaryByteSnapshot(
             storage = storage,
             size = sizeBytes,
@@ -71,7 +70,7 @@ class PrivateTemporarySpillStorage(
         } catch (e: Throwable) {
             failure = e
         }
-        if (!ownershipTransferred) {
+        if (!sealed) {
             try {
                 storage.close()
             } catch (e: Throwable) {

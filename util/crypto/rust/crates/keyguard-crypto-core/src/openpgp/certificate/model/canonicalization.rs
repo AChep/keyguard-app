@@ -460,14 +460,11 @@ impl PublicCertificatePacketSet {
         }
         for component in self.subkeys.values() {
             let subkey = parse_public_subkey(&component.packet)?;
-            let is_bound = component.attached.values().any(|packet| {
-                if packet.tag != SIGNATURE_TAG {
-                    return false;
-                }
-                parse_signature_packet(packet).is_ok_and(|signature| {
+            let is_bound = component.attached.entries().any(|(_, entry)| {
+                entry.signature().is_some_and(|signature| {
                     signature.typ() == Some(SignatureType::SubkeyBinding)
-                        && signature_verification_compatible(&signature, &primary)
-                        && signature_ignoring_unhashed_issuer_hints(&signature).is_some_and(
+                        && signature_verification_compatible(signature, &primary)
+                        && signature_ignoring_unhashed_issuer_hints(signature).is_some_and(
                             |signature| signature.verify_subkey_binding(&primary, &subkey).is_ok(),
                         )
                 })

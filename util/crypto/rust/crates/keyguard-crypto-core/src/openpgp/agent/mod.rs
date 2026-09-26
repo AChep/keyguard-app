@@ -40,8 +40,8 @@ use crate::{
             PUBLIC_KEY_TAG, RawPacketError, RawPacketStream, SECRET_KEY_TAG, SECRET_SUBKEY_TAG,
         },
         policy::{
-            OpenPgpPolicyBudget, OpenPgpPolicyError, all_components, reference_time,
-            validate_certificate,
+            OpenPgpPolicyBudget, OpenPgpPolicyError, all_components, certificate_components,
+            reference_time, validate_certificate,
         },
     },
 };
@@ -417,18 +417,17 @@ fn select_sign_packet<'a>(
 ) -> Result<Option<SecretPacketRef<'a>>, OpenPgpAgentError> {
     let preferred =
         (!preferred_fingerprint.is_blank()).then(|| normalize_fingerprint(preferred_fingerprint));
-    let public_keys = keys
+    let mut candidates = keys
         .iter()
-        .map(|secret| secret.public().clone())
+        .flat_map(|secret| certificate_components(secret.public()))
         .collect::<Vec<_>>();
-    let mut candidates = all_components(&public_keys);
     candidates.extend(all_components(revocation_candidates));
     let mut budget = OpenPgpPolicyBudget::default();
     let mut eligible = Vec::new();
     let now = reference_time(None);
 
-    for (secret, public) in keys.iter().zip(&public_keys) {
-        let policy = validate_certificate(public, &candidates, now, &mut budget)
+    for secret in keys {
+        let policy = validate_certificate(secret.public(), &candidates, now, &mut budget)
             .map_err(map_policy_error)?;
         // Assuan PKSIGN supplies only a key and digest, so it cannot prove that
         // a request is a renewal rather than an arbitrary data signature. Raw

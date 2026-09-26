@@ -2012,32 +2012,8 @@ internal fun OpenPgpCertificateMaterialReconcileResultProto.toPublicCertificateM
         }
 
         is OpenPgpCertificateMaterialReconcileErrorOutcomeProto -> {
-            val value = outcome.value
-            val existingPublic = value.existingPublicInputError.toPublicCertificateInputError()
-            val incomingPublic = value.incomingPublicInputError.toPublicCertificateInputError()
-            val existingSecret = value.existingSecretInputError.toPublicCertificateInputError()
-            val incomingSecret = value.incomingSecretInputError.toPublicCertificateInputError()
-            val pair = value.pairError.toPublicCertificatePairError()
-            val hasInputError =
-                existingPublic != null ||
-                    incomingPublic != null ||
-                    existingSecret != null ||
-                    incomingSecret != null
-            if (hasInputError == (pair != null)) malformedOpenPgp(operation)
             NativeOpenPgpCertificateMaterialReconcileResult.Error(
-                failure =
-                    if (hasInputError) {
-                        NativeOpenPgpCertificateMaterialReconcileFailure.InvalidInputs(
-                            existingPublic = existingPublic,
-                            incomingPublic = incomingPublic,
-                            existingSecret = existingSecret,
-                            incomingSecret = incomingSecret,
-                        )
-                    } else {
-                        NativeOpenPgpCertificateMaterialReconcileFailure.Pair(
-                            pair ?: malformedOpenPgp(operation),
-                        )
-                    },
+                failure = outcome.value.toPublicCertificateMaterialReconcileFailure(operation),
             )
         }
 
@@ -2061,7 +2037,9 @@ internal fun OpenPgpCertificateMaterialReconcileV2ResultProto
             )
 
         is OpenPgpCertificateMaterialReconcileV2ErrorOutcomeProto ->
-            outcome.value.toPublicCertificateMaterialReconcileV2Error(operation)
+            NativeOpenPgpCertificateMaterialReconcileV2Result.Error(
+                failure = outcome.value.toPublicCertificateMaterialReconcileFailure(operation),
+            )
 
         null -> malformedOpenPgp(operation)
     }
@@ -2216,9 +2194,9 @@ private fun OpenPgpCertificateMaterialContributionsProto.toPublicCertificateMate
 }
 
 private fun OpenPgpCertificateMaterialReconcileErrorProto
-    .toPublicCertificateMaterialReconcileV2Error(
+    .toPublicCertificateMaterialReconcileFailure(
         operation: String,
-    ): NativeOpenPgpCertificateMaterialReconcileV2Result.Error {
+    ): NativeOpenPgpCertificateMaterialReconcileFailure {
     val existingPublic = existingPublicInputError.toPublicCertificateInputError()
     val incomingPublic = incomingPublicInputError.toPublicCertificateInputError()
     val existingSecret = existingSecretInputError.toPublicCertificateInputError()
@@ -2232,14 +2210,13 @@ private fun OpenPgpCertificateMaterialReconcileErrorProto
     )
     val hasInputError = inputFailure.hasAnyInputError()
     if (hasInputError == (pair != null)) malformedOpenPgp(operation)
-    val failure = if (hasInputError) {
+    return if (hasInputError) {
         inputFailure
     } else {
         NativeOpenPgpCertificateMaterialReconcileFailure.Pair(
             pair ?: malformedOpenPgp(operation),
         )
     }
-    return NativeOpenPgpCertificateMaterialReconcileV2Result.Error(failure)
 }
 
 private fun NativeOpenPgpCertificateMaterialReconcileFailure.InvalidInputs.hasAnyInputError(): Boolean =
@@ -3388,13 +3365,7 @@ private fun requireOpenPgpKeyId(operation: String, value: String) {
 }
 
 private fun requireOpenPgpFingerprint(operation: String, value: String) {
-    if (
-        value.length !in OPEN_PGP_MIN_FINGERPRINT_HEX_CHARS..OPEN_PGP_MAX_FINGERPRINT_HEX_CHARS ||
-        value.length % 2 != 0 ||
-        !value.isUpperHex()
-    ) {
-        malformedOpenPgp(operation)
-    }
+    if (!value.isValidOpenPgpFingerprint()) malformedOpenPgp(operation)
 }
 
 private fun requireOpenPgpKeygrip(operation: String, value: String?) {

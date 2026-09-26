@@ -81,7 +81,6 @@ pub(crate) fn prepare_parent<F: FsOps>(
         missing_components,
         first_missing_observed,
         policy,
-        ExistingParentLinkPolicy::Reject,
         synchronization,
         sync_level,
         preflight_existing_namespace,
@@ -126,7 +125,6 @@ pub(crate) fn prepare_parent_at<F: FsOps>(
         &components[depth..],
         first_missing_observed,
         policy,
-        ExistingParentLinkPolicy::Reject,
         synchronization,
         sync_level,
         preflight_existing_namespace,
@@ -215,7 +213,6 @@ fn prepare_components<F: FsOps>(
     components: &[String],
     first_missing_observed: bool,
     policy: ParentDirectoryPolicy,
-    existing_parent_links: ExistingParentLinkPolicy,
     synchronization: SyncPolicy,
     sync_level: SyncLevel,
     preflight_existing_namespace: bool,
@@ -226,7 +223,6 @@ fn prepare_components<F: FsOps>(
 
     for (index, component) in components.iter().enumerate() {
         let parent = directories.last().unwrap_or(root);
-        let follow_links = existing_parent_links == ExistingParentLinkPolicy::FollowAndPin;
         let existing = if first_missing_observed && index == 0 {
             debug_assert!(matches!(
                 policy,
@@ -234,7 +230,8 @@ fn prepare_components<F: FsOps>(
             ));
             None
         } else {
-            match fs.open_dir_at(parent, component, follow_links) {
+            // Traversal of the remaining components always rejects links.
+            match fs.open_dir_at(parent, component, false) {
                 Ok(child) => Some(child),
                 Err(error) if error.kind() == io::ErrorKind::NotFound => {
                     if policy == ParentDirectoryPolicy::RequireExisting {

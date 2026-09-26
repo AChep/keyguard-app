@@ -141,10 +141,7 @@ pub(crate) fn decrypt_legacy_openssl_pem(
     };
     let mut key = evp_bytes_to_key_md5(&password, salt, spec.algorithm.key_size())?;
     if spec.algorithm == LegacyAlgorithm::TripleDes2 {
-        let first_component = key[..8].to_vec();
-        key[16..24].copy_from_slice(&first_component);
-        let mut first_component = first_component;
-        first_component.zeroize();
+        key.copy_within(..8, 16);
     }
 
     match spec.algorithm {

@@ -569,13 +569,13 @@ pub(in crate::openpgp) fn encode_key_material(
     public
         .to_writer(&mut public_packets)
         .map_err(|_| OpenPgpWriteError::Internal)?;
-    let private_key_armored =
+    let mut private_key_armored =
         armor_key_packets_zeroizing(private_packets.as_slice(), BlockType::PrivateKey)
             .map_err(map_generated_key_armor_error)?;
     let public_key_armored = armor_key_packets(&public_packets, BlockType::PublicKey)
         .map_err(map_generated_key_armor_error)?;
     Ok(KeyMaterial {
-        private_key_armored: private_key_armored.to_vec(),
+        private_key_armored: std::mem::take(&mut *private_key_armored),
         public_key_armored,
         fingerprint: fingerprint_hex(&public.primary_key),
     })

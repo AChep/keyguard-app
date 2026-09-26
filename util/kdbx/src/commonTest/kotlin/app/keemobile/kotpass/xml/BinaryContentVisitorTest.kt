@@ -85,6 +85,22 @@ class BinaryContentVisitorTest {
     }
 
     @Test
+    fun preservesPaddingStateAcrossXmlChunks() {
+        val valid = document(
+            valueAttributes = "",
+            encodedValue = "YQ=<![CDATA[=]]>",
+        )
+        assertContentEquals("a".encodeToByteArray(), visit(valid))
+
+        listOf("YQ=<![CDATA[A]]>", "YQ==<![CDATA[=]]>").forEach { encoded ->
+            val invalid = document(valueAttributes = "", encodedValue = encoded)
+            assertFailsWith<FormatError.InvalidXml> {
+                visit(invalid)
+            }
+        }
+    }
+
+    @Test
     fun rejectsMalformedBinaryBase64() {
         val xml = document(
             valueAttributes = "",

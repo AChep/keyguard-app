@@ -288,24 +288,20 @@ pub(crate) fn merge_secret_certificate_overlays(
     let (primary, existing_primary_contributed, incoming_primary_contributed) =
         merge_primary_secret_packet_overlays(existing_primary, incoming_primary)?;
 
-    let existing_fingerprints = subkeys
-        .iter()
-        .filter_map(|(fingerprint, packet)| packet.is_material().then_some(fingerprint.clone()))
-        .collect::<BTreeSet<_>>();
-    let incoming_material_fingerprints = incoming_subkeys
-        .iter()
-        .filter_map(|(fingerprint, packet)| packet.is_material().then_some(fingerprint.clone()))
-        .collect::<BTreeSet<_>>();
     let mut existing_contributed = existing_primary_contributed
-        || existing_fingerprints
-            .difference(&incoming_material_fingerprints)
-            .next()
-            .is_some();
+        || subkeys.iter().any(|(fingerprint, packet)| {
+            packet.is_material()
+                && !incoming_subkeys
+                    .get(fingerprint)
+                    .is_some_and(SubkeySecretPacketOverlay::is_material)
+        });
     let mut incoming_contributed = incoming_primary_contributed
-        || incoming_material_fingerprints
-            .difference(&existing_fingerprints)
-            .next()
-            .is_some();
+        || incoming_subkeys.iter().any(|(fingerprint, packet)| {
+            packet.is_material()
+                && !subkeys
+                    .get(fingerprint)
+                    .is_some_and(SubkeySecretPacketOverlay::is_material)
+        });
     for fingerprint in incoming_subkey_order {
         if !subkey_order.contains(&fingerprint) {
             subkey_order.push(fingerprint);
@@ -772,7 +768,7 @@ pub(crate) fn armor_key_packets(
     data: &[u8],
     block_type: BlockType,
 ) -> Result<Vec<u8>, MutationMaterialError> {
-    armor_key_packets_zeroizing(data, block_type).map(|output| output.to_vec())
+    armor_key_packets_zeroizing(data, block_type).map(|mut output| std::mem::take(&mut *output))
 }
 
 pub(crate) fn armor_key_packets_zeroizing(

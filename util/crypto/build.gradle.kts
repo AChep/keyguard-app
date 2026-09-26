@@ -1,3 +1,4 @@
+import com.artemchep.keyguard.buildplugins.kotlin.sharedJvmMain
 import com.artemchep.keyguard.buildplugins.testing.registerJvmBenchmark
 import org.gradle.api.tasks.testing.Test
 
@@ -37,14 +38,8 @@ kotlin {
             }
         }
 
-        val jvmCommonMain = create("jvmCommonMain") {
-            dependsOn(commonMain)
-        }
-        getByName("androidMain") {
-            dependsOn(jvmCommonMain)
-        }
+        sharedJvmMain(name = "jvmCommonMain")
         getByName("desktopMain") {
-            dependsOn(jvmCommonMain)
             dependencies {
                 implementation(libs.java.jna)
             }

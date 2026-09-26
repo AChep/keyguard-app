@@ -1,9 +1,7 @@
 package com.artemchep.keyguard.util.planeta
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,20 +45,16 @@ fun Planeta(
         }
     }
 
-    Box(
+    Canvas(
         modifier = modifier
             .aspectRatio(1f),
     ) {
-        Canvas(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            val seconds = frameNanos / 1_000_000_000f
-            drawPlanetaScene(
-                spec = spec,
-                options = options,
-                seconds = seconds,
-            )
-        }
+        val seconds = frameNanos / 1_000_000_000f
+        drawPlanetaScene(
+            spec = spec,
+            options = options,
+            seconds = seconds,
+        )
     }
 }
 

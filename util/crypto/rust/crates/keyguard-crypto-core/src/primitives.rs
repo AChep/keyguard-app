@@ -388,11 +388,7 @@ pub(crate) fn rsa_oaep_decrypt(
     if ciphertext.len() > private_key.key_size_bytes() {
         return Err(PrimitiveError::AuthenticationFailed);
     }
-    let algorithm: &'static OaepAlgorithm = match hash {
-        RsaOaepHash::Sha1 => &OAEP_SHA1_MGF1SHA1,
-        RsaOaepHash::Sha256 => &OAEP_SHA256_MGF1SHA256,
-        RsaOaepHash::Unspecified => return Err(PrimitiveError::InvalidArgument),
-    };
+    let algorithm = rsa_oaep_algorithm(hash)?;
     // Bouncy Castle accepts a positive RSA integer shorter than the modulus.
     // Preserve that serialized-input behavior by restoring omitted leading
     // zero octets before calling AWS-LC's fixed-width interface.
@@ -945,14 +941,6 @@ where
     if data.is_empty() || !data.len().is_multiple_of(AES_BLOCK_BYTES) {
         return Err(PrimitiveError::InvalidArgument);
     }
-    let cipher =
-        Decryptor::<C>::new_from_slices(key, iv).map_err(|_| PrimitiveError::InvalidArgument)?;
-    cipher
-        .decrypt_padded_mut::<NoPadding>(data)
-        .map_err(|_| PrimitiveError::AuthenticationFailed)?;
-    let final_block = &data[data.len() - AES_BLOCK_BYTES..];
-    let final_length =
-        pkcs7_unpadded_block_length(final_block).ok_or(PrimitiveError::AuthenticationFailed)?;
-    let plaintext_length = data.len() - AES_BLOCK_BYTES + final_length;
+    let plaintext_length = cbc_decrypt_into::<C>(key, iv, data)?;
     Ok(data[..plaintext_length].to_vec())
 }

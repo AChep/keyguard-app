@@ -1193,27 +1193,11 @@ mod posix {
             dir: &PosixDir,
             name: &str,
         ) -> io::Result<Option<PosixReplaceMetadata>> {
-            let name = c_name(name)?;
-            let mut stat = std::mem::MaybeUninit::<libc::stat>::uninit();
-            // SAFETY: The name is NUL-terminated, the directory descriptor is
-            // valid, and `stat` points to writable storage of the exact type.
-            let result = unsafe {
-                libc::fstatat(
-                    dir.fd.as_raw_fd(),
-                    name.as_ptr(),
-                    stat.as_mut_ptr(),
-                    libc::AT_SYMLINK_NOFOLLOW,
-                )
+            let stat = match stat_name_at(dir.fd.as_raw_fd(), name) {
+                Ok(stat) => stat,
+                Err(error) if error.raw_os_error() == Some(libc::ENOENT) => return Ok(None),
+                Err(error) => return Err(error),
             };
-            if result != 0 {
-                let error = io::Error::last_os_error();
-                if error.raw_os_error() == Some(libc::ENOENT) {
-                    return Ok(None);
-                }
-                return Err(error);
-            }
-            // SAFETY: `fstatat` succeeded, so the buffer is fully initialized.
-            let stat = unsafe { stat.assume_init() };
             if u64::from(stat.st_mode) & u64::from(libc::S_IFMT) != u64::from(libc::S_IFREG) {
                 return Err(io::Error::from_raw_os_error(libc::EINVAL));
             }
@@ -1241,14 +1225,7 @@ mod posix {
             file: &mut PosixFile,
             metadata: &PosixReplaceMetadata,
         ) -> io::Result<()> {
-            let mut stat = std::mem::MaybeUninit::<libc::stat>::uninit();
-            // SAFETY: The descriptor is valid and `stat` points to writable
-            // storage of the exact type.
-            if unsafe { libc::fstat(file.data.as_raw_fd(), stat.as_mut_ptr()) } != 0 {
-                return Err(io::Error::last_os_error());
-            }
-            // SAFETY: `fstat` succeeded, so the buffer is fully initialized.
-            let stat = unsafe { stat.assume_init() };
+            let stat = stat_fd_raw(file.data.as_raw_fd())?;
             if u64::from(stat.st_mode) & 0o777 != u64::from(metadata.mode) {
                 return Err(io::Error::other(
                     "staged file permissions differ from the captured destination permissions",
@@ -1756,9 +1733,9 @@ mod posix {
             )));
         }
 
-        match try_lock_directory(fresh.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)? {
+        match try_lock_fd(fresh.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)? {
             LeaseAttempt::Acquired => {
-                match try_lock_directory(fresh.as_raw_fd(), libc::LOCK_SH | libc::LOCK_NB)? {
+                match try_lock_fd(fresh.as_raw_fd(), libc::LOCK_SH | libc::LOCK_NB)? {
                     LeaseAttempt::Acquired => {}
                     LeaseAttempt::Busy => {
                         return Err(StagedCreationError::classified(
@@ -1774,7 +1751,7 @@ mod posix {
                 }
             }
             LeaseAttempt::Busy => {
-                match try_lock_directory(fresh.as_raw_fd(), libc::LOCK_SH | libc::LOCK_NB)? {
+                match try_lock_fd(fresh.as_raw_fd(), libc::LOCK_SH | libc::LOCK_NB)? {
                     LeaseAttempt::Acquired => {}
                     LeaseAttempt::Busy => {
                         return Err(StagedCreationError::classified(
@@ -1801,9 +1778,9 @@ mod posix {
         Ok(DirectoryLeaseAttempt::Acquired(fresh))
     }
 
-    fn try_lock_directory(fd: RawFd, operation: libc::c_int) -> io::Result<LeaseAttempt> {
+    fn try_lock_fd(fd: RawFd, operation: libc::c_int) -> io::Result<LeaseAttempt> {
         loop {
-            // SAFETY: `fd` is a retained directory descriptor and flock has
+            // SAFETY: `fd` is a retained descriptor and flock has
             // no pointer arguments.
             if unsafe { libc::flock(fd, operation) } == 0 {
                 return Ok(LeaseAttempt::Acquired);
@@ -1837,43 +1814,11 @@ mod posix {
     }
 
     fn try_lock_exclusive(fd: RawFd) -> io::Result<LeaseAttempt> {
-        loop {
-            // SAFETY: `fd` is retained and flock has no pointer arguments.
-            if unsafe { libc::flock(fd, libc::LOCK_EX | libc::LOCK_NB) } == 0 {
-                return Ok(LeaseAttempt::Acquired);
-            }
-            let error = io::Error::last_os_error();
-            if error.kind() == io::ErrorKind::Interrupted {
-                continue;
-            }
-            if error.kind() == io::ErrorKind::WouldBlock {
-                return Ok(LeaseAttempt::Busy);
-            }
-            if lock_capability_absent(&error) {
-                return Ok(LeaseAttempt::Unsupported);
-            }
-            return Err(error);
-        }
+        try_lock_fd(fd, libc::LOCK_EX | libc::LOCK_NB)
     }
 
     fn create_sidecar_at(directory_fd: RawFd, name: &str) -> io::Result<File> {
-        let name = c_name(name)?;
-        // SAFETY: The name is NUL-terminated, the parent descriptor is valid,
-        // and O_CREAT supplies the documented mode argument.
-        let fd = unsafe {
-            libc::openat(
-                directory_fd,
-                name.as_ptr(),
-                libc::O_CREAT | libc::O_EXCL | libc::O_RDWR | libc::O_CLOEXEC | libc::O_NOFOLLOW,
-                0o600,
-            )
-        };
-        if fd < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: `openat` returned a new uniquely-owned descriptor.
-        let file = unsafe { File::from_raw_fd(fd) };
-        Ok(file)
+        create_data_file_at(directory_fd, name, true)
     }
 
     fn prepare_sidecar(file: &File) -> io::Result<FileIdentity> {
@@ -2143,14 +2088,7 @@ mod posix {
         name: &std::ffi::CStr,
         file: &File,
     ) -> io::Result<NamedFileBinding> {
-        let mut retained = std::mem::MaybeUninit::<libc::stat>::uninit();
-        // SAFETY: the file descriptor is valid and `retained` points to
-        // writable storage of the exact type.
-        if unsafe { libc::fstat(file.as_raw_fd(), retained.as_mut_ptr()) } != 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: `fstat` succeeded, so the structure is initialized.
-        let retained = unsafe { retained.assume_init() };
+        let retained = stat_fd_raw(file.as_raw_fd())?;
 
         let mut named = std::mem::MaybeUninit::<libc::stat>::uninit();
         // SAFETY: the relative name is NUL-terminated, the retained directory
@@ -2879,7 +2817,7 @@ mod posix {
                 "sweeper" => {
                     let lease = openat_directory(dir.fd.as_raw_fd(), c".", true)
                         .expect("fresh sweeper description must open");
-                    match try_lock_directory(lease.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)
+                    match try_lock_fd(lease.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)
                         .expect("sweeper lock probe must complete")
                     {
                         LeaseAttempt::Acquired => DirectoryWriterLease::new(lease),
@@ -2949,14 +2887,14 @@ mod posix {
                 .expect("fresh sweeper description must open");
 
             assert_eq!(
-                try_lock_directory(sweeper.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)
+                try_lock_fd(sweeper.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)
                     .expect("sweeper probe must complete"),
                 LeaseAttempt::Busy,
             );
             second.release().expect("second writer lease must release");
             first.release().expect("first writer lease must release");
             assert_eq!(
-                try_lock_directory(sweeper.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)
+                try_lock_fd(sweeper.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)
                     .expect("sweeper probe after release must complete"),
                 LeaseAttempt::Acquired,
             );
@@ -3242,7 +3180,7 @@ mod posix {
             let independent = openat_directory(dir.fd.as_raw_fd(), c".", true)
                 .expect("independent directory description must open");
             assert_eq!(
-                try_lock_directory(independent.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)
+                try_lock_fd(independent.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)
                     .expect("exclusive probe after explicit release must complete"),
                 LeaseAttempt::Acquired,
                 "unlock must release the open-description lock even while a duplicate remains open",
@@ -3273,7 +3211,7 @@ mod posix {
             let duplicate = unsafe { OwnedFd::from_raw_fd(duplicate) };
 
             assert_eq!(
-                try_lock_directory(duplicate.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)
+                try_lock_fd(duplicate.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)
                     .expect("lock conversion through duplicate must complete"),
                 LeaseAttempt::Acquired,
                 "a dup shares and therefore mutates the writer's open-description lock",
@@ -3281,7 +3219,7 @@ mod posix {
             let independent = openat_directory(dir.fd.as_raw_fd(), c".", true)
                 .expect("independent directory description must open");
             assert_eq!(
-                try_lock_directory(independent.as_raw_fd(), libc::LOCK_SH | libc::LOCK_NB)
+                try_lock_fd(independent.as_raw_fd(), libc::LOCK_SH | libc::LOCK_NB)
                     .expect("independent shared probe must complete"),
                 LeaseAttempt::Busy,
             );
@@ -3290,7 +3228,7 @@ mod posix {
                 .release()
                 .expect("writer release must unlock the duplicated description");
             assert_eq!(
-                try_lock_directory(independent.as_raw_fd(), libc::LOCK_SH | libc::LOCK_NB)
+                try_lock_fd(independent.as_raw_fd(), libc::LOCK_SH | libc::LOCK_NB)
                     .expect("shared probe after release must complete"),
                 LeaseAttempt::Acquired,
             );
@@ -3322,7 +3260,7 @@ mod posix {
             let independent = openat_directory(dir.fd.as_raw_fd(), c".", true)
                 .expect("independent directory description must open");
             assert_eq!(
-                try_lock_directory(independent.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)
+                try_lock_fd(independent.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB)
                     .expect("exclusive probe after dropped lease must complete"),
                 LeaseAttempt::Acquired,
                 "Drop must unlock the open-description lock while a duplicate remains open",

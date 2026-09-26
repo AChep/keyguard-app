@@ -78,6 +78,29 @@ unsafe fn string_from_raw<'a>(pointer: *const u8, length: usize) -> Result<&'a s
     str::from_utf8(bytes).map_err(|_| pack_bridge_invalid_argument())
 }
 
+/// # Safety
+///
+/// Each pointer/length pair must describe readable bytes valid for the
+/// duration of the call; a pointer may be null when its length is zero.
+unsafe fn open_with(
+    path_ptr: *const u8,
+    path_len: usize,
+    password_ptr: *const u8,
+    password_len: usize,
+    open: fn(&str, Option<&str>) -> Result<u64, i64>,
+) -> Result<i64, i64> {
+    if path_len > MAX_PATH_BYTES {
+        return Err(pack_bridge_invalid_argument());
+    }
+    // SAFETY: Forwarded from this function's own contract.
+    let path = unsafe { string_from_raw(path_ptr, path_len) }?;
+    // SAFETY: Forwarded from this function's own contract.
+    let password = unsafe { string_from_raw(password_ptr, password_len) }?;
+    let password = (password_len != 0).then_some(password);
+    let handle = open(path, password)?;
+    i64::try_from(handle).map_err(|_| pack_bridge_internal())
+}
+
 /// Returns the native function ABI version.
 #[unsafe(no_mangle)]
 pub extern "C" fn keyguard_zip_abi_version() -> u32 {
@@ -99,16 +122,16 @@ pub unsafe extern "C" fn keyguard_zip_writer_open(
     password_len: usize,
 ) -> i64 {
     unwrap(contained(|| {
-        if path_len > MAX_PATH_BYTES {
-            return Err(pack_bridge_invalid_argument());
+        // SAFETY: Forwarded from this function's own contract.
+        unsafe {
+            open_with(
+                path_ptr,
+                path_len,
+                password_ptr,
+                password_len,
+                keyguard_zip_core::open,
+            )
         }
-        // SAFETY: Forwarded from this function's own contract.
-        let path = unsafe { string_from_raw(path_ptr, path_len) }?;
-        // SAFETY: Forwarded from this function's own contract.
-        let password = unsafe { string_from_raw(password_ptr, password_len) }?;
-        let password = (password_len != 0).then_some(password);
-        let handle = keyguard_zip_core::open(path, password)?;
-        i64::try_from(handle).map_err(|_| pack_bridge_internal())
     }))
 }
 
@@ -197,16 +220,16 @@ pub unsafe extern "C" fn keyguard_zip_reader_open(
     password_len: usize,
 ) -> i64 {
     unwrap(contained(|| {
-        if path_len > MAX_PATH_BYTES {
-            return Err(pack_bridge_invalid_argument());
+        // SAFETY: Forwarded from this function's own contract.
+        unsafe {
+            open_with(
+                path_ptr,
+                path_len,
+                password_ptr,
+                password_len,
+                keyguard_zip_core::reader_open,
+            )
         }
-        // SAFETY: Forwarded from this function's own contract.
-        let path = unsafe { string_from_raw(path_ptr, path_len) }?;
-        // SAFETY: Forwarded from this function's own contract.
-        let password = unsafe { string_from_raw(password_ptr, password_len) }?;
-        let password = (password_len != 0).then_some(password);
-        let handle = keyguard_zip_core::reader_open(path, password)?;
-        i64::try_from(handle).map_err(|_| pack_bridge_internal())
     }))
 }
 

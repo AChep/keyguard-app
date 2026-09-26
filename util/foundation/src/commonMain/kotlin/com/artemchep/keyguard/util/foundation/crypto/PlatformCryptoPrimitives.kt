@@ -2,7 +2,6 @@ package com.artemchep.keyguard.util.foundation.crypto
 
 import com.artemchep.keyguard.nativecrypto.NativeArgon2Mode
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
-import com.artemchep.keyguard.nativecrypto.NativeHashAlgorithm
 
 /** Loads the native crypto backend and fails closed on an incompatible runtime. */
 fun ensurePlatformCryptoReady() {
@@ -67,7 +66,7 @@ class PlatformCryptoPrimitives : CryptoPrimitives {
     ): ByteArray = delegate.hmac(
         key = key,
         data = data,
-        algorithm = algorithm.toNative(),
+        algorithm = algorithm.toNativeHashAlgorithm(),
     )
 
     override fun sha1(data: ByteArray): ByteArray = delegate.sha1(data)
@@ -110,12 +109,5 @@ class PlatformCryptoPrimitives : CryptoPrimitives {
         Argon2Mode.ARGON2_D -> NativeArgon2Mode.ARGON2_D
         Argon2Mode.ARGON2_I -> NativeArgon2Mode.ARGON2_I
         Argon2Mode.ARGON2_ID -> NativeArgon2Mode.ARGON2_ID
-    }
-
-    private fun CryptoHashAlgorithm.toNative(): NativeHashAlgorithm = when (this) {
-        CryptoHashAlgorithm.SHA_1 -> NativeHashAlgorithm.SHA_1
-        CryptoHashAlgorithm.SHA_256 -> NativeHashAlgorithm.SHA_256
-        CryptoHashAlgorithm.SHA_512 -> NativeHashAlgorithm.SHA_512
-        CryptoHashAlgorithm.MD5 -> NativeHashAlgorithm.MD5
     }
 }

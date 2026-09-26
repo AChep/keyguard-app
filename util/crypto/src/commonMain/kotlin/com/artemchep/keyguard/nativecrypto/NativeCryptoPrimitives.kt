@@ -213,14 +213,7 @@ public object NativeCryptoPrimitives {
             operationName = "random_bytes",
             operation = RandomBytesOperationProto(RandomBytesRequestProto(length)),
         ).requireBytes("random_bytes")
-        if (result.size != length) {
-            result.fill(0)
-            throw NativeCryptoException(
-                operation = "random_bytes",
-                code = NativeCryptoErrorCode.MALFORMED_RESPONSE,
-            )
-        }
-        return result
+        return result.requireNativeCryptoOutputSize("random_bytes", length)
     }
 
     public fun randomInt(): Int = NativeCrypto.randomInt(exclusiveUpperBound = 0)
@@ -730,12 +723,6 @@ public object NativeCryptoPrimitives {
                     inputChunk.fill(0)
                 }
                 try {
-                    if (outputChunk.size != chunkLength) {
-                        throw NativeCryptoException(
-                            operation = STREAM_CIPHER_OPERATION,
-                            code = NativeCryptoErrorCode.MALFORMED_RESPONSE,
-                        )
-                    }
                     outputChunk.copyInto(result, destinationOffset = dataOffset)
                 } finally {
                     outputChunk.fill(0)
@@ -807,14 +794,7 @@ public object NativeCryptoPrimitives {
                 ),
             ),
         ).requireBytes(STREAM_CIPHER_OPERATION)
-        if (output.size != data.size) {
-            output.fill(0)
-            throw NativeCryptoException(
-                operation = STREAM_CIPHER_OPERATION,
-                code = NativeCryptoErrorCode.MALFORMED_RESPONSE,
-            )
-        }
-        return output
+        return output.requireNativeCryptoOutputSize(STREAM_CIPHER_OPERATION, data.size)
     }
 
     private fun sshAgentTcpChaCha20Poly1305(
@@ -877,14 +857,10 @@ public object NativeCryptoPrimitives {
             CipherDirectionProto.DECRYPT -> payload.size - CHACHA20_POLY1305_TAG_BYTES
             CipherDirectionProto.UNSPECIFIED -> error("Cipher direction must be specified")
         }
-        if (output.size != expectedOutputSize) {
-            output.fill(0)
-            throw NativeCryptoException(
-                operation = SSH_AGENT_TCP_CHACHA20_POLY1305_OPERATION,
-                code = NativeCryptoErrorCode.MALFORMED_RESPONSE,
-            )
-        }
-        return output
+        return output.requireNativeCryptoOutputSize(
+            SSH_AGENT_TCP_CHACHA20_POLY1305_OPERATION,
+            expectedOutputSize,
+        )
     }
 
     private fun aesCbcPkcs7(
@@ -1010,15 +986,7 @@ public object NativeCryptoPrimitives {
         transform: (ByteArray) -> ByteArray,
     ): ByteArray {
         if (data.size <= NATIVE_CRYPTO_INLINE_DATA_BYTES) {
-            val output = transform(data)
-            if (output.size != data.size) {
-                output.fill(0)
-                throw NativeCryptoException(
-                    operation = operationName,
-                    code = NativeCryptoErrorCode.MALFORMED_RESPONSE,
-                )
-            }
-            return output
+            return transform(data).requireNativeCryptoOutputSize(operationName, data.size)
         }
 
         val result = ByteArray(data.size)
@@ -1033,12 +1001,7 @@ public object NativeCryptoPrimitives {
                     inputChunk.fill(0)
                 }
                 try {
-                    if (outputChunk.size != chunkLength) {
-                        throw NativeCryptoException(
-                            operation = operationName,
-                            code = NativeCryptoErrorCode.MALFORMED_RESPONSE,
-                        )
-                    }
+                    outputChunk.requireNativeCryptoOutputSize(operationName, chunkLength)
                     outputChunk.copyInto(result, destinationOffset = offset)
                 } finally {
                     outputChunk.fill(0)

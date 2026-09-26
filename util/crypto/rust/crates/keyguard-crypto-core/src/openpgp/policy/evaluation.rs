@@ -14,6 +14,7 @@ use pgp::{
 
 use crate::openpgp::{
     certificate::PublicComponent,
+    crypto::signature_key_hash_data,
     crypto::verification::{
         is_certification, key_signature_verification_acceptable, signature_creation_time,
         signature_ignoring_unhashed_issuer_hints, signature_matches_signer,
@@ -205,10 +206,10 @@ where
     if let SignatureVersionSpecific::V6 { salt } = &config.version_specific {
         hasher.update(salt);
     }
-    let Some(primary_hash_data) = key_hash_data(primary) else {
+    let Some(primary_hash_data) = signature_key_hash_data(primary) else {
         return false;
     };
-    let Some(subkey_hash_data) = key_hash_data(subkey) else {
+    let Some(subkey_hash_data) = signature_key_hash_data(subkey) else {
         return false;
     };
     hasher.update(&primary_hash_data);
@@ -232,27 +233,6 @@ where
         .is_some_and(|value| signer.verify(config.hash_alg, &digest, value).is_ok())
 }
 
-fn key_hash_data<K>(key: &K) -> Option<Vec<u8>>
-where
-    K: KeyDetails + Serialize,
-{
-    let key_len = key.write_len();
-    let mut result = Vec::with_capacity(key_len.saturating_add(5));
-    match key.version() {
-        KeyVersion::V2 | KeyVersion::V3 | KeyVersion::V4 => {
-            result.push(0x99);
-            result.extend_from_slice(&u16::try_from(key_len).ok()?.to_be_bytes());
-        }
-        KeyVersion::V6 => {
-            result.push(0x9b);
-            result.extend_from_slice(&u32::try_from(key_len).ok()?.to_be_bytes());
-        }
-        _ => return None,
-    }
-    key.to_writer(&mut result).ok()?;
-    Some(result)
-}
-
 /// Computes the digest signed by a primary-key-only signature.
 ///
 /// `pgp` deliberately limits its direct-key helpers to signature types 0x1F
@@ -267,7 +247,7 @@ where
     if let SignatureVersionSpecific::V6 { salt } = &config.version_specific {
         hasher.update(salt);
     }
-    hasher.update(&key_hash_data(key)?);
+    hasher.update(&signature_key_hash_data(key)?);
     let signature_data_len = config.hash_signature_data(&mut hasher).ok()?;
     hasher.update(&config.trailer(signature_data_len).ok()?);
     Some(hasher.finalize().to_vec())
@@ -426,7 +406,7 @@ where
     if let SignatureVersionSpecific::V6 { salt } = &config.version_specific {
         hasher.update(salt);
     }
-    hasher.update(&key_hash_data(primary)?);
+    hasher.update(&signature_key_hash_data(primary)?);
 
     let identity_len = identity.write_len();
     let mut identity_body = Vec::with_capacity(identity_len);

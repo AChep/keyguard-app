@@ -2903,6 +2903,40 @@ fn normalized_signature_variants_retain_one_complete_wire_packet() {
 }
 
 #[test]
+fn subkey_binding_preflight_requires_a_valid_primary_signature() {
+    for version in [KeyVersion::V4, KeyVersion::V6] {
+        let secret = generated_uniform_version_secret(version, 0x4249_4e44_0001);
+        let mut certificate = certificate_packet_set(&secret);
+        assert_eq!(certificate.subkeys.len(), 1);
+        assert!(certificate.subkeys_are_bound().expect("valid binding"));
+
+        let foreign = generated_uniform_version_secret(version, 0x4249_4e44_0002);
+        let foreign_certificate = certificate_packet_set(&foreign);
+        certificate
+            .subkeys
+            .values_mut()
+            .next()
+            .expect("subkey")
+            .attached = foreign_certificate
+            .subkeys
+            .values()
+            .next()
+            .expect("foreign subkey")
+            .attached
+            .clone();
+        assert!(!certificate.subkeys_are_bound().expect("foreign binding"));
+
+        certificate
+            .subkeys
+            .values_mut()
+            .next()
+            .expect("subkey")
+            .attached = AttachedPackets::default();
+        assert!(!certificate.subkeys_are_bound().expect("absent binding"));
+    }
+}
+
+#[test]
 fn prepared_signature_entry_reuses_the_parsed_value_through_merge() {
     let packet = first_signature_packet(&parse_fixture());
     let signature = Arc::new(parse_signature_packet(&packet).expect("parse fixture signature"));

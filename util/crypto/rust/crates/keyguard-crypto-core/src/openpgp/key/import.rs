@@ -378,20 +378,7 @@ fn import_packet_material(
         if unlocked_body.get(..packet.public_len) != Some(&body[..packet.public_len]) {
             return Err(ImportPacketError::UnsupportedFormat);
         }
-        let suffix = unlocked_body
-            .get(packet.public_len..)
-            .ok_or(ImportPacketError::Internal)?;
-        let preserved_len = packet
-            .public_len
-            .checked_add(suffix.len())
-            .ok_or(ImportPacketError::ResourceLimit)?;
-        let mut preserved_body = Zeroizing::new(Vec::new());
-        preserved_body
-            .try_reserve_exact(preserved_len)
-            .map_err(|_| ImportPacketError::ResourceLimit)?;
-        preserved_body.extend_from_slice(&body[..packet.public_len]);
-        preserved_body.extend_from_slice(suffix);
-        let private_packet = write_fixed_packet_zeroizing(packet.span.tag(), &preserved_body)?;
+        let private_packet = write_fixed_packet_zeroizing(packet.span.tag(), &unlocked_body)?;
         private_packet_chunks
             .push(private_packet, usize::MAX)
             .map_err(|_| ImportPacketError::ResourceLimit)?;
@@ -404,10 +391,11 @@ fn import_packet_material(
     // for later inspection/repair while still excluding signatures whose
     // signed metadata says they must not enter a public projection.
     let public_packets = local_public_certificate_preserving_framing(&public_packets)?;
-    let private_key_armored = armor_key_packets_zeroizing(&private_packets, BlockType::PrivateKey)?;
+    let mut private_key_armored =
+        armor_key_packets_zeroizing(&private_packets, BlockType::PrivateKey)?;
     let public_key_armored = armor_key_packets(&public_packets, BlockType::PublicKey)?;
     Ok(KeyMaterial {
-        private_key_armored: private_key_armored.to_vec(),
+        private_key_armored: std::mem::take(&mut *private_key_armored),
         public_key_armored,
         fingerprint: format!("{primary_fingerprint:X}"),
     })
@@ -532,7 +520,7 @@ pub(in crate::openpgp) fn armor_key_packets(
     packets: &[u8],
     block_type: BlockType,
 ) -> Result<Vec<u8>, ImportPacketError> {
-    armor_key_packets_zeroizing(packets, block_type).map(|output| output.to_vec())
+    armor_key_packets_zeroizing(packets, block_type).map(|mut output| std::mem::take(&mut *output))
 }
 
 pub(super) fn armor_key_packets_zeroizing(

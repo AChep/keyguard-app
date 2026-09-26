@@ -90,27 +90,17 @@ private suspend fun startNegotiate(
         throw IllegalStateException("There were no compatible transports on the server.")
     }
 
-    if (response.connectionId == null) {
-        throw IllegalStateException("Missing required property 'connectionId'.")
-    }
-    if (response.negotiateVersion > 0 && response.connectionToken == null) {
-        throw IllegalStateException("Missing required property 'connectionToken'.")
-    }
-
+    val connectionId = response.connectionId
+        ?: throw IllegalStateException("Missing required property 'connectionId'.")
     val id = if (response.negotiateVersion > 0) {
         response.connectionToken
+            ?: throw IllegalStateException("Missing required property 'connectionToken'.")
     } else {
-        response.connectionId
+        connectionId
     }
-    val connectionId = response.connectionId
-
-    val finalUrl = if (id != null) {
-        URLBuilder(url)
-            .apply { parameters.append("id", id) }
-            .buildString()
-    } else {
-        url
-    }
+    val finalUrl = URLBuilder(url)
+        .apply { parameters.append("id", id) }
+        .buildString()
 
     return HubNegotiation(
         url = finalUrl,

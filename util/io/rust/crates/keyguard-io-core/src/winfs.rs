@@ -215,7 +215,8 @@ pub(crate) fn capture_file_dacl(handle: HANDLE) -> io::Result<CapturedDacl> {
     // GetSecurityInfo contract documents only that the buffer must be
     // released with LocalFree and never states which form it returns, so this
     // verifies the property instead of assuming it.
-    if descriptor_control(descriptor)? & SE_SELF_RELATIVE == 0 {
+    let control = descriptor_control(descriptor)?;
+    if control & SE_SELF_RELATIVE == 0 {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "GetSecurityInfo returned a security descriptor that is not self-relative",
@@ -242,13 +243,6 @@ pub(crate) fn capture_file_dacl(handle: HANDLE) -> io::Result<CapturedDacl> {
             io::ErrorKind::InvalidData,
             "GetSecurityInfo returned inconsistent DACL information",
         ));
-    }
-
-    let mut control = 0_u16;
-    let mut revision = 0_u32;
-    // SAFETY: The descriptor is valid and both outputs are writable.
-    if unsafe { GetSecurityDescriptorControl(descriptor, &mut control, &mut revision) } == 0 {
-        return Err(io::Error::last_os_error());
     }
 
     // SAFETY: The descriptor was validated above.

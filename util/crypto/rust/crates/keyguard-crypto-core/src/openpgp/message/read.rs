@@ -558,19 +558,9 @@ pub(crate) fn parse_public_key(
         return Ok(PublicKeyParseOutcome::Failure(PublicKeyParseFailure::Empty));
     }
     let reference_time = reference_time(request.reference_time_epoch_seconds);
-    let (contains_secret_key_material, certificate_boundaries) =
+    let stream =
         match RawPacketStream::parse_transferable_keyring(&key_data, MAX_PACKETS_PER_REQUEST) {
-            Ok(stream) => (
-                stream
-                    .packets()
-                    .iter()
-                    .any(|packet| matches!(packet.tag(), SECRET_KEY_TAG | SECRET_SUBKEY_TAG)),
-                stream
-                    .packets()
-                    .iter()
-                    .filter(|packet| matches!(packet.tag(), SECRET_KEY_TAG | PUBLIC_KEY_TAG))
-                    .count(),
-            ),
+            Ok(stream) => stream,
             Err(RawPacketError::Malformed) => {
                 return Ok(PublicKeyParseOutcome::Failure(
                     PublicKeyParseFailure::Malformed,
@@ -578,7 +568,16 @@ pub(crate) fn parse_public_key(
             }
             Err(RawPacketError::ResourceLimit) => return Err(OpenPgpReadError::ResourceLimit),
         };
-    let projected_key_data = if contains_secret_key_material {
+    let contains_secret_key_material = stream
+        .packets()
+        .iter()
+        .any(|packet| matches!(packet.tag(), SECRET_KEY_TAG | SECRET_SUBKEY_TAG));
+    let certificate_boundaries = stream
+        .packets()
+        .iter()
+        .filter(|packet| matches!(packet.tag(), SECRET_KEY_TAG | PUBLIC_KEY_TAG))
+        .count();
+    let stream = if contains_secret_key_material {
         // A multi-key secret export (e.g. `gpg --export-secret-keys` of a full
         // keyring) is well-formed OpenPGP that this single-key operation
         // cannot accept; name the real problem instead of calling the
@@ -588,8 +587,9 @@ pub(crate) fn parse_public_key(
                 PublicKeyParseFailure::MultipleCertificates,
             ));
         }
-        match project_secret_certificate(&key_data) {
-            Ok((public_projection, _secret_overlay)) => Some(public_projection),
+        drop(stream);
+        let public_projection = match project_secret_certificate(&key_data) {
+            Ok((public_projection, _secret_overlay)) => public_projection,
             Err(
                 MutationMaterialError::MalformedKey
                 | MutationMaterialError::FingerprintMismatch
@@ -621,23 +621,22 @@ pub(crate) fn parse_public_key(
                 );
                 return Err(OpenPgpReadError::Internal);
             }
-        }
+        };
+        RawPacketStream::parse_transferable_keyring(&public_projection, MAX_PACKETS_PER_REQUEST)
+            .map_err(ParseFailure::from)
     } else {
-        None
+        Ok(stream)
     };
-    let public_key_data = projected_key_data.as_deref().unwrap_or(&key_data);
-    let packet_view = if projected_key_data.is_some() {
+    let packet_view = if contains_secret_key_material {
         PublicPacketView::TransferableSecretProjection
     } else {
         PublicPacketView::OriginalCertificate
     };
     let mut budget = OpenPgpReadBudget::default();
     let (parsed, mut skipped_certificates, only_unsupported_skips) =
-        match parse_public_certificates_preserving_packets(
-            public_key_data,
-            packet_view,
-            &mut budget,
-        ) {
+        match stream.and_then(|stream| {
+            parse_public_certificates_preserving_packets(stream, packet_view, &mut budget)
+        }) {
             Ok(parsed) => parsed,
             Err(ParseFailure::UnsupportedKeyVersion) => {
                 return Ok(PublicKeyParseOutcome::Failure(
@@ -1755,12 +1754,10 @@ fn preflight_packet_reader<R: BufRead>(
 /// a secret-key projection retains the ordinary transferable filter. Both are
 /// re-armored from the packet bytes this function was handed.
 fn parse_public_certificates_preserving_packets(
-    data: &[u8],
+    stream: RawPacketStream,
     packet_view: PublicPacketView,
     budget: &mut OpenPgpReadBudget,
 ) -> Result<(Vec<ParsedPublicCertificate>, usize, bool), ParseFailure> {
-    let stream = RawPacketStream::parse_transferable_keyring(data, MAX_PACKETS_PER_REQUEST)
-        .map_err(ParseFailure::from)?;
     charge_stream(&stream, budget)?;
     let document =
         parse_public_certificate_packet_sets_with_budget(&stream, budget.signature_rehoming_mut())

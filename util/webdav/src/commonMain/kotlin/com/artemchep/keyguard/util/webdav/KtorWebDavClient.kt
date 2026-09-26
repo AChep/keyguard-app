@@ -1062,36 +1062,26 @@ class KtorWebDavClient(
         operation: WebDavOperation,
         path: String,
     ): Source {
-        val upstream = try {
+        val upstream = mapTransportException(operation, path) {
             bodyAsChannel().asSource()
-        } catch (e: WebDavException) {
-            throw e
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            throw WebDavException.Transient(
-                operation = operation,
-                path = path,
-                cause = e,
-            )
         }
         return object : RawSource {
             override fun readAtMostTo(
                 sink: Buffer,
                 byteCount: Long,
-            ): Long = mapStreamingException(operation, path) {
+            ): Long = mapTransportException(operation, path) {
                 upstream.readAtMostTo(sink, byteCount)
             }
 
             override fun close() {
-                mapStreamingException(operation, path) {
+                mapTransportException(operation, path) {
                     upstream.close()
                 }
             }
         }.buffered()
     }
 
-    private inline fun <T> mapStreamingException(
+    private inline fun <T> mapTransportException(
         operation: WebDavOperation,
         path: String?,
         block: () -> T,
@@ -1379,22 +1369,12 @@ class KtorWebDavClient(
         url: String,
         method: HttpMethod,
         block: HttpRequestBuilder.() -> Unit = {},
-    ): HttpResponse = try {
+    ): HttpResponse = mapTransportException(operation, path) {
         httpClient.request(url) {
             this.method = method
             applyCommonHeaders()
             block()
         }
-    } catch (e: WebDavException) {
-        throw e
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        throw WebDavException.Transient(
-            operation = operation,
-            path = path,
-            cause = e,
-        )
     }
 
     private fun HttpRequestBuilder.applyCommonHeaders() {
@@ -1422,18 +1402,8 @@ class KtorWebDavClient(
     private suspend fun HttpResponse.bodyAsWebDavText(
         operation: WebDavOperation,
         path: String,
-    ): String = try {
+    ): String = mapTransportException(operation, path.ifEmpty { null }) {
         bodyAsText()
-    } catch (e: WebDavException) {
-        throw e
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        throw WebDavException.Transient(
-            operation = operation,
-            path = path.ifEmpty { null },
-            cause = e,
-        )
     }
 
     private fun String.toMultiStatus(
@@ -1476,10 +1446,13 @@ class KtorWebDavClient(
             )
         }
 
-        val properties = propStats
-            .filter { propStat -> propStat.statusCode == null || propStat.statusCode in 200..299 }
-            .flatMap { propStat -> propStat.properties.entries }
-            .associate { (key, value) -> key to value }
+        val properties = buildMap {
+            propStats.forEach { propStat ->
+                if (propStat.statusCode == null || propStat.statusCode in 200..299) {
+                    putAll(propStat.properties)
+                }
+            }
+        }
         val resourceType = properties[WebDavXml.RESOURCETYPE]
         val isCollection = resourceType
             ?.children

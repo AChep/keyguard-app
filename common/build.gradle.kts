@@ -248,6 +248,7 @@ kotlin {
             kotlin.include("com/artemchep/keyguard/common/service/backup/**")
             kotlin.include("com/artemchep/keyguard/common/service/directorywatcher/**")
             kotlin.include("com/artemchep/keyguard/common/service/gpgagent/GpgAgentPacketSessionTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/licensekey/Kg2LicenseKeyDecoderTest.kt")
             kotlin.include("com/artemchep/keyguard/provider/bitwarden/usecase/NotificationsImplTest.kt")
             kotlin.include("com/artemchep/keyguard/feature/gpgagent/tools/GpgToolsInputErrorTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/download/TestDownloadAttachmentSourceLoader.kt")

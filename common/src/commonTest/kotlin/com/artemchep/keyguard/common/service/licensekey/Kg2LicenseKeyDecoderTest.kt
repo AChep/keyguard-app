@@ -3,8 +3,7 @@ package com.artemchep.keyguard.common.service.licensekey
 import com.artemchep.keyguard.common.service.licensekey.decoder.KeyguardKg2LicensePublicKeys
 import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseKeyDecoder
 import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseProductKind
-import com.artemchep.keyguard.common.service.licensekey.LicenseSignatureVerifier
-import java.util.Base64
+import kotlin.io.encoding.Base64
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -174,21 +173,20 @@ private fun tokenWithPayload(
     payload: ByteArray,
     signature: ByteArray = fakeSignature,
 ): String {
-    val encodedPayload = base64UrlEncoder.encodeToString(payload)
-    val encodedSignature = base64UrlEncoder.encodeToString(signature)
+    val encodedPayload = base64Url.encode(payload)
+    val encodedSignature = base64Url.encode(signature)
     return "KG2A.$encodedPayload.$encodedSignature"
 }
 
 private fun payloadFromToken(token: String): ByteArray =
-    base64UrlDecoder.decode(token.split(".")[1])
+    base64Url.decode(token.split(".")[1])
 
 private fun ByteArray.writeUInt16BE(value: Int, offset: Int) {
     this[offset] = (value ushr 8).toByte()
     this[offset + 1] = value.toByte()
 }
 
-private val base64UrlEncoder = Base64.getUrlEncoder().withoutPadding()
-private val base64UrlDecoder = Base64.getUrlDecoder()
+private val base64Url = Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT)
 private val fakeSignature = ByteArray(64) { index -> index.toByte() }
 private val testPublicKeysById = mapOf(
     KeyguardKg2LicensePublicKeys.CURRENT_KEY_ID to """
@@ -209,8 +207,8 @@ private const val lifetimeToken =
 
 private val oldJsonKg2Token = listOf(
     "KG2",
-    base64UrlEncoder.encodeToString("""{"alg":"ES256","kid":"kg2-p256-v1"}""".encodeToByteArray()),
-    base64UrlEncoder.encodeToString(
+    base64Url.encode("""{"alg":"ES256","kid":"kg2-p256-v1"}""".encodeToByteArray()),
+    base64Url.encode(
         """{"v":2,"lid":"ABCDEFGHJKLMNPQR","tier":"premium","kind":"subscription","expYm":"2026-07"}"""
             .encodeToByteArray(),
     ),

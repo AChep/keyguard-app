@@ -13,6 +13,10 @@ jdk = "21"
 appVersionName = "3.2.4"
 # @keep
 appVersionCode = "7"
+# @keep
+appleMacosDeploymentTarget = "14.0"
+# @keep
+appleIosDeploymentTarget = "18.5"
 # https://github.com/google/accompanist
 accompanist = "0.37.3"
 androidBillingClient = "9.1.0"

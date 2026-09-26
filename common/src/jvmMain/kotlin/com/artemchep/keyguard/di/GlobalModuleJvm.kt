@@ -36,7 +36,7 @@ import com.artemchep.keyguard.copy.Base32ServiceJvm
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.copy.DateFormatterJvm
 import com.artemchep.keyguard.common.usecase.impl.GetAppBuildDateImpl
-import com.artemchep.keyguard.copy.GetAppBuildRefImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAppBuildRefImpl
 import com.artemchep.keyguard.copy.NumberFormatterJvm
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken

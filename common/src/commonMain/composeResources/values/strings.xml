@@ -1907,10 +1907,6 @@
     <string name="navigation_items_predefined_route_text">Predefined route</string>
     <string name="pref_item_app_version_title">App version</string>
     <string name="pref_item_app_build_date_title">App build date</string>
-    <!--
-        The short ref name of the branch or tag that triggered the workflow run.
-        This value matches the branch or tag name shown on GitHub.
-        -->
     <string name="pref_item_app_build_ref_title">App build ref</string>
     <string name="pref_item_app_changelog_title">App changelog</string>
     <string name="pref_item_app_team_title">Team behind the app</string>

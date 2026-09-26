@@ -69,6 +69,23 @@ class LuhnTest {
     }
 
     @Test
+    fun `rejects non-digit input`() {
+        val numbers = listOf(
+            ":",
+            "4242 4242 4242 4242",
+            "4242-4242-4242-4242",
+            "424242424242424a",
+        )
+
+        numbers.forEach { number ->
+            assertFalse(
+                actual = validLuhn(number),
+                message = "$number should fail Luhn validation",
+            )
+        }
+    }
+
+    @Test
     fun `keeps existing empty input contract`() {
         assertTrue(validLuhn(""))
     }

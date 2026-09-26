@@ -8,10 +8,8 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.common.service.totp.TotpService
-import kotlinx.coroutines.Dispatchers
 import kotlin.time.Instant
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import kotlinx.coroutines.Dispatchers
 
 class CipherPlaceholder(
     private val totpService: TotpService,
@@ -62,12 +60,6 @@ class CipherPlaceholder(
     class Factory(
         private val totpService: TotpService,
     ) : Placeholder.Factory {
-        constructor(
-            directDI: DirectDI,
-        ) : this(
-            totpService = directDI.instance(),
-        )
-
         override fun createOrNull(
             scope: PlaceholderScope,
         ) = CipherPlaceholder(

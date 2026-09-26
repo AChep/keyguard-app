@@ -11,8 +11,6 @@ import com.artemchep.keyguard.common.service.tld.TldService
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 @Serializable
 data class JustGetMyDataEntity(
@@ -81,14 +79,6 @@ class JustGetMyDataServiceImpl(
             additionalDomain = domain,
         )
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        textService = directDI.instance(),
-        tldService = directDI.instance(),
-        json = directDI.instance(),
-    )
 
     override fun get() = listIo
 }

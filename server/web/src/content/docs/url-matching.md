@@ -25,7 +25,7 @@ the URL on the item's edit screen:
 | **Regular expression** | The detected URL matches the item's regex                            |
 | **Never**              | Never matched — the URL is kept for reference only                   |
 
-Out of the box the global default is **Base domain**, which is right for
+By default the global setting is **Base domain**, which works well for
 most websites. Tighten it per-URL when a domain hosts many unrelated
 services (`Host` or `Starts with`), or loosen it with a regex for unusual
 setups.
@@ -47,4 +47,4 @@ Keyguard honors them: an item saved for one domain in a set is suggested on
 the others. You can review them in the app under **Equivalent domains**.
 
 One exception, matching Bitwarden's behavior: a URL set to **Exact** match
-ignores equivalent domains entirely.
+ignores equivalent domains.

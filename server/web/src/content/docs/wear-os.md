@@ -10,11 +10,11 @@ are available on your wrist without taking the phone out of your pocket.
 
 ## Setup
 
-Install Keyguard on both the **phone** and the **watch** (it comes with the
-same Google Play listing). The watch does not sign in to your server on its
-own; instead it asks the paired phone for access. Start the flow on the
-watch, then **authorize it from your phone**, choosing which account to
-share. From then on the watch keeps its own synced copy of the vault.
+Install Keyguard on both the **phone** and the **watch** (available through
+the same Google Play listing). The watch requests vault access through the
+paired phone: start the flow on the watch, then **authorize it from your
+phone**, choosing which account to share. From then on the watch keeps its own
+synced copy of the vault.
 
 > For **KeePass** accounts the watch receives a one-time copy of the
 > database; picking a local database from the watch itself is not supported.

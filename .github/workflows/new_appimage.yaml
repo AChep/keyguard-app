@@ -1,0 +1,79 @@
+name: "New AppImage"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux-app:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: x86_64
+            rust-target: x86_64-unknown-linux-gnu
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
+            rust-target: aarch64-unknown-linux-gnu
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          lfs: true
+          submodules: recursive
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: ${{ matrix.rust-target }}
+          cache-key: desktop
+      - uses: ./.github/actions/prefetch_native
+        with:
+          profile: desktop
+      - uses: ./.github/actions/setup_protobuf
+      - uses: ./.github/actions/setup_linux_desktop
+      - uses: ./.github/actions/setup_python
+      - name: "Prepare Linux package metadata"
+        id: linux-version
+        run: |
+          pip install -r .github/update_flathub_listing.requirements.txt
+          python .github/update_flathub_listing.py
+          version=$(sed -nE 's/^appVersionName *= *"([^"]+)".*/\1/p' gradle/libs.versions.toml)
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: ./.github/actions/build_desktop_licenses
+      - name: "Build"
+        run: >-
+          ./gradlew
+          :desktopApp:packageReleaseDistributable
+          -Pkeyguard.nativeCargo.cargoOffline=true
+      - name: "Find Linux release tarball"
+        id: linux-package
+        shell: bash
+        env:
+          LINUX_ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          tarballs=(desktopApp/build/distributions/*-linux-"$LINUX_ARCH".tar.gz)
+          test "${#tarballs[@]}" -eq 1
+          echo "tarball=${tarballs[0]}" >> "$GITHUB_OUTPUT"
+      - name: "Build and verify AppImage"
+        id: appimage
+        uses: ./.github/actions/build_appimage
+        with:
+          tarball: ${{ steps.linux-package.outputs.tarball }}
+          arch: ${{ matrix.arch }}
+          version: ${{ steps.linux-version.outputs.version }}
+      - name: "Upload .AppImage and .zsync"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: app-linux-appimage-${{ matrix.arch }}
+          path: |
+            ${{ steps.appimage.outputs.path }}
+            ${{ steps.appimage.outputs.zsync-path }}
+          if-no-files-found: error

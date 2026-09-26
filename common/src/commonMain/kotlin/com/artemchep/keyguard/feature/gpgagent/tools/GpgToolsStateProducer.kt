@@ -37,8 +37,8 @@ import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.util.flow.EventFlow
-import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
@@ -71,9 +71,13 @@ import com.artemchep.keyguard.res.result
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.util.io.writeText
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -81,23 +85,22 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.StringResource
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceGpgToolsState(
     operation: GpgToolsOperation,
-): Loadable<GpgToolsState> = with(localDI().direct) {
+): Loadable<GpgToolsState> = with(currentKoinScope()) {
     produceGpgToolsState(
         operation = operation,
-        getCiphers = instance(),
-        fileService = instance(),
-        keyMetadataResolver = instance(),
-        openPgpService = instance(),
-        openPgpVerifier = instance(),
+        getCiphers = get(),
+        fileService = get(),
+        keyMetadataResolver = get(),
+        openPgpService = get(),
+        openPgpVerifier = get(),
     )
 }
 
@@ -121,6 +124,28 @@ fun produceGpgToolsState(
         openPgpVerifier,
     ),
 ) {
+    gpgToolsStateProducer(
+        operation = operation,
+        getCiphers = getCiphers,
+        fileService = fileService,
+        keyMetadataResolver = keyMetadataResolver,
+        openPgpService = openPgpService,
+        openPgpVerifier = openPgpVerifier,
+    )
+}
+
+// Keep the state flows and their session-scoped callbacks in one lifecycle scope.
+@Suppress("CyclomaticComplexMethod", "LongMethod")
+suspend fun RememberStateFlowScope.gpgToolsStateProducer(
+    operation: GpgToolsOperation,
+    getCiphers: GetCiphers,
+    fileService: FileService,
+    keyMetadataResolver: GpgKeyMetadataResolver,
+    openPgpService: GpgOpenPgpService,
+    openPgpVerifier: GpgOpenPgpVerifier,
+    outputCoordinator: GpgToolsOutputCoordinator? = null,
+    operationScope: CoroutineScope? = null,
+): Flow<Loadable<GpgToolsState>> {
     val copyText = copier()
     val filePickerIntentSink = EventFlow<FilePickerIntent<*>>()
     val sideEffects = GpgToolsState.SideEffects(
@@ -174,20 +199,39 @@ fun produceGpgToolsState(
             return
         }
         busySink.value = true
-        action {
+        val work: suspend () -> Unit = {
             try {
-                block()
+                if (outputCoordinator != null) {
+                    outputCoordinator.run(block)
+                } else {
+                    block()
+                }
                 message(
                     ToastMessage(
                         type = ToastMessage.Type.SUCCESS,
                         title = translate(Res.string.gpg_tools_run_success),
                     ),
                 )
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Throwable) {
-                message(e)
+                val errorResource = e.gpgToolsInputErrorResource(operation)
+                if (errorResource != null) {
+                    message(ToastMessage(
+                        type = ToastMessage.Type.ERROR,
+                        title = translate(errorResource),
+                    ))
+                } else {
+                    message(e)
+                }
             } finally {
                 busySink.value = false
             }
+        }
+        if (operationScope != null) {
+            operationScope.launch(start = CoroutineStart.UNDISPATCHED) { work() }
+        } else {
+            action { work() }
         }
     }
 
@@ -227,21 +271,62 @@ fun produceGpgToolsState(
         )
     }
 
+    suspend fun showResultDialog(
+        output: GpgToolsResultRoute.Args.Output? = null,
+        notes: List<SimpleNote> = emptyList(),
+        fileOutput: GpgToolsResultRoute.Args.FileOutput? = null,
+    ) {
+        if (output == null && fileOutput == null && notes.isEmpty()) {
+            return
+        }
+        val route = GpgToolsResultRoute(
+            args = GpgToolsResultRoute.Args(
+                title = translate(Res.string.result),
+                notes = notes,
+                output = output,
+                fileOutput = fileOutput,
+            ),
+        )
+        navigate(NavigationIntent.NavigateToRoute(route))
+    }
+
+    fun writeOutput(
+        fileName: String,
+        incognito: Boolean = false,
+        block: suspend (uri: String) -> List<SimpleNote>,
+    ) {
+        if (outputCoordinator != null) {
+            launchOperation {
+                var notes: List<SimpleNote> = emptyList()
+                val fileOutput = outputCoordinator.write(fileName, incognito) { uri ->
+                    notes = block(uri)
+                }
+                showResultDialog(notes = notes, fileOutput = fileOutput)
+            }
+        } else {
+            saveAs(fileName) { file ->
+                launchOperation {
+                    val notes = block(file.uri)
+                    showResultDialog(notes = notes)
+                }
+            }
+        }
+    }
+
     fun saveTextOutput(output: String) {
         if (output.isBlank()) {
             return
         }
-        saveAs(fileName = "gpg-output.txt") { file ->
-            launchOperation {
-                withContext(Dispatchers.Default) {
-                    val sink = fileService.writeToFile(file.uri)
-                    try {
-                        sink.writeText(output)
-                    } finally {
-                        sink.close()
-                    }
+        writeOutput(
+            fileName = "gpg-output.txt",
+            incognito = operation == GpgToolsOperation.DECRYPT,
+        ) { uri ->
+            withContext(Dispatchers.Default) {
+                fileService.writeToFile(uri).use { sink ->
+                    sink.writeText(output)
                 }
             }
+            emptyList()
         }
     }
 
@@ -279,23 +364,6 @@ fun produceGpgToolsState(
                 saveTextOutput(text)
             },
         )
-    }
-
-    suspend fun showResultDialog(
-        output: GpgToolsResultRoute.Args.Output? = null,
-        notes: List<SimpleNote> = emptyList(),
-    ) {
-        if (output == null && notes.isEmpty()) {
-            return
-        }
-        val route = GpgToolsResultRoute(
-            args = GpgToolsResultRoute.Args(
-                title = translate(Res.string.result),
-                notes = notes,
-                output = output,
-            ),
-        )
-        navigate(NavigationIntent.NavigateToRoute(route))
     }
 
     fun requireInputText(form: GpgToolsForm): String =
@@ -490,20 +558,23 @@ fun produceGpgToolsState(
                     val privateKey = keys.resolveSigningKey(selection)
                     val candidateRevocationKeys = keys.resolveRevocationKeyCandidates(customPublicKeys)
                     val armored = form.controls.armor
-                    saveAs(fileName = input.signatureOutputName(armored)) { output ->
-                        launchOperation {
-                            withContext(Dispatchers.Default) {
-                                openPgpService.signFile(
-                                    GpgOpenPgpSignFileRequest(
-                                        input = fileService.readFromFile(input.uri),
-                                        signatureOutput = fileService.writeToFile(output.uri),
-                                        privateKey = privateKey,
-                                        candidateRevocationKeys = candidateRevocationKeys,
-                                        armored = armored,
-                                    ),
-                                )
+                    writeOutput(fileName = input.signatureOutputName(armored)) { outputUri ->
+                        withContext(Dispatchers.Default) {
+                            fileService.readFromFile(input.uri).use { inputSource ->
+                                fileService.writeToFile(outputUri).use { outputSink ->
+                                    openPgpService.signFile(
+                                        GpgOpenPgpSignFileRequest(
+                                            input = inputSource,
+                                            signatureOutput = outputSink,
+                                            privateKey = privateKey,
+                                            candidateRevocationKeys = candidateRevocationKeys,
+                                            armored = armored,
+                                        ),
+                                    )
+                                }
                             }
                         }
+                        emptyList()
                     }
                 }
 
@@ -513,24 +584,27 @@ fun produceGpgToolsState(
                     val signingPrivateKey = keys.resolveOptionalEncryptionSigningKey(selection)
                     val candidateRevocationKeys = keys.resolveRevocationKeyCandidates(customPublicKeys)
                     val armored = form.controls.armor
-                    saveAs(fileName = input.encryptedOutputName(armored)) { output ->
-                        launchOperation {
-                            withContext(Dispatchers.Default) {
-                                openPgpService.encryptFile(
-                                    GpgOpenPgpEncryptFileRequest(
-                                        input = fileService.readFromFile(input.uri),
-                                        output = fileService.writeToFile(output.uri),
-                                        publicKeys = publicKeys,
-                                        candidateRevocationKeys = candidateRevocationKeys,
-                                        fileName = GpgOpenPgpLiteralFileName.fromUntrusted(
-                                            input.name ?: "message",
+                    writeOutput(fileName = input.encryptedOutputName(armored)) { outputUri ->
+                        withContext(Dispatchers.Default) {
+                            fileService.readFromFile(input.uri).use { inputSource ->
+                                fileService.writeToFile(outputUri).use { outputSink ->
+                                    openPgpService.encryptFile(
+                                        GpgOpenPgpEncryptFileRequest(
+                                            input = inputSource,
+                                            output = outputSink,
+                                            publicKeys = publicKeys,
+                                            candidateRevocationKeys = candidateRevocationKeys,
+                                            fileName = GpgOpenPgpLiteralFileName.fromUntrusted(
+                                                input.name ?: "message",
+                                            ),
+                                            armored = armored,
+                                            signingPrivateKey = signingPrivateKey,
                                         ),
-                                        armored = armored,
-                                        signingPrivateKey = signingPrivateKey,
-                                    ),
-                                )
+                                    )
+                                }
                             }
                         }
+                        emptyList()
                     }
                 }
 
@@ -540,13 +614,17 @@ fun produceGpgToolsState(
                     val publicKeys = keys.resolveVerificationPublicKeys(customPublicKeys)
                     launchOperation {
                         val verification = withContext(Dispatchers.Default) {
-                            openPgpVerifier.verifyFile(
-                                GpgOpenPgpVerifyFileRequest(
-                                    input = fileService.readFromFile(input.uri),
-                                    signatureInput = fileService.readFromFile(signature.uri),
-                                    publicKeys = publicKeys,
-                                ),
-                            )
+                            fileService.readFromFile(input.uri).use { inputSource ->
+                                fileService.readFromFile(signature.uri).use { signatureSource ->
+                                    openPgpVerifier.verifyFile(
+                                        GpgOpenPgpVerifyFileRequest(
+                                            input = inputSource,
+                                            signatureInput = signatureSource,
+                                            publicKeys = publicKeys,
+                                        ),
+                                    )
+                                }
+                            }
                         }
                         showResultDialog(notes = toVerificationNotes(verification))
                     }
@@ -556,34 +634,38 @@ fun produceGpgToolsState(
                     val input = requireInputFile(form)
                     val privateKeys = keys.resolveDecryptKeys()
                     val publicKeys = keys.resolveVerificationPublicKeys(customPublicKeys)
-                    saveAs(fileName = input.decryptedOutputName()) { output ->
-                        launchOperation {
-                            val result = withContext(Dispatchers.Default) {
-                                openPgpService.readFile(
-                                    GpgOpenPgpReadFileRequest(
-                                        input = fileService.readFromFile(input.uri),
-                                        output = fileService.writeToFile(output.uri),
-                                        privateKeys = privateKeys,
-                                        publicKeys = publicKeys,
-                                    ),
-                                )
+                    writeOutput(
+                        fileName = input.decryptedOutputName(),
+                        incognito = true,
+                    ) { outputUri ->
+                        val result = withContext(Dispatchers.Default) {
+                            fileService.readFromFile(input.uri).use { inputSource ->
+                                fileService.writeToFile(outputUri).use { outputSink ->
+                                    openPgpService.readFile(
+                                        GpgOpenPgpReadFileRequest(
+                                            input = inputSource,
+                                            output = outputSink,
+                                            privateKeys = privateKeys,
+                                            publicKeys = publicKeys,
+                                        ),
+                                    )
+                                }
                             }
-                            val notes = when (result) {
-                                is GpgOpenPgpReadFileResult.Message -> toResultNotes(
-                                    verification = result.verification,
-                                    decryptionWarnings = result.warnings,
-                                )
-
-                                is GpgOpenPgpReadFileResult.ClearSigned ->
-                                    toVerificationNotes(result.verification)
-                            }
-                            showResultDialog(
-                                notes = notes,
+                        }
+                        when (result) {
+                            is GpgOpenPgpReadFileResult.Message -> toResultNotes(
+                                verification = result.verification,
+                                decryptionWarnings = result.warnings,
                             )
+
+                            is GpgOpenPgpReadFileResult.ClearSigned ->
+                                toVerificationNotes(result.verification)
                         }
                     }
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Throwable) {
             message(e)
         }
@@ -712,7 +794,7 @@ fun produceGpgToolsState(
     val signModes = GpgToolsSignMode.entries.toImmutableList()
     val verifyModes = GpgToolsVerifyMode.entries.toImmutableList()
 
-    combine(
+    return combine(
         formFlow,
         keysFlow,
         customPublicKeysSink,
@@ -790,18 +872,18 @@ fun produceGpgToolsState(
                     args = GpgToolsPublicKeyRoute.Args(
                         publicKey = "",
                     ),
-                ) { newValue ->
-                    if (newValue.isBlank()) {
-                        return@createGpgToolsPublicKeyDialogIntent
-                    }
-
-                    val nextId = customPublicKeyCounter + 1
-                    customPublicKeyCounter = nextId
+                ) { publicKeys ->
+                    // Stored keys are already trimmed, so a set difference dedups new input.
+                    val existingKeys = customPublicKeysSink.value.mapTo(HashSet()) { it.publicKey }
+                    val newItems = (publicKeys.map(String::trim).filter(String::isNotBlank).toSet() - existingKeys)
+                        .map { publicKey ->
+                            GpgToolsState.CustomPublicKeyItem(
+                                id = "custom_public_key_${++customPublicKeyCounter}",
+                                publicKey = publicKey,
+                            )
+                        }
                     customPublicKeysSink.update { items ->
-                        items + GpgToolsState.CustomPublicKeyItem(
-                            id = "custom_public_key_$nextId",
-                            publicKey = newValue,
-                        )
+                        items + newItems
                     }
                 }
                 navigate(intent)

@@ -1,4 +1,5 @@
 name: "Setup Python"
+description: "Install the Python runtime used by repository scripts"
 runs:
   using: "composite"
   steps:

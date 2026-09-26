@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.vault.SessionReadRepository
+import com.artemchep.keyguard.common.service.vault.testVaultSession
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import org.kodein.di.DI
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BackupSchedulerWorkerTest {
@@ -144,7 +144,7 @@ class BackupSchedulerWorkerTest {
             version = MasterKdfVersion.V0,
             byteArray = byteArrayOf(1, 2, 3),
         ),
-        di = DI {},
+        session = testVaultSession {},
         origin = origin,
         createdAt = Instant.fromEpochMilliseconds(1L),
     )

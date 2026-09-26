@@ -1,7 +1,12 @@
 package com.artemchep.keyguard.util.io.spool
 
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
+import kotlinx.io.Buffer
+import kotlinx.io.RawSink
 import kotlinx.io.Sink
 import kotlinx.io.buffered
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -75,6 +80,59 @@ class AdaptiveSpoolTest {
         assertTrue(writer.sealed)
         assertTrue(writer.closed)
         assertTrue(writer.snapshotClosed)
+    }
+
+    @Test
+    fun cancellationDuringMigrationStopsCopyAndClosesTheSpill() {
+        val job = Job()
+        val cancellation = CancellationException("cancelled while migrating")
+        val writer = FakeByteStoreWriter()
+        val spillBuffer = writer.sink() as Buffer
+        var copiedBytes = 0L
+        var spillSinkClosed = false
+        val payload = ByteArray(3 * 64 * 1024) { 7 }
+        val spool = AdaptiveSpool(
+            memoryLimitBytes = payload.size.toLong(),
+            maximumBytes = payload.size + 1L,
+            checkCancellation = job::ensureActive,
+            spillFactory = {
+                object : ByteStoreWriter by writer {
+                    override fun sink(): Sink = object : RawSink {
+                        override fun write(source: Buffer, byteCount: Long) {
+                            copiedBytes += byteCount
+                            spillBuffer.write(source, byteCount)
+                            // Cancel on actual spill I/O, independently of probe count.
+                            job.cancel(cancellation)
+                        }
+
+                        override fun flush() = Unit
+
+                        override fun close() {
+                            spillSinkClosed = true
+                        }
+                    }.buffered()
+                }
+            },
+        )
+        spool.use {
+            val sink = spool.sink()
+            sink.write(payload)
+            sink.flush()
+            assertFalse(spool.spilled)
+
+            val thrown = assertFailsWith<CancellationException> {
+                sink.write(byteArrayOf(8))
+                sink.flush()
+            }
+
+            assertTrue(thrown === cancellation)
+            assertTrue(copiedBytes > 0L && copiedBytes < payload.size)
+            assertTrue(spillSinkClosed)
+            assertTrue(writer.closed)
+            assertFalse(writer.sealed)
+            assertEquals(0L, spillBuffer.size)
+            assertFailsWith<IllegalStateException> { spool.seal() }
+        }
     }
 
     @Test

@@ -3,29 +3,20 @@ package com.artemchep.keyguard.android.downloader.journal
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.DCipherOpenedHistory
-import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
-import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToOne
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
+import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToOne
 import com.artemchep.keyguard.data.CipherUsageHistoryQueries
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlin.time.Instant
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class CipherHistoryOpenedRepositoryImpl(
     private val databaseManager: VaultDatabaseManager,
     private val dispatcher: CoroutineDispatcher,
 ) : CipherHistoryOpenedRepository {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        databaseManager = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
-
     override fun getCount(): Flow<Long> =
         daoEffect { dao ->
             dao.getCount()

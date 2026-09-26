@@ -6,28 +6,20 @@ import com.artemchep.keyguard.common.service.crypto.GPG_KEY_EXPIRATION_MAX_INSTA
 import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.resolve
+import java.util.Date
+import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlinx.datetime.TimeZone
 import org.bouncycastle.bcpg.PublicKeyPacket
 import org.bouncycastle.bcpg.SignatureSubpacketTags
 import org.bouncycastle.openpgp.api.SignatureParameters
 import org.bouncycastle.openpgp.api.jcajce.JcaOpenPGPKeyGenerator
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import java.util.Date
-import kotlinx.datetime.TimeZone
-import kotlin.time.Clock
-import kotlin.time.Instant
 
 class BcGpgKeyGeneratorTestOracle(
     private val metadataResolver: GpgKeyMetadataResolver = NativeGpgKeyMetadataResolver,
     private val now: () -> Instant = { Clock.System.now() },
     private val timeZone: () -> TimeZone = { TimeZone.currentSystemDefault() },
 ) : GpgKeyGenerator {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        metadataResolver = directDI.instance(),
-    )
-
     override fun generate(
         config: GpgKeyConfig,
     ): GeneratedGpgKey {

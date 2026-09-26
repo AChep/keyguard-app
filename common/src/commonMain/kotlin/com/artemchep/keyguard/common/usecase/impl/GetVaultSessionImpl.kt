@@ -3,8 +3,10 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.service.vault.SessionReadWriteRepository
+import com.artemchep.keyguard.common.service.vault.VaultSessionFactory
 import com.artemchep.keyguard.common.usecase.GetVaultSession
-import com.artemchep.keyguard.core.session.usecase.createSubDi
+import kotlin.time.Clock
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,27 +15,16 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
-import kotlin.time.Clock
-import org.kodein.di.Copy
-import org.kodein.di.DI
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import org.kodein.di.subDI
+import kotlinx.coroutines.withContext
 
 class GetVaultSessionImpl(
-    private val di: DI,
+    private val sessionFactory: VaultSessionFactory,
     private val sessionReadWriteRepository: SessionReadWriteRepository,
     private val keyReadWriteRepository: KeyReadWriteRepository,
 ) : GetVaultSession {
     companion object {
         private const val TAG = "GetVaultSession"
     }
-
-    constructor(directDI: DirectDI) : this(
-        di = directDI.di,
-        sessionReadWriteRepository = directDI.instance(),
-        keyReadWriteRepository = directDI.instance(),
-    )
 
     private val sharedFlow = sessionReadWriteRepository.get()
         .flatMapLatest { currentSession ->
@@ -44,19 +35,10 @@ class GetVaultSessionImpl(
                     .map { persistedSession ->
                         val newSession = if (persistedSession != null) {
                             val masterKey = persistedSession.masterKey
-                            val moduleDi =
-                                DI.Module("lalala") {
-                                    createSubDi(
-                                        masterKey = masterKey,
-                                    )
-                                }
-                            val subDi =
-                                subDI(di, false, Copy.None) {
-                                    import(moduleDi, allowOverride = true)
-                                }
+                            val session = sessionFactory.create(masterKey)
                             MasterSession.Key(
                                 masterKey = masterKey,
-                                di = subDi,
+                                session = session,
                                 origin = MasterSession.Key.Persisted,
                                 createdAt = Clock.System.now(),
                             )
@@ -66,7 +48,15 @@ class GetVaultSessionImpl(
                         newSession
                     }
                     .onEach {
-                        sessionReadWriteRepository.put(it)
+                        var published = false
+                        try {
+                            withContext(Dispatchers.Main.immediate) {
+                                sessionReadWriteRepository.put(it)
+                                published = true
+                            }
+                        } finally {
+                            if (!published) (it as? MasterSession.Key)?.session?.close()
+                        }
                     }
             }
         }

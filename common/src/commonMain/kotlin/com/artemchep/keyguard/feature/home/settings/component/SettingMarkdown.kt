@@ -20,19 +20,18 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasBrowser
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import org.jetbrains.compose.resources.stringResource
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingMarkdownProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingMarkdownProvider(
-    getMarkdown = directDI.instance(),
-    putMarkdown = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getMarkdown = koinScope.get(),
+    putMarkdown = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingMarkdownProvider(

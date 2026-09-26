@@ -31,7 +31,7 @@ internal fun <T> withStagedOpenPgpPlaintext(
             )
         },
     )
-    .stageTo(output, block)
+    .stageTo(output, write = block)
 
 // Four native OpenPGP workers may run concurrently, bounding retained plaintext near 32 MiB.
 internal const val MAX_IN_MEMORY_OPENPGP_PLAINTEXT_BYTES: Long = 8L * 1024L * 1024L

@@ -10,15 +10,15 @@ import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.usecase.CopyText
+import com.artemchep.keyguard.common.usecase.DateFormatter
+import com.artemchep.keyguard.common.usecase.GetGeneratorHistory
 import com.artemchep.keyguard.common.usecase.GpgKeyExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
 import com.artemchep.keyguard.common.usecase.KeyPairExport
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
-import com.artemchep.keyguard.common.usecase.CopyText
-import com.artemchep.keyguard.common.usecase.DateFormatter
-import com.artemchep.keyguard.common.usecase.GetGeneratorHistory
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistory
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryById
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
@@ -40,8 +40,8 @@ import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
 import com.artemchep.keyguard.feature.search.search.mapListShape
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -64,14 +64,11 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
+import org.koin.compose.currentKoinScope
 
 @Composable
-fun produceGeneratorHistoryState() = with(localDI().direct) {
-    val getGeneratorHistory = instanceOrNull<GetGeneratorHistory>()
+fun produceGeneratorHistoryState() = with(currentKoinScope()) {
+    val getGeneratorHistory = getOrNull<GetGeneratorHistory>()
     if (getGeneratorHistory == null) {
         val stubState = GeneratorHistoryState(
             selection = null,
@@ -83,17 +80,17 @@ fun produceGeneratorHistoryState() = with(localDI().direct) {
 
     produceGeneratorHistoryState(
         getGeneratorHistory = getGeneratorHistory,
-        removeGeneratorHistory = instance(),
-        removeGeneratorHistoryById = instance(),
-        keyPairExport = instance(),
-        publicKeyExport = instance(),
-        privateKeyExport = instance(),
-        gpgKeyExport = instance(),
-        gpgPublicKeyExport = instance(),
-        gpgPrivateKeyExport = instance(),
-        dateFormatter = instance(),
-        clipboardService = instance(),
-        confirmationRouteFactory = instance(),
+        removeGeneratorHistory = get(),
+        removeGeneratorHistoryById = get(),
+        keyPairExport = get(),
+        publicKeyExport = get(),
+        privateKeyExport = get(),
+        gpgKeyExport = get(),
+        gpgPublicKeyExport = get(),
+        gpgPrivateKeyExport = get(),
+        dateFormatter = get(),
+        clipboardService = get(),
+        confirmationRouteFactory = get(),
     )
 }
 

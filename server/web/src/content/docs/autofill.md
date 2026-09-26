@@ -9,7 +9,7 @@ On Android, Keyguard can fill usernames and passwords into other apps and
 browsers, and act as the system **passkey provider**. Both are set up from
 **Settings → Autofill** inside Keyguard.
 
-> Autofill is an Android feature — the desktop apps do not provide it.
+> Autofill is available only on Android for now.
 
 ## Enable the autofill service
 

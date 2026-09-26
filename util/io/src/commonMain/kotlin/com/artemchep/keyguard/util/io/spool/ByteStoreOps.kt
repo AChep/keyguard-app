@@ -8,11 +8,13 @@ private const val BYTE_SNAPSHOT_TRANSFER_BYTES = 64 * 1024
 private const val MAX_CONSECUTIVE_ZERO_READS = 16
 
 /** Copies this snapshot without taking ownership of [output]. */
-fun ByteSnapshot.copyTo(output: Sink) {
+fun ByteSnapshot.copyTo(output: Sink, checkCancellation: () -> Unit = {}) {
+    checkCancellation()
     openSource().use { input ->
         input.copyTo(
             output = output,
             transfer = ByteArray(BYTE_SNAPSHOT_TRANSFER_BYTES),
+            checkCancellation = checkCancellation,
         )
     }
 }
@@ -20,11 +22,15 @@ fun ByteSnapshot.copyTo(output: Sink) {
 private fun Source.copyTo(
     output: Sink,
     transfer: ByteArray,
+    checkCancellation: () -> Unit,
 ) {
     var consecutiveZeroReads = 0
     try {
-        var length = readAtMostTo(transfer)
-        while (length >= 0) {
+        while (true) {
+            checkCancellation()
+            val length = readAtMostTo(transfer)
+            checkCancellation()
+            if (length < 0) break
             if (length == 0) {
                 consecutiveZeroReads += 1
                 if (consecutiveZeroReads > MAX_CONSECUTIVE_ZERO_READS) {
@@ -34,7 +40,6 @@ private fun Source.copyTo(
                 consecutiveZeroReads = 0
                 output.write(transfer, 0, length)
             }
-            length = readAtMostTo(transfer)
         }
     } finally {
         transfer.fill(0)
@@ -59,13 +64,18 @@ inline fun ByteStoreWriter.buildSnapshot(write: (Sink) -> Unit): ByteSnapshot =
  */
 inline fun <T> ByteStoreWriter.stageTo(
     output: Sink,
+    noinline checkCancellation: () -> Unit = {},
     write: (Sink) -> T,
 ): T = use { writer ->
+    checkCancellation()
     val result = writer.sink().use(write)
+    checkCancellation()
     writer.seal().use { snapshot ->
-        snapshot.copyTo(output)
+        snapshot.copyTo(output, checkCancellation)
     }
+    checkCancellation()
     output.flush()
+    checkCancellation()
     result
 }
 

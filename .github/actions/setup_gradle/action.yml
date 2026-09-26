@@ -1,4 +1,5 @@
 name: "Setup Gradle"
+description: "Install the JDK and configure the shared Gradle cache"
 inputs:
   # We use Jetbrains distribution because it contains many fixes
   # for AWT. For example, with the other distributions I can not

@@ -24,7 +24,7 @@ sync down automatically.
 
 If you prefer a local, server-free vault, export your data from your old
 manager into a **KDBX** file (most managers and converters can produce one)
-and simply [open it in Keyguard](/docs/keepass/).
+and [open it in Keyguard](/docs/keepass/).
 
 ### Directly from another Android app
 
@@ -39,12 +39,12 @@ identities, notes, SSH keys and folders are supported.
 
 ## Coming from the official Bitwarden apps
 
-There is nothing to migrate — sign in with the same account and server, and
-the same vault appears. Keyguard can run side by side with the official apps.
+Sign in with the same account and server to access your vault directly. Keyguard
+can run side by side with the official apps.
 
 ## Leaving Keyguard
 
-Your data is never locked in:
+Your data remains portable at all times:
 
 - **Bitwarden accounts** stay compatible with the official clients and
   the web vault at all times.

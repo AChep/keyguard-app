@@ -4,6 +4,8 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.session.BackupConfigSessionAccess
+import com.artemchep.keyguard.common.service.session.BackupRunnerSessionAccess
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.vault.SessionReadRepository
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -16,9 +18,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.kodein.di.DirectDI
-import org.kodein.di.direct
-import org.kodein.di.instance
 
 /**
  * Coordinates backup requests, records run status,
@@ -26,6 +25,8 @@ import org.kodein.di.instance
  */
 class BackupRunService(
     private val getVaultSession: GetVaultSession,
+    private val backupConfigSessionAccess: BackupConfigSessionAccess,
+    private val backupRunnerSessionAccess: BackupRunnerSessionAccess,
     private val sessionReadRepository: SessionReadRepository,
     private val vaultSessionLocker: VaultSessionLocker,
     private val diagnostics: BackupDiagnostics,
@@ -37,15 +38,6 @@ class BackupRunService(
         private const val REASON_BACKUP_NOT_CONFIGURED = "backup_not_configured"
         private const val REASON_VAULT_LOCKED = "vault_locked"
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        getVaultSession = directDI.instance(),
-        sessionReadRepository = directDI.instance(),
-        vaultSessionLocker = directDI.instance(),
-        diagnostics = BackupDiagnostics(logRepository = directDI.instance<LogRepository>()),
-    )
 
     private val mutex = Mutex()
 
@@ -78,7 +70,8 @@ class BackupRunService(
     ): BackupStatus = mutex.withLock {
         val startedAt = Clock.System.now()
         val session = sessionPolicy.getSession()
-        if (session == null) {
+        val backupConfigRepository = session?.let(backupConfigSessionAccess::invoke)
+        if (session == null || backupConfigRepository == null) {
             val status = BackupStatus(
                 lastStartedAt = startedAt,
                 lastFinishedAt = Clock.System.now(),
@@ -91,7 +84,6 @@ class BackupRunService(
             return@withLock status
         }
 
-        val backupConfigRepository: BackupConfigRepository = session.di.direct.instance()
         val runStartedStatus = backupConfigRepository
             .getStatus()
             .first()
@@ -137,7 +129,12 @@ class BackupRunService(
                 val result = runWithSessionKeepAlive(
                     keepSessionAlive = keepSessionAlive,
                 ) {
-                    val backupRunner: BackupRunner = session.di.direct.instance()
+                    val backupRunner = backupRunnerSessionAccess(session)
+                        ?: return@runWithSessionKeepAlive BackupRunResult(
+                            snapshotId = null,
+                            skipped = true,
+                            reason = REASON_VAULT_LOCKED,
+                        )
                     backupRunner.run(
                         config = config,
                         progress = progress,

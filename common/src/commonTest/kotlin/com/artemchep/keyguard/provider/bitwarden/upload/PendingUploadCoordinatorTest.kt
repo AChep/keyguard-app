@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.upload
 
 import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadCoordinatorImpl
+import com.artemchep.keyguard.util.io.toSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -8,6 +9,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.Source
 
 class PendingUploadCoordinatorTest {
     @Test
@@ -39,14 +41,43 @@ class PendingUploadCoordinatorTest {
                     accountId = "account-1",
                     namespace = "cipher_attachment_uploads",
                     fileId = "cipher-1.attachment-1",
-                    sourceUri = "file:///tmp/report.pdf",
+                    input = "file:///tmp/report.pdf",
                     fileKey = "cipher-key",
                 ),
                 StageCall(
                     accountId = "account-2",
                     namespace = "send_uploads",
                     fileId = "send-1",
-                    sourceUri = "file:///tmp/send.pdf",
+                    input = "file:///tmp/send.pdf",
+                    fileKey = "send-key",
+                ),
+            ),
+            encryptedService.stageCalls,
+        )
+    }
+
+    @Test
+    fun `stage passes a borrowed source through to the low level encrypted service`() = runTest {
+        val encryptedService = FakeEncryptedFilePendingUploadService()
+        val coordinator = PendingUploadCoordinatorImpl(encryptedService)
+        val source = "plain".toSource()
+
+        coordinator.stage(
+            target = PendingUploadTarget.SendFile(
+                accountId = "account-2",
+                sendId = "send-1",
+            ),
+            source = source,
+            fileKey = "send-key".encodeToByteArray(),
+        )
+
+        assertEquals(
+            listOf(
+                StageCall(
+                    accountId = "account-2",
+                    namespace = "send_uploads",
+                    fileId = "send-1",
+                    input = source,
                     fileKey = "send-key",
                 ),
             ),
@@ -187,7 +218,24 @@ private class FakeEncryptedFilePendingUploadService(
             accountId = accountId,
             namespace = namespace,
             fileId = fileId,
-            sourceUri = sourceUri,
+            input = sourceUri,
+            fileKey = fileKey.decodeToString(),
+        )
+        return pendingUploadFile("/tmp/$fileId.bin")
+    }
+
+    override suspend fun stage(
+        accountId: String,
+        namespace: String,
+        fileId: String,
+        source: Source,
+        fileKey: ByteArray,
+    ): PendingUploadFile {
+        stageCalls += StageCall(
+            accountId = accountId,
+            namespace = namespace,
+            fileId = fileId,
+            input = source,
             fileKey = fileKey.decodeToString(),
         )
         return pendingUploadFile("/tmp/$fileId.bin")
@@ -228,10 +276,11 @@ private class FakeEncryptedFilePendingUploadService(
     }
 }
 
+/** [input] is the source URI string or the borrowed [kotlinx.io.Source] instance. */
 private data class StageCall(
     val accountId: String,
     val namespace: String,
     val fileId: String,
-    val sourceUri: String,
+    val input: Any,
     val fileKey: String,
 )

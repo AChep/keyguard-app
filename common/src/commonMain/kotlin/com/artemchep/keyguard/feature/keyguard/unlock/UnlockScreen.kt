@@ -56,8 +56,8 @@ import com.artemchep.keyguard.feature.yubikey.YubiKeyPromptEffect
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LocalWindowRev
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -72,13 +72,11 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonButton
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import kotlin.time.Duration.Companion.milliseconds
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.currentKoinScope
 
 val unlockScreenTitlePadding = 24.dp
 val unlockScreenActionPadding = 8.dp
@@ -95,7 +93,7 @@ fun UnlockScreen(
     lockInfo: VaultState.Unlock.LockInfo?,
 ) {
     val loadableState = unlockScreenState(
-        clearData = localDI().direct.instance(),
+        clearData = currentKoinScope().get(),
         unlockVaultByMasterPassword = unlockVaultByMasterPassword,
         unlockVaultByBiometric = unlockVaultByBiometric,
         unlockVaultByYubiKey = unlockVaultByYubiKey,

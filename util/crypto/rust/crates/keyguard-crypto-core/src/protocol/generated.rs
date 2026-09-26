@@ -9,7 +9,7 @@ pub struct NativeRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_request::Operation",
-        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58"
+        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59"
     )]
     pub operation: ::core::option::Option<native_request::Operation>,
 }
@@ -117,7 +117,16 @@ pub mod native_request {
         OpenPgpUserIdCertificationEvaluate(
             super::OpenPgpUserIdCertificationEvaluateRequest,
         ),
+        #[prost(message, tag = "59")]
+        OpenPgpStreamDrain(super::OpenPgpStreamDrainRequest),
     }
+}
+/// Ends a decryption session's input and returns one bounded output chunk.
+/// Repeat until bytes_value is empty, then stream_finish returns final metadata.
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct OpenPgpStreamDrainRequest {
+    #[prost(uint64, tag = "1")]
+    pub handle: u64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NativeStreamOpenRequest {
@@ -1188,6 +1197,10 @@ pub struct OpenPgpDecryptStreamOpenRequest {
     /// invalid input.
     #[prost(bool, optional, tag = "4")]
     pub allow_signed_only: ::core::option::Option<bool>,
+    /// Private directory for encrypted temporary staging of large legacy messages.
+    /// Absent preserves the bounded in-memory legacy decryption path.
+    #[prost(string, optional, tag = "5")]
+    pub staging_directory: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Header of the literal data packet. OpenPGP signatures cover only the
 /// literal data, never this header: for signed-only (unencrypted) messages

@@ -13,19 +13,17 @@ import com.artemchep.keyguard.common.model.canEdit
 import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
-import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRecorder
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
 import com.artemchep.keyguard.common.service.gpgkeyserver.gpgKeyserverRefreshFingerprintOrNull
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverConfig
 import com.artemchep.keyguard.common.usecase.PutGpgKeyserverLastRefresh
 import com.artemchep.keyguard.common.usecase.RefreshGpgPublicKeys
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
+import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Clock
 
 class RefreshGpgPublicKeysImpl(
     private val getCiphers: GetCiphers,
@@ -41,17 +39,6 @@ class RefreshGpgPublicKeysImpl(
         repository = keyserverStateRepository,
         reconciler = certificateMaterialReconciler,
         resolver = gpgKeyMetadataResolver,
-    )
-
-    constructor(directDI: DirectDI) : this(
-        getCiphers = directDI.instance(),
-        getGpgKeyserverConfig = directDI.instance(),
-        putGpgKeyserverLastRefresh = directDI.instance(),
-        keyserverClient = directDI.instance(),
-        keyserverStateRepository = directDI.instance(),
-        modifyCipherById = directDI.instance(),
-        gpgKeyMetadataResolver = directDI.instance(),
-        certificateMaterialReconciler = directDI.instance(),
     )
 
     override fun invoke(

@@ -39,6 +39,7 @@
     <ID>LongMethod:WearLoginMethodRoute.kt:@Composable private fun WearLoginMethodScreen</ID>
     <ID>LongMethod:WearManualLoginScreen.kt:@Composable fun WearManualLoginScreen</ID>
     <ID>LongMethod:WearManualLoginScreen.kt:private fun TransformingLazyColumnScope.WearBitwardenLoginContent</ID>
+    <ID>LongMethod:WearNavigationModule.kt:fun wearNavigationModule</ID>
     <ID>LongMethod:WearPasskeysCredentialViewScreen.kt:private fun TransformingLazyColumnScope.WearPasskeysCredentialViewContent</ID>
     <ID>LongMethod:WearPhoneLoginStateProducer.kt:@Composable @OptIn(ExperimentalCoroutinesApi::class) internal fun wearPhoneLoginScreenState: WearPhoneLoginState</ID>
     <ID>LongMethod:WearPrivilegedAppListScreen.kt:@Composable fun WearPrivilegedAppListScreen</ID>
@@ -51,7 +52,6 @@
     <ID>LongMethod:WearVaultListItem.kt:@Composable fun VaultListItemText</ID>
     <ID>LongMethod:WearVaultListStateProducer.kt:@Composable internal fun wearVaultListScreenState: WearVaultListState</ID>
     <ID>LongMethod:WearVaultListStateProducer.kt:private fun createFilteredCiphersFlow</ID>
-    <ID>LongMethod:defaultNavigationModule.kt:fun wearNavigationModule</ID>
     <ID>MagicNumber:VaultViewErrorItem.kt:0.1f</ID>
     <ID>MagicNumber:VaultViewTotpItemBadgeState.kt:3</ID>
     <ID>MagicNumber:WearAccountViewScreen.kt:0.22f</ID>

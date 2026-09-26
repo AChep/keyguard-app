@@ -9,18 +9,11 @@ import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
 import com.artemchep.keyguard.common.usecase.DisableBiometric
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class DisableBiometricImpl(
     private val keyReadWriteRepository: FingerprintReadWriteRepository,
     private val biometricKeyRepository: BiometricKeyRepository,
 ) : DisableBiometric {
-    constructor(directDI: DirectDI) : this(
-        keyReadWriteRepository = directDI.instance(),
-        biometricKeyRepository = directDI.instance(),
-    )
-
     override fun invoke() = keyReadWriteRepository.get()
         .toIO()
         .flatMap { tokens ->

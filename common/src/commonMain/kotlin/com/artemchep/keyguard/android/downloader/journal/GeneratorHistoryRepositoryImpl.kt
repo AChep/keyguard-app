@@ -9,10 +9,10 @@ import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.KeyPairRaw
 import com.artemchep.keyguard.common.model.KeyParameterRawZero
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
-import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
 import com.artemchep.keyguard.data.GeneratorHistoryQueries
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 @Serializable
 data class KeyPairEntity(
@@ -114,16 +112,6 @@ class GeneratorHistoryRepositoryImpl(
     private val json: Json,
     private val dispatcher: CoroutineDispatcher,
 ) : GeneratorHistoryRepository {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        databaseManager = directDI.instance(),
-        base64Service = directDI.instance(),
-        keyPairGenerator = directDI.instance(),
-        json = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
-
     override fun get(): Flow<List<DGeneratorHistory>> =
         daoEffect { dao ->
             dao.get(1000)

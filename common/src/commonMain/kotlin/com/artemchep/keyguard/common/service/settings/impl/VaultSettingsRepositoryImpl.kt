@@ -8,8 +8,6 @@ import com.artemchep.keyguard.common.service.settings.entity.LocalLicenseClaimFa
 import com.artemchep.keyguard.common.service.settings.entity.LocalRedeemedLicenseStateEntity
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class VaultSettingsRepositoryImpl(
     private val store: VaultSettingsKeyValueStore,
@@ -22,11 +20,6 @@ class VaultSettingsRepositoryImpl(
         private const val KEY_CLAIMED_LICENSE_STATE = "license.claimed.state"
         private const val KEY_LICENSE_CLAIM_FAILURE = "license.claim.failure"
     }
-
-    constructor(directDI: DirectDI) : this(
-        store = directDI.instance(),
-        json = directDI.instance(),
-    )
 
     private val hibpApiTokenPref =
         store.getString(KEY_HIBP_API_TOKEN, "")

@@ -25,10 +25,10 @@ import com.artemchep.keyguard.ui.util.HorizontalDivider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
-import org.kodein.di.DirectDI
+import org.koin.core.scope.Scope
 
 actual fun settingPermissionOtherProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = settingPermissionOtherProvider()
 
 fun settingPermissionOtherProvider(): SettingComponent = kotlin.run {

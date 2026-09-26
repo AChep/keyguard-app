@@ -82,12 +82,12 @@ import com.artemchep.keyguard.feature.send.SendItem
 import com.artemchep.keyguard.feature.send.SendListState
 import com.artemchep.keyguard.feature.send.SendRoute
 import com.artemchep.keyguard.feature.send.sendListScreenState
-import com.artemchep.keyguard.feature.send.view.SendViewRouteFactory
 import com.artemchep.keyguard.feature.send.view.SendViewRoute
+import com.artemchep.keyguard.feature.send.view.SendViewRouteFactory
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.AvatarBadgeIcon
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.CollectedEffect
@@ -121,15 +121,13 @@ import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomSearchbarContent
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun SendListScreen(
     args: SendRoute.Args,
 ) {
-    val sendViewRouteFactory = localDI().direct.instance<SendViewRouteFactory>()
+    val sendViewRouteFactory = currentKoinScope().get<SendViewRouteFactory>()
     val state = sendListScreenState(
         args = args,
         highlightBackgroundColor = MaterialTheme.colorScheme.tertiaryContainer,

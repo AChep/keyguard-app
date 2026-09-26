@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+
+# Resolve our own directory without changing the application's working directory.
+APPDIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+export APPDIR
+XDG_DATA_DIRS="$APPDIR/usr/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+export XDG_DATA_DIRS
+exec "$APPDIR/usr/bin/Keyguard" "$@"

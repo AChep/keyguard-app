@@ -12,14 +12,13 @@ import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.flow.flow
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingResetWatchtowerAlerts(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingResetWatchtowerAlerts(
-    resetAllWatchtowerAlert = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    resetAllWatchtowerAlert = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingResetWatchtowerAlerts(

@@ -14,19 +14,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.transformLatest
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceWebDavPickerState(
     route: WebDavPickerRoute,
     transmitter: RouteResultTransmitter<WebDavPickerResult>,
-): WebDavPickerState = with(localDI().direct) {
+): WebDavPickerState = with(currentKoinScope()) {
     produceWebDavPickerState(
         route = route,
         transmitter = transmitter,
-        listWebDavDirectory = instance(),
+        listWebDavDirectory = get(),
     )
 }
 

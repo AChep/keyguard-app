@@ -83,7 +83,8 @@ class LoadingTaskTest {
 
     @Test
     fun `failure emits its tag and releases the claim`() = runTest {
-        val task = loadingTask(scope = this)
+        val failures = mutableListOf<LoadingTask.Failure>()
+        val task = loadingTask(scope = this, onFailure = { failures += it })
         val error = async {
             task.errorFlow.first()
         }
@@ -97,7 +98,9 @@ class LoadingTaskTest {
         )
         runCurrent()
 
-        assertEquals("save", error.await().tag)
+        val failure = error.await()
+        assertEquals("save", failure.tag)
+        assertEquals(listOf(failure), failures)
         assertFalse(task.isExecutingFlow.value)
         assertTrue(task.execute(io = { Unit }))
         advanceUntilIdle()
@@ -109,7 +112,7 @@ class LoadingTaskTest {
         val taskScope = CoroutineScope(
             StandardTestDispatcher(testScheduler) + owner,
         )
-        val task = loadingTask(scope = taskScope)
+        val task = loadingTask(scope = taskScope, onFailure = { error("Cancellation is not a failure") })
         var calls = 0
 
         assertTrue(task.execute(io = { calls += 1 }))
@@ -127,7 +130,7 @@ class LoadingTaskTest {
         val taskScope = CoroutineScope(
             StandardTestDispatcher(testScheduler) + owner,
         )
-        val task = loadingTask(scope = taskScope)
+        val task = loadingTask(scope = taskScope, onFailure = { error("Cancellation is not a failure") })
         var started = false
 
         assertTrue(
@@ -149,6 +152,7 @@ class LoadingTaskTest {
 
     private fun loadingTask(
         scope: CoroutineScope,
+        onFailure: (LoadingTask.Failure) -> Unit = {},
     ) = LoadingTask(
         translator = TestTranslator,
         scope = scope,
@@ -157,6 +161,7 @@ class LoadingTaskTest {
                 title = e.message.orEmpty(),
             )
         },
+        onFailure = onFailure,
     )
 }
 

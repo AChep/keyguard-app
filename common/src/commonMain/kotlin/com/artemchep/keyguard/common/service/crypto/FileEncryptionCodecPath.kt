@@ -20,16 +20,19 @@ fun FileEncryptionCodec.decryptToPath(
     output: AtomicFileDestination,
     key: ByteArray,
     synchronization: SynchronizationPolicy,
+    checkCancellation: () -> Unit = {},
 ): AtomicWriteReceipt =
     writePrivatelyAtomically(
         destination = output,
         parentDirectories = privateParentDirectoryPolicy,
         synchronization = synchronization,
+        checkCancellation = checkCancellation,
     ) { sink ->
         decrypt(
             input = input,
             output = sink,
             key = key,
+            checkCancellation = checkCancellation,
         )
     }.receipt
 
@@ -44,15 +47,18 @@ fun FileEncryptionCodec.encryptToPath(
     output: AtomicFileDestination,
     key: ByteArray,
     synchronization: SynchronizationPolicy,
+    checkCancellation: () -> Unit = {},
 ): AtomicWriteResult<FileEncryptionCodec.EncryptionResult> = writePrivatelyAtomically(
     destination = output,
     parentDirectories = privateParentDirectoryPolicy,
     synchronization = synchronization,
+    checkCancellation = checkCancellation,
 ) { sink ->
     encrypt(
         input = input,
         output = sink,
         key = key,
+        checkCancellation = checkCancellation,
     )
 }
 

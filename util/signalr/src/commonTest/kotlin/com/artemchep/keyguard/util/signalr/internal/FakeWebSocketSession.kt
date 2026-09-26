@@ -22,6 +22,7 @@ import kotlin.time.Duration.Companion.seconds
  */
 internal class FakeWebSocketSession(
     handshakePayload: ByteArray? = "{}$RECORD_SEPARATOR".encodeToByteArray(),
+    private val onFlush: suspend () -> Unit = {},
 ) : WebSocketSession {
     private val job = Job()
     private val incomingFrames = Channel<Frame>(Channel.UNLIMITED)
@@ -42,7 +43,7 @@ internal class FakeWebSocketSession(
         }
     }
 
-    override suspend fun flush() = Unit
+    override suspend fun flush() = onFlush()
 
     @Suppress("OVERRIDE_DEPRECATION")
     @Deprecated(

@@ -25,21 +25,12 @@ import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlinx.io.readByteArray
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 open class NativeFileEncryptionCodec internal constructor(
     private val cryptoGenerator: CryptoGenerator,
     private val stagingSpoolFactory: StagingSpoolFactory =
         DefaultStagingSpoolFactory(),
 ) : FileEncryptionCodec {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        cryptoGenerator = directDI.instance(),
-        stagingSpoolFactory = directDI.instance(),
-    )
-
     override fun decrypt(
         input: ByteArray,
         key: ByteArray,
@@ -49,9 +40,12 @@ open class NativeFileEncryptionCodec internal constructor(
         input: Source,
         output: Sink,
         key: ByteArray,
+        checkCancellation: () -> Unit,
     ) {
+        checkCancellation()
         val headerBytes = input.readByteArray(HEADER_LENGTH)
         try {
+            checkCancellation()
             val header = FileEncryptionFormat.parseAuthenticatedHeader(headerBytes, offset = 0)
             try {
                 decryptAuthenticatedBody(
@@ -59,6 +53,7 @@ open class NativeFileEncryptionCodec internal constructor(
                     output = output,
                     header = header,
                     key = key,
+                    checkCancellation = checkCancellation,
                 )
             } finally {
                 header.iv.fill(0)
@@ -74,6 +69,7 @@ open class NativeFileEncryptionCodec internal constructor(
         output: Sink,
         header: FileEncryptionFormat.AuthenticatedHeader,
         key: ByteArray,
+        checkCancellation: () -> Unit,
     ) {
         val keys = NativeFileCrypto.keys(header.type, key)
         try {
@@ -82,12 +78,14 @@ open class NativeFileEncryptionCodec internal constructor(
                 iv = header.iv,
                 expectedMac = header.mac,
                 macKey = keys.macKey,
+                checkCancellation = checkCancellation,
             ).use { ciphertext ->
                 decryptAuthenticatedCiphertext(
                     ciphertext = ciphertext,
                     output = output,
                     encryptionKey = keys.encKey,
                     iv = header.iv,
+                    checkCancellation = checkCancellation,
                 )
             }
         } catch (failure: NativeCryptoException) {
@@ -110,19 +108,21 @@ open class NativeFileEncryptionCodec internal constructor(
         input: Source,
         output: Sink,
         key: ByteArray,
+        checkCancellation: () -> Unit,
     ): FileEncryptionCodec.EncryptionResult {
+        checkCancellation()
         val iv = cryptoGenerator.seed(IV_LENGTH)
         val keys = FileEncryptionFormat.requireAesCbc256HmacSha256Keys(key)
         var mac: ByteArray? = null
         var plainSize = 0L
         try {
-            val ciphertext = createFileCiphertextSpool().buildSnapshot { ciphertextSink ->
+            val ciphertext = createFileCiphertextSpool(checkCancellation).buildSnapshot { ciphertextSink ->
                 NativeCryptoPrimitives.createAesCbcPkcs7HmacSha256Encryptor(
                     encryptionKey = keys.encKey,
                     macKey = keys.macKey,
                     iv = iv,
                 ).use { authenticatedCipher ->
-                    input.consumeWithErasedBuffer(bufferSize = BUFFER_SIZE) { buffer, length ->
+                    input.consumeWithErasedBuffer(BUFFER_SIZE, checkCancellation) { buffer, length ->
                         if (length.toLong() > MAX_STAGED_FILE_PLAINTEXT_BYTES - plainSize) {
                             throw fileSizeLimitExceeded()
                         }
@@ -132,14 +132,17 @@ open class NativeFileEncryptionCodec internal constructor(
                             length = length,
                         )
                         try {
+                            checkCancellation()
                             ciphertextSink.write(encrypted)
                         } finally {
                             encrypted.fill(0)
                         }
                     }
 
+                    checkCancellation()
                     val result = authenticatedCipher.finish()
                     try {
+                        checkCancellation()
                         ciphertextSink.write(result.ciphertext)
                         mac = result.mac.copyOf()
                     } finally {
@@ -150,11 +153,12 @@ open class NativeFileEncryptionCodec internal constructor(
             }
 
             ciphertext.use {
+                checkCancellation()
                 val finalMac = checkNotNull(mac)
                 output.writeByte(CipherEncryptor.Type.AesCbc256_HmacSha256_B64.byte)
                 output.write(iv)
                 output.write(finalMac)
-                ciphertext.copyTo(output)
+                ciphertext.copyTo(output, checkCancellation)
 
                 return FileEncryptionCodec.EncryptionResult(
                     plainSize = plainSize,
@@ -173,16 +177,23 @@ open class NativeFileEncryptionCodec internal constructor(
         iv: ByteArray,
         expectedMac: ByteArray,
         macKey: ByteArray,
-    ): ByteSnapshot = createFileCiphertextSpool().buildSnapshot { ciphertextSink ->
+        checkCancellation: () -> Unit,
+    ): ByteSnapshot = createFileCiphertextSpool(checkCancellation).buildSnapshot { ciphertextSink ->
         val actualMac = NativeCryptoPrimitives.createHmacSha256(macKey).use { hmac ->
             updateHmac(hmac, iv, iv.size)
-            input.consumeWithErasedBuffer(bufferSize = BUFFER_SIZE) { buffer, length ->
+            input.consumeWithErasedBuffer(
+                bufferSize = BUFFER_SIZE,
+                checkCancellation = checkCancellation,
+            ) { buffer, length ->
                 updateHmac(hmac, buffer, length)
+                checkCancellation()
                 ciphertextSink.write(buffer, 0, length)
             }
+            checkCancellation()
             hmac.finish()
         }
         try {
+            checkCancellation()
             // A mismatch throws before the spool seals, so unauthenticated
             // ciphertext never escapes as a snapshot.
             FileEncryptionFormat.verifyMac(
@@ -199,7 +210,9 @@ open class NativeFileEncryptionCodec internal constructor(
         output: Sink,
         encryptionKey: ByteArray,
         iv: ByteArray,
+        checkCancellation: () -> Unit,
     ) {
+        checkCancellation()
         NativeCryptoPrimitives.createAesCbcPkcs7Decryptor(
             key = encryptionKey,
             iv = iv,
@@ -207,13 +220,17 @@ open class NativeFileEncryptionCodec internal constructor(
             NativeSessionTransformRawSink(
                 session = decryptor,
                 output = output,
+                checkCancellation = checkCancellation,
             ).buffered().use { decryptingSink ->
-                ciphertext.copyTo(decryptingSink)
+                ciphertext.copyTo(decryptingSink, checkCancellation)
             }
 
+            checkCancellation()
             val finalPlaintext = decryptor.finish()
             try {
+                checkCancellation()
                 output.write(finalPlaintext)
+                checkCancellation()
             } finally {
                 finalPlaintext.fill(0)
             }
@@ -230,13 +247,16 @@ open class NativeFileEncryptionCodec internal constructor(
         }
     }
 
-    private fun createFileCiphertextSpool(): ByteStoreWriter = stagingSpoolFactory.create(
+    private fun createFileCiphertextSpool(
+        checkCancellation: () -> Unit,
+    ): ByteStoreWriter = stagingSpoolFactory.create(
         purpose = StagingPurpose.FileCiphertext,
         limits = SpoolLimits(
             memoryBytes = MAX_IN_MEMORY_FILE_CIPHERTEXT_BYTES,
             maximumBytes = MAX_STAGED_FILE_CIPHERTEXT_BYTES,
         ),
         limitExceeded = { fileSizeLimitExceeded() },
+        checkCancellation = checkCancellation,
     )
 
     private fun fileSizeLimitExceeded(): IOException = IOException(
@@ -246,6 +266,7 @@ open class NativeFileEncryptionCodec internal constructor(
     private class NativeSessionTransformRawSink(
         private val session: NativeCryptoSession,
         private val output: Sink,
+        private val checkCancellation: () -> Unit,
     ) : RawSink {
         private val buffer = ByteArray(BUFFER_SIZE)
         private var closed = false
@@ -258,6 +279,7 @@ open class NativeFileEncryptionCodec internal constructor(
 
             var remaining = byteCount
             while (remaining > 0L) {
+                checkCancellation()
                 val requested = minOf(remaining, buffer.size.toLong()).toInt()
                 val read = source.readAtMostTo(
                     buffer,
@@ -271,6 +293,7 @@ open class NativeFileEncryptionCodec internal constructor(
                         data = buffer,
                         length = read,
                     ) { transformed ->
+                        checkCancellation()
                         output.write(transformed)
                     }
                 } finally {

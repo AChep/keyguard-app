@@ -10,6 +10,10 @@ import kotlinx.io.Source
  * [Sink], and never flush the sink. On success the source is consumed through
  * end-of-stream. After failure the source position is unspecified and the sink
  * may contain a partial frame or plaintext.
+ *
+ * `checkCancellation` on streaming calls is checked between bounded processing
+ * steps, including staging and replay. It may throw to abort; it cannot interrupt
+ * an individual blocking I/O or native call. Cleanup does not call the probe.
  */
 interface FileEncryptionCodec {
     data class EncryptionResult(
@@ -41,6 +45,7 @@ interface FileEncryptionCodec {
         input: Source,
         output: Sink,
         key: ByteArray,
+        checkCancellation: () -> Unit = {},
     )
 
     /**
@@ -66,5 +71,6 @@ interface FileEncryptionCodec {
         input: Source,
         output: Sink,
         key: ByteArray,
+        checkCancellation: () -> Unit = {},
     ): EncryptionResult
 }

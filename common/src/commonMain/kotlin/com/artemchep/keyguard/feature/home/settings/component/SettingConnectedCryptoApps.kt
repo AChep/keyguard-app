@@ -18,13 +18,12 @@ import com.artemchep.keyguard.res.connected_crypto_apps_title
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingConnectedAppsProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent {
-    val registrations = directDI.instance<AndroidIpcRegistrationService>()
+    val registrations = koinScope.get<AndroidIpcRegistrationService>()
     return registrations.registrations().map { apps ->
         SettingIi(
             platformClasses = listOf(Platform.Mobile.Android::class),

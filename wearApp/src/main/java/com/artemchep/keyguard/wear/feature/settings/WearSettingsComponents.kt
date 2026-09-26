@@ -1,25 +1,32 @@
 package com.artemchep.keyguard.wear.feature.settings
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.FilledTonalButton
 import androidx.wear.compose.material3.Icon
+import androidx.wear.compose.material3.LocalContentColor
+import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.SwitchButton
 import com.artemchep.keyguard.feature.home.settings.SettingPaneComponents
@@ -28,6 +35,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.wear.feature.picker.WearPickerRoute
 import com.artemchep.keyguard.wear.ui.ProxyMaterial3Styles
+import com.artemchep.keyguard.wear.ui.surfaceTransformation
 
 internal val LocalWearSettingsTransformation = compositionLocalOf<SurfaceTransformation?> { null }
 
@@ -172,44 +180,56 @@ class WearSettingsComponents : SettingPaneComponents {
         onCheckedChange: ((Boolean) -> Unit)?,
     ) {
         val updatedOnCheckedChange by rememberUpdatedState(onCheckedChange)
-        SwitchButton(
+        val transformation = LocalWearSettingsTransformation.current
+        Column(
             modifier = Modifier
-                .fillMaxWidth(),
-            checked = checked,
-            enabled = onCheckedChange != null,
-            onCheckedChange = { newChecked ->
-                updatedOnCheckedChange?.invoke(newChecked)
-            },
-            label = {
-                ProxyMaterial3Styles {
-                    title()
-                }
-            },
-            secondaryLabel = if (text != null) {
-                // composable
-                {
+                .fillMaxWidth()
+                // The list measures the switch and footer as a single transformed item.
+                .surfaceTransformation(transformation.takeIf { footer != null }),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            SwitchButton(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                checked = checked,
+                enabled = onCheckedChange != null,
+                onCheckedChange = { newChecked ->
+                    updatedOnCheckedChange?.invoke(newChecked)
+                },
+                label = {
                     ProxyMaterial3Styles {
-                        text()
+                        title()
                     }
-                }
-            } else {
-                null
-            },
-            icon = if (icon != null) {
-                // composable
-                {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(ButtonDefaults.IconSize),
-                    )
-                }
-            } else {
-                null
-            },
-            transformation = LocalWearSettingsTransformation.current,
-        )
+                },
+                secondaryLabel = if (text != null) {
+                    // composable
+                    {
+                        ProxyMaterial3Styles {
+                            text()
+                        }
+                    }
+                } else {
+                    null
+                },
+                icon = if (icon != null) {
+                    // composable
+                    {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(ButtonDefaults.IconSize),
+                        )
+                    }
+                } else {
+                    null
+                },
+                transformation = transformation.takeIf { footer == null },
+            )
+            if (footer != null) {
+                WearSettingsFooter(content = footer)
+            }
+        }
     }
 
     @Composable
@@ -220,6 +240,25 @@ class WearSettingsComponents : SettingPaneComponents {
             Column {
                 content()
             }
+        }
+    }
+}
+
+@Composable
+private fun WearSettingsFooter(
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    CompositionLocalProvider(
+        LocalContentColor provides MaterialTheme.colorScheme.onBackground,
+    ) {
+        ProxyMaterial3Styles {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                content = content,
+            )
         }
     }
 }

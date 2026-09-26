@@ -76,27 +76,6 @@ jobs:
       - name: "Test desktopSshAgent crate"
         run: cargo test --manifest-path desktopSshAgent/src/Cargo.toml
 
-  ssh-kotlin-tests:
-    name: "Kotlin agent tests"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/setup_gradle
-        with:
-          cache-write-only: ${{ inputs.cache-write-only || false }}
-      - name: "Setup Rust toolchain"
-        uses: ./.github/actions/setup_rust
-        with:
-          targets: "x86_64-unknown-linux-gnu"
-      - name: "Run SSH agent unit tests"
-        run: >-
-          ./gradlew :common:checkSshjDependencies :common:desktopTest
-          --tests "com.artemchep.keyguard.common.service.agent.*"
-          --tests "com.artemchep.keyguard.common.service.sshagent.*"
-          --tests "com.artemchep.keyguard.common.service.crypto.Ssh*"
-
   ssh-e2e-tests:
     name: "End-to-end (${{ matrix.os }})"
     runs-on: ${{ matrix.os }}

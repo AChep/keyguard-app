@@ -13,7 +13,6 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
 private const val CHECK_TASK_NAME = "checkBouncyCastleProductionDependencies"
-private const val LEGACY_SSHJ_TASK_NAME = "checkSshjDependencies"
 
 private const val BOUNCY_CASTLE_GROUP = "org.bouncycastle"
 
@@ -42,53 +41,45 @@ class CryptoDependencyPolicyPlugin : Plugin<Project> {
             "keyguard.crypto-dependency-policy must be applied to the root project"
         }
 
-        val policyCheck = target.tasks.register(CHECK_TASK_NAME) {
+        target.tasks.register(CHECK_TASK_NAME) {
             group = "verification"
             description =
                 "Rejects Bouncy Castle, SSHJ, and ASN.1 artifacts from production classpaths."
+            dependsOn(policyProjectPaths.map { "$it:$CHECK_TASK_NAME" })
         }
+    }
+}
 
-        // Gradle requires each project to resolve its own configurations. The
-        // root task aggregates those checks while this plugin owns their one
-        // shared implementation.
-        policyProjectPaths.forEach { projectPath ->
-            val policyProject = target.project(projectPath)
-            val projectCheck = policyProject.tasks.register(
-                CHECK_TASK_NAME,
-                CheckCryptoDependencyPolicyTask::class.java,
-            ) {
-                group = "verification"
-                description =
-                    "Rejects Bouncy Castle, SSHJ, and ASN.1 artifacts from production classpaths."
-                this.projectPath.set(projectPath)
-            }
-            policyProject.configurations.configureEach {
-                val configurationName = name
-                if (!isJvmClasspathName(configurationName)) return@configureEach
-
-                val isProduction = !configurationName.contains("test", ignoreCase = true)
-                val configurationViolations = incoming
-                    .resolutionResult
-                    .rootComponent
-                    .map { rootComponent ->
-                        collectViolations(
-                            rootComponent = rootComponent,
-                            projectPath = projectPath,
-                            configurationName = configurationName,
-                            isProduction = isProduction,
-                        )
-                    }
-                projectCheck.configure {
-                    checkedConfigurationNames.add(configurationName)
-                    violations.addAll(configurationViolations)
-                }
-            }
-            policyCheck.configure { dependsOn(projectCheck) }
-        }
-        target.project(":common").tasks.register(LEGACY_SSHJ_TASK_NAME) {
+/** Each project owns resolution of its own classpaths; the root only aggregates. */
+class CryptoDependencyCheckPlugin : Plugin<Project> {
+    override fun apply(target: Project) = with(target) {
+        val projectPath = path
+        val projectCheck = tasks.register(
+            CHECK_TASK_NAME,
+            CheckCryptoDependencyPolicyTask::class.java,
+        ) {
             group = "verification"
-            description = "Compatibility alias for the root crypto dependency policy."
-            dependsOn(target.project(":common").tasks.named(CHECK_TASK_NAME))
+            description =
+                "Rejects Bouncy Castle, SSHJ, and ASN.1 artifacts from production classpaths."
+            this.projectPath.set(projectPath)
+        }
+        configurations.configureEach {
+            val configurationName = name
+            if (!isJvmClasspathName(configurationName)) return@configureEach
+
+            val isProduction = !configurationName.contains("test", ignoreCase = true)
+            val configurationViolations = incoming.resolutionResult.rootComponent.map { rootComponent ->
+                collectViolations(
+                    rootComponent = rootComponent,
+                    projectPath = projectPath,
+                    configurationName = configurationName,
+                    isProduction = isProduction,
+                )
+            }
+            projectCheck.configure {
+                checkedConfigurationNames.add(configurationName)
+                violations.addAll(configurationViolations)
+            }
         }
     }
 }
@@ -157,20 +148,9 @@ private fun collectViolations(
     return violations
 }
 
-internal fun isJvmClasspath(
-    name: String,
-    canBeResolved: Boolean,
-): Boolean = canBeResolved && isJvmClasspathName(name)
-
 private fun isJvmClasspathName(name: String): Boolean =
     name.endsWith("CompileClasspath") ||
         name.endsWith("RuntimeClasspath")
-
-internal fun isProductionClasspath(
-    name: String,
-    canBeResolved: Boolean,
-): Boolean = isJvmClasspath(name, canBeResolved) &&
-    !name.contains("test", ignoreCase = true)
 
 internal fun isBouncyCastleDependency(group: String): Boolean =
     group == BOUNCY_CASTLE_GROUP

@@ -5,7 +5,6 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import io.ktor.http.*
-import org.kodein.di.DirectDI
 
 class UrlPlaceholder(
     private val url: String,
@@ -22,7 +21,7 @@ class UrlPlaceholder(
         key.equals("url:rmvscm", ignoreCase = true) ||
                 key.equals("base:rmvscm", ignoreCase = true) -> {
             // Cut out the scheme from the provided URL.
-            val regex = "^.*://".toRegex()
+            val regex = "^[A-Za-z][A-Za-z0-9+.-]*://".toRegex()
             url.replace(regex, "").let(::io)
         }
 
@@ -58,13 +57,13 @@ class UrlPlaceholder(
         }
 
         key.startsWith("url:parameter:", ignoreCase = true) -> {
-            val name = key.substringAfter("url:parameter:")
+            val name = key.substring("url:parameter:".length)
             uuu.parameters[name]
                 .let(::io)
         }
 
         key.startsWith("base:parameter:", ignoreCase = true) -> {
-            val name = key.substringAfter("base:parameter:")
+            val name = key.substring("base:parameter:".length)
             uuu.parameters[name]
                 .let(::io)
         }
@@ -92,13 +91,7 @@ class UrlPlaceholder(
         else -> null
     }
 
-    class Factory(
-    ) : Placeholder.Factory {
-        constructor(
-            directDI: DirectDI,
-        ) : this(
-        )
-
+    class Factory : Placeholder.Factory {
         override fun createOrNull(
             scope: PlaceholderScope,
         ) = scope.url?.let(::UrlPlaceholder)

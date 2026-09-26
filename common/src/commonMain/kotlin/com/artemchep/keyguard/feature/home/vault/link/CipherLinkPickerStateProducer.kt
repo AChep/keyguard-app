@@ -9,6 +9,7 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultItemPresentation
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import kotlinx.coroutines.CoroutineScope
@@ -17,21 +18,19 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceCipherLinkPickerState(
     args: CipherLinkPickerRoute.Args,
     transmitter: RouteResultTransmitter<CipherLinkPickerResult>,
-): CipherLinkPickerState = with(localDI().direct) {
+): CipherLinkPickerState = with(currentKoinScope()) {
     produceCipherLinkPickerState(
         args = args,
         transmitter = transmitter,
-        getCiphers = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
+        getCiphers = get(),
+        getAppIcons = get(),
+        getWebsiteIcons = get(),
     )
 }
 
@@ -47,6 +46,16 @@ fun produceCipherLinkPickerState(
     initial = CipherLinkPickerState(),
     args = arrayOf(args, getCiphers, getAppIcons, getWebsiteIcons),
 ) {
+    cipherLinkPickerStateProducer(args, transmitter, getCiphers, getAppIcons, getWebsiteIcons)
+}
+
+suspend fun RememberStateFlowScope.cipherLinkPickerStateProducer(
+    args: CipherLinkPickerRoute.Args,
+    transmitter: RouteResultTransmitter<CipherLinkPickerResult>,
+    getCiphers: GetCiphers,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
+): Flow<CipherLinkPickerState> {
     val queryHandle = textFieldHandle(
         key = "query",
         initial = "",
@@ -57,7 +66,7 @@ fun produceCipherLinkPickerState(
         excludedCipherId = args.excludedCipherId,
         sharingScope = screenScope,
     )
-    combine(
+    return combine(
         candidatesFlow,
         queryHandle.sink,
         getAppIcons(),

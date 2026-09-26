@@ -1,4 +1,5 @@
 plugins {
+    id("keyguard.ktlint")
     alias(libs.plugins.kotlin.jvm)
 }
 

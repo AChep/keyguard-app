@@ -30,6 +30,7 @@ fun rememberSettingsPermissionItems(
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.PERMISSION_CAMERA),
                     SettingPaneItem.Item(Setting.PERMISSION_POST_NOTIFICATION),
+                    SettingPaneItem.Item(Setting.PERMISSION_LOCAL_NETWORK),
                     SettingPaneItem.Item(Setting.PERMISSION_WRITE_EXTERNAL_STORAGE),
                 ),
             ),

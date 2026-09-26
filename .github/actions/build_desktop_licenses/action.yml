@@ -1,4 +1,5 @@
 name: "Build Desktop Licenses"
+description: "Generate license notices for the desktop distribution"
 runs:
   using: "composite"
   steps:

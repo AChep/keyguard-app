@@ -5,15 +5,13 @@ import app.keemobile.kotpass.constants.BasicField
 import app.keemobile.kotpass.constants.GroupOverride
 import app.keemobile.kotpass.cryptography.EncryptedValue
 import app.keemobile.kotpass.database.modifiers.binaries
+import app.keemobile.kotpass.database.modifiers.modifyContent
 import app.keemobile.kotpass.database.modifiers.cleanupHistory
-import app.keemobile.kotpass.database.modifiers.modifyEntries
-import app.keemobile.kotpass.database.modifiers.modifyEntry
 import app.keemobile.kotpass.database.modifiers.modifyGroup
 import app.keemobile.kotpass.database.modifiers.modifyGroups
 import app.keemobile.kotpass.database.modifiers.modifyMeta
 import app.keemobile.kotpass.database.modifiers.modifyParentGroup
 import app.keemobile.kotpass.database.modifiers.moveEntry
-import app.keemobile.kotpass.database.modifiers.moveGroup
 import app.keemobile.kotpass.database.modifiers.removeEntry
 import app.keemobile.kotpass.database.modifiers.removeGroup
 import app.keemobile.kotpass.database.modifiers.withHistory
@@ -217,18 +215,21 @@ class KeePassDatabaseSpec {
     }
 
     describe("Database modifiers") {
-        it("Removed Group is moved to recycle bin") {
-            val database = loadDatabase(
-                fileName = "groups_and_entries.kdbx",
-                passphrase = "1"
-            ).withRecycleBin { recycleBinUuid ->
-                moveGroup(DatabaseRes.GroupsAndEntries.Group2, recycleBinUuid)
+        it("Creates and reuses the recycle bin") {
+            var recycleBinUuid: Uuid? = null
+            val database = EmptyDatabase.withRecycleBin { uuid ->
+                recycleBinUuid = uuid
+                this
             }
-            val (parent, _) = database
-                .getGroup { it.uuid == DatabaseRes.GroupsAndEntries.Group2 }!!
-
             database.content.meta.recycleBinEnabled shouldBe true
-            parent?.uuid shouldBe database.content.meta.recycleBinUuid
+            database.content.meta.recycleBinUuid shouldBe recycleBinUuid
+            database.getGroup { it.uuid == recycleBinUuid } shouldNotBe null
+
+            val reused = database.withRecycleBin { uuid ->
+                uuid shouldBe recycleBinUuid
+                this
+            }
+            reused shouldBe database
         }
 
         it("Removed Group and it's children UUIDs are added to deleted objects") {
@@ -280,36 +281,14 @@ class KeePassDatabaseSpec {
             }
         }
 
-        it("Entries mass modification") {
-            val label = "Hello"
-            val database = loadDatabase(
-                fileName = "groups_and_entries.kdbx",
-                passphrase = "1"
-            ).modifyEntries {
-                copy(overrideUrl = label)
-            }
-
-            database.traverse { element ->
-                if (element is Entry) {
-                    element.overrideUrl shouldBe label
-                }
-            }
-        }
-
         it("Entry modification with history") {
-            val (_, entry) = loadDatabase(
-                fileName = "groups_and_entries.kdbx",
-                passphrase = "1"
-            ).modifyEntry(DatabaseRes.GroupsAndEntries.Entry1) {
-                withHistory {
-                    copy(overrideUrl = "Hello")
-                }
-            }.getEntry {
-                it.uuid == DatabaseRes.GroupsAndEntries.Entry1
-            }!!
+            val original = Entry(uuid = Uuid.random())
+            val entry = original.withHistory {
+                copy(overrideUrl = "Hello")
+            }
 
             entry.overrideUrl shouldBe "Hello"
-            entry.history.size shouldBe 1
+            entry.history shouldBe listOf(original)
         }
 
         it("Removed Entry is moved to recycle bin") {
@@ -346,18 +325,17 @@ class KeePassDatabaseSpec {
             val database = loadDatabase("groups_and_entries.kdbx", "1")
             val maintenanceHistoryDays = database.content.meta.maintenanceHistoryDays.toInt()
             val outdated = now - (maintenanceHistoryDays + 1).days
+            val original = Entry(
+                uuid = DatabaseRes.GroupsAndEntries.Entry1,
+                history = listOf(
+                    Entry(
+                        uuid = DatabaseRes.GroupsAndEntries.Entry1,
+                        times = TimeData.create(outdated),
+                    ),
+                ),
+            )
             val (_, entry) = database
-                .modifyEntry(DatabaseRes.GroupsAndEntries.Entry1) {
-                    copy(
-                        history = listOf(
-                            copy(
-                                times = TimeData
-                                    .create()
-                                    .copy(lastModificationTime = outdated)
-                            )
-                        )
-                    )
-                }
+                .modifyContent { copy(group = group.copy(entries = listOf(original))) }
                 .cleanupHistory(now)
                 .getEntry { it.uuid == DatabaseRes.GroupsAndEntries.Entry1 }!!
 
@@ -415,6 +393,41 @@ class KeePassDatabaseSpec {
                 .getEntry { it.uuid == DatabaseRes.GroupsAndEntries.Entry1 }!!
 
             cleanedEntry.history.size shouldBe 0
+        }
+
+        it("Performing cleanup keeps recent history with default maintenance days") {
+            val now = Clock.System.now()
+            val entry = buildEntry(DatabaseRes.GroupsAndEntries.Entry1) {
+                history += Entry(uuid = Uuid.random(), times = TimeData.create(now - 1.days))
+            }
+            val (_, cleanedEntry) = EmptyDatabase
+                .modifyMeta { copy(maintenanceHistoryDays = 365U) }
+                .modifyParentGroup { copy(entries = listOf(entry)) }
+                .cleanupHistory(now)
+                .getEntry { it.uuid == DatabaseRes.GroupsAndEntries.Entry1 }!!
+
+            cleanedEntry.history.size shouldBe 1
+        }
+
+        it("Performing cleanup keeps recent history when maintenance days exceed Int.MAX_VALUE") {
+            val now = Clock.System.now()
+            val maintenanceDays = listOf(
+                Int.MAX_VALUE.toUInt() + 1U,
+                UInt.MAX_VALUE,
+            )
+            for (days in maintenanceDays) {
+                val entry = buildEntry(DatabaseRes.GroupsAndEntries.Entry1) {
+                    history += Entry(uuid = Uuid.random(), times = TimeData.create(now - 1.days))
+                    history += Entry(uuid = Uuid.random(), times = TimeData.create(now - 400.days))
+                }
+                val (_, cleanedEntry) = EmptyDatabase
+                    .modifyMeta { copy(maintenanceHistoryDays = days) }
+                    .modifyParentGroup { copy(entries = listOf(entry)) }
+                    .cleanupHistory(now)
+                    .getEntry { it.uuid == DatabaseRes.GroupsAndEntries.Entry1 }!!
+
+                cleanedEntry.history.size shouldBe 2
+            }
         }
     }
     }

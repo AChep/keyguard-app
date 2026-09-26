@@ -1,7 +1,5 @@
 package com.artemchep.keyguard.feature.home.vault.screen
 
-import kotlin.jvm.JvmName
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import arrow.core.getOrElse
 import com.artemchep.keyguard.AppMode
-import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -85,6 +82,7 @@ import com.artemchep.keyguard.common.model.canEdit
 import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.model.formatH
 import com.artemchep.keyguard.common.model.ignores
+import com.artemchep.keyguard.common.model.isWatchtowerEligible
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
@@ -96,12 +94,14 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParserUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.service.crypto.hasAuthenticatedMetadata
 import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
+import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
+import com.artemchep.keyguard.common.service.extract.LinkInfoExtractorRegistry
 import com.artemchep.keyguard.common.service.extract.LinkInfoRegistry
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
 import com.artemchep.keyguard.common.service.gpgagent.GpgRenewalAuthorization
 import com.artemchep.keyguard.common.service.gpgagent.chunkedGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
@@ -111,6 +111,7 @@ import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.parseGpgAgentMetadataOrNull
 import com.artemchep.keyguard.common.service.gpgkeyserver.isEligibleForGpgKeyserverRefresh
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
+import com.artemchep.keyguard.common.service.placeholder.PlaceholderFactoryRegistry
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.common.service.placeholder.create
 import com.artemchep.keyguard.common.service.placeholder.placeholderFormat
@@ -153,10 +154,10 @@ import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetUrlOverrides
 import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
-import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.GpgKeyExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
+import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertAsRead
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
@@ -180,9 +181,9 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.core.store.bitwarden.canRetry
 import com.artemchep.keyguard.core.store.bitwarden.expired
 import com.artemchep.keyguard.core.store.bitwarden.message
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactory
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.attachments.util.createPendingAttachmentItem
-import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactory
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
 import com.artemchep.keyguard.feature.barcodetype.createBarcodeTypeHistoryKey
@@ -190,7 +191,6 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
-import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.generator.gpgkey.GpgKeyActions
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
@@ -254,28 +254,33 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.ContextItemBuilder
+import com.artemchep.keyguard.ui.FingerprintPlaneta
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.colorizePassword
 import com.artemchep.keyguard.ui.icons.ChevronIcon
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.IconBoxContainer
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
+import com.artemchep.keyguard.ui.markdown.MarkdownParser
 import com.artemchep.keyguard.ui.selection.SelectionHandle
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import com.artemchep.keyguard.ui.text.annotate
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.totp.formatCode2
-import com.artemchep.keyguard.ui.markdown.MarkdownParser
 import io.ktor.http.Url
+import kotlin.jvm.JvmName
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -298,15 +303,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
-import kotlin.time.Instant
 import org.jetbrains.compose.resources.stringResource
-import com.artemchep.keyguard.platform.leAllInstances
-import com.artemchep.keyguard.ui.FingerprintPlaneta
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
+import org.koin.compose.currentKoinScope
 
 typealias RevealConcealFlow = Flow<Unit>
 
@@ -317,85 +315,85 @@ fun vaultViewScreenState(
     disabledContentColor: Color,
     itemId: String,
     accountId: String,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     vaultViewScreenState(
-        getAccounts = instance(),
-        getCanWrite = instance(),
-        getCiphers = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
-        getFolders = instance(),
-        getFolderTreeById = instance(),
-        getConcealFields = instance(),
-        getMarkdown = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        getPasskeys = instance(),
-        getTwoFa = instance(),
-        getTotpCode = instance(),
-        getPasswordStrength = instance(),
-        getUrlOverrides = instance(),
-        passkeyTargetCheck = instance(),
-        getWatchtowerUnreadAlerts = instance(),
-        markWatchtowerAlertAsRead = instance(),
-        cryptoGenerator = instance(),
-        keyPairGenerator = instance(),
-        gpgPublicKeyParser = instanceOrNull<GpgPublicKeyParser>()
+        getAccounts = get(),
+        getCanWrite = get(),
+        getCiphers = get(),
+        getCollections = get(),
+        getOrganizations = get(),
+        getFolders = get(),
+        getFolderTreeById = get(),
+        getConcealFields = get(),
+        getMarkdown = get(),
+        getAppIcons = get(),
+        getWebsiteIcons = get(),
+        getPasskeys = get(),
+        getTwoFa = get(),
+        getTotpCode = get(),
+        getPasswordStrength = get(),
+        getUrlOverrides = get(),
+        passkeyTargetCheck = get(),
+        getWatchtowerUnreadAlerts = get(),
+        markWatchtowerAlertAsRead = get(),
+        cryptoGenerator = get(),
+        keyPairGenerator = get(),
+        gpgPublicKeyParser = getOrNull<GpgPublicKeyParser>()
             ?: GpgPublicKeyParserUnsupported,
-        keyPrivateExport = instance(),
-        keyPublicExport = instance(),
-        gpgKeyExport = instance(),
-        gpgPublicKeyExport = instance(),
-        gpgPrivateKeyExport = instance(),
-        cipherUnsecureUrlCheck = instance(),
-        cipherUnsecureUrlAutoFix = instance(),
-        cipherFieldSwitchToggle = instance(),
-        moveCipherToFolderById = instance(),
-        tldService = instance(),
-        equivalentDomainsBuilderFactory = instance(),
-        patchWatchtowerAlertCipher = instance(),
-        rePromptCipherById = instance(),
-        changeCipherNameById = instance(),
-        changeCipherPasswordById = instance(),
-        changeGpgKeyExpirationById = instance(),
-        checkPasswordLeak = instance(),
-        uploadGpgPublicKey = instance(),
-        getGpgKeyserverConfig = instance(),
-        refreshGpgPublicKeys = instance(),
-        verifyGpgPublicKey = instance(),
-        retryCipher = instance(),
-        executeCommand = instance(),
-        copyCipherById = instance(),
-        restoreCipherById = instance(),
-        trashCipherById = instance(),
-        unarchiveCipherById = instance(),
-        archiveCipherById = instance(),
-        removeCipherById = instance(),
-        favouriteCipherById = instance(),
-        downloadManager = instance(),
-        downloadAttachment = instance(),
-        removeAttachment = instance(),
-        canPreviewAttachment = instance(),
-        attachmentPreviewRouteFactory = instance(),
-        passkeysCredentialViewRouteFactory = instance(),
-        vaultViewRouteFactory = instance(),
-        vaultRouteFactory = instance(),
-        collectionsRouteFactory = instance(),
-        cipherExpiringCheck = instance(),
-        cipherIncompleteCheck = instance(),
-        clipboardService = instance(),
-        getGravatarUrl = instance(),
-        dateFormatter = instance(),
-        addCipherOpenedHistory = instance(),
-        getJustDeleteMeByUrl = instance(),
-        getJustGetMyDataByUrl = instance(),
-        windowCoroutineScope = instance(),
-        placeholderFactories = leAllInstances(),
-        linkInfoExtractors = leAllInstances(),
-        iosAppAppStoreParser = instance(),
-        androidAppGooglePlayParser = instance(),
-        androidAppFDroidParser = instance(),
-        confirmationRouteFactory = instance(),
+        keyPrivateExport = get(),
+        keyPublicExport = get(),
+        gpgKeyExport = get(),
+        gpgPublicKeyExport = get(),
+        gpgPrivateKeyExport = get(),
+        cipherUnsecureUrlCheck = get(),
+        cipherUnsecureUrlAutoFix = get(),
+        cipherFieldSwitchToggle = get(),
+        moveCipherToFolderById = get(),
+        tldService = get(),
+        equivalentDomainsBuilderFactory = get(),
+        patchWatchtowerAlertCipher = get(),
+        rePromptCipherById = get(),
+        changeCipherNameById = get(),
+        changeCipherPasswordById = get(),
+        changeGpgKeyExpirationById = get(),
+        checkPasswordLeak = get(),
+        uploadGpgPublicKey = get(),
+        getGpgKeyserverConfig = get(),
+        refreshGpgPublicKeys = get(),
+        verifyGpgPublicKey = get(),
+        retryCipher = get(),
+        executeCommand = get(),
+        copyCipherById = get(),
+        restoreCipherById = get(),
+        trashCipherById = get(),
+        unarchiveCipherById = get(),
+        archiveCipherById = get(),
+        removeCipherById = get(),
+        favouriteCipherById = get(),
+        downloadManager = get(),
+        downloadAttachment = get(),
+        removeAttachment = get(),
+        canPreviewAttachment = get(),
+        attachmentPreviewRouteFactory = get(),
+        passkeysCredentialViewRouteFactory = get(),
+        vaultViewRouteFactory = get(),
+        vaultRouteFactory = get(),
+        collectionsRouteFactory = get(),
+        cipherExpiringCheck = get(),
+        cipherIncompleteCheck = get(),
+        clipboardService = get(),
+        getGravatarUrl = get(),
+        dateFormatter = get(),
+        addCipherOpenedHistory = get(),
+        getJustDeleteMeByUrl = get(),
+        getJustGetMyDataByUrl = get(),
+        windowCoroutineScope = get(),
+        placeholderFactories = get<PlaceholderFactoryRegistry>().values,
+        linkInfoExtractors = get<LinkInfoExtractorRegistry>().values,
+        iosAppAppStoreParser = get(),
+        androidAppGooglePlayParser = get(),
+        androidAppFDroidParser = get(),
+        confirmationRouteFactory = get(),
         mode = mode,
         contentColor = contentColor,
         disabledContentColor = disabledContentColor,
@@ -715,7 +713,6 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
 
     val equivalentDomainsBuilder = equivalentDomainsBuilderFactory.build()
     val selectionHandle = selectionHandle("selection")
-    val markdown = getMarkdown().first()
     val markdownParser = MarkdownParser()
 
     val accountFlow = getAccounts()
@@ -754,7 +751,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
     val ciphersFlow = getCiphers()
         .map { secrets ->
             secrets
-                .filter { it.deletedDate == null }
+                .filter { it.isWatchtowerEligible }
         }
     val folderFlow = secretFlow
         .flatMapLatest { secret ->
@@ -1266,6 +1263,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
         getAppIcons(),
         getWebsiteIcons(),
         getCanWrite(),
+        getMarkdown(),
     ) { array ->
         val accountOrNull = array[0] as DAccount?
         val secretSauceOrNull = array[1] as CipherSauce?
@@ -1278,6 +1276,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
         val appIcons = array[7] as Boolean
         val websiteIcons = array[8] as Boolean
         val canAddSecret = array[9] as Boolean
+        val markdown = array[10] as Boolean
 
         val content = when {
             accountOrNull == null || secretOrNull == null -> VaultViewState.Content.NotFound
@@ -2163,6 +2162,7 @@ private fun RememberStateFlowScope.oh(
                     }
             }
             if (
+                cipher.isWatchtowerEligible &&
                 !cipher.ignores(DWatchtowerAlertType.REUSED_PASSWORD) &&
                 reusedPasswords > 1
             ) {
@@ -4323,12 +4323,13 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
     // The vault view has no live policy evaluation, so both self-signature
     // states are read off the parse result. `authenticated == false` alone does
     // not say which one it is: a weak-hash key that a renewal repairs and a key
-    // with no verified self-signature at all are both unauthenticated. The
-    // renewal tier is what separates them, so the remediation advice matches.
+    // whose self-signature is missing, invalid or policy-rejected are both
+    // unauthenticated. The renewal tier is what separates them, so the
+    // remediation advice matches.
     val gpgWeakSelfSignature =
         parsedGpgKey?.renewal == GpgRenewalAuthorization.TEMPLATE_ONLY
-    val gpgMissingSelfSignature = parsedGpgKey?.authenticated == false &&
-            !gpgWeakSelfSignature
+    val gpgUnauthenticatedSelfSignature = parsedGpgKey != null &&
+            !parsedGpgKey.hasAuthenticatedMetadata
     when {
         gpgRevoked -> {
             items += VaultViewItem.Info(
@@ -4354,11 +4355,11 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
             )
         }
 
-        gpgMissingSelfSignature -> {
+        gpgUnauthenticatedSelfSignature -> {
             items += VaultViewItem.Info(
-                id = "info.gpg.missingSelfSignature",
-                name = translate(Res.string.gpg_key_status_missing_self_signature_title),
-                message = translate(Res.string.gpg_key_status_missing_self_signature_text),
+                id = "info.gpg.unauthenticatedSelfSignature",
+                name = translate(Res.string.gpg_key_status_unauthenticated_self_signature_title),
+                message = translate(Res.string.gpg_key_status_unauthenticated_self_signature_text),
             )
         }
     }
@@ -4486,20 +4487,16 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
 
     val signCapability = translate(Res.string.gpg_keys_capability_sign)
     val encryptDecryptCapability = translate(Res.string.gpg_key_capability_encrypt_decrypt)
+    // Persisted agent operations describe algorithm support, not present
+    // policy authorization, so only the parser's verdict counts here.
     val gpgCapabilities = buildList {
-        if (
-            parsedGpgKey?.canSign == true ||
-            gpgMetadataKeys.any { GpgAgentOperation.SIGN in it.agentOperations }
-        ) {
+        if (parsedGpgKey?.canSign == true) {
             this += signCapability
         }
-        if (
-            parsedGpgKey?.canEncrypt == true ||
-            gpgMetadataKeys.any { GpgAgentOperation.DECRYPT in it.agentOperations }
-        ) {
+        if (parsedGpgKey?.canEncrypt == true) {
             this += encryptDecryptCapability
         }
-    }.distinct()
+    }
     val gpgAlgorithms = buildList {
         parsedGpgKey
             ?.formatGpgAlgorithm()
@@ -4529,7 +4526,13 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
             title = translate(Res.string.expires),
             value = expiresAt
                 ?.let(dateFormatter::formatDate)
-                ?: translate(Res.string.gpg_key_does_not_expire),
+                ?: translate(
+                    if (parsedGpgKey.hasAuthenticatedMetadata) {
+                        Res.string.gpg_key_does_not_expire
+                    } else {
+                        Res.string.gpg_key_expiry_unknown
+                    },
+                ),
         )
     }
     if (gpgCapabilities.isNotEmpty()) {

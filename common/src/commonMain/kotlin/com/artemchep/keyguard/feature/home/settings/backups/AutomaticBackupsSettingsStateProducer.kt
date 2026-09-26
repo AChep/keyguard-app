@@ -30,8 +30,8 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.webdav.WebDavSettingsRoute
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,20 +39,18 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 private const val KEY_BACKUP_PASSWORD = "backup_password"
 
 @Composable
 fun produceAutomaticBackupsSettingsScreenState(): Loadable<AutomaticBackupsSettingsState> =
-    with(localDI().direct) {
+    with(currentKoinScope()) {
         produceAutomaticBackupsSettingsScreenState(
-            backupConfigRepository = instance(),
-            runBackupNow = instance(),
-            testBackupLocation = instance(),
-            confirmationRouteFactory = instance(),
+            backupConfigRepository = get(),
+            runBackupNow = get(),
+            testBackupLocation = get(),
+            confirmationRouteFactory = get(),
         )
     }
 
@@ -194,8 +192,9 @@ suspend fun RememberStateFlowScope.automaticBackupsSettingsStateProducer(
         val io = ioEffect {
             try {
                 testBackupLocation(config).bind()
+                val retention = backupConfigRepository.getConfig().first().retention
                 backupConfigRepository
-                    .setConfig(config)
+                    .setConfig(config.copy(retention = retention))
                     .bind()
                 setupErrorSink.value = null
             } catch (e: Exception) {

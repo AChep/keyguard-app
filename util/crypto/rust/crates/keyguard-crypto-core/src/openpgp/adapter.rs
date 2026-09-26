@@ -154,6 +154,13 @@ impl OpenPgpSession {
         }
     }
 
+    pub(crate) fn drain(&mut self) -> Result<Vec<u8>, PrimitiveError> {
+        match self {
+            Self::Decrypt(session) => session.drain().map_err(write_error),
+            _ => Err(PrimitiveError::InvalidArgument),
+        }
+    }
+
     pub(crate) fn finish(self) -> Result<Vec<u8>, PrimitiveError> {
         match self {
             Self::DetachedVerify(session) => (*session)

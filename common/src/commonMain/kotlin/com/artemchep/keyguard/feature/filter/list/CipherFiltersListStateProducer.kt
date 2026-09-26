@@ -35,8 +35,8 @@ import com.artemchep.keyguard.feature.search.search.mapSearch
 import com.artemchep.keyguard.feature.search.search.mapShape
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -52,9 +52,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 private class CipherFiltersListUiException(
     msg: String,
@@ -63,12 +61,12 @@ private class CipherFiltersListUiException(
 
 @Composable
 fun produceCipherFiltersListState(
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceCipherFiltersListState(
-        getCipherFilters = instance(),
-        removeCipherFilterById = instance(),
-        renameCipherFilter = instance(),
-        confirmationRouteFactory = instance(),
+        getCipherFilters = get(),
+        removeCipherFilterById = get(),
+        renameCipherFilter = get(),
+        confirmationRouteFactory = get(),
     )
 }
 

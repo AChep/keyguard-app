@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.upload
 
 import kotlin.time.Instant
+import kotlinx.io.Source
 
 /**
  * Test coordinator whose operations fail unless a test overrides the behavior
@@ -10,6 +11,12 @@ internal object FailingPendingUploadCoordinator : PendingUploadCoordinator {
     override suspend fun stage(
         target: PendingUploadTarget,
         sourceUri: String,
+        fileKey: ByteArray,
+    ): PendingUploadFile = unexpectedCall("stage")
+
+    override suspend fun stage(
+        target: PendingUploadTarget,
+        source: Source,
         fileKey: ByteArray,
     ): PendingUploadFile = unexpectedCall("stage")
 

@@ -21,11 +21,13 @@
         -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission
+        android:name="android.permission.ACCESS_LOCAL_NETWORK"
+        android:minSdkVersion="37" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.CAMERA" />
 
     <!--
         I need this permission to write files (export vault) to the
@@ -44,17 +46,6 @@
         runtime prompt.
         -->
     <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
-
-    <!-- Camera -->
-    <uses-feature
-        android:name="android.hardware.camera"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.any"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera.autofocus"
-        android:required="false" />
 
     <!-- Chrome OS -->
     <meta-data
@@ -238,16 +229,6 @@
             android:taskAffinity=":termux_ssh"
             android:theme="@style/Theme.Keyguard.Dialog"
             android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name="com.artemchep.keyguard.android.ipc.AndroidIpcApprovalActivity"
-            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:noHistory="true"
-            android:taskAffinity=":openkeychain_ipc"
-            android:theme="@style/Theme.Keyguard.Dialog"
-            android:windowSoftInputMode="adjustResize" />
-
         <receiver
             android:name="com.artemchep.keyguard.android.downloader.receiver.AttachmentDownloadActionReceiver"
             android:exported="false">
@@ -300,24 +281,6 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Bridge SSH agent requests over a localhost socket" />
-        </service>
-
-        <service
-            android:name="com.artemchep.keyguard.android.ipc.SshAuthenticationService"
-            android:enabled="false"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="org.openintents.ssh.authentication.ISshAuthenticationService" />
-            </intent-filter>
-        </service>
-
-        <service
-            android:name="com.artemchep.keyguard.android.ipc.OpenPgpService"
-            android:enabled="false"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="org.openintents.openpgp.IOpenPgpService2" />
-            </intent-filter>
         </service>
 
         <service

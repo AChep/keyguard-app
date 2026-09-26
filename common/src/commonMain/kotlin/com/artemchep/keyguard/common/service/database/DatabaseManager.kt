@@ -1,8 +1,6 @@
 package com.artemchep.keyguard.common.service.database
 
 import app.cash.sqldelight.ColumnAdapter
-import app.cash.sqldelight.db.AfterVersion
-import app.cash.sqldelight.db.SqlDriver
 import com.artemchep.keyguard.common.io.IO
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -17,33 +15,6 @@ interface DatabaseManager<Database> : DatabaseChangePassword {
         tag: String,
         block: suspend (Database) -> T,
     ): IO<T>
-}
-
-@Suppress("FunctionName")
-fun DatabaseManager<*>.AfterVersionWithTransaction(
-    afterVersion: Long,
-    block: (SqlDriver) -> Unit,
-) = AfterVersion(
-    afterVersion = afterVersion,
-    block = AfterVersionWithTransactionBlock(block),
-)
-
-private class AfterVersionWithTransactionBlock(
-    private val block: (SqlDriver) -> Unit,
-) : (SqlDriver) -> Unit {
-    override fun invoke(
-        driver: SqlDriver,
-    ) {
-        // TODO: Would be nice to ensure that the block is running in the
-        //  transaction. Simple:
-        //
-        // BEGIN TRANSACTION
-        // ...
-        // COMMIT
-        //
-        // did not do the trick for me with 'cannot commit - no transaction is active'
-        block(driver)
-    }
 }
 
 //

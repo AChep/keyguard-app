@@ -1,21 +1,16 @@
 plugins {
+    id("keyguard.quality")
     alias(libs.plugins.android.library)
+    id("keyguard.android-library")
+    id("keyguard.detekt-custom-rules")
 }
 
-val jdkVersion = JavaVersion.toVersion(libs.versions.jdk.get())
+detektCustomRules {
+    androidVariant("debug")
+}
 
 android {
-    compileSdk = libs.versions.androidCompileSdk.get().toInt()
     namespace = "com.artemchep.keyguard.android.autofill"
-
-    defaultConfig {
-        minSdk = libs.versions.androidMinSdk.get().toInt()
-    }
-
-    compileOptions {
-        sourceCompatibility = jdkVersion
-        targetCompatibility = jdkVersion
-    }
 }
 
 dependencies {

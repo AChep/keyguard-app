@@ -52,8 +52,8 @@ import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenActionPadding
 import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenTitlePadding
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.AutofillButton
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatItemLayout
@@ -66,7 +66,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @Composable
 fun SetupScreen(
@@ -324,7 +324,7 @@ fun ColumnScope.SetupScreenCreateVaultTitle() {
         style = MaterialTheme.typography.bodyLarge,
     )
 
-    val config by rememberInstance<FlavorConfig>()
+    val config = koinInject<FlavorConfig>()
     if (config.isFreeAsBeer) {
         Spacer(Modifier.height(8.dp))
         Text(

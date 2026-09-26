@@ -77,6 +77,14 @@ class TextTransformPlaceholderTest {
         assertNull(transform("value", "unknown"))
     }
 
+    @Test
+    fun `value keeps separators when it contains the separator symbol`() = runTest {
+        assertEquals(
+            "HTTPS://EXAMPLE.COM/U",
+            requireNotNull(placeholder.get("t-conv:/https://example.com/u/u/")).bind(),
+        )
+    }
+
     private suspend fun transform(
         value: String,
         command: String,

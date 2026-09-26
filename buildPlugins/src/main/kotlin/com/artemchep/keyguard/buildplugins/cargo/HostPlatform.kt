@@ -2,43 +2,43 @@ package com.artemchep.keyguard.buildplugins.cargo
 
 enum class HostPlatform(
     val composeResourceDir: String,
-    val sshAgentRustTarget: String,
-    val desktopLibRustTarget: String,
+    val rustTarget: String,
     val isMacOs: Boolean,
     val isWindows: Boolean,
 ) {
     LinuxX64(
         composeResourceDir = "linux-x64",
-        sshAgentRustTarget = "x86_64-unknown-linux-gnu",
-        desktopLibRustTarget = "x86_64-unknown-linux-gnu",
+        rustTarget = "x86_64-unknown-linux-gnu",
         isMacOs = false,
         isWindows = false,
     ),
     LinuxArm64(
         composeResourceDir = "linux-arm64",
-        sshAgentRustTarget = "aarch64-unknown-linux-gnu",
-        desktopLibRustTarget = "aarch64-unknown-linux-gnu",
+        rustTarget = "aarch64-unknown-linux-gnu",
         isMacOs = false,
         isWindows = false,
     ),
     MacosX64(
         composeResourceDir = "macos-x64",
-        sshAgentRustTarget = "x86_64-apple-darwin",
-        desktopLibRustTarget = "x86_64-apple-darwin",
+        rustTarget = "x86_64-apple-darwin",
         isMacOs = true,
         isWindows = false,
     ),
     MacosArm64(
         composeResourceDir = "macos-arm64",
-        sshAgentRustTarget = "aarch64-apple-darwin",
-        desktopLibRustTarget = "aarch64-apple-darwin",
+        rustTarget = "aarch64-apple-darwin",
         isMacOs = true,
         isWindows = false,
     ),
     WindowsX64(
         composeResourceDir = "windows-x64",
-        sshAgentRustTarget = "x86_64-pc-windows-msvc",
-        desktopLibRustTarget = "x86_64-pc-windows-msvc",
+        rustTarget = "x86_64-pc-windows-msvc",
+        isMacOs = false,
+        isWindows = true,
+    ),
+    WindowsArm64(
+        composeResourceDir = "windows-arm64",
+        rustTarget = "aarch64-pc-windows-msvc",
         isMacOs = false,
         isWindows = true,
     ),
@@ -59,7 +59,7 @@ fun detectHostPlatform(
             if (isArm) HostPlatform.MacosArm64 else HostPlatform.MacosX64
 
         osName.startsWith("Windows", ignoreCase = true) ->
-            HostPlatform.WindowsX64
+            if (isArm) HostPlatform.WindowsArm64 else HostPlatform.WindowsX64
 
         else -> error("Unsupported host platform: osName=$osName, osArch=$osArch")
     }

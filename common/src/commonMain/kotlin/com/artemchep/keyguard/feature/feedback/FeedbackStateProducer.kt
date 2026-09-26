@@ -1,16 +1,19 @@
 package com.artemchep.keyguard.feature.feedback
 
 import androidx.compose.runtime.Composable
-import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.textFieldHandle
-import com.artemchep.keyguard.feature.auth.common.Validated
-import com.artemchep.keyguard.feature.auth.common.util.validatedFeedback
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.presentation.feedback.FeedbackEffect
+import com.artemchep.keyguard.presentation.feedback.FeedbackTextState
+import com.artemchep.keyguard.presentation.feedback.FeedbackValidationError
+import com.artemchep.keyguard.presentation.feedback.feedbackStateProducer
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.error_must_not_be_blank
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -31,50 +34,51 @@ suspend fun RememberStateFlowScope.feedbackScreenStateProducer(): Flow<Loadable<
         key = "message",
         storage = storage,
     )
-
-    fun onSend(message: String) {
-        if (message == "send test crash report") {
-            val msg = "Test crash report."
-            @Suppress("TooGenericExceptionThrown")
-            throw RuntimeException(msg)
-        }
-
-        val subject = getFeedbackSubject()
-        val intent = NavigationIntent.NavigateToEmail(
-            email = "artemchep+keyguard@gmail.com",
-            subject = subject,
-            body = message,
-        )
-        navigate(intent)
-    }
-
-    return messageHandle.sink
-        .map { cell ->
-            val validatedMessage = validatedFeedback(cell.text)
-            val canLogin = validatedMessage is Validated.Success
-            val message = TextFieldModel.of(
-                cell = cell,
-                handle = messageHandle,
-                validated = validatedMessage,
+    val producer = feedbackStateProducer(
+        messageFlow = messageHandle.sink.map { cell ->
+            FeedbackTextState(
+                id = messageHandle.id,
+                text = cell.text,
+                revision = cell.revision,
             )
+        },
+        onMessageChange = messageHandle::onChange,
+        onSetMessage = messageHandle::setText,
+        onEffect = { effect ->
+            when (effect) {
+                is FeedbackEffect.SendEmail -> {
+                    navigate(
+                        NavigationIntent.NavigateToEmail(
+                            email = effect.email,
+                            subject = getFeedbackSubject(),
+                            body = effect.body,
+                        ),
+                    )
+                }
+            }
+        },
+    )
+
+    return producer
+        .map { state ->
+            val message = state.message
+            val error = when (message.error) {
+                FeedbackValidationError.MUST_NOT_BE_BLANK -> {
+                    translate(Res.string.error_must_not_be_blank)
+                }
+                null -> null
+            }
             FeedbackState(
-                message = message,
-                onSendClick = if (canLogin) {
-                    // lambda
-                    ::onSend.partially1(validatedMessage.model)
-                } else {
-                    null
-                },
-                onClear = if (validatedMessage.model.isNotEmpty()) {
-                    // lambda
-                    {
-                        // Command path: bumps the revision so the edit
-                        // buffer adopts the cleared text.
-                        messageHandle.setText("")
-                    }
-                } else {
-                    null
-                },
+                message = TextFieldModel(
+                    id = message.id,
+                    text = message.text,
+                    textRevision = message.revision,
+                    error = error?.takeUnless { message.text.isEmpty() },
+                    onChange = state.onMessageChange,
+                    onSetText = state.onSetMessage,
+                ),
+                onSendClick = state.onSendClick,
+                onClear = state.onClear,
             )
         }
         .map { state ->

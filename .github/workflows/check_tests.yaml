@@ -46,6 +46,18 @@ jobs:
           if-no-files-found: ignore
           retention-days: 21
 
+  check-release-scripts:
+    name: Check Release Scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_python
+      - name: "Run release script tests"
+        working-directory: .github
+        run: python3 -m unittest discover -s . -p 'test_*.py'
+
   check-kmp-host-tests:
     name: Check KMP Host Tests (${{ matrix.name }})
     runs-on: ubuntu-latest
@@ -57,19 +69,34 @@ jobs:
             name: Common Desktop
             max_workers: 2
             tasks: >-
+              :common:checkBouncyCastleProductionDependencies
+              :common:checkSshjDependencies
               :common:desktopTest
+              :feature:android-ipc-presentation:checkComposeFree
+              :feature:android-ipc-presentation:desktopTest
+              :standard:presentation:checkComposeFree
+              :standard:presentation:desktopTest
+              :desktopApp:jvmTest
+              :desktopApp:checkBouncyCastleProductionDependencies
           - id: common-android-host
             name: Common Android Host
             max_workers: 2
             tasks: >-
               :common:testAndroidHostTest
+              :feature:android-ipc-presentation:testAndroidHostTest
+              :standard:presentation:testAndroidHostTest
           - id: util-desktop
             name: Util Desktop
             max_workers: 2
             tasks: >-
               :desktopLibJvm:jvmTest
+              :util:crypto:desktopTest
+              :util:io:desktopTest
+              :util:instance:desktopTest
               :util:foundation:desktopTest
+              :util:foundation:checkBouncyCastleProductionDependencies
               :util:kdbx:desktopTest
+              :util:kdbx:checkBouncyCastleProductionDependencies
               :util:messagepack:desktopTest
               :util:planeta:desktopTest
               :util:signalr:desktopTest
@@ -80,6 +107,8 @@ jobs:
             name: Util Android Host
             max_workers: 2
             tasks: >-
+              :util:crypto:testAndroidHostTest
+              :util:io:testAndroidHostTest
               :util:foundation:testAndroidHostTest
               :util:kdbx:testAndroidHostTest
               :util:messagepack:testAndroidHostTest
@@ -137,6 +166,11 @@ jobs:
       - name: "Run Android unit tests"
         run: >-
           ./gradlew --continue
+          :androidApp:checkBouncyCastleProductionDependencies
+          :wearApp:checkBouncyCastleProductionDependencies
+          :wearApp:checkOptionalFeatureDependencies
+          :wearApp:checkOptionalFeatureManifests
+          :feature:android-ipc-android:testDebugUnitTest
           :androidApp:testNoneDebugUnitTest
           :androidApp:testPlayStoreDebugUnitTest
           :wearApp:testNoneDebugUnitTest
@@ -172,7 +206,11 @@ jobs:
         run: >-
           ./gradlew --continue
           :common:iosSimulatorArm64Test
+          :feature:android-ipc-presentation:iosSimulatorArm64Test
+          :standard:presentation:iosSimulatorArm64Test
           :iosApp:iosSimulatorArm64Test
+          :util:crypto:iosSimulatorArm64Test
+          :util:io:iosSimulatorArm64Test
           :util:foundation:iosSimulatorArm64Test
           :util:kdbx:iosSimulatorArm64Test
           :util:messagepack:iosSimulatorArm64Test

@@ -36,6 +36,25 @@ import kotlin.time.Instant
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetNavItemsConfigImplTest {
     @Test
+    fun `accountless vault applies navigation configuration changes`() = runTest {
+        val fixture = fixture()
+        advanceTimeBy(2_001L)
+        advanceUntilIdle()
+
+        val updated = NavItemsConfigDefaults.defaultConfig().let { config ->
+            config.copy(items = config.items.reversed())
+        }
+        fixture.persistedConfigFlow.value = updated
+        advanceUntilIdle()
+        advanceTimeBy(1L)
+        advanceUntilIdle()
+
+        assertEquals(updated.items.map { it.ref }, fixture.useCase().value.items.map { it.ref })
+        assertFalse(fixture.useCase().value.sendsVisible())
+        assertEquals(fixture.useCase().value, fixture.cacheWrites.lastOrNull())
+    }
+
+    @Test
     fun `conditional items are hidden before cached or upstream config emits`() = runTest {
         val fixture = fixture()
 
@@ -116,6 +135,71 @@ class GetNavItemsConfigImplTest {
 
         assertEquals(cachedConfig, fixture.useCase().value)
         assertEquals(emptyList(), fixture.cacheWrites)
+    }
+
+    @Test
+    fun `incomplete profile reads preserve cached config until accounts match`() {
+        val profileSnapshots = listOf(
+            emptyList(),
+            listOf("old-account"),
+            listOf("keepass"),
+            listOf("bitwarden", "keepass", "old-account"),
+        )
+        profileSnapshots.forEach { profileIds ->
+            runTest {
+                val cachedConfig = configWithSendsVisible(true)
+                val fixture = fixture(
+                    cachedConfig = cachedConfig,
+                    accounts = listOf(
+                        createAccount("bitwarden", AccountType.BITWARDEN),
+                        createAccount("keepass", AccountType.KEEPASS),
+                    ),
+                    profiles = profileIds.map { createProfile(it, hidden = false) },
+                )
+
+                advanceTimeBy(2_001L)
+                advanceUntilIdle()
+
+                assertEquals(cachedConfig, fixture.useCase().value, "Profiles: $profileIds")
+                assertEquals(emptyList(), fixture.cacheWrites, "Profiles: $profileIds")
+
+                fixture.profilesFlow.value = listOf(
+                    createProfile("bitwarden", hidden = false),
+                    createProfile("keepass", hidden = false),
+                )
+                advanceTimeBy(2_001L)
+                advanceUntilIdle()
+
+                assertTrue(fixture.useCase().value.sendsVisible())
+                assertEquals(fixture.useCase().value, fixture.cacheWrites.lastOrNull())
+            }
+        }
+    }
+
+    @Test
+    fun `account removal preserves sends until both snapshots are empty`() = runTest {
+        val fixture = fixture(
+            accounts = listOf(createAccount("bitwarden", AccountType.BITWARDEN)),
+            profiles = listOf(createProfile("bitwarden", hidden = false)),
+        )
+        advanceTimeBy(2_001L)
+        advanceUntilIdle()
+        assertTrue(fixture.useCase().value.sendsVisible())
+        val previousCacheWrites = fixture.cacheWrites.toList()
+
+        fixture.profilesFlow.value = emptyList()
+        advanceTimeBy(2_001L)
+        advanceUntilIdle()
+
+        assertTrue(fixture.useCase().value.sendsVisible())
+        assertEquals(previousCacheWrites, fixture.cacheWrites)
+
+        fixture.accountsFlow.value = emptyList()
+        advanceTimeBy(2_001L)
+        advanceUntilIdle()
+
+        assertFalse(fixture.useCase().value.sendsVisible())
+        assertEquals(fixture.useCase().value, fixture.cacheWrites.lastOrNull())
     }
 
     @Test
@@ -411,7 +495,10 @@ class GetNavItemsConfigImplTest {
         return Fixture(
             useCase = useCase,
             cacheWrites = cacheWrites,
+            accountsFlow = accountsFlow,
+            profilesFlow = profilesFlow,
             ciphersFlow = ciphersFlow,
+            persistedConfigFlow = persistedConfigFlow,
         )
     }
 }
@@ -419,7 +506,10 @@ class GetNavItemsConfigImplTest {
 private data class Fixture(
     val useCase: GetNavItemsConfigImpl,
     val cacheWrites: List<NavItemsConfig>,
+    val accountsFlow: MutableStateFlow<List<DAccount>>,
+    val profilesFlow: MutableStateFlow<List<DProfile>>,
     val ciphersFlow: MutableStateFlow<List<DSecret>>,
+    val persistedConfigFlow: MutableStateFlow<NavItemsConfig?>,
 )
 
 private fun flowUseCase(

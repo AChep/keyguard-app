@@ -155,11 +155,21 @@ private fun percentDecode(
             }
         }
 
-        char
-            .toString()
+        // Keep a surrogate pair together, otherwise a literal supplementary
+        // character is encoded as two replacement characters.
+        val literal = if (
+            char.isHighSurrogate() &&
+            index + 1 < value.length &&
+            value[index + 1].isLowSurrogate()
+        ) {
+            value.substring(index, index + 2)
+        } else {
+            char.toString()
+        }
+        literal
             .encodeToByteArray()
             .forEach { byte -> bytes += byte }
-        index += 1
+        index += literal.length
     }
     return bytes
         .toByteArray()

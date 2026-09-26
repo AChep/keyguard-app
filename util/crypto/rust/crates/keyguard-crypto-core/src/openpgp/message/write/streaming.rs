@@ -101,6 +101,9 @@ impl OpenPgpWorkerPipe {
         if let Some(error) = self.terminal_update_error() {
             return Err(error);
         }
+        if self.input.is_none() {
+            return Err(OpenPgpWriteError::InvalidArgument);
+        }
         if data.len() > OPENPGP_PARTIAL_PACKET_BYTES {
             return Err(OpenPgpWriteError::ResourceLimit);
         }
@@ -188,6 +191,34 @@ impl OpenPgpWorkerPipe {
             join: None,
             finished: None,
             pending_output: SecretChunks::default(),
+        }
+    }
+
+    /// Ends input once, then drains one bounded output chunk per call.
+    /// Empty output means the worker successfully completed; `finish` still
+    /// consumes the session and returns its final metadata.
+    pub(super) fn drain(&mut self) -> Result<Vec<u8>, OpenPgpWriteError> {
+        if let Some(input) = self.input.take()
+            && self.finished.is_none()
+        {
+            let _ = input.send(OpenPgpWorkerInput::Finish);
+        }
+        loop {
+            if let Some(Err(error)) = self.finished.as_ref() {
+                return Err(*error);
+            }
+            if let Some(mut bytes) = self.pending_output.take_chunk(OPENPGP_PARTIAL_PACKET_BYTES) {
+                if !bytes.is_empty() {
+                    return Ok(std::mem::take(&mut *bytes));
+                }
+            } else if self.finished.is_some() {
+                return Ok(Vec::new());
+            } else {
+                let message = self.receive_output()?;
+                let mut pending = std::mem::take(&mut self.pending_output);
+                self.accept_output(message, &mut pending)?;
+                self.pending_output = pending;
+            }
         }
     }
 
@@ -1444,4 +1475,73 @@ pub(super) fn crc24_update(mut crc: u32, byte: u8) -> u32 {
         }
     }
     crc & 0x00ff_ffff
+}
+
+#[cfg(test)]
+mod drain_tests {
+    use super::*;
+
+    #[test]
+    fn drain_preserves_terminal_error_and_rejects_later_input() {
+        let (input, _input_rx) = mpsc::sync_channel(1);
+        let (output_tx, output) = mpsc::sync_channel(1);
+        output_tx
+            .send(OpenPgpWorkerOutput::Finished(Err(
+                OpenPgpWriteError::AuthenticationFailed,
+            )))
+            .expect("terminal error");
+        let mut worker = OpenPgpWorkerPipe::from_test_channels(input, output);
+        assert_eq!(worker.drain(), Err(OpenPgpWriteError::AuthenticationFailed));
+        assert_eq!(worker.drain(), Err(OpenPgpWriteError::AuthenticationFailed));
+        assert_eq!(
+            worker.update(b"late"),
+            Err(OpenPgpWriteError::AuthenticationFailed)
+        );
+        assert!(matches!(
+            worker.finish(),
+            Err(OpenPgpWriteError::AuthenticationFailed)
+        ));
+    }
+
+    #[test]
+    fn worker_final_output_larger_than_control_envelope_is_drained_in_bounded_chunks() {
+        let _guard = tests::STREAM_TEST_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let mut worker =
+            OpenPgpWorkerPipe::spawn("keyguard-openpgp-drain-test", |mut input, output| {
+                let mut byte = [0_u8; 1];
+                assert_eq!(input.read(&mut byte).expect("read EOF"), 0);
+                for _ in 0..=MAX_CONTROL_ENVELOPE_BYTES / OPENPGP_PARTIAL_PACKET_BYTES {
+                    output
+                        .send(OpenPgpWorkerOutput::Data(Zeroizing::new(
+                            vec![0x73; OPENPGP_PARTIAL_PACKET_BYTES],
+                        )))
+                        .map_err(|_| OpenPgpWriteError::Internal)?;
+                }
+                Ok(OpenPgpWorkerFinal::Encrypt(ProtectionMode::SeipdV1Mdc))
+            })
+            .expect("spawn worker");
+        let mut total = 0;
+        loop {
+            let output = worker.drain().expect("bounded final output");
+            assert!(output.len() <= OPENPGP_PARTIAL_PACKET_BYTES);
+            assert!(output.iter().all(|byte| *byte == 0x73));
+            if output.is_empty() {
+                break;
+            }
+            total += output.len();
+        }
+        assert_eq!(
+            total,
+            MAX_CONTROL_ENVELOPE_BYTES + OPENPGP_PARTIAL_PACKET_BYTES
+        );
+        assert_eq!(
+            worker.update(b"late input"),
+            Err(OpenPgpWriteError::InvalidArgument)
+        );
+        assert!(worker.drain().expect("repeat drain").is_empty());
+        let (output, _) = worker.finish().expect("metadata finalization");
+        assert!(output.is_empty());
+    }
 }

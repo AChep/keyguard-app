@@ -20,36 +20,36 @@ import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogInten
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
 import com.artemchep.keyguard.feature.localization.wrap
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.search.search.mapListShape
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceGpgAgentHistoryState(
     cipherId: String?,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceGpgAgentHistoryState(
         cipherId = cipherId,
-        getGpgUsageHistory = instance(),
-        removeGpgUsageHistory = instance(),
-        getCiphers = instance(),
-        dateFormatter = instance(),
-        confirmationRouteFactory = instance(),
-        json = instance(),
+        getGpgUsageHistory = get(),
+        removeGpgUsageHistory = get(),
+        getCiphers = get(),
+        dateFormatter = get(),
+        confirmationRouteFactory = get(),
+        json = get(),
     )
 }
 
@@ -77,6 +77,28 @@ fun produceGpgAgentHistoryState(
         json,
     ),
 ) {
+    gpgAgentHistoryStateProducer(
+        cipherId = cipherId,
+        getGpgUsageHistory = getGpgUsageHistory,
+        removeGpgUsageHistory = removeGpgUsageHistory,
+        getCiphers = getCiphers,
+        dateFormatter = dateFormatter,
+        confirmationRouteFactory = confirmationRouteFactory,
+        json = json,
+    )
+}
+
+// Keep the state flows and their session-scoped callbacks in one lifecycle scope.
+@Suppress("LongMethod")
+suspend fun RememberStateFlowScope.gpgAgentHistoryStateProducer(
+    cipherId: String?,
+    getGpgUsageHistory: GetGpgUsageHistory,
+    removeGpgUsageHistory: RemoveGpgUsageHistory,
+    getCiphers: GetCiphers,
+    dateFormatter: DateFormatter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    json: Json,
+): Flow<Loadable<GpgAgentHistoryState>> {
     val mode = cipherId
         ?.let(GpgUsageHistoryMode::Cipher)
         ?: GpgUsageHistoryMode.Recent
@@ -166,7 +188,7 @@ fun produceGpgAgentHistoryState(
             .toImmutableList()
     }
 
-    combine(
+    return combine(
         subtitleFlow,
         optionsFlow,
         itemsFlow,

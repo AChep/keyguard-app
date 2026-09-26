@@ -95,10 +95,9 @@ import com.artemchep.keyguard.ui.tabs.TabItem
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.chrisbanes.haze.blur.HazeColorEffect
-import dev.chrisbanes.haze.blur.LocalHazeBlurStyle
-import dev.chrisbanes.haze.blur.blurEffect
-import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.HazeInput
+import dev.chrisbanes.haze.blur.HazeBlurStyle
+import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.collections.immutable.persistentListOf
@@ -586,12 +585,13 @@ private fun AttachmentPreviewCodeViewer(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .width(minimapWidth)
-                    .hazeEffect(state = hazeState) {
-                        blurEffect {
-                            blurRadius = 24.dp
-                            backgroundColor = containerColor
-                        }
-                    }
+                    .hazeBlur(
+                        input = HazeInput.Sources(hazeState),
+                        style = HazeBlurStyle {
+                            blurRadius(24.dp)
+                            backgroundColor(containerColor)
+                        },
+                    )
                     .height(minimapHeight)
                     .padding(vertical = 8.dp),
                 lineIndex = lineIndex,

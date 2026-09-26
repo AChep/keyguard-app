@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AgentStatus
@@ -38,18 +39,17 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.ok
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.rememberInstance
-import org.kodein.di.instance
+import org.koin.compose.koinInject
+import org.koin.core.scope.Scope
 
 fun settingBrowserAgentProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingBrowserAgentProvider(
-    getBrowserAutofillAgent = directDI.instance(),
-    getBrowserAutofillAgentPairingCode = directDI.instance(),
-    getBrowserAutofillAgentStatus = directDI.instance(),
-    putBrowserAutofillAgent = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getBrowserAutofillAgent = koinScope.get(),
+    getBrowserAutofillAgentPairingCode = koinScope.get(),
+    getBrowserAutofillAgentStatus = koinScope.get(),
+    putBrowserAutofillAgent = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingBrowserAgentProvider(
@@ -114,37 +114,7 @@ private fun SettingBrowserAgent(
         },
         text = {
             Column {
-                val statusText: String
-                val statusColor: androidx.compose.ui.graphics.Color
-                when (status) {
-                    AgentStatus.Unsupported -> {
-                        statusText = stringResource(Res.string.pref_item_browser_agent_status_unsupported)
-                        statusColor = LocalContentColor.current
-                            .combineAlpha(DisabledEmphasisAlpha)
-                    }
-                    AgentStatus.Starting -> {
-                        statusText = stringResource(Res.string.pref_item_browser_agent_status_starting)
-                        statusColor = LocalContentColor.current
-                            .combineAlpha(DisabledEmphasisAlpha)
-                    }
-                    AgentStatus.Ready -> {
-                        statusText = stringResource(Res.string.pref_item_browser_agent_status_ready)
-                        statusColor = MaterialTheme.colorScheme.ok
-                    }
-                    AgentStatus.Failed -> {
-                        statusText = stringResource(Res.string.pref_item_browser_agent_status_failed)
-                        statusColor = MaterialTheme.colorScheme.error
-                    }
-                    AgentStatus.Stopped -> {
-                        statusText = stringResource(Res.string.pref_item_browser_agent_status_stopped)
-                        statusColor = LocalContentColor.current
-                            .combineAlpha(DisabledEmphasisAlpha)
-                    }
-                }
-                Text(
-                    color = statusColor,
-                    text = statusText,
-                )
+                BrowserAgentStatusText(status = status)
                 if (pairingCode != null) {
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(
@@ -155,7 +125,7 @@ private fun SettingBrowserAgent(
                             text = stringResource(Res.string.pref_item_browser_agent_pairing_code, pairingCode),
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        val clipboardService by rememberInstance<ClipboardService>()
+                        val clipboardService = koinInject<ClipboardService>()
                         IconButton(
                             modifier = Modifier.size(32.dp),
                             onClick = {
@@ -177,5 +147,42 @@ private fun SettingBrowserAgent(
         },
         checked = checked,
         onCheckedChange = onCheckedChange,
+    )
+}
+
+@Composable
+private fun BrowserAgentStatusText(
+    status: AgentStatus,
+) {
+    val statusText: String
+    val statusColor: Color
+    when (status) {
+        AgentStatus.Unsupported -> {
+            statusText = stringResource(Res.string.pref_item_browser_agent_status_unsupported)
+            statusColor = LocalContentColor.current
+                .combineAlpha(DisabledEmphasisAlpha)
+        }
+        AgentStatus.Starting -> {
+            statusText = stringResource(Res.string.pref_item_browser_agent_status_starting)
+            statusColor = LocalContentColor.current
+                .combineAlpha(DisabledEmphasisAlpha)
+        }
+        AgentStatus.Ready -> {
+            statusText = stringResource(Res.string.pref_item_browser_agent_status_ready)
+            statusColor = MaterialTheme.colorScheme.ok
+        }
+        AgentStatus.Failed -> {
+            statusText = stringResource(Res.string.pref_item_browser_agent_status_failed)
+            statusColor = MaterialTheme.colorScheme.error
+        }
+        AgentStatus.Stopped -> {
+            statusText = stringResource(Res.string.pref_item_browser_agent_status_stopped)
+            statusColor = LocalContentColor.current
+                .combineAlpha(DisabledEmphasisAlpha)
+        }
+    }
+    Text(
+        color = statusColor,
+        text = statusText,
     )
 }

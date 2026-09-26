@@ -45,7 +45,7 @@ private const val DIALOG_HEIGHT_FRACTION = 0.9f
  * [DialogActivityWindow] instead.
  */
 @Composable
-internal fun dialogActivityContainerColor(): Color = Color.Transparent
+fun dialogActivityContainerColor(): Color = Color.Transparent
 
 /**
  * The content color for an activity that uses the `Theme.Keyguard.Dialog`
@@ -53,7 +53,7 @@ internal fun dialogActivityContainerColor(): Color = Color.Transparent
  * counterpart, so it has to be provided explicitly.
  */
 @Composable
-internal fun dialogActivityContentColor(): Color = MaterialTheme.colorScheme.onSurface
+fun dialogActivityContentColor(): Color = MaterialTheme.colorScheme.onSurface
 
 /**
  * Draws a dimmed scrim with a centered, size constrained card on top of it,
@@ -63,7 +63,7 @@ internal fun dialogActivityContentColor(): Color = MaterialTheme.colorScheme.onS
  * @param content The content of the card.
  */
 @Composable
-internal fun DialogActivityWindow(
+fun DialogActivityWindow(
     onDismiss: () -> Unit,
     content: @Composable BoxScope.() -> Unit,
 ) {

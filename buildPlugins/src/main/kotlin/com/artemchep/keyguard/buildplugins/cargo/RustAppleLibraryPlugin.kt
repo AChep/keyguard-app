@@ -41,7 +41,6 @@ class RustAppleLibraryPlugin : Plugin<Project> {
         configureAppleInterop(
             moduleName = moduleName,
             moduleTaskName = moduleTaskName,
-            nativeTaskName = nativeTaskName,
             rustSourceDirectory = rustSourceDirectory,
             targets = appleTargets,
             cargoTasks = appleCargoTasks,

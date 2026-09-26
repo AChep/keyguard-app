@@ -10,9 +10,16 @@ import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.util.toHex
-import kotlinx.coroutines.*
 import java.lang.Process
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 class BrowserAutofillAgentManager(
     logRepository: LogRepository,
@@ -33,6 +40,10 @@ class BrowserAutofillAgentManager(
         defaultAgentSocketPath = null,
     ),
 ) {
+    companion object {
+        private const val PROCESS_STOP_TIMEOUT_SECONDS = 3L
+    }
+
     private val sessionFileWriter = AgentSessionFileWriter(logRepository)
     private val pairingSecretFileWriter = AgentPairingSecretFileWriter(logRepository)
 
@@ -71,6 +82,7 @@ class BrowserAutofillAgentManager(
      * 1. Write the session file (auth token + IPC socket path)
      * 2. Start the IPC server so the browser-spawned agent can connect
      */
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun startNmServer(
         scope: CoroutineScope,
     ) {
@@ -132,6 +144,7 @@ class BrowserAutofillAgentManager(
      * using the shared secret derived from [pairingCode] (written to a
      * 0600-protected file passed via `--secret-path`).
      */
+    @Suppress("LongMethod", "TooGenericExceptionCaught")
     private suspend fun startWsServer(
         scope: CoroutineScope,
         pairingCode: String,
@@ -241,12 +254,13 @@ class BrowserAutofillAgentManager(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun destroyProcessQuietly(process: Process) {
         try {
             runCatching { process.outputStream.close() }
-            if (!process.waitFor(3, TimeUnit.SECONDS)) {
+            if (!process.waitFor(PROCESS_STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
                 process.destroy()
-                if (!process.waitFor(3, TimeUnit.SECONDS)) {
+                if (!process.waitFor(PROCESS_STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
                     process.destroyForcibly()
                 }
             }
@@ -279,8 +293,17 @@ class BrowserAutofillAgentManager(
             backend = backend,
             expectedPeerProcess = expectedPeerProcess,
         )
-        return IpcServerRunner { endpoint, onReady ->
-            server.start(endpoint, onReady)
+        return object : IpcServerRunner {
+            override suspend fun start(
+                endpoint: AgentIpcEndpoint,
+                onReady: CompletableDeferred<Unit>?,
+            ) {
+                server.start(endpoint, onReady = onReady)
+            }
+
+            override fun stop() {
+                server.stop()
+            }
         }
     }
 }

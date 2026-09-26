@@ -10,23 +10,16 @@ import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.platform.LeBiometricCipher
 import com.artemchep.keyguard.platform.LeBiometricCipherKeychain
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
- * Verifies the user with the platform biometrics and then loads
- * the cipher key from the login keychain. Used on macOS.
+ * Verifies the user with the platform authentication and then loads
+ * the cipher key from the macOS login keychain after Touch ID.
  */
 class BiometricPromptHostKeychain(
     private val base64Service: Base64Service,
     private val cryptoGenerator: CryptoGenerator,
     private val keychainRepository: KeychainRepository,
 ) : BiometricPromptHost {
-    constructor(directDI: DirectDI) : this(
-        base64Service = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        keychainRepository = directDI.instance(),
-    )
 
     override suspend fun createCipher(purpose: BiometricPurpose): LeBiometricCipher =
         LeBiometricCipherKeychain(

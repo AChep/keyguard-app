@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AddSshUsageHistoryRequest
+import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
@@ -9,14 +10,22 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
+import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigState
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
+import com.artemchep.keyguard.common.service.agent.ApprovalCacheInvalidation
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
+import com.artemchep.keyguard.common.service.agent.finishAfterBlockedAgentRead
+import com.artemchep.keyguard.common.service.agent.finishAfterBlockedApprovalCacheAccess
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
+import com.artemchep.keyguard.common.service.pendinghistory.RecordingPendingUsageHistoryQueue
+import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
+import com.artemchep.keyguard.common.service.vault.testVaultSession
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
@@ -25,26 +34,28 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.runTest
 import java.util.Base64
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 
 /**
  * Tests for request processing logic in [SshAgentIpcServer].
@@ -54,7 +65,7 @@ import org.kodein.di.bindSingleton
  * (listKeys, signData) return "vault locked" when the session stub
  * returns null.
  */
-@OptIn(TestOnlyUnverifiedAgentIpcApi::class)
+@OptIn(TestOnlyUnverifiedAgentIpcApi::class, ExperimentalCoroutinesApi::class)
 class SshAgentRequestProcessingTest {
     private val authToken = ByteArray(32) { it.toByte() }
     private val loggedMessages = mutableListOf<String>()
@@ -93,20 +104,30 @@ class SshAgentRequestProcessingTest {
         approvalWindowFlow: Flow<Duration> = flowOf(approvalWindow),
         approvalCachePolicyFlow: Flow<AgentApprovalCachePolicy> =
             flowOf(AgentApprovalCachePolicy.Default),
+        approvalCacheConfigState: AgentApprovalCacheConfigState<AgentApprovalCachePolicy>? = null,
         sessionId: String = "test-session",
         onApprovalRequest: suspend (SshAgentApprovalPrompt) -> Boolean = { true },
         sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
         onGetListRequest: suspend (caller: SshAgentMessages.CallerIdentity?) -> Boolean = { _ -> false },
+        agentFilter: GetSshAgentFilter = sshAgentFilter,
+        pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
     ) = SshAgentIpcServer(
         logRepository = logRepository,
         getVaultSession = vaultSession,
+        sessionAccess = testDomainSessionAccess(),
         getSshAgentApprovalWindow = object : GetSshAgentApprovalWindow {
-            override fun invoke(): Flow<Duration> = approvalWindowFlow
+            override fun invoke(): Flow<Duration> = approvalCacheConfigState
+                ?.approvalWindow()
+                ?: approvalWindowFlow
         },
         getSshAgentApprovalCachePolicy = object : GetSshAgentApprovalCachePolicy {
-            override fun invoke(): Flow<AgentApprovalCachePolicy> = approvalCachePolicyFlow
+            override val approvalCacheConfig = approvalCacheConfigState
+
+            override fun invoke(): Flow<AgentApprovalCachePolicy> = approvalCacheConfigState
+                ?.cachePolicy()
+                ?: approvalCachePolicyFlow
         },
-        getSshAgentFilter = sshAgentFilter,
+        getSshAgentFilter = agentFilter,
         sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
         authToken = authToken,
         scope = CoroutineScope(Dispatchers.Unconfined),
@@ -114,6 +135,7 @@ class SshAgentRequestProcessingTest {
         sessionId = sessionId,
         onApprovalRequest = onApprovalRequest,
         onGetListRequest = onGetListRequest,
+        pendingUsageHistoryQueue = pendingUsageHistoryQueue,
     )
 
     // ================================================================
@@ -1521,6 +1543,392 @@ class SshAgentRequestProcessingTest {
         assertEquals(300L, signResp.id)
     }
 
+    @Test
+    fun `locking or replacing the vault during approval prevents SSH signing`() = runTest {
+        for (replaceSession in listOf(false, true)) {
+            val session = MutableVaultSession(createUnlockedSession(createSigningSecret()))
+            val response = finishPendingSigning(session) {
+                session.valueOrNull = if (replaceSession) createUnlockedSession() else MasterSession.Empty()
+            }
+            assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, response.error?.code)
+            assertNull(response.signData)
+        }
+    }
+
+    @Test
+    fun `key eligibility and cipher identity changes during approval prevent SSH signing`() = runTest {
+        for (change in listOf("removed", "deleted", "private removed", "cipher replaced", "account replaced")) {
+            val ciphers = MutableStateFlow(listOf(createSigningSecret()))
+            val history = mutableListOf<AddSshUsageHistoryRequest>()
+            val session = MutableVaultSession(createUnlockedSessionWithHistory(history, ciphers = ciphers))
+            val response = finishPendingSigning(session) {
+                ciphers.value = ciphers.value.mapNotNull { cipher ->
+                    when (change) {
+                        "removed" -> null
+                        "deleted" -> cipher.copy(deletedDate = Instant.parse("2024-01-02T00:00:00Z"))
+                        "private removed" -> cipher.copy(sshKey = cipher.sshKey?.copy(privateKey = null))
+                        "cipher replaced" -> cipher.copy(id = "replacement")
+                        else -> cipher.copy(accountId = "replacement")
+                    }
+                }
+            }
+            assertEquals(SshAgentMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code, change)
+            assertNull(response.signData)
+            assertEquals(SshUsageHistoryResponseType.KEY_NOT_FOUND, history.single().response)
+        }
+    }
+
+    @Test
+    fun `SSH signing reads the current filter after approval`() = runTest {
+        var filter = SshAgentFilter()
+        val session = MutableVaultSession(createUnlockedSession(createSigningSecret()))
+        val response = finishPendingSigning(
+            vaultSession = session,
+            agentFilter = object : GetSshAgentFilter {
+                override fun invoke(): Flow<SshAgentFilter> = flow { emit(filter) }
+            },
+        ) {
+            filter = onlyOtherCipherFilter()
+        }
+        assertEquals(SshAgentMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code)
+        assertNull(response.signData)
+    }
+
+    @Test
+    fun `SSH signing uses the refreshed private material after approval`() = runTest {
+        val ciphers = MutableStateFlow(listOf(createSigningSecret()))
+        val session = MutableVaultSession(createUnlockedSessionWithHistory(null, ciphers = ciphers))
+        val response = finishPendingSigning(session) {
+            ciphers.value = ciphers.value.map { cipher ->
+                cipher.copy(sshKey = cipher.sshKey?.copy(privateKey = "invalid replacement key"))
+            }
+        }
+        assertNotNull(response.error)
+        assertNull(response.signData, "The original valid private key must not be used")
+    }
+
+    @Test
+    fun `reordering duplicate SSH keys retains the approved cipher`() = runTest {
+        val original = createSigningSecret()
+        val ciphers = MutableStateFlow(listOf(original, original.copy(id = "duplicate")))
+        val history = mutableListOf<AddSshUsageHistoryRequest>()
+        val session = MutableVaultSession(createUnlockedSessionWithHistory(history, ciphers = ciphers))
+        val response = finishPendingSigning(session) { ciphers.value = ciphers.value.reversed() }
+        assertNull(response.error)
+        assertNotNull(response.signData)
+        assertEquals(original.id, history.single().cipherId)
+    }
+
+    @Test
+    fun `locked-origin SSH signing can unlock with one approval`() = runTest {
+        val session = MutableVaultSession(MasterSession.Empty())
+        val response = finishPendingSigning(session) {
+            session.valueOrNull = createUnlockedSession(createSigningSecret())
+        }
+        assertNull(response.error)
+        assertNotNull(response.signData)
+    }
+
+    @Test
+    fun `remembered and unlock-origin signing resolve ciphers and filter once`() = runTest {
+        val ciphers = MutableStateFlow(listOf(createSigningSecret()))
+        var cipherReads = 0
+        val cipherFlow = flow {
+            cipherReads++
+            emit(ciphers.value)
+        }
+        var filterReads = 0
+        val filter = object : GetSshAgentFilter {
+            override fun invoke(): Flow<SshAgentFilter> = flow {
+                filterReads++
+                emit(SshAgentFilter())
+            }
+        }
+        val unlockedSession = createUnlockedSessionWithHistory(null, ciphers = cipherFlow)
+        val vault = MutableVaultSession(unlockedSession)
+        var approvals = 0
+        val server = createServer(
+            vaultSession = vault,
+            approvalWindow = 5.minutes,
+            agentFilter = filter,
+            onApprovalRequest = {
+                approvals++
+                if (vault.valueOrNull !is MasterSession.Key) {
+                    vault.valueOrNull = unlockedSession
+                }
+                true
+            },
+        )
+        val request = SshAgentMessages.SignDataRequest(
+            publicKey = signerKeyPair.publicKeyOpenSsh,
+            data = "read counts".encodeToByteArray(),
+            flags = 0x02,
+            caller = cacheableCaller(),
+        )
+
+        assertNull(server.handleSignData(requestId = 901L, req = request).error)
+        assertEquals(2, cipherReads, "Prompted signing must refresh the cipher")
+        assertEquals(2, filterReads, "Prompted signing must refresh the filter")
+
+        cipherReads = 0
+        filterReads = 0
+        assertNull(server.handleSignData(requestId = 902L, req = request).error)
+        assertEquals(1, cipherReads, "Remembered signing resolves the cipher once")
+        assertEquals(1, filterReads, "Remembered signing resolves the filter once")
+        assertEquals(1, approvals)
+
+        vault.valueOrNull = MasterSession.Empty()
+        runCurrent()
+        cipherReads = 0
+        filterReads = 0
+        assertNull(server.handleSignData(requestId = 903L, req = request).error)
+        assertEquals(1, cipherReads, "Unlock-origin signing resolves the cipher once")
+        assertEquals(1, filterReads, "Unlock-origin signing resolves the filter once")
+        assertEquals(2, approvals)
+    }
+
+    @Test
+    fun `remembered signing reads current eligibility after cache access unblocks`() = runTest {
+        for (excludeWithFilter in listOf(false, true)) {
+            val ciphers = MutableStateFlow(listOf(createSigningSecret()))
+            var cipherReads = 0
+            val cipherFlow = flow {
+                cipherReads++
+                emit(ciphers.value)
+            }
+            var currentFilter = SshAgentFilter()
+            var filterReads = 0
+            val filter = object : GetSshAgentFilter {
+                override fun invoke(): Flow<SshAgentFilter> = flow {
+                    filterReads++
+                    emit(currentFilter)
+                }
+            }
+            val config = createApprovalCacheConfig()
+            var approvals = 0
+            val server = createServer(
+                vaultSession = MutableVaultSession(
+                    createUnlockedSessionWithHistory(null, ciphers = cipherFlow),
+                ),
+                approvalCacheConfigState = config,
+                agentFilter = filter,
+                onApprovalRequest = {
+                    approvals++
+                    true
+                },
+            )
+            val request = createSigningRequest("cache contention")
+            assertNull(server.handleSignData(requestId = 904L, req = request).error)
+
+            cipherReads = 0
+            filterReads = 0
+            val response = finishAfterBlockedApprovalCacheAccess(
+                config = config,
+                request = { server.handleSignData(requestId = 905L, req = request) },
+            ) {
+                assertEquals(0, cipherReads, "Cipher read happened before cache access completed")
+                assertEquals(0, filterReads, "Filter read happened before cache access completed")
+                if (excludeWithFilter) {
+                    currentFilter = onlyOtherCipherFilter()
+                } else {
+                    ciphers.value = emptyList()
+                }
+            }
+            assertEquals(SshAgentMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code)
+            assertNull(response.signData)
+            assertEquals(1, approvals, "Remembered request must not prompt again")
+            assertEquals(1, cipherReads)
+            assertEquals(1, filterReads)
+        }
+    }
+
+    @Test
+    fun `remembered signing stays bound to its session while cache access waits`() = runTest {
+        for (replaceSession in listOf(false, true)) {
+            val ciphers = MutableStateFlow(listOf(createSigningSecret()))
+            var cipherReads = 0
+            val cipherFlow = flow {
+                cipherReads++
+                emit(ciphers.value)
+            }
+            val history = mutableListOf<AddSshUsageHistoryRequest>()
+            val original = createUnlockedSessionWithHistory(history, ciphers = cipherFlow)
+            val vault = MutableVaultSession(original)
+            val config = createApprovalCacheConfig()
+            val pendingHistory = RecordingPendingUsageHistoryQueue()
+            var approvals = 0
+            val server = createServer(
+                vaultSession = vault,
+                approvalCacheConfigState = config,
+                pendingUsageHistoryQueue = pendingHistory,
+                onApprovalRequest = {
+                    approvals++
+                    true
+                },
+            )
+            val request = createSigningRequest("session contention")
+            assertNull(server.handleSignData(requestId = 906L, req = request).error)
+            history.clear()
+            cipherReads = 0
+
+            val response = finishAfterBlockedApprovalCacheAccess(
+                config = config,
+                request = { server.handleSignData(requestId = 907L, req = request) },
+            ) {
+                assertEquals(0, cipherReads, "Cipher read happened before cache access completed")
+                vault.valueOrNull = if (replaceSession) {
+                    createUnlockedSession(createSigningSecret())
+                } else {
+                    MasterSession.Empty()
+                }
+            }
+            assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, response.error?.code)
+            assertNull(response.signData)
+            assertEquals(1, approvals)
+            assertEquals(0, cipherReads, "Stale session must be rejected before reading ciphers")
+            assertTrue(history.isEmpty())
+            assertEquals(SshUsageHistoryResponseType.VAULT_LOCKED.name, pendingHistory.items.single().responseType)
+        }
+    }
+
+    @Test
+    fun `cached signing requires new approval after settings change during eligibility reads`() = runTest {
+        for (readFilter in listOf(false, true)) {
+            for (change in ApprovalCacheInvalidation.entries) {
+                var beforeRead: suspend () -> Unit = {}
+                val cipherFlow = flow {
+                    if (!readFilter) beforeRead()
+                    emit(listOf(createSigningSecret()))
+                }
+                val filter = object : GetSshAgentFilter {
+                    override fun invoke(): Flow<SshAgentFilter> = flow {
+                        if (readFilter) beforeRead()
+                        emit(SshAgentFilter())
+                    }
+                }
+                val config = createApprovalCacheConfig()
+                var approvals = 0
+                val server = createServer(
+                    vaultSession = MutableVaultSession(createUnlockedSessionWithHistory(null, ciphers = cipherFlow)),
+                    approvalCacheConfigState = config,
+                    agentFilter = filter,
+                    onApprovalRequest = {
+                        approvals++
+                        true
+                    },
+                )
+                val request = createSigningRequest("approval invalidation")
+                assertNull(server.handleSignData(requestId = 910L, req = request).error)
+                val result = finishAfterBlockedAgentRead(
+                    beforeRead = { beforeRead = it },
+                    request = { server.handleSignData(requestId = 911L, req = request) },
+                ) { change.apply(config) }
+
+                assertNull(result.error)
+                assertNotNull(result.signData)
+                assertEquals(2, approvals, "filter=$readFilter, $change")
+                assertNull(server.handleSignData(requestId = 912L, req = request).error)
+                val expected = if (change == ApprovalCacheInvalidation.Disable) 3 else 2
+                assertEquals(expected, approvals, "New approval must use the current policy")
+            }
+        }
+    }
+
+    @Test
+    fun `renewed SSH approvals still reject denial and removed keys`() = runTest {
+        for (deny in listOf(false, true)) {
+            var beforeRead: suspend () -> Unit = {}
+            val ciphers = MutableStateFlow(listOf(createSigningSecret()))
+            val cipherFlow = flow {
+                beforeRead()
+                emit(ciphers.value)
+            }
+            val config = createApprovalCacheConfig()
+            var approvals = 0
+            val server = createServer(
+                vaultSession = MutableVaultSession(createUnlockedSessionWithHistory(null, ciphers = cipherFlow)),
+                approvalCacheConfigState = config,
+                onApprovalRequest = {
+                    approvals++
+                    if (approvals > 1) ciphers.value = emptyList()
+                    approvals == 1 || !deny
+                },
+            )
+            val request = createSigningRequest("renewed approval")
+            assertNull(server.handleSignData(requestId = 920L, req = request).error)
+            val result = finishAfterBlockedAgentRead(
+                beforeRead = { beforeRead = it },
+                request = { server.handleSignData(requestId = 921L, req = request) },
+            ) { ApprovalCacheInvalidation.Policy.apply(config) }
+
+            val expected = if (deny) {
+                SshAgentMessages.ErrorCode.USER_DENIED
+            } else {
+                SshAgentMessages.ErrorCode.KEY_NOT_FOUND
+            }
+            assertEquals(expected, result.error?.code)
+            assertNull(result.signData)
+            assertEquals(2, approvals)
+        }
+    }
+
+    private fun createSigningSecret() = createSshSecret(
+        name = "Signer",
+        publicKey = signerKeyPair.publicKeyOpenSsh,
+        fingerprint = "SHA256:signer",
+        privateKey = signerKeyPair.privateKeyPem,
+    )
+
+    private fun createSigningRequest(data: String) = SshAgentMessages.SignDataRequest(
+        publicKey = signerKeyPair.publicKeyOpenSsh,
+        data = data.encodeToByteArray(),
+        flags = 0x02,
+        caller = cacheableCaller(),
+    )
+
+    private fun onlyOtherCipherFilter() = SshAgentFilter(
+        state = mapOf("cipher" to setOf(DFilter.ById(id = "other", what = DFilter.ById.What.CIPHER))),
+    )
+
+    private fun createApprovalCacheConfig() = AgentApprovalCacheConfigState(
+        loadApprovalWindow = { Duration.INFINITE },
+        loadCachePolicy = { AgentApprovalCachePolicy.Default },
+    )
+
+    private suspend fun finishPendingSigning(
+        vaultSession: GetVaultSession,
+        agentFilter: GetSshAgentFilter = sshAgentFilter,
+        change: () -> Unit,
+    ): SshAgentMessages.IpcResponse = coroutineScope {
+        val started = CompletableDeferred<Unit>()
+        val finish = CompletableDeferred<Unit>()
+        var approvals = 0
+        val server = createServer(
+            vaultSession = vaultSession,
+            agentFilter = agentFilter,
+            onApprovalRequest = {
+                approvals++
+                started.complete(Unit)
+                finish.await()
+                true
+            },
+        )
+        val pending = async {
+            server.handleSignData(
+                requestId = 900L,
+                req = SshAgentMessages.SignDataRequest(
+                    publicKey = signerKeyPair.publicKeyOpenSsh,
+                    data = "approval race".encodeToByteArray(),
+                    flags = 0x02,
+                ),
+            )
+        }
+        started.await()
+        change()
+        finish.complete(Unit)
+        pending.await().also { assertEquals(1, approvals) }
+    }
+
     private class MutableVaultSession(
         initialValue: MasterSession? = null,
     ) : GetVaultSession {
@@ -1583,19 +1991,20 @@ class SshAgentRequestProcessingTest {
     private fun createUnlockedSessionWithHistory(
         history: MutableList<AddSshUsageHistoryRequest>?,
         vararg secrets: DSecret,
+        ciphers: Flow<List<DSecret>> = flowOf(secrets.toList()),
     ): MasterSession.Key = MasterSession.Key(
         masterKey = MasterKey(
             version = MasterKdfVersion.LATEST,
             byteArray = byteArrayOf(1, 2, 3),
         ),
-        di = DI {
-            bindSingleton<GetCiphers> {
+        session = testVaultSession {
+            scoped<GetCiphers> {
                 object : GetCiphers {
-                    override fun invoke(): Flow<List<DSecret>> = flowOf(secrets.toList())
+                    override fun invoke(): Flow<List<DSecret>> = ciphers
                 }
             }
             if (history != null) {
-                bindSingleton<AddSshUsageHistory> {
+                scoped<AddSshUsageHistory> {
                     object : AddSshUsageHistory {
                         override fun invoke(request: AddSshUsageHistoryRequest): IO<Unit> = {
                             history += request

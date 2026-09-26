@@ -1,9 +1,13 @@
 package com.artemchep.keyguard.copy
 
+import android.app.Activity
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
+import androidx.core.net.toUri
 import arrow.core.partially1
 import com.artemchep.keyguard.android.closestActivityOrNull
 import com.artemchep.keyguard.common.service.permission.Permission
@@ -15,8 +19,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class PermissionServiceAndroid(
     private val context: Context,
@@ -26,12 +28,6 @@ class PermissionServiceAndroid(
     }
 
     private val refreshSink = EventFlow<Unit>()
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance<Application>(),
-    )
 
     override fun getState(
         permission: Permission,
@@ -49,19 +45,23 @@ class PermissionServiceAndroid(
             .onStart { emit(Unit) }
             .map {
                 // Check the status of the permission.
-                checkPermission(permission.permission)
+                checkPermission(permission)
             }
     }
 
-    private fun checkPermission(permission: String): PermissionState {
-        val isGranted = context.checkSelfPermission(permission) ==
+    private fun checkPermission(
+        permission: Permission,
+    ): PermissionState {
+        val isGranted = context.checkSelfPermission(permission.permission) ==
                 PackageManager.PERMISSION_GRANTED
         return if (isGranted) {
             PermissionState.Granted
         } else {
             PermissionState.Declined(
+                permission = permission,
                 ask = ::askPermission
-                    .partially1(permission),
+                    .partially1(permission.permission),
+                openSettings = ::openAppSettings,
             )
         }
     }
@@ -76,6 +76,22 @@ class PermissionServiceAndroid(
             arrayOf(permission),
             REQUEST_CODE,
         )
+    }
+
+    private fun openAppSettings(
+        context: LeContext,
+    ) {
+        val androidContext = context.context
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            "package:${androidContext.packageName}".toUri(),
+        )
+        if (androidContext !is Activity) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        kotlin.runCatching {
+            androidContext.startActivity(intent)
+        }
     }
 
     // Android

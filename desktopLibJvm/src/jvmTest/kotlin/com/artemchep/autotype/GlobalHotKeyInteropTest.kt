@@ -211,6 +211,10 @@ class GlobalHotKeyInteropTest {
         val unregisterNativeGlobalHotKeyResults = ArrayDeque<Boolean>()
         var registerCalls: Int = 0
 
+        override fun registerNativePowerEvents(callback: DesktopLibJna.PowerEventCallback): Int = -1
+
+        override fun unregisterNativePowerEvents(id: Int): Boolean = false
+
         override fun autoType(payload: Pointer): Boolean = true
 
         override fun getSystemAccentColor(): Int = 0
@@ -220,6 +224,10 @@ class GlobalHotKeyInteropTest {
         override fun biometricsVerify(
             windowHandle: Long,
             title: Pointer,
+            callback: DesktopLibJna.BiometricsVerifyCallback,
+        ) = Unit
+
+        override fun biometricsPrepareEnrollment(
             callback: DesktopLibJna.BiometricsVerifyCallback,
         ) = Unit
 

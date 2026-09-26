@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import arrow.core.identity
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DNotificationChannel
@@ -12,6 +13,9 @@ import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.formatH2
+import com.artemchep.keyguard.common.model.isWatchtowerEligible
+import com.artemchep.keyguard.common.service.filter.AddCipherFilter
+import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
 import com.artemchep.keyguard.common.usecase.DismissNotificationsByChannel
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -29,6 +33,7 @@ import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
 import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsMap
 import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
@@ -52,8 +57,8 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServicesRoute
 import com.artemchep.keyguard.feature.tfa.directory.TwoFaServicesRoute
 import com.artemchep.keyguard.feature.watchtower.alerts.WatchtowerAlertsRoute
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.buildContextItems
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -71,37 +76,37 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 const val DISMISS_NOTIFICATIONS_DELAY_MS = 1000L
 
 @Composable
 fun produceWatchtowerState(
     args: WatchtowerRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceWatchtowerState(
-        directDI = this,
+        filterContext = get(),
+        addCipherFilter = get(),
+        confirmationRouteFactory = get(),
+        getCipherFilters = get(),
         args = args,
-        getCiphers = instance(),
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getFolders = instance(),
-        getTags = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
-        getCheckPwnedPasswords = instance(),
-        getCheckPwnedServices = instance(),
-        getCheckTwoFA = instance(),
-        getCheckPasskeys = instance(),
-        getWatchtowerAlerts = instance(),
-        getWatchtowerUnreadAlerts = instance(),
-        cipherDuplicatesCheck = instance(),
-        dismissNotificationsByChannel = instance(),
-        foldersRouteFactory = instance(),
-        vaultRouteFactory = instance(),
+        getCiphers = get(),
+        getAccounts = get(),
+        getProfiles = get(),
+        getFolders = get(),
+        getTags = get(),
+        getCollections = get(),
+        getOrganizations = get(),
+        getCheckPwnedPasswords = get(),
+        getCheckPwnedServices = get(),
+        getCheckTwoFA = get(),
+        getCheckPasskeys = get(),
+        getWatchtowerAlerts = get(),
+        getWatchtowerUnreadAlerts = get(),
+        cipherDuplicatesCheck = get(),
+        dismissNotificationsByChannel = get(),
+        foldersRouteFactory = get(),
+        vaultRouteFactory = get(),
     )
 }
 
@@ -122,7 +127,10 @@ private class WatchtowerUiException(
 
 @Composable
 fun produceWatchtowerState(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    addCipherFilter: AddCipherFilter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    getCipherFilters: GetCipherFilters,
     args: WatchtowerRoute.Args,
     getCiphers: GetCiphers,
     getAccounts: GetAccounts,
@@ -149,7 +157,10 @@ fun produceWatchtowerState(
     ),
 ) {
     watchtowerStateProducer(
-        directDI = directDI,
+        filterContext = filterContext,
+        addCipherFilter = addCipherFilter,
+        confirmationRouteFactory = confirmationRouteFactory,
+        getCipherFilters = getCipherFilters,
         args = args,
         getCiphers = getCiphers,
         getAccounts = getAccounts,
@@ -172,7 +183,10 @@ fun produceWatchtowerState(
 }
 
 suspend fun RememberStateFlowScope.watchtowerStateProducer(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    addCipherFilter: AddCipherFilter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    getCipherFilters: GetCipherFilters,
     args: WatchtowerRoute.Args,
     getCiphers: GetCiphers,
     getAccounts: GetAccounts,
@@ -218,7 +232,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
     )
         .map { ciphers ->
             if (args.filter != null) {
-                val predicate = args.filter.prepare(directDI, ciphers)
+                val predicate = args.filter.prepare(filterContext, ciphers)
                 ciphers
                     .filter { predicate(it) }
             } else {
@@ -228,7 +242,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
     val ciphersFlow = ciphersRawFlow
         .map { secrets ->
             secrets
-                .filter { secret -> !secret.deleted }
+                .filter { secret -> secret.isWatchtowerEligible }
         }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
     val foldersRawFlow = filterHiddenProfiles(
@@ -238,7 +252,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
     )
         .map { folders ->
             if (args.filter != null) {
-                val predicate = args.filter.prepareFolders(directDI, folders)
+                val predicate = args.filter.prepareFolders(filterContext, folders)
                 folders
                     .filter { predicate(it) }
             } else {
@@ -252,7 +266,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
         }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    val filterResult = createFilter(directDI)
+    val filterResult = createFilter(addCipherFilter, confirmationRouteFactory)
 
     fun filteredCiphers(ciphersFlow: Flow<List<DSecret>>) = ciphersFlow
         .map {
@@ -273,7 +287,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
 
             val filteredItems = kotlin.run {
                 val allItems = state.list
-                val predicate = filterConfig.filter.prepare(directDI, allItems)
+                val predicate = filterConfig.filter.prepare(filterContext, allItems)
                 allItems.filter(predicate)
             }
             state.copy(
@@ -302,7 +316,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
 
             val filteredItems = kotlin.run {
                 val allItems = state.list
-                val predicate = filterConfig.filter.prepareFolders(directDI, allItems)
+                val predicate = filterConfig.filter.prepareFolders(filterContext, allItems)
                 allItems.filter(predicate)
             }
             state.copy(
@@ -341,7 +355,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
     )
 
     val filterFlow = createFilterItemsFlow(
-        directDI = directDI,
+        getCipherFilters = getCipherFilters,
         outputGetter = ::identity,
         outputFlow = filteredCiphersFlow
             .map { state ->
@@ -391,7 +405,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
         // lambda's return type, so an identity serializer pins S to Int no matter how
         // the deserialize parameter is declared.
         val cachedCounterSink = mutablePersistedFlow<Int, Number>(
-            key = key,
+            key = "active.$key",
             storage = storage,
             serialize = { _, value -> value },
             deserialize = { _, value -> value.toInt() },
@@ -969,7 +983,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
         source = filteredCiphersFlow,
         key = DFilter.ByPasswordDuplicates.key,
         counterBlock = { holder ->
-            val count = DFilter.ByPasswordDuplicates.count(directDI, holder.list)
+            val count = DFilter.ByPasswordDuplicates.count(filterContext, holder.list)
             count
         },
         onCreate = { holder, count, new ->
@@ -1212,7 +1226,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
         source = filteredCiphersFlow,
         key = DFilter.ByWebsitePwned.key,
         counterBlock = { holder ->
-            val count = DFilter.ByWebsitePwned.count(directDI, holder.list)
+            val count = DFilter.ByWebsitePwned.count(filterContext, holder.list)
             count
         },
         onCreate = { holder, count, new ->
@@ -1433,10 +1447,12 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
     val emptyItemsFlow = createGenericAlertStateFlow(
         source = filteredFoldersFlow
             .combine(
-                ciphersFlow
+                // Archived items still occupy their folder.
+                ciphersRawFlow
                     .map { list ->
                         list
                             .asSequence()
+                            .filter { !it.deleted }
                             .map { it.folderId }
                             .toSet()
                     }

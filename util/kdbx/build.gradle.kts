@@ -1,28 +1,30 @@
+import com.artemchep.keyguard.buildplugins.testing.registerJvmBenchmark
+import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleMain
+import com.artemchep.keyguard.buildplugins.kotlin.sharedJvmMain
+import com.artemchep.keyguard.buildplugins.kotlin.sharedJvmTest
 import org.gradle.api.tasks.testing.Test
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.kmp.library)
+    id("keyguard.crypto-dependency-check")
+    id("keyguard.quality")
+    id("keyguard.kotlin-multiplatform-library")
     id("keyguard.native-crypto-consumer")
+    id("keyguard.detekt-custom-rules")
+}
+
+detektCustomRules {
+    kmpCompilation(targetName = "android", compilationName = "main")
+    // Host-only tests do not become part of an Android artifact.
+    excludeSourcePathFromCoverage("src/jvmCommonTest")
 }
 
 kotlin {
     android {
-        compileSdk = libs.versions.androidCompileSdk.get().toInt()
-        minSdk = libs.versions.androidMinSdk.get().toInt()
         namespace = "com.artemchep.keyguard.util.kdbx"
-
-        withHostTest {}
     }
-    jvm("desktop")
-    iosArm64()
-    iosSimulatorArm64()
-    macosArm64()
 
     sourceSets {
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 api(libs.kotlinx.io.core)
                 api(libs.squareup.okio)
@@ -31,50 +33,12 @@ kotlin {
                 implementation(project(":util:foundation"))
             }
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
 
-        val jvmCommonTest by creating {
-            dependsOn(commonTest)
-            dependencies {
-                implementation(libs.bouncycastle.bcprov)
-            }
+        sharedJvmTest().dependencies {
+            implementation(libs.bouncycastle.bcprov)
         }
-        val androidHostTest by getting {
-            dependsOn(jvmCommonTest)
-        }
-        val desktopTest by getting {
-            dependsOn(jvmCommonTest)
-        }
-
-        val jvmCommonMain by creating {
-            dependsOn(commonMain)
-        }
-        val androidMain by getting {
-            dependsOn(jvmCommonMain)
-        }
-        val desktopMain by getting {
-            dependsOn(jvmCommonMain)
-        }
-
-        val iosMain by creating {
-            dependsOn(commonMain)
-        }
-        val iosArm64Main by getting {
-            dependsOn(iosMain)
-        }
-        val iosSimulatorArm64Main by getting {
-            dependsOn(iosMain)
-        }
-        val macosMain by creating {
-            dependsOn(commonMain)
-        }
-        val macosArm64Main by getting {
-            dependsOn(macosMain)
-        }
+        sharedJvmMain(name = "jvmCommonMain")
+        sharedAppleMain(includeAppleMain = false)
 
         all {
             languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
@@ -83,12 +47,7 @@ kotlin {
     }
 }
 
-kotlin {
-    jvmToolchain(libs.versions.jdk.get().toInt())
-}
-
 val desktopTestTask = tasks.named<Test>("desktopTest")
-val desktopTestClassesTask = tasks.named("desktopTestClasses")
 
 desktopTestTask.configure {
     filter {
@@ -104,34 +63,12 @@ fun registerKdbxBenchmark(
     taskDescription: String,
     testPattern: String,
 ) {
-    tasks.register<Test>(name) {
-        group = "verification"
-        description = taskDescription
-        dependsOn(desktopTestClassesTask)
-        testClassesDirs = desktopTestTask.get().testClassesDirs
-        classpath = desktopTestTask.get().classpath
-        maxParallelForks = 1
-        forkEvery = 0L
-        outputs.upToDateWhen { false }
+    registerJvmBenchmark(name, taskDescription, testPattern, includeSkipped = false, useEnglishLocale = false) {
         kdbxJfrRecording?.let { recording ->
             jvmArgs(
                 "-XX:StartFlightRecording=" +
                     "filename=$recording,settings=profile,dumponexit=true",
             )
-        }
-        filter {
-            includeTestsMatching(testPattern)
-            isFailOnNoMatchingTests = true
-        }
-        testLogging {
-            events = setOf(
-                TestLogEvent.FAILED,
-                TestLogEvent.PASSED,
-                TestLogEvent.STANDARD_ERROR,
-                TestLogEvent.STANDARD_OUT,
-            )
-            exceptionFormat = TestExceptionFormat.FULL
-            showStandardStreams = true
         }
     }
 }

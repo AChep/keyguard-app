@@ -19,15 +19,15 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.feat_header_title
 import com.artemchep.keyguard.wear.ui.WearScaffoldScreen
 import com.artemchep.keyguard.wear.ui.WearSectionHeader
-import kotlinx.coroutines.GlobalScope
 import kotlin.time.Clock
+import kotlinx.coroutines.GlobalScope
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WearOnboardingScreen() {
-    val putInstant by rememberInstance<PutOnboardingLastVisitInstant>()
+    val putInstant = koinInject<PutOnboardingLastVisitInstant>()
     LaunchedEffect(putInstant) {
         putInstant(Clock.System.now())
             .attempt()

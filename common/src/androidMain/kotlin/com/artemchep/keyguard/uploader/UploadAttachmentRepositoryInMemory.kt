@@ -10,18 +10,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.kodein.di.DirectDI
 
 private typealias State = PersistentMap<String, UploadAttachmentRequest>
 
-class UploadAttachmentRepositoryInMemory() : UploadAttachmentRepository {
+class UploadAttachmentRepositoryInMemory : UploadAttachmentRepository {
     private val mutex = Mutex()
 
     private val sink: MutableStateFlow<State> = MutableStateFlow(persistentMapOf())
-
-    constructor(
-        directDI: DirectDI,
-    ) : this()
 
     override suspend fun add(
         request: UploadAttachmentRequest,

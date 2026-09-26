@@ -6,8 +6,6 @@ import com.artemchep.keyguard.common.service.keyvalue.asInstant
 import com.artemchep.keyguard.common.service.keyvalue.setAndCommit
 import com.artemchep.keyguard.common.service.review.ReviewLog
 import kotlin.time.Instant
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -23,10 +21,6 @@ class ReviewLogImpl(
 
     private val lastRequestedAtPref =
         store.getLong(KEY_LAST_REQUESTED_AT, NONE_INSTANT)
-
-    constructor(directDI: DirectDI) : this(
-        store = directDI.instance<Files, KeyValueStore>(arg = Files.REVIEW),
-    )
 
     override fun setLastRequestedAt(
         requestedAt: Instant,

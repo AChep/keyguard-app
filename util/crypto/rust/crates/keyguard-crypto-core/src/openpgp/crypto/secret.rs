@@ -69,7 +69,7 @@ impl CryptoRng for AwsLcRng {}
 /// Bounded zeroizing chunks used while assembling secret outputs.
 #[derive(Default)]
 pub(crate) struct SecretChunks {
-    chunks: Vec<Zeroizing<Vec<u8>>>,
+    chunks: std::collections::VecDeque<Zeroizing<Vec<u8>>>,
     length: usize,
 }
 
@@ -81,9 +81,20 @@ impl SecretChunks {
             .filter(|length| *length <= limit)
             .ok_or(())?;
         self.chunks.try_reserve(1).map_err(|_| ())?;
-        self.chunks.push(chunk);
+        self.chunks.push_back(chunk);
         self.length = length;
         Ok(())
+    }
+
+    /// Removes at most `limit` bytes, retaining the remainder in zeroizing storage.
+    pub(crate) fn take_chunk(&mut self, limit: usize) -> Option<Zeroizing<Vec<u8>>> {
+        let mut chunk = self.chunks.pop_front()?;
+        if chunk.len() > limit {
+            let remainder = Zeroizing::new(chunk.split_off(limit));
+            self.chunks.push_front(remainder);
+        }
+        self.length -= chunk.len();
+        Some(chunk)
     }
 
     pub(crate) fn into_zeroizing(self) -> Result<Zeroizing<Vec<u8>>, ()> {

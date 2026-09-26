@@ -1,0 +1,3 @@
+headers = keyguard_instance.h
+headerFilter = keyguard_instance.h
+staticLibraries = libkeyguard_instance_c.a

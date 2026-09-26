@@ -9,6 +9,7 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.StringResource
 
 class ConfirmationRoute(
     val args: Args,
@@ -20,6 +21,8 @@ class ConfirmationRoute(
         val message: String? = null,
         val items: List<Item<Any?>> = emptyList(),
         val docUrl: String? = null,
+        /** Cross-field errors keyed by string item key, evaluated on every form change. */
+        val validate: ((Map<String, Any?>) -> Map<String, StringResource>)? = null,
     ) {
         sealed interface Item<out T> {
             val key: String

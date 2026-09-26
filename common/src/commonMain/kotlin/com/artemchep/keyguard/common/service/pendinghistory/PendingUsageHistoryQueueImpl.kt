@@ -12,8 +12,6 @@ import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class PendingUsageHistoryQueueImpl(
     private val databaseManager: ExposedDatabaseManager,
@@ -33,14 +31,6 @@ class PendingUsageHistoryQueueImpl(
      * [ExposedDatabaseManager.mutate], which serializes access.
      */
     private val coalescenceIds = mutableMapOf<String, String>()
-
-    constructor(directDI: DirectDI) : this(
-        databaseManager = directDI.instance(),
-        settingsRepository = directDI.instance(),
-        json = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-        logRepository = directDI.instance(),
-    )
 
     override fun get(): IO<List<SealedPendingUsageHistory>> = ioEffect(dispatcher) {
         databaseManager.get()

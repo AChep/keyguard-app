@@ -25,8 +25,6 @@ import kotlinx.io.Buffer
 import kotlinx.io.RawSink
 import kotlinx.io.buffered
 import kotlinx.io.readByteArray
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 private const val PREVIEW_BUFFER_SIZE = 8 * 1024
 
@@ -37,14 +35,6 @@ class GetAttachmentPreviewImpl(
     private val httpClient: HttpClient,
     private val downloadAttachmentSourceLoader: DownloadAttachmentSourceLoader,
 ) : GetAttachmentPreview {
-    constructor(directDI: DirectDI) : this(
-        downloadAttachmentMetadata = directDI.instance(),
-        fileEncryptionCodec = directDI.instance(),
-        fileService = directDI.instance(),
-        httpClient = directDI.instance(),
-        downloadAttachmentSourceLoader = directDI.instance(),
-    )
-
     override fun invoke(
         request: AttachmentPreviewRequest,
     ): IO<AttachmentPreviewPayload> = ioEffect(Dispatchers.IO) {

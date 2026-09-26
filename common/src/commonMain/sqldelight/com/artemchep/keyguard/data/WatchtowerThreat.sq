@@ -89,6 +89,15 @@ markAsRead {
     read < 1;
 }
 
+markAsReadByCipherIds {
+  UPDATE watchtowerThreat
+  SET
+    read = 1
+  WHERE
+    cipherId IN :cipherIds AND
+    read < 1;
+}
+
 getThreats:
 SELECT watchtowerThreat.*, cipher.accountId AS accountId
 FROM watchtowerThreat

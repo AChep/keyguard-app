@@ -1162,6 +1162,7 @@ dependencies = [
  "salsa20",
  "sec1",
  "ssh-key",
+ "tempfile",
  "thiserror 2.0.18",
  "twofish",
  "x25519-dalek",

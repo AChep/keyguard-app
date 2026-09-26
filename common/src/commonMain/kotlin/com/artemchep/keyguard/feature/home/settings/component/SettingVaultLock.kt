@@ -29,20 +29,19 @@ import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.VaultViewButtonItem
 import com.artemchep.keyguard.feature.localization.TextHolder
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.icon
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingVaultLockProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingVaultLockProvider(
-    clearVaultSession = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    clearVaultSession = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingVaultLockProvider(

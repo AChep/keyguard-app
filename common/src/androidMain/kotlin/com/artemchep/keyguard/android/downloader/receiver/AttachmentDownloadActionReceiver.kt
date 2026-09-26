@@ -8,8 +8,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.RemoveAttachmentRequest
 import com.artemchep.keyguard.common.usecase.RemoveAttachment
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import org.kodein.di.android.closestDI
-import org.kodein.di.instance
+import com.artemchep.keyguard.di.keyguardKoin
 
 class AttachmentDownloadActionReceiver : BroadcastReceiver() {
     companion object {
@@ -46,17 +45,17 @@ class AttachmentDownloadActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
             ?: return
-        val di by closestDI { context }
+        val koin = (context ).keyguardKoin()
         when {
             action.endsWith(ACTION_ATTACHMENT_DOWNLOAD_CANCEL) -> {
                 val downloadId = intent.extras?.getString(KEY_DOWNLOAD_ID)
                     ?: return
-                val windowCoroutineScope: WindowCoroutineScope by di.instance()
+                val windowCoroutineScope: WindowCoroutineScope by lazy { koin.get() }
                 val removeIo = kotlin.run {
                     val request = RemoveAttachmentRequest.ByDownloadId(
                         downloadId = downloadId,
                     )
-                    val removeAttachment: RemoveAttachment by di.instance()
+                    val removeAttachment: RemoveAttachment by lazy { koin.get() }
                     removeAttachment(listOf(request))
                 }
                 removeIo.launchIn(windowCoroutineScope)

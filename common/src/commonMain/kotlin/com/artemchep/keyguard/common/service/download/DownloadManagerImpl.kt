@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.download
 
 import arrow.core.right
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundScheduler
@@ -11,8 +12,11 @@ import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.getHttpCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,8 +33,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DownloadManagerImpl(
@@ -53,21 +56,24 @@ class DownloadManagerImpl(
     private val progressByTag =
         MutableStateFlow(emptyMap<DownloadInfoEntity.AttachmentDownloadTag, DownloadProgress>())
 
+    // Protect only the lock registry. Writer cleanup and file I/O hold the attachment's
+    // lock, so operations for other attachments can proceed independently.
+    private val operationsMutex = Mutex()
+
+    private val operationsByTag =
+        mutableMapOf<DownloadInfoEntity.AttachmentDownloadTag, AttachmentOperation>()
+
+    private class AttachmentOperation {
+        val mutex = Mutex()
+
+        // Includes waiters: removing an entry while someone waits would allow a
+        // second mutex for the same attachment to be created.
+        var users = 0
+    }
+
     private val activeScopesMutex = Mutex()
 
     private val activeScopesByDownloadId = mutableMapOf<String, CoroutineScope>()
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        windowCoroutineScope = directDI.instance(),
-        downloadRepository = directDI.instance(),
-        sourceLoader = directDI.instance(),
-        downloadFileStore = directDI.instance(),
-        downloadBackgroundScheduler = directDI.instance(),
-        base64Service = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-    )
 
     override fun statusByDownloadId2(downloadId: String): Flow<DownloadProgress> = progressById
         .map { state -> state[downloadId] }
@@ -115,7 +121,11 @@ class DownloadManagerImpl(
 
     override suspend fun queue(
         request: DownloadQueueRequest,
-    ): DownloadManager.QueueResult {
+    ): DownloadManager.QueueResult = withAttachmentLock(request.tag) {
+        downloadRepository.getByTag(request.tag).bind()?.let { info ->
+            stopActiveDownloadScope(info.id)
+        }
+
         val source = request.source
         val info = downloadInfoRepositoryController.getOrPutDownloadFileEntity(
             url = source.url,
@@ -135,7 +145,9 @@ class DownloadManagerImpl(
         }
 
         val downloadScope = windowCoroutineScope + SupervisorJob()
-        replaceActiveDownloadScope(info.id, downloadScope)
+        activeScopesMutex.withLock {
+            activeScopesByDownloadId[info.id] = downloadScope
+        }
         val sharedFlow = trackProgress(
             attempt = request.attempt,
             info = info,
@@ -157,23 +169,55 @@ class DownloadManagerImpl(
             downloadBackgroundScheduler.enqueue(info.id)
         }
 
-        return DownloadManager.QueueResult(
+        DownloadManager.QueueResult(
             info = info,
             flow = queueFlow,
         )
     }
 
     override suspend fun removeByDownloadId(downloadId: String) {
-        cancelActiveDownloadScope(downloadId)
-        downloadInfoRepositoryController.removeByDownloadId(downloadId) { info ->
-            downloadFileStore.delete(info)
+        val info = downloadRepository.getById(downloadId).bind() ?: return
+        withAttachmentLock(info.downloadTag()) {
+            // The row may have been removed and a new ID queued while we waited.
+            val current = downloadRepository.getById(downloadId).bind()
+                ?: return@withAttachmentLock
+            removeDownload(current)
         }
     }
 
-    override suspend fun removeByTag(tag: DownloadInfoEntity.AttachmentDownloadTag) {
-        downloadInfoRepositoryController.removeByTag(tag) { info ->
-            cancelActiveDownloadScope(info.id)
-            downloadFileStore.delete(info)
+    override suspend fun removeByTag(
+        tag: DownloadInfoEntity.AttachmentDownloadTag,
+    ) = withAttachmentLock(tag) {
+        val info = downloadRepository.getByTag(tag).bind() ?: return@withAttachmentLock
+        removeDownload(info)
+    }
+
+    // The caller holds the attachment lock. Completion must remain independent of
+    // that lock, and joining must stay outside the registry/repository locks.
+    private suspend fun removeDownload(info: DownloadInfoEntity) {
+        stopActiveDownloadScope(info.id)
+        downloadFileStore.delete(info)
+        downloadInfoRepositoryController.removeByDownloadId(info.id)
+    }
+
+    private suspend fun <T> withAttachmentLock(
+        tag: DownloadInfoEntity.AttachmentDownloadTag,
+        block: suspend () -> T,
+    ): T {
+        val operation = operationsMutex.withLock {
+            operationsByTag.getOrPut(tag, ::AttachmentOperation).also { it.users++ }
+        }
+        try {
+            return operation.mutex.withLock { block() }
+        } finally {
+            // A cancelled waiter or holder must release its registry reference too.
+            withContext(NonCancellable) {
+                operationsMutex.withLock {
+                    if (--operation.users == 0) {
+                        operationsByTag.remove(tag)
+                    }
+                }
+            }
         }
     }
 
@@ -223,40 +267,34 @@ class DownloadManagerImpl(
             }
         }
         .onCompletion {
-            val cleared = clearActiveDownloadScope(info.id, scope)
-            if (cleared) {
-                progressById.update { state -> state - info.id }
-                progressByTag.update { state -> state - tag }
+            // A cancelled writer must still clear its progress and registration.
+            withContext(NonCancellable) {
+                clearActiveDownloadScope(info.id, tag, scope)
+                scope.cancel()
             }
-            scope.cancel()
         }
 
-    private suspend fun replaceActiveDownloadScope(
+    private suspend fun stopActiveDownloadScope(
         downloadId: String,
-        scope: CoroutineScope,
-    ) = activeScopesMutex.withLock {
-        activeScopesByDownloadId
-            .put(downloadId, scope)
-            ?.cancel()
-    }
-
-    private suspend fun cancelActiveDownloadScope(
-        downloadId: String,
-    ) = activeScopesMutex.withLock {
-        activeScopesByDownloadId
-            .remove(downloadId)
-            ?.cancel()
+    ) {
+        val scope = activeScopesMutex.withLock {
+            activeScopesByDownloadId[downloadId]
+        }
+        scope?.coroutineContext?.get(Job)?.cancelAndJoin()
     }
 
     private suspend fun clearActiveDownloadScope(
         downloadId: String,
+        tag: DownloadInfoEntity.AttachmentDownloadTag,
         scope: CoroutineScope,
-    ): Boolean = activeScopesMutex.withLock {
+    ): Unit = activeScopesMutex.withLock {
         if (activeScopesByDownloadId[downloadId] !== scope) {
-            return@withLock false
+            return@withLock
         }
+        // Clear progress before another scope can register under the same ID.
+        progressById.update { state -> state - downloadId }
+        progressByTag.update { state -> state - tag }
         activeScopesByDownloadId.remove(downloadId)
-        true
     }
 
     private suspend fun DownloadInfoEntity.toStoredProgress(): DownloadProgress =

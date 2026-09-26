@@ -1,0 +1,21 @@
+name: "Prefetch Native"
+description: "Fetch locked Cargo dependencies for native builds"
+inputs:
+  profile:
+    description: "Native dependency group: desktop, android, or apple; omit to use explicit manifests only"
+    required: false
+    default: ""
+  manifests:
+    description: "Additional Cargo.toml paths, one per line, relative to the repository root"
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - name: "Prefetch locked native graphs"
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        PREFETCH_PROFILE: ${{ inputs.profile }}
+        PREFETCH_MANIFESTS: ${{ inputs.manifests }}
+      run: bash .github/actions/prefetch_native/prefetch.sh

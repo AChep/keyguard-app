@@ -11,18 +11,11 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class ClearVaultSessionImpl(
     private val context: LeContext,
     private val putVaultSession: PutVaultSession,
 ) : ClearVaultSession {
-    constructor(directDI: DirectDI) : this(
-        context = directDI.instance(),
-        putVaultSession = directDI.instance(),
-    )
-
     override fun invoke(
         type: LockReason,
         reason: TextHolder,

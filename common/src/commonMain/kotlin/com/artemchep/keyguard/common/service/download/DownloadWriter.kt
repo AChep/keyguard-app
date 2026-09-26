@@ -101,7 +101,7 @@ internal fun DownloadWriter.writeVerifiedSource(
 
     when (this) {
         is DownloadWriter.LocalPathWriter -> {
-            writeAtomically { output ->
+            writeAtomically(checkCancellation) { output ->
                 copyVerifiedTo(output)
             }
         }
@@ -121,7 +121,7 @@ internal fun DownloadWriter.writeSource(
 ) {
     when (this) {
         is DownloadWriter.LocalPathWriter -> {
-            writeAtomically { sink ->
+            writeAtomically(checkCancellation) { sink ->
                 sink.withCancellationChecks(checkCancellation).use { output ->
                     source.writePlaintextTo(
                         output = output,
@@ -135,8 +135,8 @@ internal fun DownloadWriter.writeSource(
 
         is DownloadWriter.SinkWriter -> {
             sink.withCancellationChecks(checkCancellation).use { output ->
-                createDownloadPlaintextSpool(stagingSpoolFactory)
-                    .stageTo(output) { stagedOutput ->
+                createDownloadPlaintextSpool(stagingSpoolFactory, checkCancellation)
+                    .stageTo(output, checkCancellation) { stagedOutput ->
                         stagedOutput
                             .withCancellationChecks(checkCancellation)
                             .use { checkedStagedOutput ->
@@ -155,12 +155,14 @@ internal fun DownloadWriter.writeSource(
 
 private fun createDownloadPlaintextSpool(
     stagingSpoolFactory: StagingSpoolFactory,
+    checkCancellation: () -> Unit,
 ) = stagingSpoolFactory.create(
     purpose = StagingPurpose.DownloadSinkPlaintext,
     limits = SpoolLimits(
         memoryBytes = DOWNLOAD_PLAINTEXT_MEMORY_LIMIT_BYTES,
         maximumBytes = DOWNLOAD_PLAINTEXT_MAXIMUM_BYTES,
     ),
+    checkCancellation = checkCancellation,
     limitExceeded = { limit ->
         IOException("Downloaded plaintext exceeds the supported staging limit of $limit bytes")
     },
@@ -178,6 +180,7 @@ private fun Source.writePlaintextTo(
             input = this,
             output = output,
             key = key,
+            checkCancellation = checkCancellation,
         )
     } else {
         copyTo(
@@ -200,6 +203,7 @@ private fun Source.copyTo(
         while (true) {
             checkCancellation()
             val length = readAtMostTo(buffer)
+            checkCancellation()
             if (length < 0) break
             if (length == 0) {
                 consecutiveZeroReads += 1
@@ -219,11 +223,13 @@ private fun Source.copyTo(
 }
 
 private fun DownloadWriter.LocalPathWriter.writeAtomically(
+    checkCancellation: () -> Unit = {},
     write: (Sink) -> Unit,
 ) {
     writeFileAtomically(
         destination = destination,
         options = DOWNLOAD_ATOMIC_WRITE_OPTIONS,
+        checkCancellation = checkCancellation,
         write = write,
     ).receipt.requireCleanupComplete()
 }

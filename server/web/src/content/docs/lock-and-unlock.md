@@ -15,8 +15,8 @@ saves a lot of confusion:
 - the **app password** — created when you first set up Keyguard, it locks
   everything Keyguard keeps on this device: the [local copy of your vault](/docs/security/).
 
-The app password never gets stored on the device nor sent over the network —
-it is used to generate a secret key that encrypts the local data. Because it
+Keyguard uses the app password to derive a secret key that encrypts local data;
+it is never stored on disk or transmitted over the network. Because it
 is local, each of your devices can have a different one, and you can change
 it any time via **Change app password** without touching your accounts.
 
@@ -26,6 +26,8 @@ Besides typing the app password, you can unlock with:
 
 - **Biometrics** (Android, macOS, Windows) — enable it during setup or later in the
   security settings;
+- **System authentication** (Linux) — the desktop's polkit dialog, which accepts a
+  fingerprint or your login password. See [Linux](#linux) below;
 - **YubiKey** (Android) — unlock with a YubiKey over **USB** or **NFC**,
   using HMAC-SHA1 challenge-response. Keyguard provisions a key slot when
   you set it up.
@@ -36,19 +38,40 @@ viewed or autofilled — see the
 item is opened, Keyguard shows a **Confirm access** prompt that accepts your
 app password or biometrics.
 
+### Linux
+
+The option requires polkit and protected storage: memfd_secret, or the Linux process keyring when
+memfd_secret is unavailable. Keyguard hides the option if neither is available.
+
+> Keyguard blocks hibernation while the key is held.
+> Disable system authentication or exit Keyguard before hibernating.
+
+The key lives in memory only. After Keyguard restarts, the first unlock needs
+the app password unless the vault key is persisted; the option is available
+again from the next lock.
+
+polkit needs a rule that declares the Keyguard action. The first time you
+enable the option, Keyguard installs it and asks for administrator approval.
+Flatpak cannot write to the host, so run this once instead:
+
+```sh
+flatpak run --command=cat com.artemchep.keyguard /app/share/polkit-1/actions/com.artemchep.keyguard.policy | sudo install -D -m 0644 /dev/stdin /usr/share/polkit-1/actions/com.artemchep.keyguard.policy
+```
+
 ## Auto-lock
 
 The security settings control when the vault locks itself:
 
 - **Lock after a delay** — from *immediately* to *never*, after inactivity;
-- **Lock when screen turns off** — locks as soon as the screen goes dark;
+- **Lock when screen turns off** (Android, macOS) — locks when the display or device
+  sleeps;
 - **Persist vault key on a disk** — with this off, the vault also locks
   whenever the app is unloaded from memory.
 
 > **Security note on persisting the vault key.** With the option on, the
 > key that unlocks your local data is written to the device's internal
 > storage (Android) or disk (Desktop), so the vault stays unlocked even after the app is unloaded from
-> memory. That is a deliberate trade-off — as the app itself warns, if the
+> memory. That is a deliberate trade-off — as the app warns, if the
 > device's storage is compromised, the attacker gains access to
 > the local vault data. Leave it off when that risk matters more to you
 > than the convenience of fewer unlocks.
@@ -68,4 +91,4 @@ right back. **Signing out** of an account removes its data from Keyguard.
   live with your server — check the web vault.
 - **KDBX password** — there is no recovery by design.
 
-Keep the password safe, and [configure backups](/docs/backups/) just in case.
+Keep the password safe, and [configure backups](/docs/backups/).

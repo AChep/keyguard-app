@@ -1,4 +1,5 @@
 name: "GitHub Trigger WF"
+description: "Dispatch a GitHub Actions workflow"
 inputs:
   github-token:
     description: 'GitHub Token'

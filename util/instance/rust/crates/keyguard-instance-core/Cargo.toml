@@ -1,0 +1,29 @@
+[package]
+name = "keyguard-instance-core"
+description = "Single-instance ownership and activation for Keyguard"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[[bin]]
+name = "instance-fixture"
+path = "fixture/main.rs"
+
+[dependencies]
+getrandom.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+keyguard-io-core = { path = "../../../../io/rust/crates/keyguard-io-core" }
+windows-sys.workspace = true
+
+[target.'cfg(windows)'.dev-dependencies]
+windows-sys = { workspace = true, features = ["Win32_System_Ioctl", "Win32_System_SystemServices"] }
+
+[lints]
+workspace = true

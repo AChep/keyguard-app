@@ -2,10 +2,8 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.model.AddCipherUsedPasskeyHistoryRequest
 import com.artemchep.keyguard.common.model.CipherHistoryType
-import com.artemchep.keyguard.common.usecase.AddCipherUsedPasskeyHistory
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import com.artemchep.keyguard.common.usecase.AddCipherUsedPasskeyHistory
 
 class AddCipherUsedPasskeyHistoryImpl(
     private val db: VaultDatabaseManager,
@@ -13,10 +11,6 @@ class AddCipherUsedPasskeyHistoryImpl(
     companion object {
         private const val TAG = "AddCipherUsedPasskey"
     }
-
-    constructor(directDI: DirectDI) : this(
-        db = directDI.instance(),
-    )
 
     override fun invoke(request: AddCipherUsedPasskeyHistoryRequest) = db
         .mutate(TAG) {

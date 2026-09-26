@@ -33,6 +33,10 @@ internal data class HubConnectionOptions(
             httpClient: HttpClient,
             config: HubConnectionConfig,
         ): HubConnectionOptions {
+            require(config.keepAliveInterval.isPositive()) {
+                "keepAliveInterval must be greater than zero."
+            }
+
             return HubConnectionOptions(
                 baseUrl = url
                     .takeIf { it.isNotBlank() }

@@ -22,8 +22,6 @@ import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenProfileRepo
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -40,19 +38,6 @@ class DownloadAttachmentMetadataImpl2(
     private val json: Json,
     private val httpClient: HttpClient,
 ) : DownloadAttachmentMetadata {
-    constructor(directDI: DirectDI) : this(
-        tokenRepository = directDI.instance(),
-        cipherRepository = directDI.instance(),
-        profileRepository = directDI.instance(),
-        organizationRepository = directDI.instance(),
-        databaseManager = directDI.instance(),
-        cipherEncryptor = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-        json = directDI.instance(),
-        httpClient = directDI.instance(),
-    )
-
     private val bitwardenDelegate = DownloadAttachmentMetadataBitwardenImpl(
         tokenRepository = tokenRepository,
         cipherRepository = cipherRepository,

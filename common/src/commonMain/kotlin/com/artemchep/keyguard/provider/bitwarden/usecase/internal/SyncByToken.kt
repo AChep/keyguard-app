@@ -10,8 +10,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 interface SyncByToken : (ServiceToken) -> IO<Unit>
 
@@ -24,12 +22,6 @@ class SyncByTokenImpl(
     private val scheduler = AccountSyncScheduler(
         scope = syncScope,
         sync = ::syncNow,
-    )
-
-    constructor(directDI: DirectDI) : this(
-        syncByBitwardenToken = directDI.instance(),
-        syncByKeePassToken = directDI.instance(),
-        pendingUploadGarbageCollector = directDI.instance(),
     )
 
     override fun invoke(token: ServiceToken): IO<Unit> = scheduler.enqueue(token)

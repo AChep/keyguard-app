@@ -19,7 +19,6 @@ import androidx.work.Operation
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.artemchep.keyguard.android.Notifications
-import com.artemchep.keyguard.common.service.download.DownloadRepository
 import com.artemchep.keyguard.android.downloader.receiver.AttachmentDownloadActionReceiver
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt
@@ -28,24 +27,24 @@ import com.artemchep.keyguard.common.io.timeout
 import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadProgress
-import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
+import com.artemchep.keyguard.common.service.download.DownloadRepository
 import com.artemchep.keyguard.common.util.canRetry
 import com.artemchep.keyguard.common.util.getHttpCode
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.keyguardKoin
+import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
+import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transformWhile
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.instance
-import java.util.concurrent.TimeUnit
-import kotlin.math.roundToInt
 
 class AttachmentDownloadWorker(
     context: Context,
     params: WorkerParameters,
-) : CoroutineWorker(context, params), DIAware {
+) : CoroutineWorker(context, params), KeyguardKoinOwner {
     companion object {
         private const val WORK_ID = "AttachmentDownloadWorker"
 
@@ -94,7 +93,7 @@ class AttachmentDownloadWorker(
         }
     }
 
-    override val di by closestDI { applicationContext }
+    override val koin get() = applicationContext.keyguardKoin()
 
     private val notificationManager = context.getSystemService<NotificationManager>()!!
 
@@ -112,8 +111,8 @@ class AttachmentDownloadWorker(
         notificationId: Int,
         args: Args,
     ): Result {
-        val downloadManager: DownloadManager by instance()
-        val downloadRepository: DownloadRepository by instance()
+        val downloadManager: DownloadManager by lazy { koin.get() }
+        val downloadRepository: DownloadRepository by lazy { koin.get() }
 
         val downloadInfo = downloadRepository.getById(id = args.downloadId)
             .bind()

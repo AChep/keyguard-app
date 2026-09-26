@@ -12,15 +12,13 @@ import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenProfileRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.coroutines.CoroutineContext
 
 /**
  * @author Artem Chepurnyi
@@ -34,12 +32,6 @@ class GetProfilesImpl(
     companion object {
         private const val TAG = "GetProfiles"
     }
-
-    constructor(directDI: DirectDI) : this(
-        tokenRepository = directDI.instance(),
-        profileRepository = directDI.instance(),
-        windowCoroutineScope = directDI.instance(),
-    )
 
     private val sharedFlow = combine(
         tokenRepository.get(),

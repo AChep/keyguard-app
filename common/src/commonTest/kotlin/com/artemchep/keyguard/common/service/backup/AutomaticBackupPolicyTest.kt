@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.vault.SessionReadRepository
+import com.artemchep.keyguard.common.service.vault.testVaultSession
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -23,7 +24,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import org.kodein.di.DI
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class AutomaticBackupPolicyTest {
@@ -235,7 +235,7 @@ class AutomaticBackupPolicyTest {
             version = MasterKdfVersion.V0,
             byteArray = byteArrayOf(1, 2, 3),
         ),
-        di = DI {},
+        session = testVaultSession {},
         origin = origin,
         createdAt = Instant.fromEpochMilliseconds(1L),
     )

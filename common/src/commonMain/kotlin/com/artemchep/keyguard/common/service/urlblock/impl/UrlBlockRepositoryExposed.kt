@@ -5,28 +5,19 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DGlobalUrlBlock
 import com.artemchep.keyguard.common.model.MatchDetection
-import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
-import com.artemchep.keyguard.dataexposed.UrlBlockQueries as ExposedUrlBlockQueries
+import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
 import com.artemchep.keyguard.dataexposed.UrlBlock as ExposedUrlBlock
+import com.artemchep.keyguard.dataexposed.UrlBlockQueries as ExposedUrlBlockQueries
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class UrlBlockRepositoryExposed(
     private val exposedDatabaseManager: ExposedDatabaseManager,
     private val dispatcher: CoroutineDispatcher,
 ) {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        exposedDatabaseManager = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
-
     fun get(): Flow<List<DGlobalUrlBlock>> =
         daoEffect { exposedDao ->
             exposedDao.get(1000)

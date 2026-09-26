@@ -11,8 +11,6 @@ import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
 import com.artemchep.keyguard.feature.favicon.PictureUrl
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 @Serializable
 data class LocalizationContributorEntity(
@@ -85,13 +83,6 @@ class LocalizationContributorsServiceImpl(
             models
         }
         .sharedSoftRef(TAG)
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        textService = directDI.instance(),
-        json = directDI.instance(),
-    )
 
     override fun get() = listIo
 }

@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.di.resolve
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountParams
 import java.io.File
@@ -25,8 +26,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import org.kodein.di.direct
-import org.kodein.di.instance
 
 class VaultBenchmarkSeedActivity : Activity() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -69,12 +68,13 @@ class VaultBenchmarkSeedActivity : Activity() {
         require(entryCount > 0) { "Missing or invalid '$EXTRA_ENTRY_COUNT' extra." }
 
         val markerFile = filesDir.resolve("benchmarks/vault-$entryCount-$CORPUS_VERSION.ready")
-        val session = (application as Main).di.direct
-            .instance<GetVaultSession>()()
+        val session = (application as Main).koin
+            .get<GetVaultSession>()()
             .filterIsInstance<MasterSession.Key>()
             .first()
-        val sessionDi = session.di.direct
-        val getCiphers = sessionDi.instance<GetCiphers>()
+        val getCiphers = checkNotNull(session.session.resolve { get<GetCiphers>() }) {
+            "Benchmark vault session retired"
+        }
 
         if (markerFile.isFile) {
             awaitCipherCount(getCiphers, entryCount)
@@ -99,7 +99,9 @@ class VaultBenchmarkSeedActivity : Activity() {
             databaseFile.writeBytes(encoded)
         }
 
-        sessionDi.instance<AddKeePassAccount>()(
+        checkNotNull(session.session.resolve { get<AddKeePassAccount>() }) {
+            "Benchmark vault session retired"
+        }(
             AddKeePassAccountParams(
                 mode = AddKeePassAccountParams.Mode.Open,
                 dbUri = Uri.fromFile(databaseFile).toString(),

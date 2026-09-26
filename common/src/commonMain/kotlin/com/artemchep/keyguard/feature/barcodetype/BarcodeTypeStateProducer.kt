@@ -20,18 +20,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instanceOrNull
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceBarcodeTypeScreenState(
     args: BarcodeTypeRoute.Args,
-): Loadable<BarcodeTypeState> = with(localDI().direct) {
+): Loadable<BarcodeTypeState> = with(currentKoinScope()) {
     produceBarcodeTypeScreenState(
         args = args,
-        getBarcodeUsageHistory = instanceOrNull(),
-        putBarcodeUsageHistory = instanceOrNull(),
+        getBarcodeUsageHistory = getOrNull(),
+        putBarcodeUsageHistory = getOrNull(),
     )
 }
 

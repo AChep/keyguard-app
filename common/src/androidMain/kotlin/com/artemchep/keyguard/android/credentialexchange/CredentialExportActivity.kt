@@ -22,19 +22,21 @@ import androidx.lifecycle.lifecycleScope
 import com.artemchep.keyguard.android.BaseActivity
 import com.artemchep.keyguard.android.CredentialScaffold
 import com.artemchep.keyguard.android.closestActivityOrNull
-import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.VaultState
-import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountRepository
 import com.artemchep.keyguard.common.service.credentialexchange.CxfExportService
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfAccount
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
+import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountRepository
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.VaultSessionContent
 import com.artemchep.keyguard.feature.credentialexchange.export.CredentialExchangeExportResult
 import com.artemchep.keyguard.feature.credentialexchange.export.CredentialExchangeExportRoute
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
@@ -46,19 +48,16 @@ import com.artemchep.keyguard.feature.navigation.NavigationRouter
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.recordLog
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.Clock
-import kotlin.time.Instant
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DIAware
-import org.kodein.di.compose.withDI
-import org.kodein.di.instance
 
 /**
  * Handles the Android 15+/GMS "Transfer passwords & passkeys" import request
@@ -70,7 +69,7 @@ import org.kodein.di.instance
  * owns the transport, building and encoding the document and writing it to the
  * caller. The payload contents are never logged.
  */
-class CredentialExportActivity : BaseActivity(), DIAware {
+class CredentialExportActivity : BaseActivity(), KeyguardKoinOwner {
     companion object {
         private const val TAG = "CredentialExportActivity"
 
@@ -87,13 +86,13 @@ class CredentialExportActivity : BaseActivity(), DIAware {
         private const val CALLER_PACKAGE_GMS = "com.google.android.gms"
     }
 
-    private val cxfExportService by instance<CxfExportService>()
+    private val cxfExportService by lazy { koin.get<CxfExportService>() }
 
-    private val logRepository by instance<LogRepository>()
+    private val logRepository by lazy { koin.get<LogRepository>() }
 
-    private val exposedAccountRepository by instance<ExposedAccountRepository>()
+    private val exposedAccountRepository by lazy { koin.get<ExposedAccountRepository>() }
 
-    private val getVaultSession by instance<GetVaultSession>()
+    private val getVaultSession by lazy { koin.get<GetVaultSession>() }
 
     private val importRequest: ProviderImportCredentialsRequest? by lazy {
         // The activity is exported, so the extras may be a crafted third-party
@@ -443,7 +442,7 @@ class CredentialExportActivity : BaseActivity(), DIAware {
                             }
 
                             is UiState.Review -> {
-                                withDI(vaultState.di) {
+                                VaultSessionContent(vaultState.session) {
                                     val route = remember(state.args) {
                                         CredentialExportHostRoute(
                                             args = state.args,

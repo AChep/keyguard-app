@@ -242,6 +242,7 @@ fn openpgp_encrypt_stream_request(public_key: &[u8]) -> Vec<u8> {
 fn openpgp_decrypt_stream_request(private_key: &[u8]) -> Vec<u8> {
     stream_open_request(native_stream_open_request::Operation::OpenPgpDecrypt(
         OpenPgpDecryptStreamOpenRequest {
+            staging_directory: None,
             private_keys: vec![private_key.to_vec()],
             verification_public_keys: Vec::new(),
             reference_time_epoch_seconds: Some(OPENPGP_REFERENCE_TIME),

@@ -14,8 +14,8 @@ detect the purchase automatically. A license key is useful when another device
 cannot see that store purchase directly. In the app, this may be shown as an
 **entitlement token**.
 
-Treat the key as private. It is not tied to a specific device or Bitwarden
-account, so anyone who has the key may be able to use the same entitlement.
+Treat the key as private: anyone with the key can use the entitlement on
+any device or account.
 
 ## Create a license key
 
@@ -26,14 +26,14 @@ On the device where your premium purchase is active:
 3. Sync the purchase.
 4. Copy the generated license key.
 
-If Keyguard says there is no eligible purchase, check that you are using the
+If Keyguard finds no eligible purchase, check that you are using the
 same store account that bought premium.
 
 Creating a license key from a store purchase requires an internet connection,
 because Keyguard has to verify the purchase before creating a portable key.
 
-The generated key does not contain your vault data, store password, or payment
-details. It contains license information that Keyguard can verify locally.
+The generated key contains only the metadata Keyguard needs for local
+verification.
 
 ## Use a license key on another device
 
@@ -84,10 +84,10 @@ When the app is online, Keyguard may refresh the license status with the license
 server. The server response can confirm that the license is still active or
 report a later status such as refunded, revoked, expired, pending, or invalid.
 
-The server also tells Keyguard when it should check again. Keyguard does not
-need to call the server on every launch. If a refresh fails because you are
-offline or the server is temporarily unreachable, Keyguard keeps using the last
-valid local license state instead of locking you out immediately.
+The server also schedules the next check interval; Keyguard does not
+contact the server on every launch. If a refresh fails because the device is
+offline or the server is unreachable, Keyguard retains the last valid local
+license state.
 
 For subscriptions, a successful refresh may return an updated key when a renewal
 extends the paid-through month. Keyguard stores the updated key automatically.
@@ -95,8 +95,8 @@ extends the paid-through month. Keyguard stores the updated key automatically.
 ## Remove a license key
 
 Open **Link entitlement token**, clear the field, and save. This removes the
-license key from that vault on the current device. It does not cancel your store
-purchase.
+license key from the local vault; cancel store subscriptions separately through
+your app store.
 
 ## License status
 

@@ -11,6 +11,7 @@ pub(super) struct OpenPgpDecryptWorkerConfig {
     verification_certificates: Vec<SignedPublicKey>,
     verification_time: DataSignatureVerificationTime,
     allow_signed_only: bool,
+    staging_directory: Option<String>,
 }
 
 impl OpenPgpDecryptWorkerFinal {
@@ -67,6 +68,7 @@ fn prepare_decryption(
             request.reference_time_epoch_seconds,
         ),
         allow_signed_only: request.allow_signed_only,
+        staging_directory: request.staging_directory,
     })
 }
 
@@ -88,6 +90,10 @@ impl OpenPgpDecryptionSession {
 
     pub(crate) fn update(&mut self, data: &[u8]) -> Result<Vec<u8>, OpenPgpWriteError> {
         self.worker.update(data)
+    }
+
+    pub(crate) fn drain(&mut self) -> Result<Vec<u8>, OpenPgpWriteError> {
+        self.worker.drain()
     }
 
     pub(in crate::openpgp) fn finish(self) -> Result<DecryptionResult, OpenPgpWriteError> {
@@ -143,6 +149,7 @@ where
         &config.secrets,
         config.allow_signed_only,
         decrypt_options,
+        config.staging_directory.as_deref(),
     )?;
     let encrypted = decryption_key_fingerprint.is_some();
     let mut metadata = literal_metadata(&message)?;
@@ -199,6 +206,7 @@ pub(in crate::openpgp) fn decrypt_request(
         verification_public_keys,
         reference_time_epoch_seconds,
         allow_signed_only,
+        staging_directory: None,
     })?;
     let mut plaintext = SecretChunks::default();
     let final_state = process_decryption(
@@ -233,6 +241,7 @@ pub(super) fn open_literal_message<'a>(
     secrets: &[ParsedSecretCertificate],
     allow_signed_only: bool,
     decrypt_options: DecryptionOptions,
+    staging_directory: Option<&str>,
 ) -> Result<OpenedLiteralMessage<'a>, OpenPgpWriteError> {
     let (message, decryption_key_fingerprint, recipient_identity, decryption_warnings) =
         if message.is_encrypted() {
@@ -243,15 +252,20 @@ pub(super) fn open_literal_message<'a>(
                 recipient_identity,
                 warning,
             } = recovered;
-            let ring = TheRing {
-                session_keys: vec![session_key],
-                decrypt_options,
-                ..TheRing::default()
-            };
-            let message = message
-                .decrypt_the_ring(ring, true)
-                .map_err(|_| OpenPgpWriteError::AuthenticationFailed)?
-                .0;
+            let message =
+                if let Some(directory) = staging_directory.filter(|_| is_mdc_message(&message)) {
+                    authenticate_mdc_message(message, &session_key, directory, decrypt_options)?
+                } else {
+                    let ring = TheRing {
+                        session_keys: vec![session_key],
+                        decrypt_options,
+                        ..TheRing::default()
+                    };
+                    message
+                        .decrypt_the_ring(ring, true)
+                        .map_err(|_| OpenPgpWriteError::AuthenticationFailed)?
+                        .0
+                };
             (
                 message,
                 Some(key_fingerprint),
@@ -273,6 +287,48 @@ pub(super) fn open_literal_message<'a>(
         recipient_identity,
         decryption_warnings,
     })
+}
+
+fn is_mdc_message(message: &Message<'_>) -> bool {
+    matches!(message, Message::Encrypted {
+        edata: pgp::composed::Edata::SymEncryptedProtectedData { reader }, ..
+    } if matches!(reader.config(), pgp::packet::ProtectedDataConfig::Seipd(
+        pgp::packet::SymEncryptedProtectedDataConfig::V1
+    )))
+}
+
+fn authenticate_mdc_message<'a>(
+    mut message: Message<'a>,
+    session_key: &PlainSessionKey,
+    directory: &str,
+    options: DecryptionOptions,
+) -> Result<Message<'a>, OpenPgpWriteError> {
+    let Message::Encrypted { edata, .. } = &mut message else {
+        return Err(OpenPgpWriteError::Internal);
+    };
+    edata
+        .decrypt_with_options(
+            session_key,
+            options.set_seipdv1_read_mode(Seipdv1ReadMode::Streaming),
+        )
+        .map_err(|_| OpenPgpWriteError::AuthenticationFailed)?;
+    let mut staging = staging::AuthenticatedStaging::new();
+    let mut buffer = Zeroizing::new(vec![0; OPENPGP_PARTIAL_PACKET_BYTES]);
+    loop {
+        // Read the encrypted Message, not a newly parsed inner message: this
+        // checks both the MDC and the outer packet/armor tail at EOF.
+        let count = message
+            .read(&mut buffer)
+            .map_err(|_| OpenPgpWriteError::AuthenticationFailed)?;
+        if count == 0 {
+            break;
+        }
+        staging.push(std::path::Path::new(directory), &buffer[..count])?;
+        buffer[..count].zeroize();
+    }
+    // Only authenticated raw packets reach the inner parser/decompressor.
+    Message::from_bytes(BufReader::new(staging.seal()?))
+        .map_err(|_| OpenPgpWriteError::AuthenticationFailed)
 }
 
 /// Evaluates inline signatures once the literal data has been fully read,

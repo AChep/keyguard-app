@@ -676,6 +676,12 @@ public interface NativeOpenPgpDecryptionSession : AutoCloseable {
         length: Int = data.size - offset,
     ): ByteArray
 
+    /**
+     * Signals input EOF and returns at most 64 KiB of provisional plaintext.
+     * Call repeatedly until empty, then call [finish] before committing plaintext.
+     */
+    public fun drain(): ByteArray
+
     /** Authenticates, consumes this session, and returns final provisional plaintext. */
     public fun finish(): NativeOpenPgpDecryptFinal
 
@@ -1172,6 +1178,12 @@ public object NativeCryptoOpenPgp {
                 stagedPlaintext.stage(session.update(content, offset, length))
             }
 
+            while (true) {
+                val chunk = session.drain()
+                if (chunk.isEmpty()) break
+                stagedPlaintext.stage(chunk)
+            }
+
             val final = session.finish()
             stagedPlaintext.stage(final.data)
             NativeOpenPgpDecryptResult(
@@ -1290,13 +1302,15 @@ public object NativeCryptoOpenPgp {
     /**
      * Opens a decryption stream. When [allowSignedOnly] is true, unencrypted
      * inline-signed messages are also accepted; unsigned literal packets are
-     * always rejected.
+     * always rejected. [stagingDirectory] enables disk-backed staging for large
+     * legacy encrypted messages and must name an application-private writable directory.
      */
     public fun openDecryption(
         privateKeys: List<ByteArray>,
         verificationPublicKeys: List<ByteArray> = emptyList(),
         referenceTimeEpochSeconds: Long? = null,
         allowSignedOnly: Boolean = false,
+        stagingDirectory: String? = null,
     ): NativeOpenPgpDecryptionSession {
         requireDecryptInputs(
             privateKeys = privateKeys,
@@ -1309,6 +1323,7 @@ public object NativeCryptoOpenPgp {
                 verificationPublicKeys = verificationPublicKeys,
                 referenceTimeEpochSeconds = referenceTimeEpochSeconds,
                 allowSignedOnly = allowSignedOnly,
+                stagingDirectory = stagingDirectory,
             ),
         )
     }
@@ -1861,6 +1876,8 @@ private class NativeOpenPgpDecryptionSessionImpl(
         offset: Int,
         length: Int,
     ): ByteArray = delegate.update(data, offset, length)
+
+    override fun drain(): ByteArray = delegate.drain()
 
     override fun finish(): NativeOpenPgpDecryptFinal {
         val payload = delegate.finish()

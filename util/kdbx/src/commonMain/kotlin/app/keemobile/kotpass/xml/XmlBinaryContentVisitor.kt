@@ -68,14 +68,6 @@ private fun Exception.toBinaryVisitError(): Throwable = when (this) {
     )
 }
 
-private enum class XmlBinaryKind {
-    /** `Meta/Binaries/Binary` pool item (KDBX 3). */
-    Pooled,
-
-    /** `Entry/Binary/Value` without a `Ref` attribute. */
-    InlineValue,
-}
-
 private fun XmlReader.scanBinaryElement(
     innerEncryption: EncryptionSaltGenerator,
     visitor: XmlBinaryContentVisitor,
@@ -87,10 +79,8 @@ private fun XmlReader.scanBinaryElement(
 ) {
     checkCancellation()
     val currentName = localName
-    val binaryKind = binaryContentKind(parentName, grandparentName, entryBinaryContainer)
     when {
-        binaryKind != null -> visitBinaryElement(
-            kind = binaryKind,
+        isBinaryContentElement(parentName, grandparentName, entryBinaryContainer) -> visitBinaryElement(
             innerEncryption = innerEncryption,
             visitor = visitor,
             checkCancellation = checkCancellation,
@@ -124,12 +114,12 @@ private fun XmlReader.scanBinaryElement(
     }
 }
 
-private fun XmlReader.binaryContentKind(
+private fun XmlReader.isBinaryContentElement(
     parentName: String?,
     grandparentName: String?,
     entryBinaryContainer: Boolean,
-): XmlBinaryKind? {
-    if (namespaceURI.isNotEmpty()) return null
+): Boolean {
+    if (namespaceURI.isNotEmpty()) return false
     val isPooledBinary =
         localName == FormatXml.Tags.Meta.Binaries.Item &&
             parentName == FormatXml.Tags.Meta.Binaries.TagName &&
@@ -138,27 +128,16 @@ private fun XmlReader.binaryContentKind(
         localName == FormatXml.Tags.Entry.BinaryReferences.ItemValue &&
             entryBinaryContainer &&
             attributeOrNull(FormatXml.Attributes.Ref) == null
-    return when {
-        isPooledBinary -> XmlBinaryKind.Pooled
-        isInlineBinaryValue -> XmlBinaryKind.InlineValue
-        else -> null
-    }
+    return isPooledBinary || isInlineBinaryValue
 }
 
 private fun XmlReader.visitBinaryElement(
-    kind: XmlBinaryKind,
     innerEncryption: EncryptionSaltGenerator,
     visitor: XmlBinaryContentVisitor,
     checkCancellation: () -> Unit,
 ) {
     val compressed = booleanAttributeOrNull(FormatXml.Attributes.Compressed) ?: false
-    val markers = when (kind) {
-        XmlBinaryKind.InlineValue -> readProtectedXmlValueMarkers()
-        XmlBinaryKind.Pooled -> XmlProtectedValueMarkers(
-            usesInnerEncryption = false,
-            protectsInMemory = false,
-        )
-    }
+    val markers = readProtectedXmlValueMarkers()
     visitBinaryText(
         innerEncryption = innerEncryption,
         markers = markers,

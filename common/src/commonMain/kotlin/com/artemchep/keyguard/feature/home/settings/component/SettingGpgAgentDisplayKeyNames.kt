@@ -17,21 +17,20 @@ import com.artemchep.keyguard.common.usecase.PutGpgAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingGpgAgentDisplayKeyNamesProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingGpgAgentDisplayKeyNamesProvider(
-    getGpgAgentDisplayKeyNames = directDI.instance(),
-    putGpgAgentDisplayKeyNames = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getGpgAgentDisplayKeyNames = koinScope.get(),
+    putGpgAgentDisplayKeyNames = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingGpgAgentDisplayKeyNamesProvider(

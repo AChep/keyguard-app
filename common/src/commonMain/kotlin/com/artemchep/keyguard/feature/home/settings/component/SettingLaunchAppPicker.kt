@@ -15,15 +15,14 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.platform.util.isRelease
-import kotlinx.coroutines.flow.flow
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.flow.flow
+import org.koin.core.scope.Scope
 
 fun settingLaunchAppPicker(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingLaunchAppPicker(
-    showMessage = directDI.instance(),
+    showMessage = koinScope.get(),
 )
 
 fun settingLaunchAppPicker(

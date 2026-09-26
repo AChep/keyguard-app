@@ -3,6 +3,7 @@ package com.artemchep.keyguard.util.webdav
 import com.artemchep.keyguard.util.io.artifact.KEYGUARD_TEMPORARY_ARTIFACT_PREFIX
 import com.artemchep.keyguard.util.io.artifact.TemporaryArtifactRole
 import com.artemchep.keyguard.util.io.artifact.temporaryArtifactName
+import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
@@ -67,6 +68,25 @@ class KtorWebDavClientTest {
         assertEquals(42L, resource.size)
         assertEquals(Instant.fromEpochSeconds(784903526L), resource.lastModified)
         assertEquals("\"abc\"", resource.etag)
+    }
+
+    @Test
+    fun `stat reports a too deeply nested multistatus as protocol error`() = runTest {
+        val depth = 20_000
+        val engine = MockEngine {
+            respond(
+                content = singleMultistatus(
+                    href = "/dav/root/object.kdbx",
+                    properties = "<D:x>".repeat(depth) + "</D:x>".repeat(depth),
+                ),
+                status = MULTI_STATUS,
+            )
+        }
+        val client = testClient(engine)
+
+        assertFailsWith<WebDavException.Protocol> {
+            client.stat("object.kdbx")
+        }
     }
 
     @Test
@@ -908,6 +928,41 @@ class KtorWebDavClientTest {
     }
 
     @Test
+    fun `list children decodes the same name from every href spelling`() = runTest {
+        val engine = MockEngine { request ->
+            assertEquals(HttpMethod("PROPFIND"), request.method)
+            respond(
+                content = multistatus(
+                    responseXml(
+                        href = "/dav/root/folder/",
+                        properties = "<D:resourcetype><D:collection/></D:resourcetype>",
+                    ),
+                    // Supplementary character: literal, hex entity, decimal
+                    // entity and percent-encoded UTF-8.
+                    responseXml("/dav/root/folder/😀.kdbx", "<D:resourcetype/>"),
+                    responseXml("/dav/root/folder/&#x1F600;.kdbx", "<D:resourcetype/>"),
+                    responseXml("/dav/root/folder/&#128512;.kdbx", "<D:resourcetype/>"),
+                    responseXml("/dav/root/folder/%F0%9F%98%80.kdbx", "<D:resourcetype/>"),
+                    // Basic plane character in the same four spellings.
+                    responseXml("/dav/root/folder/é.kdbx", "<D:resourcetype/>"),
+                    responseXml("/dav/root/folder/&#xE9;.kdbx", "<D:resourcetype/>"),
+                    responseXml("/dav/root/folder/&#233;.kdbx", "<D:resourcetype/>"),
+                    responseXml("/dav/root/folder/%C3%A9.kdbx", "<D:resourcetype/>"),
+                ),
+                status = MULTI_STATUS,
+            )
+        }
+        val client = testClient(engine)
+
+        val items = client.listChildren("folder/")
+
+        assertEquals(
+            listOf("folder/é.kdbx", "folder/😀.kdbx"),
+            items.map { item -> item.path }.sorted(),
+        )
+    }
+
+    @Test
     fun `list children throws not found for a missing collection`() = runTest {
         val engine = MockEngine { request ->
             assertEquals("1", request.headers["Depth"])
@@ -997,6 +1052,42 @@ class KtorWebDavClientTest {
         )
 
         assertTrue(client.listChildren("").isEmpty())
+    }
+
+    @Test
+    fun `range read bypasses cached full object response`() = runTest {
+        var gets = 0
+        val engine = MockEngine { request ->
+            when (request.method.value) {
+                "PROPFIND" -> respond(
+                    singleMultistatus(
+                        "/dav/root/object.zip",
+                        "<D:resourcetype/><D:getcontentlength>5</D:getcontentlength>",
+                    ),
+                    MULTI_STATUS,
+                )
+                "GET" -> {
+                    gets++
+                    if (request.headers[HttpHeaders.Range] == null) {
+                        respond("abcde", HttpStatusCode.OK, headersOf(HttpHeaders.CacheControl, "max-age=3600"))
+                    } else {
+                        respond("bcd", PARTIAL_CONTENT, headersOf(HttpHeaders.ContentRange, "bytes 1-3/5"))
+                    }
+                }
+                else -> error("Unexpected request")
+            }
+        }
+        val client = KtorWebDavClient(
+            httpClient = HttpClient(engine) { install(HttpCache) },
+            config = WebDavClientConfig(baseUrl = "https://example.com/dav/root/"),
+        )
+        assertContentEquals("abcde".encodeToByteArray(), client.read("object.zip").readBytesAndClose())
+        assertContentEquals(
+            "bcd".encodeToByteArray(),
+            client.read("object.zip", WebDavByteRange(1, 3)).readBytesAndClose(),
+        )
+        assertEquals(2, gets)
+        client.close()
     }
 
     @Test

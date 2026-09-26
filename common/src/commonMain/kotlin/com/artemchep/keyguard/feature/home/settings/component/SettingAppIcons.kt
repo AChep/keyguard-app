@@ -18,23 +18,22 @@ import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.icon
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingAppIconsProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingAppIconsProvider(
-    getAppIcons = directDI.instance(),
-    putAppIcons = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getAppIcons = koinScope.get(),
+    putAppIcons = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingAppIconsProvider(

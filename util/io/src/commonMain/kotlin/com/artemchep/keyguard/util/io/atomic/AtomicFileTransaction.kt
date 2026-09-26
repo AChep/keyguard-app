@@ -38,16 +38,25 @@ interface AtomicFileTransaction : AutoCloseable {
      * [AtomicFileWriteException.publicationState] tells the caller whether
      * the destination contains, does not contain, or may contain the staged
      * bytes.
+     *
+     * [checkCancellation] runs before writing and after the sink is closed,
+     * immediately before committing. It may throw to abort. Once native commit
+     * starts it runs to completion; its receipt remains authoritative.
      */
-    fun <T> writeAndCommit(write: (Sink) -> T): AtomicWriteResult<T>
+    fun <T> writeAndCommit(
+        checkCancellation: () -> Unit = {},
+        write: (Sink) -> T,
+    ): AtomicWriteResult<T>
 
     /**
      * Suspending counterpart of [writeAndCommit].
      *
      * Cancellation is treated as a callback failure: the native transaction
-     * is aborted before the cancellation exception is rethrown.
+     * is aborted before the cancellation exception is rethrown. Synchronous
+     * callbacks must supply [checkCancellation] to observe their owner's job.
      */
     suspend fun <T> writeAndCommitSuspending(
+        checkCancellation: () -> Unit = {},
         write: suspend (Sink) -> T,
     ): AtomicWriteResult<T>
 }
@@ -135,27 +144,31 @@ internal class NativeAtomicFileTransaction(
     private val sink = nativeSink.buffered()
 
     override fun <T> writeAndCommit(
+        checkCancellation: () -> Unit,
         write: (Sink) -> T,
     ): AtomicWriteResult<T> {
         beginWriting()
         val value = try {
+            checkCancellation()
             write(sink)
         } catch (e: Throwable) {
             abortAndThrow(e)
         }
-        return finishWriting(value)
+        return finishWriting(value, checkCancellation)
     }
 
     override suspend fun <T> writeAndCommitSuspending(
+        checkCancellation: () -> Unit,
         write: suspend (Sink) -> T,
     ): AtomicWriteResult<T> {
         beginWriting()
         val value = try {
+            checkCancellation()
             write(sink)
         } catch (e: Throwable) {
             abortAndThrow(e)
         }
-        return finishWriting(value)
+        return finishWriting(value, checkCancellation)
     }
 
     private fun beginWriting() {
@@ -165,7 +178,7 @@ internal class NativeAtomicFileTransaction(
         state = State.Writing
     }
 
-    private fun <T> finishWriting(value: T): AtomicWriteResult<T> {
+    private fun <T> finishWriting(value: T, checkCancellation: () -> Unit): AtomicWriteResult<T> {
         failureOrNull()?.let(::abortAndThrow)
         check(state === State.Writing) {
             "Atomic file transaction is no longer writable"
@@ -178,6 +191,12 @@ internal class NativeAtomicFileTransaction(
         failureOrNull()?.let(::abortAndThrow)
         check(state === State.Writing) {
             "Atomic file transaction is no longer writable"
+        }
+
+        try {
+            checkCancellation()
+        } catch (e: Throwable) {
+            abortAndThrow(e)
         }
 
         // The native commit consumes the handle on every result.

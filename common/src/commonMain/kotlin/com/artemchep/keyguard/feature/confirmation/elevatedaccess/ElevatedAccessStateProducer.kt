@@ -1,12 +1,12 @@
 package com.artemchep.keyguard.feature.confirmation.elevatedaccess
 
 import androidx.compose.runtime.Composable
+import com.artemchep.keyguard.common.exception.YubiKeyAuthCanceledException
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.toIO
-import com.artemchep.keyguard.common.exception.YubiKeyAuthCanceledException
 import com.artemchep.keyguard.common.model.BiometricAuthException
 import com.artemchep.keyguard.common.model.BiometricAuthPromptSimple
 import com.artemchep.keyguard.common.model.BiometricStatus
@@ -21,8 +21,8 @@ import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
-import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockState
 import com.artemchep.keyguard.feature.loading.LoadingTask
@@ -31,8 +31,8 @@ import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -40,23 +40,21 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 private const val DEFAULT_PASSWORD = ""
 
 @Composable
 fun produceElevatedAccessState(
     transmitter: RouteResultTransmitter<ElevatedAccessResult>,
-): ElevatedAccessState = with(localDI().direct) {
+): ElevatedAccessState = with(currentKoinScope()) {
     produceElevatedAccessState(
         transmitter = transmitter,
-        biometricStatusUseCase = instance(),
-        getBiometricRequireConfirmation = instance(),
-        confirmAccessByPasswordUseCase = instance(),
-        confirmAccessByYubiKeyUseCase = instance(),
-        windowCoroutineScope = instance(),
+        biometricStatusUseCase = get(),
+        getBiometricRequireConfirmation = get(),
+        confirmAccessByPasswordUseCase = get(),
+        confirmAccessByYubiKeyUseCase = get(),
+        windowCoroutineScope = get(),
     )
 }
 

@@ -37,6 +37,7 @@ rc2.workspace = true
 salsa20.workspace = true
 ssh-key = { path = "../../../../../thirdParty/rust/ssh-key-0.6.7-keyguard", default-features = false, features = ["keyguard-decryption", "std"] }
 thiserror.workspace = true
+tempfile = { version = "=3.27.0", default-features = false }
 twofish.workspace = true
 x25519-dalek.workspace = true
 zeroize.workspace = true

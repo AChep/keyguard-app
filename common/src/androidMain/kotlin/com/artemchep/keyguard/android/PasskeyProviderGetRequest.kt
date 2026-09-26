@@ -34,8 +34,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.put
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 private const val MAX_ENCODED_PASSKEY_KEY_CHARS = 5_464
 
@@ -47,16 +45,6 @@ class PasskeyProviderGetRequest(
     private val passkeyCrypto: PasskeyCrypto,
     private val passkeyUtils: PasskeyUtils,
 ) {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance<Application>(),
-        json = directDI.instance(),
-        base64Service = directDI.instance(),
-        cryptoService = directDI.instance(),
-        passkeyCrypto = directDI.instance(),
-        passkeyUtils = directDI.instance(),
-    )
 
     @SuppressLint("RestrictedApi")
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)

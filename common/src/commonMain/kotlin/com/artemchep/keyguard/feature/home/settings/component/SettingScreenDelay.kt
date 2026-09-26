@@ -9,15 +9,14 @@ import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingScreenDelay(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingScreenDelay(
-    getDebugScreenDelay = directDI.instance(),
-    putDebugScreenDelay = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getDebugScreenDelay = koinScope.get(),
+    putDebugScreenDelay = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingScreenDelay(

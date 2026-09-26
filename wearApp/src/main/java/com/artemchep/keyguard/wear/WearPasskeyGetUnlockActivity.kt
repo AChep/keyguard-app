@@ -20,13 +20,12 @@ import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.wear.feature.WearCreateVaultScreen
 import com.artemchep.keyguard.wear.feature.WearLoadingScreen
 import com.artemchep.keyguard.wear.feature.WearUnlockVaultScreen
+import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.Clock
-import org.kodein.di.instance
 
 @RequiresApi(34)
 class WearPasskeyGetUnlockActivity : WearCredentialProviderActivity() {
@@ -36,9 +35,9 @@ class WearPasskeyGetUnlockActivity : WearCredentialProviderActivity() {
         ): Intent = Intent(context, WearPasskeyGetUnlockActivity::class.java)
     }
 
-    private val getVaultSession by instance<GetVaultSession>()
+    private val getVaultSession by lazy { koin.get<GetVaultSession>() }
 
-    private val passkeyBeginGetUnlockFlow by instance<PasskeyBeginGetUnlockFlow>()
+    private val passkeyBeginGetUnlockFlow by lazy { koin.get<PasskeyBeginGetUnlockFlow>() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

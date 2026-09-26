@@ -8,19 +8,12 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgRevocationStatus
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /** Evaluates retained public packets without accessing the network or modifying the vault. */
 internal class GpgKeyserverStateEvaluator(
     private val reconciler: GpgCertificateMaterialReconciler,
     private val resolver: GpgKeyMetadataResolver,
 ) {
-    constructor(directDI: DirectDI) : this(
-        reconciler = directDI.instance(),
-        resolver = directDI.instance(),
-    )
-
     fun mergeEvidence(fingerprint: String, publicCertificates: List<String>): String? {
         val normalized = fingerprint.normalizeGpgFingerprint()
         var evidence: String? = null

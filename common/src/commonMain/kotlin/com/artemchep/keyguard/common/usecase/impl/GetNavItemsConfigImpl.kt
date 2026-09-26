@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.usecase.impl
 
-import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.NavItemRef
 import com.artemchep.keyguard.common.model.NavItemsConfig
@@ -17,20 +17,18 @@ import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.feature.home.navigation.applyHomeNavigationAvailability
 import com.artemchep.keyguard.feature.home.navigation.normalizeHomeNavigationConfig
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.runningReduce
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetNavItemsConfigImpl(
     private val getAccounts: GetAccounts,
@@ -76,15 +74,6 @@ class GetNavItemsConfigImpl(
         windowCoroutineScope = windowCoroutineScope,
     )
 
-    constructor(directDI: DirectDI) : this(
-        getAccounts = directDI.instance(),
-        getProfiles = directDI.instance(),
-        getCiphers = directDI.instance(),
-        settingsReadRepository = directDI.instance(),
-        settingsReadWriteRepository = directDI.instance(),
-        windowCoroutineScope = directDI.instance(),
-    )
-
     override fun invoke() = sharedFlow
 
     private fun localStatusFlow() = getCachedConfig()
@@ -125,15 +114,23 @@ class GetNavItemsConfigImpl(
     private fun getSendAvailabilityFlow() = combine(
         getAccounts(),
         getProfiles(),
-    ) { accounts, profiles ->
-        val shownAccountIds = profiles.asSequence()
-            .filter { !it.hidden }
-            .map { it.accountId }
-            .toSet()
-        accounts.filter { it.accountId() in shownAccountIds }
-    }
-        .mapToAvailable { account ->
-            account.type.capabilities.supportsSends
+    ) { accounts, profiles -> accounts to profiles }
+        .mapToAvailable { (accounts, profiles) ->
+            // Wait for matching snapshots in either loading order, including partial
+            // profile reads. Two empty snapshots resolve an accountless vault.
+            val accountIds = accounts.map { it.accountId() }.toSet()
+            val profileAccountIds = profiles.map { it.accountId }.toSet()
+            if (accountIds != profileAccountIds) {
+                return@mapToAvailable null
+            }
+
+            val shownAccountIds = profiles.asSequence()
+                .filter { !it.hidden }
+                .map { it.accountId }
+                .toSet()
+            accounts.any { account ->
+                account.accountId() in shownAccountIds && account.type.capabilities.supportsSends
+            }
         }
 
     private fun getGpgToolsAvailabilityFlow() = filterHiddenProfiles(
@@ -141,9 +138,12 @@ class GetNavItemsConfigImpl(
         getProfiles = getProfiles,
     )
         .mapToAvailable(
-            initialWhenEmpty = false,
-        ) { cipher ->
-            cipher.toGpgAgentSecretOrNull() != null
+            initialWhenUnknown = false,
+        ) { ciphers ->
+            // An empty snapshot means the ciphers are not loaded yet.
+            ciphers
+                .takeIf { it.isNotEmpty() }
+                ?.any { cipher -> cipher.toGpgAgentSecretOrNull() != null }
         }
 
     private fun Flow<NavItemsConfigStatus>.onEachCacheUpstream() =
@@ -162,27 +162,32 @@ class GetNavItemsConfigImpl(
     )
 }
 
+/**
+ * Maps each snapshot to an availability flag, where a `null` means that the
+ * availability can not be told from that snapshot yet.
+ */
 @OptIn(FlowPreview::class)
-private fun <T> Flow<List<T>>.mapToAvailable(
-    initialWhenEmpty: Boolean? = null,
-    predicate: (T) -> Boolean,
+private fun <T> Flow<T>.mapToAvailable(
+    initialWhenUnknown: Boolean? = null,
+    transform: (T) -> Boolean?,
 ): Flow<Boolean> = flow {
     var initialized = false
     this@mapToAvailable
         .debounce(1500L)
-        .collect { items ->
-            if (items.isEmpty()) {
-                // Some sources need an initial empty snapshot to establish a
-                // baseline, but later empty snapshots are treated as transient.
-                if (!initialized && initialWhenEmpty != null) {
+        .collect { snapshot ->
+            val available = transform(snapshot)
+            if (available == null) {
+                // Some sources need an initial unknown snapshot to establish a
+                // baseline, but later unknown snapshots are treated as transient.
+                if (!initialized && initialWhenUnknown != null) {
                     initialized = true
-                    emit(initialWhenEmpty)
+                    emit(initialWhenUnknown)
                 }
                 return@collect
             }
 
             initialized = true
-            emit(items.any(predicate))
+            emit(available)
         }
 }
     .distinctUntilChanged()

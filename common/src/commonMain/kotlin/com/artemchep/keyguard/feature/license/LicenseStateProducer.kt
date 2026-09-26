@@ -9,15 +9,13 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceLicenseState(
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceLicenseState(
-        licenseService = instance(),
+        licenseService = get(),
     )
 }
 

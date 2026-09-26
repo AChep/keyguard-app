@@ -91,13 +91,14 @@ private fun KeePassDatabase.Companion.decodeSource(
     limits: KdbxReadLimits,
 ): KeePassDatabase {
     val headerBuffer = Buffer()
-    val source = input.teeBufferStream(headerBuffer)
+    val headerSource = input.teeBufferStream(headerBuffer)
 
     try {
-        val header = DatabaseHeader.readFrom(source)
+        val header = DatabaseHeader.readFrom(headerSource)
         validateHeader(header)
 
         val rawHeaderData = headerBuffer.snapshot()
+        val source = headerSource.finishCapture()
         val transformedKey = KeyTransform.transformedKey(kdfProvider, header, credentials)
         val cipher = resolveCipher(header, cipherProviders)
         val masterSeed = header.masterSeed.toByteArray()
@@ -157,7 +158,7 @@ private fun KeePassDatabase.Companion.decodeSource(
             "Failed to decode the database: ${error.message ?: error::class.simpleName}",
         )
     } finally {
-        source.close()
+        headerSource.close()
     }
 }
 
@@ -196,8 +197,7 @@ private fun decodeVer3x(
             header.innerRandomStreamKey,
         )
         val content =
-            try {
-                val plaintext = contentSource
+            contentSource.use { plaintext ->
                 val parsed =
                     contentParser.unmarshalContent(plaintext, saltGenerator) { meta ->
                         XmlContext.Decode(
@@ -208,15 +208,16 @@ private fun decodeVer3x(
                         )
                     }
                 plaintext.drainAndVerify()
+                val headerHash = parsed.meta.headerHash
+                if (validateHashes && headerHash != null && headerHash != rawHeaderData.sha256()) {
+                    throw FormatError.InvalidHeader("HeaderHash value does not match Sha256 of the header.")
+                }
+                // The terminal plaintext block does not end the enclosing cipher.
+                // Consume its remaining bytes and validate padding before closing it.
+                decryptedSource.drainAndVerify()
                 parsed
-            } finally {
-                contentSource.close()
             }
 
-        val headerHash = content.meta.headerHash
-        if (validateHashes && headerHash != null && headerHash != rawHeaderData.sha256()) {
-            throw FormatError.InvalidHeader("HeaderHash value does not match Sha256 of the header.")
-        }
         KeePassDatabase.Ver3x(credentials, header, content)
     }
 }

@@ -17,8 +17,8 @@ import com.artemchep.keyguard.common.model.CheckPasswordLeakRequest
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 private data class PasswordPwnedBadgeState(
     val password: String,
@@ -73,7 +73,7 @@ fun PasswordPwnedBadge(
 private fun producePasswordPwnedBadgeState(
     password: String,
 ): State<PasswordPwnedBadgeState> {
-    val checkPasswordLeak: CheckPasswordLeak by rememberInstance()
+    val checkPasswordLeak: CheckPasswordLeak = koinInject()
 
     val sink = remember {
         MutableStateFlow(password)

@@ -1,4 +1,5 @@
 name: "Build WearOS Licenses"
+description: "Generate license notices for the Wear OS application"
 inputs:
   build-flavor:
     description: 'Build Flavor'

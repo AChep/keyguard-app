@@ -87,6 +87,7 @@ import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.DAccountStatus
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
+import com.artemchep.keyguard.common.service.permission.Permission
 import com.artemchep.keyguard.common.usecase.GetAccountStatus
 import com.artemchep.keyguard.common.usecase.GetAllowScreenshots
 import com.artemchep.keyguard.common.usecase.GetNavItemsConfig
@@ -115,8 +116,8 @@ import com.artemchep.keyguard.platform.leIme
 import com.artemchep.keyguard.platform.leNavigationBars
 import com.artemchep.keyguard.platform.leStatusBars
 import com.artemchep.keyguard.platform.leSystemBars
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.AnimatedCounterBadge
 import com.artemchep.keyguard.ui.AnimatedNewCounterBadge
 import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
@@ -137,7 +138,6 @@ import com.artemchep.keyguard.ui.theme.ok
 import com.artemchep.keyguard.ui.theme.onWarningContainer
 import com.artemchep.keyguard.ui.theme.warningContainer
 import com.artemchep.keyguard.ui.time.rememberLocalizedRelativeTime
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
@@ -145,7 +145,9 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import org.kodein.di.compose.rememberInstance
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 private const val ROUTE_NAME = "home"
 
@@ -158,7 +160,7 @@ private val railNavigationItemMinSize = 64.dp
 fun HomeScreen(
     navBarVisible: Boolean = true,
 ) {
-    val deeplinkService by rememberInstance<DeeplinkService>()
+    val deeplinkService = koinInject<DeeplinkService>()
     val defaultRoute = remember {
         val defaultHome = deeplinkService.get(DeeplinkService.CUSTOM_HOME)
         when (defaultHome) {
@@ -167,7 +169,7 @@ fun HomeScreen(
         }
     }
 
-    val getWatchtowerUnreadCount by rememberInstance<GetWatchtowerUnreadCount>()
+    val getWatchtowerUnreadCount = koinInject<GetWatchtowerUnreadCount>()
     val watchtowerUnreadCountFlow = remember(getWatchtowerUnreadCount) {
         getWatchtowerUnreadCount()
             .map { count ->
@@ -175,12 +177,12 @@ fun HomeScreen(
             }
     }
 
-    val getNavItemsConfig by rememberInstance<GetNavItemsConfig>()
+    val getNavItemsConfig = koinInject<GetNavItemsConfig>()
     val navItemsConfigState = remember(getNavItemsConfig) {
         getNavItemsConfig()
     }.collectAsState()
 
-    val getCipherFilters by rememberInstance<GetCipherFilters>()
+    val getCipherFilters = koinInject<GetCipherFilters>()
     val cipherFiltersState = remember(getCipherFilters) {
         getCipherFilters()
     }.collectAsState(emptyList())
@@ -232,8 +234,8 @@ fun HomeScreenContent(
             modifier = Modifier
                 .windowInsetsPadding(horizontalInsets),
         ) {
-            val putAllowScreenshots by rememberInstance<PutAllowScreenshots>()
-            val getAllowScreenshots by rememberInstance<GetAllowScreenshots>()
+            val putAllowScreenshots = koinInject<PutAllowScreenshots>()
+            val getAllowScreenshots = koinInject<GetAllowScreenshots>()
             val allowScreenshotsState = remember(getAllowScreenshots) {
                 getAllowScreenshots()
                     .map { allowScreenshots ->
@@ -241,12 +243,12 @@ fun HomeScreenContent(
                     }
             }.collectAsState(false)
 
-            val getNavLabel by rememberInstance<GetNavLabel>()
+            val getNavLabel = koinInject<GetNavLabel>()
             val navLabelState = remember(getNavLabel) {
                 getNavLabel()
             }.collectAsState()
 
-            val getAccountStatus by rememberInstance<GetAccountStatus>()
+            val getAccountStatus = koinInject<GetAccountStatus>()
             val accountStatusState = remember(getAccountStatus) {
                 getAccountStatus()
             }.collectAsState(DAccountStatus())
@@ -601,7 +603,7 @@ fun HomeScreenContent(
 /**
  * Keeps the selected home navigation stack aligned with dynamically resolved
  * items by refreshing its root route when the item still matches the stack but
- * now resolves to a different route instance.
+ * now resolves to a different route get.
  *
  * TL/DR: When a selected home tab now points to a different screen, replace
  * the stale root screen with the current one.
@@ -670,16 +672,17 @@ private fun BannerStatusBadge(
                 }
 
                 statusState.value.pendingPermissions
-                    .isNotEmpty() -> {
+                    .any { it.permission != Permission.LOCAL_NETWORK } -> {
+                    val permission = statusState.value.pendingPermissions
+                        .first { it.permission != Permission.LOCAL_NETWORK }
+                    val presentation = permission.permission.homePresentation()
                     BannerStatusBadgeContentModel(
                         count = 0,
-                        title = TextHolder.Res(Res.string.post_notifications_permission_banner_title),
-                        text = TextHolder.Res(Res.string.post_notifications_permission_banner_text),
+                        title = TextHolder.Res(presentation.title),
+                        text = TextHolder.Res(presentation.text),
                         error = false,
                         onClick = {
-                            val permission = statusState.value.pendingPermissions
-                                .firstOrNull()
-                            permission?.ask?.invoke(updatedContext)
+                            permission.ask(updatedContext)
                         },
                     )
                 }
@@ -692,9 +695,7 @@ private fun BannerStatusBadge(
         modifier = modifier,
         valueOrNull = errorState.value,
     ) { currentErrorState ->
-        BannerStatusBadgeContent(
-            state = currentErrorState,
-        )
+        BannerStatusBadgeContent(state = currentErrorState)
     }
 }
 
@@ -812,7 +813,12 @@ private fun RailStatusBadge(
                     status.pendingPermissions.isNotEmpty() -> {
                         val permission = status.pendingPermissions
                             .firstOrNull()
-                        permission?.ask?.invoke(updatedContext)
+                        if (permission?.permission == Permission.LOCAL_NETWORK) {
+                            // The sync page also offers settings recovery after denial.
+                            navigateSyncStatus(updatedNavController)
+                        } else {
+                            permission?.ask?.invoke(updatedContext)
+                        }
                     }
 
                     else -> {
@@ -858,6 +864,7 @@ private fun RailStatusBadge(
             }
 
             status.pendingPermissions.isNotEmpty() -> {
+                val permission = status.pendingPermissions.first()
                 RailStatusBadgeContent(
                     contentColor = MaterialTheme.colorScheme.info,
                     icon = {
@@ -866,7 +873,7 @@ private fun RailStatusBadge(
                             contentDescription = null,
                         )
                     },
-                    text = "Pending permissions",
+                    text = stringResource(permission.permission.homePresentation().title),
                 )
             }
 
@@ -887,6 +894,28 @@ private fun RailStatusBadge(
             }
         }
     }
+}
+
+private data class HomePermissionPresentation(
+    val title: StringResource,
+    val text: StringResource,
+)
+
+private fun Permission.homePresentation(): HomePermissionPresentation = when (this) {
+    Permission.POST_NOTIFICATIONS -> HomePermissionPresentation(
+        title = Res.string.post_notifications_permission_banner_title,
+        text = Res.string.post_notifications_permission_banner_text,
+    )
+
+    Permission.LOCAL_NETWORK -> HomePermissionPresentation(
+        title = Res.string.local_network_permission_banner_title,
+        text = Res.string.local_network_permission_banner_text,
+    )
+
+    else -> HomePermissionPresentation(
+        title = Res.string.pref_item_permission_write_external_storage_grant,
+        text = Res.string.pref_item_permission_write_external_storage_text,
+    )
 }
 
 @Composable

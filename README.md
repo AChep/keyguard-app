@@ -94,7 +94,7 @@ You can find the `.apk` binary on the [releases page](https://github.com/AChep/k
 - [F-Droid custom repo](https://gh.artemchep.com/keyguard-repo-fdroid/repo).
 
 ### Linux
-You can find the `.flatpak` binary on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).
+You can find the `.flatpak` and `.AppImage` binaries on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).
 - [Flathub](https://flathub.org/apps/com.artemchep.keyguard).
 
 ##### [AUR](https://aur.archlinux.org/) Keyguard [package](https://aur.archlinux.org/packages/keyguard-bin)
@@ -112,6 +112,9 @@ brew install --cask keyguard
 
 ### Windows
 You can find the `.msi` binary on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).
+
+##### [Microsoft Store](https://apps.microsoft.com/detail/9NN4SMXJN5SF)
+Installs the MSIX package. It shares the vault with the `.msi` install, uninstall the `.msi` after switching.
 
 ##### [Scoop](https://scoop.sh/) Keyguard [bucket](https://github.com/AChep/keyguard-repo-scoop)
 ```pwsh

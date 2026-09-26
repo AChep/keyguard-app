@@ -3,30 +3,28 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.GpgKeyserverVerifyStatus
-import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
-import com.artemchep.keyguard.common.model.VerifyGpgPublicKeyRequest
 import com.artemchep.keyguard.common.model.DGpgKeyserverResult
+import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
+import com.artemchep.keyguard.common.model.GpgKeyserverVerifyStatus
+import com.artemchep.keyguard.common.model.VerifyGpgPublicKeyRequest
+import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
-import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
-import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconciler
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
-import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
-import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
-import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRecorder
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRecorder
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverConfig
 import com.artemchep.keyguard.common.usecase.VerifyGpgPublicKey
+import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Clock
 
 class VerifyGpgPublicKeyImpl(
     private val getCiphers: GetCiphers,
@@ -41,18 +39,6 @@ class VerifyGpgPublicKeyImpl(
         repository = keyserverStateRepository,
         reconciler = reconciler,
         resolver = metadataResolver,
-    )
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        getCiphers = directDI.instance(),
-        getGpgKeyserverConfig = directDI.instance(),
-        keyserverClient = directDI.instance(),
-        keyserverStateRepository = directDI.instance(),
-        parser = directDI.instance(),
-        metadataResolver = directDI.instance(),
-        reconciler = directDI.instance(),
     )
 
     override fun invoke(

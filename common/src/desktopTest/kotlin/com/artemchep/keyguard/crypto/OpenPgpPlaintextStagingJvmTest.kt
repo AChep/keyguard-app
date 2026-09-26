@@ -130,6 +130,7 @@ private fun stagingFactory(
     override fun create(
         purpose: StagingPurpose,
         limits: SpoolLimits,
+        checkCancellation: () -> Unit,
         limitExceeded: (maximumBytes: Long) -> Throwable,
     ): ByteStoreWriter {
         assertEquals(StagingPurpose.OpenPgpPlaintext, purpose)
@@ -137,8 +138,9 @@ private fun stagingFactory(
             memoryLimitBytes = limits.memoryBytes,
             maximumBytes = limits.maximumBytes,
             spillFactory = {
-                EncryptedTemporarySpillStorage.create(storage)
+                EncryptedTemporarySpillStorage.create(storage, checkCancellation)
             },
+            checkCancellation = checkCancellation,
             limitExceeded = limitExceeded,
         )
     }

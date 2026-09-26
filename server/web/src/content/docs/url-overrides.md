@@ -26,7 +26,7 @@ Add a button to every insecure link that opens the same website over HTTPS:
 | Command | `https://{url:rmvscm}` |
 
 When done correctly, all URLs that use HTTP get a button to open the same
-website using the HTTPS protocol. That said, consider simply replacing HTTP
+website using the HTTPS protocol. That said, consider replacing HTTP
 URLs with their safer alternative when possible.
 
 ## Example: FileZilla FTP client

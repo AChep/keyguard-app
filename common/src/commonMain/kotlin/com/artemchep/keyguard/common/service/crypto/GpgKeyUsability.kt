@@ -1,9 +1,19 @@
 package com.artemchep.keyguard.common.service.crypto
 
+import com.artemchep.keyguard.common.service.gpgagent.GpgRenewalAuthorization
 import kotlin.time.Instant
 
 fun GpgPublicKeyInfo.isExpiredAt(now: Instant): Boolean =
     expiresAt?.let { it <= now } == true
+
+/**
+ * True when the key's metadata (expiration, capabilities) was read off a
+ * verified self-signature. A weak-hash template that a renewal repairs still
+ * qualifies; a key rejected before authentication does not, so its
+ * `expiresAt == null` means unknown rather than unlimited.
+ */
+val GpgPublicKeyInfo.hasAuthenticatedMetadata: Boolean
+    get() = authenticated || renewal == GpgRenewalAuthorization.TEMPLATE_ONLY
 
 fun GpgPublicSubKeyInfo.isExpiredAt(now: Instant): Boolean =
     expiresAt?.let { it <= now } == true

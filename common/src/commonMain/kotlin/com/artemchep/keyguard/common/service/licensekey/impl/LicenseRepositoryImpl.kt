@@ -22,11 +22,9 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import kotlin.io.encoding.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlin.io.encoding.Base64
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class LicenseRepositoryImpl(
     private val httpClient: HttpClient,
@@ -43,13 +41,6 @@ class LicenseRepositoryImpl(
         private const val PATH_CLAIM_APPLE = "v1/license/claim/apple"
         private const val PATH_STATUS = "v1/license/status"
     }
-
-    constructor(directDI: DirectDI) : this(
-        httpClient = directDI.instance(tag = "curl"),
-        config = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        proofVerifier = directDI.instance(),
-    )
 
     override fun claim(claim: LicenseClaim): IO<LicenseEntitlementEntity> = when (claim) {
         is LicenseClaim.Google -> postSigned(

@@ -44,6 +44,7 @@ class AgentSessionFileWriter(
      * Writes the session file with the auth token and IPC socket path.
      * Called by the Kotlin app when it starts the NM-hosted agent.
      */
+    @Suppress("TooGenericExceptionCaught")
     fun write(authToken: ByteArray, ipcSocketPath: String) {
         try {
             val dir = SESSION_PATH.parent
@@ -75,6 +76,7 @@ class AgentSessionFileWriter(
     /**
      * Deletes the session file. Called on shutdown.
      */
+    @Suppress("TooGenericExceptionCaught")
     fun delete() {
         try {
             Files.deleteIfExists(SESSION_PATH)

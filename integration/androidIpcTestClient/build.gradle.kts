@@ -1,23 +1,21 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
+    id("keyguard.quality")
     alias(libs.plugins.android.application)
+    id("keyguard.android-application")
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)
+    id("keyguard.detekt-custom-rules")
 }
 
-val jdkVersion = libs.versions.jdk.get()
-val javaVersion = JavaVersion.toVersion(jdkVersion)
-val kotlinJvmTarget = JvmTarget.fromTarget(jdkVersion)
+detektCustomRules {
+    androidVariant("debug")
+}
 
 android {
     namespace = "com.artemchep.keyguard.ipctestclient"
-    compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.artemchep.keyguard.ipctestclient"
-        minSdk = libs.versions.androidMinSdk.get().toInt()
-        targetSdk = libs.versions.androidTargetSdk.get().toInt()
         versionCode = 1
         versionName = "1"
 
@@ -28,19 +26,6 @@ android {
         // `-Pandroid.testInstrumentationRunnerArguments.notAnnotation=`.
         testInstrumentationRunnerArguments["notAnnotation"] =
             "com.artemchep.keyguard.ipctestclient.support.SlowIpcTest"
-    }
-
-    compileOptions {
-        sourceCompatibility = javaVersion
-        targetCompatibility = javaVersion
-    }
-}
-
-kotlin {
-    jvmToolchain(jdkVersion.toInt())
-
-    compilerOptions {
-        jvmTarget = kotlinJvmTarget
     }
 }
 

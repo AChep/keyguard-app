@@ -16,6 +16,10 @@ crate-type = ["cdylib"]
 libc = "0.2"
 zeroize = "=1.9.0"
 
+[target.'cfg(target_os = "linux")'.dependencies]
+serde = { version = "1", features = ["derive"] }
+zbus = { version = "5", default-features = false, features = ["async-io", "blocking-api"] }
+
 [target.'cfg(windows)'.dependencies]
 subtle = "2.6"
 windows = { version = "0.62.2", features = [

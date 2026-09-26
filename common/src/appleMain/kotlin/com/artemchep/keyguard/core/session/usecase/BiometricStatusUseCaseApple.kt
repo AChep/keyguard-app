@@ -12,8 +12,6 @@ import com.artemchep.keyguard.platform.LeBiometricCipherApple
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import platform.LocalAuthentication.LAContext
 import platform.LocalAuthentication.LAPolicyDeviceOwnerAuthenticationWithBiometrics
 
@@ -29,11 +27,6 @@ class BiometricStatusUseCaseApple(
     private val cryptoGenerator: CryptoGenerator,
     private val keychainRepository: KeychainRepository,
 ) : BiometricStatusUseCase {
-    constructor(directDI: DirectDI) : this(
-        base64Service = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        keychainRepository = directDI.instance(),
-    )
 
     override fun invoke(): Flow<BiometricStatus> = flow {
         val event = if (hasBiometrics()) {

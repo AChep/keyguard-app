@@ -26,6 +26,7 @@ class AdaptiveSpool(
     private val memoryLimitBytes: Long,
     private val maximumBytes: Long,
     private val spillFactory: ByteStoreFactory,
+    private val checkCancellation: () -> Unit = {},
     private val limitExceeded: (maximumBytes: Long) -> Throwable = { limit ->
         IOException("Spool exceeds the supported limit of $limit bytes")
     },
@@ -122,6 +123,7 @@ class AdaptiveSpool(
         check(!failed) { "Adaptive spool has failed" }
         try {
             inputSink.close()
+            checkCancellation()
             val snapshot = spillWriter?.seal()
             val result = if (snapshot != null) {
                 if (snapshot.size != sizeBytes) {
@@ -179,6 +181,7 @@ class AdaptiveSpool(
         check(!sealed) { "Adaptive spool is sealed" }
         check(!failed) { "Adaptive spool has failed" }
         check(!inputClosed) { "Adaptive spool input is closed" }
+        checkCancellation()
     }
 
     private fun migrateToSpill() {
@@ -188,6 +191,7 @@ class AdaptiveSpool(
             sink = writer.sink()
             chunks.forEach { chunk ->
                 try {
+                    checkCancellation()
                     sink.write(chunk)
                 } finally {
                     chunk.fill(0)
@@ -211,6 +215,7 @@ class AdaptiveSpool(
     ) {
         var remaining = byteCount
         while (remaining > 0L) {
+            checkCancellation()
             val requested = minOf(remaining, TRANSFER_BUFFER_BYTES.toLong()).toInt()
             val chunk = ByteArray(requested)
             var offset = 0
@@ -240,6 +245,7 @@ class AdaptiveSpool(
         val storage = checkNotNull(spillSink)
         var remaining = byteCount
         while (remaining > 0L) {
+            checkCancellation()
             val requested = minOf(remaining, transferBuffer.size.toLong()).toInt()
             val read = source.readAtMostTo(
                 transferBuffer,

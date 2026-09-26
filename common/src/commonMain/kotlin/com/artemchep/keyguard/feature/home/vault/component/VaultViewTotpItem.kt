@@ -52,8 +52,8 @@ import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.AhContainer
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
@@ -67,7 +67,7 @@ import com.artemchep.keyguard.ui.totp.TotpCodeState
 import com.artemchep.keyguard.ui.totp.totpCodeFlow
 import kotlinx.collections.immutable.PersistentList
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -416,7 +416,7 @@ private fun produceTotpCode(
     totpToken: TotpToken,
     offset: Int = 0,
 ): State<TotpCodeState?> {
-    val getTotpCode by rememberInstance<GetTotpCodeWithOffset>()
+    val getTotpCode = koinInject<GetTotpCodeWithOffset>()
     return remember(totpToken, offset) {
         totpCodeFlow(
             getTotpCode = getTotpCode,

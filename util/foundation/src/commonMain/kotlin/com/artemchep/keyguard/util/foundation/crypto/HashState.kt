@@ -79,7 +79,6 @@ internal class NativeHashSessionState(
     }
 
     override fun close() {
-        if (closed) return
         closed = true
         session.close()
     }

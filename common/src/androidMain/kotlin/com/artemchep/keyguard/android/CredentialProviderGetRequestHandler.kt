@@ -15,8 +15,6 @@ import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.autofill_open_keyguard
 import kotlinx.coroutines.flow.first
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import org.jetbrains.compose.resources.getString as getComposeString
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -26,14 +24,6 @@ class CredentialProviderGetRequestHandler(
     private val passkeyBeginGetUnlockFlow: PasskeyBeginGetUnlockFlow,
     private val credentialProviderPlatformConfig: CredentialProviderPlatformConfig,
 ) {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance(),
-        getVaultSession = directDI.instance(),
-        passkeyBeginGetUnlockFlow = directDI.instance(),
-        credentialProviderPlatformConfig = directDI.instance(),
-    )
 
     suspend fun process(
         request: BeginGetCredentialRequest,

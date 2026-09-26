@@ -22,7 +22,7 @@ class Parser(
         }
         val value = suffixA
             .dropLast(count)
-            .joinToString(separator = "")
+            .joinToString(separator = separator.toString())
         return ParserResult(
             value = value,
             params = suffixA

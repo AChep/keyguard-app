@@ -11,20 +11,19 @@ import com.artemchep.keyguard.feature.home.settings.KgPicker
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingGpgKeyserverProtocolProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingGpgKeyserverProtocolProvider(
-    getGpgKeyserverConfig = directDI.instance(),
-    putGpgKeyserverConfig = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getGpgKeyserverConfig = koinScope.get(),
+    putGpgKeyserverConfig = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingGpgKeyserverProtocolProvider(

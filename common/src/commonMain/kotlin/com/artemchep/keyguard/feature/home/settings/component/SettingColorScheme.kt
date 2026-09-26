@@ -16,22 +16,21 @@ import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingColorSchemeProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingColorSchemeProvider(
-    getTheme = directDI.instance(),
-    getThemeVariants = directDI.instance(),
-    putTheme = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
-    context = directDI.instance(),
+    getTheme = koinScope.get(),
+    getThemeVariants = koinScope.get(),
+    putTheme = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
+    context = koinScope.get(),
 )
 
 fun settingColorSchemeProvider(

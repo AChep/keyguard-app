@@ -5,30 +5,28 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.service.licensekey.model.LicenseClaimCandidate
-import com.artemchep.keyguard.common.service.licensekey.model.LicenseEntitlement
-import com.artemchep.keyguard.common.service.licensekey.model.LicenseSource
-import com.artemchep.keyguard.common.service.licensekey.model.LicenseStatus
 import com.artemchep.keyguard.common.service.licensekey.LicenseManager
 import com.artemchep.keyguard.common.service.licensekey.LicenseRepository
 import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseKeyDecoder
 import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseKeyMetadata
 import com.artemchep.keyguard.common.service.licensekey.entity.LicenseEntitlementEntity
+import com.artemchep.keyguard.common.service.licensekey.model.LicenseClaimCandidate
+import com.artemchep.keyguard.common.service.licensekey.model.LicenseEntitlement
+import com.artemchep.keyguard.common.service.licensekey.model.LicenseSource
+import com.artemchep.keyguard.common.service.licensekey.model.LicenseStatus
 import com.artemchep.keyguard.common.service.settings.VaultSettingsReadWriteRepository
 import com.artemchep.keyguard.common.service.settings.entity.LocalClaimedLicenseStateEntity
 import com.artemchep.keyguard.common.service.settings.entity.LocalLicenseClaimFailureEntity
 import com.artemchep.keyguard.common.service.settings.entity.LocalRedeemedLicenseStateEntity
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 
 class LicenseManagerImpl(
     private val licenseRepository: LicenseRepository,
@@ -56,12 +54,6 @@ class LicenseManagerImpl(
         .map { state ->
             state?.toEntitlement()
         }
-
-    constructor(directDI: DirectDI) : this(
-        licenseRepository = directDI.instance(),
-        decoder = directDI.instance(),
-        vaultSettingsReadWriteRepository = directDI.instance(),
-    )
 
     override fun redeem(
         licenseKey: String,

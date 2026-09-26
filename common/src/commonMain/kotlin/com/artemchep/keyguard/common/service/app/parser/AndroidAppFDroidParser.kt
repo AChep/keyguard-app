@@ -10,8 +10,6 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * Parses Android app information (title, icon, and summary) from the
@@ -25,10 +23,6 @@ class AndroidAppFDroidParser(
     companion object {
         private const val FDROID_URL = "https://f-droid.org/en/packages"
     }
-
-    constructor(directDI: DirectDI) : this(
-        httpClient = directDI.instance(tag = "curl"),
-    )
 
     /**
      * Fetches and parses the app information for the given package name.

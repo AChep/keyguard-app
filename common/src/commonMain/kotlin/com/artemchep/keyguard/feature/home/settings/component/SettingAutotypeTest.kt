@@ -37,11 +37,10 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingAutotypeTestProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent {
     val supported = !isRelease && CurrentPlatform is Platform.Desktop.MacOS
     if (!supported) {
@@ -49,8 +48,8 @@ fun settingAutotypeTestProvider(
     }
 
     return settingAutotypeTestProvider(
-        autotypeService = directDI.instance(),
-        windowCoroutineScope = directDI.instance(),
+        autotypeService = koinScope.get(),
+        windowCoroutineScope = koinScope.get(),
     )
 }
 

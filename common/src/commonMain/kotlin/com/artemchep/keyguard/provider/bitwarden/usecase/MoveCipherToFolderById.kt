@@ -14,8 +14,6 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.folderId
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -28,12 +26,6 @@ class MoveCipherToFolderByIdImpl(
     companion object {
         private const val TAG = "MoveCipherToFolderById.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyCipherById = directDI.instance(),
-        addFolder = directDI.instance(),
-        resolveFolderHierarchyMode = directDI.instance(),
-    )
 
     override fun invoke(
         cipherIds: Set<String>,

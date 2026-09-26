@@ -11,14 +11,13 @@ import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingRotateDeviceId(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingRotateDeviceId(
-    rotateDeviceIdUseCase = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    rotateDeviceIdUseCase = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingRotateDeviceId(

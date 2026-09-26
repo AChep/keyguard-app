@@ -16,6 +16,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.service.relays.EmailRelayRegistry
 import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.usecase.AddEmailRelay
 import com.artemchep.keyguard.common.usecase.GetEmailRelays
@@ -24,9 +25,9 @@ import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
-import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
@@ -40,14 +41,15 @@ import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.feature.search.search.mapListShape
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.IconBoxContainer
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
+import kotlin.time.Clock
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
@@ -60,12 +62,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlin.time.Clock
-import com.artemchep.keyguard.platform.leAllInstances
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.currentKoinScope
 
 private class EmailRelayListUiException(
     msg: String,
@@ -74,13 +72,13 @@ private class EmailRelayListUiException(
 
 @Composable
 fun produceEmailRelayListState(
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceEmailRelayListState(
-        emailRelays = leAllInstances(),
-        confirmationRouteFactory = instance(),
-        addEmailRelay = instance(),
-        removeEmailRelayById = instance(),
-        getEmailRelays = instance(),
+        emailRelays = get<EmailRelayRegistry>().values,
+        confirmationRouteFactory = get(),
+        addEmailRelay = get(),
+        removeEmailRelayById = get(),
+        getEmailRelays = get(),
     )
 }
 

@@ -9,11 +9,12 @@ A high-level overview of how Keyguard is built: the core technologies and how
 the parts of the app interact. For the details, see the
 [source code](https://github.com/AChep/keyguard-app).
 
-## One codebase, every platform
+## Architecture
 
-Keyguard is a **Kotlin Multiplatform** project. The UI, the business logic,
-the sync engine, and the database live in one shared module called `common`.
-The apps you install are thin shells around it:
+Keyguard is a **Kotlin Multiplatform** project. Most shared UI, business logic,
+the sync engine, and the database live in `common`. Smaller modules contain
+state producers without UI dependencies and optional features, such as the
+Android QR scanner. Each platform app selects the features it needs:
 
 - `androidApp` — the phone and tablet app;
 - `wearApp` — the [Wear OS](/docs/wear-os/) companion;
@@ -27,22 +28,22 @@ SignalR (live sync notifications) and WebDAV (used by
 
 ## Core technologies
 
-| Part | Technology |
-| --- | --- |
-| Language | **Kotlin** |
-| UI | **Compose** with Material 3 Expressive |
-| Concurrency | Kotlin **coroutines** and **Flow** |
+| Part | Technology                                                     |
+| --- |----------------------------------------------------------------|
+| Language | **Kotlin**, **Rust**                                           |
+| UI | **Compose** with Material 3 Expressive                         |
+| Concurrency | Kotlin **coroutines** and **Flow**                             |
 | Database | **SQLDelight** over an encrypted SQLite (SQLCipher on Android) |
-| Networking | **Ktor** client |
-| Serialization | **kotlinx.serialization** |
+| Networking | **Ktor** client                                                |
+| Serialization | **kotlinx.serialization**                                      |
 
 The phone and desktop apps share both the logic and the 
-Compose screens; platform code is limited to glue such as biometrics,
-autofill, etc.
+Compose screens; platform code only bridges platform features such as biometrics
+and autofill.
 
 ## Local-first by design
 
-Keyguard never renders straight from the network:
+Keyguard renders all data from the local encrypted database:
 
 1. Your accounts' data is mirrored into the local encrypted database.
 2. Screens read from that mirror, which is why the app works offline.

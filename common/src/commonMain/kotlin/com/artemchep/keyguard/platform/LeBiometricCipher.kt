@@ -9,6 +9,8 @@ interface LeBiometricCipher {
     val iv: ByteArray
 
     fun encode(data: ByteArray): ByteArray
+
+    fun clear() = Unit
 }
 
 fun ByteArray.encode(cipher: IO<LeBiometricCipher>) = cipher

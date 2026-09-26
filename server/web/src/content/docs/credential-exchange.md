@@ -15,8 +15,7 @@ mechanism Android provides.
 
 ## Requirements
 
-Credential exchange is an **Android** feature. Keyguard's desktop apps and Wear
-OS do not take part in either direction.
+Credential exchange is available only on **Android**.
 
 - The transfer is brokered by **Google Play services**, so it is unavailable on
   builds distributed without them (the F-Droid build, for example) and on
@@ -43,7 +42,7 @@ A transfer is always started from the app that will *receive* the data.
 When that app asks for your credentials and you choose Keyguard, you then get a review screen naming the app that made the request, listing the items about to leave with the kinds of credential each one contributes.
 
 A transfer covers **a single account**: the picker lists a separate entry per
-account, and the one you choose there is the only account Keyguard reads. To
+account, and the one you choose is the only account Keyguard reads. To
 move a second account you run the transfer again and pick that one. Accounts
 with [**Hide items**](/docs/multi-account/#hiding-an-account) turned on are not
 offered at all. Trashed and [archived](/docs/items/#organizing) items are never
@@ -61,9 +60,8 @@ not want. The counts and folders update to reflect the selection, and pressing
 **Import** writes only the selected items and the folders needed to organize
 them.
 
-Imports are not matched against what you already have. Running the same
-transfer twice gives you a second copy of every item and folder it brings
-across.
+Keyguard imports items without deduplication; running the same transfer
+twice creates duplicate copies of every item and folder.
 
 ## What transfers
 
@@ -80,10 +78,9 @@ across.
 | Folders, favorites, tags, website & app matching | Yes | Yes |
 
 The **receiving app chooses which kinds it asks for**, and Keyguard sends only
-those. A kind it did not ask for is left out quietly: that is not treated as a
-skip, so nothing on the review screen reports it. An app that asks only for
-passwords and passkeys gets no cards, notes, identities, SSH keys or custom
-fields.
+those. Unrequested credential types are omitted quietly and do not appear on
+the review screen. An app that asks only for passwords and passkeys gets no
+cards, notes, identities, SSH keys or custom fields.
 
 ## What gets skipped
 
@@ -91,13 +88,12 @@ Some things are skipped:
 
 - **Attachments.**
 - **[GPG keys](/docs/gpg-keys/).**
-- **Saved previous passwords** — an item's password history stays behind; the
-  current password still crosses.
+- **Saved previous passwords** — transfers only the current password; password
+  history is omitted.
 - **API keys, files, Wi-Fi credentials, generated passwords and item
   references** — credential kinds other apps may send that Keyguard does not
   model.
-- **Linked custom fields**, and custom fields with no value — an item's other
-  fields still cross.
+- **Linked custom fields**, and custom fields with no value.
 - **Regular-expression matches** and Keyguard's own `cmd://` uris — dropped from
   an item's website & app matching, since neither is an address the other app
   could use. See [match detection](/docs/url-matching/#match-detection-modes).

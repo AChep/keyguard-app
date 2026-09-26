@@ -14,20 +14,11 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySnapshot
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgKeygrip
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import kotlinx.coroutines.CoroutineDispatcher
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GpgPublicKeyRepositoryImpl(
     private val exposedDatabaseManager: ExposedDatabaseManager,
     private val dispatcher: CoroutineDispatcher,
 ) : GpgPublicKeyRepository {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        exposedDatabaseManager = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
-
     override fun getSnapshot(): IO<GpgPublicKeySnapshot> = daoEffect { db ->
         db.transactionWithResult {
             val publicKeys = db.gpgPublicKeyQueries

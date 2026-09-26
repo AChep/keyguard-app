@@ -9,22 +9,21 @@ import com.artemchep.keyguard.common.usecase.PutVaultLockAfterReboot
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.icons.Stub
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingVaultLockAfterRebootProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingVaultLockAfterRebootProvider(
-    getVaultPersist = directDI.instance(),
-    getVaultLockAfterReboot = directDI.instance(),
-    putVaultLockAfterReboot = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getVaultPersist = koinScope.get(),
+    getVaultLockAfterReboot = koinScope.get(),
+    putVaultLockAfterReboot = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingVaultLockAfterRebootProvider(

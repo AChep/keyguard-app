@@ -17,11 +17,9 @@ import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepos
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverConfig
 import com.artemchep.keyguard.common.usecase.UploadGpgPublicKey
+import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Clock
 
 class UploadGpgPublicKeyImpl(
     private val getCiphers: GetCiphers,
@@ -35,17 +33,6 @@ class UploadGpgPublicKeyImpl(
         repository = keyserverStateRepository,
         reconciler = reconciler,
         resolver = metadataResolver,
-    )
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        getCiphers = directDI.instance(),
-        getGpgKeyserverConfig = directDI.instance(),
-        keyserverClient = directDI.instance(),
-        keyserverStateRepository = directDI.instance(),
-        metadataResolver = directDI.instance(),
-        reconciler = directDI.instance(),
     )
 
     override fun invoke(

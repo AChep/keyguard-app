@@ -283,50 +283,164 @@ class HubNegotiateTest {
     }
 
     @Test
+    fun `access token provider replaces all authorization header casings`() = runTest {
+        val headerNameCases = listOf(
+            listOf("Authorization"),
+            listOf("authorization"),
+            listOf("aUtHoRiZaTiOn"),
+            listOf("Authorization", "authorization", "aUtHoRiZaTiOn"),
+        )
+
+        headerNameCases.forEach { headerNames ->
+            listOf(false, true).forEach { skipNegotiate ->
+                val headers = headerNames.associateWith { "Bearer stale-token" } +
+                    ("X-Custom" to "custom-value")
+                val authorizationHeaders = mutableListOf<List<String>>()
+                val client = HttpClient(
+                    MockEngine { request ->
+                        authorizationHeaders.add(request.headers.getAll(HttpHeaders.Authorization).orEmpty())
+                        assertEquals("custom-value", request.headers["X-Custom"])
+                        respond(
+                            content = successfulNegotiationResponse(),
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
+                    },
+                )
+                val options = testOptions(
+                    client = client,
+                    headers = headers,
+                    accessTokenProvider = { "provider-token" },
+                    skipNegotiate = skipNegotiate,
+                )
+                val originalHeaders = options.headers.toMap()
+
+                try {
+                    val negotiation = negotiate(options)
+                    val expectedRequestHeaders = if (skipNegotiate) {
+                        emptyList()
+                    } else {
+                        listOf(listOf("Bearer provider-token"))
+                    }
+
+                    assertEquals(expectedRequestHeaders, authorizationHeaders)
+                    assertEquals(
+                        mapOf(
+                            HttpHeaders.Authorization to "Bearer provider-token",
+                            "X-Custom" to "custom-value",
+                        ),
+                        negotiation.headers,
+                    )
+                    assertEquals(originalHeaders, options.headers)
+                    assertEquals(originalHeaders, headers)
+                } finally {
+                    client.close()
+                }
+            }
+        }
+    }
+
+    @Test
     fun `negotiate redirect replaces access token for redirected requests and transport`() = runTest {
-        val authorizationHeaders = mutableListOf<String?>()
+        listOf(null, "provider-token").forEach { providerToken ->
+            val headers = mapOf(
+                "authorization" to "Bearer stale-token",
+                "Authorization" to "Bearer another-stale-token",
+                "aUtHoRiZaTiOn" to "Bearer mixed-case-stale-token",
+                "X-Custom" to "custom-value",
+            )
+            val authorizationHeaders = mutableListOf<List<String>>()
+            val client = HttpClient(
+                MockEngine { request ->
+                    authorizationHeaders.add(request.headers.getAll(HttpHeaders.Authorization).orEmpty())
+                    assertEquals("custom-value", request.headers["X-Custom"])
+                    when (authorizationHeaders.size) {
+                        1 -> respond(
+                            content = """{"url":"https://redirect.example/hub","accessToken":"redirect-token"}""",
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
+                        else -> respond(
+                            content = redirectedNegotiationResponse(),
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
+                    }
+                },
+            )
+            val options = testOptions(
+                client = client,
+                transferFormat = TransferFormat.Binary,
+                headers = headers,
+                accessTokenProvider = providerToken?.let { token -> { token } },
+            )
+            val originalHeaders = options.headers.toMap()
+
+            try {
+                val negotiation = negotiate(options)
+                val initialAuthorizationHeaders = if (providerToken != null) {
+                    listOf("Bearer $providerToken")
+                } else {
+                    listOf("Bearer stale-token", "Bearer another-stale-token", "Bearer mixed-case-stale-token")
+                }
+
+                assertEquals(
+                    listOf(initialAuthorizationHeaders, listOf("Bearer redirect-token")),
+                    authorizationHeaders,
+                )
+                assertEquals(
+                    mapOf(
+                        HttpHeaders.Authorization to "Bearer redirect-token",
+                        "X-Custom" to "custom-value",
+                    ),
+                    negotiation.headers,
+                )
+                assertEquals("https://redirect.example/hub?id=secret-token", negotiation.url)
+                assertEquals(originalHeaders, options.headers)
+                assertEquals(originalHeaders, headers)
+            } finally {
+                client.close()
+            }
+        }
+    }
+
+    @Test
+    fun `negotiate preserves headers when no replacement token is supplied`() = runTest {
+        val headers = mapOf(
+            "authorization" to "Bearer configured-token",
+            "X-Custom" to "custom-value",
+        )
+        val authorizationHeaders = mutableListOf<List<String>>()
         val client = HttpClient(
             MockEngine { request ->
-                authorizationHeaders += request.headers[HttpHeaders.Authorization]
+                authorizationHeaders.add(request.headers.getAll(HttpHeaders.Authorization).orEmpty())
+                assertEquals("custom-value", request.headers["X-Custom"])
                 when (authorizationHeaders.size) {
                     1 -> respond(
-                        content = """{"url":"https://redirect.example/hub","accessToken":"redirect-token"}""",
+                        content = """{"url":"https://redirect.example/hub"}""",
                         headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                     )
                     else -> respond(
-                        content = """
-                            {
-                              "negotiateVersion": 1,
-                              "connectionId": "public-id",
-                              "connectionToken": "secret-token",
-                              "availableTransports": [
-                                {
-                                  "transport": "WebSockets",
-                                  "transferFormats": ["Binary"]
-                                }
-                              ]
-                            }
-                        """.trimIndent(),
+                        content = successfulNegotiationResponse(),
                         headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                     )
                 }
             },
         )
-        val options = testOptions(
-            client = client,
-            transferFormat = TransferFormat.Binary,
-            accessTokenProvider = { "provider-token" },
-        )
 
         try {
-            val negotiation = negotiate(options)
+            listOf(false, true).forEach { skipNegotiate ->
+                val options = testOptions(
+                    client = client,
+                    headers = headers,
+                    skipNegotiate = skipNegotiate,
+                )
+                val negotiation = negotiate(options)
 
+                assertEquals(headers, negotiation.headers)
+                assertEquals(headers, options.headers)
+            }
             assertEquals(
-                listOf<String?>("Bearer provider-token", "Bearer redirect-token"),
+                listOf(listOf("Bearer configured-token"), listOf("Bearer configured-token")),
                 authorizationHeaders,
             )
-            assertEquals("Bearer redirect-token", negotiation.headers[HttpHeaders.Authorization])
-            assertEquals("https://redirect.example/hub?id=secret-token", negotiation.url)
         } finally {
             client.close()
         }
@@ -394,6 +508,20 @@ class HubNegotiateTest {
         val baseUrl: String,
         val negotiateUrl: String,
     )
+
+    private fun redirectedNegotiationResponse(): String = """
+        {
+          "negotiateVersion": 1,
+          "connectionId": "public-id",
+          "connectionToken": "secret-token",
+          "availableTransports": [
+            {
+              "transport": "WebSockets",
+              "transferFormats": ["Binary"]
+            }
+          ]
+        }
+    """.trimIndent()
 
     private fun successfulNegotiationResponse(): String = """
         {

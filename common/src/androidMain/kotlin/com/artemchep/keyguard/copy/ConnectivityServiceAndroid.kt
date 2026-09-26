@@ -11,17 +11,10 @@ import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class ConnectivityServiceAndroid(
     private val context: Context,
 ) : ConnectivityService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance<Application>(),
-    )
 
     override val availableFlow: Flow<Unit> = channelFlow<Unit> {
         // Return the callback immediately if the internet is
@@ -38,6 +31,7 @@ class ConnectivityServiceAndroid(
         val networkRequest: NetworkRequest = NetworkRequest.Builder()
             .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
             .build()
         val connectivityManager = context.getSystemService<ConnectivityManager>()
         connectivityManager?.registerNetworkCallback(networkRequest, networkCallback)

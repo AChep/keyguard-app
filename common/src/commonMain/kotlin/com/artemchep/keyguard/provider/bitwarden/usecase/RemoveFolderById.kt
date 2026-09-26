@@ -9,8 +9,6 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.core.store.bitwarden.deleted
 import com.artemchep.keyguard.core.store.bitwarden.service
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyFolderById
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -22,11 +20,6 @@ class RemoveFolderByIdImpl(
     companion object {
         private const val TAG = "RemoveFolderById.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyFolderById = directDI.instance(),
-        trashCipherByFolderId = directDI.instance(),
-    )
 
     override fun invoke(
         folderIds: Set<String>,

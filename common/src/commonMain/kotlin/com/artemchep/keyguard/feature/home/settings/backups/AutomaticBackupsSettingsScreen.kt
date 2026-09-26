@@ -26,8 +26,8 @@ import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
@@ -38,11 +38,11 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @Composable
 fun AutomaticBackupsSettingsScreen() {
-    val dateFormatter by rememberInstance<DateFormatter>()
+    val dateFormatter = koinInject<DateFormatter>()
     val state = produceAutomaticBackupsSettingsScreenState()
     state.fold(
         ifLoading = {

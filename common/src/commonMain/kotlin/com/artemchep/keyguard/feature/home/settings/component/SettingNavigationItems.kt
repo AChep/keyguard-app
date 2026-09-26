@@ -12,16 +12,16 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
+import org.koin.core.scope.Scope
 
 @Suppress("UNUSED_PARAMETER")
 fun settingNavigationItemsProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingNavigationItemsProvider()
 
 fun settingNavigationItemsProvider(): SettingComponent {

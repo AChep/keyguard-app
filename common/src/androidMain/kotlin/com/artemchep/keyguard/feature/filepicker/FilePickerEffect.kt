@@ -18,7 +18,7 @@ import com.artemchep.keyguard.ui.CollectedEffect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.jetbrains.compose.resources.getString
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @Composable
 actual fun FilePickerEffect(
@@ -29,7 +29,7 @@ actual fun FilePickerEffect(
     }
 
     val context by rememberUpdatedState(LocalContext.current)
-    val showMessage: ShowMessage by rememberInstance()
+    val showMessage: ShowMessage = koinInject()
 
     fun takePersistableUriPermission(
         intent: FilePickerIntent<*>,

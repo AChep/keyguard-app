@@ -6,39 +6,8 @@ import app.keemobile.kotpass.models.DeletedObject
 import app.keemobile.kotpass.models.Entry
 import app.keemobile.kotpass.models.Group
 import app.keemobile.kotpass.models.TimeData
-import kotlin.time.Instant
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
-
-/**
- * Moves a group within [KeePassDatabase] to a new parent group.
- *
- * @param uuid The [Uuid] of the group to be moved.
- * @param parentGroup The [Uuid] of the target parent group where the group will be moved.
- * @return A new [KeePassDatabase] instance with the group moved.
- */
-fun KeePassDatabase.moveGroup(
-    uuid: Uuid,
-    parentGroup: Uuid
-): KeePassDatabase {
-    if (content.group.uuid == uuid) {
-        return this
-    }
-    val (previousParent, item) = getGroup { it.uuid == uuid } ?: return this
-
-    return modifyParentGroup {
-        removeChildGroup(uuid)
-    }.modifyGroup(parentGroup) {
-        copy(
-            groups = groups + item.copy(
-                times = item.times
-                    ?.copy(locationChanged = Clock.System.now())
-                    ?: TimeData.create(),
-                previousParentGroup = previousParent?.uuid
-            )
-        )
-    }
-}
 
 /**
  * Modifies the immediate children of the root group in [KeePassDatabase].

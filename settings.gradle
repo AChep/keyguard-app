@@ -5,10 +5,6 @@ pluginManagement {
         google()
         mavenCentral()
     }
-    resolutionStrategy {
-        eachPlugin {
-        }
-    }
 }
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
@@ -24,22 +20,27 @@ dependencyResolutionManagement {
         // list exact so a compromised or typo-squatted repo cannot shadow a
         // dependency that should come from a first-party repository.
         maven {
-            url 'https://jitpack.io'
+            url = 'https://jitpack.io'
             content {
                 includeGroup 'com.github.AChep'
                 includeGroup 'com.github.Kyant0'
                 includeGroup 'com.github.open-keychain.open-keychain'
             }
         }
-        maven { url "https://maven.pkg.jetbrains.space/public/p/compose/dev" }
+        maven { url = "https://maven.pkg.jetbrains.space/public/p/compose/dev" }
     }
 }
 rootProject.name = "keyguard"
 
 include ':common'
+include ':standard:presentation'
+include ':feature:android-ipc-android'
+include ':feature:android-ipc-presentation'
+include ':feature:qr-scanner-android'
 include ':detektRules'
 include ':util:crypto'
 include ':util:foundation'
+include ':util:instance'
 include ':util:io'
 include ':util:kdbx'
 include ':util:messagepack'
@@ -67,5 +68,3 @@ include ':integration:gpgE2eTest'
 include ':integration:sshE2eTest'
 include ':integration:kdbxE2eTest'
 include ':integration:androidIpcTestClient'
-
-project(':integration:wearCredentialProviderApp').projectDir = file('integration/wearCredentialProviderApp')

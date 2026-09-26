@@ -4,8 +4,6 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.data.bitwarden.Profile
 import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -16,10 +14,6 @@ class ModifyProfileById(
     companion object {
         private const val TAG = "ModifyProfileById.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyDatabase = directDI.instance(),
-    )
 
     operator fun invoke(
         profileIds: Set<String>,

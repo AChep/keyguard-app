@@ -7,20 +7,12 @@ import com.artemchep.keyguard.common.service.wordlist.repo.GeneratorWordlistRepo
 import com.artemchep.keyguard.common.usecase.AddWordlist
 import com.artemchep.keyguard.common.usecase.ReadWordlistFromFile
 import com.artemchep.keyguard.common.usecase.ReadWordlistFromUrl
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class AddWordlistImpl(
     private val generatorWordlistRepository: GeneratorWordlistRepository,
     private val readWordlistFromFile: ReadWordlistFromFile,
     private val readWordlistFromUrl: ReadWordlistFromUrl,
 ) : AddWordlist {
-    constructor(directDI: DirectDI) : this(
-        generatorWordlistRepository = directDI.instance(),
-        readWordlistFromFile = directDI.instance(),
-        readWordlistFromUrl = directDI.instance(),
-    )
-
     override fun invoke(
         model: AddWordlistRequest,
     ) = ioEffect {

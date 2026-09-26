@@ -20,18 +20,17 @@ import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.getObject
 import com.artemchep.keyguard.common.service.state.impl.toJson
 import com.artemchep.keyguard.common.service.state.impl.toMap
-import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.platform.recordLogDebug
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 // TODO: Add a support for window positioning via
 //  the alignment and not absolute values.
@@ -69,17 +68,11 @@ class WindowStateManager(
 
     private var windowStateLatest: SaveableWindowState? = null
 
-    private val requestForegroundSink = EventFlow<Unit>()
-
-    constructor(directDI: DirectDI) : this(
-        store = directDI.instance<Files, KeyValueStore>(
-            arg = Files.WINDOW_STATE,
-        ),
-        json = directDI.instance(),
-    )
+    private val requestForegroundSink = Channel<Unit>(Channel.CONFLATED)
+    val foregroundRequests = requestForegroundSink.receiveAsFlow()
 
     fun requestForeground() {
-        requestForegroundSink.emit(Unit)
+        requestForegroundSink.trySend(Unit)
     }
 
     private data class SaveableWindowState(
@@ -217,13 +210,6 @@ class WindowStateManager(
             size = restoredState.size,
         )
 
-        LaunchedEffect(state) {
-            requestForegroundSink
-                .onEach {
-                    state.isMinimized = false
-                }
-                .collect()
-        }
         LaunchSaveEffect(state)
         return state
     }

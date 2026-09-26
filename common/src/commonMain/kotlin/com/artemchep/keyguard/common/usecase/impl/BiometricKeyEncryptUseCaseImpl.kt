@@ -5,11 +5,8 @@ import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.usecase.BiometricKeyEncryptUseCase
 import com.artemchep.keyguard.platform.LeBiometricCipher
 import com.artemchep.keyguard.platform.encode
-import org.kodein.di.DirectDI
 
-class BiometricKeyEncryptUseCaseImpl() : BiometricKeyEncryptUseCase {
-    constructor(directDI: DirectDI) : this()
-
+class BiometricKeyEncryptUseCaseImpl : BiometricKeyEncryptUseCase {
     override fun invoke(
         cipher: IO<LeBiometricCipher>,
         masterKey: MasterKey,

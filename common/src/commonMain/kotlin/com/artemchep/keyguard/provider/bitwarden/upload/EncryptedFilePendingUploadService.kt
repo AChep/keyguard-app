@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.upload
 
+import kotlinx.io.Source
 import kotlin.time.Instant
 
 interface EncryptedFilePendingUploadService {
@@ -10,6 +11,22 @@ interface EncryptedFilePendingUploadService {
         sourceUri: String,
         fileKey: ByteArray,
     ): PendingUploadFile
+
+    /**
+     * Stages caller-owned plaintext without creating a temporary plaintext file.
+     *
+     * [source] is borrowed: implementations read it and leave closing it to the
+     * caller.
+     */
+    suspend fun stage(
+        accountId: String,
+        namespace: String,
+        fileId: String,
+        source: Source,
+        fileKey: ByteArray,
+    ): PendingUploadFile = throw UnsupportedOperationException(
+        "Staging pending uploads from a stream is not supported on this platform.",
+    )
 
     suspend fun readPlaintext(
         pendingUpload: PendingUploadFile,

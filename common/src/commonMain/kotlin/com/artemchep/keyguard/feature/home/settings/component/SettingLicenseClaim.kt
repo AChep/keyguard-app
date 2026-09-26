@@ -47,8 +47,8 @@ import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatTextFieldBadge
@@ -63,25 +63,23 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapNotNull
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.rememberInstance
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
+import org.koin.compose.koinInject
+import org.koin.core.scope.Scope
 
 fun settingLicenseClaimProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent {
-    val licenseClaimSource: LicenseClaimSource? = directDI.instanceOrNull()
+    val licenseClaimSource: LicenseClaimSource? = koinScope.getOrNull()
     if (licenseClaimSource == null) {
         return flowOf(null)
     }
 
     return settingLicenseClaimProvider(
-        subscriptionService = directDI.instance(),
-        claimedLicenseEntitlement = directDI.instance(),
-        syncLicense = directDI.instance(),
-        showMessage = directDI.instance(),
-        windowCoroutineScope = directDI.instance(),
+        subscriptionService = koinScope.get(),
+        claimedLicenseEntitlement = koinScope.get(),
+        syncLicense = koinScope.get(),
+        showMessage = koinScope.get(),
+        windowCoroutineScope = koinScope.get(),
     )
 }
 
@@ -200,7 +198,7 @@ fun LicenseEntitlementFooter(
         VisibilityState(isVisible = false)
     }
 
-    val clipboardService by rememberInstance<ClipboardService>()
+    val clipboardService = koinInject<ClipboardService>()
     Column(
         modifier = Modifier
             .padding(

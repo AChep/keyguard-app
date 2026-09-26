@@ -10,8 +10,6 @@ import kotlin.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 @Serializable
 data class PassKeyEntity(
@@ -63,13 +61,6 @@ class PassKeyServiceImpl(
 
     override val version: String
         get() = FileHashes.passkeys
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        textService = directDI.instance(),
-        json = directDI.instance(),
-    )
 
     override fun get() = listIo
 }

@@ -7,7 +7,7 @@ order: 8
 
 The generator creates fresh credentials whenever you need them. Every mode
 lives on the same **Generator** screen — pick the mode, tune its options, and
-copy the result — and the same generator is one tap away when you edit an
+copy the result — and you can open the generator directly when editing an
 item's field.
 
 ## Passwords
@@ -27,7 +27,7 @@ least **15 characters** for a password used as the only authentication factor.
 ## Passphrases
 
 A sequence of random words — `correct-horse-battery-staple` — much easier to
-remember and type than a character soup of the same strength. You choose the
+remember and type than random characters of the same strength. You choose the
 **number of words**, the **delimiter**, **capitalization**, and whether to
 include a **number**. Words are drawn from the built-in dictionary or from
 your own [wordlists](#custom-wordlists).
@@ -105,9 +105,9 @@ not offer DSA, ElGamal, NIST, or custom-curve keys.
 
 ## Custom wordlists
 
-Passphrases and usernames can draw on your own wordlists instead of the
-built-in dictionary. Manage them from the **Generator** screen under
-**Wordlists** — a wordlist can be loaded from a file or from a URL.
+Passphrases and usernames can draw on custom wordlists. Manage them from the
+**Generator** screen under **Wordlists** — a wordlist can be loaded from a file
+or from a URL.
 
 ### File format
 

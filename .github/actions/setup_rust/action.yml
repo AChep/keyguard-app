@@ -13,6 +13,10 @@ inputs:
     description: "Comma-separated Rust components"
     required: false
     default: "clippy,rustfmt"
+  cache-key:
+    description: "Optional Cargo download cache group; build outputs are not cached"
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -22,3 +26,13 @@ runs:
         toolchain: ${{ inputs.toolchain }}
         targets: ${{ inputs.targets }}
         components: ${{ inputs.components }}
+    - name: "Cache Cargo downloads"
+      if: inputs.cache-key != ''
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+        key: native-cargo-${{ runner.os }}-${{ runner.arch }}-${{ inputs.toolchain }}-${{ inputs.cache-key }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          native-cargo-${{ runner.os }}-${{ runner.arch }}-${{ inputs.toolchain }}-${{ inputs.cache-key }}-

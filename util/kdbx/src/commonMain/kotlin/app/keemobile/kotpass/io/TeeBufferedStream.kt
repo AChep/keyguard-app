@@ -19,6 +19,17 @@ internal class TeeBufferedStream(
 
     override val buffer: Buffer = bufferedSource.buffer
 
+    /**
+     * Releases the captured bytes and hands off subsequent reads without mirroring.
+     * Keep the existing buffered source so prefetched bytes are not lost. Callers
+     * must read through the returned stream from this point onward; either stream
+     * closes the same underlying source.
+     */
+    fun finishCapture(): BufferedStream {
+        mirrorBuffer.clear()
+        return bufferedSource.bufferStream()
+    }
+
     override fun close() = bufferedSource.close()
 
     override fun exhausted() = bufferedSource.exhausted()

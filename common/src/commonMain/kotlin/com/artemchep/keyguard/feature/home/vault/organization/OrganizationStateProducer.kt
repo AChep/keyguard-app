@@ -10,17 +10,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun organizationScreenState(
     args: OrganizationRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     organizationScreenState(
         args = args,
-        getOrganizations = instance(),
+        getOrganizations = get(),
     )
 }
 

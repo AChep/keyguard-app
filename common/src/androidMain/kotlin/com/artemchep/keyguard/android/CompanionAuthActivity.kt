@@ -24,7 +24,6 @@ import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import org.kodein.di.instance
 
 class CompanionAuthActivity : BaseActivity() {
     companion object {
@@ -50,7 +49,7 @@ class CompanionAuthActivity : BaseActivity() {
         }
     }
 
-    private val companionAuthBridge by instance<CompanionAuthBridgeAndroid>()
+    private val companionAuthBridge by lazy { koin.get<CompanionAuthBridgeAndroid>() }
     private val companionAuthEvents = Channel<CompanionAuthEvent>(Channel.BUFFERED)
 
     private var request by mutableStateOf<Request?>(null)

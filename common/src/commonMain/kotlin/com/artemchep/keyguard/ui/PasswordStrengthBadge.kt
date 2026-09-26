@@ -39,7 +39,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 private data class PasswordStrengthBadgeState(
     val password: String,
@@ -107,7 +107,7 @@ fun PasswordStrengthBadge(
 private fun producePasswordStrengthBadgeState(
     password: String,
 ): State<PasswordStrengthBadgeState> {
-    val getPasswordStrength: GetPasswordStrength by rememberInstance()
+    val getPasswordStrength: GetPasswordStrength = koinInject()
 
     val sink = remember {
         MutableStateFlow(password)

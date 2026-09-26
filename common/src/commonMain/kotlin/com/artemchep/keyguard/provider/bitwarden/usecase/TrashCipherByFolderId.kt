@@ -8,8 +8,6 @@ import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.TrashCipherByFolderId
 import com.artemchep.keyguard.common.usecase.TrashCipherById
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -21,11 +19,6 @@ class TrashCipherByFolderIdImpl(
     companion object {
         private const val TAG = "TrashCipherByFolderId.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        getCiphers = directDI.instance(),
-        trashCipherById = directDI.instance(),
-    )
 
     override fun invoke(
         folderIds: Set<String?>,

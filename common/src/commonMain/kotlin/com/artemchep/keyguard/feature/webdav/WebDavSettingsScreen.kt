@@ -31,6 +31,8 @@ import com.artemchep.keyguard.common.model.icon
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.permissions.LocalNetworkPermissionNote
+import com.artemchep.keyguard.feature.permissions.rememberLocalNetworkPermission
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultFab
@@ -101,6 +103,7 @@ private fun WebDavSettingsContent(
             stringResource(Res.string.webdav_settings_test_text_read_only)
     }
 
+    val localNetworkPermission = rememberLocalNetworkPermission()
     val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldLazyColumn(
         modifier = Modifier
@@ -225,6 +228,13 @@ private fun WebDavSettingsContent(
                 shapeState = ShapeState.END,
                 clearButton = true,
             )
+        }
+        localNetworkPermission?.let { permission ->
+            item("local_network_permission") {
+                LocalNetworkPermissionNote(
+                    permission = permission,
+                )
+            }
         }
         item("connection.header") {
             Spacer(

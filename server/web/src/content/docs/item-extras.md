@@ -29,7 +29,7 @@ device to quickly join the network.
 A tag is defined by a custom field that meets both criteria:
 
 - the custom field's name is exactly `Tag`;
-- the custom field's value is visible (not hidden).
+- the custom field uses a value of a text type.
 
 The value of this qualifying field is used as the tag's name. The same rules
 apply when Keyguard writes a tag back to an item.

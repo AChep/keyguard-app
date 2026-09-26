@@ -26,33 +26,31 @@ import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.buildContextItems
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceSyncState(
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceSyncState(
-        dateFormatter = instance(),
-        getMetas = instance(),
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getCiphers = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
-        getFolders = instance(),
-        accountViewRouteFactory = instance(),
-        vaultRouteFactory = instance(),
-        foldersRouteFactory = instance(),
+        dateFormatter = get(),
+        getMetas = get(),
+        getAccounts = get(),
+        getProfiles = get(),
+        getCiphers = get(),
+        getCollections = get(),
+        getOrganizations = get(),
+        getFolders = get(),
+        accountViewRouteFactory = get(),
+        vaultRouteFactory = get(),
+        foldersRouteFactory = get(),
     )
 }
 
@@ -245,7 +243,6 @@ fun produceSyncState(
                 )
             }
     }.stateIn(screenScope)
-
 
     val state = SyncState(
         itemsFlow = f,

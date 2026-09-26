@@ -7,31 +7,22 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DNotificationChannel
-import com.artemchep.keyguard.common.model.DNotificationKey
 import com.artemchep.keyguard.common.model.DNotificationFingerprint
+import com.artemchep.keyguard.common.model.DNotificationKey
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.getSerializable
 import com.artemchep.keyguard.common.service.notification.NotificationFingerprintRepository
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Duration
 
 class NotificationFingerprintRepositoryImpl(
     private val store: KeyValueStore,
     private val json: Json,
 ) : NotificationFingerprintRepository {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        store = directDI.instance<Files, KeyValueStore>(arg = Files.NOTIFICATIONS),
-        json = directDI.instance(),
-    )
-
     private fun getPref(key: String) = store
         .getSerializable<NotificationFingerprintEntity?>(
             json,

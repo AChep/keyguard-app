@@ -15,21 +15,14 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalWindowMemo
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorImpl
+import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
+import com.artemchep.keyguard.common.service.vault.testVaultSession
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.runTest
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.math.BigInteger
@@ -38,12 +31,19 @@ import java.security.KeyPairGenerator
 import java.security.PrivateKey
 import java.security.interfaces.RSAPublicKey
 import java.util.Base64
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runTest
 
 class SshAgentSharedApprovalMemoryTest {
     @Test
@@ -163,6 +163,7 @@ class SshAgentSharedApprovalMemoryTest {
             private set
 
         fun createProcessor() = SshAgentRequestProcessorImpl(
+            sessionAccess = testDomainSessionAccess(),
             logRepository = NoOpLogRepository,
             getVaultSession = vaultSession,
             getSshAgentApprovalWindow = approvalWindow,
@@ -242,8 +243,8 @@ class SshAgentSharedApprovalMemoryTest {
                 version = MasterKdfVersion.LATEST,
                 byteArray = byteArrayOf(1, 2, 3),
             ),
-            di = DI {
-                bindSingleton<GetCiphers> {
+            session = testVaultSession {
+                scoped<GetCiphers> {
                     object : GetCiphers {
                         override fun invoke(): Flow<List<DSecret>> = flowOf(listOf(secret))
                     }

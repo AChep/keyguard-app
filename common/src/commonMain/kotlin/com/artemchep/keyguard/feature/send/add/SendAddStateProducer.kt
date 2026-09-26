@@ -58,9 +58,9 @@ import com.artemchep.keyguard.feature.add.AddStateItem
 import com.artemchep.keyguard.feature.add.AddStateOwnership
 import com.artemchep.keyguard.feature.add.LocalStateItem
 import com.artemchep.keyguard.feature.add.OwnershipState
+import com.artemchep.keyguard.feature.add.accountFlow
 import com.artemchep.keyguard.feature.add.attachment.AttachmentItemStateConfig
 import com.artemchep.keyguard.feature.add.attachment.createAttachmentStateItem
-import com.artemchep.keyguard.feature.add.accountFlow
 import com.artemchep.keyguard.feature.add.ownershipHandle
 import com.artemchep.keyguard.feature.add.produceItemFlow
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
@@ -93,13 +93,15 @@ import com.artemchep.keyguard.feature.send.canUseAccountForSendType
 import com.artemchep.keyguard.feature.send.view.SendViewRouteFactory
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.format
 import com.artemchep.keyguard.ui.icons.icon
+import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.Flow
@@ -112,16 +114,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlin.time.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import kotlin.time.Duration
+import org.koin.compose.currentKoinScope
 
 @kotlinx.serialization.Serializable
 @LeParcelize
@@ -147,6 +145,19 @@ data class TmpOptions(
     val emails: AddStateItem.Text<CreateSendRequest>,
     val items: Flow<List<AddStateItem>>,
 )
+
+internal fun canSaveSend(
+    output: CreateSendRequest,
+    initialValue: DSend?,
+): Boolean {
+    // Ownership is restricted to eligible Bitwarden profiles. A KDBX-only vault
+    // has no destination, even when the text was prefilled from an existing item.
+    if (output.ownership?.accountId.isNullOrBlank()) return false
+    return when (output.type) {
+        DSend.Type.File -> canSaveFileSend(output, initialValue)
+        else -> true
+    }
+}
 
 internal fun canSaveFileSend(
     output: CreateSendRequest,
@@ -225,23 +236,23 @@ internal fun CreateSendRequest.withSendFile(
 @Composable
 fun produceSendAddScreenState(
     args: SendAddRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceSendAddScreenState(
         args = args,
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getOrganizations = instance(),
-        getCollections = instance(),
-        getFolders = instance(),
-        getCiphers = instance(),
-        getSends = instance(),
-        getTotpCode = instance(),
-        getGravatarUrl = instance(),
-        getMarkdown = instance(),
-        clipboardService = instance(),
-        dateFormatter = instance(),
-        addSend = instance(),
-        sendViewRouteFactory = instance(),
+        getAccounts = get(),
+        getProfiles = get(),
+        getOrganizations = get(),
+        getCollections = get(),
+        getFolders = get(),
+        getCiphers = get(),
+        getSends = get(),
+        getTotpCode = get(),
+        getGravatarUrl = get(),
+        getMarkdown = get(),
+        clipboardService = get(),
+        dateFormatter = get(),
+        addSend = get(),
+        sendViewRouteFactory = get(),
     )
 }
 
@@ -539,14 +550,10 @@ suspend fun RememberStateFlowScope.sendAddStateProducer(
         outputFlow,
         itemFlows,
     ) { actions, ownership, output, ddd ->
-        val canSave = when (output.type) {
-            DSend.Type.File -> canSaveFileSend(
-                output = output,
-                initialValue = args.initialValue,
-            )
-
-            else -> true
-        }
+        val canSave = canSaveSend(
+            output = output,
+            initialValue = args.initialValue,
+        )
         val state = SendAddState(
             title = title,
             ownership = ownership,

@@ -3,23 +3,19 @@ package com.artemchep.keyguard.copy
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.util.io.useBufferedSink
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.platform.util.isRelease
+import com.artemchep.keyguard.util.io.useBufferedSink
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.io.Sink
 import net.harawata.appdirs.AppDirsFactory
-import org.kodein.di.DirectDI
-import java.io.File
 
-class DataDirectory(
-) : DirsService {
+class DataDirectory : DirsService {
     companion object {
         private val APP_NAME = if (isRelease) "keyguard" else "keyguard-dev"
         private val APP_AUTHOR = "ArtemChepurnyi"
     }
-
-    constructor(directDI: DirectDI) : this()
 
     fun data(): IO<String> = ioEffect(Dispatchers.IO) {
         dataBlocking()

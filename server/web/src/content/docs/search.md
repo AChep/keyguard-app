@@ -18,7 +18,7 @@ more (see [What's searched](#whats-searched) below). Matching is:
 
 - **Case-insensitive** — `alice` and `Alice` are the same.
 - **Accent-insensitive** — `jose` matches `José`.
-- **Partial** — `ali` already matches `alice`; you rarely type a whole word.
+- **Partial** — `ali` matches `alice`; you rarely type a whole word.
 
 ## Combine terms
 
@@ -54,8 +54,8 @@ domain:example -tag:archive
 
 ## Search a specific field
 
-Use `qualifier:value` to look inside one field instead of everywhere. Mix
-qualifiers with plain words, quote their values, and negate them freely:
+Use `qualifier:value` to search within a specific field. Mix qualifiers with
+plain words, quote their values, and negate them freely:
 
 ```text
 username:alice
@@ -85,7 +85,7 @@ title:github note:"shared access"
 | `organization:` | Organization |
 | `collection:` | Collection |
 
-An unrecognized qualifier is treated as plain text — `type:login` simply searches for the words "type:login".
+An unrecognized qualifier is treated as plain text — `type:login` searches for the words "type:login".
 
 ## See also
 

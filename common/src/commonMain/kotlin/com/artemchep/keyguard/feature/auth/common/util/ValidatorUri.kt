@@ -27,15 +27,27 @@ private const val REGEX_AUTHORITATIVE_DECLARATION = "/{2}"
 // Optional component. Example: "suzie:abc123@". The use of the format "user:password" is deprecated.
 private const val REGEX_USERINFO = "(?:\\S+(?::\\S*)?@)?"
 
+private const val REGEX_HOST_CHAR = "[a-z\\u00a1-\\uffff0-9]"
+
+/**
+ * A host label: host characters, optionally split by hyphens. It must start
+ * and end with a host character. The pattern is the unambiguous form of
+ * `(?:X-*)*X+`, which matches the same strings but backtracks across overlapping
+ * repetitions. The repetition counts are bounded because the regex engines
+ * recurse per group repetition; DNS allows at most 63 characters per label and
+ * 127 labels, so the bounds only exclude hosts that are not valid DNS names.
+ */
+private const val REGEX_HOST_LABEL = "$REGEX_HOST_CHAR+(?:-+$REGEX_HOST_CHAR+){0,63}"
+
 // Examples: "google.com", "22.231.113.64".
 private const val REGEX_HOST =
     "(?:" + // @Author = http://www.regular-expressions.info/examples.html
             // IP address
             "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" +
             "|" + // host name
-            "(?:(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)" + // domain name
-            "(?:\\.(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)*" + // TLD identifier must have >= 2 characters
-            "(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))"
+            "(?:$REGEX_HOST_LABEL)" + // domain name
+            "(?:\\.$REGEX_HOST_LABEL){0,127}" +
+            "(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))" // TLD identifier must have >= 2 characters
 
 // Example: ":8042".
 private const val REGEX_PORT = "(?::\\d{2,5})?"

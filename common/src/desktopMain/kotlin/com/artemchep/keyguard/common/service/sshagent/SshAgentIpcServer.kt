@@ -8,17 +8,18 @@ import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPee
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
-import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
-import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowNoOp
+import com.artemchep.keyguard.common.service.session.SshAgentSessionAccess
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicyNoOp
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowNoOp
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import java.nio.file.Path
+import java.security.MessageDigest
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import java.nio.file.Path
-import java.security.MessageDigest
 
 /**
  * IPC server that listens for connections from the keyguard-ssh-agent
@@ -105,6 +106,7 @@ class SshAgentIpcServer private constructor(
     constructor(
         logRepository: LogRepository,
         getVaultSession: GetVaultSession,
+        sessionAccess: SshAgentSessionAccess,
         getSshAgentApprovalWindow: GetSshAgentApprovalWindow = GetSshAgentApprovalWindowNoOp,
         getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy =
             GetSshAgentApprovalCachePolicyNoOp,
@@ -127,6 +129,7 @@ class SshAgentIpcServer private constructor(
         requestProcessor = SshAgentRequestProcessorImpl(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
+            sessionAccess = sessionAccess,
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,
             getSshAgentApprovalCachePolicy = getSshAgentApprovalCachePolicy,
             getSshAgentFilter = getSshAgentFilter,
@@ -145,6 +148,7 @@ class SshAgentIpcServer private constructor(
     internal constructor(
         logRepository: LogRepository,
         getVaultSession: GetVaultSession,
+        sessionAccess: SshAgentSessionAccess,
         getSshAgentApprovalWindow: GetSshAgentApprovalWindow = GetSshAgentApprovalWindowNoOp,
         getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy =
             GetSshAgentApprovalCachePolicyNoOp,
@@ -167,6 +171,7 @@ class SshAgentIpcServer private constructor(
         requestProcessor = SshAgentRequestProcessorImpl(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
+            sessionAccess = sessionAccess,
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,
             getSshAgentApprovalCachePolicy = getSshAgentApprovalCachePolicy,
             getSshAgentFilter = getSshAgentFilter,

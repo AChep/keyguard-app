@@ -1,0 +1,693 @@
+name: "✔️ Check Native"
+
+on:
+  workflow_dispatch:
+    inputs:
+      cache-write-only:
+        description: "Cache write only"
+        required: false
+        default: false
+        type: boolean
+      coverage:
+        description: "Representative checks or the full native platform matrix"
+        required: true
+        default: targeted
+        type: choice
+        options: [targeted, full]
+      release-readiness:
+        description: "Run release-readiness gates that require external records and a fixed host"
+        required: false
+        default: false
+        type: boolean
+  # Always produce the aggregate check, even when no native paths changed.
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: "Select native checks"
+    runs-on: ubuntu-24.04
+    outputs:
+      desktop: ${{ steps.select.outputs.desktop }}
+      desktop_run: ${{ steps.select.outputs.desktop_run }}
+      desktop_regressions: ${{ steps.select.outputs.desktop_regressions }}
+      android_run: ${{ steps.select.outputs.android_run }}
+      android_runtime: ${{ steps.select.outputs.android_runtime }}
+      apple_regressions: ${{ steps.select.outputs.apple_regressions }}
+      android: ${{ steps.select.outputs.android }}
+      apple: ${{ steps.select.outputs.apple }}
+      io: ${{ steps.select.outputs.io }}
+      instance: ${{ steps.select.outputs.instance }}
+      crypto: ${{ steps.select.outputs.crypto }}
+      fuzz: ${{ steps.select.outputs.fuzz }}
+      native_quality: ${{ steps.select.outputs.native_quality }}
+      desktop_native: ${{ steps.select.outputs.desktop_native }}
+      wear: ${{ steps.select.outputs.wear }}
+      desktop_matrix: ${{ steps.select.outputs.desktop_matrix }}
+      android_matrix: ${{ steps.select.outputs.android_matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: "Test native CI policies"
+        run: >-
+          python3 -m unittest
+          scripts/test_classify_native_changes.py
+          scripts/test_prefetch_native.py
+          scripts/test_verify_native_bundle.py
+          scripts/test_check_bouncycastle_policy.py
+          scripts/test_run_native_package_smoke.py
+      - name: "Select checks from changed paths"
+        id: select
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          COVERAGE: ${{ inputs.coverage }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ "$EVENT_NAME" == workflow_dispatch ]]; then
+            if [[ "$COVERAGE" == full ]]; then
+              python3 scripts/classify_native_changes.py --full
+            else
+              python3 scripts/classify_native_changes.py --all
+            fi
+          else
+            if [[ -n "$BASE_SHA" && ! "$BASE_SHA" =~ ^0+$ ]] && ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
+              # An unavailable base selects full coverage in the classifier.
+              git fetch --no-tags --depth=1 origin "$BASE_SHA" || true
+            fi
+            python3 scripts/classify_native_changes.py --base "$BASE_SHA"
+          fi
+
+  crypto-quality:
+    name: "Rust quality and supply chain"
+    needs: changes
+    if: needs.changes.outputs.crypto == 'true'
+    runs-on: ubuntu-24.04
+    env:
+      CARGO_ABOUT_VERSION: "0.9.1"
+      CARGO_DENY_VERSION: "0.20.2"
+      CARGO_SBOM_VERSION: "0.10.0"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          components: "rustfmt, clippy"
+          cache-key: crypto-quality
+      - name: "Setup Protobuf"
+        uses: ./.github/actions/setup_protobuf
+      - name: "Check native crypto protocol drift"
+        run: |
+          cargo fmt \
+            --manifest-path util/crypto/tools/native-crypto-protocol/Cargo.toml \
+            --all -- --check
+          cargo clippy \
+            --manifest-path util/crypto/tools/native-crypto-protocol/Cargo.toml \
+            --all-targets --locked -- -D warnings
+          cargo run \
+            --manifest-path util/crypto/tools/native-crypto-protocol/Cargo.toml \
+            --locked -- check
+      - name: "Check formatting"
+        working-directory: util/crypto/rust
+        run: cargo fmt --all -- --check
+      - name: "Run Clippy"
+        working-directory: util/crypto/rust
+        run: cargo clippy --workspace --all-targets --all-features --locked --no-deps -- -D warnings
+      - name: "Run Rust tests"
+        working-directory: util/crypto/rust
+        run: cargo test --workspace --all-features --locked
+      - name: "Check reviewed Rust forks"
+        working-directory: thirdParty/rust
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy \
+            --workspace --exclude ssh-key \
+            --all-targets --all-features --locked -- -D warnings
+          # Preserve ssh-key 0.6.7's upstream API shape while denying any new
+          # warning outside these known style-only lints.
+          cargo clippy \
+            --package ssh-key --no-default-features \
+            --features keyguard-decryption,std --lib --locked -- \
+            -D warnings \
+            -A clippy::to_string_trait_impl \
+            -A clippy::derivable_impls \
+            -A clippy::useless_conversion
+          cargo test \
+            --workspace --exclude ssh-key --all-features --locked
+          cargo test \
+            --package ssh-key --no-default-features \
+            --features keyguard-decryption,std --lib --locked
+          cargo test \
+            --package ssh-key --no-default-features \
+            --features keyguard-decryption,std \
+            --test encrypted_private_key --locked
+      - name: "Run POLYVAL forced-software backend tests"
+        working-directory: thirdParty/rust
+        env:
+          RUSTFLAGS: "--cfg polyval_force_soft -D warnings"
+        run: cargo test --package polyval --all-features --locked
+      - name: "Check structured native crypto exception policy"
+        run: |
+          cargo fmt \
+            --manifest-path util/crypto/tools/native-crypto-policy/Cargo.toml \
+            --all -- --check
+          cargo test \
+            --manifest-path util/crypto/tools/native-crypto-policy/Cargo.toml \
+            --locked
+          cargo clippy \
+            --manifest-path util/crypto/tools/native-crypto-policy/Cargo.toml \
+            --all-targets --locked -- -D warnings
+          cargo run \
+            --manifest-path util/crypto/tools/native-crypto-policy/Cargo.toml \
+            --locked -- --repository .
+      - name: "Build locked release artifacts offline"
+        working-directory: util/crypto/rust
+        run: cargo build --workspace --all-features --release --locked --offline
+      - name: "Compile release benchmark targets offline"
+        working-directory: util/crypto/rust
+        run: >-
+          cargo bench
+          --package keyguard-crypto-core
+          --bench argon2
+          --bench bulk_primitives
+          --bench small_primitives
+          --no-run
+          --locked
+          --offline
+      - name: "Cache pinned supply-chain tools"
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ~/.cargo/native-ci-tools
+          key: native-crypto-tools-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '.github/actions/setup_rust/action.yml') }}-${{ env.CARGO_ABOUT_VERSION }}-${{ env.CARGO_DENY_VERSION }}-${{ env.CARGO_SBOM_VERSION }}
+      - name: "Expose supply-chain tools"
+        run: echo "$HOME/.cargo/native-ci-tools/bin" >> "$GITHUB_PATH"
+      - name: "Install pinned supply-chain tools"
+        run: |
+          cargo install --root "$HOME/.cargo/native-ci-tools" --locked --features cli cargo-about --version "$CARGO_ABOUT_VERSION"
+          cargo install --root "$HOME/.cargo/native-ci-tools" --locked cargo-deny --version "$CARGO_DENY_VERSION"
+          cargo install --root "$HOME/.cargo/native-ci-tools" --locked cargo-sbom --version "$CARGO_SBOM_VERSION"
+      - name: "Check Rust licenses, bans, and sources"
+        working-directory: util/crypto/rust
+        run: >-
+          cargo deny
+          --config ../../../.github/native-crypto-deny.toml
+          check advisories bans licenses sources
+      - name: "Generate Cargo notices and SPDX SBOMs"
+        shell: bash
+        run: |
+          output=util/crypto/build/reports/supply-chain
+          mkdir -p "$output"
+          for package in keyguard-crypto-core keyguard-crypto-jni keyguard-crypto-c; do
+            cargo sbom \
+              --project-directory util/crypto/rust \
+              --cargo-package "$package" \
+              --output-format spdx_json_2_3 \
+              > "$output/$package.spdx.json"
+            cargo about generate \
+              --manifest-path "util/crypto/rust/crates/$package/Cargo.toml" \
+              --config util/crypto/rust/about.toml \
+              --locked \
+              --offline \
+              --fail \
+              --output-file "$output/$package-licenses.md" \
+              util/crypto/rust/about.hbs
+          done
+      - name: "Upload Cargo notices and SPDX SBOM"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-crypto-supply-chain
+          path: util/crypto/build/reports/supply-chain/
+          retention-days: 21
+
+  rust-fuzz:
+    name: "Rust bounded fuzz smoke"
+    needs: changes
+    if: needs.changes.outputs.fuzz == 'true'
+    runs-on: ubuntu-24.04
+    env:
+      CARGO_FUZZ_VERSION: "0.13.2"
+      # LLVM sanitizer coverage used by cargo-fuzz
+      # is incompatible with fat LTO.
+      CARGO_PROFILE_RELEASE_LTO: "false"
+      RUSTUP_TOOLCHAIN: "nightly-2026-03-02"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Setup pinned nightly fuzz toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          toolchain: ${{ env.RUSTUP_TOOLCHAIN }}
+          cache-key: crypto-fuzz
+      - name: "Verify pinned nightly fuzz toolchain"
+        run: |
+          rustup show active-toolchain
+          rustup show active-toolchain | grep -q "^${RUSTUP_TOOLCHAIN}-"
+      - name: "Cache pinned cargo-fuzz"
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ~/.cargo/native-fuzz-tools
+          key: native-fuzz-tools-${{ runner.os }}-${{ runner.arch }}-${{ env.RUSTUP_TOOLCHAIN }}-${{ env.CARGO_FUZZ_VERSION }}
+      - name: "Expose cargo-fuzz"
+        run: echo "$HOME/.cargo/native-fuzz-tools/bin" >> "$GITHUB_PATH"
+      - name: "Install pinned cargo-fuzz"
+        run: cargo install --root "$HOME/.cargo/native-fuzz-tools" --locked cargo-fuzz --version "$CARGO_FUZZ_VERSION"
+      - name: "Compile all fuzz targets"
+        working-directory: util/crypto/rust
+        run: cargo check --manifest-path fuzz/Cargo.toml --all-targets --locked
+      - name: "Fuzz dispatcher"
+        working-directory: util/crypto/rust/fuzz
+        run: cargo fuzz run dispatch -- -max_total_time=30
+      - name: "Fuzz session lifecycle"
+        working-directory: util/crypto/rust/fuzz
+        run: cargo fuzz run session_lifecycle -- -max_total_time=30
+      - name: "Fuzz SSH private-key import"
+        working-directory: util/crypto/rust/fuzz
+        run: cargo fuzz run ssh_private_key_import -- -max_total_time=30
+      - name: "Fuzz OpenPGP read path"
+        working-directory: util/crypto/rust/fuzz
+        run: cargo fuzz run openpgp_read -- -max_total_time=30
+      - name: "Fuzz OpenPGP write path"
+        working-directory: util/crypto/rust/fuzz
+        run: cargo fuzz run openpgp_write -- -max_total_time=30
+
+  fixed-host-performance:
+    name: "Fixed-host Criterion measurements"
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.release-readiness }}
+    runs-on: [self-hosted, macOS, ARM64, native-crypto-benchmark]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Setup pinned Rust toolchain"
+        uses: ./.github/actions/setup_rust
+      - uses: ./.github/actions/prefetch_native
+        with:
+          manifests: util/crypto/rust/Cargo.toml
+      - name: "Verify release-readiness exception record"
+        run: |
+          cargo run \
+            --manifest-path util/crypto/tools/native-crypto-policy/Cargo.toml \
+            --locked -- \
+            --repository . \
+            --require-external-tracking-issue
+      - name: "Measure native crypto benchmarks"
+        working-directory: util/crypto/rust
+        run: >-
+          cargo bench
+          --package keyguard-crypto-core
+          --bench argon2
+          --bench bulk_primitives
+          --bench small_primitives
+          --locked
+          --
+          --save-baseline release-candidate
+      - name: "Upload Criterion measurements"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-crypto-fixed-host-performance
+          path: util/crypto/rust/target/criterion/
+          if-no-files-found: ignore
+          retention-days: 21
+  native-quality:
+    name: "Native utility Rust quality"
+    needs: changes
+    if: needs.changes.outputs.native_quality == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_rust
+        with:
+          cache-key: native-quality
+      - name: "Format, lint and test native utility crates"
+        shell: bash
+        run: |
+          for module in io instance zip zxcvbn; do
+            manifest="util/$module/rust/Cargo.toml"
+            cargo fmt --manifest-path "$manifest" --all -- --check
+            cargo clippy --manifest-path "$manifest" --workspace --all-targets --all-features --locked --no-deps -- -D warnings
+            cargo test --manifest-path "$manifest" --workspace --all-features --locked
+          done
+
+  desktop-bundle:
+    name: "Native desktop (${{ matrix.name }})"
+    needs: changes
+    if: needs.changes.outputs.desktop_run == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.changes.outputs.desktop_matrix) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - uses: ./.github/actions/setup_python
+      - name: "Test Windows native process cleanup"
+        if: runner.os == 'Windows'
+        run: python -m unittest scripts/test_run_native_package_smoke.py
+      - name: "Select latest stable Xcode"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && (needs.changes.outputs.apple == 'true' || needs.changes.outputs.apple_regressions == 'true')
+        shell: bash
+        run: |
+          version="$(
+            printf '%s\n' /Applications/Xcode_[0-9]*.app |
+              sed -En 's|.*/Xcode_([0-9]+(\.[0-9]+){0,2})\.app$|\1|p' |
+              sort -t. -k1,1nr -k2,2nr -k3,3nr |
+              head -n 1
+          )"
+          if [[ -z "$version" ]] || (( ${version%%.*} < 26 )); then
+            echo "Xcode 26 or newer is required; found $version" >&2
+            exit 1
+          fi
+          export DEVELOPER_DIR="/Applications/Xcode_$version.app/Contents/Developer"
+          printf 'DEVELOPER_DIR=%s\n' "$DEVELOPER_DIR" >> "$GITHUB_ENV"
+          xcodebuild -version
+      - uses: ./.github/actions/setup_rust
+        with:
+          targets: ${{ matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true' && 'aarch64-apple-darwin,aarch64-apple-ios,aarch64-apple-ios-sim' || matrix.target }}
+          components: ${{ matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true' && 'clippy,rustfmt,llvm-tools' || 'clippy,rustfmt' }}
+          cache-key: desktop
+      - name: "Expose Rust LLVM tools"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
+        shell: bash
+        run: |
+          llvm_tools_bin="$(dirname "$(rustc --print target-libdir)")/bin"
+          test -x "$llvm_tools_bin/llvm-nm"
+          printf '%s\n' "$llvm_tools_bin" >> "$GITHUB_PATH"
+      - uses: ./.github/actions/setup_protobuf
+      - uses: ./.github/actions/setup_linux_desktop
+        if: runner.os == 'Linux'
+      - uses: ./.github/actions/prefetch_native
+        with:
+          profile: desktop
+          manifests: thirdParty/rust/Cargo.toml
+      - uses: ./.github/actions/prefetch_native
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && (needs.changes.outputs.apple == 'true' || needs.changes.outputs.apple_regressions == 'true')
+        with:
+          profile: apple
+      - name: "Check platform helper formatting"
+        if: needs.changes.outputs.desktop_native == 'true'
+        run: cargo fmt --manifest-path desktopLibNative/src/Cargo.toml --check
+      - name: "Check platform helper code"
+        if: needs.changes.outputs.desktop_native == 'true'
+        run: >-
+          cargo clippy --manifest-path desktopLibNative/src/Cargo.toml
+          --all-targets --locked --offline -- -D warnings -D clippy::undocumented_unsafe_blocks
+      - name: "Run platform helper Rust tests"
+        if: needs.changes.outputs.desktop_native == 'true'
+        run: cargo test --manifest-path desktopLibNative/src/Cargo.toml --all-targets --locked --offline
+      - name: "Test Linux kernel credential protection"
+        if: runner.os == 'Linux' && needs.changes.outputs.desktop_native == 'true'
+        run: cargo test --manifest-path desktopLibNative/src/Cargo.toml --locked --offline keychain::memory::protected::tests -- --ignored
+      - name: "Test trusted Linux system bus"
+        if: runner.os == 'Linux' && needs.changes.outputs.desktop_native == 'true'
+        run: cargo test --manifest-path desktopLibNative/src/Cargo.toml --locked --offline system_bus_ignores_environment_override -- --ignored
+      - name: "Run macOS power observer tests"
+        if: runner.os == 'macOS' && needs.changes.outputs.desktop_native == 'true'
+        run: bash desktopLibNative/src/objc/tests/run.sh
+      - name: "Run OS-specific native Rust regressions"
+        if: runner.os != 'Linux' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.instance == 'true')
+        shell: bash
+        env:
+          CHECK_IO: ${{ needs.changes.outputs.io }}
+          CHECK_INSTANCE: ${{ needs.changes.outputs.instance }}
+        run: |
+          if [[ "$CHECK_IO" == true ]]; then
+            cargo test --manifest-path util/io/rust/Cargo.toml --workspace --all-features --locked --offline
+          fi
+          if [[ "$CHECK_INSTANCE" == true ]]; then
+            cargo test --manifest-path util/instance/rust/Cargo.toml --workspace --locked --offline
+          fi
+      - name: "Run OS-specific IO and instance JVM regressions"
+        if: runner.os != 'Linux' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.instance == 'true')
+        run: >-
+          ${{ matrix.gradle }} --continue --max-workers=1
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+          :util:io:desktopTest :util:instance:desktopTest :desktopApp:jvmTest
+      - name: "Run Windows private staging regressions"
+        if: runner.os == 'Windows' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.crypto == 'true')
+        run: >-
+          ${{ matrix.gradle }} --max-workers=1
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+          :common:desktopTest
+          --tests "com.artemchep.keyguard.crypto.PrivateTemporaryStorageDirectoryDesktopTest"
+          --tests "com.artemchep.keyguard.common.service.keepass.KeePassDatabaseWindowsSpillTest"
+      - name: "Run POLYVAL Armv8 PMULL backend regressions"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.crypto == 'true'
+        working-directory: thirdParty/rust
+        env:
+          RUSTFLAGS: "--cfg polyval_armv8 -D warnings"
+        run: cargo test --package polyval --all-features --locked --offline
+      - name: "Build desktop application image"
+        if: needs.changes.outputs.desktop == 'true'
+        run: >-
+          ${{ matrix.gradle }} --max-workers=1
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+          :desktopApp:createDistributable
+      - name: "Verify desktop bundle"
+        if: needs.changes.outputs.desktop == 'true'
+        run: >-
+          python scripts/verify_native_bundle.py desktop
+          desktopApp/build/compose/binaries/main/app
+          --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
+      - name: "Run macOS native consumer regressions"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && (needs.changes.outputs.apple == 'true' || needs.changes.outputs.apple_regressions == 'true')
+        run: >-
+          ./gradlew --continue --max-workers=1
+          -Pkeyguard.nativeCargo.cargoOffline=true
+          :util:crypto:macosArm64Test
+          :util:io:macosArm64Test
+          :util:instance:macosArm64Test
+          :util:zip:macosArm64Test
+          :util:zxcvbn:macosArm64Test
+      - name: "Link native consumers for device and simulator"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
+        run: >-
+          ./gradlew --max-workers=1
+          -Pkeyguard.nativeCargo.cargoOffline=true
+          :iosApp:linkDebugTestIosArm64
+          :iosApp:linkDebugTestIosSimulatorArm64
+          :iosApp:linkDebugFrameworkIosArm64
+          :iosApp:linkDebugFrameworkIosSimulatorArm64
+          :util:crypto:linkDebugTestMacosArm64
+      - name: "Run iOS native smoke on full manual checks"
+        if: github.event_name == 'workflow_dispatch' && inputs.coverage == 'full' && matrix.platform == 'macos' && matrix.arch == 'aarch64'
+        run: >-
+          ./gradlew --max-workers=1
+          -Pkeyguard.nativeCargo.cargoOffline=true
+          :iosApp:iosSimulatorArm64Test
+      - name: "Verify final Apple consumers and C archives"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
+        shell: bash
+        run: |
+          archives=()
+          while IFS= read -r -d '' archive; do
+            archives+=("$archive")
+          done < <(find util/crypto/build util/io/build util/zip/build util/zxcvbn/build -type f -name 'libkeyguard_*.a' -print0)
+          test "${#archives[@]}" -ge 4
+          python3 scripts/verify_native_bundle.py apple --arch aarch64 \
+            iosApp/build/bin/iosArm64/debugTest/test.kexe \
+            iosApp/build/bin/iosSimulatorArm64/debugTest/test.kexe \
+            "${archives[@]}"
+          python3 scripts/verify_native_bundle.py apple --arch aarch64 --require-crypto-exports \
+            util/crypto/build/bin/macosArm64/debugTest/test.kexe
+
+      - name: "Upload native regression reports"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-desktop-reports-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            util/crypto/build/reports/tests/
+            util/crypto/build/test-results/
+            util/zip/build/reports/tests/
+            util/zip/build/test-results/
+            util/zxcvbn/build/reports/tests/
+            util/zxcvbn/build/test-results/
+            util/io/build/reports/tests/
+            util/io/build/test-results/
+            util/instance/build/reports/tests/
+            util/instance/build/test-results/
+            common/build/reports/tests/
+            common/build/test-results/
+            desktopApp/build/reports/tests/
+            desktopApp/build/test-results/
+            iosApp/build/reports/tests/
+            iosApp/build/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  android-bundle:
+    name: "Android native bundle (API ${{ matrix.api }})"
+    needs: changes
+    if: needs.changes.outputs.android_run == 'true'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.changes.outputs.android_matrix) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - uses: ./.github/actions/setup_android_ndk
+      - uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
+          cache-key: android
+      - uses: ./.github/actions/prefetch_native
+        with:
+          profile: android
+      - uses: ./.github/actions/prepare_kvm
+      - uses: ./.github/actions/prepare_disk_space
+      - name: "Prepare Android package environment"
+        env:
+          VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
+        run: |
+          echo "$VARS_GOOGLE_SERVICES" | base64 -d | zcat > androidApp/google-services.json
+          echo "$VARS_GOOGLE_SERVICES" | base64 -d | zcat > wearApp/google-services.json
+      - uses: ./.github/actions/build_android_licenses
+        with:
+          build-flavor: "None"
+      - name: "Exercise native libraries on Android"
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          disable-animations: true
+          disk-size: 4G
+          script: >-
+            ./gradlew --max-workers=1
+            -Pkeyguard.nativeCargo.cargoOffline=true
+            :androidApp:connectedNoneDebugAndroidTest
+            -Pandroid.testInstrumentationRunnerArguments.class=com.artemchep.keyguard.test.nativebundle.NativeBundleSmokeTest,com.artemchep.keyguard.test.io.NativeIoAtomicDirectorySmokeTest
+      - name: "Build Wear package"
+        if: matrix.api == 26 && needs.changes.outputs.android == 'true'
+        run: >-
+          ./gradlew --max-workers=1
+          -Pkeyguard.nativeCargo.cargoOffline=true
+          :wearApp:assembleNoneDebug
+      - name: "Verify final Android and Wear APKs"
+        if: matrix.api == 26 && needs.changes.outputs.android == 'true'
+        shell: bash
+        run: |
+          shopt -s nullglob
+          android_apks=(androidApp/build/outputs/apk/none/debug/*.apk)
+          wear_apks=(wearApp/build/outputs/apk/none/debug/*.apk)
+          test "${#android_apks[@]}" -eq 1
+          test "${#wear_apks[@]}" -eq 1
+          python3 scripts/verify_native_bundle.py android "${android_apks[@]}" "${wear_apks[@]}"
+      - name: "Upload Android native reports"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-android-reports-${{ matrix.api }}
+          path: |
+            androidApp/build/outputs/androidTest-results/
+            androidApp/build/reports/androidTests/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  wear-runtime:
+    name: "Wear native runtime (API 33, manual)"
+    needs: changes
+    if: needs.changes.outputs.wear == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - uses: ./.github/actions/setup_android_ndk
+      - uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
+          cache-key: android
+      - uses: ./.github/actions/prefetch_native
+        with:
+          profile: android
+      - uses: ./.github/actions/prepare_kvm
+      - uses: ./.github/actions/prepare_disk_space
+      - name: "Prepare Wear package environment"
+        env:
+          VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
+        run: echo "$VARS_GOOGLE_SERVICES" | base64 -d | zcat > wearApp/google-services.json
+      - name: "Exercise native libraries on Wear"
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 33
+          target: android-wear
+          arch: x86_64
+          profile: wearos_square
+          disable-animations: true
+          disk-size: 4G
+          script: >-
+            ./gradlew --max-workers=1
+            -Pkeyguard.nativeCargo.cargoOffline=true
+            :wearApp:connectedNoneDebugAndroidTest
+            -Pandroid.testInstrumentationRunnerArguments.class=com.artemchep.keyguard.wear.nativebundle.NativeBundleSmokeTest
+      - name: "Upload Wear native reports"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-wear-reports
+          path: |
+            wearApp/build/outputs/androidTest-results/
+            wearApp/build/reports/androidTests/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  native-checks:
+    name: "Native checks"
+    if: always()
+    needs: [changes, crypto-quality, native-quality, rust-fuzz, desktop-bundle, android-bundle, wear-runtime, fixed-host-performance]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: "Require every selected check to succeed"
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+          READINESS_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.release-readiness }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          results = json.loads(os.environ["RESULTS"])
+          failures = {name: result["result"] for name, result in results.items() if result["result"] not in {"success", "skipped"}}
+          selected = results["changes"].get("outputs", {})
+          flags = {
+              "crypto-quality": "crypto", "native-quality": "native_quality",
+              "rust-fuzz": "fuzz", "desktop-bundle": "desktop_run",
+              "android-bundle": "android_run", "wear-runtime": "wear",
+          }
+          for job, flag in flags.items():
+              if selected.get(flag) == "true" and results[job]["result"] != "success":
+                  failures[job] = results[job]["result"]
+          if os.environ["READINESS_REQUESTED"] == "true" and results["fixed-host-performance"]["result"] != "success":
+              failures["fixed-host-performance"] = results["fixed-host-performance"]["result"]
+          if results["changes"]["result"] != "success" or failures:
+              raise SystemExit(f"Native checks did not pass: {failures}")
+          print("All selected native checks passed.")
+          PY

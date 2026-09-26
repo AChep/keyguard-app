@@ -17,20 +17,11 @@ import org.bouncycastle.openpgp.PGPSecretKeyRing
 import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPDigestCalculatorProviderBuilder
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class BcGpgKeyImportServiceTestOracle(
     private val publicKeyParser: GpgPublicKeyParser,
     private val metadataResolver: GpgKeyMetadataResolver,
 ) : GpgKeyImportService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        publicKeyParser = directDI.instance(),
-        metadataResolver = directDI.instance(),
-    )
-
     override fun import(
         request: GpgKeyImportRequest,
     ): GpgKeyImportResult {

@@ -3,11 +3,11 @@ package com.artemchep.keyguard.common.service.relays.repo
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
+import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.state.impl.toJson
 import com.artemchep.keyguard.common.service.state.impl.toMap
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
-import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.data.GeneratorEmailRelayQueries
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.CoroutineDispatcher
@@ -15,22 +15,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GeneratorEmailRelayRepositoryImpl(
     private val databaseManager: VaultDatabaseManager,
     private val json: Json,
     private val dispatcher: CoroutineDispatcher,
 ) : GeneratorEmailRelayRepository {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        databaseManager = directDI.instance(),
-        json = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
-
     override fun get(): Flow<List<DGeneratorEmailRelay>> =
         daoEffect { dao ->
             dao.get(1000)

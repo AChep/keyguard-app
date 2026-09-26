@@ -159,6 +159,7 @@ pub(in crate::openpgp) fn decrypt_stream_input(
         verification_public_keys: std::mem::take(&mut request.verification_public_keys),
         reference_time_epoch_seconds: request.reference_time_epoch_seconds,
         allow_signed_only: request.allow_signed_only.unwrap_or(false),
+        staging_directory: request.staging_directory.take(),
     }
 }
 

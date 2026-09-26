@@ -11,15 +11,15 @@ import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
+import org.koin.core.scope.Scope
 
 fun settingGpgKeyserverSearchProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingGpgKeyserverSearchProvider()
 
 fun settingGpgKeyserverSearchProvider(): SettingComponent = flowOf(

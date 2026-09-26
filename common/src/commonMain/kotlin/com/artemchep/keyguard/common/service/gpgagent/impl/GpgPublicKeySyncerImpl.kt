@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.gpgagent.impl
 
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
+import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GpgAgentFilter
 import com.artemchep.keyguard.common.model.filterCiphers
@@ -39,11 +40,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GpgPublicKeySyncerImpl(
-    private val directDI: DirectDI,
+    private val filterContext: CipherFilterContext,
     private val getCiphers: GetCiphers,
     private val getGpgAgent: GetGpgAgent,
     private val getGpgAgentFilter: GetGpgAgentFilter,
@@ -56,19 +55,6 @@ class GpgPublicKeySyncerImpl(
     companion object {
         private const val TAG = "GpgPublicKeySyncer"
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        directDI = directDI,
-        getCiphers = directDI.instance(),
-        getGpgAgent = directDI.instance(),
-        getGpgAgentFilter = directDI.instance(),
-        getGpgAgentDisplayKeyNames = directDI.instance(),
-        gpgPublicKeyRepository = directDI.instance(),
-        logRepository = directDI.instance(),
-        gpgKeyMetadataResolver = directDI.instance(),
-    )
 
     override fun launch(scope: CoroutineScope): Job = scope.launch {
         syncStates().collectLatest { state ->
@@ -129,7 +115,7 @@ class GpgPublicKeySyncerImpl(
         // Both surfaces only accept live GPG key ciphers, so the filter never
         // needs to see the rest of the vault.
         val filteredCiphers = filter.filterCiphers(
-            directDI = directDI,
+            context = filterContext,
             ciphers = ciphers.filter { cipher ->
                 cipher.isGpgAgentSecretType() && !cipher.deleted
             },

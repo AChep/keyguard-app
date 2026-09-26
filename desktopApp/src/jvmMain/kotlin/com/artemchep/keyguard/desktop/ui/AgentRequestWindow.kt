@@ -20,6 +20,7 @@ import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.agent.AgentRequest
 import com.artemchep.keyguard.desktop.util.WindowFocusRequestEffect
+import com.artemchep.keyguard.di.VaultSessionContent
 import com.artemchep.keyguard.feature.agent.AgentRequestUiState
 import com.artemchep.keyguard.feature.keyguard.AuthScreen
 import com.artemchep.keyguard.feature.keyguard.LocalAuthScreen
@@ -37,7 +38,8 @@ import com.artemchep.keyguard.ui.theme.GlobalExpressive
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.artemchep.keyguard.ui.theme.LocalExpressive
 import org.jetbrains.compose.resources.painterResource
-import org.kodein.di.compose.withDI
+import org.koin.compose.scope.UnboundKoinScope
+import org.koin.core.scope.Scope
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -148,9 +150,9 @@ private fun <T : AgentRequest> AgentUnlockWindow(
                     is Loadable.Loading -> ManualAppScreenOnLoading()
                     is Loadable.Ok -> {
                         val v = requestUiState.value
-                        // Provide the session DI so that the content can
+                        // Provide the session Scope so that the content can
                         // read the vault, e.g. to resolve the key's title.
-                        withDI(vaultState.di) {
+                        VaultSessionContent(vaultState.session) {
                             requestContent(v.request, v.onRequestHandled)
                         }
                     }

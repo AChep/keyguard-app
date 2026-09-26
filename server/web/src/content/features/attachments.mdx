@@ -15,10 +15,10 @@ Attach files to any vault item. A recovery code image, a scanned document, or a 
 
 Downloads run in the background, so you can keep working while a file transfers.
 
-You can also open an attachment in-app. It renders inside Keyguard instead of being written to your device first, which keeps sensitive files off local storage where other apps or backups might pick them up.
+You can also open an attachment in-app. It renders inside Keyguard without saving to disk first, keeping sensitive files off local storage where other apps or backups might access them.
 
 <Screenshot src={previewImage} caption="Previewing an image attachment in-app, without writing it to disk first" />
 
-Images aren't the only thing that opens in-app. Text and Markdown files render inline as well, in raw and formatted views with basic syntax highlighting, so a recovery note or a config file stays off the filesystem too.
+Text and Markdown files also render inline, in raw and formatted views with basic syntax highlighting, keeping recovery notes and config files off the filesystem.
 
 <Screenshot src={previewText} caption="A Markdown attachment opened in-app, with Source and Preview tabs" />

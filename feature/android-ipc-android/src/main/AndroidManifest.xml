@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name="com.artemchep.keyguard.android.ipc.AndroidIpcApprovalActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":openkeychain_ipc"
+            android:theme="@style/Theme.Keyguard.Dialog"
+            android:windowSoftInputMode="adjustResize" />
+
+        <service
+            android:name="com.artemchep.keyguard.android.ipc.SshAuthenticationService"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="org.openintents.ssh.authentication.ISshAuthenticationService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name="com.artemchep.keyguard.android.ipc.OpenPgpService"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="org.openintents.openpgp.IOpenPgpService2" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

@@ -7,7 +7,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.AttachmentPreviewException
@@ -18,6 +17,7 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.attachmentPreviewKindByFileName
 import com.artemchep.keyguard.common.model.isMarkdownAttachmentPreview
+import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
@@ -36,19 +36,17 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceAttachmentPreviewState(
     args: AttachmentPreviewRoute.Args,
-): Loadable<AttachmentPreviewState> = with(localDI().direct) {
+): Loadable<AttachmentPreviewState> = with(currentKoinScope()) {
     produceAttachmentPreviewState(
         args = args,
-        canPreviewAttachment = instance(),
-        getAttachmentPreview = instance(),
-        downloadManager = instance(),
+        canPreviewAttachment = get(),
+        getAttachmentPreview = get(),
+        downloadManager = get(),
     )
 }
 

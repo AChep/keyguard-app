@@ -12,18 +12,16 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun collectionScreenState(
     args: CollectionRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     collectionScreenState(
         args = args,
-        getOrganizations = instance(),
-        getCollections = instance(),
+        getOrganizations = get(),
+        getCollections = get(),
     )
 }
 

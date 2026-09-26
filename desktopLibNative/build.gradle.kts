@@ -3,6 +3,7 @@ import com.artemchep.keyguard.buildplugins.cargo.detectHostPlatform
 import com.artemchep.keyguard.buildplugins.cargo.dynamicLibraryName
 
 plugins {
+    id("keyguard.quality")
     id("keyguard.cargo-common")
 }
 
@@ -11,12 +12,7 @@ val desktopLibBinaryName = if (hostPlatform.isWindows) "keyguard-lib.dll" else "
 val cargoLibraryBinaryName = hostPlatform.dynamicLibraryName("keyguard")
 
 keyguardCargo {
-    sourceDir.set(layout.projectDirectory.dir("src"))
-    rustTarget.set(hostPlatform.desktopLibRustTarget)
     cargoBinaryName.set(cargoLibraryBinaryName)
     packagedBinaryName.set(desktopLibBinaryName)
-    composeResourceDir.set(hostPlatform.composeResourceDir)
-    compileTaskName.set(KeyguardTaskNames.compileNativeUniversal)
-    platformMacOs.set(hostPlatform.isMacOs)
-    platformWindows.set(hostPlatform.isWindows)
+    register(compileTaskName = KeyguardTaskNames.compileNativeUniversal)
 }

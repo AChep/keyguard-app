@@ -4,6 +4,11 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.feature.datepicker.getMonthTitleStringRes
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Date
 import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -11,13 +16,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toJavaLocalTime
 import kotlinx.datetime.toLocalDateTime
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
-import java.util.Date
 
 class DateFormatterJvm(
     private val context: LeContext,
@@ -28,12 +26,6 @@ class DateFormatterJvm(
     private val formatterDate = DateFormat.getDateInstance(DateFormat.LONG)
 
     private val machineDateTime = SimpleDateFormat("yyyyMMddHHmmss")
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance(),
-    )
 
     override fun formatDateTimeMachine(
         instant: Instant,

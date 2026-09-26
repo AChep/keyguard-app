@@ -4,13 +4,11 @@ import com.artemchep.keyguard.common.model.DFolderTree
 import com.artemchep.keyguard.common.usecase.GetFolderTree
 import com.artemchep.keyguard.common.usecase.GetFolderTreeById
 import com.artemchep.keyguard.common.usecase.GetFolders
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.coroutines.CoroutineContext
 
 /**
  * @author Artem Chepurnyi
@@ -23,11 +21,6 @@ class GetFolderTreeByIdImpl(
     companion object {
         private const val TAG = "GetFolderTreeById.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        getFolders = directDI.instance(),
-        getFolderTree = directDI.instance(),
-    )
 
     override fun invoke(
         folderId: String,

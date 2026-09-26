@@ -1,11 +1,12 @@
 package com.artemchep.keyguard.feature.websiteleak
 
 import androidx.compose.runtime.Immutable
+import arrow.core.Either
 import kotlinx.collections.immutable.ImmutableList
 
 @Immutable
 data class WebsiteLeakState(
-    val content: Content,
+    val content: Either<Throwable, Content>,
     val onClose: (() -> Unit)? = null,
 ) {
     @Immutable

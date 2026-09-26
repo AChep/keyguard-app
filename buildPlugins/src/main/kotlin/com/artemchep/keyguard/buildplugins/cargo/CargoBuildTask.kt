@@ -67,7 +67,11 @@ abstract class CargoBuildTask : DefaultTask() {
         outputs.upToDateWhen { false }
         cargoArguments.convention(emptyList())
         environmentVariables.convention(emptyMap())
-        offline.convention(false)
+        offline.convention(
+            project.providers.gradleProperty("keyguard.nativeCargo.cargoOffline")
+                .map(String::toBooleanStrict)
+                .orElse(false),
+        )
     }
 
     fun configureAndroidLinker(linkerExecutable: Provider<out RegularFile>) {
@@ -111,6 +115,9 @@ abstract class CargoBuildTask : DefaultTask() {
             }
         if (offline.get()) {
             add("--offline")
+            if ("--locked" !in cargoArguments.get()) {
+                add("--locked")
+            }
         }
         addAll(cargoArguments.get())
     }

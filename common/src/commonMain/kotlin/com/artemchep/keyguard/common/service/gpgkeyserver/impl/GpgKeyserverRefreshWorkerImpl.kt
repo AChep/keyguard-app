@@ -12,6 +12,10 @@ import com.artemchep.keyguard.common.usecase.GetGpgKeyserverAutoRefresh
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverLastRefresh
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverRefreshInterval
 import com.artemchep.keyguard.common.usecase.RefreshGpgPublicKeys
+import kotlin.coroutines.coroutineContext
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -21,12 +25,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.coroutines.coroutineContext
-import kotlin.time.Clock
-import kotlin.time.Duration
-import kotlin.time.Instant
 
 class GpgKeyserverRefreshWorkerImpl(
     private val getGpgKeyserverAutoRefresh: GetGpgKeyserverAutoRefresh,
@@ -40,17 +38,6 @@ class GpgKeyserverRefreshWorkerImpl(
     companion object {
         private const val TAG = "GpgKeyserverRefreshWorker"
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        getGpgKeyserverAutoRefresh = directDI.instance(),
-        getGpgKeyserverRefreshInterval = directDI.instance(),
-        getGpgKeyserverLastRefresh = directDI.instance(),
-        getCiphers = directDI.instance(),
-        refreshGpgPublicKeys = directDI.instance(),
-        logRepository = directDI.instance(),
-    )
 
     override fun launch(scope: CoroutineScope): Job = scope.launch {
         combine(

@@ -10,16 +10,15 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.artemchep.keyguard.common.service.download.DownloadRepository
-import kotlinx.coroutines.flow.first
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.instance
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.keyguardKoin
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.flow.first
 
 class AttachmentDownloadAllWorker(
     context: Context,
     params: WorkerParameters,
-) : CoroutineWorker(context, params), DIAware {
+) : CoroutineWorker(context, params), KeyguardKoinOwner {
     companion object {
         private const val WORK_ID = "AttachmentDownloadAllWorker"
 
@@ -44,10 +43,10 @@ class AttachmentDownloadAllWorker(
         }
     }
 
-    override val di by closestDI { applicationContext }
+    override val koin get() = applicationContext.keyguardKoin()
 
     override suspend fun doWork(): Result {
-        val downloadRepository: DownloadRepository by instance()
+        val downloadRepository: DownloadRepository by lazy { koin.get() }
         // Check what downloads we currently have and
         // start the unfinished ones again.
         val downloadList = downloadRepository.get().first()

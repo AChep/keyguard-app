@@ -9,7 +9,6 @@ import arrow.core.Option
 import arrow.core.andThen
 import arrow.core.getOrElse
 import arrow.core.identity
-import arrow.core.partially1
 import arrow.core.some
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
@@ -247,7 +246,18 @@ suspend fun RememberStateFlowScope.unlockStateProducer(
             ),
             isLoading = taskExecuting,
             unlockVaultByMasterPassword = if (canCreateVault) {
-                unlockVaultByMasterPasswordFn.partially1(validatedPassword.model)
+                {
+                    // The UI may submit before the latest edit has propagated
+                    // through the state flow. Read the canonical input now.
+                    val password = passwordHandle.sink.value.text
+                    screenScope.launch {
+                        val validated = validatedTitle(password)
+                        if (validated is Validated.Success) {
+                            unlockVaultByMasterPasswordFn(validated.model)
+                        }
+                    }
+                    Unit
+                }
             } else {
                 null
             },
@@ -365,7 +375,7 @@ private suspend fun createPromptOrNull(
                     executor.execute(io)
                 },
                 ifRight = {
-                    fn.invoke()
+                    fn.invoke(it)
                 },
             )
         },
@@ -391,7 +401,7 @@ private class UnlockVaultWithPassword(
     }
 }
 
-private class UnlockVaultWithBiometric(
+internal class UnlockVaultWithBiometric(
     private val executor: LoadingTask,
     /**
      * A getter for the cipher to pass to the biometric
@@ -405,7 +415,7 @@ private class UnlockVaultWithBiometric(
      */
     val getFailureIo: (BiometricAuthException) -> IO<Unit>,
     val requireConfirmation: Boolean,
-) : () -> Unit {
+) : (LeBiometricCipher) -> Unit {
     // Create from vault state options
     constructor(
         executor: LoadingTask,
@@ -418,9 +428,13 @@ private class UnlockVaultWithBiometric(
         requireConfirmation = options.requireConfirmation,
     )
 
-    override fun invoke() {
-        val io = getCreateIo()
-        executor.execute(io)
+    override fun invoke(cipher: LeBiometricCipher) {
+        runCatching {
+            val io = getCreateIo()
+            executor.execute(io, onCompletion = cipher::clear)
+        }
+            .onFailure { cipher.clear() }
+            .getOrThrow()
     }
 }
 

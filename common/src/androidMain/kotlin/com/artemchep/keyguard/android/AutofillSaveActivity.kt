@@ -36,20 +36,20 @@ import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.android.autofill.AutofillStructure2
 import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.di.KeyguardKoinOwner
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.of
 import com.artemchep.keyguard.platform.recordLog
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.colorizePassword
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.parcelize.Parcelize
-import org.kodein.di.DIAware
+import org.jetbrains.compose.resources.stringResource
 
-class AutofillSaveActivity : BaseActivity(), DIAware {
+class AutofillSaveActivity : BaseActivity(), KeyguardKoinOwner {
     companion object {
         private const val KEY_ARGUMENTS = "arguments"
 

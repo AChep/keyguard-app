@@ -5,12 +5,10 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.PasswordGeneratorConfig
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.usecase.GetPinCode
-import kotlinx.coroutines.ensureActive
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.coroutines.coroutineContext
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlinx.coroutines.ensureActive
 
 class GetPinCodeImpl(
     private val cryptoGenerator: CryptoGenerator,
@@ -578,10 +576,6 @@ class GetPinCodeImpl(
             9999,
         )
     }
-
-    constructor(directDI: DirectDI) : this(
-        cryptoGenerator = directDI.instance(),
-    )
 
     override fun invoke(
         config: PasswordGeneratorConfig.PinCode,

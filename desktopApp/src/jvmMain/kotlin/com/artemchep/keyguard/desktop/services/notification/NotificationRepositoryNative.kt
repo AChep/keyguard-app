@@ -7,15 +7,10 @@ import com.artemchep.keyguard.common.model.DNotification
 import com.artemchep.keyguard.common.model.DNotificationKey
 import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.platform.LeContext
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class NotificationRepositoryNative(
     private val context: LeContext,
 ) : NotificationRepository {
-    constructor(directDI: DirectDI) : this(
-        context = directDI.instance(),
-    )
 
     override fun post(notification: DNotification): IO<DNotificationKey?> = ioEffect {
         val title = notification.title

@@ -12,8 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -27,13 +25,6 @@ class RemoveAccountsImpl(
     companion object {
         private const val TAG = "RemoveAccounts.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        db = directDI.instance(),
-        fileService = directDI.instance(),
-        markBackupAsDirty = directDI.instance(),
-        pendingUploadGarbageCollector = directDI.instance(),
-    )
 
     override fun invoke(): IO<Unit> = db
         .get()

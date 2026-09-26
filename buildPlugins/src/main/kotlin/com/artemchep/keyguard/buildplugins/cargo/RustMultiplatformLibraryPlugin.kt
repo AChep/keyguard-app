@@ -6,7 +6,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
@@ -22,6 +22,7 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
         pluginManager.apply("keyguard.cargo-common")
 
+        val extension = extensions.create<RustMultiplatformLibraryExtension>("keyguardRust", project)
         val naming = RustModuleNaming(this)
         val moduleName = naming.moduleName
         val moduleTaskName = naming.moduleTaskName
@@ -35,20 +36,17 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
         val desktopCompileTaskName = "compile${nativeTaskName}Desktop"
         val cargoOffline = cargoOfflineProvider(moduleTaskName)
 
-        extensions.configure<CargoCommonExtension> {
+        val cargoExtension = extensions.getByType<CargoCommonExtension>().apply {
             sourceDir.set(rustSourceDirectory)
-            rustTarget.set(hostPlatform.desktopLibRustTarget)
+            extraSourceInputs.from(extension.extraSourceInputs)
             cargoPackage.set("$cargoPackagePrefix-jni")
             cargoArguments.add("--locked")
             cargoBinaryName.set(desktopLibraryFileName)
-            packagedBinaryName.set(desktopLibraryFileName)
-            composeResourceDir.set(hostPlatform.composeResourceDir)
-            cargoTaskName.set(desktopCargoTaskName)
-            compileTaskName.set(desktopCompileTaskName)
-            platformMacOs.set(hostPlatform.isMacOs)
-            platformWindows.set(hostPlatform.isWindows)
-            markExecutable.set(true)
         }
+        val desktopTasks = cargoExtension.register(
+            compileTaskName = desktopCompileTaskName,
+            cargoTaskName = desktopCargoTaskName,
+        )
 
         tasks.withType<CargoBuildTask>().configureEach {
             offline.set(cargoOffline)
@@ -58,9 +56,9 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
             "verify${nativeTaskName}DesktopRustTarget",
         ) {
             sourceDir.set(rustSourceDirectory)
-            rustTarget.set(hostPlatform.desktopLibRustTarget)
+            rustTarget.set(hostPlatform.rustTarget)
         }
-        tasks.matching { task -> task.name == desktopCargoTaskName }.configureEach {
+        desktopTasks.build.configure {
             dependsOn(verifyDesktopRustTarget)
         }
 
@@ -71,6 +69,7 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
             nativeLibraryName = "${nativeLibraryPrefix}_jni",
             rustSourceDirectory = rustSourceDirectory,
             targets = androidTargets,
+            extension = extension,
         )
         configureAndroidPackaging(
             nativeTaskName = nativeTaskName,
@@ -84,11 +83,11 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
             nativeLibraryName = "${nativeLibraryPrefix}_c",
             rustSourceDirectory = rustSourceDirectory,
             targets = appleTargets,
+            extraSourceInputs = extension.extraSourceInputs,
         )
         configureAppleInterop(
             moduleName = moduleName,
             moduleTaskName = moduleTaskName,
-            nativeTaskName = nativeTaskName,
             rustSourceDirectory = rustSourceDirectory,
             targets = appleTargets,
             cargoTasks = appleCargoTasks,
@@ -108,7 +107,7 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
             group = "build"
             description =
                 "Builds the $nativeTaskName JNI library for the current ${hostPlatform.name} host."
-            dependsOn(desktopCompileTaskName)
+            dependsOn(desktopTasks.compile)
         }
         tasks.register("compile${nativeTaskName}All") {
             group = "build"
@@ -116,11 +115,12 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
                 "Builds $nativeTaskName artifacts for Android, the current Desktop host, and Apple."
             dependsOn(compileAndroidAll)
             dependsOn(compileAppleAll)
-            dependsOn(desktopCompileTaskName)
+            dependsOn(desktopTasks.compile)
         }
-        tasks.matching { task -> task.name == "assemble" }.configureEach {
-            dependsOn(desktopCompileTaskName)
+        tasks.named("assemble") {
+            dependsOn(desktopTasks.compile)
         }
+        Unit
     }
 
     private fun Project.registerAndroidLibraries(
@@ -129,6 +129,7 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
         nativeLibraryName: String,
         rustSourceDirectory: org.gradle.api.file.Directory,
         targets: List<AndroidNativeTarget>,
+        extension: RustMultiplatformLibraryExtension,
     ): List<TaskProvider<PrepareNativeLibraryTask>> {
         val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
         val androidMinSdk = libs.findVersion("androidMinSdk").get().requiredVersion.toInt()
@@ -176,6 +177,8 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
                     fileTree(rustSourceDirectory) {
                         exclude("target/**", "**/target/**")
                     },
+                    extension.extraSourceInputs.asFileTree,
+                    extension.androidCmakeToolchainFile.map { listOf(it) }.orElse(emptyList()),
                 )
                 this.cargoTargetDir.set(cargoTargetDirectory)
                 rustTarget.set(target.rustTarget)
@@ -203,6 +206,14 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
                 environmentVariables.put(
                     AndroidCargoEnvironment.targetEnvironmentName("RANLIB", target.rustTarget),
                     androidBuildTools.map { tools -> tools.ranlib.absolutePath },
+                )
+                environmentVariables.putAll(
+                    extension.androidCmakeToolchainFile.map { toolchainFile ->
+                        mapOf(
+                            AndroidCargoEnvironment.targetEnvironmentName("CMAKE_TOOLCHAIN_FILE", target.rustTarget) to
+                                toolchainFile.asFile.absolutePath,
+                        )
+                    }.orElse(emptyMap()),
                 )
                 environmentVariables.put("KEYGUARD_ANDROID_ABI", target.androidAbi)
                 environmentVariables.put(

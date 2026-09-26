@@ -106,13 +106,6 @@
 # optimization. No other AutoLink classes use reflection.
 -keep enum org.nibor.autolink.LinkType { *; }
 
-# Kaverit supplies these rules to Android consumers, but its JVM artifacts do
-# not include them. Kodein reflects over these type-token subclasses.
--keep,allowobfuscation,allowoptimization class org.kodein.type.TypeReference
--keep,allowobfuscation,allowoptimization class org.kodein.type.JVMAbstractTypeToken$Companion$WrappingTest
--keep,allowobfuscation,allowoptimization class * extends org.kodein.type.TypeReference
--keep,allowobfuscation,allowoptimization class * extends org.kodein.type.JVMAbstractTypeToken$Companion$WrappingTest
-
 # Preserve Kotlin's sealed-subclass metadata for the persisted vault filters.
 # ProGuard 7.8 otherwise rewrites the permitted-subclasses relationship into
 # an invalid hierarchy when the vault screen initializes.
@@ -147,7 +140,3 @@
 -dontwarn org.bouncycastle.jsse.**
 -dontwarn org.conscrypt.**
 -dontwarn org.openjsse.**
-
-# Kodein's inline instance lookup can leave a reference to a compiler-generated
-# class that is not emitted into the published artifact.
--dontwarn org.kodein.di.compose.RetrievingKt$rememberNamedInstance$1$1$invoke$$inlined$instance-**

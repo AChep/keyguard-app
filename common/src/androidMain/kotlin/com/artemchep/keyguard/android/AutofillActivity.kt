@@ -38,21 +38,19 @@ import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.model.AutofillHint
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.di.KeyguardKoinOwner
 import com.artemchep.keyguard.pick
 import com.artemchep.keyguard.platform.recordLog
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.theme.Dimens
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DIAware
-import org.kodein.di.direct
-import org.kodein.di.instance
 
-class AutofillActivity : BaseActivity(), DIAware {
+class AutofillActivity : BaseActivity(), KeyguardKoinOwner {
     companion object {
         private const val KEY_ARGUMENTS = "arguments"
 
@@ -73,7 +71,7 @@ class AutofillActivity : BaseActivity(), DIAware {
     ) : Parcelable
 
     private val getTotpCode: GetTotpCode by lazy {
-        di.direct.instance()
+        koin.get()
     }
 
     private val args by lazy {

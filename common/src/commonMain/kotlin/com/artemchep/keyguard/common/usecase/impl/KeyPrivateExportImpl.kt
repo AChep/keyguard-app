@@ -3,26 +3,17 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.util.io.writeText
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
+import com.artemchep.keyguard.util.io.writeText
 import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class KeyPrivateExportImpl(
     private val dirsService: DirsService,
     private val dateFormatter: DateFormatter,
 ) : KeyPrivateExport {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        dirsService = directDI.instance(),
-        dateFormatter = directDI.instance(),
-    )
-
     override fun invoke(
         parameter: KeyPair.KeyParameter,
     ): IO<String?> = ioEffect {

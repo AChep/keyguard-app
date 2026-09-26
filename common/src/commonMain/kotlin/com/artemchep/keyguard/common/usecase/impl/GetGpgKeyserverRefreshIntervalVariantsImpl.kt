@@ -1,12 +1,10 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverRefreshIntervalVariants
-import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
 import kotlin.time.Duration.Companion.days
+import kotlinx.coroutines.flow.flowOf
 
-class GetGpgKeyserverRefreshIntervalVariantsImpl(
-) : GetGpgKeyserverRefreshIntervalVariants {
+class GetGpgKeyserverRefreshIntervalVariantsImpl : GetGpgKeyserverRefreshIntervalVariants {
     private val sharedFlow = flowOf(
         listOf(
             1.days,
@@ -16,8 +14,6 @@ class GetGpgKeyserverRefreshIntervalVariantsImpl(
             30.days,
         ),
     )
-
-    constructor(directDI: DirectDI) : this()
 
     override fun invoke() = sharedFlow
 }

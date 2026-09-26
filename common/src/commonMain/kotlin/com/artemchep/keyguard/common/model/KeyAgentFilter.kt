@@ -1,7 +1,5 @@
 package com.artemchep.keyguard.common.model
 
-import org.kodein.di.DirectDI
-
 /**
  * A user-configured filter narrowing which vault ciphers a key
  * agent/provider surface is allowed to expose.
@@ -18,7 +16,7 @@ interface KeyAgentFilter {
  * surfaces must share this pipeline so they expose the same key set.
  */
 suspend fun <T> KeyAgentFilter.filterCiphers(
-    directDI: DirectDI,
+    context: CipherFilterContext,
     items: List<T>,
     cipherOf: (T) -> DSecret,
 ): List<T> {
@@ -28,7 +26,7 @@ suspend fun <T> KeyAgentFilter.filterCiphers(
 
     val predicate = toDFilter()
         .prepare(
-            directDI = directDI,
+            context = context,
             ciphers = items.map(cipherOf),
         )
     return items
@@ -36,10 +34,10 @@ suspend fun <T> KeyAgentFilter.filterCiphers(
 }
 
 suspend fun KeyAgentFilter.filterCiphers(
-    directDI: DirectDI,
+    context: CipherFilterContext,
     ciphers: List<DSecret>,
 ): List<DSecret> = filterCiphers(
-    directDI = directDI,
+    context = context,
     items = ciphers,
     cipherOf = { it },
 )

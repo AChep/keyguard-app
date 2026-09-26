@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.model.ignores
+import com.artemchep.keyguard.common.model.isWatchtowerEligible
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.service.logging.LogLevel
@@ -15,8 +16,6 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
 import com.artemchep.keyguard.platform.LeSystem
 import com.artemchep.keyguard.platform.util.isRelease
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.math.absoluteValue
 import kotlin.time.measureTimedValue
 
@@ -90,13 +89,6 @@ class CipherDuplicatesCheckImpl(
         val domain: String,
     )
 
-    constructor(directDI: DirectDI) : this(
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-        similarityService = directDI.instance(),
-        logRepository = directDI.instance(),
-    )
-
     override fun invoke(
         ciphers: List<DSecret>,
         sensitivity: CipherDuplicatesCheck.Sensitivity,
@@ -104,7 +96,8 @@ class CipherDuplicatesCheckImpl(
         val existingGroupIds = mutableSetOf<String>()
         val pCiphers = ciphers
             .filter { cipher ->
-                !cipher.ignores(DWatchtowerAlertType.DUPLICATE)
+                cipher.isWatchtowerEligible &&
+                        !cipher.ignores(DWatchtowerAlertType.DUPLICATE)
             }
             .map { cipher ->
                 processCipher(cipher)

@@ -47,7 +47,7 @@ use pgp::types::{
 use prost::Message as _;
 
 const TEST_TIME: u64 = 1_700_000_000;
-static STREAM_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+pub(super) static STREAM_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 type EncryptedMessageArmorCase = (&'static str, Vec<u8>, Vec<u8>, OpenPgpProtectionMode, bool);
 
 fn open_detached_sign_session(
@@ -659,6 +659,7 @@ fn buffered_public_decryption_error(encrypted: Vec<u8>, private_key: Vec<u8>) ->
 
 fn streaming_public_decryption_error(encrypted: &[u8], private_key: Vec<u8>) -> PrimitiveError {
     let mut session = OpenPgpSession::decrypt(OpenPgpDecryptStreamOpenRequest {
+        staging_directory: None,
         private_keys: vec![private_key],
         verification_public_keys: Vec::new(),
         reference_time_epoch_seconds: Some(TEST_TIME),
@@ -964,6 +965,7 @@ fn hidden_recipient_reaches_candidate_65_buffered_and_streaming() {
     );
 
     let mut session = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+        staging_directory: None,
         private_keys: vec![private_key],
         verification_public_keys: Vec::new(),
         reference_time_epoch_seconds: Some(TEST_TIME),
@@ -1408,6 +1410,7 @@ fn assert_buffered_and_streaming_decryption_warnings(
     assert_eq!(buffered.warnings, expected);
 
     let mut session = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+        staging_directory: None,
         private_keys,
         verification_public_keys: Vec::new(),
         reference_time_epoch_seconds: Some(TEST_TIME + 1),
@@ -3051,6 +3054,7 @@ fn decrypt_crc_test_message_streaming(
     private_key: &[u8],
 ) -> (Vec<u8>, OpenPgpDecryptFinal) {
     let mut session = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+        staging_directory: None,
         private_keys: vec![private_key.to_vec()],
         verification_public_keys: Vec::new(),
         reference_time_epoch_seconds: Some(1_800_000_000),
@@ -3083,6 +3087,7 @@ fn decrypt_crc_test_message_streaming(
 
 fn crc_test_streaming_is_rejected(armored: &[u8], private_key: &[u8]) -> bool {
     let mut session = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+        staging_directory: None,
         private_keys: vec![private_key.to_vec()],
         verification_public_keys: Vec::new(),
         reference_time_epoch_seconds: Some(1_800_000_000),
@@ -3163,6 +3168,7 @@ fn decrypt_envelope_streaming(
     chunk_size: usize,
 ) -> Result<Vec<u8>, OpenPgpWriteError> {
     let mut session = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+        staging_directory: None,
         private_keys: vec![private_key.to_vec()],
         verification_public_keys: Vec::new(),
         reference_time_epoch_seconds: Some(1_800_000_000),
@@ -3304,6 +3310,7 @@ fn decrypt_recipient_bound_case(
     }
 
     let mut session = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+        staging_directory: None,
         private_keys: vec![private_key.to_vec()],
         verification_public_keys: vec![verification_public_key.to_vec()],
         reference_time_epoch_seconds: Some(reference_time),
@@ -5683,6 +5690,7 @@ fn inline_verification_rejects_mathematically_valid_non_document_signature() {
     );
 
     let mut session = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+        staging_directory: None,
         private_keys: Vec::new(),
         verification_public_keys: vec![material.public_key_armored.clone()],
         reference_time_epoch_seconds: Some(TEST_TIME + 2),
@@ -8852,6 +8860,7 @@ fn allow_signed_only_rejects_unsigned_literal_messages_without_streaming_plainte
         );
 
         let mut session = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+            staging_directory: None,
             private_keys: Vec::new(),
             verification_public_keys: Vec::new(),
             reference_time_epoch_seconds: Some(TEST_TIME + 6),
@@ -8943,6 +8952,7 @@ fn signed_only_messages_require_valid_verification_and_preserve_literal_metadata
         );
 
         let mut session = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+            staging_directory: None,
             private_keys: Vec::new(),
             verification_public_keys: Vec::new(),
             reference_time_epoch_seconds: Some(TEST_TIME + 6),
@@ -9103,6 +9113,7 @@ fn decryption_results_identify_the_successful_private_component() {
     );
 
     let mut streaming = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+        staging_directory: None,
         private_keys: vec![
             recipient.private_key_armored.clone(),
             unrelated.private_key_armored.clone(),
@@ -9159,6 +9170,7 @@ fn streaming_encryption_without_compression_preserves_metadata() {
     encrypted.extend_from_slice(&final_output.data);
 
     let mut decryption = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+        staging_directory: None,
         private_keys: vec![material.private_key_armored.clone()],
         verification_public_keys: Vec::new(),
         reference_time_epoch_seconds: Some(TEST_TIME + 7),
@@ -9470,6 +9482,152 @@ fn signed_encryption_uses_an_independent_nonzero_signature_time() {
 }
 
 #[test]
+fn streaming_seipd_v1_roundtrips_above_control_envelope_limit() {
+    let _stream_guard = STREAM_TEST_LOCK
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let public_key = include_bytes!("../../../../tests/fixtures/openpgp/mdc-public.asc");
+    let private_key = include_bytes!("../../../../tests/fixtures/openpgp/mdc-secret.asc");
+    let directory = tempfile::tempdir().unwrap();
+    for (mib, compressed, armored) in [
+        (15, false, false),
+        (16, false, false),
+        (17, false, false),
+        (17, false, true),
+        (17, true, false),
+        (17, true, true),
+    ] {
+        let size = mib * 1024 * 1024;
+        let plaintext: Vec<u8> = (0..size).map(|i| (i % 251) as u8).collect();
+        let mut encryption = open_encryption_session(OpenPgpEncryptStreamOpenRequest {
+            public_keys: vec![public_key.to_vec()],
+            file_name: "large-mdc.bin".to_owned(),
+            reference_time_epoch_seconds: Some(1_800_000_000),
+            enable_compression: Some(compressed),
+            armored,
+            signing_private_key: None,
+            preferred_signing_fingerprint: String::new(),
+            literal_time_epoch_seconds: None,
+            candidate_revocation_keys: Vec::new(),
+        })
+        .unwrap();
+        let mut encrypted = Vec::new();
+        for chunk in plaintext.chunks(OPENPGP_PARTIAL_PACKET_BYTES) {
+            encrypted.extend(encryption.update(chunk).unwrap());
+        }
+        let final_output = encryption.finish().unwrap();
+        assert_eq!(final_output.protection_mode, ProtectionMode::SeipdV1Mdc);
+        encrypted.extend_from_slice(&final_output.data);
+        // Independent rPGP control proves that the same ciphertext is valid.
+        let (key, _) = SignedSecretKey::from_armor_single(Cursor::new(private_key)).unwrap();
+        let mut oracle = Message::from_reader(Cursor::new(&encrypted))
+            .unwrap()
+            .0
+            .decrypt(&Password::empty(), &key)
+            .unwrap()
+            .decompress()
+            .unwrap();
+        let mut expected = Vec::new();
+        oracle.read_to_end(&mut expected).unwrap();
+        assert!(expected == plaintext);
+
+        let mut session = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+            staging_directory: Some(directory.path().to_str().unwrap().to_owned()),
+            private_keys: vec![private_key.to_vec()],
+            verification_public_keys: Vec::new(),
+            reference_time_epoch_seconds: Some(1_800_000_000),
+            allow_signed_only: None,
+        })
+        .unwrap();
+        let mut actual = Vec::new();
+        for chunk in encrypted.chunks(OPENPGP_PARTIAL_PACKET_BYTES) {
+            let output = session.update(chunk).expect("valid large MDC update");
+            assert!(
+                output.is_empty(),
+                "MDC output before end-of-input authentication"
+            );
+        }
+        loop {
+            let chunk = session.drain().expect("drain authenticated MDC plaintext");
+            if chunk.is_empty() {
+                break;
+            }
+            assert!(chunk.len() <= OPENPGP_PARTIAL_PACKET_BYTES);
+            actual.extend(chunk);
+        }
+        actual.extend_from_slice(&session.finish().expect("valid large MDC finish").data);
+        assert!(actual == plaintext, "roundtrip failed for {size} bytes");
+        if mib == 17 && !compressed && !armored {
+            for mutation in 0..3 {
+                let mut damaged = encrypted.clone();
+                match mutation {
+                    0 => {
+                        *damaged.last_mut().unwrap() ^= 1;
+                    }
+                    1 => {
+                        damaged.pop();
+                    }
+                    _ => {
+                        damaged.extend_from_slice(&[0xcb, 0]);
+                    } // forbidden outer literal packet
+                }
+                let mut session = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+                    staging_directory: Some(directory.path().to_str().unwrap().to_owned()),
+                    private_keys: vec![private_key.to_vec()],
+                    reference_time_epoch_seconds: Some(1_800_000_000),
+                    verification_public_keys: Vec::new(),
+                    allow_signed_only: None,
+                })
+                .unwrap();
+                let mut error = None;
+                for chunk in damaged.chunks(OPENPGP_PARTIAL_PACKET_BYTES) {
+                    match session.update(chunk) {
+                        Ok(output) => assert!(output.is_empty()),
+                        Err(e) => {
+                            error = Some(e);
+                            break;
+                        }
+                    }
+                }
+                if error.is_none() {
+                    error = Some(
+                        session
+                            .drain()
+                            .expect_err("damaged MDC must not emit plaintext"),
+                    );
+                }
+                assert_eq!(error, Some(OpenPgpWriteError::AuthenticationFailed));
+            }
+            // Cancellation while collecting ciphertext and while replay is blocked
+            // must close the worker and its anonymous encrypted scratch file.
+            for cancel_after_authentication in [false, true] {
+                let mut session = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+                    staging_directory: Some(directory.path().to_str().unwrap().to_owned()),
+                    private_keys: vec![private_key.to_vec()],
+                    reference_time_epoch_seconds: Some(1_800_000_000),
+                    verification_public_keys: Vec::new(),
+                    allow_signed_only: None,
+                })
+                .unwrap();
+                let input = if cancel_after_authentication {
+                    encrypted.as_slice()
+                } else {
+                    &encrypted[..encrypted.len() - 1024]
+                };
+                for chunk in input.chunks(OPENPGP_PARTIAL_PACKET_BYTES) {
+                    assert!(session.update(chunk).unwrap().is_empty());
+                }
+                if cancel_after_authentication {
+                    assert!(!session.drain().unwrap().is_empty());
+                }
+                drop(session);
+            }
+        }
+        assert_eq!(std::fs::read_dir(directory.path()).unwrap().count(), 0);
+    }
+}
+
+#[test]
 fn streaming_seipd_v1_withholds_plaintext_until_mdc_authentication() {
     let _stream_guard = STREAM_TEST_LOCK
         .lock()
@@ -9513,6 +9671,7 @@ fn streaming_seipd_v1_withholds_plaintext_until_mdc_authentication() {
 
     let decrypt = |ciphertext: &[u8]| {
         let mut session = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+            staging_directory: None,
             private_keys: vec![private_key.clone()],
             verification_public_keys: Vec::new(),
             reference_time_epoch_seconds: Some(1_800_000_000),
@@ -9599,6 +9758,7 @@ fn streaming_dual_mode_seipd_v2_armor_roundtrip_preserves_large_compressible_pla
     );
 
     let mut decryption = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+        staging_directory: None,
         private_keys: vec![material.private_key_armored.clone()],
         verification_public_keys: vec![signer.public_key_armored.clone()],
         reference_time_epoch_seconds: Some(1_800_000_000),
@@ -9864,6 +10024,7 @@ fn streaming_aead_releases_authenticated_chunks_but_rejects_truncated_final_tag(
     encrypted.extend_from_slice(&encrypted_final.data);
     let truncated = &encrypted[..encrypted.len() - 1];
     let mut decryption = open_decryption_session(OpenPgpDecryptStreamOpenRequest {
+        staging_directory: None,
         private_keys: vec![material.private_key_armored.clone()],
         verification_public_keys: Vec::new(),
         reference_time_epoch_seconds: Some(TEST_TIME + 4),

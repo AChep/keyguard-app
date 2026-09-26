@@ -79,8 +79,11 @@ class SshAgentApprovalWindowMemory(
     inner class Access internal constructor(
         private val access: AgentApprovalWindowMemory<SshApprovalCacheKey, AgentApprovalCachePolicy>.Access,
     ) {
+        /** The original lookup result; use [canReuseNow] after suspending. */
         val isRemembered: Boolean
             get() = access.isRemembered
+
+        fun canReuseNow(): Boolean = access.canReuseNow()
 
         suspend fun remember() {
             access.remember()

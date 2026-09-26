@@ -1,28 +1,32 @@
 package com.artemchep.keyguard.copy
 
+import android.content.Context
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
-import org.kodein.di.DI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import com.artemchep.keyguard.common.service.logging.LogRepository
+import db_key_value.shared_prefs.SharedPrefsKeyValueStore
+import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
 
 /**
  * @author Artem Chepurnyi
  */
-class SharedPreferencesStoreFactoryV1 : SharedPreferencesStoreFactory {
-    companion object {
-        private const val VERSION = 1
-    }
+class SharedPreferencesStoreFactoryV1 internal constructor(
+    private val plaintextStore: (Files) -> KeyValueStore,
+    private val encryptedStore: (Files) -> KeyValueStore,
+) : SharedPreferencesStoreFactory {
+    constructor(
+        context: Context,
+        logRepository: LogRepository,
+    ) : this(
+        plaintextStore = { file -> SharedPrefsKeyValueStore(context, file.filename, logRepository) },
+        encryptedStore = { file -> SecureSharedPrefsKeyValueStore(context, file.filename, logRepository) },
+    )
 
-    override fun getStore(di: DI, key: Files): KeyValueStore =
-        di.direct.instance(
-            tag = when (key) {
-                Files.DEVICE_ID -> SharedPreferencesTypes.SHARED_PREFS
-                else -> SharedPreferencesTypes.SHARED_PREFS_ENCRYPTED
-            },
-            arg = SharedPreferencesArg(
-                version = VERSION,
-                key = key,
-            ),
-        )
+    private val stores = mutableMapOf<Files, KeyValueStore>()
+
+    override fun get(file: Files): KeyValueStore = synchronized(stores) {
+        stores.getOrPut(file) {
+            if (file == Files.DEVICE_ID) plaintextStore(file) else encryptedStore(file)
+        }
+    }
 }

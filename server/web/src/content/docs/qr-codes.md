@@ -27,4 +27,4 @@ The format you choose is remembered for next time per value. While the code is o
 screen, Keyguard **keeps the display awake** so it doesn't dim or lock mid-scan.
 
 Anything longer than about **1024 characters** can't be rendered, 
-so the **Show in barcode** option simply won't appear for oversized fields.
+so the **Show in barcode** option will not appear for oversized fields.

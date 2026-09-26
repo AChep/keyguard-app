@@ -5,20 +5,13 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomains
-import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.service.totp.TotpService
-import com.artemchep.keyguard.common.usecase.CipherUrlCheck
-import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
-import com.artemchep.keyguard.common.usecase.GetCiphers
-import com.artemchep.keyguard.common.usecase.GetProfiles
+import com.artemchep.keyguard.common.service.session.BrowserAutofillSessionAccess
+import com.artemchep.keyguard.common.service.session.BrowserAutofillSessionDependencies
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import kotlinx.coroutines.flow.first
 import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.direct
-import org.kodein.di.instance
 
 interface BrowserAutofillBackend {
     suspend fun query(
@@ -33,31 +26,30 @@ interface BrowserAutofillBackend {
 
 class VaultBrowserAutofillBackend(
     private val getVaultSession: GetVaultSession,
+    private val sessionAccess: BrowserAutofillSessionAccess,
 ) : BrowserAutofillBackend {
-    constructor(directDI: DirectDI) : this(
-        getVaultSession = directDI.instance(),
-    )
-
     private val fallbackEquivalentDomains = EquivalentDomains(emptyMap())
 
     private fun session(): MasterSession.Key? =
         getVaultSession.valueOrNull as? MasterSession.Key
 
-    private suspend fun ciphers(sdi: DirectDI): List<DSecret> =
+    private suspend fun ciphers(
+        deps: BrowserAutofillSessionDependencies,
+    ): List<DSecret> =
         filterHiddenProfiles(
-            getCiphers = sdi.instance(),
-            getProfiles = sdi.instance(),
+            getCiphers = deps.getCiphers,
+            getProfiles = deps.getProfiles,
             filter = null,
         ).first()
 
-    private suspend fun equivalentDomains(sdi: DirectDI): EquivalentDomains {
-        val getProfiles = sdi.instance<GetProfiles>()
-        val profiles = getProfiles().first()
+    private suspend fun equivalentDomains(
+        deps: BrowserAutofillSessionDependencies,
+    ): EquivalentDomains {
+        val profiles = deps.getProfiles().first()
         val accountId = profiles.firstOrNull()?.accountId
             ?: return fallbackEquivalentDomains
         return try {
-            val factory = sdi.instance<EquivalentDomainsBuilderFactory>()
-            val builder = factory.build()
+            val builder = deps.filterContext.equivalentDomainsBuilderFactory.build()
             builder.getAndCache(accountId)
         } catch (_: Exception) {
             fallbackEquivalentDomains
@@ -65,72 +57,72 @@ class VaultBrowserAutofillBackend(
     }
 
     private suspend fun matchesUri(
+        deps: BrowserAutofillSessionDependencies,
         secret: DSecret,
         webUrl: String,
         defaultMatchDetection: DSecret.Uri.MatchType,
-        cipherUrlCheck: CipherUrlCheck,
-        eqDomains: EquivalentDomains = fallbackEquivalentDomains,
-    ): Boolean {
-        for (uri in secret.uris) {
-            if (uri.match == DSecret.Uri.MatchType.Never) {
-                continue
-            }
-            val matches = cipherUrlCheck(uri, webUrl, defaultMatchDetection, eqDomains)
+        eqDomains: EquivalentDomains,
+    ): Boolean = secret.uris.any { uri ->
+        uri.match != DSecret.Uri.MatchType.Never &&
+            deps.cipherUrlCheck(uri, webUrl, defaultMatchDetection, eqDomains)
                 .attempt()
                 .bind()
                 .getOrElse { false }
-            if (matches) {
-                return true
-            }
-        }
-        return false
     }
 
+    @Suppress("ReturnCount")
     override suspend fun query(
         domain: String,
         uri: String?,
     ): QueryResult {
         val session = session() ?: return QueryResult(locked = true)
-        val sdi = session.di.direct
-        val cipherUrlCheck = sdi.instance<CipherUrlCheck>()
-        val getAutofillDefaultMatchDetection = sdi.instance<GetAutofillDefaultMatchDetection>()
+        val deps = sessionAccess(session) ?: return QueryResult(locked = true)
         val webUrl = uri ?: "https://$domain"
-        val defaultMatchDetection = getAutofillDefaultMatchDetection().first()
+        val defaultMatchDetection = deps.filterContext
+            .getAutofillDefaultMatchDetection()
+            .first()
 
         // Resolve equivalent domains for the active account so that
         // URIs like "www.github.com" match entries stored as "github.com".
-        val eqDomains = equivalentDomains(sdi)
+        val eqDomains = equivalentDomains(deps)
 
-        val items = mutableListOf<AutofillItem>()
-        for (secret in ciphers(sdi)) {
-            if (secret.type != DSecret.Type.Login || secret.deleted || secret.archived) {
-                continue
+        val items = ciphers(deps)
+            .filter { secret ->
+                val isLogin = secret.type == DSecret.Type.Login &&
+                    !secret.deleted &&
+                    !secret.archived
+                isLogin && matchesUri(
+                    deps = deps,
+                    secret = secret,
+                    webUrl = webUrl,
+                    defaultMatchDetection = defaultMatchDetection,
+                    eqDomains = eqDomains,
+                )
             }
-            if (!matchesUri(secret, webUrl, defaultMatchDetection, cipherUrlCheck, eqDomains)) {
-                continue
+            .map { secret ->
+                AutofillItem(
+                    itemId = secret.id,
+                    name = secret.name,
+                    username = secret.login?.username.orEmpty(),
+                    hasTotp = secret.login?.totp != null,
+                    hasPasskey = secret.login?.fido2Credentials?.isNotEmpty() == true,
+                )
             }
-            items += AutofillItem(
-                itemId = secret.id,
-                name = secret.name,
-                username = secret.login?.username.orEmpty(),
-                hasTotp = secret.login?.totp != null,
-                hasPasskey = secret.login?.fido2Credentials?.isNotEmpty() == true,
-            )
-        }
         return QueryResult(locked = false, items = items)
     }
 
+    @Suppress("ReturnCount")
     override suspend fun getSecret(
         itemId: String,
     ): SecretResult {
         val session = session() ?: return SecretResult(locked = true)
-        val sdi = session.di.direct
-        val secret = ciphers(sdi).firstOrNull { it.id == itemId }
+        val deps = sessionAccess(session) ?: return SecretResult(locked = true)
+        val secret = ciphers(deps).firstOrNull { it.id == itemId }
             ?: return SecretResult(locked = false)
         val login = secret.login
         val totp = login?.totp?.token
             ?.let { token ->
-                sdi.instance<TotpService>()
+                deps.totpService
                     .generate(token, Clock.System.now())
                     .fold({ null }, { it.code })
             }

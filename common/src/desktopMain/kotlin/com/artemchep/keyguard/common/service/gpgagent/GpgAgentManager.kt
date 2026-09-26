@@ -6,18 +6,19 @@ import com.artemchep.keyguard.common.service.agent.macosDevAgentSocketPath
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
+import com.artemchep.keyguard.common.service.session.GpgAgentSessionAccess
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.copy.DataDirectory
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import java.nio.file.Path
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 
 /**
  * Manages the lifecycle of the keyguard-gpg-agent Rust binary.
@@ -32,6 +33,7 @@ class GpgAgentManager(
     cryptoGenerator: CryptoGenerator,
     dataDirectory: DataDirectory,
     private val getVaultSession: GetVaultSession,
+    private val sessionAccess: GpgAgentSessionAccess,
     private val getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow,
     private val getGpgAgentApprovalCachePolicy: GetGpgAgentApprovalCachePolicy,
     private val getGpgAgentFilter: GetGpgAgentFilter,
@@ -70,6 +72,7 @@ class GpgAgentManager(
         val ipcServer = GpgAgentIpcServer(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
+            sessionAccess = sessionAccess,
             getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
             getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
             getGpgAgentFilter = getGpgAgentFilter,

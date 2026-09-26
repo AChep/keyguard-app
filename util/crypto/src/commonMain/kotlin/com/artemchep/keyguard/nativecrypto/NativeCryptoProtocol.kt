@@ -344,6 +344,19 @@ internal data class OpenPgpUserIdCertificationEvaluateOperationProto(
 ) : NativeRequestOperationProto
 
 @Serializable
+@SerialName("open_pgp_stream_drain")
+internal data class OpenPgpStreamDrainOperationProto(
+    @ProtoNumber(59)
+    val value: OpenPgpStreamDrainRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+internal data class OpenPgpStreamDrainRequestProto(
+    @ProtoNumber(1)
+    val handle: Long,
+)
+
+@Serializable
 @SerialName("open_pgp_agent_sign")
 internal data class OpenPgpAgentSignOperationProto(
     @ProtoNumber(43)
@@ -1769,6 +1782,8 @@ internal data class OpenPgpDecryptStreamOpenRequestProto(
     val referenceTimeEpochSeconds: Long? = null,
     @ProtoNumber(4)
     val allowSignedOnly: Boolean? = null,
+    @ProtoNumber(5)
+    val stagingDirectory: String? = null,
 )
 
 @Serializable

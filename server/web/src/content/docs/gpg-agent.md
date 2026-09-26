@@ -20,9 +20,7 @@ fetched from a keyserver (`keys.openpgp.org` by default).
 ## Desktop (Linux, macOS & Windows)
 
 1. Enable the **GPG agent** in Keyguard's GPG settings, and make sure the
-   vault holds a GPG key the agent is allowed to use. Keyguard creates a
-   dedicated GnuPG home for the integration. These are `GNUPGHOME` directories,
-   not agent socket endpoints:
+   vault holds a GPG key the agent is allowed to use. Keyguard creates a dedicated `GNUPGHOME` directory for the integration:
    - **Linux** — `$XDG_DATA_HOME/keyguard/gnupg` (or
      `~/.local/share/keyguard/gnupg` if `XDG_DATA_HOME` is unset, empty, or relative); **Flatpak** —
      `~/.var/app/com.artemchep.keyguard/data/gnupg`;
@@ -67,13 +65,12 @@ fetched from a keyserver (`keys.openpgp.org` by default).
 
    Keyguard speaks the standard gpg-agent protocol on the separate endpoint
    reported by `gpgconf --homedir "$GNUPGHOME" --list-dirs agent-socket`.
-   GnuPG may place that endpoint under a per-user runtime directory instead of
-   inside `GNUPGHOME`; Keyguard therefore does not construct the socket path
-   from the home directory. If `gpgconf` cannot resolve an absolute endpoint or
-   prepare its required socket directory, Keyguard reports a startup error
-   instead of publishing a socket that GnuPG clients cannot discover. Native
-   Windows GnuPG resolves a marker-file endpoint backed by a loopback
-   connection; Keyguard publishes that endpoint automatically.
+   Because GnuPG may locate that endpoint in a per-user runtime directory,
+   Keyguard queries gpgconf to find the socket location. If `gpgconf` cannot
+   resolve an absolute endpoint or prepare the required socket directory, Keyguard
+   reports a startup error. Native Windows GnuPG resolves a marker-file
+   endpoint backed by a loopback connection; Keyguard publishes that endpoint
+   automatically.
 3. Export the public key from the **GPG key** item and import it into this
    home — only public key material leaves the vault:
 
@@ -165,9 +162,8 @@ public keys, sign or verify data, and encrypt or decrypt it. The calling app nev
 Apps known to include integrations for this API include
 [Thunderbird for Android and K-9 Mail](https://github.com/thunderbird/thunderbird-android/tree/main/plugins/openpgp-api-lib)
 and [FairEmail](https://github.com/M66B/FairEmail/tree/master/openpgp-api).
-These are compatibility examples rather than a guarantee for every app version;
-the client must let you choose an OpenPGP provider instead of requiring the
-OpenKeychain app specifically.
+Compatibility varies across app versions. The client application must
+support selecting a custom OpenPGP provider.
 
 ## Desktop approval scopes
 

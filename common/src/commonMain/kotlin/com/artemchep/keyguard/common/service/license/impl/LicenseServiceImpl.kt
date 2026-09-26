@@ -8,12 +8,10 @@ import com.artemchep.keyguard.common.service.license.LicenseService
 import com.artemchep.keyguard.common.service.license.model.License
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 @Serializable
 data class LicenseEntity(
@@ -60,13 +58,6 @@ class LicenseServiceImpl(
     private val textService: TextService,
     private val json: Json,
 ) : LicenseService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        textService = directDI.instance(),
-        json = directDI.instance(),
-    )
-
     override fun get(): IO<List<License>> = ::loadLicensesRawData
         .partially1(textService)
         .effectMap { jsonString ->

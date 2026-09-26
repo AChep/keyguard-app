@@ -15,8 +15,6 @@ import com.artemchep.keyguard.common.util.PROTOCOL_IOS_APP
 import com.artemchep.keyguard.common.util.ensureUrlScheme
 import com.artemchep.keyguard.common.util.parseHttpUrlHostOrNull
 import io.ktor.http.Url
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -27,10 +25,6 @@ class CipherUrlBroadCheckImpl(
     companion object {
         private const val TAG = "CipherUrlBroadCheck"
     }
-
-    constructor(directDI: DirectDI) : this(
-        tldService = directDI.instance(),
-    )
 
     override fun invoke(
         ciphers: List<DSecret>,

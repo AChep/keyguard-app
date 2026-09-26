@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -32,7 +32,7 @@ import com.artemchep.keyguard.common.usecase.GetNavAnimation
 import com.artemchep.keyguard.platform.LocalAnimationFactor
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 /**
  * Renders one root entry and adds it to the logical navigation stack.
@@ -74,7 +74,7 @@ fun NavigationNode(
     offset: Int = 0,
     modifier: Modifier = Modifier,
 ) {
-    val getNavAnimation by rememberInstance<GetNavAnimation>()
+    val getNavAnimation = koinInject<GetNavAnimation>()
 
     val newVisualEntries = remember(entries, offset) {
         if (offset < 0 || offset >= entries.size) {
@@ -293,7 +293,7 @@ private fun NavigationRoute(
     entry: NavigationEntry,
 ) {
     // A composable content must be able to fetch the
-    // route instance if it wants to.
+    // route get if it wants to.
     CompositionLocalProvider(
         LocalNavigationEntry provides entry,
         LocalRoute provides entry.route,

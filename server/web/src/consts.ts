@@ -68,12 +68,12 @@ export const PLATFORMS: DownloadPlatform[] = [
   },
   {
     name: 'Linux',
-    note: 'Flatpak & Arch',
+    note: 'Flatpak, AppImage & Arch',
     stores: [
       { label: 'Flathub', href: 'https://flathub.org/apps/com.artemchep.keyguard' },
     ],
     commands: [{ label: 'Arch Linux (AUR)', code: 'yay -S keyguard-bin' }],
-    direct: { label: 'Flatpak', href: RELEASES_URL },
+    direct: { label: 'Flatpak & AppImage', href: RELEASES_URL },
   },
   {
     name: 'macOS',
@@ -84,8 +84,10 @@ export const PLATFORMS: DownloadPlatform[] = [
   },
   {
     name: 'Windows',
-    note: 'MSI installer',
-    stores: [],
+    note: 'MSI installer & Microsoft Store',
+    stores: [
+      { label: 'Microsoft Store', href: 'https://apps.microsoft.com/detail/9NN4SMXJN5SF' },
+    ],
     commands: [
       { label: 'WinGet', code: 'winget install --id ArtemChepurnyi.Keyguard' },
       { label: 'Scoop', code: 'scoop bucket add extras\nscoop install keyguard' },

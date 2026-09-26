@@ -4,6 +4,7 @@ import com.artemchep.keyguard.util.signalr.internal.HubConnectionOptions
 import com.artemchep.keyguard.util.signalr.internal.Transport
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 internal suspend fun connect(
     options: HubConnectionOptions,
@@ -32,7 +33,9 @@ internal suspend fun connect(
     } catch (ex: Throwable) {
         withContext(NonCancellable) {
             runCatching {
-                transport?.stop()
+                withTimeoutOrNull(options.closeTimeout) {
+                    transport?.stop()
+                }
             }
         }
         throw ex

@@ -1,0 +1,116 @@
+name: "New MSIX"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-app:
+    name: Build Windows MSIX (${{ matrix.msix_arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            msix_arch: x64
+            native_arch: x86_64
+            rust_target: x86_64-pc-windows-msvc
+          - runner: windows-11-arm
+            msix_arch: arm64
+            native_arch: aarch64
+            rust_target: aarch64-pc-windows-msvc
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          lfs: true
+          submodules: recursive
+          persist-credentials: false
+      - name: "Setup Gradle (x64)"
+        if: matrix.msix_arch == 'x64'
+        uses: ./.github/actions/setup_gradle
+        with:
+          java-version: |
+            11
+            21
+      - name: "Setup Gradle (ARM64)"
+        if: matrix.msix_arch == 'arm64'
+        uses: ./.github/actions/setup_gradle
+        with:
+          java-version: "21"
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: ${{ matrix.rust_target }}
+          cache-key: desktop
+      - uses: ./.github/actions/prefetch_native
+        with:
+          profile: desktop
+      - uses: ./.github/actions/setup_protobuf
+      - uses: ./.github/actions/build_desktop_licenses
+      - name: "Setup build env"
+        shell: pwsh
+        run: |
+          Add-Content gradle.properties ""
+          Add-Content gradle.properties "versionRef=$(git rev-parse --short HEAD)"
+          Add-Content gradle.properties "buildkonfig.flavor=release"
+      - name: "Setup MSIX identity"
+        shell: pwsh
+        env:
+          STORE_IDENTITY_NAME: ${{ secrets.MSSTORE_IDENTITY_NAME }}
+          STORE_PUBLISHER: ${{ secrets.MSSTORE_PUBLISHER }}
+          PUBLISHER_DISPLAY_NAME: ${{ secrets.MSSTORE_PUBLISHER_DISPLAY_NAME }}
+        run: |
+          Add-Content gradle.properties ""
+          Add-Content gradle.properties "msix_publisher_display_name=$env:PUBLISHER_DISPLAY_NAME"
+          Add-Content gradle.properties "msix_store_identity_name=$env:STORE_IDENTITY_NAME"
+          Add-Content gradle.properties "msix_store_publisher=$env:STORE_PUBLISHER"
+      - name: "Build"
+        run: >-
+          ./gradlew
+          :desktopApp:packageReleaseMsix
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+      - name: "Unpack sideload MSIX"
+        shell: pwsh
+        run: |
+          Get-ChildItem "desktopApp/build/compose/binaries/main-release/msix"
+          $packages = @(Get-ChildItem "desktopApp/build/compose/binaries/main-release/msix/*.msix" |
+            Where-Object { $_.Name -notlike "*-store.msix" })
+          if ($packages.Count -ne 1) {
+            throw "Expected one ${{ matrix.msix_arch }} sideload MSIX package; found $($packages.Count)."
+          }
+          $toolArch = "${{ matrix.msix_arch }}"
+          $candidates = @(Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.*\$toolArch\makeappx.exe" `
+            -ErrorAction SilentlyContinue)
+          if ($candidates.Count -eq 0 -and $toolArch -ne "x64") {
+            $candidates = @(Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.*\x64\makeappx.exe" `
+              -ErrorAction SilentlyContinue)
+          }
+          $makeappx = $candidates |
+            Sort-Object { [version]$_.Directory.Parent.Name } |
+            Select-Object -Last 1
+          if ($null -eq $makeappx) {
+            throw "makeappx.exe was not found for $toolArch or x64."
+          }
+          $target = Join-Path $env:RUNNER_TEMP "keyguard-msix"
+          & $makeappx.FullName unpack /o /p $packages[0].FullName /d $target
+          if ($LASTEXITCODE -ne 0) {
+            throw "makeappx unpack exited $LASTEXITCODE."
+          }
+      - name: "Verify final MSIX native bundle"
+        shell: pwsh
+        run: >-
+          python scripts/verify_native_bundle.py desktop
+          (Join-Path $env:RUNNER_TEMP "keyguard-msix")
+          --platform windows --arch ${{ matrix.native_arch }}
+      - name: 'Upload .msix'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: app-windows-msix-${{ matrix.msix_arch }}
+          path: desktopApp/build/compose/binaries/main-release/msix/*.msix
+          retention-days: 7

@@ -12,16 +12,16 @@ import com.artemchep.keyguard.feature.sshagent.help.SshAgentSetupRoute
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.Stub
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
+import org.koin.core.scope.Scope
 
 fun settingSshAgentSetupProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingSshAgentSetupProvider()
 
 fun settingSshAgentSetupProvider(): SettingComponent = kotlin.run {

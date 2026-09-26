@@ -47,8 +47,6 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -71,20 +69,6 @@ class NotificationsImpl(
 
         private const val ACCOUNT_REMOVAL_DELAY_MS = 5_000L
     }
-
-    constructor(directDI: DirectDI) : this(
-        tokenRepository = directDI.instance(),
-        logRepository = directDI.instance(),
-        deviceIdUseCase = directDI.instance(),
-        base64Service = directDI.instance(),
-        connectivityService = directDI.instance(),
-        fileWatcherService = directDI.instance(),
-        json = directDI.instance(),
-        httpClient = directDI.instance(),
-        db = directDI.instance(),
-        queueSyncById = directDI.instance(),
-        queueSyncAll = directDI.instance(),
-    )
 
     private class ActiveAccountEntry(
         val key: ServiceToken,

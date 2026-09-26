@@ -44,6 +44,7 @@ import com.artemchep.keyguard.common.model.PutProfileHiddenRequest
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -64,19 +65,18 @@ import com.artemchep.keyguard.common.usecase.PutProfileHidden
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.RemoveAccountById
 import com.artemchep.keyguard.common.usecase.SupervisorRead
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.colorpicker.ColorPickerRoute
 import com.artemchep.keyguard.feature.colorpicker.createColorPickerDialogIntent
-import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
+import com.artemchep.keyguard.feature.credentialexchange.imports.CredentialExchangeImportRoute
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
 import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsRoute
-import com.artemchep.keyguard.feature.credentialexchange.imports.CredentialExchangeImportRoute
 import com.artemchep.keyguard.feature.export.ExportRoute
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
@@ -107,8 +107,8 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasBrowser
 import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
@@ -132,43 +132,41 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun accountState(
     accountId: AccountId,
-): AccountViewState = with(localDI().direct) {
+): AccountViewState = with(currentKoinScope()) {
     accountState(
-        queueSyncById = instance(),
-        syncSupervisor = instance(),
-        getGravatarUrl = instance(),
-        clipboardService = instance(),
-        dateFormatter = instance(),
-        removeAccountById = instance(),
-        getFingerprint = instance(),
-        putAccountNameById = instance(),
-        putAccountColorById = instance(),
-        putAccountMasterPasswordHintById = instance(),
-        putProfileHidden = instance(),
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getCiphers = instance(),
-        getSends = instance(),
-        getEquivalentDomains = instance(),
-        getFolders = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
-        getMetas = instance(),
-        bitwardenLoginRouteFactory = instance(),
-        confirmationRouteFactory = instance(),
-        vaultRouteFactory = instance(),
-        sendRouteFactory = instance(),
-        collectionsRouteFactory = instance(),
-        foldersRouteFactory = instance(),
-        organizationsRouteFactory = instance(),
-        db = instance(),
+        queueSyncById = get(),
+        syncSupervisor = get(),
+        getGravatarUrl = get(),
+        clipboardService = get(),
+        dateFormatter = get(),
+        removeAccountById = get(),
+        getFingerprint = get(),
+        putAccountNameById = get(),
+        putAccountColorById = get(),
+        putAccountMasterPasswordHintById = get(),
+        putProfileHidden = get(),
+        getAccounts = get(),
+        getProfiles = get(),
+        getCiphers = get(),
+        getSends = get(),
+        getEquivalentDomains = get(),
+        getFolders = get(),
+        getCollections = get(),
+        getOrganizations = get(),
+        getMetas = get(),
+        bitwardenLoginRouteFactory = get(),
+        confirmationRouteFactory = get(),
+        vaultRouteFactory = get(),
+        sendRouteFactory = get(),
+        collectionsRouteFactory = get(),
+        foldersRouteFactory = get(),
+        organizationsRouteFactory = get(),
+        db = get(),
         accountId = accountId,
     )
 }

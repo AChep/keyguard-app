@@ -89,10 +89,13 @@ internal suspend fun runHubConnectionController(
                 null,
             )
 
-            runCatching {
-                previous.cancelAndJoin(
-                    closeTimeout = options.closeTimeout,
-                )
+            // Cleanup must survive cancellation of event delivery or the controller.
+            withContext(NonCancellable) {
+                runCatching {
+                    previous.cancelAndJoin(
+                        closeTimeout = options.closeTimeout,
+                    )
+                }
             }
 
             lifecycle = Lifecycle.Disconnected

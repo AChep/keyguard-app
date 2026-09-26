@@ -5,8 +5,6 @@ import com.artemchep.keyguard.common.usecase.RenameFolderById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.core.store.bitwarden.name
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyFolderById
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -17,10 +15,6 @@ class RenameFolderByIdImpl(
     companion object {
         private const val TAG = "RenameFolderById.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyFolderById = directDI.instance(),
-    )
 
     override fun invoke(
         folderIdsToNames: Map<String, String>,

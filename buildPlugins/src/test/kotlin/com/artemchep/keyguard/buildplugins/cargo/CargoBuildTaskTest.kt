@@ -48,6 +48,18 @@ class CargoBuildTaskTest {
         )
     }
 
+    @Test
+    fun `offline helper builds cannot change the prefetched lockfile`() {
+        val task = createTask().apply {
+            rustTarget.set("aarch64-apple-darwin")
+            offline.set(true)
+        }
+
+        assertEquals(1, task.cargoCommandLine().count { it == "--locked" })
+        task.cargoArguments.add("--locked")
+        assertEquals(1, task.cargoCommandLine().count { it == "--locked" })
+    }
+
     private fun createTask(): CargoBuildTask {
         val project = ProjectBuilder.builder().build()
         return project.tasks.register("cargoBuild", CargoBuildTask::class.java).get()

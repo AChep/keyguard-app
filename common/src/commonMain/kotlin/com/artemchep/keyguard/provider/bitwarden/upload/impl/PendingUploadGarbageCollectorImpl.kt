@@ -13,14 +13,12 @@ import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadGarbageCollector
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 
 @Suppress("TooGenericExceptionCaught")
 class PendingUploadGarbageCollectorImpl(
@@ -35,14 +33,6 @@ class PendingUploadGarbageCollectorImpl(
             "Pending-upload cleanup grace period must not be negative."
         }
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        db = directDI.instance(),
-        pendingUploadCoordinator = directDI.instance(),
-        logRepository = directDI.instance(),
-    )
 
     override fun invoke(
         accountId: String,

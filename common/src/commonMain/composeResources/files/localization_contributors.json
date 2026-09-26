@@ -125,7 +125,7 @@
     "target": 76062,
     "approved": 1050,
     "voted": 0,
-    "positiveVotes": 63,
+    "positiveVotes": 90,
     "negativeVotes": 2,
     "winning": 558
   },
@@ -187,8 +187,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 5683,
-    "target": 6341,
+    "translated": 6126,
+    "target": 6861,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -407,8 +407,8 @@
         "name": "Arabic"
       }
     ],
-    "translated": 556,
-    "target": 540,
+    "translated": 4971,
+    "target": 4859,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -637,6 +637,28 @@
   },
   {
     "user": {
+      "id": "14597016",
+      "username": "Amberyl",
+      "fullName": "Amber (Amberyl)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/14597016/medium/c27464fb5cc1a48b31332dda2e928fc5.png",
+      "joined": "2026-09-17 04:39:25"
+    },
+    "languages": [
+      {
+        "id": "nl",
+        "name": "Dutch"
+      }
+    ],
+    "translated": 617,
+    "target": 628,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "14724984",
       "username": "Anmoti",
       "fullName": "anmoti (Anmoti)",
@@ -727,8 +749,8 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 6366,
-    "target": 10636,
+    "translated": 6376,
+    "target": 10653,
     "approved": 0,
     "voted": 17,
     "positiveVotes": 13,
@@ -1623,7 +1645,7 @@
     "target": 271,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 0,
+    "positiveVotes": 19,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1981,6 +2003,28 @@
   },
   {
     "user": {
+      "id": "17898117",
+      "username": "LeDimigit",
+      "fullName": "LeDimigit",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17898117/medium/56c72032deede0f05e8aa3912d247340.png",
+      "joined": "2026-09-14 11:49:18"
+    },
+    "languages": [
+      {
+        "id": "fr",
+        "name": "French"
+      }
+    ],
+    "translated": 2782,
+    "target": 3297,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "18711",
       "username": "NCAA",
       "fullName": "NCAA",
@@ -2037,8 +2081,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 11180,
-    "target": 12585,
+    "translated": 11623,
+    "target": 13132,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

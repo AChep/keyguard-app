@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.common.model.VaultState
+import com.artemchep.keyguard.di.VaultSessionContent
 import com.artemchep.keyguard.feature.home.HomeLayout
 import com.artemchep.keyguard.feature.home.LocalHomeLayout
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
@@ -43,7 +44,7 @@ import com.artemchep.keyguard.wear.feature.WearCreateVaultScreen
 import com.artemchep.keyguard.wear.feature.WearLoadingScreen
 import com.artemchep.keyguard.wear.feature.WearUnlockVaultScreen
 import com.artemchep.keyguard.wear.feature.home.WearHomeRoute
-import org.kodein.di.compose.withDI
+import org.koin.core.scope.Scope
 
 @Composable
 fun WearRoot() {
@@ -86,9 +87,9 @@ private fun WearAppState() {
 private fun WearMainAppScreen(
     state: VaultState.Main,
 ) {
-    // Provide the session DI to all the
+    // Provide the session Scope to all the
     // sub screens of this composable.
-    withDI(state.di) {
+    VaultSessionContent(state.session) {
         NavigationRouter(
             id = "home",
             initial = WearHomeRoute,

@@ -20,13 +20,11 @@ import com.artemchep.keyguard.common.service.hibp.passwords.PasswordPwnageReposi
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
 import com.artemchep.keyguard.data.pwnage.PasswordBreach
+import kotlin.random.Random
+import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.random.Random
-import kotlin.time.Duration
 
 class PasswordPwnageRepositoryImpl(
     private val logRepository: LogRepository,
@@ -42,12 +40,6 @@ class PasswordPwnageRepositoryImpl(
          */
         private val CACHE_DURATION = with(Duration) { 21.days }
     }
-
-    constructor(directDI: DirectDI) : this(
-        logRepository = directDI.instance(),
-        localDataSource = directDI.instance(),
-        remoteDataSource = directDI.instance(),
-    )
 
     override fun checkOne(
         password: String,

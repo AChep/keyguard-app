@@ -3,14 +3,11 @@ package com.artemchep.keyguard.common.model
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.home.vault.search.TEST_INSTANT
 import com.artemchep.keyguard.feature.home.vault.search.createSecret
-import kotlinx.coroutines.test.runTest
-import org.kodein.di.DI
-import org.kodein.di.DirectDI
-import org.kodein.di.direct
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlinx.coroutines.test.runTest
 
 class DFilterCipherPresenceTest {
     private val totp = DSecret.Login.Totp(
@@ -97,14 +94,14 @@ class DFilterCipherPresenceTest {
 
     private val presence = DFilterCipherPresence.of(ciphers) { it }
 
-    private val di: DirectDI = DI {}.direct
+    private val filterContext = testCipherFilterContext()
 
     private suspend fun assertEquivalent(
         primitive: DFilter.Primitive,
         ciphers: List<DSecret> = this.ciphers,
         presence: DFilterCipherPresence = this.presence,
     ) {
-        val predicate = primitive.prepare(di, ciphers)
+        val predicate = primitive.prepare(filterContext, ciphers)
         val expected = ciphers.any(predicate)
         val actual = primitive.existsIn(presence)
         assertEquals(

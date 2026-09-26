@@ -11,8 +11,6 @@ import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class PrivilegedAppsServiceImpl(
     private val textService: TextService,
@@ -20,13 +18,6 @@ class PrivilegedAppsServiceImpl(
 ) : PrivilegedAppsService {
     private val jsonIo = ::loadPrivilegedAppsJson
         .partially1(textService)
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        textService = directDI.instance(),
-        json = directDI.instance(),
-    )
 
     override fun get() = jsonIo
 

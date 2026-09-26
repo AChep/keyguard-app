@@ -1,6 +1,6 @@
 ---
 title: Passkeys
-description: What passkeys are, how WebAuthn registration and sign-in work under the hood, and why passkeys resist phishing and breaches that defeat passwords.
+description: What passkeys are, how WebAuthn registration and sign-in work, and why passkeys resist phishing and breaches that defeat passwords.
 category: reference
 order: 7
 ---
@@ -13,22 +13,18 @@ defined by **WebAuthn** — the W3C
 credential: one your authenticator can find and offer on its own, so you don't
 even type a username.
 
-The short version: instead of a secret you and the server both know, a passkey
-is a **cryptographic key pair**. The private key never leaves your authenticator
-(here, your Keyguard vault); the website only ever sees the public half.
+A passkey is an asymmetric **cryptographic key pair**. The private key remains
+in your authenticator (your Keyguard vault); the website receives only the
+public half.
 
-## A key pair, not a shared secret
+## Asymmetric key pairs
 
-A password is a *shared secret*. You send it to the server, the server stores a
-(hopefully hashed) copy, and anyone who learns it can sign in as you — from
-anywhere.
-
-A passkey replaces that with asymmetric cryptography. Each passkey is a
+Each passkey is a
 [credential key pair](https://www.w3.org/TR/webauthn-2/#sctn-terminology): a
 **private key** that stays with the authenticator and a **public key** the
 authenticator hands to the website. Authentication is a challenge the private key
-signs and the public key verifies — the secret half is never transmitted and
-never stored by the server.
+signs and the public key verifies — the private key is never transmitted or
+stored by the server.
 
 ## Creating a passkey (registration)
 
@@ -45,7 +41,7 @@ When you register, the website — the
 3. The server stores the public key and credential ID against your account.
 
 Because the key pair is generated per site, every passkey you create is unique —
-there is nothing shared between sites to leak or reuse.
+sites share no credentials to leak or reuse.
 
 ## Signing in (authentication)
 
@@ -79,27 +75,25 @@ you; the half the server keeps can only *verify*.
 
 The Relying Party stores only public keys
 ([Security Considerations](https://www.w3.org/TR/webauthn-2/#sctn-security-considerations)).
-A breach of its database leaks public keys, which are useless for signing in —
-an attacker still has no private key. Compare a password database, where even
-salted hashes can be cracked offline or replayed elsewhere.
+A breach of its database leaks public keys, which are useless for signing in
+because the attacker lacks the corresponding private keys.
 
 ### Phishing resistance
 
-This is the property passwords can never have. The browser binds each request to
-the page's real **origin**, and the authenticator scopes each credential to an
-**RP ID** derived from that origin; the signature then covers both. As the spec
-puts it, "the full origin of the requester is included, and signed over … in all
-assertions produced by WebAuthn credentials."
+The browser binds each request to the page's real **origin**, and the
+authenticator scopes each credential to an **RP ID** derived from that origin;
+the signature then covers both. As the spec puts it, "the full origin of the
+requester is included, and signed over … in all assertions produced by WebAuthn
+credentials."
 
-So a look-alike phishing domain (`exarnple.com`) has a different origin and RP ID
-than the real one. The authenticator won't even surface the real site's passkey
-there, and any assertion it could be tricked into making would fail verification.
-A password, by contrast, has no idea what site it's being typed into.
+A look-alike phishing domain (`exarnple.com`) has a different origin and RP ID
+than the real one. The authenticator will not surface the real site's passkey
+there, and any assertion made would fail server verification.
 
 ### One unique key per site
 
-Each registration mints a fresh key pair, so there is no credential shared across
-services. Password reuse and credential-stuffing attacks simply don't apply.
+Each registration creates a new key pair, so services share no credentials.
+Password reuse and credential-stuffing attacks do not apply.
 
 ### Local user verification and presence
 
@@ -129,9 +123,8 @@ that needs to can judge where a credential came from.
 ## Passkeys in Keyguard
 
 Keyguard stores passkeys as part of your vault items, **end-to-end encrypted**
-like everything else. That makes them *synced* (multi-device) passkeys: they sync
-across your devices and are covered by your [backups](/docs/backups/), rather than
-being locked to a single piece of hardware.
+like everything else. As *synced* (multi-device) passkeys, they sync across
+your devices and are protected by your [backups](/docs/backups/).
 
 - On **Android**, Keyguard registers as a system **credential provider**, so apps
   and browsers can create and use passkeys through it. See the

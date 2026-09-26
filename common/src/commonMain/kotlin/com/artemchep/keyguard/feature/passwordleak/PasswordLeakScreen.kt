@@ -22,8 +22,8 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.feature.dialog.Dialog
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -35,7 +35,7 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @Composable
 fun PasswordLeakScreen(
@@ -146,7 +146,7 @@ private fun ColumnScope.Content(
             modifier = Modifier
                 .height(8.dp),
         )
-        val numberFormatter: NumberFormatter by rememberInstance()
+        val numberFormatter: NumberFormatter = koinInject()
         Text(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),

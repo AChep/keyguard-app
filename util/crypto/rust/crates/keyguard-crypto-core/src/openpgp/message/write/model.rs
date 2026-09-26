@@ -94,6 +94,7 @@ pub(in crate::openpgp) struct DecryptStreamInput {
     pub(in crate::openpgp) verification_public_keys: Vec<Vec<u8>>,
     pub(in crate::openpgp) reference_time_epoch_seconds: Option<u64>,
     pub(in crate::openpgp) allow_signed_only: bool,
+    pub(in crate::openpgp) staging_directory: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

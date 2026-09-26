@@ -1,15 +1,20 @@
 package com.artemchep.keyguard.common.service.gpgagent.impl
 
+import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GpgAgentFilter
+import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigState
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
+import com.artemchep.keyguard.common.service.agent.ApprovalCacheInvalidation
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
+import com.artemchep.keyguard.common.service.agent.finishAfterBlockedAgentRead
+import com.artemchep.keyguard.common.service.agent.finishAfterBlockedApprovalCacheAccess
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnapshot
@@ -23,6 +28,9 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgRevocationStatus
 import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.pendinghistory.RecordingPendingUsageHistoryQueue
+import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
+import com.artemchep.keyguard.common.service.vault.testVaultSession
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
@@ -30,23 +38,24 @@ import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.test.gpgMetadata
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runCurrent
-import kotlinx.coroutines.test.runTest
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.time.Duration
 import kotlin.time.Instant
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 
+// Keep the cases together so they share the same fixtures and lifecycle assertions.
+@Suppress("TooManyFunctions")
 @OptIn(ExperimentalCoroutinesApi::class)
 class GpgAgentApprovalReuseTest {
     @Test
@@ -162,32 +171,266 @@ class GpgAgentApprovalReuseTest {
     fun `an approval open across a config change cannot restore an old grant`() = runTest {
         GpgAgentOperation.entries.forEach { operation ->
             val fixture = Fixture(this)
-            val started = CompletableDeferred<Unit>()
-            val finish = CompletableDeferred<Unit>()
-            fixture.onApproval = {
-                started.complete(Unit)
-                finish.await()
-                true
+            val result = fixture.finishPendingApproval(operation) {
+                fixture.config.updateCachePolicy(AgentApprovalCachePolicy.Application, persist = {})()
+                fixture.config.updateCachePolicy(AgentApprovalCachePolicy.Default, persist = {})()
             }
-            val pending = async { fixture.request(operation, caller(connection = 1)) }
-            started.await()
-
-            fixture.config.updateCachePolicy(AgentApprovalCachePolicy.Application, persist = {})()
-            fixture.config.updateCachePolicy(AgentApprovalCachePolicy.Default, persist = {})()
-            finish.complete(Unit)
-            assertIs<GpgAgentOperationResult.Success<*>>(pending.await())
+            assertIs<GpgAgentOperationResult.Success<*>>(result)
 
             fixture.succeed(operation, caller(connection = 2))
             assertEquals(2, fixture.approvals)
         }
     }
 
+    @Test
+    fun `lock or replacement vault session during approval prevents either private operation`() = runTest {
+        GpgAgentOperation.entries.forEach { operation ->
+            for (replaceSession in listOf(false, true)) {
+                val fixture = Fixture(this)
+                val result = fixture.finishPendingApproval(operation) {
+                    fixture.vault.valueOrNull = if (replaceSession) createVaultSession() else MasterSession.Empty()
+                }
+                assertIs<GpgAgentOperationResult.VaultLocked>(result)
+                assertEquals(0, fixture.crypto.calls)
+                val event = fixture.pendingHistory.items.single()
+                assertEquals(GpgUsageHistoryResponseType.VAULT_LOCKED.name, event.responseType)
+                assertEquals(KEYGRIP, event.cipherId)
+                assertEquals(KEYGRIP, event.fingerprint)
+                assertEquals(KEYGRIP, event.keygrip)
+            }
+        }
+    }
+
+    @Test
+    fun `keys removed stripped or replaced during approval are not used`() = runTest {
+        GpgAgentOperation.entries.forEach { operation ->
+            for (change in listOf("removed", "private removed", "replaced item", "replaced account")) {
+                val fixture = Fixture(this)
+                val result = fixture.finishPendingApproval(operation) {
+                    fixture.ciphers.value = fixture.ciphers.value.mapNotNull { cipher ->
+                        if (cipher.id != KEYGRIP) return@mapNotNull cipher
+                        when (change) {
+                            "removed" -> null
+                            "private removed" -> cipher.copy(gpgKey = cipher.gpgKey?.copy(privateKeyArmored = null))
+                            "replaced item" -> cipher.copy(id = "replacement")
+                            else -> cipher.copy(accountId = "replacement")
+                        }
+                    }
+                }
+                assertIs<GpgAgentOperationResult.KeyNotFound>(result)
+                assertEquals(0, fixture.crypto.calls, change)
+            }
+        }
+    }
+
+    @Test
+    fun `filter changed during approval is read before sign or decrypt`() = runTest {
+        GpgAgentOperation.entries.forEach { operation ->
+            val fixture = Fixture(this)
+            val result = fixture.finishPendingApproval(operation) {
+                fixture.filter.value = onlyOtherKeyFilter()
+            }
+            assertIs<GpgAgentOperationResult.KeyNotFound>(result)
+            assertEquals(0, fixture.crypto.calls)
+        }
+    }
+
+    @Test
+    fun `revocation during signing approval prevents the signature`() = runTest {
+        val fixture = Fixture(this)
+        val result = fixture.finishPendingApproval(GpgAgentOperation.SIGN) { fixture.revoked = true }
+        assertIs<GpgAgentOperationResult.KeyNotFound>(result)
+        assertEquals(0, fixture.crypto.calls)
+    }
+
+    @Test
+    fun `locked-origin request can unlock and then receive explicit approval`() = runTest {
+        GpgAgentOperation.entries.forEach { operation ->
+            val fixture = Fixture(this)
+            val session = fixture.vault.valueOrNull
+            fixture.vault.valueOrNull = MasterSession.Empty()
+            val result = fixture.finishPendingApproval(operation) { fixture.vault.valueOrNull = session }
+            assertIs<GpgAgentOperationResult.Success<*>>(result)
+            assertEquals(1, fixture.crypto.calls)
+            assertEquals(1, fixture.approvals)
+        }
+    }
+
+    @Test
+    fun `cached and locked-origin operations resolve each key only once`() = runTest {
+        GpgAgentOperation.entries.forEach { operation ->
+            val fixture = Fixture(this)
+            fixture.succeed(operation, caller(connection = 1))
+            assertEquals(4, fixture.resolutions, "Explicit approval refreshes both keys")
+            fixture.resolutions = 0
+            fixture.succeed(operation, caller(connection = 2))
+            assertEquals(2, fixture.resolutions, "Cached approval resolves each key once")
+            assertEquals(1, fixture.approvals)
+
+            val unlocked = fixture.vault.valueOrNull
+            fixture.vault.valueOrNull = MasterSession.Empty()
+            fixture.resolutions = 0
+            val result = fixture.finishPendingApproval(operation) { fixture.vault.valueOrNull = unlocked }
+            assertIs<GpgAgentOperationResult.Success<*>>(result)
+            assertEquals(2, fixture.resolutions, "Unlock approval resolves each key once")
+            assertEquals(2, fixture.approvals)
+        }
+    }
+
+    @Test
+    fun `cached approvals read key and filter changes after settings contention`() = runTest {
+        GpgAgentOperation.entries.forEach { operation ->
+            for (removeKey in listOf(false, true)) {
+                val fixture = Fixture(this)
+                fixture.succeed(operation, caller(connection = 1))
+                val result = finishAfterBlockedApprovalCacheAccess(
+                    config = fixture.config,
+                    request = { fixture.request(operation, caller(connection = 2)) },
+                ) {
+                    if (removeKey) {
+                        fixture.ciphers.value = fixture.ciphers.value.filter { it.id != KEYGRIP }
+                    } else {
+                        fixture.filter.value = onlyOtherKeyFilter()
+                    }
+                }
+                assertIs<GpgAgentOperationResult.KeyNotFound>(result)
+                assertEquals(1, fixture.approvals)
+                assertEquals(1, fixture.crypto.calls)
+            }
+        }
+    }
+
+    @Test
+    fun `vault denial history falls back to the cipher fingerprint`() = runTest {
+        GpgAgentOperation.entries.forEach { operation ->
+            val fixture = Fixture(this)
+            fixture.ciphers.value = fixture.ciphers.value.map { cipher ->
+                cipher.copy(gpgKey = cipher.gpgKey?.let { gpgKey ->
+                    gpgKey.copy(metadata = gpgKey.metadata?.copy(
+                        certificates = gpgKey.metadata.certificates.map { certificate ->
+                            certificate.copy(components = certificate.components.map { component ->
+                                component.copy(fingerprint = "")
+                            })
+                        },
+                    ))
+                })
+            }
+            val result = fixture.finishPendingApproval(operation) {
+                fixture.vault.valueOrNull = MasterSession.Empty()
+            }
+            assertIs<GpgAgentOperationResult.VaultLocked>(result)
+            val event = fixture.pendingHistory.items.single()
+            assertEquals(GpgUsageHistoryResponseType.VAULT_LOCKED.name, event.responseType)
+            assertEquals(KEYGRIP, event.fingerprint)
+            assertEquals(0, fixture.crypto.calls)
+        }
+    }
+
+    @Test
+    fun `cached operations require new approval after settings change during eligibility reads`() = runTest {
+        GpgAgentOperation.entries.forEach { operation ->
+            for (readFilter in listOf(false, true)) {
+                for (change in ApprovalCacheInvalidation.entries) {
+                    val fixture = Fixture(this)
+                    val caller = caller(connection = 1)
+                    fixture.succeed(operation, caller)
+                    val result = finishAfterBlockedAgentRead(
+                        beforeRead = { hook ->
+                            if (readFilter) fixture.beforeFilterRead = hook else fixture.beforeCipherRead = hook
+                        },
+                        request = { fixture.request(operation, caller) },
+                    ) { change.apply(fixture.config) }
+
+                    assertIs<GpgAgentOperationResult.Success<*>>(result)
+                    assertEquals(2, fixture.approvals, "$operation, filter=$readFilter, $change")
+                    assertEquals(2, fixture.crypto.calls)
+                    fixture.succeed(operation, caller)
+                    val expected = if (change == ApprovalCacheInvalidation.Disable) 3 else 2
+                    assertEquals(expected, fixture.approvals, "New approval must use the current policy")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `renewed approvals still reject denial and removed keys`() = runTest {
+        GpgAgentOperation.entries.forEach { operation ->
+            for (deny in listOf(false, true)) {
+                val fixture = Fixture(this)
+                fixture.succeed(operation, caller(connection = 1))
+                fixture.onApproval = {
+                    fixture.ciphers.value = emptyList()
+                    !deny
+                }
+                val result = finishAfterBlockedAgentRead(
+                    beforeRead = { fixture.beforeCipherRead = it },
+                    request = { fixture.request(operation, caller(connection = 1)) },
+                ) { ApprovalCacheInvalidation.Policy.apply(fixture.config) }
+                if (deny) {
+                    assertIs<GpgAgentOperationResult.UserDenied>(result)
+                } else {
+                    assertIs<GpgAgentOperationResult.KeyNotFound>(result)
+                }
+                assertEquals(2, fixture.approvals)
+                assertEquals(1, fixture.crypto.calls)
+            }
+        }
+    }
+
+    @Test
+    fun `reordering duplicate GPG keys retains the approved cipher`() = runTest {
+        GpgAgentOperation.entries.forEach { operation ->
+            val fixture = Fixture(this)
+            val original = fixture.ciphers.value.first()
+            fixture.ciphers.value = listOf(original, original.copy(id = "duplicate"))
+            val result = fixture.finishPendingApproval(operation) {
+                fixture.ciphers.value = fixture.ciphers.value.reversed()
+            }
+            assertIs<GpgAgentOperationResult.Success<*>>(result)
+            assertEquals(1, fixture.crypto.calls)
+        }
+    }
+
+    private fun onlyOtherKeyFilter() = GpgAgentFilter(
+        state = mapOf("cipher" to setOf(DFilter.ById(id = OTHER_KEYGRIP, what = DFilter.ById.What.CIPHER))),
+    )
+
+    private suspend fun Fixture.finishPendingApproval(
+        operation: GpgAgentOperation,
+        change: suspend () -> Unit,
+    ): GpgAgentOperationResult<*> = coroutineScope {
+        val started = CompletableDeferred<Unit>()
+        val finish = CompletableDeferred<Unit>()
+        onApproval = {
+            started.complete(Unit)
+            finish.await()
+            true
+        }
+        val pending = async { request(operation, caller(connection = 1)) }
+        started.await()
+        change()
+        finish.complete(Unit)
+        pending.await()
+    }
+
     private inner class Fixture(
         scope: TestScope,
         policy: AgentApprovalCachePolicy = AgentApprovalCachePolicy.Default,
     ) {
-        val vault = MutableVaultSession(createVaultSession())
+        val ciphers = MutableStateFlow(listOf(createGpgCipher(KEYGRIP), createGpgCipher(OTHER_KEYGRIP)))
+        val filter = MutableStateFlow(GpgAgentFilter())
+        var revoked = false
+        var resolutions = 0
+        var beforeCipherRead: suspend () -> Unit = {}
+        var beforeFilterRead: suspend () -> Unit = {}
+        val vault = MutableVaultSession(createVaultSession(
+            ciphers = ciphers,
+            onResolve = { resolutions++ },
+            beforeRead = { beforeCipherRead() },
+            isRevoked = { revoked },
+        ))
         val crypto = FakeCrypto()
+        val pendingHistory = RecordingPendingUsageHistoryQueue()
         val config = AgentApprovalCacheConfigState(
             loadApprovalWindow = { Duration.INFINITE },
             loadCachePolicy = { policy },
@@ -195,6 +438,7 @@ class GpgAgentApprovalReuseTest {
         var approvals = 0
         var onApproval: suspend () -> Boolean = { true }
         private val processor = GpgAgentRequestProcessorImpl(
+            sessionAccess = testDomainSessionAccess(),
             logRepository = NoOpLogRepository,
             crypto = crypto,
             getVaultSession = vault,
@@ -206,9 +450,13 @@ class GpgAgentApprovalReuseTest {
                 override fun invoke() = config.cachePolicy()
             },
             getGpgAgentFilter = object : GetGpgAgentFilter {
-                override fun invoke(): Flow<GpgAgentFilter> = flowOf(GpgAgentFilter())
+                override fun invoke(): Flow<GpgAgentFilter> = flow {
+                    beforeFilterRead()
+                    emit(filter.value)
+                }
             },
             scope = scope.backgroundScope,
+            pendingUsageHistoryQueue = pendingHistory,
             onApprovalRequest = {
                 approvals++
                 onApproval()
@@ -285,17 +533,26 @@ class GpgAgentApprovalReuseTest {
         override fun invoke(): Flow<MasterSession> = state
     }
 
-    private fun createVaultSession(): MasterSession.Key {
-        val ciphers = listOf(createGpgCipher(KEYGRIP), createGpgCipher(OTHER_KEYGRIP))
+    private fun createVaultSession(
+        ciphers: MutableStateFlow<List<DSecret>> = MutableStateFlow(
+            listOf(createGpgCipher(KEYGRIP), createGpgCipher(OTHER_KEYGRIP)),
+        ),
+        onResolve: () -> Unit = {},
+        beforeRead: suspend () -> Unit = {},
+        isRevoked: () -> Boolean = { false },
+    ): MasterSession.Key {
         return MasterSession.Key(
             masterKey = MasterKey(version = MasterKdfVersion.LATEST, byteArray = ByteArray(32)),
-            di = DI {
-                bindSingleton<GetCiphers> {
+            session = testVaultSession {
+                scoped<GetCiphers> {
                     object : GetCiphers {
-                        override fun invoke(): Flow<List<DSecret>> = flowOf(ciphers)
+                        override fun invoke(): Flow<List<DSecret>> = flow {
+                            beforeRead()
+                            emit(ciphers.value)
+                        }
                     }
                 }
-                bindSingleton<GpgKeyMetadataResolver> {
+                scoped<GpgKeyMetadataResolver> {
                     object : GpgKeyMetadataResolver {
                         override fun resolve(
                             privateKeyArmored: String?,
@@ -303,7 +560,8 @@ class GpgAgentApprovalReuseTest {
                             fingerprint: String?,
                             candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
                         ): GpgAgentMetadataResolution? {
-                            val metadata = ciphers.firstOrNull { it.gpgKey?.fingerprint == fingerprint }
+                            onResolve()
+                            val metadata = ciphers.value.firstOrNull { it.gpgKey?.fingerprint == fingerprint }
                                 ?.gpgKey?.metadata ?: return null
                             return GpgAgentMetadataResolution(
                                 metadata = metadata,
@@ -312,7 +570,11 @@ class GpgAgentApprovalReuseTest {
                                     policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
                                     keys = metadata.routableAgentKeys,
                                     revocations = metadata.routableAgentKeys.associate { key ->
-                                        key.fingerprint to GpgRevocationStatus.NOT_REVOKED
+                                        key.fingerprint to if (isRevoked()) {
+                                            GpgRevocationStatus.REVOKED
+                                        } else {
+                                            GpgRevocationStatus.NOT_REVOKED
+                                        }
                                     },
                                 ),
                             )

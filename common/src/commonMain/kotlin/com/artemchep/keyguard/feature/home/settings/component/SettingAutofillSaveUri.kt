@@ -8,20 +8,19 @@ import com.artemchep.keyguard.common.usecase.PutAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import org.jetbrains.compose.resources.stringResource
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.combine
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingAutofillSaveUriProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingAutofillSaveUriProvider(
-    getCanWrite = directDI.instance(),
-    getAutofillSaveUri = directDI.instance(),
-    putAutofillSaveUri = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getCanWrite = koinScope.get(),
+    getAutofillSaveUri = koinScope.get(),
+    putAutofillSaveUri = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingAutofillSaveUriProvider(

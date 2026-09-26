@@ -1,13 +1,14 @@
 package com.artemchep.keyguard.feature.websiteleak
 
 import androidx.compose.runtime.Composable
-import arrow.core.getOrElse
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.hibp.breaches.all.BreachesRepository
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetBreaches
+import com.artemchep.keyguard.common.usecase.impl.isSubdomain
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -19,18 +20,16 @@ import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
 import kotlinx.datetime.toInstant
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceWebsiteLeakState(
     args: WebsiteLeakRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceWebsiteLeakState(
         args = args,
-        getBreaches = instance(),
-        dateFormatter = instance(),
+        getBreaches = get(),
+        dateFormatter = get(),
     )
 }
 
@@ -56,16 +55,14 @@ suspend fun RememberStateFlowScope.websiteLeakStateProducer(
     getBreaches: GetBreaches,
     dateFormatter: DateFormatter,
 ): Flow<WebsiteLeakState> {
-    val breaches2 = getBreaches(false)
-        .attempt()
-        .bind()
-    val breach3 = breaches2
+    val content = getBreaches(false)
         .map {
-            it.breaches
+            val breaches = it.breaches
                 .filter {
-                    it.domain != null &&
-                            it.domain.isNotBlank() &&
-                            args.host.endsWith(it.domain)
+                    isBreachDomainMatch(
+                        host = args.host,
+                        domain = it.domain,
+                    )
                 }
                 .sortedByDescending { it.addedDate }
                 .map { leak ->
@@ -86,13 +83,13 @@ suspend fun RememberStateFlowScope.websiteLeakStateProducer(
                         dataClasses = leak.dataClasses,
                     )
                 }
+                .toImmutableList()
+            WebsiteLeakState.Content(
+                breaches = breaches,
+            )
         }
-        .getOrElse { emptyList() }
-
-    val content = WebsiteLeakState.Content(
-        breaches = breach3
-            .toImmutableList(),
-    )
+        .attempt()
+        .bind()
     val state = WebsiteLeakState(
         content = content,
         onClose = {
@@ -100,4 +97,21 @@ suspend fun RememberStateFlowScope.websiteLeakStateProducer(
         },
     )
     return flowOf(state)
+}
+
+/**
+ * Matches a breach domain against a host label-wise: the host must be
+ * equal to the domain or one of its subdomains
+ */
+internal fun isBreachDomainMatch(
+    host: String,
+    domain: String?,
+): Boolean {
+    if (domain.isNullOrBlank()) {
+        return false
+    }
+    return isSubdomain(
+        domain = domain.lowercase(),
+        request = host.lowercase(),
+    )
 }

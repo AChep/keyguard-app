@@ -5,13 +5,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.compose.runtime.*
+import com.artemchep.keyguard.di.KeyguardKoinOwner
 import com.artemchep.keyguard.feature.generator.GeneratorRoute
 import com.artemchep.keyguard.feature.home.HomeLayout
 import com.artemchep.keyguard.feature.home.LocalHomeLayout
 import com.artemchep.keyguard.feature.navigation.NavigationNode
-import org.kodein.di.*
 
-class GeneratorActivity : BaseActivity(), DIAware {
+class GeneratorActivity : BaseActivity(), KeyguardKoinOwner {
     companion object {
         private const val GENERATOR_STORAGE_KEY = "generator_standalone"
 

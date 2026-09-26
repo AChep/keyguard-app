@@ -28,10 +28,11 @@ import com.artemchep.keyguard.android.ui.dialogActivityContainerColor
 import com.artemchep.keyguard.android.ui.dialogActivityContentColor
 import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.model.VaultState
+import com.artemchep.keyguard.common.service.agent.completeWithLog
 import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalRequest
 import com.artemchep.keyguard.common.service.sshagent.SshAgentGetListRequest
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestQueue
-import com.artemchep.keyguard.common.service.agent.completeWithLog
+import com.artemchep.keyguard.di.VaultSessionContent
 import com.artemchep.keyguard.feature.keyguard.AuthScreen
 import com.artemchep.keyguard.feature.keyguard.LocalAuthScreen
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
@@ -42,9 +43,9 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.sshagent.SshAgentApprovalContent
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ssh_client_request
-import kotlinx.coroutines.delay
-import org.kodein.di.compose.withDI
 import kotlin.time.Clock
+import kotlinx.coroutines.delay
+import org.koin.core.scope.Scope
 
 internal class SshRequestActivity : BaseActivity() {
     companion object {
@@ -210,9 +211,9 @@ internal class SshRequestActivity : BaseActivity() {
                     is VaultState.Main -> when (activeRequest) {
                         null -> ManualAppScreenOnLoading()
                         is SshAgentApprovalRequest -> {
-                            // Provide the session DI so that the content can
+                            // Provide the session Scope so that the content can
                             // read the vault, e.g. to resolve the key's title.
-                            withDI(vaultState.di) {
+                            VaultSessionContent(vaultState.session) {
                                 SshAgentApprovalContent(
                                     request = activeRequest,
                                     onDismiss = {},

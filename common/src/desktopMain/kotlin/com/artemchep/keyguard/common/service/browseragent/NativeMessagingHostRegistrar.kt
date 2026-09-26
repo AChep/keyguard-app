@@ -2,9 +2,13 @@ package com.artemchep.keyguard.common.service.browseragent
 
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
-import kotlinx.serialization.json.*
-import java.nio.file.Path
 import java.nio.file.Files
+import java.nio.file.Path
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.addJsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 
 /**
  * Writes the Native Messaging host manifests for Firefox, Chrome, and Edge
@@ -69,6 +73,7 @@ class NativeMessagingHostRegistrar(
         writeManifest(FIREFOX_MANIFEST_DIR, firefoxManifest)
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun writeManifest(dir: Path, manifest: String) {
         try {
             Files.createDirectories(dir)

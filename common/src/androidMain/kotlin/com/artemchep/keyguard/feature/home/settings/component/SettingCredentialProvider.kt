@@ -25,14 +25,13 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 actual fun settingCredentialProviderProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = if (Build.VERSION.SDK_INT >= 34) {
     settingCredentialProviderProvider(
-        windowCoroutineScope = directDI.instance(),
+        windowCoroutineScope = koinScope.get(),
     )
 } else {
     // Credential provider is not available on the

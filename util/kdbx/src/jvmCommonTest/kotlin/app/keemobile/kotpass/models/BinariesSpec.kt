@@ -8,7 +8,8 @@ import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.database.decode
 import app.keemobile.kotpass.database.decodeFromXml
 import app.keemobile.kotpass.database.modifiers.binaries
-import app.keemobile.kotpass.database.modifiers.modifyEntry
+import app.keemobile.kotpass.database.getEntry
+import app.keemobile.kotpass.database.modifiers.modifyGroup
 import app.keemobile.kotpass.database.modifiers.removeUnusedBinaries
 import app.keemobile.kotpass.database.referencedBinaries
 import app.keemobile.kotpass.common.renderTestXmlString
@@ -37,7 +38,8 @@ class BinariesSpec {
     describe("Binaries") {
         it("Binary serialization does not affect compression") {
             val binary = BinaryData.Uncompressed(false, Contents.toByteArray())
-            renderTestXmlString { binary.marshalTo(0, it) }
+            val context = XmlContext.Encode.Plain(FormatVersion(3, 1), emptyMap(), emptySet())
+            renderTestXmlString { binary.marshalTo(0, context, it) }
                 .parseAsXmlReader()
                 .readElementTextOrNull() shouldBe Contents.toByteArray().encodeBase64()
         }
@@ -172,11 +174,16 @@ class BinariesSpec {
             val database = KeePassDatabase.decode(
                 ClassLoader.getSystemResourceAsStream("ver4_with_binaries.kdbx")!!,
                 Credentials.from(EncryptedValue.fromString("1"))
-            ).modifyEntry(Uuid.parse("6d9b7812-6d1a-1765-9cd7-c66a93a220e9")) {
-                copy(binaries = listOf())
+            )
+            val entryUuid = Uuid.parse("6d9b7812-6d1a-1765-9cd7-c66a93a220e9")
+            val (parent, _) = database.getEntry { it.uuid == entryUuid }!!
+            val cleaned = database.modifyGroup(parent.uuid) {
+                copy(entries = entries.map { entry ->
+                    if (entry.uuid == entryUuid) entry.copy(binaries = emptyList()) else entry
+                })
             }.removeUnusedBinaries()
 
-            database.binaries.size shouldBe 0
+            cleaned.binaries.size shouldBe 0
         }
     }
     }

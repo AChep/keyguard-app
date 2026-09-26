@@ -10,6 +10,8 @@ sealed interface PermissionState {
 
     @Immutable
     data class Declined(
+        val permission: Permission,
         val ask: (LeContext) -> Unit,
+        val openSettings: (LeContext) -> Unit,
     ) : PermissionState
 }

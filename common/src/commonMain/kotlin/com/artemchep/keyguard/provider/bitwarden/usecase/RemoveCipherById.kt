@@ -7,8 +7,6 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.deleted
 import com.artemchep.keyguard.core.store.bitwarden.service
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -19,10 +17,6 @@ class RemoveCipherByIdImpl(
     companion object {
         private const val TAG = "RemoveCipherById.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyCipherById = directDI.instance(),
-    )
 
     override fun invoke(
         cipherIds: Set<String>,

@@ -3,6 +3,9 @@ config:
   warningsAsErrors: true
 
 keyguard:
+  AndroidIncompatibleListOperation:
+    active: true
+    severity: error
   MutablePersistedFlowTypeSafety:
     active: true
     severity: error

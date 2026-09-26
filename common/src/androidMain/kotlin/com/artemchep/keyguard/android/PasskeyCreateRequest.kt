@@ -34,15 +34,13 @@ import com.artemchep.keyguard.common.service.webauthn.findExcludedPasskeyCredent
 import com.artemchep.keyguard.common.service.webauthn.pubKeyCredParamsOrDefaults
 import com.artemchep.keyguard.common.service.webauthn.requireNoExcludedPasskeyCredential as requireNoWebAuthnExcludedPasskeyCredential
 import com.artemchep.keyguard.common.service.webauthn.webAuthnNoneAttestationObject
+import kotlin.math.roundToInt
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.math.roundToInt
 
 @SuppressLint("RestrictedApi")
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -52,14 +50,6 @@ class PasskeyCreateRequest(
     private val passkeyUtils: PasskeyUtils,
     private val passkeyCrypto: PasskeyCrypto,
 ) {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance<Application>(),
-        json = directDI.instance(),
-        passkeyUtils = directDI.instance(),
-        passkeyCrypto = directDI.instance(),
-    )
 
     sealed interface PreparedCreateCredentialRequest {
         data class PublicKey(

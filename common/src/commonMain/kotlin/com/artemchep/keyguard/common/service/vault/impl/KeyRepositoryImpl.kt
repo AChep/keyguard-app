@@ -11,13 +11,11 @@ import com.artemchep.keyguard.common.service.keyvalue.SecureKeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.getObject
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -58,12 +56,6 @@ class KeyRepositoryImpl(
                     "Current use of ${store::class.simpleName} is probably a mistake."
         }
     }
-
-    constructor(directDI: DirectDI) : this(
-        store = directDI.instance<Files, KeyValueStore>(arg = Files.KEY),
-        json = directDI.instance(),
-        base64Service = directDI.instance(),
-    )
 
     override fun put(session: PersistedSession?) = ioEffect {
         val entity = if (session != null) {

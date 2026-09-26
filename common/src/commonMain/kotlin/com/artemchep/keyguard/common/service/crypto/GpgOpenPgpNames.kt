@@ -40,14 +40,14 @@ internal fun extractGpgUserIdEmail(
 }
 
 /** Normalizes an input that is already specified to be a bare mailbox. */
-internal fun normalizeGpgMailboxAddress(
+fun normalizeGpgMailboxAddress(
     address: String,
 ): String? = address
     .trim()
     .takeIf(String::isValidGpgMailboxAddress)
     ?.lowercase()
 
-internal fun normalizeGpgUserIdEmail(
+fun normalizeGpgUserIdEmail(
     userId: String,
 ): String? = extractGpgUserIdEmail(userId)
     ?.lowercase()

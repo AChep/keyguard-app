@@ -50,6 +50,12 @@ private fun findLibBinaryFile(): File {
     throw IllegalStateException(errorMessage)
 }
 
+/** Loads the packaged bridge and resolves an export without accessing platform services. */
+public fun ensureDesktopLibAvailable() {
+    // free(NULL) is a no-op on every platform.
+    DesktopLibJna.get().freePointer(Pointer(0))
+}
+
 public interface DesktopLibJna : Library {
     public companion object {
         @Volatile
@@ -72,6 +78,16 @@ public interface DesktopLibJna : Library {
 
     public fun autoType(payload: Pointer): Boolean
 
+    // Power notifications
+
+    public fun registerNativePowerEvents(callback: PowerEventCallback): Int
+
+    public fun unregisterNativePowerEvents(id: Int): Boolean
+
+    public interface PowerEventCallback : Callback {
+        public fun invoke(event: Int)
+    }
+
     // System accent color
 
     public fun getSystemAccentColor(): Int
@@ -83,6 +99,10 @@ public interface DesktopLibJna : Library {
     public fun biometricsVerify(
         windowHandle: Long,
         title: Pointer,
+        callback: BiometricsVerifyCallback,
+    )
+
+    public fun biometricsPrepareEnrollment(
         callback: BiometricsVerifyCallback,
     )
 

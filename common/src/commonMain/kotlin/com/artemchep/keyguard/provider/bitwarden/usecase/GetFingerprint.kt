@@ -8,12 +8,10 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.wordlist.WordlistService
 import com.artemchep.keyguard.common.usecase.GetFingerprint
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.pbk
-import kotlinx.coroutines.Dispatchers
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.ceil
 import kotlin.math.ln
+import kotlinx.coroutines.Dispatchers
 
 /**
  * @author Artem Chepurnyi
@@ -26,11 +24,6 @@ class GetFingerprintImpl(
     companion object {
         private const val TAG = "GetFingerprint.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        cryptoGenerator = directDI.instance(),
-        wordlistService = directDI.instance(),
-    )
 
     override fun invoke(
         privateKey: PrivateKey,

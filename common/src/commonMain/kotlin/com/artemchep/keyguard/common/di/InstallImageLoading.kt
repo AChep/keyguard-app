@@ -13,50 +13,49 @@ import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.favicon.GravatarUrl
 import com.artemchep.keyguard.feature.favicon.PictureUrl
 import io.ktor.client.HttpClient
-import org.kodein.di.DI
-import org.kodein.di.DirectDI
-import org.kodein.di.bindMultiton
-import org.kodein.di.direct
-import org.kodein.di.instance
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
+import org.koin.core.Koin
+import org.koin.core.scope.Scope
+import org.koin.dsl.module
 
-fun imageLoaderModule(
-    builder: ComponentRegistry.Builder.(directDI: DirectDI) -> Unit,
-) = DI.Module(
-    name = "imageLoader",
-) {
-    bindMultiton<PlatformContext, ImageLoader> { context: PlatformContext ->
-        ImageLoader.Builder(context)
-            .components {
-                val ktorFetcherFactory = KtorNetworkFetcherFactory(
-                    httpClient = {
-                        di.direct.instance<HttpClient>()
-                    },
-                )
-                add(ktorFetcherFactory)
+/** Coil loaders are cached per platform context, matching their resource ownership. */
+class ImageLoaderFactory(private val create: (PlatformContext) -> ImageLoader) {
+    private val lock = SynchronizedObject()
+    private val loaders = mutableMapOf<PlatformContext, ImageLoader>()
 
-                // Extending the image pipeline
-                installFaviconUrlFetcherFactory(
-                    httpClient = {
-                        di.direct.instance<HttpClient>()
-                    },
-                )
-                add(FaviconUrlKeyer())
-                add(GravatarUrlMapper())
-                add(PictureUrlMapper())
-
-                // Platform specific
-                builder(directDI)
-            }
-            .installPlatformDiskCache(directDI)
-            .crossfade(true)
-            .build()
+    fun get(context: PlatformContext): ImageLoader = synchronized(lock) {
+        loaders.getOrPut(context) { create(context) }
     }
 }
 
-fun SingletonImageLoader.setFromDi(di: DI) {
-    setSafe { context ->
-        di.direct.instance<PlatformContext, ImageLoader>(arg = context)
+class ImageLoadingModule(
+    builder: ComponentRegistry.Builder.(scope: Scope) -> Unit,
+) {
+    val module = module {
+        single<ImageLoaderFactory> {
+            val scope = this
+            val httpClient = get<HttpClient>()
+            ImageLoaderFactory { context ->
+                ImageLoader.Builder(context)
+                    .components {
+                        add(KtorNetworkFetcherFactory(httpClient = { httpClient }))
+                        installFaviconUrlFetcherFactory(httpClient = { httpClient })
+                        add(FaviconUrlKeyer())
+                        add(GravatarUrlMapper())
+                        add(PictureUrlMapper())
+                        builder(scope)
+                    }
+                    .installPlatformDiskCache(scope)
+                    .crossfade(true)
+                    .build()
+            }
+        }
     }
+}
+
+fun SingletonImageLoader.setFromKoin(koin: Koin) {
+    setSafe { context -> koin.get<ImageLoaderFactory>().get(context) }
 }
 
 internal expect fun ComponentRegistry.Builder.installFaviconUrlFetcherFactory(
@@ -64,7 +63,7 @@ internal expect fun ComponentRegistry.Builder.installFaviconUrlFetcherFactory(
 )
 
 internal expect fun ImageLoader.Builder.installPlatformDiskCache(
-    directDI: DirectDI,
+    scope: Scope,
 ): ImageLoader.Builder
 
 class FaviconUrlKeyer : Keyer<FaviconUrl> {

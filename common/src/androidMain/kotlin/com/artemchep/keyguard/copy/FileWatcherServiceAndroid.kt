@@ -20,26 +20,19 @@ import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.util.io.toJavaFile
 import com.artemchep.keyguard.util.io.toLocalPath
+import java.io.File
+import java.lang.Exception
+import java.nio.file.Path
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import java.io.File
-import java.lang.Exception
-import java.nio.file.Path
-import kotlin.time.Duration.Companion.milliseconds
 
 class FileWatcherServiceAndroid(
     private val context: Context,
 ) : FileWatcherService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance<Application>(),
-    )
 
     override fun fileChangedFlow(
         file: LocalPath,

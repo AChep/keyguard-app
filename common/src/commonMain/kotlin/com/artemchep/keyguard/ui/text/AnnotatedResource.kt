@@ -20,11 +20,13 @@ fun annotatedResource(
     // Generate a bunch of placeholders to use as
     // arguments. Later, we will replace those with
     // actual values.
-    val placeholders = remember {
+    val placeholders = remember(args.size) {
         Array(args.size) { createPlaceholder() }
     }
     val value = stringResource(resource, *placeholders)
-    return remember(value) {
+    // The arguments are keys too, otherwise a changed value or
+    // style would keep showing the first annotated string.
+    return remember(value, *args) {
         rebuild(
             value,
             placeholders = placeholders,

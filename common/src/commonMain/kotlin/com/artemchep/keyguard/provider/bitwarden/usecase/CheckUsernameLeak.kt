@@ -21,8 +21,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -36,16 +34,6 @@ class CheckUsernameLeakImpl(
     private val db: VaultDatabaseManager,
     private val getHibpApiToken: GetHibpApiToken,
 ) : CheckUsernameLeak {
-    constructor(directDI: DirectDI) : this(
-        tokenRepository = directDI.instance(),
-        hibpRepository = directDI.instance(),
-        base64Service = directDI.instance(),
-        json = directDI.instance(),
-        httpClient = directDI.instance(),
-        db = directDI.instance(),
-        getHibpApiToken = directDI.instance(),
-    )
-
     override fun invoke(
         request: CheckUsernameLeakRequest,
     ): IO<DHibpC> = ioEffect {

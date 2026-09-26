@@ -13,16 +13,15 @@ import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.flow.flow
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingClearCache(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingClearCache(
-    breachesLocalDataSource = directDI.instance(),
-//    accountPwnageDataSourceLocal = directDI.instance(),
-    passwordPwnageDataSourceLocal = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    breachesLocalDataSource = koinScope.get(),
+//    accountPwnageDataSourceLocal = koinScope.get(),
+    passwordPwnageDataSourceLocal = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingClearCache(

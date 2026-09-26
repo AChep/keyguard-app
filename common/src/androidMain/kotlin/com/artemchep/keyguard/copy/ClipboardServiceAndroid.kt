@@ -12,13 +12,11 @@ import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.platform.CurrentPlatformImpl
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Duration
 
 class ClipboardServiceAndroid(
     private val application: Application,
@@ -26,14 +24,6 @@ class ClipboardServiceAndroid(
     private val windowCoroutineScope: WindowCoroutineScope,
     private val getClipboardAutoClear: GetClipboardAutoClear,
 ) : ClipboardService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        application = directDI.instance<Application>(),
-        clipboardManager = directDI.instance<Application>().getSystemService<ClipboardManager>()!!,
-        windowCoroutineScope = directDI.instance(),
-        getClipboardAutoClear = directDI.instance(),
-    )
 
     private val autoClearMutex = Mutex()
 

@@ -13,26 +13,24 @@ import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun producePasskeysCredentialViewState(
     args: PasskeysCredentialViewRoute.Args,
     mode: AppMode,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     producePasskeysCredentialViewState(
         args = args,
         mode = mode,
-        getCiphers = instance(),
-        passkeyTargetCheck = instance(),
-        dateFormatter = instance(),
+        getCiphers = get(),
+        passkeyTargetCheck = get(),
+        dateFormatter = get(),
     )
 }
 

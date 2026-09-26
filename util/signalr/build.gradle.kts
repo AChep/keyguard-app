@@ -1,24 +1,16 @@
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.kmp.library)
+    id("keyguard.quality")
+    id("keyguard.kotlin-multiplatform-library")
     alias(libs.plugins.kotlin.plugin.serialization)
 }
 
 kotlin {
     android {
-        compileSdk = libs.versions.androidCompileSdk.get().toInt()
-        minSdk = libs.versions.androidMinSdk.get().toInt()
         namespace = "com.artemchep.keyguard.util.signalr"
-
-        withHostTest {}
     }
-    jvm("desktop")
-    iosArm64()
-    iosSimulatorArm64()
-    macosArm64()
 
     sourceSets {
-        val commonMain by getting {
+        getByName("commonMain") {
             dependencies {
                 api(project(":util:messagepack"))
                 api(libs.ktor.ktor.client.core)
@@ -27,16 +19,11 @@ kotlin {
                 api(libs.kotlinx.serialization.json)
             }
         }
-        val commonTest by getting {
+        getByName("commonTest") {
             dependencies {
-                implementation(kotlin("test"))
                 implementation(libs.ktor.ktor.client.mock)
                 implementation(libs.kotlinx.coroutines.test)
             }
         }
     }
-}
-
-kotlin {
-    jvmToolchain(libs.versions.jdk.get().toInt())
 }

@@ -1,0 +1,35 @@
+name: "Build AppImage"
+description: "Package and verify a Linux release tarball as an AppImage"
+inputs:
+  tarball:
+    description: "Path to the Linux release tarball"
+    required: true
+  arch:
+    description: "Linux architecture: x86_64 or aarch64"
+    required: true
+  version:
+    description: "Semantic release version"
+    required: true
+outputs:
+  path:
+    description: "Absolute path to the verified AppImage"
+    value: ${{ steps.build.outputs.path }}
+  zsync-path:
+    description: "Absolute path to the verified AppImage zsync file"
+    value: ${{ steps.build.outputs.zsync-path }}
+runs:
+  using: "composite"
+  steps:
+    - name: "Install AppImage packaging dependencies"
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y desktop-file-utils zsync
+    - name: "Build and verify AppImage"
+      id: build
+      shell: bash
+      env:
+        APPIMAGE_TARBALL: ${{ inputs.tarball }}
+        APPIMAGE_ARCH: ${{ inputs.arch }}
+        APPIMAGE_VERSION: ${{ inputs.version }}
+      run: bash .github/actions/build_appimage/build.sh "$APPIMAGE_TARBALL" "$APPIMAGE_ARCH" "$APPIMAGE_VERSION"

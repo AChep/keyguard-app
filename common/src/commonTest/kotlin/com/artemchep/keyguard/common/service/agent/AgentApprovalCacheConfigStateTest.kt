@@ -9,10 +9,40 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 
 class AgentApprovalCacheConfigStateTest {
+    @Test
+    fun `peek does not load and returns the latest completed configuration`() = runTest {
+        val state = createState()
+        assertNull(state.peek())
+        assertEquals(state.get(), state.peek())
+        state.updateCachePolicy(TestPolicy.Connection, persist = {})()
+        assertEquals(TestPolicy.Connection, state.peek()?.cachePolicy)
+        assertEquals(1L, state.peek()?.revision)
+    }
+
+    @Test
+    fun `peek returns immediately while initial loading is suspended`() = runTest {
+        val started = CompletableDeferred<Unit>()
+        val finish = CompletableDeferred<Unit>()
+        val state = AgentApprovalCacheConfigState(
+            loadApprovalWindow = {
+                started.complete(Unit)
+                finish.await()
+                5.minutes
+            },
+            loadCachePolicy = { TestPolicy.Application },
+        )
+        val loading = async { state.get() }
+        started.await()
+        assertNull(state.peek())
+        finish.complete(Unit)
+        assertEquals(loading.await(), state.peek())
+    }
+
     @Test
     fun `successful policy and window writes publish versioned config`() = runTest {
         val persisted = mutableListOf<String>()
@@ -134,6 +164,7 @@ class AgentApprovalCacheConfigStateTest {
             )()
         }
         persistenceStarted.await()
+        assertNull(state.peek(), "A write in progress must not expose the old configuration")
 
         val read = async { state.get() }
         yield()
@@ -142,6 +173,7 @@ class AgentApprovalCacheConfigStateTest {
         finishPersistence.complete(Unit)
         update.await()
         assertEquals(TestPolicy.Connection, read.await().cachePolicy)
+        assertEquals(TestPolicy.Connection, state.peek()?.cachePolicy)
     }
 
     @Test
@@ -157,7 +189,7 @@ class AgentApprovalCacheConfigStateTest {
         }
         assertEquals(
             initial.copy(revision = initial.revision + 1L),
-            state.get(),
+            state.peek(),
         )
 
         assertFailsWith<PersistenceException> {
@@ -168,7 +200,7 @@ class AgentApprovalCacheConfigStateTest {
         }
         assertEquals(
             initial.copy(revision = initial.revision + 2L),
-            state.get(),
+            state.peek(),
         )
     }
 

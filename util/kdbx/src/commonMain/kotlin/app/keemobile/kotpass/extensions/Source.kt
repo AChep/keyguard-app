@@ -10,6 +10,6 @@ internal fun Source.bufferStream(): BufferedStream {
     return RealBufferedStream(this)
 }
 
-internal fun Source.teeBufferStream(mirrorBuffer: Buffer): BufferedStream {
+internal fun Source.teeBufferStream(mirrorBuffer: Buffer): TeeBufferedStream {
     return TeeBufferedStream(this, mirrorBuffer)
 }

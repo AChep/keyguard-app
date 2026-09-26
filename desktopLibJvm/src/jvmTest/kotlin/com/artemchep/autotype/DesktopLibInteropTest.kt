@@ -303,6 +303,10 @@ class DesktopLibInteropTest {
         var nativeSystemAccentColor: Int = 0
         val freedPointers = mutableListOf<Pointer>()
 
+        override fun registerNativePowerEvents(callback: DesktopLibJna.PowerEventCallback): Int = -1
+
+        override fun unregisterNativePowerEvents(id: Int): Boolean = false
+
         override fun autoType(payload: Pointer): Boolean = true
 
         override fun getSystemAccentColor(): Int = nativeSystemAccentColor
@@ -316,6 +320,13 @@ class DesktopLibInteropTest {
         ) {
             biometricsWindowHandle = windowHandle
             biometricsTitle = title.getString(0L)
+            biometricsCallback = callback
+            biometricsVerifyFailure?.let { throw it }
+        }
+
+        override fun biometricsPrepareEnrollment(
+            callback: DesktopLibJna.BiometricsVerifyCallback,
+        ) {
             biometricsCallback = callback
             biometricsVerifyFailure?.let { throw it }
         }

@@ -37,8 +37,8 @@ import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.platform.parcelize.LeIgnoredOnParcel
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
@@ -50,9 +50,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.jetbrains.compose.resources.StringResource
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @LeParcelize
 @Serializable
@@ -136,10 +134,10 @@ private class AppPickerUiException(
 @Composable
 fun produceAppPickerState(
     transmitter: RouteResultTransmitter<AppPickerResult>,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceAppPickerState(
         transmitter = transmitter,
-        unlockUseCase = instance(),
+        unlockUseCase = get(),
     )
 }
 

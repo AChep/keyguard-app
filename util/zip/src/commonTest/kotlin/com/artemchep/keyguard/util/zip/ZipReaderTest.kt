@@ -9,6 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -91,6 +92,42 @@ class ZipReaderTest {
             assertEquals("second.txt", second?.name)
             assertEquals("second", second?.source?.readString())
         }
+    }
+
+    @Test
+    fun advancingInvalidatesThePreviousEntrySource() = runTest {
+        val archive = archive(
+            password = null,
+            entries = listOf(
+                textEntry("first.txt", "first"),
+                textEntry("second.txt", "second"),
+            ),
+        )
+
+        ZipReader(archive.source()).use { reader ->
+            val first = reader.nextEntry()
+            assertEquals("first.txt", first?.name)
+
+            val second = reader.nextEntry()
+            assertEquals("second.txt", second?.name)
+            // Otherwise it would silently hand out the second entry's bytes.
+            assertFailsWith<ZipException> { first?.source?.readString() }
+            assertEquals("second", second?.source?.readString())
+        }
+    }
+
+    @Test
+    fun closingInvalidatesTheCurrentEntrySource() = runTest {
+        val archive = archive(
+            password = null,
+            entries = listOf(textEntry("only.txt", "only")),
+        )
+
+        val reader = ZipReader(archive.source())
+        val entry = reader.nextEntry()
+        assertEquals("only.txt", entry?.name)
+        reader.close()
+        assertFailsWith<ZipException> { entry?.source?.readString() }
     }
 
     @Test

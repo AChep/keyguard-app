@@ -55,7 +55,14 @@ message NativeRequest {
     OpenPgpCertificateMaterialReconcileRequest open_pgp_certificate_material_reconcile = 56;
     OpenPgpCertificateMaterialReconcileV2Request open_pgp_certificate_material_reconcile_v2 = 57;
     OpenPgpUserIdCertificationEvaluateRequest open_pgp_user_id_certification_evaluate = 58;
+    OpenPgpStreamDrainRequest open_pgp_stream_drain = 59;
   }
+}
+
+// Ends a decryption session's input and returns one bounded output chunk.
+// Repeat until bytes_value is empty, then stream_finish returns final metadata.
+message OpenPgpStreamDrainRequest {
+  uint64 handle = 1;
 }
 
 message NativeStreamOpenRequest {
@@ -931,6 +938,9 @@ message OpenPgpDecryptStreamOpenRequest {
   // Allows unencrypted inline-signed messages. Unsigned literal packets remain
   // invalid input.
   optional bool allow_signed_only = 4;
+  // Private directory for encrypted temporary staging of large legacy messages.
+  // Absent preserves the bounded in-memory legacy decryption path.
+  optional string staging_directory = 5;
 }
 
 // Header of the literal data packet. OpenPGP signatures cover only the

@@ -3,8 +3,10 @@ package com.artemchep.keyguard.feature.sshagent.filter
 import androidx.compose.runtime.Composable
 import arrow.core.identity
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.SshAgentFilter
+import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.service.sshagent.isEligibleForSshAgent
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCiphers
@@ -35,30 +37,29 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
-fun produceSshAgentFiltersState() = with(localDI().direct) {
+fun produceSshAgentFiltersState() = with(currentKoinScope()) {
     produceSshAgentFiltersState(
-        directDI = this,
-        getSshAgentFilter = instance(),
-        putSshAgentFilter = instance(),
-        getCiphers = instance(),
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getTags = instance(),
-        getFolders = instance(),
-        getCollections = instance(),
-        getOrganizations = instance(),
+        filterContext = get(),
+        getCipherFilters = get(),
+        getSshAgentFilter = get(),
+        putSshAgentFilter = get(),
+        getCiphers = get(),
+        getAccounts = get(),
+        getProfiles = get(),
+        getTags = get(),
+        getFolders = get(),
+        getCollections = get(),
+        getOrganizations = get(),
     )
 }
 
 @Composable
 fun produceSshAgentFiltersState(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    getCipherFilters: GetCipherFilters,
     getSshAgentFilter: GetSshAgentFilter,
     putSshAgentFilter: PutSshAgentFilter,
     getCiphers: GetCiphers,
@@ -73,7 +74,8 @@ fun produceSshAgentFiltersState(
     initial = Loadable.Loading,
 ) {
     sshAgentFiltersStateProducer(
-        directDI = directDI,
+        filterContext = filterContext,
+        getCipherFilters = getCipherFilters,
         getSshAgentFilter = getSshAgentFilter,
         putSshAgentFilter = putSshAgentFilter,
         getCiphers = getCiphers,
@@ -87,7 +89,8 @@ fun produceSshAgentFiltersState(
 }
 
 suspend fun RememberStateFlowScope.sshAgentFiltersStateProducer(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    getCipherFilters: GetCipherFilters,
     getSshAgentFilter: GetSshAgentFilter,
     putSshAgentFilter: PutSshAgentFilter,
     getCiphers: GetCiphers,
@@ -177,7 +180,7 @@ suspend fun RememberStateFlowScope.sshAgentFiltersStateProducer(
                 return@mapLatest ciphers
             }
             val predicate = filterHolder.filter.prepare(
-                directDI = directDI,
+                context = filterContext,
                 ciphers = ciphers,
             )
             ciphers.filter(predicate)
@@ -185,7 +188,7 @@ suspend fun RememberStateFlowScope.sshAgentFiltersStateProducer(
         .distinctUntilChanged()
 
     val filterListFlow = createFilterItemsFlow(
-        directDI = directDI,
+        getCipherFilters = getCipherFilters,
         outputGetter = ::identity,
         outputFlow = filteredSshKeysFlow,
         accountGetter = ::identity,

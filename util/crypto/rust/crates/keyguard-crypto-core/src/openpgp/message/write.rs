@@ -131,6 +131,7 @@ mod decryption;
 mod encryption;
 mod model;
 mod signing;
+mod staging;
 mod streaming;
 
 use common::*;

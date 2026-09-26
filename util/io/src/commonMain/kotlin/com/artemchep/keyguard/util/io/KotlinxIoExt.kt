@@ -29,14 +29,18 @@ fun Source.readByteArrayAndClose(): ByteArray = try {
  */
 fun Source.consumeWithErasedBuffer(
     bufferSize: Int = DEFAULT_ERASED_BUFFER_BYTES,
+    checkCancellation: () -> Unit = {},
     consume: (ByteArray, Int) -> Unit,
 ) {
     require(bufferSize > 0) { "Buffer size must be positive" }
     val buffer = ByteArray(bufferSize)
     var consecutiveZeroReads = 0
     try {
-        var read = readAtMostTo(buffer)
-        while (read >= 0) {
+        while (true) {
+            checkCancellation()
+            val read = readAtMostTo(buffer)
+            checkCancellation()
+            if (read < 0) break
             if (read == 0) {
                 consecutiveZeroReads += 1
                 if (consecutiveZeroReads > MAX_CONSECUTIVE_ZERO_READS) {
@@ -46,7 +50,6 @@ fun Source.consumeWithErasedBuffer(
                 consecutiveZeroReads = 0
                 consume(buffer, read)
             }
-            read = readAtMostTo(buffer)
         }
     } finally {
         buffer.fill(0)

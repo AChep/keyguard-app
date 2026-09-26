@@ -33,13 +33,13 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.send.SendRoute
 import com.artemchep.keyguard.feature.send.SendRouteFactory
-import com.artemchep.keyguard.res.home_generator_label
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.folders
 import com.artemchep.keyguard.res.home_favorites_label
-import com.artemchep.keyguard.res.home_settings_label
+import com.artemchep.keyguard.res.home_generator_label
 import com.artemchep.keyguard.res.home_other_label
 import com.artemchep.keyguard.res.home_send_label
+import com.artemchep.keyguard.res.home_settings_label
 import com.artemchep.keyguard.res.home_vault_label
 import com.artemchep.keyguard.wear.feature.generator.WearGeneratorRoute
 import com.artemchep.keyguard.wear.feature.settings.WearSettingsRoute
@@ -47,9 +47,7 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 internal sealed interface WearHomeItemSpec {
     val id: String
@@ -83,8 +81,8 @@ internal sealed interface Destination {
 }
 
 @Composable
-internal fun wearHomeScreenState(): WearHomeState = with(localDI().direct) {
-    val getNavItemsConfig: GetNavItemsConfig = instance()
+internal fun wearHomeScreenState(): WearHomeState = with(currentKoinScope()) {
+    val getNavItemsConfig: GetNavItemsConfig = get()
     val navHiddenSendFlow = remember(getNavItemsConfig) {
         getNavItemsConfig()
             .map { config ->
@@ -93,11 +91,11 @@ internal fun wearHomeScreenState(): WearHomeState = with(localDI().direct) {
     }
     wearHomeScreenState(
         navHiddenSendFlow = navHiddenSendFlow,
-        getProfiles = instance(),
-        getCiphers = instance(),
-        getFolders = instance(),
-        vaultRouteFactory = instance(),
-        sendRouteFactory = instance(),
+        getProfiles = get(),
+        getCiphers = get(),
+        getFolders = get(),
+        vaultRouteFactory = get(),
+        sendRouteFactory = get(),
     )
 }
 

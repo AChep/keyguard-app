@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.sshagent.impl
 
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
+import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.filterCiphers
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -31,11 +32,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class SshAgentPublicKeySyncerImpl(
-    private val directDI: DirectDI,
+    private val filterContext: CipherFilterContext,
     private val getCiphers: GetCiphers,
     private val getSshAgent: GetSshAgent,
     private val getSshAgentFilter: GetSshAgentFilter,
@@ -49,20 +48,6 @@ class SshAgentPublicKeySyncerImpl(
     companion object {
         private const val TAG = "SshAgentPublicKeySyncer"
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        directDI = directDI,
-        getCiphers = directDI.instance(),
-        getSshAgent = directDI.instance(),
-        getSshAgentFilter = directDI.instance(),
-        getSshAgentDisplayKeyNames = directDI.instance(),
-        sshAgentPublicKeyRepository = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-        logRepository = directDI.instance(),
-    )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun launch(scope: CoroutineScope): Job = scope.launch {
@@ -81,7 +66,7 @@ class SshAgentPublicKeySyncerImpl(
                     val eligibleCiphers = ciphers
                         .filter { it.isEligibleForSshAgent() }
                     filter.filterCiphers(
-                        directDI = directDI,
+                        context = filterContext,
                         ciphers = eligibleCiphers,
                     )
                 }

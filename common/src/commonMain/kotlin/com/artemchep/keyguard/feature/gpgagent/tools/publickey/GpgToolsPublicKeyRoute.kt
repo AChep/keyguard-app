@@ -29,13 +29,13 @@ sealed interface GpgToolsPublicKeyResult {
     data object Deny : GpgToolsPublicKeyResult
 
     data class Confirm(
-        val publicKey: String,
+        val publicKeys: List<String>,
     ) : GpgToolsPublicKeyResult
 }
 
 inline fun RememberStateFlowScope.createGpgToolsPublicKeyDialogIntent(
     args: GpgToolsPublicKeyRoute.Args,
-    noinline onConfirm: (String) -> Unit,
+    noinline onConfirm: (List<String>) -> Unit,
 ): NavigationIntent {
     val route = registerRouteResultReceiver(
         route = GpgToolsPublicKeyRoute(
@@ -43,7 +43,7 @@ inline fun RememberStateFlowScope.createGpgToolsPublicKeyDialogIntent(
         ),
     ) { result ->
         if (result is GpgToolsPublicKeyResult.Confirm) {
-            onConfirm(result.publicKey)
+            onConfirm(result.publicKeys)
         }
     }
     return NavigationIntent.NavigateToRoute(route)

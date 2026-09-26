@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.usecase.CipherSnapshot
 import com.artemchep.keyguard.common.usecase.CipherSnapshotKey
 import com.artemchep.keyguard.common.usecase.GetBreachesLatestDate
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
+import com.artemchep.keyguard.feature.home.vault.search.TEST_INSTANT
 import com.artemchep.keyguard.feature.home.vault.search.createSecret
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -27,6 +28,41 @@ import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WatchtowerSyncerImplTest {
+    @Test
+    fun `processors receive only active ciphers and clear excluded reports`() = runTest {
+        val active = createSecret("active")
+        val archived = active.copy(id = "archived", archivedDate = TEST_INSTANT)
+        val trashed = active.copy(id = "trashed", deletedDate = TEST_INSTANT)
+        val calls = mutableListOf<List<DSecret>>()
+        val processor = object : WatchtowerClientTyped {
+            override val type = 1L
+            override fun version() = flowOf("1")
+            override suspend fun process(ciphers: List<DSecret>): List<WatchtowerClientResult> {
+                calls += ciphers
+                // A cross-item check that flags an item only if it has a peer.
+                return ciphers.map { WatchtowerClientResult(threat = ciphers.size > 1, cipher = it) }
+            }
+        }
+
+        val results = processor.processActiveCiphers(listOf(active, archived, trashed))
+        assertEquals(listOf(listOf(active)), calls)
+        assertEquals(
+            mapOf("active" to false, "archived" to false, "trashed" to false),
+            results.associate { it.cipher.id to it.threat },
+        )
+
+        val restored = processor.processActiveCiphers(
+            listOf(active, archived.copy(archivedDate = null), trashed),
+        )
+        assertEquals(
+            mapOf("active" to true, "archived" to true, "trashed" to false),
+            restored.associate { it.cipher.id to it.threat },
+        )
+
+        processor.processActiveCiphers(listOf(archived, trashed))
+        assertEquals(2, calls.size, "An excluded-only batch must not call the processor")
+    }
+
     @Test
     fun `pending snapshots resolve the current shared payload by marker`() {
         val snapshot = cipherSnapshot(

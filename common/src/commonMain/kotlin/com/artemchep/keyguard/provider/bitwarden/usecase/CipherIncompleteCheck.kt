@@ -2,12 +2,11 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
-import org.kodein.di.DirectDI
 
 /**
  * @author Artem Chepurnyi
  */
-class CipherIncompleteCheckImpl() : CipherIncompleteCheck {
+class CipherIncompleteCheckImpl : CipherIncompleteCheck {
     private val placeholderNames = setOf(
         "login",
         "email",
@@ -33,8 +32,6 @@ class CipherIncompleteCheckImpl() : CipherIncompleteCheck {
         "public",
         "id",
     )
-
-    constructor(directDI: DirectDI) : this()
 
     override fun invoke(secret: DSecret): Boolean {
         if (secret.name.isBlank()) {

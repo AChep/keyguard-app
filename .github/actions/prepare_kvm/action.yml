@@ -1,4 +1,5 @@
 name: "Prepare KVM perms for running Android Emulator"
+description: "Enable hardware acceleration for Android emulators"
 runs:
   using: "composite"
   steps:

@@ -71,29 +71,27 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
-internal fun quickSearchScreenState(): QuickSearchState = with(localDI().direct) {
+internal fun quickSearchScreenState(): QuickSearchState = with(currentKoinScope()) {
     quickSearchScreenState(
         highlightBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
         highlightContentColor = MaterialTheme.colorScheme.onSurface,
-        getAccounts = instance(),
-        getProfiles = instance(),
-        getCiphers = instance(),
-        getOrganizations = instance(),
-        getVaultSearchIndex = instance(),
-        getVaultSearchQualifierCatalog = instance(),
-        searchTraceSink = instance(),
-        queryHighlighter = instance(),
-        getTotpCode = instance(),
-        getConcealFields = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        clipboardService = instance(),
-        bitwardenLoginRouteFactory = instance(),
+        getAccounts = get(),
+        getProfiles = get(),
+        getCiphers = get(),
+        getOrganizations = get(),
+        getVaultSearchIndex = get(),
+        getVaultSearchQualifierCatalog = get(),
+        searchTraceSink = get(),
+        queryHighlighter = get(),
+        getTotpCode = get(),
+        getConcealFields = get(),
+        getAppIcons = get(),
+        getWebsiteIcons = get(),
+        clipboardService = get(),
+        bitwardenLoginRouteFactory = get(),
     )
 }
 

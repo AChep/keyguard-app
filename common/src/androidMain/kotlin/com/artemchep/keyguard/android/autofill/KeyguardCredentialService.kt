@@ -24,8 +24,8 @@ import androidx.credentials.provider.ProviderClearCredentialStateRequest
 import com.artemchep.keyguard.android.CredentialProviderGetRequestHandler
 import com.artemchep.keyguard.android.CredentialProviderPlatformConfig
 import com.artemchep.keyguard.android.createCredentialProviderPendingIntent
-import com.artemchep.keyguard.android.filterCredentialProviderBeginGetOptions
 import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepository
+import com.artemchep.keyguard.android.filterCredentialProviderBeginGetOptions
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -44,21 +44,20 @@ import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.keyguardKoin
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.platform.recordLog
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.distinctUntilChanged
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.instance
-import kotlin.coroutines.CoroutineContext
 
 @RequiresApi(34)
-open class KeyguardCredentialService : CredentialProviderService(), DIAware {
+open class KeyguardCredentialService : CredentialProviderService(), KeyguardKoinOwner {
     private val job = Job()
 
     private val scope = object : CoroutineScope {
@@ -66,17 +65,17 @@ open class KeyguardCredentialService : CredentialProviderService(), DIAware {
             get() = Dispatchers.Main + job
     }
 
-    override val di by closestDI { this }
+    override val koin get() = this.keyguardKoin()
 
-    private val getCanWrite by instance<GetCanWrite>()
+    private val getCanWrite by lazy { koin.get<GetCanWrite>() }
 
-    private val getPasskeysEnabled by instance<GetAutofillPasskeysEnabled>()
+    private val getPasskeysEnabled by lazy { koin.get<GetAutofillPasskeysEnabled>() }
 
-    private val getPasswordsEnabled by instance<GetAutofillPasswordsEnabled>()
+    private val getPasswordsEnabled by lazy { koin.get<GetAutofillPasswordsEnabled>() }
 
-    private val credentialProviderPlatformConfig by instance<CredentialProviderPlatformConfig>()
+    private val credentialProviderPlatformConfig by lazy { koin.get<CredentialProviderPlatformConfig>() }
 
-    private val credentialProviderGetRequestHandler by instance<CredentialProviderGetRequestHandler>()
+    private val credentialProviderGetRequestHandler by lazy { koin.get<CredentialProviderGetRequestHandler>() }
 
     override fun onBeginCreateCredentialRequest(
         request: BeginCreateCredentialRequest,

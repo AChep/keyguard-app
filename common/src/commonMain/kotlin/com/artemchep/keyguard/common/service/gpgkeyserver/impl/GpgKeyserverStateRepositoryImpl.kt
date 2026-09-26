@@ -5,10 +5,10 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.DGpgKeyserverState
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
-import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
-import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverLocalKey
-import com.artemchep.keyguard.common.service.gpgkeyserver.gpgKeyserverLocalKey
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverLocalKey
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
+import com.artemchep.keyguard.common.service.gpgkeyserver.gpgKeyserverLocalKey
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToOneOrNull
 import com.artemchep.keyguard.data.GpgKeyserverState
@@ -16,8 +16,6 @@ import com.artemchep.keyguard.data.GpgKeyserverStateQueries
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GpgKeyserverStateRepositoryImpl(
     private val databaseManager: VaultDatabaseManager,
@@ -26,13 +24,6 @@ class GpgKeyserverStateRepositoryImpl(
     companion object {
         private const val TAG = "GpgKeyserverStateRepository"
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        databaseManager = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
 
     override fun getAll(): Flow<List<DGpgKeyserverState>> =
         daoEffect { dao ->

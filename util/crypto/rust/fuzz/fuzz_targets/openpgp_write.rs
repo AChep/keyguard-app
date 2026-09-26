@@ -104,6 +104,7 @@ fuzz_target!(|input: &[u8]| {
             candidate_revocation_keys: Vec::new(),
         }),
         native_stream_open_request::Operation::OpenPgpDecrypt(OpenPgpDecryptStreamOpenRequest {
+            staging_directory: None,
             private_keys: vec![private_key],
             verification_public_keys: vec![public_key],
             reference_time_epoch_seconds: Some(REFERENCE_TIME),

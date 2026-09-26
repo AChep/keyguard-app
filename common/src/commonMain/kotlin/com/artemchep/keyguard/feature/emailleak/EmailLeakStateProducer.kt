@@ -15,18 +15,16 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceEmailLeakState(
     args: EmailLeakRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceEmailLeakState(
         args = args,
-        checkUsernameLeak = instance(),
-        dateFormatter = instance(),
+        checkUsernameLeak = get(),
+        dateFormatter = get(),
     )
 }
 

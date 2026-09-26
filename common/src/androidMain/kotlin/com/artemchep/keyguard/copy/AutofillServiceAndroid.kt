@@ -6,22 +6,20 @@ import androidx.core.content.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import com.artemchep.keyguard.android.util.launchAutofillSettingsOrThrow
+import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
+import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import com.artemchep.keyguard.android.util.launchAutofillSettingsOrThrow
-import com.artemchep.keyguard.common.model.ToastMessage
-import com.artemchep.keyguard.common.usecase.ShowMessage
-import kotlinx.coroutines.FlowPreview
 
 class AutofillServiceAndroid(
     private val application: Application,
@@ -37,13 +35,6 @@ class AutofillServiceAndroid(
             send(Unit)
         }
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        application = directDI.instance(),
-        showMessage = directDI.instance(),
-    )
 
     @OptIn(FlowPreview::class)
     override fun status(): Flow<AutofillServiceStatus> = merge(

@@ -6,17 +6,18 @@ import com.artemchep.keyguard.common.service.agent.macosDevAgentSocketPath
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
-import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
+import com.artemchep.keyguard.common.service.session.SshAgentSessionAccess
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
-import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
+import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.util.flow.EventFlow
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Manages the lifecycle of the keyguard-ssh-agent Rust binary.
@@ -30,6 +31,7 @@ class SshAgentManager(
     logRepository: LogRepository,
     cryptoGenerator: CryptoGenerator,
     private val getVaultSession: GetVaultSession,
+    private val sessionAccess: SshAgentSessionAccess,
     private val getSshAgentApprovalWindow: GetSshAgentApprovalWindow,
     private val getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy,
     private val getSshAgentFilter: GetSshAgentFilter,
@@ -99,6 +101,7 @@ class SshAgentManager(
         val ipcServer = SshAgentIpcServer(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
+            sessionAccess = sessionAccess,
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,
             getSshAgentApprovalCachePolicy = getSshAgentApprovalCachePolicy,
             getSshAgentFilter = getSshAgentFilter,

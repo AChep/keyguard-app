@@ -9,25 +9,25 @@ import com.artemchep.keyguard.common.model.create.CreateSendRequest
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.AddSend
+import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.auth.common.util.ValidationEmail
+import com.artemchep.keyguard.feature.auth.common.util.ValidationInteger
 import com.artemchep.keyguard.feature.auth.common.util.validateEmail
+import com.artemchep.keyguard.feature.auth.common.util.validateInteger
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKeyMaterial
-import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
-import com.artemchep.keyguard.common.util.useAndClear
+import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Duration
 
 /**
  * @author Artem Chepurnyi
@@ -41,13 +41,6 @@ class AddSendImpl(
     companion object {
         private const val TAG = "AddSend.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyDatabase = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-        pendingUploadCoordinator = directDI.instance(),
-    )
 
     override fun invoke(
         sendIdsToRequests: Map<String?, CreateSendRequest>,
@@ -319,8 +312,7 @@ private suspend fun BitwardenSend.Companion.of(
         throw IllegalStateException(msg)
     }
 
-    val maxAccessCount = request.maxAccessCount
-        ?.toIntOrNull()
+    val maxAccessCount = parseSendMaxAccessCount(request.maxAccessCount)
     return BitwardenSend(
         accountId = accountId,
         sendId = cipherId,
@@ -359,6 +351,24 @@ private suspend fun BitwardenSend.Companion.of(
         text = text,
         file = file,
     )
+}
+
+/**
+ * Parses the max access count the same way the Send form validates it:
+ * surrounding whitespace is ignored, blank means "no limit". A non-blank
+ * value that is not a number is rejected instead of silently becoming
+ * "no limit".
+ */
+internal fun parseSendMaxAccessCount(text: String?): Int? {
+    val trimmed = text?.trim()
+    return when (validateInteger(trimmed)) {
+        ValidationInteger.OK -> trimmed?.toInt()
+        ValidationInteger.ERROR_EMPTY -> null
+        ValidationInteger.ERROR_INVALID -> {
+            val msg = "A Send's max access count must be a number!"
+            throw IllegalStateException(msg)
+        }
+    }
 }
 
 private fun DSend.AuthType.toBitwarden() = when (this) {

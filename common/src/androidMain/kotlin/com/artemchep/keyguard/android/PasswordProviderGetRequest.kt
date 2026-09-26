@@ -6,13 +6,9 @@ import androidx.credentials.GetCredentialResponse
 import androidx.credentials.PasswordCredential
 import androidx.credentials.provider.ProviderGetCredentialRequest
 import com.artemchep.keyguard.common.model.DSecret
-import org.kodein.di.DirectDI
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-class PasswordProviderGetRequest() {
-    constructor(
-        directDI: DirectDI,
-    ) : this()
+class PasswordProviderGetRequest {
 
     suspend fun processGetCredentialsRequest(
         request: ProviderGetCredentialRequest,

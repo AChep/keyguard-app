@@ -7,10 +7,8 @@ import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.vault.SessionMetadataReadWriteRepository
-import kotlinx.coroutines.flow.map
 import kotlin.time.Instant
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import kotlinx.coroutines.flow.map
 
 /**
  * @author Artem Chepurnyi
@@ -26,10 +24,6 @@ class SessionMetadataRepositoryImpl(
 
     private val lastPasswordUseTimestamp =
         store.getLong(KEY_LAST_PASSWORD_USE_TIMESTAMP, NONE_INSTANT)
-
-    constructor(directDI: DirectDI) : this(
-        store = directDI.instance<Files, KeyValueStore>(arg = Files.SESSION_METADATA),
-    )
 
     override fun setLastPasswordUseTimestamp(instant: Instant?) = lastPasswordUseTimestamp
         .setAndCommit(instant)

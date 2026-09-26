@@ -1,15 +1,17 @@
 package com.artemchep.keyguard.feature.home.settings.search
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import arrow.core.identity
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.feature.auth.common.TextCell
-import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListState
+import com.artemchep.keyguard.feature.home.settings.component.SettingComponent
 import com.artemchep.keyguard.feature.home.settings.hub
 import com.artemchep.keyguard.feature.home.vault.search.findAlike
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -20,23 +22,24 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
-fun produceSearchSettingsState() = with(localDI().direct) {
+fun produceSearchSettingsState() = with(currentKoinScope()) {
+    // Capture component dependencies on the UI dispatcher before background search starts.
+    val components = remember(this) {
+        hub.mapValues { (_, component) -> component(this) }
+    }
     produceSearchSettingsState(
-        directDI = this,
-        getOrganizations = instance(),
-        getCollections = instance(),
+        components = components,
+        getOrganizations = get(),
+        getCollections = get(),
     )
 }
 
 @Composable
 fun produceSearchSettingsState(
-    directDI: DirectDI,
+    components: Map<String, SettingComponent>,
     getOrganizations: GetOrganizations,
     getCollections: GetCollections,
 ): SearchSettingsState = produceScreenState(
@@ -60,9 +63,8 @@ fun produceSearchSettingsState(
         }
         .shareInScreenScope()
 
-    val e = hub
-        .map { (key, component) ->
-            val flow = component(directDI)
+    val e = components
+        .map { (key, flow) ->
             flow
                 .combine(queryFlow) { item, query ->
                     val tokens = item?.search?.tokens

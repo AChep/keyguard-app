@@ -9,18 +9,11 @@ import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapLatest
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetVaultSearchQualifierCatalogImpl(
     private val getLocale: GetLocale,
     private val context: LeContext,
 ) : GetVaultSearchQualifierCatalog {
-    constructor(directDI: DirectDI) : this(
-        getLocale = directDI.instance(),
-        context = directDI.instance(),
-    )
-
     override fun invoke(): Flow<VaultSearchQualifierCatalog> = getLocale()
         .mapLatest {
             val localizedAliasesByCanonicalName =

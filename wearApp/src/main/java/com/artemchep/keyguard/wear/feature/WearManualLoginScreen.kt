@@ -45,6 +45,7 @@ import androidx.wear.compose.material3.lazy.transformedHeight
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.getShapeState
+import com.artemchep.keyguard.common.service.permission.PermissionState
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginEvent
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
 import com.artemchep.keyguard.feature.auth.bitwarden.LoginState
@@ -54,6 +55,7 @@ import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwo
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.permissions.rememberLocalNetworkPermission
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
@@ -79,6 +81,7 @@ import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.wear.feature.picker.WearPickerRoute
+import com.artemchep.keyguard.wear.feature.settings.WearLocalNetworkPermissionAction
 import com.artemchep.keyguard.wear.ui.DefaultEdgeButton
 import com.artemchep.keyguard.wear.ui.WearDotsDivider
 import com.artemchep.keyguard.wear.ui.WearListAction
@@ -95,6 +98,7 @@ fun WearManualLoginScreen(
     onSuccess: () -> Unit,
     onTwoFactor: (BitwardenLoginTwofaRoute.Args) -> Unit,
 ) {
+    val localNetworkPermission = rememberLocalNetworkPermission()
     val loadableState = produceBitwardenLoginScreenState(args = args)
     when (loadableState) {
         Loadable.Loading -> WearLoadingScreen()
@@ -174,6 +178,7 @@ fun WearManualLoginScreen(
             ) { transformationSpec ->
                 WearBitwardenLoginContent(
                     loginState = state,
+                    localNetworkPermission = localNetworkPermission,
                     isEnvironmentVisible = isEnvironmentVisible,
                     focusRequester = focusRequester,
                     keyboardOnGo = keyboardOnGo,
@@ -187,12 +192,24 @@ fun WearManualLoginScreen(
 
 private fun TransformingLazyColumnScope.WearBitwardenLoginContent(
     loginState: LoginState,
+    localNetworkPermission: PermissionState.Declined?,
     isEnvironmentVisible: Boolean,
     focusRequester: FocusRequester,
     keyboardOnGo: (KeyboardActionScope.() -> Unit)?,
     keyboardOnNext: KeyboardActionScope.() -> Unit,
     transformationSpec: TransformationSpec,
 ) {
+    if (loginState.showCustomEnv && localNetworkPermission != null) {
+        item("local_network_permission") {
+            WearLocalNetworkPermissionAction(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .transformedHeight(this, transformationSpec),
+                permission = localNetworkPermission,
+                transformation = SurfaceTransformation(transformationSpec),
+            )
+        }
+    }
     item("disclaimer") {
         WearListLabel(
             modifier = Modifier

@@ -7,13 +7,13 @@ import com.artemchep.keyguard.common.service.agent.AgentPacketChannel
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.util.hexToByteArray
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.serialization.json.Json
+import java.lang.Process
 import java.nio.charset.StandardCharsets.UTF_8
 import java.security.MessageDigest
-import java.lang.Process
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.serialization.json.Json
 
 class BrowserAutofillIpcServer private constructor(
     private val logRepository: LogRepository,
@@ -85,83 +85,114 @@ class BrowserAutofillIpcServer private constructor(
         agentIpcServer.stop()
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun runSession(
         channel: AgentPacketChannel,
     ) {
         var authenticated = false
         try {
-            while (true) {
-                val raw = channel.readPacket() ?: break
-                if (raw.isEmpty()) {
-                    break
+            var running = true
+            while (running) {
+                val packet = channel.readPacket()
+                val req = packet
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let { json.decodeFromString<IpcRequest>(String(it, UTF_8)) }
+                if (req == null) {
+                    running = false
+                    continue
                 }
-                val req = json.decodeFromString<IpcRequest>(String(raw, UTF_8))
-                when (req) {
-                    is IpcRequest.Authenticate -> {
-                        authenticated = try {
-                            MessageDigest.isEqual(authToken, req.token.hexToByteArray())
-                        } catch (_: Exception) {
-                            false
-                        }
-                        write(channel, IpcResponse.Authenticate(authenticated))
-                        if (!authenticated) {
-                            logRepository.post(TAG, "Authentication failed", LogLevel.WARNING)
-                            break
-                        }
-                    }
-
-                    is IpcRequest.Query -> {
-                        if (!authenticated) {
-                            break
-                        }
-                        val result = backend.query(req.domain, req.uri)
-                        write(
-                            channel,
-                            IpcResponse.Query(
-                                locked = result.locked,
-                                items = result.items,
-                            ),
-                        )
-                    }
-
-                    is IpcRequest.Secret -> {
-                        if (!authenticated) {
-                            break
-                        }
-                        val result = backend.getSecret(req.itemId)
-                        write(
-                            channel,
-                            IpcResponse.Secret(
-                                locked = result.locked,
-                                username = result.username,
-                                password = result.password,
-                                totp = result.totp,
-                            ),
-                        )
-                    }
-
-                    is IpcRequest.RequestForeground -> {
-                        if (!authenticated) {
-                            break
-                        }
-                        val success = try {
-                            val token = req.token
-                            if (!token.isNullOrEmpty()) {
-                                WindowBringToFront.withToken(token)
-                            } else {
-                                WindowBringToFront()
-                            }
-                        } catch (_: Exception) {
-                            false
-                        }
-                        write(channel, IpcResponse.RequestForeground(success))
-                    }
-                }
+                val outcome = handleRequest(channel, req, authenticated)
+                authenticated = outcome.authenticated
+                running = outcome.running
             }
         } catch (e: Exception) {
             logRepository.post(TAG, "Session error: ${e.message}", LogLevel.ERROR)
         }
     }
+
+    /** Returns the new session state after [req] has been served. */
+    private suspend fun handleRequest(
+        channel: AgentPacketChannel,
+        req: IpcRequest,
+        authenticated: Boolean,
+    ): SessionOutcome = when (req) {
+        is IpcRequest.Authenticate -> handleAuthenticate(channel, req)
+
+        is IpcRequest.Query -> {
+            if (!authenticated) {
+                SessionOutcome(authenticated = false, running = false)
+            } else {
+                val result = backend.query(req.domain, req.uri)
+                write(
+                    channel,
+                    IpcResponse.Query(
+                        locked = result.locked,
+                        items = result.items,
+                    ),
+                )
+                SessionOutcome(authenticated = true, running = true)
+            }
+        }
+
+        is IpcRequest.Secret -> {
+            if (!authenticated) {
+                SessionOutcome(authenticated = false, running = false)
+            } else {
+                val result = backend.getSecret(req.itemId)
+                write(
+                    channel,
+                    IpcResponse.Secret(
+                        locked = result.locked,
+                        username = result.username,
+                        password = result.password,
+                        totp = result.totp,
+                    ),
+                )
+                SessionOutcome(authenticated = true, running = true)
+            }
+        }
+
+        is IpcRequest.RequestForeground -> {
+            if (!authenticated) {
+                SessionOutcome(authenticated = false, running = false)
+            } else {
+                val success = bringWindowToFront(req.token)
+                write(channel, IpcResponse.RequestForeground(success))
+                SessionOutcome(authenticated = true, running = true)
+            }
+        }
+    }
+
+    private fun handleAuthenticate(
+        channel: AgentPacketChannel,
+        req: IpcRequest.Authenticate,
+    ): SessionOutcome {
+        val success = try {
+            MessageDigest.isEqual(authToken, req.token.hexToByteArray())
+        } catch (_: Exception) {
+            false
+        }
+        write(channel, IpcResponse.Authenticate(success))
+        if (!success) {
+            logRepository.post(TAG, "Authentication failed", LogLevel.WARNING)
+        }
+        return SessionOutcome(authenticated = success, running = success)
+    }
+
+    private suspend fun bringWindowToFront(token: String?): Boolean = try {
+        if (!token.isNullOrEmpty()) {
+            WindowBringToFront.withToken(token)
+        } else {
+            WindowBringToFront()
+        }
+    } catch (_: Exception) {
+        false
+    }
+
+    private class SessionOutcome(
+        val authenticated: Boolean,
+        val running: Boolean,
+    )
 
     private fun write(
         channel: AgentPacketChannel,

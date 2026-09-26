@@ -7,23 +7,30 @@
     <string name="no">Hayır</string>
     <!-- On click brings Keyguard app to the front -->
     <string name="show_keyguard">Keyguard'ı Göster</string>
+    <string name="instance_service_error_title">Keyguard instance service failed</string>
+    <string name="instance_service_error_text">Keyguard could not start or contact its instance service. If this continues after restarting Keyguard, include the details below in a bug report.</string>
+    <string name="instance_service_permission_text">Keyguard cannot safely access its instance files. Check ownership and permissions of its data and runtime directories and their parent directories.</string>
+    <string name="instance_service_timeout_text">Another Keyguard process did not respond in time. Close that process and try again.</string>
+    <string name="instance_service_unavailable_text">The native instance service is unavailable. Reinstall Keyguard if restarting it does not help.</string>
+    <string name="instance_service_configuration_text">The instance service configuration or protocol is invalid. Include the details below in a bug report.</string>
+    <string name="instance_service_stopped_text">The instance service stopped and could not recover. Finish any edits, then quit and reopen Keyguard. Further launches cannot activate this window until you restart.</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">İsim</string>
     <string name="description">Açıklama</string>
-    <string name="result">Result</string>
+    <string name="result">Sonuç</string>
     <!-- Text input -->
-    <string name="input">Input</string>
+    <string name="input">Giriş</string>
     <!-- Text output -->
-    <string name="output">Output</string>
-    <string name="run_action">Run</string>
+    <string name="output">Çıktı</string>
+    <string name="run_action">Çalıştır</string>
     <string name="account_name">Hesap adı</string>
     <string name="database_name">Veritabanı adı</string>
     <string name="enabled">Etkin</string>
     <string name="disabled">Devre Dışı</string>
-    <string name="sign">Sign</string>
-    <string name="encrypt">Encrypt</string>
-    <string name="verify">Verify</string>
-    <string name="decrypt">Decrypt</string>
+    <string name="sign">İmza</string>
+    <string name="encrypt">Şifrele</string>
+    <string name="verify">Doğrula</string>
+    <string name="decrypt">Şifreyi çöz</string>
     <string name="wordlist">Kelime listesi</string>
     <string name="username">Kullanıcı adı</string>
     <string name="password">Parola</string>
@@ -33,9 +40,9 @@
     <string name="no_password">Parola yok</string>
     <string name="advanced_options">Gelişmiş</string>
     <string name="file">Dosya</string>
-    <string name="choose_file">Choose file</string>
+    <string name="choose_file">Dosyayı seç</string>
     <string name="file_name_placeholder">Dosya adı</string>
-    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_pending_upload">Yükleme bekleniyor</string>
     <string name="file_status_auto_resume">Auto-resumes</string>
     <string name="file_status_downloading_failed">Yükleme başarısız oldu</string>
     <string name="email">E-posta</string>
@@ -55,8 +62,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Maksimum erişim sayısı</string>
-    <string name="package_name">Package name</string>
-    <string name="status">Status</string>
+    <string name="package_name">Paket ismi</string>
+    <string name="status">Durum</string>
     <string name="ready_status_beta">Beta</string>
     <string name="ready_status_alpha">Alfa</string>
     <string name="learn_more">Daha fazla bilgi edin</string>
@@ -76,7 +83,7 @@
     <string name="expiry_date">Son kullanma tarihi</string>
     <string name="company">Şirket</string>
     <string name="sync">Eşitle</string>
-    <string name="sync_requested">Sync was requested</string>
+    <string name="sync_requested">Senkronizasyon istendi</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Gizli</string>
     <!-- Opposite of 'hidden' -->
@@ -108,7 +115,7 @@
     <!-- (certificate/credit card) expired -->
     <string name="expired">Süresi doldu</string>
     <!-- (certificate) revoked -->
-    <string name="revoked">Revoked</string>
+    <string name="revoked">İptal edildi</string>
     <string name="expiring_soon">Süresi yakında dolacak</string>
     <string name="item_incomplete_title">Eksik veri</string>
     <string name="item_incomplete_text">Bu ögede bazı önemli bilgiler eksik.</string>
@@ -176,8 +183,8 @@
     <string name="expiration_date_never">Asla</string>
     <string name="select_linked_type">Bir tür seçin</string>
     <string name="select_file">Bir dosya seçin</string>
-    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
-    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
+    <string name="additem_attachments_drop_here">Bir dosyayı buraya sürükleyip bırakarak ek olarak ekleyin</string>
+    <string name="addsend_drop_file_to_replace">Seçili dosyanın yerine yeni bir dosya sürükleyin</string>
     <string name="autofill">Otomatik Doldurma</string>
     <string name="autofill_and_save_uri">Uygulama veya web sitesi bilgilerini otomatik doldur ve kaydet</string>
     <string name="backup_disclaimer_title">Verileriniz sizin sorumluluğunuzdadır.</string>
@@ -210,16 +217,16 @@
     <string name="api_key">API anahtarı</string>
     <string name="api_token">API token</string>
     <string name="zone_id">Zone ID</string>
-    <string name="destination_email">Destination email</string>
+    <string name="destination_email">Hedef email</string>
     <string name="domain">Alan adı</string>
     <string name="add_to_home_screen">Ana ekrana ekle</string>
     <string name="edit">Düzenle</string>
     <string name="delete">Sil</string>
     <string name="remove">Kaldır</string>
     <string name="remove_from_history">Geçmişten kaldır</string>
-    <string name="pkcs12_password">PKCS#12 password</string>
-    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
-    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
+    <string name="pkcs12_password">PKCS#12 şifre</string>
+    <string name="pkcs12_password_title">PKCS#12 şifresini girin</string>
+    <string name="pkcs12_password_note">Bu PKCS#12 paketi şifrelenmiştir.</string>
     <string name="reused_password">Yeniden kullanılan parola</string>
     <string name="reused_passwords">Yeniden kullanılan parolalar</string>
     <string name="one_time_password">Tek kullanımlık parola</string>
@@ -280,9 +287,9 @@
     <string name="key_type">Anahtar türü</string>
     <string name="key_pair">Anahtar çifti</string>
     <string name="key_id">Key ID</string>
-    <string name="algorithm">Algorithm</string>
-    <string name="created">Created</string>
-    <string name="expires">Expires</string>
+    <string name="algorithm">Algoritma</string>
+    <string name="created">Oluşturuldu</string>
+    <string name="expires">Süresi doluyor</string>
     <string name="capabilities">Capabilities</string>
     <string name="subkeys">Subkeys</string>
     <string name="key_ssh">SSH Anahtarı</string>
@@ -382,7 +389,8 @@
     <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
     <string name="ciphers_action_upload_gpg_public_key_title">Upload GPG public key</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Upload public key to keyserver?</string>
-    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard will send this item's armored GPG public key to your configured keyserver. The public key may include fingerprints, user IDs such as names and e-mail addresses, subkeys, dates, and revocation status. The keyserver may store and redistribute this public data. This upload does not request verification e-mails.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard will send this item's armored GPG public key to your configured keyserver. The public key may include fingerprints, user IDs such as names and e-mail addresses, subkeys, dates, and revocation status. The keyserver may store and redistribute this public data.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Select the e-mail addresses that should receive a verification e-mail from the keyserver. Until an address is verified, the key cannot be found by that address.</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">Refresh GPG public key</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Refresh public key from keyserver?</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard will contact your configured GPG keyserver with this key's fingerprint. If a matching public key is found, Keyguard will update the stored public key, key metadata, and keyserver status for this item.</string>
@@ -581,7 +589,7 @@
     <string name="gpg_key_expiry_revoked_message">A revoked key component cannot be renewed.</string>
     <string name="gpg_key_expiry_unresolved_revocation_message">A designated revocation cannot be verified because the revoker's public key is unavailable. Import it and try again.</string>
     <string name="gpg_key_expiry_unsupported_signing_hash_message">This key can only be re-certified with an insecure digest algorithm. Migrate to a modern key instead.</string>
-    <string name="gpg_key_expiry_missing_self_signature_message">This key has no valid self-signature, so it cannot be renewed. It may be corrupted or incomplete.</string>
+    <string name="gpg_key_expiry_missing_self_signature_message">This key cannot be renewed because its self-signature is missing, invalid, or rejected by security policy.</string>
     <string name="gpg_user_id_revocation_dialog_title">Revoke GPG User ID</string>
     <string name="gpg_user_id_revocation_dialog_message">Select the User ID to revoke. Revocation adds a signed statement to the certificate and does not erase the identity or its history.</string>
     <string name="gpg_user_id_revocation_confirm">Revoke</string>
@@ -724,6 +732,7 @@
         solely of whitespace characters. It's OK to translate it exactly the same
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Boş bırakılamaz</string>
+    <string name="error_invalid_regex">Invalid regular expression</string>
     <string name="error_must_be_custom_domain">Özel alan adı olmalıdır</string>
     <string name="error_must_be_number">Bir sayı olmalıdır</string>
     <string name="error_must_be_less_than_days">Şu andan itibaren <xliff:g id="days" example="15">%1$d</xliff:g> günden daha kısa olmalıdır</string>
@@ -757,9 +766,12 @@
     <string name="error_failed_open_app_for">Yüklü hiçbir uygulama bu isteği işleyemez</string>
     <string name="error_failed_unknown">Bir şeyler ters gitti</string>
     <string name="error_failed_encrypt_biometric_key">Biyometrik anahtar şifrelenemedi</string>
+    <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
+    <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Biyometrik anahtarın şifresi çözülemedi</string>
     <string name="error_failed_ssh_agent_start">SSH aracısı başlatılamadı</string>
     <string name="error_failed_gpg_agent_start">Failed to start the GPG agent</string>
+    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
     <string name="error_credential_calling_app_not_privileged">Çağıran uygulama ayrıcalıklı listede değil ve diğer uygulamalar adına kimlik doğrulama isteyemez.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -776,6 +788,9 @@
     <string name="scanqr_camera_permission_required_text">QR kodlarını taramak için kamera izni gereklidir.</string>
     <string name="post_notifications_permission_banner_title">Bildirimler devre dışı bırakıldı</string>
     <string name="post_notifications_permission_banner_text">Otomatik doldurma sırasında ve daha fazlasında Keyguard'ın tek kullanımlık parolaları göstermesine olanak tanımak için bildirim izni verin.</string>
+    <string name="local_network_permission_banner_title">Allow local network access</string>
+    <string name="local_network_permission_banner_text">If your server is on your local network, allow access and retry the connection.</string>
+    <string name="local_network_permission_open_settings_action">Open app settings</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barkod</string>
     <string name="barcodetype_action_show_in_barcode_title">Barkod olarak Göster</string>
@@ -832,6 +847,14 @@
     <string name="emailleak_breach_reported_at">Bildirildiği tarih: <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Veri ihlalleri kontrol edilemedi. Çevrimdışı olabilirsiniz</string>
     <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
+    <!-- Title of the 'Website data breach' dialog -->
+    <string name="websiteleak_title">Data breach</string>
+    <string name="websiteleak_note">Breached website data can provide malicious actors with access to sensitive personal and financial information, potentially compromising user accounts across that service.</string>
+    <string name="websiteleak_breach_not_found_title">No breaches found</string>
+    <string name="websiteleak_breach_found_title">Website breaches found</string>
+    <string name="websiteleak_breach_section">Breaches</string>
+    <string name="websiteleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="websiteleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="passwordleak_title">Veri ihlali</string>
     <string name="passwordleak_note">Veri ihlallerinde açığa çıkmış bir parolanın kırılması çok daha az zaman alır ve asla kullanılmamalıdır.</string>
     <string name="passwordleak_occurrences_found_title">Parola ele geçirilmiş</string>
@@ -1028,6 +1051,7 @@
     <string name="home_settings_label">Ayarlar</string>
     <string name="lock_reason_inactivity">Hareketsizlik nedeniyle kilitlendi</string>
     <string name="lock_reason_screen_off">Ekran kapanması nedeniyle kilitlendi</string>
+    <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
     <string name="lock_reason_manually">Manuel olarak kilitlendi</string>
     <string name="send_type_text">Metin</string>
     <string name="send_type_file">Dosya</string>
@@ -1287,6 +1311,7 @@
     <string name="generator_gpg_key_name_title">Name</string>
     <string name="generator_gpg_key_email_title">Email</string>
     <string name="generator_gpg_key_modern_note">Creates an OpenPGP key with Ed25519 signing/certification keys and an X25519 encryption subkey.</string>
+    <string name="generator_gpg_key_rsa_note">Creates an OpenPGP key with an RSA certification key and separate RSA signing and encryption subkeys.</string>
     <string name="generator_gpg_key_modern_text">Modern OpenPGP key shape</string>
     <string name="generator_key_length_title">Uzunluk</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bit</string>
@@ -1645,6 +1670,8 @@
     <string name="pref_item_lock_vault_after_reboot_text">Cihaz yeniden başlatıldıktan sonra kasayı kilitleyin</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Ekran kapandığında kilitle</string>
     <string name="pref_item_lock_vault_after_screen_off_text">Ekran kapandıktan birkaç saniye sonra kasayı kilitleyin</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
+    <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
     <string name="pref_item_lock_vault_after_delay_title">Bir gecikmeden sonra kilitle</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Hemen</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Asla</string>
@@ -1711,6 +1738,7 @@
     <string name="pref_item_license_sync_failed">Could not obtain entitlement token</string>
     <string name="pref_item_biometric_unlock_title">Biyometrik kilit açma</string>
     <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_system_auth_unlock_title">System authentication unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Onay gerektir</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Başarılı bir biyometrik kimlik doğrulamanın ardından ek bir onay düğmesine dokunmayı gerektir</string>
     <string name="pref_item_yubikey_unlock_title">YubiKey ile kilit açma</string>
@@ -1777,6 +1805,8 @@
     <string name="pref_item_permission_write_external_storage_grant">Harici depolamaya yazma izni ver</string>
     <string name="pref_item_permission_camera_title">Kamera</string>
     <string name="pref_item_permission_camera_text">QR kodlarını taramak için kullanılır</string>
+    <string name="pref_item_permission_local_network_title">Local network</string>
+    <string name="pref_item_permission_local_network_text">Used to connect to self-hosted Bitwarden, WebDAV, and SFTP servers on your local network</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Yatay modda iki panelli düzene izin ver</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">Dikey modda iki panelli düzene izin ver</string>
     <string name="pref_item_gpg_agent_title">GPG agent</string>
@@ -1922,14 +1952,17 @@
     <string name="gpg_key_status_expired_text">This GPG key has expired and should not be used.</string>
     <string name="gpg_key_status_weak_self_signature_title">Weak self-signature</string>
     <string name="gpg_key_status_weak_self_signature_text">This key's self-signatures use a weak algorithm (SHA-1). Renew the key to re-sign it with a modern one.</string>
-    <string name="gpg_key_status_missing_self_signature_title">No valid self-signature</string>
-    <string name="gpg_key_status_missing_self_signature_text">This key has no valid self-signature, so it cannot be renewed. It may be corrupted or incomplete.</string>
+    <string name="gpg_key_status_unauthenticated_self_signature_title">No acceptable self-signature</string>
+    <string name="gpg_key_status_unauthenticated_self_signature_text">This key cannot be renewed because its self-signature is missing, invalid, or rejected by security policy.</string>
     <string name="gpg_key_user_ids">User IDs</string>
     <string name="gpg_key_does_not_expire">Does not expire</string>
     <string name="gpg_key_capability_encrypt_decrypt">Encrypt/decrypt</string>
     <string name="gpg_key_sec_pub">sec/pub</string>
     <string name="gpg_key_secret_key">Secret key</string>
     <string name="gpg_key_subkey_n">Subkey <xliff:g id="index" example="1">%1$d</xliff:g></string>
+    <string name="gpg_tools_public_key_invalid">Paste valid armored public certificates. Unsupported or incomplete input cannot be added.</string>
+    <string name="gpg_tools_public_key_private">Paste public certificates only. Private keys cannot be added here.</string>
+    <string name="gpg_tools_public_key_not_encryptable">Every recipient must have a currently usable encryption key.</string>
     <string name="gpg_tools_header_title">GPG tools</string>
     <string name="gpg_tools_scope_text">Text</string>
     <string name="gpg_tools_scope_file">File</string>
@@ -1961,6 +1994,7 @@
     <string name="gpg_tools_clear_file">Clear</string>
     <string name="gpg_tools_run_success">GPG operation completed</string>
     <string name="gpg_tools_valid_signature">Valid signature</string>
+    <string name="gpg_tools_invalid_input">Could not read the OpenPGP input. Check the message, signature, and selected keys.</string>
     <string name="gpg_tools_invalid_signature">Invalid signature</string>
     <string name="gpg_tools_missing_public_key">Missing public key</string>
     <string name="gpg_tools_signature_by">Signed by <xliff:g id="signer" example="0123 ABCD">%1$s</xliff:g></string>
@@ -1987,6 +2021,7 @@
     <string name="gpg_keyserver_search_index_label">Index</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">GPG public key not found on keyserver</string>
     <string name="gpg_keyserver_upload_success_title">GPG public key uploaded</string>
+    <string name="gpg_keyserver_upload_verify_already_published_text">The selected e-mail addresses are already verified.</string>
     <string name="gpg_keyserver_refresh_success_title">GPG public key refreshed</string>
     <string name="gpg_keyserver_refresh_not_found_title">GPG public key not found on keyserver</string>
     <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>

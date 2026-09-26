@@ -14,8 +14,6 @@ import com.artemchep.keyguard.core.store.bitwarden.login
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withPasswordChange
 import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -27,11 +25,6 @@ class ChangeCipherPasswordByIdImpl(
     companion object {
         private const val TAG = "ChangeCipherPasswordById.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyCipherById = directDI.instance(),
-        getPasswordStrength = directDI.instance(),
-    )
 
     override fun invoke(
         cipherIdsToPasswords: Map<String, String>,

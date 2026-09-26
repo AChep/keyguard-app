@@ -4,18 +4,14 @@ import com.artemchep.keyguard.common.model.DFolderTree2
 import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.common.usecase.GetFolderTree
 import com.artemchep.keyguard.common.util.createFolderHierarchy
-import org.kodein.di.DirectDI
 
 /**
  * @author Artem Chepurnyi
  */
-class GetFolderTreeImpl() : GetFolderTree {
+class GetFolderTreeImpl : GetFolderTree {
     companion object {
         private const val TAG = "GetFolderTree.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-    )
 
     override fun <T : Any> invoke(
         lens: (T) -> String,

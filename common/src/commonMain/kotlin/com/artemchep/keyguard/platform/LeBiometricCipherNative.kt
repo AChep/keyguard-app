@@ -13,6 +13,15 @@ abstract class LeBiometricCipherNative(
 
     override val iv: ByteArray get() = requireNotNull(_iv)
 
+    /**
+     * Erases the AES key. The IV is public and stays, so a cipher a prompt
+     * host materializes again keeps working.
+     */
+    override fun clear() {
+        _key?.fill(0)
+        _key = null
+    }
+
     override fun encode(data: ByteArray): ByteArray {
         val key = requireNotNull(_key) {
             "Cipher key is missing! " +

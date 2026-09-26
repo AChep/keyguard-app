@@ -15,6 +15,7 @@ import com.artemchep.keyguard.util.io.artifact.isReservedTemporaryArtifactName
 import com.artemchep.keyguard.util.io.artifact.sweepTemporaryArtifacts
 import com.artemchep.keyguard.util.io.atomic.AchievedSyncLevel
 import com.artemchep.keyguard.util.io.atomic.AtomicCleanupIncompleteException
+import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
 import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
 import com.artemchep.keyguard.util.io.atomic.AtomicWriteReceipt
 import com.artemchep.keyguard.util.io.atomic.SyncLevel
@@ -22,20 +23,19 @@ import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
 import com.artemchep.keyguard.util.io.lastModifiedMillis
 import com.artemchep.keyguard.util.io.spool.buildSnapshot
 import com.artemchep.keyguard.util.io.toLocalPath
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.io.IOException
-import kotlinx.io.asSource
-import kotlinx.io.buffered
-import kotlinx.io.readByteArray
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.io.IOException
+import kotlinx.io.Source
+import kotlinx.io.asSource
+import kotlinx.io.buffered
+import kotlinx.io.readByteArray
 
 class EncryptedFilePendingUploadServiceJvm internal constructor(
     private val dirProvider: PendingUploadDirProvider,
@@ -50,14 +50,6 @@ class EncryptedFilePendingUploadServiceJvm internal constructor(
         Unit
     },
 ) : EncryptedFilePendingUploadService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        dirProvider = directDI.instance(),
-        fileService = directDI.instance(),
-        fileEncryptionCodec = directDI.instance(),
-        stagingSpoolFactory = directDI.instance(),
-    )
 
     override suspend fun stage(
         accountId: String,
@@ -66,47 +58,75 @@ class EncryptedFilePendingUploadServiceJvm internal constructor(
         sourceUri: String,
         fileKey: ByteArray,
     ): PendingUploadFile = withContext(Dispatchers.IO) {
+        val destination = stagingDestination(accountId, namespace, fileId)
+        val staged = fileService
+            .readFromFile(sourceUri)
+            .use { source -> stageInto(destination, source, fileKey) }
+        if (canDiscardManagedSourceAfterStaging(staged.receipt)) {
+            runCatching { fileService.deleteManagedSourceFile(sourceUri) }
+        }
+        staged.file
+    }
+
+    override suspend fun stage(
+        accountId: String,
+        namespace: String,
+        fileId: String,
+        source: Source,
+        fileKey: ByteArray,
+    ): PendingUploadFile = withContext(Dispatchers.IO) {
+        val destination = stagingDestination(accountId, namespace, fileId)
+        stageInto(destination, source, fileKey).file
+    }
+
+    /**
+     * Resolves the staged file's destination. Runs before any source is
+     * opened so invalid path components fail without touching the source.
+     */
+    private suspend fun stagingDestination(
+        accountId: String,
+        namespace: String,
+        fileId: String,
+    ): AtomicFileDestination {
         val dir = dirProvider.get(
             accountId = accountId,
             namespace = namespace,
         )
-        val finalDestination = dir.destination(
+        return dir.destination(
             AtomicPathComponent.parse("$fileId$PENDING_UPLOAD_SUFFIX"),
         )
-        val finalPath = finalDestination.path
-        val finalFile = File(finalPath.value)
+    }
 
+    /** Encrypts the borrowed [source] into [destination]; the caller closes the source. */
+    private fun stageInto(
+        destination: AtomicFileDestination,
+        source: Source,
+        fileKey: ByteArray,
+    ): StagedUpload {
         // The encoder publishes its output atomically from an owner-only
         // temporary sibling, so a failure here leaves any previously staged
         // file at this path untouched rather than truncated.
-        val atomicResult = fileService
-            .readFromFile(sourceUri)
-            .use { source ->
-                fileEncryptionCodec.encryptToPath(
-                    input = source,
-                    output = finalDestination,
-                    key = fileKey,
-                    synchronization = SynchronizationPolicy.Prefer(
-                        preferred = SyncLevel.FileAndNamespaceSynchronized,
-                        minimum = SyncLevel.FileSynchronized,
-                    ),
-                )
-            }
-
+        val atomicResult = fileEncryptionCodec.encryptToPath(
+            input = source,
+            output = destination,
+            key = fileKey,
+            synchronization = SynchronizationPolicy.Prefer(
+                preferred = SyncLevel.FileAndNamespaceSynchronized,
+                minimum = SyncLevel.FileSynchronized,
+            ),
+        )
+        val finalPath = destination.path
         enforcePendingUploadPostPublication(
-            markerPath = uploadedMarkerFile(finalFile.path).toPath(),
+            markerPath = uploadedMarkerFile(finalPath.value).toPath(),
             receipt = atomicResult.receipt,
         )
-        if (canDiscardManagedSourceAfterStaging(atomicResult.receipt)) {
-            runCatching {
-                fileService.deleteManagedSourceFile(sourceUri)
-            }
-        }
-
-        PendingUploadFile(
-            path = finalPath.value,
-            plainSize = atomicResult.value.plainSize,
-            encryptedSize = atomicResult.value.encryptedSize,
+        return StagedUpload(
+            file = PendingUploadFile(
+                path = finalPath.value,
+                plainSize = atomicResult.value.plainSize,
+                encryptedSize = atomicResult.value.encryptedSize,
+            ),
+            receipt = atomicResult.receipt,
         )
     }
 
@@ -347,3 +367,9 @@ private const val MARKER_EXTENSION = ".uploaded"
 private const val PENDING_UPLOAD_SUFFIX = ".bin"
 private const val PENDING_UPLOAD_MARKER_SUFFIX = "$PENDING_UPLOAD_SUFFIX$MARKER_EXTENSION"
 private const val PENDING_UPLOAD_PLAINTEXT_MEMORY_LIMIT_BYTES = 2L * 1024L * 1024L
+
+/** Result of staging one file, keeping the publish receipt for the caller's cleanup decisions. */
+private class StagedUpload(
+    val file: PendingUploadFile,
+    val receipt: AtomicWriteReceipt,
+)

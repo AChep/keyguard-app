@@ -22,27 +22,26 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.format
 import com.artemchep.keyguard.ui.icons.icon
-import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.flow.combine
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.time.Duration
+import kotlinx.coroutines.flow.combine
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingClipboardAutoClearProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingClipboardAutoClearProvider(
-    getClipboardAutoClear = directDI.instance(),
-    getClipboardAutoClearVariants = directDI.instance(),
-    putClipboardAutoClear = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
-    context = directDI.instance(),
+    getClipboardAutoClear = koinScope.get(),
+    getClipboardAutoClearVariants = koinScope.get(),
+    putClipboardAutoClear = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
+    context = koinScope.get(),
 )
 
 fun settingClipboardAutoClearProvider(

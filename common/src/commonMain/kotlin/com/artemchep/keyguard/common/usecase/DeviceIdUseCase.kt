@@ -4,13 +4,11 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.id.IdRepository
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @OptIn(ExperimentalAtomicApi::class)
 class DeviceIdUseCase(
@@ -18,10 +16,6 @@ class DeviceIdUseCase(
 ) : () -> IO<String> {
     private val deviceId = AtomicReference<String?>(null)
     private val mutex = Mutex()
-
-    constructor(directDI: DirectDI) : this(
-        deviceIdRepository = directDI.instance(),
-    )
 
     // Return a device ID from the memory, or try to load it from the
     // file system.

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.core.store
 
+import app.cash.sqldelight.TransacterImpl
 import app.cash.sqldelight.db.AfterVersion
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
@@ -57,7 +58,7 @@ class DatabaseSqlManagerInFileJvm<Database>(
         }
     }
 
-    private suspend fun createSqlHelper(
+    private fun createSqlHelper(
         file: File,
         masterKey: MasterKey,
         databaseFactory: (SqlDriver) -> Database,
@@ -69,34 +70,15 @@ class DatabaseSqlManagerInFileJvm<Database>(
             key = masterKey.byteArray,
         )
 
-        // Create or migrate the database schema.
-        val targetVersion = databaseSchema.version
-        val currentVersion = runCatching {
-            driver.getCurrentVersion()
-        }.getOrDefault(0L)
-        if (currentVersion > targetVersion) {
-            driver.close()
-            throw DatabaseSchemaDowngradeException(
-                currentVersion = currentVersion,
-                targetVersion = targetVersion,
-            )
+        var initialized = false
+        val database = try {
+            driver.initializeSchema(databaseSchema, *callbacks)
+            databaseFactory(driver).also { initialized = true }
+        } finally {
+            if (!initialized) {
+                driver.close()
+            }
         }
-        if (currentVersion == 0L) {
-            databaseSchema.create(driver)
-        } else if (targetVersion > currentVersion) {
-            databaseSchema.migrate(
-                driver,
-                currentVersion,
-                targetVersion,
-                *callbacks,
-            )
-        }
-        // Bump the version to the current one.
-        if (currentVersion < targetVersion) {
-            driver.setCurrentVersion(targetVersion)
-        }
-
-        val database = databaseFactory(driver)
         return object : DatabaseSqlHelper<Database> {
             override val driver: SqlDriver get() = driver
 
@@ -146,28 +128,39 @@ class DatabaseSqlManagerInFileJvm<Database>(
             },
         )
     }
+}
 
-    // Version
-
-    private suspend fun SqlDriver.getCurrentVersion(): Long {
-        val queryResult = executeQuery(
+internal fun SqlDriver.initializeSchema(
+    schema: SqlSchema<QueryResult.Value<Unit>>,
+    vararg callbacks: AfterVersion,
+) {
+    val driver = this
+    val transacter = object : TransacterImpl(driver) {}
+    // JDBC transactions are thread-local. Keep the entire upgrade synchronous,
+    // including callbacks and the version update, on the same connection.
+    transacter.transaction {
+        val currentVersion = driver.executeQuery(
             identifier = null,
             sql = "PRAGMA user_version;",
             mapper = { cursor ->
-                val version = cursor.getLong(0)
-                requireNotNull(version)
-
-                QueryResult.Value(version)
+                check(cursor.next().value) { "Missing database schema version" }
+                QueryResult.Value(requireNotNull(cursor.getLong(0)))
             },
             parameters = 0,
             binders = null,
-        )
-        return queryResult.await()
-    }
-
-    private suspend fun SqlDriver.setCurrentVersion(version: Long) {
-        execute(null, "PRAGMA user_version = $version;", 0, null)
-            .await()
+        ).value
+        val targetVersion = schema.version
+        if (currentVersion > targetVersion) {
+            throw DatabaseSchemaDowngradeException(currentVersion, targetVersion)
+        }
+        if (currentVersion == 0L) {
+            schema.create(driver).value
+        } else if (currentVersion < targetVersion) {
+            schema.migrate(driver, currentVersion, targetVersion, *callbacks).value
+        }
+        if (currentVersion < targetVersion) {
+            driver.execute(null, "PRAGMA user_version = $targetVersion;", 0, null).value
+        }
     }
 }
 

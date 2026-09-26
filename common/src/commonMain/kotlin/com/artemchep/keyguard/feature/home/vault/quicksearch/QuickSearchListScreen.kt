@@ -95,9 +95,9 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.PlainTextField
-import com.artemchep.keyguard.ui.rememberFieldBuffer
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
+import com.artemchep.keyguard.ui.rememberFieldBuffer
 import com.artemchep.keyguard.ui.shortcut.toText
 import com.artemchep.keyguard.ui.surface.ProvideSurfaceColor
 import com.artemchep.keyguard.ui.surface.ReportSurfaceColor
@@ -110,9 +110,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 internal fun QuickSearchListScreen(
@@ -122,8 +120,8 @@ internal fun QuickSearchListScreen(
     val state = quickSearchScreenState()
     val selectedItem = state.selectedItem?.item
     val controller by rememberUpdatedState(LocalNavigationController.current)
-    val directDI = localDI().direct
-    val getTotpCode: GetTotpCode = remember(directDI) { directDI.instance() }
+    val koinScope = currentKoinScope()
+    val getTotpCode: GetTotpCode = remember(koinScope) { koinScope.get() }
     val scope = rememberCoroutineScope()
     val focusRequester = remember { FocusRequester2() }
     val performAction =

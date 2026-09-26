@@ -17,18 +17,11 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class BitwardenTokenRepositoryImpl(
     private val databaseManager: VaultDatabaseManager,
     private val dispatcher: CoroutineDispatcher,
 ) : BitwardenTokenRepository {
-    constructor(directDI: DirectDI) : this(
-        databaseManager = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
-
     override fun get(): Flow<List<BitwardenToken>> = databaseManager
         .get()
         .asFlow()
@@ -65,11 +58,6 @@ class ServiceTokenRepositoryImpl(
     private val databaseManager: VaultDatabaseManager,
     private val dispatcher: CoroutineDispatcher,
 ) : ServiceTokenRepository {
-    constructor(directDI: DirectDI) : this(
-        databaseManager = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
-
     override fun get(): Flow<List<ServiceToken>> = databaseManager
         .get()
         .asFlow()

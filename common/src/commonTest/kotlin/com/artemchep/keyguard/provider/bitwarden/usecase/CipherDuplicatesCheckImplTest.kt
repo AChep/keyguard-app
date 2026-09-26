@@ -26,6 +26,20 @@ class CipherDuplicatesCheckImplTest {
     )
 
     @Test
+    fun `archived and trashed items are excluded from duplicate groups until restored`() {
+        val active = gpgSecret(id = "active", name = "Key")
+        val archived = active.copy(id = "archived", archivedDate = TEST_INSTANT)
+        val trashed = active.copy(id = "trashed", deletedDate = TEST_INSTANT)
+
+        assertEquals(emptyList(), duplicatesCheck(listOf(active, archived, trashed)))
+        assertEquals(
+            setOf("active", "archived"),
+            duplicatesCheck(listOf(active, archived.copy(archivedDate = null), trashed))
+                .single().ciphers.map { it.id }.toSet(),
+        )
+    }
+
+    @Test
     fun `gpg keys with same normalized fingerprint are duplicates despite different names`() {
         val groups = duplicatesCheck(
             ciphers = listOf(

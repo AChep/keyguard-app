@@ -226,7 +226,7 @@ internal fun Meta.marshalTo(
         if (context.version.major < 4 || context is XmlContext.Encode.Plain) {
             element(Tags.Meta.Binaries.TagName) {
                 for ((ref, _, binary) in context.binaryWritePlan.entries) {
-                    binary.marshalTo(ref, this)
+                    binary.marshalTo(ref, context, this)
                 }
             }
         }

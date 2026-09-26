@@ -4,7 +4,10 @@ import androidx.compose.runtime.Composable
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectTap
+import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.CipherFilterContext
+import com.artemchep.keyguard.common.model.CipherId
 import com.artemchep.keyguard.common.model.DNotificationChannel
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
@@ -12,6 +15,7 @@ import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.model.getShapeState
+import com.artemchep.keyguard.common.model.isWatchtowerEligible
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DismissNotificationsByChannel
@@ -24,6 +28,7 @@ import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.MarkAllWatchtowerAlertAsRead
+import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertsAsRead
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
@@ -54,16 +59,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.runningReduce
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 private data class AhAh(
     val cipher: DSecret,
@@ -79,30 +82,32 @@ private data class ConfigMapper(
 @Composable
 fun produceGeneratorHistoryState(
     args: WatchtowerAlertsRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceGeneratorHistoryState(
-        directDI = this,
+        filterContext = get(),
         args = args,
-        markAllWatchtowerAlertAsRead = instance(),
-        getProfiles = instance(),
-        getOrganizations = instance(),
-        getCiphers = instance(),
-        getWatchtowerAlerts = instance(),
-        getTotpCode = instance(),
-        getConcealFields = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        dateFormatter = instance(),
-        clipboardService = instance(),
-        dismissNotificationsByChannel = instance(),
+        markAllWatchtowerAlertAsRead = get(),
+        markWatchtowerAlertsAsRead = get(),
+        getProfiles = get(),
+        getOrganizations = get(),
+        getCiphers = get(),
+        getWatchtowerAlerts = get(),
+        getTotpCode = get(),
+        getConcealFields = get(),
+        getAppIcons = get(),
+        getWebsiteIcons = get(),
+        dateFormatter = get(),
+        clipboardService = get(),
+        dismissNotificationsByChannel = get(),
     )
 }
 
 @Composable
 fun produceGeneratorHistoryState(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
     args: WatchtowerAlertsRoute.Args,
     markAllWatchtowerAlertAsRead: MarkAllWatchtowerAlertAsRead,
+    markWatchtowerAlertsAsRead: MarkWatchtowerAlertsAsRead,
     getProfiles: GetProfiles,
     getOrganizations: GetOrganizations,
     getCiphers: GetCiphers,
@@ -123,9 +128,10 @@ fun produceGeneratorHistoryState(
     ),
 ) {
     watchtowerNewAlertsStateProducer(
-        directDI = directDI,
+        filterContext = filterContext,
         args = args,
         markAllWatchtowerAlertAsRead = markAllWatchtowerAlertAsRead,
+        markWatchtowerAlertsAsRead = markWatchtowerAlertsAsRead,
         getProfiles = getProfiles,
         getOrganizations = getOrganizations,
         getCiphers = getCiphers,
@@ -141,9 +147,10 @@ fun produceGeneratorHistoryState(
 }
 
 suspend fun RememberStateFlowScope.watchtowerNewAlertsStateProducer(
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
     args: WatchtowerAlertsRoute.Args,
     markAllWatchtowerAlertAsRead: MarkAllWatchtowerAlertAsRead,
+    markWatchtowerAlertsAsRead: MarkWatchtowerAlertsAsRead,
     getProfiles: GetProfiles,
     getOrganizations: GetOrganizations,
     getCiphers: GetCiphers,
@@ -195,14 +202,6 @@ suspend fun RememberStateFlowScope.watchtowerNewAlertsStateProducer(
         navigate(intent)
     }
 
-    fun onMarkAllRead() {
-        markAllWatchtowerAlertAsRead()
-            .effectTap {
-                navigatePopAll()
-            }
-            .launchIn(appScope)
-    }
-
     val configFlow = combine(
         getConcealFields(),
         getAppIcons(),
@@ -227,7 +226,7 @@ suspend fun RememberStateFlowScope.watchtowerNewAlertsStateProducer(
     )
         .map { ciphers ->
             if (args.filter != null) {
-                val predicate = args.filter.prepare(directDI, ciphers)
+                val predicate = args.filter.prepare(filterContext, ciphers)
                 ciphers
                     .filter { predicate(it) }
             } else {
@@ -237,9 +236,28 @@ suspend fun RememberStateFlowScope.watchtowerNewAlertsStateProducer(
     val ciphersFlow = ciphersRawFlow
         .map { secrets ->
             secrets
-                .filter { secret -> !secret.deleted }
+                .filter { secret -> secret.isWatchtowerEligible }
         }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
+
+    fun onMarkAllRead() {
+        val io = if (args.filter == null) {
+            markAllWatchtowerAlertAsRead()
+        } else {
+            ioEffect {
+                // Reuse the exact account/tag/custom-filter scope of this list.
+                val ids = ciphersFlow.first()
+                    .mapTo(mutableSetOf()) { CipherId(it.id) }
+                markWatchtowerAlertsAsRead(ids)
+                    .bind()
+            }
+        }
+        io
+            .effectTap {
+                navigatePopAll()
+            }
+            .launchIn(appScope)
+    }
 
     val itemSink = mutablePersistedFlow("alert") { "" }
     val selectionHandle = selectionHandle("selection")

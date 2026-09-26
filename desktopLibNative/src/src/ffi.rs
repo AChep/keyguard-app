@@ -6,6 +6,13 @@ pub(crate) type BiometricsVerifyCallback = Option<extern "C" fn(i32, *const c_ch
 pub(crate) type BiometricsResultCallback =
     Option<extern "C" fn(i32, *const u8, u64, *const c_char)>;
 pub(crate) type HotKeyPressedCallback = Option<unsafe extern "C" fn(i32)>;
+pub(crate) type PowerEventCallback = Option<unsafe extern "C" fn(i32)>;
+
+/// Registration status codes shared by every native registration export.
+/// Mirrors the JVM bridge contract and the ObjC shim.
+#[allow(dead_code)]
+pub(crate) const REGISTER_STATUS_UNSUPPORTED_PLATFORM: i32 = -1;
+pub(crate) const REGISTER_STATUS_INTERNAL_ERROR: i32 = -5;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum FailureLogDetail {
@@ -147,14 +154,13 @@ mod tests {
     }
 
     #[test]
-    fn free_ptr_releases_strdup_allocation() {
-        let payload = CString::new("hello").unwrap();
-        // SAFETY: CString provides a valid NUL-terminated source pointer for
-        // the duration of the call; strdup returns a C-allocator allocation.
-        let duplicated = unsafe { libc::strdup(payload.as_ptr()) };
-        assert!(!duplicated.is_null());
+    fn free_ptr_releases_c_allocation() {
+        // SAFETY: Request a nonzero C allocation, check it below, and release
+        // it exactly once without reading its uninitialized contents.
+        let allocation = unsafe { libc::malloc(1) };
+        assert!(!allocation.is_null());
 
-        free_ptr(duplicated.cast());
+        free_ptr(allocation);
     }
 
     #[test]

@@ -14,12 +14,10 @@ import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
 import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountRegistration
-import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.LogLevel
+import com.artemchep.keyguard.common.service.logging.LogRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 internal interface CredentialExchangeRegistrationBackend {
     suspend fun register(
@@ -48,13 +46,6 @@ internal class CredentialExchangeRegistry(
         private val SUPPORTED_CREDENTIAL_TYPES = CxfCredentialType.EXPORTABLE
             .mapTo(mutableSetOf()) { it.serialName }
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance<Application>(),
-        logRepository = directDI.instance(),
-    )
 
     /**
      * Registers Keyguard as a credential-export provider.

@@ -40,10 +40,10 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
-      - name: "Prefetch locked native graphs"
-        run: |
-          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
-          cargo fetch --manifest-path util/zxcvbn/rust/Cargo.toml --locked
+          cache-key: android
+      - uses: ./.github/actions/prefetch_native
+        with:
+          profile: android
       - uses: ./.github/actions/setup_python
       - uses: ./.github/actions/prepare_disk_space
       - name: "Prepare env"
@@ -67,14 +67,10 @@ jobs:
         run: >-
           ./gradlew
           :androidApp:bundlePlayStoreRelease
-          -Pkeyguard.nativeCrypto.cargoOffline=true
-      - name: "Inspect packaged native crypto"
+          -Pkeyguard.nativeCargo.cargoOffline=true
+      - name: "Verify native bundle"
         run: >-
-          python scripts/inspect_native_crypto_android.py
-          androidApp/build/outputs/bundle/playStoreRelease/androidApp-playStore-release.aab
-      - name: "Reject Bouncy Castle and SSHJ from packaged Android AAB"
-        run: >-
-          python scripts/check_bouncycastle_policy.py --artifact
+          python scripts/verify_native_bundle.py android
           androidApp/build/outputs/bundle/playStoreRelease/androidApp-playStore-release.aab
       - name: 'Upload Android .aab'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -96,10 +92,10 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
-      - name: "Prefetch locked native graphs"
-        run: |
-          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
-          cargo fetch --manifest-path util/zxcvbn/rust/Cargo.toml --locked
+          cache-key: android
+      - uses: ./.github/actions/prefetch_native
+        with:
+          profile: android
       - uses: ./.github/actions/setup_python
       - uses: ./.github/actions/prepare_disk_space
       - name: "Prepare env"
@@ -120,14 +116,10 @@ jobs:
         run: >-
           ./gradlew
           :wearApp:bundlePlayStoreRelease
-          -Pkeyguard.nativeCrypto.cargoOffline=true
-      - name: "Inspect packaged native crypto"
+          -Pkeyguard.nativeCargo.cargoOffline=true
+      - name: "Verify native bundle"
         run: >-
-          python scripts/inspect_native_crypto_android.py
-          wearApp/build/outputs/bundle/playStoreRelease/wearApp-playStore-release.aab
-      - name: "Reject Bouncy Castle and SSHJ from packaged Wear AAB"
-        run: >-
-          python scripts/check_bouncycastle_policy.py --artifact
+          python scripts/verify_native_bundle.py android
           wearApp/build/outputs/bundle/playStoreRelease/wearApp-playStore-release.aab
       - name: 'Upload WearOS .aab'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

@@ -16,8 +16,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import org.kodein.di.direct
-import org.kodein.di.instance
 
 class BenchmarkScreenRecordingReceiver : BroadcastReceiver() {
     private companion object {
@@ -42,10 +40,10 @@ class BenchmarkScreenRecordingReceiver : BroadcastReceiver() {
         val pendingResult = goAsync()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             runCatching {
-                val directDi = (context.applicationContext as Main).di.direct
-                directDi.instance<PutAllowScreenshots>()(AllowScreenshots.LIMITED).bind()
+                val koin = (context.applicationContext as Main).koin
+                koin.get<PutAllowScreenshots>()(AllowScreenshots.LIMITED).bind()
                 withTimeout(PREFERENCE_TIMEOUT_MS) {
-                    directDi.instance<GetAllowScreenshots>()()
+                    koin.get<GetAllowScreenshots>()()
                         .first { value -> value == AllowScreenshots.LIMITED }
                 }
             }.onSuccess { value ->

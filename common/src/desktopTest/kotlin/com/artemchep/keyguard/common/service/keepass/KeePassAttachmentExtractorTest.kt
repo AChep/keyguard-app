@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.keepass
 import app.keemobile.kotpass.cryptography.EncryptedValue
 import app.keemobile.kotpass.database.Credentials
 import app.keemobile.kotpass.database.KeePassDatabase
+import app.keemobile.kotpass.database.decode
 import app.keemobile.kotpass.database.encode
 import app.keemobile.kotpass.database.header.DatabaseHeader
 import app.keemobile.kotpass.database.header.KdfParameters
@@ -39,6 +40,51 @@ class KeePassAttachmentExtractorTest {
     private val credentials = Credentials.from(
         EncryptedValue.fromString("extractor-test-password"),
     )
+
+    @Test
+    fun extractsCompressedTextAndRawGzipByTheirLogicalHashesAfterSaving() {
+        val text = "compressed text attachment".encodeToByteArray()
+        val compressed = BinaryData.Uncompressed(false, text).toCompressed()
+        val raw = BinaryData.Uncompressed(false, compressed.rawContent)
+        val extractor = KeePassAttachmentExtractor(
+            stagingSpoolFactory = DefaultStagingSpoolFactory.forTesting(
+                scratchStorageFactory = ::TestPrivateTemporaryStorage,
+            ),
+        )
+
+        for (version in listOf(3, 4)) {
+            for (binaries in listOf(listOf(compressed, raw), listOf(raw, compressed))) {
+                val encoded = databaseWith(majorVersion = version)
+                    .modifyBinaries { binaries.associateByTo(linkedMapOf()) { it.hash } }
+                    .encode()
+                val saved = KeePassDatabase.decode(encoded, credentials).encode()
+
+                for (file in listOf(encoded, saved)) {
+                    for (content in listOf(text, raw.getContent())) {
+                        assertExtractedContent(extractor, file, content)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun assertExtractedContent(
+        extractor: KeePassAttachmentExtractor,
+        file: ByteArray,
+        content: ByteArray,
+    ) {
+        extractor.extract(
+            source = Buffer().apply { write(file) },
+            credentials = credentials,
+            contentHash = sha256(content),
+            expectedSize = content.size.toLong(),
+        ).use { staged ->
+            assertEquals(content.size.toLong(), staged.size)
+            staged.source().use { source ->
+                assertContentEquals(content, source.readByteArray())
+            }
+        }
+    }
 
     @Test
     fun largeMatchSpillsEncryptedAndIsReleasedByCaller() {

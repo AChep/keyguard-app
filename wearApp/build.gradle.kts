@@ -1,140 +1,61 @@
-import com.android.build.api.dsl.BuildType
+import com.artemchep.keyguard.buildplugins.android.configureKeyguardApplication
 import com.artemchep.keyguard.buildplugins.version.createVersionInfo
-import java.util.Properties
 
 plugins {
+    id("keyguard.license-policy")
+    id("keyguard.crypto-dependency-check")
+    id("keyguard.wear-dependency-check")
+    id("keyguard.quality")
+    id("keyguard.koin")
     alias(libs.plugins.android.application)
+    id("keyguard.android-application")
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)
     alias(libs.plugins.kotlin.plugin.parcelize)
     alias(libs.plugins.kotlin.plugin.serialization)
-    alias(libs.plugins.ktlint)
     alias(libs.plugins.google.services)
     alias(libs.plugins.crashlytics)
     id("keyguard.resources-common") apply false
     id("keyguard.detekt-custom-rules")
 }
 
+// Application roots always revalidate the assembled dependency graph.
+koinCompiler {
+    strictSafety.set(true)
+}
+
 // The flavors share src/main/java, so one production variant covers every call site.
 detektCustomRules {
     androidVariant("noneDebug")
-    requireCoverageFor("mutablePersistedFlow")
 }
-
-fun loadProps(file: File): Properties {
-    val props = Properties()
-    if (file.isFile) {
-        file.inputStream().use(props::load)
-    }
-    return props
-}
-
-fun keystoreFile(name: String) =
-    file(name)
 
 val versionInfo = createVersionInfo(
     marketingVersion = libs.versions.appVersionName.get(),
     logicalVersion = libs.versions.appVersionCode.get().toInt(),
 )
 
-val qaSigningProps = loadProps(keystoreFile("keyguard-qa.properties"))
-val releaseSigningProps = loadProps(keystoreFile("keyguard-release.properties"))
-
 android {
-    compileSdk = libs.versions.androidCompileSdk.get().toInt()
-    ndkVersion = libs.versions.androidNdk.get()
+    configureKeyguardApplication(project)
     namespace = "com.artemchep.keyguard"
 
     defaultConfig {
         applicationId = "com.artemchep.keyguard"
         minSdk = 30
-        targetSdk = libs.versions.androidTargetSdk.get().toInt()
 
         versionCode = versionInfo.logicalVersion
         versionName = versionInfo.marketingVersion
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        testInstrumentationRunnerArguments["clearPackageData"] = "true"
-
-        vectorDrawables {
-            useSupportLibrary = true
-        }
     }
 
     lint {
         disable += "Instantiatable"
     }
-
-    compileOptions {
-        isCoreLibraryDesugaringEnabled = true
-    }
-
-    testOptions {
-        execution = "ANDROIDX_TEST_ORCHESTRATOR"
-    }
-
-    bundle {
-        language {
-            enableSplit = false
-        }
-    }
-
-    buildFeatures {
-        buildConfig = true
-    }
-
-    signingConfigs {
-        maybeCreate("debug").apply {
-            keyAlias = qaSigningProps.getProperty("key_alias")
-            keyPassword = qaSigningProps.getProperty("password_store")
-            storeFile = keystoreFile("keyguard-qa.keystore")
-            storePassword = qaSigningProps.getProperty("password_key")
-        }
-        maybeCreate("release").apply {
-            keyAlias = releaseSigningProps.getProperty("key_alias")
-            keyPassword = releaseSigningProps.getProperty("password_store")
-            storeFile = keystoreFile("keyguard-release.keystore")
-            storePassword = releaseSigningProps.getProperty("password_key")
-        }
-    }
-
-    buildTypes {
-        fun BuildType.applyMinification() {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "../common/proguard-rules.pro",
-                "proguard-rules.pro",
-            )
-        }
-
-        debug {
-            applicationIdSuffix = ".debug"
-        }
-        release {
-            signingConfig = signingConfigs.getByName("release")
-            applyMinification()
-        }
-    }
-
-    val accountManagementDimension = "accountManagement"
-    flavorDimensions += accountManagementDimension
-    productFlavors {
-        maybeCreate("playStore").apply {
-            dimension = accountManagementDimension
-            buildConfigField("boolean", "ANALYTICS", "true")
-        }
-        maybeCreate("none").apply {
-            dimension = accountManagementDimension
-            buildConfigField("boolean", "ANALYTICS", "false")
-        }
-    }
 }
 
 dependencies {
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose)
     implementation(project(":common"))
-    coreLibraryDesugaring(libs.android.desugarjdklibs)
 
     implementation(libs.jetbrains.compose.material3)
     implementation(libs.jetbrains.compose.ui.tooling.preview)
@@ -150,7 +71,6 @@ dependencies {
     androidTestImplementation(project(":util:crypto"))
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.ext.junit)
-    androidTestUtil(libs.androidx.test.orchestrator)
 }
 
 composeCompiler {
@@ -159,8 +79,6 @@ composeCompiler {
 }
 
 kotlin {
-    jvmToolchain(libs.versions.jdk.get().toInt())
-
     compilerOptions {
         freeCompilerArgs.addAll(
             "-Xexpect-actual-classes",

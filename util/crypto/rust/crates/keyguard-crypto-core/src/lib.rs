@@ -106,6 +106,8 @@ pub const CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE: u64 = 1 << 31;
 pub const CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2: u64 = 1 << 32;
 /// Per-User-ID certification evaluation against explicit local trust roots.
 pub const CAPABILITY_OPENPGP_USER_ID_CERTIFICATION: u64 = 1 << 33;
+/// Bounded EOF/output draining for OpenPGP decryption sessions.
+pub const CAPABILITY_OPENPGP_STREAM_DRAIN: u64 = 1 << 34;
 /// Complete capability set provided by this native library revision.
 pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_PBKDF2_SHA256
@@ -140,7 +142,8 @@ pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_OPENPGP_USER_ID_REPLACEMENT
     | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE
     | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2
-    | CAPABILITY_OPENPGP_USER_ID_CERTIFICATION;
+    | CAPABILITY_OPENPGP_USER_ID_CERTIFICATION
+    | CAPABILITY_OPENPGP_STREAM_DRAIN;
 
 static PANIC_HOOK: Once = Once::new();
 
@@ -172,6 +175,14 @@ pub fn call(request_bytes: &[u8]) -> Vec<u8> {
         None => return error_response("", NativeErrorCode::InvalidRequest),
     };
     let operation_name = one_shot_operation_name(&operation);
+    if let native_request::Operation::OpenPgpStreamDrain(request) = operation {
+        return match sessions::drain_openpgp(request.handle) {
+            Ok(output) => {
+                success_response(operation_name, native_response::Result::BytesValue(output))
+            }
+            Err(error) => error_response(operation_name, session_error_code(error)),
+        };
+    }
     match execute_one_shot(operation) {
         Ok(result) => success_response(operation_name, result),
         Err(error) => error_response(operation_name, primitive_error_code(error)),
@@ -568,6 +579,10 @@ fn execute_one_shot(
         native_request::Operation::OpenPgpSign(request) => openpgp::adapter::sign(request)?,
         native_request::Operation::OpenPgpEncrypt(request) => openpgp::adapter::encrypt(request)?,
         native_request::Operation::OpenPgpDecrypt(request) => openpgp::adapter::decrypt(request)?,
+        // Session operations are dispatched by call() to preserve InvalidSession.
+        native_request::Operation::OpenPgpStreamDrain(_) => {
+            return Err(PrimitiveError::InvalidArgument);
+        }
         native_request::Operation::OpenPgpExpirationUpdate(request) => {
             openpgp::adapter::update_expiration(request)?
         }
@@ -643,6 +658,7 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::OpenPgpSign(_) => "open_pgp_sign",
         native_request::Operation::OpenPgpEncrypt(_) => "open_pgp_encrypt",
         native_request::Operation::OpenPgpDecrypt(_) => "open_pgp_decrypt",
+        native_request::Operation::OpenPgpStreamDrain(_) => "open_pgp_stream_drain",
         native_request::Operation::OpenPgpExpirationUpdate(_) => "open_pgp_expiration_update",
         native_request::Operation::OpenPgpCertificateMaterialReconcile(_) => {
             "open_pgp_certificate_material_reconcile"
@@ -1299,7 +1315,7 @@ mod tests {
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
         assert_eq!(PROTOCOL_VERSION, 2);
-        assert_eq!(CAPABILITIES, 0x3ffffffff);
+        assert_eq!(CAPABILITIES, 0x7ffffffff);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256, 1 << 20);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256_FAST_PATH, 1 << 21);
         assert_eq!(CAPABILITY_RANDOM_FAST_PATH, 1 << 23);
@@ -2906,5 +2922,41 @@ mod tests {
             Some(NativeErrorCode::Ok as i32)
         );
         let _ = stream_finish(replacement_handle);
+    }
+}
+
+#[cfg(test)]
+mod drain_protocol_tests {
+    use super::*;
+
+    fn drain(handle: u64) -> NativeResponse {
+        let request = NativeRequest {
+            protocol_version: PROTOCOL_VERSION,
+            operation: Some(native_request::Operation::OpenPgpStreamDrain(
+                protocol::OpenPgpStreamDrainRequest { handle },
+            )),
+        };
+        NativeResponse::decode(call(&request.encode_to_vec()).as_slice()).expect("drain response")
+    }
+
+    #[test]
+    fn drain_rejects_stale_and_non_openpgp_sessions_without_consuming_them() {
+        let response = drain(0);
+        assert_eq!(
+            response.status.expect("invalid session").code,
+            NativeErrorCode::InvalidSession as i32
+        );
+        let handle = sessions::open_hmac_sha256(vec![0x11; 32]).expect("HMAC session");
+        let response = drain(handle);
+        assert_eq!(
+            response.status.expect("invalid operation").code,
+            NativeErrorCode::InvalidArgument as i32
+        );
+        sessions::update(handle, b"still live").expect("session preserved");
+        sessions::finish(handle).expect("finish preserved session");
+        assert_eq!(
+            drain(handle).status.expect("closed session").code,
+            NativeErrorCode::InvalidSession as i32
+        );
     }
 }

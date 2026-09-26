@@ -8,9 +8,9 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyImportError
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpClearSignFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpCertificationAuthority
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpCertificationEvaluator
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpClearSignFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextResult
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptionWarning
@@ -47,15 +47,13 @@ import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyImportResult
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyKind
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyMaterial
 import com.artemchep.keyguard.util.io.consumeWithErasedBuffer
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.io.Sink
 import kotlinx.io.Source
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Clock
-import kotlin.time.Instant
 
 object NativeGpgKeyGenerator : GpgKeyGenerator {
     override fun generate(
@@ -312,12 +310,6 @@ class NativeGpgOpenPgpService internal constructor(
 ) : GpgOpenPgpService,
     GpgOpenPgpVerifier by verifier,
     GpgOpenPgpCertificationEvaluator by certificationEvaluator {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        stagingSpoolFactory = directDI.instance(),
-    )
-
     override fun clearSignText(
         request: GpgOpenPgpSignTextRequest,
     ): String = signText(request) { content, privateKey, candidateRevocationKeys,
@@ -611,9 +603,15 @@ class NativeGpgOpenPgpService internal constructor(
                                     privateKeys = privateKeys,
                                     verificationPublicKeys = publicKeys,
                                     allowSignedOnly = request.allowSignedOnly,
+                                    stagingDirectory = privateTemporaryStorageDirectory().value,
                                 ).use { session ->
                                     input.consumeWithErasedBuffer { data, length ->
                                         writeAndErase(stagedOutput, session.update(data, length = length))
+                                    }
+                                    while (true) {
+                                        val chunk = session.drain()
+                                        if (chunk.isEmpty()) break
+                                        writeAndErase(stagedOutput, chunk)
                                     }
                                     val final = session.finish()
                                     writeAndErase(stagedOutput, final.data)

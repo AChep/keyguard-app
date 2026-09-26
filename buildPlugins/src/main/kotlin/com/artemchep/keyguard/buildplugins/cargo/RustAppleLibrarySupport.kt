@@ -2,6 +2,7 @@ package com.artemchep.keyguard.buildplugins.cargo
 
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
+import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.getByType
@@ -64,6 +65,7 @@ internal fun Project.registerAppleLibraries(
     nativeLibraryName: String,
     rustSourceDirectory: Directory,
     targets: List<AppleNativeTarget>,
+    extraSourceInputs: FileCollection = files(),
 ): Map<String, TaskProvider<CargoBuildTask>> = targets.associate { target ->
     val suffix = target.kotlinTarget.replaceFirstChar(Char::uppercaseChar)
     val cargoTargetDirectory = layout.buildDirectory
@@ -89,6 +91,7 @@ internal fun Project.registerAppleLibraries(
             fileTree(rustSourceDirectory) {
                 exclude("target/**", "**/target/**")
             },
+            extraSourceInputs.asFileTree,
         )
         this.cargoTargetDir.set(cargoTargetDirectory)
         rustTarget.set(target.rustTarget)
@@ -105,7 +108,6 @@ internal fun Project.registerAppleLibraries(
 internal fun Project.configureAppleInterop(
     moduleName: String,
     moduleTaskName: String,
-    nativeTaskName: String,
     rustSourceDirectory: Directory,
     targets: List<AppleNativeTarget>,
     cargoTasks: Map<String, TaskProvider<CargoBuildTask>>,
@@ -127,7 +129,7 @@ internal fun Project.configureAppleInterop(
                 .asFile
                 .absolutePath
 
-            compilations.getByName("main").cinterops.create("native$moduleTaskName") {
+            val interop = compilations.getByName("main").cinterops.create("native$moduleTaskName") {
                 definitionFile.set(
                     layout.projectDirectory.file(
                         "src/nativeInterop/cinterop/native$moduleTaskName.def",
@@ -145,10 +147,7 @@ internal fun Project.configureAppleInterop(
                 .kotlin
                 .srcDir("src/appleInteropMain/kotlin")
 
-            val interopTaskName =
-                "cinterop$nativeTaskName${nativeTarget.name.replaceFirstChar(Char::uppercaseChar)}"
-            tasks.matching { task -> task.name == interopTaskName }.configureEach {
-                dependsOn(cargoBuild)
+            tasks.named(interop.interopProcessingTaskName) {
                 inputs.file(cargoBuild.flatMap { task -> task.outputBinary })
             }
         }

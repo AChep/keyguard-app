@@ -6,10 +6,10 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.ui.theme.LocalExpressive
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
+import org.koin.core.scope.Scope
 
 fun settingSectionProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingSectionProvider()
 
 fun settingSectionProvider(): SettingComponent = kotlin.run {

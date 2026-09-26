@@ -7,25 +7,18 @@ import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.newChildScope
 import com.artemchep.keyguard.platform.recordException
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.plus
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.cancellation.CancellationException
 
 class WindowCoroutineScopeImpl(
     private val scope: CoroutineScope,
     private val showMessage: ShowMessage,
 ) : WindowCoroutineScope {
-    constructor(directDI: DirectDI) : this(
-        scope = GlobalScope,
-        showMessage = directDI.instance(),
-    )
-
     private val handler = CoroutineExceptionHandler { _, exception ->
         if (exception is CancellationException) {
             return@CoroutineExceptionHandler

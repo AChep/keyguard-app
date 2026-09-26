@@ -8,17 +8,18 @@ import com.artemchep.keyguard.common.model.WebDavCredentials
 import com.artemchep.keyguard.common.model.WebDavLocation
 import com.artemchep.keyguard.common.service.webdav.parseWebDavKeePassFileUrl
 import com.artemchep.keyguard.common.util.flow.EventFlow
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel
-import com.artemchep.keyguard.feature.auth.common.textFieldHandle
-import com.artemchep.keyguard.feature.auth.common.Validated
-import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginEvent
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.Validated
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
+import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent.Companion.mimeTypesKeePass
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.webdav.WebDavSettingsRoute
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
@@ -30,12 +31,11 @@ import com.artemchep.keyguard.res.database_location_webdav
 import com.artemchep.keyguard.res.open_database
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 private const val DEFAULT_DATABASE_NAME = "MyKeyguardDatabase.kdbx"
 
@@ -108,9 +108,9 @@ internal fun createKeePassLoginState(
 @Composable
 fun produceKeePassLoginScreenState(
     screenKey: String = DEFAULT_SCREEN_KEY,
-): Loadable<KeePassLoginState> = with(localDI().direct) {
+): Loadable<KeePassLoginState> = with(currentKoinScope()) {
     produceKeePassLoginScreenState(
-        addKeepassAccount = instance(),
+        addKeepassAccount = get(),
         screenKey = screenKey,
     )
 }
@@ -130,6 +130,17 @@ fun produceKeePassLoginScreenState(
         screenKey,
     ),
 ) {
+    keePassLoginStateProducer(
+        addKeepassAccount = addKeepassAccount,
+    )
+}
+
+// Keep the state flows and their session-scoped callbacks in one lifecycle scope.
+@Suppress("CyclomaticComplexMethod", "LongMethod")
+@OptIn(ExperimentalCoroutinesApi::class)
+suspend fun RememberStateFlowScope.keePassLoginStateProducer(
+    addKeepassAccount: AddKeePassAccount,
+): Flow<Loadable<KeePassLoginState>> {
     val onSuccessFlow = EventFlow<Unit>()
     val onErrorFlow = EventFlow<BitwardenLoginEvent.Error>()
 
@@ -488,7 +499,7 @@ fun produceKeePassLoginScreenState(
     }
         .stateIn(screenScope)
 
-    actionExecutor.isExecutingFlow.map { taskIsExecuting ->
+    return actionExecutor.isExecutingFlow.map { taskIsExecuting ->
         Loadable.Ok(
             createKeePassLoginState(
                 sideEffects = sideEffects,

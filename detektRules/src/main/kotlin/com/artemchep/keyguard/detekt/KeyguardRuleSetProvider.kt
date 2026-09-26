@@ -10,6 +10,7 @@ class KeyguardRuleSetProvider : RuleSetProvider {
     override fun instance(): RuleSet = RuleSet(
         ruleSetId,
         listOf(
+            ::AndroidIncompatibleListOperation,
             ::MutablePersistedFlowTypeSafety,
             ::MutablePersistedFlowDuplicateKey,
         ),

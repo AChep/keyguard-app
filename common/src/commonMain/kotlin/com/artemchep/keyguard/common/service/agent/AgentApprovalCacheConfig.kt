@@ -24,6 +24,12 @@ data class AgentApprovalCacheConfig<P : Any>(
 
 fun interface AgentApprovalCacheConfigProvider<P : Any> {
     suspend fun get(): AgentApprovalCacheConfig<P>
+
+    /**
+     * Returns the loaded configuration without waiting, or null if it cannot
+     * be read immediately. A missing snapshot must never authorize cache reuse.
+     */
+    fun peek(): AgentApprovalCacheConfig<P>? = null
 }
 
 /**
@@ -43,6 +49,15 @@ class AgentApprovalCacheConfigState<P : Any>(
 
     override suspend fun get(): AgentApprovalCacheConfig<P> = mutex.withLock {
         getOrLoadLocked()
+    }
+
+    override fun peek(): AgentApprovalCacheConfig<P>? {
+        if (!mutex.tryLock()) return null
+        return try {
+            state.value
+        } finally {
+            mutex.unlock()
+        }
     }
 
     fun approvalWindow(): Flow<Duration> = flow {
@@ -144,6 +159,15 @@ private class FlowBackedAgentApprovalCacheConfigProvider<P : Any>(
 ) : AgentApprovalCacheConfigProvider<P> {
     private val mutex = Mutex()
     private val state = MutableStateFlow<AgentApprovalCacheConfig<P>?>(null)
+
+    override fun peek(): AgentApprovalCacheConfig<P>? {
+        if (!mutex.tryLock()) return null
+        return try {
+            state.value
+        } finally {
+            mutex.unlock()
+        }
+    }
 
     init {
         approvalWindow

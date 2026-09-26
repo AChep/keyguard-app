@@ -14,8 +14,6 @@ import com.artemchep.keyguard.common.usecase.RequestAppReview
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.platform.LeContext
 import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.time.Duration
 
 class RequestAppReviewImpl(
@@ -32,12 +30,6 @@ class RequestAppReviewImpl(
          */
         private val PERIOD = with(Duration) { 28.days }
     }
-
-    constructor(directDI: DirectDI) : this(
-        logRepository = directDI.instance(),
-        reviewLog = directDI.instance(),
-        reviewService = directDI.instance(),
-    )
 
     override fun invoke(
         context: LeContext,

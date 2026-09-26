@@ -32,23 +32,15 @@ codes is free.
 | **Steam Guard** | `steam://` secrets; the 5-character Steam code format        |
 | **mOTP**        | `motp://` secrets, with PIN support                          |
 
-MD5-based keys are not supported — they are rejected rather than silently
-producing wrong codes.
-
 ## Using the codes
 
 The item view shows the current code with a **countdown timer**, a preview
-of the upcoming code, and one-tap copy. Two settings make day-to-day use
-smoother:
-
-- **Auto-copy one-time passwords** — when autofill fills a login, the
-  matching code is copied to the clipboard automatically, ready to paste
-  into the verification field;
-- **Automatically clear clipboard** — wipes the code from the clipboard
-  after a delay (see [Locking & unlocking](/docs/lock-and-unlock/#auto-lock)).
+of the upcoming code, and one-tap copy. There's also an option to 
+**Auto-copy one-time passwords** — when autofill fills a login, the 
+matching code is copied to the clipboard automatically, ready to paste 
+into the verification field.
 
 > Storing the second factor next to the password means one vault unlock
 > protects both. That's a deliberate trade-off — convenience against
-> separation of factors — and Keyguard leaves the choice to you. For your
-> most critical accounts, consider keeping the second factor in a separate
-> app or on a hardware key.
+> separation of factors. For your most critical accounts, consider keeping 
+> the second factor in a separate app or on a hardware key.

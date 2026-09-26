@@ -20,8 +20,6 @@ import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenReposito
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -59,14 +57,6 @@ class PutAccountMasterPasswordHintByIdImpl internal constructor(
         },
     )
 
-    constructor(directDI: DirectDI) : this(
-        logRepository = directDI.instance(),
-        tokenRepository = directDI.instance(),
-        profileRepository = directDI.instance(),
-        putBitwardenAccountMasterPasswordHintById = directDI.instance(),
-        putKeePassAccountMasterPasswordHintById = directDI.instance(),
-    )
-
     override fun invoke(
         request: Map<AccountId, String?>,
     ): IO<Unit> = putAccountMasterPasswordHintById(request)
@@ -79,14 +69,6 @@ internal class PutBitwardenAccountMasterPasswordHintByIdImpl(
     private val httpClient: HttpClient,
     private val db: VaultDatabaseManager,
 ) {
-    constructor(directDI: DirectDI) : this(
-        profileRepository = directDI.instance(),
-        base64Service = directDI.instance(),
-        json = directDI.instance(),
-        httpClient = directDI.instance(),
-        db = directDI.instance(),
-    )
-
     operator fun invoke(
         passwordHint: String?,
         token: BitwardenToken,

@@ -5,30 +5,33 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
 import com.artemchep.keyguard.common.model.ignores
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.canEncryptAt
 import com.artemchep.keyguard.common.service.crypto.canSignAt
 import com.artemchep.keyguard.common.service.crypto.isExpiredAt
-import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
-import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPrivateKeyArmored
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPublicKeyArmored
 import com.artemchep.keyguard.common.service.gpgagent.isUsableAgentKey
-import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
-import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateEvaluator
-import com.artemchep.keyguard.common.service.gpgkeyserver.hasUnbackedRevocationEvidence
-import com.artemchep.keyguard.common.service.gpgkeyserver.indeterminateVerificationStatus
-import com.artemchep.keyguard.common.service.gpgkeyserver.toGpgKeyserverLocalKey
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.parseGpgAgentMetadataOrNull
 import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateEvaluator
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
+import com.artemchep.keyguard.common.service.gpgkeyserver.hasUnbackedRevocationEvidence
+import com.artemchep.keyguard.common.service.gpgkeyserver.indeterminateVerificationStatus
+import com.artemchep.keyguard.common.service.gpgkeyserver.toGpgKeyserverLocalKey
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flowOfTime
+import kotlin.time.Clock
+import kotlin.time.DurationUnit
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,11 +46,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.time.Clock
-import kotlin.time.DurationUnit
-import kotlin.time.Instant
 
 private const val GPG_KEYS_VERSION = "2"
 private const val GPG_KEYSERVER_STALE_DAYS = 30L
@@ -58,10 +56,6 @@ class WatchtowerGpgKeyUnusable internal constructor(
 ) : WatchtowerClientTyped {
     override val type: Long
         get() = DWatchtowerAlertType.GPG_KEY_UNUSABLE.value
-
-    constructor(directDI: DirectDI) : this(
-        policy = directDI.instance(),
-    )
 
     override fun version(): Flow<String> = gpgWatchtowerDailyVersion(GPG_KEYS_VERSION)
 
@@ -91,10 +85,6 @@ class WatchtowerWeakGpgKey internal constructor(
 ) : WatchtowerClientTyped {
     override val type: Long
         get() = DWatchtowerAlertType.WEAK_GPG_KEY.value
-
-    constructor(directDI: DirectDI) : this(
-        policy = directDI.instance(),
-    )
 
     // Weakness can be expiry-driven, so re-evaluate daily like the sibling
     // WatchtowerGpgKeyUnusable rather than emitting a single static version.
@@ -131,13 +121,6 @@ class WatchtowerGpgKeyPublishing internal constructor(
 ) : WatchtowerClientTyped {
     override val type: Long
         get() = DWatchtowerAlertType.GPG_KEY_PUBLISHING.value
-
-    constructor(directDI: DirectDI) : this(
-        keyserverStateRepository = directDI.instance(),
-        getCiphers = directDI.instance(),
-        evaluator = GpgKeyserverStateEvaluator(directDI),
-        scope = directDI.instance<WindowCoroutineScope>(),
-    )
 
     // Resolve with the entire vault, not the current processing batch: a designated
     // revoker can be a different cipher, including a cipher with private material.
@@ -222,10 +205,6 @@ class WatchtowerGpgKeyPublishing internal constructor(
 internal class GpgWatchtowerPolicy(
     private val parser: GpgPublicKeyParser,
 ) {
-    constructor(directDI: DirectDI) : this(
-        parser = directDI.instance(),
-    )
-
     suspend fun assess(
         cipher: DSecret,
         now: Instant,
@@ -491,7 +470,6 @@ private fun GpgPublicKeyInfo.publicPartFingerprints(): Set<String> =
             add(subKey.fingerprint.normalizeGpgFingerprint())
         }
     }
-
 
 private fun List<String>.joinToWatchtowerValue(): String? =
     takeIf { it.isNotEmpty() }

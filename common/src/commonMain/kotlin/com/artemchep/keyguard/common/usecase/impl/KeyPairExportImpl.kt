@@ -3,31 +3,21 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.util.io.writeText
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.service.dirs.DirsService
+import com.artemchep.keyguard.common.usecase.DateFormatter
+import com.artemchep.keyguard.common.usecase.KeyPairExport
+import com.artemchep.keyguard.util.io.writeText
 import com.artemchep.keyguard.util.zip.ZipConfig
 import com.artemchep.keyguard.util.zip.ZipEntry
 import com.artemchep.keyguard.util.zip.ZipService
-import com.artemchep.keyguard.common.usecase.DateFormatter
-import com.artemchep.keyguard.common.usecase.KeyPairExport
 import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class KeyPairExportImpl(
     private val dirsService: DirsService,
     private val zipService: ZipService,
     private val dateFormatter: DateFormatter,
 ) : KeyPairExport {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        dirsService = directDI.instance(),
-        zipService = directDI.instance(),
-        dateFormatter = directDI.instance(),
-    )
-
     override fun invoke(
         keyPair: KeyPair,
     ): IO<String?> = ioEffect {

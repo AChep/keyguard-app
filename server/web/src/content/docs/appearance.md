@@ -25,8 +25,8 @@ Appearance**.
 
 ## Icons & avatars
 
-- **Load App icons** — show the real launcher icon for items matched to an
-  installed app, instead of a generic placeholder.
+- **Load App icons** — show the launcher icon for items matched to an
+  installed app.
 - **Load Website icons** — fetch favicons for login URLs so each item carries
   its site's logo.
 - **Load Gravatar icons** — show a Gravatar avatar for items with an email
@@ -54,6 +54,6 @@ mostly affect tablets and desktop windows.
 - **Keep the screen on while viewing items** — prevents the screen from dimming
   off while an item is open.
 - **Minimize on copy** *(Desktop)* — hides the window after you copy a value.
-- **Close to system tray** *(Desktop)* — closing the window tucks Keyguard into
-  the tray instead of quitting it.
+- **Close to system tray** *(Desktop)* — closing the window minimizes Keyguard to
+  the system tray instead of quitting it.
 - **Rich text formatting** — render Markdown in notes rather than showing the raw text.

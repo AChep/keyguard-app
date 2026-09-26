@@ -35,6 +35,9 @@ import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.ui.format
+import kotlin.collections.filter
+import kotlin.collections.map
+import kotlin.collections.mapNotNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -46,24 +49,12 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.collections.filter
-import kotlin.collections.map
-import kotlin.collections.mapNotNull
 
 class SubscriptionServiceAndroid(
     private val context: LeContext,
     private val billingManager: BillingManager,
     private val cryptoGenerator: CryptoGenerator,
 ) : SubscriptionService, LicenseClaimSource {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance(),
-        billingManager = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-    )
 
     override fun purchased(): Flow<RichResult<Boolean>> = getReceiptFlow()
         .map { receiptsResult ->

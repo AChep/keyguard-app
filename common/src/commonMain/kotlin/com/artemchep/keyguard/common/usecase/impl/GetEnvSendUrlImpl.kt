@@ -9,18 +9,11 @@ import com.artemchep.keyguard.common.service.text.url
 import com.artemchep.keyguard.common.usecase.GetEnvSendUrl
 import com.artemchep.keyguard.provider.bitwarden.api.builder.buildSendUrl
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetEnvSendUrlImpl(
     private val tokenRepository: BitwardenTokenRepository,
     private val base64Service: Base64Service,
 ) : GetEnvSendUrl {
-    constructor(directDI: DirectDI) : this(
-        tokenRepository = directDI.instance(),
-        base64Service = directDI.instance(),
-    )
-
     override fun invoke(
         send: DSend,
     ): IO<String> = tokenRepository

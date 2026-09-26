@@ -7,8 +7,6 @@ import com.artemchep.keyguard.common.model.MasterPasswordSalt
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.usecase.GenerateMasterSaltUseCase
 import kotlinx.coroutines.Dispatchers
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GenerateMasterSaltUseCaseImpl(
     private val cryptoGenerator: CryptoGenerator,
@@ -16,10 +14,6 @@ class GenerateMasterSaltUseCaseImpl(
     companion object {
         private const val SALT_SIZE_BYTES = 64
     }
-
-    constructor(directDI: DirectDI) : this(
-        cryptoGenerator = directDI.instance(),
-    )
 
     override fun invoke(): IO<MasterPasswordSalt> = ioEffect(Dispatchers.Default) {
         cryptoGenerator

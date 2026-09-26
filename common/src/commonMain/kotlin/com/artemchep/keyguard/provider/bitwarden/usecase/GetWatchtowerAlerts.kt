@@ -7,8 +7,8 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.CipherId
 import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
-import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
@@ -17,8 +17,6 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flattenConcat
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -26,10 +24,6 @@ import org.kodein.di.instance
 class GetWatchtowerAlertsImpl(
     private val databaseManager: VaultDatabaseManager,
 ) : GetWatchtowerAlerts {
-    constructor(directDI: DirectDI) : this(
-        databaseManager = directDI.instance(),
-    )
-
     private val sharedFlow = databaseManager.get()
         .effectMap {
             it.watchtowerThreatQueries

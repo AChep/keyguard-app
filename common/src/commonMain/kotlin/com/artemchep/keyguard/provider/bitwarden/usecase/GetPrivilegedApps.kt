@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.service.gpmprivapps.AppPrivilegedAppRepository
 import com.artemchep.keyguard.common.service.gpmprivapps.UserPrivilegedAppRepository
 import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
@@ -12,9 +13,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import kotlin.coroutines.CoroutineContext
 
 /**
  * @author Artem Chepurnyi
@@ -40,11 +38,6 @@ class GetPrivilegedAppsImpl(
             started = SharingStarted.WhileSubscribed(5000L),
             replay = 1,
         )
-
-    constructor(directDI: DirectDI) : this(
-        appPrivilegedAppRepository = directDI.instance(),
-        userPrivilegedAppRepository = directDI.instance(),
-    )
 
     override fun invoke(): Flow<List<DPrivilegedApp>> = sharedFlow
 }

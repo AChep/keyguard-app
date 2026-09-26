@@ -2,19 +2,19 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import androidx.compose.ui.graphics.Color
 import app.keemobile.kotpass.database.modifiers.modifyMeta
+import com.artemchep.keyguard.common.exception.KeePassDatabaseModifiedExternallyException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.exception.KeePassDatabaseModifiedExternallyException
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.file.FileService
-import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
 import com.artemchep.keyguard.common.service.keepass.getKeePassDatabaseMetadata
 import com.artemchep.keyguard.common.service.keepass.openKeePassDatabase
 import com.artemchep.keyguard.common.service.keepass.saveKeePassDatabase
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
 import com.artemchep.keyguard.common.usecase.PutAccountColorById
 import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
@@ -29,8 +29,6 @@ import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenReposito
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -68,14 +66,6 @@ class PutAccountColorByIdImpl internal constructor(
         },
     )
 
-    constructor(directDI: DirectDI) : this(
-        logRepository = directDI.instance(),
-        tokenRepository = directDI.instance(),
-        profileRepository = directDI.instance(),
-        putBitwardenAccountColorById = directDI.instance(),
-        putKeePassAccountColorById = directDI.instance(),
-    )
-
     override fun invoke(
         request: Map<AccountId, Color>,
     ): IO<Unit> = putAccountColorById(request)
@@ -88,14 +78,6 @@ internal class PutBitwardenAccountColorByIdImpl(
     private val httpClient: HttpClient,
     private val db: VaultDatabaseManager,
 ) {
-    constructor(directDI: DirectDI) : this(
-        profileRepository = directDI.instance(),
-        base64Service = directDI.instance(),
-        json = directDI.instance(),
-        httpClient = directDI.instance(),
-        db = directDI.instance(),
-    )
-
     operator fun invoke(
         color: Color,
         token: BitwardenToken,
@@ -140,13 +122,13 @@ internal interface PutKeePassAccountColorById {
 }
 
 internal class PutKeePassAccountColorByIdImpl(
-    directDI: DirectDI,
+    private val profileRepository: BitwardenProfileRepository,
+    private val base64Service: Base64Service,
+    private val fileService: FileService,
+    httpClient: HttpClient,
 ) : PutKeePassAccountColorById {
-    private val profileRepository: BitwardenProfileRepository = directDI.instance()
-    private val base64Service: Base64Service = directDI.instance()
-    private val fileService: FileService = directDI.instance()
     private val webDavClientFactory = KtorWebDavClientFactory(
-        httpClient = directDI.instance(),
+        httpClient = httpClient,
     )
 
     override operator fun invoke(

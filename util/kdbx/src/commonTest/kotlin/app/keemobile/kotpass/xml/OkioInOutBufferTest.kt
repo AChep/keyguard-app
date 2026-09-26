@@ -96,9 +96,9 @@ class OkioInOutBufferTest {
         assertEquals('\n'.code, input.peek(1))
         assertEquals('\n'.code, input.peek(2))
         assertEquals('b'.code, input.peek(3))
-        assertEquals('\n'.code, input.peek(4))
+        assertEquals('\u0085'.code, input.peek(4))
         assertEquals('c'.code, input.peek(5))
-        assertEquals('\n'.code, input.peek(6))
+        assertEquals('\u2028'.code, input.peek(6))
         assertEquals('\uD83D'.code, input.peek(7))
         assertEquals('\uDE00'.code, input.peek(8))
         assertEquals('z'.code, input.peek(9))
@@ -126,28 +126,34 @@ class OkioInOutBufferTest {
 
     @Test
     fun readNormalizesSplitXmlLineEndings() {
-        val cases = listOf(
-            "\r\nx" to "\nx",
-            "\r\u0085x" to "\nx",
-            "\rx" to "\nx",
-            "\u0085x" to "\nx",
-            "\u2028x" to "\nx",
-        )
-
-        cases.forEach { (value, expected) ->
-            val bytes = value.encodeToByteArray()
-            assertEquals(
-                expected,
-                decode(bytes, firstReadSize = 1),
-                "value=${bytes.toHex()}",
+        for (xml11 in listOf(false, true)) {
+            val cases = listOf(
+                "\r\nx" to "\nx",
+                "\r\u0085x" to if (xml11) "\nx" else "\n\u0085x",
+                "\rx" to "\nx",
+                "\u0085x" to if (xml11) "\nx" else "\u0085x",
+                "\u2028x" to if (xml11) "\nx" else "\u2028x",
             )
-
-            val input = createInput(bytes, firstReadSize = 1)
-            input.startCopySequence()
-            while (input.read() >= 0) {
-                // Consume the complete value into the active copy sequence.
+            cases.forEach { (value, expected) ->
+                val bytes = value.encodeToByteArray()
+                val input = createInput(bytes, firstReadSize = 1).apply {
+                    isXml11 = xml11
+                }
+                input.startCopySequence()
+                val actual = buildString {
+                    while (true) {
+                        val peeked = input.peek()
+                        val read = input.read()
+                        assertEquals(peeked, read)
+                        if (read < 0) break
+                        append(read.toChar())
+                    }
+                }
+                assertEquals(expected, actual, "xml11=$xml11 value=${bytes.toHex()}")
+                assertEquals(expected, input.finalizeCopySequence())
+                assertEquals(1 + expected.count { it == '\n' }, input.line)
+                assertEquals(expected.substringAfterLast('\n').length + 1, input.column)
             }
-            assertEquals(expected, input.finalizeCopySequence(), "copied value=${bytes.toHex()}")
         }
     }
 

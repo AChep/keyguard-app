@@ -7,10 +7,8 @@ import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import java.io.File
-import org.kodein.di.DirectDI
 
-class ExecuteCommandJvm(
-) : ExecuteCommand {
+class ExecuteCommandJvm : ExecuteCommand {
     private val executor: ExecuteCommand? = when (CurrentPlatform) {
         is Platform.Desktop.Windows -> ExecuteCommandCmd()
 
@@ -25,11 +23,6 @@ class ExecuteCommandJvm(
     }
 
     override val interpreter: String? get() = executor?.interpreter
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-    )
 
     override fun invoke(command: String): IO<Unit> = ioEffect {
         requireNotNull(executor) {

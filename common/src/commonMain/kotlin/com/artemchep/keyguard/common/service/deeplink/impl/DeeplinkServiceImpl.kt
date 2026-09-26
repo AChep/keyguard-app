@@ -6,13 +6,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import org.kodein.di.DirectDI
 
-class DeeplinkServiceImpl(
-) : DeeplinkService {
-    constructor(directDI: DirectDI) : this(
-    )
-
+class DeeplinkServiceImpl : DeeplinkService {
     private val sink = MutableStateFlow(persistentMapOf<String, String?>())
 
     override fun get(key: String): String? = sink.value[key]

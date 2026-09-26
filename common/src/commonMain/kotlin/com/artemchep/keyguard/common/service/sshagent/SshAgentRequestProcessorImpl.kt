@@ -6,15 +6,15 @@ import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.AddSshUsageHistoryRequest
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
-import com.artemchep.keyguard.common.model.filterCiphers
 import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
+import com.artemchep.keyguard.common.model.filterCiphers
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistory
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.pendinghistory.enqueueEvent
+import com.artemchep.keyguard.common.service.session.SshAgentSessionAccess
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
@@ -25,19 +25,17 @@ import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
-import org.kodein.di.direct
-import org.kodein.di.instance
-import org.kodein.di.instanceOrNull
 
 class SshAgentRequestProcessorImpl(
     private val logRepository: LogRepository,
     private val getVaultSession: GetVaultSession,
+    private val sessionAccess: SshAgentSessionAccess,
     getSshAgentApprovalWindow: GetSshAgentApprovalWindow,
     getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy =
         GetSshAgentApprovalCachePolicyNoOp,
@@ -62,9 +60,6 @@ class SshAgentRequestProcessorImpl(
 
         internal const val APPROVAL_TIMEOUT_MS = 60_000L
     }
-
-    private val sshAgentFilterState = getSshAgentFilter()
-        .stateIn(scope, SharingStarted.Eagerly, SshAgentFilter())
 
     override suspend fun listKeys(
         caller: SshAgentMessages.CallerIdentity?,
@@ -122,19 +117,17 @@ class SshAgentRequestProcessorImpl(
     override suspend fun signData(
         request: SshAgentMessages.SignDataRequest,
     ): SshAgentRequestProcessor.SignDataResult {
-        var vault = getSshKeysFromVault()
-        val wasVaultLocked = vault == null
+        var session = getVaultSession.valueOrNull as? MasterSession.Key
+        val wasVaultLocked = session == null
         if (wasVaultLocked) {
             approvalWindowMemory.clearSession()
         }
 
-        var approvalAccess = vault?.approvalWindowSession?.access(request)
-        val approvalRemembered = approvalAccess?.isRemembered == true
         var approvalGranted = false
+        val cachedKey = if (wasVaultLocked) getCachedSshKey(request.publicKey) else null
 
         if (wasVaultLocked) {
             logRepository.post(TAG, "Vault is locked, requesting approval before SSH signing", LogLevel.INFO)
-            val cachedKey = getCachedSshKey(request.publicKey)
             val approved = requestSigningApproval(
                 SshAgentApprovalPrompt(
                     caller = request.caller,
@@ -157,26 +150,28 @@ class SshAgentRequestProcessorImpl(
             }
             approvalGranted = true
 
-            vault = getSshKeysFromVault()
-            if (vault == null) {
-                recordPendingSshUsage(
-                    cipherId = cachedKey?.cipherId,
-                    caller = request.caller,
-                    request = SshUsageHistoryRequestType.AGENT_SIGN_DATA,
-                    response = SshUsageHistoryResponseType.VAULT_LOCKED,
-                    fingerprint = cachedKey?.fingerprint,
-                )
-                return SshAgentRequestProcessor.SignDataResult.VaultLocked
-            }
-            approvalAccess = vault.approvalWindowSession.access(request)
+            session = getVaultSession.valueOrNull as? MasterSession.Key
         }
 
-        val availableSshKeys: List<DSecret> = vault.sshKeys
-        val matchingSecret = availableSshKeys.find { secret ->
-            val publicKey = secret.sshKey?.publicKey
-                ?: return@find false
-            sshPublicKeysMatch(publicKey, request.publicKey)
-        } ?: run {
+        // Cache access can suspend while settings are persisted. Resolve the
+        // keys afterward so even remembered approvals use current eligibility.
+        val approvalSession = session?.let { key ->
+            approvalWindowMemory.getOrGenerateSession(key)
+        }
+        var approvalAccess = approvalSession?.access(request)
+        val vault = getSshKeysFromVault(session)
+        if (vault == null) {
+            recordPendingSshUsage(
+                cipherId = cachedKey?.cipherId,
+                caller = request.caller,
+                request = SshUsageHistoryRequestType.AGENT_SIGN_DATA,
+                response = SshUsageHistoryResponseType.VAULT_LOCKED,
+                fingerprint = cachedKey?.fingerprint,
+            )
+            return SshAgentRequestProcessor.SignDataResult.VaultLocked
+        }
+
+        val matchingSecret = vault.findKeyByPublicKey(request.publicKey) ?: run {
             recordSshUsage(
                 vault = vault,
                 cipherId = null,
@@ -201,14 +196,29 @@ class SshAgentRequestProcessorImpl(
             fingerprint = matchingSecret.sshKey?.fingerprint,
         )
 
+        // Record the SSH usage when the vault is no
+        // longer available to store it.
+        suspend fun recordPendingVaultLockedSignData() = recordPendingSshUsage(
+            cipherId = matchingSecret.id,
+            caller = request.caller,
+            request = SshUsageHistoryRequestType.AGENT_SIGN_DATA,
+            response = SshUsageHistoryResponseType.VAULT_LOCKED,
+            fingerprint = matchingSecret.sshKey?.fingerprint,
+        )
+
         val sshKey = matchingSecret.sshKey ?: return SshAgentRequestProcessor.SignDataResult.KeyNotFound
-        val privateKeyPem = sshKey.privateKey
-        if (privateKeyPem.isNullOrBlank()) {
+        if (sshKey.privateKey.isNullOrBlank()) {
             recordSshUsageSignData(SshUsageHistoryResponseType.KEY_NOT_FOUND)
             return SshAgentRequestProcessor.SignDataResult.KeyNotFound
         }
 
-        if (!wasVaultLocked && !approvalRemembered) {
+        val requiresApproval = !wasVaultLocked && approvalAccess?.canReuseNow() != true
+        if (requiresApproval) {
+            if (approvalAccess?.isRemembered == true) {
+                // Bind the new prompt to the current policy. Any wait here is
+                // followed by approval and another key/filter read below.
+                approvalAccess = approvalSession?.access(request)
+            }
             val approved = requestSigningApproval(
                 SshAgentApprovalPrompt(
                     caller = request.caller,
@@ -226,10 +236,37 @@ class SshAgentRequestProcessorImpl(
             approvalGranted = true
         }
 
+        // Approval can remain on screen while the vault locks, its session is
+        // replaced, or the key/filter changes. Never use the captured secret
+        // after that suspension without resolving its current eligibility.
+        val currentVault = if (requiresApproval) getSshKeysFromVault(vault.session) else vault
+        if (currentVault == null) {
+            recordPendingVaultLockedSignData()
+            return SshAgentRequestProcessor.SignDataResult.VaultLocked
+        }
+        val currentSecret = if (requiresApproval) {
+            currentVault.restrictTo(matchingSecret).findKeyByPublicKey(request.publicKey)
+        } else {
+            matchingSecret
+        }
+        val currentSshKey = currentSecret?.sshKey
+        val privateKeyPem = currentSshKey?.privateKey
+        if (currentSshKey == null || privateKeyPem.isNullOrBlank()) {
+            recordSshUsageSignData(SshUsageHistoryResponseType.KEY_NOT_FOUND)
+            return SshAgentRequestProcessor.SignDataResult.KeyNotFound
+        }
+        currentCoroutineContext().ensureActive()
+        // Check as close to the synchronous native call as possible. Locking
+        // cannot revoke work that is already executing inside crypto.
+        if (getVaultSession.valueOrNull !== currentVault.session) {
+            recordPendingVaultLockedSignData()
+            return SshAgentRequestProcessor.SignDataResult.VaultLocked
+        }
+
         return try {
             val signature = NativeCrypto.ssh.sign(
                 privateKeyPem = privateKeyPem,
-                publicKeyOpenSsh = sshKey.publicKey,
+                publicKeyOpenSsh = currentSshKey.publicKey,
                 data = request.data,
                 flags = request.flags,
             )
@@ -286,27 +323,33 @@ class SshAgentRequestProcessorImpl(
         fingerprint = fingerprint,
     )
 
-    private suspend fun getSshKeysFromVault(): SshVaultContext? {
-        val session = getVaultSession.valueOrNull
-        val key = session as? MasterSession.Key ?: return null
-        val approvalWindowSession = approvalWindowMemory.getOrGenerateSession(key)
+    // Guard clauses reject unsupported or stale input before accessing the active session.
+    @Suppress("ReturnCount")
+    private suspend fun getSshKeysFromVault(
+        session: MasterSession.Key? = getVaultSession.valueOrNull as? MasterSession.Key,
+    ): SshVaultContext? {
+        val key = session ?: return null
+        if (getVaultSession.valueOrNull !== key || !key.session.active.value) return null
 
-        val getCiphers = key.di.direct.instance<GetCiphers>()
+        val dependencies = sessionAccess(key) ?: return null
+        val getCiphers = dependencies.getCiphers
         val sshKeys = getCiphers()
             .map { ciphers ->
                 ciphers.filter { it.isEligibleForSshAgent() }
             }
             .first()
-        val addSshUsageHistory = key.di.direct.instanceOrNull<AddSshUsageHistory>()
+        val addSshUsageHistory = dependencies.addSshUsageHistory
             ?: NoOpAddSshUsageHistory
 
+        val filteredKeys = getSshAgentFilter().first().filterCiphers(
+            context = dependencies.filterContext,
+            ciphers = sshKeys,
+        )
+        if (getVaultSession.valueOrNull !== key || !key.session.active.value) return null
         return SshVaultContext(
-            sshKeys = sshAgentFilterState.value.filterCiphers(
-                directDI = key.di.direct,
-                ciphers = sshKeys,
-            ),
+            session = key,
+            sshKeys = filteredKeys,
             addSshUsageHistory = addSshUsageHistory,
-            approvalWindowSession = approvalWindowSession,
         )
     }
 
@@ -403,10 +446,23 @@ class SshAgentRequestProcessorImpl(
     }
 
     private data class SshVaultContext(
+        val session: MasterSession.Key,
         val sshKeys: List<DSecret>,
         val addSshUsageHistory: AddSshUsageHistory,
-        val approvalWindowSession: SshAgentApprovalWindowMemory.Session,
-    )
+    ) {
+        fun findKeyByPublicKey(publicKey: String): DSecret? = sshKeys
+            .firstOrNull { secret ->
+                val candidate = secret.sshKey?.publicKey ?: return@firstOrNull false
+                sshPublicKeysMatch(candidate, publicKey)
+            }
+
+        /** Keeps only the keys that belong to the given cipher. */
+        fun restrictTo(cipher: DSecret) = copy(
+            sshKeys = sshKeys.filter {
+                it.id == cipher.id && it.accountId == cipher.accountId
+            },
+        )
+    }
 
     private object NoOpAddSshUsageHistory : AddSshUsageHistory {
         override fun invoke(request: AddSshUsageHistoryRequest): IO<Unit> = {

@@ -61,6 +61,7 @@ jobs:
   #   - version-semantic: semantic version (e.g. 2.0.3)
   #   - version-tag: tag version (e.g. r20251230.1)
   #   - release-name: combined version name (e.g. v2.0.3-20251230.1)
+#   - version-msix: MSIX package version, unique per tag (e.g. 2.0.300.0)
   generate-versions:
     name: "Generate versions"
     runs-on: ubuntu-slim
@@ -72,6 +73,8 @@ jobs:
       version-tag: ${{ steps.producer.outputs.version_tag }}
       # combines the semantic and tag versions
       release-name: ${{ steps.producer.outputs.release_name }}
+      # 4-part MSIX package version (e.g. 3.1.2.0)
+      version-msix: ${{ steps.msix.outputs.version_msix }}
     steps:
       - name: "Checkout"
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -97,10 +100,12 @@ jobs:
           VERSION_TAG_NO_PREFIX="${VERSION_TAG#r}"
           RELEASE_NAME="v${VERSION_SEMANTIC}-${VERSION_TAG_NO_PREFIX}"
           DATE=$(echo "$VERSION_TAG" | sed -E 's/^r([0-9]{4})([0-9]{2})([0-9]{2}).*$/\1-\2-\3/')
-          echo "version_semantic=$VERSION_SEMANTIC" >> $GITHUB_OUTPUT
-          echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
-          echo "release_name=$RELEASE_NAME" >> $GITHUB_OUTPUT
-          echo "date=$DATE" >> $GITHUB_OUTPUT
+          {
+            echo "version_semantic=$VERSION_SEMANTIC"
+            echo "version_tag=$VERSION_TAG"
+            echo "release_name=$RELEASE_NAME"
+            echo "date=$DATE"
+          } >> "$GITHUB_OUTPUT"
       - name: "Produce versions.json"
         run: |
           python keyguard-app/.github/update_versions_json.py keyguard-version/versions.json \
@@ -109,6 +114,13 @@ jobs:
             --tag_version ${{ steps.producer.outputs.version_tag }} \
             --changelog_summary_file artifacts-changelog/changelog-summary.md \
             --changelog_raw_file artifacts-changelog/changelog-raw.md
+      - name: "Produce MSIX version"
+        id: msix
+        run: |
+          VERSION_MSIX=$(python keyguard-app/.github/get_msix_version.py keyguard-version/versions.json \
+            --semantic_version ${{ steps.producer.outputs.version_semantic }} \
+            --tag_version ${{ steps.producer.outputs.version_tag }})
+          echo "version_msix=$VERSION_MSIX" >> "$GITHUB_OUTPUT"
       - name: "Upload versions.json"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -134,8 +146,8 @@ jobs:
           python .github/scripts/versioning/fetch_version.py --package-name com.artemchep.keyguard --credentials service-account-google.json --output play-store-versions.json
           WEAR_VERSION_CODE=$(jq -r '.wear_version_code' play-store-versions.json)
           ANDROID_VERSION_CODE=$(jq -r '.android_version_code' play-store-versions.json)
-          echo "wear_version_code=$WEAR_VERSION_CODE" >> $GITHUB_OUTPUT
-          echo "android_version_code=$ANDROID_VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "wear_version_code=$WEAR_VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "android_version_code=$ANDROID_VERSION_CODE" >> "$GITHUB_OUTPUT"
   build-macos-app:
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -144,9 +156,11 @@ jobs:
         include:
           - runner: macos-15
             arch: apple
+            native-arch: aarch64
             rust-target: aarch64-apple-darwin
           - runner: macos-15-intel
             arch: intel
+            native-arch: x86_64
             rust-target: x86_64-apple-darwin
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -162,10 +176,10 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: ${{ matrix.rust-target }}
-      - name: "Prefetch locked native graphs"
-        run: |
-          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
-          cargo fetch --manifest-path util/zxcvbn/rust/Cargo.toml --locked
+          cache-key: desktop
+      - uses: ./.github/actions/prefetch_native
+        with:
+          profile: desktop
       - uses: ./.github/actions/setup_protobuf
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Decode signing certificate"
@@ -185,41 +199,30 @@ jobs:
           echo "cert_identity=${{ secrets.CERT_IDENTITY }}" >> gradle.properties
       - name: "Setup notarization config"
         run: |
-          echo "" >> gradle.properties
-          echo "notarization_apple_id=${{ secrets.NOTARIZATION_APPLE_ID }}" >> gradle.properties
-          echo "notarization_password=${{ secrets.NOTARIZATION_PASSWD }}" >> gradle.properties
-          echo "notarization_asc_provider=${{ secrets.NOTARIZATION_ASC_PROVIDER }}" >> gradle.properties
+          {
+            echo ""
+            echo "notarization_apple_id=${{ secrets.NOTARIZATION_APPLE_ID }}"
+            echo "notarization_password=${{ secrets.NOTARIZATION_PASSWD }}"
+            echo "notarization_asc_provider=${{ secrets.NOTARIZATION_ASC_PROVIDER }}"
+          } >> gradle.properties
       - name: "Build release app image"
         run: >-
           ./gradlew
           :desktopApp:createReleaseDistributable
-          -Pkeyguard.nativeCrypto.cargoOffline=true
-      - name: "Inspect bundled native crypto"
+          -Pkeyguard.nativeCargo.cargoOffline=true
+      - name: "Verify native code signing"
+        shell: bash
         run: |
-          set -euo pipefail
-
-          APP_RESOURCES_DIR="desktopApp/build/compose/binaries/main-release/app/Keyguard.app/Contents/app/resources"
-          NATIVE_CRYPTO_BINARY="$APP_RESOURCES_DIR/libkeyguard_crypto_jni.dylib"
-
-          test -f "$NATIVE_CRYPTO_BINARY"
-
-          ls -l "$NATIVE_CRYPTO_BINARY"
-          python scripts/inspect_native_crypto_desktop.py "$NATIVE_CRYPTO_BINARY"
-          python scripts/check_bouncycastle_policy.py --artifact desktopApp/build/compose/binaries/main-release/app
-          codesign --verify --strict --verbose=2 "$NATIVE_CRYPTO_BINARY"
-          codesign --display --verbose=2 "$NATIVE_CRYPTO_BINARY"
-      - name: "Call native crypto through release app resources"
-        run: >-
-          python3 scripts/run_native_crypto_desktop_package_smoke.py
-          desktopApp/build/compose/binaries/main-release/app
+          codesign --verify --strict --verbose=2 \
+            desktopApp/build/compose/binaries/main-release/app/Keyguard.app
       - name: "Build and notarize DMG"
         run: >-
           ./gradlew
           :desktopApp:packageReleaseDmg
           :desktopApp:notarizeReleaseDmg
           -x :desktopApp:createReleaseDistributable
-          -Pkeyguard.nativeCrypto.cargoOffline=true
-      - name: "Mount DMG and call packaged native crypto"
+          -Pkeyguard.nativeCargo.cargoOffline=true
+      - name: "Verify final DMG native bundle"
         shell: bash
         run: |
           set -euo pipefail
@@ -241,15 +244,8 @@ jobs:
           mounted=true
           apps=("$mount_point"/*.app)
           test "${#apps[@]}" -eq 1
-          resources_dir="${apps[0]}/Contents/app/resources"
-          native_crypto_binary="$resources_dir/libkeyguard_crypto_jni.dylib"
-          test -f "$native_crypto_binary"
-          for helper in keyguard-ssh-agent keyguard-gpg-agent keyguard-lib; do
-            test -x "$resources_dir/$helper"
-          done
-          python3 scripts/inspect_native_crypto_desktop.py "$native_crypto_binary"
-          python3 scripts/run_native_crypto_desktop_package_smoke.py "$mount_point"
-          python3 scripts/check_bouncycastle_policy.py --artifact "$mount_point"
+          python3 scripts/verify_native_bundle.py desktop "$mount_point" \
+            --platform macos --arch "${{ matrix.native-arch }}"
       - name: "Upload logs"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
@@ -266,7 +262,7 @@ jobs:
       - name: "Add a suffix to the artifacts"
         run: |
           cd desktopApp/build/compose/binaries/main-release/dmg
-          for f in * ; do mv -- "$f" "$(echo $f | sed -nE 's/^(.*)(\..*)$/\1-${{ matrix.arch }}\2/p')" ; done
+          for f in * ; do mv -- "$f" "$(echo "$f" | sed -nE 's/^(.*)(\..*)$/\1-${{ matrix.arch }}\2/p')" ; done
       - name: "Upload .dmg"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -297,10 +293,10 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: ${{ matrix.rust-target }}
-      - name: "Prefetch locked native graphs"
-        run: |
-          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
-          cargo fetch --manifest-path util/zxcvbn/rust/Cargo.toml --locked
+          cache-key: desktop
+      - uses: ./.github/actions/prefetch_native
+        with:
+          profile: desktop
       - uses: ./.github/actions/setup_protobuf
       - uses: ./.github/actions/setup_linux_desktop
       - name: "Setup build env"
@@ -326,85 +322,190 @@ jobs:
         run: >-
           ./gradlew
           :desktopApp:packageReleaseDistributable
-          -Pkeyguard.nativeCrypto.cargoOffline=true
+          -Pkeyguard.nativeCargo.cargoOffline=true
+      - name: "Move binaries into the template directory"
+        id: linux-package
+        shell: bash
+        env:
+          LINUX_ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          tarballs=(desktopApp/build/distributions/*-linux-"$LINUX_ARCH".tar.gz)
+          test "${#tarballs[@]}" -eq 1
+          echo "tarball=${tarballs[0]}" >> "$GITHUB_OUTPUT"
+          mkdir -p "desktopApp/flatpak/app-$LINUX_ARCH"
+          tar -xzf "${tarballs[0]}" -C "desktopApp/flatpak/app-$LINUX_ARCH" --strip-components=1
+      - name: "Verify release tarball native bundle"
+        run: >-
+          python3 scripts/verify_native_bundle.py desktop
+          desktopApp/flatpak/app-${{ matrix.arch }}
+          --platform linux --arch ${{ matrix.arch }}
       - name: 'Upload .tar'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-linux-${{ matrix.arch }}
           path: |
             desktopApp/build/distributions/*.tar.gz
-      - name: "Move binaries into the template directory"
-        run: |
-          mkdir -p desktopApp/flatpak/app-${{ matrix.arch }}/
-          tar -xvzf $(find . -type f -regex '\./desktopApp/build/distributions/.*\.tar.gz') -C desktopApp/flatpak/app-${{ matrix.arch }}/ --strip-components=1
-      - name: "Inspect packaged native crypto"
-        shell: bash
-        run: |
-          mapfile -t libraries < <(find desktopApp/flatpak/app-${{ matrix.arch }} -type f -name 'libkeyguard_crypto_jni.so')
-          test "${#libraries[@]}" -eq 1
-          python scripts/inspect_native_crypto_desktop.py "${libraries[0]}"
-          python scripts/check_bouncycastle_policy.py --artifact desktopApp/flatpak/app-${{ matrix.arch }}
-      - name: "Call native crypto through packaged Desktop resources"
-        run: >-
-          python3 scripts/run_native_crypto_desktop_package_smoke.py
-          desktopApp/flatpak/app-${{ matrix.arch }}
-      - name: "Get Flatpak runtime version -install dependencies"
-        run: pip install -r .github/get_flatpak_runtime_version.requirements.txt
-      - name: "Get Flatpak runtime version"
-        id: get-flatpak-runtime-version
-        run: echo "version=$(python .github/get_flatpak_runtime_version.py desktopApp/flatpak/com.artemchep.keyguard.yml)" >> $GITHUB_OUTPUT
-      - name: "Setup Flatpak"
-        run: |
-          sudo apt-get update
-          sudo apt install flatpak flatpak-builder
-          flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          flatpak install flathub org.freedesktop.Platform//${{ steps.get-flatpak-runtime-version.outputs.version }} org.freedesktop.Sdk//${{ steps.get-flatpak-runtime-version.outputs.version }} -y
-      - name: "Build"
-        working-directory: desktopApp/flatpak/
-        run: |
-          flatpak-builder --force-clean --state-dir=build/flatpak-builder --repo=build/flatpak-repo build/flatpak-target com.artemchep.keyguard.yml
-          flatpak build-bundle build/flatpak-repo "Keyguard-$(find ../build/distributions -type f -name '*.tar.gz' | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+)-.*/\1/')-${{ matrix.arch }}.flatpak" com.artemchep.keyguard
+      - name: "Build and verify AppImage"
+        id: appimage
+        uses: ./.github/actions/build_appimage
+        with:
+          tarball: ${{ steps.linux-package.outputs.tarball }}
+          arch: ${{ matrix.arch }}
+          version: ${{ needs.generate-versions.outputs.version-semantic }}
+      - name: "Upload .AppImage and .zsync"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: app-linux-appimage-${{ matrix.arch }}
+          path: |
+            ${{ steps.appimage.outputs.path }}
+            ${{ steps.appimage.outputs.zsync-path }}
+          if-no-files-found: error
+      - name: "Build and verify Flatpak"
+        id: flatpak
+        uses: ./.github/actions/build_flatpak
+        with:
+          tarball: ${{ steps.linux-package.outputs.tarball }}
+          arch: ${{ matrix.arch }}
+          version: ${{ needs.generate-versions.outputs.version-semantic }}
       - name: 'Upload .flatpak'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-linux-flatpak-${{ matrix.arch }}
-          path: |
-            desktopApp/flatpak/Keyguard-*.flatpak
+          path: ${{ steps.flatpak.outputs.path }}
+          if-no-files-found: error
   build-windows-app:
-    runs-on: windows-latest
+    name: Build Windows app (${{ matrix.msix_arch }})
+    runs-on: ${{ matrix.runner }}
+    needs:
+      - generate-versions
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            msix_arch: x64
+            native_arch: x86_64
+            rust_target: x86_64-pc-windows-msvc
+          - runner: windows-11-arm
+            msix_arch: arm64
+            native_arch: aarch64
+            rust_target: aarch64-pc-windows-msvc
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      # whether the Store MSIX was built (Partner Center identity configured)
+      msix-store: ${{ steps.msix-identity.outputs.store }}
+      # whether the sideload MSIX was signed and can be published
+      msix-signed: ${{ steps.msix-sign.outputs.signed }}
     steps:
       - name: "Checkout"
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           lfs: true
           submodules: recursive
-      - uses: ./.github/actions/setup_gradle
+      - name: "Setup Gradle (x64)"
+        if: matrix.msix_arch == 'x64'
+        uses: ./.github/actions/setup_gradle
         with:
           java-version: |
             11
             21
+      - name: "Setup Gradle (ARM64)"
+        if: matrix.msix_arch == 'arm64'
+        uses: ./.github/actions/setup_gradle
+        with:
+          java-version: "21"
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
         with:
-          targets: "x86_64-pc-windows-msvc"
-      - name: "Prefetch locked native graphs"
-        run: |
-          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
-          cargo fetch --manifest-path util/zxcvbn/rust/Cargo.toml --locked
+          targets: ${{ matrix.rust_target }}
+          cache-key: desktop
+      - uses: ./.github/actions/prefetch_native
+        with:
+          profile: desktop
       - uses: ./.github/actions/setup_protobuf
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Setup build env"
         shell: pwsh
         run: |
           python .github/setup_gradle_properties_release.py "tag=$env:GITHUB_REF_NAME"
-      - name: "Build"
+      - name: "Setup MSIX identity"
+        id: msix-identity
+        shell: pwsh
+        env:
+          MSIX_VERSION: ${{ needs.generate-versions.outputs.version-msix }}
+          STORE_IDENTITY_NAME: ${{ secrets.MSSTORE_IDENTITY_NAME }}
+          STORE_PUBLISHER: ${{ secrets.MSSTORE_PUBLISHER }}
+          PUBLISHER_DISPLAY_NAME: ${{ secrets.MSSTORE_PUBLISHER_DISPLAY_NAME }}
+        run: |
+          Add-Content gradle.properties ""
+          Add-Content gradle.properties "msix_version=$env:MSIX_VERSION"
+          Add-Content gradle.properties "msix_publisher_display_name=$env:PUBLISHER_DISPLAY_NAME"
+          if ([string]::IsNullOrEmpty($env:STORE_IDENTITY_NAME) -or [string]::IsNullOrEmpty($env:STORE_PUBLISHER)) {
+            Write-Host "No Microsoft Store identity, the Store MSIX will not be built."
+            "store=false" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+          Add-Content gradle.properties "msix_store_identity_name=$env:STORE_IDENTITY_NAME"
+          Add-Content gradle.properties "msix_store_publisher=$env:STORE_PUBLISHER"
+          "store=true" >> $env:GITHUB_OUTPUT
+      - name: "Setup MSIX signing"
+        id: msix-sign
+        shell: pwsh
+        env:
+          PFX_B64: ${{ secrets.WINDOWS_SIGNING_PFX_B64 }}
+          PUBLISHER: ${{ secrets.WINDOWS_SIGNING_PUBLISHER }}
+        run: |
+          if ([string]::IsNullOrEmpty($env:PFX_B64)) {
+            Write-Host "No Windows signing certificate, the sideload MSIX will not be published."
+            "signed=false" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+          $pfx = Join-Path $env:RUNNER_TEMP "keyguard-sign.pfx"
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:PFX_B64))
+          Add-Content gradle.properties ""
+          Add-Content gradle.properties "msix_sideload_pfx_path=$($pfx -replace '\\', '/')"
+          Add-Content gradle.properties "msix_sideload_publisher=$env:PUBLISHER"
+          "signed=true" >> $env:GITHUB_OUTPUT
+      - name: "Build release app image"
+        run: >-
+          ./gradlew
+          :desktopApp:createReleaseDistributable
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+      - name: "Build MSIX"
+        env:
+          ORG_GRADLE_PROJECT_msix_sideload_pfx_password: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+        run: >-
+          ./gradlew
+          :desktopApp:packageReleaseMsix
+          -x :desktopApp:createReleaseDistributable
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+      - name: "Build MSI"
+        if: matrix.msix_arch == 'x64'
         run: >-
           ./gradlew
           :desktopApp:packageReleaseMsi
-          "-Pkeyguard.nativeCrypto.cargoOffline=true"
+          -x :desktopApp:createReleaseDistributable
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+      - name: "Check MSIX outputs"
+        shell: pwsh
+        env:
+          STORE: ${{ steps.msix-identity.outputs.store }}
+        run: |
+          $dir = "desktopApp/build/compose/binaries/main-release/msix"
+          Get-ChildItem $dir
+          $store = @(Get-ChildItem "$dir/*-store.msix")
+          if ($env:STORE -eq "true" -and $store.Count -ne 1) {
+            throw "Expected one ${{ matrix.msix_arch }} Store MSIX package; found $($store.Count)."
+          }
+          $sideload = @(Get-ChildItem "$dir/*.msix" | Where-Object { $_.Name -notlike "*-store.msix" })
+          if ($sideload.Count -ne 1) {
+            throw "Expected one ${{ matrix.msix_arch }} sideload MSIX package; found $($sideload.Count)."
+          }
       - name: "Extract final MSI"
+        if: matrix.msix_arch == 'x64'
         shell: pwsh
         run: |
           $packages = @(
@@ -424,29 +525,79 @@ jobs:
           if ($process.ExitCode -ne 0) {
             throw "MSI administrative extraction exited $($process.ExitCode)."
           }
-      - name: "Inspect packaged native crypto"
-        shell: pwsh
-        run: |
-          $libraries = @(
-            Get-ChildItem (Join-Path $env:RUNNER_TEMP "keyguard-msi") `
-              -Recurse -File -Filter "keyguard_crypto_jni.dll"
-          )
-          if ($libraries.Count -ne 1) {
-            throw "Expected one packaged native crypto DLL; found $($libraries.Count)."
-          }
-          python scripts/inspect_native_crypto_desktop.py $libraries[0].FullName
-          python scripts/check_bouncycastle_policy.py --artifact (Join-Path $env:RUNNER_TEMP "keyguard-msi")
-      - name: "Call native crypto from the extracted MSI"
+      - name: "Verify final MSI native bundle"
+        if: matrix.msix_arch == 'x64'
         shell: pwsh
         run: >-
-          python scripts/run_native_crypto_desktop_package_smoke.py
+          python scripts/verify_native_bundle.py desktop
           (Join-Path $env:RUNNER_TEMP "keyguard-msi")
-          --platform windows
+          --platform windows --arch x86_64
+      - name: "Unpack sideload MSIX"
+        shell: pwsh
+        run: |
+          $packages = @(Get-ChildItem "desktopApp/build/compose/binaries/main-release/msix/*.msix" |
+            Where-Object { $_.Name -notlike "*-store.msix" })
+          if ($packages.Count -ne 1) {
+            throw "Expected one ${{ matrix.msix_arch }} sideload MSIX package; found $($packages.Count)."
+          }
+          $toolArch = "${{ matrix.msix_arch }}"
+          $candidates = @(Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.*\$toolArch\makeappx.exe" `
+            -ErrorAction SilentlyContinue)
+          if ($candidates.Count -eq 0 -and $toolArch -ne "x64") {
+            $candidates = @(Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.*\x64\makeappx.exe" `
+              -ErrorAction SilentlyContinue)
+          }
+          $makeappx = $candidates |
+            Sort-Object { [version]$_.Directory.Parent.Name } |
+            Select-Object -Last 1
+          if ($null -eq $makeappx) {
+            throw "makeappx.exe was not found for $toolArch or x64."
+          }
+          $target = Join-Path $env:RUNNER_TEMP "keyguard-msix"
+          & $makeappx.FullName unpack /o /p $packages[0].FullName /d $target
+          if ($LASTEXITCODE -ne 0) {
+            throw "makeappx unpack exited $LASTEXITCODE."
+          }
+      - name: "Verify final MSIX native bundle"
+        shell: pwsh
+        run: >-
+          python scripts/verify_native_bundle.py desktop
+          (Join-Path $env:RUNNER_TEMP "keyguard-msix")
+          --platform windows --arch ${{ matrix.native_arch }}
+      - name: "Verify MSIX signature"
+        if: steps.msix-sign.outputs.signed == 'true'
+        shell: pwsh
+        run: |
+          $packages = @(Get-ChildItem "desktopApp/build/compose/binaries/main-release/msix/*.msix" |
+            Where-Object { $_.Name -notlike "*-store.msix" })
+          if ($packages.Count -ne 1) {
+            throw "Expected one ${{ matrix.msix_arch }} sideload MSIX package; found $($packages.Count)."
+          }
+          $signature = Get-AuthenticodeSignature $packages[0].FullName
+          if ($signature.Status -ne "Valid") {
+            throw "MSIX signature status is $($signature.Status)."
+          }
       - name: 'Upload .msi'
+        if: matrix.msix_arch == 'x64'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-windows
           path: desktopApp/build/compose/binaries/main-release/msi/*.msi
+          retention-days: 1
+      - name: 'Upload .msix (store)'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: steps.msix-identity.outputs.store == 'true'
+        with:
+          name: app-windows-msix-store-${{ matrix.msix_arch }}
+          path: desktopApp/build/compose/binaries/main-release/msix/*-store.msix
+          retention-days: 1
+      - name: 'Upload .msix (sideload)'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: app-windows-msix-${{ matrix.msix_arch }}
+          path: |
+            desktopApp/build/compose/binaries/main-release/msix/*.msix
+            !desktopApp/build/compose/binaries/main-release/msix/*-store.msix
           retention-days: 1
   build-wearos-app:
     runs-on: ubuntu-latest
@@ -473,10 +624,10 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
-      - name: "Prefetch locked native graphs"
-        run: |
-          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
-          cargo fetch --manifest-path util/zxcvbn/rust/Cargo.toml --locked
+          cache-key: android
+      - uses: ./.github/actions/prefetch_native
+        with:
+          profile: android
       - name: "Prepare env"
         run: |
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat > wearApp/keyguard-release.keystore
@@ -494,8 +645,8 @@ jobs:
         run: >-
           ./gradlew
           :wearApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
-          -Pkeyguard.nativeCrypto.cargoOffline=true
-      - name: "Inspect packaged native crypto"
+          -Pkeyguard.nativeCargo.cargoOffline=true
+      - name: "Verify native bundle"
         shell: bash
         env:
           BUILD_FLAVOR: ${{ matrix.config.flavor }}
@@ -511,8 +662,7 @@ jobs:
           else
             artifact="wearApp/build/outputs/bundle/${variant}Release/wearApp-$variant-release.aab"
           fi
-          python scripts/inspect_native_crypto_android.py "$artifact"
-          python scripts/check_bouncycastle_policy.py --artifact "$artifact"
+          python scripts/verify_native_bundle.py android "$artifact"
       - name: 'Upload .apk'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: matrix.config.build-type == 'assemble'
@@ -555,10 +705,10 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
-      - name: "Prefetch locked native graphs"
-        run: |
-          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
-          cargo fetch --manifest-path util/zxcvbn/rust/Cargo.toml --locked
+          cache-key: android
+      - uses: ./.github/actions/prefetch_native
+        with:
+          profile: android
       - name: "Prepare env"
         run: |
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat > androidApp/keyguard-release.keystore
@@ -580,8 +730,8 @@ jobs:
         run: >-
           ./gradlew
           :androidApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
-          -Pkeyguard.nativeCrypto.cargoOffline=true
-      - name: "Inspect packaged native crypto"
+          -Pkeyguard.nativeCargo.cargoOffline=true
+      - name: "Verify native bundle"
         shell: bash
         env:
           BUILD_FLAVOR: ${{ matrix.config.flavor }}
@@ -597,8 +747,7 @@ jobs:
           else
             artifact="androidApp/build/outputs/bundle/${variant}Release/androidApp-$variant-release.aab"
           fi
-          python scripts/inspect_native_crypto_android.py "$artifact"
-          python scripts/check_bouncycastle_policy.py --artifact "$artifact"
+          python scripts/verify_native_bundle.py android "$artifact"
       - name: 'Upload .apk'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: matrix.config.build-type == 'assemble'
@@ -635,6 +784,7 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
+          cache-key: android
           components: "clippy,rustfmt"
       - uses: ./.github/actions/setup_android_ndk
       - uses: ./.github/actions/setup_protobuf
@@ -699,10 +849,34 @@ jobs:
         with:
           name: app-linux-flatpak-aarch64
           path: artifacts
+      - name: "Download Linux AppImage (x86_64)"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-linux-appimage-x86_64
+          path: artifacts
+      - name: "Download Linux AppImage (aarch64)"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-linux-appimage-aarch64
+          path: artifacts
       - name: "Download Windows app"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: app-windows
+          path: artifacts
+      # An unsigned MSIX can not be installed by the users, so it is
+      # published only when the signing certificate was available.
+      - name: "Download Windows app (MSIX x64)"
+        if: needs.build-windows-app.outputs.msix-signed == 'true'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-windows-msix-x64
+          path: artifacts
+      - name: "Download Windows app (MSIX ARM64)"
+        if: needs.build-windows-app.outputs.msix-signed == 'true'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-windows-msix-arm64
           path: artifacts
       - name: "Download Android app (apk)"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
@@ -898,6 +1072,120 @@ jobs:
           git add -A
           git commit -m "Mirror latest Keyguard Termux packages"
           git push origin HEAD:master
+  deploy-microsoft-store:
+    name: Deploy Microsoft Store
+    runs-on: windows-latest
+    needs:
+      - build-windows-app
+      - dist
+    if: needs.build-windows-app.outputs.msix-store == 'true'
+    steps:
+      - name: "Download Windows app (MSIX Store x64)"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-windows-msix-store-x64
+          path: artifacts-msix-store
+      - name: "Download Windows app (MSIX Store ARM64)"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-windows-msix-store-arm64
+          path: artifacts-msix-store
+      - name: "Create multi-architecture Store upload"
+        id: store-upload
+        shell: pwsh
+        run: |
+          $packages = @(Get-ChildItem "artifacts-msix-store/*-store.msix" -File)
+          if ($packages.Count -ne 2) {
+            throw "Expected x64 and ARM64 Store MSIX packages; found $($packages.Count)."
+          }
+          foreach ($architecture in @("x64", "arm64")) {
+            $matches = @($packages | Where-Object { $_.Name -like "*-$architecture-store.msix" })
+            if ($matches.Count -ne 1) {
+              throw "Expected one $architecture Store MSIX package; found $($matches.Count)."
+            }
+          }
+          $packagePrefixes = @($packages | ForEach-Object {
+            $_.Name -replace '-(x64|arm64)-store\.msix$', ''
+          } | Sort-Object -Unique)
+          if ($packagePrefixes.Count -ne 1) {
+            throw "Store MSIX package names do not share a versioned prefix."
+          }
+
+          $makeappx = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.*\x64\makeappx.exe" |
+            Sort-Object { [version]$_.Directory.Parent.Name } |
+            Select-Object -Last 1
+          if ($null -eq $makeappx) {
+            throw "makeappx.exe was not found."
+          }
+
+          $bundleDir = Join-Path $env:RUNNER_TEMP "keyguard-store-packages"
+          New-Item -ItemType Directory -Force -Path $bundleDir | Out-Null
+          Copy-Item -LiteralPath $packages.FullName -Destination $bundleDir
+          $bundle = Join-Path $env:RUNNER_TEMP "$($packagePrefixes[0])-x64-arm64-store.msixbundle"
+          & $makeappx.FullName bundle /o /d $bundleDir /p $bundle
+          if ($LASTEXITCODE -ne 0) {
+            throw "makeappx bundle exited $LASTEXITCODE."
+          }
+
+          $zip = [IO.Path]::ChangeExtension($bundle, ".zip")
+          $upload = [IO.Path]::ChangeExtension($bundle, ".msixupload")
+          Compress-Archive -LiteralPath $bundle -DestinationPath $zip -Force
+          Move-Item -LiteralPath $zip -Destination $upload -Force
+          "path=$upload" >> $env:GITHUB_OUTPUT
+          "name=$([IO.Path]::GetFileName($upload))" >> $env:GITHUB_OUTPUT
+      - name: "Setup Microsoft Store Developer CLI"
+        uses: microsoft/microsoft-store-apppublisher@cc9910a8d59f2eb55cbb83df0a3800cf3b5300e0
+      - name: "Configure Microsoft Store Developer CLI"
+        shell: pwsh
+        run: >-
+          msstore reconfigure
+          --tenantId "${{ secrets.MSSTORE_TENANT_ID }}"
+          --sellerId "${{ secrets.MSSTORE_SELLER_ID }}"
+          --clientId "${{ secrets.MSSTORE_CLIENT_ID }}"
+          --clientSecret "${{ secrets.MSSTORE_CLIENT_SECRET }}"
+      # The submission is left as a draft (--noCommit) so it can be reviewed
+      # in the Partner Center before it is committed. Read it back because the
+      # CLI may otherwise return success without attaching the package.
+      - name: "Create and verify draft submission"
+        shell: pwsh
+        env:
+          STORE_UPLOAD_PATH: ${{ steps.store-upload.outputs.path }}
+          STORE_UPLOAD_NAME: ${{ steps.store-upload.outputs.name }}
+        run: |
+          msstore publish "$env:STORE_UPLOAD_PATH" --appId "${{ secrets.MSSTORE_APP_ID }}" --noCommit
+          if ($LASTEXITCODE -ne 0) {
+            throw "msstore publish exited $LASTEXITCODE."
+          }
+
+          $draftJson = msstore submission get "${{ secrets.MSSTORE_APP_ID }}" | Out-String
+          $draftExitCode = $LASTEXITCODE
+          if ($draftExitCode -ne 0) {
+            throw "msstore submission get exited $draftExitCode."
+          }
+          if ([string]::IsNullOrWhiteSpace($draftJson)) {
+            throw "Microsoft Store returned an empty draft submission."
+          }
+          try {
+            $draft = $draftJson | ConvertFrom-Json -ErrorAction Stop
+          } catch {
+            throw "Microsoft Store returned an invalid draft submission: $($_.Exception.Message)"
+          }
+
+          $draftPackages = @($draft.ApplicationPackages)
+          $pendingPackage = @(
+            $draftPackages | Where-Object {
+              $_.FileName -eq $env:STORE_UPLOAD_NAME -and $_.FileStatus -eq "PendingUpload"
+            }
+          )
+          if ($pendingPackage.Count -ne 1) {
+            $observedPackages = @(
+              $draftPackages | ForEach-Object { "$($_.FileName) [$($_.FileStatus)]" }
+            ) -join ", "
+            if ([string]::IsNullOrWhiteSpace($observedPackages)) {
+              $observedPackages = "<none>"
+            }
+            throw "The Store draft does not contain '$env:STORE_UPLOAD_NAME' as PendingUpload. Found: $observedPackages"
+          }
   deploy-flathub:
     name: Deploy Flathub
     runs-on: ubuntu-slim

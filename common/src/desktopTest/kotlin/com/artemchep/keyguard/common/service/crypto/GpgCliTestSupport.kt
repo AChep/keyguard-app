@@ -37,23 +37,44 @@ object GpgCliTestSupport {
             }
             addAll(args)
         }
-        val process = ProcessBuilder(command)
-            .apply {
-                if (normalizedHome != null) {
-                    environment()["GNUPGHOME"] = normalizedHome.toString()
+        // Drain both outputs directly to private files. Waiting before reading
+        // pipe streams can deadlock when either child output fills its pipe.
+        val captureDirectory = Files.createTempDirectory("keyguard-gpg-cli-output-")
+        val stdout = captureDirectory.resolve("stdout")
+        val stderr = captureDirectory.resolve("stderr")
+        var process: Process? = null
+        try {
+            val running = ProcessBuilder(command)
+                .redirectOutput(stdout.toFile())
+                .redirectError(stderr.toFile())
+                .apply {
+                    if (normalizedHome != null) {
+                        environment()["GNUPGHOME"] = normalizedHome.toString()
+                    }
                 }
+                .start()
+            process = running
+            running.outputStream.close()
+            if (!running.waitFor(60, TimeUnit.SECONDS)) {
+                throw AssertionError("gpg timed out: ${args.joinToString(" ")}")
             }
-            .start()
-        val completed = process.waitFor(60, TimeUnit.SECONDS)
-        if (!completed) {
-            process.destroyForcibly()
-            throw AssertionError("gpg timed out: ${args.joinToString(" ")}")
+            return GpgResult(
+                exitCode = running.exitValue(),
+                stdout = Files.readAllBytes(stdout).decodeToString(),
+                stderr = Files.readAllBytes(stderr).decodeToString(),
+            )
+        } finally {
+            try {
+                process?.takeIf { it.isAlive }?.let {
+                    it.destroyForcibly()
+                    it.waitFor(5, TimeUnit.SECONDS)
+                }
+            } finally {
+                Files.deleteIfExists(stdout)
+                Files.deleteIfExists(stderr)
+                Files.deleteIfExists(captureDirectory)
+            }
         }
-        return GpgResult(
-            exitCode = process.exitValue(),
-            stdout = process.inputStream.readBytes().decodeToString(),
-            stderr = process.errorStream.readBytes().decodeToString(),
-        )
     }
 
     fun createHome(prefix: String): Path {

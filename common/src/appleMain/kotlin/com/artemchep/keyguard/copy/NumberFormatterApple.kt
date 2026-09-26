@@ -1,11 +1,8 @@
 package com.artemchep.keyguard.copy
 
 import com.artemchep.keyguard.common.usecase.NumberFormatter
-import org.kodein.di.DirectDI
 
-class NumberFormatterApple(
-) : NumberFormatter {
-    constructor(directDI: DirectDI) : this()
+class NumberFormatterApple : NumberFormatter {
 
     override fun formatNumber(number: Int): String = number.toString()
 }

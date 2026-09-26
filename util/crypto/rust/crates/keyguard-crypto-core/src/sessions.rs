@@ -182,6 +182,18 @@ pub(crate) fn update(handle: u64, data: &[u8]) -> Result<Vec<u8>, SessionError> 
         .update(data)
 }
 
+pub(crate) fn drain_openpgp(handle: u64) -> Result<Vec<u8>, SessionError> {
+    let session = {
+        let registry = registry().lock().map_err(|_| SessionError::Internal)?;
+        registry.active_session_cell(handle)?
+    };
+    let mut session = session.lock().map_err(|_| SessionError::Internal)?;
+    match session.as_mut().ok_or(SessionError::InvalidSession)? {
+        Session::OpenPgp(session) => session.drain().map_err(openpgp_error),
+        _ => Err(SessionError::InvalidArgument),
+    }
+}
+
 pub(crate) fn finish(handle: u64) -> Result<Vec<u8>, SessionError> {
     let session = {
         let mut registry = registry().lock().map_err(|_| SessionError::Internal)?;

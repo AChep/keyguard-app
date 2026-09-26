@@ -76,25 +76,26 @@ internal fun createTestCipherCodec(
 internal fun insertAccount(
     db: Database,
     accountId: String = ACCOUNT_ID,
-) {
-    db.accountQueries.insert(
-        accountId = accountId,
-        data = KeePassToken(
-            id = accountId,
-            key = KeePassToken.Key(
-                passwordBase64 = testBase64Service.encodeToString("password"),
-            ),
-            database = KeePassToken.Database(
-                fileName = "vault.kdbx",
-                location = FileLocation.Local(
-                    uri = "file:///vault.kdbx",
-                    accessToken = null,
-                    managedByApp = false,
-                    displayName = "vault.kdbx",
-                ),
+    fileName: String = "vault.kdbx",
+    uri: String = "file:///$fileName",
+): KeePassToken {
+    val token = KeePassToken(
+        id = accountId,
+        key = KeePassToken.Key(
+            passwordBase64 = testBase64Service.encodeToString("password"),
+        ),
+        database = KeePassToken.Database(
+            fileName = fileName,
+            location = FileLocation.Local(
+                uri = uri,
+                accessToken = null,
+                managedByApp = false,
+                displayName = fileName,
             ),
         ),
     )
+    db.accountQueries.insert(accountId = accountId, data = token)
+    return token
 }
 
 internal fun insertLocalCipher(

@@ -1,12 +1,11 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefreshVariants
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DirectDI
-import kotlin.time.Duration
 
-class GetClipboardAutoRefreshVariantsImpl() : GetClipboardAutoRefreshVariants {
+class GetClipboardAutoRefreshVariantsImpl : GetClipboardAutoRefreshVariants {
     companion object {
         private val DEFAULT_DURATION_VARIANTS
             get() = with(Duration) {
@@ -18,8 +17,6 @@ class GetClipboardAutoRefreshVariantsImpl() : GetClipboardAutoRefreshVariants {
                 )
             }
     }
-
-    constructor(directDI: DirectDI) : this()
 
     override fun invoke(): Flow<List<Duration>> = flowOf(DEFAULT_DURATION_VARIANTS)
 }

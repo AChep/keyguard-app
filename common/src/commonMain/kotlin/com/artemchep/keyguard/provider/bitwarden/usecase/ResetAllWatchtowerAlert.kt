@@ -2,10 +2,8 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
-import com.artemchep.keyguard.common.usecase.ResetAllWatchtowerAlert
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import com.artemchep.keyguard.common.usecase.ResetAllWatchtowerAlert
 
 /**
  * @author Artem Chepurnyi
@@ -13,10 +11,6 @@ import org.kodein.di.instance
 class ResetAllWatchtowerAlertImpl(
     private val databaseManager: VaultDatabaseManager,
 ) : ResetAllWatchtowerAlert {
-    constructor(directDI: DirectDI) : this(
-        databaseManager = directDI.instance(),
-    )
-
     override fun invoke(
     ): IO<Unit> = databaseManager.get()
         .effectMap { db ->

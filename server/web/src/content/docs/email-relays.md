@@ -5,11 +5,10 @@ category: guides
 order: 7
 ---
 
-An email relay gives every signup its own **masked address** that forwards to
-your real inbox — one leak or spammy newsletter, and you disable a single
-alias instead of changing your email everywhere. Keyguard's
-[generator](/docs/generator/) creates these aliases for you through a
-forwarder service you connect.
+An email relay gives every signup a **masked address** that forwards to
+your primary inbox. If an alias is compromised or spammed, you can disable it without
+changing your primary email. Keyguard's [generator](/docs/generator/) creates
+these aliases through a connected forwarder service.
 
 Connect services under the generator's **Email forwarders** screen. Each
 integration needs an API credential from the service:
@@ -31,8 +30,8 @@ ready to drop into a new login item.
 
 Notes on specific services:
 
-- **SimpleLogin** generates aliases in the style configured in your
-  SimpleLogin account (random words or UUID); Keyguard does not override it.
+- **SimpleLogin** generates aliases in the format configured in your
+  SimpleLogin account (random words or UUID); Keyguard preserves this setting.
 - **addy.io** and **SimpleLogin** both work with self-hosted installations:
   point the server URL at your instance.
 - **Cloudflare Email Routing** creates routing rules on your own domain, so

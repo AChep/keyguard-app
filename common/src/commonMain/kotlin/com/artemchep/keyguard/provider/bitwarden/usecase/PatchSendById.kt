@@ -8,8 +8,6 @@ import com.artemchep.keyguard.common.usecase.PatchSendById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifySendById
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -21,11 +19,6 @@ class PatchSendByIdImpl(
     companion object {
         private const val TAG = "PatchSendById.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifySendById = directDI.instance(),
-        base64Service = directDI.instance(),
-    )
 
     override fun invoke(
         patch: PatchSendRequest,

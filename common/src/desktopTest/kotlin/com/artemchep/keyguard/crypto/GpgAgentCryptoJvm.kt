@@ -1,14 +1,20 @@
 package com.artemchep.keyguard.crypto
 
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentCrypto
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyNotFoundException
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentUnsupportedAlgorithmException
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgCanonicalSExpr
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.util.toHex
+import java.math.BigInteger
+import java.security.MessageDigest
+import java.security.PrivateKey
+import java.security.Signature
+import java.security.interfaces.RSAPrivateKey
+import javax.crypto.Cipher
 import org.bouncycastle.asn1.ASN1Integer
 import org.bouncycastle.asn1.ASN1Sequence
 import org.bouncycastle.asn1.DERNull
@@ -27,24 +33,13 @@ import org.bouncycastle.crypto.engines.RFC3394WrapEngine
 import org.bouncycastle.crypto.params.KeyParameter
 import org.bouncycastle.crypto.params.X25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.X25519PublicKeyParameters
-import org.bouncycastle.openpgp.operator.RFC6637Utils
+import org.bouncycastle.jce.interfaces.ECPrivateKey as BcECPrivateKey
 import org.bouncycastle.openpgp.PGPSecretKey
+import org.bouncycastle.openpgp.operator.RFC6637Utils
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPKeyConverter
-import org.kodein.di.DirectDI
-import java.math.BigInteger
-import java.security.MessageDigest
-import java.security.PrivateKey
-import java.security.Signature
-import java.security.interfaces.RSAPrivateKey
-import javax.crypto.Cipher
-import org.bouncycastle.jce.interfaces.ECPrivateKey as BcECPrivateKey
 
-class GpgAgentCryptoJvm() : GpgAgentCrypto {
-    constructor(
-        directDI: DirectDI,
-    ) : this()
-
+class GpgAgentCryptoJvm : GpgAgentCrypto {
     override fun signHash(
         privateKeyArmored: String,
         metadataKey: GpgAgentKeyMetadataKey,

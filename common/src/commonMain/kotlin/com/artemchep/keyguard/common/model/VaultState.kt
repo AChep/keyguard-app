@@ -2,9 +2,9 @@ package com.artemchep.keyguard.common.model
 
 import arrow.core.Either
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.service.vault.VaultSession
 import com.artemchep.keyguard.platform.LeBiometricCipher
 import kotlin.time.Instant
-import org.kodein.di.DI
 
 sealed interface VaultState {
     class Create(
@@ -60,7 +60,7 @@ sealed interface VaultState {
     class Main(
         val masterKey: MasterKey,
         val changePassword: ChangePassword,
-        val di: DI,
+        val session: VaultSession,
     ) : VaultState {
         class ChangePassword(
             private val key: Any,
@@ -98,6 +98,7 @@ sealed interface VaultState {
 
             other as Main
 
+            if (session.id != other.session.id) return false
             if (masterKey != other.masterKey) return false
             if (changePassword != other.changePassword) return false
 
@@ -105,7 +106,8 @@ sealed interface VaultState {
         }
 
         override fun hashCode(): Int {
-            var result = masterKey.hashCode()
+            var result = session.id.hashCode()
+            result = 31 * result + masterKey.hashCode()
             result = 31 * result + changePassword.hashCode()
             return result
         }

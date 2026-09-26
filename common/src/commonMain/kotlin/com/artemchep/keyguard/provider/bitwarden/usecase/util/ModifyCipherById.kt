@@ -8,13 +8,11 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.login
 import com.artemchep.keyguard.data.bitwarden.Cipher
+import kotlin.time.Clock
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -25,10 +23,6 @@ class ModifyCipherById(
     companion object {
         private const val TAG = "ModifyCipherById.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyDatabase = directDI.instance(),
-    )
 
     operator fun invoke(
         cipherIds: Set<String>,

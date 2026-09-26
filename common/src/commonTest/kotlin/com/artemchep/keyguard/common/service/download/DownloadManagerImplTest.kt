@@ -15,18 +15,31 @@ import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.CodeException
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.io.Buffer
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class DownloadManagerImplTest {
     @Test
     fun `queue creates metadata starts direct data download and schedules background work`() = runTest {
@@ -232,6 +245,133 @@ class DownloadManagerImplTest {
     }
 
     @Test
+    fun `remove by id awaits writer cleanup before deletion and requeue`() =
+        assertRemovalWaitsForWriter(removeByTag = false)
+
+    @Test
+    fun `remove by tag awaits writer cleanup before deletion and requeue`() =
+        assertRemovalWaitsForWriter(removeByTag = true)
+
+    @Suppress("LongMethod") // Keep the gated removal/requeue scenario and its assertions together.
+    private fun assertRemovalWaitsForWriter(removeByTag: Boolean) = runTest {
+        val repository = DownloadRepositoryInMemory()
+        val fileStore = FakeDownloadFileStore()
+        val started = CompletableDeferred<Unit>()
+        val cleanupStarted = CompletableDeferred<Unit>()
+        val finishCleanup = CompletableDeferred<Unit>()
+        var invocation = 0
+        val manager = createManager(
+            repository = repository,
+            fileStore = fileStore,
+            scope = backgroundScope,
+            task = FakeDownloadTask {
+                if (invocation++ == 0) {
+                    flow {
+                        emit(DownloadProgress.Loading(downloaded = 1, total = 2))
+                        started.complete(Unit)
+                        try {
+                            awaitCancellation()
+                        } finally {
+                            withContext(NonCancellable) {
+                                cleanupStarted.complete(Unit)
+                                finishCleanup.await()
+                                // Model a commit that had already started when cancelled.
+                                fileStore.existingIds += "download-1"
+                            }
+                        }
+                    }
+                } else {
+                    flow {
+                        fileStore.existingIds += "download-1"
+                        emit(DownloadProgress.Complete("file://replacement".right()))
+                    }
+                }
+            },
+            // Reuse the ID deliberately, to exercise stale writer/cleanup protection.
+            cryptoGenerator = SharedDownloadManagerCryptoGenerator("download-1", "download-1"),
+        )
+        manager.queue(downloadQueueRequest())
+        started.await()
+
+        val removal = async {
+            if (removeByTag) {
+                manager.removeByTag(downloadTag())
+            } else {
+                manager.removeByDownloadId("download-1")
+            }
+        }
+        cleanupStarted.await()
+        val replacement = async { manager.queue(downloadQueueRequest()) }
+        runCurrent()
+
+        assertFalse(removal.isCompleted)
+        assertFalse(replacement.isCompleted)
+        assertEquals(emptyList(), fileStore.deletedIds)
+        assertEquals(listOf("download-1"), fileStore.writerIds)
+
+        finishCleanup.complete(Unit)
+        removal.await()
+        val result = replacement.await().flow
+            .filterIsInstance<DownloadProgress.Complete>()
+            .first()
+
+        assertEquals("file://replacement", assertIs<Either.Right<String?>>(result.result).value)
+        assertEquals(listOf("download-1"), fileStore.deletedIds)
+        assertEquals(setOf("download-1"), fileStore.existingIds)
+        assertEquals(listOf("download-1", "download-1"), fileStore.writerIds)
+        assertEquals(null, repository.getById("download-1").bind()?.error)
+        manager.removeByDownloadId("download-1")
+        assertIs<DownloadProgress.None>(manager.statusByDownloadId2("download-1").first())
+        assertIs<DownloadProgress.None>(manager.statusByTag(downloadTag()).first())
+    }
+
+    @Test
+    fun `requeue awaits previous writer before creating replacement`() = runTest {
+        val fileStore = FakeDownloadFileStore()
+        val started = CompletableDeferred<Unit>()
+        val cleanupStarted = CompletableDeferred<Unit>()
+        val finishCleanup = CompletableDeferred<Unit>()
+        var invocation = 0
+        val manager = createManager(
+            fileStore = fileStore,
+            scope = backgroundScope,
+            task = FakeDownloadTask {
+                if (invocation++ == 0) {
+                    flow {
+                        emit(DownloadProgress.Loading(downloaded = 1, total = 2))
+                        started.complete(Unit)
+                        try {
+                            awaitCancellation()
+                        } finally {
+                            withContext(NonCancellable) {
+                                cleanupStarted.complete(Unit)
+                                finishCleanup.await()
+                            }
+                        }
+                    }
+                } else {
+                    flowOf(DownloadProgress.Complete("file://replacement".right()))
+                }
+            },
+        )
+        manager.queue(downloadQueueRequest())
+        started.await()
+
+        val replacement = async { manager.queue(downloadQueueRequest()) }
+        cleanupStarted.await()
+        assertFalse(replacement.isCompleted)
+        assertEquals(listOf("download-1"), fileStore.writerIds)
+
+        finishCleanup.complete(Unit)
+        val result = replacement.await().flow
+            .filterIsInstance<DownloadProgress.Complete>()
+            .first()
+
+        assertEquals("file://replacement", assertIs<Either.Right<String?>>(result.result).value)
+        assertEquals(listOf("download-1", "download-1"), fileStore.writerIds)
+    }
+
+    @Test
     fun `restart reconstructs hashref as keepass source without http task`() = runTest {
         val requests = mutableListOf<DownloadAttachmentRequestData>()
         val sourceLoader = object : DownloadAttachmentSourceLoader {
@@ -263,6 +403,227 @@ class DownloadManagerImplTest {
         assertEquals(null, source.expectedSize)
     }
 
+    @Test
+    fun `other attachments can queue and cancel while a writer stops by id`() =
+        assertIndependentDownloads(removeByTag = false)
+
+    @Test
+    fun `other attachments can queue and cancel while a writer stops by tag`() =
+        assertIndependentDownloads(removeByTag = true)
+
+    private fun assertIndependentDownloads(removeByTag: Boolean) = runTest {
+        val first = GatedDownload()
+        val second = GatedDownload().apply { finishCleanup.complete(Unit) }
+        var invocation = 0
+        val manager = createManager(
+            scope = backgroundScope,
+            task = FakeDownloadTask { if (invocation++ == 0) first.flow else second.flow },
+        )
+        manager.queue(downloadQueueRequest())
+        first.started.await()
+        val removal = async {
+            if (removeByTag) manager.removeByTag(downloadTag())
+            else manager.removeByDownloadId("download-1")
+        }
+        first.cleanupStarted.await()
+        val otherTag = downloadTag().copy(attachmentId = "other")
+        val otherQueue = async { manager.queue(downloadQueueRequest().copy(tag = otherTag)) }
+        runCurrent()
+        val queuedIndependently = otherQueue.isCompleted
+        val otherRemoval = if (queuedIndependently) {
+            second.started.await()
+            async { manager.removeByTag(otherTag) }.also { runCurrent() }
+        } else null
+        val cancelledIndependently = otherRemoval?.isCompleted == true
+        first.finishCleanup.complete(Unit)
+        removal.await()
+        otherQueue.await()
+        otherRemoval?.await() ?: manager.removeByTag(otherTag)
+
+        assertTrue(queuedIndependently, "Another attachment must queue before the first writer stops")
+        assertTrue(cancelledIndependently, "Another attachment must cancel before the first writer stops")
+    }
+
+    @Test
+    fun `slow file deletion does not hold up another attachment`() = runTest {
+        val repository = DownloadRepositoryInMemory()
+        repository.put(downloadInfo()).bind()
+        val deleting = CompletableDeferred<Unit>()
+        val finishDelete = CompletableDeferred<Unit>()
+        val store = FakeDownloadFileStore(beforeDelete = {
+            deleting.complete(Unit)
+            finishDelete.await()
+        })
+        val manager = createManager(
+            repository = repository,
+            fileStore = store,
+            scope = backgroundScope,
+            cryptoGenerator = SharedDownloadManagerCryptoGenerator("download-2"),
+        )
+        val removal = async { manager.removeByDownloadId("download-1") }
+        deleting.await()
+        val otherQueue = async {
+            manager.queue(downloadQueueRequest().copy(tag = downloadTag().copy(attachmentId = "other")))
+        }
+        runCurrent()
+        val queuedIndependently = otherQueue.isCompleted
+        assertTrue(repository.getById("download-1").bind() != null)
+        finishDelete.complete(Unit)
+        removal.await()
+        otherQueue.await().flow.filterIsInstance<DownloadProgress.Complete>().first()
+
+        assertTrue(queuedIndependently, "File deletion must not hold the shared repository lock")
+        assertEquals(null, repository.getById("download-1").bind())
+    }
+
+    @Test
+    fun `cancelled waiter and interrupted removal preserve serialization until writer stops`() = runTest {
+        val first = GatedDownload()
+        val store = FakeDownloadFileStore()
+        var invocation = 0
+        val manager = createManager(
+            scope = backgroundScope,
+            fileStore = store,
+            task = FakeDownloadTask {
+                if (invocation++ == 0) first.flow
+                else flow {
+                    store.existingIds += "download-1"
+                    emit(DownloadProgress.Complete("file://replacement".right()))
+                }
+            },
+        )
+        manager.queue(downloadQueueRequest())
+        first.started.await()
+        val removal = async { manager.removeByDownloadId("download-1") }
+        first.cleanupStarted.await()
+        val waiter = async { manager.queue(downloadQueueRequest()) }
+        runCurrent()
+        waiter.cancelAndJoin()
+        removal.cancelAndJoin()
+        val replacement = async { manager.queue(downloadQueueRequest()) }
+        runCurrent()
+        assertFalse(replacement.isCompleted)
+        assertEquals(listOf("download-1"), store.writerIds)
+        assertEquals(emptyList(), store.deletedIds)
+        first.finishCleanup.complete(Unit)
+        val result = replacement.await().flow.filterIsInstance<DownloadProgress.Complete>().first()
+        assertEquals("file://replacement", assertIs<Either.Right<String?>>(result.result).value)
+        assertIs<DownloadProgress.Complete>(manager.statusByTag(downloadTag()).first())
+        manager.removeByTag(downloadTag())
+        assertIs<DownloadProgress.None>(manager.statusByTag(downloadTag()).first())
+    }
+
+    @Test
+    fun `stale id removal cannot remove a replacement with the same tag`() = runTest {
+        val repository = DownloadRepositoryInMemory()
+        repository.put(downloadInfo()).bind()
+        val deleting = CompletableDeferred<Unit>()
+        val finishDelete = CompletableDeferred<Unit>()
+        val store = FakeDownloadFileStore(beforeDelete = { info ->
+            if (info.id == "download-1") {
+                deleting.complete(Unit)
+                finishDelete.await()
+            }
+        })
+        val replacementDownload = GatedDownload().apply { finishCleanup.complete(Unit) }
+        val manager = createManager(
+            repository = repository,
+            fileStore = store,
+            scope = backgroundScope,
+            task = FakeDownloadTask { replacementDownload.flow },
+            cryptoGenerator = SharedDownloadManagerCryptoGenerator("download-2"),
+        )
+        val removal = async { manager.removeByTag(downloadTag()) }
+        deleting.await()
+        val replacement = async { manager.queue(downloadQueueRequest()) }
+        runCurrent()
+        val staleRemoval = async { manager.removeByDownloadId("download-1") }
+        runCurrent()
+        finishDelete.complete(Unit)
+        removal.await()
+        val queued = replacement.await()
+        replacementDownload.started.await()
+        staleRemoval.await()
+
+        assertEquals("download-2", queued.info.id)
+        assertEquals(listOf("download-1"), store.deletedIds)
+        assertTrue(repository.getById("download-2").bind() != null)
+        assertFalse(replacementDownload.cleanupStarted.isCompleted)
+        manager.removeByDownloadId("download-2")
+    }
+
+    @Test
+    fun `concurrent queues keep the same attachment serialized across lock handoffs`() = runTest {
+        val first = GatedDownload()
+        val second = GatedDownload()
+        val scheduled = CompletableDeferred<Unit>()
+        val finishScheduling = CompletableDeferred<Unit>()
+        val store = FakeDownloadFileStore()
+        var invocation = 0
+        val manager = createManager(
+            scope = backgroundScope,
+            fileStore = store,
+            scheduler = object : DownloadBackgroundScheduler {
+                override suspend fun enqueue(downloadId: String) {
+                    scheduled.complete(Unit)
+                    finishScheduling.await()
+                }
+            },
+            task = FakeDownloadTask {
+                when (invocation++) {
+                    0 -> first.flow
+                    1 -> second.flow
+                    else -> flow {
+                        store.existingIds += "download-1"
+                        emit(DownloadProgress.Complete("file://latest".right()))
+                    }
+                }
+            },
+        )
+        val initial = async { manager.queue(downloadQueueRequest().copy(scheduleBackground = true)) }
+        scheduled.await()
+        first.started.await()
+        val replacement = async { manager.queue(downloadQueueRequest()) }
+        runCurrent()
+        assertFalse(replacement.isCompleted)
+        assertEquals(1, invocation)
+        finishScheduling.complete(Unit)
+        initial.await()
+        first.cleanupStarted.await()
+        // A new arrival must share the waiting operation's lock after the first
+        // holder releases its registry reference.
+        val latest = async { manager.queue(downloadQueueRequest()) }
+        runCurrent()
+        assertFalse(latest.isCompleted)
+        assertEquals(1, invocation)
+        first.finishCleanup.complete(Unit)
+        replacement.await()
+        second.cleanupStarted.await()
+        assertFalse(latest.isCompleted)
+        assertEquals(2, invocation)
+        second.finishCleanup.complete(Unit)
+        latest.await().flow.filterIsInstance<DownloadProgress.Complete>().first()
+        assertEquals(3, invocation)
+        assertIs<DownloadProgress.Complete>(manager.statusByDownloadId2("download-1").first())
+        manager.removeByDownloadId("download-1")
+    }
+
+    @Test
+    fun `failed deletion retains metadata and permits another removal`() = runTest {
+        val repository = DownloadRepositoryInMemory()
+        repository.put(downloadInfo()).bind()
+        var attempts = 0
+        val store = FakeDownloadFileStore(beforeDelete = {
+            if (attempts++ == 0) error("Cannot delete file")
+        })
+        val manager = createManager(repository = repository, fileStore = store, scope = backgroundScope)
+        assertFailsWith<IllegalStateException> { manager.removeByTag(downloadTag()) }
+        assertTrue(repository.getById("download-1").bind() != null)
+        manager.removeByDownloadId("download-1")
+        assertEquals(null, repository.getById("download-1").bind())
+        assertEquals(listOf("download-1"), store.deletedIds)
+    }
+
     private fun createManager(
         repository: DownloadRepository = DownloadRepositoryInMemory(),
         fileStore: DownloadFileStore = FakeDownloadFileStore(),
@@ -272,6 +633,7 @@ class DownloadManagerImplTest {
         },
         sourceLoader: DownloadAttachmentSourceLoader = task.asSourceLoader(),
         scope: CoroutineScope,
+        cryptoGenerator: CryptoGenerator = SharedDownloadManagerCryptoGenerator("download-1"),
     ) = DownloadManagerImpl(
         windowCoroutineScope = TestWindowCoroutineScope(scope),
         downloadRepository = repository,
@@ -279,7 +641,7 @@ class DownloadManagerImplTest {
         downloadFileStore = fileStore,
         downloadBackgroundScheduler = scheduler,
         base64Service = Base64ServiceImpl(),
-        cryptoGenerator = SharedDownloadManagerCryptoGenerator("download-1"),
+        cryptoGenerator = cryptoGenerator,
     )
 }
 
@@ -319,7 +681,9 @@ private data class TestWindowCoroutineScope(
         get() = scope.coroutineContext
 }
 
-private class FakeDownloadFileStore : DownloadFileStore {
+private class FakeDownloadFileStore(
+    private val beforeDelete: suspend (DownloadInfoEntity) -> Unit = {},
+) : DownloadFileStore {
     val existingIds = mutableSetOf<String>()
     val deletedIds = mutableListOf<String>()
     val writerIds = mutableListOf<String>()
@@ -336,6 +700,7 @@ private class FakeDownloadFileStore : DownloadFileStore {
         info.id in existingIds
 
     override suspend fun delete(info: DownloadInfoEntity): Boolean {
+        beforeDelete(info)
         deletedIds += info.id
         existingIds -= info.id
         return true
@@ -431,4 +796,22 @@ private class SharedDownloadManagerCryptoGenerator(
 
     private fun unsupported(): Nothing =
         error("Only uuid generation is expected in this test.")
+}
+
+private class GatedDownload {
+    val started = CompletableDeferred<Unit>()
+    val cleanupStarted = CompletableDeferred<Unit>()
+    val finishCleanup = CompletableDeferred<Unit>()
+    val flow: Flow<DownloadProgress> = flow {
+        emit(DownloadProgress.Loading())
+        started.complete(Unit)
+        try {
+            awaitCancellation()
+        } finally {
+            withContext(NonCancellable) {
+                cleanupStarted.complete(Unit)
+                finishCleanup.await()
+            }
+        }
+    }
 }

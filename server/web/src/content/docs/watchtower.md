@@ -69,10 +69,10 @@ more items is flagged. One breached site shouldn't unlock the others.
 ### Weak passwords & weak SSH keys
 
 Password strength is estimated with **zxcvbn**, which models realistic
-guessing attacks instead of just counting character classes; passwords
-scoring *weak* are flagged. SSH keys are checked for weak key length — RSA
-keys under 2048 bits are flagged (Ed25519 keys are not). The weak-password
-check is the one alert that **cannot be ignored per item**.
+guessing attacks; passwords scoring *weak* are flagged. SSH keys are checked
+for weak key length — RSA keys under 2048 bits are flagged (Ed25519 keys are
+not). The weak-password check is the one alert that **cannot be ignored per
+item**.
 
 > *Example:* `dragon99` rates as guessable in minutes despite meeting an
 > "8 characters with digits" policy.
@@ -134,7 +134,7 @@ The same mechanism, using the bundled
 support passkey sign-in are flagged until the item holds a passkey.
 
 > *Example:* your cloud storage now offers passkeys — create one on your
-> next sign-in and skip the password (and the phishing risk) entirely.
+> next sign-in and skip the password (and the phishing risk).
 
 ### Insecure websites
 
@@ -186,13 +186,13 @@ declines. The check refreshes daily.
 
 ## Acting on alerts
 
-Each alert links to the affected items, so fixing is usually a short loop:
-open the item, change the password (the [generator](/docs/generator/) is one
-tap away), enable 2FA on the site, or merge duplicates.
+Each alert links to the affected items, so fixing takes few steps:
+open the item, change the password (open the [generator](/docs/generator/) directly
+from the item), enable 2FA on the site, or merge duplicates.
 
 Not every alert applies to every item: a shared throwaway account may
 legitimately reuse a password. You can **ignore specific alert types per
-item**, and the alert moves to the ignored list instead of nagging you. The
+item** to move them to the ignored list and suppress future notifications. The
 weak-password check is the one exception — it cannot be silenced per item.
 
 ## How the checks respect your privacy
@@ -212,4 +212,4 @@ weak-password check is the one exception — it cannot be silenced per item.
   verified, uploaded, or auto-refreshed; it does not contact the keyserver
   itself.
 - Everything else — strength, reuse, duplicates, URLs, completeness — is
-  computed entirely on your device.
+  computed on your device.

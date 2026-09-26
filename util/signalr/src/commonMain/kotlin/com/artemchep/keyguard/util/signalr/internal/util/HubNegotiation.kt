@@ -7,6 +7,7 @@ import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
@@ -25,9 +26,7 @@ internal suspend fun negotiate(
     val headersWithAccessToken = options.accessTokenProvider
         ?.invoke()
         ?.let { accessToken ->
-            options.headers.toMutableMap().apply {
-                this["Authorization"] = "Bearer $accessToken"
-            }
+            options.headers.withAccessToken(accessToken)
         }
         ?: options.headers
 
@@ -69,9 +68,7 @@ private suspend fun startNegotiate(
 
         val newHeaders = response.accessToken
             ?.let { token ->
-                headers.toMutableMap().apply {
-                    put("Authorization", "Bearer $token")
-                }
+                headers.withAccessToken(token)
             }
             ?: headers
 
@@ -120,6 +117,17 @@ private suspend fun startNegotiate(
         headers = headers,
         connectionId = connectionId,
     )
+}
+
+private fun Map<String, String>.withAccessToken(
+    token: String,
+): Map<String, String> = buildMap {
+    this@withAccessToken.forEach { (key, value) ->
+        if (!key.equals(HttpHeaders.Authorization, ignoreCase = true)) {
+            put(key, value)
+        }
+    }
+    put(HttpHeaders.Authorization, "Bearer $token")
 }
 
 private suspend fun handleNegotiate(

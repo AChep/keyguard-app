@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.wear
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -11,20 +10,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import androidx.wear.compose.material3.MaterialTheme
+import com.artemchep.keyguard.android.BaseApp
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
+import com.artemchep.keyguard.wear.locale.WearLocalizedActivity
 import com.artemchep.keyguard.wear.ui.WearKeyguardTheme
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.compose.withDI
 import kotlin.getValue
+import org.koin.compose.KoinIsolatedContext
 
-abstract class WearCredentialProviderActivity : ComponentActivity(), DIAware {
-    override val di by closestDI()
-
+abstract class WearCredentialProviderActivity : WearLocalizedActivity() {
     val translatorScope by lazy {
         val context = LeContext(this)
         TranslatorScope.of(context)
@@ -33,7 +30,7 @@ abstract class WearCredentialProviderActivity : ComponentActivity(), DIAware {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            withDI(di) {
+            KoinIsolatedContext((application as BaseApp).koinApplication) {
                 WearKeyguardTheme {
                     val containerColor = MaterialTheme.colorScheme.background
                     Box(

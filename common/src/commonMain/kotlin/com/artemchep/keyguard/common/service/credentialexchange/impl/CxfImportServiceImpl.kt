@@ -28,8 +28,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.decodeFromJsonElement
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * The importer's document boundary.
@@ -51,13 +49,6 @@ class CxfImportServiceImpl internal constructor(
          */
         private const val VERSION_MAJOR_LEGACY = 0
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        passkeyCrypto = directDI.instance(),
-        sshKeyImportService = directDI.instance(),
-    )
 
     constructor(
         passkeyCrypto: PasskeyCrypto,

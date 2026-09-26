@@ -1,0 +1,33 @@
+name: "Build Flatpak"
+description: "Package a Linux release tarball and verify the installed Flatpak"
+inputs:
+  tarball:
+    description: "Path to the Linux release tarball"
+    required: true
+  arch:
+    description: "Linux architecture: x86_64 or aarch64"
+    required: true
+  version:
+    description: "Semantic release version"
+    required: true
+outputs:
+  path:
+    description: "Absolute path to the verified Flatpak"
+    value: ${{ steps.build.outputs.path }}
+runs:
+  using: "composite"
+  steps:
+    - name: "Install Flatpak build tools"
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y flatpak flatpak-builder dbus-daemon
+        python3 -m pip install -r .github/get_flatpak_runtime_version.requirements.txt
+    - name: "Build and verify Flatpak"
+      id: build
+      shell: bash
+      env:
+        FLATPAK_TARBALL: ${{ inputs.tarball }}
+        FLATPAK_ARCH: ${{ inputs.arch }}
+        FLATPAK_VERSION: ${{ inputs.version }}
+      run: bash .github/actions/build_flatpak/build.sh "$FLATPAK_TARBALL" "$FLATPAK_ARCH" "$FLATPAK_VERSION"

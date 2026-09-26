@@ -8,9 +8,9 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DHibp
 import com.artemchep.keyguard.common.model.DHibpC
 import com.artemchep.keyguard.common.model.UsernamePwnage
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.hibp.breaches.find.AccountPwnageDataSourceRemote
 import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.api.builder.api
 import com.artemchep.keyguard.provider.bitwarden.api.builder.breach
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
@@ -20,8 +20,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -38,14 +36,6 @@ class AccountPwnageDataSourceRemoteImpl(
     }
 
     private val mutex = Mutex()
-
-    constructor(directDI: DirectDI) : this(
-        tokenRepository = directDI.instance(),
-        base64Service = directDI.instance(),
-        json = directDI.instance(),
-        httpClient = directDI.instance(),
-        db = directDI.instance(),
-    )
 
     override fun check(
         accountId: AccountId,

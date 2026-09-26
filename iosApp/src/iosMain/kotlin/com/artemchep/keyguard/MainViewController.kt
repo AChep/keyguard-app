@@ -18,9 +18,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeUIViewController
+import com.artemchep.keyguard.core.session.usecase.PlatformVaultModule
+import com.artemchep.keyguard.di.GlobalModuleCommon
+import com.artemchep.keyguard.di.VaultModuleCommon
 import com.artemchep.keyguard.feature.keyguard.AppScreen
 import com.artemchep.keyguard.feature.navigation.LocalNavigationBackHandler
 import com.artemchep.keyguard.feature.navigation.NavigationController
+import com.artemchep.keyguard.feature.navigation.NavigationModule
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LocalWindowId
@@ -34,28 +38,27 @@ import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.artemchep.keyguard.ui.theme.ThemeConfig
 import com.artemchep.keyguard.util.foundation.crypto.ensurePlatformCryptoReady
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.DI
-import org.kodein.di.compose.withDI
+import org.koin.compose.KoinIsolatedContext
+import org.koin.dsl.koinApplication
 import platform.UIKit.UIViewController
 
 fun MainViewController(): UIViewController {
     ensurePlatformCryptoReady()
     return ComposeUIViewController {
-        withDI(iosAppDi) {
+        KoinIsolatedContext(iosKoinApplication) {
             KeyguardIosApp()
         }
     }
 }
 
-private val iosAppDi by lazy {
-    createIosAppDi()
-}
+private val iosKoinApplication by lazy { createIosKoinApplication() }
 
-private fun createIosAppDi(): DI {
-    return DI {
-        installIosAppModule(
-        )
-    }
+internal fun createIosKoinApplication() = koinApplication {
+    allowOverride(false)
+    modules(
+        GlobalModuleCommon().module, VaultModuleCommon().module, PlatformVaultModule().module,
+        IosPlatformModule().module, NavigationModule().module,
+    )
 }
 
 @Composable

@@ -7,6 +7,9 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationResult
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import java.util.Date
+import kotlin.time.Clock
+import kotlin.time.Instant
 import org.bouncycastle.bcpg.HashAlgorithmTags
 import org.bouncycastle.bcpg.SignatureSubpacketTags
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags
@@ -20,11 +23,6 @@ import org.bouncycastle.openpgp.PGPSignature
 import org.bouncycastle.openpgp.PGPSignatureGenerator
 import org.bouncycastle.openpgp.PGPSignatureSubpacketGenerator
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import java.util.Date
-import kotlin.time.Clock
-import kotlin.time.Instant
 
 class GpgKeyExpirationServiceJvm(
     private val metadataResolver: GpgKeyMetadataResolver = NativeGpgKeyMetadataResolver,
@@ -36,12 +34,6 @@ class GpgKeyExpirationServiceJvm(
     private val renewalPolicy = GpgRenewalPolicyJvm(
         now = now,
         waitForClock = waitForClock,
-    )
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        metadataResolver = directDI.instance(),
     )
 
     override fun update(

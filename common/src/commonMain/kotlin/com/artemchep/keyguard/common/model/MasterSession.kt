@@ -1,8 +1,8 @@
 package com.artemchep.keyguard.common.model
 
 import arrow.optics.optics
+import com.artemchep.keyguard.common.service.vault.VaultSession
 import kotlin.time.Instant
-import org.kodein.di.DI
 
 @optics
 sealed interface MasterSession {
@@ -11,7 +11,7 @@ sealed interface MasterSession {
     @optics
     data class Key(
         val masterKey: MasterKey,
-        val di: DI,
+        val session: VaultSession,
         val origin: Origin,
         val createdAt: Instant,
     ) : MasterSession {

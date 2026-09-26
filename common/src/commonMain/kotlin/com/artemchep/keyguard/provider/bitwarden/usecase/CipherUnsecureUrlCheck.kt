@@ -3,19 +3,16 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import arrow.core.getOrElse
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.feature.auth.common.util.verifyIsLocalUrl
-import org.kodein.di.DirectDI
 
 /**
  * @author Artem Chepurnyi
  */
-class CipherUnsecureUrlCheckImpl() : CipherUnsecureUrlCheck {
+class CipherUnsecureUrlCheckImpl : CipherUnsecureUrlCheck {
     private val regex = kotlin.run {
         val protocols = CipherUnsecureUrlCheckUtils.unsecureProtocols
         val protocolsGroup = "(" + protocols.joinToString(separator = "|") { it.name } + ")"
         "\\s*$protocolsGroup://.*".toRegex()
     }
-
-    constructor(directDI: DirectDI) : this()
 
     override fun invoke(url: String): Boolean =
         isUnsecureUrl(url) &&

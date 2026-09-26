@@ -12,23 +12,22 @@ import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.format
 import kotlinx.coroutines.flow.combine
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingGpgKeyserverRefreshIntervalProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingGpgKeyserverRefreshIntervalProvider(
-    getGpgKeyserverRefreshInterval = directDI.instance(),
-    getGpgKeyserverRefreshIntervalVariants = directDI.instance(),
-    putGpgKeyserverRefreshInterval = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
-    context = directDI.instance(),
+    getGpgKeyserverRefreshInterval = koinScope.get(),
+    getGpgKeyserverRefreshIntervalVariants = koinScope.get(),
+    putGpgKeyserverRefreshInterval = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
+    context = koinScope.get(),
 )
 
 fun settingGpgKeyserverRefreshIntervalProvider(

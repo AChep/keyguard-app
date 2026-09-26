@@ -4,42 +4,41 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.model.CheckPasswordSetLeakRequest
 import com.artemchep.keyguard.common.model.DEquivalentDomains
+import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DGpgKeyserverState
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSecretDuplicateGroup
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
-import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.KeyParameterRawZero
 import com.artemchep.keyguard.common.model.PasswordPwnage
 import com.artemchep.keyguard.common.model.PasswordStrength
+import com.artemchep.keyguard.common.model.testCipherFilterContext
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnapshot
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
-import com.artemchep.keyguard.test.gpgMetadata
-import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
-import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
-import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverLocalKey
-import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateEvaluator
-import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnapshot
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 import com.artemchep.keyguard.common.service.gpgagent.GpgRevocationStatus
-import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverLocalKey
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateEvaluator
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
 import com.artemchep.keyguard.common.service.similarity.impl.SimilarityServiceImpl
-import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.service.text.TextService
+import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.service.tld.impl.TldServiceImpl
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
@@ -53,6 +52,7 @@ import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.GetCheckTwoFA
+import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
 import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.common.usecase.GetTwoFa
@@ -62,8 +62,8 @@ import com.artemchep.keyguard.common.usecase.impl.WatchtowerClientResult
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerClientTyped
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerDuplicateUris
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerExpiring
-import com.artemchep.keyguard.common.usecase.impl.WatchtowerGpgKeyPublishing
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerGpgFakeReconciler
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerGpgKeyPublishing
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerGpgKeyUnusable
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
@@ -76,7 +76,6 @@ import com.artemchep.keyguard.common.usecase.impl.WatchtowerWeakGpgKey
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerWebsitePwned
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.crypto.NativeCryptoGenerator
-import com.artemchep.keyguard.util.io.toSource
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachResponse
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherBreachCheckImpl
@@ -88,14 +87,14 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUnsecureUrlCheckI
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlBroadCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlDuplicateCheckImpl
-import kotlinx.coroutines.flow.Flow
+import com.artemchep.keyguard.test.gpgMetadata
+import com.artemchep.keyguard.util.io.toSource
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.datetime.LocalDate
 import kotlinx.io.Source
-import org.kodein.di.DI
-import org.kodein.di.direct
-import kotlin.time.Instant
 
 internal class WatchtowerBenchmarkFixtures(
     scope: CoroutineScope,
@@ -199,7 +198,7 @@ internal class WatchtowerBenchmarkFixtures(
         logRepository = BenchmarkLogRepository,
         includeDebugSummary = false,
     )
-    private val emptyDirectDI = DI {}.direct
+    private val filterContext = testCipherFilterContext()
 
     fun cases(): List<WatchtowerBenchmarkCase> = listOf(
         clientCase("password-strength", DWatchtowerAlertType.WEAK_PASSWORD),
@@ -214,7 +213,7 @@ internal class WatchtowerBenchmarkFixtures(
             alertType = DWatchtowerAlertType.REUSED_PASSWORD,
             ciphers = corpus,
             run = {
-                DFilter.ByPasswordDuplicates.count(emptyDirectDI, corpus)
+                DFilter.ByPasswordDuplicates.count(filterContext, corpus)
             },
             observe = { count ->
                 WatchtowerBenchmarkObservation(

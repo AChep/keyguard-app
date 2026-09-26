@@ -373,9 +373,9 @@
   {
     "name": "Instagram",
     "domains": [],
-    "url": "https://www.instagram.com/download/request/",
-    "difficulty": "medium",
-    "notes": "Select 'Obtain the data' and fill in your email and password. Once done, wait for a message to arrive in the mail. WARNING: you can only do a data request once every 48 hours."
+    "url": "https://accountscenter.instagram.com/info_and_permissions/dyi/",
+    "difficulty": "easy",
+    "notes": "Click \"Create Export\", and then choose where and what to export. Check the [help center page](https://help.instagram.com/181231772500920/) for more information."
   },
   {
     "name": "JetBrains",

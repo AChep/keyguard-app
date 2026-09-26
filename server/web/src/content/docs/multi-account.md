@@ -12,10 +12,10 @@ all signed in side by side.
 ## One view, many accounts
 
 The main vault merges items from **all accounts into a single list**, and
-[search](/docs/search/) works across all of them at once — no switching
-back and forth to find something. When you do want a narrower view, filter
-by account (or folder, type, and so on), or open the account itself to see
-only its items. Multi-select and batch actions work in the merged view too.
+[search](/docs/search/) works across all accounts at once. When you do want a
+narrower view, filter by account (or folder, type, and so on), or open the
+account itself to see only its items. Multi-select and batch actions work in the
+merged view too.
 
 You can [hide an account](#hiding-an-account), so it is only browsable from the settings.
 
@@ -35,9 +35,8 @@ signed in, keeps syncing, and remains visible in the account list. Open the
 account directly to browse its items, or flip the toggle off to reveal them
 everywhere again.
 
-It's the right tool for vaults you need rarely but don't want to sign out
-of — an old archive, or a family member's vault you help manage — keeping
-your day-to-day lists focused without giving up access.
+Use this for rarely needed vaults — such as archives or shared family
+vaults — to keep everyday lists focused while preserving access.
 
 ## Copying items between accounts
 
@@ -48,6 +47,6 @@ vault; the original stays where it was.
 
 ## On the watch
 
-Unlike the phone, the [Wear OS app](/docs/wear-os/) carries a **single
-account**, chosen when you pair the watch — see the
-[setup guide](/docs/wear-os/#setup) for how pairing works.
+The [Wear OS app](/docs/wear-os/) carries a **single account**, chosen when you
+pair the watch — see the [setup guide](/docs/wear-os/#setup) for how pairing
+works.

@@ -37,12 +37,12 @@ class QuickSearchHotkeyServiceTest {
             beforeOpen = {
                 events += "beforeOpen"
             },
-            platform = Platform.Desktop.MacOS,
+            platform = Platform.Desktop.MacOS.Jvm,
         )
 
         val stop = service.start()
 
-        val hotKey = QuickSearchHotkeyService.quickSearchHotKey(Platform.Desktop.MacOS)
+        val hotKey = QuickSearchHotkeyService.quickSearchHotKey(Platform.Desktop.MacOS.Jvm)
         assertEquals(hotKey, registeredHotKey)
         assertNotNull(callback)
 
@@ -118,7 +118,15 @@ class QuickSearchHotkeyServiceTest {
                 isShiftPressed = true,
                 isMetaPressed = true,
             ),
-            QuickSearchHotkeyService.quickSearchHotKey(Platform.Desktop.MacOS),
+            QuickSearchHotkeyService.quickSearchHotKey(Platform.Desktop.MacOS.Jvm),
+        )
+        assertEquals(
+            GlobalHotKeySpec(
+                key = GlobalHotKeyKey.Space,
+                isShiftPressed = true,
+                isMetaPressed = true,
+            ),
+            QuickSearchHotkeyService.quickSearchHotKey(Platform.Desktop.MacOS.Native),
         )
         assertEquals(
             GlobalHotKeySpec(

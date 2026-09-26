@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.buildplugins.detekt
 
-import com.android.build.api.variant.ApplicationAndroidComponentsExtension
+import com.android.build.api.variant.AndroidComponentsExtension
 import dev.detekt.gradle.Detekt
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -19,27 +19,29 @@ import java.io.File
 import javax.inject.Inject
 
 /**
- * Declares which compilations the custom Detekt rules analyse, and which APIs must be covered.
+ * Declares which compilations the custom Detekt rules analyse.
  *
  * Compilations are named through the Kotlin/AGP model rather than through Detekt's own task
  * naming scheme, so a renamed target or flavor fails with the list of available names instead
  * of silently checking nothing.
+ *
+ * Every file in the module that mentions one of [DetektCustomRulesPlugin.GUARDED_API_MARKERS]
+ * has to be analysed by a registered compilation, or `verifyDetektCustomRulesCoverage` fails.
  */
 abstract class DetektCustomRulesExtension @Inject constructor(
     private val project: Project,
     private val analysedSources: ConfigurableFileCollection,
-    private val guardedApiMarkers: SetProperty<String>,
+    private val allowedPathPrefixes: SetProperty<String>,
     private val aggregate: TaskProvider<Task>,
 ) {
-    /**
-     * Declares that every file mentioning one of [markers] in this module has to be analysed.
-     *
-     * Without this the rules would still run, but a call site in a source set that no
-     * registered compilation covers would go unchecked and the build would stay green. Use the
-     * function name that the rule guards, for example `"mutablePersistedFlow"`.
-     */
-    fun requireCoverageFor(vararg markers: String) {
-        guardedApiMarkers.addAll(markers.toList())
+    /** Exempts a module-relative source path that cannot run in the guarded environment. */
+    fun excludeSourcePathFromCoverage(pathPrefix: String) {
+        require(pathPrefix.isNotBlank()) { "The excluded source path must not be blank." }
+        val excluded = project.file(pathPrefix)
+        require(excluded.startsWith(project.rootDir)) {
+            "The excluded source path '$pathPrefix' must be inside ${project.rootDir}."
+        }
+        allowedPathPrefixes.add(excluded.relativeTo(project.rootDir).invariantSeparatorsPath)
     }
 
     /** Analyses [compilationName] of the Kotlin Multiplatform target [targetName]. */
@@ -66,7 +68,10 @@ abstract class DetektCustomRulesExtension @Inject constructor(
         )
     }
 
-    /** Analyses the Kotlin compilation of the Android variant [variantName]. */
+    /**
+     * Analyses the Kotlin compilation of the Android variant [variantName] of an application
+     * or library module.
+     */
     fun androidVariant(variantName: String) {
         val kotlin = project.extensions.getByType(KotlinAndroidProjectExtension::class.java)
         val compilation = project.provider {
@@ -82,7 +87,7 @@ abstract class DetektCustomRulesExtension @Inject constructor(
         // Use only static directories: generated declarations are resolved from the successfully
         // compiled output below.
         val androidComponents =
-            project.extensions.getByType(ApplicationAndroidComponentsExtension::class.java)
+            project.extensions.getByType(AndroidComponentsExtension::class.java)
         androidComponents.onVariants(
             androidComponents.selector().withName(variantName),
         ) { variant ->
@@ -131,11 +136,12 @@ abstract class DetektCustomRulesExtension @Inject constructor(
         // else from the successfully compiled output on the analysis classpath.
         val guardedSources = project.objects.fileCollection().from(
             project.provider {
-                val markers = guardedApiMarkers.get()
                 sources.asFileTree.files.filter { file ->
                     file.isFile &&
                         file.extension == "kt" &&
-                        markers.any { marker -> file.readText().contains(marker) }
+                        file.readText().let { text ->
+                            GUARDED_API_MARKERS.any { containsDetektApiMarker(text, it) }
+                        }
                 }
             },
         )
@@ -174,9 +180,17 @@ abstract class DetektCustomRulesExtension @Inject constructor(
             noJdk.set(compileTask.flatMap { it.compilerOptions.noJdk })
             multiPlatformEnabled.set(compileTask.flatMap { it.multiPlatformEnabled })
 
+            // Rules that only matter on Android are switched off for desktop JVM
+            // compilations through a second config file, which Detekt layers over the first.
+            val configDir = project.rootProject.layout.projectDirectory.dir("config/detekt")
             config.setFrom(
-                project.rootProject.layout.projectDirectory
-                    .file("config/detekt/detekt-custom-rules.yml"),
+                compilation.map { c ->
+                    listOfNotNull(
+                        configDir.file("detekt-custom-rules.yml"),
+                        configDir.file("detekt-custom-rules-jvm.yml")
+                            .takeIf { c.platformType == KotlinPlatformType.jvm },
+                    )
+                },
             )
             buildUponDefaultConfig.set(false)
             disableDefaultRuleSets.set(true)
@@ -204,6 +218,7 @@ abstract class DetektCustomRulesExtension @Inject constructor(
 
     private companion object {
         val TASK_PREFIX = DetektCustomRulesPlugin.TASK_PREFIX
+        val GUARDED_API_MARKERS = DetektCustomRulesPlugin.GUARDED_API_MARKERS
         val JVM_PLATFORM_TYPES = setOf(KotlinPlatformType.jvm, KotlinPlatformType.androidJvm)
     }
 }

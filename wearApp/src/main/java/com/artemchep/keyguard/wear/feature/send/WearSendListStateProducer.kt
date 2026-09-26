@@ -1,16 +1,12 @@
 package com.artemchep.keyguard.wear.feature.send
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.SortByAlpha
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import arrow.core.partially1
 import com.artemchep.keyguard.AppMode
@@ -39,12 +35,8 @@ import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
-import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
-import com.artemchep.keyguard.feature.decorator.ItemDecorator
-import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
-import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
-import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
+import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
@@ -52,8 +44,6 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.find
 import com.artemchep.keyguard.feature.home.vault.search.findAlike
-import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
-import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
@@ -67,14 +57,11 @@ import com.artemchep.keyguard.feature.send.ScrollPositionState
 import com.artemchep.keyguard.feature.send.SendItem
 import com.artemchep.keyguard.feature.send.SendRoute
 import com.artemchep.keyguard.feature.send.add.SendAddRoute
-import com.artemchep.keyguard.feature.send.search.AccessCountSendSort
-import com.artemchep.keyguard.feature.send.search.AlphabeticalSendSort
+import com.artemchep.keyguard.feature.send.createSendListSortDecorator
+import com.artemchep.keyguard.feature.send.createSendSortItemsFlow
 import com.artemchep.keyguard.feature.send.search.LastDeletedSendSort
-import com.artemchep.keyguard.feature.send.search.LastExpiredSendSort
-import com.artemchep.keyguard.feature.send.search.LastModifiedSendSort
 import com.artemchep.keyguard.feature.send.search.OurFilterResult
 import com.artemchep.keyguard.feature.send.search.SendSort
-import com.artemchep.keyguard.feature.send.search.SendSortItem
 import com.artemchep.keyguard.feature.send.search.createFilter
 import com.artemchep.keyguard.feature.send.search.createFilterItemsFlow
 import com.artemchep.keyguard.feature.send.search.filter.FilterSendHolder
@@ -83,15 +70,13 @@ import com.artemchep.keyguard.feature.send.util.SendUtil
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.buildContextItems
-import com.artemchep.keyguard.ui.icons.KeyguardView
 import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
-import org.jetbrains.compose.resources.StringResource
+import kotlin.time.measureTimedValue
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
@@ -108,32 +93,26 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.Serializable
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import kotlin.time.measureTimedValue
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun wearSendListScreenState(
     args: SendRoute.Args,
-): WearSendListState = with(localDI().direct) {
+): WearSendListState = with(currentKoinScope()) {
     wearSendListScreenState(
-        directDI = this,
         args = args,
-        getAccounts = instance(),
-        getSends = instance(),
-        getProfiles = instance(),
-        getAppIcons = instance(),
-        getWebsiteIcons = instance(),
-        dateFormatter = instance(),
-        clipboardService = instance(),
+        getAccounts = get(),
+        getSends = get(),
+        getProfiles = get(),
+        getAppIcons = get(),
+        getWebsiteIcons = get(),
+        dateFormatter = get(),
+        clipboardService = get(),
     )
 }
 
 @Composable
 fun wearSendListScreenState(
-    directDI: DirectDI,
     args: SendRoute.Args,
     getAccounts: GetAccounts,
     getSends: GetSends,
@@ -253,7 +232,7 @@ fun wearSendListScreenState(
                     val filter = args.filter
                     if (filter != null) {
                         val ciphers = map { it.source }
-                        val predicate = filter.prepare(directDI, ciphers)
+                        val predicate = filter.prepare(ciphers)
                         this
                             .filter { predicate(it.source) }
                     } else {
@@ -265,193 +244,7 @@ fun wearSendListScreenState(
         .flowOn(Dispatchers.Default)
         .shareIn(this, SharingStarted.WhileSubscribed(5000L), replay = 1)
 
-    fun createComparatorAction(
-        id: String,
-        title: StringResource,
-        icon: ImageVector? = null,
-        config: ComparatorHolder,
-    ) = SendSortItem.Item(
-        id = id,
-        config = config,
-        title = TextHolder.Res(title),
-        icon = icon,
-        onClick = {
-            sortSink.value = config
-        },
-        checked = false,
-    )
-
-    data class Fuu(
-        val item: SendSortItem.Item,
-        val subItems: List<SendSortItem.Item>,
-    )
-
-    val cam = mapOf(
-        AlphabeticalSendSort to Fuu(
-            item = createComparatorAction(
-                id = "title",
-                icon = Icons.Outlined.SortByAlpha,
-                title = Res.string.sortby_title_title,
-                config = ComparatorHolder(
-                    comparator = AlphabeticalSendSort,
-                    favourites = true,
-                ),
-            ),
-            subItems = listOf(
-                createComparatorAction(
-                    id = "title_normal",
-                    title = Res.string.sortby_title_normal_mode,
-                    config = ComparatorHolder(
-                        comparator = AlphabeticalSendSort,
-                        favourites = true,
-                    ),
-                ),
-                createComparatorAction(
-                    id = "title_rev",
-                    title = Res.string.sortby_title_reverse_mode,
-                    config = ComparatorHolder(
-                        comparator = AlphabeticalSendSort,
-                        reversed = true,
-                        favourites = true,
-                    ),
-                ),
-            ),
-        ),
-        AccessCountSendSort to Fuu(
-            item = createComparatorAction(
-                id = "access_count",
-                icon = Icons.Outlined.KeyguardView,
-                title = Res.string.sortby_access_count_title,
-                config = ComparatorHolder(
-                    comparator = AccessCountSendSort,
-                ),
-            ),
-            subItems = listOf(
-                createComparatorAction(
-                    id = "access_count_normal",
-                    title = Res.string.sortby_access_count_normal_mode,
-                    config = ComparatorHolder(
-                        comparator = AccessCountSendSort,
-                    ),
-                ),
-                createComparatorAction(
-                    id = "access_count_rev",
-                    title = Res.string.sortby_access_count_reverse_mode,
-                    config = ComparatorHolder(
-                        comparator = AccessCountSendSort,
-                        reversed = true,
-                    ),
-                ),
-            ),
-        ),
-        LastModifiedSendSort to Fuu(
-            item = createComparatorAction(
-                id = "modify_date",
-                icon = Icons.Outlined.CalendarMonth,
-                title = Res.string.sortby_modification_date_title,
-                config = ComparatorHolder(
-                    comparator = LastModifiedSendSort,
-                ),
-            ),
-            subItems = listOf(
-                createComparatorAction(
-                    id = "modify_date_normal",
-                    title = Res.string.sortby_modification_date_normal_mode,
-                    config = ComparatorHolder(
-                        comparator = LastModifiedSendSort,
-                    ),
-                ),
-                createComparatorAction(
-                    id = "modify_date_rev",
-                    title = Res.string.sortby_modification_date_reverse_mode,
-                    config = ComparatorHolder(
-                        comparator = LastModifiedSendSort,
-                        reversed = true,
-                    ),
-                ),
-            ),
-        ),
-        LastExpiredSendSort to Fuu(
-            item = createComparatorAction(
-                id = "expiration_date",
-                icon = Icons.Outlined.CalendarMonth,
-                title = Res.string.sortby_expiration_date_title,
-                config = ComparatorHolder(
-                    comparator = LastExpiredSendSort,
-                ),
-            ),
-            subItems = listOf(
-                createComparatorAction(
-                    id = "expiration_date_normal",
-                    title = Res.string.sortby_expiration_date_normal_mode,
-                    config = ComparatorHolder(
-                        comparator = LastExpiredSendSort,
-                    ),
-                ),
-                createComparatorAction(
-                    id = "expiration_date_rev",
-                    title = Res.string.sortby_expiration_date_reverse_mode,
-                    config = ComparatorHolder(
-                        comparator = LastExpiredSendSort,
-                        reversed = true,
-                    ),
-                ),
-            ),
-        ),
-        LastDeletedSendSort to Fuu(
-            item = createComparatorAction(
-                id = "deletion_date",
-                icon = Icons.Outlined.CalendarMonth,
-                title = Res.string.sortby_deletion_date_title,
-                config = ComparatorHolder(
-                    comparator = LastDeletedSendSort,
-                ),
-            ),
-            subItems = listOf(
-                createComparatorAction(
-                    id = "deletion_date_normal",
-                    title = Res.string.sortby_deletion_date_normal_mode,
-                    config = ComparatorHolder(
-                        comparator = LastDeletedSendSort,
-                    ),
-                ),
-                createComparatorAction(
-                    id = "deletion_date_rev",
-                    title = Res.string.sortby_deletion_date_reverse_mode,
-                    config = ComparatorHolder(
-                        comparator = LastDeletedSendSort,
-                        reversed = true,
-                    ),
-                ),
-            ),
-        ),
-    )
-
-    val comparatorsListFlow = sortSink
-        .map { orderConfig ->
-            val mainItems = cam.values
-                .map { it.item }
-                .map { item ->
-                    val checked = item.config.comparator == orderConfig.comparator
-                    item.copy(checked = checked)
-                }
-            val subItems = cam[orderConfig.comparator]?.subItems.orEmpty()
-                .map { item ->
-                    val checked = item.config == orderConfig
-                    item.copy(checked = checked)
-                }
-
-            val out = mutableListOf<SendSortItem>()
-            out += mainItems
-            if (subItems.isNotEmpty()) {
-                out += SendSortItem.Section(
-                    id = "sub_items_section",
-                    text = TextHolder.Res(Res.string.options),
-                )
-                out += subItems
-            }
-            out
-        }
+    val comparatorsListFlow = createSendSortItemsFlow(sortSink)
 
     data class Rev<T>(
         val count: Int,
@@ -460,7 +253,6 @@ fun wearSendListScreenState(
     )
 
     val ciphersFilteredFlow = createFilteredSendsFlow(
-        directDI = directDI,
         ciphersFlow = ciphersFlow,
         orderFlow = sortSink,
         filterFlow = filterResult.filterFlow,
@@ -478,7 +270,6 @@ fun wearSendListScreenState(
         .shareIn(this, SharingStarted.WhileSubscribed(), replay = 1)
 
     val filterListFlow = createFilterItemsFlow(
-        directDI = directDI,
         outputGetter = { it.source },
         outputFlow = ciphersFilteredFlow
             .map { state ->
@@ -622,7 +413,6 @@ private data class FilteredList<T>(
 )
 
 private fun createFilteredSendsFlow(
-    directDI: DirectDI,
     ciphersFlow: Flow<List<SendItem.Item>>,
     orderFlow: Flow<ComparatorHolder>,
     filterFlow: Flow<FilterSendHolder>,
@@ -673,7 +463,7 @@ private fun createFilteredSendsFlow(
             .list
             .run {
                 val ciphers = map { it.source }
-                val predicate = filterConfig.filter.prepare(directDI, ciphers)
+                val predicate = filterConfig.filter.prepare(ciphers)
                 filter { predicate(it.source) }
             }
         state.copy(
@@ -683,58 +473,11 @@ private fun createFilteredSendsFlow(
     }
     .map { state ->
         val orderConfig = state.orderConfig
-        val decorator: ItemDecorator<SendItem, SendItem.Item> = when {
-            orderConfig?.comparator is AlphabeticalSendSort &&
-                    // it looks ugly on small lists
-                    state.list.size >= AlphabeticalSortMinItemsSize ->
-                ItemDecoratorTitle<SendItem, SendItem.Item>(
-                    selector = { it.title.text },
-                    factory = { id, text ->
-                        SendItem.Section(
-                            id = id,
-                            text = text,
-                        )
-                    },
-                )
-
-            orderConfig?.comparator is LastModifiedSendSort ->
-                ItemDecoratorDate<SendItem, SendItem.Item>(
-                    dateFormatter = dateFormatter,
-                    selector = { it.revisionDate },
-                    factory = { id, text ->
-                        SendItem.Section(
-                            id = id,
-                            text = text,
-                        )
-                    },
-                )
-
-            orderConfig?.comparator is LastExpiredSendSort ->
-                ItemDecoratorDate<SendItem, SendItem.Item>(
-                    dateFormatter = dateFormatter,
-                    selector = { it.source.expirationDate },
-                    factory = { id, text ->
-                        SendItem.Section(
-                            id = id,
-                            text = text,
-                        )
-                    },
-                )
-
-            orderConfig?.comparator is LastDeletedSendSort ->
-                ItemDecoratorDate<SendItem, SendItem.Item>(
-                    dateFormatter = dateFormatter,
-                    selector = { it.source.deletedDate },
-                    factory = { id, text ->
-                        SendItem.Section(
-                            id = id,
-                            text = text,
-                        )
-                    },
-                )
-
-            else -> ItemDecoratorNone
-        }
+        val decorator = createSendListSortDecorator(
+            orderConfig = orderConfig,
+            itemCount = state.list.size,
+            dateFormatter = dateFormatter,
+        )
 
         val out = mutableListOf<SendItem>()
         state.list.forEachWithDecorUniqueSectionsOnly(

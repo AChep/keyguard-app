@@ -3,15 +3,14 @@ package com.artemchep.keyguard.copy
 import android.graphics.Bitmap
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.graphics.createBitmap
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.BarcodeImageRequest
 import com.artemchep.keyguard.common.usecase.GetBarcodeImage
 import com.artemchep.keyguard.util.encode
-import kotlinx.coroutines.Dispatchers
-import org.kodein.di.DirectDI
 import kotlin.coroutines.CoroutineContext
-import androidx.core.graphics.createBitmap
+import kotlinx.coroutines.Dispatchers
 
 /**
  * @author Artem Chepurnyi
@@ -19,7 +18,6 @@ import androidx.core.graphics.createBitmap
 class GetBarcodeImageJvm(
     private val dispatcher: CoroutineContext = Dispatchers.Default,
 ) : GetBarcodeImage {
-    constructor(directDI: DirectDI) : this()
 
     override fun invoke(
         request: BarcodeImageRequest,

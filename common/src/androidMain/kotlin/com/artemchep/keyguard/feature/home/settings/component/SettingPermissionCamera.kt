@@ -4,14 +4,20 @@ import android.Manifest
 import android.os.Build
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CameraAlt
-import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.feature.qr.ScanQrRouteFactory
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import org.kodein.di.DirectDI
+import kotlinx.coroutines.flow.flowOf
+import org.koin.core.scope.Scope
 
 actual fun settingPermissionCameraProvider(
-    directDI: DirectDI,
-): SettingComponent = settingPermissionCameraProvider2()
+    koinScope: Scope,
+): SettingComponent = if (koinScope.getOrNull<ScanQrRouteFactory>() != null) {
+    settingPermissionCameraProvider2()
+} else {
+    flowOf(null)
+}
 
 @OptIn(ExperimentalPermissionsApi::class)
 fun settingPermissionCameraProvider2(): SettingComponent = settingPermissionProvider(

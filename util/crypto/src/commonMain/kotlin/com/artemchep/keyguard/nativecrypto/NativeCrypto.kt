@@ -50,6 +50,8 @@ public enum class NativeCryptoCapability(
     OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2(bit = 1L shl 32),
     /** Native OpenPGP evaluates exact User ID certifications against explicit trust roots. */
     OPENPGP_USER_ID_CERTIFICATION(bit = 1L shl 33),
+    /** Native OpenPGP decryption supports bounded output draining after input EOF. */
+    OPENPGP_STREAM_DRAIN(bit = 1L shl 34),
 }
 
 public object NativeCrypto {
@@ -249,11 +251,13 @@ public object NativeCrypto {
         verificationPublicKeys: List<ByteArray>,
         referenceTimeEpochSeconds: Long?,
         allowSignedOnly: Boolean,
+        stagingDirectory: String? = null,
     ): NativeCryptoSession = client.openPgpDecryption(
         privateKeys = privateKeys,
         verificationPublicKeys = verificationPublicKeys,
         referenceTimeEpochSeconds = referenceTimeEpochSeconds,
         allowSignedOnly = allowSignedOnly,
+        stagingDirectory = stagingDirectory,
     )
 }
 
@@ -608,6 +612,7 @@ internal class NativeCryptoClient(
         verificationPublicKeys: List<ByteArray>,
         referenceTimeEpochSeconds: Long?,
         allowSignedOnly: Boolean,
+        stagingDirectory: String? = null,
     ): NativeCryptoSession = openSession(
         operationName = "open_pgp_decrypt.stream_open",
         operation = OpenPgpDecryptStreamOpenOperationProto(
@@ -616,6 +621,7 @@ internal class NativeCryptoClient(
                 verificationPublicKeys = verificationPublicKeys,
                 referenceTimeEpochSeconds = referenceTimeEpochSeconds,
                 allowSignedOnly = allowSignedOnly,
+                stagingDirectory = stagingDirectory,
             ),
         ),
     )
@@ -672,6 +678,20 @@ internal class NativeCryptoClient(
             is BytesResultProto -> result.value
             else -> throw malformedResponse("stream.update")
         }
+    }
+
+    internal fun streamDrain(handle: Long): ByteArray {
+        val operation = "open_pgp_stream_drain"
+        val result = call(
+            operationName = operation,
+            operation = OpenPgpStreamDrainOperationProto(OpenPgpStreamDrainRequestProto(handle)),
+        )
+        val output = requireResultType<BytesResultProto>(operation, result).value
+        if (output.size > NATIVE_CRYPTO_STREAM_CHUNK_BYTES) {
+            clearDiscardedOutput(output)
+            throw malformedResponse(operation)
+        }
+        return output
     }
 
     internal fun streamFinish(handle: Long): ByteArray {
@@ -905,6 +925,12 @@ public interface NativeCryptoSession : AutoCloseable {
         length: Int = data.size - offset,
     ): ByteArray
 
+    /** Drains OpenPGP decryption output after signaling input EOF. */
+    public fun drain(): ByteArray = throw NativeCryptoException(
+        "open_pgp_stream_drain",
+        NativeCryptoErrorCode.INVALID_SESSION,
+    )
+
     /** Finishes and consumes this session. */
     public fun finish(): ByteArray
 
@@ -941,6 +967,11 @@ private class NativeCryptoSessionImpl(
         } finally {
             ownedInput?.fill(0)
         }
+    }
+
+    override fun drain(): ByteArray {
+        checkOpen("open_pgp_stream_drain")
+        return client.streamDrain(handle)
     }
 
     override fun finish(): ByteArray {

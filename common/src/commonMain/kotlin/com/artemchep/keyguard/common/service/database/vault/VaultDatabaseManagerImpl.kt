@@ -16,7 +16,6 @@ import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
-import com.artemchep.keyguard.common.service.database.AfterVersionWithTransaction
 import com.artemchep.keyguard.common.service.database.DatabaseSqlManager
 import com.artemchep.keyguard.common.service.database.EnumCodeToLongAdapter
 import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
@@ -158,7 +157,7 @@ class VaultDatabaseManagerImpl(
                 )
             }
             val callbacks = arrayOf(
-                AfterVersionWithTransaction(
+                AfterVersion(
                     afterVersion = 11,
                 ) { driver ->
                     val ciphers = driver.executeQuery(
@@ -183,7 +182,7 @@ class VaultDatabaseManagerImpl(
                         driver.execute(
                             identifier = null,
                             sql = sql,
-                            parameters = 0,
+                            parameters = 2,
                             binders = {
                                 val revisionDate = InstantToLongAdapter.encode(cipher.revisionDate)
                                 bindLong(0, revisionDate)

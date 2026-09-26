@@ -11,19 +11,18 @@ import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import org.jetbrains.compose.resources.stringResource
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingThemeExpressiveProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingThemeExpressiveProvider(
-    getThemeExpressive = directDI.instance(),
-    putThemeExpressive = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getThemeExpressive = koinScope.get(),
+    putThemeExpressive = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingThemeExpressiveProvider(

@@ -43,12 +43,12 @@ class VaultLockHotkeyServiceTest {
                 )
             },
             scope = this,
-            platform = Platform.Desktop.MacOS,
+            platform = Platform.Desktop.MacOS.Jvm,
         )
 
         val stop = service.start()
 
-        assertEquals(VaultLockHotkeyService.vaultLockHotKey(Platform.Desktop.MacOS), registeredHotKey)
+        assertEquals(VaultLockHotkeyService.vaultLockHotKey(Platform.Desktop.MacOS.Jvm), registeredHotKey)
         assertNotNull(callback)
 
         stop()
@@ -116,7 +116,15 @@ class VaultLockHotkeyServiceTest {
                 isShiftPressed = true,
                 isMetaPressed = true,
             ),
-            VaultLockHotkeyService.vaultLockHotKey(Platform.Desktop.MacOS),
+            VaultLockHotkeyService.vaultLockHotKey(Platform.Desktop.MacOS.Jvm),
+        )
+        assertEquals(
+            GlobalHotKeySpec(
+                key = GlobalHotKeyKey.L,
+                isShiftPressed = true,
+                isMetaPressed = true,
+            ),
+            VaultLockHotkeyService.vaultLockHotKey(Platform.Desktop.MacOS.Native),
         )
         assertEquals(
             GlobalHotKeySpec(

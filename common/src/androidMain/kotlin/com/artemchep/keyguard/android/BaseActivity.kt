@@ -8,8 +8,8 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.WindowManager
 import android.webkit.MimeTypeMap
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.animateColorAsState
@@ -26,13 +26,17 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
+import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import com.artemchep.keyguard.android.BaseApp
+import com.artemchep.keyguard.android.ui.hideOverlayWindows
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.toIO
+import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.ToastMessage
@@ -46,8 +50,10 @@ import com.artemchep.keyguard.common.usecase.GetUseExternalBrowser
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.android.ui.hideOverlayWindows
 import com.artemchep.keyguard.copy.PermissionServiceAndroid
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.keyguardKoin
+import com.artemchep.keyguard.di.resolveOrCancel
 import com.artemchep.keyguard.feature.loading.ReadableExceptionMessage
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -59,8 +65,8 @@ import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.recordException
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
@@ -69,21 +75,17 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.compose.rememberInstance
-import org.kodein.di.instance
-import androidx.core.net.toUri
-import com.artemchep.keyguard.common.model.AllowScreenshots
+import org.koin.compose.KoinIsolatedContext
+import org.koin.compose.koinInject
 
-abstract class BaseActivity : AppCompatActivity(), DIAware {
-    override val di by closestDI()
+abstract class BaseActivity : AppCompatActivity(), KeyguardKoinOwner {
+    override val koin get() = keyguardKoin()
 
-    private val logRepository: LogRepository by instance()
+    private val logRepository: LogRepository by lazy { koin.get() }
 
-    private val permissionService: PermissionServiceAndroid by instance()
+    private val permissionService: PermissionServiceAndroid by lazy { koin.get() }
 
-    private val keyboardShortcutsService: KeyboardShortcutsService by instance()
+    private val keyboardShortcutsService: KeyboardShortcutsService by lazy { koin.get() }
 
     private val navTag = N.tag("BaseActivity")
 
@@ -115,7 +117,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
             hideOverlayWindows()
         }
 
-        val getAllowScreenshots by instance<GetAllowScreenshots>()
+        val getAllowScreenshots by lazy { koin.get<GetAllowScreenshots>() }
         getAllowScreenshots()
             .onEach { allowScreenshots ->
                 if (allowScreenshots >= AllowScreenshots.LIMITED) {
@@ -126,7 +128,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
             }
             .launchIn(lifecycleScope)
 
-        val getUseExternalBrowser: GetUseExternalBrowser by instance()
+        val getUseExternalBrowser: GetUseExternalBrowser by lazy { koin.get() }
         getUseExternalBrowser()
             .onEach { useExternalBrowser ->
                 lastUseExternalBrowser = useExternalBrowser
@@ -134,28 +136,30 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
             .launchIn(lifecycleScope)
 
         setContent {
-            KeyguardTheme {
-                val containerColor = activityContainerColor()
-                val containerColorAnimatedState = animateColorAsState(
-                    targetValue = containerColor,
-                    animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-                )
-                val contentColor = activityContentColor(containerColorAnimatedState.value)
-                Surface(
-                    modifier = Modifier.semantics {
-                        // Allows to use testTag() for UiAutomator's resource-id.
-                        // It can be enabled high in the compose hierarchy,
-                        // so that it's enabled for the whole subtree
-                        testTagsAsResourceId = true
-                    },
-                    color = containerColorAnimatedState.value,
-                    contentColor = contentColor,
-                ) {
-                    CompositionLocalProvider(
-                        LocalSurfaceColor provides containerColorAnimatedState.value,
+            KoinIsolatedContext((application as BaseApp).koinApplication) {
+                KeyguardTheme {
+                    val containerColor = activityContainerColor()
+                    val containerColorAnimatedState = animateColorAsState(
+                        targetValue = containerColor,
+                        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+                    )
+                    val contentColor = activityContentColor(containerColorAnimatedState.value)
+                    Surface(
+                        modifier = Modifier.semantics {
+                            // Allows to use testTag() for UiAutomator's resource-id.
+                            // It can be enabled high in the compose hierarchy,
+                            // so that it's enabled for the whole subtree
+                            testTagsAsResourceId = true
+                        },
+                        color = containerColorAnimatedState.value,
+                        contentColor = contentColor,
                     ) {
-                        Navigation {
-                            Content()
+                        CompositionLocalProvider(
+                            LocalSurfaceColor provides containerColorAnimatedState.value,
+                        ) {
+                            Navigation {
+                                Content()
+                            }
                         }
                     }
                 }
@@ -178,7 +182,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
     ) = NavigationRouterBackHandler(
         onBackPressedDispatcher = onBackPressedDispatcher,
     ) {
-        val showMessage by rememberInstance<ShowMessage>()
+        val showMessage = koinInject<ShowMessage>()
         NavigationController(
             scope = lifecycleScope,
             canPop = flowOf(false),
@@ -321,8 +325,8 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
 
             // If everything is fine, obtain the session
             // and lock the vault
-            val windowCoroutineScope by instance<WindowCoroutineScope>()
-            val getVaultSession by instance<GetVaultSession>()
+            val windowCoroutineScope by lazy { koin.get<WindowCoroutineScope>() }
+            val getVaultSession by lazy { koin.get<GetVaultSession>() }
             getVaultSession()
                 .toIO()
                 .effectTap {
@@ -333,7 +337,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
                 .flatMap { session ->
                     when (session) {
                         is MasterSession.Key -> {
-                            val lockVault by session.di.instance<ClearVaultSession>()
+                            val lockVault by lazy { session.session.resolveOrCancel { get<ClearVaultSession>() } }
                             val lockReason = TextHolder.Res(Res.string.lock_reason_manually)
                             lockVault(LockReason.LOCK, lockReason)
                         }
@@ -543,6 +547,11 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
 
     @Composable
     protected abstract fun Content()
+
+    override fun onResume() {
+        super.onResume()
+        permissionService.refresh()
+    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,

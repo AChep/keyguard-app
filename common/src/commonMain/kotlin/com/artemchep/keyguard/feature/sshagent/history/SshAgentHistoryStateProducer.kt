@@ -21,12 +21,12 @@ import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.search.search.mapListShape
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.collections.immutable.persistentListOf
@@ -36,22 +36,20 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceSshAgentHistoryState(
     cipherId: String?,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     produceSshAgentHistoryState(
         cipherId = cipherId,
-        getSshUsageHistory = instance(),
-        removeSshUsageHistory = instance(),
-        getCiphers = instance(),
-        dateFormatter = instance(),
-        confirmationRouteFactory = instance(),
-        json = instance(),
+        getSshUsageHistory = get(),
+        removeSshUsageHistory = get(),
+        getCiphers = get(),
+        dateFormatter = get(),
+        confirmationRouteFactory = get(),
+        json = get(),
     )
 }
 

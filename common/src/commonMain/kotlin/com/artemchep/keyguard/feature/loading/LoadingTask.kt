@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.loading
 
 import arrow.core.Either
 import com.artemchep.keyguard.common.exception.Readable
+import com.artemchep.keyguard.common.exception.readableMessageOrNull
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -28,6 +29,8 @@ class LoadingTask(
     private val exceptionHandler: suspend (Throwable) -> ReadableExceptionMessage = { e ->
         getErrorReadableMessage(e, translator)
     },
+    /** Reports failures in the task's scope, even after the originating screen is gone. */
+    private val onFailure: (Failure) -> Unit = {},
 ) {
     private val isWorkingSink = MutableStateFlow(false)
 
@@ -49,12 +52,15 @@ class LoadingTask(
      *
      * Returns `true` when this call claimed the executor and scheduled the
      * task, or `false` when another task already owns it.
+     * [onCompletion] runs even if the task is skipped or cancelled before starting.
      */
     fun execute(
         io: IO<*>,
         tag: String? = null,
+        onCompletion: (() -> Unit)? = null,
     ): Boolean {
         if (!isWorkingSink.compareAndSet(expect = false, update = true)) {
+            onCompletion?.invoke()
             return false
         }
         val job = scope.launch {
@@ -67,6 +73,7 @@ class LoadingTask(
                     text = parsedMessage.text,
                 )
                 result.value.printStackTrace()
+                onFailure(message)
                 errorSink.emit(message)
             } else {
                 // Normally executing a task navigates the user somewhere. We
@@ -79,7 +86,11 @@ class LoadingTask(
         // so releasing from the body alone can leave the executor stuck. A job
         // completion handler also covers that path and is invoked exactly once.
         job.invokeOnCompletion {
-            isWorkingSink.value = false
+            try {
+                onCompletion?.invoke()
+            } finally {
+                isWorkingSink.value = false
+            }
         }
         return true
     }
@@ -102,7 +113,7 @@ suspend fun getErrorReadableMessage(e: Throwable, translator: TranslatorScope) =
         }
 
         else -> {
-            val title = e.message
+            val title = e.readableMessageOrNull()
                 ?: translator.translate(Res.string.error_failed_unknown)
             ReadableExceptionMessage(
                 title = title,

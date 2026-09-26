@@ -12,8 +12,6 @@ import com.artemchep.keyguard.common.service.sshagent.parseSshAgentPublicKeyMate
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.dataexposed.SshAgentPublicKey
 import kotlinx.coroutines.CoroutineDispatcher
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class SshAgentPublicKeyRepositoryImpl(
     private val exposedDatabaseManager: ExposedDatabaseManager,
@@ -21,15 +19,6 @@ class SshAgentPublicKeyRepositoryImpl(
     private val base64Service: Base64Service,
     private val dispatcher: CoroutineDispatcher,
 ) : SshAgentPublicKeyRepository {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        exposedDatabaseManager = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
-
     override fun get(): IO<List<SshAgentPublicKeyRow>> = daoEffect {
         it.get()
             .executeAsList()

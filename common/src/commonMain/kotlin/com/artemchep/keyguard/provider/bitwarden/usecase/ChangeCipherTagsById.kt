@@ -6,16 +6,10 @@ import com.artemchep.keyguard.common.usecase.ChangeCipherTagsById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.tags
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class ChangeCipherTagsByIdImpl(
     private val modifyCipherById: ModifyCipherById,
 ) : ChangeCipherTagsById {
-    constructor(directDI: DirectDI) : this(
-        modifyCipherById = directDI.instance(),
-    )
-
     override fun invoke(
         cipherIdsToTags: Map<String, List<String>>,
     ): IO<Unit> = modifyCipherById(

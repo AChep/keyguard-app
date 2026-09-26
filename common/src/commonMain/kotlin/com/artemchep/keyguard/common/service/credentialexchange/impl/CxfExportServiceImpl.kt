@@ -18,8 +18,6 @@ import com.artemchep.keyguard.crypto.NativePasskeyCrypto
 import com.artemchep.keyguard.platform.recordException
 import kotlin.time.Instant
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * The mapping half of [CxfExportService].
@@ -41,13 +39,6 @@ internal interface CxfAccountMapper {
 class CxfExportServiceImpl internal constructor(
     private val mapper: CxfAccountMapper,
 ) : CxfExportService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        passkeyCrypto = directDI.instance(),
-        sshKeyPkcs8Exporter = directDI.instance(),
-    )
-
     constructor(
         passkeyCrypto: PasskeyCrypto,
         sshKeyPkcs8Exporter: SshKeyPkcs8Exporter,

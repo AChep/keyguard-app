@@ -12,8 +12,6 @@ import io.ktor.http.isSuccess
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * Represents the parsed information about an Android app
@@ -52,11 +50,6 @@ class AndroidAppGooglePlayParser(
     companion object {
         private const val PLAY_STORE_URL = "https://play.google.com/store/apps/details"
     }
-
-    constructor(directDI: DirectDI) : this(
-        httpClient = directDI.instance(tag = "curl"),
-        json = directDI.instance(),
-    )
 
     /**
      * Fetches and parses the app information for the given package name.

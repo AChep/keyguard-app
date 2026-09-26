@@ -12,6 +12,7 @@ finish-args:
   - --filesystem=xdg-download
   - --filesystem=xdg-run/gnupg:create
   - --talk-name=org.kde.StatusNotifierWatcher
+  - --system-talk-name=org.freedesktop.PolicyKit1
 modules:
   - name: keyguard
     buildsystem: simple

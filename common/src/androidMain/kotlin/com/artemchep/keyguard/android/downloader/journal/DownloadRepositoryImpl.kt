@@ -14,18 +14,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class DownloadRepositoryImpl(
     private val databaseManager: DownloadDatabaseManager,
 ) : DownloadRepository {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        databaseManager = directDI.instance(),
-    )
 
     override fun getById(id: String): IO<DownloadInfoEntity?> =
         daoEffect { dao ->

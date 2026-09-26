@@ -20,12 +20,13 @@ class KeyguardRuleSetProviderTest {
     }
 
     @Test
-    fun `provides every mutablePersistedFlow rule`() {
+    fun `provides every Keyguard rule`() {
         val ruleSet = KeyguardRuleSetProvider().instance()
 
         val rules = ruleSet.rules.keys.map { it.value }
         assertEquals(
             listOf(
+                "AndroidIncompatibleListOperation",
                 "MutablePersistedFlowDuplicateKey",
                 "MutablePersistedFlowTypeSafety",
             ),

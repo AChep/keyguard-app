@@ -138,30 +138,10 @@ private class XmlParser(
                 input.startsWith("</", index) -> {
                     readEndTag()
                     if (stack.size > 1) {
-                        stack.removeLast()
+                        stack.removeAt(stack.lastIndex)
                     }
                 }
-                input[index] == '<' -> {
-                    val tag = readStartTag()
-                    val namespaces = stack.last().namespaces.toMutableMap()
-                    tag.attributes.forEach { (name, value) ->
-                        when {
-                            name == "xmlns" -> namespaces[""] = value
-                            name.startsWith("xmlns:") -> {
-                                namespaces[name.substringAfter(':')] = value
-                            }
-                        }
-                    }
-
-                    val node = MutableXmlNode(resolveName(tag.name, namespaces))
-                    stack.last().node.children += node
-                    if (!tag.selfClosing) {
-                        stack += XmlFrame(
-                            node = node,
-                            namespaces = namespaces,
-                        )
-                    }
-                }
+                input[index] == '<' -> readStartElement(stack)
                 else -> {
                     stack.last().node.textParts += decodeXmlEntities(readText())
                 }
@@ -174,6 +154,36 @@ private class XmlParser(
             }
         return children.singleOrNull()?.toImmutable()
             ?: root.toImmutable()
+    }
+
+    private fun readStartElement(stack: MutableList<XmlFrame>) {
+        val tag = readStartTag()
+        val namespaces = stack.last().namespaces.toMutableMap()
+        tag.attributes.forEach { (name, value) ->
+            when {
+                name == "xmlns" -> namespaces[""] = value
+                name.startsWith("xmlns:") -> {
+                    namespaces[name.substringAfter(':')] = value
+                }
+            }
+        }
+
+        val node = MutableXmlNode(resolveName(tag.name, namespaces))
+        stack.last().node.children += node
+        if (!tag.selfClosing) {
+            // The tree is converted recursively, so the nesting
+            // must be bounded. A multistatus response only nests
+            // a few levels deep.
+            if (stack.size > MAX_XML_DEPTH) {
+                throw IllegalArgumentException(
+                    "XML document exceeds the $MAX_XML_DEPTH-level depth limit.",
+                )
+            }
+            stack += XmlFrame(
+                node = node,
+                namespaces = namespaces,
+            )
+        }
     }
 
     private fun readStartTag(): StartTag {
@@ -390,9 +400,23 @@ private fun decodeNumericEntity(
             .toIntOrNull()
         else -> null
     } ?: return null
-    return runCatching {
-        codePoint.toChar().toString()
-    }.getOrNull()
+    // Only Unicode scalar values are valid XML character references.
+    return when {
+        codePoint <= 0 || codePoint > MAX_CODE_POINT -> null
+        codePoint in SURROGATE_CODE_POINTS -> null
+        codePoint < MIN_SUPPLEMENTARY_CODE_POINT -> codePoint.toChar().toString()
+        else -> {
+            val offset = codePoint - MIN_SUPPLEMENTARY_CODE_POINT
+            val high = Char.MIN_HIGH_SURROGATE + (offset shr 10)
+            val low = Char.MIN_LOW_SURROGATE + (offset and 0x3FF)
+            charArrayOf(high, low).concatToString()
+        }
+    }
 }
+
+private val SURROGATE_CODE_POINTS = Char.MIN_SURROGATE.code..Char.MAX_SURROGATE.code
+private const val MIN_SUPPLEMENTARY_CODE_POINT = 0x10000
+private const val MAX_CODE_POINT = 0x10FFFF
+private const val MAX_XML_DEPTH = 256
 
 private const val DAV_NAMESPACE = "DAV:"

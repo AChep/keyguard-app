@@ -9,19 +9,18 @@ import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import org.koin.core.scope.Scope
 
 fun settingMinimizeOnCopyProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingMinimizeOnCopyProvider(
-    getMinimizeOnCopy = directDI.instance(),
-    putMinimizeOnCopy = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
+    getMinimizeOnCopy = koinScope.get(),
+    putMinimizeOnCopy = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
 )
 
 fun settingMinimizeOnCopyProvider(

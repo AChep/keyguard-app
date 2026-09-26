@@ -457,7 +457,7 @@ pub(crate) fn mark_delete_on_close(handle: HANDLE) -> io::Result<()> {
     };
     match set_file_information(handle, FileDispositionInfoEx, &posix) {
         Ok(()) => return Ok(()),
-        Err(error) if disposition_extension_unsupported(&error) => {}
+        Err(error) if file_information_extension_unsupported(&error) => {}
         Err(error) => return Err(error),
     }
 
@@ -466,7 +466,7 @@ pub(crate) fn mark_delete_on_close(handle: HANDLE) -> io::Result<()> {
     };
     match set_file_information(handle, FileDispositionInfoEx, &extended) {
         Ok(()) => return Ok(()),
-        Err(error) if disposition_extension_unsupported(&error) => {}
+        Err(error) if file_information_extension_unsupported(&error) => {}
         Err(error) => return Err(error),
     }
 
@@ -474,7 +474,8 @@ pub(crate) fn mark_delete_on_close(handle: HANDLE) -> io::Result<()> {
     set_file_information(handle, FileDispositionInfo, &legacy)
 }
 
-fn disposition_extension_unsupported(error: &io::Error) -> bool {
+/// Whether an extended file-information operation permits a legacy fallback.
+pub(crate) fn file_information_extension_unsupported(error: &io::Error) -> bool {
     matches!(
         error.raw_os_error().map(|code| code as u32),
         Some(ERROR_INVALID_FUNCTION | ERROR_INVALID_PARAMETER | ERROR_NOT_SUPPORTED)

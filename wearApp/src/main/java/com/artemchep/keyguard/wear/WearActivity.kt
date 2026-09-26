@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.wear
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -11,20 +10,35 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.lifecycle.lifecycleScope
 import androidx.wear.compose.material3.MaterialTheme
+import com.artemchep.keyguard.android.BaseApp
+import com.artemchep.keyguard.copy.PermissionServiceAndroid
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
+import com.artemchep.keyguard.wear.locale.WearLocalizedActivity
 import com.artemchep.keyguard.wear.ui.WearKeyguardTheme
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.compose.withDI
 import kotlin.getValue
+import org.koin.compose.KoinIsolatedContext
 
-class WearActivity : ComponentActivity(), DIAware {
-    override val di by closestDI()
+class WearActivity : WearLocalizedActivity() {
+    private val permissionService: PermissionServiceAndroid by lazy { koin.get() }
+
+    override fun onResume() {
+        super.onResume()
+        permissionService.refresh()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        permissionService.refresh()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            withDI(di) {
+            KoinIsolatedContext((application as BaseApp).koinApplication) {
                 WearKeyguardTheme {
                     val containerColor = MaterialTheme.colorScheme.background
                     Box(

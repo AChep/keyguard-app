@@ -9,18 +9,19 @@ import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentRequestProces
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
-import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
-import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindowNoOp
+import com.artemchep.keyguard.common.service.session.GpgAgentSessionAccess
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicyNoOp
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindowNoOp
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.crypto.NativeGpgAgentCrypto
+import java.nio.file.Path
+import java.security.MessageDigest
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import java.nio.file.Path
-import java.security.MessageDigest
 
 class GpgAgentIpcServer private constructor(
     private val logRepository: LogRepository,
@@ -95,6 +96,7 @@ class GpgAgentIpcServer private constructor(
     constructor(
         logRepository: LogRepository,
         getVaultSession: GetVaultSession,
+        sessionAccess: GpgAgentSessionAccess,
         getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow = GetGpgAgentApprovalWindowNoOp,
         getGpgAgentApprovalCachePolicy: GetGpgAgentApprovalCachePolicy =
             GetGpgAgentApprovalCachePolicyNoOp,
@@ -115,6 +117,7 @@ class GpgAgentIpcServer private constructor(
             logRepository = logRepository,
             crypto = NativeGpgAgentCrypto,
             getVaultSession = getVaultSession,
+            sessionAccess = sessionAccess,
             getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
             getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
             getGpgAgentFilter = getGpgAgentFilter,
@@ -132,6 +135,7 @@ class GpgAgentIpcServer private constructor(
     internal constructor(
         logRepository: LogRepository,
         getVaultSession: GetVaultSession,
+        sessionAccess: GpgAgentSessionAccess,
         getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow = GetGpgAgentApprovalWindowNoOp,
         getGpgAgentApprovalCachePolicy: GetGpgAgentApprovalCachePolicy =
             GetGpgAgentApprovalCachePolicyNoOp,
@@ -152,6 +156,7 @@ class GpgAgentIpcServer private constructor(
             logRepository = logRepository,
             crypto = NativeGpgAgentCrypto,
             getVaultSession = getVaultSession,
+            sessionAccess = sessionAccess,
             getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
             getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
             getGpgAgentFilter = getGpgAgentFilter,

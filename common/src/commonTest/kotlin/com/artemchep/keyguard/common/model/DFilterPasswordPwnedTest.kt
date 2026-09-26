@@ -4,14 +4,11 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
 import com.artemchep.keyguard.feature.home.vault.search.createSecret
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
-import org.kodein.di.direct
+import kotlinx.coroutines.test.runTest
 
 class DFilterPasswordPwnedTest {
     @Test
@@ -27,21 +24,17 @@ class DFilterPasswordPwnedTest {
                 "pwned-twice-password" to 2,
             ),
         )
-        val directDI = DI {
-            bindSingleton<CheckPasswordSetLeak> {
-                checkPasswordSetLeak
-            }
-        }.direct
+        val filterContext = testCipherFilterContext(checkPasswordSetLeak = checkPasswordSetLeak)
 
         val predicate = DFilter.ByPasswordPwned.prepare(
-            directDI = directDI,
+            context = filterContext,
             ciphers = ciphers,
         )
 
         assertFalse(predicate(safe))
         assertTrue(predicate(pwnedOnce))
         assertTrue(predicate(pwnedTwice))
-        assertEquals(2, DFilter.ByPasswordPwned.count(directDI, ciphers))
+        assertEquals(2, DFilter.ByPasswordPwned.count(filterContext, ciphers))
     }
 }
 

@@ -50,7 +50,9 @@ inline fun KeePassDatabase.withRecycleBin(
  * @return modified [KeePassDatabase].
  */
 fun KeePassDatabase.cleanupHistory(reference: Instant = Clock.System.now()): KeePassDatabase {
-    val maintenancePeriod = content.meta.maintenanceHistoryDays.toInt().days
+    // Widen to Long: values above Int.MAX_VALUE (e.g. UInt.MAX_VALUE used as
+    // "keep forever") would otherwise wrap negative and drop all history.
+    val maintenancePeriod = content.meta.maintenanceHistoryDays.toLong().days
 
     return modifyContent {
         copy(

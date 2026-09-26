@@ -4,12 +4,9 @@ import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.MessageHub
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.platform.WindowId
-import org.kodein.di.DirectDI
 import kotlin.uuid.Uuid
 
-class MessageHubImpl() : MessageHub, ShowMessage {
-    constructor(directDI: DirectDI) : this()
-
+class MessageHubImpl : MessageHub, ShowMessage {
     private val state = mutableListOf<Entry>()
 
     private class Entry(

@@ -4,9 +4,9 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.flatten
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.map
+import com.artemchep.keyguard.common.model.AddCredentialCipherRequest
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasskeyData
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasswordData
-import com.artemchep.keyguard.common.model.AddCredentialCipherRequest
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.AddCredentialCipher
@@ -14,11 +14,9 @@ import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.data.bitwarden.Cipher
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
-import kotlin.time.Clock
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.collections.orEmpty
 import kotlin.collections.plus
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 /**
@@ -33,13 +31,6 @@ class AddCredentialCipherImpl(
     companion object {
         private const val TAG = "AddCredentialCipher"
     }
-
-    constructor(directDI: DirectDI) : this(
-        modifyCipherById = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-        getPasswordStrength = directDI.instance(),
-    )
 
     override fun invoke(
         request: AddCredentialCipherRequest,

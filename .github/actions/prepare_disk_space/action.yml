@@ -1,4 +1,5 @@
 name: "Prepare Disk space"
+description: "Reclaim disk space on hosted Android build runners"
 runs:
   using: "composite"
   steps:

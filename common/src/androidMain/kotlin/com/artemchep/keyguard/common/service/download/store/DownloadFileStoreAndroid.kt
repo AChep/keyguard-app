@@ -7,8 +7,6 @@ import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
 import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
 import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
 import com.artemchep.keyguard.util.io.toLocalPath
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import java.io.File
 
 class DownloadFileStoreAndroid(
@@ -26,12 +24,6 @@ class DownloadFileStoreAndroid(
             downloadId: String,
         ) = dir.resolve("$downloadId$CACHE_FILE_EXT")
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance<Application>(),
-    )
 
     override suspend fun destination(
         info: DownloadInfoEntity,

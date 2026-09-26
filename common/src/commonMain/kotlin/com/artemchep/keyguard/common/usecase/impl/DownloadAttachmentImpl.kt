@@ -8,8 +8,6 @@ import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.service.download.DownloadService
 import com.artemchep.keyguard.common.usecase.DownloadAttachment
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -21,11 +19,6 @@ class DownloadAttachmentImpl2(
     companion object {
         private const val THREAD_BUCKET_SIZE = 10
     }
-
-    constructor(directDI: DirectDI) : this(
-        downloadAttachmentMetadata = directDI.instance(),
-        downloadService = directDI.instance(),
-    )
 
     override fun invoke(
         requests: List<DownloadAttachmentRequest>,

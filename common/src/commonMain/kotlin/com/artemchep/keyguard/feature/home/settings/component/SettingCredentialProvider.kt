@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
-import org.kodein.di.DirectDI
+import org.koin.core.scope.Scope
 
 expect fun settingCredentialProviderProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent

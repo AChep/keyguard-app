@@ -4,7 +4,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.annotation.RequiresApi
 
-internal data class AndroidPackageSigningCertificates(
+data class AndroidPackageSigningCertificates(
     val current: List<ByteArray>,
     val history: List<ByteArray>,
     val hasMultipleSigners: Boolean,
@@ -13,7 +13,7 @@ internal data class AndroidPackageSigningCertificates(
         get() = if (hasMultipleSigners) current else history
 }
 
-internal fun PackageManager.getAndroidPackageSigningCertificates(
+fun PackageManager.getAndroidPackageSigningCertificates(
     packageName: String,
 ): AndroidPackageSigningCertificates? = runCatching {
     when {

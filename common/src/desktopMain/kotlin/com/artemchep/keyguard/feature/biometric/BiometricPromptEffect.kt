@@ -18,13 +18,13 @@ import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.LocalComposeWindow
 import com.artemchep.keyguard.ui.nativeWindowHandle
 import kotlinx.coroutines.flow.Flow
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 @Composable
 actual fun BiometricPromptEffect(flow: Flow<PureBiometricAuthPrompt>) {
     val context by rememberUpdatedState(LocalLeContext)
     val lifecycle by rememberUpdatedState(LocalLifecycleOwner.current)
-    val promptHost by rememberInstance<BiometricPromptHost>()
+    val promptHost = koinInject<BiometricPromptHost>()
     val window = LocalComposeWindow.current
     val windowHandle = remember(window) {
         window.nativeWindowHandle ?: 0L
@@ -46,11 +46,15 @@ actual fun BiometricPromptEffect(flow: Flow<PureBiometricAuthPrompt>) {
                         )
                     }.fold(
                         onSuccess = {
-                            val result = event.cipher.right()
-                            event.onComplete(result)
+                            runCatching {
+                                event.onComplete(event.cipher.right())
+                            }
+                                .onFailure { event.cipher.clear() }
+                                .getOrThrow()
                         },
                         onFailure = {
-                            val result = it.toBiometricAuthException()
+                            event.cipher.clear()
+                            val result = it.toBiometricAuthException(context)
                                 .left()
                             event.onComplete(result)
                         },
@@ -70,7 +74,7 @@ actual fun BiometricPromptEffect(flow: Flow<PureBiometricAuthPrompt>) {
                             event.onComplete(result)
                         },
                         onFailure = {
-                            val result = it.toBiometricAuthException()
+                            val result = it.toBiometricAuthException(context)
                                 .left()
                             event.onComplete(result)
                         },

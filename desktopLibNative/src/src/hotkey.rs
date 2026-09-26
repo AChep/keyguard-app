@@ -12,15 +12,14 @@ use std::thread;
 )]
 mod imp;
 
-#[allow(dead_code)]
-pub(crate) const REGISTER_STATUS_UNSUPPORTED_PLATFORM: i32 = -1;
+#[allow(unused_imports)]
+pub(crate) use crate::ffi::{REGISTER_STATUS_INTERNAL_ERROR, REGISTER_STATUS_UNSUPPORTED_PLATFORM};
 #[allow(dead_code)]
 pub(crate) const REGISTER_STATUS_UNSUPPORTED_SESSION: i32 = -2;
 #[allow(dead_code)]
 pub(crate) const REGISTER_STATUS_INVALID_SHORTCUT: i32 = -3;
 #[allow(dead_code)]
 pub(crate) const REGISTER_STATUS_UNAVAILABLE: i32 = -4;
-pub(crate) const REGISTER_STATUS_INTERNAL_ERROR: i32 = -5;
 
 #[allow(dead_code)]
 #[derive(Clone)]

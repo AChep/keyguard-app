@@ -6,20 +6,20 @@ order: 5
 ---
 
 Keyguard keeps a local copy of your vault, so you can view, add, and edit items
-without a connection. Changes sync back when you are online again — and if the
-same item was edited in two places in the meantime, Keyguard merges the edits
-instead of blindly keeping one version.
+without a connection. Changes sync back to the cloud when you are online again;
+local providers such as KDBX do not need active Internet conenction. If the
+same item was edited in two places in the meantime, Keyguard merges both edits
+field by field.
 
 > A conflict can happen when you edit an item on a device without an active
 > internet connection and then edit the same item on another device.
 
 ## How merging works
 
-Under the hood this is a **three-way merge**. Alongside your local copy,
-Keyguard keeps the last version of each item it synced from the server and
-uses it as the merge **base** — comparing both sides against that base is
-what tells Keyguard *which* side actually changed a field, rather than
-guessing from timestamps.
+Keyguard uses a **three-way merge**. Alongside your local copy, the app keeps the
+last version of each item synced from the server and uses it as the merge
+**base**. Comparing both sides against that base identifies which side changed
+each field.
 
 Keyguard splits the item into separate fields and merges them one by one:
 

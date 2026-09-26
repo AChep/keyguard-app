@@ -6,8 +6,6 @@ import com.artemchep.keyguard.common.usecase.GetMetas
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -18,10 +16,6 @@ class GetAccountsHasErrorImpl(
     companion object {
         private const val TAG = "GetAccountsHasError.bitwarden"
     }
-
-    constructor(directDI: DirectDI) : this(
-        getMetas = directDI.instance(),
-    )
 
     override fun invoke(): Flow<Boolean> = getMetas()
         .map { metas ->

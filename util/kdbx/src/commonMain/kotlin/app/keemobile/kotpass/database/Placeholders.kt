@@ -94,6 +94,7 @@ fun KeePassDatabase.resolveReference(
     reference: String,
     maxDepth: UInt = Defaults.PlaceholdersMaxDepth
 ): String {
+    if (maxDepth == 0U) return reference
     val match = ReferenceRegex.find(reference) ?: return reference
     val (wantedKey, searchInKey, searchText) = match.destructured
 

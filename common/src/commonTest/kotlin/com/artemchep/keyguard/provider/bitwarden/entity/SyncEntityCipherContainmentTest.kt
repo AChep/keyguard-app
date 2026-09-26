@@ -91,7 +91,7 @@ class SyncEntityCipherContainmentTest {
 
     /**
      * The flags of the application-wide instances bound in `GlobalModuleJvm` and
-     * `IosAppModule`, which are what actually decode a sync response.
+     * `IosPlatformModule`, which are what actually decode a sync response.
      */
     private val json = Json {
         ignoreUnknownKeys = true

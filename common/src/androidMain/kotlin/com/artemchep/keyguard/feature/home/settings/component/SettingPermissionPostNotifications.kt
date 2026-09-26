@@ -4,13 +4,13 @@ import android.Manifest
 import android.os.Build
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import org.kodein.di.DirectDI
+import org.koin.core.scope.Scope
 
 actual fun settingPermissionPostNotificationsProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = settingPermissionPostNotificationsProvider2()
 
 @OptIn(ExperimentalPermissionsApi::class)

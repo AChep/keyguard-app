@@ -22,20 +22,19 @@ import com.artemchep.keyguard.common.service.backup.BackupRunProgress
 import com.artemchep.keyguard.common.service.backup.BackupRunProgressDetails
 import com.artemchep.keyguard.common.service.backup.BackupRunService
 import com.artemchep.keyguard.common.service.backup.BackupStep
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.keyguardKoin
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.getString
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.instance
 
 class BackupWorker(
     context: Context,
     params: WorkerParameters,
-) : CoroutineWorker(context, params), DIAware {
+) : CoroutineWorker(context, params), KeyguardKoinOwner {
     companion object {
         private const val WORK_ID = "VaultBackupWorker"
 
@@ -77,7 +76,7 @@ class BackupWorker(
             .cancelUniqueWork(WORK_ID)
     }
 
-    override val di by closestDI { applicationContext }
+    override val koin get() = applicationContext.keyguardKoin()
 
     private val notificationManager = context.getSystemService<NotificationManager>()!!
 
@@ -86,7 +85,7 @@ class BackupWorker(
     override suspend fun doWork(): Result {
         setForeground(createForegroundInfo())
 
-        val backupRunService: BackupRunService by instance()
+        val backupRunService: BackupRunService by lazy { koin.get() }
         backupRunService.runAutomatic(
             progressReporter = { progress ->
                 setForeground(createForegroundInfo(progress))

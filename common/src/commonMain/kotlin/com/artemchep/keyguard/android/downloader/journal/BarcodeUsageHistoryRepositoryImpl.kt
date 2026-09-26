@@ -12,8 +12,6 @@ import com.artemchep.keyguard.data.BarcodeUsageHistoryQueries
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class BarcodeUsageHistoryRepositoryImpl(
     private val databaseManager: VaultDatabaseManager,
@@ -22,13 +20,6 @@ class BarcodeUsageHistoryRepositoryImpl(
     companion object {
         private const val TAG = "BarcodeUsageHistoryRepository"
     }
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        databaseManager = directDI.instance(),
-        dispatcher = directDI.instance(tag = DatabaseDispatcher),
-    )
 
     override fun get(): Flow<List<DBarcodeUsageHistory>> = getRecent()
 

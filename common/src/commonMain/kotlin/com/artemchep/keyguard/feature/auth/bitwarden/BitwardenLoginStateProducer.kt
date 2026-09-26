@@ -18,17 +18,17 @@ import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.common.util.newChildScope
+import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRoute
 import com.artemchep.keyguard.feature.auth.common.TextCell
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
-import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_US_ASCII
 import com.artemchep.keyguard.feature.auth.common.util.ValidationUrl
 import com.artemchep.keyguard.feature.auth.common.util.format
 import com.artemchep.keyguard.feature.auth.common.util.validateUrl
 import com.artemchep.keyguard.feature.auth.common.util.validatedEmail
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
-import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -45,10 +45,11 @@ import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.icon
+import kotlin.uuid.Uuid
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
@@ -68,10 +69,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import kotlin.uuid.Uuid
+import org.koin.compose.currentKoinScope
 
 private const val TAG = "login"
 
@@ -145,11 +143,11 @@ internal fun getBitwardenLoginBlockedBy(
 fun produceBitwardenLoginScreenState(
     args: BitwardenLoginRoute.Args,
     screenKey: String = DEFAULT_SCREEN_KEY,
-): Loadable<LoginState> = with(localDI().direct) {
+): Loadable<LoginState> = with(currentKoinScope()) {
     produceBitwardenLoginScreenState(
-        addAccount = instance(),
-        cipherUnsecureUrlCheck = instance(),
-        confirmationRouteFactory = instance(),
+        addAccount = get(),
+        cipherUnsecureUrlCheck = get(),
+        confirmationRouteFactory = get(),
         args = args,
         screenKey = screenKey,
     )

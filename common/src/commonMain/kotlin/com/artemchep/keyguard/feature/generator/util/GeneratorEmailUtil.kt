@@ -26,7 +26,7 @@ fun List<DProfile>.findBestUserEmailOrNull(): String? {
             entry.value
                 .sumOf { it.priority }
         }
-        .maxByOrNull { it.key }
+        .maxByOrNull { it.value }
         ?.key
     return emailOrNull
 }

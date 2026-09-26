@@ -7,7 +7,7 @@ order: 10
 
 Keyguard stores OpenPGP keys in a dedicated **GPG key** item type and can use
 them to sign, verify, encrypt, and decrypt. This page is a technical reference
-for what Keyguard actually parses, stores, and supports. For the day-to-day
+for what Keyguard parses, stores, and supports. For daily
 setup see the [GPG agent setup](/docs/gpg-agent/) guide.
 
 OpenPGP (the standard behind GnuPG/PGP, defined by RFC 4880 and the newer RFC
@@ -78,9 +78,9 @@ Keyguard recognises the following public-key algorithms when parsing a key
 | X25519 / X448 | RFC 9580 native encryption |
 | Ed448 | RFC 9580 native signing |
 
-Any other algorithm is shown generically. Note that being able to *parse* a key
-does not mean every operation supports it — see the limits under
-[GPG agent](#operations-with-the-gpg-agent) below.
+Any other algorithm is shown generically. Algorithm support varies by
+operation; see [GPG agent](#operations-with-the-gpg-agent) below for
+operational limits.
 
 ## Generating a key
 
@@ -133,7 +133,7 @@ warnings when the signing key is **revoked** or **expired**, or when the
 
 ## Using GPG keys from other tools
 
-On desktop Linux, macOS, and Windows, Keyguard can act as a drop-in
+On desktop Linux, macOS, and Windows, Keyguard can act as a compatible
 **gpg-agent** so that a local `gpg` (for example, when signing Git commits) uses
 keys from your vault. On Android, compatible apps can use Keyguard as an
 OpenKeychain-compatible OpenPGP provider for signing, verification, encryption,
@@ -151,11 +151,10 @@ supported:
 | **VKS** (verifying keyserver, keys.openpgp.org API) | `https://keys.openpgp.org` | Fingerprint, key ID, or email |
 | **HKP** (HTTP Keyserver Protocol) | `https://keyserver.ubuntu.com` | Fingerprint, key ID, email, or free text |
 
-keys.openpgp.org is a **verifying** keyserver: it serves key material freely by
-fingerprint, but only distributes the identity (email) information after the
-address owner confirms it, and it does not do free-text search — Keyguard picks
-the right lookup automatically and can fall back to HKP for free-text queries.
-Email lookups against VKS are rate-limited.
+keys.openpgp.org is a **verifying** keyserver: it serves key material by
+fingerprint and distributes email identities only after owner confirmation.
+Keyguard automatically queries VKS by fingerprint or email, and falls back to
+HKP for free-text queries. Email lookups against VKS are rate-limited.
 
 You can:
 

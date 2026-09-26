@@ -8,14 +8,14 @@ import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.crashlyticsIsEnabledFlow
 import com.artemchep.keyguard.platform.crashlyticsSetEnabled
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import org.jetbrains.compose.resources.stringResource
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.map
-import org.kodein.di.DirectDI
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingCrashlyticsProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ): SettingComponent = run {
     crashlyticsIsEnabledFlow()
         .map { checked ->

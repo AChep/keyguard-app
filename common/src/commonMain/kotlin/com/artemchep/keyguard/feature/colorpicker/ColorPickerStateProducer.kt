@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.colorpicker
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.util.hue
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
@@ -11,6 +12,7 @@ import com.artemchep.keyguard.ui.icons.generateAccentColors
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlin.math.roundToInt
 
 @Composable
 fun produceColorPickerState(
@@ -36,10 +38,7 @@ suspend fun RememberStateFlowScope.colorPickerStateProducer(
     val indexSink = mutablePersistedFlow("index") {
         val color = args.color
             ?: return@mutablePersistedFlow -1
-        val hue = color.hue()
-        val index = hue / 360f * length
-        index.toInt()
-            .rem(length)
+        colorPickerSelectedIndex(color, length)
     }
 
     val hues = 0 until length
@@ -85,3 +84,10 @@ suspend fun RememberStateFlowScope.colorPickerStateProducer(
             Loadable.Ok(state)
         }
 }
+
+// RGB persistence slightly shifts hues around palette boundaries. Choose the
+// nearest swatch so opening and confirming the picker does not change the color.
+internal fun colorPickerSelectedIndex(color: Color, length: Int): Int =
+    (color.hue() / FULL_HUE_ROTATION * length).roundToInt().mod(length)
+
+private const val FULL_HUE_ROTATION = 360f

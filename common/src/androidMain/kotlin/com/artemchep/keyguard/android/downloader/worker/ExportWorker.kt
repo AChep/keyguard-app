@@ -23,12 +23,16 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.di.KeyguardKoinOwner
+import com.artemchep.keyguard.di.keyguardKoin
+import com.artemchep.keyguard.di.resolve
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
+import kotlin.math.roundToInt
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
@@ -37,15 +41,11 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transformWhile
 import org.jetbrains.compose.resources.getString
-import org.kodein.di.DIAware
-import org.kodein.di.android.closestDI
-import org.kodein.di.instance
-import kotlin.math.roundToInt
 
 class ExportWorker(
     context: Context,
     params: WorkerParameters,
-) : CoroutineWorker(context, params), DIAware {
+) : CoroutineWorker(context, params), KeyguardKoinOwner {
     companion object {
         private const val WORK_ID = "VaultExportWorker"
 
@@ -89,7 +89,7 @@ class ExportWorker(
         }
     }
 
-    override val di by closestDI { applicationContext }
+    override val koin get() = applicationContext.keyguardKoin()
 
     private val translator by lazy {
         val ctx = LeContext(applicationContext)
@@ -113,11 +113,11 @@ class ExportWorker(
         notificationId: Int,
         args: Args,
     ): Result {
-        val ea: GetVaultSession by instance()
+        val ea: GetVaultSession by lazy { koin.get() }
         val s = ea.valueOrNull as? MasterSession.Key
             ?: return Result.success()
 
-        val exportManager: ExportManager by s.di.instance()
+        val exportManager = s.session.resolve { get<ExportManager>() } ?: return Result.success()
         val exportProgressFlow = exportManager
             .getProgressFlowByExportId(exportId = args.exportId)
             // Return None if the progress flow doesn't

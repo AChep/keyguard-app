@@ -2,6 +2,8 @@ package com.artemchep.keyguard.util.io.atomic
 
 import com.artemchep.keyguard.util.io.InternalKeyguardIoApi
 import com.artemchep.keyguard.util.io.LocalPath
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.io.Sink
 import kotlinx.io.write
 import kotlin.coroutines.Continuation
@@ -185,6 +187,73 @@ class NativeAtomicFileTransactionTest {
     }
 
     @Test
+    fun jobCancellationDuringFinalFlushAbortsBeforeCommit() =
+        assertJobCancellationDuringFinalFlush(suspending = false)
+
+    @Test
+    fun suspendingJobCancellationDuringFinalFlushAbortsBeforeCommit() =
+        assertJobCancellationDuringFinalFlush(suspending = true)
+
+    private fun assertJobCancellationDuringFinalFlush(suspending: Boolean) {
+        val job = Job()
+        val cancellation = CancellationException("cancelled during final flush")
+        val calls = RecordingCalls(
+            writeResult = { length ->
+                job.cancel(cancellation)
+                length.toLong()
+            },
+            abortResult = BRIDGE_PANIC,
+        )
+        var callbackReturned = false
+        val write: (Sink) -> Unit = { sink ->
+            sink.write(byteArrayOf(1, 2, 3))
+            // The short write is still buffered until the transaction closes it.
+            assertEquals(emptyList(), calls.events)
+            callbackReturned = true
+        }
+
+        val outcome = runSuspend {
+            transaction(calls).use { transaction ->
+                if (suspending) {
+                    transaction.writeAndCommitSuspending(checkCancellation = job::ensureActive) {
+                        write(it)
+                    }
+                } else {
+                    transaction.writeAndCommit(checkCancellation = job::ensureActive, write = write)
+                }
+            }
+        }
+        val thrown = assertFailsWith<CancellationException> { outcome.getOrThrow() }
+
+        assertTrue(callbackReturned)
+        assertTrue(thrown === cancellation)
+        assertEquals(listOf("write:3", "abort"), calls.events)
+        assertEquals(0, calls.commitCount)
+        assertEquals(1, calls.abortCount)
+        assertTrue(thrown.suppressedExceptions.single() is AtomicFileWriteException)
+    }
+
+    @Test
+    fun cancellationAfterCommitStartsPreservesPublicationReceipt() {
+        val job = Job()
+        val calls = RecordingCalls(onCommit = { job.cancel() })
+
+        val result = transaction(calls).use { transaction ->
+            transaction.writeAndCommit(checkCancellation = job::ensureActive) { sink ->
+                sink.write(byteArrayOf(1, 2, 3))
+                "written"
+            }
+        }
+
+        assertTrue(job.isCancelled)
+        assertEquals("written", result.value)
+        assertEquals(AtomicPublicationState.Published, result.receipt.publicationState)
+        assertEquals(listOf("write:3", "commit"), calls.events)
+        assertEquals(1, calls.commitCount)
+        assertEquals(0, calls.abortCount)
+    }
+
+    @Test
     fun cancellationAfterCaughtWriteFailureRemainsPrimary() {
         val cancellation = CancellationException("cancelled")
         val calls = RecordingCalls(
@@ -270,6 +339,7 @@ class NativeAtomicFileTransactionTest {
         private val writeResult: (Int) -> Long = { it.toLong() },
         private val commitResult: Long = COMMIT_PUBLISHED_NAMESPACE,
         private val abortResult: Long = 0L,
+        private val onCommit: () -> Unit = {},
     ) : NativeAtomicFileTransactionCalls {
         val events = mutableListOf<String>()
         var commitCount = 0
@@ -288,6 +358,7 @@ class NativeAtomicFileTransactionTest {
         override fun txnCommit(handle: Long): Long {
             events += "commit"
             commitCount += 1
+            onCommit()
             return commitResult
         }
 

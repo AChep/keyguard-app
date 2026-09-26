@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.backup
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.MasterKdfVersion
@@ -9,6 +10,8 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.vault.SessionReadRepository
+import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
+import com.artemchep.keyguard.common.service.vault.testVaultSession
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeout
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -29,8 +32,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
 
 class BackupRunServiceTest {
     private val json = Json {
@@ -67,14 +68,45 @@ class BackupRunServiceTest {
         assertEquals(null, repository.getStatus().first().currentRun)
     }
 
+    @Test
+    fun `unconfigured backup skips without resolving a runner`() = runTest {
+        val repository = BackupConfigRepositoryImpl(JsonKeyValueStore(), json)
+        val result = service(repository, backgroundScope).runManual()
+
+        assertEquals("backup_not_configured", result.lastSkippedReason)
+        assertEquals(null, result.currentRun)
+    }
+
+    @Test
+    fun `retirement after configuration access skips runner resolution`() = runTest {
+        val repository = BackupConfigRepositoryImpl(JsonKeyValueStore(), json)
+        repository.setConfig(
+            BackupConfig(enabled = true, store = BackupStoreConfig.Local("/unused-backup-directory")),
+        ).bind()
+        val session = session(repository)
+        try {
+            val service = service(repository, backgroundScope, session)
+            val result = service.runManual(
+                progressReporter = BackupProgressReporter { session.session.retire() },
+            )
+
+            assertEquals("vault_locked", result.lastSkippedReason)
+            assertEquals(null, result.currentRun)
+        } finally {
+            session.session.close()
+        }
+    }
+
     private fun service(
         repository: BackupConfigRepository,
         scope: CoroutineScope,
+        activeSession: MasterSession.Key = session(repository),
     ): BackupRunService {
-        val session = session(repository)
         return BackupRunService(
-            getVaultSession = TestGetVaultSession(session),
-            sessionReadRepository = TestSessionReadRepository(session),
+            backupConfigSessionAccess = testDomainSessionAccess(),
+            backupRunnerSessionAccess = testDomainSessionAccess(),
+            getVaultSession = TestGetVaultSession(activeSession),
+            sessionReadRepository = TestSessionReadRepository(activeSession),
             vaultSessionLocker = VaultSessionLocker(
                 getVaultLockAfterTimeout = TestGetVaultLockAfterTimeout,
                 clearVaultSession = TestClearVaultSession,
@@ -91,8 +123,8 @@ class BackupRunServiceTest {
             version = MasterKdfVersion.V0,
             byteArray = byteArrayOf(1, 2, 3),
         ),
-        di = DI {
-            bindSingleton<BackupConfigRepository> {
+        session = testVaultSession {
+            scoped<BackupConfigRepository> {
                 repository
             }
         },

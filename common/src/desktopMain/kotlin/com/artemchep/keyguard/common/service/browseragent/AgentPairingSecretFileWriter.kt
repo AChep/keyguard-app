@@ -41,7 +41,7 @@ class AgentPairingSecretFileWriter(
          * Characters used in the pairing code (unambiguous, no lookalikes).
          * Must match `CODE_CHARS` in `pairing.rs`.
          */
-        val CODE_CHARS: String = "abcdefghjkmnpqrstuvwxyz23456789"
+        const val CODE_CHARS = "abcdefghjkmnpqrstuvwxyz23456789"
 
         const val PAIRING_CODE_LENGTH = 24
 
@@ -87,6 +87,7 @@ class AgentPairingSecretFileWriter(
     /**
      * Writes the raw shared secret as hex with mode 0600.
      */
+    @Suppress("TooGenericExceptionCaught")
     fun write(sharedSecret: ByteArray) {
         try {
             Files.createDirectories(SECRET_PATH.parent)
@@ -108,6 +109,7 @@ class AgentPairingSecretFileWriter(
     /**
      * Deletes the secret file. Called when the WS server stops.
      */
+    @Suppress("TooGenericExceptionCaught")
     fun delete() {
         try {
             Files.deleteIfExists(SECRET_PATH)

@@ -44,9 +44,8 @@ requires.
 
 A common example is **Cloudflare Access** (Zero Trust), a popular way to
 shield a self-hosted server such as Vaultwarden from the open internet.
-Cloudflare cannot show its login page to Keyguard, so create a **service
-token** in the Cloudflare dashboard instead and add its credentials as two
-headers:
+To authenticate through Cloudflare Access, generate a **service token** in
+the Cloudflare dashboard and add its credentials as two headers:
 
 | Name                      | Value              |
 | ------------------------- | ------------------ |
@@ -58,8 +57,7 @@ to your server.
 
 ## If the server asks for a captcha
 
-Unofficial Bitwarden clients can be asked to pass a captcha verification,
-which Keyguard cannot display. When that happens, Keyguard prompts you for
-your account's **client secret** instead: find it in the web vault under
+If the server requires captcha verification, Keyguard prompts for your
+account's **client secret**: find it in the web vault under
 **Settings → Security → Keys / API Key**, paste it into the login form, and sign in
 again.

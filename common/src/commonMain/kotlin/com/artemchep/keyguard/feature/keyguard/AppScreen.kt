@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
+import com.artemchep.keyguard.di.VaultSessionContent
 import com.artemchep.keyguard.feature.keyguard.main.MainRoute
 import com.artemchep.keyguard.feature.keyguard.setup.SetupRoute
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockRoute
@@ -43,9 +44,8 @@ import com.artemchep.keyguard.platform.lifecycle.LocalLifecycleStateFlow
 import com.artemchep.keyguard.platform.lifecycle.flowWithLifecycle
 import com.artemchep.keyguard.ui.ToastMessageHost
 import com.artemchep.keyguard.ui.theme.Dimen
-import org.kodein.di.compose.rememberInstance
-import org.kodein.di.compose.withDI
 import kotlin.time.Instant
+import org.koin.compose.koinInject
 
 val LocalAuthScreen = staticCompositionLocalOf {
     AuthScreen(
@@ -194,9 +194,9 @@ fun ManualAppScreenOnLoading() {
 fun ManualAppScreenOnMain(
     state: VaultState.Main,
 ) {
-    // Provide the session DI to all of the
+    // Provide the active vault dependencies to all of the
     // sub screens of this composable.
-    withDI(state.di) {
+    VaultSessionContent(state.session) {
         NavigationNode(
             id = "main",
             route = MainRoute,
@@ -228,7 +228,7 @@ fun ManualAppScreen(
             mutableStateOf<VaultState>(VaultState.Loading)
         }
 
-        val appViewModel by rememberInstance<UnlockUseCase>()
+        val appViewModel = koinInject<UnlockUseCase>()
         val lifecycleFlow = LocalLifecycleStateFlow
         LaunchedEffect(appViewModel, lifecycleFlow) {
             appViewModel()

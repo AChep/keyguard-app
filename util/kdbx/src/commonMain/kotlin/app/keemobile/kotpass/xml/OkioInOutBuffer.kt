@@ -29,6 +29,10 @@ internal class OkioInOutBuffer(
     private var copyBuilder: StringBuilder? = null
     private var isCData = false
 
+    // XML 1.0 is the default, including while reading the declaration.
+    // Switch only after the parser has consumed an explicit XML 1.1 declaration.
+    internal var isXml11 = false
+
     init {
         if (charAt(0) == '\uFEFF') currentOffset = 1
     }
@@ -107,7 +111,8 @@ internal class OkioInOutBuffer(
             if (local !in 0 until inputLength) return -1
         }
         return when (val char = input[local]) {
-            '\r', '\u0085', '\u2028' -> '\n'.code
+            '\r' -> '\n'.code
+            '\u0085', '\u2028' -> if (isXml11) '\n'.code else char.code
             else -> char.code
         }
     }
@@ -121,7 +126,8 @@ internal class OkioInOutBuffer(
             if (local !in 0 until inputLength) return -1
         }
         return when (val char = input[local]) {
-            '\r', '\u0085', '\u2028' -> '\n'.code
+            '\r' -> '\n'.code
+            '\u0085', '\u2028' -> if (isXml11) '\n'.code else char.code
             else -> char.code
         }
     }
@@ -134,6 +140,17 @@ internal class OkioInOutBuffer(
         compact()
     }
 
+    override fun skipWS() {
+        // InOutBuffer's default also skips raw NEL and LS. Here peek() already
+        // exposes those as LF only when XML 1.1 normalization is enabled.
+        while (true) {
+            when (peek()) {
+                ' '.code, '\t'.code, '\n'.code, '\r'.code -> read()
+                else -> return
+            }
+        }
+    }
+
     override fun read(): Int {
         var local = currentOffset - inputBase
         if (local !in 0 until inputLength) {
@@ -142,7 +159,7 @@ internal class OkioInOutBuffer(
             if (local !in 0 until inputLength) return -1
         }
         val char = input[local]
-        if (char != '\r' && char != '\n' && char != '\u0085' && char != '\u2028') {
+        if (!char.isLineBreak()) {
             currentOffset++
             if (currentOffset - inputBase >= COMPACT_THRESHOLD) compact()
             return char.code
@@ -154,7 +171,7 @@ internal class OkioInOutBuffer(
         when (char) {
             '\r' -> {
                 val next = charAt(currentOffset + 1)
-                val hasSecond = next == '\n' || next == '\u0085'
+                val hasSecond = next == '\n' || (isXml11 && next == '\u0085')
                 normalizedLineBreak(currentOffset + if (hasSecond) 2 else 1)
                 '\n'.code
             }
@@ -267,7 +284,11 @@ internal class OkioInOutBuffer(
 
     private fun Char.isPlainTextChar(): Boolean =
         this != '<' && this != '&' && this != ']' &&
-            this != '\r' && this != '\n' && this != '\u0085' && this != '\u2028'
+            !isLineBreak()
+
+    private fun Char.isLineBreak(): Boolean =
+        this == '\r' || this == '\n' ||
+            (isXml11 && (this == '\u0085' || this == '\u2028'))
 
     private fun startsWith(value: String): Boolean {
         value.indices.forEach { index ->

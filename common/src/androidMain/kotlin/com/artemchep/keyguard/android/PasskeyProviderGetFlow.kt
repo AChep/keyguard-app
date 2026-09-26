@@ -6,26 +6,19 @@ import androidx.credentials.GetCredentialResponse
 import androidx.credentials.provider.ProviderGetCredentialRequest
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.model.AddCipherUsedPasskeyHistoryRequest
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.model.AddCipherUsedPasskeyHistoryRequest
 import com.artemchep.keyguard.common.usecase.AddCipherUsedPasskeyHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
+import com.artemchep.keyguard.di.resolveOrCancel
 import kotlinx.coroutines.flow.first
-import org.kodein.di.DirectDI
-import org.kodein.di.direct
-import org.kodein.di.instance
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 class PasskeyProviderGetFlow(
     private val getCredentialRequestUtils: PasskeyProviderGetRequest,
 ) {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        getCredentialRequestUtils = directDI.instance(),
-    )
 
     suspend fun processUnlockedVault(
         session: MasterSession.Key,
@@ -33,7 +26,7 @@ class PasskeyProviderGetFlow(
         args: PasskeyProviderGetActivityArgs,
         userVerified: Boolean,
     ): GetCredentialResponse {
-        val getCiphers = session.di.direct.instance<GetCiphers>()
+        val getCiphers = session.session.resolveOrCancel { get<GetCiphers>() }
         val ciphers = getCiphers()
             .first()
         val credential = findCredentialOrNull(
@@ -42,7 +35,7 @@ class PasskeyProviderGetFlow(
         )
         requireNotNull(credential)
 
-        val getPrivilegedApps = session.di.direct.instance<GetPrivilegedApps>()
+        val getPrivilegedApps = session.session.resolveOrCancel { get<GetPrivilegedApps>() }
         val privilegedApps = getPrivilegedApps()
             .first()
         return getCredentialRequestUtils.processGetCredentialsRequest(
@@ -57,7 +50,7 @@ class PasskeyProviderGetFlow(
         session: MasterSession.Key,
         args: PasskeyProviderGetActivityArgs,
     ) {
-        val addCipherUsedPasskey = session.di.direct.instance<AddCipherUsedPasskeyHistory>()
+        val addCipherUsedPasskey = session.session.resolveOrCancel { get<AddCipherUsedPasskeyHistory>() }
         addCipherUsedPasskey(
             AddCipherUsedPasskeyHistoryRequest(
                 accountId = args.accountId,

@@ -38,10 +38,12 @@ internal data class SpoolLimits(
     }
 }
 
+/** A supplied cancellation probe scopes the writer and its snapshots to that operation. */
 internal interface StagingSpoolFactory {
     fun create(
         purpose: StagingPurpose,
         limits: SpoolLimits,
+        checkCancellation: () -> Unit = {},
         limitExceeded: (maximumBytes: Long) -> Throwable,
     ): ByteStoreWriter
 }

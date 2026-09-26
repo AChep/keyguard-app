@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * Keeps Keyguard's credential-exchange export registration in sync with the exposed
@@ -49,14 +47,6 @@ class CredentialExchangeRegistrationWorker internal constructor(
     private val logRepository: LogRepository,
 ) : Wrker {
     private val targetApplier = CredentialExchangeRegistrationTargetApplier(registry)
-
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        registry = directDI.instance<CredentialExchangeRegistry>(),
-        exposedAccountRepository = directDI.instance(),
-        logRepository = directDI.instance(),
-    )
 
     override fun start(
         scope: CoroutineScope,

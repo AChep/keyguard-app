@@ -19,7 +19,9 @@ import com.artemchep.keyguard.util.io.atomic.SyncLevel
 import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
 import com.artemchep.keyguard.util.io.toLocalPath
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.Buffer
 import kotlinx.io.IOException
+import kotlinx.io.RawSource
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.asSink
@@ -44,6 +46,49 @@ import kotlin.time.Instant
 
 @Suppress("FunctionNaming")
 class EncryptedFilePendingUploadServiceJvmTest {
+    @Test
+    fun `stage accepts a caller owned plaintext stream`() = runTest {
+        val root = createTempDirectory("pending-upload-stream").toRealPath()
+        val service = pendingUploadService(dirProvider = singleDirProvider(root))
+        val bytes = "cross database attachment".encodeToByteArray()
+        val rawSource = CloseTrackingRawSource(bytes)
+        val source = rawSource.buffered()
+        val pending = service.stage(
+            accountId = "target-account",
+            namespace = "cipher_attachment_uploads",
+            fileId = "copy-attachment",
+            source = source,
+            fileKey = "key".encodeToByteArray(),
+        )
+        assertEquals(bytes.size.toLong(), pending.plainSize)
+        assertContentEquals(bytes, service.readPlaintext(pending, "key".encodeToByteArray()))
+        assertFalse(rawSource.closed)
+        source.close()
+        assertTrue(rawSource.closed)
+    }
+
+    @Test
+    fun `stage closes the source it opens from a uri`() = runTest {
+        val root = createTempDirectory("pending-upload-owned-source").toRealPath()
+        val rawSource = CloseTrackingRawSource("plain".encodeToByteArray())
+        val service = pendingUploadService(
+            dirProvider = singleDirProvider(root),
+            fileService = ManagedSourceFileService(
+                readSource = { rawSource.buffered() },
+            ),
+        )
+
+        service.stage(
+            accountId = "account-1",
+            namespace = "send_uploads",
+            fileId = "send-1",
+            sourceUri = "file:///unused",
+            fileKey = "key".encodeToByteArray(),
+        )
+
+        assertTrue(rawSource.closed)
+    }
+
     @Test
     fun `managed source remains reconstructible after file-only staging`() {
         val policy = SynchronizationPolicy.Prefer(
@@ -595,7 +640,9 @@ private fun scopedDirProvider(
     )
 }
 
-private class ManagedSourceFileService : FileService {
+private class ManagedSourceFileService(
+    private val readSource: ((String) -> Source)? = null,
+) : FileService {
     val deletedManagedSources = mutableListOf<String>()
     var readCalls: Int = 0
 
@@ -603,6 +650,7 @@ private class ManagedSourceFileService : FileService {
 
     override fun readFromFile(uri: String): Source {
         readCalls += 1
+        readSource?.let { factory -> return factory(uri) }
         return File(uri.toPath())
             .inputStream()
             .asSource()
@@ -632,6 +680,7 @@ private class CopyingFileEncryptionCodec : FileEncryptionCodec {
         input: Source,
         output: Sink,
         key: ByteArray,
+        checkCancellation: () -> Unit,
     ) {
         output.write(input.readByteArray())
     }
@@ -645,6 +694,7 @@ private class CopyingFileEncryptionCodec : FileEncryptionCodec {
         input: Source,
         output: Sink,
         key: ByteArray,
+        checkCancellation: () -> Unit,
     ): FileEncryptionCodec.EncryptionResult {
         val data = input.readByteArray()
         output.write(data)
@@ -693,6 +743,27 @@ private fun pendingUploadService(
     temporarySweeper = temporarySweeper,
     deleteArtifact = deleteArtifact,
 )
+
+private class CloseTrackingRawSource(
+    bytes: ByteArray,
+) : RawSource {
+    private val delegate = Buffer().apply { write(bytes) }
+
+    var closed: Boolean = false
+        private set
+
+    override fun readAtMostTo(
+        sink: Buffer,
+        byteCount: Long,
+    ): Long {
+        check(!closed) { "Source is closed" }
+        return delegate.readAtMostTo(sink, byteCount)
+    }
+
+    override fun close() {
+        closed = true
+    }
+}
 
 /** Staging directory provider that ignores the account and namespace. */
 private fun singleDirProvider(

@@ -8,7 +8,7 @@ import com.artemchep.keyguard.platform.LeContext
  * raw CXF payload.
  *
  * Only bound on platforms with a transfer broker, so consumers resolve it with
- * `instanceOrNull` and report the flow as unavailable when it is absent.
+ * optional injection and report the flow as unavailable when it is absent.
  */
 interface CredentialExchangeImportTransport {
     /**

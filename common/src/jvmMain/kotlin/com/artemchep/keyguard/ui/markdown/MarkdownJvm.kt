@@ -26,7 +26,7 @@ import com.halilibo.richtext.ui.resolveDefaults
 import com.halilibo.richtext.ui.string.RichTextStringStyle
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 actual class MarkdownDocument(
     internal val node: AstNode,
@@ -75,7 +75,7 @@ internal actual fun PlatformMarkdownText(
 private fun ProvideGracefulUriHandler(
     content: @Composable () -> Unit,
 ) {
-    val showMessage by rememberInstance<ShowMessage>()
+    val showMessage = koinInject<ShowMessage>()
 
     val updatedContext by rememberUpdatedState(LocalLeContext)
     val updatedUriHandler by rememberUpdatedState(LocalUriHandler.current)

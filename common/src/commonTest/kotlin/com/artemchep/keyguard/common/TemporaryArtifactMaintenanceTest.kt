@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.UpdateVersionLog
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
@@ -12,14 +13,6 @@ import com.artemchep.keyguard.util.io.FileSystemFailureKind
 import com.artemchep.keyguard.util.io.LocalPath
 import com.artemchep.keyguard.util.io.artifact.SweepReport
 import com.artemchep.keyguard.util.io.artifact.SweepStatus
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.runCurrent
-import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -30,6 +23,14 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TemporaryArtifactMaintenanceTest {
@@ -37,6 +38,8 @@ class TemporaryArtifactMaintenanceTest {
     fun `app worker schedules maintenance once after its startup delay`() = runTest {
         var maintenanceCalls = 0
         val worker = AppWorkerIm(
+            appWorkerSessionAccess = testDomainSessionAccess(),
+            pendingUsageHistorySessionAccess = testDomainSessionAccess(),
             getVaultSession = EmptyGetVaultSession,
             updateVersionLog = NoOpUpdateVersionLog,
             temporaryArtifactMaintenance = TemporaryArtifactMaintenance {

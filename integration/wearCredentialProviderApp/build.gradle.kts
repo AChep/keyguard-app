@@ -1,25 +1,23 @@
+import com.artemchep.keyguard.buildplugins.android.enableCoreLibraryDesugaring
+
 plugins {
+    id("keyguard.quality")
     alias(libs.plugins.android.application)
+    id("keyguard.android-application")
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)
-    alias(libs.plugins.ktlint)
 }
 
 android {
     namespace = "com.artemchep.keyguard.integration.wearcredentialproviderapp"
-    compileSdk = libs.versions.androidCompileSdk.get().toInt()
+    enableCoreLibraryDesugaring(project)
 
     defaultConfig {
         applicationId = "com.artemchep.keyguard.integration.wearcredentialproviderapp"
         minSdk = 30
-        targetSdk = libs.versions.androidTargetSdk.get().toInt()
 
         versionCode = 1
         versionName = "1.0"
-    }
-
-    compileOptions {
-        isCoreLibraryDesugaringEnabled = true
     }
 
     buildTypes {
@@ -33,8 +31,6 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.android.desugarjdklibs)
-
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
@@ -50,8 +46,4 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation(libs.junit)
-}
-
-kotlin {
-    jvmToolchain(libs.versions.jdk.get().toInt())
 }

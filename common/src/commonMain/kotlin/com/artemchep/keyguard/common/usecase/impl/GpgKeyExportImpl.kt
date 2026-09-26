@@ -4,28 +4,18 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.dirs.DirsService
-import com.artemchep.keyguard.util.zip.ZipConfig
-import com.artemchep.keyguard.util.zip.ZipEntry
-import com.artemchep.keyguard.util.zip.ZipService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GpgKeyExport
 import com.artemchep.keyguard.util.io.writeText
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import com.artemchep.keyguard.util.zip.ZipConfig
+import com.artemchep.keyguard.util.zip.ZipEntry
+import com.artemchep.keyguard.util.zip.ZipService
 
 class GpgKeyExportImpl(
     private val dirsService: DirsService,
     private val zipService: ZipService,
     private val dateFormatter: DateFormatter,
 ) : GpgKeyExport {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        dirsService = directDI.instance(),
-        zipService = directDI.instance(),
-        dateFormatter = directDI.instance(),
-    )
-
     override fun invoke(
         request: GpgKeyExport.Request,
     ): IO<String?> = ioEffect {

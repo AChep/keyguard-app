@@ -30,8 +30,8 @@ import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -39,9 +39,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import org.koin.compose.currentKoinScope
 
 private const val DEFAULT_PASSWORD = ""
 
@@ -54,14 +52,14 @@ private const val PROMPT_SHARE_TIMEOUT_MS = 5000L
 @Composable
 fun produceUserVerificationState(
     onAuthenticated: () -> Unit,
-): UserVerificationState = with(localDI().direct) {
+): UserVerificationState = with(currentKoinScope()) {
     produceUserVerificationState(
         onAuthenticated = onAuthenticated,
-        biometricStatusUseCase = instance(),
-        getBiometricRequireConfirmation = instance(),
-        confirmAccessByPasswordUseCase = instance(),
-        confirmAccessByYubiKeyUseCase = instance(),
-        windowCoroutineScope = instance(),
+        biometricStatusUseCase = get(),
+        getBiometricRequireConfirmation = get(),
+        confirmAccessByPasswordUseCase = get(),
+        confirmAccessByYubiKeyUseCase = get(),
+        windowCoroutineScope = get(),
     )
 }
 

@@ -42,7 +42,6 @@
 // import com.google.accompanist.permissions.PermissionStatus
 // import com.google.accompanist.permissions.rememberPermissionState
 // import kotlinx.coroutines.flow.map
-// import org.kodein.di.compose.rememberInstance
 //
 // @OptIn(ExperimentalPermissionsApi::class)
 // @Composable
@@ -50,7 +49,7 @@
 //    modifier: Modifier = Modifier,
 //    contentModifier: Modifier = Modifier,
 // ) {
-//    val getInstant by rememberInstance<GetOnboardingLastVisitInstant>()
+//    val getInstant = koinInject<GetOnboardingLastVisitInstant>()
 //    val visible = remember(getInstant) {
 //        getInstant()
 //            .map { it == null }
@@ -75,7 +74,7 @@
 //
 // @Composable
 // fun rememberOnboardingBannerState(): State<Boolean> {
-//    val getInstant by rememberInstance<GetOnboardingLastVisitInstant>()
+//    val getInstant = koinInject<GetOnboardingLastVisitInstant>()
 //    val bannerState = remember(getInstant) {
 //        getInstant()
 //            .map { it == null }

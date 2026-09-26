@@ -9,8 +9,6 @@ import com.artemchep.keyguard.common.usecase.PutProfileHidden
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.hidden
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyProfileById
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -18,10 +16,6 @@ import org.kodein.di.instance
 class PutProfileHiddenImpl(
     private val modifyProfileById: ModifyProfileById,
 ) : PutProfileHidden {
-    constructor(directDI: DirectDI) : this(
-        modifyProfileById = directDI.instance(),
-    )
-
     override fun invoke(
         request: PutProfileHiddenRequest,
     ): IO<Boolean> = ioEffect {

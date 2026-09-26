@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec
 
+import app.keemobile.kotpass.models.BinaryData
+import app.keemobile.kotpass.models.BinaryReference
 import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.XmlExtension
 import app.keemobile.kotpass.models.XmlExtensionContent
@@ -15,6 +17,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestPasswordStren
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestUnusedFileService
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.buildEntry
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.createTestCipherCodec
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBase32Service
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBase64Service
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testCryptoGenerator
@@ -26,6 +29,7 @@ import kotlinx.coroutines.test.runTest
 import java.security.MessageDigest
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
@@ -272,6 +276,99 @@ class KeePassCipherCodecTest {
 class KeePassCipherCodecAttachmentTest {
 
     @Test
+    fun `decode preserves compressed text and raw gzip with the same stored bytes`() = runTest {
+        val text = "compressed text attachment".encodeToByteArray()
+        val compressed = BinaryData.Uncompressed(false, text).toCompressed()
+        val raw = BinaryData.Uncompressed(false, compressed.rawContent)
+        val attachments = listOf(
+            remoteAttachment("text-id", "document.txt", text),
+            remoteAttachment("gzip-id", "document.txt.gz", raw.getContent()),
+        )
+        val remote = buildEntry().copy(
+            binaries = listOf(
+                BinaryReference(compressed.hash, "document.txt"),
+                BinaryReference(raw.hash, "document.txt.gz"),
+            ),
+        )
+        val local = testBitwardenCipher(cipherId = remote.uuid.toString()).copy(
+            attachments = attachments,
+        )
+
+        for (binaries in listOf(listOf(compressed, raw), listOf(raw, compressed))) {
+            val decoded = createCodec().decode(
+                accountId = local.accountId,
+                folderId = null,
+                cipherId = local.cipherId,
+                remote = remote,
+                local = local,
+                revisionDate = REVISION_DATE,
+                binaries = binaries.associateBy { it.hash },
+            )
+
+            // Existing IDs and hashref URLs belong to logical contents, while
+            // KDBX references use the distinct storage identities.
+            assertEquals(attachments, decoded.attachments)
+        }
+    }
+
+    @Test
+    fun `encode keeps compressed text when uploading its raw gzip bytes`() = runTest {
+        val text = "compressed text attachment".encodeToByteArray()
+        val compressed = BinaryData.Uncompressed(false, text).toCompressed()
+        val gzip = compressed.rawContent
+        val existingAttachment = remoteAttachment("text-id", "document.txt", text)
+        val pendingUpload = PendingUploadFile(
+            path = "/private/pending/document.txt.gz",
+            plainSize = gzip.size.toLong(),
+            encryptedSize = gzip.size.toLong() + 49L,
+        )
+        val staged = stagedAttachmentCipher(
+            pendingUpload = pendingUpload,
+            attachmentKey = "attachment-key".encodeToByteArray(),
+        )
+        val upload = (staged.attachments.single() as BitwardenCipher.Attachment.Local).copy(
+            fileName = "document.txt.gz",
+        )
+        val local = staged.copy(attachments = listOf(existingAttachment, upload))
+        val remote = buildEntry().copy(
+            binaries = listOf(BinaryReference(compressed.hash, existingAttachment.fileName)),
+        )
+        val existingBinaries = mapOf(compressed.hash to compressed)
+        val codec = createCodec(ReadingPendingUploadCoordinator(gzip))
+
+        val encoded = codec.encode(
+            local = local,
+            remote = remote,
+            existingBinaries = existingBinaries,
+        )
+
+        val expectedAttachments = listOf(
+            existingAttachment,
+            remoteAttachment(upload.id, upload.fileName, gzip),
+        )
+        val binaries = existingBinaries + encoded.binaryAdditions
+        assertEquals(expectedAttachments, encoded.attachments)
+        assertEquals(1, encoded.binaryAdditions.size)
+        assertEquals(2, binaries.size)
+        assertEquals(expectedAttachments.map { it.fileName }, encoded.entry.binaries.map { it.name })
+        val references = encoded.entry.binaries.associateBy { it.name }
+        assertEquals(compressed.hash, references.getValue("document.txt").hash)
+        assertContentEquals(text, binaries.getValue(references.getValue("document.txt").hash).getContent())
+        assertContentEquals(gzip, binaries.getValue(references.getValue("document.txt.gz").hash).getContent())
+
+        val decoded = codec.decode(
+            accountId = local.accountId,
+            folderId = null,
+            cipherId = local.cipherId,
+            remote = encoded.entry,
+            local = local.copy(attachments = encoded.attachments),
+            revisionDate = REVISION_DATE,
+            binaries = binaries,
+        )
+        assertEquals(expectedAttachments, decoded.attachments)
+    }
+
+    @Test
     fun `encode reads a staged attachment when the original uri is unavailable`() = runTest {
         val data = "staged attachment".encodeToByteArray()
         val pendingUpload = PendingUploadFile(
@@ -353,6 +450,22 @@ class KeePassCipherCodecAttachmentTest {
         }
 
         assertKeyCleared(pendingUploadCoordinator.readFileKeyRefs.single())
+    }
+
+    private fun remoteAttachment(
+        id: String,
+        name: String,
+        content: ByteArray,
+    ): BitwardenCipher.Attachment.Remote {
+        val hash = AttachmentCryptoGenerator.hashSha256(content)
+        val encodedHash = testBase32Service.encodeToString(hash).trimEnd('=')
+        return BitwardenCipher.Attachment.Remote(
+            id = id,
+            url = "hashref://$encodedHash",
+            fileName = name,
+            keyBase64 = "",
+            size = content.size.toLong(),
+        )
     }
 
 }

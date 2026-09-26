@@ -29,29 +29,29 @@ import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
+import com.artemchep.keyguard.di.KeyguardKoinOwner
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnCreate
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnLoading
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnUnlock
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.recordLog
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.theme.Dimens
-import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.Clock
-import org.kodein.di.*
+import org.jetbrains.compose.resources.stringResource
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-class CredentialGetUnlockActivity : BaseActivity(), DIAware {
-    private val getVaultSession by instance<GetVaultSession>()
+class CredentialGetUnlockActivity : BaseActivity(), KeyguardKoinOwner {
+    private val getVaultSession by lazy { koin.get<GetVaultSession>() }
 
-    private val passkeyBeginGetUnlockFlow by instance<PasskeyBeginGetUnlockFlow>()
+    private val passkeyBeginGetUnlockFlow by lazy { koin.get<PasskeyBeginGetUnlockFlow>() }
 
     @SuppressLint("RestrictedApi")
     override fun onCreate(savedInstanceState: Bundle?) {

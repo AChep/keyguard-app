@@ -87,6 +87,8 @@ private class LimitedXmlReader(
     override fun next(): EventType {
         val event = delegate.next()
         when (event) {
+            EventType.START_DOCUMENT -> input.isXml11 = delegate.version == "1.1"
+
             EventType.DOCDECL ->
                 throw FormatError.InvalidXml("Document type declarations are not allowed.")
 
@@ -120,6 +122,17 @@ private class LimitedXmlReader(
             }
 
             else -> Unit
+        }
+        return event
+    }
+
+    override fun nextTag(): EventType {
+        var event = next()
+        while (event.isIgnorable || (event == EventType.TEXT && isWhitespace())) {
+            event = next()
+        }
+        if (event != EventType.START_ELEMENT && event != EventType.END_ELEMENT) {
+            throw FormatError.InvalidXml("Expected an XML start or end element, got $event.")
         }
         return event
     }
@@ -337,7 +350,7 @@ internal fun writeXml(
     output.flush()
 }
 
-private class BufferedSinkWriter(
+internal class BufferedSinkWriter(
     private val sink: BufferedSink,
 ) : Appendable {
     private val pending = StringBuilder(8_192)
@@ -370,8 +383,14 @@ private class BufferedSinkWriter(
 
     private fun flushIfNeeded() {
         if (pending.length >= 8_192) {
-            sink.writeUtf8(pending.toString())
+            // Encoding UTF-16 surrogate halves in separate UTF-8 writes replaces
+            // each half with '?', permanently losing the original character.
+            // Keep a trailing high surrogate until the next append completes it.
+            val trailingHighSurrogate = pending.last().takeIf { it.isHighSurrogate() }
+            val endIndex = pending.length - if (trailingHighSurrogate != null) 1 else 0
+            sink.writeUtf8(pending.toString(), 0, endIndex)
             pending.clear()
+            if (trailingHighSurrogate != null) pending.append(trailingHighSurrogate)
         }
     }
 }

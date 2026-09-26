@@ -20,20 +20,18 @@ import com.artemchep.keyguard.res.connected_crypto_apps_revoke_message
 import com.artemchep.keyguard.res.connected_crypto_apps_revoke_title
 import com.artemchep.keyguard.res.connected_crypto_apps_unknown
 import com.artemchep.keyguard.ui.icons.icon
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
-import kotlin.time.Instant
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun produceConnectedCryptoAppsState(): Loadable<ConnectedCryptoAppsState> =
-    with(localDI().direct) {
+    with(currentKoinScope()) {
         produceConnectedCryptoAppsState(
-            registrations = instance(),
-            dateFormatter = instance(),
-            confirmationRouteFactory = instance(),
+            registrations = get(),
+            dateFormatter = get(),
+            confirmationRouteFactory = get(),
         )
     }
 

@@ -158,7 +158,9 @@ Installed ${BINARY_NAME} to ${REMOTE_PATH}
 Finish installation from a Termux shell:
   termux-setup-storage
   install -m 755 "${REMOTE_PATH}" "\$PREFIX/bin/${BINARY_NAME}"
-  eval "\$("\$PREFIX/bin/${BINARY_NAME}" -a "\$PREFIX/tmp/keyguard-ssh-agent.sock")"
+  if [ -x "\$PREFIX/bin/${BINARY_NAME}" ]; then
+    eval "\$("\$PREFIX/bin/${BINARY_NAME}" --ensure -a "\$PREFIX/tmp/keyguard-ssh-agent.sock")"
+  fi
 
 Then verify inside Termux:
   ssh-add -L

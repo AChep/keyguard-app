@@ -5,8 +5,6 @@ import com.artemchep.keyguard.common.usecase.GetAutofillSaveRequest
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetAutofillSaveRequestImpl(
     settingsReadRepository: SettingsReadRepository,
@@ -14,11 +12,6 @@ class GetAutofillSaveRequestImpl(
 ) : GetAutofillSaveRequest {
     private val sharedFlow = settingsReadRepository.getAutofillSaveRequest()
         .distinctUntilChanged()
-
-    constructor(directDI: DirectDI) : this(
-        settingsReadRepository = directDI.instance(),
-        getCanWrite = directDI.instance(),
-    )
 
     override fun invoke() = combine(
         sharedFlow,

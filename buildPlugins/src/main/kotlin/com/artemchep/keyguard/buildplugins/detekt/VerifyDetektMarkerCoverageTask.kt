@@ -82,7 +82,7 @@ abstract class VerifyDetektMarkerCoverageTask : DefaultTask() {
             .mapNotNull { file ->
                 if (!file.isFile) return@mapNotNull null
                 val text = file.readText()
-                val found = needles.filter { it in text }
+                val found = needles.filter { containsDetektApiMarker(text, it) }
                 if (found.isEmpty()) null else MarkerFile(file, found)
             }
             .map { it to root.relativize(it.file.toPath()).toString().replace('\\', '/') }
@@ -123,3 +123,7 @@ abstract class VerifyDetektMarkerCoverageTask : DefaultTask() {
         val found: List<String>,
     )
 }
+
+/** Match whole API names, including references, without selecting helpers such as removeLastOrNull. */
+internal fun containsDetektApiMarker(text: String, marker: String): Boolean =
+    Regex("\\b${Regex.escape(marker)}\\b").containsMatchIn(text)

@@ -14,7 +14,6 @@ import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.feature.keyguard.AppRoute
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.platform.recordLog
-import org.kodein.di.instance
 
 class MainActivity : BaseActivity() {
     companion object {
@@ -23,7 +22,7 @@ class MainActivity : BaseActivity() {
         ): Intent = Intent(context, MainActivity::class.java)
     }
 
-    private val deeplinkService by instance<DeeplinkService>()
+    private val deeplinkService by lazy { koin.get<DeeplinkService>() }
 
     @Composable
     override fun Content() {

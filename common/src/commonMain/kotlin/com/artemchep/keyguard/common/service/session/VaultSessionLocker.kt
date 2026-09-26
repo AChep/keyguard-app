@@ -9,8 +9,8 @@ import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeout
 import com.artemchep.keyguard.feature.localization.TextHolder
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.suspendCancellableCoroutine
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class VaultSessionLocker(
     val getVaultLockAfterTimeout: GetVaultLockAfterTimeout,
@@ -63,12 +61,6 @@ class VaultSessionLocker(
                 .launchIn(scope)
         }
     }.shareIn(scope, SharingStarted.WhileSubscribed(DEBOUNCE_MS))
-
-    constructor(directDI: DirectDI) : this(
-        getVaultLockAfterTimeout = directDI.instance(),
-        clearVaultSession = directDI.instance(),
-        scope = GlobalScope,
-    )
 
     suspend fun keepAlive() {
         keepAliveFlow.collect()

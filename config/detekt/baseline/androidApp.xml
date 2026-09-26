@@ -22,6 +22,5 @@
     <ID>WildcardImport:Main.kt:import com.artemchep.keyguard.common.usecase.*</ID>
     <ID>WildcardImport:Main.kt:import kotlinx.coroutines.*</ID>
     <ID>WildcardImport:Main.kt:import kotlinx.coroutines.flow.*</ID>
-    <ID>WildcardImport:Main.kt:import org.kodein.di.*</ID>
   </CurrentIssues>
 </SmellBaseline>

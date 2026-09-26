@@ -6,24 +6,25 @@ import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
+import com.artemchep.keyguard.common.service.vault.testVaultSession
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
-import org.kodein.di.DI
-import org.kodein.di.bindSingleton
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
-import kotlin.time.Instant
 
 class DownloadAttachmentSourceLoaderTest {
     @Test
     fun `keepass request reports retryable failure while vault is unavailable`() = runTest {
         val loader = DownloadAttachmentSourceLoaderImpl(
+            sessionAccess = testDomainSessionAccess(),
             downloadTask = UnusedDownloadTask,
             getVaultSession = TestGetVaultSession(MasterSession.Empty()),
         )
@@ -44,6 +45,7 @@ class DownloadAttachmentSourceLoaderTest {
         val secondLoader = RecordingKeePassAttachmentSourceLoader("second")
         val vaultSession = TestGetVaultSession(session(firstLoader))
         val loader = DownloadAttachmentSourceLoaderImpl(
+            sessionAccess = testDomainSessionAccess(),
             downloadTask = UnusedDownloadTask,
             getVaultSession = vaultSession,
         )
@@ -67,8 +69,8 @@ class DownloadAttachmentSourceLoaderTest {
             version = MasterKdfVersion.V0,
             byteArray = byteArrayOf(1, 2, 3),
         ),
-        di = DI {
-            bindSingleton<KeePassAttachmentSourceLoader> {
+        session = testVaultSession {
+            scoped<KeePassAttachmentSourceLoader> {
                 loader
             }
         },

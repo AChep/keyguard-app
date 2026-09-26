@@ -16,7 +16,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOf
-import org.kodein.di.compose.rememberInstance
+import org.koin.compose.koinInject
 
 /**
  * Shared navigation host for Wear activities.
@@ -34,7 +34,7 @@ fun WearNavigationHost(
     onBackPressedDispatcher = onBackPressedDispatcher,
 ) {
     val context = LocalContext.current
-    val showMessage by rememberInstance<ShowMessage>()
+    val showMessage = koinInject<ShowMessage>()
     NavigationController(
         scope = scope,
         canPop = flowOf(false),

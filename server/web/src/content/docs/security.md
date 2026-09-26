@@ -28,8 +28,7 @@ How the local copy on your device is protected, layer by layer:
 - **The vault key stays in memory by default.** Unless you enable the
   [persist vault key](/docs/lock-and-unlock/#auto-lock) option, the key that
   opens the database exists only in RAM — unloading the app locks the
-  vault. The option's trade-off is documented both here and in the app
-  itself.
+  vault. The option's trade-off is documented both here and in the app.
 - **A small side database holds only non-secret data.** Next to the main
   database, Keyguard keeps a second store for the few things that should be
   readable without unlocking the vault: the *public* halves of your SSH
@@ -43,7 +42,7 @@ How the local copy on your device is protected, layer by layer:
 
 ## Reporting a vulnerability
 
-Normally, issues can be filed directly in the public GitHub issue tracker, but if you believe there is a security impact, 
+Normally, issues can be filed directly in the public GitHub issue tracker, but if you suspect a security flaw, 
 please contact me at keyguard@artemchep.com instead.
 
 The email subject format should be: `[Security Vulnerability] <Title>`. 

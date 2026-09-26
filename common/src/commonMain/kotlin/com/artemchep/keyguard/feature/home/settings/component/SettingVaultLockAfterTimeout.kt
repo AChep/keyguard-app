@@ -18,28 +18,27 @@ import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExp
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.format
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.icon
-import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.flow.combine
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 import kotlin.time.Duration
+import kotlinx.coroutines.flow.combine
+import org.jetbrains.compose.resources.stringResource
+import org.koin.core.scope.Scope
 
 fun settingVaultLockAfterTimeoutProvider(
-    directDI: DirectDI,
+    koinScope: Scope,
 ) = settingVaultLockAfterTimeoutProvider(
-    getVaultLockAfterTimeout = directDI.instance(),
-    getVaultLockAfterTimeoutVariants = directDI.instance(),
-    putVaultLockAfterTimeout = directDI.instance(),
-    windowCoroutineScope = directDI.instance(),
-    context = directDI.instance(),
+    getVaultLockAfterTimeout = koinScope.get(),
+    getVaultLockAfterTimeoutVariants = koinScope.get(),
+    putVaultLockAfterTimeout = koinScope.get(),
+    windowCoroutineScope = koinScope.get(),
+    context = koinScope.get(),
 )
 
 fun settingVaultLockAfterTimeoutProvider(

@@ -34,8 +34,6 @@ import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenReposito
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 internal class AttachmentMetadataData(
     val source: DownloadAttachmentRequestData.Source,
@@ -67,19 +65,6 @@ class DownloadAttachmentMetadataBitwardenImpl(
     /** Lets the JVM caller preserve its UnknownHostException rethrow. */
     private val shouldRethrow: (Throwable) -> Boolean = { false },
 ) : DownloadAttachmentMetadata {
-    constructor(directDI: DirectDI) : this(
-        tokenRepository = directDI.instance(),
-        cipherRepository = directDI.instance(),
-        profileRepository = directDI.instance(),
-        organizationRepository = directDI.instance(),
-        databaseManager = directDI.instance(),
-        cipherEncryptor = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
-        json = directDI.instance(),
-        httpClient = directDI.instance(),
-    )
-
     override fun invoke(
         request: DownloadAttachmentRequest,
     ): IO<DownloadAttachmentRequestData> = when (request) {

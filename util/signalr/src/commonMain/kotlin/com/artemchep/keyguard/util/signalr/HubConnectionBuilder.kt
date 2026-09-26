@@ -39,7 +39,13 @@ class HubConnectionConfig {
     var json: Json = Json
     var logger: Logger = Logger.Empty
     var serverTimeout: Duration = DEFAULT_SERVER_TIMEOUT.milliseconds
+
+    /**
+     * Interval between keepalive pings. [Duration.INFINITE] disables pings.
+     * Nonpositive values cause [hubConnection] to throw [IllegalArgumentException].
+     */
     var keepAliveInterval: Duration = DEFAULT_KEEP_ALIVE_INTERVAL.milliseconds
+
     var closeTimeout: Duration = 5.seconds
     var eventBufferCapacity: Int = DEFAULT_EVENT_BUFFER_CAPACITY
 }

@@ -44,12 +44,14 @@ internal class DefaultStagingSpoolFactory private constructor(
     override fun create(
         purpose: StagingPurpose,
         limits: SpoolLimits,
+        checkCancellation: () -> Unit,
         limitExceeded: (maximumBytes: Long) -> Throwable,
     ): ByteStoreWriter {
         val spool = AdaptiveSpool(
             memoryLimitBytes = limits.memoryBytes,
             maximumBytes = limits.maximumBytes,
-            spillFactory = purpose.spillFactory(),
+            spillFactory = purpose.spillFactory(checkCancellation),
+            checkCancellation = checkCancellation,
             limitExceeded = limitExceeded,
         )
         return ObservedStagingSpool(
@@ -59,7 +61,7 @@ internal class DefaultStagingSpoolFactory private constructor(
         )
     }
 
-    private fun StagingPurpose.spillFactory(): ByteStoreFactory = when (this) {
+    private fun StagingPurpose.spillFactory(checkCancellation: () -> Unit): ByteStoreFactory = when (this) {
         StagingPurpose.FileCiphertext,
         StagingPurpose.KeePassDatabase,
         -> ByteStoreFactory {
@@ -71,7 +73,10 @@ internal class DefaultStagingSpoolFactory private constructor(
         StagingPurpose.OpenPgpPlaintext,
         StagingPurpose.KeePassAttachmentPlaintext,
         -> ByteStoreFactory {
-            EncryptedTemporarySpillStorage.create(scratchStorageFactory())
+            EncryptedTemporarySpillStorage.create(
+                storage = scratchStorageFactory(),
+                checkCancellation = checkCancellation,
+            )
         }
     }
 

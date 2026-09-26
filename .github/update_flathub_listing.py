@@ -129,12 +129,16 @@ def read_releases_as_bs4(releases_file):
 logger.info("Replacing releases:")
 releases_el = soup.find('keyguard_releases')
 if releases_el:
-    replacement_soup = read_releases_as_bs4(args.releases_file)
-    replacement_node = replacement_soup.find()
-    if replacement_node:
-        # Swap the old element with the new structure
-        releases_el.replace_with(replacement_node)
-        logger.info("  ✅")
+    if args.releases_file:
+        replacement_soup = read_releases_as_bs4(args.releases_file)
+        replacement_node = replacement_soup.find()
+        if replacement_node:
+            # Swap the old element with the new structure
+            releases_el.replace_with(replacement_node)
+            logger.info("  ✅")
+    else:
+        # Manual builds do not supply release history.
+        releases_el.decompose()
 logger.info("…done!")
 
 

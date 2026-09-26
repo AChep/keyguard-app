@@ -10,19 +10,12 @@ import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.feature.favicon.GravatarUrl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class GetGravatarUrlImpl(
     private val cryptoGenerator: CryptoGenerator,
     private val getGravatar: GetGravatar,
 ) : GetGravatarUrl {
     private val emailPlusAddressingRegex = "\\+.+(?=@)".toRegex()
-
-    constructor(directDI: DirectDI) : this(
-        cryptoGenerator = directDI.instance(),
-        getGravatar = directDI.instance(),
-    )
 
     override fun invoke(
         email: String,

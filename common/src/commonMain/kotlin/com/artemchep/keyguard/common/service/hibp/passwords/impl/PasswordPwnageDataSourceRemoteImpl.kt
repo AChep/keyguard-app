@@ -10,8 +10,6 @@ import com.artemchep.keyguard.common.service.hibp.HibpRepository
 import com.artemchep.keyguard.common.service.hibp.passwords.PasswordPwnageDataSourceRemote
 import com.artemchep.keyguard.common.util.toHex
 import kotlinx.coroutines.Dispatchers
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -20,11 +18,6 @@ class PasswordPwnageDataSourceRemoteImpl(
     private val cryptoGenerator: CryptoGenerator,
     private val hibpRepository: HibpRepository,
 ) : PasswordPwnageDataSourceRemote {
-    constructor(directDI: DirectDI) : this(
-        cryptoGenerator = directDI.instance(),
-        hibpRepository = directDI.instance(),
-    )
-
     override fun check(
         password: String,
     ): IO<PasswordPwnage> = ioEffect(Dispatchers.Default) {

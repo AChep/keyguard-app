@@ -1,0 +1,19 @@
+[package]
+name = "keyguard-instance-jni"
+description = "JNI adapter for Keyguard application instance coordination"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+jni.workspace = true
+keyguard-instance-core = { path = "../keyguard-instance-core" }
+
+[lints]
+workspace = true

@@ -158,9 +158,10 @@ class CryptoContractTest {
 
     @Test
     fun hmacStateOutOfRangeUpdateThrows() {
-        val s2 = createHmacSha256("k".encodeToByteArray())
-        assertFailsWith<IllegalArgumentException> {
-            s2.update("ab".encodeToByteArray(), 0, 5)
+        createHmacSha256("k".encodeToByteArray()).use { state ->
+            assertFailsWith<IllegalArgumentException> {
+                state.update("ab".encodeToByteArray(), 0, 5)
+            }
         }
     }
 

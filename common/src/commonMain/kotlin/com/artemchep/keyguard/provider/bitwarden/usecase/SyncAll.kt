@@ -11,8 +11,6 @@ import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenReposito
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
@@ -25,12 +23,6 @@ class SyncAllImpl(
     companion object {
         private const val TAG = "SyncAll"
     }
-
-    constructor(directDI: DirectDI) : this(
-        logRepository = directDI.instance(),
-        tokenRepository = directDI.instance(),
-        syncByToken = directDI.instance(),
-    )
 
     override fun invoke() = tokenRepository.getSnapshot()
         .flatMap { tokens ->

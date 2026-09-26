@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AccountId
+import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DSecret
@@ -19,15 +20,17 @@ import com.artemchep.keyguard.common.usecase.AddFolderRequest
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetFolders
+import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.MergeFolderById
 import com.artemchep.keyguard.common.usecase.RemoveFolderById
 import com.artemchep.keyguard.common.usecase.RenameFolderById
 import com.artemchep.keyguard.common.usecase.ResolveFolderHierarchyMode
+import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.core.store.bitwarden.exists
-import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
@@ -42,8 +45,8 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.canDelete
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.canEdit
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -52,44 +55,45 @@ import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.kodein.di.DirectDI
-import org.kodein.di.compose.localDI
-import org.kodein.di.direct
-import org.kodein.di.instance
+import kotlinx.coroutines.launch
+import org.koin.compose.currentKoinScope
 
 @Composable
 fun foldersScreenState(
     args: FoldersRoute.Args,
-) = with(localDI().direct) {
+) = with(currentKoinScope()) {
     foldersScreenState(
         args = args,
-        directDI = this,
-        getFolders = instance(),
-        getCiphers = instance(),
-        getCanWrite = instance(),
-        addFolder = instance(),
-        resolveFolderHierarchyMode = instance(),
-        mergeFolderById = instance(),
-        removeFolderById = instance(),
-        renameFolderById = instance(),
-        foldersRouteFactory = instance(),
-        vaultRouteFactory = instance(),
+        filterContext = get(),
+        confirmationRouteFactory = get(),
+        getFolders = get(),
+        getCiphers = get(),
+        getProfiles = get(),
+        getCanWrite = get(),
+        addFolder = get(),
+        resolveFolderHierarchyMode = get(),
+        mergeFolderById = get(),
+        removeFolderById = get(),
+        renameFolderById = get(),
+        foldersRouteFactory = get(),
+        vaultRouteFactory = get(),
     )
 }
 
 @Composable
 fun foldersScreenState(
     args: FoldersRoute.Args,
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     getFolders: GetFolders,
     getCiphers: GetCiphers,
+    getProfiles: GetProfiles,
     getCanWrite: GetCanWrite,
     addFolder: AddFolder,
     resolveFolderHierarchyMode: ResolveFolderHierarchyMode,
@@ -105,6 +109,7 @@ fun foldersScreenState(
         args,
         getFolders,
         getCiphers,
+        getProfiles,
         getCanWrite,
         addFolder,
         resolveFolderHierarchyMode,
@@ -115,9 +120,11 @@ fun foldersScreenState(
 ) {
     foldersScreenStateProducer(
         args = args,
-        directDI = directDI,
+        filterContext = filterContext,
+        confirmationRouteFactory = confirmationRouteFactory,
         getFolders = getFolders,
         getCiphers = getCiphers,
+        getProfiles = getProfiles,
         getCanWrite = getCanWrite,
         addFolder = addFolder,
         resolveFolderHierarchyMode = resolveFolderHierarchyMode,
@@ -131,9 +138,11 @@ fun foldersScreenState(
 
 suspend fun RememberStateFlowScope.foldersScreenStateProducer(
     args: FoldersRoute.Args,
-    directDI: DirectDI,
+    filterContext: CipherFilterContext,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     getFolders: GetFolders,
     getCiphers: GetCiphers,
+    getProfiles: GetProfiles,
     getCanWrite: GetCanWrite,
     addFolder: AddFolder,
     resolveFolderHierarchyMode: ResolveFolderHierarchyMode,
@@ -143,7 +152,6 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
     foldersRouteFactory: FoldersRouteFactory,
     vaultRouteFactory: VaultRouteFactory,
 ): Flow<FoldersState> {
-    val confirmationRouteFactory: ConfirmationRouteFactory = directDI.instance()
 
     data class NodeWithCiphers(
         val node: FolderBrowseNode,
@@ -168,13 +176,24 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
         AlphabeticalSort.compareStr(a.name, b.name)
     }
     val foldersFilter = args.filter ?: DFilter.All
-    val foldersFlow = getFolders()
+    // Same hidden-account gate as the Watchtower counts that
+    // open this screen: hidden accounts are excluded unless the
+    // filter explicitly targets an entity by its identifier.
+    val foldersFlow = filterHiddenProfiles(
+        getFolders = getFolders,
+        getProfiles = getProfiles,
+        filter = args.filter,
+    )
         .map { folders ->
             folders
                 .sortedWith(foldersComparator)
         }
         .shareIn(screenScope, SharingStarted.Lazily, replay = 1)
-    val ciphersByFolderFlow = getCiphers()
+    val ciphersByFolderFlow = filterHiddenProfiles(
+        getCiphers = getCiphers,
+        getProfiles = getProfiles,
+        filter = args.filter,
+    )
         .map { ciphers ->
             ciphers
                 .filter { it.deletedDate == null }
@@ -183,7 +202,7 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
         .shareIn(screenScope, SharingStarted.Lazily, replay = 1)
     val visibleFolderIdsFlow = foldersFlow
         .combine(ciphersByFolderFlow) { folders, ciphersByFolder ->
-            val predicate = foldersFilter.prepareFolders(directDI, folders)
+            val predicate = foldersFilter.prepareFolders(filterContext, folders)
             folders
                 .asSequence()
                 .filter { predicate(it) }

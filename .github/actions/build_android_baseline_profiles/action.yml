@@ -1,4 +1,5 @@
 name: "Build Android Baseline Profiles"
+description: "Build Android baseline profiles for the selected flavor"
 inputs:
   build-flavor:
     description: 'Build Flavor'

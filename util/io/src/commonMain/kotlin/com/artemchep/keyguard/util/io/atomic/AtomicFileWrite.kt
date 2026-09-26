@@ -22,13 +22,14 @@ import kotlinx.io.Sink
 fun <T> writeFileAtomically(
     destination: LocalPath,
     options: AtomicWriteOptions,
+    checkCancellation: () -> Unit = {},
     write: (Sink) -> T,
 ): AtomicWriteResult<T> =
     openAtomicFileTransaction(
         destination = destination,
         options = options,
     ).use { transaction ->
-        transaction.writeAndCommit(write)
+        transaction.writeAndCommit(checkCancellation = checkCancellation, write = write)
     }
 
 /**
@@ -41,6 +42,7 @@ fun <T> writeFileAtomically(
 fun <T> writeFileAtomically(
     destination: AtomicFileDestination,
     options: AtomicWriteOptions,
+    checkCancellation: () -> Unit = {},
     write: (Sink) -> T,
 ): AtomicWriteResult<T> {
     require(options.existingParentLinks == ExistingParentLinkPolicy.Reject) {
@@ -51,7 +53,7 @@ fun <T> writeFileAtomically(
             relativeDestination = destination.relativePath,
             options = options,
         ).use { transaction ->
-            transaction.writeAndCommit(write)
+            transaction.writeAndCommit(checkCancellation = checkCancellation, write = write)
         }
     }
 }
@@ -68,6 +70,7 @@ fun <T> writePrivatelyAtomically(
     destination: AtomicFileDestination,
     parentDirectories: ParentDirectoryPolicy,
     synchronization: SynchronizationPolicy,
+    checkCancellation: () -> Unit = {},
     write: (Sink) -> T,
 ): AtomicWriteResult<T> = writeFileAtomically(
     destination = destination,
@@ -81,5 +84,6 @@ fun <T> writePrivatelyAtomically(
         existingParentLinks = ExistingParentLinkPolicy.Reject,
         synchronization = synchronization,
     ),
+    checkCancellation = checkCancellation,
     write = write,
 )

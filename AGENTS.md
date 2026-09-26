@@ -19,6 +19,15 @@ Main modules for different platforms:
 - `desktopApp/` JVM target for desktop platforms: Linux, Windows and macOS;
 - `iosApp/` native target for iOS (dev).
 
+The shared-module split is incremental:
+- `standard/presentation/` contains full-app state producers without Compose dependencies;
+- `feature/*/` contain the optional features.
+
+New pure presentation modules must not depend on `common/` or application modules,
+even transitively. During migration, adapters in `common/` or optional UI modules connect
+pure producers to the existing screen lifecycle, persisted fields, navigation, and localized resources.
+Apply `keyguard.compose-free` to enforce this boundary.
+
 Utility modules each implement a library we wish existed; the modules are independent and granular.
 
 Integration modules implement projects that are useful for testing Keyguard. For example,
@@ -66,7 +75,9 @@ Platform entrypoints bootstrap DI and platform services:
 - Desktop app bootstrap: `desktopApp/src/jvmMain/kotlin/com/artemchep/keyguard/Main.kt`
 - there are also common shared DI entrypoints.
 
-Note that there are fundamentally two different layers of the dependencies. One is global and is available in every moment and the second is tied to the vault's lifecycle and only available when the vault is unlocked.
+We use Koin with the compiler plugin. Apply `keyguard.koin` to modules that own DI wiring, group definitions into explicit modules per domain, and prefer the compiler DSL for constructor injection. Keep domain and presentation constructors free of Koin; resolve dependencies at composition boundaries. Vault-scoped definitions live in a typed scope that is created on unlock and closed on lock.
+
+Keep module holders as `val module = module { ... }` referenced directly from `modules(...)`/`includes(...)`, avoid runtime module loading and blanket `@Provided`, and treat `KOIN-W003` as a failed build. Only compiling an application root validates the full graph; the iOS root is covered by `IosKoinGraphTest` instead.
 
 #### Navigation + screens
 

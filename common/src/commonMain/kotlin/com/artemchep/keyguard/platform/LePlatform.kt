@@ -3,6 +3,8 @@ package com.artemchep.keyguard.platform
 expect val CurrentPlatform: Platform
 
 sealed interface Platform {
+    sealed interface Apple
+
     sealed interface Mobile : Platform {
         data class Android(
             val isChromebook: Boolean,
@@ -10,7 +12,10 @@ sealed interface Platform {
             val sdk: Int,
         ) : Mobile
 
-        data object Ios : Mobile
+        sealed interface Ios : Mobile {
+            data object Jvm : Ios
+            data object Native : Ios, Apple
+        }
     }
 
     sealed interface Desktop : Platform {
@@ -25,7 +30,11 @@ sealed interface Platform {
         }
 
         data object Windows : Desktop
-        data object MacOS : Desktop
+        sealed interface MacOS : Desktop {
+            data object Jvm : MacOS
+            data object Native : MacOS, Apple
+        }
+
         data object Other : Desktop
     }
 }

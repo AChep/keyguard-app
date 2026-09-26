@@ -13,12 +13,6 @@ internal actual object NativeCryptoLibraryLoader {
         loadOnce(library)
     }
 
-    internal fun ensureBundledLibraryLoaded() {
-        val bundledLibrary = bundledLibraryOrNull()
-            ?: throw NativeCryptoPlatformException(NativeCryptoErrorCode.LIBRARY_UNAVAILABLE)
-        loadOnce(bundledLibrary)
-    }
-
     private fun loadOnce(absoluteLibrary: File) {
         if (loaded) return
         synchronized(this) {

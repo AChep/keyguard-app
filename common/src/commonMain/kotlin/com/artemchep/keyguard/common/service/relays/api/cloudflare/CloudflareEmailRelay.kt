@@ -10,8 +10,8 @@ import com.artemchep.keyguard.feature.auth.common.util.REGEX_DOMAIN
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.header
@@ -30,8 +30,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import org.jetbrains.compose.resources.DrawableResource
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class CloudflareEmailRelay(
     private val httpClient: HttpClient,
@@ -86,11 +84,6 @@ class CloudflareEmailRelay(
             hint = TextHolder.Value(HINT_DESTINATION_EMAIL),
             canBeEmpty = false,
         ),
-    )
-
-    constructor(directDI: DirectDI) : this(
-        httpClient = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
     )
 
     override fun generate(

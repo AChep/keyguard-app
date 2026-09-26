@@ -371,6 +371,10 @@ fn status_from_consent(result: UserConsentVerificationResult) -> ChallengeResult
     }
 }
 
+pub(crate) fn prepare_enrollment(callback: BiometricsVerifyCallback) {
+    report_verify_result(callback, ChallengeStatus::Success, None);
+}
+
 pub(crate) fn delete_credential() -> bool {
     let Ok(_credential_guard) = CredentialMutexGuard::acquire() else {
         return false;

@@ -42,6 +42,8 @@ pub mod sweep;
 pub mod txn;
 
 #[cfg(windows)]
+pub mod windows_file;
+#[cfg(windows)]
 mod windows_nt;
 #[cfg(windows)]
 mod winfs;

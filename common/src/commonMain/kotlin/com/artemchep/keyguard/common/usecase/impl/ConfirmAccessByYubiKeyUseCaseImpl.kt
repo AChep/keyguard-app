@@ -21,8 +21,6 @@ import com.artemchep.keyguard.common.usecase.ConfirmAccessByYubiKeyUseCase
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class ConfirmAccessByYubiKeyUseCaseImpl(
     private val keyReadWriteRepository: FingerprintReadWriteRepository,
@@ -31,14 +29,6 @@ class ConfirmAccessByYubiKeyUseCaseImpl(
     private val cipherEncryptor: CipherEncryptor,
     private val yubiKeyUnlockAvailability: YubiKeyUnlockAvailability,
 ) : ConfirmAccessByYubiKeyUseCase {
-    constructor(directDI: DirectDI) : this(
-        keyReadWriteRepository = directDI.instance(),
-        getVaultSession = directDI.instance(),
-        cryptoGenerator = directDI.instance(),
-        cipherEncryptor = directDI.instance(),
-        yubiKeyUnlockAvailability = directDI.instance(),
-    )
-
     override fun invoke(): IO<ConfirmAccessByYubiKeyRequest?> = ioEffect {
         if (!yubiKeyUnlockAvailability.isSupported()) {
             return@ioEffect null

@@ -21,7 +21,7 @@ Not included: **Bitwarden Sends**.
 
 ## Automatic backups
 
-Backups are **change-triggered**, not on a fixed schedule. Whenever your vault
+Backups are **change-triggered**. Whenever your vault
 changes, Keyguard waits about five seconds — long enough to fold a burst of
 edits into one snapshot — then writes a new backup. Backups run only while your
 vault is **unlocked**.
@@ -61,19 +61,16 @@ Two things to remember:
 
 ## Keeping older copies
 
-Keyguard keeps a rolling set of snapshots, so you can return to an earlier state
-and not just the latest one. Choose how many to keep — **5, 10, 30, 60, 90, or
-never clear** (the default is 30). Beyond the limit, older snapshots are pruned
+Keyguard keeps a rolling set of snapshots. Choose how many to keep — **5, 10, 30, 60, 90, or
+never clear**. Beyond the limit, older snapshots are pruned
 (the newest is always kept), and attachments no longer referenced by any kept
 snapshot are cleaned up.
 
 ### How snapshots are bucketed
 
-Pruning is not simply "keep the newest *N*." Because backups are
-change-triggered, a burst of edits can write several snapshots within minutes,
-so keeping only the most recent ones would collapse your history down to the
-last hour. Instead Keyguard **buckets snapshots by age** and keeps a
-representative one from each bucket, so the copies you retain fan out over time:
+Keyguard **buckets snapshots by age** and retains a representative snapshot
+from each bucket, spreading history over time. This prevents bursts of edits
+from crowding out older snapshots:
 
 - The **newest snapshot is always kept**, whatever its age.
 - **Last 24 hours** — the most recent snapshots fill whatever room is left over,
@@ -87,9 +84,9 @@ Everything still fits inside the limit you chose, and the buckets set the
 priority when that limit is tight. A small limit favors spreading the kept
 copies across time — newest first, then the weekly buckets, then the daily ones
 — over piling up near-identical snapshots from the last hour; a larger limit
-spends the extra room on the most recent snapshots. So the default of 30 keeps a
-tail that reaches back about a month — dense for the last day, daily for a week,
-then weekly — rather than 30 copies all from this afternoon.
+spends the extra room on the most recent snapshots. The default limit keeps
+a history reaching back roughly one month: dense for the last day, daily for a
+week, and weekly for the rest of the month.
 
 ## Repository structure
 
@@ -114,13 +111,11 @@ A few properties of the layout worth knowing:
 - **Snapshots are small; attachments are deduplicated.** An attachment is
   stored once as a blob and shared across snapshots — each snapshot only
   records which blobs it references.
-- **Blob names reveal nothing** — blobs are stored under random ids, not
-  file names.
+- **Blob names reveal nothing** — blobs are stored under random IDs.
 - **Encryption is per-object.** With a backup password set, the metadata,
   snapshots, and blobs are each AES-256-encrypted ZIPs, and the per-object
   keys live inside the encrypted index zips.
 
 ## Restoring a backup
 
-There is **no one-click restore inside the app yet** — recovery is currently
-manual, using the layout above.
+Backup recovery is currently manual, using the repository layout described above.

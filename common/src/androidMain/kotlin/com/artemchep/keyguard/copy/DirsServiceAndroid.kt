@@ -12,20 +12,13 @@ import androidx.annotation.RequiresApi
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.util.io.useBufferedSink
 import com.artemchep.keyguard.common.service.dirs.DirsService
+import com.artemchep.keyguard.util.io.useBufferedSink
 import kotlinx.io.Sink
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 class DirsServiceAndroid(
     private val context: Context,
 ) : DirsService {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        context = directDI.instance<Application>(),
-    )
 
     override fun saveToDownloads(
         fileName: String,

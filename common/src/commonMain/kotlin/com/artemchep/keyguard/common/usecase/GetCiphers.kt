@@ -71,7 +71,7 @@ fun filterHiddenProfiles(
             // If we have a pre-set filter that specifies an
             // identifier of the folder or collection or account etc,
             // then we ignore the hidden account setting.
-            DFilter.findOne<DSendFilter.ById>(f) { true } == null
+            DFilter.findOne<DFilter.ById>(f) { true } == null
         }
         ?: true
     return if (shouldFilter) {

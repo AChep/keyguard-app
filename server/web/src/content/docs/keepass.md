@@ -25,17 +25,16 @@ database** or **create a new one**. Keyguard supports these file providers:
 
 New databases are created in the **KDBX 4.x** format.
 
-To unlock a database you enter its **master password** and, if the database
-uses one, select its **key file**. A database protected by a key file doesn't
-require a password.
+To unlock a database, enter its **master password**, select its **key file**,
+or provide both depending on how the database was configured.
 
 ## Editing
 
 KeePass support is read-write: you can add, edit, and delete items and
 folders, and Keyguard saves the changes back into the `.kdbx` file. Because
-the file is plain storage rather than a server, treat external syncing with
-care — let your sync tool finish before editing the same database on another
-device, and keep [backups](/docs/backups/).
+changes are written directly to a local file without server mediation, let
+external sync tools finish before editing the database on another device,
+and keep [backups](/docs/backups/).
 
 ## How KDBX maps to Keyguard
 

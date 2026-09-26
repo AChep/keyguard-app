@@ -125,6 +125,12 @@ interface SettingsReadRepository {
 
     fun getGpgAgentFilter(): Flow<GpgAgentFilter>
 
+    fun getBrowserAutofillAgent(): Flow<Boolean>
+
+    fun getBrowserAutofillAgentPort(): Flow<Int>
+
+    fun getBrowserAutofillAgentPairingCode(): Flow<String>
+
     fun getGpgKeyserverConfig(): Flow<GpgKeyserverConfig>
 
     fun getGpgKeyserverAutoRefresh(): Flow<Boolean>

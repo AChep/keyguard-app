@@ -61,6 +61,7 @@ val appId = "com.artemchep.keyguard"
 val executableAppResourceNames = setOf(
     "keyguard-ssh-agent",
     "keyguard-gpg-agent",
+    "keyguard-browser-agent",
     "keyguard-lib",
 )
 
@@ -74,6 +75,7 @@ dependencies {
         ":util:instance",
         ":desktopSshAgent",
         ":desktopGpgAgent",
+        ":desktopBrowserAgent",
         ":desktopLibNative",
         ":util:crypto",
         ":util:io",

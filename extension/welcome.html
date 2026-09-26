@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Keyguard Autofill</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="theme.js"></script>
+  </head>
+  <body>
+    <div class="app">
+      <div class="topbar">
+        <div class="brand">
+          <img class="logo" src="icons/logo.svg" alt="Keyguard" />
+          <div>
+            <div class="title">Keyguard Autofill</div>
+            <div class="subtitle">Local, encrypted credential filling</div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <a class="navlink" href="options.html">Options</a>
+        <a class="navlink" href="debug.html">Debug</a>
+      </div>
+
+      <div class="card">
+        <p style="margin-top:0">
+          This extension autofills logins from your <strong>Keyguard</strong> desktop
+          vault directly into websites — locally, with no cloud involved. A small
+          native agent bridges the extension and the app using either Native
+          Messaging (Firefox / Chrome / Edge) or an encrypted WebSocket loopback
+          channel (Safari / manual WebSocket mode).
+        </p>
+        <div class="feature">
+          <div class="ico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div>
+            <div class="t">End-to-end encrypted</div>
+            <div class="d">Keys are negotiated with X25519 (ECDH); every message is sealed with AES-256-GCM. The WebSocket channel answers an HMAC challenge before any secret is released.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="ico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div>
+            <div class="t">Local only</div>
+            <div class="d">Nothing leaves your machine. The agent rejects any non-loopback connection and the vault stays on your device.</div>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="ico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <div>
+            <div class="t">One shortcut</div>
+            <div class="d">Press <kbd style="font-family:var(--mono);background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:11px">Ctrl+Shift+Space</kbd> on a login page to fill the single match, or open the picker when there are several.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Get started</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="num">1</div>
+            <div class="body">Open <strong>Keyguard</strong>, go to <strong>Settings → Autofill</strong> and enable <strong>Browser autofill agent</strong>.</div>
+          </div>
+          <div class="step">
+            <div class="num">2</div>
+            <div class="body">Make sure your vault is <strong>unlocked</strong>.</div>
+          </div>
+          <div class="step">
+            <div class="num">3</div>
+            <div class="body">On a login page, click the extension icon, press <kbd style="font-family:var(--mono);background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:11px">Ctrl+Shift+Space</kbd>, or use the popup buttons to copy username, password or TOTP.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Testing the WebSocket flow</h2>
+        <p class="hint">
+          The WebSocket / Safari flow can be tested from any browser (for example
+          Firefox) by forcing it in the extension <a class="navlink" href="options.html">options</a>:
+        </p>
+        <div class="steps">
+          <div class="step">
+            <div class="num">1</div>
+            <div class="body">In Keyguard, copy the <strong>pairing code</strong> shown under the agent toggle.</div>
+          </div>
+          <div class="step">
+            <div class="num">2</div>
+            <div class="body">In the extension options, set <strong>Connection mode → WebSocket</strong>, then <strong>Pair</strong> with the code and a PIN or master password.</div>
+          </div>
+          <div class="step">
+            <div class="num">3</div>
+            <div class="body">Use <strong>Test query</strong> to confirm the encrypted handshake and HMAC exchange succeed.</div>
+          </div>
+        </div>
+        <div class="row">
+          <a class="btn primary" href="options.html">Open options</a>
+          <a class="btn" href="debug.html">Debug logs</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

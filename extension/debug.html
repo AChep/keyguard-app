@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Keyguard Autofill — Debug logs</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="theme.js"></script>
+  </head>
+  <body>
+    <div class="app">
+      <div class="topbar">
+        <div class="brand">
+          <img class="logo" src="icons/logo.svg" alt="Keyguard" />
+          <div>
+            <div class="title">Debug logs</div>
+            <div class="subtitle">Keyguard Autofill · real-time activity</div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <a class="navlink" href="options.html">Options</a>
+        <a class="navlink" href="welcome.html">About</a>
+      </div>
+
+      <div class="card">
+        <div class="logbar">
+          <div class="filters" id="filters">
+            <button class="chip active" data-level="all">All</button>
+            <button class="chip" data-level="error">Error</button>
+            <button class="chip" data-level="warn">Warn</button>
+            <button class="chip" data-level="info">Info</button>
+            <button class="chip" data-level="debug">Debug</button>
+          </div>
+          <div class="spacer"></div>
+          <label class="toggle"><input type="checkbox" id="autoscroll" checked /> Autoscroll</label>
+          <button class="btn sm" id="refresh">Refresh</button>
+          <button class="btn sm" id="copy">Copy</button>
+          <button class="btn sm ghost" id="clear">Clear</button>
+        </div>
+        <div class="log" id="log"></div>
+        <div class="status" id="status">Waiting for events…</div>
+      </div>
+    </div>
+    <script src="debug.js"></script>
+  </body>
+</html>

@@ -1312,6 +1312,11 @@
     <string name="generator_gpg_key_email_title">E-mail</string>
     <string name="generator_gpg_key_modern_note">Crée une clé OpenPGP avec des clés de signature/certification Ed25519 et une sous-clé de chiffrement X25519.</string>
     <string name="generator_gpg_key_rsa_note">Créer une clé OpenPGP avec une clé de certification RSA et des sous-clés RSA distinctes pour la signature et le chiffrement.</string>
+    <string name="gpg_key_version_title">Certificate version</string>
+    <string name="gpg_key_version_v4">v4</string>
+    <string name="gpg_key_version_v6">v6</string>
+    <string name="gpg_key_version_v4_note">Compatible with GnuPG and older OpenPGP clients.</string>
+    <string name="gpg_key_version_v6_note">Uses RFC 9580. Requires a client that supports v6 certificates.</string>
     <string name="generator_gpg_key_modern_text">Format de clé OpenPGP moderne</string>
     <string name="generator_key_length_title">Longueur</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>bits</string>

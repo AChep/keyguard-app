@@ -1312,6 +1312,11 @@
     <string name="generator_gpg_key_email_title">电子邮件</string>
     <string name="generator_gpg_key_modern_note">创建一个带有 Ed25519 签名/认证主密钥和 X25519 加密子钥的 OpenPGP 密钥。</string>
     <string name="generator_gpg_key_rsa_note">Creates an OpenPGP key with an RSA certification key and separate RSA signing and encryption subkeys.</string>
+    <string name="gpg_key_version_title">Certificate version</string>
+    <string name="gpg_key_version_v4">v4</string>
+    <string name="gpg_key_version_v6">v6</string>
+    <string name="gpg_key_version_v4_note">Compatible with GnuPG and older OpenPGP clients.</string>
+    <string name="gpg_key_version_v6_note">Uses RFC 9580. Requires a client that supports v6 certificates.</string>
     <string name="generator_gpg_key_modern_text">现代 OpenPGP 密钥配置</string>
     <string name="generator_key_length_title">长度</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-位</string>

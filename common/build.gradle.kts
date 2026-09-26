@@ -238,16 +238,15 @@ kotlin {
             dependsOn(macosMain)
         }
 
-        val appleTest = create("appleTest") {
+        // The shared test sources that also compile for Apple targets. The include
+        // filter applies to every source directory, so it lives on its own source set.
+        val appleCommonTest = create("appleCommonTest") {
             dependsOn(commonTest)
-            kotlin.srcDir("src/commonTest/kotlin")
+            kotlin.setSrcDirs(listOf("src/commonTest/kotlin"))
             kotlin.include("com/artemchep/keyguard/common/model/TestCipherFilterContext.kt")
             kotlin.include("com/artemchep/keyguard/common/service/backup/**")
             kotlin.include("com/artemchep/keyguard/common/service/directorywatcher/**")
             kotlin.include("com/artemchep/keyguard/common/service/gpgagent/GpgAgentPacketSessionTest.kt")
-            kotlin.include("com/artemchep/keyguard/core/session/usecase/**")
-            kotlin.include("com/artemchep/keyguard/copy/DateFormatterAppleTest.kt")
-            kotlin.include("com/artemchep/keyguard/copy/FileWatcherServiceAppleTest.kt")
             kotlin.include("com/artemchep/keyguard/provider/bitwarden/usecase/NotificationsImplTest.kt")
             kotlin.include("com/artemchep/keyguard/feature/gpgagent/tools/GpgToolsInputErrorTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/download/TestDownloadAttachmentSourceLoader.kt")
@@ -258,11 +257,12 @@ kotlin {
             }
         }
 
+        val appleTest = create("appleTest") {
+            dependsOn(appleCommonTest)
+        }
+
         val iosTest = create("iosTest") {
             dependsOn(appleTest)
-            dependencies {
-                implementation(libs.ktor.ktor.client.mock)
-            }
         }
 
         getByName("iosArm64Test") {

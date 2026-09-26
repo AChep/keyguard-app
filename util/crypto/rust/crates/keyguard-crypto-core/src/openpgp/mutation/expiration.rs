@@ -1,4 +1,4 @@
-//! OpenPGP v4 expiration recertification on the shared certificate packet set.
+//! OpenPGP expiration recertification on the shared certificate packet set.
 //!
 //! One of the three mutations built on [`crate::openpgp::mutation`]'s
 //! pipeline: raw framing -> `PublicCertificatePacketSet` -> `finalize()` /
@@ -19,7 +19,8 @@ use pgp::{
         SubpacketData,
     },
     types::{
-        Duration, KeyDetails, Password, SignedUser, SignedUserAttribute, SigningKey, Timestamp,
+        Duration, KeyDetails, KeyVersion, Password, SignedUser, SignedUserAttribute, SigningKey,
+        Timestamp,
     },
 };
 use zeroize::{Zeroize, Zeroizing};
@@ -31,10 +32,12 @@ use crate::openpgp::{
     },
     crypto::{
         secret::{OpenPgpSecretSigner, SecretPacketRef},
-        signer::{SigningKeyRef, select_signature_hash},
+        signer::{
+            SigningKeyRef, issuer_key_id_subpackets, select_signature_hash, signature_config,
+        },
         verification::{
             cryptographic_signature_material_cmp, signature_ignoring_unhashed_issuer_hints,
-            signature_verification_compatible,
+            signature_verification_compatible, signature_version_matches_signer,
         },
     },
     format::{fingerprint_hex, normalize_fingerprint},
@@ -365,6 +368,16 @@ fn plan_primary_renewals<'a>(
     // makes it optional, and a mutation should update existing statement
     // families instead of introducing a new policy carrier with different
     // scope and precedence.
+
+    // V6 key lifetime is carried only by the Direct Key self-signature.
+    // Identity certifications have their own lifetime and remain byte-exact.
+    if certificate.primary_key.version() == KeyVersion::V6 {
+        return if renewals.is_empty() {
+            Err(ExpirationUpdateFailure::MissingSelfSignature)
+        } else {
+            Ok(())
+        };
+    }
 
     // Renewing every certification at one instant flattens both timestamp
     // order and duplicate primary markers (merged certificates commonly carry
@@ -761,21 +774,16 @@ fn create_primary_binding(
     let signer = signer.as_ref();
     let hash_algorithm =
         replacement_hash(signer.algorithm(), signer.hash_alg(), signer.hash_alg())?;
-    let mut config = SignatureConfig::v4(
-        SignatureType::KeyBinding,
-        signer.algorithm(),
-        hash_algorithm,
-    );
+    let mut config = signature_config(&signer, SignatureType::KeyBinding, hash_algorithm)
+        .map_err(|_| ExpirationUpdateFailure::InternalFailure)?;
     config.hashed_subpackets = vec![
         Subpacket::regular(SubpacketData::SignatureCreationTime(replacement_time))
             .map_err(|_| ExpirationUpdateFailure::InternalFailure)?,
         Subpacket::regular(SubpacketData::IssuerFingerprint(subkey.fingerprint()))
             .map_err(|_| ExpirationUpdateFailure::InternalFailure)?,
     ];
-    config.unhashed_subpackets = vec![
-        Subpacket::regular(SubpacketData::IssuerKeyId(subkey.legacy_key_id()))
-            .map_err(|_| ExpirationUpdateFailure::InternalFailure)?,
-    ];
+    config.unhashed_subpackets =
+        issuer_key_id_subpackets(&signer).map_err(|_| ExpirationUpdateFailure::InternalFailure)?;
     let signature = config
         .sign_primary_key_binding(&signer, subkey, &Password::empty(), primary)
         .map_err(|_| ExpirationUpdateFailure::InternalFailure)?;
@@ -804,11 +812,19 @@ fn replacement_config<K: KeyDetails>(
         .config()
         .cloned()
         .ok_or(ExpirationUpdateFailure::SignatureVerificationFailed)?;
-    if config.version() != pgp::packet::SignatureVersion::V4 {
+    if !signature_version_matches_signer(config.version(), signer.version())
+        || !matches!(
+            config.version(),
+            pgp::packet::SignatureVersion::V4 | pgp::packet::SignatureVersion::V6
+        )
+    {
         return Err(ExpirationUpdateFailure::UnsupportedKeyVersion);
     }
     config.pub_alg = signer.algorithm();
     config.hash_alg = replacement_hash(signer.algorithm(), signer.hash_alg(), config.hash_alg)?;
+    config.version_specific = signature_config(signer, config.typ, config.hash_alg)
+        .map_err(|_| ExpirationUpdateFailure::InternalFailure)?
+        .version_specific;
     // RFC 9580 §5.2.3.23 requires applications not to generate this
     // deprecated subpacket.  A template carrying one is retained separately
     // by `renewal_operation`, so removing it here cannot revoke an existing
@@ -847,9 +863,8 @@ fn replacement_config<K: KeyDetails>(
         Subpacket::regular(SubpacketData::IssuerFingerprint(signer.fingerprint()))
             .map_err(|_| ExpirationUpdateFailure::InternalFailure)?,
     );
-    config.unhashed_subpackets.push(
-        Subpacket::regular(SubpacketData::IssuerKeyId(signer.legacy_key_id()))
-            .map_err(|_| ExpirationUpdateFailure::InternalFailure)?,
+    config.unhashed_subpackets.extend(
+        issuer_key_id_subpackets(signer).map_err(|_| ExpirationUpdateFailure::InternalFailure)?,
     );
     if let Some(expiration) = expires_at {
         let duration = expiration

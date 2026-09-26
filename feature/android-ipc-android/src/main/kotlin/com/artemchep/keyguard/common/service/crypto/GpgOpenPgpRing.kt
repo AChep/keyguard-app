@@ -39,14 +39,14 @@ internal data class GpgOpenPgpRing(
     val now: Instant,
 ) {
     val primaryKeyId: Long
-        get() = fingerprintToKeyId(info.fingerprint)
+        get() = openPgpKeyIdToLong(info.keyId)
 
     // Rings live for the duration of a single request, so caching
     // the derived key IDs keeps the O(N·K) lookups over them cheap.
     val allKeyIds: Set<Long> by lazy {
         buildSet {
             add(primaryKeyId)
-            info.subKeys.forEach { add(fingerprintToKeyId(it.fingerprint)) }
+            info.subKeys.forEach { add(openPgpKeyIdToLong(it.keyId)) }
         }
     }
 

@@ -11,15 +11,15 @@ use pgp::{
         SubpacketData, UserId,
     },
     ser::Serialize,
-    types::{Duration, KeyDetails, Password, SigningKey, Tag, Timestamp},
+    types::{Duration, KeyDetails, KeyVersion, Password, SigningKey, Tag, Timestamp},
 };
 use thiserror::Error;
 
 use crate::openpgp::crypto::{
-    signer::{SigningKeyRef, select_signature_hash},
+    signer::{SigningKeyRef, issuer_key_id_subpackets, select_signature_hash, signature_config},
     verification::{
         is_certification, signature_config_is_non_exportable, signature_creation_time,
-        signature_expiration_seconds,
+        signature_expiration_seconds, signature_version_matches_signer,
     },
 };
 
@@ -42,7 +42,7 @@ pub(crate) struct UserIdCertification {
     pub(crate) signature: Signature,
 }
 
-/// Prepares a V4 self-certification for a replacement textual User ID.
+/// Prepares a self-certification for a replacement textual User ID.
 ///
 /// Only authenticated, context-appropriate policy subpackets are retained.
 /// Identity, issuer, and time fields are regenerated for the new statement;
@@ -61,25 +61,38 @@ pub(crate) fn new_user_id_certification_config(
     let lifetime_config = lifetime_template
         .config()
         .ok_or(UserIdCertificationError::UnsupportedTemplate)?;
-    if policy_config.version() != pgp::packet::SignatureVersion::V4
-        || lifetime_config.version() != pgp::packet::SignatureVersion::V4
-        || !is_certification(Some(policy_config.typ))
+    if !signature_version_matches_signer(policy_config.version(), signer.version())
+        || !signature_version_matches_signer(lifetime_config.version(), signer.version())
+        || !matches!(
+            lifetime_config.version(),
+            pgp::packet::SignatureVersion::V4 | pgp::packet::SignatureVersion::V6
+        )
+        || !(is_certification(Some(policy_config.typ))
+            || (signer.version() == KeyVersion::V6 && policy_config.typ == SignatureType::Key))
         || !is_certification(Some(lifetime_config.typ))
     {
         return Err(UserIdCertificationError::UnsupportedTemplate);
     }
-    let mut config = SignatureConfig::v4(
+    let mut config = signature_config(
+        &signer,
         lifetime_config.typ,
-        signer.algorithm(),
         replacement_hash(signer, policy_config.hash_alg)?,
-    );
+    )
+    .map_err(|_| UserIdCertificationError::SigningFailed)?;
     config.hashed_subpackets = vec![
         Subpacket::critical(SubpacketData::SignatureCreationTime(creation_time))
             .map_err(|_| UserIdCertificationError::UnsupportedTemplate)?,
         Subpacket::regular(SubpacketData::IssuerFingerprint(signer.fingerprint()))
             .map_err(|_| UserIdCertificationError::UnsupportedTemplate)?,
     ];
-    for subpacket in &policy_config.hashed_subpackets {
+    // V6 key-wide policy stays in the Direct Key signature. Only carry the
+    // old identity's own scoped preferences into its replacement.
+    let identity_policy = if signer.version() == KeyVersion::V6 {
+        lifetime_config
+    } else {
+        policy_config
+    };
+    for subpacket in &identity_policy.hashed_subpackets {
         let retain = match &subpacket.data {
             SubpacketData::KeyExpirationTime(_)
             | SubpacketData::PreferredSymmetricAlgorithms(_)
@@ -140,10 +153,8 @@ pub(crate) fn new_user_id_certification_config(
         Subpacket::regular(SubpacketData::IsPrimary(primary))
             .map_err(|_| UserIdCertificationError::UnsupportedTemplate)?,
     );
-    config.unhashed_subpackets = vec![
-        Subpacket::regular(SubpacketData::IssuerKeyId(signer.legacy_key_id()))
-            .map_err(|_| UserIdCertificationError::UnsupportedTemplate)?,
-    ];
+    config.unhashed_subpackets = issuer_key_id_subpackets(&signer)
+        .map_err(|_| UserIdCertificationError::UnsupportedTemplate)?;
     Ok(config)
 }
 
@@ -165,7 +176,12 @@ pub(crate) fn existing_user_id_recertification_config(
         .config()
         .ok_or(UserIdCertificationError::UnsupportedTemplate)?
         .clone();
-    if config.version() != pgp::packet::SignatureVersion::V4 || !is_certification(Some(config.typ))
+    if !signature_version_matches_signer(config.version(), signer.version())
+        || !matches!(
+            config.version(),
+            pgp::packet::SignatureVersion::V4 | pgp::packet::SignatureVersion::V6
+        )
+        || !is_certification(Some(config.typ))
     {
         return Err(UserIdCertificationError::UnsupportedTemplate);
     }
@@ -194,6 +210,9 @@ pub(crate) fn existing_user_id_recertification_config(
 
     config.pub_alg = signer.algorithm();
     config.hash_alg = replacement_hash(signer, config.hash_alg)?;
+    config.version_specific = signature_config(&signer, config.typ, config.hash_alg)
+        .map_err(|_| UserIdCertificationError::SigningFailed)?
+        .version_specific;
     config.hashed_subpackets.retain(|subpacket| {
         !matches!(
             &subpacket.data,
@@ -238,8 +257,8 @@ pub(crate) fn existing_user_id_recertification_config(
         SubpacketData::IsPrimary(primary),
         primary_marker_is_critical,
     )?);
-    config.unhashed_subpackets.push(
-        Subpacket::regular(SubpacketData::IssuerKeyId(signer.legacy_key_id()))
+    config.unhashed_subpackets.extend(
+        issuer_key_id_subpackets(&signer)
             .map_err(|_| UserIdCertificationError::UnsupportedTemplate)?,
     );
     Ok(config)
@@ -321,11 +340,12 @@ where
     }
 
     pub(crate) fn build(self) -> Result<Signature, UserIdCertificationError> {
-        let mut config = SignatureConfig::v4(
+        let mut config = signature_config(
+            &self.signer,
             SignatureType::CertRevocation,
-            self.signer.algorithm(),
             replacement_hash(self.signer, HashAlgorithm::Sha256)?,
-        );
+        )
+        .map_err(|_| UserIdCertificationError::SigningFailed)?;
         config.hashed_subpackets = vec![
             Subpacket::critical(SubpacketData::SignatureCreationTime(self.creation_time))
                 .map_err(|_| UserIdCertificationError::SigningFailed)?,
@@ -347,10 +367,8 @@ where
                     .map_err(|_| UserIdCertificationError::SigningFailed)?,
             );
         }
-        config.unhashed_subpackets = vec![
-            Subpacket::regular(SubpacketData::IssuerKeyId(self.signer.legacy_key_id()))
-                .map_err(|_| UserIdCertificationError::SigningFailed)?,
-        ];
+        config.unhashed_subpackets = issuer_key_id_subpackets(&self.signer)
+            .map_err(|_| UserIdCertificationError::SigningFailed)?;
         config
             .sign_certification(
                 &self.signer,

@@ -17,6 +17,46 @@ import kotlin.time.Instant
 
 class OpenPgpContractTest {
     @Test
+    fun `v4 signature results prefer the verified fingerprint over a forged issuer key ID`() {
+        val result = verification().copy(
+            keyId = "A5A5A5A5A5A5A5A5",
+        ).toApiResult()
+        assertEquals(0x0123456789ABCDEFL, result.keyId)
+    }
+
+    @Test
+    fun `v4 signature results derive the verified key ID when the issuer hint is absent`() {
+        val result = verification().copy(
+            keyId = "0000000000000000",
+        ).toApiResult()
+        assertEquals(0x0123456789ABCDEFL, result.keyId)
+    }
+
+    @Test
+    fun `v6 signature results use the verified high-order key ID regardless of issuer hints`() {
+        listOf(
+            "FEDCBA9876543210",
+            "A5A5A5A5A5A5A5A5",
+            "0000000000000000",
+        ).forEach { issuerKeyId ->
+            val result = verification().copy(
+                fingerprint = "FEDCBA9876543210" + "A".repeat(48),
+                keyId = issuerKeyId,
+            ).toApiResult()
+            assertEquals(0xFEDCBA9876543210uL.toLong(), result.keyId)
+        }
+    }
+
+    @Test
+    fun `signature results fall back to the issuer key ID without a verified fingerprint`() {
+        val result = verification().copy(
+            fingerprint = null,
+            keyId = "FEDCBA9876543210",
+        ).toApiResult()
+        assertEquals(0xFEDCBA9876543210uL.toLong(), result.keyId)
+    }
+
+    @Test
     fun `API versions seven through twelve are accepted`() {
         (7..12).forEach {
             assertTrue(isSupportedOpenPgpApiVersion(it))

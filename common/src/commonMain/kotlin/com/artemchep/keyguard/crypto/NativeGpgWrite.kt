@@ -2,6 +2,7 @@ package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.GpgKeyConfig
+import com.artemchep.keyguard.common.model.GpgKeyVersion
 import com.artemchep.keyguard.common.service.crypto.GPG_KEY_EXPIRATION_MAX_INSTANT
 import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportError
@@ -45,6 +46,7 @@ import com.artemchep.keyguard.nativecrypto.NativeOpenPgpDecryptionWarning
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyImportError
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyImportResult
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyKind
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyVersion
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyMaterial
 import com.artemchep.keyguard.util.io.consumeWithErasedBuffer
 import kotlin.io.encoding.Base64
@@ -71,13 +73,20 @@ object NativeGpgKeyGenerator : GpgKeyGenerator {
             ?.let { target -> expirationSeconds(creationTime, target) }
         val material = NativeCrypto.openPgp.generateKey(
             kind = when (config) {
-                is GpgKeyConfig.Modern -> NativeOpenPgpKeyKind.LEGACY_ED25519_X25519
+                is GpgKeyConfig.Modern -> when (config.version) {
+                    GpgKeyVersion.V4 -> NativeOpenPgpKeyKind.LEGACY_ED25519_X25519
+                    GpgKeyVersion.V6 -> NativeOpenPgpKeyKind.ED25519_X25519
+                }
                 is GpgKeyConfig.Rsa -> NativeOpenPgpKeyKind.RSA
             },
             userId = userId,
             rsaBits = (config as? GpgKeyConfig.Rsa)?.length?.size ?: 0,
             creationTimeEpochSeconds = creationTime.epochSeconds,
             expirationSeconds = expirationSeconds,
+            version = when (config.version) {
+                GpgKeyVersion.V4 -> NativeOpenPgpKeyVersion.V4
+                GpgKeyVersion.V6 -> NativeOpenPgpKeyVersion.V6
+            },
         )
         return material.useArmoredStrings { privateKeyArmored, publicKeyArmored ->
             val metadata = NativeGpgKeyMetadataResolver.resolve(

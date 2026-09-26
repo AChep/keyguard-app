@@ -4,10 +4,12 @@ sealed interface GpgKeyConfig {
     val userId: String
     val type: Type
     val expiry: GpgKeyExpiry
+    val version: GpgKeyVersion
 
     data class Modern(
         override val userId: String,
         override val expiry: GpgKeyExpiry = GpgKeyExpiry.default,
+        override val version: GpgKeyVersion = GpgKeyVersion.default,
     ) : GpgKeyConfig {
         override val type: Type
             get() = Type.MODERN
@@ -17,6 +19,7 @@ sealed interface GpgKeyConfig {
         override val userId: String,
         val length: RsaLength = RsaLength.default,
         override val expiry: GpgKeyExpiry = GpgKeyExpiry.default,
+        override val version: GpgKeyVersion = GpgKeyVersion.default,
     ) : GpgKeyConfig {
         override val type: Type
             get() = Type.RSA

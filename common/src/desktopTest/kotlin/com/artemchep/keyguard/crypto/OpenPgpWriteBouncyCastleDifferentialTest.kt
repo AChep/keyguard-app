@@ -2,6 +2,7 @@ package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.GpgKeyConfig
+import com.artemchep.keyguard.common.model.GpgKeyVersion
 import com.artemchep.keyguard.common.model.GpgKeyExpiry
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
@@ -13,13 +14,20 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpSignTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationStatus
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyDetachedTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
+import org.bouncycastle.bcpg.HashAlgorithmTags
+import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection
+import org.bouncycastle.openpgp.PGPSecretKey
+import org.bouncycastle.openpgp.PGPSecretKeyRing
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
+import org.bouncycastle.openpgp.PGPSignature
 import org.bouncycastle.openpgp.PGPSignatureList
 import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
+import org.bouncycastle.openpgp.operator.jcajce.JcaPGPDigestCalculatorProviderBuilder
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentVerifierBuilderProvider
+import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyEncryptorBuilder
 import java.io.ByteArrayInputStream
 import java.security.Security
 import kotlin.test.BeforeTest
@@ -32,9 +40,8 @@ import kotlin.test.assertTrue
  * Permanent BC 1.84 differential coverage for OpenPGP write behavior.
  *
  * OpenPGP output is randomized, so this suite compares domain behavior and
- * cross-implementation interoperability rather than serialized bytes. OCB is
- * intentionally covered by GnuPG fixtures; these encryption cases freeze the
- * compatible SEIPDv1/MDC branch produced for the BC-generated recipient.
+ * cross-implementation interoperability rather than serialized bytes, including
+ * SEIPDv1/MDC for legacy recipients and RFC 9580 SEIPDv2/AEAD for v6 recipients.
  */
 class OpenPgpWriteBouncyCastleDifferentialTest {
     private val nativeService = NativeGpgOpenPgpService()
@@ -169,10 +176,17 @@ class OpenPgpWriteBouncyCastleDifferentialTest {
     fun `native and BC generated certificates have equivalent structural policy`() {
         val configs = listOf(
             modernConfig,
+            modernConfig.copy(version = GpgKeyVersion.V6),
             GpgKeyConfig.Rsa(
                 userId = "OpenPGP write RSA differential <openpgp-write-rsa@test.invalid>",
                 length = GpgKeyConfig.RsaLength.B3072,
                 expiry = GpgKeyExpiry.Never,
+            ),
+            GpgKeyConfig.Rsa(
+                userId = "OpenPGP v6 RSA differential <openpgp-v6-rsa@test.invalid>",
+                length = GpgKeyConfig.RsaLength.B3072,
+                expiry = GpgKeyExpiry.Never,
+                version = GpgKeyVersion.V6,
             ),
         )
 
@@ -180,6 +194,143 @@ class OpenPgpWriteBouncyCastleDifferentialTest {
             val bc = BcGpgKeyGeneratorTestOracle().generate(config)
             val native = NativeGpgKeyGenerator.generate(config)
             assertEquals(certificateShape(bc), certificateShape(native), config.type.title)
+            val text = "Cross-implementation certificate version ${config.version}"
+            val signature = nativeService.signTextDetached(
+                GpgOpenPgpSignTextRequest(
+                    text = text,
+                    privateKey = native.privateKey(),
+                    candidateRevocationKeys = emptyList(),
+                ),
+            )
+            assertTrue(verifyDetachedWithBc(text, signature, native.publicKeyArmored))
+            verifyCertificateWithBc(native.publicKeyArmored)
+        }
+    }
+
+    @Test
+    fun `v6 signatures encryption and protected imports interoperate with BC`() {
+        val configs = listOf(
+            modernConfig.copy(version = GpgKeyVersion.V6),
+            GpgKeyConfig.Rsa(
+                userId = modernConfig.userId,
+                length = GpgKeyConfig.RsaLength.B3072,
+                expiry = GpgKeyExpiry.Never,
+                version = GpgKeyVersion.V6,
+            ),
+        )
+        for (config in configs) {
+            val keys = listOf(
+                NativeGpgKeyGenerator.generate(config),
+                BcGpgKeyGeneratorTestOracle().generate(config),
+            )
+            for (key in keys) {
+                val text = "RFC 9580 cross-implementation message"
+                val signature = bcService.signTextDetached(
+                    GpgOpenPgpSignTextRequest(
+                        text = text,
+                        privateKey = key.privateKey(),
+                        candidateRevocationKeys = emptyList(),
+                    ),
+                )
+                assertEquals(
+                    GpgOpenPgpVerificationStatus.VALID,
+                    nativeService.verifyDetachedText(
+                        GpgOpenPgpVerifyDetachedTextRequest(
+                            text = text,
+                            signature = signature,
+                            publicKeys = listOf(key.publicKey()),
+                        ),
+                    ).status,
+                )
+                for ((encryptor, decryptor) in listOf(nativeService to bcService, bcService to nativeService)) {
+                    val encrypted = encryptor.encryptText(
+                        GpgOpenPgpEncryptTextRequest(
+                            candidateRevocationKeys = emptyList(),
+                            text = text,
+                            publicKeys = listOf(key.publicKey()),
+                        ),
+                    )
+                    assertEquals(
+                        text,
+                        decryptor.decryptText(
+                            GpgOpenPgpDecryptTextRequest(
+                                encryptedText = encrypted,
+                                privateKeys = listOf(key.privateKey()),
+                            ),
+                        ).text,
+                    )
+                }
+                for (armor in listOf(key.publicKeyArmored, key.privateKeyArmored)) {
+                    val imported = assertIs<GpgKeyImportResult.Success>(
+                        nativeImport.import(GpgKeyImportRequest(content = armor)),
+                    )
+                    assertEquals(key.fingerprint, imported.gpgKey.fingerprint)
+                    assertEquals(
+                        key.fingerprint,
+                        assertIs<GpgKeyImportResult.Success>(nativeImport.import(
+                            GpgKeyImportRequest(content = imported.gpgKey.publicKeyArmored),
+                        )).gpgKey.fingerprint,
+                    )
+                }
+                val ring = PGPSecretKeyRingCollection(
+                    PGPUtil.getDecoderStream(ByteArrayInputStream(key.privateKeyArmored.encodeToByteArray())),
+                    JcaKeyFingerprintCalculator(),
+                ).keyRings.next()
+                val passphrase = "v6 import test passphrase"
+                val digests = JcaPGPDigestCalculatorProviderBuilder().build()
+                val protected = PGPSecretKeyRing(ring.secretKeys.asSequence().map { secretKey ->
+                    PGPSecretKey(
+                        secretKey.extractPrivateKeyEmptyPassphrase(),
+                        secretKey.publicKey,
+                        digests.get(HashAlgorithmTags.SHA1),
+                        secretKey.isMasterKey,
+                        JcePBESecretKeyEncryptorBuilder(
+                            SymmetricKeyAlgorithmTags.AES_256,
+                            digests.get(HashAlgorithmTags.SHA256),
+                        ).setProvider(gpgBouncyCastleProvider).build(passphrase.toCharArray()),
+                    )
+                }.toList()).armored()
+                assertIs<GpgKeyImportResult.NeedsPassphrase>(
+                    nativeImport.import(GpgKeyImportRequest(content = protected)),
+                )
+                val unprotected = assertIs<GpgKeyImportResult.Success>(nativeImport.import(
+                    GpgKeyImportRequest(content = protected, passphrase = passphrase),
+                ))
+                assertEquals(key.fingerprint, unprotected.gpgKey.fingerprint)
+                assertIs<GpgKeyImportResult.Success>(nativeImport.import(
+                    GpgKeyImportRequest(content = unprotected.gpgKey.privateKeyArmored),
+                ))
+            }
+        }
+    }
+
+    private fun verifyCertificateWithBc(armor: String) {
+        val ring = PGPPublicKeyRingCollection(
+            PGPUtil.getDecoderStream(ByteArrayInputStream(armor.encodeToByteArray())),
+            JcaKeyFingerprintCalculator(),
+        ).keyRings.next()
+        val primary = ring.publicKey
+        val verifier = JcaPGPContentVerifierBuilderProvider().setProvider(gpgBouncyCastleProvider)
+        primary.getSignaturesOfType(PGPSignature.DIRECT_KEY).forEach { signature ->
+            signature.init(verifier, primary)
+            assertTrue(signature.verifyCertification(primary))
+        }
+        primary.userIDs.forEach { identity ->
+            primary.getSignaturesForID(identity).forEach { signature ->
+                signature.init(verifier, primary)
+                assertTrue(signature.verifyCertification(identity, primary))
+            }
+        }
+        ring.publicKeys.asSequence().drop(1).forEach { subkey ->
+            assertEquals(primary.version, subkey.version)
+            subkey.getSignaturesOfType(PGPSignature.SUBKEY_BINDING).forEach { signature ->
+                signature.init(verifier, primary)
+                assertTrue(signature.verifyCertification(primary, subkey))
+                signature.hashedSubPackets.embeddedSignatures.forEach { backSignature ->
+                    backSignature.init(verifier, subkey)
+                    assertTrue(backSignature.verifyCertification(primary, subkey))
+                }
+            }
         }
     }
 

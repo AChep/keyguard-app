@@ -2,11 +2,43 @@
 
 use pgp::{
     crypto::{hash::HashAlgorithm, public_key::PublicKeyAlgorithm},
+    packet::{SignatureConfig, SignatureType, Subpacket, SubpacketData},
     types::{
         Fingerprint, KeyDetails, KeyId, KeyVersion, Password, PublicParams, SignatureBytes,
         SigningKey, Timestamp,
     },
 };
+
+use super::secret::AwsLcRng;
+use crate::openpgp::error::{OpenPgpWriteError, pgp_internal};
+
+/// Creates a signature matching its signer, with a fresh salt for every V6 statement.
+pub(crate) fn signature_config(
+    key: &(impl KeyDetails + ?Sized),
+    typ: SignatureType,
+    hash: HashAlgorithm,
+) -> Result<SignatureConfig, OpenPgpWriteError> {
+    match key.version() {
+        KeyVersion::V4 => Ok(SignatureConfig::v4(typ, key.algorithm(), hash)),
+        KeyVersion::V6 => SignatureConfig::v6(AwsLcRng, typ, key.algorithm(), hash)
+            .map_err(|_| OpenPgpWriteError::CryptoFailure),
+        _ => Err(OpenPgpWriteError::InvalidArgument),
+    }
+}
+
+/// The optional legacy issuer hint is forbidden in V6 signatures.
+pub(crate) fn issuer_key_id_subpackets(
+    key: &(impl KeyDetails + ?Sized),
+) -> Result<Vec<Subpacket>, OpenPgpWriteError> {
+    if key.version() == KeyVersion::V4 {
+        Ok(vec![
+            Subpacket::regular(SubpacketData::IssuerKeyId(key.legacy_key_id()))
+                .map_err(pgp_internal)?,
+        ])
+    } else {
+        Ok(Vec::new())
+    }
+}
 
 /// A copyable borrowed signer for rPGP APIs that require a concrete key type.
 #[derive(Clone, Copy)]

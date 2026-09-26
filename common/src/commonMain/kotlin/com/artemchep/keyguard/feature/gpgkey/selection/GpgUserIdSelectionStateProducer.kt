@@ -39,6 +39,7 @@ internal suspend fun RememberStateFlowScope.gpgUserIdSelectionStateProducer(
     val error = evaluateGpgUserIdSelection(
         mode = args.mode,
         identityCount = identities.size,
+        canRevokeLastIdentity = args.canRevokeLastIdentity,
     )
     val errorText = error
         ?.let { value ->
@@ -54,6 +55,7 @@ internal suspend fun RememberStateFlowScope.gpgUserIdSelectionStateProducer(
             mode = args.mode,
             identities = identities,
             selectedIdentityId = selectedIdentityId,
+            canRevokeLastIdentity = args.canRevokeLastIdentity,
         ) != null
         GpgUserIdSelectionState(
             identities = identities.map { identity ->
@@ -74,6 +76,7 @@ internal suspend fun RememberStateFlowScope.gpgUserIdSelectionStateProducer(
                         mode = args.mode,
                         identities = identities,
                         selectedIdentityId = selectedIdentitySink.value,
+                        canRevokeLastIdentity = args.canRevokeLastIdentity,
                     )?.let { identityId ->
                         transmitter(identityId)
                         navigatePopSelf()
@@ -94,9 +97,10 @@ internal enum class GpgUserIdSelectionError {
 internal fun evaluateGpgUserIdSelection(
     mode: GpgUserIdSelectionRoute.Args.Mode,
     identityCount: Int,
+    canRevokeLastIdentity: Boolean = false,
 ): GpgUserIdSelectionError? = when {
     identityCount == 0 -> GpgUserIdSelectionError.NoIdentity
-    identityCount == 1 && mode == GpgUserIdSelectionRoute.Args.Mode.Revocation ->
+    identityCount == 1 && !canRevokeLastIdentity && mode == GpgUserIdSelectionRoute.Args.Mode.Revocation ->
         GpgUserIdSelectionError.LastIdentity
 
     else -> null
@@ -106,10 +110,12 @@ internal fun confirmedGpgUserIdSelection(
     mode: GpgUserIdSelectionRoute.Args.Mode,
     identities: List<GpgUserIdSelectionIdentity>,
     selectedIdentityId: String,
+    canRevokeLastIdentity: Boolean = false,
 ): String? = selectedIdentityId.takeIf { identityId ->
     evaluateGpgUserIdSelection(
         mode = mode,
         identityCount = identities.size,
+        canRevokeLastIdentity = canRevokeLastIdentity,
     ) == null && identities.any { identity ->
         identity.identityId == identityId
     }

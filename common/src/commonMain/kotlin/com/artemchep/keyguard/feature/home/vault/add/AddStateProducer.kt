@@ -4646,6 +4646,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             requestGpgUserIdSelection(
                 activeIdentities = keyInfo.selectionIdentities(),
                 mode = GpgUserIdSelectionRoute.Args.Mode.Revocation,
+                canRevokeLastIdentity = keyInfo.canRevokeLastIdentity,
             ) { identityId ->
                 screenScope.launch {
                     revokeIdentity(
@@ -4812,7 +4813,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                                 info.userIdDetails.isEmpty() ->
                                     Res.string.gpg_user_id_revocation_no_identity_message
 
-                                info.userIdDetails.size == 1 ->
+                                info.userIdDetails.size == 1 && !info.canRevokeLastIdentity ->
                                     Res.string.gpg_user_id_revocation_last_identity_message
 
                                 else -> null

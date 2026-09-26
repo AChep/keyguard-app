@@ -13,10 +13,12 @@ pub(in crate::openpgp) enum KeyKind {
     Unspecified,
     LegacyEd25519X25519,
     Rsa,
+    Ed25519X25519,
 }
 
 pub(in crate::openpgp) struct KeyGenerationInput {
     pub(in crate::openpgp) kind: KeyKind,
+    pub(in crate::openpgp) version: pgp::types::KeyVersion,
     pub(in crate::openpgp) user_id: String,
     pub(in crate::openpgp) rsa_bits: u32,
     pub(in crate::openpgp) creation_time_epoch_seconds: u64,

@@ -17,7 +17,8 @@ use crate::openpgp::{
 use super::wire::{
     Message as _, OpenPgpKeyGenerateRequest, OpenPgpKeyImportError, OpenPgpKeyImportErrorReason,
     OpenPgpKeyImportNeedsPassphrase, OpenPgpKeyImportRequest, OpenPgpKeyImportResult,
-    OpenPgpKeyImportSuccess, OpenPgpKeyKind, OpenPgpKeyMaterial, open_pgp_key_import_result,
+    OpenPgpKeyImportSuccess, OpenPgpKeyKind, OpenPgpKeyMaterial, OpenPgpKeyVersion,
+    open_pgp_key_import_result,
 };
 
 pub(in crate::openpgp) fn generate(
@@ -27,9 +28,16 @@ pub(in crate::openpgp) fn generate(
         Ok(OpenPgpKeyKind::Unspecified) | Err(_) => KeyKind::Unspecified,
         Ok(OpenPgpKeyKind::LegacyEd25519X25519) => KeyKind::LegacyEd25519X25519,
         Ok(OpenPgpKeyKind::Rsa) => KeyKind::Rsa,
+        Ok(OpenPgpKeyKind::Ed25519X25519) => KeyKind::Ed25519X25519,
+    };
+    let version = match OpenPgpKeyVersion::try_from(request.version) {
+        Ok(OpenPgpKeyVersion::Unspecified | OpenPgpKeyVersion::V4) => pgp::types::KeyVersion::V4,
+        Ok(OpenPgpKeyVersion::V6) => pgp::types::KeyVersion::V6,
+        Err(_) => return Err(OpenPgpWriteError::InvalidArgument),
     };
     let material = key::generate_key(KeyGenerationInput {
         kind,
+        version,
         user_id: request.user_id,
         rsa_bits: request.rsa_bits,
         creation_time_epoch_seconds: request.creation_time_epoch_seconds,

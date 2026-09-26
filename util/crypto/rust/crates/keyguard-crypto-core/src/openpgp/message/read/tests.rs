@@ -1824,6 +1824,7 @@ fn detached_signature_for_content(
 fn historical_signing_certificate(creation_time: u64) -> SignedSecretKey {
     let material = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version: 0,
             kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
             user_id: "Historical Signer <historical@example.test>".to_owned(),
             rsa_bits: 0,
@@ -3823,6 +3824,7 @@ fn legacy_sha1_data_signature_requires_a_pre_cutoff_custody_time() {
 
     let material = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version: 0,
             kind: OpenPgpKeyKind::Rsa as i32,
             user_id: "Weak Data Signature <weak-data@example.test>".to_owned(),
             rsa_bits: 3_072,
@@ -3896,6 +3898,7 @@ fn backdated_data_signature_cannot_select_legacy_certificate_hash_policy() {
 
     let material = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version: 0,
             kind: OpenPgpKeyKind::Rsa as i32,
             user_id: "Backdated Signer <backdated@example.test>".to_owned(),
             rsa_bits: 3_072,
@@ -4968,6 +4971,7 @@ fn signer_expiration_preserves_math_status_with_warning_across_verification_path
 
     let material = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version: 0,
             kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
             user_id: "Expired Signer <expired@example.test>".to_owned(),
             rsa_bits: 0,
@@ -6218,6 +6222,7 @@ fn metadata_keeps_multiple_certificate_roots_separate() {
 #[test]
 fn metadata_indexes_each_certificate_in_a_secret_keyring() {
     let generated = generate_key_request(OpenPgpKeyGenerateRequest {
+        version: 0,
         kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
         user_id: "Second Root <second-root@example.test>".to_owned(),
         rsa_bits: 0,
@@ -6374,6 +6379,7 @@ fn unresolved_designated_revocation_blocks_new_uses_until_resolved() {
 fn renewal_test_certificate(user_id: &str) -> (SignedSecretKey, SignedPublicKey) {
     let material = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version: 0,
             kind: OpenPgpKeyKind::Rsa as i32,
             user_id: user_id.to_owned(),
             rsa_bits: 3_072,

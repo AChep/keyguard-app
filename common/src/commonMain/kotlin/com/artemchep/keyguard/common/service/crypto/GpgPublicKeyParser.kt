@@ -121,7 +121,11 @@ data class GpgPublicKeyInfo(
     val renewal: GpgRenewalAuthorization = GpgRenewalAuthorization.NONE,
     /** Policy-authenticated textual User IDs paired with their stable packet identifiers. */
     val userIdDetails: List<GpgUserIdInfo> = emptyList(),
-)
+) {
+    /** The parser accepts only v4 and v6; a v6 fingerprint has 32 bytes. */
+    val canRevokeLastIdentity: Boolean
+        get() = fingerprint.length == 64
+}
 
 data class GpgPublicSubKeyInfo(
     val fingerprint: String,

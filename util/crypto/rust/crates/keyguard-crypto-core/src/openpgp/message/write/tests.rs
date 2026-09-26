@@ -173,6 +173,7 @@ fn for_odd_chunks(data: &[u8], sizes: &[usize], mut operation: impl FnMut(&[u8])
 fn generated_modern_material() -> OpenPgpKeyMaterial {
     OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version: 0,
             kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
             user_id: "Alice Example <alice@example.test>".to_owned(),
             rsa_bits: 0,
@@ -250,6 +251,7 @@ fn generated_rsa_material() -> OpenPgpKeyMaterial {
         .get_or_init(|| {
             OpenPgpKeyMaterial::decode(
                 generate_key_request(OpenPgpKeyGenerateRequest {
+                    version: 0,
                     kind: OpenPgpKeyKind::Rsa as i32,
                     user_id: "RSA Example <rsa@example.test>".to_owned(),
                     rsa_bits: 3072,
@@ -1561,6 +1563,7 @@ fn mixed_usable_and_unusable_recipients_fail_buffered_and_streaming_selection() 
     let usable = generated_modern_material();
     let expired = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version: 0,
             kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
             user_id: "Expired Recipient <expired-recipient@example.test>".to_owned(),
             rsa_bits: 0,
@@ -1605,6 +1608,7 @@ fn all_unusable_recipients_fail_buffered_and_streaming_selection() {
         .unwrap_or_else(std::sync::PoisonError::into_inner);
     let expired = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version: 0,
             kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
             user_id: "Expired Recipient <expired-recipient@example.test>".to_owned(),
             rsa_bits: 0,
@@ -5252,6 +5256,7 @@ fn import_preserves_unknown_noncritical_packets_but_rejects_unknown_critical_pac
 fn import_accepts_expired_transferable_secret_key() {
     let material = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version: 0,
             kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
             user_id: "Expired Example <expired@example.test>".to_owned(),
             rsa_bits: 0,
@@ -7075,6 +7080,7 @@ fn restored_authorities_allow_signing_and_encryption_only_while_restoration_is_l
 fn expired_primary_blocks_signing_and_recipient_selection() {
     let material = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version: 0,
             kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
             user_id: "Expired Example <expired@example.test>".to_owned(),
             rsa_bits: 0,

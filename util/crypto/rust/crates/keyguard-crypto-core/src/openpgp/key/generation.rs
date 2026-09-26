@@ -14,7 +14,7 @@ use pgp::{
     },
     packet::{
         Features, KeyFlags, PacketHeader, PubKeyInner, PublicSubkey, SecretKey, SecretSubkey,
-        SignatureConfig, SignatureType, Subpacket, SubpacketData,
+        SignatureType, Subpacket, SubpacketData,
     },
     ser::Serialize,
     types::{
@@ -30,7 +30,7 @@ use crate::openpgp::{
     certificate::{KeyMaterial, UserIdCertificationBuilder, UserIdCertificationError},
     crypto::{
         secret::{AwsLcRng, AwsLcRsaSecretKey, SecretPacketRef, is_rsa_private_algorithm},
-        signer::SigningKeyRef,
+        signer::{SigningKeyRef, issuer_key_id_subpackets, signature_config},
     },
     error::{OpenPgpWriteError, pgp_internal},
     format::{FixedCapacityWriter, fingerprint_hex},
@@ -41,7 +41,7 @@ use super::{KeyGenerationInput, KeyKind};
 
 const MAX_GENERATED_USER_ID_BYTES: usize = 16 * 1024;
 
-/// Generates a complete v4 certificate and returns transferable key material.
+/// Generates a complete V4 or V6 certificate and returns transferable key material.
 pub(in crate::openpgp) fn generate_key(
     request: KeyGenerationInput,
 ) -> Result<KeyMaterial, OpenPgpWriteError> {
@@ -54,17 +54,26 @@ pub(in crate::openpgp) fn generate_key(
         return Err(OpenPgpWriteError::InvalidArgument);
     }
     let created_at = Timestamp::from_secs(request.creation_time_epoch_seconds as u32);
-    let certificate = match request.kind {
-        KeyKind::Unspecified => return Err(OpenPgpWriteError::InvalidArgument),
-        KeyKind::LegacyEd25519X25519 => {
-            generate_modern_certificate(user_id, created_at, request.expiration_seconds)?
+    let certificate = match (request.kind, request.version) {
+        (KeyKind::LegacyEd25519X25519, KeyVersion::V4)
+        | (KeyKind::Ed25519X25519, KeyVersion::V6)
+            if request.rsa_bits == 0 =>
+        {
+            generate_modern_certificate(
+                user_id,
+                created_at,
+                request.expiration_seconds,
+                request.version,
+            )?
         }
-        KeyKind::Rsa => generate_rsa_certificate(
+        (KeyKind::Rsa, KeyVersion::V4 | KeyVersion::V6) => generate_rsa_certificate(
             user_id,
             created_at,
             request.expiration_seconds,
             request.rsa_bits,
+            request.version,
         )?,
+        _ => return Err(OpenPgpWriteError::InvalidArgument),
     };
     encode_key_material(&certificate)
 }
@@ -73,33 +82,52 @@ fn generate_modern_certificate(
     user_id: &str,
     created_at: Timestamp,
     expiration: Option<u32>,
+    version: KeyVersion,
 ) -> Result<SignedSecretKey, OpenPgpWriteError> {
     let rng = AwsLcRng;
-    let (primary_public, primary_secret) = pgp::composed::KeyType::Ed25519Legacy
+    let (signing_type, encryption_type, signing_algorithm, encryption_algorithm) =
+        if version == KeyVersion::V6 {
+            (
+                pgp::composed::KeyType::Ed25519,
+                pgp::composed::KeyType::X25519,
+                PublicKeyAlgorithm::Ed25519,
+                PublicKeyAlgorithm::X25519,
+            )
+        } else {
+            (
+                pgp::composed::KeyType::Ed25519Legacy,
+                pgp::composed::KeyType::ECDH(ECCCurve::Curve25519Legacy),
+                PublicKeyAlgorithm::EdDSALegacy,
+                PublicKeyAlgorithm::ECDH,
+            )
+        };
+    let (primary_public, primary_secret) = signing_type
         .generate(rng)
         .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
-    let (signing_public, signing_secret) = pgp::composed::KeyType::Ed25519Legacy
+    let (signing_public, signing_secret) = signing_type
         .generate(rng)
         .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
-    let (encryption_public, encryption_secret) =
-        pgp::composed::KeyType::ECDH(ECCCurve::Curve25519Legacy)
-            .generate(rng)
-            .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
+    let (encryption_public, encryption_secret) = encryption_type
+        .generate(rng)
+        .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
 
     let primary = secret_primary_from_params(
-        PublicKeyAlgorithm::EdDSALegacy,
+        version,
+        signing_algorithm,
         created_at,
         primary_public,
         primary_secret,
     )?;
     let signing = secret_subkey_from_params(
-        PublicKeyAlgorithm::EdDSALegacy,
+        version,
+        signing_algorithm,
         created_at,
         signing_public,
         signing_secret,
     )?;
     let encryption = secret_subkey_from_params(
-        PublicKeyAlgorithm::ECDH,
+        version,
+        encryption_algorithm,
         created_at,
         encryption_public,
         encryption_secret,
@@ -114,6 +142,7 @@ fn generate_rsa_certificate(
     created_at: Timestamp,
     expiration: Option<u32>,
     bits: u32,
+    version: KeyVersion,
 ) -> Result<SignedSecretKey, OpenPgpWriteError> {
     if !matches!(bits, 3_072 | 4_096) {
         return Err(OpenPgpWriteError::InvalidArgument);
@@ -122,9 +151,9 @@ fn generate_rsa_certificate(
     let signing_der = generate_rsa_pkcs1_der(bits).map_err(|_| OpenPgpWriteError::CryptoFailure)?;
     let encryption_der =
         generate_rsa_pkcs1_der(bits).map_err(|_| OpenPgpWriteError::CryptoFailure)?;
-    let primary = rsa_primary_from_der(&primary_der, created_at)?;
-    let signing = rsa_subkey_from_der(&signing_der, created_at)?;
-    let encryption = rsa_subkey_from_der(&encryption_der, created_at)?;
+    let primary = rsa_primary_from_der(&primary_der, created_at, version)?;
+    let signing = rsa_subkey_from_der(&signing_der, created_at, version)?;
+    let encryption = rsa_subkey_from_der(&encryption_der, created_at, version)?;
     compose_generated_certificate(
         primary, signing, encryption, user_id, created_at, expiration,
     )
@@ -142,19 +171,20 @@ pub(crate) fn generate_rsa_certificate_for_test(
     let signing_der = generate_rsa_pkcs1_der(bits).map_err(|_| OpenPgpWriteError::CryptoFailure)?;
     let encryption_der =
         generate_rsa_pkcs1_der(bits).map_err(|_| OpenPgpWriteError::CryptoFailure)?;
-    let primary = rsa_primary_from_der(&primary_der, created_at)?;
-    let signing = rsa_subkey_from_der(&signing_der, created_at)?;
-    let encryption = rsa_subkey_from_der(&encryption_der, created_at)?;
+    let primary = rsa_primary_from_der(&primary_der, created_at, KeyVersion::V4)?;
+    let signing = rsa_subkey_from_der(&signing_der, created_at, KeyVersion::V4)?;
+    let encryption = rsa_subkey_from_der(&encryption_der, created_at, KeyVersion::V4)?;
     compose_generated_certificate(primary, signing, encryption, user_id, created_at, None)
 }
 
 fn secret_primary_from_params(
+    version: KeyVersion,
     algorithm: PublicKeyAlgorithm,
     created_at: Timestamp,
     public: PublicParams,
     secret: SecretParams,
 ) -> Result<SecretKey, OpenPgpWriteError> {
-    let inner = PubKeyInner::new(KeyVersion::V4, algorithm, created_at, None, public)
+    let inner = PubKeyInner::new(version, algorithm, created_at, None, public)
         .map_err(|_| OpenPgpWriteError::Internal)?;
     let public =
         pgp::packet::PublicKey::from_inner(inner).map_err(|_| OpenPgpWriteError::Internal)?;
@@ -162,19 +192,24 @@ fn secret_primary_from_params(
 }
 
 fn secret_subkey_from_params(
+    version: KeyVersion,
     algorithm: PublicKeyAlgorithm,
     created_at: Timestamp,
     public: PublicParams,
     secret: SecretParams,
 ) -> Result<SecretSubkey, OpenPgpWriteError> {
-    let inner = PubKeyInner::new(KeyVersion::V4, algorithm, created_at, None, public)
+    let inner = PubKeyInner::new(version, algorithm, created_at, None, public)
         .map_err(|_| OpenPgpWriteError::Internal)?;
     let public = PublicSubkey::from_inner(inner).map_err(|_| OpenPgpWriteError::Internal)?;
     SecretSubkey::new(public, secret).map_err(|_| OpenPgpWriteError::Internal)
 }
 
-fn rsa_primary_from_der(der: &[u8], created_at: Timestamp) -> Result<SecretKey, OpenPgpWriteError> {
-    let body = rsa_secret_packet_body(der, created_at)?;
+fn rsa_primary_from_der(
+    der: &[u8],
+    created_at: Timestamp,
+    version: KeyVersion,
+) -> Result<SecretKey, OpenPgpWriteError> {
+    let body = rsa_secret_packet_body(der, created_at, version)?;
     let header = PacketHeader::new_fixed(
         Tag::SecretKey,
         u32::try_from(body.len()).map_err(|_| OpenPgpWriteError::ResourceLimit)?,
@@ -186,8 +221,9 @@ fn rsa_primary_from_der(der: &[u8], created_at: Timestamp) -> Result<SecretKey, 
 fn rsa_subkey_from_der(
     der: &[u8],
     created_at: Timestamp,
+    version: KeyVersion,
 ) -> Result<SecretSubkey, OpenPgpWriteError> {
-    let body = rsa_secret_packet_body(der, created_at)?;
+    let body = rsa_secret_packet_body(der, created_at, version)?;
     let header = PacketHeader::new_fixed(
         Tag::SecretSubkey,
         u32::try_from(body.len()).map_err(|_| OpenPgpWriteError::ResourceLimit)?,
@@ -199,6 +235,7 @@ fn rsa_subkey_from_der(
 fn rsa_secret_packet_body(
     der: &[u8],
     created_at: Timestamp,
+    version: KeyVersion,
 ) -> Result<Zeroizing<Vec<u8>>, OpenPgpWriteError> {
     use pkcs1::der::Decode;
 
@@ -214,14 +251,14 @@ fn rsa_secret_packet_body(
     let coefficient = key.coefficient.as_bytes();
 
     let body_len = [
-        7,
+        if version == KeyVersion::V6 { 11 } else { 7 },
         mpi_write_len(modulus)?,
         mpi_write_len(public_exponent)?,
         mpi_write_len(private_exponent)?,
         mpi_write_len(prime_p)?,
         mpi_write_len(prime_q)?,
         mpi_write_len(coefficient)?,
-        2,
+        if version == KeyVersion::V6 { 0 } else { 2 },
     ]
     .into_iter()
     .try_fold(0_usize, |total, length| total.checked_add(length))
@@ -234,7 +271,7 @@ fn rsa_secret_packet_body(
     {
         let mut writer = FixedCapacityWriter(&mut body);
         writer
-            .write_all(&[u8::from(KeyVersion::V4)])
+            .write_all(&[u8::from(version)])
             .map_err(|_| OpenPgpWriteError::Internal)?;
         writer
             .write_all(&created_at.as_secs().to_be_bytes())
@@ -242,6 +279,16 @@ fn rsa_secret_packet_body(
         writer
             .write_all(&[u8::from(PublicKeyAlgorithm::RSA)])
             .map_err(|_| OpenPgpWriteError::Internal)?;
+        if version == KeyVersion::V6 {
+            let public_len = mpi_write_len(modulus)? + mpi_write_len(public_exponent)?;
+            writer
+                .write_all(
+                    &u32::try_from(public_len)
+                        .map_err(|_| OpenPgpWriteError::ResourceLimit)?
+                        .to_be_bytes(),
+                )
+                .map_err(|_| OpenPgpWriteError::Internal)?;
+        }
         write_mpi(&mut writer, modulus)?;
         write_mpi(&mut writer, public_exponent)?;
         writer
@@ -256,12 +303,14 @@ fn rsa_secret_packet_body(
         write_mpi(&mut writer, prime_q)?;
         write_mpi(&mut writer, coefficient)?;
     }
-    let checksum = body[secret_start..]
-        .iter()
-        .fold(0_u16, |sum, value| sum.wrapping_add(u16::from(*value)));
-    FixedCapacityWriter(&mut body)
-        .write_all(&checksum.to_be_bytes())
-        .map_err(|_| OpenPgpWriteError::Internal)?;
+    if version == KeyVersion::V4 {
+        let checksum = body[secret_start..]
+            .iter()
+            .fold(0_u16, |sum, value| sum.wrapping_add(u16::from(*value)));
+        FixedCapacityWriter(&mut body)
+            .write_all(&checksum.to_be_bytes())
+            .map_err(|_| OpenPgpWriteError::Internal)?;
+    }
     if body.len() != body_len || body.capacity() != capacity || body.as_ptr() != allocation {
         return Err(OpenPgpWriteError::Internal);
     }
@@ -294,22 +343,38 @@ fn compose_generated_certificate(
             .as_ref()
             .map_or(&signing as &dyn SigningKey, |key| key),
     );
-    let mut certification = SignatureConfig::v4(
+    let mut certification = signature_config(
+        &primary_signer,
         SignatureType::CertPositive,
-        primary_signer.algorithm(),
         HashAlgorithm::Sha256,
-    );
+    )?;
     let mut primary_flags = KeyFlags::default();
     primary_flags.set_certify(true);
     certification.hashed_subpackets =
         common_key_subpackets(&primary_signer, created_at, expiration, Some(primary_flags))?;
+    let mut direct_signatures = Vec::new();
+    if primary.version() == KeyVersion::V6 {
+        let mut direct =
+            signature_config(&primary_signer, SignatureType::Key, HashAlgorithm::Sha256)?;
+        direct.hashed_subpackets = std::mem::take(&mut certification.hashed_subpackets);
+        direct_signatures.push(
+            direct
+                .sign_key(&primary_signer, &Password::empty(), primary.public_key())
+                .map_err(|_| OpenPgpWriteError::CryptoFailure)?,
+        );
+        certification.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(created_at))
+                .map_err(pgp_internal)?,
+            Subpacket::regular(SubpacketData::IssuerFingerprint(
+                primary_signer.fingerprint(),
+            ))
+            .map_err(pgp_internal)?,
+        ];
+    }
     certification
         .hashed_subpackets
         .push(Subpacket::regular(SubpacketData::IsPrimary(true)).map_err(pgp_internal)?);
-    certification.unhashed_subpackets = vec![
-        Subpacket::regular(SubpacketData::IssuerKeyId(primary_signer.legacy_key_id()))
-            .map_err(pgp_internal)?,
-    ];
+    certification.unhashed_subpackets = issuer_key_id_subpackets(&primary_signer)?;
     let certification = UserIdCertificationBuilder::new(
         primary_signer,
         primary.public_key(),
@@ -322,11 +387,11 @@ fn compose_generated_certificate(
     let certification = certification.signature;
     let password = Password::empty();
 
-    let mut back_signature = SignatureConfig::v4(
+    let mut back_signature = signature_config(
+        &signing_signer,
         SignatureType::KeyBinding,
-        signing_signer.algorithm(),
         HashAlgorithm::Sha256,
-    );
+    )?;
     back_signature.hashed_subpackets = vec![
         Subpacket::regular(SubpacketData::SignatureCreationTime(created_at))
             .map_err(pgp_internal)?,
@@ -335,10 +400,7 @@ fn compose_generated_certificate(
         ))
         .map_err(pgp_internal)?,
     ];
-    back_signature.unhashed_subpackets = vec![
-        Subpacket::regular(SubpacketData::IssuerKeyId(signing_signer.legacy_key_id()))
-            .map_err(pgp_internal)?,
-    ];
+    back_signature.unhashed_subpackets = issuer_key_id_subpackets(&signing_signer)?;
     let back_signature = back_signature
         .sign_primary_key_binding(
             &signing_signer,
@@ -373,7 +435,7 @@ fn compose_generated_certificate(
         primary,
         SignedKeyDetails::new(
             Vec::new(),
-            Vec::new(),
+            direct_signatures,
             vec![user.into_signed(certification)],
             Vec::new(),
         ),
@@ -419,12 +481,15 @@ fn common_key_subpackets(
         subpackets.push(Subpacket::regular(SubpacketData::KeyFlags(flags)).map_err(pgp_internal)?);
     }
     subpackets.push(
-        // Generated certificates are V4 for interoperability with GnuPG.
-        // Advertise the matching LibrePGP/GnuPG AEAD profile, not RFC 9580
-        // SEIPDv2: current GnuPG releases reject the v6 PKESK that SEIPDv2
-        // requires even when the recipient key itself is V4.
-        Subpacket::regular(SubpacketData::Features(Features::from(&[0x03][..])))
-            .map_err(pgp_internal)?,
+        // V4 retains the GnuPG AEAD profile; V6 advertises RFC 9580 SEIPDv2.
+        Subpacket::regular(SubpacketData::Features(Features::from(
+            &[if signer.version() == KeyVersion::V6 {
+                0x09
+            } else {
+                0x03
+            }][..],
+        )))
+        .map_err(pgp_internal)?,
     );
     subpackets.push(
         Subpacket::regular(SubpacketData::PreferredSymmetricAlgorithms(
@@ -444,12 +509,14 @@ fn common_key_subpackets(
         ))
         .map_err(pgp_internal)?,
     );
-    subpackets.push(
-        Subpacket::regular(SubpacketData::PreferredEncryptionModes(
-            vec![AeadAlgorithm::Ocb].into(),
-        ))
-        .map_err(pgp_internal)?,
-    );
+    let aead_preferences = if signer.version() == KeyVersion::V6 {
+        SubpacketData::PreferredAeadAlgorithms(
+            vec![(SymmetricKeyAlgorithm::AES256, AeadAlgorithm::Ocb)].into(),
+        )
+    } else {
+        SubpacketData::PreferredEncryptionModes(vec![AeadAlgorithm::Ocb].into())
+    };
+    subpackets.push(Subpacket::regular(aead_preferences).map_err(pgp_internal)?);
     Ok(subpackets)
 }
 
@@ -471,11 +538,11 @@ where
     flags.set_sign(signing);
     flags.set_encrypt_comms(!signing);
     flags.set_encrypt_storage(!signing);
-    let mut config = SignatureConfig::v4(
+    let mut config = signature_config(
+        &primary_signer,
         SignatureType::SubkeyBinding,
-        primary_signer.algorithm(),
         HashAlgorithm::Sha256,
-    );
+    )?;
     config.hashed_subpackets =
         common_key_subpackets(&primary_signer, created_at, expiration, Some(flags))?;
     if let Some(embedded) = embedded {
@@ -484,10 +551,7 @@ where
                 .map_err(pgp_internal)?,
         );
     }
-    config.unhashed_subpackets = vec![
-        Subpacket::regular(SubpacketData::IssuerKeyId(primary_signer.legacy_key_id()))
-            .map_err(pgp_internal)?,
-    ];
+    config.unhashed_subpackets = issuer_key_id_subpackets(&primary_signer)?;
     config
         .sign_subkey_binding(&primary_signer, primary_public, password, subkey_public)
         .map_err(|_| OpenPgpWriteError::CryptoFailure)

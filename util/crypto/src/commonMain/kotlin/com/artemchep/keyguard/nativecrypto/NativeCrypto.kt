@@ -52,6 +52,8 @@ public enum class NativeCryptoCapability(
     OPENPGP_USER_ID_CERTIFICATION(bit = 1L shl 33),
     /** Native OpenPGP decryption supports bounded output draining after input EOF. */
     OPENPGP_STREAM_DRAIN(bit = 1L shl 34),
+    /** Native OpenPGP generation and certificate mutations support V4 and V6. */
+    OPENPGP_V6_GENERATION_MUTATION(bit = 1L shl 35),
 }
 
 public object NativeCrypto {

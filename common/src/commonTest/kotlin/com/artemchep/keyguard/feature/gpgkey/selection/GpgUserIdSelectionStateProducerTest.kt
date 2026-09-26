@@ -82,6 +82,27 @@ class GpgUserIdSelectionStateProducerTest {
     }
 
     @Test
+    fun `v6 revocation can confirm the last active identity`() {
+        assertEquals(
+            "identity-a",
+            confirmedGpgUserIdSelection(
+                mode = GpgUserIdSelectionRoute.Args.Mode.Revocation,
+                identities = listOf(identity("identity-a", "Alice <alice@example.com>")),
+                selectedIdentityId = "identity-a",
+                canRevokeLastIdentity = true,
+            ),
+        )
+        assertEquals(
+            GpgUserIdSelectionError.NoIdentity,
+            evaluateGpgUserIdSelection(
+                mode = GpgUserIdSelectionRoute.Args.Mode.Revocation,
+                identityCount = 0,
+                canRevokeLastIdentity = true,
+            ),
+        )
+    }
+
+    @Test
     fun `missing or unknown selection cannot be confirmed`() {
         val identities = listOf(
             identity(id = "identity-a", userId = "Alice <alice@example.com>"),

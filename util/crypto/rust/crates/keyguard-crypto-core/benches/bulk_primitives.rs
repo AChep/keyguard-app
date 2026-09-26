@@ -212,6 +212,7 @@ fn openpgp_keygen_request(kind: OpenPgpKeyKind, rsa_bits: u32) -> Vec<u8> {
         protocol_version: PROTOCOL_VERSION,
         operation: Some(native_request::Operation::OpenPgpKeyGenerate(
             OpenPgpKeyGenerateRequest {
+                version: 0,
                 kind: kind as i32,
                 user_id: "Keyguard fixed-host benchmark <benchmark@test.invalid>".to_owned(),
                 rsa_bits,

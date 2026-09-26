@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.model.SearchGpgPublicKeyRequest
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.gpgKeyIdFromFingerprintOrNull
 import com.artemchep.keyguard.provider.bitwarden.api.builder.routeAttribute
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -32,6 +33,35 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class GpgKeyserverClientImplTest {
+    @Test
+    fun `both keyserver protocols preserve full v6 fingerprints in lookups`() = runTest {
+        val fingerprint = "FEDCBA9876543210" + "A".repeat(48)
+        for (protocol in GpgKeyserverConfig.Protocol.entries) {
+            val requests = mutableListOf<RecordedRequest>()
+            val parser = FakeParser(GpgPublicKeyParseResult.Success(listOf(
+                keyInfo(fingerprint, userIds = emptyList(), emails = emptyList()),
+            )))
+            val client = recordingClient(
+                requests = requests,
+                response = "-----BEGIN PGP PUBLIC KEY BLOCK-----",
+                contentType = ContentType.parse("application/pgp-keys"),
+            )
+            val result = GpgKeyserverClientImpl(client, parser).getByFingerprint(
+                fingerprint = fingerprint.lowercase(),
+                config = GpgKeyserverConfig(protocol = protocol),
+            ).bind()
+            assertEquals(fingerprint, result?.fingerprint)
+            assertEquals("FEDCBA9876543210", result?.keyId)
+            val request = requests.single()
+            when (protocol) {
+                GpgKeyserverConfig.Protocol.VKS ->
+                    assertEquals(listOf("vks", "v1", "by-fingerprint", fingerprint), request.pathSegments)
+                GpgKeyserverConfig.Protocol.HKP ->
+                    assertEquals("0x$fingerprint", request.query["search"])
+            }
+        }
+    }
+
     @Test
     fun `VKS email search uses by-email endpoint and parses armored response`() = runTest {
         val requests = mutableListOf<RecordedRequest>()
@@ -323,6 +353,26 @@ class GpgKeyserverClientImplTest {
         assertEquals("https://keyserver.ubuntu.com", result.sourceKeyserver)
         assertEquals(hkpConfig, result.sourceKeyserverConfig)
         assertTrue(result.publicKeyArmored == null)
+    }
+
+    @Test
+    fun `HKP index fingerprints derive version-appropriate long key IDs`() = runTest {
+        for (fingerprint in listOf("B".repeat(24) + "0123456789ABCDEF", "FEDCBA9876543210" + "A".repeat(48))) {
+            val client = recordingClient(
+                requests = mutableListOf(),
+                response = "info:1:1\npub:$fingerprint:27:255:1700000000::\nuid:Alice:::::::::\n",
+                contentType = ContentType.Text.Plain,
+            )
+            val result = GpgKeyserverClientImpl(client, FakeParser()).search(
+                request = SearchGpgPublicKeyRequest("Alice"),
+                config = GpgKeyserverConfig(
+                    url = GpgKeyserverConfig.HKP_UBUNTU_URL,
+                    protocol = GpgKeyserverConfig.Protocol.HKP,
+                ),
+            ).bind().single()
+            assertEquals(fingerprint, result.fingerprint)
+            assertEquals(if (fingerprint.length == 40) "0123456789ABCDEF" else "FEDCBA9876543210", result.keyId)
+        }
     }
 
     @Test
@@ -677,7 +727,7 @@ class GpgKeyserverClientImplTest {
         emails: List<String>,
     ) = GpgPublicKeyInfo(
         fingerprint = fingerprint,
-        keyId = fingerprint.takeLast(16),
+        keyId = requireNotNull(fingerprint.gpgKeyIdFromFingerprintOrNull()),
         algorithm = "ED25519",
         bitStrength = null,
         userIds = userIds,

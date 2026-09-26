@@ -19,6 +19,15 @@ class KeePassGpgKeyCodecTest {
     private val codec = KeePassGpgKeyCodec()
 
     @Test
+    fun `both certificate fingerprint lengths survive KeePass fields`() {
+        for (length in listOf(40, 64)) {
+            val key = gpgKey().copy(fingerprint = "0123456789ABCDEF".repeat(4).take(length), metadata = null)
+            val writes = codec.encode(key)
+            assertEquals(key, decode(*writes.map { it.key to it.value }.toTypedArray()).gpgKey)
+        }
+    }
+
+    @Test
     fun `encode writes gpg fields with concealment`() {
         val writes = codec.encode(gpgKey())
 

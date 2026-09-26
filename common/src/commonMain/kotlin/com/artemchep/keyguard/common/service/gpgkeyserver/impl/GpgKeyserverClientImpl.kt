@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.extractGpgUserIdEmail
 import com.artemchep.keyguard.common.service.crypto.gpgAlgorithmName
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.crypto.gpgKeyIdFromFingerprintOrNull
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
 import com.artemchep.keyguard.common.util.isHexDigit
 import com.artemchep.keyguard.provider.bitwarden.api.builder.ensureSuffix
@@ -554,7 +555,8 @@ class GpgKeyserverClientImpl(
                     ?: return@mapNotNull null
                 DGpgKeyserverResult(
                     fingerprint = fingerprint,
-                    keyId = record.keyId?.takeLast(16),
+                    keyId = record.keyId?.takeIf { it.length <= 16 }
+                        ?: fingerprint.gpgKeyIdFromFingerprintOrNull(),
                     userIds = record.userIds.distinct(),
                     emails = record.userIds.mapNotNull(::extractGpgUserIdEmail).distinct(),
                     algorithm = record.algorithm,

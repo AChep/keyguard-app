@@ -9,7 +9,7 @@
 use pgp::{
     armor::BlockType,
     packet::{KeyFlags, Signature},
-    types::SigningKey,
+    types::{KeyDetails, KeyVersion, SigningKey},
 };
 use zeroize::{Zeroize, Zeroizing};
 
@@ -246,15 +246,23 @@ pub(crate) fn replace_user_id_request(
     if primary_identity.policy_conflict {
         return Err(UserIdReplacementFailure::PolicyConflict);
     }
-    let policy_template = primary_identity
+    let primary_certification = primary_identity
         .effective_signature
         .ok_or(UserIdReplacementFailure::MissingSelfSignature)?;
+    let policy_template = if certificate.primary_key.version() == KeyVersion::V6 {
+        policy
+            .primary
+            .effective_signature
+            .ok_or(UserIdReplacementFailure::MissingSelfSignature)?
+    } else {
+        primary_certification
+    };
     let target_certification = target_identity
         .effective_signature
         .ok_or(UserIdReplacementFailure::MissingSelfSignature)?;
     // A fresh non-primary replacement would otherwise become the newest
     // fallback candidate and silently take over primary User ID selection.
-    let preserve_fallback_primary = !old_is_primary && !signature_is_primary(policy_template);
+    let preserve_fallback_primary = !old_is_primary && !signature_is_primary(primary_certification);
     let fallback_primary_was_revocable = primary_identity.effective_certification_revocable;
 
     let mut newest_relevant = target_identity
@@ -332,7 +340,7 @@ pub(crate) fn replace_user_id_request(
     }
     let fallback_primary_certification = if preserve_fallback_primary {
         let config = existing_user_id_recertification_config(
-            policy_template,
+            primary_certification,
             signer,
             replacement_time,
             true,
@@ -400,7 +408,9 @@ pub(crate) fn replace_user_id_request(
     let artifact = if mutation_is_local {
         Vec::new()
     } else {
-        preflight.packet_set.fragment(&additions)?
+        preflight
+            .packet_set
+            .fragment(&additions, &preflight.canonical.bytes)?
     };
     let mut mutated = preflight.packet_set.clone();
     mutated.apply_additions(&additions)?;

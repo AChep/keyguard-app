@@ -12,6 +12,26 @@ import kotlin.time.Instant
 
 class GpgOpenPgpRingOperationsTest {
     @Test
+    fun `v6 verification confirms the full fingerprint when key IDs collide`() {
+        val id = "FEDCBA9876543210"
+        val signer = id + "A".repeat(48)
+        val unrelated = id + "B".repeat(48)
+        val result = confirm(
+            signerFingerprint = signer,
+            rings = listOf(
+                ring("signer", primaryFingerprint = signer),
+                ring("collision", primaryFingerprint = unrelated),
+            ),
+            evaluations = mapOf("signer" to listOf(USER_ID), "collision" to emptyList()),
+            detached = true,
+        )
+        assertEquals(id, result.verification.keyId)
+        assertEquals(signer, result.verification.fingerprint)
+        assertEquals(listOf(USER_ID), result.verification.confirmedUserIds)
+        assertEquals(listOf("signer"), result.evaluatedCertificates)
+    }
+
+    @Test
     fun `duplicate primary fingerprint revisions are merged before confirmation`() {
         val result = confirm(
             signerFingerprint = PRIMARY_FINGERPRINT,
@@ -240,7 +260,7 @@ class GpgOpenPgpRingOperationsTest {
         warnings: List<GpgOpenPgpVerificationWarning> = emptyList(),
     ) = GpgOpenPgpVerification(
         status = GpgOpenPgpVerificationStatus.VALID,
-        keyId = fingerprint.takeLast(16),
+        keyId = requireNotNull(fingerprint.gpgKeyIdFromFingerprintOrNull()),
         fingerprint = fingerprint,
         userIds = listOf(USER_ID),
         createdAt = REFERENCE_TIME,
@@ -251,13 +271,14 @@ class GpgOpenPgpRingOperationsTest {
         publicKey: String,
         subkeyFingerprint: String? = null,
         canDecrypt: Boolean = false,
+        primaryFingerprint: String = PRIMARY_FINGERPRINT,
     ) = GpgOpenPgpRing(
         accountId = "account",
         cipherId = publicKey,
         name = publicKey,
         info = GpgPublicKeyInfo(
-            fingerprint = PRIMARY_FINGERPRINT,
-            keyId = PRIMARY_FINGERPRINT.takeLast(16),
+            fingerprint = primaryFingerprint,
+            keyId = requireNotNull(primaryFingerprint.gpgKeyIdFromFingerprintOrNull()),
             algorithm = "EdDSA",
             bitStrength = 255,
             userIds = listOf(USER_ID),
@@ -272,7 +293,7 @@ class GpgOpenPgpRingOperationsTest {
                 listOf(
                     GpgPublicSubKeyInfo(
                         fingerprint = fingerprint,
-                        keyId = fingerprint.takeLast(16),
+                        keyId = requireNotNull(fingerprint.gpgKeyIdFromFingerprintOrNull()),
                         algorithm = "EdDSA",
                         canSign = true,
                         canEncrypt = false,

@@ -14,7 +14,8 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerification
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationStatus
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationWarning
 import com.artemchep.keyguard.common.service.crypto.OPENPGP_HEX_RADIX
-import com.artemchep.keyguard.common.service.crypto.fingerprintToKeyId
+import com.artemchep.keyguard.common.service.crypto.gpgKeyIdFromFingerprintOrNull
+import com.artemchep.keyguard.common.service.crypto.openPgpKeyIdToLong
 import com.artemchep.keyguard.common.service.crypto.normalizeGpgMailboxAddress
 import com.artemchep.keyguard.common.service.crypto.normalizeGpgUserIdEmail
 import com.artemchep.keyguard.common.service.crypto.normalized
@@ -185,11 +186,11 @@ private fun GpgOpenPgpVerification.createKnownKeySignatureResult(
 ): OpenPgpSignatureResult = OpenPgpSignatureResult.createWithValidSignature(
         result,
         userIds.firstOrNull(),
+        // Issuer key IDs can be unauthenticated routing hints; prefer the verified signer.
         fingerprint
-            ?.let(::fingerprintToKeyId)
-            ?: runCatching {
-                keyId.toULong(OPENPGP_HEX_RADIX).toLong()
-            }.getOrDefault(0L),
+            ?.gpgKeyIdFromFingerprintOrNull()
+            ?.let(::openPgpKeyIdToLong)
+            ?: runCatching { openPgpKeyIdToLong(keyId) }.getOrDefault(0L),
         userIds,
         openPgpApiConfirmedUserIds,
         senderStatusResult(senderAddress),

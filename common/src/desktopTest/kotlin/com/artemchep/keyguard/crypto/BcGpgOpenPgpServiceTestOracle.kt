@@ -314,6 +314,10 @@ class BcGpgOpenPgpServiceTestOracle : GpgOpenPgpService,
                 .setProvider(gpgBouncyCastleProvider)
                 .setSecureRandom(SecureRandom())
                 .setWithIntegrityPacket(true)
+            if (encryptionKeys.all { it.version == 6 }) {
+                encryptorBuilder.setWithAEAD(org.bouncycastle.bcpg.AEADAlgorithmTags.OCB, 6)
+                    .setUseV6AEAD()
+            }
             val encryptedDataGenerator = PGPEncryptedDataGenerator(encryptorBuilder)
             encryptionKeys.forEach { key ->
                 encryptedDataGenerator.addMethod(
@@ -561,6 +565,7 @@ class BcGpgOpenPgpServiceTestOracle : GpgOpenPgpService,
         val generator = PGPSignatureGenerator(
             JcaPGPContentSignerBuilder(secretKey.publicKey.algorithm, HashAlgorithmTags.SHA256)
                 .setProvider(gpgBouncyCastleProvider),
+            secretKey.publicKey,
         )
         generator.init(signatureType, privateKey)
         val userId = secretKey.publicKey.userIDs

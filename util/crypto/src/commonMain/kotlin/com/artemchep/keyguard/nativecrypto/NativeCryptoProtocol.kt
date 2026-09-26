@@ -1497,6 +1497,21 @@ internal enum class OpenPgpKeyKindProto {
 
     @ProtoNumber(2)
     RSA,
+
+    @ProtoNumber(3)
+    ED25519_X25519,
+}
+
+@Serializable
+internal enum class OpenPgpKeyVersionProto {
+    @ProtoNumber(0)
+    UNSPECIFIED,
+
+    @ProtoNumber(4)
+    V4,
+
+    @ProtoNumber(6)
+    V6,
 }
 
 @Serializable
@@ -1512,6 +1527,8 @@ internal data class OpenPgpKeyGenerateRequestProto(
     @ProtoNumber(5)
     @Serializable(with = ProtoUInt32Serializer::class)
     val expirationSeconds: UInt? = null,
+    @ProtoNumber(6)
+    val version: OpenPgpKeyVersionProto = OpenPgpKeyVersionProto.UNSPECIFIED,
 )
 
 internal object ProtoUInt32Serializer : KSerializer<UInt> {

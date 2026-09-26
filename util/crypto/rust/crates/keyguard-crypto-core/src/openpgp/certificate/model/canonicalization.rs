@@ -349,8 +349,22 @@ impl PublicCertificatePacketSet {
     pub(crate) fn fragment(
         &self,
         additions: &[CertificateAddition],
+        transferable_certificate: &[u8],
     ) -> Result<Vec<u8>, CertificateMutationError> {
         let mut fragment = self.empty_shell();
+        if self.primary.body.first() == Some(&6) {
+            // V6 identity artifacts require the certificate's Direct Key signature.
+            // Copy only from the already-filtered transferable view: retained
+            // direct statements can contain sensitive revocation declarations.
+            if transferable_certificate.is_empty() {
+                return Ok(Vec::new());
+            }
+            let supporting = parse_single_certificate_packet_set(transferable_certificate)?;
+            if supporting.fingerprint != self.fingerprint {
+                return Err(CertificateMutationError::Malformed);
+            }
+            fragment.direct = supporting.direct;
+        }
         for addition in additions {
             match addition {
                 CertificateAddition::Signature { owner, .. } => {

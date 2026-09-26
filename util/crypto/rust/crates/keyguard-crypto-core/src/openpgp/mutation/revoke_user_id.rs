@@ -5,7 +5,10 @@
 //! artifact the caller may publish, so the stored certificate and the
 //! distributed one can never carry different statements.
 
-use pgp::{armor::BlockType, types::SigningKey};
+use pgp::{
+    armor::BlockType,
+    types::{KeyDetails, KeyVersion, SigningKey},
+};
 use zeroize::{Zeroize, Zeroizing};
 
 use crate::openpgp::{
@@ -171,7 +174,10 @@ pub(crate) fn revoke_user_id_request(
     // Keyguard keeps at least one authenticated textual identity on a V4
     // certificate. User Attributes are not interchangeable with User IDs for
     // identity lookup and therefore do not satisfy this invariant.
-    if identity.authenticated() && !policy.has_authenticated_user_id_other_than(&target_body) {
+    if certificate.primary_key.version() == KeyVersion::V4
+        && identity.authenticated()
+        && !policy.has_authenticated_user_id_other_than(&target_body)
+    {
         return Err(UserIdRevocationFailure::LastUserId);
     }
     if preflight.secret.primary_key.secret_params().is_encrypted() {
@@ -214,7 +220,9 @@ pub(crate) fn revoke_user_id_request(
     let artifact = if mutation_is_local {
         Vec::new()
     } else {
-        preflight.packet_set.fragment(&additions)?
+        preflight
+            .packet_set
+            .fragment(&additions, &preflight.canonical.bytes)?
     };
     let mut mutated = preflight.packet_set.clone();
     mutated.apply_additions(&additions)?;

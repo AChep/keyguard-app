@@ -108,6 +108,8 @@ pub const CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2: u64 = 1 << 32;
 pub const CAPABILITY_OPENPGP_USER_ID_CERTIFICATION: u64 = 1 << 33;
 /// Bounded EOF/output draining for OpenPGP decryption sessions.
 pub const CAPABILITY_OPENPGP_STREAM_DRAIN: u64 = 1 << 34;
+/// V4 and V6 OpenPGP generation and certificate mutations.
+pub const CAPABILITY_OPENPGP_V6_GENERATION_MUTATION: u64 = 1 << 35;
 /// Complete capability set provided by this native library revision.
 pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_PBKDF2_SHA256
@@ -143,7 +145,8 @@ pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE
     | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2
     | CAPABILITY_OPENPGP_USER_ID_CERTIFICATION
-    | CAPABILITY_OPENPGP_STREAM_DRAIN;
+    | CAPABILITY_OPENPGP_STREAM_DRAIN
+    | CAPABILITY_OPENPGP_V6_GENERATION_MUTATION;
 
 static PANIC_HOOK: Once = Once::new();
 
@@ -1315,7 +1318,8 @@ mod tests {
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
         assert_eq!(PROTOCOL_VERSION, 2);
-        assert_eq!(CAPABILITIES, 0x7ffffffff);
+        assert_eq!(CAPABILITIES, 0xfffffffff);
+        assert_eq!(CAPABILITY_OPENPGP_V6_GENERATION_MUTATION, 1 << 35);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256, 1 << 20);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256_FAST_PATH, 1 << 21);
         assert_eq!(CAPABILITY_RANDOM_FAST_PATH, 1 << 23);

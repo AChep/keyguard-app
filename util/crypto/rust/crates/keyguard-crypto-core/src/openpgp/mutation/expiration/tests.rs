@@ -33,6 +33,7 @@ fn generated_test_certificate_with_kind(
     rsa_bits: u32,
 ) -> (SignedSecretKey, SignedPublicKey) {
     let generated = crate::openpgp::adapter::key::generate(OpenPgpKeyGenerateRequest {
+        version: 0,
         kind: kind as i32,
         user_id: user_id.to_owned(),
         rsa_bits,
@@ -1237,6 +1238,7 @@ fn a_far_future_dated_subkey_binding_causes_a_time_conflict() {
 fn repeated_same_second_renewals_advance_the_replacement_by_one_second() {
     const RENEWAL_TIME: u64 = 1_700_000_120;
     let generated = crate::openpgp::adapter::key::generate(OpenPgpKeyGenerateRequest {
+        version: 0,
         kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
         user_id: "Same Second <same-second@example.test>".to_owned(),
         rsa_bits: 0,
@@ -2342,6 +2344,7 @@ fn user_attribute_renewal_uses_older_live_certification_over_newer_expired_one()
 #[test]
 fn mutation_selection_uses_last_hashed_creation_time_and_resolves_equivalent_ties() {
     let generated = crate::openpgp::adapter::key::generate(OpenPgpKeyGenerateRequest {
+        version: 0,
         kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
         user_id: "Creation Time <creation-time@example.test>".to_owned(),
         rsa_bits: 0,
@@ -2480,6 +2483,7 @@ fn renewal_uses_an_older_non_revocable_surviving_certification() {
 #[test]
 fn mutation_selection_uses_cryptographic_material_for_tied_policies() {
     let generated = crate::openpgp::adapter::key::generate(OpenPgpKeyGenerateRequest {
+        version: 0,
         kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
         user_id: "Policy Conflict <policy-conflict@example.test>".to_owned(),
         rsa_bits: 0,
@@ -2507,6 +2511,7 @@ fn mutation_selection_uses_cryptographic_material_for_tied_policies() {
 #[test]
 fn mutation_preserves_packet_inventory_that_composed_reserialization_would_drop() {
     let generated = crate::openpgp::adapter::key::generate(OpenPgpKeyGenerateRequest {
+        version: 0,
         kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
         user_id: "Packet Guard <packet-guard@example.test>".to_owned(),
         rsa_bits: 0,
@@ -2610,6 +2615,7 @@ fn mutation_preserves_packet_inventory_that_composed_reserialization_would_drop(
 fn v4_primary_renewal_without_direct_key_does_not_create_direct_key() {
     const RENEWAL_TIME: u64 = 1_700_000_120;
     let generated = crate::openpgp::adapter::key::generate(OpenPgpKeyGenerateRequest {
+        version: 0,
         kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
         user_id: "Direct Insert <direct-insert@example.test>".to_owned(),
         rsa_bits: 0,
@@ -3056,6 +3062,7 @@ fn expiration_postflight_rejects_revocation_authority_drift() {
 #[test]
 fn generated_v4_certificate_renews_primary_without_changing_identity() {
     let generated = crate::openpgp::adapter::key::generate(OpenPgpKeyGenerateRequest {
+        version: 0,
         kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
         user_id: "OpenPGP Mutation <openpgp-mutation@example.test>".to_owned(),
         rsa_bits: 0,
@@ -3135,6 +3142,7 @@ fn renewed_subkey_replaces_effective_binding_in_its_original_packet_position() {
     const EXPIRES_AT: u64 = 1_700_172_800;
 
     let generated = crate::openpgp::adapter::key::generate(OpenPgpKeyGenerateRequest {
+        version: 0,
         kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
         user_id: "Historical Binding <historical-binding@example.test>".to_owned(),
         rsa_bits: 0,
@@ -3235,6 +3243,7 @@ fn renewed_subkey_replaces_effective_binding_in_its_original_packet_position() {
 #[test]
 fn generated_rsa_certificate_renews_through_aws_lc_signer() {
     let generated = crate::openpgp::adapter::key::generate(OpenPgpKeyGenerateRequest {
+        version: 0,
         kind: OpenPgpKeyKind::Rsa as i32,
         user_id: "OpenPGP RSA <openpgp-rsa@example.test>".to_owned(),
         rsa_bits: 3_072,

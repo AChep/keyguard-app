@@ -13,6 +13,44 @@ import kotlin.test.assertTrue
 
 class NativeCryptoOpenPgpValidationTest {
     @Test
+    fun generationVersionDefaultsToLegacyAndRoundTripsExplicitVersions() {
+        val legacy = OpenPgpKeyGenerateRequestProto(
+            kind = OpenPgpKeyKindProto.LEGACY_ED25519_X25519,
+            userId = "Alice",
+            creationTimeEpochSeconds = 0L,
+        )
+        assertEquals(
+            OpenPgpKeyVersionProto.UNSPECIFIED,
+            ProtoBuf.decodeFromByteArray<OpenPgpKeyGenerateRequestProto>(
+                ProtoBuf.encodeToByteArray(legacy),
+            ).version,
+        )
+        val v6 = legacy.copy(
+            kind = OpenPgpKeyKindProto.ED25519_X25519,
+            version = OpenPgpKeyVersionProto.V6,
+        )
+        assertEquals(
+            v6,
+            ProtoBuf.decodeFromByteArray<OpenPgpKeyGenerateRequestProto>(
+                ProtoBuf.encodeToByteArray(v6),
+            ),
+        )
+        for ((kind, version) in listOf(
+            NativeOpenPgpKeyKind.LEGACY_ED25519_X25519 to NativeOpenPgpKeyVersion.V6,
+            NativeOpenPgpKeyKind.ED25519_X25519 to NativeOpenPgpKeyVersion.V4,
+        )) {
+            assertInvalidInput {
+                NativeCrypto.openPgp.generateKey(
+                    kind = kind,
+                    version = version,
+                    userId = "Alice",
+                    creationTimeEpochSeconds = 0L,
+                )
+            }
+        }
+    }
+
+    @Test
     fun validatesUserIdsUsingStrictUtf8Encoding() {
         assertFalse("\uD800".isValidOpenPgpUserId())
         assertFalse("\uDC00".isValidOpenPgpUserId())

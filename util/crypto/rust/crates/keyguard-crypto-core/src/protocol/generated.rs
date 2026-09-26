@@ -992,9 +992,11 @@ pub struct OpenPgpKeyGenerateRequest {
     pub rsa_bits: u32,
     #[prost(uint64, tag = "4")]
     pub creation_time_epoch_seconds: u64,
-    /// OpenPGP v4 stores this as an unsigned duration from creation time.
+    /// Both supported versions store an unsigned duration from creation time.
     #[prost(uint32, optional, tag = "5")]
     pub expiration_seconds: ::core::option::Option<u32>,
+    #[prost(enumeration = "OpenPgpKeyVersion", tag = "6")]
+    pub version: i32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpKeyMaterial {
@@ -2338,6 +2340,7 @@ pub enum OpenPgpKeyKind {
     Unspecified = 0,
     LegacyEd25519X25519 = 1,
     Rsa = 2,
+    Ed25519X25519 = 3,
 }
 impl OpenPgpKeyKind {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -2349,6 +2352,7 @@ impl OpenPgpKeyKind {
             Self::Unspecified => "OPEN_PGP_KEY_KIND_UNSPECIFIED",
             Self::LegacyEd25519X25519 => "OPEN_PGP_KEY_KIND_LEGACY_ED25519_X25519",
             Self::Rsa => "OPEN_PGP_KEY_KIND_RSA",
+            Self::Ed25519X25519 => "OPEN_PGP_KEY_KIND_ED25519_X25519",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2357,6 +2361,37 @@ impl OpenPgpKeyKind {
             "OPEN_PGP_KEY_KIND_UNSPECIFIED" => Some(Self::Unspecified),
             "OPEN_PGP_KEY_KIND_LEGACY_ED25519_X25519" => Some(Self::LegacyEd25519X25519),
             "OPEN_PGP_KEY_KIND_RSA" => Some(Self::Rsa),
+            "OPEN_PGP_KEY_KIND_ED25519_X25519" => Some(Self::Ed25519X25519),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum OpenPgpKeyVersion {
+    /// Older callers omit the version and continue to generate V4 certificates.
+    Unspecified = 0,
+    V4 = 4,
+    V6 = 6,
+}
+impl OpenPgpKeyVersion {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "OPEN_PGP_KEY_VERSION_UNSPECIFIED",
+            Self::V4 => "OPEN_PGP_KEY_VERSION_V4",
+            Self::V6 => "OPEN_PGP_KEY_VERSION_V6",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "OPEN_PGP_KEY_VERSION_UNSPECIFIED" => Some(Self::Unspecified),
+            "OPEN_PGP_KEY_VERSION_V4" => Some(Self::V4),
+            "OPEN_PGP_KEY_VERSION_V6" => Some(Self::V6),
             _ => None,
         }
     }

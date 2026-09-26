@@ -24,6 +24,7 @@ data class GpgUserIdSelectionRoute(
     data class Args(
         val activeIdentities: List<GpgUserIdSelectionIdentity>,
         val mode: Mode,
+        val canRevokeLastIdentity: Boolean = false,
     ) {
         @Serializable
         enum class Mode {
@@ -46,6 +47,7 @@ data class GpgUserIdSelectionRoute(
 suspend fun RememberStateFlowScope.requestGpgUserIdSelection(
     activeIdentities: List<GpgUserIdSelectionIdentity>,
     mode: GpgUserIdSelectionRoute.Args.Mode,
+    canRevokeLastIdentity: Boolean = false,
     onConfirm: (identityId: String) -> Unit,
 ) {
     val route = registerRouteResultReceiver(
@@ -53,6 +55,7 @@ suspend fun RememberStateFlowScope.requestGpgUserIdSelection(
             args = GpgUserIdSelectionRoute.Args(
                 activeIdentities = activeIdentities,
                 mode = mode,
+                canRevokeLastIdentity = canRevokeLastIdentity,
             ),
         ),
         block = onConfirm,

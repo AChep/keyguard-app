@@ -6,6 +6,26 @@ import kotlin.time.Instant
 
 class GpgOpenPgpRingSelectionTest {
     @Test
+    fun `v6 rings are selected by their parsed high-order key ID`() {
+        val fingerprint = "FEDCBA9876543210" + "A".repeat(48)
+        val original = ring("v6", fingerprint, "v6@example.test")
+        val ring = original.copy(info = original.info.copy(keyId = "FEDCBA9876543210"))
+        val keyId = 0xFEDCBA9876543210uL.toLong()
+        assertEquals(keyId, ring.primaryKeyId)
+        assertEquals(setOf(keyId), ring.allKeyIds)
+        assertEquals(
+            listOf(ring),
+            gpgOpenPgpApprovalCandidates(
+                kind = GpgOpenPgpOperationKind.GET_SIGN_KEY_ID,
+                vault = vault(ring),
+                requestedEmails = emptyList(),
+                keyIds = listOf(keyId),
+                preferredKeyIds = emptyList(),
+            ),
+        )
+    }
+
+    @Test
     fun `preferred signing key does not narrow an unconstrained chooser`() {
         val first = ring(
             cipherId = "first",
@@ -30,6 +50,20 @@ class GpgOpenPgpRingSelectionTest {
             listOf("first", "second"),
             candidates.map(GpgOpenPgpRing::cipherId),
         )
+    }
+
+    @Test
+    fun `colliding v4 and v6 key IDs retain both approval candidates`() {
+        val id = "FEDCBA9876543210"
+        val legacy = ring("v4", "A".repeat(24) + id, "v4@example.test")
+        val modern = ring("v6", id + "B".repeat(48), "v6@example.test")
+        val candidates = gpgOpenPgpApprovalCandidates(
+            kind = GpgOpenPgpOperationKind.GET_SIGN_KEY_ID,
+            vault = vault(legacy, modern),
+            requestedEmails = emptyList(),
+            keyIds = listOf(id.toULong(16).toLong()),
+        )
+        assertEquals(listOf(legacy, modern), candidates)
     }
 
     @Test
@@ -111,7 +145,7 @@ class GpgOpenPgpRingSelectionTest {
         name = cipherId,
         info = GpgPublicKeyInfo(
             fingerprint = fingerprint,
-            keyId = fingerprint.takeLast(16),
+            keyId = requireNotNull(fingerprint.gpgKeyIdFromFingerprintOrNull()),
             algorithm = "EdDSA",
             bitStrength = 255,
             userIds = listOf("$cipherId <$email>"),

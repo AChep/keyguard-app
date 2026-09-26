@@ -27,6 +27,43 @@ class NativeCryptoOpenPgpRoundTripTest {
     }
 
     @Test
+    fun cleartextSignatureVerifies() = withMaterial { material ->
+        val signed = NativeCrypto.openPgp.clearSign(
+            content = "First line\n- Dash-escaped line\n".encodeToByteArray(),
+            privateKey = material.privateKeyArmored,
+            candidateRevocationKeys = emptyList(),
+        )
+        assertEquals(
+            NativeOpenPgpVerificationStatus.VALID,
+            NativeCrypto.openPgp.verifyClearSigned(signed, listOf(material.publicKeyArmored)).status,
+        )
+    }
+
+    @Test
+    fun mixedVersionsDecryptWithEitherRecipient() {
+        val materials = NativeOpenPgpKeyVersion.entries.map(::generateMaterial)
+        try {
+            val plaintext = "Shared v4 and v6 message".encodeToByteArray()
+            val encrypted = NativeCrypto.openPgp.encrypt(
+                content = plaintext,
+                publicKeys = materials.map { it.publicKeyArmored },
+                candidateRevocationKeys = emptyList(),
+                fileName = "mixed.txt",
+                armored = false,
+            )
+            materials.forEach { material ->
+                val decrypted = NativeCrypto.openPgp.decrypt(
+                    content = encrypted.data,
+                    privateKeys = listOf(material.privateKeyArmored),
+                )
+                assertContentEquals(plaintext, decrypted.data)
+            }
+        } finally {
+            materials.forEach { it.privateKeyArmored.fill(0) }
+        }
+    }
+
+    @Test
     fun signedOcbEncryptionAuthenticatesAfterStreamingRoundTrip() = withMaterial { material ->
         val plaintext = "native signed encryption".encodeToByteArray()
         val encryptedChunks = mutableListOf<ByteArray>()
@@ -40,7 +77,11 @@ class NativeCryptoOpenPgpRoundTripTest {
             encryptedChunks += session.update(plaintext, offset = 0, length = 3)
             encryptedChunks += session.update(plaintext, offset = 3, length = plaintext.size - 3)
             val final = session.finish()
-            assertEquals(NativeOpenPgpProtectionMode.GNUPG_OCB, final.protectionMode)
+            assertEquals(
+                if (material.fingerprint.length == 64) NativeOpenPgpProtectionMode.SEIPD_V2_AEAD
+                else NativeOpenPgpProtectionMode.GNUPG_OCB,
+                final.protectionMode,
+            )
             encryptedChunks += final.data
         }
         val ciphertext = encryptedChunks.fold(byteArrayOf()) { result, chunk -> result + chunk }
@@ -71,16 +112,22 @@ class NativeCryptoOpenPgpRoundTripTest {
     }
 
     private fun withMaterial(block: (NativeOpenPgpKeyMaterial) -> Unit) {
-        val material = NativeCrypto.openPgp.generateKey(
-            kind = NativeOpenPgpKeyKind.LEGACY_ED25519_X25519,
-            userId = "Native round trip <native-round-trip@test.invalid>",
-            creationTimeEpochSeconds = 1_700_000_000L,
-        )
-        try {
-            block(material)
-        } finally {
-            material.privateKeyArmored.fill(0)
-            material.publicKeyArmored.fill(0)
+        NativeOpenPgpKeyVersion.entries.forEach { version ->
+            val material = generateMaterial(version)
+            try {
+                block(material)
+            } finally {
+                material.privateKeyArmored.fill(0)
+                material.publicKeyArmored.fill(0)
+            }
         }
     }
+
+    private fun generateMaterial(version: NativeOpenPgpKeyVersion) = NativeCrypto.openPgp.generateKey(
+        kind = if (version == NativeOpenPgpKeyVersion.V4) NativeOpenPgpKeyKind.LEGACY_ED25519_X25519
+        else NativeOpenPgpKeyKind.ED25519_X25519,
+        version = version,
+        userId = "Native round trip <native-round-trip@test.invalid>",
+        creationTimeEpochSeconds = 1_700_000_000L,
+    )
 }

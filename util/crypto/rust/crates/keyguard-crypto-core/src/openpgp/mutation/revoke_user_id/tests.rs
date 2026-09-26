@@ -29,6 +29,7 @@ const SECOND_USER_ID: &str = "Second Identity <second@example.test>";
 
 fn generated_material() -> OpenPgpKeyMaterial {
     let generated = crate::openpgp::adapter::key::generate(OpenPgpKeyGenerateRequest {
+        version: 0,
         kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
         user_id: FIRST_USER_ID.to_owned(),
         rsa_bits: 0,

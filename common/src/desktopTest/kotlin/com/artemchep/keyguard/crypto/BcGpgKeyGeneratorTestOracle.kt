@@ -2,6 +2,7 @@ package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.GpgKeyConfig
+import com.artemchep.keyguard.common.model.GpgKeyVersion
 import com.artemchep.keyguard.common.service.crypto.GPG_KEY_EXPIRATION_MAX_INSTANT
 import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
@@ -46,7 +47,7 @@ class BcGpgKeyGeneratorTestOracle(
         }
         val expirySignatureParameters = expirationSignatureParameters(expirationSeconds)
         val generator = JcaOpenPGPKeyGenerator(
-            PublicKeyPacket.VERSION_4,
+            if (config.version == GpgKeyVersion.V6) PublicKeyPacket.VERSION_6 else PublicKeyPacket.VERSION_4,
             creationTime,
             provider,
         )
@@ -62,16 +63,25 @@ class BcGpgKeyGeneratorTestOracle(
             // subkey. BC attaches the correct key-flags subpackets to each.
             is GpgKeyConfig.Modern -> generator
                 .withPrimaryKey(
-                    { it.generateLegacyEd25519KeyPair() },
+                    {
+                        if (config.version == GpgKeyVersion.V6) it.generateEd25519KeyPair()
+                        else it.generateLegacyEd25519KeyPair()
+                    },
                     expirySignatureParameters,
                 )
                 .addSigningSubkey(
-                    { it.generateLegacyEd25519KeyPair() },
+                    {
+                        if (config.version == GpgKeyVersion.V6) it.generateEd25519KeyPair()
+                        else it.generateLegacyEd25519KeyPair()
+                    },
                     expirySignatureParameters,
                     null,
                 )
                 .addEncryptionSubkey(
-                    { it.generateLegacyX25519KeyPair() },
+                    {
+                        if (config.version == GpgKeyVersion.V6) it.generateX25519KeyPair()
+                        else it.generateLegacyX25519KeyPair()
+                    },
                     expirySignatureParameters,
                 )
                 .addUserId(userId, expirySignatureParameters)

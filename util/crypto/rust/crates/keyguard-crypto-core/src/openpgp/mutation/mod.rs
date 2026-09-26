@@ -91,3 +91,6 @@ macro_rules! impl_mutation_failure_conversions {
     };
 }
 pub(crate) use impl_mutation_failure_conversions;
+
+#[cfg(test)]
+mod version_tests;

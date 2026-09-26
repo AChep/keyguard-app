@@ -229,6 +229,12 @@ public data class NativeOpenPgpCertificateResolution(
 public enum class NativeOpenPgpKeyKind {
     LEGACY_ED25519_X25519,
     RSA,
+    ED25519_X25519,
+}
+
+public enum class NativeOpenPgpKeyVersion {
+    V4,
+    V6,
 }
 
 public class NativeOpenPgpKeyMaterial(
@@ -851,6 +857,7 @@ public object NativeCryptoOpenPgp {
         rsaBits: Int = 0,
         creationTimeEpochSeconds: Long,
         expirationSeconds: Long? = null,
+        version: NativeOpenPgpKeyVersion = NativeOpenPgpKeyVersion.V4,
     ): NativeOpenPgpKeyMaterial {
         require(userId.isNotBlank()) { "OpenPGP user ID must not be blank" }
         require(creationTimeEpochSeconds >= 0L) { "OpenPGP creation time must not be negative" }
@@ -858,7 +865,8 @@ public object NativeCryptoOpenPgp {
             "OpenPGP expiration must fit an unsigned 32-bit duration"
         }
         when (kind) {
-            NativeOpenPgpKeyKind.LEGACY_ED25519_X25519 ->
+            NativeOpenPgpKeyKind.LEGACY_ED25519_X25519,
+            NativeOpenPgpKeyKind.ED25519_X25519 ->
                 require(rsaBits == 0) { "RSA bits must be zero for a modern OpenPGP key" }
 
             NativeOpenPgpKeyKind.RSA ->
@@ -866,6 +874,11 @@ public object NativeCryptoOpenPgp {
                     "Unsupported OpenPGP RSA size"
                 }
         }
+        require(
+            kind == NativeOpenPgpKeyKind.RSA ||
+                (kind == NativeOpenPgpKeyKind.LEGACY_ED25519_X25519 && version == NativeOpenPgpKeyVersion.V4) ||
+                (kind == NativeOpenPgpKeyKind.ED25519_X25519 && version == NativeOpenPgpKeyVersion.V6),
+        ) { "OpenPGP key kind does not match its certificate version" }
         val payload = NativeCrypto.call(
             operationName = "open_pgp_key_generate",
             operation = OpenPgpKeyGenerateOperationProto(
@@ -875,11 +888,16 @@ public object NativeCryptoOpenPgp {
                             OpenPgpKeyKindProto.LEGACY_ED25519_X25519
 
                         NativeOpenPgpKeyKind.RSA -> OpenPgpKeyKindProto.RSA
+                        NativeOpenPgpKeyKind.ED25519_X25519 -> OpenPgpKeyKindProto.ED25519_X25519
                     },
                     userId = userId,
                     rsaBits = rsaBits,
                     creationTimeEpochSeconds = creationTimeEpochSeconds,
                     expirationSeconds = expirationSeconds?.toUInt(),
+                    version = when (version) {
+                        NativeOpenPgpKeyVersion.V4 -> OpenPgpKeyVersionProto.V4
+                        NativeOpenPgpKeyVersion.V6 -> OpenPgpKeyVersionProto.V6
+                    },
                 ),
             ),
         ).requireBytes("open_pgp_key_generate")

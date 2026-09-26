@@ -784,6 +784,14 @@ enum OpenPgpKeyKind {
   OPEN_PGP_KEY_KIND_UNSPECIFIED = 0;
   OPEN_PGP_KEY_KIND_LEGACY_ED25519_X25519 = 1;
   OPEN_PGP_KEY_KIND_RSA = 2;
+  OPEN_PGP_KEY_KIND_ED25519_X25519 = 3;
+}
+
+enum OpenPgpKeyVersion {
+  // Older callers omit the version and continue to generate V4 certificates.
+  OPEN_PGP_KEY_VERSION_UNSPECIFIED = 0;
+  OPEN_PGP_KEY_VERSION_V4 = 4;
+  OPEN_PGP_KEY_VERSION_V6 = 6;
 }
 
 message OpenPgpKeyGenerateRequest {
@@ -792,8 +800,9 @@ message OpenPgpKeyGenerateRequest {
   // Required for RSA (3072 or 4096) and ignored for the modern layout.
   uint32 rsa_bits = 3;
   uint64 creation_time_epoch_seconds = 4;
-  // OpenPGP v4 stores this as an unsigned duration from creation time.
+  // Both supported versions store an unsigned duration from creation time.
   optional uint32 expiration_seconds = 5;
+  OpenPgpKeyVersion version = 6;
 }
 
 message OpenPgpKeyMaterial {

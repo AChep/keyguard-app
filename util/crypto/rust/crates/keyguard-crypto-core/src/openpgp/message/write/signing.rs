@@ -4,6 +4,7 @@
 //! secret-key selection and signature configuration.
 
 use super::*;
+use crate::openpgp::crypto::signer::{issuer_key_id_subpackets, signature_config};
 
 /// Signs bounded content with a policy-valid primary key or signing subkey.
 pub(in crate::openpgp) fn sign_request(request: SignInput) -> Result<Vec<u8>, OpenPgpWriteError> {
@@ -572,14 +573,7 @@ pub(super) fn signing_subpackets(
         Subpacket::regular(SubpacketData::IssuerFingerprint(key.fingerprint()))
             .map_err(pgp_internal)?,
     ];
-    let unhashed = if key.version() <= KeyVersion::V4 {
-        vec![
-            Subpacket::regular(SubpacketData::IssuerKeyId(key.legacy_key_id()))
-                .map_err(pgp_internal)?,
-        ]
-    } else {
-        Vec::new()
-    };
+    let unhashed = issuer_key_id_subpackets(key)?;
     Ok(SubpacketConfig::UserDefined { hashed, unhashed })
 }
 
@@ -590,10 +584,5 @@ pub(super) fn data_signature_config(
     let hash_algorithm =
         select_signature_hash(key.algorithm(), key.hash_alg(), HashAlgorithm::Sha256)
             .ok_or(OpenPgpWriteError::CryptoFailure)?;
-    match key.version() {
-        KeyVersion::V4 => Ok(SignatureConfig::v4(typ, key.algorithm(), hash_algorithm)),
-        KeyVersion::V6 => SignatureConfig::v6(AwsLcRng, typ, key.algorithm(), hash_algorithm)
-            .map_err(|_| OpenPgpWriteError::CryptoFailure),
-        _ => Err(OpenPgpWriteError::InvalidArgument),
-    }
+    signature_config(key, typ, hash_algorithm)
 }

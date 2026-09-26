@@ -60,8 +60,17 @@ const SECOND_USER_ID: &str = "Second Identity <second@example.test>";
 const NEW_USER_ID: &str = "New Identity <new@example.test>";
 
 fn generated_material() -> OpenPgpKeyMaterial {
+    generated_material_version(0)
+}
+
+fn generated_material_version(version: i32) -> OpenPgpKeyMaterial {
     let generated = crate::openpgp::adapter::key::generate(OpenPgpKeyGenerateRequest {
-        kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
+        version,
+        kind: if version == 6 {
+            OpenPgpKeyKind::Ed25519X25519
+        } else {
+            OpenPgpKeyKind::LegacyEd25519X25519
+        } as i32,
         user_id: OLD_USER_ID.to_owned(),
         rsa_bits: 0,
         creation_time_epoch_seconds: CREATED,
@@ -74,8 +83,9 @@ fn generated_material() -> OpenPgpKeyMaterial {
 fn material_with_secondary_user_id_exportability(
     hashed: &[bool],
     unhashed: &[bool],
+    version: i32,
 ) -> OpenPgpKeyMaterial {
-    let mut material = generated_material();
+    let mut material = generated_material_version(version);
     let secret = parse_single_secret(&material.private_key_armored).expect("parse secret");
     let public = parse_single_public(&material.public_key_armored).expect("parse public");
     let signer = OpenPgpSecretSigner::new(
@@ -134,10 +144,6 @@ fn material_with_secondary_user_id_exportability(
     material.private_key_armored = armor_key_packets(&private, BlockType::PrivateKey)
         .expect("armor secondary secret certificate");
     material
-}
-
-fn material_with_local_secondary_user_id() -> OpenPgpKeyMaterial {
-    material_with_secondary_user_id_exportability(&[true, false], &[])
 }
 
 fn exportable_certification_subpacket(exportable: bool) -> Subpacket {
@@ -502,7 +508,13 @@ fn effective_non_revocable_certification_blocks_user_id_replacement() {
 
 #[test]
 fn replacing_local_user_id_keeps_the_mutation_private() {
-    let material = material_with_local_secondary_user_id();
+    for version in [4, 6] {
+        assert_local_user_id_replacement(version);
+    }
+}
+
+fn assert_local_user_id_replacement(version: i32) {
+    let material = material_with_secondary_user_id_exportability(&[true, false], &[], version);
 
     let success = replace_user_id_request(UserIdReplacementInput {
         private_key: material.private_key_armored.clone(),
@@ -530,6 +542,13 @@ fn replacing_local_user_id_keeps_the_mutation_private() {
     let transferable = canonicalize_public_certificate(&success.key_material.public_key_armored)
         .expect("export returned public certificate")
         .0;
+    assert_eq!(
+        transferable,
+        canonicalize_public_certificate(&material.public_key_armored)
+            .expect("original transferable material")
+            .0,
+        "local identity edits preserve unrelated transferable material",
+    );
     assert!(!document_contains_user_id(&transferable, SECOND_USER_ID));
     assert!(!document_contains_user_id(&transferable, NEW_USER_ID));
 
@@ -579,7 +598,7 @@ fn replacing_local_user_id_keeps_the_mutation_private() {
 
 #[test]
 fn replacing_user_id_with_final_hashed_true_exports_replacement_and_revocation() {
-    let material = material_with_secondary_user_id_exportability(&[false, true], &[false]);
+    let material = material_with_secondary_user_id_exportability(&[false, true], &[false], 4);
 
     let success = replace_user_id_request(UserIdReplacementInput {
         private_key: material.private_key_armored.clone(),

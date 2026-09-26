@@ -649,6 +649,59 @@ fn x25519_agent_decryption_returns_legacy_and_rfc6637_values() {
     }
 }
 
+#[test]
+fn generated_v6_certificates_keep_agent_signing_and_decryption_limits() {
+    for (kind, bits) in [
+        (OpenPgpKeyKind::Ed25519X25519, 0),
+        (OpenPgpKeyKind::Rsa, 3_072),
+    ] {
+        let material = generated_material_version(kind, bits, 6);
+        let keys = parse_secret_keys(&material.private_key_armored).expect("parse v6 keys");
+        let signing_packet = SecretPacketRef::Subkey(&keys[0].subkeys()[0]);
+        let digest = [0x69_u8; 32];
+        let result = sign(AgentSignInput {
+            private_key: material.private_key_armored.clone(),
+            preferred_fingerprint: format!("{:X}", signing_packet.fingerprint()),
+            hash_algorithm: "sha256".to_owned(),
+            hash: digest.to_vec(),
+            candidate_revocation_keys: Vec::new(),
+        })
+        .expect("agent signs using a generated v6 signing subkey");
+        let AgentOperationOutcome::Success(canonical) = &result else {
+            panic!("agent v6 signing failed");
+        };
+        let signature = if kind == OpenPgpKeyKind::Rsa {
+            let parts = signature_components(canonical, b"rsa");
+            SignatureBytes::Mpis(vec![Mpi::from_slice(&parts[0].1)])
+        } else {
+            let parts = signature_components(canonical, b"eddsa");
+            SignatureBytes::Native(
+                parts
+                    .into_iter()
+                    .flat_map(|(_, bytes)| bytes)
+                    .collect::<Vec<_>>()
+                    .into(),
+            )
+        };
+        verify_with_packet(signing_packet, HashAlgorithm::Sha256, &digest, &signature);
+
+        if kind == OpenPgpKeyKind::Ed25519X25519 {
+            let encryption_packet = SecretPacketRef::Subkey(&keys[0].subkeys()[1]);
+            let result = decrypt(AgentDecryptInput {
+                private_key: material.private_key_armored.clone(),
+                preferred_fingerprint: format!("{:X}", encryption_packet.fingerprint()),
+                ciphertext: b"(7:enc-val(4:ecdh(1:e1:x)(1:s1:x)))".to_vec(),
+                unwrap_ecdh: false,
+            })
+            .expect("agent reports unsupported native X25519");
+            assert!(matches!(
+                result,
+                AgentOperationOutcome::Failure(AgentOperationFailure::UnsupportedAlgorithm)
+            ));
+        }
+    }
+}
+
 fn assert_x25519_agent_decryption(label: &str, private_key: Vec<u8>) {
     let keys = parse_secret_keys(&private_key)
         .unwrap_or_else(|error| panic!("parse {label} ECDH key: {error:?}"));
@@ -1019,6 +1072,7 @@ fn agent_signing_keeps_subkey_sign_flag_and_cross_certification_rules() {
 fn agent_refuses_expired_and_revoked_primaries_but_expired_renewal_remains_authorized() {
     let expired = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version: 0,
             kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
             user_id: "Expired Agent <expired@example.test>".to_owned(),
             rsa_bits: 0,
@@ -1080,8 +1134,17 @@ fn agent_refuses_expired_and_revoked_primaries_but_expired_renewal_remains_autho
 }
 
 fn generated_material(kind: OpenPgpKeyKind, rsa_bits: u32) -> OpenPgpKeyMaterial {
+    generated_material_version(kind, rsa_bits, 0)
+}
+
+fn generated_material_version(
+    kind: OpenPgpKeyKind,
+    rsa_bits: u32,
+    version: i32,
+) -> OpenPgpKeyMaterial {
     OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version,
             kind: kind as i32,
             user_id: "Agent Test <agent@example.test>".to_owned(),
             rsa_bits,

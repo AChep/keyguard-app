@@ -137,7 +137,7 @@ impl MutationPreflight {
         if canonical
             .components
             .iter()
-            .any(|component| component.version() != KeyVersion::V4)
+            .any(|component| !matches!(component.version(), KeyVersion::V4 | KeyVersion::V6))
         {
             return Err(MutationMaterialError::UnsupportedKeyVersion);
         }

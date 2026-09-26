@@ -84,6 +84,7 @@ fn generated_test_secret_at_with_kind(
 ) -> SignedSecretKey {
     let material = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version: 0,
             kind: kind as i32,
             user_id: user_id.to_owned(),
             rsa_bits,
@@ -6302,6 +6303,7 @@ fn data_signature_hash_cutoffs_are_exclusive_and_require_collision_resistance() 
 fn non_revocable_binding_does_not_suppress_verified_subkey_revocation() {
     let material = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
+            version: 0,
             kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
             user_id: "Subkey Revocation <subkey-revocation@example.test>".to_owned(),
             rsa_bits: 0,

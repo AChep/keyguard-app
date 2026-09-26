@@ -8,14 +8,14 @@ import kotlin.test.assertTrue
 
 class GpgOpenPgpKeyIdsTest {
     @Test
-    fun `fingerprint key id uses the unsigned low 64 bits`() {
+    fun `parsed key id preserves all unsigned bits`() {
         assertEquals(
             0x0123_4567_89AB_CDEF,
-            fingerprintToKeyId("00112233445566778899AABB0123456789ABCDEF"),
+            openPgpKeyIdToLong("0123456789ABCDEF"),
         )
         assertEquals(
             -1L,
-            fingerprintToKeyId("FFFFFFFFFFFFFFFF"),
+            openPgpKeyIdToLong("FFFFFFFFFFFFFFFF"),
         )
     }
 

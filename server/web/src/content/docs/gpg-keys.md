@@ -12,8 +12,9 @@ setup see the [GPG agent setup](/docs/gpg-agent/) guide.
 
 OpenPGP (the standard behind GnuPG/PGP, defined by RFC 4880 and the newer RFC
 9580) describes a **certificate** — colloquially "a public key" — as a primary
-key plus zero or more subkeys, one or more user IDs, and metadata bound
-together by self-signatures.
+key plus zero or more subkeys, user IDs, and metadata bound together by
+self-signatures. Keyguard supports **v4** and **v6** certificates. V6 certificates
+can have no user IDs; a Direct Key self-signature carries their key-wide policy.
 
 A GPG key item itself stores three things:
 
@@ -31,13 +32,12 @@ exact convention.
 
 ## Identifiers
 
-Keyguard derives and displays three identifiers per key, all matching what
-GnuPG shows:
+Keyguard derives and displays three identifiers per key:
 
 | Identifier | What it is | Format in Keyguard |
 | --- | --- | --- |
-| **Fingerprint** | Hash over the public key material and creation time; identifies the whole certificate | Upper-case hex, grouped in fours |
-| **Key ID** | The low 64 bits of the fingerprint (the "long" key ID) | 16 upper-case hex digits |
+| **Fingerprint** | Hash over the public key material and creation time; identifies the whole certificate | 40 hex digits for v4, 64 for v6; upper-case, grouped in fours |
+| **Key ID** | The low 64 bits of a v4 fingerprint, or the high 64 bits of a v6 fingerprint | 16 upper-case hex digits |
 | **Keygrip** | libgcrypt's hash of the raw public parameters; used to address a key inside the agent | Upper-case hex, byte-identical to `gpg --with-keygrip` |
 
 ## Capabilities
@@ -61,6 +61,11 @@ state, and expiration date.
 addresses are pulled out for display, with a fallback for bare-email user IDs.
 **Creation** and **expiration** dates are read from the key's self-signature,
 and **revoked** keys and subkeys are marked as such.
+
+Expiration changes and identity replacement or revocation work with both
+versions. V6 identity edits preserve the key-wide policy in the Direct Key
+self-signature. You can revoke the last identity on a v6 certificate; v4
+certificates must retain an active identity.
 
 ## Algorithms
 
@@ -150,6 +155,9 @@ supported:
 | --- | --- | --- |
 | **VKS** (verifying keyserver, keys.openpgp.org API) | `https://keys.openpgp.org` | Fingerprint, key ID, or email |
 | **HKP** (HTTP Keyserver Protocol) | `https://keyserver.ubuntu.com` | Fingerprint, key ID, email, or free text |
+
+Lookups accept both v4 and v6 fingerprints. The selected keyserver must support
+the certificate's version to store and return it.
 
 keys.openpgp.org is a **verifying** keyserver: it serves key material by
 fingerprint and distributes email identities only after owner confirmation.

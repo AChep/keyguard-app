@@ -92,14 +92,13 @@ by default) — stored as an SSH key item, ready to be served by the
 Generates an OpenPGP key, stored as a [GPG key](/docs/gpg-keys/) item, in one
 of two profiles:
 
-- **Modern** — an **Ed25519** primary key with a separate **Ed25519** signing
-  subkey and an **X25519** (Curve25519) encryption subkey. These are built with
-  the widely-compatible v4 EdDSA/ECDH encodings so that GnuPG and other clients
-  can import them.
-- **RSA** — a single RSA key, **3072** or **4096** bits (4096 by default).
+- **Modern** — an **Ed25519** certification key with a separate **Ed25519**
+  signing subkey and an **X25519** (Curve25519) encryption subkey.
+- **RSA** — an RSA certification key with separate RSA signing and encryption
+  subkeys, **3072** or **4096** bits (4096 by default).
 
-Generation does not currently set an expiration date or a passphrase, and does
-not offer DSA, ElGamal, NIST, or custom-curve keys.
+Choose **v4** for compatibility with GnuPG and older clients, or
+**v6** for clients that support [RFC 9580](https://www.rfc-editor.org/rfc/rfc9580.html).
 
 ----
 

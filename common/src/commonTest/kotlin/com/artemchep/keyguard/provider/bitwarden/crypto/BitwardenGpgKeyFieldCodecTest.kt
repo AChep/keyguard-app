@@ -10,6 +10,18 @@ import kotlin.test.assertTrue
 
 class BitwardenGpgKeyFieldCodecTest {
     @Test
+    fun `both certificate fingerprint lengths survive chunked vault fields`() {
+        for (length in listOf(40, 64)) {
+            val key = BitwardenCipher.GpgKey(
+                privateKeyArmored = "private-material".repeat(GPG_CHUNK_BYTES),
+                publicKeyArmored = "public-material".repeat(GPG_CHUNK_BYTES),
+                fingerprint = "0123456789ABCDEF".repeat(4).take(length),
+            )
+            assertEquals(key, decode(encode(key))?.gpgKey)
+        }
+    }
+
+    @Test
     fun `short and boundary content keep the legacy field format`() {
         listOf(
             "short key",

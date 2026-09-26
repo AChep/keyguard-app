@@ -31,21 +31,21 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.LinkInfoPlatform
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
-import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
-import com.artemchep.keyguard.common.service.webauthn.WebAuthnEncodingException
-import com.artemchep.keyguard.common.service.webauthn.WebAuthnNotAllowedException
-import com.artemchep.keyguard.common.service.webauthn.parseWebAuthnAllowedCredentialDescriptors
+import com.artemchep.keyguard.common.service.passkey.toPasskeyTargetCredentials
 import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.GetAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PasskeyTarget
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
+import com.artemchep.keyguard.util.webauthn.PasskeyBase64
+import com.artemchep.keyguard.util.webauthn.WebAuthnEncodingException
+import com.artemchep.keyguard.util.webauthn.WebAuthnNotAllowedException
+import com.artemchep.keyguard.util.webauthn.entity.GetPasskey
+import com.artemchep.keyguard.util.webauthn.parseWebAuthnAllowedCredentialDescriptors
 import io.ktor.http.Url
+import kotlinx.serialization.json.Json
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 @SuppressLint("RestrictedApi")
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -59,40 +59,6 @@ class PasskeyBeginGetRequest(
     private val credentialProviderPlatformConfig: CredentialProviderPlatformConfig,
     private val passkeyUtils: PasskeyUtils,
 ) {
-    // https://www.w3.org/TR/webauthn-2/#dictionary-assertion-options
-    @Serializable
-    private data class PublicKeyCredentialRequestOptions(
-        val allowCredentials: List<PublicKeyCredentialDescriptor> = emptyList(),
-        @SerialName("challenge")
-        val challengeBase64: String,
-        val rpId: String? = null,
-        val userVerification: UserVerification? = UserVerification.PREFERRED,
-        // https://www.w3.org/TR/webauthn-2/#enum-attestation-convey
-        val attestation: String? = "none",
-    ) {
-        // https://www.w3.org/TR/webauthn-2/#enum-userVerificationRequirement
-        enum class UserVerification {
-            @SerialName("required")
-            REQUIRED,
-
-            @SerialName("preferred")
-            PREFERRED,
-
-            @SerialName("discouraged")
-            DISCOURAGED,
-        }
-
-        // https://www.w3.org/TR/webauthn-2/#dictionary-credential-descriptor
-        @Serializable
-        data class PublicKeyCredentialDescriptor(
-            val type: String,
-            @SerialName("id")
-            val idBase64: String,
-            // https://www.w3.org/TR/webauthn-2/#enum-transport
-            val transports: List<String> = emptyList(),
-        )
-    }
-
     suspend fun processGetCredentialsRequest(
         cipherHistoryOpenedRepository: CipherHistoryOpenedRepository,
         getSuggestions: GetSuggestions<Any?>,
@@ -197,7 +163,7 @@ class PasskeyBeginGetRequest(
         privilegedApps: List<DPrivilegedApp>,
         userVerified: Boolean,
     ): List<CredentialEntry> {
-        val requestOptions: PublicKeyCredentialRequestOptions =
+        val requestOptions: GetPasskey =
             json.decodeFromString(option.requestJson)
         // WebAuthn L3 get() sets a missing `pkOptions.rpId` to the caller
         // origin's effective domain before finding matching credentials.
@@ -223,7 +189,7 @@ class PasskeyBeginGetRequest(
                 // credential fallback.
                 // Spec: https://www.w3.org/TR/webauthn-3/#dictdef-publickeycredentialdescriptor
                 allowedCredentials = allowCredentialDescriptors
-                    .toPasskeyTargetAllowedCredentials(),
+                    .toPasskeyTargetCredentials(),
                 rpId = rpId,
             )
         }
@@ -249,8 +215,8 @@ class PasskeyBeginGetRequest(
                         // At this moment we support a small set of credentials,
                         // for example we only support one algorithm + curve pair.
                         val supported = credential.keyAlgorithm == "ECDSA" &&
-                                credential.keyCurve == "P-256" &&
-                                credential.keyType == "public-key"
+                            credential.keyCurve == "P-256" &&
+                            credential.keyType == "public-key"
                         if (!supported) {
                             return@mapNotNull null
                         }
@@ -263,12 +229,12 @@ class PasskeyBeginGetRequest(
                             credentialId = credential.credentialId,
                         )
                         val requiresUserVerification = cipher.reprompt ||
-                                requestOptions.userVerification == PublicKeyCredentialRequestOptions.UserVerification.PREFERRED ||
-                                requestOptions.userVerification == PublicKeyCredentialRequestOptions.UserVerification.REQUIRED
+                            requestOptions.userVerification == GetPasskey.UserVerification.PREFERRED ||
+                            requestOptions.userVerification == GetPasskey.UserVerification.REQUIRED
 
                         val username = credential.userDisplayName
-                        // Normally the username should never be empty,
-                        // be i've seen coinbase do that.
+                            // Normally the username should never be empty,
+                            // be i've seen coinbase do that.
                             ?: "Unknown username"
                         PublicKeyCredentialEntry.Builder(
                             context = context,
@@ -493,7 +459,7 @@ internal fun createCredentialProviderAutofillTarget(
         trustedOrigin
             ?.takeIf { origin ->
                 origin.startsWith("https://", ignoreCase = true) ||
-                        origin.startsWith("http://", ignoreCase = true)
+                    origin.startsWith("http://", ignoreCase = true)
             }
             ?.let { origin ->
                 runCatching {

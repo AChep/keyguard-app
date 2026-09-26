@@ -1,11 +1,11 @@
 package com.artemchep.keyguard.common.service.credentialexchange.impl
 
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
-import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
-import com.artemchep.keyguard.common.service.crypto.PasskeyKeyInspectionResult
-import com.artemchep.keyguard.common.service.crypto.PasskeyKeyMaterial
-import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
-import com.artemchep.keyguard.common.service.webauthn.PasskeyCredentialId
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyKeyInspectionResult
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyKeyMaterial
+import com.artemchep.keyguard.util.webauthn.PasskeyBase64
+import com.artemchep.keyguard.util.webauthn.PasskeyCredentialId
 
 internal const val MAX_ENCODED_PASSKEY_KEY_CHARS = 5_464
 internal const val MAX_ENCODED_PASSKEY_USER_HANDLE_CHARS = 88

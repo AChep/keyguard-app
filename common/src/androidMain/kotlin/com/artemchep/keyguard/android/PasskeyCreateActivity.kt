@@ -27,7 +27,7 @@ import com.artemchep.keyguard.common.model.AddCredentialCipherRequestData
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.VaultState
-import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
+import com.artemchep.keyguard.util.webauthn.entity.CreatePasskey
 import com.artemchep.keyguard.common.usecase.AddCredentialCipher
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetPrivilegedApps

@@ -9,7 +9,7 @@ import com.artemchep.keyguard.common.model.AddPrivilegedAppRequest
 import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
-import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
+import com.artemchep.keyguard.util.webauthn.PasskeyBase64
 import com.artemchep.keyguard.common.util.toHex
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate

@@ -3,11 +3,11 @@ package com.artemchep.keyguard.common.service.credentialexchange.impl
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
-import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
-import com.artemchep.keyguard.common.service.crypto.PasskeyKeyMaterial
-import com.artemchep.keyguard.common.service.crypto.PasskeyKeyProfile
-import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
-import com.artemchep.keyguard.common.service.webauthn.PasskeyCredentialId
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyKeyMaterial
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyKeyProfile
+import com.artemchep.keyguard.util.webauthn.PasskeyBase64
+import com.artemchep.keyguard.util.webauthn.PasskeyCredentialId
 import kotlin.time.Instant
 
 /**

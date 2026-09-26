@@ -12,9 +12,9 @@ import com.artemchep.keyguard.common.service.credentialexchange.model.CxfAccount
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfDocument
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfVersion
-import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
 import com.artemchep.keyguard.common.service.crypto.SshKeyPkcs8Exporter
-import com.artemchep.keyguard.crypto.NativePasskeyCrypto
+import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
 import com.artemchep.keyguard.platform.recordException
 import kotlin.time.Instant
 import kotlinx.serialization.json.Json

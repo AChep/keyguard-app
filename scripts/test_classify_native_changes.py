@@ -39,6 +39,18 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 self.assertTrue(result["android_run"])
                 self.assertEqual(result["android_matrix"], {"include": [{"api": 26}, {"api": 30}]})
 
+    def test_webauthn_selects_consumers_and_native_protocol_tests(self):
+        result = classify(["util/webauthn/src/commonMain/kotlin/WebAuthnAuthenticator.kt"])
+        for flag in ("desktop", "android", "apple", "apple_regressions"):
+            self.assertTrue(result[flag], flag)
+        self.assertFalse(result["crypto"])
+        self.assertFalse(result["native_quality"])
+
+        result = classify(["util/webauthn/src/commonTest/kotlin/WebAuthnProtocolTest.kt"])
+        self.assertTrue(result["apple_regressions"])
+        for flag in ("desktop", "android", "apple", "crypto"):
+            self.assertFalse(result[flag], flag)
+
     def test_fuzz_only_edit_does_not_rebuild_apps(self):
         result = classify(["util/crypto/rust/fuzz/fuzz_targets/dispatch.rs"])
         self.assertTrue(result["fuzz"])

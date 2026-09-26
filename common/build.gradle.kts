@@ -132,6 +132,7 @@ kotlin {
                 api(project(":util:crypto"))
                 api(project(":util:signalr"))
                 api(project(":util:webdav"))
+                api(project(":util:webauthn"))
                 api(project(":util:planeta"))
                 api(libs.coil3.coil.compose)
                 api(libs.coil3.coil.network.ktor3)
@@ -256,7 +257,6 @@ kotlin {
         getByName("desktopMain") {
             dependsOn(jvmMain)
             dependencies {
-                implementation(libs.icu4j)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.google.zxing.javase)

@@ -7,7 +7,7 @@ import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.decodeOrNull
 import com.artemchep.keyguard.common.service.text.url
-import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
+import com.artemchep.keyguard.util.webauthn.PasskeyBase64
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.CipherSourceCanonicalPaths
 import com.artemchep.keyguard.core.store.bitwarden.CipherSourceData

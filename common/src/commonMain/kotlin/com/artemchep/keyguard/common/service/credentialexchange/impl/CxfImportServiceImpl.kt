@@ -16,9 +16,9 @@ import com.artemchep.keyguard.common.service.credentialexchange.model.CxfEditabl
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfItem
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfLinkedItem
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfVersion
-import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
-import com.artemchep.keyguard.crypto.NativePasskeyCrypto
+import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
 import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray

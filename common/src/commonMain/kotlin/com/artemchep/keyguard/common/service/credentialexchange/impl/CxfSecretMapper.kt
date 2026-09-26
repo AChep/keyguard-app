@@ -14,10 +14,10 @@ import com.artemchep.keyguard.common.service.credentialexchange.model.CxfAccount
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfItem
-import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
 import com.artemchep.keyguard.common.service.crypto.SshKeyPkcs8Exporter
-import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
-import com.artemchep.keyguard.crypto.NativePasskeyCrypto
+import com.artemchep.keyguard.util.webauthn.PasskeyBase64
+import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
 import com.artemchep.keyguard.nativecrypto.NativeCryptoSsh
 
 /**

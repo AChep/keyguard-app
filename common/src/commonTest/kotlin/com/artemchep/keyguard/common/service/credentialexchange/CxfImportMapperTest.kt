@@ -20,8 +20,8 @@ import com.artemchep.keyguard.common.service.credentialexchange.impl.mapImportUs
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfEditableField
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfItem
-import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
-import com.artemchep.keyguard.crypto.NativePasskeyCrypto
+import com.artemchep.keyguard.util.webauthn.PasskeyBase64
+import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

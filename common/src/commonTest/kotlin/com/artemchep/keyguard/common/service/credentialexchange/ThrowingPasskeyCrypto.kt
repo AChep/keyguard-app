@@ -1,10 +1,10 @@
 package com.artemchep.keyguard.common.service.credentialexchange
 
-import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
-import com.artemchep.keyguard.common.service.crypto.PasskeyKeyInspectionResult
-import com.artemchep.keyguard.common.service.crypto.PasskeyKeyMaterial
-import com.artemchep.keyguard.common.service.crypto.PasskeySignResult
-import com.artemchep.keyguard.common.service.crypto.PasskeySignatureAlgorithm
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyKeyInspectionResult
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyKeyMaterial
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeySignResult
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeySignatureAlgorithm
 
 /**
  * A [PasskeyCrypto] whose every entry point raises, standing in for the real

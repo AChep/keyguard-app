@@ -1,8 +1,6 @@
 package com.artemchep.keyguard.android
 
 import android.annotation.SuppressLint
-import android.app.Application
-import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.credentials.CreateCredentialResponse
@@ -20,35 +18,25 @@ import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasskeyData
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasswordData
 import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
-import com.artemchep.keyguard.common.service.crypto.PasskeyPublicKey
-import com.artemchep.keyguard.common.service.crypto.PasskeySignatureAlgorithm
-import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
-import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
-import com.artemchep.keyguard.common.service.webauthn.PasskeyCredentialId
-import com.artemchep.keyguard.common.service.webauthn.WebAuthnEncodingException
-import com.artemchep.keyguard.common.service.webauthn.WebAuthnInvalidStateException
-import com.artemchep.keyguard.common.service.webauthn.coseKeyEs256
-import com.artemchep.keyguard.common.service.webauthn.decodeExcludedCredentialIds as decodeWebAuthnExcludedCredentialIds
-import com.artemchep.keyguard.common.service.webauthn.findExcludedPasskeyCredentialOrNull as findWebAuthnExcludedPasskeyCredentialOrNull
-import com.artemchep.keyguard.common.service.webauthn.pubKeyCredParamsOrDefaults
-import com.artemchep.keyguard.common.service.webauthn.requireNoExcludedPasskeyCredential as requireNoWebAuthnExcludedPasskeyCredential
-import com.artemchep.keyguard.common.service.webauthn.webAuthnNoneAttestationObject
-import kotlin.math.roundToInt
+import com.artemchep.keyguard.common.service.passkey.availablePasskeyCredentials
+import com.artemchep.keyguard.common.service.passkey.toAddCredentialCipherRequest
+import com.artemchep.keyguard.common.service.passkey.toWebAuthnCredential
+import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticator
+import com.artemchep.keyguard.util.webauthn.WebAuthnCallerContext
+import com.artemchep.keyguard.util.webauthn.WebAuthnEncodingException
+import com.artemchep.keyguard.util.webauthn.WebAuthnException
+import com.artemchep.keyguard.util.webauthn.WebAuthnInvalidStateException
+import com.artemchep.keyguard.util.webauthn.WebAuthnNotSupportedException
+import com.artemchep.keyguard.util.webauthn.entity.CreatePasskey
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObjectBuilder
-import kotlinx.serialization.json.add
-import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
+import com.artemchep.keyguard.util.webauthn.decodeExcludedCredentialIds as decodeWebAuthnExcludedCredentialIds
 
 @SuppressLint("RestrictedApi")
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 class PasskeyCreateRequest(
-    private val context: Context,
     private val json: Json,
     private val passkeyUtils: PasskeyUtils,
-    private val passkeyCrypto: PasskeyCrypto,
+    private val authenticator: WebAuthnAuthenticator,
 ) {
 
     sealed interface PreparedCreateCredentialRequest {
@@ -148,7 +136,7 @@ class PasskeyCreateRequest(
             callingAppInfo = AddCredentialCipherRequestPasswordData.CallingAppInfo(
                 origin = request.origin,
                 packageName = request.packageName,
-            )
+            ),
         )
         val response = CreatePasswordResponse().apply {
             // Taken from
@@ -164,194 +152,18 @@ class PasskeyCreateRequest(
         userVerified: Boolean,
         ciphers: List<DSecret>,
     ): Pair<CreatePublicKeyCredentialResponse, AddCredentialCipherRequestPasskeyData> {
-        val data = request.data
-        val algorithm = requirePasskeyAlgorithm(
-            data = data,
-            supportedAlgorithms = passkeyCrypto.supportedAlgorithms,
-        )
-        requireNoExcludedPasskeyCredential(
-            data = data,
-            rpId = request.rpId,
-            ciphers = ciphers,
-        )
-
-        // Generate a key pair, this pair will be used to sign this and all
-        // future authentication requests.
-        val keyMaterial = passkeyCrypto.generate(algorithm)
-        val profile = keyMaterial.profile
-        val publicKey = keyMaterial.publicKey
-        val publicKeyCborBytes: ByteArray
-        val publicKeyBytes: ByteArray
-        val keyValue: String
-        try {
-            publicKeyCborBytes = when (publicKey) {
-                is PasskeyPublicKey.EcP256 -> coseKeyEs256(publicKey.x, publicKey.y)
-            }
-            publicKeyBytes = when (publicKey) {
-                is PasskeyPublicKey.EcP256 -> publicKey.spki.copyOf()
-            }
-            keyValue = PasskeyBase64.encodeToString(keyMaterial.privateKeyPkcs8)
-        } finally {
-            keyMaterial.clear()
-        }
-        val publicKeyAlgorithm = algorithm.coseValue
-
-        val challenge = data.challenge
-        val origin = request.origin
-        val packageName = request.packageName
-        val rpId = request.rpId
-        val rpName = data.rp.name
-
-        val credentialId = passkeyUtils
-            .generateCredentialId()
-        val credentialIdBytes = PasskeyCredentialId.encode(credentialId)
-
-        val clientData = buildJsonObject {
-            put("type", "webauthn.create")
-            put("challenge", challenge)
-            put("origin", origin)
-            put("androidPackageName", packageName)
-        }
-        val clientDataJson = json.encodeToString(clientData)
-        val clientDataBytes = clientDataJson.toByteArray()
-
-        val authData = passkeyUtils.authData(
-            rpId = rpId,
-            counter = 0,
-            credentialId = credentialIdBytes,
-            credentialPublicKey = publicKeyCborBytes,
-            attestation = data.attestation,
-            userVerification = passkeyUtils.userVerification(
-                mode = data.authenticatorSelection.userVerification,
+        val result = mapCreateWebAuthnExceptions {
+            authenticator.createCredential(
+                data = request.data,
+                context = WebAuthnCallerContext(request.origin, request.rpId, request.packageName),
                 userVerified = userVerified,
-            ),
-            userPresence = true,
-        )
-        val attestationObjectBytes = defaultAttestationObject(
-            authData = authData,
-        )
-
-        val discoverable = data.authenticatorSelection.requireResidentKey ||
-                data.authenticatorSelection.residentKey == "required" ||
-                data.authenticatorSelection.residentKey == "preferred"
-        val local = AddCredentialCipherRequestPasskeyData(
-            credentialId = credentialId,
-            keyType = "public-key",
-            keyAlgorithm = profile.keyAlgorithm,
-            keyCurve = profile.keyCurve,
-            keyValue = keyValue,
-            rpId = rpId,
-            rpName = rpName,
-            counter = 0,
-            userHandle = data.user.id,
-            userName = data.user.name,
-            userDisplayName = data.user.displayName,
-            discoverable = discoverable,
-        )
-
-        val registrationResponse = buildJsonObject {
-            put("id", credentialIdBytes)
-            put("rawId", credentialIdBytes)
-            put("type", "public-key")
-            put("authenticatorAttachment", "cross-platform")
-            put(
-                "response",
-                buildJsonObject {
-                    put("clientDataJSON", clientDataBytes)
-                    put("attestationObject", attestationObjectBytes)
-                    put(
-                        "transports",
-                        if (rpId == "google.com") {
-                            buildJsonArray {
-                                add("internal")
-                                add("usb")
-                            }
-                        } else {
-                            buildJsonArray {
-                                add("internal")
-                            }
-                        },
-                    )
-                    put("publicKeyAlgorithm", publicKeyAlgorithm)
-                    put("publicKey", publicKeyBytes)
-                    put("authenticatorData", authData)
-                },
+                transports = if (request.rpId == "google.com") listOf("internal", "usb") else listOf("internal"),
+                credentials = ciphers.availablePasskeyCredentials().map { it.toWebAuthnCredential() },
             )
-            put("clientExtensionResults", buildJsonObject { })
         }
-        val registrationResponseJson = json.encodeToString(registrationResponse)
-        return CreatePublicKeyCredentialResponse(registrationResponseJson) to local
+        return CreatePublicKeyCredentialResponse(result.responseJson) to
+            result.credential.toAddCredentialCipherRequest()
     }
-
-    @SuppressLint("RestrictedApi")
-    private fun defaultAttestationObject(
-        authData: ByteArray,
-    ): ByteArray {
-        // WebAuthn L3 §8.7 None Attestation: `fmt` is "none" and `attStmt` is an empty map.
-        // Shared encoder (no androidx Cbor dependency) so Android, iOS, and macOS emit
-        // identical attestation objects.
-        // - https://www.w3.org/TR/webauthn-3/#sctn-none-attestation
-        return webAuthnNoneAttestationObject(authData)
-    }
-
-    private fun JsonObjectBuilder.put(key: String, data: ByteArray) {
-        put(key, PasskeyBase64.encodeToString(data))
-    }
-}
-
-internal fun findPasskeyAlgorithmOrNull(
-    data: CreatePasskey,
-    supportedAlgorithms: Set<PasskeySignatureAlgorithm>,
-): PasskeySignatureAlgorithm? {
-    val pubKeyCredParams = data.pubKeyCredParamsOrDefaults()
-    return pubKeyCredParams.firstNotNullOfOrNull { parameters ->
-        supportedAlgorithms.firstOrNull { algorithm ->
-            parameters.type == "public-key" &&
-                    parameters.alg.roundToInt() == algorithm.coseValue
-        }
-    }
-}
-
-internal fun requirePasskeyAlgorithm(
-    data: CreatePasskey,
-    supportedAlgorithms: Set<PasskeySignatureAlgorithm>,
-): PasskeySignatureAlgorithm =
-    findPasskeyAlgorithmOrNull(
-        data = data,
-        supportedAlgorithms = supportedAlgorithms,
-    ) ?: throw CreatePublicKeyCredentialDomException(
-        // WebAuthn L3 create() throws NotSupportedError when no
-        // pubKeyCredParams entry has type "public-key" or no listed
-        // public-key algorithm is supported by the authenticator.
-        // Spec:
-        // - https://www.w3.org/TR/webauthn-3/#sctn-createCredential
-        // - https://www.w3.org/TR/webauthn-3/#sctn-createCredential-exceptions
-        domError = NotSupportedError(),
-        errorMessage = "None of the allowed public key parameters are supported by the app.",
-    )
-
-internal fun requireNoExcludedPasskeyCredential(
-    data: CreatePasskey,
-    rpId: String,
-    ciphers: List<DSecret>,
-) = mapCreateWebAuthnExceptions {
-    requireNoWebAuthnExcludedPasskeyCredential(
-        data = data,
-        rpId = rpId,
-        ciphers = ciphers,
-    )
-}
-
-internal fun findExcludedPasskeyCredentialOrNull(
-    data: CreatePasskey,
-    rpId: String,
-    ciphers: List<DSecret>,
-): DSecret.Login.Fido2Credentials? = mapCreateWebAuthnExceptions {
-    findWebAuthnExcludedPasskeyCredentialOrNull(
-        data = data,
-        rpId = rpId,
-        ciphers = ciphers,
-    )
 }
 
 private fun decodeExcludedCredentialIds(
@@ -360,24 +172,21 @@ private fun decodeExcludedCredentialIds(
     decodeWebAuthnExcludedCredentialIds(data)
 }
 
-private inline fun <T> mapCreateWebAuthnExceptions(
+internal inline fun <T> mapCreateWebAuthnExceptions(
     block: () -> T,
 ): T {
     try {
         return block()
-    } catch (e: WebAuthnEncodingException) {
-        throw CreatePublicKeyCredentialDomException(
-            domError = EncodingError(),
-            errorMessage = e.message.orEmpty(),
-        ).apply {
-            initCause(e)
+    } catch (e: WebAuthnException) {
+        val domError = when (e) {
+            is WebAuthnNotSupportedException -> NotSupportedError()
+            is WebAuthnEncodingException -> EncodingError()
+            is WebAuthnInvalidStateException -> InvalidStateError()
+            else -> throw e
         }
-    } catch (e: WebAuthnInvalidStateException) {
         throw CreatePublicKeyCredentialDomException(
-            domError = InvalidStateError(),
+            domError = domError,
             errorMessage = e.message.orEmpty(),
-        ).apply {
-            initCause(e)
-        }
+        ).apply { initCause(e) }
     }
 }

@@ -9,13 +9,15 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementService
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationService
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
-import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
 import com.artemchep.keyguard.common.service.googleauthenticator.impl.OtpMigrationServiceImpl
 import com.artemchep.keyguard.common.service.googleauthenticator.util.OtpMigrationParser
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
 import com.artemchep.keyguard.common.service.gpgkeyserver.impl.GpgKeyserverClientImpl
+import com.artemchep.keyguard.common.service.passkey.KEYGUARD_PASSKEY_AAGUID
+import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.service.text.decodeOrNull
 import com.artemchep.keyguard.common.service.totp.TotpService
 import com.artemchep.keyguard.common.service.totp.impl.TotpServiceImpl
 import com.artemchep.keyguard.common.usecase.GetAutofillCopyTotp
@@ -52,8 +54,11 @@ import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
 import com.artemchep.keyguard.crypto.NativeGpgUserIdReplacementService
 import com.artemchep.keyguard.crypto.NativeGpgUserIdRevocationService
 import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
-import com.artemchep.keyguard.crypto.NativePasskeyCrypto
 import com.artemchep.keyguard.crypto.NativeSshKeyImportService
+import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticator
+import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticatorDataFactory
+import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
 import com.artemchep.keyguard.util.zip.ZipService
 import com.artemchep.keyguard.util.zip.createZipService
 import org.koin.dsl.bind
@@ -70,6 +75,19 @@ internal class ApplicationCryptoModule {
 
         single<PasskeyCrypto> {
             NativePasskeyCrypto
+        }
+
+        single {
+            WebAuthnAuthenticatorDataFactory(aaguid = KEYGUARD_PASSKEY_AAGUID)
+        }
+        single {
+            val base64Service = get<Base64Service>()
+            WebAuthnAuthenticator(
+                json = get(),
+                authenticatorDataFactory = get(),
+                decodeStoredPrivateKey = base64Service::decodeOrNull,
+                passkeyCrypto = get(),
+            )
         }
 
         single<SshKeyImportService> {

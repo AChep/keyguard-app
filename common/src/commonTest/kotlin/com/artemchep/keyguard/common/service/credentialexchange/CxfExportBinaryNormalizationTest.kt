@@ -8,8 +8,8 @@ import com.artemchep.keyguard.common.service.credentialexchange.impl.mapCredenti
 import com.artemchep.keyguard.common.service.credentialexchange.impl.mapKey
 import com.artemchep.keyguard.common.service.credentialexchange.impl.mapRpId
 import com.artemchep.keyguard.common.service.credentialexchange.impl.mapUserHandle
-import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
-import com.artemchep.keyguard.crypto.NativePasskeyCrypto
+import com.artemchep.keyguard.util.webauthn.PasskeyBase64
+import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals

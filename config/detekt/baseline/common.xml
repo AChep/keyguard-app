@@ -37,7 +37,6 @@
     <ID>ComplexCondition:VaultListStateProducer.kt:keepOtp &amp;&amp; keepPasskey &amp;&amp; keepPassword &amp;&amp; keepAttachment</ID>
     <ID>ComplexCondition:VaultViewStateProducer.kt:cipherIdentity.address1 != null || cipherIdentity.address2 != null || cipherIdentity.address3 != null || cipherIdentity.city != null || cipherIdentity.state != null || cipherIdentity.postalCode != null || cipherIdentity.country != null</ID>
     <ID>ComplexCondition:VaultViewStateProducer.kt:cipherIdentity.company != null || cipherIdentity.ssn != null || cipherIdentity.passportNumber != null || cipherIdentity.licenseNumber != null</ID>
-    <ID>ComplexCondition:WebAuthnOrigin.kt:domainName.isEmpty() || domainName.length &gt; DNS_DOMAIN_NAME_MAX_TEXT_LENGTH_WITHOUT_ROOT_DOT || ':' in rpId || // indirectly rejects IPv6 :check: '/' in rpId || '@' in rpId || isIpv4Address(domainName)</ID>
     <ID>ComplexCondition:WindowsNamedPipe.kt:WindowsNamedPipeConnection$error == ERROR_BROKEN_PIPE || error == ERROR_PIPE_NOT_CONNECTED || error == ERROR_NO_DATA || error == ERROR_HANDLE_EOF</ID>
     <ID>ComplexCondition:WindowsNamedPipe.kt:WindowsNamedPipeConnection$error == ERROR_INVALID_HANDLE || error == ERROR_OPERATION_ABORTED || error == ERROR_BROKEN_PIPE || error == ERROR_NO_DATA || error == ERROR_PIPE_NOT_CONNECTED</ID>
     <ID>CyclomaticComplexMethod:AccountListViewModel.kt:suspend fun RememberStateFlowScope.accountListScreenStateProducer: Flow&lt;AccountListStateWrapper&gt;</ID>
@@ -202,7 +201,6 @@
     <ID>CyclomaticComplexMethod:WatchtowerScreen.kt:@Composable private fun ColumnScope.DashboardContentData</ID>
     <ID>CyclomaticComplexMethod:WatchtowerStateProducer.kt:suspend fun RememberStateFlowScope.watchtowerStateProducer: Flow&lt;WatchtowerState&gt;</ID>
     <ID>CyclomaticComplexMethod:WatchtowerSyncerImpl.kt:WatchtowerClient$fun launch</ID>
-    <ID>CyclomaticComplexMethod:WebAuthnOrigin.kt:internal fun parseWebAuthnOrigin: WebAuthnOrigin?</ID>
     <ID>CyclomaticComplexMethod:Zxing.kt:private fun BarcodeImageFormat.toZxingFormat</ID>
     <ID>CyclomaticComplexMethod:changePasswordAction.kt:fun RememberStateFlowScope.cipherSendAction</ID>
     <ID>EmptyClassBlock:BitwardenSendRepository.kt:BitwardenSendRepository${ }</ID>
@@ -270,7 +268,6 @@
     <ID>ForbiddenComment:CipherUrlCheck.kt:CipherUrlCheckImpl$// TODO: Add special treatments for androidapp:// etc.</ID>
     <ID>ForbiddenComment:CopyCipherById.kt:CopyCipherByIdImpl$// TODO: Check if the name collides</ID>
     <ID>ForbiddenComment:CopyCipherById.kt:CopyCipherByIdImpl$// TODO: Support copying attachments</ID>
-    <ID>ForbiddenComment:CreatePasskeyRequest.kt:CreatePasskey$// TODO: Make it fall back to none</ID>
     <ID>ForbiddenComment:DSecret.kt:// TODO: Extract country code</ID>
     <ID>ForbiddenComment:DatabaseManager.kt:AfterVersionWithTransactionBlock$// TODO: Would be nice to ensure that the block is running in the</ID>
     <ID>ForbiddenComment:DownloadAttachmentMetadataBitwardenImpl.kt:DownloadAttachmentMetadataBitwardenImpl$// TODO: Throw properly!</ID>
@@ -370,7 +367,6 @@
     <ID>LargeClass:KeePassCipherCodec.kt:KeePassCipherCodec</ID>
     <ID>LargeClass:KeePassTotpCodec.kt:KeePassTotpCodec</ID>
     <ID>LargeClass:KeyguardAutofillService.kt:KeyguardAutofillService : AutofillServiceKeyguardKoinOwner</ID>
-    <ID>LargeClass:PasskeyUtilsTest.kt:PasskeyUtilsTest</ID>
     <ID>LargeClass:SendSyncOps.kt:SendSyncOps : EntitySyncOps</ID>
     <ID>LargeClass:SendUtil.kt:SendUtil</ID>
     <ID>LargeClass:SettingsRepositoryImpl.kt:SettingsRepositoryImpl : SettingsReadWriteRepository</ID>
@@ -672,8 +668,6 @@
     <ID>LongMethod:PasskeyBeginGetRequest.kt:PasskeyBeginGetRequest$private suspend fun populatePasskeyData: List&lt;CredentialEntry&gt;</ID>
     <ID>LongMethod:PasskeyCompose.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun CredentialError</ID>
     <ID>LongMethod:PasskeyCreateActivity.kt:PasskeyCreateActivity$@Composable override fun Content</ID>
-    <ID>LongMethod:PasskeyCreateRequest.kt:PasskeyCreateRequest$private fun processCreatePublicKeyCredentialsRequest: Pair&lt;CreatePublicKeyCredentialResponse, AddCredentialCipherRequestPasskeyData&gt;</ID>
-    <ID>LongMethod:PasskeyProviderGetRequest.kt:PasskeyProviderGetRequest$@SuppressLint("RestrictedApi") @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE) suspend fun processGetCredentialsRequest: GetCredentialResponse</ID>
     <ID>LongMethod:PasskeysCredentialViewScreen.kt:@Composable private fun PasskeysCredentialItem</ID>
     <ID>LongMethod:PasskeysServiceListStateProducer.kt:suspend fun RememberStateFlowScope.passkeysServiceListStateProducer: Flow&lt;Loadable&lt;PasskeysServiceListState&gt;&gt;</ID>
     <ID>LongMethod:PasswordFilterItem.kt:@Composable fun RowScope.FlatItemActionContent</ID>
@@ -1167,9 +1161,6 @@
     <ID>MagicNumber:NotificationsHubMessage.kt:NotificationsHubEventType.SYNC_VAULT$5</ID>
     <ID>MagicNumber:OnboardingScreen.kt:0.035f</ID>
     <ID>MagicNumber:OrganizationsScreen.kt:3</ID>
-    <ID>MagicNumber:PasskeyCreateRequest.kt:PasskeyCreateRequest$256</ID>
-    <ID>MagicNumber:PasskeyCreateRequest.kt:PasskeyCreateRequest$32</ID>
-    <ID>MagicNumber:PasskeyCredentialId.kt:PasskeyCredentialId$0xffL</ID>
     <ID>MagicNumber:PasskeysCredentialViewScreen.kt:0.8f</ID>
     <ID>MagicNumber:Password.kt:0.42f</ID>
     <ID>MagicNumber:Password.kt:0.52f</ID>
@@ -1297,19 +1288,6 @@
     <ID>MagicNumber:WatchtowerScreen.kt:0.72f</ID>
     <ID>MagicNumber:WatchtowerScreen.kt:20f</ID>
     <ID>MagicNumber:WatchtowerScreen.kt:4</ID>
-    <ID>MagicNumber:WebAuthnAttestationObject.kt:0x40</ID>
-    <ID>MagicNumber:WebAuthnAttestationObject.kt:24</ID>
-    <ID>MagicNumber:WebAuthnAttestationObject.kt:256</ID>
-    <ID>MagicNumber:WebAuthnAttestationObject.kt:65536</ID>
-    <ID>MagicNumber:WebAuthnAttestationObject.kt:8</ID>
-    <ID>MagicNumber:WebAuthnDomainToAscii.android.kt:0x7f</ID>
-    <ID>MagicNumber:WebAuthnDomainToAscii.android.kt:253</ID>
-    <ID>MagicNumber:WebAuthnDomainToAscii.android.kt:3</ID>
-    <ID>MagicNumber:WebAuthnDomainToAscii.android.kt:4</ID>
-    <ID>MagicNumber:WebAuthnDomainToAscii.android.kt:63</ID>
-    <ID>MagicNumber:WebAuthnDomainToAscii.desktop.kt:0x7f</ID>
-    <ID>MagicNumber:WebAuthnDomainToAscii.ios.kt:0x7f</ID>
-    <ID>MagicNumber:WebAuthnOrigin.kt:4</ID>
     <ID>MagicNumber:WebDavKeePassUrl.kt:3</ID>
     <ID>MagicNumber:WebsiteLeakScreen.kt:0.6f</ID>
     <ID>MagicNumber:WebsiteLeakScreen.kt:0.8f</ID>
@@ -1949,15 +1927,6 @@
     <ID>ReturnCount:WatchtowerSyncerImpl.kt:WatchtowerInactivePasskey.Companion$context(tldService: TldService) private suspend fun findMatch: PassKeyServiceInfo?</ID>
     <ID>ReturnCount:WatchtowerSyncerImpl.kt:WatchtowerInactiveTfa.Companion$context(tldService: TldService) private suspend fun findMatch: TwoFaServiceInfo?</ID>
     <ID>ReturnCount:WatchtowerSyncerImpl.kt:WatchtowerIncomplete$private fun hasAlert: String?</ID>
-    <ID>ReturnCount:WebAuthnCredentialDescriptor.kt:internal fun parseWebAuthnAllowedCredentialDescriptors: WebAuthnAllowedCredentialDescriptors</ID>
-    <ID>ReturnCount:WebAuthnDomainToAscii.android.kt:internal actual fun webAuthnDomainToAscii: String?</ID>
-    <ID>ReturnCount:WebAuthnDomainToAscii.ios.kt:internal actual fun webAuthnDomainToAscii: String?</ID>
-    <ID>ReturnCount:WebAuthnOrigin.kt:internal fun parseWebAuthnOrigin: WebAuthnOrigin?</ID>
-    <ID>ReturnCount:WebAuthnOrigin.kt:internal suspend fun isWebAuthnDomainSuffix: Boolean</ID>
-    <ID>ReturnCount:WebAuthnOrigin.kt:private fun isValidDomainRpId: Boolean</ID>
-    <ID>ReturnCount:WebAuthnRegistrableDomain.kt:internal suspend fun getWebAuthnRegistrableDomain: String?</ID>
-    <ID>ReturnCount:WebAuthnRegistrableDomain.kt:internal suspend fun isWebAuthnRegistrableDomain: Boolean</ID>
-    <ID>ReturnCount:WebAuthnRelatedOrigins.kt:WebAuthnRelatedOrigins$private suspend fun relatedOriginLabel: String?</ID>
     <ID>ReturnCount:WindowsNamedPipe.kt:WindowsNamedPipeConnection$fun read: Int</ID>
     <ID>ReturnCount:PlatformVaultModule.kt:DatabaseSqlManagerInFileApple$private fun isPlaintextSqliteDatabaseFile: Boolean</ID>
     <ID>ReturnCount:getHttpCode.kt:fun Throwable.getHttpCode: Int</ID>

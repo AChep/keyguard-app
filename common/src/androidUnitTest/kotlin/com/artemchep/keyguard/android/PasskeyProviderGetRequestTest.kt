@@ -3,332 +3,80 @@ package com.artemchep.keyguard.android
 import androidx.credentials.exceptions.domerrors.EncodingError
 import androidx.credentials.exceptions.domerrors.NotAllowedError
 import androidx.credentials.exceptions.publickeycredential.GetPublicKeyCredentialDomException
-import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.service.webauthn.PasskeyCredentialId
+import com.artemchep.keyguard.util.webauthn.WebAuthnAllowedCredentialDescriptors
+import com.artemchep.keyguard.util.webauthn.WebAuthnAssertionRequest
+import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticator
+import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticatorDataFactory
+import com.artemchep.keyguard.util.webauthn.WebAuthnCallerContext
+import com.artemchep.keyguard.util.webauthn.WebAuthnCredential
+import com.artemchep.keyguard.util.webauthn.WebAuthnEncodingException
+import com.artemchep.keyguard.util.webauthn.WebAuthnNotAllowedException
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.addJsonObject
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
-import kotlinx.serialization.json.putJsonArray
-import java.util.Base64
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
-import kotlin.test.assertNotNull
-import kotlin.time.Instant
+import kotlin.test.assertSame
 
-/**
- * WebAuthn Level 3 authentication coverage for exact RP ID scoping,
- * allowCredentials descriptor filtering, unknown descriptor types, and
- * discoverable-credential fallback.
- */
 class PasskeyProviderGetRequestTest {
-    // Spec coverage: Sections 5.1.4.2 and 6.3.3 bind
-    // authenticatorGetAssertion to exactly one request RP ID. Section 6.1
-    // defines rpIdHash inside authenticator data; Section 6.3.3 signs
-    // authenticatorData || clientDataHash.
     @Test
-    fun `assertion credential scope accepts exact rp id`() {
-        requireCredentialRpIdMatchesRequest(
-            credential = credential(
-                rpId = "example.com",
+    fun `rp mismatch maps to NotAllowed without accessing the stored key`() {
+        val authenticator = WebAuthnAuthenticator(
+            json = Json,
+            authenticatorDataFactory = WebAuthnAuthenticatorDataFactory(
+                aaguid = ByteArray(16),
+                hashSha256 = { error("RP mismatch must be rejected before hashing") },
+                hashMd5 = { error("RP mismatch must be rejected before hashing") },
             ),
-            rpId = "example.com",
+            decodeStoredPrivateKey = { error("RP mismatch must be rejected before decoding the key") },
+            hashSha256 = { error("RP mismatch must be rejected before hashing") },
         )
-    }
-
-    @Test
-    fun `assertion credential scope rejects different rp id`() {
-        assertFailsWith<IllegalArgumentException> {
-            requireCredentialRpIdMatchesRequest(
-                credential = credential(
-                    rpId = "example.com",
-                ),
-                rpId = "login.example.com",
-            )
-        }
-    }
-
-    // Spec coverage: Section 5.1.4.2 filters allowCredentials by rpId, id, and
-    // type before issuing authenticatorGetAssertion.
-    @Test
-    fun `assertion request options accept matching allow credential`() {
-        val credentialId = "123e4567-e89b-12d3-a456-426614174000"
-
-        requireCredentialAllowedByRequestOptions(
-            credential = credential(
-                rpId = "example.com",
-                credentialId = credentialId,
-            ),
-            requestJson = requestJson(
-                allowCredentials = listOf(
-                    descriptor(credentialId),
-                ),
-            ),
-            json = json,
-            decodeCredentialId = ::decodeCredentialId,
-        )
-    }
-
-    // Spec coverage: Section 5.1.9 says JSON parsing issues for encoded
-    // BufferSource fields must raise EncodingError before get() proceeds.
-    @Test
-    fun `assertion request options malformed descriptor id throws encoding dom exception`() {
         val error = assertFailsWith<GetPublicKeyCredentialDomException> {
-            requireCredentialAllowedByRequestOptions(
-                credential = credential(
-                    rpId = "example.com",
-                    credentialId = "123e4567-e89b-12d3-a456-426614174000",
-                ),
-                requestJson = requestJson(
-                    allowCredentials = listOf(
-                        TestCredentialDescriptor(
-                            type = "public-key",
-                            idBase64 = "%%%not-base64%%%",
-                        ),
+            mapGetWebAuthnExceptions {
+                authenticator.getAssertion(
+                    request = WebAuthnAssertionRequest(
+                        challenge = byteArrayOf(1),
+                        userVerification = "required",
+                        allowedCredentials = WebAuthnAllowedCredentialDescriptors(false, emptyList()),
                     ),
-                ),
-                json = json,
-                decodeCredentialId = ::decodeCredentialId,
-            )
-        }
-
-        assertIs<EncodingError>(error.domError)
-        assertNotNull(error.message)
-    }
-
-    // Spec coverage: Section 5.1.9 parses every JSON BufferSource value before
-    // descriptor type filtering, so one malformed id fails the whole request.
-    @Test
-    fun `assertion request options malformed descriptor id throws even with valid descriptors`() {
-        val credentialId = "123e4567-e89b-12d3-a456-426614174000"
-
-        val error = assertFailsWith<GetPublicKeyCredentialDomException> {
-            requireCredentialAllowedByRequestOptions(
-                credential = credential(
-                    rpId = "example.com",
-                    credentialId = credentialId,
-                ),
-                requestJson = requestJson(
-                    allowCredentials = listOf(
-                        descriptor(credentialId),
-                        TestCredentialDescriptor(
-                            type = "unknown",
-                            idBase64 = "%%%not-base64%%%",
-                        ),
+                    context = WebAuthnCallerContext("https://example.com", "example.com"),
+                    credential = WebAuthnCredential(
+                        credentialId = "123e4567-e89b-12d3-a456-426614174000",
+                        keyType = "public-key",
+                        keyAlgorithm = "ECDSA",
+                        keyCurve = "P-256",
+                        keyValue = "AQID",
+                        rpId = "other.example",
+                        discoverable = true,
                     ),
-                ),
-                json = json,
-                decodeCredentialId = ::decodeCredentialId,
-            )
-        }
-
-        assertIs<EncodingError>(error.domError)
-        assertNotNull(error.message)
-    }
-
-    @Test
-    fun `assertion request options reject credential missing from allow credentials`() {
-        val error = assertFailsWith<GetPublicKeyCredentialDomException> {
-            requireCredentialAllowedByRequestOptions(
-                credential = credential(
-                    rpId = "example.com",
-                    credentialId = "123e4567-e89b-12d3-a456-426614174000",
-                ),
-                requestJson = requestJson(
-                    allowCredentials = listOf(
-                        descriptor("123e4567-e89b-12d3-a456-426614174001"),
-                    ),
-                ),
-                json = json,
-                decodeCredentialId = ::decodeCredentialId,
-            )
-        }
-
-        assertIs<NotAllowedError>(error.domError)
-        assertNotNull(error.message)
-    }
-
-    // Spec coverage: Section 5.8.3 says clients must ignore unknown descriptor
-    // types, but if all supplied descriptors are ignored, the request errors
-    // instead of behaving like an empty allowCredentials list.
-    @Test
-    fun `assertion request options reject allow descriptor with different type`() {
-        val credentialId = "123e4567-e89b-12d3-a456-426614174000"
-
-        val error = assertFailsWith<GetPublicKeyCredentialDomException> {
-            requireCredentialAllowedByRequestOptions(
-                credential = credential(
-                    rpId = "example.com",
-                    credentialId = credentialId,
-                ),
-                requestJson = requestJson(
-                    allowCredentials = listOf(
-                        descriptor(
-                            credentialId = credentialId,
-                            type = "password",
-                        ),
-                    ),
-                ),
-                json = json,
-                decodeCredentialId = ::decodeCredentialId,
-            )
-        }
-
-        assertIs<NotAllowedError>(error.domError)
-        assertNotNull(error.message)
-    }
-
-    @Test
-    fun `assertion request options ignore unknown descriptor type but keep matching public key descriptor`() {
-        val credentialId = "123e4567-e89b-12d3-a456-426614174000"
-
-        requireCredentialAllowedByRequestOptions(
-            credential = credential(
-                rpId = "example.com",
-                credentialId = credentialId,
-            ),
-            requestJson = requestJson(
-                allowCredentials = listOf(
-                    descriptor(
-                        credentialId = "123e4567-e89b-12d3-a456-426614174001",
-                        type = "unknown",
-                    ),
-                    descriptor(credentialId),
-                ),
-            ),
-            json = json,
-            decodeCredentialId = ::decodeCredentialId,
-        )
-    }
-
-    // Spec coverage: Section 5.1.4.2 treats missing or empty allowCredentials
-    // as no credential ID filter, but without a supplied server-side credential
-    // ID the request can only use discoverable credentials scoped to the RP ID.
-    @Test
-    fun `assertion request options accept discoverable credential without allow credentials`() {
-        requireCredentialAllowedByRequestOptions(
-            credential = credential(
-                rpId = "example.com",
-                discoverable = true,
-            ),
-            requestJson = requestJson(),
-            json = json,
-            decodeCredentialId = ::decodeCredentialId,
-        )
-    }
-
-    @Test
-    fun `assertion request options accept discoverable credential with empty allow credentials`() {
-        requireCredentialAllowedByRequestOptions(
-            credential = credential(
-                rpId = "example.com",
-                discoverable = true,
-            ),
-            requestJson = requestJson(
-                allowCredentials = emptyList(),
-            ),
-            json = json,
-            decodeCredentialId = ::decodeCredentialId,
-        )
-    }
-
-    @Test
-    fun `assertion request options reject non discoverable credential with empty allow credentials`() {
-        val error = assertFailsWith<GetPublicKeyCredentialDomException> {
-            requireCredentialAllowedByRequestOptions(
-                credential = credential(
-                    rpId = "example.com",
-                    discoverable = false,
-                ),
-                requestJson = requestJson(
-                    allowCredentials = emptyList(),
-                ),
-                json = json,
-                decodeCredentialId = ::decodeCredentialId,
-            )
-        }
-
-        assertIs<NotAllowedError>(error.domError)
-        assertNotNull(error.message)
-    }
-
-    @Test
-    fun `assertion request options reject non discoverable credential without allow credentials`() {
-        val error = assertFailsWith<GetPublicKeyCredentialDomException> {
-            requireCredentialAllowedByRequestOptions(
-                credential = credential(
-                    rpId = "example.com",
-                    discoverable = false,
-                ),
-                requestJson = requestJson(),
-                json = json,
-                decodeCredentialId = ::decodeCredentialId,
-            )
-        }
-
-        assertIs<NotAllowedError>(error.domError)
-        assertNotNull(error.message)
-    }
-
-    private fun credential(
-        rpId: String,
-        credentialId: String = "credential-id",
-        discoverable: Boolean = true,
-        keyType: String = "public-key",
-    ) = DSecret.Login.Fido2Credentials(
-        credentialId = credentialId,
-        keyType = keyType,
-        keyAlgorithm = "ECDSA",
-        keyCurve = "P-256",
-        keyValue = "key-value",
-        rpId = rpId,
-        rpName = null,
-        counter = 0,
-        userHandle = "user-handle",
-        userName = "user-name",
-        userDisplayName = "User Name",
-        discoverable = discoverable,
-        creationDate = Instant.fromEpochMilliseconds(0),
-    )
-
-    private fun requestJson(
-        allowCredentials: List<TestCredentialDescriptor>? = null,
-    ): String = buildJsonObject {
-        put("challenge", "YQ")
-        put("rpId", "example.com")
-        if (allowCredentials != null) {
-            putJsonArray("allowCredentials") {
-                allowCredentials.forEach { descriptor ->
-                    addJsonObject {
-                        put("type", descriptor.type)
-                        put("id", descriptor.idBase64)
-                    }
-                }
+                    userVerified = true,
+                )
             }
         }
-    }.toString()
+        assertIs<NotAllowedError>(error.domError)
+        val cause = assertIs<WebAuthnNotAllowedException>(error.cause)
+        assertEquals(cause.message, error.message)
+    }
 
-    private fun descriptor(
-        credentialId: String,
-        type: String = "public-key",
-    ) = TestCredentialDescriptor(
-        type = type,
-        idBase64 = Base64.getUrlEncoder().withoutPadding().encodeToString(
-            PasskeyCredentialId.encode(credentialId),
-        ),
-    )
+    @Test
+    fun `maps NotAllowed errors to credential manager`() {
+        val cause = WebAuthnNotAllowedException("test message")
+        val error = assertFailsWith<GetPublicKeyCredentialDomException> {
+            mapGetWebAuthnExceptions { throw cause }
+        }
+        assertIs<NotAllowedError>(error.domError)
+        assertEquals(cause.message, error.message)
+        assertSame(cause, error.cause)
+    }
 
-    private fun decodeCredentialId(
-        idBase64: String,
-    ): ByteArray = Base64.getUrlDecoder().decode(idBase64)
-
-    private data class TestCredentialDescriptor(
-        val type: String,
-        val idBase64: String,
-    )
-
-    private companion object {
-        private val json = Json
+    @Test
+    fun `maps Encoding errors to credential manager`() {
+        val cause = WebAuthnEncodingException("test message")
+        val error = assertFailsWith<GetPublicKeyCredentialDomException> {
+            mapGetWebAuthnExceptions { throw cause }
+        }
+        assertIs<EncodingError>(error.domError)
+        assertEquals(cause.message, error.message)
+        assertSame(cause, error.cause)
     }
 }

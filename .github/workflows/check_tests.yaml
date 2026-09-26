@@ -100,6 +100,9 @@ jobs:
               :util:messagepack:desktopTest
               :util:planeta:desktopTest
               :util:signalr:desktopTest
+              :util:webauthn:checkComposeFree
+              :util:webauthn:checkBouncyCastleProductionDependencies
+              :util:webauthn:desktopTest
               :util:webdav:desktopTest
               :util:zip:desktopTest
               :util:zxcvbn:desktopTest
@@ -114,6 +117,7 @@ jobs:
               :util:messagepack:testAndroidHostTest
               :util:planeta:testAndroidHostTest
               :util:signalr:testAndroidHostTest
+              :util:webauthn:testAndroidHostTest
               :util:webdav:testAndroidHostTest
               :util:zip:testAndroidHostTest
               :util:zxcvbn:testAndroidHostTest
@@ -216,6 +220,7 @@ jobs:
           :util:messagepack:iosSimulatorArm64Test
           :util:planeta:iosSimulatorArm64Test
           :util:signalr:iosSimulatorArm64Test
+          :util:webauthn:iosSimulatorArm64Test
           :util:webdav:iosSimulatorArm64Test
           :util:zip:iosSimulatorArm64Test
           :util:zxcvbn:iosSimulatorArm64Test

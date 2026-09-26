@@ -9,7 +9,7 @@ import com.artemchep.keyguard.common.service.credentialexchange.model.CxfAndroid
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialScope
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfEditableField
-import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
+import com.artemchep.keyguard.util.webauthn.PasskeyBase64
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.common.util.hexToByteArray
 import com.artemchep.keyguard.common.util.normalizeSha256FingerprintOrNull

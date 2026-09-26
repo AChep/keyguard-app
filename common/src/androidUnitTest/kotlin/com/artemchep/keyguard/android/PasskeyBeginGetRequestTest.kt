@@ -2,8 +2,9 @@ package com.artemchep.keyguard.android
 
 import androidx.credentials.exceptions.domerrors.NotAllowedError
 import androidx.credentials.exceptions.publickeycredential.GetPublicKeyCredentialDomException
-import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
-import com.artemchep.keyguard.common.service.webauthn.PasskeyCredentialId
+import com.artemchep.keyguard.common.service.passkey.toPasskeyTargetCredentials
+import com.artemchep.keyguard.util.webauthn.PasskeyBase64
+import com.artemchep.keyguard.util.webauthn.PasskeyCredentialId
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -56,7 +57,7 @@ class PasskeyBeginGetRequestTest {
             json = json,
         )
 
-        val targetCredentials = assertNotNull(result.toPasskeyTargetAllowedCredentials())
+        val targetCredentials = assertNotNull(result.toPasskeyTargetCredentials())
         val targetCredential = targetCredentials.single()
         assertEquals("public-key", targetCredential.type)
         assertEquals(credentialId, targetCredential.credentialId)
@@ -71,7 +72,7 @@ class PasskeyBeginGetRequestTest {
             json = json,
         )
 
-        assertNull(result.toPasskeyTargetAllowedCredentials())
+        assertNull(result.toPasskeyTargetCredentials())
     }
 
     private fun requestJson(

@@ -477,6 +477,7 @@ jobs:
           :util:crypto:macosArm64Test
           :util:io:macosArm64Test
           :util:instance:macosArm64Test
+          :util:webauthn:macosArm64Test
           :util:zip:macosArm64Test
           :util:zxcvbn:macosArm64Test
       - name: "Link native consumers for device and simulator"

@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.android
 
 import com.artemchep.keyguard.common.util.hexToByteArray
-import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
+import com.artemchep.keyguard.util.webauthn.PasskeyBase64
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get

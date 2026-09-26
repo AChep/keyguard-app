@@ -38,10 +38,9 @@ class PasskeysModule {
         }
         single {
             PasskeyCreateRequest(
-                context = get<Application>(),
                 json = get(),
                 passkeyUtils = get(),
-                passkeyCrypto = get(),
+                authenticator = get(),
             )
         }
         single {
@@ -61,11 +60,8 @@ class PasskeysModule {
         }
         single {
             PasskeyProviderGetRequest(
-                context = get<Application>(),
                 json = get(),
-                base64Service = get(),
-                cryptoService = get(),
-                passkeyCrypto = get(),
+                authenticator = get(),
                 passkeyUtils = get(),
             )
         }

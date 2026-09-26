@@ -15,6 +15,9 @@ import com.artemchep.keyguard.common.worker.WorkerRegistry
 import com.artemchep.keyguard.createIosKoinApplication
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactoryDefault
+import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticator
+import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
@@ -72,6 +75,8 @@ class IosKoinGraphTest {
             assertSame(AndroidIpcRegistrationServiceNone, koin.get<AndroidIpcRegistrationService>())
             assertSame(koin.get<LogRepositoryKotlin>(), koin.get<PlatformLogSinkRegistry>().values.single())
             assertSame(VaultRouteFactoryDefault, koin.get<VaultRouteFactory>())
+            assertSame(NativePasskeyCrypto, koin.get<PasskeyCrypto>())
+            assertNotNull(koin.get<WebAuthnAuthenticator>())
             assertTrue(koin.get<PlatformLinkInfoExtractorRegistry>().values.isEmpty())
             assertTrue(koin.get<WorkerRegistry>().values.isEmpty())
             assertNotNull(koin.get<CoroutineDispatcher>(named<DatabaseDispatcher>()))

@@ -16,7 +16,7 @@ license-file = "../../../LICENSE"
 repository = "https://github.com/AChep/keyguard-app"
 
 [workspace.dependencies]
-aes = { version = "=0.8.4", features = ["zeroize"] }
+aes = { version = "=0.9.1", features = ["zeroize"] }
 argon2 = { version = "=0.5.3", default-features = false, features = ["alloc", "zeroize"] }
 blake2 = { version = "=0.10.6", default-features = false }
 block-buffer = "=0.10.4"

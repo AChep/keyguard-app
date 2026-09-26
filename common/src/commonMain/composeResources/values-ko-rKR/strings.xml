@@ -1312,6 +1312,11 @@
     <string name="generator_gpg_key_email_title">이메일</string>
     <string name="generator_gpg_key_modern_note">Ed25519 서명/인증 키와 X25519 암호화 하위 키로 OpenPGP 키를 생성합니다.</string>
     <string name="generator_gpg_key_rsa_note">Creates an OpenPGP key with an RSA certification key and separate RSA signing and encryption subkeys.</string>
+    <string name="gpg_key_version_title">Certificate version</string>
+    <string name="gpg_key_version_v4">v4</string>
+    <string name="gpg_key_version_v6">v6</string>
+    <string name="gpg_key_version_v4_note">Compatible with GnuPG and older OpenPGP clients.</string>
+    <string name="gpg_key_version_v6_note">Uses RFC 9580. Requires a client that supports v6 certificates.</string>
     <string name="generator_gpg_key_modern_text">현대적인 OpenPGP 키 구성</string>
     <string name="generator_key_length_title">길이</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>- 비트</string>

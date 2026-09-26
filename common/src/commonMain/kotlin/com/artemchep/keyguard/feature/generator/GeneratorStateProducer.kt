@@ -127,6 +127,7 @@ import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.PLACEHOLDER_EMAIL
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
+import com.artemchep.keyguard.ui.icons.KeyguardGpgKey
 import com.artemchep.keyguard.ui.icons.KeyguardIcons
 import com.artemchep.keyguard.ui.icons.KeyguardWordlist
 import com.artemchep.keyguard.ui.icons.custom.FormatLetterCaseLower
@@ -1590,7 +1591,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
         val items = mutableListOf<GeneratorState.Filter.Item>(
             GeneratorState.Filter.Item.Enum(
                 key = "$PREFIX_GPG_KEY.type",
-                icon = Icons.Outlined.Key,
+                icon = Icons.Outlined.KeyguardGpgKey,
                 title = translate(Res.string.key_type),
                 model = gpgKeyTypeFilterItem(
                     keyType = config.config.type.key,
@@ -1599,7 +1600,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
             ),
             GeneratorState.Filter.Item.Enum(
                 key = "$PREFIX_GPG_KEY.version",
-                icon = Icons.Outlined.Key,
+                icon = Icons.Outlined.KeyguardGpgKey,
                 title = translate(Res.string.gpg_key_version_title),
                 model = gpgKeyVersionFilterItem(config.config.version),
             ),
@@ -2633,7 +2634,7 @@ private fun RememberStateFlowScope.flowOfGeneratorType(
             type is GeneratorType2.PinCode -> Icons.Outlined.Numbers
             type.password -> Icons.Outlined.Password
             type.sshKey -> Icons.Outlined.Terminal
-            type.gpgKey -> Icons.Outlined.Key
+            type.gpgKey -> Icons.Outlined.KeyguardGpgKey
             type is GeneratorType2.Username -> Icons.Outlined.AlternateEmail
             else -> Icons.Outlined.Mail
         }

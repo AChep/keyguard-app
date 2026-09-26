@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Animation
-import androidx.compose.material.icons.outlined.Screenshot
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,6 +31,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.icons.KeyguardScreenshot
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlin.collections.map
@@ -121,7 +121,7 @@ private fun SettingAllowScreenshots(
 ) {
     val title = stringResource(Res.string.pref_item_allow_screenshots_title)
     LocalSettingPaneComponents.current.KgPicker(
-        icon = Icons.Outlined.Screenshot,
+        icon = Icons.Outlined.KeyguardScreenshot,
         title = {
             Text(text = title)
         },

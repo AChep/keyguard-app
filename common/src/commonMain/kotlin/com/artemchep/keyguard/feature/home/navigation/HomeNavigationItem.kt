@@ -4,12 +4,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Settings
@@ -38,6 +36,8 @@ import com.artemchep.keyguard.res.home_settings_label
 import com.artemchep.keyguard.res.home_vault_label
 import com.artemchep.keyguard.res.home_watchtower_label
 import com.artemchep.keyguard.ui.icons.KeyguardCipherFilter
+import com.artemchep.keyguard.ui.icons.KeyguardGpgKey
+import com.artemchep.keyguard.ui.icons.KeyguardGpgKeySelected
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -188,8 +188,8 @@ fun createBuiltInHomeNavigationItem(
             testTag = HOME_NAV_GPG_TOOLS_TEST_TAG,
             route = homeGpgToolsRoute,
             stackId = STACK_ID_GPG_TOOLS,
-            icon = Icons.Outlined.Key,
-            iconSelected = Icons.Filled.Key,
+            icon = Icons.Outlined.KeyguardGpgKey,
+            iconSelected = Icons.Outlined.KeyguardGpgKeySelected,
             label = TextHolder.Res(Res.string.gpg_tools_header_title),
         )
 

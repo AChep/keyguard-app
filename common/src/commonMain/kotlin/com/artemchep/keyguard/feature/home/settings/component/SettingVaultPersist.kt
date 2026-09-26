@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Key
-import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -24,6 +23,7 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.SimpleNote
+import com.artemchep.keyguard.ui.icons.KeyguardStoredKey
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.coroutines.flow.map
@@ -72,14 +72,15 @@ private fun SettingVaultPersist(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    val secondaryIcon = if (checked) Icons.Outlined.Memory else Icons.Outlined.Storage
+    val icon = if (checked) Icons.Outlined.KeyguardStoredKey else Icons.Outlined.Key
+    val secondaryIcon = if (checked) null else Icons.Outlined.Storage
     val text = if (checked) {
         stringResource(Res.string.pref_item_persist_vault_key_text_on)
     } else {
         stringResource(Res.string.pref_item_persist_vault_key_text_off)
     }
     LocalSettingPaneComponents.current.KgSwitch(
-        icon = Icons.Outlined.Key,
+        icon = icon,
         subIcon = secondaryIcon,
         title = stringResource(Res.string.pref_item_persist_vault_key_title),
         text = text,

@@ -1,9 +1,6 @@
 package com.artemchep.keyguard.feature.gpgagent.tools
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
@@ -19,7 +16,10 @@ import com.artemchep.keyguard.res.gpg_tools_scope_file
 import com.artemchep.keyguard.res.gpg_tools_scope_text
 import com.artemchep.keyguard.res.sign
 import com.artemchep.keyguard.res.verify
+import com.artemchep.keyguard.ui.icons.KeyguardDecrypt
+import com.artemchep.keyguard.ui.icons.KeyguardEncrypt
 import com.artemchep.keyguard.ui.icons.KeyguardFileSign
+import com.artemchep.keyguard.ui.icons.KeyguardFileVerify
 import com.artemchep.keyguard.ui.tabs.TabItem
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.Flow
@@ -105,12 +105,12 @@ enum class GpgToolsOperation(
     ENCRYPT(
         key = "encrypt",
         title = TextHolder.Res(Res.string.encrypt),
-        icon = Icons.Outlined.Lock,
+        icon = Icons.Outlined.KeyguardEncrypt,
     ),
     DECRYPT(
         key = "decrypt",
         title = TextHolder.Res(Res.string.decrypt),
-        icon = Icons.Outlined.LockOpen,
+        icon = Icons.Outlined.KeyguardDecrypt,
     ),
     SIGN(
         key = "sign",
@@ -120,7 +120,7 @@ enum class GpgToolsOperation(
     VERIFY(
         key = "verify",
         title = TextHolder.Res(Res.string.verify),
-        icon = Icons.Outlined.CheckCircle,
+        icon = Icons.Outlined.KeyguardFileVerify,
     ),
 }
 

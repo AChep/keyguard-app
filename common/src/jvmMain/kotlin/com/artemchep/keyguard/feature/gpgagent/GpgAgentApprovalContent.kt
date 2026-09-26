@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.feature.gpgagent
 
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentApprovalRequest
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
@@ -11,6 +13,8 @@ import com.artemchep.keyguard.res.gpg_agent_request_approval_decrypt_title
 import com.artemchep.keyguard.res.gpg_agent_request_approval_sign_message_known_app
 import com.artemchep.keyguard.res.gpg_agent_request_approval_sign_message_unknown_app
 import com.artemchep.keyguard.res.gpg_agent_request_approval_sign_title
+import com.artemchep.keyguard.ui.icons.KeyguardGpgKey
+import com.artemchep.keyguard.ui.icons.icon
 
 @Composable
 fun GpgAgentApprovalContent(
@@ -37,6 +41,7 @@ fun GpgAgentApprovalContent(
         keyName = request.keyName,
         keyFingerprint = request.keyFingerprint.ifBlank { request.keygrip },
         cipherId = request.cipherId,
+        keyIcon = icon<RowScope>(Icons.Outlined.KeyguardGpgKey),
         onDismiss = onDismiss,
     )
 }

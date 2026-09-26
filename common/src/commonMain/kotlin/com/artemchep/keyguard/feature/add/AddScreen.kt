@@ -137,6 +137,7 @@ import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardCollection
+import com.artemchep.keyguard.ui.icons.KeyguardGpgKey
 import com.artemchep.keyguard.ui.icons.KeyguardOrganization
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
@@ -936,7 +937,7 @@ private fun GpgKeyField(
         Column {
             FlatItemLayoutExpressive(
                 backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                leading = icon<RowScope>(Icons.Outlined.Key),
+                leading = icon<RowScope>(Icons.Outlined.KeyguardGpgKey),
                 shapeState = if (supportingRows.isNotEmpty()) {
                     shapeState and ShapeState.END.inv()
                 } else {

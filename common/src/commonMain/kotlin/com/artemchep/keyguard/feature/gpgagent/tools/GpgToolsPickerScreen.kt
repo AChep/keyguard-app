@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -57,6 +56,7 @@ import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.grid.SimpleGridLayout
+import com.artemchep.keyguard.ui.icons.KeyguardGpgSearch
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.onSelectedContainer
@@ -186,7 +186,7 @@ private fun GpgKeyserverSearchCard(
     onClick: () -> Unit,
 ) {
     GpgToolsCard(
-        icon = Icons.Outlined.Public,
+        icon = Icons.Outlined.KeyguardGpgSearch,
         title = stringResource(Res.string.pref_item_gpg_keyserver_search_title),
         text = stringResource(Res.string.pref_item_gpg_keyserver_search_text),
         route = GpgKeyserverSearchRoute,

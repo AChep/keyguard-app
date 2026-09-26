@@ -12,7 +12,6 @@ import androidx.compose.material.icons.outlined.Attachment
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.CollectionsBookmark
 import androidx.compose.material.icons.outlined.CopyAll
-import androidx.compose.material.icons.outlined.DataArray
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.FilterList
@@ -40,14 +39,14 @@ val Icons.Outlined.KeyguardView
 val Icons.Outlined.KeyguardTwoFa
     get() = KeyguardIcons.TwoFactorAuthentication
 
-val Icons.Outlined.KeyguardYubiKey
-    get() = Key
+val Icons.Outlined.KeyguardYubiKey: ImageVector
+    get() = KeyguardVectors.YubiKey
 
 val Icons.Outlined.KeyguardPasskey
     get() = Key
 
-val Icons.Outlined.KeyguardSshKey
-    get() = Key
+val Icons.Outlined.KeyguardSshKey: ImageVector
+    get() = KeyguardVectors.SshKey
 
 val Icons.Outlined.KeyguardNote
     get() = Icons.AutoMirrored.Outlined.StickyNote2
@@ -82,8 +81,8 @@ val Icons.Outlined.KeyguardWordlist
 val Icons.Outlined.KeyguardCipherFilter
     get() = FilterList
 
-val Icons.Outlined.KeyguardPwnedPassword
-    get() = DataArray
+val Icons.Outlined.KeyguardPwnedPassword: ImageVector
+    get() = KeyguardVectors.PwnedPassword
 
 val Icons.Outlined.KeyguardReusedPassword
     get() = Recycling
@@ -109,8 +108,8 @@ val Icons.Outlined.KeyguardIncompleteItems
 val Icons.Outlined.KeyguardExpiringItems
     get() = Timer
 
-val Icons.Outlined.KeyguardFileSign
-    get() = FileSignIcon
+val Icons.Outlined.KeyguardFileSign: ImageVector
+    get() = KeyguardVectors.FileSign
 
 val Icons.Outlined.KeyguardTrashedItems
     get() = Delete
@@ -126,6 +125,42 @@ val Icons.Outlined.KeyguardAuthReprompt
 
 val Icons.Outlined.KeyguardIgnoredAlerts
     get() = NotificationsOff
+
+val Icons.Outlined.KeyguardConnectionTest: ImageVector
+    get() = KeyguardVectors.ConnectionTest
+
+val Icons.Outlined.KeyguardDecrypt: ImageVector
+    get() = KeyguardVectors.Decrypt
+
+val Icons.Outlined.KeyguardEncrypt: ImageVector
+    get() = KeyguardVectors.Encrypt
+
+val Icons.Outlined.KeyguardFileVerify: ImageVector
+    get() = KeyguardVectors.FileVerify
+
+val Icons.Outlined.KeyguardGpgKey: ImageVector
+    get() = KeyguardVectors.GpgKey
+
+val Icons.Outlined.KeyguardGpgKeySelected: ImageVector
+    get() = KeyguardVectors.GpgKeySelected
+
+val Icons.Outlined.KeyguardGpgSearch: ImageVector
+    get() = KeyguardVectors.GpgSearch
+
+val Icons.Outlined.KeyguardGpgVerifyIdentity: ImageVector
+    get() = KeyguardVectors.GpgVerifyIdentity
+
+val Icons.Outlined.KeyguardScreenshot: ImageVector
+    get() = KeyguardVectors.Screenshot
+
+val Icons.Outlined.KeyguardStoredKey: ImageVector
+    get() = KeyguardVectors.StoredKey
+
+val Icons.Outlined.KeyguardUnusableGpgKey: ImageVector
+    get() = KeyguardVectors.UnusableGpgKey
+
+val Icons.Outlined.KeyguardWeakGpgKey: ImageVector
+    get() = KeyguardVectors.WeakGpgKey
 
 val Icons.Stub: ImageVector
     get() {

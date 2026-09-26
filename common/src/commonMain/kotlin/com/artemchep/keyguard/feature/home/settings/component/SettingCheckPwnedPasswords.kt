@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -12,6 +13,7 @@ import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.ui.icons.KeyguardPwnedPassword
 import com.artemchep.keyguard.ui.poweredby.PoweredByHaveibeenpwned
 import com.artemchep.keyguard.ui.theme.Dimens
 import kotlinx.coroutines.flow.map
@@ -51,6 +53,7 @@ private fun SettingCheckPwnedPasswords(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     LocalSettingPaneComponents.current.KgSwitch(
+        icon = Icons.Outlined.KeyguardPwnedPassword,
         title = stringResource(Res.string.pref_item_check_pwned_passwords_title),
         text = stringResource(Res.string.watchtower_item_pwned_passwords_text),
         footer = {

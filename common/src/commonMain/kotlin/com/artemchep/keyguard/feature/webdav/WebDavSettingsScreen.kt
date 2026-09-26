@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FolderOpen
-import androidx.compose.material.icons.outlined.PrivateConnectivity
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -43,6 +42,7 @@ import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.UrlFlatTextField
 import com.artemchep.keyguard.ui.icons.IconBox
+import com.artemchep.keyguard.ui.icons.KeyguardConnectionTest
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.verticalPaddingHalf
@@ -259,7 +259,7 @@ private fun WebDavSettingsContent(
                         .size(ButtonDefaults.IconSize),
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.PrivateConnectivity,
+                        imageVector = Icons.Outlined.KeyguardConnectionTest,
                         contentDescription = null,
                     )
                 }

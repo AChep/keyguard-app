@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ShortText
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.CopyAll
-import androidx.compose.material.icons.outlined.DataArray
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material.icons.outlined.OfflineBolt
@@ -60,6 +59,7 @@ import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.grid.SimpleGridLayout
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
+import com.artemchep.keyguard.ui.icons.KeyguardPwnedPassword
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -112,7 +112,7 @@ val onboardingItemsWatchtower = listOfNotNull(
     OnboardingItem(
         title = Res.string.feat_item_pwned_passwords_title,
         text = Res.string.feat_item_pwned_passwords_text,
-        icon = Icons.Outlined.DataArray,
+        icon = Icons.Outlined.KeyguardPwnedPassword,
     ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_password_strength_title,

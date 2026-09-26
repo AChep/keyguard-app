@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Info
@@ -171,7 +170,7 @@ private fun GpgToolsOperationScreen(
         floatingActionButton = {
             DefaultFab(
                 icon = {
-                    Icon(Icons.Outlined.Check, null)
+                    Icon(operation.icon, null)
                 },
                 text = {
                     Text(

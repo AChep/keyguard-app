@@ -120,6 +120,8 @@ import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardPwnedWebsites
 import com.artemchep.keyguard.ui.icons.KeyguardTrashedItems
 import com.artemchep.keyguard.ui.icons.KeyguardUnsecureWebsites
+import com.artemchep.keyguard.ui.icons.KeyguardUnusableGpgKey
+import com.artemchep.keyguard.ui.icons.KeyguardWeakGpgKey
 import com.artemchep.keyguard.ui.poweredby.PoweredBy2factorauth
 import com.artemchep.keyguard.ui.poweredby.PoweredByHaveibeenpwned
 import com.artemchep.keyguard.ui.poweredby.PoweredByPasskeys
@@ -884,7 +886,7 @@ private fun CardUnusableGpgKeys(
             )
         },
         text = stringResource(Res.string.watchtower_item_unusable_gpg_keys_text),
-        imageVector = Icons.Outlined.Key,
+        imageVector = Icons.Outlined.KeyguardUnusableGpgKey,
         onClick = state.onClick,
     )
 }
@@ -904,7 +906,7 @@ private fun CardWeakGpgKeys(
             )
         },
         text = stringResource(Res.string.watchtower_item_weak_gpg_keys_text),
-        imageVector = Icons.Outlined.Key,
+        imageVector = Icons.Outlined.KeyguardWeakGpgKey,
         onClick = state.onClick,
     )
 }

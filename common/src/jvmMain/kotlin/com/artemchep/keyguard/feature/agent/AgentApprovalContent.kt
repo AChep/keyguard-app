@@ -85,6 +85,7 @@ import org.koin.compose.koinInject
  * @param keyFingerprint The fingerprint of the key shown in the details.
  * @param cipherId Identity of the vault entry holding the key, when known;
  *   once the vault is unlocked the entry's title replaces [keyName].
+ * @param keyIcon The key type shown beside its name and fingerprint.
  * @param onDismiss Called after the request has been resolved (either
  *   approved or denied) so the caller can close the window.
  */
@@ -98,6 +99,7 @@ fun AgentApprovalContent(
     keyName: String,
     keyFingerprint: String,
     cipherId: String?,
+    keyIcon: @Composable RowScope.() -> Unit = icon<RowScope>(Icons.Outlined.Terminal, Icons.Outlined.Key),
     onDismiss: () -> Unit,
 ) {
     var showKeyDetails by remember {
@@ -184,7 +186,7 @@ fun AgentApprovalContent(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 FlatItemLayoutExpressive(
-                    leading = icon<RowScope>(Icons.Outlined.Terminal, Icons.Outlined.Key),
+                    leading = keyIcon,
                     content = {
                         val cipherName = rememberCipherName(
                             cipherId = cipherId,

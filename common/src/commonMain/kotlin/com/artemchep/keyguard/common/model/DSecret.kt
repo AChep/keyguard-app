@@ -25,6 +25,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.util.canDelete
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.canEdit
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.icons.KeyguardGpgKey
 import com.artemchep.keyguard.ui.icons.KeyguardNote
 import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.icons.Stub
@@ -458,7 +459,7 @@ fun DSecret.Type.iconImageVector() = when (this) {
     DSecret.Type.Identity -> Icons.Outlined.PermIdentity
     DSecret.Type.SecureNote -> Icons.Outlined.KeyguardNote
     DSecret.Type.SshKey -> Icons.Outlined.KeyguardSshKey
-    DSecret.Type.GpgKey -> Icons.Outlined.Key
+    DSecret.Type.GpgKey -> Icons.Outlined.KeyguardGpgKey
     DSecret.Type.None -> Icons.Stub
 }
 

@@ -21,7 +21,6 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.RestoreFromTrash
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.Unarchive
-import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -97,6 +96,7 @@ import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.ChevronIcon
+import com.artemchep.keyguard.ui.icons.KeyguardGpgVerifyIdentity
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
 import kotlinx.coroutines.Dispatchers
@@ -471,7 +471,7 @@ fun RememberStateFlowScope.cipherVerifyGpgPublicKeyAction(
     before: (() -> Unit)? = null,
     after: ((Boolean) -> Unit)? = null,
 ) = kotlin.run {
-    val icon = icon(Icons.Outlined.VerifiedUser)
+    val icon = icon(Icons.Outlined.KeyguardGpgVerifyIdentity)
     FlatItemAction(
         leading = icon,
         title = Res.string.ciphers_action_verify_gpg_public_key_title.wrap(),

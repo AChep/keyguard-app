@@ -53,6 +53,8 @@ import com.artemchep.keyguard.ui.icons.KeyguardReusedPassword
 import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardUnsecureWebsites
+import com.artemchep.keyguard.ui.icons.KeyguardUnusableGpgKey
+import com.artemchep.keyguard.ui.icons.KeyguardWeakGpgKey
 import kotlin.collections.Collection
 import kotlin.collections.List
 import kotlin.collections.Map
@@ -687,7 +689,7 @@ sealed interface DFilter {
             get() = PrimitiveSimple.Content(
                 title = Res.string.watchtower_item_unusable_gpg_keys_title
                     .let(TextHolder::Res),
-                icon = Icons.Outlined.Key,
+                icon = Icons.Outlined.KeyguardUnusableGpgKey,
             )
 
         override suspend fun prepare(
@@ -721,7 +723,7 @@ sealed interface DFilter {
             get() = PrimitiveSimple.Content(
                 title = Res.string.watchtower_item_weak_gpg_keys_title
                     .let(TextHolder::Res),
-                icon = Icons.Outlined.Key,
+                icon = Icons.Outlined.KeyguardWeakGpgKey,
             )
 
         override suspend fun prepare(

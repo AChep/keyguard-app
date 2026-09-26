@@ -10,7 +10,6 @@ import androidx.compose.material.icons.automirrored.outlined.ForwardToInbox
 import androidx.compose.material.icons.outlined.AlternateEmail
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.Checkbox
@@ -44,6 +43,7 @@ import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.colorizePassword
 import com.artemchep.keyguard.ui.icons.IconBox
+import com.artemchep.keyguard.ui.icons.KeyguardGpgKey
 import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
@@ -202,7 +202,7 @@ private fun GeneratorHistoryItem(
                     GeneratorHistoryItem.Value.Type.EMAIL_RELAY -> Icons.AutoMirrored.Outlined.ForwardToInbox
                     GeneratorHistoryItem.Value.Type.PASSWORD -> Icons.Outlined.Password
                     GeneratorHistoryItem.Value.Type.SSH_KEY -> Icons.Outlined.Terminal
-                    GeneratorHistoryItem.Value.Type.GPG_KEY -> Icons.Outlined.Key
+                    GeneratorHistoryItem.Value.Type.GPG_KEY -> Icons.Outlined.KeyguardGpgKey
                     null -> Icons.Stub
                 }
                 val secondaryIcon = when (type) {

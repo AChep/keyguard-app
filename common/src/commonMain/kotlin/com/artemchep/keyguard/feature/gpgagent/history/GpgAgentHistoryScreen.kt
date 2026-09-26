@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Key
-import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -33,6 +31,9 @@ import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
+import com.artemchep.keyguard.ui.icons.KeyguardDecrypt
+import com.artemchep.keyguard.ui.icons.KeyguardFileSign
+import com.artemchep.keyguard.ui.icons.KeyguardGpgKey
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.skeleton.SkeletonSection
 import com.artemchep.keyguard.ui.skeleton.skeletonItems
@@ -200,9 +201,9 @@ private fun GpgAgentHistoryValueItem(
         shapeState = item.shapeState,
         leading = {
             val icon = when (item.request) {
-                GpgUsageHistoryRequestType.AGENT_LIST_KEYS -> Icons.Stub
-                GpgUsageHistoryRequestType.AGENT_SIGN_HASH -> Icons.Outlined.Key
-                GpgUsageHistoryRequestType.AGENT_DECRYPT -> Icons.Outlined.LockOpen
+                GpgUsageHistoryRequestType.AGENT_LIST_KEYS -> Icons.Outlined.KeyguardGpgKey
+                GpgUsageHistoryRequestType.AGENT_SIGN_HASH -> Icons.Outlined.KeyguardFileSign
+                GpgUsageHistoryRequestType.AGENT_DECRYPT -> Icons.Outlined.KeyguardDecrypt
                 GpgUsageHistoryRequestType.UNKNOWN -> Icons.Stub
             }
             Icon(

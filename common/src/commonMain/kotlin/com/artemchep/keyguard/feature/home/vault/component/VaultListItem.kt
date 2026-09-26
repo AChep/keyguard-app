@@ -113,6 +113,7 @@ import com.artemchep.keyguard.ui.icons.IconSmallBox
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.icons.KeyguardFavourite
+import com.artemchep.keyguard.ui.icons.KeyguardGpgKey
 import com.artemchep.keyguard.ui.icons.KeyguardNote
 import com.artemchep.keyguard.ui.icons.KeyguardPasskey
 import com.artemchep.keyguard.ui.icons.KeyguardSshKey
@@ -690,7 +691,7 @@ internal fun resolveSearchContextBadgeIcon(field: VaultTextField?): ImageVector 
         VaultTextField.Note -> Icons.Outlined.KeyguardNote
         VaultTextField.Field -> Icons.Outlined.Info
         VaultTextField.Ssh -> Icons.Outlined.KeyguardSshKey
-        VaultTextField.Gpg -> Icons.Outlined.Key
+        VaultTextField.Gpg -> Icons.Outlined.KeyguardGpgKey
         VaultTextField.Password -> Icons.Outlined.Password
         VaultTextField.CardNumber -> Icons.Outlined.CreditCard
         else -> Icons.Outlined.Info

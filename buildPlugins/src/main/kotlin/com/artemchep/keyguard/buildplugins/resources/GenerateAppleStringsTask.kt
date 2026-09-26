@@ -278,8 +278,11 @@ abstract class GenerateAppleStringsTask : DefaultTask() {
                 val name = swiftIdentifier(key, used)
                 appendLine("    /// $key (plural)")
                 appendLine("    public static func $name(_ count: Int) -> String {")
-                appendLine("        String.localizedStringWithFormat(")
-                appendLine("            NSLocalizedString(\"$key\", bundle: $SWIFT_BUNDLE, comment: \"\"),")
+                // Plural rules must follow the selected app language, which can
+                // differ from the system locale used by localizedStringWithFormat.
+                appendLine("        String(")
+                appendLine("            format: NSLocalizedString(\"$key\", bundle: $SWIFT_BUNDLE, comment: \"\"),")
+                appendLine("            locale: AppLocalization.shared.locale,")
                 appendLine("            count")
                 appendLine("        )")
                 appendLine("    }")

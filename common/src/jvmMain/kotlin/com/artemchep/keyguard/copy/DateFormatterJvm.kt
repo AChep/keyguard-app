@@ -1,21 +1,17 @@
 package com.artemchep.keyguard.copy
 
 import com.artemchep.keyguard.common.usecase.DateFormatter
-import com.artemchep.keyguard.feature.datepicker.getMonthTitleStringRes
-import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.feature.datepicker.getMonthYearTitle
 import com.artemchep.keyguard.platform.LeContext
 import java.text.DateFormat
-import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Date
 import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toJavaLocalTime
-import kotlinx.datetime.toLocalDateTime
 
 class DateFormatterJvm(
     private val context: LeContext,
@@ -24,15 +20,6 @@ class DateFormatterJvm(
         DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT)
 
     private val formatterDate = DateFormat.getDateInstance(DateFormat.LONG)
-
-    private val machineDateTime = SimpleDateFormat("yyyyMMddHHmmss")
-
-    override fun formatDateTimeMachine(
-        instant: Instant,
-    ): String {
-        val date = instant.toEpochMilliseconds().let(::Date)
-        return machineDateTime.format(date)
-    }
 
     override fun formatDateTime(
         instant: Instant,
@@ -46,22 +33,8 @@ class DateFormatterJvm(
         return formatterDate.format(date)
     }
 
-    override suspend fun formatDateShort(instant: Instant): String {
-        val tz = TimeZone.currentSystemDefault()
-        val dt = instant.toLocalDateTime(tz)
-        return formatDateShort(dt.date)
-    }
-
-    override suspend fun formatDateShort(date: LocalDate): String {
-        // Manually format the date. Using the "MMMM yyyy" format
-        // doesn't work correctly for some locales.
-        val year = date.year.toString()
-        val month = kotlin.run {
-            val res = getMonthTitleStringRes(date.monthNumber)
-            textResource(res, context)
-        }
-        return "$month $year"
-    }
+    override suspend fun formatDateShort(date: LocalDate): String =
+        getMonthYearTitle(date, context)
 
     override fun formatDateMedium(date: LocalDate): String {
         val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)

@@ -6,18 +6,17 @@ import platform.Foundation.NSNumberFormatter
 import platform.Foundation.NSNumberFormatterDecimalStyle
 
 /**
- * Locale-aware number formatting, matching [com.artemchep.keyguard.copy.NumberFormatterJvm]'s
- * `NumberFormat.getNumberInstance()` — grouping separators included, so large counts read
- * as "1,234" / "1 234" / "1.234" the way they do on the other platforms rather than as a
- * bare digit run.
+ * Locale-aware number formatting with grouping separators, like the JVM implementation.
  */
 class NumberFormatterApple : NumberFormatter {
-
-    override fun formatNumber(number: Int): String {
-        val formatter = NSNumberFormatter().apply {
+    private val formatter = LocaleCache { locale ->
+        NSNumberFormatter().apply {
+            setLocale(locale)
             setNumberStyle(NSNumberFormatterDecimalStyle)
         }
-        return formatter.stringFromNumber(NSNumber(int = number))
-            ?: number.toString()
     }
+
+    override fun formatNumber(number: Int): String = formatter.get()
+        .stringFromNumber(NSNumber(int = number))
+        ?: number.toString()
 }

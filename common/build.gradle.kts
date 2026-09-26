@@ -252,6 +252,7 @@ kotlin {
             kotlin.include("com/artemchep/keyguard/feature/gpgagent/tools/GpgToolsInputErrorTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/download/TestDownloadAttachmentSourceLoader.kt")
             kotlin.include("com/artemchep/keyguard/common/service/vault/TestVaultSession.kt")
+            kotlin.include("com/artemchep/keyguard/common/usecase/impl/GetAppBuildDateImplTest.kt")
             dependencies {
                 implementation(libs.ktor.ktor.client.mock)
             }

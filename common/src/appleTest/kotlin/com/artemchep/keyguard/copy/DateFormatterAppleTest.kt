@@ -1,12 +1,13 @@
 package com.artemchep.keyguard.copy
 
+import com.artemchep.keyguard.common.usecase.impl.GetAppBuildDateImpl
 import com.artemchep.keyguard.platform.LeContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.toNSDate
 import platform.Foundation.NSCalendar
-import platform.Foundation.NSDate
 import platform.Foundation.NSDateFormatter
 import platform.Foundation.NSDateFormatterLongStyle
 import platform.Foundation.NSDateFormatterMediumStyle
@@ -16,7 +17,6 @@ import platform.Foundation.NSLocale
 import platform.Foundation.NSProcessInfo
 import platform.Foundation.NSTimeZone
 import platform.Foundation.currentLocale
-import platform.Foundation.dateWithTimeIntervalSince1970
 import platform.Foundation.localeWithLocaleIdentifier
 import platform.Foundation.timeZoneForSecondsFromGMT
 import platform.Foundation.timeZoneWithName
@@ -143,9 +143,12 @@ class DateFormatterAppleTest {
     @Test
     fun formatsBuildMetadataAsAnIsoDate() = runTest {
         val locale = NSLocale.localeWithLocaleIdentifier("th_TH@calendar=buddhist")
-        val formatter = formatter(locale, zone("America/Los_Angeles"))
-        val buildDate = GetAppBuildDateApple(formatter, "20260924")().first()
-        assertEquals(expectedDate(locale, "2026-09-24"), buildDate)
+        val formatter = DateFormatterApple(LeContext(), { locale })
+        val buildDate = GetAppBuildDateImpl(formatter, "20260924")().first()
+        val expected = reference(
+            locale, utc, NSDateFormatterLongStyle, NSDateFormatterNoStyle, Instant.parse("2026-09-24T12:00:00Z"),
+        )
+        assertEquals(expected, buildDate)
     }
 
     @Test
@@ -156,7 +159,7 @@ class DateFormatterAppleTest {
             setLocale(NSLocale.localeWithLocaleIdentifier("en_US_POSIX"))
             setDateFormat("yyyyMMddHHmmss")
         }
-        val expected = nativeFormatter.stringFromDate(instant.toReferenceDate())
+        val expected = nativeFormatter.stringFromDate(instant.toNSDate())
         assertEquals(expected, formatter.formatDateTimeMachine(instant))
         formatter.formatDateMedium(LocalDate(2026, 9, 24))
         formatter.formatTimeShort(LocalTime(2, 30))
@@ -204,8 +207,4 @@ private fun reference(
     setDateStyle(dateStyle)
     setTimeStyle(timeStyle)
     setTimeZone(timeZone)
-}.stringFromDate(instant.toReferenceDate())
-
-private fun Instant.toReferenceDate(): NSDate = NSDate.dateWithTimeIntervalSince1970(
-    epochSeconds.toDouble() + nanosecondsOfSecond / 1_000_000_000.0,
-)
+}.stringFromDate(instant.toNSDate())

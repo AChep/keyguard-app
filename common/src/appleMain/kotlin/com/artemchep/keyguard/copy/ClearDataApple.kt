@@ -18,8 +18,8 @@ class ClearDataApple(
 ) : ClearData {
     @OptIn(ExperimentalForeignApi::class)
     override fun invoke(): IO<Unit> = ioEffect {
+        val fileManager = NSFileManager.defaultManager
         directories().forEach { directory ->
-            val fileManager = NSFileManager.defaultManager
             if (fileManager.fileExistsAtPath(directory.value)) {
                 check(fileManager.removeItemAtPath(path = directory.value, error = null)) {
                     "Could not erase app data."

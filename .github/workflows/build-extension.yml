@@ -1,0 +1,317 @@
+name: "Build & publish browser extension"
+
+on:
+  push:
+    tags: ["v*", "r*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build from (e.g. v1.0.0)"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: "Determine version"
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          elif [ -n "${GITHUB_REF#refs/tags/}" ]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          else
+            TAG="0.0.0"
+          fi
+          VERSION=$(echo "$TAG" | sed 's/^[vdr]//')
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building extension v$VERSION from tag $TAG"
+
+  build:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Build Chrome extension"
+        run: |
+          chmod +x extension/build-extension.sh
+          EXTENSION_VERSION="${{ needs.version.outputs.version }}" \
+            ./extension/build-extension.sh chrome
+
+      - name: "Build Firefox extension"
+        run: |
+          EXTENSION_VERSION="${{ needs.version.outputs.version }}" \
+            ./extension/build-extension.sh firefox
+
+      - name: "Upload Chrome extension"
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-chrome
+          path: dist/keyguard-extension-chrome.zip
+          if-no-files-found: error
+          retention-days: 5
+
+      - name: "Upload Firefox extension"
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-firefox
+          path: |
+            dist/keyguard-extension-firefox.zip
+            dist/keyguard-browser-extension.xpi
+          if-no-files-found: error
+          retention-days: 5
+
+  build-safari:
+    needs: version
+    runs-on: macos-15
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Check for Xcode project"
+        id: check
+        run: |
+          if ls safari/*.xcodeproj 1>/dev/null 2>&1; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "No .xcodeproj found in safari/. Skipping Safari build."
+            echo "Run ./safari/generate-project.sh on macOS first."
+          fi
+
+      - name: "Build Safari extension"
+        if: steps.check.outputs.found == 'true'
+        run: |
+          chmod +x safari/build-safari-extension.sh
+          EXTENSION_VERSION="${{ needs.version.outputs.version }}" \
+            ./safari/build-safari-extension.sh
+
+      - name: "Upload Safari extension"
+        if: steps.check.outputs.found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-safari
+          path: dist/keyguard-safari-extension-unsigned.app
+          if-no-files-found: warn
+          retention-days: 5
+
+  # ---------------------------------------------------------------------------
+  # Publish to Chrome Web Store + Firefox Add-ons
+  #
+  # Requires a single GitHub secret: EXTENSION_PUBLISH_KEYS (JSON)
+  #
+  # Example value:
+  # {
+  #   "chrome": {
+  #     "clientId": "xxx.apps.googleusercontent.com",
+  #     "clientSecret": "GOCSPX-xxx",
+  #     "refreshToken": "1//xxx",
+  #     "extId": "abcdefghijklmnopqrstuvwxyz012345"
+  #   },
+  #   "firefox": {
+  #     "apiKey": "issuer:xxx",
+  #     "apiSecret": "secret-xxx",
+  #     "extId": "keyguard-browser-agent@keyguard.app"
+  #   }
+  # }
+  #
+  # Chrome credentials: Google Cloud Console > OAuth > Chrome Web Store API
+  # Firefox credentials: addons.mozilla.org > API Keys
+  # ---------------------------------------------------------------------------
+  publish:
+    needs: [version, build]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Download build artifacts"
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: "Publish to Chrome Web Store + Firefox Add-ons"
+        if: env.EXTENSION_PUBLISH_KEYS != ''
+        uses: PlasmoHQ/bpp@v3
+        env:
+          EXTENSION_PUBLISH_KEYS: ${{ secrets.EXTENSION_PUBLISH_KEYS }}
+        with:
+          keys: ${{ secrets.EXTENSION_PUBLISH_KEYS }}
+          chrome-file: dist/keyguard-extension-chrome.zip
+          firefox-file: dist/keyguard-browser-extension.xpi
+          source: extension/
+          verbose: true
+
+  # ---------------------------------------------------------------------------
+  # Publish Safari extension to App Store Connect
+  #
+  # Requires GitHub secrets:
+  #   APP_STORE_CONNECT_API_KEY_ID      — App Store Connect API Key ID
+  #   APP_STORE_CONNECT_API_ISSUER      — App Store Connect API Issuer UUID
+  #   APP_STORE_CONNECT_API_KEY_B64     — Base64-encoded .p8 private key file
+  #   APPLE_DEVELOPER_TEAM_ID           — Apple Developer Team ID
+  #
+  # To generate an App Store Connect API key:
+  #   1. Go to https://appstoreconnect.apple.com/access/integrations/api
+  #   2. Click "Integrations" > "App Store Connect API"
+  #   3. Generate a new key with "Developer" access
+  #   4. Download the .p8 file (only shown once!)
+  #   5. Base64-encode it: base64 -i AuthKey_XXXXXXXXXX.p8
+  #
+  # NOTE: This job only runs if the Xcode project exists AND credentials are set.
+  # The Safari extension must be reviewed by Apple before it appears in the App Store.
+  # ---------------------------------------------------------------------------
+  publish-safari:
+    needs: [version, build-safari]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: macos-15
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Check prerequisites"
+        id: prereq
+        run: |
+          HAS_XCODEPROJ="false"
+          HAS_CREDENTIALS="false"
+
+          if ls safari/*.xcodeproj 1>/dev/null 2>&1; then
+            HAS_XCODEPROJ="true"
+          fi
+
+          if [ -n "${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}" ]; then
+            HAS_CREDENTIALS="true"
+          fi
+
+          echo "has_xcodeproj=$HAS_XCODEPROJ" >> "$GITHUB_OUTPUT"
+          echo "has_credentials=$HAS_CREDENTIALS" >> "$GITHUB_OUTPUT"
+
+          if [ "$HAS_XCODEPROJ" = "false" ]; then
+            echo "No Xcode project found. Run ./safari/generate-project.sh first."
+          fi
+          if [ "$HAS_CREDENTIALS" = "false" ]; then
+            echo "App Store Connect credentials not configured. Skipping publish."
+          fi
+
+      - name: "Import App Store Connect API key"
+        if: steps.prereq.outputs.has_xcodeproj == 'true' && steps.prereq.outputs.has_credentials == 'true'
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER: ${{ secrets.APP_STORE_CONNECT_API_ISSUER }}
+          API_KEY_B64: ${{ secrets.APP_STORE_CONNECT_API_KEY_B64 }}
+        run: |
+          mkdir -p ~/private_keys
+          echo "$API_KEY_B64" | base64 -d > ~/private_keys/AuthKey_${API_KEY_ID}.p8
+          echo "API key imported."
+
+      - name: "Archive Safari extension"
+        if: steps.prereq.outputs.has_xcodeproj == 'true' && steps.prereq.outputs.has_credentials == 'true'
+        env:
+          TEAM_ID: ${{ secrets.APPLE_DEVELOPER_TEAM_ID }}
+        run: |
+          XCODEPROJ=$(ls safari/*.xcodeproj | head -1)
+          PROJECT_NAME=$(basename "$XCODEPROJ" .xcodeproj)
+          SCHEME="$PROJECT_NAME"
+
+          echo "Archiving $PROJECT_NAME..."
+
+          xcodebuild \
+            -project "$XCODEPROJ" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -archivePath "build/KeyguardAutofill.xcarchive" \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            CODE_SIGN_STYLE=Automatic \
+            archive \
+            2>&1 | tail -20
+
+          echo "Archive created."
+
+      - name: "Export and upload to App Store Connect"
+        if: steps.prereq.outputs.has_xcodeproj == 'true' && steps.prereq.outputs.has_credentials == 'true'
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER: ${{ secrets.APP_STORE_CONNECT_API_ISSUER }}
+          TEAM_ID: ${{ secrets.APPLE_DEVELOPER_TEAM_ID }}
+        run: |
+          # Create export options
+          cat > ExportOptions.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>teamID</key>
+            <string>${{ secrets.APPLE_DEVELOPER_TEAM_ID }}</string>
+            <key>uploadBitcode</key>
+            <false/>
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+
+          # Export the archive
+          xcodebuild \
+            -exportArchive \
+            -archivePath "build/KeyguardAutofill.xcarchive" \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath build/export \
+            2>&1 | tail -10
+
+          # Upload to App Store Connect
+          xcrun notarytool submit \
+            build/export/*.ipa \
+            --key ~/private_keys/AuthKey_${API_KEY_ID}.p8 \
+            --key-id "$API_KEY_ID" \
+            --issuer "$API_ISSUER" \
+            --team-id "$TEAM_ID" \
+            2>&1 || echo "Upload may have failed — check App Store Connect for status."
+
+          echo "Submitted to App Store Connect."
+
+  release:
+    needs: [version, build, build-safari]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Download all artifacts"
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: "Create GitHub release"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          ASSETS=""
+          for f in \
+            artifacts/extension-chrome/*.zip \
+            artifacts/extension-firefox/*.zip \
+            artifacts/extension-firefox/*.xpi \
+            artifacts/extension-safari/*.app; do
+            [ -f "$f" ] && ASSETS="$ASSETS $f"
+          done
+
+          if [ -n "$ASSETS" ]; then
+            gh release create "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Browser Extension $TAG" \
+              --notes "Browser extension packages for $TAG" \
+              $ASSETS || echo "Release may already exist, uploading assets..."
+          else
+            echo "No extension artifacts found to upload."
+          fi

@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.di
 
 import com.artemchep.keyguard.common.service.Files
+import com.artemchep.keyguard.common.service.browseragent.BrowserAutofillAgentStatusService
+import com.artemchep.keyguard.common.service.browseragent.impl.BrowserAutofillAgentStatusServiceImpl
 import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountRepository
 import com.artemchep.keyguard.common.service.exposedaccount.impl.ExposedAccountRepositoryImpl
 import com.artemchep.keyguard.common.service.id.IdRepository
@@ -40,6 +42,9 @@ import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.GetAutofillRespectAutofillOff
 import com.artemchep.keyguard.common.usecase.GetAutofillSaveRequest
 import com.artemchep.keyguard.common.usecase.GetAutofillSaveUri
+import com.artemchep.keyguard.common.usecase.GetBrowserAutofillAgent
+import com.artemchep.keyguard.common.usecase.GetBrowserAutofillAgentPairingCode
+import com.artemchep.keyguard.common.usecase.GetBrowserAutofillAgentStatus
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedServices
@@ -110,6 +115,8 @@ import com.artemchep.keyguard.common.usecase.PutAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.PutAutofillRespectAutofillOff
 import com.artemchep.keyguard.common.usecase.PutAutofillSaveRequest
 import com.artemchep.keyguard.common.usecase.PutAutofillSaveUri
+import com.artemchep.keyguard.common.usecase.PutBrowserAutofillAgent
+import com.artemchep.keyguard.common.usecase.PutBrowserAutofillAgentPairingCode
 import com.artemchep.keyguard.common.usecase.PutCheckPasskeys
 import com.artemchep.keyguard.common.usecase.PutCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.PutCheckTwoFA
@@ -163,6 +170,9 @@ import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillRespectAutofillOffImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillSaveRequestImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillSaveUriImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBrowserAutofillAgentImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBrowserAutofillAgentPairingCodeImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBrowserAutofillAgentStatusImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCanWriteImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCheckPasskeysImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCheckPwnedServicesImpl
@@ -233,6 +243,8 @@ import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillRespectAutofillOffImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillSaveRequestImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillSaveUriImpl
+import com.artemchep.keyguard.common.usecase.impl.PutBrowserAutofillAgentImpl
+import com.artemchep.keyguard.common.usecase.impl.PutBrowserAutofillAgentPairingCodeImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckPasskeysImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckPwnedServicesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckTwoFAImpl
@@ -357,6 +369,20 @@ internal class ApplicationSettingsModule {
         single<GetSshAgentFilterImpl>() bind GetSshAgentFilter::class
 
         single<GetSshAgentStatusImpl>() bind GetSshAgentStatus::class
+
+        single<GetBrowserAutofillAgentImpl>() bind GetBrowserAutofillAgent::class
+
+        single<PutBrowserAutofillAgentImpl>() bind PutBrowserAutofillAgent::class
+
+        single<GetBrowserAutofillAgentPairingCodeImpl>() bind GetBrowserAutofillAgentPairingCode::class
+
+        single<PutBrowserAutofillAgentPairingCodeImpl>() bind PutBrowserAutofillAgentPairingCode::class
+
+        single<GetBrowserAutofillAgentStatusImpl>() bind GetBrowserAutofillAgentStatus::class
+
+        single<BrowserAutofillAgentStatusService> {
+            BrowserAutofillAgentStatusServiceImpl()
+        }
 
         single<PutGpgAgentImpl>() bind PutGpgAgent::class
 

@@ -6,6 +6,8 @@ import com.artemchep.keyguard.common.service.session.AppWorkerSessionDependencie
 import com.artemchep.keyguard.common.service.session.AttachmentSessionAccess
 import com.artemchep.keyguard.common.service.session.BackupConfigSessionAccess
 import com.artemchep.keyguard.common.service.session.BackupRunnerSessionAccess
+import com.artemchep.keyguard.common.service.session.BrowserAutofillSessionAccess
+import com.artemchep.keyguard.common.service.session.BrowserAutofillSessionDependencies
 import com.artemchep.keyguard.common.service.session.GpgAgentSessionAccess
 import com.artemchep.keyguard.common.service.session.GpgAgentSessionDependencies
 import com.artemchep.keyguard.common.service.session.PendingUsageHistorySessionAccess
@@ -86,6 +88,19 @@ class DomainSessionAccessModule {
                         getCiphers = get(),
                         addGpgUsageHistory = getOrNull(),
                         metadataResolver = getOrNull(),
+                        filterContext = get(),
+                    )
+                }
+            }
+        }
+        single<BrowserAutofillSessionAccess> {
+            BrowserAutofillSessionAccess { key ->
+                key.session.resolve {
+                    BrowserAutofillSessionDependencies(
+                        getCiphers = get(),
+                        getProfiles = get(),
+                        cipherUrlCheck = get(),
+                        totpService = get(),
                         filterContext = get(),
                     )
                 }

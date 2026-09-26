@@ -13,11 +13,14 @@ import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWor
 import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryFlushRunner
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
+import com.artemchep.keyguard.common.service.totp.TotpService
 import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
+import com.artemchep.keyguard.common.usecase.CipherUrlCheck
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetLicensePremium
+import com.artemchep.keyguard.common.usecase.GetProfiles
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 
@@ -91,5 +94,17 @@ class GpgAgentSessionDependencies(
     val getCiphers: GetCiphers,
     val addGpgUsageHistory: AddGpgUsageHistory?,
     val metadataResolver: GpgKeyMetadataResolver?,
+    val filterContext: CipherFilterContext,
+)
+
+fun interface BrowserAutofillSessionAccess {
+    operator fun invoke(session: MasterSession.Key): BrowserAutofillSessionDependencies?
+}
+
+class BrowserAutofillSessionDependencies(
+    val getCiphers: GetCiphers,
+    val getProfiles: GetProfiles,
+    val cipherUrlCheck: CipherUrlCheck,
+    val totpService: TotpService,
     val filterContext: CipherFilterContext,
 )

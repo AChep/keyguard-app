@@ -38,6 +38,48 @@ tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
     vendor = JvmVendorSpec.JETBRAINS
 }
 
+// Xcode reads this committed configuration before running any build scripts.
+// Regenerate it when appVersionName changes; CI checks it without rewriting it.
+val appleVersionConfig = layout.projectDirectory.file("xcode/Version.xcconfig")
+val appleVersionConfigContent =
+    libs.versions.appVersionName.map { version ->
+        require(version.matches(Regex("[0-9]+\\.[0-9]+\\.[0-9]+"))) {
+            "Apple marketing versions must use major.minor.patch; appVersionName is '$version'."
+        }
+        "// Generated from gradle/libs.versions.toml. Do not edit.\n" +
+            "// Regenerate with ./gradlew generateAppleVersion.\n" +
+            "MARKETING_VERSION = $version\n"
+    }
+
+tasks.register("generateAppleVersion") {
+    group = "build setup"
+    description = "Updates the shared Apple marketing version from the version catalog."
+    val config = appleVersionConfig
+    val content = appleVersionConfigContent
+    inputs.property("content", content)
+    outputs.file(config)
+    doLast {
+        config.asFile.writeText(content.get())
+    }
+}
+
+tasks.register("checkAppleVersion") {
+    group = "verification"
+    description = "Checks that the committed Apple marketing version matches the version catalog."
+    // Order an explicitly requested generation first, but never regenerate during a check.
+    mustRunAfter("generateAppleVersion")
+    val config = appleVersionConfig
+    val content = appleVersionConfigContent
+    inputs.files(config).withPathSensitivity(PathSensitivity.NONE)
+    inputs.property("content", content)
+    doLast {
+        check(config.asFile.isFile && config.asFile.readText() == content.get()) {
+            "xcode/Version.xcconfig is missing or stale. Run ./gradlew generateAppleVersion " +
+                "and commit the updated file."
+        }
+    }
+}
+
 //
 // The custom keyguard Detekt rules from :detektRules
 //

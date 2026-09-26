@@ -1,0 +1,3 @@
+// Generated from gradle/libs.versions.toml. Do not edit.
+// Regenerate with ./gradlew generateAppleVersion.
+MARKETING_VERSION = 3.2.4

@@ -1,5 +1,9 @@
 package com.artemchep.keyguard.core.session
 
+import com.artemchep.keyguard.util.fido2.NativeFido2Client
+
+import com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability
+
 import arrow.core.partially1
 import arrow.optics.Getter
 import com.artemchep.autotype.biometricsIsSupported
@@ -295,6 +299,9 @@ class PlatformApplicationModule {
                     keychainRepository = get(),
                 )
             }
+        }
+        single<Fido2UnlockAvailability> {
+            Fido2UnlockAvailability { NativeFido2Client().isSupported }
         }
         single<YubiKeyUnlockAvailability> {
             YubiKeyUnlockAvailability { NativeYubiKeyClient().isSupported }

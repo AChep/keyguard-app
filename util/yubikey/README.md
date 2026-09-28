@@ -18,7 +18,8 @@ sandbox requires the USB device entitlement. No device access occurs at startup.
 
 ## Contract
 
-Slots are 1 or 2. Challenges contain 1–64 bytes; provisioning secrets contain
+Slots are 1 or 2. Challenges contain 1–63 bytes; the configured HMAC_LT64 mode
+reserves the final payload byte for padding. Provisioning secrets contain
 20 bytes. Provisioning checks the current slot before writing; a configured slot
 requires explicit `overwrite = true`. Inspection only reports whether the slot is
 configured, not its algorithm. Access-code-protected slots cannot be overwritten.

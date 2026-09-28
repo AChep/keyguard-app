@@ -181,7 +181,22 @@ private fun vaultListTestModule(
     clipboardService: ClipboardService,
     overrides: Module.() -> Unit,
 ): Module = module {
-    // Fixture-backed reads.
+    fixtureReads(flows)
+    preferenceReads(flows)
+    searchEngine(flows)
+    suggestions()
+    leafUseCases()
+    recordingWriteUseCases(recorders)
+    servicesAndRouteFactories(clipboardService)
+
+    // Declares the vault scope so the harness can open one; its fakes are root definitions.
+    scope<VaultSessionScope> { }
+
+    overrides()
+}
+
+// Fixture-backed reads.
+private fun Module.fixtureReads(flows: VaultListFixtureFlows) {
     single<GetCiphers> {
         object : GetCiphers {
             override fun invoke(): Flow<List<DSecret>> = flows.ciphers
@@ -228,8 +243,10 @@ private fun vaultListTestModule(
                 flowOf(emptyList())
         }
     }
+}
 
-    // Preference reads.
+// Preference reads.
+private fun Module.preferenceReads(flows: VaultListFixtureFlows) {
     single<GetCanWrite> {
         object : GetCanWrite {
             override fun invoke(): Flow<Boolean> = flows.canWrite
@@ -250,8 +267,10 @@ private fun vaultListTestModule(
             override fun invoke(): Flow<Boolean> = flows.websiteIcons
         }
     }
+}
 
-    // Search engine: real index/highlighter over the fixture flows.
+// Search engine: real index/highlighter over the fixture flows.
+private fun Module.searchEngine(flows: VaultListFixtureFlows) {
     single<GetVaultSearchIndex> {
         val metadataFlow = combine(
             flows.accounts,
@@ -302,8 +321,10 @@ private fun vaultListTestModule(
     single<VaultSearchTraceSink> {
         NoOpVaultSearchTraceSink
     }
+}
 
-    // Suggestions: the real engine over fake preference sources.
+// Suggestions: the real engine over fake preference sources.
+private fun Module.suggestions() {
     single<GetAutofillDefaultMatchDetection> {
         object : GetAutofillDefaultMatchDetection {
             override fun invoke(): Flow<DSecret.Uri.MatchType> =
@@ -344,8 +365,10 @@ private fun vaultListTestModule(
             equivalentDomainsBuilderFactory = get(),
         )
     }
+}
 
-    // Small leaf use cases.
+// Small leaf use cases.
+private fun Module.leafUseCases() {
     single<GetTotpCode> {
         object : GetTotpCode {
             override fun invoke(p1: TotpToken): Flow<Either<Throwable, TotpCode>> = flowOf(
@@ -401,8 +424,10 @@ private fun vaultListTestModule(
             override fun get(accountTask: AccountTask): Flow<Set<AccountId>> = flowOf(emptySet())
         }
     }
+}
 
-    // Write-shaped use cases: record and succeed.
+// Write-shaped use cases: record and succeed.
+private fun Module.recordingWriteUseCases(recorders: VaultListDiRecorders) {
     single<QueueSyncAll> {
         object : QueueSyncAll {
             override fun invoke(): IO<Unit> = {
@@ -435,8 +460,10 @@ private fun vaultListTestModule(
     single<CipherToolbox> {
         noOpCipherToolbox()
     }
+}
 
-    // Services & route factories.
+// Services & route factories.
+private fun Module.servicesAndRouteFactories(clipboardService: ClipboardService) {
     single<ClipboardService> {
         clipboardService
     }
@@ -452,11 +479,6 @@ private fun vaultListTestModule(
     single<PasskeysCredentialViewRouteFactory> {
         PasskeysCredentialViewRouteFactoryDefault
     }
-
-    // Declares the vault scope so the harness can open one; its fakes are root definitions.
-    scope<VaultSessionScope> { }
-
-    overrides()
 }
 
 private fun noOpCipherToolbox(): CipherToolbox = object : CipherToolbox {

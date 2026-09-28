@@ -369,6 +369,7 @@ vinceglb-filekit-dialogs = { module = "io.github.vinceglb:filekit-dialogs", vers
 vinceglb-filekit-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
 xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "xmlutil" }
 yubico-yubikit-android = { module = "com.yubico.yubikit:android", version.ref = "yubiKit" }
+yubico-yubikit-fido-ui = { module = "com.yubico.yubikit:fido-android-ui", version.ref = "yubiKit" }
 yubico-yubikit-yubiotp = { module = "com.yubico.yubikit:yubiotp", version.ref = "yubiKit" }
 
 [plugins]

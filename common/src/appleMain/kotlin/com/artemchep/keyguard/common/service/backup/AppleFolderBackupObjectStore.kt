@@ -220,17 +220,8 @@ class AppleFolderBackupObjectStore internal constructor(
         val fd = keyguard_backup_openat(parent, name, O_RDONLY or O_NOFOLLOW or O_NONBLOCK or O_CLOEXEC)
         if (fd < 0) fail(BackupObjectStoreOperation.Read, key)
         try {
-            val size = memScoped {
-                val info = alloc<stat>()
-                if (fstat(fd, info.ptr) != 0) fail(BackupObjectStoreOperation.Read, key)
-                if (info.st_mode.toInt() and S_IFMT != S_IFREG) {
-                    throw BackupObjectStoreException.NotFound(key)
-                }
-                info.st_size
-            }
-            if (range != null && (range.offset > size || (range.length ?: 0L) > size - range.offset)) {
-                throw BackupObjectStoreException.InvalidRange(key, range)
-            }
+            val size = regularFileSize(fd, key)
+            requireRangeWithin(key, range, size)
             val offset = range?.offset ?: 0L
             if (lseek(fd, offset, SEEK_SET) < 0) fail(BackupObjectStoreOperation.Read, key)
             var remaining = range?.length ?: (size - offset)
@@ -248,6 +239,22 @@ class AppleFolderBackupObjectStore internal constructor(
             }
         } finally {
             platform.posix.close(fd)
+        }
+    }
+
+    /** Returns the size of the opened object, which must still be a regular file. */
+    private fun regularFileSize(fd: Int, key: BackupObjectKey): Long = memScoped {
+        val info = alloc<stat>()
+        if (fstat(fd, info.ptr) != 0) fail(BackupObjectStoreOperation.Read, key)
+        if (info.st_mode.toInt() and S_IFMT != S_IFREG) {
+            throw BackupObjectStoreException.NotFound(key)
+        }
+        info.st_size
+    }
+
+    private fun requireRangeWithin(key: BackupObjectKey, range: BackupByteRange?, size: Long) {
+        if (range != null && (range.offset > size || (range.length ?: 0L) > size - range.offset)) {
+            throw BackupObjectStoreException.InvalidRange(key, range)
         }
     }
 

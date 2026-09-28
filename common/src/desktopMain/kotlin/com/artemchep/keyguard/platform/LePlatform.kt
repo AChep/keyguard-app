@@ -4,8 +4,8 @@ import org.apache.commons.lang3.SystemUtils
 import java.io.File
 
 /**
- * Mirrors the detection in the native `linux_shared.rs` and in util/yubikey's
- * `NativeYubiKey`; keep all of them in sync.
+ * Mirrors the detection in the native `linux_shared.rs`, util/yubikey's
+ * `NativeYubiKey` and util/fido2's `NativeFido2`; keep all of them in sync.
  */
 private val isFlatpak: Boolean
     get() = System.getenv("container") == "flatpak" ||

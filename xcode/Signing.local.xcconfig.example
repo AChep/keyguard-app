@@ -1,0 +1,14 @@
+// Copy to `Signing.local.xcconfig` (git-ignored) and fill in your own values.
+//
+// Your Team ID is in Xcode under Settings > Accounts, or in Keychain Access on
+// your development certificate.
+//
+// The bundle id and the App Group must be ones your account can register: the
+// project's own are taken. Register the App Group in the developer portal (or
+// let Xcode's automatic signing do it) before the shared container works —
+// without it the app still runs and stores its vault in Application Support,
+// but the AutoFill extension cannot see that vault.
+
+KEYGUARD_DEVELOPMENT_TEAM = ABCDE12345
+KEYGUARD_BUNDLE_ID = com.example.keyguard
+KEYGUARD_APP_GROUP_ID = group.com.example.keyguard

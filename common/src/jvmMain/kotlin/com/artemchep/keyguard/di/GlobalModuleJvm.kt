@@ -9,7 +9,6 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandJvm
-import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppListEntity
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
 import com.artemchep.keyguard.common.service.licensekey.EcdsaP256LicenseSignatureVerifier
 import com.artemchep.keyguard.common.service.licensekey.LicenseSignatureVerifier
@@ -38,10 +37,6 @@ import com.artemchep.keyguard.copy.DateFormatterJvm
 import com.artemchep.keyguard.common.usecase.impl.GetAppBuildDateImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAppBuildRefImpl
 import com.artemchep.keyguard.copy.NumberFormatterJvm
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
-import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
-import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.crypto.FileEncryptionCodecJvm
 import com.artemchep.keyguard.crypto.NativeGpgKeyExpirationService
 import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
@@ -72,9 +67,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.core.qualifier.named
@@ -118,34 +110,6 @@ class GlobalModuleJvm {
             GetAppBuildRefImpl()
         }
         // Repositories
-        single<Json> {
-            Json {
-                ignoreUnknownKeys = true
-                coerceInputValues = true
-                prettyPrint = false
-                isLenient = true
-                serializersModule = SerializersModule {
-                    // default
-                    polymorphic(BitwardenCipher.Attachment::class) {
-                        subclass(BitwardenCipher.Attachment.Remote::class)
-                        subclass(BitwardenCipher.Attachment.Local::class)
-                        defaultDeserializer { BitwardenCipher.Attachment.Remote.serializer() }
-                    }
-                    // database
-                    polymorphic(ServiceToken::class) {
-                        subclass(BitwardenToken::class)
-                        subclass(KeePassToken::class)
-                        defaultDeserializer { BitwardenToken.serializer() }
-                    }
-                    // privileged apps
-                    polymorphic(PrivilegedAppListEntity.App::class) {
-                        subclass(PrivilegedAppListEntity.App.AndroidApp::class)
-                        subclass(PrivilegedAppListEntity.App.Unknown::class)
-                        defaultDeserializer { PrivilegedAppListEntity.App.Unknown.serializer() }
-                    }
-                }
-            }
-        }
         single<FileEncryptionCodec> {
             FileEncryptionCodecJvm(cryptoGenerator = get(), stagingSpoolFactory = get())
         }

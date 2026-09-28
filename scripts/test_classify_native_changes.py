@@ -59,6 +59,13 @@ class NativeChangeClassificationTest(unittest.TestCase):
         result = classify(["util/yubikey/src/commonMain/kotlin/YubiKeyClient.kt"])
         self.assertTrue(result["android"])
 
+    def test_fido2_selects_native_desktop_and_apple_consumers(self):
+        result = classify(["util/fido2/rust/crates/keyguard-fido2-core/src/windows.rs"])
+        for flag in ("desktop", "desktop_regressions", "apple", "apple_regressions", "native_quality"):
+            self.assertTrue(result[flag], flag)
+        self.assertFalse(result["android"])
+        self.assertTrue(classify(["util/fido2/src/commonMain/kotlin/Fido2Operation.kt"])["android"])
+
     def test_fuzz_only_edit_does_not_rebuild_apps(self):
         result = classify(["util/crypto/rust/fuzz/fuzz_targets/dispatch.rs"])
         self.assertTrue(result["fuzz"])

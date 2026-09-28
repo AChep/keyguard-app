@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.core.session
 
+import com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability
+
 import android.app.Application
 import android.content.ClipboardManager
 import android.content.Context
@@ -155,6 +157,9 @@ class PlatformApplicationModule {
         }
         single<BiometricKeyRepository> {
             BiometricKeyRepositoryAndroid()
+        }
+        single<Fido2UnlockAvailability> {
+            Fido2UnlockAvailability { true }
         }
         single<YubiKeyUnlockAvailability> {
             YubiKeyUnlockAvailability { true }

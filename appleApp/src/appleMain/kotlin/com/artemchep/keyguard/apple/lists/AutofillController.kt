@@ -1,0 +1,235 @@
+package com.artemchep.keyguard.apple.lists
+
+import arrow.optics.Getter
+import com.artemchep.keyguard.apple.core.sessionKoin
+import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.model.AutofillHint
+import com.artemchep.keyguard.common.model.AutofillTarget
+import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
+import com.artemchep.keyguard.common.model.VaultState
+import com.artemchep.keyguard.common.service.extract.impl.LinkInfoPlatformExtractor
+import com.artemchep.keyguard.common.usecase.GetSuggestions
+import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.apple.core.CoreContext
+import app.cash.sqldelight.coroutines.asFlow
+import com.artemchep.keyguard.apple.core.KeyguardCancellable
+import com.artemchep.keyguard.apple.core.collectOnMain
+import com.artemchep.keyguard.common.model.TotpToken
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.common.usecase.GetPasswordStrength
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
+import com.artemchep.keyguard.provider.bitwarden.usecase.util.canEdit
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+
+/**
+ * AutoFill (credential provider). The app populates the QuickType index
+ * (ASCredentialIdentityStore) from these; the appex resolves a selected
+ * credential. Reuses the unlocked-session ciphers (login + uris).
+ */
+internal class AutofillController(
+    private val ctx: CoreContext,
+) {
+    /**
+     * The login credentials to register in the system AutoFill index, one entry
+     * per (login cipher × uri). [AutofillIdentitySnapshot.recordId] round-trips
+     * back to [loadAutofillCredential]. Empty while the vault is locked.
+     */
+    suspend fun loadAutofillIdentities(): List<AutofillIdentitySnapshot> =
+        identities { !it.login?.password.isNullOrEmpty() }
+
+    private suspend fun identities(predicate: (BitwardenCipher) -> Boolean): List<AutofillIdentitySnapshot> {
+        val state = ctx.currentState() as? VaultState.Main ?: return emptyList()
+        return AutofillVaultReader(state.sessionKoin).read().filter(predicate).toIdentities()
+    }
+
+    fun observeChanges(onChange: (Boolean) -> Unit, onFailure: () -> Unit): KeyguardCancellable =
+        ctx.launchObserver {
+            try {
+                ctx.unlockUseCase().collectLatest { state ->
+                    when (state) {
+                        is VaultState.Main -> {
+                            val db = state.sessionKoin.get<VaultDatabaseManager>().get().bind()
+                            combine(
+                                db.cipherQueries.getCipherSnapshotKeys().asFlow(),
+                                db.profileQueries.get().asFlow(),
+                            ) { _, _ -> Unit }
+                                .collectOnMain { onChange(true) }
+                        }
+                        is VaultState.Create -> ctx.publishOnMain { onChange(true) }
+                        else -> ctx.publishOnMain { onChange(false) }
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                ctx.publishOnMain { onFailure() }
+            }
+        }
+
+    suspend fun loadIndex(): AutofillIndexSnapshot? = withContext(Dispatchers.Default) {
+        val state = ctx.currentState()
+        if (state is VaultState.Create) return@withContext AutofillIndexSnapshot(emptyList(), emptyList(), emptyList())
+        if (state !is VaultState.Main) return@withContext null
+        val ciphers = AutofillVaultReader(state.sessionKoin).read()
+        ciphers.toAutofillIndex()
+    }
+
+    /**
+     * Resolves a credential the user picked in AutoFill, by the
+     * [AutofillIdentitySnapshot.recordId]. Returns null while locked or if gone.
+     */
+    suspend fun loadAutofillCredential(recordId: String): AutofillCredentialSnapshot? {
+        val parts = recordId.split('|', limit = 2)
+        if (parts.size != 2) return null
+        val (accountId, cipherId) = parts
+        val state = ctx.currentState() as? VaultState.Main ?: return null
+        val cipher = AutofillVaultReader(state.sessionKoin).read(cipherId)
+            .firstOrNull { it.accountId == accountId }
+            ?: return null
+        val login = cipher.login ?: return null
+        if (login.password.isNullOrEmpty()) return null
+        return AutofillCredentialSnapshot(
+            user = login.username.orEmpty(),
+            password = login.password.orEmpty(),
+        )
+    }
+
+    /**
+     * Logins matching the requested AutoFill [serviceIdentifiers] (URLs / domains
+     * from `ASCredentialServiceIdentifier`), ranked by the shared [GetSuggestions]
+     * matcher (the same engine the Android provider uses: URL/host matching +
+     * equivalent domains). Drives the appex's manual credential picker
+     * (`prepareCredentialList`). Includes all eligible logins after the matches so the
+     * user can still browse/search, and is empty while the vault is locked.
+     */
+    suspend fun loadAutofillSuggestions(
+        serviceIdentifiers: List<String>,
+    ): List<AutofillSuggestionSnapshot> =
+        suggestions(serviceIdentifiers) { !it.login?.password.isNullOrEmpty() }
+
+    /**
+     * Like [loadAutofillSuggestions] but restricted to logins that carry a TOTP
+     * secret — drives the iOS 18 one-time-code manual picker.
+     */
+    suspend fun loadOneTimeCodeSuggestions(
+        serviceIdentifiers: List<String>,
+    ): List<AutofillSuggestionSnapshot> =
+        suggestions(serviceIdentifiers) { it.hasAutofillOneTimeCode() }
+
+    suspend fun loadPasskeyRegistrationSuggestions(serviceIdentifiers: List<String>) =
+        suggestions(serviceIdentifiers) { it.login != null && it.service.canEdit() }
+
+    private suspend fun suggestions(
+        serviceIdentifiers: List<String>,
+        predicate: (BitwardenCipher) -> Boolean,
+    ): List<AutofillSuggestionSnapshot> {
+        val state = ctx.currentState() as? VaultState.Main ?: return emptyList()
+        val di = state.sessionKoin
+        val accountNames = AutofillVaultReader(di).accountNames()
+        val strength = di.get<GetPasswordStrength>()
+        val ciphers = AutofillVaultReader(di).read()
+            .filter(predicate)
+            // Matching needs names and URIs, not password-strength/GPG enrichment.
+            .map { it.copy(login = it.login?.copy(password = null)).toDomain(strength) }
+
+        if (ciphers.isEmpty()) return emptyList()
+
+        val getSuggestions = di.get<GetSuggestions<Any?>>()
+        val equivalentDomainsBuilderFactory = di.get<EquivalentDomainsBuilderFactory>()
+        val extractor = LinkInfoPlatformExtractor()
+        val links = serviceIdentifiers
+            .filter { it.isNotBlank() }
+            .map { identifier ->
+                extractor.extractInfo(DSecret.Uri(uri = identifier)).bind()
+            }
+        val target = AutofillTarget(
+            links = links,
+            hints = listOf(AutofillHint.USERNAME, AutofillHint.PASSWORD),
+        )
+        val matches = getSuggestions(
+            ciphers,
+            Getter { it as DSecret },
+            target,
+            equivalentDomainsBuilderFactory,
+        ).bind()
+            .mapNotNull { (it as? DSecret)?.toSuggestion(accountNames, suggested = true) }
+        // Suggestions never limit the full-vault search.
+        val matchedIds = matches.map { it.recordId }.toSet()
+        return matches + ciphers.map { it.toSuggestion(accountNames) }.filter { it.recordId !in matchedIds }
+    }
+
+    // -----------------------------------------------------------------------
+    // One-time codes (TOTP) — iOS 18 ASOneTimeCodeCredential AutoFill.
+    // -----------------------------------------------------------------------
+
+    /**
+     * Logins that carry a TOTP secret, registered as one-time-code identities (one
+     * entry per (cipher × uri)). [AutofillIdentitySnapshot.recordId] round-trips back
+     * to [loadOneTimeCode]. Empty while the vault is locked.
+     */
+    suspend fun loadOneTimeCodeIdentities(): List<AutofillIdentitySnapshot> =
+        identities { it.hasAutofillOneTimeCode() }
+
+    /**
+     * Computes the current TOTP code for the login identified by [recordId]. Returns
+     * null while locked, if the cipher is gone, or if it has no TOTP secret.
+     */
+    suspend fun loadOneTimeCode(recordId: String): String? {
+        val parts = recordId.split('|', limit = 2)
+        if (parts.size != 2) return null
+        val (accountId, cipherId) = parts
+        val state = ctx.currentState() as? VaultState.Main ?: return null
+        val di = state.sessionKoin
+        val cipher = AutofillVaultReader(di).read(cipherId)
+            .firstOrNull { it.accountId == accountId }
+            ?: return null
+        val token = cipher.login?.totp?.let { TotpToken.parse(it).getOrNull() } ?: return null
+        return di.get<GetTotpCode>()(token).first().getOrNull()?.code
+    }
+}
+
+private fun DSecret.toSuggestion(
+    accountNames: Map<String, String>,
+    suggested: Boolean = false,
+) = AutofillSuggestionSnapshot(
+    recordId = "$accountId|$id",
+    name = name,
+    user = login?.username.orEmpty(),
+    suggested = suggested,
+    accountName = accountNames[accountId].orEmpty(),
+)
+
+internal fun List<BitwardenCipher>.toIdentities(): List<AutofillIdentitySnapshot> = flatMap { cipher ->
+    cipher.login?.uris.orEmpty()
+        .filter { it.match != BitwardenCipher.Login.Uri.MatchType.Never && !it.uri.isNullOrBlank() }
+        .distinctBy { it.uri }
+        .map { uri ->
+            AutofillIdentitySnapshot(
+                recordId = "${cipher.accountId}|${cipher.cipherId}",
+                serviceIdentifier = requireNotNull(uri.uri),
+                user = cipher.login?.username.orEmpty(),
+                cipherId = cipher.cipherId,
+                accountId = cipher.accountId,
+            )
+        }
+}
+
+internal fun List<BitwardenCipher>.toAutofillIndex(): AutofillIndexSnapshot {
+    val passkeys = toPasskeyIdentities()
+    return AutofillIndexSnapshot(
+        passwords = filter { !it.login?.password.isNullOrEmpty() }.toIdentities(),
+        oneTimeCodes = filter { it.hasAutofillOneTimeCode() }.toIdentities(),
+        passkeys = passkeys,
+        skippedPasskeys = sumOf { it.login?.fido2Credentials?.size ?: 0 } - passkeys.size,
+    )
+}
+
+internal fun BitwardenCipher.hasAutofillOneTimeCode(): Boolean =
+    login?.totp?.takeIf { it.isNotBlank() }?.let { TotpToken.parse(it).getOrNull() } != null

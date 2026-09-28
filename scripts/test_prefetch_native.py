@@ -30,10 +30,10 @@ class PrefetchNativeTest(unittest.TestCase):
     def test_profiles_fetch_all_shipped_native_graphs_locked(self):
         shared = {f"util/{module}/rust/Cargo.toml" for module in ("crypto", "io", "zxcvbn")}
         expected = {
-            "desktop": shared | {"util/instance/rust/Cargo.toml", "util/yubikey/rust/Cargo.toml", "desktopLibNative/src/Cargo.toml",
+            "desktop": shared | {"util/instance/rust/Cargo.toml", "util/yubikey/rust/Cargo.toml", "util/fido2/rust/Cargo.toml", "desktopLibNative/src/Cargo.toml",
                                  "desktopSshAgent/src/Cargo.toml", "desktopGpgAgent/src/Cargo.toml"},
             "android": shared | {"androidSshAgent/src/Cargo.toml"},
-            "apple": shared | {"util/zip/rust/Cargo.toml", "util/yubikey/rust/Cargo.toml"},
+            "apple": shared | {"util/zip/rust/Cargo.toml", "util/yubikey/rust/Cargo.toml", "util/fido2/rust/Cargo.toml"},
         }
         for profile, manifests in expected.items():
             with self.subTest(profile=profile):

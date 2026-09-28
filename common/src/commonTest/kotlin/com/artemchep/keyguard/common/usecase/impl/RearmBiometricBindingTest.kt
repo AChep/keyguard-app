@@ -77,6 +77,9 @@ class RearmBiometricBindingTest {
             override fun delete() = ioEffect { keyExists = false }
         }
         private val repository = object : FingerprintReadWriteRepository {
+            override fun update(transform: (Fingerprint?) -> Fingerprint?) = ioEffect {
+                put(transform(tokens)).invoke()
+            }
             override fun get() = flowOf(tokens)
             override fun put(key: Fingerprint?): IO<Unit> = ioEffect {
                 check(!failWrite) { "Disk unavailable" }

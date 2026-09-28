@@ -1,0 +1,27 @@
+// Signing identity and the identifiers derived from it, for both Apple apps.
+//
+// None of this is secret: a Team ID is printed by `codesign -dv` for any shipped
+// app. It lives here so that building under a different Apple account is a
+// one-file change instead of an edit to tracked project specs.
+//
+// To build with your own account, create `Signing.local.xcconfig` next to this
+// file (it is git-ignored) and override what you need — start from
+// `Signing.local.xcconfig.example`.
+//
+// The bundle id and the App Group are globally unique in Apple's registry, so
+// overriding KEYGUARD_DEVELOPMENT_TEAM alone will not get you the shared
+// container. Override all three to get a fully functional build, or override
+// none and accept the Application Support fallback (no AutoFill) — see
+// `appleUi/README.md`.
+
+KEYGUARD_DEVELOPMENT_TEAM = JJCH8P636V
+KEYGUARD_BUNDLE_ID = com.artemchep.keyguard
+KEYGUARD_APP_GROUP_ID = group.com.artemchep.keyguard
+
+// Applies to every target that does not override it. The StoreKit billing host
+// and its test bundle deliberately do, so they stay ad-hoc signed.
+DEVELOPMENT_TEAM = $(KEYGUARD_DEVELOPMENT_TEAM)
+
+// Keep last. Build settings are expanded when they are read, not where they are
+// written, so a local override of any value above still wins.
+#include? "Signing.local.xcconfig"

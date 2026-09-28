@@ -265,6 +265,9 @@ class UnlockUseCaseImplTest {
             disableBiometric = unused(),
             logRepository = LogRepositoryBridge(emptyList()),
             keyReadWriteRepository = object : FingerprintReadWriteRepository {
+                override fun update(transform: (Fingerprint?) -> Fingerprint?) = ioEffect {
+                    put(transform(fingerprints.value)).bind()
+                }
                 override fun get() = fingerprints
                 override fun put(key: Fingerprint?): IO<Unit> = ioEffect {
                     writeFailure?.let { throw it }
@@ -303,6 +306,9 @@ class UnlockUseCaseImplTest {
             cryptoGenerator = unused(),
             cipherEncryptor = unused(),
             yubiKeyUnlockAvailability = YubiKeyUnlockAvailability { false },
+            fido2UnlockAvailability = com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability { false },
+            fido2UnlockService = Fido2UnlockService(unused(), unused(), unused(), unused(), unused()),
+            base64Service = unused(),
         )
 
         init {

@@ -1,6 +1,6 @@
 ---
 title: Locking & unlocking
-description: The app password vs. your account password, biometric and YubiKey unlock, auto-lock settings, and what to do if you forget a password.
+description: The app password vs. your account password, biometric and security key unlock, auto-lock settings, and what to do if you forget a password.
 category: get-started
 order: 2
 ---
@@ -32,7 +32,18 @@ Besides typing the app password, you can unlock with:
   **NFC** on Android, using HMAC-SHA1 challenge-response. Keyguard provisions
   a key slot when you set it up. Connect one YubiKey at a time. Linux needs
   permission to access the key’s HID device; the Flatpak build does not support
-  YubiKey vault unlock.
+  YubiKey vault unlock;
+- **Security key (FIDO2)** (Android USB, macOS, Windows, Linux) — enable it in
+  security settings with a key that supports **PRF / hmac-secret** and user
+  verification. Set a FIDO2 PIN using the key manufacturer’s app first, unless
+  your key has built-in biometric verification. Setup and unlock require your
+  key and its PIN or biometric verification. Windows requires WebAuthn PRF
+  support (Windows 11 22H2 or newer); Linux needs permission to access the key’s
+  HID device. The Flatpak build does not support this option.
+
+Security key enrollment is local to each device. Keep your app password: it
+still unlocks the vault if the key is lost, reset, or unavailable. Changing the
+app password removes FIDO2 enrollment; enable it again with your key afterward.
 
 Individual items can additionally require re-authentication before they are
 viewed or autofilled — see the

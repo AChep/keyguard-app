@@ -24,8 +24,7 @@ import platform.darwin.NSObject
 /**
  * Watchtower alerts on macOS / iOS, via `UNUserNotificationCenter`.
  */
-class NotificationRepositoryApple(
-) : NotificationRepository {
+class NotificationRepositoryApple : NotificationRepository {
     // The notification center holds its delegate weakly.
     private val foregroundPresenter = ForegroundPresenter()
 

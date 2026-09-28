@@ -1,0 +1,282 @@
+include:
+  - ../xcode/sqlcipher.yml
+  # Shared options / packages / scheme / base settings for both Apple apps.
+  - ../xcode/keyguard-common.yml
+
+name: Keyguard
+
+packages:
+  MarkdownUI:
+    url: https://github.com/gonzalezreal/swift-markdown-ui
+    from: 2.4.1
+
+configs:
+  Debug: debug
+  Release: release
+  AppStoreDebug: debug
+  AppStoreRelease: release
+
+# Shared marketing version and signing identity. Signing overrides live in
+# the git-ignored Signing.local.xcconfig. See that file's .example.
+configFiles:
+  Debug: ../xcode/Base.xcconfig
+  Release: ../xcode/Base.xcconfig
+  AppStoreDebug: ../xcode/Base.xcconfig
+  AppStoreRelease: ../xcode/Base.xcconfig
+
+schemes:
+  Keyguard App Store:
+    build:
+      preActions:
+        - name: Build shared XCFramework
+          settingsTarget: Keyguard
+          script: '"$SRCROOT/../xcode/scripts/build-shared-framework.sh"'
+        - name: Generate Apple string catalog
+          settingsTarget: Keyguard
+          script: '"$SRCROOT/../xcode/scripts/generate-strings.sh"'
+      targets:
+        Keyguard: all
+    run:
+      config: AppStoreDebug
+      storeKitConfiguration: ../xcode/Keyguard.storekit
+    test:
+      config: AppStoreDebug
+    profile:
+      config: AppStoreRelease
+    analyze:
+      config: AppStoreDebug
+    archive:
+      config: AppStoreRelease
+
+settings:
+  configs:
+    AppStoreDebug:
+      KEYGUARD_DISTRIBUTION: appStore
+      KEYGUARD_APP_BUNDLE_ID: $(KEYGUARD_BUNDLE_ID)
+    AppStoreRelease:
+      KEYGUARD_DISTRIBUTION: appStore
+      KEYGUARD_APP_BUNDLE_ID: $(KEYGUARD_BUNDLE_ID)
+  base:
+    KEYGUARD_DISTRIBUTION: direct
+    KEYGUARD_APP_BUNDLE_ID: $(KEYGUARD_BUNDLE_ID).mac
+    CODE_SIGN_STYLE: Automatic
+    # Required for notarization, and the reason a same-user process cannot inject a
+    # dylib into — or attach a debugger to — a release build holding a decrypted
+    # vault. Inherited by the AutoFill extension, which is nested code and has to
+    # carry it too. The billing host / test targets opt out below.
+    ENABLE_HARDENED_RUNTIME: YES
+
+targets:
+  Keyguard:
+    type: application
+    platform: macOS
+    sources:
+      - path: macosApp
+    dependencies:
+      - package: SQLCipher
+        product: SQLCipher
+      # Full (block-level) Markdown rendering for note bodies; the AutoFill extension
+      # never renders notes, so only the app target links it.
+      - package: MarkdownUI
+        product: MarkdownUI
+      - package: KeyguardUI
+        product: KeyguardUI
+      # Embeds the AutoFill credential-provider app extension.
+      - target: KeyguardAutofill
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(KEYGUARD_APP_BUNDLE_ID)
+        PRODUCT_NAME: Keyguard
+        # App Group (shared vault + agent sockets) + shared keychain group (AutoFill).
+        # Requires a real DEVELOPMENT_TEAM + provisioning to actually be granted; the
+        # data-dir resolver falls back to App Support when it isn't (G4/G5).
+        CODE_SIGN_ENTITLEMENTS: macosApp/Keyguard.entitlements
+        REGISTER_APP_GROUPS: YES
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: macosApp/Info.plist
+        INFOPLIST_KEY_NSPrincipalClass: NSApplication
+        ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        LD_RUNPATH_SEARCH_PATHS:
+          - "$(inherited)"
+          - "@executable_path/../Frameworks"
+    postBuildScripts:
+      - name: Verify Apple string tables
+        basedOnDependencyAnalysis: false
+        inputFiles:
+          - "$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/KeyguardUI_KeyguardUI.bundle"
+        script: 'python3 "$SRCROOT/../xcode/scripts/verify-apple-strings.py"'
+      - name: Copy Compose resources
+        basedOnDependencyAnalysis: false
+        script: '"$SRCROOT/../xcode/scripts/copy-compose-resources.sh"'
+      - name: Build and copy keyguard-ssh-agent
+        basedOnDependencyAnalysis: false
+        script: |
+          set -eu
+          # GUI-launched Xcode does not read shell rc files, so expose common Rust installs.
+          . "$SRCROOT/../xcode/scripts/rust-env.sh"
+          cd "$SRCROOT/.."
+          ./gradlew :desktopSshAgent:compileSshAgentUniversal
+          SRC="$(ls "$SRCROOT/../desktopSshAgent/build/bundled-app-resources/"macos-*/keyguard-ssh-agent 2>/dev/null | head -1)"
+          if [ -z "$SRC" ] || [ ! -f "$SRC" ]; then
+            echo "error: keyguard-ssh-agent binary not found after build"
+            exit 1
+          fi
+          DEST="$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/keyguard-ssh-agent"
+          mkdir -p "$(dirname "$DEST")"
+          cp -f "$SRC" "$DEST"
+          chmod +x "$DEST"
+          # The target's signing step seals this binary into the bundle but never
+          # re-signs it: nested executables outside Frameworks/ and PlugIns/ keep
+          # whatever signature they arrive with — here Rust's linker ad-hoc one, which
+          # notarization rejects. `codesign --verify --deep` still passes, so sign it
+          # explicitly rather than waiting for a submission to catch it.
+          IDENTITY="${EXPANDED_CODE_SIGN_IDENTITY:-${CODE_SIGN_IDENTITY:-}}"
+          if [ "${CODE_SIGNING_ALLOWED:-YES}" = "NO" ] || [ -z "$IDENTITY" ]; then
+            # Unsigned CI builds: ad-hoc still leaves the binary executable on arm64.
+            IDENTITY="-"
+          fi
+          # A secure timestamp is a notarization requirement, but it needs the network
+          # on every build, so ask for one only where it is actually consumed.
+          case "$CONFIGURATION" in
+            *Release) TIMESTAMP="--timestamp" ;;
+            *) TIMESTAMP="--timestamp=none" ;;
+          esac
+          if [ "$IDENTITY" = "-" ]; then
+            TIMESTAMP="--timestamp=none"
+          fi
+          codesign --force --options runtime $TIMESTAMP --sign "$IDENTITY" "$DEST"
+
+      - name: Build and copy keyguard-gpg-agent
+        basedOnDependencyAnalysis: false
+        script: |
+          set -eu
+          . "$SRCROOT/../xcode/scripts/rust-env.sh"
+          cd "$SRCROOT/.."
+          ./gradlew :desktopGpgAgent:compileGpgAgentUniversal
+          # The Cargo task builds for the host architecture; select its exact
+          # output so a stale binary for another Mac cannot be bundled.
+          case "$(uname -m)" in
+            arm64) GPG_PLATFORM="macos-arm64" ;;
+            x86_64) GPG_PLATFORM="macos-x64" ;;
+            *) echo "error: unsupported macOS host architecture"; exit 1 ;;
+          esac
+          SRC="$SRCROOT/../desktopGpgAgent/build/bundled-app-resources/$GPG_PLATFORM/keyguard-gpg-agent"
+          if [ ! -f "$SRC" ]; then
+            echo "error: keyguard-gpg-agent binary not found after build"
+            exit 1
+          fi
+          DEST="$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/keyguard-gpg-agent"
+          mkdir -p "$(dirname "$DEST")"
+          cp -f "$SRC" "$DEST"
+          chmod +x "$DEST"
+          IDENTITY="${EXPANDED_CODE_SIGN_IDENTITY:-${CODE_SIGN_IDENTITY:-}}"
+          if [ "${CODE_SIGNING_ALLOWED:-YES}" = "NO" ] || [ -z "$IDENTITY" ]; then
+            IDENTITY="-"
+          fi
+          case "$CONFIGURATION" in
+            *Release) TIMESTAMP="--timestamp" ;;
+            *) TIMESTAMP="--timestamp=none" ;;
+          esac
+          if [ "$IDENTITY" = "-" ]; then
+            TIMESTAMP="--timestamp=none"
+          fi
+          # A spawned sandbox helper must inherit the parent's granted App Group
+          # access. Its own entitlements contain only sandbox + inheritance.
+          codesign --force --options runtime $TIMESTAMP --sign "$IDENTITY" \
+            --entitlements "$SRCROOT/macosApp/KeyguardGpgAgent.entitlements" "$DEST"
+
+  # AutoFill credential-provider extension (D5). A second sandboxed app-extension
+  # linking the same KeyguardShared framework; embedded in the app above.
+  KeyguardAutofill:
+    type: app-extension
+    platform: macOS
+    sources:
+      # Principal class + Info.plist/entitlements live here; the screens and the
+      # credential-request plumbing are shared with the iOS extension.
+      - path: KeyguardAutofill
+      # Shared AutoFill sources, compiled directly into the appex (it deliberately does
+      # NOT link the KeyguardUI product, which would drag in the whole screen layer).
+      - path: ../appleAutofill
+      # Reuse the Keychain Services bridge so the extension reads the same
+      # (shared-group) biometric-unlock key the app wrote. Single source of truth.
+      - path: ../appleUi/Sources/KeyguardUI/Apple/Keychain.swift
+      - path: ../appleUi/Sources/KeyguardUI/Apple/AppleBiometry.swift
+      - path: ../appleUi/Sources/KeyguardUI/Apple/Services/AutofillStoreAccess.swift
+      # Shared KotlinByteArray <-> Data helpers used by the passkey paths.
+      - path: ../appleUi/Sources/KeyguardUI/Bridge/KotlinData.swift
+      - path: ../appleUi/Sources/KeyguardUI/Resources/Localizable.xcstrings
+        buildPhase: resources
+    dependencies:
+      # The static Kotlin/Rust bridge also contains the YubiKey HID backend.
+      - sdk: IOKit.framework
+      - package: SQLCipher
+        product: SQLCipher
+      # The Kotlin bridge only — NOT the KeyguardUI product, which would pull the
+      # screen layer in. Taking it as a package product guarantees the extension and
+      # the app link the same XCFramework, and lets Xcode pick the slice per SDK.
+      - package: KeyguardUI
+        product: KeyguardShared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(KEYGUARD_APP_BUNDLE_ID).autofill
+        PRODUCT_NAME: KeyguardAutofill
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: KeyguardAutofill/Info.plist
+        CODE_SIGN_ENTITLEMENTS: KeyguardAutofill/KeyguardAutofill.entitlements
+        REGISTER_APP_GROUPS: YES
+        # Reaches the app's SQLCipher in the host bundle; KeyguardShared is static and
+        # needs no rpath entry of its own.
+        LD_RUNPATH_SEARCH_PATHS:
+          - "$(inherited)"
+          - "@executable_path/../../../../Frameworks"
+    postBuildScripts:
+      - name: Verify Apple string tables
+        basedOnDependencyAnalysis: false
+        script: 'python3 "$SRCROOT/../xcode/scripts/verify-apple-strings.py"'
+      # The appex is its own process with its own bundle, so it needs the Compose
+      # resources too — otherwise the unlock UI throws on the first localized-string
+      # read, exactly as it would in the app.
+      - name: Copy Compose resources
+        basedOnDependencyAnalysis: false
+        script: '"$SRCROOT/../xcode/scripts/copy-compose-resources.sh"'
+
+  KeyguardBillingHost:
+    type: application
+    platform: macOS
+    sources:
+      - path: ../xcode/BillingTests/Host.swift
+      - path: ../xcode/Keyguard.storekit
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.artemchep.keyguard.billingtesthost
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_IDENTITY: "-"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_ENTITLEMENTS: ""
+        ENABLE_HARDENED_RUNTIME: NO
+        INFOPLIST_KEY_KeyguardDistribution: appStore
+
+  KeyguardBillingTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: ../xcode/BillingTests/StoreKitBillingTests.swift
+    dependencies:
+      - target: KeyguardBillingHost
+      - package: KeyguardUI
+        product: KeyguardUI
+      - package: SQLCipher
+        product: SQLCipher
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.artemchep.keyguard.billingtests
+        GENERATE_INFOPLIST_FILE: YES
+        # Matches the unhardened host it is injected into.
+        ENABLE_HARDENED_RUNTIME: NO
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/KeyguardBillingHost.app/Contents/MacOS/KeyguardBillingHost"
+        BUNDLE_LOADER: $(TEST_HOST)
+        CODE_SIGN_IDENTITY: "-"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_ENTITLEMENTS: ""

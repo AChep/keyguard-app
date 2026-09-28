@@ -23,6 +23,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
       - run: pip install -r .github/update_localization_contributors.requirements.txt
       - uses: crowdin/github-action@8f01d54f70f1713ee3f09d82c2bbb2daeac28689
         with:
@@ -45,6 +46,10 @@ jobs:
       - name: "Update library"
         run: |
           python .github/update_localization.py
+      - name: "Generate Apple localization"
+        run: |
+          ./gradlew :common:generateAppleStrings
+          python3 xcode/scripts/generate-info-plist-strings.py
       - name: "Update contributors"
         run: |
           python .github/update_localization_contributors.py ${{ secrets.CROWDIN_PERSONAL_TOKEN }} ${{ secrets.CROWDIN_PROJECT_ID }}

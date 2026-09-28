@@ -1,4 +1,4 @@
-@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class, kotlin.experimental.ExperimentalNativeApi::class)
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 
 package com.artemchep.keyguard.util.yubikey
 
@@ -10,11 +10,9 @@ import com.artemchep.keyguard.util.yubikey.ffi.keyguard_yubikey_close
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
-import kotlin.native.OsFamily
-import kotlin.native.Platform
 
 internal actual object NativeYubiKey {
-    actual val isSupported: Boolean = Platform.osFamily == OsFamily.MACOSX
+    actual val isSupported: Boolean = true
     actual fun create(): Long {
         if (keyguard_yubikey_abi_version().toInt() != YUBIKEY_ABI_VERSION) {
             throw YubiKeyException(YubiKeyFailure.PROTOCOL)

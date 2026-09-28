@@ -59,6 +59,7 @@ fun rememberSettingsSecurityItems(
                 key = "yubikey",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.YUBIKEY_UNLOCK),
+                    SettingPaneItem.Item(Setting.FIDO2_UNLOCK),
                 ),
             ),
             SettingPaneItem.Group(

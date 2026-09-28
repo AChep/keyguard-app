@@ -3,136 +3,525 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2F4DDE872D0A4D8B0030DA10 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2F4DDE862D0A4D8B0030DA10 /* Assets.xcassets */; };
-		2F4DDE7F2D0A4D8B0030DA10 /* KeyguardIosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F4DDE7D2D0A4D8B0030DA10 /* KeyguardIosApp.swift */; };
-		2F4DDE802D0A4D8B0030DA10 /* ComposeHostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F4DDE7E2D0A4D8B0030DA10 /* ComposeHostView.swift */; };
-		2F4DDE832D0A4D8B0030DA10 /* SQLCipher in Frameworks */ = {isa = PBXBuildFile; productRef = 2F4DDE842D0A4D8B0030DA10 /* SQLCipher */; };
+		01FC3B8A127EBA278AE596DE /* KeyguardShared in Frameworks */ = {isa = PBXBuildFile; productRef = F31E7B09B2CFEECE41435A03 /* KeyguardShared */; };
+		05CC578340C4F0933BE790AF /* SQLCipher in Frameworks */ = {isa = PBXBuildFile; productRef = 403EDA3D3326304FF9ECC182 /* SQLCipher */; };
+		0C71D25E574E82AEFE14E942 /* AutofillL10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FCCC91B3694826D2A175C0E /* AutofillL10n.swift */; };
+		0D4191BF81569EC915DDFE2E /* CredentialProviderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B3ECEDCF6A2AB05018B9EF6 /* CredentialProviderViewController.swift */; };
+		1418076D431E8A0EC120A949 /* KeyguardUI in Frameworks */ = {isa = PBXBuildFile; productRef = 7C484C5C23E2B066AAD27FC8 /* KeyguardUI */; };
+		1EEC3E9C3A79998370F8FB51 /* ScenePrivacyCoverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE208FD35559C88A6764E875 /* ScenePrivacyCoverTests.swift */; };
+		31A6E16A613D3A31E80AAD1C /* KotlinData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B676228233DA44FB880DF5 /* KotlinData.swift */; };
+		660EF0DCA1BF20BDC325A59C /* KeyguardUI in Frameworks */ = {isa = PBXBuildFile; productRef = 7AF48BAE3CEC46985DCD92A0 /* KeyguardUI */; };
+		6E7D403500920671D070AF69 /* AutofillRecoveryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F1CFF9F8CEBB69B756F2944 /* AutofillRecoveryViews.swift */; };
+		75F628D817604B7528AD9152 /* SQLCipher in Frameworks */ = {isa = PBXBuildFile; productRef = BC57B55A0A31982C047AC16B /* SQLCipher */; };
+		7A3DF7C48AE28F4A2B0BAD1F /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 411709B3E41F882319B72A95 /* Keychain.swift */; };
+		7DEBFDDA292B68E241CD7C22 /* AutofillUnlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFCD6CBE9877C477F61E3456 /* AutofillUnlockView.swift */; };
+		8B5F66F8C5D0C9AD45B97A59 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ACC577B110C23A82FCF4668B /* InfoPlist.xcstrings */; };
+		AB34B1F28387BBB96E51BA5E /* KeyguardUI in Frameworks */ = {isa = PBXBuildFile; productRef = 819D97F6469509474CA65227 /* KeyguardUI */; };
+		ADF7EDE51B603A9F34D641B0 /* SQLCipher in Frameworks */ = {isa = PBXBuildFile; productRef = 217794B20B5352A26B07CA7E /* SQLCipher */; };
+		B470A1829ED50AB6B2BA20FE /* StoreKitBillingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E572C6FE09765C2CBCF3411 /* StoreKitBillingTests.swift */; };
+		BEFA9CA983823B4F315110C1 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = FA541AEEA326D4F58BF63CD3 /* Localizable.xcstrings */; };
+		C0DCEAB45DF38A4EE14EF13B /* SQLCipher in Frameworks */ = {isa = PBXBuildFile; productRef = 588FD7176A6962B901897BC6 /* SQLCipher */; };
+		C55C95D541B5FB218C9A22A0 /* Keyguard.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 6495C1ECAE77769E70AFA613 /* Keyguard.storekit */; };
+		C8B4E23E9D25FFA0CED3A1BD /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = EC7D46260FCA2760C5FE9380 /* PrivacyInfo.xcprivacy */; };
+		CAD9D9BD8294E4AED403BECF /* AutofillCredentialListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AAE0FC3DB8B3903ABDDE67 /* AutofillCredentialListView.swift */; };
+		CB3F994C06B160B581C7ED00 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C6D2DD7FE2E0BF5DB2A96B4B /* PrivacyInfo.xcprivacy */; };
+		CF52D8C8B6939DEA87CD4809 /* AutofillStoreAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4238241FEB882156F04C409E /* AutofillStoreAccess.swift */; };
+		D171B3FA50E256861C57DE97 /* AppleBiometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B413E2BDAB5B577DAB4678 /* AppleBiometry.swift */; };
+		E21C11DC848BFD3C54460A51 /* KeyguardIosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EB82B255263648A8AC384C /* KeyguardIosApp.swift */; };
+		EC931CDC655749146BB12FDD /* KeyguardAutofill.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 11360101D0D4F05A38F976FD /* KeyguardAutofill.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		EF4E1140E0AAE471B89818D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F543015C899423D4B01CEB2E /* Assets.xcassets */; };
+		FB5AB5107F58D5EA4A34854A /* Host.swift in Sources */ = {isa = PBXBuildFile; fileRef = 409AFB1CE903870AAE21B9B9 /* Host.swift */; };
+		FD27811BA83091C1D96CA012 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = ACC577B110C23A82FCF4668B /* InfoPlist.xcstrings */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		1E623C14675385A8D6D46200 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 242FB5348943441C388468CE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 504D5EEF39F45B90D55D49BE;
+			remoteInfo = KeyguardBillingHost;
+		};
+		7363BDF01C390EECC42F00A2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 242FB5348943441C388468CE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 504D5EEF39F45B90D55D49BE;
+			remoteInfo = KeyguardBillingHost;
+		};
+		EC018166C7E1B2195F8523FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 242FB5348943441C388468CE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D754C01BF5225EE437758760;
+			remoteInfo = KeyguardAutofill;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		652AFC30799DABE48F8796D3 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				EC931CDC655749146BB12FDD /* KeyguardAutofill.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		2F4DDE742D0A4D8B0030DA10 /* Keyguard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keyguard.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		2F4DDE862D0A4D8B0030DA10 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		2F4DDE7D2D0A4D8B0030DA10 /* KeyguardIosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyguardIosApp.swift; sourceTree = "<group>"; };
-		2F4DDE7E2D0A4D8B0030DA10 /* ComposeHostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeHostView.swift; sourceTree = "<group>"; };
-		2F4DDE822D0A4D8B0030DA10 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		00AAE0FC3DB8B3903ABDDE67 /* AutofillCredentialListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutofillCredentialListView.swift; sourceTree = "<group>"; };
+		11360101D0D4F05A38F976FD /* KeyguardAutofill.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = KeyguardAutofill.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		371C7287760FE49DA66679DC /* KeyguardBillingTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = KeyguardBillingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3F8725EF385F6FA570BA15B7 /* Keyguard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Keyguard.entitlements; sourceTree = "<group>"; };
+		409AFB1CE903870AAE21B9B9 /* Host.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Host.swift; sourceTree = "<group>"; };
+		411709B3E41F882319B72A95 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
+		4238241FEB882156F04C409E /* AutofillStoreAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutofillStoreAccess.swift; sourceTree = "<group>"; };
+		4E572C6FE09765C2CBCF3411 /* StoreKitBillingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitBillingTests.swift; sourceTree = "<group>"; };
+		56B413E2BDAB5B577DAB4678 /* AppleBiometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleBiometry.swift; sourceTree = "<group>"; };
+		6495C1ECAE77769E70AFA613 /* Keyguard.storekit */ = {isa = PBXFileReference; path = Keyguard.storekit; sourceTree = "<group>"; };
+		7F1CFF9F8CEBB69B756F2944 /* AutofillRecoveryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutofillRecoveryViews.swift; sourceTree = "<group>"; };
+		8337805341186A78159592C7 /* KeyguardAutofill.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KeyguardAutofill.entitlements; sourceTree = "<group>"; };
+		88EE0BAE16BD54BCE8810B3E /* KeyguardBillingHost.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = KeyguardBillingHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8B3ECEDCF6A2AB05018B9EF6 /* CredentialProviderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialProviderViewController.swift; sourceTree = "<group>"; };
+		8FCCC91B3694826D2A175C0E /* AutofillL10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutofillL10n.swift; sourceTree = "<group>"; };
+		94F42B6F8D08AE51563E9F35 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		9712367E484EEF7003E980FD /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
+		ACC577B110C23A82FCF4668B /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		B1EB82B255263648A8AC384C /* KeyguardIosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyguardIosApp.swift; sourceTree = "<group>"; };
+		B4B676228233DA44FB880DF5 /* KotlinData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KotlinData.swift; sourceTree = "<group>"; };
+		BE208FD35559C88A6764E875 /* ScenePrivacyCoverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenePrivacyCoverTests.swift; sourceTree = "<group>"; };
+		C117AD187833E2513BD2F553 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C6D2DD7FE2E0BF5DB2A96B4B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		CA0DB5B76083416680CC91FD /* appleUi */ = {isa = PBXFileReference; lastKnownFileType = folder; name = appleUi; path = ../appleUi; sourceTree = SOURCE_ROOT; };
+		CE031377F51F4A72B52A9F2A /* Keyguard.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Keyguard.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D83BC80DC4CB9D9460167E8C /* KeyguardPrivacyTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = KeyguardPrivacyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		EC7D46260FCA2760C5FE9380 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		F543015C899423D4B01CEB2E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FA541AEEA326D4F58BF63CD3 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		FFCD6CBE9877C477F61E3456 /* AutofillUnlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutofillUnlockView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		2F4DDE712D0A4D8B0030DA10 /* Frameworks */ = {
+		208E8782D633E35D32AB2AA4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2F4DDE832D0A4D8B0030DA10 /* SQLCipher in Frameworks */,
+				05CC578340C4F0933BE790AF /* SQLCipher in Frameworks */,
+				1418076D431E8A0EC120A949 /* KeyguardUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		22CB71E949BC8B651F8CB1CC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AB34B1F28387BBB96E51BA5E /* KeyguardUI in Frameworks */,
+				C0DCEAB45DF38A4EE14EF13B /* SQLCipher in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		458EF7A45162F9F07011FE77 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				660EF0DCA1BF20BDC325A59C /* KeyguardUI in Frameworks */,
+				75F628D817604B7528AD9152 /* SQLCipher in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B66955B69A717CEDE2D8D372 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ADF7EDE51B603A9F34D641B0 /* SQLCipher in Frameworks */,
+				01FC3B8A127EBA278AE596DE /* KeyguardShared in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		2F4DDE6B2D0A4D8B0030DA10 = {
+		0F47A5A7544BDC8F5B597DC7 /* appleUi */ = {
 			isa = PBXGroup;
 			children = (
-				2F4DDE7C2D0A4D8B0030DA10 /* iosApp */,
-				2F4DDE752D0A4D8B0030DA10 /* Products */,
+				9EE059409252241FF52888F3 /* Sources */,
+			);
+			path = appleUi;
+			sourceTree = "<group>";
+		};
+		1DB4B685CAEE8BEFEBBAEF94 /* iosApp */ = {
+			isa = PBXGroup;
+			children = (
+				F543015C899423D4B01CEB2E /* Assets.xcassets */,
+				C117AD187833E2513BD2F553 /* Info.plist */,
+				3F8725EF385F6FA570BA15B7 /* Keyguard.entitlements */,
+				B1EB82B255263648A8AC384C /* KeyguardIosApp.swift */,
+				C6D2DD7FE2E0BF5DB2A96B4B /* PrivacyInfo.xcprivacy */,
+			);
+			path = iosApp;
+			sourceTree = "<group>";
+		};
+		219D2C8E5248EB7FE0D0F944 /* KeyguardAutofill */ = {
+			isa = PBXGroup;
+			children = (
+				94F42B6F8D08AE51563E9F35 /* Info.plist */,
+				8337805341186A78159592C7 /* KeyguardAutofill.entitlements */,
+				EC7D46260FCA2760C5FE9380 /* PrivacyInfo.xcprivacy */,
+			);
+			path = KeyguardAutofill;
+			sourceTree = "<group>";
+		};
+		2BE9D1071031C3FC069C34FC /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				CA0DB5B76083416680CC91FD /* appleUi */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		30985B6BFC025E115FAE9A34 /* PrivacyTests */ = {
+			isa = PBXGroup;
+			children = (
+				BE208FD35559C88A6764E875 /* ScenePrivacyCoverTests.swift */,
+			);
+			path = PrivacyTests;
+			sourceTree = "<group>";
+		};
+		38B69C3F79CD97858CF7B609 = {
+			isa = PBXGroup;
+			children = (
+				1DB4B685CAEE8BEFEBBAEF94 /* iosApp */,
+				86D82AF2C8942BE5DECF79A2 /* keyguard-app */,
+				219D2C8E5248EB7FE0D0F944 /* KeyguardAutofill */,
+				2BE9D1071031C3FC069C34FC /* Packages */,
+				7B45CC5FD21777444CE3CA27 /* Resources */,
+				94C98B8B3A2BFC1966447269 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		2F4DDE752D0A4D8B0030DA10 /* Products */ = {
+		4056F0DDF5D7DD6CC6B214D7 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				2F4DDE742D0A4D8B0030DA10 /* Keyguard.app */,
+				FA541AEEA326D4F58BF63CD3 /* Localizable.xcstrings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		63B2BF9E8C42BA67A3BC9042 /* appleAutofill */ = {
+			isa = PBXGroup;
+			children = (
+				00AAE0FC3DB8B3903ABDDE67 /* AutofillCredentialListView.swift */,
+				8FCCC91B3694826D2A175C0E /* AutofillL10n.swift */,
+				7F1CFF9F8CEBB69B756F2944 /* AutofillRecoveryViews.swift */,
+				FFCD6CBE9877C477F61E3456 /* AutofillUnlockView.swift */,
+				8B3ECEDCF6A2AB05018B9EF6 /* CredentialProviderViewController.swift */,
+			);
+			path = appleAutofill;
+			sourceTree = "<group>";
+		};
+		7B45CC5FD21777444CE3CA27 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				ACC577B110C23A82FCF4668B /* InfoPlist.xcstrings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		82813BDB952B5C6B8A1492BD /* Bridge */ = {
+			isa = PBXGroup;
+			children = (
+				B4B676228233DA44FB880DF5 /* KotlinData.swift */,
+			);
+			path = Bridge;
+			sourceTree = "<group>";
+		};
+		86D82AF2C8942BE5DECF79A2 /* keyguard-app */ = {
+			isa = PBXGroup;
+			children = (
+				63B2BF9E8C42BA67A3BC9042 /* appleAutofill */,
+				0F47A5A7544BDC8F5B597DC7 /* appleUi */,
+				984D1D6A997F0B265B6D3C6B /* xcode */,
+			);
+			name = "keyguard-app";
+			path = ..;
+			sourceTree = "<group>";
+		};
+		92681F741789998221EE8AD0 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				4238241FEB882156F04C409E /* AutofillStoreAccess.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		94C98B8B3A2BFC1966447269 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CE031377F51F4A72B52A9F2A /* Keyguard.app */,
+				11360101D0D4F05A38F976FD /* KeyguardAutofill.appex */,
+				88EE0BAE16BD54BCE8810B3E /* KeyguardBillingHost.app */,
+				371C7287760FE49DA66679DC /* KeyguardBillingTests.xctest */,
+				D83BC80DC4CB9D9460167E8C /* KeyguardPrivacyTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		2F4DDE7C2D0A4D8B0030DA10 /* iosApp */ = {
+		984D1D6A997F0B265B6D3C6B /* xcode */ = {
 			isa = PBXGroup;
 			children = (
-				2F4DDE7D2D0A4D8B0030DA10 /* KeyguardIosApp.swift */,
-				2F4DDE7E2D0A4D8B0030DA10 /* ComposeHostView.swift */,
-				2F4DDE862D0A4D8B0030DA10 /* Assets.xcassets */,
-				2F4DDE822D0A4D8B0030DA10 /* Info.plist */,
+				9712367E484EEF7003E980FD /* Base.xcconfig */,
+				6495C1ECAE77769E70AFA613 /* Keyguard.storekit */,
+				FF7431F41B47D9F93F1C8F8F /* BillingTests */,
+				30985B6BFC025E115FAE9A34 /* PrivacyTests */,
 			);
-			path = iosApp;
+			path = xcode;
+			sourceTree = "<group>";
+		};
+		9AC6152FC7A8007CEC302188 /* KeyguardUI */ = {
+			isa = PBXGroup;
+			children = (
+				C7625369C2C46BAAC3C84153 /* Apple */,
+				82813BDB952B5C6B8A1492BD /* Bridge */,
+				4056F0DDF5D7DD6CC6B214D7 /* Resources */,
+			);
+			path = KeyguardUI;
+			sourceTree = "<group>";
+		};
+		9EE059409252241FF52888F3 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				9AC6152FC7A8007CEC302188 /* KeyguardUI */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		C7625369C2C46BAAC3C84153 /* Apple */ = {
+			isa = PBXGroup;
+			children = (
+				56B413E2BDAB5B577DAB4678 /* AppleBiometry.swift */,
+				411709B3E41F882319B72A95 /* Keychain.swift */,
+				92681F741789998221EE8AD0 /* Services */,
+			);
+			path = Apple;
+			sourceTree = "<group>";
+		};
+		FF7431F41B47D9F93F1C8F8F /* BillingTests */ = {
+			isa = PBXGroup;
+			children = (
+				409AFB1CE903870AAE21B9B9 /* Host.swift */,
+				4E572C6FE09765C2CBCF3411 /* StoreKitBillingTests.swift */,
+			);
+			path = BillingTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2F4DDE732D0A4D8B0030DA10 /* Keyguard */ = {
+		2C130BEC39BB38D8E0DA01E8 /* KeyguardBillingTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2F4DDE792D0A4D8B0030DA10 /* Build configuration list for PBXNativeTarget "Keyguard" */;
+			buildConfigurationList = 653F82916D877260A44C936E /* Build configuration list for PBXNativeTarget "KeyguardBillingTests" */;
 			buildPhases = (
-				2F4DDE812D0A4D8B0030DA10 /* Build shared framework */,
-				2F4DDE702D0A4D8B0030DA10 /* Sources */,
-				2F4DDE712D0A4D8B0030DA10 /* Frameworks */,
-				2F4DDE722D0A4D8B0030DA10 /* Resources */,
+				99A3D6827D8729AC6BFF2C61 /* Sources */,
+				458EF7A45162F9F07011FE77 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FFA7E1C4BB9D5FE4B1222CD5 /* PBXTargetDependency */,
+			);
+			name = KeyguardBillingTests;
+			packageProductDependencies = (
+				7AF48BAE3CEC46985DCD92A0 /* KeyguardUI */,
+				BC57B55A0A31982C047AC16B /* SQLCipher */,
+			);
+			productName = KeyguardBillingTests;
+			productReference = 371C7287760FE49DA66679DC /* KeyguardBillingTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		504D5EEF39F45B90D55D49BE /* KeyguardBillingHost */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CB418FE0178C021936D45842 /* Build configuration list for PBXNativeTarget "KeyguardBillingHost" */;
+			buildPhases = (
+				17755BD9A1ED27E13C6143F8 /* Sources */,
+				D68338791F18E311984179A0 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
+			name = KeyguardBillingHost;
+			packageProductDependencies = (
+			);
+			productName = KeyguardBillingHost;
+			productReference = 88EE0BAE16BD54BCE8810B3E /* KeyguardBillingHost.app */;
+			productType = "com.apple.product-type.application";
+		};
+		72EC697C52546B644F7F59DD /* Keyguard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1BB0301F5BFF133BC69E6841 /* Build configuration list for PBXNativeTarget "Keyguard" */;
+			buildPhases = (
+				6FA6A0A88BAAA8873620E7CD /* Sources */,
+				60E32D69DB368C6CA3696DE4 /* Resources */,
+				208E8782D633E35D32AB2AA4 /* Frameworks */,
+				652AFC30799DABE48F8796D3 /* Embed Foundation Extensions */,
+				C5C1CBC51491056CA017487A /* Verify Apple string tables */,
+				F1BF8A2BB7FF8D83020A76A5 /* Copy Compose resources */,
+				9B46E42A2A4E5807F95B5DF0 /* Verify iOS privacy resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				05841DE5FCDE24216C61E075 /* PBXTargetDependency */,
+			);
 			name = Keyguard;
 			packageProductDependencies = (
-				2F4DDE842D0A4D8B0030DA10 /* SQLCipher */,
+				403EDA3D3326304FF9ECC182 /* SQLCipher */,
+				7C484C5C23E2B066AAD27FC8 /* KeyguardUI */,
 			);
 			productName = Keyguard;
-			productReference = 2F4DDE742D0A4D8B0030DA10 /* Keyguard.app */;
+			productReference = CE031377F51F4A72B52A9F2A /* Keyguard.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A66378D0B2A37589D39DE2C6 /* KeyguardPrivacyTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E99607AE13DE89FF8D852FAE /* Build configuration list for PBXNativeTarget "KeyguardPrivacyTests" */;
+			buildPhases = (
+				C2844A70B2F9FF725C1868C5 /* Sources */,
+				22CB71E949BC8B651F8CB1CC /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CD353E53EC9DA02F100B3F45 /* PBXTargetDependency */,
+			);
+			name = KeyguardPrivacyTests;
+			packageProductDependencies = (
+				819D97F6469509474CA65227 /* KeyguardUI */,
+				588FD7176A6962B901897BC6 /* SQLCipher */,
+			);
+			productName = KeyguardPrivacyTests;
+			productReference = D83BC80DC4CB9D9460167E8C /* KeyguardPrivacyTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		D754C01BF5225EE437758760 /* KeyguardAutofill */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EFBC19590640767595ED743F /* Build configuration list for PBXNativeTarget "KeyguardAutofill" */;
+			buildPhases = (
+				F8A6CD60A0DE8616DA4370BF /* Sources */,
+				1A153C99BB1B52F65C923008 /* Resources */,
+				B66955B69A717CEDE2D8D372 /* Frameworks */,
+				EC393A3AD2BBFB0B99B62299 /* Verify Apple string tables */,
+				F88A35DD17616EA11C06FFCB /* Copy Compose resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KeyguardAutofill;
+			packageProductDependencies = (
+				217794B20B5352A26B07CA7E /* SQLCipher */,
+				F31E7B09B2CFEECE41435A03 /* KeyguardShared */,
+			);
+			productName = KeyguardAutofill;
+			productReference = 11360101D0D4F05A38F976FD /* KeyguardAutofill.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		2F4DDE6C2D0A4D8B0030DA10 /* Project object */ = {
+		242FB5348943441C388468CE /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					2F4DDE732D0A4D8B0030DA10 = {
-						CreatedOnToolsVersion = 16.0;
+					2C130BEC39BB38D8E0DA01E8 = {
+						DevelopmentTeam = "";
+					};
+					504D5EEF39F45B90D55D49BE = {
+						DevelopmentTeam = "";
+					};
+					72EC697C52546B644F7F59DD = {
+						DevelopmentTeam = "$(KEYGUARD_DEVELOPMENT_TEAM)";
+						ProvisioningStyle = Automatic;
+					};
+					A66378D0B2A37589D39DE2C6 = {
+						DevelopmentTeam = "";
+					};
+					D754C01BF5225EE437758760 = {
+						DevelopmentTeam = "$(KEYGUARD_DEVELOPMENT_TEAM)";
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
-			buildConfigurationList = 2F4DDE6F2D0A4D8B0030DA10 /* Build configuration list for PBXProject "iosApp" */;
-			compatibilityVersion = "Xcode 14.0";
+			buildConfigurationList = FF7CA1CA754D017066F1822F /* Build configuration list for PBXProject "iosApp" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
 				Base,
+				en,
 			);
-			mainGroup = 2F4DDE6B2D0A4D8B0030DA10;
+			mainGroup = 38B69C3F79CD97858CF7B609;
+			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				2F4DDE852D0A4D8B0030DA10 /* XCRemoteSwiftPackageReference "SQLCipher.swift" */,
+				1BA982063662828D6CAF5BFA /* XCRemoteSwiftPackageReference "SQLCipher.swift" */,
+				18B674E1611EB87256433655 /* XCLocalSwiftPackageReference "../appleUi" */,
 			);
-			productRefGroup = 2F4DDE752D0A4D8B0030DA10 /* Products */;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 94C98B8B3A2BFC1966447269 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2F4DDE732D0A4D8B0030DA10 /* Keyguard */,
+				72EC697C52546B644F7F59DD /* Keyguard */,
+				D754C01BF5225EE437758760 /* KeyguardAutofill */,
+				504D5EEF39F45B90D55D49BE /* KeyguardBillingHost */,
+				2C130BEC39BB38D8E0DA01E8 /* KeyguardBillingTests */,
+				A66378D0B2A37589D39DE2C6 /* KeyguardPrivacyTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		2F4DDE722D0A4D8B0030DA10 /* Resources */ = {
+		1A153C99BB1B52F65C923008 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2F4DDE872D0A4D8B0030DA10 /* Assets.xcassets in Resources */,
+				8B5F66F8C5D0C9AD45B97A59 /* InfoPlist.xcstrings in Resources */,
+				BEFA9CA983823B4F315110C1 /* Localizable.xcstrings in Resources */,
+				C8B4E23E9D25FFA0CED3A1BD /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		60E32D69DB368C6CA3696DE4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EF4E1140E0AAE471B89818D1 /* Assets.xcassets in Resources */,
+				FD27811BA83091C1D96CA012 /* InfoPlist.xcstrings in Resources */,
+				CB3F994C06B160B581C7ED00 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D68338791F18E311984179A0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C55C95D541B5FB218C9A22A0 /* Keyguard.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		2F4DDE812D0A4D8B0030DA10 /* Build shared framework */ = {
+		9B46E42A2A4E5807F95B5DF0 /* Verify iOS privacy resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -142,56 +531,261 @@
 			);
 			inputPaths = (
 			);
-			name = "Build shared framework";
+			name = "Verify iOS privacy resources";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :iosApp:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "python3 \"$SRCROOT/../xcode/scripts/verify-ios-privacy.py\" --app \"$TARGET_BUILD_DIR/$WRAPPER_NAME\"";
+		};
+		C5C1CBC51491056CA017487A /* Verify Apple string tables */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/KeyguardUI_KeyguardUI.bundle",
+			);
+			name = "Verify Apple string tables";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "python3 \"$SRCROOT/../xcode/scripts/verify-apple-strings.py\"";
+		};
+		EC393A3AD2BBFB0B99B62299 /* Verify Apple string tables */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Verify Apple string tables";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "python3 \"$SRCROOT/../xcode/scripts/verify-apple-strings.py\"";
+		};
+		F1BF8A2BB7FF8D83020A76A5 /* Copy Compose resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Compose resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/../xcode/scripts/copy-compose-resources.sh\"";
+		};
+		F88A35DD17616EA11C06FFCB /* Copy Compose resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Compose resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/../xcode/scripts/copy-compose-resources.sh\"";
 		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		2F4DDE702D0A4D8B0030DA10 /* Sources */ = {
+		17755BD9A1ED27E13C6143F8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2F4DDE7F2D0A4D8B0030DA10 /* KeyguardIosApp.swift in Sources */,
-				2F4DDE802D0A4D8B0030DA10 /* ComposeHostView.swift in Sources */,
+				FB5AB5107F58D5EA4A34854A /* Host.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6FA6A0A88BAAA8873620E7CD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E21C11DC848BFD3C54460A51 /* KeyguardIosApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		99A3D6827D8729AC6BFF2C61 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B470A1829ED50AB6B2BA20FE /* StoreKitBillingTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C2844A70B2F9FF725C1868C5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1EEC3E9C3A79998370F8FB51 /* ScenePrivacyCoverTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F8A6CD60A0DE8616DA4370BF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D171B3FA50E256861C57DE97 /* AppleBiometry.swift in Sources */,
+				CAD9D9BD8294E4AED403BECF /* AutofillCredentialListView.swift in Sources */,
+				0C71D25E574E82AEFE14E942 /* AutofillL10n.swift in Sources */,
+				6E7D403500920671D070AF69 /* AutofillRecoveryViews.swift in Sources */,
+				CF52D8C8B6939DEA87CD4809 /* AutofillStoreAccess.swift in Sources */,
+				7DEBFDDA292B68E241CD7C22 /* AutofillUnlockView.swift in Sources */,
+				0D4191BF81569EC915DDFE2E /* CredentialProviderViewController.swift in Sources */,
+				7A3DF7C48AE28F4A2B0BAD1F /* Keychain.swift in Sources */,
+				31A6E16A613D3A31E80AAD1C /* KotlinData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		2F4DDE852D0A4D8B0030DA10 /* XCRemoteSwiftPackageReference "SQLCipher.swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sqlcipher/SQLCipher.swift.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.16.0;
-			};
+/* Begin PBXTargetDependency section */
+		05841DE5FCDE24216C61E075 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D754C01BF5225EE437758760 /* KeyguardAutofill */;
+			targetProxy = EC018166C7E1B2195F8523FF /* PBXContainerItemProxy */;
 		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		2F4DDE842D0A4D8B0030DA10 /* SQLCipher */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2F4DDE852D0A4D8B0030DA10 /* XCRemoteSwiftPackageReference "SQLCipher.swift" */;
-			productName = SQLCipher;
+		CD353E53EC9DA02F100B3F45 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 504D5EEF39F45B90D55D49BE /* KeyguardBillingHost */;
+			targetProxy = 1E623C14675385A8D6D46200 /* PBXContainerItemProxy */;
 		};
-/* End XCSwiftPackageProductDependency section */
+		FFA7E1C4BB9D5FE4B1222CD5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 504D5EEF39F45B90D55D49BE /* KeyguardBillingHost */;
+			targetProxy = 7363BDF01C390EECC42F00A2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		2F4DDE772D0A4D8B0030DA10 /* Debug */ = {
+		11814011E7D6EC822BFBC66D /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9712367E484EEF7003E980FD /* Base.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"SQLITE_HAS_CODEC=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				KEYGUARD_DISTRIBUTION = appStore;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		41AF450C07AABB094EBB70F3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = KeyguardAutofill/KeyguardAutofill.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = KeyguardAutofill/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(KEYGUARD_BUNDLE_ID).autofill";
+				PRODUCT_NAME = KeyguardAutofill;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		6C824A6EB4BAD43AE2A4BB29 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9712367E484EEF7003E980FD /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -227,8 +821,8 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
 					"$(inherited)",
+					"SQLITE_HAS_CODEC=1",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -236,168 +830,325 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				KEYGUARD_DISTRIBUTION = appStore;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
-		2F4DDE782D0A4D8B0030DA10 /* Release */ = {
+		75ACE2F72314E10A331000CA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.privacytests.ios;
 				SDKROOT = iphoneos;
-				SWIFT_COMPILATION_MODE = wholemodule;
-				VALIDATE_PRODUCT = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KeyguardBillingHost.app/KeyguardBillingHost";
 			};
 			name = Release;
 		};
-		2F4DDE7A2D0A4D8B0030DA10 /* Debug */ = {
+		993B0C3337C683753ECCE5C0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = KeyguardAutofill/KeyguardAutofill.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(SRCROOT)/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
-				);
+				CURRENT_PROJECT_VERSION = 3;
 				GENERATE_INFOPLIST_FILE = NO;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"SQLITE_HAS_CODEC=1",
-				);
-				INFOPLIST_FILE = iosApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				INFOPLIST_FILE = KeyguardAutofill/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-framework",
-					KeyguardShared,
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard;
-				PRODUCT_NAME = Keyguard;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(KEYGUARD_BUNDLE_ID).autofill";
+				PRODUCT_NAME = KeyguardAutofill;
+				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
-		2F4DDE7B2D0A4D8B0030DA10 /* Release */ = {
+		ACC42223265764897FEB9EFE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
 				DEVELOPMENT_TEAM = "";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(SRCROOT)/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
-				);
-				GENERATE_INFOPLIST_FILE = NO;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"SQLITE_HAS_CODEC=1",
-				);
-				INFOPLIST_FILE = iosApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_KeyguardDistribution = appStore;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = (
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.billingtesthost.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B56016BDC3E1D20D9BFE3C70 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"-framework",
-					KeyguardShared,
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard;
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.privacytests.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KeyguardBillingHost.app/KeyguardBillingHost";
+			};
+			name = Debug;
+		};
+		BAFB0A9865D63E860082B315 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_KeyguardDistribution = appStore;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.billingtesthost.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C546E8BCEBE788EC64C442B7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = iosApp/Keyguard.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = iosApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(KEYGUARD_BUNDLE_ID)";
 				PRODUCT_NAME = Keyguard;
+				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D7E077EFFFF296255F349709 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.billingtests.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KeyguardBillingHost.app/KeyguardBillingHost";
+			};
+			name = Debug;
+		};
+		DEC376C519D1B622AC3D6DB1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = iosApp/Keyguard.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = iosApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(KEYGUARD_BUNDLE_ID)";
+				PRODUCT_NAME = Keyguard;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		DEC8830C46F5A14674A35ACD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.billingtests.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KeyguardBillingHost.app/KeyguardBillingHost";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2F4DDE6F2D0A4D8B0030DA10 /* Build configuration list for PBXProject "iosApp" */ = {
+		1BB0301F5BFF133BC69E6841 /* Build configuration list for PBXNativeTarget "Keyguard" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				2F4DDE772D0A4D8B0030DA10 /* Debug */,
-				2F4DDE782D0A4D8B0030DA10 /* Release */,
+				C546E8BCEBE788EC64C442B7 /* Debug */,
+				DEC376C519D1B622AC3D6DB1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2F4DDE792D0A4D8B0030DA10 /* Build configuration list for PBXNativeTarget "Keyguard" */ = {
+		653F82916D877260A44C936E /* Build configuration list for PBXNativeTarget "KeyguardBillingTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				2F4DDE7A2D0A4D8B0030DA10 /* Debug */,
-				2F4DDE7B2D0A4D8B0030DA10 /* Release */,
+				D7E077EFFFF296255F349709 /* Debug */,
+				DEC8830C46F5A14674A35ACD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CB418FE0178C021936D45842 /* Build configuration list for PBXNativeTarget "KeyguardBillingHost" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BAFB0A9865D63E860082B315 /* Debug */,
+				ACC42223265764897FEB9EFE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E99607AE13DE89FF8D852FAE /* Build configuration list for PBXNativeTarget "KeyguardPrivacyTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B56016BDC3E1D20D9BFE3C70 /* Debug */,
+				75ACE2F72314E10A331000CA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		EFBC19590640767595ED743F /* Build configuration list for PBXNativeTarget "KeyguardAutofill" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				993B0C3337C683753ECCE5C0 /* Debug */,
+				41AF450C07AABB094EBB70F3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FF7CA1CA754D017066F1822F /* Build configuration list for PBXProject "iosApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C824A6EB4BAD43AE2A4BB29 /* Debug */,
+				11814011E7D6EC822BFBC66D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		18B674E1611EB87256433655 /* XCLocalSwiftPackageReference "../appleUi" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../appleUi;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		1BA982063662828D6CAF5BFA /* XCRemoteSwiftPackageReference "SQLCipher.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sqlcipher/SQLCipher.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.16.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		217794B20B5352A26B07CA7E /* SQLCipher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1BA982063662828D6CAF5BFA /* XCRemoteSwiftPackageReference "SQLCipher.swift" */;
+			productName = SQLCipher;
+		};
+		403EDA3D3326304FF9ECC182 /* SQLCipher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1BA982063662828D6CAF5BFA /* XCRemoteSwiftPackageReference "SQLCipher.swift" */;
+			productName = SQLCipher;
+		};
+		588FD7176A6962B901897BC6 /* SQLCipher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1BA982063662828D6CAF5BFA /* XCRemoteSwiftPackageReference "SQLCipher.swift" */;
+			productName = SQLCipher;
+		};
+		7AF48BAE3CEC46985DCD92A0 /* KeyguardUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KeyguardUI;
+		};
+		7C484C5C23E2B066AAD27FC8 /* KeyguardUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KeyguardUI;
+		};
+		819D97F6469509474CA65227 /* KeyguardUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KeyguardUI;
+		};
+		BC57B55A0A31982C047AC16B /* SQLCipher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1BA982063662828D6CAF5BFA /* XCRemoteSwiftPackageReference "SQLCipher.swift" */;
+			productName = SQLCipher;
+		};
+		F31E7B09B2CFEECE41435A03 /* KeyguardShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KeyguardShared;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 2F4DDE6C2D0A4D8B0030DA10 /* Project object */;
+	rootObject = 242FB5348943441C388468CE /* Project object */;
 }

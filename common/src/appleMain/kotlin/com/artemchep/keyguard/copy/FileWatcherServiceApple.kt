@@ -25,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -62,7 +63,7 @@ class FileWatcherServiceApple internal constructor(
     private val pollIntervalMillis: Long,
     private val lifecycle: suspend ((Boolean) -> Unit) -> Nothing,
 ) : FileWatcherService {
-    constructor() : this(1_000L, ::watchAppleFileWatcherLifecycle)
+    constructor() : this(DEFAULT_POLL_INTERVAL_MILLIS, ::watchAppleFileWatcherLifecycle)
 
     init {
         require(pollIntervalMillis > 0L)
@@ -92,64 +93,20 @@ class FileWatcherServiceApple internal constructor(
                     continuation.invokeOnCancellation { observation.close() }
                 }
             }
-            suspend fun sendEvent(path: String, kind: FileWatchEvent.Kind) =
+            val sampler = AppleFileSampler(observation, pollIntervalMillis) { path, kind ->
                 send(FileWatchEvent(LocalPath(path), kind, null))
+            }
             try {
                 // Coordinated reads block their thread while a writer holds the item.
                 withContext(Dispatchers.IO) {
-                    var previous: AppleFileSnapshot? = null
-                    var uncertain = false
-                    var retryMillis = pollIntervalMillis
                     while (true) {
                         ensureActive()
                         if (!observation.isForeground()) {
-                            observation.releaseAccess()
-                            uncertain = uncertain || previous != null
+                            sampler.onBackground()
                             wake.receive()
                             continue
                         }
-                        val invalidated = observation.consumeInvalidation()
-                        var waitMillis = pollIntervalMillis
-                        try {
-                            val snapshot = observation.sample()
-                            ensureActive()
-                            if (snapshot != null && observation.isForeground()) {
-                                val recoveredWithoutBaseline = previous == null && uncertain
-                                val kind = when {
-                                    previous == null -> FileWatchEvent.Kind.INITIALIZED
-                                    !previous.exists && snapshot.exists -> FileWatchEvent.Kind.CREATED
-                                    previous.exists && !snapshot.exists -> FileWatchEvent.Kind.DELETED
-                                    previous != snapshot || invalidated || uncertain -> FileWatchEvent.Kind.MODIFIED
-                                    else -> null
-                                }
-                                previous = snapshot
-                                uncertain = false
-                                retryMillis = pollIntervalMillis
-                                if (kind != null) {
-                                    sendEvent(snapshot.path, kind)
-                                }
-                                if (recoveredWithoutBaseline) {
-                                    // Consumers ignore INITIALIZED; recovery must also
-                                    // retry a sync that failed before the first sample.
-                                    sendEvent(snapshot.path, FileWatchEvent.Kind.MODIFIED)
-                                }
-                            } else {
-                                uncertain = uncertain || invalidated ||
-                                    (previous != null && !observation.isForeground())
-                            }
-                        } catch (_: AppleFileObservationException) {
-                            // Permission/provider failures are not deletions. Retain the
-                            // baseline and invalidate once access recovers.
-                            uncertain = true
-                            if (invalidated && previous != null && observation.isForeground()) {
-                                sendEvent(previous.path, FileWatchEvent.Kind.MODIFIED)
-                            }
-                            waitMillis = retryMillis
-                            retryMillis = (retryMillis * 2L).coerceAtMost(60_000L)
-                            observation.retryAccess()
-                        } finally {
-                            observation.releaseAccessIfSuspended()
-                        }
+                        val waitMillis = sampler.sample()
                         withTimeoutOrNull(waitMillis) { wake.receive() }
                     }
                 }
@@ -174,27 +131,105 @@ private data class AppleFileSnapshot(
 
 private class AppleFileObservationException : RuntimeException("Could not observe the selected file.")
 
-/** The sampling coroutine owns the access grant and bookmark; other state is guarded. */
+/** Turns successive samples into events. Only the sampling coroutine uses it. */
+private class AppleFileSampler(
+    private val observation: AppleFileObservation,
+    private val pollIntervalMillis: Long,
+    private val sendEvent: suspend (path: String, kind: FileWatchEvent.Kind) -> Unit,
+) {
+    private var previous: AppleFileSnapshot? = null
+    private var uncertain = false
+    private var retryMillis = pollIntervalMillis
+
+    fun onBackground() {
+        observation.releaseAccess()
+        uncertain = uncertain || previous != null
+    }
+
+    /** Returns how long to wait for a wake-up before the next sample. */
+    suspend fun sample(): Long {
+        val invalidated = observation.consumeInvalidation()
+        var waitMillis = pollIntervalMillis
+        try {
+            val snapshot = observation.sample()
+            currentCoroutineContext().ensureActive()
+            if (snapshot != null && observation.isForeground()) {
+                onSnapshot(snapshot, invalidated)
+            } else {
+                uncertain = uncertain || invalidated ||
+                    (previous != null && !observation.isForeground())
+            }
+        } catch (_: AppleFileObservationException) {
+            // Permission/provider failures are not deletions. Retain the
+            // baseline and invalidate once access recovers.
+            uncertain = true
+            val baseline = previous
+            if (invalidated && baseline != null && observation.isForeground()) {
+                sendEvent(baseline.path, FileWatchEvent.Kind.MODIFIED)
+            }
+            waitMillis = retryMillis
+            retryMillis = (retryMillis * 2L).coerceAtMost(MAX_RETRY_INTERVAL_MILLIS)
+            observation.retryAccess()
+        } finally {
+            observation.releaseAccessIfSuspended()
+        }
+        return waitMillis
+    }
+
+    private suspend fun onSnapshot(snapshot: AppleFileSnapshot, invalidated: Boolean) {
+        val recoveredWithoutBaseline = previous == null && uncertain
+        val kind = eventKind(previous, snapshot, invalidated, uncertain)
+        previous = snapshot
+        uncertain = false
+        retryMillis = pollIntervalMillis
+        if (kind != null) {
+            sendEvent(snapshot.path, kind)
+        }
+        if (recoveredWithoutBaseline) {
+            // Consumers ignore INITIALIZED; recovery must also
+            // retry a sync that failed before the first sample.
+            sendEvent(snapshot.path, FileWatchEvent.Kind.MODIFIED)
+        }
+    }
+}
+
+/** Returns the event that [snapshot] reports after [previous], or `null` when there is none. */
+private fun eventKind(
+    previous: AppleFileSnapshot?,
+    snapshot: AppleFileSnapshot,
+    invalidated: Boolean,
+    uncertain: Boolean,
+): FileWatchEvent.Kind? = when {
+    previous == null -> FileWatchEvent.Kind.INITIALIZED
+    !previous.exists && snapshot.exists -> FileWatchEvent.Kind.CREATED
+    previous.exists && !snapshot.exists -> FileWatchEvent.Kind.DELETED
+    previous != snapshot || invalidated || uncertain -> FileWatchEvent.Kind.MODIFIED
+    else -> null
+}
+
+/** The sampling coroutine owns [access]; other state is guarded. */
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 private class AppleFileObservation(
-    private val uri: String,
-    private val accessToken: FileAccessToken?,
+    uri: String,
+    accessToken: FileAccessToken?,
     private val wake: () -> Unit,
 ) {
     private val lock = SynchronizedObject()
     private var state = State.BACKGROUND
-    private var registered = false
     private var evicted = false
     private var invalidated = false
     private var epoch = 0L
     private var locationVersion = 0L
     private var coordinator: NSFileCoordinator? = null
-    private var access: Access? = null
-    // Only the sampling coroutine reads or updates bookmark data.
-    private var bookmarkData = accessToken?.value?.toSecurityScopedBookmarkDataOrNull()
-    private var bookmarkPath: String? = null
+    private val access = AppleFileAccess(uri, accessToken)
     private val presenter: AppleFilePresenter = AppleFilePresenter(
-        changed = ::invalidate,
+        changed = changed@{
+            synchronized(lock) {
+                if (state == State.CLOSED) return@changed
+                invalidated = true
+            }
+            wake()
+        },
         moved = { url ->
             synchronized(lock) {
                 if (state == State.FOREGROUND) {
@@ -211,7 +246,7 @@ private class AppleFileObservation(
             synchronized(lock) {
                 evicted = true
                 epoch++
-                unregister()
+                presenter.unregister()
                 coordinator?.cancel()
             }
             // Eviction is not a content edit. Forcing a sync here would immediately
@@ -227,7 +262,7 @@ private class AppleFileObservation(
             if (!value) {
                 epoch++
                 invalidated = true
-                unregister()
+                presenter.unregister()
                 coordinator?.cancel()
             } else {
                 evicted = false
@@ -242,22 +277,8 @@ private class AppleFileObservation(
         invalidated.also { invalidated = false }
     }
 
-    private fun invalidate() {
-        synchronized(lock) {
-            if (state == State.CLOSED) return
-            invalidated = true
-        }
-        wake()
-    }
-
     suspend fun sample(): AppleFileSnapshot? {
-        val currentEpoch = synchronized(lock) {
-            if (state != State.FOREGROUND) return null
-            epoch
-        }
-        if (access?.epoch != currentEpoch) releaseAccess()
-        if (access == null) access = openAccess(currentEpoch)
-        val request = prepareRead(currentEpoch) ?: return null
+        val request = prepareRead() ?: return null
         val url = request.url
         val reader = request.coordinator
         val snapshot = try {
@@ -284,7 +305,7 @@ private class AppleFileObservation(
                 synchronized(lock) {
                     if (!isCurrent(request)) return@memScoped null
                     result?.getOrThrow() ?: if (error.value.isMissingFile()) {
-                        unregister()
+                        presenter.unregister()
                         AppleFileSnapshot(requireNotNull(url.path), exists = false)
                     } else {
                         throw AppleFileObservationException()
@@ -300,42 +321,52 @@ private class AppleFileObservation(
 
     private fun readAndCommitSnapshot(request: ReadRequest, url: NSURL): AppleFileSnapshot {
         val snapshot = readSnapshot(url)
-        val refreshedBookmark = if (snapshot.exists) refreshedBookmark(url) else null
+        val refreshedBookmark = if (snapshot.exists) access.refreshedBookmark(url) else null
         synchronized(lock) {
             if (isCurrent(request)) {
-                if (refreshedBookmark != null) {
-                    bookmarkData = refreshedBookmark
-                    bookmarkPath = url.path
-                }
+                if (refreshedBookmark != null) access.updateBookmark(refreshedBookmark, url)
                 presenter.url.value = url
-                if (snapshot.exists && !registered && !evicted) {
+                if (snapshot.exists && !evicted) {
                     // Register inside the coordinated baseline read so
                     // no coordinated write can fall in an attachment gap.
-                    NSFileCoordinator.addFilePresenter(presenter)
-                    registered = true
+                    presenter.register()
                 } else if (!snapshot.exists) {
-                    unregister()
+                    presenter.unregister()
                 }
             }
         }
         return snapshot
     }
 
-    private suspend fun prepareRead(currentEpoch: Long): ReadRequest? = suspendCancellableCoroutine { continuation ->
-        // Foundation's move tracking requires creation on the presenter's queue.
-        // Capture the URL in that same operation, after earlier move callbacks.
-        presenter.presentedItemOperationQueue().addOperationWithBlock {
-            continuation.resumeWith(runCatching {
-                synchronized(lock) {
-                    if (state != State.FOREGROUND || epoch != currentEpoch) return@synchronized null
-                    ReadRequest(
-                        url = requireNotNull(presenter.url.value),
-                        coordinator = NSFileCoordinator(filePresenter = presenter),
-                        epoch = currentEpoch,
-                        locationVersion = locationVersion,
-                    ).also { coordinator = it.coordinator }
-                }
-            })
+    /** Opens access for the foreground epoch and prepares its read, or returns `null` in the background. */
+    private suspend fun prepareRead(): ReadRequest? {
+        val currentEpoch = synchronized(lock) {
+            epoch.takeIf { state == State.FOREGROUND }
+        } ?: return null
+        if (!access.isOpen(currentEpoch)) {
+            access.release()
+            val currentLocationVersion = synchronized(lock) { locationVersion }
+            val url = access.open(currentEpoch) { presenter.url.value }
+            synchronized(lock) {
+                if (locationVersion == currentLocationVersion) presenter.url.value = url
+            }
+        }
+        return suspendCancellableCoroutine { continuation ->
+            // Foundation's move tracking requires creation on the presenter's queue.
+            // Capture the URL in that same operation, after earlier move callbacks.
+            presenter.presentedItemOperationQueue().addOperationWithBlock {
+                continuation.resumeWith(runCatching {
+                    synchronized(lock) {
+                        if (state != State.FOREGROUND || epoch != currentEpoch) return@synchronized null
+                        ReadRequest(
+                            url = requireNotNull(presenter.url.value),
+                            coordinator = NSFileCoordinator(filePresenter = presenter),
+                            epoch = currentEpoch,
+                            locationVersion = locationVersion,
+                        ).also { coordinator = it.coordinator }
+                    }
+                })
+            }
         }
     }
 
@@ -343,40 +374,93 @@ private class AppleFileObservation(
     private fun isCurrent(request: ReadRequest): Boolean = state == State.FOREGROUND &&
         epoch == request.epoch && locationVersion == request.locationVersion
 
-    private fun openAccess(epoch: Long): Access = memScoped {
-        val currentLocationVersion = synchronized(lock) { locationVersion }
+    fun releaseAccessIfSuspended() {
+        if (synchronized(lock) { state != State.FOREGROUND || evicted }) releaseAccess()
+    }
+
+    fun retryAccess() {
+        synchronized(lock) { presenter.unregister() }
+        releaseAccess()
+    }
+
+    fun releaseAccess() {
+        access.release()
+    }
+
+    fun close() {
+        synchronized(lock) {
+            if (state == State.CLOSED) return
+            state = State.CLOSED
+            presenter.unregister()
+            coordinator?.cancel()
+        }
+        wake()
+    }
+
+    private enum class State { BACKGROUND, FOREGROUND, CLOSED }
+
+    private class ReadRequest(
+        val url: NSURL,
+        val coordinator: NSFileCoordinator,
+        val epoch: Long,
+        val locationVersion: Long,
+    )
+}
+
+/** The access grant and bookmark of one observation. Only the sampling coroutine uses them. */
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
+private class AppleFileAccess(
+    private val uri: String,
+    private val accessToken: FileAccessToken?,
+) {
+    private var grant: Grant? = null
+    private var bookmarkData = accessToken?.value?.toSecurityScopedBookmarkDataOrNull()
+    private var bookmarkPath: String? = null
+
+    fun isOpen(epoch: Long): Boolean = grant?.epoch == epoch
+
+    /** Starts accessing the bookmarked location or, without a bookmark, [presentedUrl] or the URI. */
+    fun open(epoch: Long, presentedUrl: () -> NSURL?): NSURL {
         val url = if (accessToken != null) {
-            val data = bookmarkData ?: throw AppleFileObservationException()
-            val stale = alloc<BooleanVar>()
-            stale.value = false
-            val resolved = NSURL.URLByResolvingBookmarkData(
-                data,
-                // Retrying an offline location must stay passive. Own the access
-                // lifetime explicitly, including iOS's ephemeral bookmark grants.
-                appleBookmarkResolutionOptions or NSURLBookmarkResolutionWithoutUI or
-                    NSURLBookmarkResolutionWithoutMounting or NSURLBookmarkResolutionWithoutImplicitStartAccessing,
-                null,
-                stale.ptr,
-                null,
-            )
-                ?: throw AppleFileObservationException()
-            // A stale bookmark must be replaced while the resolved location is
-            // accessible, before a later atomic save removes its old file identity.
-            bookmarkPath = resolved.path.takeUnless { stale.value }
-            resolved
+            resolveBookmark()
         } else {
-            presenter.url.value ?: NSURL.URLWithString(uri)
+            presentedUrl() ?: NSURL.URLWithString(uri)
                 ?: throw AppleFileObservationException()
         }
         if (!url.isFileURL()) throw AppleFileObservationException()
-        val accessing = url.startAccessingSecurityScopedResource()
-        synchronized(lock) {
-            if (locationVersion == currentLocationVersion) presenter.url.value = url
-        }
-        Access(url, accessing, epoch)
+        grant = Grant(url, url.startAccessingSecurityScopedResource(), epoch)
+        return url
     }
 
-    private fun refreshedBookmark(url: NSURL): NSData? =
+    private fun resolveBookmark(): NSURL = memScoped {
+        val data = bookmarkData ?: throw AppleFileObservationException()
+        val stale = alloc<BooleanVar>()
+        stale.value = false
+        val resolved = NSURL.URLByResolvingBookmarkData(
+            data,
+            // Retrying an offline location must stay passive. Own the access
+            // lifetime explicitly, including iOS's ephemeral bookmark grants.
+            appleBookmarkResolutionOptions or NSURLBookmarkResolutionWithoutUI or
+                NSURLBookmarkResolutionWithoutMounting or NSURLBookmarkResolutionWithoutImplicitStartAccessing,
+            null,
+            stale.ptr,
+            null,
+        )
+            ?: throw AppleFileObservationException()
+        // A stale bookmark must be replaced while the resolved location is
+        // accessible, before a later atomic save removes its old file identity.
+        bookmarkPath = resolved.path.takeUnless { stale.value }
+        resolved
+    }
+
+    fun release() {
+        grant?.let {
+            if (it.accessing) it.url.stopAccessingSecurityScopedResource()
+        }
+        grant = null
+    }
+
+    fun refreshedBookmark(url: NSURL): NSData? =
         if (accessToken != null && bookmarkPath != url.path) {
             // A failed refresh is retried on the next sample.
             url.bookmarkDataWithOptions(appleBookmarkCreationOptions, null, null, null)
@@ -384,80 +468,43 @@ private class AppleFileObservation(
             null
         }
 
-    private fun readSnapshot(url: NSURL): AppleFileSnapshot = memScoped {
-        val path = url.path ?: throw AppleFileObservationException()
-        val error = alloc<ObjCObjectVar<NSError?>>()
-        error.value = null
-        url.removeAllCachedResourceValues()
-        // Ordinary resourceValues are not allowed for ImmediatelyAvailableMetadataOnly.
-        // Promised metadata does not materialize an evicted provider document. Some
-        // providers omit generation; identity, timestamp and size remain the fallback.
-        val values = url.promisedItemResourceValuesForKeys(
-            listOf(
-                NSURLFileResourceIdentifierKey,
-                NSURLGenerationIdentifierKey,
-                NSURLContentModificationDateKey,
-                NSURLFileSizeKey,
-            ),
-            error.ptr,
-        ) ?: if (error.value.isMissingFile()) {
-            return@memScoped AppleFileSnapshot(path, exists = false)
-        } else {
-            throw AppleFileObservationException()
-        }
-        AppleFileSnapshot(
-            path = path,
-            exists = true,
-            identity = values[NSURLFileResourceIdentifierKey],
-            generation = values[NSURLGenerationIdentifierKey],
-            modified = (values[NSURLContentModificationDateKey] as? NSDate)?.timeIntervalSinceReferenceDate,
-            size = (values[NSURLFileSizeKey] as? NSNumber)?.longLongValue,
-        )
+    fun updateBookmark(data: NSData, url: NSURL) {
+        bookmarkData = data
+        bookmarkPath = url.path
     }
 
-    fun releaseAccessIfSuspended() {
-        if (synchronized(lock) { state != State.FOREGROUND || evicted }) releaseAccess()
+    private class Grant(val url: NSURL, val accessing: Boolean, val epoch: Long)
+}
+
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
+private fun readSnapshot(url: NSURL): AppleFileSnapshot = memScoped {
+    val path = url.path ?: throw AppleFileObservationException()
+    val error = alloc<ObjCObjectVar<NSError?>>()
+    error.value = null
+    url.removeAllCachedResourceValues()
+    // Ordinary resourceValues are not allowed for ImmediatelyAvailableMetadataOnly.
+    // Promised metadata does not materialize an evicted provider document. Some
+    // providers omit generation; identity, timestamp and size remain the fallback.
+    val values = url.promisedItemResourceValuesForKeys(
+        listOf(
+            NSURLFileResourceIdentifierKey,
+            NSURLGenerationIdentifierKey,
+            NSURLContentModificationDateKey,
+            NSURLFileSizeKey,
+        ),
+        error.ptr,
+    ) ?: if (error.value.isMissingFile()) {
+        return@memScoped AppleFileSnapshot(path, exists = false)
+    } else {
+        throw AppleFileObservationException()
     }
-
-    fun retryAccess() {
-        synchronized(lock) { unregister() }
-        releaseAccess()
-    }
-
-    fun releaseAccess() {
-        access?.let {
-            if (it.accessing) it.url.stopAccessingSecurityScopedResource()
-        }
-        access = null
-    }
-
-    fun close() {
-        synchronized(lock) {
-            if (state == State.CLOSED) return
-            state = State.CLOSED
-            unregister()
-            coordinator?.cancel()
-        }
-        wake()
-    }
-
-    /** Call only with the registration lock, after closing any relevant gate. */
-    private fun unregister() {
-        if (registered) {
-            NSFileCoordinator.removeFilePresenter(presenter)
-            registered = false
-        }
-    }
-
-    private enum class State { BACKGROUND, FOREGROUND, CLOSED }
-
-    private class Access(val url: NSURL, val accessing: Boolean, val epoch: Long)
-
-    private class ReadRequest(
-        val url: NSURL,
-        val coordinator: NSFileCoordinator,
-        val epoch: Long,
-        val locationVersion: Long,
+    AppleFileSnapshot(
+        path = path,
+        exists = true,
+        identity = values[NSURLFileResourceIdentifierKey],
+        generation = values[NSURLGenerationIdentifierKey],
+        modified = (values[NSURLContentModificationDateKey] as? NSDate)?.timeIntervalSinceReferenceDate,
+        size = (values[NSURLFileSizeKey] as? NSNumber)?.longLongValue,
     )
 }
 
@@ -474,6 +521,24 @@ private class AppleFilePresenter(
     // queue, including while add/removeFilePresenter holds the registration lock.
     val url = atomic<NSURL?>(null)
     private val queue = NSOperationQueue().apply { maxConcurrentOperationCount = 1 }
+    // Guarded by the observation's registration lock.
+    private var registered = false
+
+    /** Call only with the registration lock held. */
+    fun register() {
+        if (!registered) {
+            NSFileCoordinator.addFilePresenter(this)
+            registered = true
+        }
+    }
+
+    /** Call only with the registration lock, after closing any relevant gate. */
+    fun unregister() {
+        if (registered) {
+            NSFileCoordinator.removeFilePresenter(this)
+            registered = false
+        }
+    }
 
     override fun presentedItemURL(): NSURL? = url.value
 
@@ -501,3 +566,7 @@ private class AppleFilePresenter(
         completionHandler(null)
     }
 }
+
+private const val DEFAULT_POLL_INTERVAL_MILLIS = 1_000L
+
+private const val MAX_RETRY_INTERVAL_MILLIS = 60_000L

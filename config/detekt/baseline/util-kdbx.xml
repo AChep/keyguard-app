@@ -2,7 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>ComplexCondition:OkioInOutBuffer.kt:OkioInOutBuffer$char != '\r' &amp;&amp; char != '\n' &amp;&amp; char != '\u0085' &amp;&amp; char != '\u2028'</ID>
     <ID>ComplexCondition:OkioInOutBuffer.kt:OkioInOutBuffer$first == 0xE0 &amp;&amp; second &lt; 0xA0 || first == 0xED &amp;&amp; second &gt; 0x9F || first == 0xF0 &amp;&amp; second &lt; 0x90 || first == 0xF4 &amp;&amp; second &gt; 0x8F</ID>
     <ID>ComplexCondition:XmlStream.kt:eventType != EventType.END_ELEMENT || localName != childName || namespaceURI != childNamespace || depth != childDepth</ID>
     <ID>CyclomaticComplexMethod:BaseKdfProvider.kt:BaseKdfProvider$override fun transformKey: ByteArray</ID>
@@ -31,18 +30,9 @@
     <ID>LongMethod:TimeDataSpec.kt:TimeDataSpec$@Test fun portedKotpassSpec</ID>
     <ID>LongMethod:VariantDictionary.kt:VariantDictionary$fun readFrom: Map&lt;String, VariantItem&gt;</ID>
     <ID>LoopWithTooManyJumpStatements:DatabaseHeader.kt:DatabaseHeader.Companion$while</ID>
-    <ID>MagicNumber:AesKdfSpec.kt:AesKdfSpec$32</ID>
-    <ID>MagicNumber:Argon2Spec.kt:Argon2Spec$32</ID>
     <ID>MagicNumber:Base16.kt:10</ID>
     <ID>MagicNumber:Base16.kt:4</ID>
     <ID>MagicNumber:Base64.kt:4</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$0x10U</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$0x11U</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$0x12U</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$0x13U</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$0x14U</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$1024UL</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$32UL</ID>
     <ID>MagicNumber:ByteString.kt:0xff</ID>
     <ID>MagicNumber:ByteString.kt:0xffL</ID>
     <ID>MagicNumber:ByteString.kt:16</ID>
@@ -51,9 +41,6 @@
     <ID>MagicNumber:ByteString.kt:8</ID>
     <ID>MagicNumber:ContentBlocks.kt:ContentBlocks$8</ID>
     <ID>MagicNumber:ContentBlocks.kt:ContentBlocks.Ver3BlockSink$32</ID>
-    <ID>MagicNumber:ContentBlocks.kt:ContentBlocks.Ver3BlockSource$32</ID>
-    <ID>MagicNumber:ContentBlocksCompatibilityTest.kt:ContentBlocksCompatibilityTest$16</ID>
-    <ID>MagicNumber:ContentBlocksCompatibilityTest.kt:ContentBlocksCompatibilityTest$32</ID>
     <ID>MagicNumber:Credentials.kt:Credentials.Companion$32</ID>
     <ID>MagicNumber:Credentials.kt:Credentials.Companion$4</ID>
     <ID>MagicNumber:Credentials.kt:Credentials.Companion$64</ID>
@@ -68,10 +55,6 @@
     <ID>MagicNumber:DatabaseHeader.kt:DatabaseHeader.Ver4x.Companion$32</ID>
     <ID>MagicNumber:DatabaseHeader.kt:DatabaseHeader.Ver4x.Companion$4</ID>
     <ID>MagicNumber:DatabaseInnerHeader.kt:DatabaseInnerHeader.Companion$64</ID>
-    <ID>MagicNumber:DatabaseInnerHeaderSpec.kt:DatabaseInnerHeaderSpec$42</ID>
-    <ID>MagicNumber:DecoderSecuritySpec.kt:12</ID>
-    <ID>MagicNumber:EncryptedValueSpec.kt:EncryptedValueSpec$3</ID>
-    <ID>MagicNumber:EncryptedValueSpec.kt:EncryptedValueSpec$4</ID>
     <ID>MagicNumber:EncryptionSaltGenerator.kt:EncryptionSaltGenerator.Companion$32</ID>
     <ID>MagicNumber:EncryptionSaltGenerator.kt:EncryptionSaltGenerator.Companion$44</ID>
     <ID>MagicNumber:EncryptionSaltGenerator.kt:EncryptionSaltGenerator.Salsa20$0x09</ID>
@@ -80,21 +63,8 @@
     <ID>MagicNumber:EncryptionSaltGenerator.kt:EncryptionSaltGenerator.Salsa20$0x30</ID>
     <ID>MagicNumber:EncryptionSaltGenerator.kt:EncryptionSaltGenerator.Salsa20$0x4b</ID>
     <ID>MagicNumber:EncryptionSaltGenerator.kt:EncryptionSaltGenerator.Salsa20$0x5d</ID>
-    <ID>MagicNumber:EncryptionSaltGeneratorSpec.kt:EncryptionSaltGeneratorSpec$10</ID>
-    <ID>MagicNumber:EncryptionSaltGeneratorSpec.kt:EncryptionSaltGeneratorSpec$20</ID>
-    <ID>MagicNumber:EncryptionSaltGeneratorSpec.kt:EncryptionSaltGeneratorSpec$3</ID>
     <ID>MagicNumber:Entry.kt:4</ID>
-    <ID>MagicNumber:EntrySpec.kt:EntrySpec$3</ID>
     <ID>MagicNumber:Group.kt:4</ID>
-    <ID>MagicNumber:GzipSpec.kt:GzipSpec$1024</ID>
-    <ID>MagicNumber:KdbxDecodeBenchmark.kt:KdbxDecodeBenchmark$10L</ID>
-    <ID>MagicNumber:KdbxDecodeBenchmark.kt:KdbxDecodeBenchmark$1_000_000.0</ID>
-    <ID>MagicNumber:KdbxDecodeBenchmark.kt:KdbxDecodeBenchmark$3</ID>
-    <ID>MagicNumber:KdbxDecodeBenchmark.kt:KdbxDecodeBenchmark$500</ID>
-    <ID>MagicNumber:KdbxDecodeBenchmark.kt:KdbxDecodeBenchmark$50L</ID>
-    <ID>MagicNumber:KdbxXmlBenchmark.kt:KdbxXmlBenchmark$1_000.0</ID>
-    <ID>MagicNumber:KdbxXmlBenchmark.kt:KdbxXmlBenchmark$4</ID>
-    <ID>MagicNumber:KdbxXmlBenchmark.kt:KdbxXmlBenchmark$500</ID>
     <ID>MagicNumber:KdfParameters.kt:KdfParameters.Argon2.Variant.Argon2d$0x03</ID>
     <ID>MagicNumber:KdfParameters.kt:KdfParameters.Argon2.Variant.Argon2d$0x0A</ID>
     <ID>MagicNumber:KdfParameters.kt:KdfParameters.Argon2.Variant.Argon2d$0x0C</ID>
@@ -127,7 +97,6 @@
     <ID>MagicNumber:KdfParameters.kt:KdfParameters.Argon2.Variant.Argon2id$0xE6</ID>
     <ID>MagicNumber:KdfParameters.kt:KdfParameters.Argon2.Variant.Argon2id$0xF0</ID>
     <ID>MagicNumber:KdfParameters.kt:KdfParameters.Argon2.Variant.Argon2id$0xFC</ID>
-    <ID>MagicNumber:KeePassDatabaseSpec.kt:KeePassDatabaseSpec$3</ID>
     <ID>MagicNumber:KeyTransform.kt:KeyTransform$8</ID>
     <ID>MagicNumber:Long.kt:0xff</ID>
     <ID>MagicNumber:Long.kt:16</ID>
@@ -143,7 +112,6 @@
     <ID>MagicNumber:Long.kt:7</ID>
     <ID>MagicNumber:Long.kt:8</ID>
     <ID>MagicNumber:Meta.kt:4</ID>
-    <ID>MagicNumber:MetaSpec.kt:MetaSpec$365U</ID>
     <ID>MagicNumber:OkioInOutBuffer.kt:OkioInOutBuffer$0x3FF</ID>
     <ID>MagicNumber:OkioInOutBuffer.kt:OkioInOutBuffer$0x80</ID>
     <ID>MagicNumber:OkioInOutBuffer.kt:OkioInOutBuffer$0x8F</ID>
@@ -159,15 +127,10 @@
     <ID>MagicNumber:OkioInOutBuffer.kt:OkioInOutBuffer$0xF4</ID>
     <ID>MagicNumber:OkioInOutBuffer.kt:OkioInOutBuffer$0xFFFF</ID>
     <ID>MagicNumber:OkioInOutBuffer.kt:OkioInOutBuffer$10</ID>
-    <ID>MagicNumber:Salsa20Spec.kt:Salsa20Spec$20</ID>
-    <ID>MagicNumber:Salsa20Spec.kt:Salsa20Spec$64</ID>
     <ID>MagicNumber:Signature.kt:Signature.Companion$4</ID>
-    <ID>MagicNumber:TeeBufferedStreamSpec.kt:TeeBufferedStreamSpec$5</ID>
-    <ID>MagicNumber:TeeBufferedStreamSpec.kt:TeeBufferedStreamSpec$6</ID>
     <ID>MagicNumber:TwofishCipher.kt:TwofishCipher$16</ID>
     <ID>MagicNumber:TwofishCipher.kt:TwofishCipher$24</ID>
     <ID>MagicNumber:TwofishCipher.kt:TwofishCipher$32</ID>
-    <ID>MagicNumber:TwofishSpec.kt:TwofishSpec$8</ID>
     <ID>MagicNumber:XmlStream.kt:BufferedSinkWriter$8_192</ID>
     <ID>MagicNumber:XmlStream.kt:XmlReadLimits$1024</ID>
     <ID>MagicNumber:XmlStream.kt:XmlReadLimits$1024L</ID>
@@ -627,7 +590,6 @@
     <ID>ReturnCount:Credentials.kt:Credentials.Companion$private fun parseKeyfile: ByteArray</ID>
     <ID>ReturnCount:CustomData.kt:CustomData$private fun unmarshalCustomDataItem: Pair&lt;String, CustomDataValue&gt;?</ID>
     <ID>ReturnCount:CustomIcons.kt:CustomIcons$private fun unmarshalCustomIcon: Pair&lt;Uuid, CustomIcon&gt;?</ID>
-    <ID>ReturnCount:Group.kt:fun KeePassDatabase.moveGroup: KeePassDatabase</ID>
     <ID>ReturnCount:OkioInOutBuffer.kt:OkioInOutBuffer$override fun read: Int</ID>
     <ID>ReturnCount:Placeholders.kt:fun KeePassDatabase.resolvePlaceholder: String</ID>
     <ID>ReturnCount:Placeholders.kt:fun KeePassDatabase.resolveReference: String</ID>
@@ -647,11 +609,9 @@
     <ID>TooGenericExceptionCaught:BaseCiphers.kt:NativeCipherSession$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:CipherStreams.kt:CipherSink$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:CipherStreams.kt:CipherSource$error: Throwable</ID>
-    <ID>TooGenericExceptionCaught:Credentials.kt:Credentials.Companion$e: Exception</ID>
     <ID>TooGenericExceptionCaught:Decoder.kt:error: Exception</ID>
     <ID>TooGenericExceptionCaught:Decoder.kt:error: Throwable</ID>
     <ID>TooGenericExceptionCaught:DefaultXmlContentParser.kt:StreamingXmlContentParser$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:KeyTransform.kt:KeyTransform$error: Exception</ID>
     <ID>TooGenericExceptionCaught:KotpassSpec.kt:KotpassSpec$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:Matchers.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:ProtectedXmlValueCodec.kt:error: Throwable</ID>

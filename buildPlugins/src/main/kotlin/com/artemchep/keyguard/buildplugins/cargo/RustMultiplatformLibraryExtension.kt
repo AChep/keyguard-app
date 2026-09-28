@@ -14,10 +14,6 @@ abstract class RustMultiplatformLibraryExtension @Inject constructor(
     private val project: Project,
     objects: ObjectFactory,
 ) {
-    /** Disable JNI packaging when Android uses a platform SDK instead of Rust. */
-    val androidEnabled: org.gradle.api.provider.Property<Boolean> =
-        objects.property(Boolean::class.java).convention(true)
-
     val extraSourceInputs: ConfigurableFileCollection = objects.fileCollection()
 
     abstract val androidCmakeToolchainFile: RegularFileProperty

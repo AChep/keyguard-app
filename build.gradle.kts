@@ -80,6 +80,130 @@ tasks.register("checkAppleVersion") {
     }
 }
 
+fun validateAppleDeploymentTarget(
+    name: String,
+    version: String,
+): String {
+    require(version.matches(Regex("[0-9]+\\.[0-9]+"))) {
+        "Apple deployment targets must use major.minor; $name is '$version'."
+    }
+    return version
+}
+
+fun appleDeploymentConfigContent(
+    macosVersion: String,
+    iosVersion: String,
+): String {
+    val macos = validateAppleDeploymentTarget("appleMacosDeploymentTarget", macosVersion)
+    val ios = validateAppleDeploymentTarget("appleIosDeploymentTarget", iosVersion)
+    return "// Generated from gradle/libs.versions.toml. Do not edit.\n" +
+        "// Regenerate with ./gradlew generateAppleConfiguration.\n" +
+        "MACOSX_DEPLOYMENT_TARGET = $macos\n" +
+        "IPHONEOS_DEPLOYMENT_TARGET = $ios\n"
+}
+
+fun updateSwiftPackageDeploymentTargets(
+    source: String,
+    macosVersion: String,
+    iosVersion: String,
+): String {
+    fun replaceSingle(
+        input: String,
+        pattern: Regex,
+        replacement: String,
+        platform: String,
+    ): String {
+        val matches = pattern.findAll(input).toList()
+        check(matches.size == 1) {
+            "Expected exactly one $platform platform declaration in appleUi/Package.swift, " +
+                "found ${matches.size}."
+        }
+        return input.replaceRange(matches.single().range, replacement)
+    }
+
+    val macos = validateAppleDeploymentTarget("appleMacosDeploymentTarget", macosVersion)
+    val ios = validateAppleDeploymentTarget("appleIosDeploymentTarget", iosVersion)
+    return replaceSingle(
+        input = source,
+        pattern = Regex("""\.macOS\("[^"]+"\)"""),
+        replacement = ".macOS(\"$macos\")",
+        platform = "macOS",
+    ).let { updated ->
+        replaceSingle(
+            input = updated,
+            pattern = Regex("""\.iOS\("[^"]+"\)"""),
+            replacement = ".iOS(\"$ios\")",
+            platform = "iOS",
+        )
+    }
+}
+
+val appleDeploymentConfig = layout.projectDirectory.file("xcode/DeploymentTargets.xcconfig")
+val appleUiPackageManifest = layout.projectDirectory.file("appleUi/Package.swift")
+val appleMacosDeploymentTarget = libs.versions.appleMacosDeploymentTarget
+val appleIosDeploymentTarget = libs.versions.appleIosDeploymentTarget
+
+tasks.register("generateAppleDeploymentTargets") {
+    group = "build setup"
+    description = "Updates Apple deployment targets from the version catalog."
+    val config = appleDeploymentConfig
+    val packageManifest = appleUiPackageManifest
+    val macosVersion = appleMacosDeploymentTarget
+    val iosVersion = appleIosDeploymentTarget
+    inputs.property("macosDeploymentTarget", macosVersion)
+    inputs.property("iosDeploymentTarget", iosVersion)
+    outputs.file(config)
+    outputs.file(packageManifest)
+    doLast {
+        val macos = macosVersion.get()
+        val ios = iosVersion.get()
+        config.asFile.writeText(appleDeploymentConfigContent(macos, ios))
+        val packageSource = packageManifest.asFile.readText()
+        packageManifest.asFile.writeText(
+            updateSwiftPackageDeploymentTargets(packageSource, macos, ios),
+        )
+    }
+}
+
+tasks.register("checkAppleDeploymentTargets") {
+    group = "verification"
+    description = "Checks Apple deployment targets against the version catalog."
+    mustRunAfter("generateAppleDeploymentTargets")
+    val config = appleDeploymentConfig
+    val packageManifest = appleUiPackageManifest
+    val macosVersion = appleMacosDeploymentTarget
+    val iosVersion = appleIosDeploymentTarget
+    inputs.files(config, packageManifest).withPathSensitivity(PathSensitivity.NONE)
+    inputs.property("macosDeploymentTarget", macosVersion)
+    inputs.property("iosDeploymentTarget", iosVersion)
+    doLast {
+        val macos = macosVersion.get()
+        val ios = iosVersion.get()
+        val expectedConfig = appleDeploymentConfigContent(macos, ios)
+        check(config.asFile.isFile && config.asFile.readText() == expectedConfig) {
+            "xcode/DeploymentTargets.xcconfig is missing or stale. Run " +
+                "./gradlew generateAppleConfiguration and commit the updated file."
+        }
+        val packageSource = packageManifest.asFile.readText()
+        check(packageSource == updateSwiftPackageDeploymentTargets(packageSource, macos, ios)) {
+            "appleUi/Package.swift has stale deployment targets. Run " +
+                "./gradlew generateAppleConfiguration and commit the updated file."
+        }
+    }
+}
+
+tasks.register("generateAppleConfiguration") {
+    group = "build setup"
+    description = "Updates generated Apple build configuration from the version catalog."
+    dependsOn("generateAppleVersion", "generateAppleDeploymentTargets")
+}
+
+tasks.register("checkAppleConfiguration") {
+    group = "verification"
+    description = "Checks generated Apple build configuration against the version catalog."
+    dependsOn("checkAppleVersion", "checkAppleDeploymentTargets")
+}
+
 //
 // The custom keyguard Detekt rules from :detektRules
 //

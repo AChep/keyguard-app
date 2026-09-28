@@ -623,12 +623,6 @@ private fun writeFailure(
     isReadOnlyFileSystem: (BackupObjectKey) -> Boolean,
 ): Exception {
     atomicWriteFailureOrNull(key, cause)?.let { return it }
-    if (cause is FileAlreadyExistsException && mode == BackupWriteMode.Create) {
-        return BackupObjectStoreException.AlreadyExists(
-            key = key,
-            cause = cause,
-        )
-    }
     return when (cause) {
         is AccessDeniedException,
         is FileNotFoundException,
@@ -643,10 +637,17 @@ private fun writeFailure(
         is UnsupportedOperationException,
         -> unsupportedWriteFailure(key, cause)
 
-        is FileAlreadyExistsException -> transientWriteFailure(
-            key = key,
-            cause = cause,
-        )
+        is FileAlreadyExistsException -> if (mode == BackupWriteMode.Create) {
+            BackupObjectStoreException.AlreadyExists(
+                key = key,
+                cause = cause,
+            )
+        } else {
+            transientWriteFailure(
+                key = key,
+                cause = cause,
+            )
+        }
 
         is FileSystemException -> fileSystemWriteFailure(
             key = key,

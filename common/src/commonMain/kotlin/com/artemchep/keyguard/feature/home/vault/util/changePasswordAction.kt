@@ -289,6 +289,7 @@ fun RememberStateFlowScope.cipherUploadGpgPublicKeyAction(
 ) = kotlin.run {
     val icon = icon(Icons.Outlined.CloudUpload)
     FlatItemAction(
+        id = "cipher.uploadGpgPublicKey",
         leading = icon,
         title = Res.string.ciphers_action_upload_gpg_public_key_title.wrap(),
         onClick = {
@@ -414,6 +415,7 @@ fun RememberStateFlowScope.cipherRefreshGpgPublicKeyAction(
 ) = kotlin.run {
     val icon = icon(Icons.Outlined.Refresh)
     FlatItemAction(
+        id = "cipher.refreshGpgPublicKey",
         leading = icon,
         title = Res.string.ciphers_action_refresh_gpg_public_key_title.wrap(),
         onClick = {
@@ -473,6 +475,7 @@ fun RememberStateFlowScope.cipherVerifyGpgPublicKeyAction(
 ) = kotlin.run {
     val icon = icon(Icons.Outlined.KeyguardGpgVerifyIdentity)
     FlatItemAction(
+        id = "cipher.verifyGpgPublicKey",
         leading = icon,
         title = Res.string.ciphers_action_verify_gpg_public_key_title.wrap(),
         onClick = {

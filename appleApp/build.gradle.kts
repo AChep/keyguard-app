@@ -12,6 +12,9 @@ plugins {
     // Resolves the reified `encodeToString` / `serializer<T>()` calls at compile time
     // instead of through the runtime serializer lookup.
     alias(libs.plugins.kotlin.plugin.serialization)
+    // Shared row constructors used by bridge tests contain @Composable lambdas.
+    // Match their lowered signatures even though this module renders no Compose UI.
+    alias(libs.plugins.kotlin.plugin.compose)
 }
 
 // Application roots always revalidate the assembled dependency graph. On Kotlin/Native the

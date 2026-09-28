@@ -22,7 +22,7 @@ class WebAuthnAuthenticator(
     private val json: Json,
     private val authenticatorDataFactory: WebAuthnAuthenticatorDataFactory,
     // Storage encodings differ from WebAuthn's base64url wire encoding.
-    private val decodeStoredPrivateKey: (String) -> ByteArray?,
+    private val decodeStoredPrivateKey: (String) -> ByteArray? = PasskeyBase64::decodeStoredKeyOrNull,
     private val passkeyCrypto: PasskeyCrypto = NativePasskeyCrypto,
     private val generateCredentialId: () -> String = { Uuid.random().toString() },
     private val hashSha256: (ByteArray) -> ByteArray = NativeCrypto.primitives::sha256,
@@ -34,42 +34,59 @@ class WebAuthnAuthenticator(
         transports: List<String>,
         credentials: List<WebAuthnCredential> = emptyList(),
     ): WebAuthnRegistrationResult {
+        val result = createCredential(data.toRegistrationRequest(context.rpId), userVerified, credentials)
+        val clientData = clientDataJsonBytes(json, "webauthn.create", data.challenge, context)
+        val response = registrationResponseJson(
+            clientData = clientData,
+            authenticatorData = result.authenticatorData,
+            attestationObject = result.attestationObject,
+            publicKeyAlgorithm = result.publicKeyAlgorithm,
+            publicKey = result.publicKey,
+            transports = transports,
+        )
+        return WebAuthnRegistrationResult(
+            responseJson = json.encodeToString(credentialResponseJson(result.credentialId, response)),
+            credential = result.credential,
+        )
+    }
+
+    fun createCredential(
+        request: WebAuthnRegistrationRequest,
+        userVerified: Boolean,
+        credentials: List<WebAuthnCredential> = emptyList(),
+    ): WebAuthnCredentialCreationResult {
         val algorithm = requirePasskeyAlgorithm(
-            data = data,
+            pubKeyCredParams = request.pubKeyCredParams,
             supportedAlgorithms = passkeyCrypto.supportedAlgorithms,
         )
         requireNoExcludedPasskeyCredential(
-            data = data,
-            rpId = context.rpId,
+            excludedCredentialIds = request.excludedCredentialIds,
+            rpId = request.rpId,
             credentials = credentials,
         )
 
         val key = generateRegistrationKey(algorithm)
         val credentialId = generateCredentialId()
         val credentialIdBytes = PasskeyCredentialId.encode(credentialId)
-        val clientData = clientDataJsonBytes(json, "webauthn.create", data.challenge, context)
         val authData = authenticatorDataFactory.encodeAuthenticatorData(
-            rpId = context.rpId,
+            rpId = request.rpId,
             signCount = 0,
             credentialId = credentialIdBytes,
             credentialPublicKey = key.cosePublicKey,
-            attestation = data.attestation,
+            attestation = request.attestation,
             userVerified = webAuthnUserVerifiedFlag(
-                requirement = data.authenticatorSelection.userVerification,
+                requirement = request.userVerification,
                 userVerified = userVerified,
             ),
             userPresent = true,
         )
-        val response = registrationResponseJson(
-            clientData = clientData,
+        return WebAuthnCredentialCreationResult(
+            credential = key.toCredential(request, credentialId),
+            credentialId = credentialIdBytes,
             authenticatorData = authData,
+            attestationObject = webAuthnNoneAttestationObject(authData),
             publicKeyAlgorithm = algorithm.coseValue,
             publicKey = key.spkiPublicKey,
-            transports = transports,
-        )
-        return WebAuthnRegistrationResult(
-            responseJson = json.encodeToString(credentialResponseJson(credentialIdBytes, response)),
-            credential = key.toCredential(data, credentialId, context.rpId),
         )
     }
 
@@ -89,6 +106,43 @@ class WebAuthnAuthenticator(
             allowCredentials = request.allowedCredentials,
         )
 
+        val clientData = clientDataJsonBytes(
+            json = json,
+            type = "webauthn.get",
+            challenge = PasskeyBase64.encodeToString(request.challenge),
+            context = context,
+        )
+        val result = getAssertion(
+            request = WebAuthnAssertionHashRequest(
+                rpId = context.rpId,
+                clientDataHash = clientDataHash ?: hashSha256(clientData),
+                userVerification = request.userVerification,
+                allowedCredentials = request.allowedCredentials,
+            ),
+            credential = credential,
+            userVerified = userVerified,
+        )
+        return try {
+            val response = assertionResponseJson(
+                clientDataJson = PasskeyBase64.encodeToString(clientData),
+                authenticatorData = PasskeyBase64.encodeToString(result.authenticatorData),
+                signature = PasskeyBase64.encodeToString(result.signature),
+                userHandle = result.userHandle,
+            )
+            json.encodeToString(credentialResponseJson(result.credentialId, response))
+        } finally {
+            result.signature.fill(0)
+        }
+    }
+
+    fun getAssertion(
+        request: WebAuthnAssertionHashRequest,
+        credential: WebAuthnCredential,
+        userVerified: Boolean,
+    ): WebAuthnAssertionResult {
+        requireCredentialRpIdMatchesRequest(credential, request.rpId)
+        requireCredentialAllowed(credential, request.allowedCredentials)
+
         val credentialIdBytes = PasskeyCredentialId.encode(credential.credentialId)
 
         // Modern Bitwarden seems to use 0 for passkeys without a signature
@@ -97,7 +151,7 @@ class WebAuthnAuthenticator(
         // across devices requires sync coordination.
         val counter = (credential.counter ?: 0).coerceAtLeast(0)
         val authData = authenticatorDataFactory.encodeAuthenticatorData(
-            rpId = context.rpId,
+            rpId = request.rpId,
             signCount = counter,
             credentialId = credentialIdBytes,
             credentialPublicKey = null,
@@ -108,22 +162,12 @@ class WebAuthnAuthenticator(
             userPresent = true,
         )
 
-        val clientData = clientDataJsonBytes(
-            json = json,
-            type = "webauthn.get",
-            challenge = PasskeyBase64.encodeToString(request.challenge),
-            context = context,
-        )
-        val clientDataJsonHash = clientDataHash
-            ?: hashSha256(clientData)
-        val signature = signAssertion(credential, authData, clientDataJsonHash)
-        val response = assertionResponseJson(
-            clientDataJson = PasskeyBase64.encodeToString(clientData),
-            authenticatorData = PasskeyBase64.encodeToString(authData),
-            signature = signature,
+        return WebAuthnAssertionResult(
+            credentialId = credentialIdBytes,
+            authenticatorData = authData,
+            signature = signAssertion(credential, authData, request.clientDataHash),
             userHandle = credential.userHandle,
         )
-        return json.encodeToString(credentialResponseJson(credentialIdBytes, response))
     }
 
     private fun generateRegistrationKey(algorithm: PasskeySignatureAlgorithm): RegistrationKey {
@@ -146,11 +190,11 @@ class WebAuthnAuthenticator(
         credential: WebAuthnCredential,
         authenticatorData: ByteArray,
         clientDataHash: ByteArray,
-    ): String {
+    ): ByteArray {
         requireSignableStoredKey(credential)
-        val dataToSign = authenticatorData + clientDataHash
         val privateKeyPkcs8 = decodeStoredPrivateKey(credential.keyValue)
             ?: throw storedPasskeyKeyEncodingError()
+        val dataToSign = authenticatorData + clientDataHash
         val result = try {
             passkeyCrypto.sign(
                 algorithm = PasskeySignatureAlgorithm.ES256,
@@ -161,14 +205,9 @@ class WebAuthnAuthenticator(
             privateKeyPkcs8.fill(0)
             dataToSign.fill(0)
         }
-        val signature = when (result) {
+        return when (result) {
             is PasskeySignResult.Success -> result.signatureDer
             is PasskeySignResult.Error -> throw storedPasskeyKeyEncodingError()
-        }
-        return try {
-            PasskeyBase64.encodeToString(signature)
-        } finally {
-            signature.fill(0)
         }
     }
 
@@ -200,24 +239,20 @@ private class RegistrationKey(
     val cosePublicKey: ByteArray,
     val spkiPublicKey: ByteArray,
 ) {
-    fun toCredential(data: CreatePasskey, credentialId: String, rpId: String): WebAuthnCredential {
-        val selection = data.authenticatorSelection
-        val discoverable = selection.requireResidentKey ||
-            selection.residentKey == "required" ||
-            selection.residentKey == "preferred"
+    fun toCredential(request: WebAuthnRegistrationRequest, credentialId: String): WebAuthnCredential {
         return WebAuthnCredential(
             credentialId = credentialId,
             keyType = "public-key",
             keyAlgorithm = profile.keyAlgorithm,
             keyCurve = profile.keyCurve,
             keyValue = encodedPrivateKey,
-            rpId = rpId,
-            rpName = data.rp.name,
+            rpId = request.rpId,
+            rpName = request.rpName,
             counter = 0,
-            userHandle = data.user.id,
-            userName = data.user.name,
-            userDisplayName = data.user.displayName,
-            discoverable = discoverable,
+            userHandle = request.userHandle,
+            userName = request.userName,
+            userDisplayName = request.userDisplayName,
+            discoverable = request.discoverable,
         )
     }
 }

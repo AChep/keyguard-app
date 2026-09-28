@@ -13,6 +13,7 @@ fun RouteDescriptor.toDeepLink(): String? {
         is RouteDescriptor.VaultCipherView -> url("cipher", "itemId" to itemId, "accountId" to accountId)
         is RouteDescriptor.SendView -> url("send", "sendId" to sendId, "accountId" to accountId)
         is RouteDescriptor.PasswordHistory -> url("cipher/password-history", "itemId" to itemId)
+        is RouteDescriptor.SshAgentHistory -> url("ssh-agent/history", "cipherId" to cipherId)
         is RouteDescriptor.WordlistView -> url("generator/wordlist", "wordlistId" to wordlistId.toString())
         is RouteDescriptor.Organizations -> url("organizations", "accountId" to accountId)
         is RouteDescriptor.Collections -> url(
@@ -86,6 +87,7 @@ fun routeDescriptorFromDeepLink(url: String): RouteDescriptor? {
         }
 
         "cipher/password-history" -> params["itemId"]?.let { RouteDescriptor.PasswordHistory(it) }
+        "ssh-agent/history" -> RouteDescriptor.SshAgentHistory(cipherId = params["cipherId"])
         "generator/wordlist" -> params["wordlistId"]?.toLongOrNull()?.let { RouteDescriptor.WordlistView(it) }
         "organizations" -> params["accountId"]?.let { RouteDescriptor.Organizations(it) }
         "collections" -> params["accountId"]?.let {

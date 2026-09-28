@@ -1,6 +1,5 @@
 import com.artemchep.keyguard.buildplugins.cargo.CargoBuildTask
 import com.artemchep.keyguard.buildplugins.cargo.HostPlatform
-import com.artemchep.keyguard.buildplugins.cargo.RustMultiplatformLibraryExtension
 import com.artemchep.keyguard.buildplugins.cargo.configureNativeLibraryTests
 import com.artemchep.keyguard.buildplugins.cargo.detectHostPlatform
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleMain
@@ -9,11 +8,7 @@ plugins {
     id("keyguard.quality")
     id("keyguard.kotlin-multiplatform-library")
     id("keyguard.compose-free")
-    id("keyguard.rust-multiplatform-library")
-}
-
-extensions.configure<RustMultiplatformLibraryExtension> {
-    androidEnabled.set(false)
+    id("keyguard.rust-desktop-library")
 }
 
 // hidapi's C sources must not inherit the active Xcode SDK's deployment version.
@@ -47,7 +42,7 @@ kotlin {
     }
 }
 
-configureNativeLibraryTests("yubikey")
+configureNativeLibraryTests("yubikey", testTaskName = "desktopTest")
 tasks.named<Test>("desktopTest") {
     jvmArgs("-Xcheck:jni")
 }

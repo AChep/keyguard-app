@@ -23,6 +23,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-apple-localizations:
+    name: Check Compiled Apple Localizations
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Compile and verify the committed Apple catalog
+        env:
+          UNLOCALIZED_RESOURCES_FOLDER_PATH: apple-localizations
+        run: |
+          export BUILT_PRODUCTS_DIR="$RUNNER_TEMP"
+          mkdir -p "$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
+          xcrun xcstringstool compile \
+            --output-directory "$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH" \
+            appleUi/Sources/KeyguardUI/Resources/Localizable.xcstrings
+          python3 xcode/scripts/verify-apple-strings.py
+      - name: Verify iOS privacy source manifests
+        run: python3 xcode/scripts/verify-ios-privacy.py
+
   check-build-plugins:
     name: Check Build Plugins
     runs-on: ubuntu-latest
@@ -93,6 +113,8 @@ jobs:
               :util:crypto:desktopTest
               :util:io:desktopTest
               :util:instance:desktopTest
+              :util:fido2:checkComposeFree
+              :util:fido2:desktopTest
               :util:yubikey:checkComposeFree
               :util:yubikey:desktopTest
               :util:foundation:desktopTest
@@ -115,6 +137,7 @@ jobs:
               :util:crypto:testAndroidHostTest
               :util:io:testAndroidHostTest
               :util:yubikey:testAndroidHostTest
+              :util:fido2:testAndroidHostTest
               :util:foundation:testAndroidHostTest
               :util:kdbx:testAndroidHostTest
               :util:messagepack:testAndroidHostTest
@@ -233,7 +256,6 @@ jobs:
           :common:iosSimulatorArm64Test
           :feature:android-ipc-presentation:iosSimulatorArm64Test
           :standard:presentation:iosSimulatorArm64Test
-          :iosApp:iosSimulatorArm64Test
           :appleApp:iosSimulatorArm64Test
           :util:crypto:iosSimulatorArm64Test
           :util:io:iosSimulatorArm64Test
@@ -254,6 +276,41 @@ jobs:
           path: |
             **/build/test-results/**
             **/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 21
+
+  check-apple-billing:
+    name: Check Apple Billing
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-apple-darwin,aarch64-apple-ios,aarch64-apple-ios-sim"
+      - name: Build Apple billing and license tests
+        run: >-
+          ./gradlew :appleApp:macosArm64Test :appleApp:assembleKeyguardSharedDebugXCFramework
+          :common:generateAppleStrings
+      - name: Generate Xcode projects
+        run: |
+          brew install xcodegen
+          xcodegen generate --spec macosApp/project.yml
+      - name: Run StoreKit regression tests
+        run: xcode/scripts/test-apple-billing.sh -resultBundlePath apple-billing-tests.xcresult
+      - name: Upload Apple billing test reports
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: apple-billing-test-reports
+          path: |
+            apple-billing-tests.xcresult
+            appleApp/build/test-results/**
+            appleApp/build/reports/tests/**
           if-no-files-found: ignore
           retention-days: 21
 

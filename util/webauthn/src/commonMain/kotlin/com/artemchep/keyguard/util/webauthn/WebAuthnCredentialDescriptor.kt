@@ -6,8 +6,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
-private const val WEBAUTHN_PUBLIC_KEY_CREDENTIAL_TYPE = "public-key"
-
 data class WebAuthnPublicKeyCredentialDescriptor(
     val type: String,
     val credentialId: String,
@@ -15,13 +13,26 @@ data class WebAuthnPublicKeyCredentialDescriptor(
     fun matches(
         credential: WebAuthnCredential,
     ): Boolean = type == credential.keyType &&
-        credentialId == credential.credentialId
+        PasskeyCredentialId.matches(credentialId, credential.credentialId)
 }
 
 data class WebAuthnAllowedCredentialDescriptors(
     val isAllowCredentialsSupplied: Boolean,
     val descriptors: List<WebAuthnPublicKeyCredentialDescriptor>,
 ) {
+    companion object {
+        /** Provider APIs such as AuthenticationServices already decode descriptor IDs. */
+        fun fromCredentialIds(credentialIds: List<ByteArray>) = WebAuthnAllowedCredentialDescriptors(
+            isAllowCredentialsSupplied = credentialIds.isNotEmpty(),
+            descriptors = credentialIds.map {
+                WebAuthnPublicKeyCredentialDescriptor(
+                    type = PUBLIC_KEY_CREDENTIAL_TYPE,
+                    credentialId = PasskeyCredentialId.decode(it),
+                )
+            },
+        )
+    }
+
     fun allows(
         credential: WebAuthnCredential,
     ): Boolean {
@@ -71,7 +82,7 @@ fun parseWebAuthnAllowedCredentialDescriptors(
                 idBase64 = idBase64,
                 decodeCredentialId = decodeCredentialId,
             )
-            if (type != WEBAUTHN_PUBLIC_KEY_CREDENTIAL_TYPE) {
+            if (type != PUBLIC_KEY_CREDENTIAL_TYPE) {
                 return@mapNotNull null
             }
 

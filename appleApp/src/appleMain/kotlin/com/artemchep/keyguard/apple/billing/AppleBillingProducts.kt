@@ -30,11 +30,15 @@ object AppleBillingProducts {
     /** Every purchasable id; passed to the Swift bridge to fetch from StoreKit. */
     val ALL_IDS = SUBSCRIPTION_IDS + PRODUCT_IDS
 
+    private const val PRIORITY_PROD_LIFETIME = 0
+    private const val PRIORITY_SUB_1_YEAR = 10
+    private const val PRIORITY_SUB_3_MONTHS = 20
+
     // Lower is higher priority
     fun licenseClaimPriority(productId: String): Int = when (productId) {
-        ID_PROD_LIFETIME -> 0
-        ID_SUB_1_YEAR -> 10
-        ID_SUB_3_MONTHS -> 20
+        ID_PROD_LIFETIME -> PRIORITY_PROD_LIFETIME
+        ID_SUB_1_YEAR -> PRIORITY_SUB_1_YEAR
+        ID_SUB_3_MONTHS -> PRIORITY_SUB_3_MONTHS
         else -> Int.MAX_VALUE
     }
 }

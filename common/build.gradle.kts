@@ -174,6 +174,7 @@ kotlin {
                 api(project(":util:webdav"))
                 api(project(":util:webauthn"))
                 api(project(":util:yubikey"))
+                api(project(":util:fido2"))
                 api(project(":util:planeta"))
                 api(libs.coil3.coil.compose)
                 api(libs.coil3.coil.network.ktor3)
@@ -250,6 +251,10 @@ kotlin {
             kotlin.include("com/artemchep/keyguard/common/service/directorywatcher/**")
             kotlin.include("com/artemchep/keyguard/common/service/gpgagent/GpgAgentPacketSessionTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/licensekey/Kg2LicenseKeyDecoderTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/text/impl/Base32ServiceImplTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/serialization/ApplicationJsonTest.kt")
+            kotlin.include("com/artemchep/keyguard/feature/home/settings/SettingsCatalogTest.kt")
+            kotlin.include("com/artemchep/keyguard/feature/datasafety/DataSafetyCatalogTest.kt")
             kotlin.include("com/artemchep/keyguard/provider/bitwarden/usecase/NotificationsImplTest.kt")
             kotlin.include("com/artemchep/keyguard/feature/gpgagent/tools/GpgToolsInputErrorTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/download/TestDownloadAttachmentSourceLoader.kt")
@@ -324,6 +329,7 @@ kotlin {
         getByName("androidMain") {
             dependsOn(jvmMain)
             dependencies {
+                implementation(libs.yubico.yubikit.fido.ui)
                 api(project(":androidLibAutofill"))
                 api(project.dependencies.platform(libs.firebase.bom.get()))
                 api(libs.firebase.analytics)

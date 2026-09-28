@@ -297,7 +297,12 @@ mod tests {
     fn trailing_zero_challenges_use_nonzero_padding() {
         assert_eq!(&challenge_payload(&[1, 0])[..4], &[1, 0, 1, 1]);
         assert_eq!(&challenge_payload(&[1, 2])[..4], &[1, 2, 0, 0]);
-        assert_eq!(challenge_payload(&[0; 64]), [0; 64]);
+        let payload = challenge_payload(&[0; 63]);
+        assert_eq!(&payload[..63], &[0; 63]);
+        assert_eq!(payload[63], 1);
+        let payload = challenge_payload(&[1; 63]);
+        assert_eq!(&payload[..63], &[1; 63]);
+        assert_eq!(payload[63], 0);
     }
     #[test]
     fn provisioning_layout_and_crc_are_valid() {

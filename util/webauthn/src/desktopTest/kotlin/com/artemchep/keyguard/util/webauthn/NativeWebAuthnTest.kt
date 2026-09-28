@@ -2,6 +2,7 @@ package com.artemchep.keyguard.util.webauthn
 
 import com.artemchep.keyguard.util.webauthn.entity.CreatePasskey
 import com.artemchep.keyguard.util.webauthn.entity.CreatePasskeyAuthenticatorSelection
+import com.artemchep.keyguard.util.webauthn.entity.CreatePasskeyPubKeyCredParams
 import com.artemchep.keyguard.util.webauthn.entity.CreatePasskeyRelyingParty
 import com.artemchep.keyguard.util.webauthn.entity.CreatePasskeyUser
 import kotlinx.serialization.json.Json
@@ -11,11 +12,56 @@ import java.security.KeyFactory
 import java.security.MessageDigest
 import java.security.Signature
 import java.security.spec.X509EncodedKeySpec
+import java.util.Base64
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertTrue
 
 class NativeWebAuthnTest {
+    @Test
+    fun `binary registration signs with either vault key encoding`() {
+        val authenticator = WebAuthnAuthenticator(
+            json = Json,
+            authenticatorDataFactory = WebAuthnAuthenticatorDataFactory(ByteArray(16)),
+        )
+        val registration = authenticator.createCredential(
+            WebAuthnRegistrationRequest(
+                rpId = "example.com",
+                userHandle = "dXNlcg",
+                pubKeyCredParams = listOf(
+                    CreatePasskeyPubKeyCredParams(-7.0, "public-key"),
+                ),
+                discoverable = true,
+            ),
+            userVerified = true,
+        )
+        val publicKey = KeyFactory.getInstance("EC").generatePublic(X509EncodedKeySpec(registration.publicKey))
+        val privateKey = PasskeyBase64.decode(registration.credential.keyValue)
+        val standardKey = try {
+            Base64.getEncoder().encodeToString(privateKey)
+        } finally {
+            privateKey.fill(0)
+        }
+        val clientHash = MessageDigest.getInstance("SHA-256")
+            .digest("client data from the provider".encodeToByteArray())
+        for (keyValue in listOf(registration.credential.keyValue, standardKey)) {
+            val assertion = authenticator.getAssertion(
+                WebAuthnAssertionHashRequest(
+                    rpId = "example.com",
+                    clientDataHash = clientHash,
+                    userVerification = "required",
+                    allowedCredentials = WebAuthnAllowedCredentialDescriptors.fromCredentialIds(emptyList()),
+                ),
+                credential = registration.credential.copy(keyValue = keyValue),
+                userVerified = true,
+            )
+            val verifier = Signature.getInstance("SHA256withECDSA")
+            verifier.initVerify(publicKey)
+            verifier.update(assertion.authenticatorData + clientHash)
+            assertTrue(verifier.verify(assertion.signature))
+        }
+    }
+
     @Test
     fun `native registration key produces an independently verified assertion`() {
         val authenticator = WebAuthnAuthenticator(

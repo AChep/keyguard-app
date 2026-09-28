@@ -79,6 +79,23 @@ class GetPurchasedAppleTest {
     }
 
     @Test
+    fun debugOverrideGrantsAndRevokesPremiumWithoutCachingIt() = runTest {
+        val fixture = Fixture(this)
+        val values = fixture.collect()
+        runCurrent()
+        assertFalse(values.last())
+
+        fixture.debug.value = true
+        runCurrent()
+        assertTrue(values.last())
+
+        fixture.debug.value = false
+        runCurrent()
+        assertFalse(values.last())
+        assertTrue(fixture.writes.isEmpty())
+    }
+
+    @Test
     fun debugGrantDoesNotEraseCachedPurchase() = runTest {
         val fixture = Fixture(this, cached = true)
         val values = fixture.collect()

@@ -13,7 +13,8 @@ use zeroize::Zeroizing;
 
 pub const ABI_VERSION: u32 = 1;
 pub const HEADER_LENGTH: usize = 4;
-const MAX_CHALLENGE_LENGTH: usize = 64;
+// HMAC_LT64 reserves the final byte of the 64-byte payload for padding.
+const MAX_CHALLENGE_LENGTH: usize = 63;
 const SECRET_LENGTH: usize = 20;
 const RESPONSE_LENGTH: usize = 20;
 pub const MAX_REQUEST: usize = HEADER_LENGTH + MAX_CHALLENGE_LENGTH + SECRET_LENGTH;
@@ -161,6 +162,28 @@ impl Request {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn challenge_lengths_leave_room_for_hmac_lt64_padding() {
+        for tag in [2, 3] {
+            for length in [0, 1, 63, 64, 65] {
+                let mut wire = vec![tag, 2, 0, length];
+                wire.extend(vec![1; usize::from(length)]);
+                if tag == 3 {
+                    wire.extend([9; SECRET_LENGTH]);
+                }
+                let result = Request::parse(&wire);
+                if length == 1 || length == 63 {
+                    assert!(result.is_ok(), "tag={tag}, length={length}");
+                } else {
+                    assert!(
+                        matches!(result, Err(Error::InvalidArgument)),
+                        "tag={tag}, length={length}"
+                    );
+                }
+            }
+        }
+    }
+
     #[test]
     fn malformed_requests_fail_before_device_access() {
         for request in [

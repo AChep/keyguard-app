@@ -32,16 +32,19 @@ object GpgKeyActions {
         with(contextItemBuilder) {
             section {
                 this += copyItemFactory.FlatItemAction(
+                    id = "gpgKey.copyPublicKey",
                     title = Res.string.copy_gpg_public_key.wrap(),
                     value = gpgKey.publicKeyArmored,
                     type = CopyText.Type.PUBLIC_KEY,
                 )
                 this += copyItemFactory.FlatItemAction(
+                    id = "gpgKey.copyFingerprint",
                     title = Res.string.copy_gpg_fingerprint.wrap(),
                     value = gpgKey.fingerprint,
                     type = CopyText.Type.FINGERPRINT,
                 )
                 this += copyItemFactory.FlatItemAction(
+                    id = "gpgKey.copyPrivateKey",
                     title = Res.string.copy_gpg_unencrypted_private_key.wrap(),
                     value = gpgKey.privateKeyArmored,
                     type = CopyText.Type.PRIVATE_KEY,

@@ -71,7 +71,9 @@ class DatabaseSqlManagerInFileAppleIntegrationTest {
                     // Keep the write lock for the entire production busy timeout.
                     connection.rawExecSql("BEGIN IMMEDIATE;")
                     try {
-                        assertFails("A busy database must reject the password change before new credentials are saved") {
+                        assertFails(
+                            "A busy database must reject the password change before new credentials are saved",
+                        ) {
                             helper.changePassword(newKey).bind()
                         }
                     } finally {

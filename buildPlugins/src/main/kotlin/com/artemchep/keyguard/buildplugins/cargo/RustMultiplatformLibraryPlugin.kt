@@ -18,7 +18,13 @@ import org.gradle.kotlin.dsl.withType
  * `keyguard-io-jni` and `keyguard-io-c`. The resulting libraries are named
  * `keyguard_io_jni` and `keyguard_io_c`.
  */
-class RustMultiplatformLibraryPlugin : Plugin<Project> {
+open class RustMultiplatformLibraryPlugin : Plugin<Project> {
+    /**
+     * Whether Android and iOS get Rust builds. Plugin variants decide this at apply time:
+     * the convention targets already exist, so the Apple cinterops are created immediately.
+     */
+    protected open val mobileTargets: Boolean = true
+
     override fun apply(target: Project) = with(target) {
         pluginManager.apply("keyguard.cargo-common")
 
@@ -62,22 +68,31 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
             dependsOn(verifyDesktopRustTarget)
         }
 
-        val androidTargets = androidNativeTargets()
-        val androidPrepareTasks = registerAndroidLibraries(
-            nativeTaskName = nativeTaskName,
-            cargoPackage = "$cargoPackagePrefix-jni",
-            nativeLibraryName = "${nativeLibraryPrefix}_jni",
-            rustSourceDirectory = rustSourceDirectory,
-            targets = androidTargets,
-            extension = extension,
-        )
-        configureAndroidPackaging(
-            nativeTaskName = nativeTaskName,
-            prepareTasks = androidPrepareTasks,
-            extension = extension,
-        )
+        val compileAndroidAll = if (mobileTargets) {
+            val androidPrepareTasks = registerAndroidLibraries(
+                nativeTaskName = nativeTaskName,
+                cargoPackage = "$cargoPackagePrefix-jni",
+                nativeLibraryName = "${nativeLibraryPrefix}_jni",
+                rustSourceDirectory = rustSourceDirectory,
+                targets = androidNativeTargets(),
+                extension = extension,
+            )
+            configureAndroidPackaging(
+                nativeTaskName = nativeTaskName,
+                prepareTasks = androidPrepareTasks,
+            )
+            tasks.register("compile${nativeTaskName}AndroidAll") {
+                group = "build"
+                description =
+                    "Builds and verifies $nativeTaskName JNI libraries for every supported Android ABI."
+                dependsOn(androidPrepareTasks)
+            }
+        } else {
+            null
+        }
 
         val appleTargets = appleNativeTargets()
+            .filter { target -> mobileTargets || target.kotlinTarget.startsWith("macos") }
         val appleCargoTasks = registerAppleLibraries(
             nativeTaskName = nativeTaskName,
             cargoPackage = "$cargoPackagePrefix-c",
@@ -94,12 +109,6 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
             cargoTasks = appleCargoTasks,
         )
 
-        val compileAndroidAll = tasks.register("compile${nativeTaskName}AndroidAll") {
-            group = "build"
-            description =
-                "Builds and verifies $nativeTaskName JNI libraries for every supported Android ABI."
-            dependsOn(androidPrepareTasks)
-        }
         val compileAppleAll = registerAppleAggregateTasks(
             nativeTaskName = nativeTaskName,
             cargoTasks = appleCargoTasks,
@@ -112,11 +121,8 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
         }
         tasks.register("compile${nativeTaskName}All") {
             group = "build"
-            description =
-                "Builds $nativeTaskName artifacts for Android, the current Desktop host, and Apple."
-            dependsOn(compileAndroidAll)
-            dependsOn(compileAppleAll)
-            dependsOn(desktopTasks.compile)
+            description = "Builds $nativeTaskName artifacts for every supported platform."
+            dependsOn(listOfNotNull(compileAndroidAll, compileAppleAll, desktopTasks.compile))
         }
         tasks.named("assemble") {
             dependsOn(desktopTasks.compile)
@@ -261,13 +267,11 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
     private fun Project.configureAndroidPackaging(
         nativeTaskName: String,
         prepareTasks: List<TaskProvider<PrepareNativeLibraryTask>>,
-        extension: RustMultiplatformLibraryExtension,
     ) {
         pluginManager.withPlugin("com.android.kotlin.multiplatform.library") {
             val androidComponents =
                 extensions.getByType<KotlinMultiplatformAndroidComponentsExtension>()
             androidComponents.onVariants(androidComponents.selector().all()) { variant ->
-                if (!extension.androidEnabled.get()) return@onVariants
                 val jniLibs = requireNotNull(variant.sources.jniLibs) {
                     "$nativeTaskName Android variants must expose a jniLibs source set"
                 }

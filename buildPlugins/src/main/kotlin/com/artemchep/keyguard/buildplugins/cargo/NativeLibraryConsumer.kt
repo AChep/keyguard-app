@@ -10,7 +10,11 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.withType
 import org.gradle.process.CommandLineArgumentProvider
 
-fun Project.configureNativeLibraryTests(moduleName: String) {
+/**
+ * Passes the desktop library of `:util:<moduleName>` to JVM tests. [testTaskName] limits this to
+ * one task, so tests that never load the library do not build it.
+ */
+fun Project.configureNativeLibraryTests(moduleName: String, testTaskName: String? = null) {
     val nativeName = "native${moduleName.toTaskSuffix()}"
     val nativeLibrary = configurations.create("${nativeName}DesktopLibrary") {
         isCanBeConsumed = false
@@ -26,7 +30,7 @@ fun Project.configureNativeLibraryTests(moduleName: String) {
         ),
     )
 
-    tasks.withType<Test>().configureEach {
+    tasks.withType<Test>().named { name -> testTaskName == null || name == testTaskName }.configureEach {
         inputs.files(nativeLibrary).withPropertyName("${nativeName}DesktopLibrary")
         jvmArgumentProviders.add(
             NativeLibraryPathArgumentProvider("keyguard.$nativeName.libraryPath", nativeLibrary),

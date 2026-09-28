@@ -3,7 +3,6 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>ComplexCondition:AgentApprovalWindowMemory.kt:AgentApprovalWindowMemory$config.revision != access.configRevision || currentApprovalWindow != access.approvalWindow || currentApprovalWindow &lt;= Duration.ZERO || cacheEpoch != access.cacheEpoch || activeSession?.generation != access.sessionGeneration</ID>
-    <ID>ComplexCondition:AgentManager.kt:AgentManager$existingProcess != null || serverScope != null || serverJob != null || ipcEndpoint != null</ID>
     <ID>ComplexCondition:AndroidFileDropStorage.kt:AndroidFileDropStorage$char.isLetterOrDigit() || char == '.' || char == '_' || char == '-'</ID>
     <ID>ComplexCondition:AttachmentPreviewMinimapModel.kt:lineCount &lt;= 0 || fullHeightPx &lt;= 0f || maxRowPitchPx &lt;= 0f || fullHeightPx.isNaN() || maxRowPitchPx.isNaN()</ID>
     <ID>ComplexCondition:AttachmentPreviewStateProducer.kt:bytes.size &gt;= 3 &amp;&amp; bytes[0] == 0xEF.toByte() &amp;&amp; bytes[1] == 0xBB.toByte() &amp;&amp; bytes[2] == 0xBF.toByte()</ID>
@@ -55,6 +54,10 @@
     <ID>CyclomaticComplexMethod:AddStateProducer.kt:suspend fun RememberStateFlowScope.addCipherStateProducer: Flow&lt;Loadable&lt;AddState&gt;&gt;</ID>
     <ID>CyclomaticComplexMethod:AgentManager.kt:AgentManager$private suspend fun startLocked: Process</ID>
     <ID>CyclomaticComplexMethod:AndroidAppFDroidParser.kt:AndroidAppFDroidParser$private fun parseHtml: AppStoreListingInfo?</ID>
+    <ID>CyclomaticComplexMethod:AppleFolderBackupObjectStore.kt:AppleFolderBackupObjectStore$override suspend fun list: BackupObjectListPage</ID>
+    <ID>CyclomaticComplexMethod:AppleFolderBackupObjectStore.kt:AppleFolderBackupObjectStore$override suspend fun read: Source</ID>
+    <ID>CyclomaticComplexMethod:AppleVaultListSource.kt:IncrementalVaultSorter$fun sort: List&lt;VaultItem2.Item&gt;</ID>
+    <ID>CyclomaticComplexMethod:AppleVaultListSource.kt:suspend fun RememberStateFlowScope.createAppleVaultListSource: AppleVaultListSource</ID>
     <ID>CyclomaticComplexMethod:AttachmentPreviewCodeMinimap.kt:@Composable internal fun AttachmentPreviewCodeMinimap</ID>
     <ID>CyclomaticComplexMethod:AttachmentPreviewFileClassifier.kt:private fun String.isKnownTextAttachmentPreviewFileName: Boolean</ID>
     <ID>CyclomaticComplexMethod:AttachmentPreviewSyntax.kt:fun attachmentPreviewSyntaxLanguageByFileName: SyntaxLanguage?</ID>
@@ -89,6 +92,7 @@
     <ID>CyclomaticComplexMethod:ColumnScrollbar.kt:@Composable fun InternalColumnScrollbar</ID>
     <ID>CyclomaticComplexMethod:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$suspend fun onWatchResponseReceived</ID>
     <ID>CyclomaticComplexMethod:CompanionAuthRequestState.kt:fun reduceCompanionAuthRequestState: CompanionAuthRequestState?</ID>
+    <ID>CyclomaticComplexMethod:CopyCipherAttachments.kt:CopyCipherAttachments$suspend fun copy: List&lt;BitwardenCipher.Attachment&gt;</ID>
     <ID>CyclomaticComplexMethod:DFilter.kt:DFilter.Companion$private fun &lt;T&gt; _findOne: Either&lt;Unit, T?&gt;</ID>
     <ID>CyclomaticComplexMethod:DFilterCipherPresence.kt:fun DFilter.Primitive.existsIn: Boolean?</ID>
     <ID>CyclomaticComplexMethod:DSecret.kt:fun DSecret.Field.LinkedId.titleH</ID>
@@ -96,7 +100,7 @@
     <ID>CyclomaticComplexMethod:DSecret.kt:fun DSecret.get</ID>
     <ID>CyclomaticComplexMethod:DSecret.kt:fun KeePassIcon.iconImageVector: ImageVector?</ID>
     <ID>CyclomaticComplexMethod:DateTimePlaceholder.kt:DateTimePlaceholder$override fun get: IO&lt;String?&gt;?</ID>
-    <ID>CyclomaticComplexMethod:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$override suspend fun evaluate: List&lt;VaultItem2.Item&gt;</ID>
+    <ID>CyclomaticComplexMethod:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$override suspend fun match: List&lt;VaultSearchMatch&gt;</ID>
     <ID>CyclomaticComplexMethod:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$private fun probeColdClause: ClauseProbe</ID>
     <ID>CyclomaticComplexMethod:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$private fun probeHotClause: ClauseProbe</ID>
     <ID>CyclomaticComplexMethod:DefaultVaultSearchLexer.kt:DefaultVaultSearchLexer$override fun lex: LexedQuery</ID>
@@ -108,7 +112,6 @@
     <ID>CyclomaticComplexMethod:EntitySyncExecutor.kt:EntitySyncExecutor$suspend fun execute: SyncExecutionResult</ID>
     <ID>CyclomaticComplexMethod:FilePickerEffect.kt:@Composable actual fun FilePickerEffect</ID>
     <ID>CyclomaticComplexMethod:FileWatcherServiceAndroid.kt:@OptIn(ExperimentalCoroutinesApi::class) fun File.watchFlow</ID>
-    <ID>CyclomaticComplexMethod:FolderConfirmationStateProducer.kt:@Composable fun folderConfirmationState: FolderConfirmationState</ID>
     <ID>CyclomaticComplexMethod:FoldersStateProducer.kt:suspend fun RememberStateFlowScope.foldersScreenStateProducer: Flow&lt;FoldersState&gt;</ID>
     <ID>CyclomaticComplexMethod:GeneratorHistoryScreen.kt:@Composable private fun GeneratorHistoryItem</ID>
     <ID>CyclomaticComplexMethod:GeneratorHistoryStateProducer.kt:suspend fun RememberStateFlowScope.generatorHistoryStateProducer: Flow&lt;Loadable&lt;GeneratorHistoryState&gt;&gt;</ID>
@@ -122,7 +125,6 @@
     <ID>CyclomaticComplexMethod:GpgKeyExpirationServiceJvm.kt:GpgKeyExpirationServiceJvm$private fun updateOrThrow: GpgKeyExpirationResult.Success</ID>
     <ID>CyclomaticComplexMethod:GpgKeyExpirationServiceJvm.kt:GpgKeyExpirationServiceJvm$private fun updatePrimary: PGPPublicKey</ID>
     <ID>CyclomaticComplexMethod:GpgKeyExpirationStateProducer.kt:internal suspend fun RememberStateFlowScope.gpgKeyExpirationStateProducer: Flow&lt;GpgKeyExpirationState&gt;</ID>
-    <ID>CyclomaticComplexMethod:GpgToolsStateProducer.kt:@Composable fun produceGpgToolsState: Loadable&lt;GpgToolsState&gt;</ID>
     <ID>CyclomaticComplexMethod:HomeScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun HomeScreenContent</ID>
     <ID>CyclomaticComplexMethod:IOShared.kt:@OptIn(DelicateCoroutinesApi::class) private fun &lt;T&gt; IO&lt;T&gt;.sharedRef: IO&lt;T&gt;</ID>
     <ID>CyclomaticComplexMethod:JsonExportServiceImpl.kt:JsonExportServiceImpl$@OptIn(ExperimentalSerializationApi::class) private fun DSecret.toExportEntity: JsonObject</ID>
@@ -130,7 +132,6 @@
     <ID>CyclomaticComplexMethod:KeePassCipherCodec.kt:KeePassCipherCodec$suspend fun decode: BitwardenCipher</ID>
     <ID>CyclomaticComplexMethod:KeePassCipherCodec.kt:KeePassCipherCodec$suspend fun encode: EncodedCipher</ID>
     <ID>CyclomaticComplexMethod:KeePassLoginScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class, ExperimentalMaterial3ExpressiveApi::class, ) @Composable fun LoginContent</ID>
-    <ID>CyclomaticComplexMethod:KeePassLoginStateProducer.kt:@OptIn(ExperimentalCoroutinesApi::class) @Composable fun produceKeePassLoginScreenState: Loadable&lt;KeePassLoginState&gt;</ID>
     <ID>CyclomaticComplexMethod:KeePassTotpCodec.kt:KeePassTotpCodec$private fun decodeTimeOtp: DecodedTotpSource?</ID>
     <ID>CyclomaticComplexMethod:KeePassTreeSyncExecutor.kt:private fun EntitySyncPlan&lt;BitwardenFolder, KeePassFolder&gt;.orderedByTreeDepth: EntitySyncPlan&lt;BitwardenFolder, KeePassFolder&gt;</ID>
     <ID>CyclomaticComplexMethod:KeePassUrlCodec.kt:KeePassUrlCodec$private fun extract: List&lt;DecodedUri&gt;</ID>
@@ -152,7 +153,9 @@
     <ID>CyclomaticComplexMethod:PatchWatchtowerAlertCipherImpl.kt:PatchWatchtowerAlertCipherImpl$override fun invoke: IO&lt;Boolean&gt;</ID>
     <ID>CyclomaticComplexMethod:QuickSearchListScreen.kt:@Composable internal fun QuickSearchListScreen</ID>
     <ID>CyclomaticComplexMethod:QuickSearchListScreen.kt:@Composable private fun QuickSearchSearch</ID>
-    <ID>CyclomaticComplexMethod:RefreshGpgPublicKeysImpl.kt:RefreshGpgPublicKeysImpl$override fun invoke: IO&lt;RefreshGpgPublicKeysResult&gt;</ID>
+    <ID>CyclomaticComplexMethod:RouteDescriptorDeepLink.kt:fun RouteDescriptor.toDeepLink: String?</ID>
+    <ID>CyclomaticComplexMethod:RouteDescriptorDeepLink.kt:fun routeDescriptorFromDeepLink: RouteDescriptor?</ID>
+    <ID>CyclomaticComplexMethod:RouteDescriptorRoute.kt:fun RouteDescriptor.toRoute: Route?</ID>
     <ID>CyclomaticComplexMethod:SearchTextField.kt:@Composable fun SearchTextField</ID>
     <ID>CyclomaticComplexMethod:SecureStorageCoordinator.kt:SecureStorageCoordinator$private suspend fun &lt;P : Any&gt; probeStore: P</ID>
     <ID>CyclomaticComplexMethod:SecureStorageFailureClassifier.kt:internal fun classifySecureStorageFailure: SecureStorageDisposition</ID>
@@ -160,7 +163,6 @@
     <ID>CyclomaticComplexMethod:SendAddStateProducer.kt:suspend fun RememberStateFlowScope.sendAddStateProducer: Flow&lt;Loadable&lt;SendAddState&gt;&gt;</ID>
     <ID>CyclomaticComplexMethod:SendListFilter.kt:suspend fun &lt; Output : Any, Secret, &gt; RememberStateFlowScope.createFilterItemsFlow: Flow&lt;OurFilterResult&gt;</ID>
     <ID>CyclomaticComplexMethod:SendListScreen.kt:@Composable fun VaultSendItemText</ID>
-    <ID>CyclomaticComplexMethod:SendListStateProducer.kt:private fun createFilteredSendsFlow</ID>
     <ID>CyclomaticComplexMethod:SendListStateProducer.kt:suspend fun RememberStateFlowScope.sendListScreenStateProducer: Flow&lt;SendListState&gt;</ID>
     <ID>CyclomaticComplexMethod:SendViewStateProducer.kt:private fun RememberStateFlowScope.oh</ID>
     <ID>CyclomaticComplexMethod:SendViewStateProducer.kt:suspend fun RememberStateFlowScope.sendViewScreenStateProducer: Flow&lt;SendViewState&gt;</ID>
@@ -185,11 +187,14 @@
     <ID>CyclomaticComplexMethod:VaultListItem.kt:@Composable fun VaultListItemText</ID>
     <ID>CyclomaticComplexMethod:VaultListItem.kt:internal fun resolveSearchContextBadgeIcon: ImageVector</ID>
     <ID>CyclomaticComplexMethod:VaultListItemMapping.kt:fun DSecret.toVaultItemIcon: VaultItemIcon</ID>
+    <ID>CyclomaticComplexMethod:VaultListParityTest.kt:VaultListParityTest$@Test fun `filter chips narrow both pipelines identically`</ID>
+    <ID>CyclomaticComplexMethod:VaultListParityTest.kt:VaultListParityTest$@Test fun `sorts order both pipelines identically and the menu matches`</ID>
     <ID>CyclomaticComplexMethod:VaultListScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class, ExperimentalAnimationApi::class, ExperimentalMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class, ) @Composable fun VaultHomeScreenListPane</ID>
     <ID>CyclomaticComplexMethod:VaultListStateProducer.kt:internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer: Flow&lt;VaultListState&gt;</ID>
-    <ID>CyclomaticComplexMethod:VaultListStateProducer.kt:private fun createFilteredCiphersFlow</ID>
+    <ID>CyclomaticComplexMethod:VaultRowProjection.kt:fun appleVaultTextFieldSymbol: String</ID>
     <ID>CyclomaticComplexMethod:VaultSearchBenchmarkFixtures.kt:VaultSearchBenchmarkFixtures$private fun buildSecret: DSecret</ID>
     <ID>CyclomaticComplexMethod:VaultSearchPresentation.kt:internal fun snippetForField: String</ID>
+    <ID>CyclomaticComplexMethod:VaultStructureDiff.kt:internal fun diffStructure: StructureDiffResult</ID>
     <ID>CyclomaticComplexMethod:VaultViewItemContent.kt:@Composable fun VaultViewItemContent</ID>
     <ID>CyclomaticComplexMethod:VaultViewStateProducer.kt:private fun RememberStateFlowScope.oh</ID>
     <ID>CyclomaticComplexMethod:VaultViewStateProducer.kt:private suspend fun RememberStateFlowScope.createGpgKeyItems: List&lt;VaultViewItem&gt;</ID>
@@ -197,7 +202,6 @@
     <ID>CyclomaticComplexMethod:VaultViewStateProducer.kt:private suspend fun RememberStateFlowScope.createUriItemContextItems: List&lt;ContextItem&gt;</ID>
     <ID>CyclomaticComplexMethod:VaultViewStateProducer.kt:suspend fun RememberStateFlowScope.vaultViewScreenStateProducer: Flow&lt;VaultViewState&gt;</ID>
     <ID>CyclomaticComplexMethod:WatchtowerBenchmarkFixtures.kt:private fun createSecret: DSecret</ID>
-    <ID>CyclomaticComplexMethod:WatchtowerGpgKey.kt:GpgWatchtowerPolicy$private fun buildUnusableIssues: List&lt;String&gt;</ID>
     <ID>CyclomaticComplexMethod:WatchtowerScreen.kt:@Composable private fun ColumnScope.DashboardContentData</ID>
     <ID>CyclomaticComplexMethod:WatchtowerStateProducer.kt:suspend fun RememberStateFlowScope.watchtowerStateProducer: Flow&lt;WatchtowerState&gt;</ID>
     <ID>CyclomaticComplexMethod:WatchtowerSyncerImpl.kt:WatchtowerClient$fun launch</ID>
@@ -226,7 +230,6 @@
     <ID>EmptyFunctionBlock:BitwardenLoginTwofaPlatform.kt:{ }</ID>
     <ID>EmptyFunctionBlock:CipherFilterViewDialogRoute.kt:CipherFilterViewDialogRoute${ }</ID>
     <ID>EmptyFunctionBlock:CipherInputStream2.kt:CipherInputStream2${}</ID>
-    <ID>EmptyFunctionBlock:EncryptedFilePendingUploadServiceIos.kt:EncryptedFilePendingUploadServiceIos${ }</ID>
     <ID>EmptyFunctionBlock:InstallImageLoadingApple.kt:{ }</ID>
     <ID>EmptyFunctionBlock:KeepScreenOnEffect.kt:{ }</ID>
     <ID>EmptyFunctionBlock:LeCrashlytics.kt:{ }</ID>
@@ -237,13 +240,11 @@
     <ID>EmptyFunctionBlock:Theme.kt:{ }</ID>
     <ID>EmptyFunctionBlock:UploadAttachmentManager.kt:UploadAttachmentManager${ }</ID>
     <ID>EmptyFunctionBlock:WordlistViewStateProducer.kt:{ }</ID>
-    <ID>EmptyFunctionBlock:PlatformVaultModule.kt:AppleUnsupportedExportManager${ }</ID>
     <ID>EmptyFunctionBlock:recordException.kt:{ }</ID>
     <ID>EmptyKotlinFile:ContextItem.kt:com.artemchep.keyguard.ui.items.ContextItem.kt</ID>
     <ID>EmptyKotlinFile:LeAddRoute.kt:com.artemchep.keyguard.feature.home.vault.add.LeAddRoute.kt</ID>
     <ID>EmptyKotlinFile:rememberYubiKey.kt:com.artemchep.keyguard.feature.yubikey.rememberYubiKey.kt</ID>
     <ID>EmptyKotlinFile:widen.kt:com.artemchep.keyguard.common.util.flow.widen.kt</ID>
-    <ID>EmptyWhileBlock:BackupRepositoryZipImpl.kt:BackupRepositoryZipImpl${ }</ID>
     <ID>ExplicitItLambdaMultipleParameters:SyncScreen.kt:{ _, it -&gt; it.key }</ID>
     <ID>ForbiddenComment:AccountPwnageRepositoryImpl.kt:AccountPwnageRepositoryImpl$// TODO: dfsdf</ID>
     <ID>ForbiddenComment:AccountViewStateProducer.kt:// TODO:</ID>
@@ -263,17 +264,14 @@
     <ID>ForbiddenComment:BitwardenLoginTwofaScreen.kt:// TODO: Switch to WebView implementation after</ID>
     <ID>ForbiddenComment:BitwardenLoginTwofaStateProducer.kt:// TODO: Add a support for resending the email</ID>
     <ID>ForbiddenComment:CipherMerge.kt:CipherMergeImpl.PickAttachmentStrategy$// FIXME: We do not support merging attachments, so</ID>
-    <ID>ForbiddenComment:CipherSyncOps.kt:CipherSyncOps$// TODO: Password history merge re-introduces deleted password-history</ID>
     <ID>ForbiddenComment:CipherUnsecureUrlCheck.kt:CipherUnsecureUrlCheckImpl$// TODO: Allow reserved IP addresses to be unsafe</ID>
     <ID>ForbiddenComment:CipherUrlCheck.kt:CipherUrlCheckImpl$// TODO: Add special treatments for androidapp:// etc.</ID>
     <ID>ForbiddenComment:CopyCipherById.kt:CopyCipherByIdImpl$// TODO: Check if the name collides</ID>
     <ID>ForbiddenComment:CopyCipherById.kt:CopyCipherByIdImpl$// TODO: Support copying attachments</ID>
     <ID>ForbiddenComment:DSecret.kt:// TODO: Extract country code</ID>
-    <ID>ForbiddenComment:DatabaseManager.kt:AfterVersionWithTransactionBlock$// TODO: Would be nice to ensure that the block is running in the</ID>
     <ID>ForbiddenComment:DownloadAttachmentMetadataBitwardenImpl.kt:DownloadAttachmentMetadataBitwardenImpl$// TODO: Throw properly!</ID>
     <ID>ForbiddenComment:DownloadDatabaseManager.kt:DownloadDatabaseManager$// TODO: Would be nice to log this exception.</ID>
     <ID>ForbiddenComment:FingerprintRepositoryModule.kt:// TODO: FIX ME!!</ID>
-    <ID>ForbiddenComment:FingerprintRepositoryModule.kt:BiometricStatusUseCaseImpl$// FIXME: Properly load native library on Flatpak platform</ID>
     <ID>ForbiddenComment:GeneratorStateProducer.kt:// TODO: Do not consume the `gpgKeyCustomExpiryDateSink` directly, as it might have</ID>
     <ID>ForbiddenComment:GetPinCodeImpl.kt:GetPinCodeImpl$// TODO: Check for common patterns in other than the 3-4</ID>
     <ID>ForbiddenComment:HomeScreen.kt:// // TODO: Show notifications banner as in a bottom navigation</ID>
@@ -294,6 +292,7 @@
     <ID>ForbiddenComment:VaultViewStateProducer.kt:// FIXME: must not be a screen scope!!</ID>
     <ID>ForbiddenComment:WatchtowerNewAlertsStateProducer.kt:// TODO: It should be saved in the persistent flow,</ID>
     <ID>ForbiddenComment:WatchtowerScreen.kt:// TODO:</ID>
+    <ID>ForbiddenComment:WatchtowerSyncerImpl.kt:WatchtowerClient$// FIXME: Kotlin/Native type tokens do not expose supertypes, so asking DI for</ID>
     <ID>ForbiddenComment:WordlistViewScreen.kt:// TODO: I should somehow sync it with the toolbar instead</ID>
     <ID>ForbiddenComment:changePasswordAction.kt:// TODO: Where do I put 'after' callback?</ID>
     <ID>ForbiddenComment:getMonetNeutralColor.kt:// TODO: Support properly populating all the difference surfaces</ID>
@@ -310,8 +309,6 @@
     <ID>FunctionNaming:FNV.kt:FNV$fun fnv1_32: Long</ID>
     <ID>FunctionNaming:GetCiphers.kt:private inline fun &lt;T&gt; _filterHiddenProfiles: Flow&lt;List&lt;T&gt;&gt;</ID>
     <ID>FunctionNaming:Getter.kt:fun &lt;T, R&gt; Getter: Lens&lt;T, R&gt;</ID>
-    <ID>FunctionNaming:JavaIoExtJvmTest.kt:JavaIoExtJvmTest$@Test fun `useBufferedSink flushes and closes owned output stream`</ID>
-    <ID>FunctionNaming:JavaIoExtJvmTest.kt:JavaIoExtJvmTest$@Test fun `withBufferedSink flushes without closing borrowed output stream`</ID>
     <ID>FunctionNaming:PasswordFilterItem.kt:@JvmName("FlatItemActionNullable") fun CopyText.FlatItemAction</ID>
     <ID>FunctionNaming:PasswordFilterItem.kt:fun CopyText.FlatItemAction</ID>
     <ID>FunctionNaming:toColorInt.kt:fun RGBToHSL</ID>
@@ -351,9 +348,7 @@
     <ID>InvalidRange:NativeCryptoGeneratorTest.kt:NativeCryptoGeneratorTest$1 until 1</ID>
     <ID>LargeClass:BackupRunner.kt:BackupRunner</ID>
     <ID>LargeClass:BackupRunnerTest.kt:BackupRunnerTest</ID>
-    <ID>LargeClass:BcGpgOpenPgpServiceTestOracle.kt:BcGpgOpenPgpServiceTestOracle : GpgOpenPgpService</ID>
     <ID>LargeClass:BitwardenCipherMergeRulesTest.kt:BitwardenCipherMergeRulesTest</ID>
-    <ID>LargeClass:CipherDuplicatesCheck.kt:CipherDuplicatesCheckImpl : CipherDuplicatesCheck</ID>
     <ID>LargeClass:CipherSyncOps.kt:CipherSyncOps : EntitySyncOpsBulkRemoteOps</ID>
     <ID>LargeClass:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid</ID>
     <ID>LargeClass:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex : SurfaceAwareVaultSearchIndex</ID>
@@ -377,6 +372,7 @@
     <ID>LargeClass:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest</ID>
     <ID>LargeClass:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest</ID>
     <ID>LargeClass:SyncV2UploadTestFixtures.kt:UploadTestServer</ID>
+    <ID>LargeClass:VaultListParityTest.kt:VaultListParityTest</ID>
     <ID>LargeClass:VaultSearchEngineTest.kt:VaultSearchEngineTest</ID>
     <ID>LargeClass:VaultSearchIndexBuilderTest.kt:VaultSearchIndexBuilderTest</ID>
     <ID>LongMethod:AboutTeamScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun AboutTeamScreen</ID>
@@ -430,11 +426,16 @@
     <ID>LongMethod:AgentManager.kt:AgentManager$private suspend fun startLocked: Process</ID>
     <ID>LongMethod:AgentSetupComponents.kt:@Composable internal fun AgentSetupCodeBlock</ID>
     <ID>LongMethod:AndroidAssetLinksRpBinding.kt:AndroidAssetLinksRpBinding$private suspend fun obtainAllowedAndroidAppTargets: Map&lt;AndroidAppRelation, Map&lt;AndroidAppPackageName, AndroidAppTarget&gt;&gt;</ID>
+    <ID>LongMethod:AndroidIpcApprovalStoreTest.kt:AndroidIpcApprovalStoreTest$@Test fun `authorization is single use and bound to the complete caller identity`</ID>
     <ID>LongMethod:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$@OptIn(ExperimentalSerializationApi::class) @Test fun `launch augments protobuf identities request with Android sender app info`</ID>
     <ID>LongMethod:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$@OptIn(ExperimentalSerializationApi::class) @Test fun `launch discards protobuf caller when Android sender app info is unavailable`</ID>
     <ID>LongMethod:AndroidTreeBackupObjectStore.kt:AndroidTreeBackupObjectStore$override suspend fun write: BackupObjectInfo</ID>
     <ID>LongMethod:AppPickerScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun ChangePasswordScreen</ID>
     <ID>LongMethod:AppPickerStateProducer.kt:@Composable fun produceAppPickerState: Loadable&lt;AppPickerState&gt;</ID>
+    <ID>LongMethod:AppleFolderBackupObjectStore.kt:AppleFolderBackupObjectStore$override suspend fun read: Source</ID>
+    <ID>LongMethod:AppleVaultListAssembler.kt:internal suspend fun assembleAppleVaultState: AppleVaultListState</ID>
+    <ID>LongMethod:AppleVaultListSource.kt:private fun createAppleVaultUniverseHandle: UniverseHandle&lt;AppleVaultUniverse&gt;</ID>
+    <ID>LongMethod:AppleVaultListSource.kt:suspend fun RememberStateFlowScope.createAppleVaultListSource: AppleVaultListSource</ID>
     <ID>LongMethod:AttachmentDownloadWorker.kt:AttachmentDownloadWorker$private suspend fun internalDoWork: Result</ID>
     <ID>LongMethod:AttachmentIcon.kt:@Composable fun AttachmentIcon</ID>
     <ID>LongMethod:AttachmentPreviewCodeMinimap.kt:@Composable internal fun AttachmentPreviewCodeMinimap</ID>
@@ -514,8 +515,8 @@
     <ID>LongMethod:ConfirmationScreen.kt:@Composable private fun ConfirmationStringItem</ID>
     <ID>LongMethod:ConfirmationScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun ConfirmationEnumItem</ID>
     <ID>LongMethod:ConfirmationScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun ConfirmationFileItem</ID>
-    <ID>LongMethod:ConfirmationStateProducer.kt:suspend fun RememberStateFlowScope.confirmationStateProducer: Flow&lt;ConfirmationState&gt;</ID>
     <ID>LongMethod:ContentToolbar.kt:@Composable fun CustomToolbarContent</ID>
+    <ID>LongMethod:CopyCipherAttachments.kt:CopyCipherAttachments$suspend fun copy: List&lt;BitwardenCipher.Attachment&gt;</ID>
     <ID>LongMethod:CopyCipherById.kt:CopyCipherByIdImpl$private fun invoke2: IO&lt;Unit&gt;</ID>
     <ID>LongMethod:CreateAttachmentItem.kt:suspend fun RememberStateFlowScope.createAttachmentItem: AttachmentItem</ID>
     <ID>LongMethod:DFilterCipherPresence.kt:DFilterCipherPresence.Companion$fun &lt;T&gt; of: DFilterCipherPresence</ID>
@@ -523,7 +524,7 @@
     <ID>LongMethod:DataSafetyScreen.kt:@Composable fun dataSafetyItems: List&lt;DataSafetyItem&gt;</ID>
     <ID>LongMethod:DataSafetyScreen.kt:@Composable private fun DataSafetyScreenItem</ID>
     <ID>LongMethod:DatePickerStateProducer.kt:@Composable fun produceDatePickerState: Loadable&lt;DatePickerState&gt;</ID>
-    <ID>LongMethod:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$override suspend fun evaluate: List&lt;VaultItem2.Item&gt;</ID>
+    <ID>LongMethod:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$override suspend fun match: List&lt;VaultSearchMatch&gt;</ID>
     <ID>LongMethod:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$private fun clauseTrace: ItemClauseTrace</ID>
     <ID>LongMethod:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$private fun probeColdClause: ClauseProbe</ID>
     <ID>LongMethod:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$private fun probeHotClause: ClauseProbe</ID>
@@ -552,11 +553,8 @@
     <ID>LongMethod:EntitySyncExecutorV2Test.kt:EntitySyncExecutorV2Test$@Test fun `executor runs actions in deterministic sync phases`</ID>
     <ID>LongMethod:EquivalentDomainsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun EquivalentDomainsContent</ID>
     <ID>LongMethod:ErrorEntity.kt:fun ErrorEntity.toException</ID>
-    <ID>LongMethod:ExportManagerImpl.kt:ExportManagerBase$@OptIn(ExperimentalAtomicApi::class) private fun createDownloadFileZipEntry: ZipEntry</ID>
-    <ID>LongMethod:ExportManagerImpl.kt:ExportManagerBase$private suspend fun invoke2</ID>
     <ID>LongMethod:ExportScreen.kt:@Composable private fun ColumnScope.ExportContentOk</ID>
     <ID>LongMethod:ExportScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun ExportScreen</ID>
-    <ID>LongMethod:ExportStateProducer.kt:suspend fun RememberStateFlowScope.exportScreenStateProducer: Flow&lt;Loadable&lt;ExportState&gt;&gt;</ID>
     <ID>LongMethod:ExportWorker.kt:ExportWorker$@OptIn(ExperimentalCoroutinesApi::class) private suspend fun internalDoWork: Result</ID>
     <ID>LongMethod:FastmailEmailRelay.kt:FastmailEmailRelay$override fun generate: IO&lt;String&gt;</ID>
     <ID>LongMethod:FavouriteToggleButton.kt:@Composable fun FavouriteToggleButton</ID>
@@ -566,7 +564,6 @@
     <ID>LongMethod:FilterItem.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun FilterListItemComposable</ID>
     <ID>LongMethod:FingerprintRepositoryModule.kt:fun diFingerprintRepositoryModule</ID>
     <ID>LongMethod:FolderConfirmationScreen.kt:@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class) @Composable fun FolderConfirmationScreen</ID>
-    <ID>LongMethod:FolderConfirmationStateProducer.kt:@Composable fun folderConfirmationState: FolderConfirmationState</ID>
     <ID>LongMethod:FoldersScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun FoldersScreenContent</ID>
     <ID>LongMethod:FoldersStateProducer.kt:suspend fun RememberStateFlowScope.foldersScreenStateProducer: Flow&lt;FoldersState&gt;</ID>
     <ID>LongMethod:GeneratorHistoryScreen.kt:@Composable private fun GeneratorHistoryItem</ID>
@@ -585,9 +582,6 @@
     <ID>LongMethod:GlobalModuleCommon.kt:fun globalModuleCommon</ID>
     <ID>LongMethod:GlobalModuleJvm.kt:fun globalModuleJvm</ID>
     <ID>LongMethod:GpgAgentFiltersScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun GpgAgentFiltersScreenContent</ID>
-    <ID>LongMethod:GpgAgentFiltersStateProducer.kt:@Composable fun produceGpgAgentFiltersState: Loadable&lt;GpgAgentFiltersState&gt;</ID>
-    <ID>LongMethod:GpgAgentHistoryStateProducer.kt:@Composable fun produceGpgAgentHistoryState: Loadable&lt;GpgAgentHistoryState&gt;</ID>
-    <ID>LongMethod:GpgPublicKeySyncerImplTest.kt:GpgPublicKeySyncerImplTest$@Test fun `GPG toggle controls the catalog and preserves key capabilities`</ID>
     <ID>LongMethod:GpgAgentRequestProcessorImpl.kt:GpgAgentRequestProcessorImpl$private suspend fun &lt;T&gt; runKeyOperation: GpgAgentOperationResult&lt;T&gt;</ID>
     <ID>LongMethod:GpgAgentSetupScreen.kt:@Composable private fun ColumnScope.GpgAgentSetupSupportedPlatformContent</ID>
     <ID>LongMethod:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test @Suppress("DEPRECATION") fun `designated revoker authenticates primary and subkey revocations when its key is supplied`</ID>
@@ -602,15 +596,13 @@
     <ID>LongMethod:GpgKeyGeneratorJvmTest.kt:GpgKeyGeneratorJvmTest$private fun assertGeneratedKeyWorks</ID>
     <ID>LongMethod:GpgKeyserverClientImpl.kt:GpgKeyserverClientImpl$private fun parseHkpMachineReadable: List&lt;DGpgKeyserverResult&gt;</ID>
     <ID>LongMethod:GpgKeyserverSearchStateProducer.kt:@Composable fun produceGpgKeyserverSearchState: Loadable&lt;GpgKeyserverSearchState&gt;</ID>
+    <ID>LongMethod:GpgPublicKeySyncerImplTest.kt:GpgPublicKeySyncerImplTest$@Test fun `GPG toggle controls the catalog and preserves key capabilities`</ID>
     <ID>LongMethod:GpgToolsPickerScreen.kt:@Composable private fun GpgToolsCard</ID>
     <ID>LongMethod:GpgToolsPickerScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun GpgToolsPickerScreen</ID>
     <ID>LongMethod:GpgToolsResultScreen.kt:@Composable fun GpgToolsResultScreen</ID>
     <ID>LongMethod:GpgToolsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun GpgToolsOperationScreen</ID>
     <ID>LongMethod:GpgToolsScreen.kt:private fun LazyListScope.populateGpgToolsContent</ID>
     <ID>LongMethod:GpgToolsScreen.kt:private fun LazyListScope.populateGpgToolsKeySection</ID>
-    <ID>LongMethod:GpgToolsStateProducer.kt:@Composable fun produceGpgToolsState: Loadable&lt;GpgToolsState&gt;</ID>
-    <ID>LongMethod:GpgToolsStateProducer.kt:fun handleFileOperation</ID>
-    <ID>LongMethod:GpgToolsStateProducer.kt:fun handleTextOperation</ID>
     <ID>LongMethod:HomeNavigationItem.kt:fun createBuiltInHomeNavigationItem: HomeNavigationItem?</ID>
     <ID>LongMethod:HomeScreen.kt:@Composable private fun BannerStatusBadgeContent</ID>
     <ID>LongMethod:HomeScreen.kt:@Composable private fun RailStatusBadge</ID>
@@ -629,7 +621,6 @@
     <ID>LongMethod:KeePassCipherCodec.kt:KeePassCipherCodec$suspend fun encode: EncodedCipher</ID>
     <ID>LongMethod:KeePassDatabaseWindowsSpillTest.kt:KeePassDatabaseWindowsSpillTest$@Test fun largeDatabaseSpillsPublishesAndReopens</ID>
     <ID>LongMethod:KeePassLoginScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class, ExperimentalMaterial3ExpressiveApi::class, ) @Composable fun LoginContent</ID>
-    <ID>LongMethod:KeePassLoginStateProducer.kt:@OptIn(ExperimentalCoroutinesApi::class) @Composable fun produceKeePassLoginScreenState: Loadable&lt;KeePassLoginState&gt;</ID>
     <ID>LongMethod:KeePassPasskeyCodec.kt:KeePassPasskeyCodec$private fun decodeCanonicalPasskey: DecodedPasskeySource?</ID>
     <ID>LongMethod:KeePassSyncCoordinator.kt:KeePassSyncCoordinator$private suspend fun stageSyncPipeline: PipelineResult</ID>
     <ID>LongMethod:KeePassTotpCodec.kt:KeePassTotpCodec$private fun decodeTimeOtp: DecodedTotpSource?</ID>
@@ -659,7 +650,6 @@
     <ID>LongMethod:OpenPgpReadBouncyCastleDifferentialTest.kt:BouncyCastleParserOracle$private fun parseRing: GpgPublicKeyInfo?</ID>
     <ID>LongMethod:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest$@Test fun `native expiry flags and cross-certified capabilities match BC`</ID>
     <ID>LongMethod:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest$@Test fun `native user-id authentication and signing cross-certification policy match BC`</ID>
-    <ID>LongMethod:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest$@Test fun `native verification warning semantics match BC`</ID>
     <ID>LongMethod:OrganizationConfirmationScreen.kt:@Composable private fun OrganizationConfirmationScreen</ID>
     <ID>LongMethod:OrganizationConfirmationStateProducer.kt:suspend fun RememberStateFlowScope.organizationConfirmationStateProducer: Flow&lt;OrganizationConfirmationState&gt;</ID>
     <ID>LongMethod:OrganizationsScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun FoldersScreenContent</ID>
@@ -680,6 +670,7 @@
     <ID>LongMethod:QuickSearchStateProducer.kt:internal suspend fun RememberStateFlowScope.quickSearchScreenStateProducer: Flow&lt;QuickSearchState&gt;</ID>
     <ID>LongMethod:RefreshGpgPublicKeysImpl.kt:RefreshGpgPublicKeysImpl$override fun invoke: IO&lt;RefreshGpgPublicKeysResult&gt;</ID>
     <ID>LongMethod:RememberScreenStateFlow.kt:@Composable fun &lt;T&gt; rememberScreenStateFlow: StateFlow&lt;T&gt;</ID>
+    <ID>LongMethod:RouteDescriptorRoute.kt:fun RouteDescriptor.toRoute: Route?</ID>
     <ID>LongMethod:Scaffold.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ExperimentalLayoutApi::class, ) @Composable fun ScaffoldLazyColumn</ID>
     <ID>LongMethod:Scaffold.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) @Composable fun ScaffoldColumn</ID>
     <ID>LongMethod:ScanQrButton.kt:@Composable fun ScanQrButton</ID>
@@ -688,7 +679,6 @@
     <ID>LongMethod:SearchSettingsStateProducer.kt:@Composable fun produceSearchSettingsState: SearchSettingsState</ID>
     <ID>LongMethod:SearchTextField.kt:@Composable fun SearchTextField</ID>
     <ID>LongMethod:SecureStorageFailureClassifier.kt:internal fun classifySecureStorageFailure: SecureStorageDisposition</ID>
-    <ID>LongMethod:SegmentedTabs.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun &lt;T : TabItem&gt; SegmentedButtonGroup</ID>
     <ID>LongMethod:SendAddScreen.kt:@Composable fun SendAddScreen</ID>
     <ID>LongMethod:SendAddStateProducer.kt:private suspend fun RememberStateFlowScope.produceFileState: TmpFile</ID>
     <ID>LongMethod:SendAddStateProducer.kt:private suspend fun RememberStateFlowScope.produceOptionsState: TmpOptions</ID>
@@ -811,6 +801,7 @@
     <ID>LongMethod:UrlOverrideListStateProducer.kt:suspend fun RememberStateFlowScope.urlOverrideListStateProducer: Flow&lt;Loadable&lt;UrlOverrideListState&gt;&gt;</ID>
     <ID>LongMethod:UrlOverrideListStateProducer.kt:suspend fun onEdit</ID>
     <ID>LongMethod:UrlPlaceholder.kt:UrlPlaceholder$override fun get: IO&lt;String?&gt;?</ID>
+    <ID>LongMethod:VaultFilterEnablementGoldenTest.kt:VaultFilterEnablementGoldenTest$@Test fun listSensitiveFilterKeepsPerResultSemantics</ID>
     <ID>LongMethod:VaultListFilter.kt:internal fun buildFolderFilterTree: FolderFilterTree</ID>
     <ID>LongMethod:VaultListFilter.kt:suspend fun &lt; Output : Any, Account, Secret, Tag, Folder, Collection, Organization, &gt; RememberStateFlowScope.createFilterItemsFlow: Flow&lt;OurFilterResult&gt;</ID>
     <ID>LongMethod:VaultListFilter.kt:suspend fun RememberStateFlowScope.createFilter: CreateFilterResult</ID>
@@ -818,13 +809,27 @@
     <ID>LongMethod:VaultListItem.kt:@Composable fun FlatItemLayoutExpressive</ID>
     <ID>LongMethod:VaultListItem.kt:@Composable fun SmartBadge</ID>
     <ID>LongMethod:VaultListItem.kt:@Composable fun VaultListItemText</ID>
+    <ID>LongMethod:VaultListItemMapping.kt:internal fun DSecret.buildVaultItemCopyActions: List&lt;FlatItemAction&gt;</ID>
     <ID>LongMethod:VaultListItemMapping.kt:suspend fun DSecret.toVaultListItem: VaultItem2.Item</ID>
+    <ID>LongMethod:VaultListParityTest.kt:VaultListParityTest$@Test fun `filter catalog carries the full tree and shares collapse persistence`</ID>
+    <ID>LongMethod:VaultListParityTest.kt:VaultListParityTest$@Test fun `filter chips narrow both pipelines identically`</ID>
+    <ID>LongMethod:VaultListParityTest.kt:VaultListParityTest$@Test fun `header mirrors the canonical query create and keyboard state`</ID>
+    <ID>LongMethod:VaultListParityTest.kt:VaultListParityTest$@Test fun `live mutations converge and keep untouched row revs stable`</ID>
+    <ID>LongMethod:VaultListParityTest.kt:VaultListParityTest$@Test fun `pick mode projects the preferred block identically`</ID>
+    <ID>LongMethod:VaultListParityTest.kt:VaultListParityTest$@Test fun `queries project an identical structure content and decorations`</ID>
+    <ID>LongMethod:VaultListParityTest.kt:VaultListParityTest$@Test fun `sorts order both pipelines identically and the menu matches`</ID>
+    <ID>LongMethod:VaultListParityTest.kt:VaultListParityTest$@Test fun `toolbar actions sections and toggle roles match`</ID>
+    <ID>LongMethod:VaultListParityTest.kt:VaultListParityTest$private fun assertItemRowParity</ID>
     <ID>LongMethod:VaultListScreen.kt:@Composable fun VaultListScreen</ID>
     <ID>LongMethod:VaultListScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class, ExperimentalAnimationApi::class, ExperimentalMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class, ) @Composable fun VaultHomeScreenListPane</ID>
+    <ID>LongMethod:VaultListShared.kt:internal fun RememberStateFlowScope.buildVaultItemModeMenu: VaultItem2.Item.Action</ID>
+    <ID>LongMethod:VaultListShared.kt:internal fun RememberStateFlowScope.vaultListToolbarFlow: Flow&lt;List&lt;ContextItem&gt;&gt;</ID>
     <ID>LongMethod:VaultListStateProducer.kt:internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer: Flow&lt;VaultListState&gt;</ID>
     <ID>LongMethod:VaultListStateProducer.kt:private fun createFilteredCiphersFlow</ID>
+    <ID>LongMethod:VaultListTestDi.kt:internal fun vaultListTestDi: DI</ID>
     <ID>LongMethod:VaultPasswordHistoryValueItem.kt:@Composable fun VaultPasswordHistoryValueItem</ID>
     <ID>LongMethod:VaultRecentStateProducer.kt:internal suspend fun RememberStateFlowScope.vaultRecentScreenStateProducer: Flow&lt;Loadable&lt;VaultRecentState&gt;&gt;</ID>
+    <ID>LongMethod:VaultRowProjection.kt:internal fun VaultItem2.Item.toAppleRowContent: AppleVaultRowContent</ID>
     <ID>LongMethod:VaultSearchBenchmarkFixtures.kt:VaultSearchBenchmarkFixtures$fun buildQueries: List&lt;BenchmarkQueryCase&gt;</ID>
     <ID>LongMethod:VaultSearchBenchmarkFixtures.kt:VaultSearchBenchmarkFixtures$private fun buildSecret: DSecret</ID>
     <ID>LongMethod:VaultSearchDocumentMapper.kt:internal fun hotFieldValues: Map&lt;VaultTextField, List&lt;String&gt;&gt;</ID>
@@ -835,6 +840,7 @@
     <ID>LongMethod:VaultSearchIndexBuilderTest.kt:VaultSearchIndexBuilderTest$@Test fun `metadata only refresh does not rebuild text corpus`</ID>
     <ID>LongMethod:VaultSearchQueryHighlighter.kt:DefaultVaultSearchQueryHighlighter$override fun highlight: QueryHighlighting</ID>
     <ID>LongMethod:VaultSearchResolvers.kt:internal fun buildExactFacets: ExactFacetIndex</ID>
+    <ID>LongMethod:VaultStructureDiff.kt:internal fun diffStructure: StructureDiffResult</ID>
     <ID>LongMethod:VaultViewCardItem.kt:@Composable fun VaultViewCardItem</ID>
     <ID>LongMethod:VaultViewErrorItem.kt:@Composable fun VaultViewErrorItem</ID>
     <ID>LongMethod:VaultViewFolderItem.kt:@Composable fun VaultViewFolderTree</ID>
@@ -890,7 +896,6 @@
     <ID>LongMethod:YubiScreen.kt:@Composable fun YubiKeyManual</ID>
     <ID>LongMethod:YubiScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun YubiScreen</ID>
     <ID>LongMethod:changePasswordAction.kt:fun RememberStateFlowScope.cipherMoveToFolderAction</ID>
-    <ID>LongMethod:changePasswordAction.kt:fun RememberStateFlowScope.cipherRefreshGpgPublicKeyAction</ID>
     <ID>LongMethod:changePasswordAction.kt:fun RememberStateFlowScope.cipherSendAction</ID>
     <ID>LongMethod:changePasswordAction.kt:fun RememberStateFlowScope.cipherWatchtowerAlerts</ID>
     <ID>LongMethod:changePasswordAction.kt:suspend fun SequenceScope&lt;SendItem?&gt;.yieldCipherIdentityItems</ID>
@@ -898,11 +903,10 @@
     <ID>LongMethod:popup.kt:@Composable private fun BasicPopup</ID>
     <ID>LoopWithTooManyJumpStatements:AgentIpcServer.kt:AgentIpcServer$while</ID>
     <ID>LoopWithTooManyJumpStatements:AgentPacketSession.kt:while</ID>
-    <ID>LoopWithTooManyJumpStatements:BackupRepositoryZipImpl.kt:BackupRepositoryZipImpl$while</ID>
+    <ID>LoopWithTooManyJumpStatements:AppleFolderBackupObjectStore.kt:AppleFolderBackupObjectStore$while</ID>
     <ID>LoopWithTooManyJumpStatements:CipherCrypto.kt:CipherFieldDecodeScope$for</ID>
     <ID>LoopWithTooManyJumpStatements:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$for</ID>
     <ID>LoopWithTooManyJumpStatements:DefaultVaultSearchLexer.kt:DefaultVaultSearchLexer$while</ID>
-    <ID>LoopWithTooManyJumpStatements:DownloadTaskIos.kt:DownloadTaskIos$while</ID>
     <ID>LoopWithTooManyJumpStatements:FolderHierarchyIndex.kt:while</ID>
     <ID>LoopWithTooManyJumpStatements:GetAttachmentPreviewImpl.kt:GetAttachmentPreviewImpl$while</ID>
     <ID>LoopWithTooManyJumpStatements:GetTotpCodeWithOffsetImpl.kt:GetTotpCodeWithOffsetImpl$while</ID>
@@ -927,7 +931,6 @@
     <ID>MagicNumber:AddScreen.kt:16</ID>
     <ID>MagicNumber:AddScreenScope.kt:AddScreenScope$100L</ID>
     <ID>MagicNumber:AddStateProducer.kt:5000L</ID>
-    <ID>MagicNumber:AddStateProducer.kt:5_000L</ID>
     <ID>MagicNumber:AgentApprovalContent.kt:200L</ID>
     <ID>MagicNumber:AgentIpcPeerVerification.kt:UnixLibC$4</ID>
     <ID>MagicNumber:AgentIpcProtocol.kt:AgentIpcProtocol.Channel$4</ID>
@@ -1021,12 +1024,8 @@
     <ID>MagicNumber:FileEncryptionFormat.kt:FileEncryptionFormat$16</ID>
     <ID>MagicNumber:FileEncryptionFormat.kt:FileEncryptionFormat$32</ID>
     <ID>MagicNumber:FileEncryptionFormat.kt:FileEncryptionFormat$64</ID>
-    <ID>MagicNumber:FileLastModified.apple.kt:1_000.0</ID>
     <ID>MagicNumber:FilePickerUtils.kt:10</ID>
     <ID>MagicNumber:FilePickerUtils.kt:10L</ID>
-    <ID>MagicNumber:FileServiceIos.kt:FileServiceIos$1_000</ID>
-    <ID>MagicNumber:FileUri.kt:3</ID>
-    <ID>MagicNumber:FileUri.kt:4</ID>
     <ID>MagicNumber:FileWatcherServiceJvm.kt:1000L</ID>
     <ID>MagicNumber:FingerprintRepositoryImpl.kt:4</ID>
     <ID>MagicNumber:FolderConfirmationScreen.kt:80L</ID>
@@ -1128,7 +1127,6 @@
     <ID>MagicNumber:LinkedIdTypeEntity.kt:LinkedIdTypeEntity.Identity_Username$413</ID>
     <ID>MagicNumber:LinkedIdTypeEntity.kt:LinkedIdTypeEntity.Login_Password$101</ID>
     <ID>MagicNumber:LinkedIdTypeEntity.kt:LinkedIdTypeEntity.Login_Username$100</ID>
-    <ID>MagicNumber:LoadingTask.kt:LoadingTask$60L</ID>
     <ID>MagicNumber:LocalizationContributorsListScreen.kt:100L</ID>
     <ID>MagicNumber:Luhn.kt:10</ID>
     <ID>MagicNumber:NativeCipherEncryptor.kt:NativeCipherEncryptor$16</ID>
@@ -1221,10 +1219,8 @@
     <ID>MagicNumber:SshAgentTcpProtocol.kt:SshAgentTcpProtocol.Channel$16</ID>
     <ID>MagicNumber:SshAgentTcpProxyBridge.kt:1_000_000L</ID>
     <ID>MagicNumber:SshAgentTcpProxySocketConnector.kt:1_000_000L</ID>
-    <ID>MagicNumber:SshRequestActivity.kt:SshRequestActivity$0.9f</ID>
     <ID>MagicNumber:SshRequestActivity.kt:SshRequestActivity$1000L</ID>
     <ID>MagicNumber:SshRequestActivity.kt:SshRequestActivity$3000L</ID>
-    <ID>MagicNumber:SshUsageHistoryResponseType.kt:SshUsageHistoryResponseType.FAILURE$3L</ID>
     <ID>MagicNumber:SubscriptionServiceAndroid.kt:SubscriptionServiceAndroid$1000L</ID>
     <ID>MagicNumber:SurfaceElevation.kt:0.25f</ID>
     <ID>MagicNumber:SurfaceElevation.kt:0.5f</ID>
@@ -1404,8 +1400,6 @@
     <ID>MatchingDeclarationName:GetWatchtowerUnreadCount.kt:GetWatchtowerUnreadCountImpl : GetWatchtowerUnreadCount</ID>
     <ID>MatchingDeclarationName:GetWordlistPrimitive.kt:GetWordlistPrimitiveImpl : GetWordlistPrimitive</ID>
     <ID>MatchingDeclarationName:GetWordlists.kt:GetWordlistsImpl : GetWordlists</ID>
-    <ID>MatchingDeclarationName:GpgAgentHistoryMapper.kt:GpgUsageHistoryCallerInfo</ID>
-    <ID>MatchingDeclarationName:GpgPublicKeyModels.kt:GpgPublicKeyEntry</ID>
     <ID>MatchingDeclarationName:IOTimeout.kt:IOTimeoutException : Exception</ID>
     <ID>MatchingDeclarationName:LastDeletedSort.kt:LastDeletedSendSort : SendSortPureSendSort</ID>
     <ID>MatchingDeclarationName:LastExpiredSort.kt:LastExpiredSendSort : SendSortPureSendSort</ID>
@@ -1422,6 +1416,7 @@
     <ID>MatchingDeclarationName:MarkAllWatchtowerAlertAsNotRead.kt:MarkAllWatchtowerAlertAsNotReadImpl : MarkAllWatchtowerAlertAsNotRead</ID>
     <ID>MatchingDeclarationName:MarkAllWatchtowerAlertAsRead.kt:MarkAllWatchtowerAlertAsReadImpl : MarkAllWatchtowerAlertAsRead</ID>
     <ID>MatchingDeclarationName:MarkWatchtowerAlertAsRead.kt:MarkWatchtowerAlertAsReadImpl : MarkWatchtowerAlertAsRead</ID>
+    <ID>MatchingDeclarationName:MarkWatchtowerAlertsAsRead.kt:MarkWatchtowerAlertsAsReadImpl : MarkWatchtowerAlertsAsRead</ID>
     <ID>MatchingDeclarationName:MergeFolderById.kt:MergeFolderByIdImpl : MergeFolderById</ID>
     <ID>MatchingDeclarationName:MessageHub.kt:MessageHubImpl : MessageHubShowMessage</ID>
     <ID>MatchingDeclarationName:MoveCipherToFolderById.kt:MoveCipherToFolderByIdImpl : MoveCipherToFolderById</ID>
@@ -1462,7 +1457,6 @@
     <ID>MatchingDeclarationName:ServerEnvIdentity.kt:ServerEnvNotifications</ID>
     <ID>MatchingDeclarationName:ServerEnvNotifications.kt:ServerEnvIdentity</ID>
     <ID>MatchingDeclarationName:SettingPaneContent.kt:Setting</ID>
-    <ID>MatchingDeclarationName:SshAgentHistoryMapper.kt:SshUsageHistoryCallerInfo</ID>
     <ID>MatchingDeclarationName:SshTestKeyFixtures.kt:TestRsaSshKeyPair</ID>
     <ID>MatchingDeclarationName:SyncAll.kt:SyncAllImpl : SyncAll</ID>
     <ID>MatchingDeclarationName:SyncById.kt:SyncByIdImpl : SyncById</ID>
@@ -1508,10 +1502,7 @@
     <ID>MaxLineLength:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.CV25519))</ID>
     <ID>MaxLineLength:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.NISTP256))</ID>
     <ID>MaxLineLength:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.RSA))</ID>
-    <ID>MaxLineLength:GpgKeyActions.kt:GpgKeyActions$title = Res.string.gpg_key_action_save_unencrypted_keys_saved_downloads_success_title</ID>
     <ID>MaxLineLength:GpgKeyActions.kt:GpgKeyActions$title = Res.string.gpg_key_action_save_unencrypted_private_key_saved_downloads_success_title</ID>
-    <ID>MaxLineLength:GpgKeyPrivateExportImpl.kt:GpgKeyPrivateExportImpl$val fileName = "gpg_${parameter.fingerprint.gpgFileSafeSuffix()}_${dateFormatter.gpgExportDateSuffix()}.private.asc"</ID>
-    <ID>MaxLineLength:GpgKeyPublicExportImpl.kt:GpgKeyPublicExportImpl$val fileName = "gpg_${parameter.fingerprint.gpgFileSafeSuffix()}_${dateFormatter.gpgExportDateSuffix()}.public.asc"</ID>
     <ID>MaxLineLength:GpgKeygripCalculatorJvm.kt:GpgKeygripCalculatorJvm$a = hex("01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC")</ID>
     <ID>MaxLineLength:GpgKeygripCalculatorJvm.kt:GpgKeygripCalculatorJvm$n = hex("01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA51868783BF2F966B7FCC0148F709A5D03BB5C9B8899C47AEBB6FB71E91386409")</ID>
     <ID>MaxLineLength:GpgKeygripCalculatorJvm.kt:GpgKeygripCalculatorJvm$p = hex("01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")</ID>
@@ -1530,8 +1521,6 @@
     <ID>MaxLineLength:LazyColumnScrollbar.kt:translationX = with(LocalDensity.current) { (if (rightSide) displacement.dp else -displacement.dp).toPx() }</ID>
     <ID>MaxLineLength:NotificationsBanner.kt:// text = "Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.",</ID>
     <ID>MaxLineLength:OnboardingBanner.kt:// // text = "Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.",</ID>
-    <ID>MaxLineLength:OpenPgpReadBouncyCastleDifferentialTest.kt:BouncyCastleMetadataOracle$private</ID>
-    <ID>MaxLineLength:OpenPgpReadBouncyCastleDifferentialTest.kt:private fun GpgVerifiedCertificateKeyJvm.isExpired: Boolean</ID>
     <ID>MaxLineLength:PasskeyBeginGetRequest.kt:PasskeyBeginGetRequest$requestOptions.userVerification == PublicKeyCredentialRequestOptions.UserVerification.PREFERRED</ID>
     <ID>MaxLineLength:PasskeyBeginGetRequest.kt:PasskeyBeginGetRequest$requestOptions.userVerification == PublicKeyCredentialRequestOptions.UserVerification.REQUIRED</ID>
     <ID>MaxLineLength:PasskeyCompose.kt:note = "Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials."</ID>
@@ -1548,7 +1537,6 @@
     <ID>MaxLineLength:SettingScreenshots.kt:private suspend</ID>
     <ID>MaxLineLength:SetupStateProducer.kt:createVaultWithMasterPasswordAndBiometricFn = createVaultWithMasterPasswordAndBiometricFn</ID>
     <ID>MaxLineLength:SimpleLoginEmailRelay.kt:SimpleLoginEmailRelay$// - (Optional, query) "mode": either 'uuid' or 'word'. By default, use the user setting when creating new random alias.</ID>
-    <ID>MaxLineLength:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$private</ID>
     <ID>MaxLineLength:Suggestions.kt:if</ID>
     <ID>MaxLineLength:SyncItemMeta.kt:LocalItemMeta$*</ID>
     <ID>MaxLineLength:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$assertEquals(listOf(HttpMethod.Get to "/api/ciphers/cipher-remote-1"), server.requests.map { it.method to it.path })</ID>
@@ -1581,7 +1569,6 @@
     <ID>MaxLineLength:Theme.kt:surfaceContainerHighest = if (themeBlack &amp;&amp; isDarkColorScheme) scheme.surfaceContainer else scheme.surfaceContainerHighest</ID>
     <ID>MaxLineLength:Theme.kt:surfaceContainerLowest = if (themeBlack &amp;&amp; isDarkColorScheme) Color.Black else scheme.surfaceContainerLowest</ID>
     <ID>MaxLineLength:ValidatorUri.kt:"(?:\\.(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)*"</ID>
-    <ID>MaxLineLength:VaultDatabaseManagerImpl.kt:VaultDatabaseManagerImpl$verificationStatusAdapter = EnumCodeToLongAdapter(GpgKeyserverVerificationStatus::of) { it.code }</ID>
     <ID>MaxLineLength:VaultViewStateProducer.kt:)</ID>
     <ID>MaxLineLength:VaultViewStateProducer.kt:DSecret.Field.LinkedId.Identity_LicenseNumber -&gt; Res.string.field_linked_to_identity_licensenumber</ID>
     <ID>MaxLineLength:VaultViewStateProducer.kt:DSecret.Field.LinkedId.Identity_PassportNumber -&gt; Res.string.field_linked_to_identity_passportnumber</ID>
@@ -1619,6 +1606,7 @@
     <ID>NestedBlockDepth:DefaultVaultSearchLexer.kt:DefaultVaultSearchLexer$override fun lex: LexedQuery</ID>
     <ID>NestedBlockDepth:NativeGpgWrite.kt:NativeGpgKeyImportService$override fun import: GpgKeyImportResult</ID>
     <ID>NestedBlockDepth:SecureStorageCoordinator.kt:SecureStorageCoordinator$private suspend fun &lt;P : Any&gt; probeStore: P</ID>
+    <ID>NestedBlockDepth:VaultListDecorators.kt:suspend fun decorateVaultItems: List&lt;VaultItem2&gt;</ID>
     <ID>NewLineAtEndOfFile:AccountListSelection.kt:com.artemchep.keyguard.feature.home.settings.accounts.AccountListSelection.kt</ID>
     <ID>NewLineAtEndOfFile:AddScreenScope.kt:com.artemchep.keyguard.feature.add.AddScreenScope.kt</ID>
     <ID>NewLineAtEndOfFile:AndroidAppFDroidParser.kt:com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser.kt</ID>
@@ -1704,7 +1692,6 @@
     <ID>ProtectedMemberInFinalClass:PasskeyGetActivity.kt:PasskeyGetActivity$protected val args: PasskeyProviderGetActivityArgs get() = requireNotNull(_args)</ID>
     <ID>ProtectedMemberInFinalClass:PasswordGetActivity.kt:PasswordGetActivity$protected val args: PasswordProviderGetActivityArgs get() = requireNotNull(_args)</ID>
     <ID>ReturnCount:AddSend.kt:internal suspend fun prepareSendPendingUpload: PreparedSend</ID>
-    <ID>ReturnCount:AddStateProducer.kt:suspend fun createExpirationDecor: GpgKeyDecor2Brr.Expiration?</ID>
     <ID>ReturnCount:AgentApplicationPresentation.desktop.kt:private fun desktopApplicationLookup: DesktopApplicationLookup?</ID>
     <ID>ReturnCount:AgentBinaryFinder.kt:internal fun findAgentBinary: java.nio.file.Path?</ID>
     <ID>ReturnCount:AgentCallerIdentity.kt:fun AgentCallerIdentity?.toApprovalCacheIdentity: AgentApprovalCacheIdentity?</ID>
@@ -1717,6 +1704,7 @@
     <ID>ReturnCount:AndroidTreeBackupObjectStoreTest.kt:FakeAndroidTreeDocumentClient$override fun openInputStream: InputStream?</ID>
     <ID>ReturnCount:AndroidTreeBackupObjectStoreTest.kt:FakeAndroidTreeDocumentClient$override fun openOutputStream: OutputStream?</ID>
     <ID>ReturnCount:AndroidTreeBackupObjectStoreTest.kt:FakeAndroidTreeDocumentClient$private fun resolve: Node?</ID>
+    <ID>ReturnCount:AppleVaultListSource.kt:AppleVaultFilterStage$suspend fun apply: Pair&lt;List&lt;VaultItem2.Item&gt;, List&lt;VaultItem2.Item&gt;?&gt;</ID>
     <ID>ReturnCount:AttachmentDownloadWorker.kt:AttachmentDownloadWorker$private suspend fun internalDoWork: Result</ID>
     <ID>ReturnCount:AttachmentPreviewCodeMinimap.kt:private fun LazyListState.attachmentPreviewMinimapViewport: AttachmentPreviewMinimapViewport?</ID>
     <ID>ReturnCount:AttachmentPreviewFileClassifier.kt:fun attachmentPreviewKindByFileName: AttachmentPreviewKind?</ID>
@@ -1737,7 +1725,6 @@
     <ID>ReturnCount:BitwardenLoginStateProducer.kt:fun: CreateRequest</ID>
     <ID>ReturnCount:BitwardenSendFileExt.kt:private fun BitwardenSend.hasCompletedPendingSendFileUpload: Boolean</ID>
     <ID>ReturnCount:CanPreviewAttachmentImpl.kt:CanPreviewAttachmentImpl$override fun invoke: AttachmentPreviewPolicy</ID>
-    <ID>ReturnCount:CipherCrypto.kt:private fun BitwardenCipher.Field.canDecodeGpgField: Boolean</ID>
     <ID>ReturnCount:CipherCrypto.kt:private fun BitwardenCipher.Field.decodeKeePassIconOrNull: KeePassIcon?</ID>
     <ID>ReturnCount:CipherCrypto.kt:private fun BitwardenCipher.encodeGpgKeyCustomFields: BitwardenCipher</ID>
     <ID>ReturnCount:CipherCrypto.kt:private fun BitwardenCipher.encodeKeePassIconCustomField: BitwardenCipher</ID>
@@ -1783,6 +1770,7 @@
     <ID>ReturnCount:CompanionAuthSecurityAndroid.kt:private fun ECPoint.isValidPoint: Boolean</ID>
     <ID>ReturnCount:ConnectivityServiceAndroid.kt:ConnectivityServiceAndroid$override fun isInternetAvailable: Boolean</ID>
     <ID>ReturnCount:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$override suspend fun evaluate: List&lt;VaultItem2.Item&gt;</ID>
+    <ID>ReturnCount:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$override suspend fun match: List&lt;VaultSearchMatch&gt;</ID>
     <ID>ReturnCount:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$private fun probeColdClause: ClauseProbe</ID>
     <ID>ReturnCount:DefaultVaultSearchParser.kt:DefaultVaultSearchParser$private fun parseClause: ClauseNode?</ID>
     <ID>ReturnCount:EncryptedTemporarySpillStorage.kt:DecryptingRawSource$override fun readAtMostTo: Long</ID>
@@ -1791,20 +1779,16 @@
     <ID>ReturnCount:FileDropTarget.kt:AndroidFileDropTarget$fun shouldStartDragAndDrop: Boolean</ID>
     <ID>ReturnCount:FileDropTarget.kt:AndroidFileDropTarget$override fun onDrop: Boolean</ID>
     <ID>ReturnCount:FileDropTarget.kt:private fun DragAndDropEvent.firstUriOrNull: Uri?</ID>
-    <ID>ReturnCount:FileLastModified.apple.kt:@OptIn(ExperimentalForeignApi::class) internal actual fun fileLastModifiedMillis: Long?</ID>
-    <ID>ReturnCount:FileServiceIos.kt:FileServiceIos$@OptIn(ExperimentalForeignApi::class) private fun &lt;T&gt; withSecurityScopedUrl: T</ID>
-    <ID>ReturnCount:FileServiceIos.kt:FileServiceIos$@OptIn(ExperimentalForeignApi::class) private fun iosFileMetadata: FileMetadata?</ID>
+    <ID>ReturnCount:FileServiceApple.kt:FileServiceApple$@OptIn(ExperimentalForeignApi::class) private fun &lt;T&gt; withSecurityScopedUrl: T</ID>
+    <ID>ReturnCount:FileServiceApple.kt:FileServiceApple$@OptIn(ExperimentalForeignApi::class) private fun appleFileMetadata: FileMetadata?</ID>
     <ID>ReturnCount:FileWatcherServiceAndroid.kt:internal fun File.isAcceptedFileWatchEvent: Boolean</ID>
     <ID>ReturnCount:FileWatcherServiceAndroid.kt:private fun Int.toFileWatchEventKind: FileWatchEvent.Kind</ID>
     <ID>ReturnCount:FilterItems.kt:fun isVisible: Boolean</ID>
-    <ID>ReturnCount:FolderHierarchyIndex.kt:FolderHierarchyIndex$private fun visitSubtree: Boolean</ID>
     <ID>ReturnCount:GetAttachmentPreviewImpl.kt:GetAttachmentPreviewImpl$private fun readLocalFileToPayloadOrNull: AttachmentPreviewPayload?</ID>
     <ID>ReturnCount:GetSuggestionsImpl.kt:GetSuggestionsImpl.LocalAutofillTargetProvider.TargetProvider$suspend fun getTarget: T?</ID>
     <ID>ReturnCount:GetSuggestionsImpl.kt:internal fun DSecret.Uri.matchesAndroidApp: Boolean</ID>
     <ID>ReturnCount:GpgAgentFields.kt:fun DSecret.toGpgAgentSecretOrNull: GpgAgentSecret?</ID>
-    <ID>ReturnCount:GpgAgentManager.kt:GpgAgentManager$private fun linuxManagedGpgHomePath: Path?</ID>
     <ID>ReturnCount:GpgAgentRequestProcessorImpl.kt:GpgAgentRequestProcessorImpl$private suspend fun &lt;T&gt; runKeyOperation: GpgAgentOperationResult&lt;T&gt;</ID>
-    <ID>ReturnCount:GpgAgentRequestProcessorImpl.kt:GpgAgentRequestProcessorImpl$private suspend fun getGpgKeysFromVault: GpgVaultContext?</ID>
     <ID>ReturnCount:GpgAgentRpcHandler.kt:GpgAgentRpcHandler$suspend fun processRequest: GpgAgentMessages.IpcResponse</ID>
     <ID>ReturnCount:GpgCertificateInspectorJvm.kt:@Suppress("DEPRECATION") private fun PGPSignature.matchesIssuerHint: Boolean</ID>
     <ID>ReturnCount:GpgCertificateInspectorJvm.kt:GpgCertificateInspectorJvm.Companion$fun inspect: GpgCertificateInspectorJvm?</ID>
@@ -1818,6 +1802,7 @@
     <ID>ReturnCount:GpgPublicKeyParser.kt:fun GpgPublicKeyParser.parsePrimaryKeyInfo: GpgPublicKeyInfo?</ID>
     <ID>ReturnCount:GpgRenewalPolicyJvm.kt:GpgRenewalPolicyJvm$fun replacementSignatureCreationTime: Date?</ID>
     <ID>ReturnCount:GpgRenewalPolicyJvm.kt:GpgRenewalPolicyJvm$fun replacementSignatureExpirationDuration: Long?</ID>
+    <ID>ReturnCount:GpgToolsInputError.kt:internal fun Throwable.gpgToolsInputErrorResource: StringResource?</ID>
     <ID>ReturnCount:HomeNavigationOverflow.kt:fun &lt;T&gt; splitHomeNavigationItemsByMinSize: HomeNavigationOverflow&lt;T&gt;</ID>
     <ID>ReturnCount:HttpUrlHost.kt:internal fun parseHttpUrlHostOrNull: String?</ID>
     <ID>ReturnCount:HttpUrlHost.kt:private fun String.simpleHttpHostOrNull: String?</ID>
@@ -1859,7 +1844,6 @@
     <ID>ReturnCount:LocalFolderBackupObjectStore.kt:LocalFolderBackupObjectStore$private fun readObjectInfoOrNull: BackupObjectInfo?</ID>
     <ID>ReturnCount:ModelDiffUtil.kt:ModelDiffUtil$fun DiffFinderNode&lt;out Any&gt;.merge: Any?</ID>
     <ID>ReturnCount:NativeGpgMutation.kt:NativeGpgKeyExpirationService$private fun GpgKeyExpirationRequest.validationError: GpgKeyExpirationError?</ID>
-    <ID>ReturnCount:NativeGpgMutation.kt:NativeGpgKeyExpirationService$private inline fun retryTimeConflicts: NativeOpenPgpExpirationUpdateResult</ID>
     <ID>ReturnCount:NotificationsHubMessage.kt:internal fun resolveNotificationsHubMessageAction: NotificationsHubMessageAction</ID>
     <ID>ReturnCount:OpenPgpPlaintextStagingJvmTest.kt:private fun ByteArray.containsSubsequence: Boolean</ID>
     <ID>ReturnCount:OpenPgpReadBouncyCastleDifferentialTest.kt:BouncyCastleMetadataOracle$private fun MetadataKey.toMetadataKeyOrNull: GpgAgentKeyMetadataKey?</ID>
@@ -1868,6 +1852,8 @@
     <ID>ReturnCount:PasskeyBeginGetRequest.kt:@RequiresApi(Build.VERSION_CODES.P) internal suspend fun resolveCredentialProviderBeginGetRpId: String?</ID>
     <ID>ReturnCount:PasskeyBeginGetRequest.kt:internal suspend fun findCredentialProviderPasswordCiphers: List&lt;DSecret&gt;</ID>
     <ID>ReturnCount:PasskeyProviderGetRequest.kt:PasskeyProviderGetRequest$private fun requestRpIdOrNull: String?</ID>
+    <ID>ReturnCount:QuickSearchHeadless.kt:QuickSearchHeadlessController$fun performAction</ID>
+    <ID>ReturnCount:QuickSearchHeadless.kt:QuickSearchHeadlessController$fun performDefaultAction</ID>
     <ID>ReturnCount:QuickSearchInteractions.kt:internal fun quickSearchKeyEventAction: QuickSearchKeyEventAction?</ID>
     <ID>ReturnCount:RelativeTime.kt:private fun Duration.toRelativeTime: RelativeTime</ID>
     <ID>ReturnCount:ReorderableLazyList.kt:ReorderableLazyListState$internal fun onDragStart: Boolean</ID>
@@ -1886,7 +1872,6 @@
     <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$private fun parseRequest: BroadcastRequest?</ID>
     <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$private suspend fun handleRequest: SshAgentContract.BroadcastOutcome</ID>
     <ID>ReturnCount:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
-    <ID>ReturnCount:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$private suspend fun getSshKeysFromVault: SshVaultContext?</ID>
     <ID>ReturnCount:SshAgentRpcHandler.kt:SshAgentRpcHandler$suspend fun processRequest: SshAgentMessages.IpcResponse</ID>
     <ID>ReturnCount:SshAgentService.kt:SshAgentService$override fun onStartCommand: Int</ID>
     <ID>ReturnCount:SshAgentTcpProxyBridge.kt:internal fun buildAndroidFrameworkPackageAuthorization: CallerAuthorization?</ID>
@@ -1910,17 +1895,16 @@
     <ID>ReturnCount:UploadFailureClassification.kt:private fun Throwable.hasTerminalUploadMessage: Boolean</ID>
     <ID>ReturnCount:ValidatorDomain.kt:IpRange$fun matches: Boolean</ID>
     <ID>ReturnCount:VaultExportActionReceiver.kt:VaultExportActionReceiver$override fun onReceive</ID>
-    <ID>ReturnCount:VaultListStateProducer.kt:PasswordDecorator$override suspend fun getOrNull: VaultItem2?</ID>
-    <ID>ReturnCount:VaultListStateProducer.kt:PasswordStrengthDecorator$override suspend fun getOrNull: VaultItem2?</ID>
+    <ID>ReturnCount:VaultListShared.kt:internal fun RememberStateFlowScope.buildVaultCreateActions: List&lt;FlatItemAction&gt;</ID>
+    <ID>ReturnCount:VaultListShared.kt:internal fun RememberStateFlowScope.buildVaultItemModeMenu: VaultItem2.Item.Action</ID>
     <ID>ReturnCount:VaultSearchBenchmarkHarness.kt:VaultSearchAllocationTracker$fun allocatedSince: Long?</ID>
     <ID>ReturnCount:VaultSearchQualifierAutocomplete.kt:internal fun bestVaultSearchQualifierSuggestion: VaultSearchQualifierSuggestion?</ID>
     <ID>ReturnCount:VaultSearchQualifierAutocomplete.kt:private fun activeVaultSearchQualifierFragment: ActiveQualifierFragment?</ID>
+    <ID>ReturnCount:VaultStructureDiff.kt:internal fun diffStructure: StructureDiffResult</ID>
     <ID>ReturnCount:VaultViewStateProducer.kt:private suspend fun RememberStateFlowScope.createUriItem: VaultViewItem.Uri</ID>
     <ID>ReturnCount:VaultViewStateProducer.kt:private suspend fun RememberStateFlowScope.createUriItemContextItems: List&lt;ContextItem&gt;</ID>
     <ID>ReturnCount:WatchtowerBenchmarkHarness.kt:ThreadAllocationTracker$fun allocatedSince: Long?</ID>
     <ID>ReturnCount:WatchtowerGpgKey.kt:GpgWatchtowerPolicy$suspend fun assess: GpgWatchtowerAssessment?</ID>
-    <ID>ReturnCount:WatchtowerGpgKey.kt:private fun GpgPublicKeyInfo.hasUsableEncryptionKey: Boolean</ID>
-    <ID>ReturnCount:WatchtowerGpgKey.kt:private fun GpgPublicKeyInfo.hasUsableSignKey: Boolean</ID>
     <ID>ReturnCount:WatchtowerGpgKey.kt:private fun gpgKeyPublishingIssue: String?</ID>
     <ID>ReturnCount:WatchtowerSyncerImpl.kt:WatchtowerExpiring$private fun hasAlert: String?</ID>
     <ID>ReturnCount:WatchtowerSyncerImpl.kt:WatchtowerInactivePasskey.Companion$context(tldService: TldService) private suspend fun findMatch: PassKeyServiceInfo?</ID>
@@ -1932,6 +1916,7 @@
     <ID>ReturnCount:screenFlow.kt:private fun Context.isScreenOn: Boolean</ID>
     <ID>ThrowsCount:AgentIpcPeerVerification.kt:UnixLibC$fun macosPeerCredentials: UnixAgentPeerCredentials</ID>
     <ID>ThrowsCount:AgentStartupRetry.kt:internal suspend fun &lt;T&gt; retryAgentStartup: T</ID>
+    <ID>ThrowsCount:AppleFolderBackupObjectStore.kt:AppleFolderBackupObjectStore$override suspend fun read: Source</ID>
     <ID>ThrowsCount:BackupObjectStore.kt:BackupObjectStore$suspend fun test: BackupObjectStoreTestResult</ID>
     <ID>ThrowsCount:BcGpgOpenPgpServiceTestOracle.kt:BcGpgOpenPgpServiceTestOracle$private fun decrypt: GpgOpenPgpVerification?</ID>
     <ID>ThrowsCount:CipherSyncOps.kt:CipherSyncOps$private suspend fun syncPendingAttachmentMutations: BitwardenCipher</ID>
@@ -1941,14 +1926,12 @@
     <ID>ThrowsCount:KeePassDatabaseStorageWebDav.kt:KeePassDatabaseStorageWebDav$override suspend fun publish: KeePassDatabaseMetadata?</ID>
     <ID>ThrowsCount:LocalFolderBackupObjectStore.kt:LocalFolderBackupObjectStore$override suspend fun delete</ID>
     <ID>ThrowsCount:LocalFolderBackupObjectStore.kt:LocalFolderBackupObjectStore$override suspend fun read: Source</ID>
-    <ID>ThrowsCount:LocalFolderBackupObjectStore.kt:LocalFolderBackupObjectStore$override suspend fun write: BackupObjectInfo</ID>
     <ID>ThrowsCount:SecureStorageCoordinator.kt:SecureStorageCoordinator$private suspend fun &lt;P : Any&gt; probeStore: P</ID>
     <ID>ThrowsCount:SecureStorageCoordinator.kt:SecureStorageCoordinator$private suspend fun &lt;T&gt; runStage: T</ID>
     <ID>ThrowsCount:SyncResult.kt:internal fun SyncResult.requireCleanForRevisionCache</ID>
     <ID>ThrowsCount:TotpServiceImpl.kt:TotpServiceImpl$private fun decodeSecretKey: ByteArray</ID>
     <ID>ThrowsCount:VerifyGpgPublicKeyImpl.kt:VerifyGpgPublicKeyImpl$private fun parsePublicKey: GpgPublicKeyInfo</ID>
     <ID>ThrowsCount:WindowsNamedPipe.kt:WindowsNamedPipeConnection$fun write</ID>
-    <ID>ThrowsCount:WindowsNamedPipe.kt:WindowsNamedPipeServer$fun accept: WindowsNamedPipeConnection</ID>
     <ID>ThrowsCount:WindowsOwnerOnlySecurity.kt:private fun windowsProcessUserSidString: String</ID>
     <ID>TooGenericExceptionCaught:AccountSyncScheduler.kt:AccountSyncScheduler$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:AddCipher.kt:e: Throwable</ID>
@@ -1958,6 +1941,10 @@
     <ID>TooGenericExceptionCaught:AgentStartupRetry.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:AndroidTreeBackupObjectStore.kt:AndroidTreeBackupObjectStore$e: Exception</ID>
     <ID>TooGenericExceptionCaught:AndroidTreeBackupObjectStore.kt:AndroidTreeDocumentsContractClient$e: RuntimeException</ID>
+    <ID>TooGenericExceptionCaught:AppleBackupFolderAccess.kt:AppleBackupFolderAccess.Companion$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AppleFolderBackupObjectStore.kt:AppleFolderBackupObjectStore$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AppleFolderBackupObjectStore.kt:AppleFolderBackupObjectStore$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AppleFolderBackupObjectStore.kt:AppleFolderBackupObjectStoreFactory$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:AutofillServiceAndroid.kt:AutofillServiceAndroid$e: Exception</ID>
     <ID>TooGenericExceptionCaught:AutomaticBackupsSettingsStateProducer.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:BackupRepositoryZipImpl.kt:BackupRepositoryZipImpl$e: Exception</ID>
@@ -1973,28 +1960,24 @@
     <ID>TooGenericExceptionCaught:CompanionAuthUtil.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:DataStoreKeyValuePreference.kt:DataStoreKeyValuePreference$throwable: Throwable</ID>
     <ID>TooGenericExceptionCaught:DatabaseSqlManagerInFileJvm.kt:DatabaseSqlManagerInFileJvm$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:DbUtils.kt:error: Throwable</ID>
     <ID>TooGenericExceptionCaught:DesktopLibGlobalHotKeyRegistrar.kt:DesktopLibGlobalHotKeyRegistrar$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:DeviceIdUseCase.kt:DeviceIdUseCase$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:DirsServiceAndroid.kt:DirsServiceAndroid$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:DownloadTask.kt:e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:DownloadTaskIos.kt:DownloadTaskIos$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:EnableBiometricImpl.kt:EnableBiometricImpl$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:EncryptedTemporarySpillStorage.kt:DecryptingRawSource$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:EncryptedTemporarySpillStorage.kt:EncryptedTemporaryByteSnapshot$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:EncryptedTemporarySpillStorage.kt:EncryptedTemporaryByteSnapshot$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:EncryptedTemporarySpillStorage.kt:EncryptedTemporarySpillStorage$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:EncryptedTemporarySpillStorage.kt:EncryptedTemporarySpillStorage.Companion$failure: Throwable</ID>
     <ID>TooGenericExceptionCaught:EntitySyncExecutor.kt:EntitySyncExecutor$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:ExportManagerImpl.kt:ExportManagerBase$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ExportManagerImpl.kt:ExportManagerBase$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:FileWatcherServiceAndroid.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:FileWatcherServiceJvm.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:GetAttachmentPreviewImpl.kt:GetAttachmentPreviewImpl$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:GpgPublicKeySyncerImpl.kt:GpgPublicKeySyncerImpl$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GpgAgentRequestProcessorImpl.kt:GpgAgentRequestProcessorImpl$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GpgCanonicalSExpr.kt:GpgCanonicalSExpr$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:GpgKeyserverRefreshWorkerImpl.kt:GpgKeyserverRefreshWorkerImpl$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GpgKeyserverSearchStateProducer.kt:e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:GpgPublicKeySyncerImpl.kt:GpgPublicKeySyncerImpl$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GpgToolsStateProducer.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:IOApplicative.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:IOException.kt:e: Throwable</ID>
@@ -2005,13 +1988,13 @@
     <ID>TooGenericExceptionCaught:KeePassSyncCoordinator.kt:KeePassSyncCoordinator$recordError: Throwable</ID>
     <ID>TooGenericExceptionCaught:KeePassTreeSyncExecutor.kt:KeePassTreeSyncExecutor$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:KeyguardAutofillService.kt:KeyguardAutofillService$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:KtorUtils.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:LocalFolderBackupObjectStore.kt:LocalFolderBackupObjectStore$e: Exception</ID>
     <ID>TooGenericExceptionCaught:MarkdownJvm.kt:&lt;no name provided&gt;$e: Exception</ID>
     <ID>TooGenericExceptionCaught:NativeSshKeyImportService.kt:NativeSshKeyImportService$failure: Throwable</ID>
     <ID>TooGenericExceptionCaught:Notifications.kt:NotificationsImpl$e: Exception</ID>
     <ID>TooGenericExceptionCaught:PendingUploadCoordinatorImpl.kt:PendingUploadCoordinatorImpl$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:RefreshToken.kt:e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RekeyableAppleSqlDriver.kt:RekeyableAppleSqlDriver$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:Retry.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:SecureSharedPrefsKeyValueStore.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:SecureSharedPrefsKeyValueStore.kt:failure: Exception</ID>
@@ -2034,7 +2017,6 @@
     <ID>TooGenericExceptionCaught:SyncV2PipelineIntegrationTest.kt:FolderSyncV2IntegrationRunner$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:SyncV2SendUploadIntegrationTest.kt:SendUploadIntegrationOps$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:TotpServiceImpl.kt:TotpServiceImpl$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:UnlockUseCaseImpl.kt:UnlockUseCaseImpl$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:WatchtowerSyncerImpl.kt:WatchtowerClient$e: Exception</ID>
     <ID>TooGenericExceptionCaught:WatchtowerSyncerImpl.kt:WatchtowerDuplicateUris$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:WindowScreenshotProtectionEffect.kt:e: Throwable</ID>
@@ -2050,11 +2032,14 @@
     <ID>TooManyFunctions:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest</ID>
     <ID>TooManyFunctions:AndroidTreeBackupObjectStore.kt:AndroidTreeBackupObjectStore : BackupObjectStore</ID>
     <ID>TooManyFunctions:AndroidTreeBackupObjectStore.kt:AndroidTreeDocumentsContractClient : AndroidTreeDocumentClient</ID>
+    <ID>TooManyFunctions:AppleFolderBackupObjectStore.kt:AppleFolderBackupObjectStore : BackupObjectStore</ID>
+    <ID>TooManyFunctions:AppleVaultListSource.kt:AppleVaultListSource</ID>
     <ID>TooManyFunctions:AttachmentPreviewScreen.kt:com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewScreen.kt</ID>
     <ID>TooManyFunctions:AttachmentPreviewStateProducer.kt:com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewStateProducer.kt</ID>
     <ID>TooManyFunctions:AuthApi.kt:com.artemchep.keyguard.provider.bitwarden.api.AuthApi.kt</ID>
     <ID>TooManyFunctions:AutoSizeText.kt:com.artemchep.keyguard.ui.text.AutoSizeText.kt</ID>
     <ID>TooManyFunctions:AutomaticBackupsStatusSection.kt:com.artemchep.keyguard.feature.home.settings.backups.AutomaticBackupsStatusSection.kt</ID>
+    <ID>TooManyFunctions:BackupConfigRepositoryImpl.kt:BackupConfigRepositoryImpl : BackupConfigRepository</ID>
     <ID>TooManyFunctions:BackupDiagnostics.kt:BackupDiagnostics</ID>
     <ID>TooManyFunctions:BackupRepositoryZipImpl.kt:BackupRepositoryZipImpl : BackupRepository</ID>
     <ID>TooManyFunctions:BackupRunner.kt:BackupRunner</ID>
@@ -2092,14 +2077,13 @@
     <ID>TooManyFunctions:EncryptedTemporarySpillStorageJvmTest.kt:EncryptedTemporarySpillStorageJvmTest</ID>
     <ID>TooManyFunctions:EntitySyncOps.kt:EntitySyncOps&lt;Local : BitwardenService.Has&lt;Local&gt;, Server : Any&gt;</ID>
     <ID>TooManyFunctions:FileServiceAndroid.kt:FileServiceAndroid : FileService</ID>
+    <ID>TooManyFunctions:FileServiceApple.kt:FileServiceApple : FileService</ID>
     <ID>TooManyFunctions:FileServiceImplTest.kt:FileServiceImplTest</ID>
-    <ID>TooManyFunctions:FileServiceIos.kt:FileServiceIos : FileService</ID>
     <ID>TooManyFunctions:FolderSyncOps.kt:FolderSyncOps : EntitySyncOps</ID>
     <ID>TooManyFunctions:GeneratorScreen.kt:com.artemchep.keyguard.feature.generator.GeneratorScreen.kt</ID>
     <ID>TooManyFunctions:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest</ID>
     <ID>TooManyFunctions:GpgAgentCryptoJvm.kt:GpgAgentCryptoJvm : GpgAgentCrypto</ID>
     <ID>TooManyFunctions:GpgAgentDecryptTest.kt:GpgAgentDecryptTest</ID>
-    <ID>TooManyFunctions:GpgAgentManager.kt:GpgAgentManager : AgentManager</ID>
     <ID>TooManyFunctions:GpgAgentRequestProcessorImpl.kt:GpgAgentRequestProcessorImpl : GpgAgentRequestProcessor</ID>
     <ID>TooManyFunctions:GpgCertificateInspectorJvm.kt:GpgCertificateInspectorJvm</ID>
     <ID>TooManyFunctions:GpgCertificateInspectorJvm.kt:com.artemchep.keyguard.crypto.GpgCertificateInspectorJvm.kt</ID>
@@ -2115,6 +2099,7 @@
     <ID>TooManyFunctions:GpgToolsScreen.kt:com.artemchep.keyguard.feature.gpgagent.tools.GpgToolsScreen.kt</ID>
     <ID>TooManyFunctions:GpgToolsStateProducer.kt:com.artemchep.keyguard.feature.gpgagent.tools.GpgToolsStateProducer.kt</ID>
     <ID>TooManyFunctions:HomeScreen.kt:com.artemchep.keyguard.feature.home.HomeScreen.kt</ID>
+    <ID>TooManyFunctions:JsonKeyValueStore.kt:JsonKeyValueStore : KeyValueStoreSecureKeyValueStore</ID>
     <ID>TooManyFunctions:KeePassCardCodec.kt:KeePassCardCodec</ID>
     <ID>TooManyFunctions:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest</ID>
     <ID>TooManyFunctions:KeePassDbMutator.kt:KeePassDbMutator</ID>
@@ -2131,7 +2116,6 @@
     <ID>TooManyFunctions:Kg2LicenseKeyDecoderTest.kt:Kg2LicenseKeyDecoderTest</ID>
     <ID>TooManyFunctions:LicenseManagerImpl.kt:LicenseManagerImpl : LicenseManager</ID>
     <ID>TooManyFunctions:LocalFolderBackupObjectStore.kt:LocalFolderBackupObjectStore : BackupObjectStore</ID>
-    <ID>TooManyFunctions:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest</ID>
     <ID>TooManyFunctions:OpenPgpReadBouncyCastleDifferentialTest.kt:com.artemchep.keyguard.crypto.OpenPgpReadBouncyCastleDifferentialTest.kt</ID>
     <ID>TooManyFunctions:OpenPgpWriteBouncyCastleDifferentialTest.kt:OpenPgpWriteBouncyCastleDifferentialTest</ID>
     <ID>TooManyFunctions:OrganizationSyncOps.kt:OrganizationSyncOps : EntitySyncOps</ID>
@@ -2165,7 +2149,11 @@
     <ID>TooManyFunctions:SyncV2UploadTestFixtures.kt:com.artemchep.keyguard.provider.bitwarden.sync.v2.SyncV2UploadTestFixtures.kt</ID>
     <ID>TooManyFunctions:TextItem.kt:com.artemchep.keyguard.ui.TextItem.kt</ID>
     <ID>TooManyFunctions:Theme.kt:com.artemchep.keyguard.ui.theme.Theme.kt</ID>
+    <ID>TooManyFunctions:VaultFilterEnablementGoldenTest.kt:VaultFilterEnablementGoldenTest</ID>
+    <ID>TooManyFunctions:VaultListFilter.kt:com.artemchep.keyguard.feature.home.vault.screen.VaultListFilter.kt</ID>
     <ID>TooManyFunctions:VaultListItem.kt:com.artemchep.keyguard.feature.home.vault.component.VaultListItem.kt</ID>
+    <ID>TooManyFunctions:VaultListParityTest.kt:VaultListParityTest</ID>
+    <ID>TooManyFunctions:VaultListShared.kt:com.artemchep.keyguard.feature.home.vault.screen.VaultListShared.kt</ID>
     <ID>TooManyFunctions:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest</ID>
     <ID>TooManyFunctions:VaultSearchTrace.kt:com.artemchep.keyguard.feature.home.vault.search.engine.VaultSearchTrace.kt</ID>
     <ID>TooManyFunctions:VaultViewStateProducer.kt:com.artemchep.keyguard.feature.home.vault.screen.VaultViewStateProducer.kt</ID>
@@ -2397,6 +2385,5 @@
     <ID>WildcardImport:WatchtowerSyncerImpl.kt:import io.ktor.http.*</ID>
     <ID>WildcardImport:http.kt:import io.ktor.client.statement.*</ID>
     <ID>WildcardImport:http.kt:import io.ktor.http.*</ID>
-<ID>MatchingDeclarationName:VaultAttachmentSelection.kt:VaultAttachmentSelectionResult</ID>
   </CurrentIssues>
 </SmellBaseline>

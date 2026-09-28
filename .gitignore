@@ -1,4 +1,10 @@
+# macOS metadata
 *.DS_Store
+.localized
+.AppleDouble/
+.LSOverride
+._*
+__MACOSX/
 
 # Built application files
 *.apk
@@ -24,6 +30,14 @@ __pycache__/
 .gradle-*/
 build/
 
+# Swift Package Manager / xcodebuild run output
+.build/
+.build-run/
+.build-run-nosign/
+# Keep shared package configuration, schemes, and Package.resolved versioned.
+**/.swiftpm/configuration/registries.json
+**/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+
 # Kotlin files
 .kotlin/
 
@@ -36,7 +50,16 @@ proguard/
 # Log Files
 *.log
 
-# iOS / Xcode
+# Apple / Xcode
+# Per-developer signing identity; see xcode/Signing.local.xcconfig.example
+xcode/Signing.local.xcconfig
+# Signing keys, certificate bundles, and provisioning profiles (any letter case).
+# Keep .key/.pem files eligible for version control; they include test fixtures.
+*.[pP]8
+*.[pP]12
+*.[pP][fF][xX]
+*.[mM][oO][bB][iI][lL][eE][pP][rR][oO][vV][iI][sS][iI][oO][nN]
+*.[pP][rR][oO][vV][iI][sS][iI][oO][nN][pP][rR][oO][fF][iI][lL][eE]
 DerivedData/
 xcuserdata/
 *.xcuserstate
@@ -44,7 +67,12 @@ xcuserdata/
 *.xccheckout
 *.xcscmblueprint
 *.hmap
+*.app/
 *.ipa
+*.dmg
+*.pkg
+*.xcarchive/
+*.xcresult/
 *.dSYM
 *.dSYM.zip
 
@@ -83,3 +111,6 @@ fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
 fastlane/readme.md
+
+# FIDO2 native build output
+/util/fido2/rust/target/

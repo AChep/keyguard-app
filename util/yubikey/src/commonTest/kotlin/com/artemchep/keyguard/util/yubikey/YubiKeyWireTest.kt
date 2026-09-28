@@ -21,6 +21,28 @@ class YubiKeyWireTest {
     }
 
     @Test
+    fun challengeLengthsLeaveRoomForHmacLt64Padding() {
+        for (length in listOf(1, 63)) {
+            val challenge = ByteArray(length) { 1 }
+            val response = YubiKeyOperation.ChallengeResponse(2, challenge)
+            val provision = YubiKeyOperation.Provision(2, challenge, ByteArray(20), false)
+            assertContentEquals(byteArrayOf(2, 2, 0, length.toByte()) + challenge, encodeYubiKeyRequest(response))
+            assertContentEquals(
+                byteArrayOf(3, 2, 2, length.toByte()) + challenge + ByteArray(20),
+                encodeYubiKeyRequest(provision),
+            )
+        }
+        for (length in listOf(0, 64, 65)) {
+            assertFailsWith<IllegalArgumentException> {
+                YubiKeyOperation.ChallengeResponse(2, ByteArray(length))
+            }
+            assertFailsWith<IllegalArgumentException> {
+                YubiKeyOperation.Provision(2, ByteArray(length), ByteArray(20), false)
+            }
+        }
+    }
+
+    @Test
     fun responseLengthAndStatusAreValidated() {
         val operation = YubiKeyOperation.ChallengeResponse(2, byteArrayOf(1))
         val error = assertFailsWith<YubiKeyException> { decodeYubiKeyResponse(operation, byteArrayOf(0, 1)) }

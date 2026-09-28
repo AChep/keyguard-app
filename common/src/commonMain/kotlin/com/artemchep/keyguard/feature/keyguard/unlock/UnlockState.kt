@@ -9,6 +9,8 @@ import com.artemchep.keyguard.ui.ContextItem
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import com.artemchep.keyguard.feature.fido2.Fido2Prompt
 
 @Immutable
 @optics
@@ -17,6 +19,7 @@ data class UnlockState(
     val password: TextFieldModel,
     val biometric: Biometric? = null,
     val yubiKey: YubiKey? = null,
+    val fido2: Fido2? = null,
     val lockReason: String? = null,
     val isLoading: Boolean = false,
     val actions: ImmutableList<ContextItem> = persistentListOf(),
@@ -41,10 +44,14 @@ data class UnlockState(
     }
 
     @Immutable
+    data class Fido2(val onClick: (() -> Unit)? = null)
+
+    @Immutable
     @optics
     data class SideEffects(
         val showBiometricPromptFlow: Flow<PureBiometricAuthPrompt>,
         val showYubiKeyPromptFlow: Flow<PureYubiKeyAuthPrompt>,
+        val showFido2PromptFlow: Flow<Fido2Prompt> = emptyFlow(),
     ) {
         companion object
     }

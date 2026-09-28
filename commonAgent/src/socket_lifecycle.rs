@@ -9,7 +9,8 @@
 //! `"GPG agent"`) so diagnostics stay agent-specific while the TOCTOU and
 //! symlink defenses exist in exactly one place. Lifecycle lock files live
 //! under the owner-only Keyguard directory `/tmp/keyguard-<uid>/agent-locks`,
-//! outside socket directories managed by GnuPG.
+//! outside socket directories managed by GnuPG. Sandboxed hosts can select an
+//! equivalent private lock directory within their application container.
 
 use anyhow::{Context, Result};
 use sha2::{Digest, Sha256};
@@ -19,7 +20,7 @@ use std::io::{self, ErrorKind};
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::{DirBuilderExt, FileTypeExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::os::unix::io::AsRawFd;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::time::Duration;
 use tokio::net::UnixStream;
 use tokio::sync::oneshot;
@@ -184,6 +185,59 @@ impl SocketLifecycle {
         self.acquire_lifecycle_lock_in(socket_path, uid, &lock_directory)
     }
 
+    /// Acquires a lifecycle lock in an explicitly selected private directory.
+    ///
+    /// Sandboxed hosts use a stable app-container directory instead of the
+    /// desktop default in `/tmp`. Its parent must already be an owner-only,
+    /// non-symlink directory. Shared ancestors are never created or chmodded.
+    /// The host must keep this directory outside locations that GnuPG removes.
+    ///
+    /// # Errors
+    ///
+    /// Rejects relative paths, parent traversal, unsafe or missing parents,
+    /// and all unsafe lock entries rejected by [`Self::acquire_lifecycle_lock`].
+    pub fn acquire_lifecycle_lock_in_directory(
+        &self,
+        socket_path: &Path,
+        uid: libc::uid_t,
+        lock_directory: &Path,
+    ) -> Result<SocketLifecycleLock> {
+        if !lock_directory.is_absolute()
+            || lock_directory.file_name().is_none()
+            || lock_directory
+                .components()
+                .any(|part| part == Component::ParentDir)
+        {
+            anyhow::bail!("explicit lifecycle lock directory must be an absolute path without parent traversal");
+        }
+        let parent = lock_directory
+            .parent()
+            .context("lifecycle lock directory has no parent")?;
+        let metadata = fs::symlink_metadata(parent)
+            .context("failed to inspect explicit lifecycle lock directory parent")?;
+        let identity = self.validate_owned_directory_metadata(
+            parent,
+            &metadata,
+            uid,
+            "lifecycle lock parent",
+        )?;
+        if metadata.mode() & 0o777 != 0o700 {
+            anyhow::bail!("explicit lifecycle lock directory parent must have mode 0700");
+        }
+        self.ensure_safe_managed_parent_dir(lock_directory, uid)?;
+        let final_metadata = fs::symlink_metadata(parent)?;
+        let final_identity = self.validate_owned_directory_metadata(
+            parent,
+            &final_metadata,
+            uid,
+            "lifecycle lock parent",
+        )?;
+        if final_identity != identity || final_metadata.mode() & 0o777 != 0o700 {
+            anyhow::bail!("explicit lifecycle lock directory parent changed during preparation");
+        }
+        self.acquire_lifecycle_lock_prepared(socket_path, uid, lock_directory)
+    }
+
     fn acquire_lifecycle_lock_in(
         &self,
         socket_path: &Path,
@@ -191,6 +245,15 @@ impl SocketLifecycle {
         lock_directory: &Path,
     ) -> Result<SocketLifecycleLock> {
         self.ensure_lifecycle_lock_directory(lock_directory, uid)?;
+        self.acquire_lifecycle_lock_prepared(socket_path, uid, lock_directory)
+    }
+
+    fn acquire_lifecycle_lock_prepared(
+        &self,
+        socket_path: &Path,
+        uid: libc::uid_t,
+        lock_directory: &Path,
+    ) -> Result<SocketLifecycleLock> {
         let lock_path = lifecycle_lock_path_in(socket_path, lock_directory)?;
         let mut create_options = fs::OpenOptions::new();
         create_options
@@ -1051,6 +1114,82 @@ mod tests {
             .expect("lock symlink metadata")
             .file_type()
             .is_symlink());
+    }
+
+    #[test]
+    fn explicit_lock_directory_preserves_ancestors_and_serializes_ownership() {
+        let tmp = tempdir().expect("tempdir");
+        let root = tmp.path().join("private-agent");
+        LIFECYCLE
+            .ensure_safe_managed_parent_dir(&root, current_uid())
+            .expect("private root");
+        let original_ancestor_mode = fs::metadata(tmp.path()).unwrap().mode();
+        let directory = root.join("locks");
+        let socket = root.join("agent.sock");
+        let lock = LIFECYCLE
+            .acquire_lifecycle_lock_in_directory(&socket, current_uid(), &directory)
+            .expect("explicit lock");
+        assert!(LIFECYCLE
+            .acquire_lifecycle_lock_in_directory(&socket, current_uid(), &directory)
+            .is_err());
+        let lock_path = lifecycle_lock_path_in(&socket, &directory).unwrap();
+        let identity = entry_identity(&fs::symlink_metadata(&lock_path).unwrap());
+        assert_eq!(fs::metadata(&directory).unwrap().mode() & 0o777, 0o700);
+        assert_eq!(fs::metadata(&lock_path).unwrap().mode() & 0o777, 0o600);
+        assert_eq!(
+            fs::metadata(tmp.path()).unwrap().mode(),
+            original_ancestor_mode
+        );
+        drop(lock);
+        let _next = LIFECYCLE
+            .acquire_lifecycle_lock_in_directory(&socket, current_uid(), &directory)
+            .expect("lock after release");
+        assert_eq!(
+            entry_identity(&fs::symlink_metadata(lock_path).unwrap()),
+            identity
+        );
+    }
+
+    #[test]
+    fn explicit_lock_directory_rejects_unsafe_parent_without_chmod_or_creation() {
+        let tmp = tempdir().expect("tempdir");
+        let parent = tmp.path().join("shared");
+        fs::create_dir(&parent).unwrap();
+        fs::set_permissions(&parent, fs::Permissions::from_mode(0o755)).unwrap();
+        let directory = parent.join("locks");
+        let socket = parent.join("agent.sock");
+        assert!(LIFECYCLE
+            .acquire_lifecycle_lock_in_directory(&socket, current_uid(), &directory)
+            .is_err());
+        assert_eq!(fs::metadata(&parent).unwrap().mode() & 0o777, 0o755);
+        assert!(!directory.exists());
+
+        let link = tmp.path().join("linked-parent");
+        symlink(&parent, &link).unwrap();
+        assert!(LIFECYCLE
+            .acquire_lifecycle_lock_in_directory(&socket, current_uid(), &link.join("locks"))
+            .is_err());
+        let missing = tmp.path().join("missing").join("locks");
+        assert!(LIFECYCLE
+            .acquire_lifecycle_lock_in_directory(&socket, current_uid(), &missing)
+            .is_err());
+        assert!(!missing.parent().unwrap().exists());
+    }
+
+    #[test]
+    fn explicit_lock_directory_rejects_relative_paths_and_parent_traversal() {
+        let tmp = tempdir().expect("tempdir");
+        let socket = tmp.path().join("agent.sock");
+        for directory in [
+            PathBuf::from("locks"),
+            PathBuf::from("/"),
+            tmp.path().join("child/../locks"),
+        ] {
+            assert!(LIFECYCLE
+                .acquire_lifecycle_lock_in_directory(&socket, current_uid(), &directory)
+                .is_err());
+        }
+        assert!(!tmp.path().join("locks").exists());
     }
 
     #[test]

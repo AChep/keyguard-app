@@ -43,7 +43,9 @@ internal class KeyguardYubiKeyAction : YubiKeyPromptAction() {
         }
         YubiOtpSession.create(device) { result ->
             val outcome = try {
-                val response = result.getValue().use { session -> execute(session, operation, commandState) }
+                val response = result.getValue().use { session ->
+                    executeYubiKeyOperation(session, operation, commandState)
+                }
                 val intent = when (response) {
                     is YubiKeyResult.SlotStatus -> Intent().putExtra(EXTRA_IS_CONFIGURED, response.configured)
                     is YubiKeyResult.Response -> Intent().putExtra(EXTRA_RESPONSE, response.bytes)
@@ -59,7 +61,8 @@ internal class KeyguardYubiKeyAction : YubiKeyPromptAction() {
     }
 }
 
-private fun execute(
+@Suppress("ThrowsCount") // Keep slot-state and cancellation failures distinct at the device boundary.
+internal fun executeYubiKeyOperation(
     session: YubiOtpSession,
     operation: YubiKeyOperation,
     commandState: CommandState,
@@ -83,6 +86,10 @@ private fun execute(
             val configuration = HmacSha1SlotConfiguration(operation.secret)
                 .requireTouch(operation.requireTouch)
                 .lt64(true)
+            // Opening the session is asynchronous; the prompt may already be canceled.
+            if (commandState.waitForCancel(0)) {
+                throw YubiKeyException(YubiKeyFailure.CANCELED)
+            }
             session.putConfiguration(slot, configuration, null, null)
             YubiKeyResult.Response(session.calculateHmacSha1(slot, operation.challenge, commandState))
         }

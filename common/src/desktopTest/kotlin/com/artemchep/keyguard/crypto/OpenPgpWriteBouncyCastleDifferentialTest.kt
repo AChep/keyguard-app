@@ -225,83 +225,104 @@ class OpenPgpWriteBouncyCastleDifferentialTest {
             )
             for (key in keys) {
                 val text = "RFC 9580 cross-implementation message"
-                val signature = bcService.signTextDetached(
-                    GpgOpenPgpSignTextRequest(
-                        text = text,
-                        privateKey = key.privateKey(),
-                        candidateRevocationKeys = emptyList(),
-                    ),
-                )
-                assertEquals(
-                    GpgOpenPgpVerificationStatus.VALID,
-                    nativeService.verifyDetachedText(
-                        GpgOpenPgpVerifyDetachedTextRequest(
-                            text = text,
-                            signature = signature,
-                            publicKeys = listOf(key.publicKey()),
-                        ),
-                    ).status,
-                )
-                for ((encryptor, decryptor) in listOf(nativeService to bcService, bcService to nativeService)) {
-                    val encrypted = encryptor.encryptText(
-                        GpgOpenPgpEncryptTextRequest(
-                            candidateRevocationKeys = emptyList(),
-                            text = text,
-                            publicKeys = listOf(key.publicKey()),
-                        ),
-                    )
-                    assertEquals(
-                        text,
-                        decryptor.decryptText(
-                            GpgOpenPgpDecryptTextRequest(
-                                encryptedText = encrypted,
-                                privateKeys = listOf(key.privateKey()),
-                            ),
-                        ).text,
-                    )
-                }
-                for (armor in listOf(key.publicKeyArmored, key.privateKeyArmored)) {
-                    val imported = assertIs<GpgKeyImportResult.Success>(
-                        nativeImport.import(GpgKeyImportRequest(content = armor)),
-                    )
-                    assertEquals(key.fingerprint, imported.gpgKey.fingerprint)
-                    assertEquals(
-                        key.fingerprint,
-                        assertIs<GpgKeyImportResult.Success>(nativeImport.import(
-                            GpgKeyImportRequest(content = imported.gpgKey.publicKeyArmored),
-                        )).gpgKey.fingerprint,
-                    )
-                }
-                val ring = PGPSecretKeyRingCollection(
-                    PGPUtil.getDecoderStream(ByteArrayInputStream(key.privateKeyArmored.encodeToByteArray())),
-                    JcaKeyFingerprintCalculator(),
-                ).keyRings.next()
-                val passphrase = "v6 import test passphrase"
-                val digests = JcaPGPDigestCalculatorProviderBuilder().build()
-                val protected = PGPSecretKeyRing(ring.secretKeys.asSequence().map { secretKey ->
-                    PGPSecretKey(
-                        secretKey.extractPrivateKeyEmptyPassphrase(),
-                        secretKey.publicKey,
-                        digests.get(HashAlgorithmTags.SHA1),
-                        secretKey.isMasterKey,
-                        JcePBESecretKeyEncryptorBuilder(
-                            SymmetricKeyAlgorithmTags.AES_256,
-                            digests.get(HashAlgorithmTags.SHA256),
-                        ).setProvider(gpgBouncyCastleProvider).build(passphrase.toCharArray()),
-                    )
-                }.toList()).armored()
-                assertIs<GpgKeyImportResult.NeedsPassphrase>(
-                    nativeImport.import(GpgKeyImportRequest(content = protected)),
-                )
-                val unprotected = assertIs<GpgKeyImportResult.Success>(nativeImport.import(
-                    GpgKeyImportRequest(content = protected, passphrase = passphrase),
-                ))
-                assertEquals(key.fingerprint, unprotected.gpgKey.fingerprint)
-                assertIs<GpgKeyImportResult.Success>(nativeImport.import(
-                    GpgKeyImportRequest(content = unprotected.gpgKey.privateKeyArmored),
-                ))
+                assertBcSignatureVerifiesThroughNative(key, text)
+                assertEncryptionRoundTripsBetweenNativeAndBc(key, text)
+                assertArmorsReimportThroughNative(key)
+                assertProtectedSecretKeyImportsThroughNative(key)
             }
         }
+    }
+
+    private fun assertBcSignatureVerifiesThroughNative(key: GeneratedGpgKey, text: String) {
+        val signature = bcService.signTextDetached(
+            GpgOpenPgpSignTextRequest(
+                text = text,
+                privateKey = key.privateKey(),
+                candidateRevocationKeys = emptyList(),
+            ),
+        )
+        assertEquals(
+            GpgOpenPgpVerificationStatus.VALID,
+            nativeService.verifyDetachedText(
+                GpgOpenPgpVerifyDetachedTextRequest(
+                    text = text,
+                    signature = signature,
+                    publicKeys = listOf(key.publicKey()),
+                ),
+            ).status,
+        )
+    }
+
+    private fun assertEncryptionRoundTripsBetweenNativeAndBc(key: GeneratedGpgKey, text: String) {
+        for ((encryptor, decryptor) in listOf(nativeService to bcService, bcService to nativeService)) {
+            val encrypted = encryptor.encryptText(
+                GpgOpenPgpEncryptTextRequest(
+                    candidateRevocationKeys = emptyList(),
+                    text = text,
+                    publicKeys = listOf(key.publicKey()),
+                ),
+            )
+            assertEquals(
+                text,
+                decryptor.decryptText(
+                    GpgOpenPgpDecryptTextRequest(
+                        encryptedText = encrypted,
+                        privateKeys = listOf(key.privateKey()),
+                    ),
+                ).text,
+            )
+        }
+    }
+
+    private fun assertArmorsReimportThroughNative(key: GeneratedGpgKey) {
+        for (armor in listOf(key.publicKeyArmored, key.privateKeyArmored)) {
+            val imported = assertIs<GpgKeyImportResult.Success>(
+                nativeImport.import(GpgKeyImportRequest(content = armor)),
+            )
+            assertEquals(key.fingerprint, imported.gpgKey.fingerprint)
+            assertEquals(
+                key.fingerprint,
+                assertIs<GpgKeyImportResult.Success>(nativeImport.import(
+                    GpgKeyImportRequest(content = imported.gpgKey.publicKeyArmored),
+                )).gpgKey.fingerprint,
+            )
+        }
+    }
+
+    private fun assertProtectedSecretKeyImportsThroughNative(key: GeneratedGpgKey) {
+        val passphrase = "v6 import test passphrase"
+        val protected = protectSecretKeys(key.privateKeyArmored, passphrase)
+        assertIs<GpgKeyImportResult.NeedsPassphrase>(
+            nativeImport.import(GpgKeyImportRequest(content = protected)),
+        )
+        val unprotected = assertIs<GpgKeyImportResult.Success>(nativeImport.import(
+            GpgKeyImportRequest(content = protected, passphrase = passphrase),
+        ))
+        assertEquals(key.fingerprint, unprotected.gpgKey.fingerprint)
+        assertIs<GpgKeyImportResult.Success>(nativeImport.import(
+            GpgKeyImportRequest(content = unprotected.gpgKey.privateKeyArmored),
+        ))
+    }
+
+    /** Re-encrypts every unprotected secret key of [secretKeyArmored] with [passphrase]. */
+    private fun protectSecretKeys(secretKeyArmored: String, passphrase: String): String {
+        val ring = PGPSecretKeyRingCollection(
+            PGPUtil.getDecoderStream(ByteArrayInputStream(secretKeyArmored.encodeToByteArray())),
+            JcaKeyFingerprintCalculator(),
+        ).keyRings.next()
+        val digests = JcaPGPDigestCalculatorProviderBuilder().build()
+        return PGPSecretKeyRing(ring.secretKeys.asSequence().map { secretKey ->
+            PGPSecretKey(
+                secretKey.extractPrivateKeyEmptyPassphrase(),
+                secretKey.publicKey,
+                digests.get(HashAlgorithmTags.SHA1),
+                secretKey.isMasterKey,
+                JcePBESecretKeyEncryptorBuilder(
+                    SymmetricKeyAlgorithmTags.AES_256,
+                    digests.get(HashAlgorithmTags.SHA256),
+                ).setProvider(gpgBouncyCastleProvider).build(passphrase.toCharArray()),
+            )
+        }.toList()).armored()
     }
 
     private fun verifyCertificateWithBc(armor: String) {

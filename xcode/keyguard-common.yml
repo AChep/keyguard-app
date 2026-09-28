@@ -1,0 +1,68 @@
+
+options:
+  bundleIdPrefix: com.artemchep.keyguard
+  createIntermediateGroups: true
+
+packages:
+  # Shared SwiftUI layer. Also vends `KeyguardShared` to its dependents via a
+  # binaryTarget on the XCFramework that `:appleApp` assembles, so app targets must NOT
+  # link their own copy of the framework.
+  KeyguardUI:
+    path: ../appleUi
+
+# Explicit shared scheme so the local StoreKit configuration is attached to the run
+# action — lets IAP be exercised without App Store Connect.
+schemes:
+  Keyguard Billing Tests:
+    build:
+      targets:
+        KeyguardBillingHost: all
+        KeyguardBillingTests: [test]
+    test:
+      config: Debug
+      targets:
+        - name: KeyguardBillingTests
+          parallelizable: false
+    run:
+      config: Debug
+      storeKitConfiguration: ../xcode/Keyguard.storekit
+  Keyguard:
+    build:
+      # Publish Kotlin before ProcessXCFramework copies the SwiftPM binary target.
+      # Target build phases run too late and would package the previous build.
+      preActions:
+        - name: Build shared XCFramework
+          settingsTarget: Keyguard
+          script: '"$SRCROOT/../xcode/scripts/build-shared-framework.sh"'
+        - name: Generate Apple string catalog
+          settingsTarget: Keyguard
+          script: '"$SRCROOT/../xcode/scripts/generate-strings.sh"'
+      targets:
+        Keyguard: all
+    run:
+      config: Debug
+      storeKitConfiguration: ../xcode/Keyguard.storekit
+    test:
+      config: Debug
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
+
+settings:
+  groups:
+    - SQLCipher
+  base:
+    # Match the architectures provided by KeyguardShared.
+    ARCHS: arm64
+    SWIFT_VERSION: "5.0"
+    # Complete actor-isolation checking. The Swift 5 language mode reports these
+    # as warnings, so they surface the data races the Kotlin bridge can cause
+    # without blocking the build; they become errors under the Swift 6 mode.
+    SWIFT_STRICT_CONCURRENCY: complete
+    # Resource scripts and macOS helper builds write outside the per-target build
+    # directory. Script sandboxing would fail those phases, so it is
+    # pinned off explicitly rather than left to the Xcode-version default.
+    ENABLE_USER_SCRIPT_SANDBOXING: NO

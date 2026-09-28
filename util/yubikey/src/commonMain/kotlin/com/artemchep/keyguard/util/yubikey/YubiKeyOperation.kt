@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.util.yubikey
 
-internal const val YUBIKEY_MAX_CHALLENGE_LENGTH = 64
+// HMAC_LT64 reserves the final byte of the 64-byte payload for padding.
+internal const val YUBIKEY_MAX_CHALLENGE_LENGTH = 63
 internal const val YUBIKEY_SECRET_LENGTH = 20
 internal const val YUBIKEY_RESPONSE_LENGTH = 20
 

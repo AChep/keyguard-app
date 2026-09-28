@@ -1,0 +1,1361 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		07E399773366E86EFCD56889 /* KeyguardMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F55398996A95A1DBC597ED69 /* KeyguardMacApp.swift */; };
+		0B94E171D853C6D4168B88EB /* KeyguardUI in Frameworks */ = {isa = PBXBuildFile; productRef = 6550AE73715380E0FE83E337 /* KeyguardUI */; };
+		18291D166F1A84486979EFAA /* SQLCipher in Frameworks */ = {isa = PBXBuildFile; productRef = 5C90DBDDDAE3EA7EEC2505E3 /* SQLCipher */; };
+		328837CE4D428D4C36FFA064 /* SQLCipher in Frameworks */ = {isa = PBXBuildFile; productRef = F73DEE6E331FC92764072A96 /* SQLCipher */; };
+		46212DABFEC3551FB4454362 /* Keyguard.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 391E15E5E73F946A8C4E74F1 /* Keyguard.storekit */; };
+		4DA57646F7EA143F1B5A25F5 /* AutofillCredentialListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBC5497A3536A7276D03DF03 /* AutofillCredentialListView.swift */; };
+		50EFD32D3E411FA92F71CD3A /* Host.swift in Sources */ = {isa = PBXBuildFile; fileRef = 757328CC7D0A20A67F7ED99B /* Host.swift */; };
+		56C168A5022B65A984DA6F01 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EB075CAA4E5EAB6687F9387 /* ContentView.swift */; };
+		6EB2DA24B78E64DE24253530 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B6708D2F5BA591AAFEF4BBEC /* Localizable.xcstrings */; };
+		70D8BF98FD86230E44D7B534 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 252EF5E7804766DCDA55FF7F /* Keychain.swift */; };
+		71671BA2C507A13C23F43684 /* AutofillUnlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76AA1795DB3FDD23E8993C96 /* AutofillUnlockView.swift */; };
+		79CE8574ECABB714282B37D7 /* AutofillL10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DE9CBFE6528877272566F95 /* AutofillL10n.swift */; };
+		82FA9D6D1C0EA87D73C2017A /* KeyguardUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9E649C6DB28775FDE9957774 /* KeyguardUI */; };
+		846B5E649A27D17D336291B4 /* SQLCipher in Frameworks */ = {isa = PBXBuildFile; productRef = 363E9840213A1B779DA79665 /* SQLCipher */; };
+		86EEA1EEDCEC4BA0327F2485 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AD8F8BDE8BCB812F8757D525 /* Assets.xcassets */; };
+		8CA4CB1A1927C2E37A176FD0 /* AutofillStoreAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7132F3DDE53B629BB2A0BE13 /* AutofillStoreAccess.swift */; };
+		95191E67BE01DA1E9885021B /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE95BB45B2CAD390462801D1 /* IOKit.framework */; };
+		95CA8959EE0F91693BCCDE03 /* StoreKitBillingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69094A022B0C6B9FA6B02FD4 /* StoreKitBillingTests.swift */; };
+		9D0B6BE445544B6DDFF0B4AF /* KeyguardShared in Frameworks */ = {isa = PBXBuildFile; productRef = BF103EDFC7358D8F4747FF03 /* KeyguardShared */; };
+		9D92427B68BA13B00DB35515 /* KeyguardAutofill.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 625E03F10AE8942536FF7718 /* KeyguardAutofill.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A3BD05AC3094393971E24B5B /* AppleBiometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E64CE6E2E693D23D5D0EFDC /* AppleBiometry.swift */; };
+		AFE713472BA96529814F077A /* KotlinData.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6171F5F61A89C302199F7D8 /* KotlinData.swift */; };
+		BD05155AE0F4B8FF4DFEAE62 /* AutofillRecoveryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A63FAC5AABC5EAD592EB79E /* AutofillRecoveryViews.swift */; };
+		D980CAB0376D41934096EAEE /* CredentialProviderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65DB5AF981ABD2B6745BD87 /* CredentialProviderViewController.swift */; };
+		F287D98E1563F359F933FEAB /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 60031D2DCF12E9425947B2CF /* MarkdownUI */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4A6E7C67503F0748C3780E84 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 26ABB7DAF6FF87AB3B22F819 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EC445B5900838D16EE586D0D;
+			remoteInfo = KeyguardBillingHost;
+		};
+		D90AF4B3A1A2254E94850F00 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 26ABB7DAF6FF87AB3B22F819 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F9CCED6D1F9F843800E6687F;
+			remoteInfo = KeyguardAutofill;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		97A12C43A775DDF92E0B3D16 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				9D92427B68BA13B00DB35515 /* KeyguardAutofill.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		16AEDBEF57DEB3A02CBE5E19 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		252EF5E7804766DCDA55FF7F /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
+		2EB075CAA4E5EAB6687F9387 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		391E15E5E73F946A8C4E74F1 /* Keyguard.storekit */ = {isa = PBXFileReference; path = Keyguard.storekit; sourceTree = "<group>"; };
+		5140B486D48AE9C4654910E2 /* KeyguardBillingHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KeyguardBillingHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5DE9CBFE6528877272566F95 /* AutofillL10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutofillL10n.swift; sourceTree = "<group>"; };
+		625E03F10AE8942536FF7718 /* KeyguardAutofill.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KeyguardAutofill.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		69094A022B0C6B9FA6B02FD4 /* StoreKitBillingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitBillingTests.swift; sourceTree = "<group>"; };
+		6E64CE6E2E693D23D5D0EFDC /* AppleBiometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleBiometry.swift; sourceTree = "<group>"; };
+		7132F3DDE53B629BB2A0BE13 /* AutofillStoreAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutofillStoreAccess.swift; sourceTree = "<group>"; };
+		757328CC7D0A20A67F7ED99B /* Host.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Host.swift; sourceTree = "<group>"; };
+		76AA1795DB3FDD23E8993C96 /* AutofillUnlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutofillUnlockView.swift; sourceTree = "<group>"; };
+		77E49BB00D20D0D40A9E92F3 /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
+		7A63FAC5AABC5EAD592EB79E /* AutofillRecoveryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutofillRecoveryViews.swift; sourceTree = "<group>"; };
+		86998AC7183B0816DF8370C5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		87F45F7B6DEEDD2155CBCDC8 /* KeyguardGpgAgent.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KeyguardGpgAgent.entitlements; sourceTree = "<group>"; };
+		89E6117F8B324B12E72F6004 /* KeyguardBillingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyguardBillingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD8F8BDE8BCB812F8757D525 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AE95BB45B2CAD390462801D1 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
+		B11BCDE91C70717393F38A6F /* appleUi */ = {isa = PBXFileReference; lastKnownFileType = folder; name = appleUi; path = ../appleUi; sourceTree = SOURCE_ROOT; };
+		B6708D2F5BA591AAFEF4BBEC /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		CBCD4F9B7A8BBA40DD68ACE6 /* Keyguard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Keyguard.entitlements; sourceTree = "<group>"; };
+		D65DB5AF981ABD2B6745BD87 /* CredentialProviderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialProviderViewController.swift; sourceTree = "<group>"; };
+		E6171F5F61A89C302199F7D8 /* KotlinData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KotlinData.swift; sourceTree = "<group>"; };
+		EBC5497A3536A7276D03DF03 /* AutofillCredentialListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutofillCredentialListView.swift; sourceTree = "<group>"; };
+		F55398996A95A1DBC597ED69 /* KeyguardMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyguardMacApp.swift; sourceTree = "<group>"; };
+		F67241DD98C704ED431F35FE /* KeyguardAutofill.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KeyguardAutofill.entitlements; sourceTree = "<group>"; };
+		F846FB073DB2DA48AE448A28 /* Keyguard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keyguard.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4F2B6ABF1DCA5EB4FFBB1050 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				95191E67BE01DA1E9885021B /* IOKit.framework in Frameworks */,
+				328837CE4D428D4C36FFA064 /* SQLCipher in Frameworks */,
+				9D0B6BE445544B6DDFF0B4AF /* KeyguardShared in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A8503DBBD38C04300AAED160 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				82FA9D6D1C0EA87D73C2017A /* KeyguardUI in Frameworks */,
+				18291D166F1A84486979EFAA /* SQLCipher in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C58552F38A5E589BC36491A2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				846B5E649A27D17D336291B4 /* SQLCipher in Frameworks */,
+				F287D98E1563F359F933FEAB /* MarkdownUI in Frameworks */,
+				0B94E171D853C6D4168B88EB /* KeyguardUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		053AB2CF0D4803DC8C2AF96A /* keyguard-app */ = {
+			isa = PBXGroup;
+			children = (
+				5972A5001BDB112E19FBFBF2 /* appleAutofill */,
+				4FA053922D1429A4ECBD2DCA /* appleUi */,
+				8DD47DBDD7D3C649F46AC5A2 /* xcode */,
+			);
+			name = "keyguard-app";
+			path = ..;
+			sourceTree = "<group>";
+		};
+		05A0E6D381E8F84B1E46A6D2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F846FB073DB2DA48AE448A28 /* Keyguard.app */,
+				625E03F10AE8942536FF7718 /* KeyguardAutofill.appex */,
+				5140B486D48AE9C4654910E2 /* KeyguardBillingHost.app */,
+				89E6117F8B324B12E72F6004 /* KeyguardBillingTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3984BB8439613DEF74688387 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				AE95BB45B2CAD390462801D1 /* IOKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		47402B5D76FDB55827B4911D /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				7132F3DDE53B629BB2A0BE13 /* AutofillStoreAccess.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		4FA053922D1429A4ECBD2DCA /* appleUi */ = {
+			isa = PBXGroup;
+			children = (
+				B7BB5CB19DB4EF28B078FC97 /* Sources */,
+			);
+			path = appleUi;
+			sourceTree = "<group>";
+		};
+		54B076941A02E08967BEF6ED /* Bridge */ = {
+			isa = PBXGroup;
+			children = (
+				E6171F5F61A89C302199F7D8 /* KotlinData.swift */,
+			);
+			path = Bridge;
+			sourceTree = "<group>";
+		};
+		5972A5001BDB112E19FBFBF2 /* appleAutofill */ = {
+			isa = PBXGroup;
+			children = (
+				EBC5497A3536A7276D03DF03 /* AutofillCredentialListView.swift */,
+				5DE9CBFE6528877272566F95 /* AutofillL10n.swift */,
+				7A63FAC5AABC5EAD592EB79E /* AutofillRecoveryViews.swift */,
+				76AA1795DB3FDD23E8993C96 /* AutofillUnlockView.swift */,
+				D65DB5AF981ABD2B6745BD87 /* CredentialProviderViewController.swift */,
+			);
+			path = appleAutofill;
+			sourceTree = "<group>";
+		};
+		72403ED0BDE0FB2FDA5D1360 /* BillingTests */ = {
+			isa = PBXGroup;
+			children = (
+				757328CC7D0A20A67F7ED99B /* Host.swift */,
+				69094A022B0C6B9FA6B02FD4 /* StoreKitBillingTests.swift */,
+			);
+			path = BillingTests;
+			sourceTree = "<group>";
+		};
+		8DD47DBDD7D3C649F46AC5A2 /* xcode */ = {
+			isa = PBXGroup;
+			children = (
+				77E49BB00D20D0D40A9E92F3 /* Base.xcconfig */,
+				391E15E5E73F946A8C4E74F1 /* Keyguard.storekit */,
+				72403ED0BDE0FB2FDA5D1360 /* BillingTests */,
+			);
+			path = xcode;
+			sourceTree = "<group>";
+		};
+		910936C8884ACF914AA6B787 /* macosApp */ = {
+			isa = PBXGroup;
+			children = (
+				AD8F8BDE8BCB812F8757D525 /* Assets.xcassets */,
+				2EB075CAA4E5EAB6687F9387 /* ContentView.swift */,
+				16AEDBEF57DEB3A02CBE5E19 /* Info.plist */,
+				CBCD4F9B7A8BBA40DD68ACE6 /* Keyguard.entitlements */,
+				87F45F7B6DEEDD2155CBCDC8 /* KeyguardGpgAgent.entitlements */,
+				F55398996A95A1DBC597ED69 /* KeyguardMacApp.swift */,
+			);
+			path = macosApp;
+			sourceTree = "<group>";
+		};
+		A3E3EF8C793A383BB9850EBC = {
+			isa = PBXGroup;
+			children = (
+				053AB2CF0D4803DC8C2AF96A /* keyguard-app */,
+				D11B2E496AB5282FCB10FD73 /* KeyguardAutofill */,
+				910936C8884ACF914AA6B787 /* macosApp */,
+				B79B17BCFFE27B6A799971E0 /* Packages */,
+				3984BB8439613DEF74688387 /* Frameworks */,
+				05A0E6D381E8F84B1E46A6D2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B79B17BCFFE27B6A799971E0 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				B11BCDE91C70717393F38A6F /* appleUi */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		B7BB5CB19DB4EF28B078FC97 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				E334ABDDDF304D46ED2A395E /* KeyguardUI */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		D11B2E496AB5282FCB10FD73 /* KeyguardAutofill */ = {
+			isa = PBXGroup;
+			children = (
+				86998AC7183B0816DF8370C5 /* Info.plist */,
+				F67241DD98C704ED431F35FE /* KeyguardAutofill.entitlements */,
+			);
+			path = KeyguardAutofill;
+			sourceTree = "<group>";
+		};
+		DCABCE83F6802286002E65D5 /* Apple */ = {
+			isa = PBXGroup;
+			children = (
+				6E64CE6E2E693D23D5D0EFDC /* AppleBiometry.swift */,
+				252EF5E7804766DCDA55FF7F /* Keychain.swift */,
+				47402B5D76FDB55827B4911D /* Services */,
+			);
+			path = Apple;
+			sourceTree = "<group>";
+		};
+		E334ABDDDF304D46ED2A395E /* KeyguardUI */ = {
+			isa = PBXGroup;
+			children = (
+				DCABCE83F6802286002E65D5 /* Apple */,
+				54B076941A02E08967BEF6ED /* Bridge */,
+				FDE7E9282890A59797B55016 /* Resources */,
+			);
+			path = KeyguardUI;
+			sourceTree = "<group>";
+		};
+		FDE7E9282890A59797B55016 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B6708D2F5BA591AAFEF4BBEC /* Localizable.xcstrings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BBB00453F106E9A09566C4C5 /* Keyguard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E87B054805503B1134BEADD7 /* Build configuration list for PBXNativeTarget "Keyguard" */;
+			buildPhases = (
+				7699FD9B79CBF89B5AEA6D23 /* Sources */,
+				4D49E47464E787C4805E1422 /* Resources */,
+				C58552F38A5E589BC36491A2 /* Frameworks */,
+				97A12C43A775DDF92E0B3D16 /* Embed Foundation Extensions */,
+				68DA81F57E5678D7C63F94E8 /* Verify Apple string tables */,
+				B172372C9D721E52CE3FEADB /* Copy Compose resources */,
+				50386EACB3B5B40D60F51879 /* Build and copy keyguard-ssh-agent */,
+				96F8A54A12F9E490D43BB8F4 /* Build and copy keyguard-gpg-agent */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				69D0F62EDDAC96DA8F7ED389 /* PBXTargetDependency */,
+			);
+			name = Keyguard;
+			packageProductDependencies = (
+				363E9840213A1B779DA79665 /* SQLCipher */,
+				60031D2DCF12E9425947B2CF /* MarkdownUI */,
+				6550AE73715380E0FE83E337 /* KeyguardUI */,
+			);
+			productName = Keyguard;
+			productReference = F846FB073DB2DA48AE448A28 /* Keyguard.app */;
+			productType = "com.apple.product-type.application";
+		};
+		EC445B5900838D16EE586D0D /* KeyguardBillingHost */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 81D271BA440A6C7743F10E83 /* Build configuration list for PBXNativeTarget "KeyguardBillingHost" */;
+			buildPhases = (
+				0396D762BED3320BC9AF95E6 /* Sources */,
+				D07E95959363BA6C1A61BA08 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KeyguardBillingHost;
+			packageProductDependencies = (
+			);
+			productName = KeyguardBillingHost;
+			productReference = 5140B486D48AE9C4654910E2 /* KeyguardBillingHost.app */;
+			productType = "com.apple.product-type.application";
+		};
+		EF8A796195E8124541FC7917 /* KeyguardBillingTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 74CE5E94551C4783E47F23E4 /* Build configuration list for PBXNativeTarget "KeyguardBillingTests" */;
+			buildPhases = (
+				BF3C4D62F90FF7E46B9BAC6C /* Sources */,
+				A8503DBBD38C04300AAED160 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7122CA9D0804B11D66BFA970 /* PBXTargetDependency */,
+			);
+			name = KeyguardBillingTests;
+			packageProductDependencies = (
+				9E649C6DB28775FDE9957774 /* KeyguardUI */,
+				5C90DBDDDAE3EA7EEC2505E3 /* SQLCipher */,
+			);
+			productName = KeyguardBillingTests;
+			productReference = 89E6117F8B324B12E72F6004 /* KeyguardBillingTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		F9CCED6D1F9F843800E6687F /* KeyguardAutofill */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 939B5BBFB792277CE3D07530 /* Build configuration list for PBXNativeTarget "KeyguardAutofill" */;
+			buildPhases = (
+				AB27C65A1FCFB1711C8F015F /* Sources */,
+				853F8E9617FD0006E57682C0 /* Resources */,
+				4F2B6ABF1DCA5EB4FFBB1050 /* Frameworks */,
+				353BB82A68F551E134075946 /* Verify Apple string tables */,
+				B5DB95900C35DB6E568E2F3E /* Copy Compose resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KeyguardAutofill;
+			packageProductDependencies = (
+				F73DEE6E331FC92764072A96 /* SQLCipher */,
+				BF103EDFC7358D8F4747FF03 /* KeyguardShared */,
+			);
+			productName = KeyguardAutofill;
+			productReference = 625E03F10AE8942536FF7718 /* KeyguardAutofill.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		26ABB7DAF6FF87AB3B22F819 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					BBB00453F106E9A09566C4C5 = {
+						DevelopmentTeam = "$(KEYGUARD_DEVELOPMENT_TEAM)";
+						ProvisioningStyle = Automatic;
+					};
+					EC445B5900838D16EE586D0D = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					EF8A796195E8124541FC7917 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					F9CCED6D1F9F843800E6687F = {
+						DevelopmentTeam = "$(KEYGUARD_DEVELOPMENT_TEAM)";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 5CF0E4E162302DE3A3A0A14D /* Build configuration list for PBXProject "Keyguard" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = A3E3EF8C793A383BB9850EBC;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8CA78C75E168239A4115080E /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
+				729CFD694A4C28B9292AF7D8 /* XCRemoteSwiftPackageReference "SQLCipher.swift" */,
+				8AF257BC174338D66F3551FC /* XCLocalSwiftPackageReference "../appleUi" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 05A0E6D381E8F84B1E46A6D2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BBB00453F106E9A09566C4C5 /* Keyguard */,
+				F9CCED6D1F9F843800E6687F /* KeyguardAutofill */,
+				EC445B5900838D16EE586D0D /* KeyguardBillingHost */,
+				EF8A796195E8124541FC7917 /* KeyguardBillingTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4D49E47464E787C4805E1422 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				86EEA1EEDCEC4BA0327F2485 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		853F8E9617FD0006E57682C0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6EB2DA24B78E64DE24253530 /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D07E95959363BA6C1A61BA08 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				46212DABFEC3551FB4454362 /* Keyguard.storekit in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		353BB82A68F551E134075946 /* Verify Apple string tables */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Verify Apple string tables";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "python3 \"$SRCROOT/../xcode/scripts/verify-apple-strings.py\"";
+		};
+		50386EACB3B5B40D60F51879 /* Build and copy keyguard-ssh-agent */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build and copy keyguard-ssh-agent";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -eu\n# GUI-launched Xcode does not read shell rc files, so expose common Rust installs.\n. \"$SRCROOT/../xcode/scripts/rust-env.sh\"\ncd \"$SRCROOT/..\"\n./gradlew :desktopSshAgent:compileSshAgentUniversal\nSRC=\"$(ls \"$SRCROOT/../desktopSshAgent/build/bundled-app-resources/\"macos-*/keyguard-ssh-agent 2>/dev/null | head -1)\"\nif [ -z \"$SRC\" ] || [ ! -f \"$SRC\" ]; then\n  echo \"error: keyguard-ssh-agent binary not found after build\"\n  exit 1\nfi\nDEST=\"$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/keyguard-ssh-agent\"\nmkdir -p \"$(dirname \"$DEST\")\"\ncp -f \"$SRC\" \"$DEST\"\nchmod +x \"$DEST\"\n# The target's signing step seals this binary into the bundle but never\n# re-signs it: nested executables outside Frameworks/ and PlugIns/ keep\n# whatever signature they arrive with — here Rust's linker ad-hoc one, which\n# notarization rejects. `codesign --verify --deep` still passes, so sign it\n# explicitly rather than waiting for a submission to catch it.\nIDENTITY=\"${EXPANDED_CODE_SIGN_IDENTITY:-${CODE_SIGN_IDENTITY:-}}\"\nif [ \"${CODE_SIGNING_ALLOWED:-YES}\" = \"NO\" ] || [ -z \"$IDENTITY\" ]; then\n  # Unsigned CI builds: ad-hoc still leaves the binary executable on arm64.\n  IDENTITY=\"-\"\nfi\n# A secure timestamp is a notarization requirement, but it needs the network\n# on every build, so ask for one only where it is actually consumed.\ncase \"$CONFIGURATION\" in\n  *Release) TIMESTAMP=\"--timestamp\" ;;\n  *) TIMESTAMP=\"--timestamp=none\" ;;\nesac\nif [ \"$IDENTITY\" = \"-\" ]; then\n  TIMESTAMP=\"--timestamp=none\"\nfi\ncodesign --force --options runtime $TIMESTAMP --sign \"$IDENTITY\" \"$DEST\"\n";
+		};
+		68DA81F57E5678D7C63F94E8 /* Verify Apple string tables */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/KeyguardUI_KeyguardUI.bundle",
+			);
+			name = "Verify Apple string tables";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "python3 \"$SRCROOT/../xcode/scripts/verify-apple-strings.py\"";
+		};
+		96F8A54A12F9E490D43BB8F4 /* Build and copy keyguard-gpg-agent */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build and copy keyguard-gpg-agent";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -eu\n. \"$SRCROOT/../xcode/scripts/rust-env.sh\"\ncd \"$SRCROOT/..\"\n./gradlew :desktopGpgAgent:compileGpgAgentUniversal\n# The Cargo task builds for the host architecture; select its exact\n# output so a stale binary for another Mac cannot be bundled.\ncase \"$(uname -m)\" in\n  arm64) GPG_PLATFORM=\"macos-arm64\" ;;\n  x86_64) GPG_PLATFORM=\"macos-x64\" ;;\n  *) echo \"error: unsupported macOS host architecture\"; exit 1 ;;\nesac\nSRC=\"$SRCROOT/../desktopGpgAgent/build/bundled-app-resources/$GPG_PLATFORM/keyguard-gpg-agent\"\nif [ ! -f \"$SRC\" ]; then\n  echo \"error: keyguard-gpg-agent binary not found after build\"\n  exit 1\nfi\nDEST=\"$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/keyguard-gpg-agent\"\nmkdir -p \"$(dirname \"$DEST\")\"\ncp -f \"$SRC\" \"$DEST\"\nchmod +x \"$DEST\"\nIDENTITY=\"${EXPANDED_CODE_SIGN_IDENTITY:-${CODE_SIGN_IDENTITY:-}}\"\nif [ \"${CODE_SIGNING_ALLOWED:-YES}\" = \"NO\" ] || [ -z \"$IDENTITY\" ]; then\n  IDENTITY=\"-\"\nfi\ncase \"$CONFIGURATION\" in\n  *Release) TIMESTAMP=\"--timestamp\" ;;\n  *) TIMESTAMP=\"--timestamp=none\" ;;\nesac\nif [ \"$IDENTITY\" = \"-\" ]; then\n  TIMESTAMP=\"--timestamp=none\"\nfi\n# A spawned sandbox helper must inherit the parent's granted App Group\n# access. Its own entitlements contain only sandbox + inheritance.\ncodesign --force --options runtime $TIMESTAMP --sign \"$IDENTITY\" \\\n  --entitlements \"$SRCROOT/macosApp/KeyguardGpgAgent.entitlements\" \"$DEST\"\n";
+		};
+		B172372C9D721E52CE3FEADB /* Copy Compose resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Compose resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/../xcode/scripts/copy-compose-resources.sh\"";
+		};
+		B5DB95900C35DB6E568E2F3E /* Copy Compose resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Compose resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/../xcode/scripts/copy-compose-resources.sh\"";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0396D762BED3320BC9AF95E6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				50EFD32D3E411FA92F71CD3A /* Host.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7699FD9B79CBF89B5AEA6D23 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56C168A5022B65A984DA6F01 /* ContentView.swift in Sources */,
+				07E399773366E86EFCD56889 /* KeyguardMacApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AB27C65A1FCFB1711C8F015F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A3BD05AC3094393971E24B5B /* AppleBiometry.swift in Sources */,
+				4DA57646F7EA143F1B5A25F5 /* AutofillCredentialListView.swift in Sources */,
+				79CE8574ECABB714282B37D7 /* AutofillL10n.swift in Sources */,
+				BD05155AE0F4B8FF4DFEAE62 /* AutofillRecoveryViews.swift in Sources */,
+				8CA4CB1A1927C2E37A176FD0 /* AutofillStoreAccess.swift in Sources */,
+				71671BA2C507A13C23F43684 /* AutofillUnlockView.swift in Sources */,
+				D980CAB0376D41934096EAEE /* CredentialProviderViewController.swift in Sources */,
+				70D8BF98FD86230E44D7B534 /* Keychain.swift in Sources */,
+				AFE713472BA96529814F077A /* KotlinData.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF3C4D62F90FF7E46B9BAC6C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				95CA8959EE0F91693BCCDE03 /* StoreKitBillingTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		69D0F62EDDAC96DA8F7ED389 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F9CCED6D1F9F843800E6687F /* KeyguardAutofill */;
+			targetProxy = D90AF4B3A1A2254E94850F00 /* PBXContainerItemProxy */;
+		};
+		7122CA9D0804B11D66BFA970 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EC445B5900838D16EE586D0D /* KeyguardBillingHost */;
+			targetProxy = 4A6E7C67503F0748C3780E84 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0199BE05F2B8A997193A5C77 /* AppStoreRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_KeyguardDistribution = appStore;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.billingtesthost;
+				SDKROOT = macosx;
+			};
+			name = AppStoreRelease;
+		};
+		10F7FD9BC4FB64502CAA1408 /* AppStoreRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
+				CODE_SIGN_ENTITLEMENTS = macosApp/Keyguard.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = macosApp/Info.plist;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(KEYGUARD_APP_BUNDLE_ID)";
+				PRODUCT_NAME = Keyguard;
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+			};
+			name = AppStoreRelease;
+		};
+		194262A000297A95C0B9075A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = KeyguardAutofill/KeyguardAutofill.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = KeyguardAutofill/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(KEYGUARD_APP_BUNDLE_ID).autofill";
+				PRODUCT_NAME = KeyguardAutofill;
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		266B94788AF7A7D73350C8C5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
+				CODE_SIGN_ENTITLEMENTS = macosApp/Keyguard.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = macosApp/Info.plist;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(KEYGUARD_APP_BUNDLE_ID)";
+				PRODUCT_NAME = Keyguard;
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		2D335A4AE111D48228A3073D /* AppStoreDebug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 77E49BB00D20D0D40A9E92F3 /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"SQLITE_HAS_CODEC=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				KEYGUARD_APP_BUNDLE_ID = "$(KEYGUARD_BUNDLE_ID)";
+				KEYGUARD_DISTRIBUTION = appStore;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+			};
+			name = AppStoreDebug;
+		};
+		52E0EA9AA55137815D8656D8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_KeyguardDistribution = appStore;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.billingtesthost;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		5D248EBCE2BAD62580043886 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = KeyguardAutofill/KeyguardAutofill.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = KeyguardAutofill/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(KEYGUARD_APP_BUNDLE_ID).autofill";
+				PRODUCT_NAME = KeyguardAutofill;
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		6BDE07155301FB1430B8A1E7 /* AppStoreDebug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_KeyguardDistribution = appStore;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.billingtesthost;
+				SDKROOT = macosx;
+			};
+			name = AppStoreDebug;
+		};
+		79B937F7E31FDA6AAE7544F6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 77E49BB00D20D0D40A9E92F3 /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"SQLITE_HAS_CODEC=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				KEYGUARD_APP_BUNDLE_ID = "$(KEYGUARD_BUNDLE_ID).mac";
+				KEYGUARD_DISTRIBUTION = direct;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		831B9D0DBFEB9C73E9F817E8 /* AppStoreRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.billingtests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KeyguardBillingHost.app/Contents/MacOS/KeyguardBillingHost";
+			};
+			name = AppStoreRelease;
+		};
+		88AA0E73EEC4CD14F33A20C1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.billingtests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KeyguardBillingHost.app/Contents/MacOS/KeyguardBillingHost";
+			};
+			name = Debug;
+		};
+		8CB185CF259D607AEAE3D000 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_KeyguardDistribution = appStore;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.billingtesthost;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		93AD1FC471F3AC29CEBAA7C7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 77E49BB00D20D0D40A9E92F3 /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"SQLITE_HAS_CODEC=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				KEYGUARD_APP_BUNDLE_ID = "$(KEYGUARD_BUNDLE_ID).mac";
+				KEYGUARD_DISTRIBUTION = direct;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		941957F4063D57C78CC38D6A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
+				CODE_SIGN_ENTITLEMENTS = macosApp/Keyguard.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = macosApp/Info.plist;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(KEYGUARD_APP_BUNDLE_ID)";
+				PRODUCT_NAME = Keyguard;
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		ACAFCBBFF4B05918E80E4C5F /* AppStoreDebug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.billingtests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KeyguardBillingHost.app/Contents/MacOS/KeyguardBillingHost";
+			};
+			name = AppStoreDebug;
+		};
+		B757DA56783A189FF316362A /* AppStoreDebug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = KeyguardAutofill/KeyguardAutofill.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = KeyguardAutofill/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(KEYGUARD_APP_BUNDLE_ID).autofill";
+				PRODUCT_NAME = KeyguardAutofill;
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+			};
+			name = AppStoreDebug;
+		};
+		BF7E253D6652E4BA341B14A4 /* AppStoreRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = KeyguardAutofill/KeyguardAutofill.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = KeyguardAutofill/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(KEYGUARD_APP_BUNDLE_ID).autofill";
+				PRODUCT_NAME = KeyguardAutofill;
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+			};
+			name = AppStoreRelease;
+		};
+		C339A8B7C0D4F3F246C2D000 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.artemchep.keyguard.billingtests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KeyguardBillingHost.app/Contents/MacOS/KeyguardBillingHost";
+			};
+			name = Release;
+		};
+		D97A7EF9A15EB5781E2CC01E /* AppStoreDebug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
+				CODE_SIGN_ENTITLEMENTS = macosApp/Keyguard.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = macosApp/Info.plist;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(KEYGUARD_APP_BUNDLE_ID)";
+				PRODUCT_NAME = Keyguard;
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+			};
+			name = AppStoreDebug;
+		};
+		F1F482FA26FACC707299C80B /* AppStoreRelease */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 77E49BB00D20D0D40A9E92F3 /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"SQLITE_HAS_CODEC=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				KEYGUARD_APP_BUNDLE_ID = "$(KEYGUARD_BUNDLE_ID)";
+				KEYGUARD_DISTRIBUTION = appStore;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+			};
+			name = AppStoreRelease;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5CF0E4E162302DE3A3A0A14D /* Build configuration list for PBXProject "Keyguard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2D335A4AE111D48228A3073D /* AppStoreDebug */,
+				F1F482FA26FACC707299C80B /* AppStoreRelease */,
+				93AD1FC471F3AC29CEBAA7C7 /* Debug */,
+				79B937F7E31FDA6AAE7544F6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = AppStoreDebug;
+		};
+		74CE5E94551C4783E47F23E4 /* Build configuration list for PBXNativeTarget "KeyguardBillingTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ACAFCBBFF4B05918E80E4C5F /* AppStoreDebug */,
+				831B9D0DBFEB9C73E9F817E8 /* AppStoreRelease */,
+				88AA0E73EEC4CD14F33A20C1 /* Debug */,
+				C339A8B7C0D4F3F246C2D000 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = AppStoreDebug;
+		};
+		81D271BA440A6C7743F10E83 /* Build configuration list for PBXNativeTarget "KeyguardBillingHost" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6BDE07155301FB1430B8A1E7 /* AppStoreDebug */,
+				0199BE05F2B8A997193A5C77 /* AppStoreRelease */,
+				52E0EA9AA55137815D8656D8 /* Debug */,
+				8CB185CF259D607AEAE3D000 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = AppStoreDebug;
+		};
+		939B5BBFB792277CE3D07530 /* Build configuration list for PBXNativeTarget "KeyguardAutofill" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B757DA56783A189FF316362A /* AppStoreDebug */,
+				BF7E253D6652E4BA341B14A4 /* AppStoreRelease */,
+				5D248EBCE2BAD62580043886 /* Debug */,
+				194262A000297A95C0B9075A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = AppStoreDebug;
+		};
+		E87B054805503B1134BEADD7 /* Build configuration list for PBXNativeTarget "Keyguard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D97A7EF9A15EB5781E2CC01E /* AppStoreDebug */,
+				10F7FD9BC4FB64502CAA1408 /* AppStoreRelease */,
+				266B94788AF7A7D73350C8C5 /* Debug */,
+				941957F4063D57C78CC38D6A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = AppStoreDebug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		8AF257BC174338D66F3551FC /* XCLocalSwiftPackageReference "../appleUi" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../appleUi;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		729CFD694A4C28B9292AF7D8 /* XCRemoteSwiftPackageReference "SQLCipher.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sqlcipher/SQLCipher.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.16.0;
+			};
+		};
+		8CA78C75E168239A4115080E /* XCRemoteSwiftPackageReference "swift-markdown-ui" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/swift-markdown-ui";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		363E9840213A1B779DA79665 /* SQLCipher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 729CFD694A4C28B9292AF7D8 /* XCRemoteSwiftPackageReference "SQLCipher.swift" */;
+			productName = SQLCipher;
+		};
+		5C90DBDDDAE3EA7EEC2505E3 /* SQLCipher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 729CFD694A4C28B9292AF7D8 /* XCRemoteSwiftPackageReference "SQLCipher.swift" */;
+			productName = SQLCipher;
+		};
+		60031D2DCF12E9425947B2CF /* MarkdownUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8CA78C75E168239A4115080E /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
+			productName = MarkdownUI;
+		};
+		6550AE73715380E0FE83E337 /* KeyguardUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KeyguardUI;
+		};
+		9E649C6DB28775FDE9957774 /* KeyguardUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KeyguardUI;
+		};
+		BF103EDFC7358D8F4747FF03 /* KeyguardShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KeyguardShared;
+		};
+		F73DEE6E331FC92764072A96 /* SQLCipher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 729CFD694A4C28B9292AF7D8 /* XCRemoteSwiftPackageReference "SQLCipher.swift" */;
+			productName = SQLCipher;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 26ABB7DAF6FF87AB3B22F819 /* Project object */;
+}

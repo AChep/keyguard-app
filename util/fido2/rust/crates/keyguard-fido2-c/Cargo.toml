@@ -1,0 +1,13 @@
+[package]
+name = "keyguard-fido2-c"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+[lib]
+crate-type = ["staticlib"]
+[dependencies]
+keyguard-fido2-core.workspace = true
+zeroize.workspace = true
+[lints]
+workspace = true

@@ -205,6 +205,7 @@ import com.artemchep.keyguard.feature.home.vault.component.formatCardNumber
 import com.artemchep.keyguard.feature.home.vault.link.CipherRelations
 import com.artemchep.keyguard.feature.home.vault.link.resolveCipherRelations
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
+import com.artemchep.keyguard.feature.home.vault.model.VaultUriIcon
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.feature.home.vault.model.transformShapes
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
@@ -3409,6 +3410,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                             )
                         },
                         title = AnnotatedString(androidMarker.label),
+                        iconSource = VaultUriIcon.AndroidApp(platformMarker.packageName, websiteIcons),
                         matchTypeTitle = matchTypeTitle,
                         dropdown = dropdown,
                         overrides = overrides,
@@ -3425,6 +3427,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                             )
                         },
                         title = AnnotatedString(platformMarker.packageName),
+                        iconSource = VaultUriIcon.AndroidApp(platformMarker.packageName, websiteIcons),
                         matchTypeTitle = matchTypeTitle,
                         dropdown = dropdown,
                         overrides = overrides,
@@ -3443,6 +3446,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                     )
                 },
                 title = AnnotatedString(platformMarker.bundleId),
+                iconSource = VaultUriIcon.IosApp(platformMarker.bundleId, websiteIcons),
                 matchTypeTitle = matchTypeTitle,
                 dropdown = dropdown,
                 overrides = overrides,
@@ -3493,6 +3497,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                     }
                 },
                 warningTitle = warningTitle,
+                iconSource = VaultUriIcon.Website(FaviconUrl(serverId = accountId, url = url), websiteIcons),
                 matchTypeTitle = matchTypeTitle,
                 dropdown = dropdown,
                 overrides = overrides,
@@ -3547,6 +3552,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                         )
                     }
                 },
+                colorize = uri.match == DSecret.Uri.MatchType.RegularExpression,
                 title = when (uri.match) {
                     DSecret.Uri.MatchType.RegularExpression -> {
                         colorizePassword(uri.uri, contentColor)

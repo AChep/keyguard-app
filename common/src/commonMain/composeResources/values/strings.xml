@@ -1091,6 +1091,10 @@
     <string name="additem_login_totp_label">One-time password (TOTP)</string>
     <string name="additem_login_uri_label">Website (URI)</string>
     <string name="additem_key_replace_title">Replace key</string>
+    <string name="additem_ssh_key_generate_title">Generate SSH key…</string>
+    <string name="additem_gpg_key_generate_title">Generate GPG key…</string>
+    <string name="additem_key_use_title">Use Key</string>
+    <string name="additem_key_generator_back_title">Back</string>
     <string name="additem_key_import_title">Import key</string>
 
     <string name="addsend_header_new_title">New send</string>
@@ -1811,6 +1815,8 @@
     <string name="pref_item_appearance_restart_note">Takes effect after Keyguard is restarted.</string>
     <string name="pref_item_dev_title">Development</string>
     <string name="pref_item_dev_text">Test settings for development</string>
+    <string name="pref_item_debug_premium_title">Force premium status</string>
+    <string name="pref_item_debug_premium_text">Enables premium features in test builds.</string>
     <string name="pref_item_other_title">Other</string>
     <string name="pref_item_other_text">Community websites, app info</string>
     <string name="pref_section_automatic_backups_setup_title">Setup</string>
@@ -1857,7 +1863,7 @@
     <string name="pref_item_automatic_backups_panel_pending_changes_label">Pending changes</string>
     <string name="pref_item_automatic_backups_run_now_title">Run backup now</string>
     <string name="pref_item_automatic_backups_unsupported_title">Unsupported platform</string>
-    <string name="pref_item_automatic_backups_unsupported_text">Automatic backups are available on Android and desktop.</string>
+    <string name="pref_item_automatic_backups_unsupported_text">Automatic backups are available on Android, desktop, macOS, and iOS.</string>
     <string name="pref_item_automatic_backups_enable_button">Enable backups</string>
     <string name="pref_item_automatic_backups_setup_intro">Backups save vault snapshots to a location you choose. Keyguard creates them on vault changes, and you can trigger a snapshot manually anytime.</string>
     <string name="pref_item_automatic_backups_setup_logic">The backup repository stores metadata, snapshots, and optional attachment files as separate ZIP archives. Specify the backup password to encrypt the archives using AES-256 encryption.</string>
@@ -2511,4 +2517,16 @@
     <string name="yubikey_error_no_device">Connect a YubiKey with its OTP interface enabled and try again.</string>
     <string name="yubikey_error_multiple_devices">Connect only the YubiKey you want to use, then try again.</string>
     <string name="yubikey_error_busy">Another operation is using the YubiKey. Wait for it to finish and try again.</string>
+    <string name="fido2_unlock_title">Security key (FIDO2)</string>
+    <string name="fido2_unlock_description">Unlock with a USB security key that supports PRF. Your app password remains available for recovery.</string>
+    <string name="fido2_touch_prompt">Connect your security key and touch it when it flashes.</string>
+    <string name="fido2_pin_prompt">Enter the PIN for your security key.</string>
+    <string name="fido2_pin_label">Security key PIN</string>
+    <string name="fido2_error_title">Could not use the security key</string>
+    <string name="fido2_error_unsupported">This key or platform does not support FIDO2 PRF with user verification.</string>
+    <string name="fido2_error_pin_not_set">Set a FIDO2 PIN using the key manufacturer’s app, then try again.</string>
+    <string name="fido2_error_pin_blocked">The key blocked PIN verification. Reconnect it and use its management app to check its status. You can still unlock Keyguard with your app password.</string>
+    <string name="fido2_error_invalid_pin">Incorrect PIN. Check the PIN before trying again; repeated failures can block the key.</string>
+    <string name="fido2_error_timeout">The security key did not respond in time. Reconnect it and try again.</string>
+    <string name="fido2_error_retry">Try your enrolled security key again, or unlock with your app password.</string>
 </resources>

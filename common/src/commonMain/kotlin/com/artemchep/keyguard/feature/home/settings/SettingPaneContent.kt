@@ -139,6 +139,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockPr
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultPersistProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingWebsiteIconsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingWriteAccessProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingFido2UnlockProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingYubiKeyUnlockProvider
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.platform.CurrentPlatform
@@ -186,6 +187,7 @@ object Setting {
     const val PERMISSION_POST_NOTIFICATION = "permission_post_notification"
     const val BIOMETRIC = "biometric"
     const val BIOMETRIC_REQUIRE_CONFIRMATION = "biometric_require_confirmation"
+    const val FIDO2_UNLOCK = "fido2_unlock"
     const val YUBIKEY_UNLOCK = "yubikey_unlock"
     const val VAULT_PERSIST = "vault_persist"
     const val VAULT_CLEAR = "vault_clear"
@@ -317,6 +319,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.PERMISSION_WRITE_EXTERNAL_STORAGE to ::settingPermissionWriteExternalStorageProvider,
     Setting.BIOMETRIC to ::settingBiometricsProvider,
     Setting.BIOMETRIC_REQUIRE_CONFIRMATION to ::settingBiometricsRequireConfirmationProvider,
+    Setting.FIDO2_UNLOCK to ::settingFido2UnlockProvider,
     Setting.YUBIKEY_UNLOCK to ::settingYubiKeyUnlockProvider,
     Setting.VAULT_PERSIST to ::settingVaultPersistProvider,
     Setting.VAULT_CLEAR to ::settingVaultClearProvider,

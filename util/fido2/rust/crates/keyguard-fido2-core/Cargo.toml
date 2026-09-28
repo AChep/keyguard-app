@@ -1,0 +1,20 @@
+[package]
+name = "keyguard-fido2-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+
+[dependencies]
+zeroize.workspace = true
+sha2 = "=0.10.9"
+
+[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
+authenticator = { version = "=0.5.0", default-features = false, features = ["crypto_rust"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-sys = { version = "=0.61.2", features = ["Win32_Networking_WindowsWebServices", "Win32_UI_WindowsAndMessaging"] }
+base64 = "=0.22.1"
+
+[lints]
+workspace = true

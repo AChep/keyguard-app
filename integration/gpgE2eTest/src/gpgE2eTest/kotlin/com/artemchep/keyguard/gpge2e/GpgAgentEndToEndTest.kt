@@ -422,6 +422,15 @@ class GpgAgentEndToEndTest {
     @Test
     fun `nistp256 sign and verify`() = signAndVerify(keys.nistp256, "nistp256")
 
+    @Test
+    fun `nistp384 sign and verify`() = signAndVerify(keys.nistp384, "nistp384")
+
+    @Test
+    fun `nistp521 sign and verify`() = signAndVerify(keys.nistp521, "nistp521")
+
+    @Test
+    fun `secp256k1 sign and verify`() = signAndVerify(keys.secp256k1, "secp256k1")
+
     // ---- DECRYPT tests ---------------------------------------------------------------
 
     @Test
@@ -432,6 +441,12 @@ class GpgAgentEndToEndTest {
 
     @Test
     fun `nistp256 ecdh encrypt and decrypt`() = encryptAndDecrypt(keys.nistp256, "nistp256")
+
+    @Test
+    fun `nistp384 ecdh encrypt and decrypt`() = encryptAndDecrypt(keys.nistp384, "nistp384")
+
+    @Test
+    fun `nistp521 ecdh encrypt and decrypt`() = encryptAndDecrypt(keys.nistp521, "nistp521")
 
     // ---- Keyguard-GENERATED key tests ------------------------------------------------
 

@@ -14,8 +14,17 @@ import com.artemchep.keyguard.common.service.keyvalue.SecureKeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.getObject
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
+import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.ioEffect
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
+import com.artemchep.keyguard.common.model.FingerprintFido2
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.Json
 
 /**
@@ -65,6 +74,7 @@ class FingerprintRepositoryImpl(
                     master = master,
                     biometric = biometric,
                     yubiKey = yubiKey,
+                    fido2 = tokens.fido2?.let { json.encodeToJsonElement(it) },
                 )
             }
             json.encodeToString(entity)
@@ -96,7 +106,17 @@ class FingerprintRepositoryImpl(
         }
     }
 
-    override fun put(key: Fingerprint?) = dataPref.setAndCommit(key)
+    private val writeMutex = Mutex()
+
+    override fun put(key: Fingerprint?) = ioEffect {
+        writeMutex.withLock { dataPref.setAndCommit(key).bind() }
+    }
+
+    override fun update(transform: (Fingerprint?) -> Fingerprint?) = ioEffect {
+        writeMutex.withLock {
+            dataPref.setAndCommit(transform(dataPref.first())).bind()
+        }
+    }
 
     override fun get(): Flow<Fingerprint?> = dataPref
 }
@@ -166,6 +186,13 @@ private fun parseFingerprintJsonStringOrNull(
         master = master,
         biometric = biometric,
         yubiKey = yubiKey,
+        fido2 = entity.fido2?.let { value ->
+            // Ignore invalid optional protectors while preserving password recovery.
+            runCatching {
+                json.decodeFromJsonElement<FingerprintFido2>(value)
+                    .also { it.validate(base64Service) }
+            }.getOrNull()
+        },
     )
 }
 
@@ -213,6 +240,7 @@ data class FingerprintEntity(
     val master: Master,
     val biometric: Biometric?,
     val yubiKey: YubiKey? = null,
+    val fido2: JsonElement? = null,
 ) {
     @Serializable
     data class Master(

@@ -18,6 +18,7 @@ import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
 import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultListRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewPasswordHistoryRoute
+import com.artemchep.keyguard.feature.sshagent.history.SshAgentHistoryRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.settings.subscriptions.SubscriptionsSettingsRoute
 import com.artemchep.keyguard.feature.home.vault.search.sort.Sort
@@ -59,6 +60,9 @@ fun RouteDescriptor.toRoute(): Route? = when (this) {
 
     is RouteDescriptor.PasswordHistory ->
         VaultViewPasswordHistoryRoute(itemId = itemId)
+
+    is RouteDescriptor.SshAgentHistory ->
+        SshAgentHistoryRoute(cipherId = cipherId)
 
     is RouteDescriptor.WordlistView ->
         WordlistViewRoute(WordlistViewRoute.Args(wordlistId = wordlistId))

@@ -30,6 +30,10 @@ struct Args {
     #[arg(long)]
     gpg_socket: Option<PathBuf>,
 
+    /// Stable private lifecycle lock directory for a sandboxed Unix host.
+    #[arg(long)]
+    lifecycle_lock_dir: Option<PathBuf>,
+
     /// Enable debug logging. Otherwise RUST_LOG applies, defaulting to warnings and errors.
     #[arg(long, short)]
     verbose: bool,
@@ -100,6 +104,10 @@ fn write_startup_ready_record() -> Result<()> {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
+    #[cfg(windows)]
+    if args.lifecycle_lock_dir.is_some() {
+        anyhow::bail!("--lifecycle-lock-dir is only supported on Unix");
+    }
 
     // Keep routine activity out of logs in every build unless explicitly enabled.
     let filter = if args.verbose {
@@ -149,6 +157,7 @@ async fn main() -> Result<()> {
     socket::serve(
         ipc_client,
         &gpg_socket_path,
+        args.lifecycle_lock_dir.as_deref(),
         parent_stdin_closed,
         write_startup_ready_record,
     )
@@ -184,6 +193,29 @@ mod tests {
     use super::resolve_gpg_socket_path;
     #[cfg(unix)]
     use std::path::PathBuf;
+
+    #[test]
+    fn lifecycle_lock_directory_is_opt_in() {
+        use clap::Parser;
+        let base = [
+            "keyguard-gpg-agent",
+            "--ipc-socket",
+            "/tmp/test-ipc",
+            "--parent-pid",
+            "123",
+        ];
+        let defaults = super::Args::try_parse_from(base).expect("default arguments");
+        assert!(defaults.lifecycle_lock_dir.is_none());
+        let configured = super::Args::try_parse_from(
+            base.into_iter()
+                .chain(["--lifecycle-lock-dir", "/private/app-group/gpg/locks"]),
+        )
+        .expect("sandbox arguments");
+        assert_eq!(
+            configured.lifecycle_lock_dir.as_deref(),
+            Some(std::path::Path::new("/private/app-group/gpg/locks"))
+        );
+    }
 
     #[test]
     fn auth_token_rejects_wrong_length() {

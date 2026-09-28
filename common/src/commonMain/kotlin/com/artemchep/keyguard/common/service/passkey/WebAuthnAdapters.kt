@@ -25,7 +25,7 @@ internal val KEYGUARD_PASSKEY_AAGUID = byteArrayOf(
     0x49.toByte(),
 )
 
-internal fun DSecret.Login.Fido2Credentials.toWebAuthnCredential() = WebAuthnCredential(
+fun DSecret.Login.Fido2Credentials.toWebAuthnCredential() = WebAuthnCredential(
     credentialId = credentialId,
     keyType = keyType,
     keyAlgorithm = keyAlgorithm,
@@ -40,7 +40,7 @@ internal fun DSecret.Login.Fido2Credentials.toWebAuthnCredential() = WebAuthnCre
     discoverable = discoverable,
 )
 
-internal fun WebAuthnCredential.toAddCredentialCipherRequest() = AddCredentialCipherRequestPasskeyData(
+fun WebAuthnCredential.toAddCredentialCipherRequest() = AddCredentialCipherRequestPasskeyData(
     credentialId = credentialId,
     keyType = keyType,
     keyAlgorithm = keyAlgorithm,

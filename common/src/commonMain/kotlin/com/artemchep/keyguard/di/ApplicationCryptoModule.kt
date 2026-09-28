@@ -16,8 +16,6 @@ import com.artemchep.keyguard.common.service.googleauthenticator.util.OtpMigrati
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
 import com.artemchep.keyguard.common.service.gpgkeyserver.impl.GpgKeyserverClientImpl
 import com.artemchep.keyguard.common.service.passkey.KEYGUARD_PASSKEY_AAGUID
-import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.common.service.text.decodeOrNull
 import com.artemchep.keyguard.common.service.totp.TotpService
 import com.artemchep.keyguard.common.service.totp.impl.TotpServiceImpl
 import com.artemchep.keyguard.common.usecase.GetAutofillCopyTotp
@@ -81,11 +79,9 @@ internal class ApplicationCryptoModule {
             WebAuthnAuthenticatorDataFactory(aaguid = KEYGUARD_PASSKEY_AAGUID)
         }
         single {
-            val base64Service = get<Base64Service>()
             WebAuthnAuthenticator(
                 json = get(),
                 authenticatorDataFactory = get(),
-                decodeStoredPrivateKey = base64Service::decodeOrNull,
                 passkeyCrypto = get(),
             )
         }

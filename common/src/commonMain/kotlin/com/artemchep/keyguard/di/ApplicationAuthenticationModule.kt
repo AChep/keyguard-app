@@ -105,6 +105,8 @@ internal class ApplicationAuthenticationModule {
 
         single<EnableYubiKeyUnlockImpl>() bind EnableYubiKeyUnlock::class
 
+        single<com.artemchep.keyguard.common.usecase.impl.Fido2UnlockService>()
+
         single<GenerateMasterHashUseCaseImpl>() bind GenerateMasterHashUseCase::class
 
         single<GenerateMasterKeyUseCaseImpl>() bind GenerateMasterKeyUseCase::class

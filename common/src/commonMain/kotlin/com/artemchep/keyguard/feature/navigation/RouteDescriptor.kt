@@ -58,6 +58,13 @@ sealed interface RouteDescriptor {
         val itemId: String,
     ) : RouteDescriptor
 
+    /** The SSH agent's signing history, of one cipher or (`null`) of all. */
+    @Serializable
+    @SerialName("sshagent.history")
+    data class SshAgentHistory(
+        val cipherId: String? = null,
+    ) : RouteDescriptor
+
     // Intentionally carries no password, attempt, or result data.
     @Serializable
     @SerialName("vault.cipher.password_memory")

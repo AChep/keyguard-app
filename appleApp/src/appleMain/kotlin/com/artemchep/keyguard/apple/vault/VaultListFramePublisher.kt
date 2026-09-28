@@ -1,0 +1,150 @@
+package com.artemchep.keyguard.apple.vault
+
+import com.artemchep.keyguard.feature.home.vault.apple.AppleVaultListState
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+
+/**
+ * The state-anchored delta publisher for the vault list: turns a flow of
+ * pipeline states (with `null` marking a locked / torn-down source) into the
+ * background-delivered [VaultListDelta] stream that
+ * [VaultListSession.observeListDelta] hands to Swift.
+ *
+ * Extracted out of [VaultListSession] so ANY producer emitting
+ * [AppleVaultListState] can reuse the exact publishing contract:
+ * - full frames diffed against the last DELIVERED state ([diffFullFrame]); a
+ *   no-change diff publishes nothing;
+ * - a single monotonic-revision reset frame on lock ([resetDelta]), emitted
+ *   only if the client ever received content (a reset before the first frame
+ *   would be pure noise);
+ * - per-observer [run] state (last delivered frame + revision), so ONE
+ *   publisher instance safely serves multiple concurrent observers.
+ *
+ * Threading & coalescing: [run] performs no dispatch of its own — the caller
+ * drives it from its background observer scope (so `onChange` fires off-main by
+ * design, the contract the Swift FIFO delta pump depends on) and applies the
+ * ~48ms burst coalescing (`throttleLatest`) to the non-null runs of [states]
+ * BEFORE they reach [run]. The `null` lock marker is delivered un-throttled so a
+ * reset is never coalesced away. Because coalescing re-reads the LATEST state
+ * and [diffFullFrame] diffs against the last DELIVERED frame, a dropped
+ * intermediate state can never drop a change.
+ */
+internal class VaultListFramePublisher {
+
+    /**
+     * Consumes [states] until cancelled, invoking [onChange] with each frame in
+     * strict delivery order.
+     *
+     * A `null` element means the source locked / tore down: the client is reset
+     * ONCE (and only if it had received content), with a revision bumped past
+     * the last delivered one so the monotonic-revision contract holds. A
+     * non-null element is diffed against the last delivered frame; an
+     * unchanged diff publishes nothing.
+     */
+    suspend fun run(
+        states: Flow<AppleVaultListState?>,
+        onChange: (VaultListDelta) -> Unit,
+    ) {
+        // Both anchored to DELIVERED frames only: `lastDelivered` advances after
+        // `onChange` returns, `lastRevision` tracks the highest revision handed
+        // out so the lock-reset stays monotonic.
+        var lastDelivered: AppleVaultListState? = null
+        var lastRevision = 0L
+        states.collect { state ->
+            if (state == null) {
+                // Locked (or not yet unlocked). Reset the client once — but only
+                // if it ever received content.
+                if (lastDelivered != null) {
+                    lastDelivered = null
+                    lastRevision += 1
+                    onChange(resetDelta(revision = lastRevision))
+                }
+                return@collect
+            }
+            val delta = diffFullFrame(state, lastDelivered)
+                ?: return@collect
+            onChange(delta)
+            lastDelivered = state
+            lastRevision = state.revision
+        }
+    }
+
+    /**
+     * Diffs [state] against the last DELIVERED state into a full-frame
+     * [VaultListDelta], or `null` when nothing changed (skip the publish).
+     *
+     * Upserts follow the `AppleVaultRowContent.rev` contract: a row is carried when it
+     * is new to the client or its content fingerprint changed (`rev` changes
+     * iff a rendered field changed — sections fold their title into it, marker
+     * rows are constant). Decorations have no fingerprint and are compared
+     * structurally.
+     */
+    private fun diffFullFrame(
+        state: AppleVaultListState,
+        last: AppleVaultListState?,
+    ): VaultListDelta? {
+        val lastRows = last?.rows.orEmpty()
+        val upserts = ArrayList<VaultRowSnapshot>()
+        for (row in state.rows.values) {
+            val old = lastRows[row.id]
+            if (old == null || old.rev != row.rev) {
+                upserts += row.toSnapshot()
+            }
+        }
+        val removedIds = lastRows.keys.filter { it !in state.rows }
+
+        val lastDecorations = last?.decorations.orEmpty()
+        val decorationUpserts = state.decorations.values
+            .filter { decoration -> lastDecorations[decoration.id] != decoration }
+            .map { it.toSnapshot() }
+        val decorationRemovedIds = lastDecorations.keys.filter { it !in state.decorations }
+
+        val rowsUnchanged = upserts.isEmpty() && removedIds.isEmpty()
+        val decorationsUnchanged = decorationUpserts.isEmpty() && decorationRemovedIds.isEmpty()
+        val contentUnchanged = rowsUnchanged && decorationsUnchanged
+        if (last != null && contentUnchanged && state.hasSameLayout(last)) {
+            return null
+        }
+        return VaultListDelta(
+            revision = state.revision,
+            baseRevision = -1L,
+            isFull = true,
+            isReset = false,
+            fullEntryIds = state.entries.map { it.id },
+            fullEntryKinds = state.entries.map { it.kind },
+            ops = emptyList(),
+            upserts = upserts,
+            removedIds = removedIds,
+            decorationUpserts = decorationUpserts,
+            decorationRemovedIds = decorationRemovedIds,
+            decorationsReset = false,
+            itemCount = state.itemCount,
+            scrollAnchorId = state.scrollAnchorId,
+            scrollAnchorOffset = state.scrollAnchorOffset,
+        )
+    }
+
+    private fun AppleVaultListState.hasSameLayout(other: AppleVaultListState): Boolean =
+        entries == other.entries &&
+            itemCount == other.itemCount &&
+            scrollAnchorId == other.scrollAnchorId &&
+            scrollAnchorOffset == other.scrollAnchorOffset
+
+    private fun resetDelta(revision: Long): VaultListDelta = VaultListDelta(
+        revision = revision,
+        baseRevision = -1L,
+        isFull = true,
+        isReset = true,
+        fullEntryIds = emptyList(),
+        fullEntryKinds = emptyList(),
+        ops = emptyList(),
+        upserts = emptyList(),
+        removedIds = emptyList(),
+        decorationUpserts = emptyList(),
+        decorationRemovedIds = emptyList(),
+        decorationsReset = true,
+        itemCount = 0,
+        scrollAnchorId = "",
+        scrollAnchorOffset = 0,
+    )
+}

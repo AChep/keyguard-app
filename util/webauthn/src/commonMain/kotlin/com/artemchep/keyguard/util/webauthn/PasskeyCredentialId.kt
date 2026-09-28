@@ -5,6 +5,16 @@ import kotlin.uuid.Uuid
 object PasskeyCredentialId {
     private const val UUID_SIZE_BYTES = Long.SIZE_BYTES * 2
 
+    /**
+     * Storage may spell a wire ID as a UUID in either case or as Base64url.
+     * [canonicalId] must be in [decode] form, as every parsed descriptor ID is.
+     */
+    internal fun matches(canonicalId: String, storedId: String): Boolean = canonicalId == storedId || try {
+        canonicalId == decode(encode(storedId))
+    } catch (_: IllegalArgumentException) {
+        false
+    }
+
     fun encode(
         credentialId: String,
     ): ByteArray {

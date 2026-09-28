@@ -85,6 +85,11 @@ gradlePlugin {
             implementationClass =
                 "com.artemchep.keyguard.buildplugins.cargo.RustMultiplatformLibraryPlugin"
         }
+        register("rustDesktopLibrary") {
+            id = "keyguard.rust-desktop-library"
+            implementationClass =
+                "com.artemchep.keyguard.buildplugins.cargo.RustDesktopLibraryPlugin"
+        }
         register("rustAppleLibrary") {
             id = "keyguard.rust-apple-library"
             implementationClass =

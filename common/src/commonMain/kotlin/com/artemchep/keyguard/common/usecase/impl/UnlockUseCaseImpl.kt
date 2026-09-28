@@ -26,6 +26,7 @@ import com.artemchep.keyguard.common.model.BiometricBindingException
 import com.artemchep.keyguard.common.model.BiometricPurpose
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.DKey
+import com.artemchep.keyguard.util.fido2.FIDO2_INPUT_LENGTH
 import com.artemchep.keyguard.common.model.Fingerprint
 import com.artemchep.keyguard.common.model.FingerprintBiometric
 import com.artemchep.keyguard.common.model.MasterKdfVersion
@@ -98,6 +99,9 @@ class UnlockUseCaseImpl(
     private val cryptoGenerator: CryptoGenerator,
     private val cipherEncryptor: CipherEncryptor,
     private val yubiKeyUnlockAvailability: YubiKeyUnlockAvailability,
+    private val fido2UnlockAvailability: com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability,
+    private val fido2UnlockService: Fido2UnlockService,
+    private val base64Service: com.artemchep.keyguard.common.service.text.Base64Service,
     private val scope: CoroutineScope = GlobalScope,
 ) : UnlockUseCase {
     companion object {
@@ -432,6 +436,22 @@ class UnlockUseCaseImpl(
                 }
             } else {
                 null
+            },
+            unlockWithFido2 = tokens.fido2?.takeIf { fido2UnlockAvailability.isSupported() }?.let { protector ->
+                VaultState.Unlock.WithFido2(
+                    getRequest = {
+                        com.artemchep.keyguard.util.fido2.Fido2Operation.Derive(
+                            base64Service.decode(protector.credentialId),
+                            base64Service.decode(protector.salt),
+                            cryptoGenerator.seed(FIDO2_INPUT_LENGTH),
+                        )
+                    },
+                    getCreateIo = { secret ->
+                        ioEffect { fido2UnlockService.decrypt(tokens, secret) }
+                            .flatMap(::unlock)
+                            .dispatchOn(Dispatchers.Default)
+                    },
+                )
             },
             lockInfo = lockInfo?.run {
                 VaultState.Unlock.LockInfo(

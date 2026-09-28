@@ -2,6 +2,7 @@ package com.artemchep.keyguard.buildplugins.cargo
 
 import com.artemchep.keyguard.buildplugins.androidssh.AndroidCargoEnvironment
 import com.artemchep.keyguard.buildplugins.fixtureGradleRunner
+import org.gradle.api.JavaVersion
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -155,6 +156,74 @@ class RustMultiplatformLibraryFunctionalTest {
         assertEquals(TaskOutcome.SUCCESS, result.task(":verifyNativeModel")?.outcome)
         assertEquals(TaskOutcome.SUCCESS, result.task(":io:verifyDefaultNativeModel")?.outcome)
         assertEquals(TaskOutcome.SUCCESS, result.task(":zxcvbn:verifyDefaultNativeModel")?.outcome)
+    }
+
+    @Test
+    fun desktopLibrarySkipsAndroidAndIosNativeBuilds() {
+        val root = temporaryFolder.newFolder()
+        writeFile(root, "rust/Cargo.toml", "fixture")
+        writeFile(root, "gradle.properties", "kotlin.mpp.applyDefaultHierarchyTemplate=false")
+        writeFile(
+            root,
+            "settings.gradle.kts",
+            """
+            rootProject.name = "yubikey"
+            dependencyResolutionManagement {
+                repositories { mavenCentral() }
+                versionCatalogs {
+                    create("libs") {
+                        version("jdk", "${JavaVersion.current().majorVersion}")
+                    }
+                }
+            }
+            """.trimIndent(),
+        )
+        writeFile(
+            root,
+            "build.gradle.kts",
+            """
+            import com.artemchep.keyguard.buildplugins.cargo.CargoBuildTask
+            import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+
+            plugins {
+                id("keyguard.kotlin-multiplatform")
+                id("keyguard.rust-desktop-library")
+            }
+
+            kotlin {
+                jvm("desktop")
+                iosArm64()
+                iosSimulatorArm64()
+                macosArm64()
+            }
+
+            tasks.register("verifyNativeModel") {
+                doLast {
+                    val cinterops = kotlin.targets.withType<KotlinNativeTarget>().associate { target ->
+                        target.name to target.compilations.getByName("main").cinterops.names
+                    }
+                    check(
+                        cinterops == mapOf(
+                            "iosArm64" to emptySet<String>(),
+                            "iosSimulatorArm64" to emptySet<String>(),
+                            "macosArm64" to setOf("nativeYubikey"),
+                        )
+                    ) { "Unexpected cinterops: " + cinterops }
+                    val cargoNames = tasks.withType<CargoBuildTask>().names
+                    check(cargoNames == setOf("cargoBuildNativeYubikeyDesktop", "cargoBuildNativeYubikeyMacosArm64")) {
+                        "Unexpected Cargo tasks: " + cargoNames
+                    }
+                    val aggregate = tasks.named("compileNativeYubikeyAll").get()
+                    check(
+                        aggregate.taskDependencies.getDependencies(aggregate).map { it.name }.toSet() ==
+                            setOf("compileNativeYubikeyAppleAll", "compileNativeYubikeyDesktop")
+                    )
+                }
+            }
+            """.trimIndent(),
+        )
+        val result = fixtureGradleRunner(root, "verifyNativeModel", "--no-configuration-cache").build()
+        assertEquals(TaskOutcome.SUCCESS, result.task(":verifyNativeModel")?.outcome)
     }
 
     private fun writeFile(root: File, path: String, content: String): File = File(root, path).apply {

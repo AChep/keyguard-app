@@ -76,6 +76,10 @@
         android:dataExtractionRules="@xml/backup_data_extraction_rules"
         android:fullBackupContent="@xml/backup_full_backup_content">
         <activity
+            android:name="com.artemchep.keyguard.feature.fido2.Fido2Activity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+        <activity
             android:name="com.artemchep.keyguard.android.MainActivity"
             android:configChanges="uiMode|keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
             android:exported="true"

@@ -9,8 +9,8 @@ A license key is a portable proof of a Keyguard premium entitlement. It lets you
 use an eligible premium purchase on another device or app build. The license key is
 intentionally designed in a way to allow local key verification — please, do not abuse! 😀
 
-If you bought premium through Google Play, that Android install can normally
-detect the purchase automatically. A license key is useful when another device
+Google Play and Apple App Store builds detect purchases made with the current
+store account. A license key is useful when another device
 cannot see that store purchase directly. In the app, this may be shown as an
 **entitlement token**.
 

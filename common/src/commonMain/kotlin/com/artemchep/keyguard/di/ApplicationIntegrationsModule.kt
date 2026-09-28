@@ -117,6 +117,9 @@ internal class ApplicationIntegrationsModule {
                 cryptoGenerator = get(),
                 cipherEncryptor = get(),
                 yubiKeyUnlockAvailability = get(),
+                fido2UnlockAvailability = get(),
+                fido2UnlockService = get(),
+                base64Service = get(),
             )
         } bind UnlockUseCase::class
 

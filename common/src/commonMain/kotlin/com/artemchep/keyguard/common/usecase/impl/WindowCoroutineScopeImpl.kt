@@ -19,31 +19,40 @@ class WindowCoroutineScopeImpl(
     private val scope: CoroutineScope,
     private val showMessage: ShowMessage,
 ) : WindowCoroutineScope {
-    private val handler = CoroutineExceptionHandler { _, exception ->
-        if (exception is CancellationException) {
-            return@CoroutineExceptionHandler
-        }
-        if (
-            !exception.isIoException() &&
-            exception !is NoAnalytics
-        ) {
-            recordException(exception)
-        }
-
-        exception.printStackTrace()
-
-        val title = exception.message
-            ?: exception::class.simpleName
-            ?: "Error"
-        val msg = ToastMessage(
-            title = title,
-            type = ToastMessage.Type.ERROR,
-        )
-        showMessage.copy(msg)
-    }
+    private val handler = windowCoroutineExceptionHandler { showMessage }
 
     private val internalScope = scope.newChildScope(::SupervisorJob) + handler
 
     override val coroutineContext: CoroutineContext
         get() = internalScope.coroutineContext
+}
+
+/**
+ * Handles an exception that escaped a UI-owned coroutine: records it, prints it
+ * and shows it to the user as an error toast, instead of letting it reach the
+ * platform's default handler (which terminates the process on Kotlin/Native).
+ */
+fun windowCoroutineExceptionHandler(
+    showMessage: () -> ShowMessage,
+) = CoroutineExceptionHandler { _, exception ->
+    if (exception is CancellationException) {
+        return@CoroutineExceptionHandler
+    }
+    if (
+        !exception.isIoException() &&
+        exception !is NoAnalytics
+    ) {
+        recordException(exception)
+    }
+
+    exception.printStackTrace()
+
+    val title = exception.message
+        ?: exception::class.simpleName
+        ?: "Error"
+    val msg = ToastMessage(
+        title = title,
+        type = ToastMessage.Type.ERROR,
+    )
+    showMessage().copy(msg)
 }

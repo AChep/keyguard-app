@@ -96,7 +96,7 @@ private fun Instant.toNSDate(): NSDate = NSDate
  * UTC also preserves civil dates skipped by a device zone, such as Apia's 2011-12-30.
  */
 private fun LocalDate.toSyntheticUtcDate(): NSDate =
-    atTime(12, 0).toInstant(TimeZone.UTC).toNSDate()
+    atTime(NOON_HOUR, 0).toInstant(TimeZone.UTC).toNSDate()
 
 /**
  * Only the time is displayed. A fixed ISO date avoids calendar interpretation
@@ -110,3 +110,5 @@ private val timeAnchorDate = LocalDate(2000, 1, 1)
 private val utcTimeZone = NSTimeZone.timeZoneForSecondsFromGMT(0)
 
 private const val MILLISECONDS_PER_SECOND = 1000.0
+
+private const val NOON_HOUR = 12

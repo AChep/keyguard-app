@@ -32,41 +32,31 @@ data class AboutTeamSocialNetwork(
 
 @Composable
 fun rememberAboutTeamSocialNetworks(): List<AboutTeamSocialNetwork> = remember {
-    listOf(
+    AboutTeamCatalog.socialNetworks.map { link ->
         AboutTeamSocialNetwork(
-            title = "GitHub",
-            username = "AChep",
+            title = link.title,
+            username = link.username,
             icon = {
-                icon(FeatherIcons.Github).invoke()
+                when (link.id) {
+                    AboutTeamSocialId.GITHUB -> icon(FeatherIcons.Github).invoke()
+                    AboutTeamSocialId.INSTAGRAM -> icon(FeatherIcons.Instagram).invoke()
+                    AboutTeamSocialId.MASTODON -> Image(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(1.dp),
+                        painter = painterResource(Res.drawable.ic_mastodon),
+                        contentDescription = null,
+                    )
+                }
             },
-            color = Color.Black,
-            url = "https://github.com/AChep/",
-        ),
-        AboutTeamSocialNetwork(
-            title = "Mastodon",
-            username = "artemchep",
-            icon = {
-                Image(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .padding(1.dp),
-                    painter = painterResource(Res.drawable.ic_mastodon),
-                    contentDescription = null,
-                )
+            color = when (link.id) {
+                AboutTeamSocialId.GITHUB -> Color.Black
+                AboutTeamSocialId.MASTODON -> Color(0xFF595AFF)
+                AboutTeamSocialId.INSTAGRAM -> Color(0xFF8134AF)
             },
-            color = Color(0xFF595AFF),
-            url = "https://mastodon.social/@artemchep",
-        ),
-        AboutTeamSocialNetwork(
-            title = "Instagram",
-            username = "artemchep",
-            icon = {
-                icon(FeatherIcons.Instagram).invoke()
-            },
-            color = Color(0xFF8134AF),
-            url = "https://instagram.com/artemchep/",
-        ),
-    )
+            url = link.url,
+        )
+    }
 }
 
 @Composable

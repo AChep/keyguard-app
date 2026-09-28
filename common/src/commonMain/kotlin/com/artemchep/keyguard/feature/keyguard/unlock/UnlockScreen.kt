@@ -91,6 +91,7 @@ fun UnlockScreen(
     unlockVaultByBiometric: VaultState.Unlock.WithBiometric?,
     unlockVaultByYubiKey: VaultState.Unlock.WithYubiKey?,
     lockInfo: VaultState.Unlock.LockInfo?,
+    unlockVaultByFido2: VaultState.Unlock.WithFido2? = null,
 ) {
     val loadableState = unlockScreenState(
         clearData = currentKoinScope().get(),
@@ -98,6 +99,7 @@ fun UnlockScreen(
         unlockVaultByBiometric = unlockVaultByBiometric,
         unlockVaultByYubiKey = unlockVaultByYubiKey,
         lockInfo = lockInfo,
+        unlockVaultByFido2 = unlockVaultByFido2,
     )
     when (LocalAuthScreen.current.style) {
         AuthScreen.Style.FULL_SCREEN -> {
@@ -169,6 +171,7 @@ fun UnlockDialog(
 
     BiometricPromptEffect(unlockState.sideEffects.showBiometricPromptFlow)
     YubiKeyPromptEffect(unlockState.sideEffects.showYubiKeyPromptFlow)
+    com.artemchep.keyguard.feature.fido2.Fido2PromptEffect(unlockState.sideEffects.showFido2PromptFlow)
 
     val infoOrNull = LocalAuthScreen.current.reason
         ?: unlockState.lockReason
@@ -291,6 +294,7 @@ private fun UnlockScreen(
 
     BiometricPromptEffect(unlockState.sideEffects.showBiometricPromptFlow)
     YubiKeyPromptEffect(unlockState.sideEffects.showYubiKeyPromptFlow)
+    com.artemchep.keyguard.feature.fido2.Fido2PromptEffect(unlockState.sideEffects.showFido2PromptFlow)
     OtherScaffold(
         actions = {
             OptionsButton(actions = unlockState.actions)
@@ -347,7 +351,7 @@ private fun rememberFocusRequesterAndAutoRequest(
     }
 
     val updatedHasHardwareUnlock by rememberUpdatedState(
-        unlockState.biometric != null || unlockState.yubiKey != null,
+        unlockState.biometric != null || unlockState.yubiKey != null || unlockState.fido2 != null,
     )
     LaunchedEffect(focusRequester, windowRev) {
         val delayMs = if (CurrentPlatform is Platform.Mobile) {
@@ -477,11 +481,12 @@ private fun ExpandedHardwareUnlockIfExists(
 ) {
     ExpandedIfNotEmpty(
         valueOrNull = Unit.takeIf {
-            unlockState.biometric != null || unlockState.yubiKey != null
+            unlockState.biometric != null || unlockState.yubiKey != null || unlockState.fido2 != null
         },
     ) {
         val onBiometricButtonClick by rememberUpdatedState(unlockState.biometric?.onClick)
         val onYubiKeyButtonClick by rememberUpdatedState(unlockState.yubiKey?.onClick)
+        val onFido2ButtonClick by rememberUpdatedState(unlockState.fido2?.onClick)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -505,6 +510,12 @@ private fun ExpandedHardwareUnlockIfExists(
                         contentDescription = null,
                     )
                 }
+            }
+            if (unlockState.fido2 != null) {
+                Fido2UnlockButton(
+                    enabled = unlockState.fido2.onClick != null,
+                    onClick = { onFido2ButtonClick?.invoke() },
+                )
             }
             if (unlockState.yubiKey != null) {
                 Button(

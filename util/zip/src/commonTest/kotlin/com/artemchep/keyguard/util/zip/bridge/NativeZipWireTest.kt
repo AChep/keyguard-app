@@ -17,6 +17,8 @@ private object GoldenVectors {
     val BRIDGE_NAME_TOO_LONG: Long = "8000000006030800".toULong(16).toLong()
     val WRITE_PERMISSION_DENIED: Long = "800000000D010103".toULong(16).toLong()
     val FINISH_STORAGE_FULL: Long = "800000001C010505".toULong(16).toLong()
+    val WRITE_PERMISSION_DENIED_WIN32: Long = "8000000005020103".toULong(16).toLong()
+    val FINISH_STORAGE_FULL_WIN32: Long = "8000000070020505".toULong(16).toLong()
     val BRIDGE_WRONG_PASSWORD: Long = "8000000008030800".toULong(16).toLong()
     val BRIDGE_UNSUPPORTED_ENTRY: Long = "8000000009030A00".toULong(16).toLong()
     val BRIDGE_BUFFER_TOO_SMALL: Long = "800000000A030800".toULong(16).toLong()
@@ -74,6 +76,7 @@ class NativeZipWireTest {
     fun errorDomainAndBridgeCodesArePinned() {
         assertEquals(0, NATIVE_ZIP_DOMAIN_NONE)
         assertEquals(1, NATIVE_ZIP_DOMAIN_POSIX_ERRNO)
+        assertEquals(2, NATIVE_ZIP_DOMAIN_WIN32_LAST_ERROR)
         assertEquals(3, NATIVE_ZIP_DOMAIN_BRIDGE)
         assertEquals(1, NATIVE_ZIP_BRIDGE_CODE_INVALID_ARGUMENT)
         assertEquals(2, NATIVE_ZIP_BRIDGE_CODE_PANIC)
@@ -215,6 +218,54 @@ class NativeZipWireTest {
     }
 
     @Test
+    fun win32FailureVectorsDecode() {
+        assertEquals(
+            NativeZipFailure(
+                operation = NATIVE_ZIP_OP_WRITE,
+                kind = NativeZipFailureKind.PermissionDenied,
+                domain = NATIVE_ZIP_DOMAIN_WIN32_LAST_ERROR,
+                rawCode = 5,
+            ),
+            decodeNativeZipFailure(GoldenVectors.WRITE_PERMISSION_DENIED_WIN32),
+        )
+        assertEquals(
+            NativeZipFailure(
+                operation = NATIVE_ZIP_OP_FINISH,
+                kind = NativeZipFailureKind.StorageFull,
+                domain = NATIVE_ZIP_DOMAIN_WIN32_LAST_ERROR,
+                rawCode = 112,
+            ),
+            decodeNativeZipFailure(GoldenVectors.FINISH_STORAGE_FULL_WIN32),
+        )
+    }
+
+    @Test
+    fun win32FailuresAreReportedWithTheirNativeCode() {
+        assertEquals(
+            "Native zip failed to write an entry: permission denied (Win32 error 5)",
+            nativeZipFailureException(GoldenVectors.WRITE_PERMISSION_DENIED_WIN32).message,
+        )
+        assertEquals(
+            "Native zip failed to finish the archive: no space left on the device (Win32 error 112)",
+            nativeZipFailureException(GoldenVectors.FINISH_STORAGE_FULL_WIN32).message,
+        )
+    }
+
+    @Test
+    fun win32RawCodesAreReportedAsUnsigned() {
+        val packed = packNativeZipFailure(
+            operation = NATIVE_ZIP_OP_OPEN,
+            kind = NATIVE_ZIP_FAILURE_OTHER,
+            domain = NATIVE_ZIP_DOMAIN_WIN32_LAST_ERROR,
+            rawCode = 0xffffffffL,
+        )
+        assertEquals(
+            "Native zip failed to open the archive: unknown error (Win32 error 4294967295)",
+            nativeZipFailureException(packed).message,
+        )
+    }
+
+    @Test
     fun bridgeFailuresAreReportedByTheirCause() {
         assertEquals(
             "Native zip rejected an entry name that is too long",
@@ -292,6 +343,8 @@ class NativeZipWireTest {
             GoldenVectors.BRIDGE_NAME_TOO_LONG,
             GoldenVectors.WRITE_PERMISSION_DENIED,
             GoldenVectors.FINISH_STORAGE_FULL,
+            GoldenVectors.WRITE_PERMISSION_DENIED_WIN32,
+            GoldenVectors.FINISH_STORAGE_FULL_WIN32,
             GoldenVectors.BRIDGE_WRONG_PASSWORD,
             GoldenVectors.BRIDGE_UNSUPPORTED_ENTRY,
             GoldenVectors.BRIDGE_BUFFER_TOO_SMALL,

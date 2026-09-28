@@ -576,19 +576,19 @@ mod tests {
     }
 
     #[test]
+    #[cfg(any(unix, windows))]
     fn opening_a_missing_archive_reports_the_reader_open_operation() {
-        let missing = std::env::temp_dir().join("keyguard-zip-missing-archive.zip");
-        let packed = ArchiveReader::open(missing.to_str().expect("UTF-8 path"), None)
+        let missing = TempArchive::new("missing");
+        let packed = ArchiveReader::open(missing.as_str(), None)
             .err()
             .expect("open must fail");
+        #[cfg(unix)]
+        let domain = crate::error::ErrorDomain::PosixErrno;
+        #[cfg(windows)]
+        let domain = crate::error::ErrorDomain::Win32LastError;
         assert_eq!(
             packed,
-            pack_failure(
-                Operation::ReaderOpen,
-                FailureKind::NotFound,
-                crate::error::ErrorDomain::PosixErrno,
-                2,
-            )
+            pack_failure(Operation::ReaderOpen, FailureKind::NotFound, domain, 2)
         );
     }
 

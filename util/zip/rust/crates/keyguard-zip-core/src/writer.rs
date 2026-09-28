@@ -318,19 +318,20 @@ mod tests {
     }
 
     #[test]
+    #[cfg(any(unix, windows))]
     fn opening_inside_a_missing_directory_reports_the_open_operation() {
-        let missing = std::env::temp_dir().join("keyguard-zip-missing-dir/archive.zip");
+        let parent = TempArchive::new("missing-dir");
+        let missing = parent.path.join("archive.zip");
         let packed = ArchiveWriter::open(missing.to_str().expect("UTF-8 path"), None)
             .err()
             .expect("open must fail");
+        #[cfg(unix)]
+        let (domain, raw_code) = (ErrorDomain::PosixErrno, 2); // ENOENT
+        #[cfg(windows)]
+        let (domain, raw_code) = (ErrorDomain::Win32LastError, 3); // ERROR_PATH_NOT_FOUND
         assert_eq!(
             packed,
-            pack_failure(
-                Operation::Open,
-                FailureKind::NotFound,
-                ErrorDomain::PosixErrno,
-                2,
-            )
+            pack_failure(Operation::Open, FailureKind::NotFound, domain, raw_code)
         );
     }
 

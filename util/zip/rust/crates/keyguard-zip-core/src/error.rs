@@ -97,6 +97,8 @@ pub enum ErrorDomain {
     None = 0,
     /// The raw code is a POSIX `errno`.
     PosixErrno = 1,
+    /// The raw code is a Win32 `GetLastError` value.
+    Win32LastError = 2,
     /// The raw code is defined by the Keyguard bridge.
     Bridge = 3,
 }
@@ -241,15 +243,20 @@ pub const fn pack_archive_error(operation: Operation, kind: FailureKind) -> i64 
     pack_failure(operation, kind, ErrorDomain::Bridge, BRIDGE_ERROR_ARCHIVE)
 }
 
-/// Packs an I/O failure. Without an `errno` the domain is
+/// Packs an I/O failure using the target's native error domain. Without a
+/// raw OS error code in a supported domain, the domain is
 /// [`ErrorDomain::None`] and the code zero.
 #[must_use]
 pub fn pack_io_error(operation: Operation, error: &io::Error) -> i64 {
     let kind = FailureKind::from_io_error_kind(error.kind());
-    match error.raw_os_error() {
-        Some(code) => pack_failure(operation, kind, ErrorDomain::PosixErrno, code as u32),
-        None => pack_failure(operation, kind, ErrorDomain::None, 0),
-    }
+    let (domain, raw_code) = match error.raw_os_error() {
+        #[cfg(unix)]
+        Some(code) => (ErrorDomain::PosixErrno, code as u32),
+        #[cfg(windows)]
+        Some(code) => (ErrorDomain::Win32LastError, code as u32),
+        _ => (ErrorDomain::None, 0),
+    };
+    pack_failure(operation, kind, domain, raw_code)
 }
 
 /// Packs a `zip` crate failure: I/O errors through [`pack_io_error`], every
@@ -281,6 +288,14 @@ mod tests {
         pub const BRIDGE_BUFFER_TOO_SMALL: i64 = 0x8000_0000_0A03_0800_u64 as i64;
         pub const NEXT_ENTRY_ARCHIVE: i64 = 0x8000_0000_0703_0B08_u64 as i64;
         pub const READ_ARCHIVE: i64 = 0x8000_0000_0703_0809_u64 as i64;
+        #[cfg(unix)]
+        pub const WRITE_PERMISSION_DENIED: i64 = 0x8000_0000_0D01_0103_u64 as i64;
+        #[cfg(unix)]
+        pub const FINISH_STORAGE_FULL: i64 = 0x8000_0000_1C01_0505_u64 as i64;
+        #[cfg(windows)]
+        pub const WRITE_PERMISSION_DENIED_WIN32: i64 = 0x8000_0000_0502_0103_u64 as i64;
+        #[cfg(windows)]
+        pub const FINISH_STORAGE_FULL_WIN32: i64 = 0x8000_0000_7002_0505_u64 as i64;
     }
 
     #[test]
@@ -353,7 +368,7 @@ mod tests {
             pack_archive_error(Operation::Read, FailureKind::InvalidInput),
             pack_io_error(
                 Operation::Write,
-                &io::Error::from_raw_os_error(libc_enospc()),
+                &io::Error::from(io::ErrorKind::StorageFull),
             ),
         ] {
             assert!(packed < 0, "{packed:#x} must be negative");
@@ -366,30 +381,29 @@ mod tests {
         }
     }
 
-    /// `ENOSPC` on every supported platform.
-    const fn libc_enospc() -> i32 {
-        28
+    #[test]
+    #[cfg(any(unix, windows))]
+    fn io_errors_keep_their_native_codes_and_domain() {
+        #[cfg(unix)]
+        let cases = [
+            (Operation::Write, 13, golden::WRITE_PERMISSION_DENIED), // EACCES
+            (Operation::Finish, 28, golden::FINISH_STORAGE_FULL),    // ENOSPC
+        ];
+        #[cfg(windows)]
+        let cases = [
+            (Operation::Write, 5, golden::WRITE_PERMISSION_DENIED_WIN32), // ERROR_ACCESS_DENIED
+            (Operation::Finish, 112, golden::FINISH_STORAGE_FULL_WIN32),  // ERROR_DISK_FULL
+        ];
+        for (operation, raw_code, expected) in cases {
+            assert_eq!(
+                pack_io_error(operation, &io::Error::from_raw_os_error(raw_code)),
+                expected,
+            );
+        }
     }
 
     #[test]
-    fn an_io_error_keeps_its_errno_in_the_posix_domain() {
-        let packed = pack_io_error(
-            Operation::Write,
-            &io::Error::from_raw_os_error(libc_enospc()),
-        );
-        assert_eq!(
-            packed,
-            pack_failure(
-                Operation::Write,
-                FailureKind::StorageFull,
-                ErrorDomain::PosixErrno,
-                libc_enospc() as u32,
-            )
-        );
-    }
-
-    #[test]
-    fn an_io_error_without_an_errno_travels_without_a_raw_code() {
+    fn an_io_error_without_an_os_code_travels_without_a_raw_code() {
         let error = io::Error::new(io::ErrorKind::PermissionDenied, "denied");
         let packed = pack_io_error(Operation::Open, &error);
         assert_eq!(
@@ -405,12 +419,12 @@ mod tests {
 
     #[test]
     fn a_zip_io_error_maps_through_the_io_path_and_others_to_archive() {
-        let error = ZipError::Io(io::Error::from_raw_os_error(libc_enospc()));
+        let error = ZipError::Io(io::Error::from(io::ErrorKind::StorageFull));
         assert_eq!(
             pack_zip_error(Operation::Write, &error),
             pack_io_error(
                 Operation::Write,
-                &io::Error::from_raw_os_error(libc_enospc())
+                &io::Error::from(io::ErrorKind::StorageFull)
             )
         );
         assert_eq!(

@@ -9,6 +9,13 @@ import kotlinx.coroutines.test.runTest
 import java.io.File
 import java.net.URI
 import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.attribute.AclEntryPermission.DELETE
+import java.nio.file.attribute.AclEntryPermission.READ_DATA
+import java.nio.file.attribute.AclEntryPermission.WRITE_DATA
+import java.nio.file.attribute.AclEntryType.ALLOW
+import java.nio.file.attribute.AclFileAttributeView
+import java.nio.file.attribute.PosixFileAttributeView
 import java.nio.file.attribute.PosixFilePermission
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
@@ -16,6 +23,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
@@ -31,10 +39,7 @@ class NamedDownloadFileStoreTest {
         val file = File(URI(store.completedUri(info, legacy.toURI().toString())))
         assertEquals(root.resolve("downloads/id/attachment.txt"), file)
         assertContentEquals(bytes, file.readBytes())
-        assertEquals(
-            setOf(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE),
-            Files.getPosixFilePermissions(file.toPath()),
-        )
+        assertOwnerOnlyPermissions(file.toPath())
         assertTrue(legacy.exists())
         assertTrue(store.delete(info))
         assertFalse(file.parentFile.exists())
@@ -93,6 +98,27 @@ class NamedDownloadFileStoreTest {
             block(root)
         } finally {
             root.deleteRecursively()
+        }
+    }
+
+    private fun assertOwnerOnlyPermissions(path: Path) {
+        val posix = Files.getFileAttributeView(path, PosixFileAttributeView::class.java)
+        if (posix != null) {
+            assertEquals(
+                setOf(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE),
+                posix.readAttributes().permissions(),
+            )
+        } else {
+            val acl = assertNotNull(Files.getFileAttributeView(path, AclFileAttributeView::class.java)).acl
+            assertEquals(1, acl.size)
+            with(acl.single()) {
+                assertEquals(ALLOW, type())
+                assertEquals(Files.getOwner(path), principal())
+                assertTrue(flags().isEmpty())
+                assertTrue(READ_DATA in permissions())
+                assertTrue(WRITE_DATA in permissions())
+                assertTrue(DELETE in permissions())
+            }
         }
     }
 

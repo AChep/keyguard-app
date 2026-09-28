@@ -1,0 +1,13 @@
+[package]
+name = "keyguard-yubikey-c"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+[lib]
+crate-type = ["staticlib"]
+[dependencies]
+keyguard-yubikey-core.workspace = true
+zeroize.workspace = true
+[lints]
+workspace = true

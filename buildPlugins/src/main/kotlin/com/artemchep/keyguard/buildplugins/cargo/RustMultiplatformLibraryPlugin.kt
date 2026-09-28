@@ -74,6 +74,7 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
         configureAndroidPackaging(
             nativeTaskName = nativeTaskName,
             prepareTasks = androidPrepareTasks,
+            extension = extension,
         )
 
         val appleTargets = appleNativeTargets()
@@ -260,11 +261,13 @@ class RustMultiplatformLibraryPlugin : Plugin<Project> {
     private fun Project.configureAndroidPackaging(
         nativeTaskName: String,
         prepareTasks: List<TaskProvider<PrepareNativeLibraryTask>>,
+        extension: RustMultiplatformLibraryExtension,
     ) {
         pluginManager.withPlugin("com.android.kotlin.multiplatform.library") {
             val androidComponents =
                 extensions.getByType<KotlinMultiplatformAndroidComponentsExtension>()
             androidComponents.onVariants(androidComponents.selector().all()) { variant ->
+                if (!extension.androidEnabled.get()) return@onVariants
                 val jniLibs = requireNotNull(variant.sources.jniLibs) {
                     "$nativeTaskName Android variants must expose a jniLibs source set"
                 }

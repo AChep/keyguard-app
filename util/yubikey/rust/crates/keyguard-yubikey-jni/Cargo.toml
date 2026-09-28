@@ -1,0 +1,14 @@
+[package]
+name = "keyguard-yubikey-jni"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+[lib]
+crate-type = ["cdylib"]
+[dependencies]
+keyguard-yubikey-core.workspace = true
+zeroize.workspace = true
+jni.workspace = true
+[lints]
+workspace = true

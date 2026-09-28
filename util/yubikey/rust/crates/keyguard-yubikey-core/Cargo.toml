@@ -1,0 +1,15 @@
+[package]
+name = "keyguard-yubikey-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+
+[dependencies]
+zeroize.workspace = true
+
+[target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))'.dependencies]
+hidapi = { version = "=2.6.7", default-features = false, features = ["linux-native-basic-udev", "windows-native"] }
+
+[lints]
+workspace = true

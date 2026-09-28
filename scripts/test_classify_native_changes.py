@@ -51,6 +51,14 @@ class NativeChangeClassificationTest(unittest.TestCase):
         for flag in ("desktop", "android", "apple", "crypto"):
             self.assertFalse(result[flag], flag)
 
+    def test_yubikey_rust_selects_desktop_and_native_apple_consumers(self):
+        result = classify(["util/yubikey/rust/crates/keyguard-yubikey-core/src/protocol.rs"])
+        for flag in ("desktop", "desktop_regressions", "apple", "apple_regressions", "native_quality"):
+            self.assertTrue(result[flag], flag)
+        self.assertFalse(result["android"])
+        result = classify(["util/yubikey/src/commonMain/kotlin/YubiKeyClient.kt"])
+        self.assertTrue(result["android"])
+
     def test_fuzz_only_edit_does_not_rebuild_apps(self):
         result = classify(["util/crypto/rust/fuzz/fuzz_targets/dispatch.rs"])
         self.assertTrue(result["fuzz"])

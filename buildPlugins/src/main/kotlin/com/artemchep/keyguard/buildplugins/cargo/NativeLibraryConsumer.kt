@@ -10,7 +10,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.withType
 import org.gradle.process.CommandLineArgumentProvider
 
-internal fun Project.configureNativeLibraryTests(moduleName: String) {
+fun Project.configureNativeLibraryTests(moduleName: String) {
     val nativeName = "native${moduleName.toTaskSuffix()}"
     val nativeLibrary = configurations.create("${nativeName}DesktopLibrary") {
         isCanBeConsumed = false

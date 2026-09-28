@@ -28,9 +28,11 @@ Besides typing the app password, you can unlock with:
   security settings;
 - **System authentication** (Linux) — the desktop's polkit dialog, which accepts a
   fingerprint or your login password. See [Linux](#linux) below;
-- **YubiKey** (Android) — unlock with a YubiKey over **USB** or **NFC**,
-  using HMAC-SHA1 challenge-response. Keyguard provisions a key slot when
-  you set it up.
+- **YubiKey** (Android, macOS, Windows, Linux) — unlock over **USB**, or
+  **NFC** on Android, using HMAC-SHA1 challenge-response. Keyguard provisions
+  a key slot when you set it up. Connect one YubiKey at a time. Linux needs
+  permission to access the key’s HID device; the Flatpak build does not support
+  YubiKey vault unlock.
 
 Individual items can additionally require re-authentication before they are
 viewed or autofilled — see the

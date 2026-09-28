@@ -1,0 +1,4 @@
+headers = keyguard_yubikey.h
+headerFilter = keyguard_yubikey.h
+staticLibraries = libkeyguard_yubikey_c.a
+linkerOpts.osx = -framework IOKit -framework CoreFoundation

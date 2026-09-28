@@ -65,12 +65,15 @@ MODULES = {
     "instance": NativeModule("instance", "com_artemchep_keyguard_util_instance_NativeInstanceJni",
                             ("abiVersion", "acquireOrActivate", "waitEvent", "stop", "close", "lastError"),
                             ("abi_version", "acquire_or_activate", "wait_event", "stop", "close", "last_error", "clear_error")),
+    "yubikey": NativeModule("yubikey", "com_artemchep_keyguard_util_yubikey_NativeYubiKeyJni",
+                           ("abiVersion", "create", "execute", "cancel", "close"),
+                           ("abi_version", "create", "execute", "cancel", "close")),
     "zip": NativeModule("zip", None, (), (
         "abi_version", "writer_open", "writer_begin_entry", "writer_write", "writer_end_entry",
         "writer_finish", "writer_abort", "reader_open", "reader_next_entry", "reader_read", "reader_close",
     )),
 }
-DESKTOP_MODULES = ("crypto", "io", "zxcvbn", "instance")
+DESKTOP_MODULES = ("crypto", "io", "zxcvbn", "instance", "yubikey")
 ANDROID_MODULES = ("crypto", "io", "zxcvbn")
 APPLE_APP_MODULES = ("crypto", "io", "zxcvbn", "zip")
 BRIDGE_EXPORTS = frozenset((

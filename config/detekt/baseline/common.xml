@@ -637,7 +637,6 @@
     <ID>LongMethod:KeyguardAutofillService.kt:KeyguardAutofillService$@SuppressLint("NewApi") override fun onFillRequest</ID>
     <ID>LongMethod:KeyguardAutofillService.kt:KeyguardAutofillService$private fun getAutofillResponseIo</ID>
     <ID>LongMethod:KeyguardClipboardService.kt:KeyguardClipboardService$private suspend fun createNotification: Notification</ID>
-    <ID>LongMethod:KeyguardYubiKeyProvisionSlotAction.kt:KeyguardYubiKeyProvisionSlotAction$override fun onYubiKey</ID>
     <ID>LongMethod:LargeTypeScreen.kt:@Composable private fun SymbolItem</ID>
     <ID>LongMethod:LazyColumnScrollbar.kt:@Composable fun InternalLazyColumnScrollbar</ID>
     <ID>LongMethod:LicenseManagerImpl.kt:LicenseManagerImpl$private suspend fun refreshRedeemedIfNeededLocked: LicenseEntitlement?</ID>
@@ -723,7 +722,7 @@
     <ID>LongMethod:SettingLocalization.kt:@Composable private fun SettingLocalizationTopContributors</ID>
     <ID>LongMethod:SettingSubscriptions.kt:@Composable private fun SettingItemLayout</ID>
     <ID>LongMethod:SettingSubscriptions.kt:@Composable private fun SettingSubscriptions</ID>
-    <ID>LongMethod:SettingYubiKeyUnlock.kt:fun settingYubiKeyUnlockProvider: SettingComponent</ID>
+    <ID>LongMethod:SettingYubiKeyUnlockImpl.kt:fun settingYubiKeyUnlockProvider: SettingComponent</ID>
     <ID>LongMethod:SettingsRouteListItem.kt:@Composable fun rememberSettingsRouteListItems: List&lt;SettingsRouteListItem&gt;</ID>
     <ID>LongMethod:SetupScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ) @Composable fun ColumnScope.SetupContent</ID>
     <ID>LongMethod:SetupStateProducer.kt:suspend fun RememberStateFlowScope.setupStateProducer: Flow&lt;Loadable&lt;SetupState&gt;&gt;</ID>
@@ -2006,9 +2005,6 @@
     <ID>TooGenericExceptionCaught:KeePassSyncCoordinator.kt:KeePassSyncCoordinator$recordError: Throwable</ID>
     <ID>TooGenericExceptionCaught:KeePassTreeSyncExecutor.kt:KeePassTreeSyncExecutor$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:KeyguardAutofillService.kt:KeyguardAutofillService$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:KeyguardYubiKeyChallengeResponseAction.kt:KeyguardYubiKeyChallengeResponseAction$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:KeyguardYubiKeyInspectSlotAction.kt:KeyguardYubiKeyInspectSlotAction$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:KeyguardYubiKeyProvisionSlotAction.kt:KeyguardYubiKeyProvisionSlotAction$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:KtorUtils.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:LocalFolderBackupObjectStore.kt:LocalFolderBackupObjectStore$e: Exception</ID>
     <ID>TooGenericExceptionCaught:MarkdownJvm.kt:&lt;no name provided&gt;$e: Exception</ID>

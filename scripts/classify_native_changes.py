@@ -70,9 +70,14 @@ def classify(paths, *, full=False, all_checks=False):
         if path.startswith(".github/native-crypto-"):
             enable("crypto", "desktop", "android", "apple")
             continue
-        module = re.match(r"util/(crypto|io|zxcvbn|zip|instance|webauthn)/(.+)", path)
+        module = re.match(r"util/(crypto|io|zxcvbn|zip|instance|webauthn|yubikey)/(.+)", path)
         if module:
             name, relative = module.groups()
+            if name == "yubikey":
+                enable("desktop", "desktop_regressions", "apple", "apple_regressions", "native_quality")
+                if not relative.startswith("rust/"):
+                    enable("android")
+                continue
             # The Windows instance backend consumes IO's native filesystem core.
             if name == "io" and relative.startswith("rust/"):
                 enable("instance", "desktop_regressions")

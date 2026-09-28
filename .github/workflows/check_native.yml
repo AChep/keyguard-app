@@ -338,7 +338,7 @@ jobs:
       - name: "Format, lint and test native utility crates"
         shell: bash
         run: |
-          for module in io instance zip zxcvbn; do
+          for module in io instance zip zxcvbn yubikey; do
             manifest="util/$module/rust/Cargo.toml"
             cargo fmt --manifest-path "$manifest" --all -- --check
             cargo clippy --manifest-path "$manifest" --workspace --all-targets --all-features --locked --no-deps -- -D warnings
@@ -443,6 +443,12 @@ jobs:
           ${{ matrix.gradle }} --continue --max-workers=1
           "-Pkeyguard.nativeCargo.cargoOffline=true"
           :util:io:desktopTest :util:instance:desktopTest :desktopApp:jvmTest
+      - name: "Run YubiKey JVM regressions"
+        if: needs.changes.outputs.desktop == 'true'
+        run: >-
+          ${{ matrix.gradle }} --max-workers=1
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+          :util:yubikey:desktopTest
       - name: "Run Windows private staging regressions"
         if: runner.os == 'Windows' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.crypto == 'true')
         run: >-
@@ -477,6 +483,7 @@ jobs:
           :util:crypto:macosArm64Test
           :util:io:macosArm64Test
           :util:instance:macosArm64Test
+          :util:yubikey:macosArm64Test
           :util:webauthn:macosArm64Test
           :util:zip:macosArm64Test
           :util:zxcvbn:macosArm64Test

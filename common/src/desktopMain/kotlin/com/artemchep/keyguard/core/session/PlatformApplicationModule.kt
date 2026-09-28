@@ -74,6 +74,7 @@ import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PutLocale
+import com.artemchep.keyguard.util.yubikey.NativeYubiKeyClient
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.usecase.impl.GetLocaleImpl
 import com.artemchep.keyguard.common.usecase.impl.PutLocaleImpl
@@ -296,7 +297,7 @@ class PlatformApplicationModule {
             }
         }
         single<YubiKeyUnlockAvailability> {
-            YubiKeyUnlockAvailability { false }
+            YubiKeyUnlockAvailability { NativeYubiKeyClient().isSupported }
         }
         single<GetBarcodeImage> {
             GetBarcodeImageJvm()

@@ -2507,4 +2507,8 @@
     <string name="pref_item_automatic_backups_wizard_discard_action">Discard changes</string>
     <string name="pref_item_automatic_backups_wizard_ready_title">Keep a backup of your vault</string>
     <string name="pref_item_automatic_backups_wizard_ready_detail">Choose where to save your snapshots, protect them with a password, and decide what to keep.</string>
+    <string name="yubikey_error_title">Failed to use YubiKey</string>
+    <string name="yubikey_error_no_device">Connect a YubiKey with its OTP interface enabled and try again.</string>
+    <string name="yubikey_error_multiple_devices">Connect only the YubiKey you want to use, then try again.</string>
+    <string name="yubikey_error_busy">Another operation is using the YubiKey. Wait for it to finish and try again.</string>
 </resources>

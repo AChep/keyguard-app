@@ -93,6 +93,8 @@ jobs:
               :util:crypto:desktopTest
               :util:io:desktopTest
               :util:instance:desktopTest
+              :util:yubikey:checkComposeFree
+              :util:yubikey:desktopTest
               :util:foundation:desktopTest
               :util:foundation:checkBouncyCastleProductionDependencies
               :util:kdbx:desktopTest
@@ -112,6 +114,7 @@ jobs:
             tasks: >-
               :util:crypto:testAndroidHostTest
               :util:io:testAndroidHostTest
+              :util:yubikey:testAndroidHostTest
               :util:foundation:testAndroidHostTest
               :util:kdbx:testAndroidHostTest
               :util:messagepack:testAndroidHostTest

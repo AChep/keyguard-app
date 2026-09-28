@@ -1209,8 +1209,11 @@ mod tests {
 
     #[test]
     fn ancestors_need_neither_acl_reads_nor_listing_nor_synchronize_access() {
-        use windows_sys::Win32::Security::{
-            Authorization::SetNamedSecurityInfoW, PROTECTED_DACL_SECURITY_INFORMATION,
+        use windows_sys::Win32::{
+            Security::{Authorization::SetSecurityInfo, PROTECTED_DACL_SECURITY_INFORMATION},
+            Storage::FileSystem::{
+                FILE_FLAG_BACKUP_SEMANTICS, FILE_FLAG_OPEN_REPARSE_POINT, WRITE_DAC,
+            },
         };
         let directory = TestDirectory::new();
         let ancestor = directory.0.join("traverse-only");
@@ -1218,17 +1221,31 @@ mod tests {
         drop(prepare_directory(&child).unwrap());
         let sid = Security::current_user_sid().unwrap();
         let original = Security::for_user(&sid, true).unwrap();
-        // Owner-rights ACE suppresses the owner's implicit READ_CONTROL. Keep
-        // WRITE_DAC so this fixture can restore permissions before cleanup.
+        let name = wide(ancestor.as_os_str()).unwrap();
+        // Retain restoration access before restricting the ACL: reopening by
+        // name can require access that this fixture deliberately removes.
+        // SAFETY: The terminated path is live and the returned handle is uniquely owned.
+        let acl_handle = owned(unsafe {
+            CreateFileW(
+                name.as_ptr(),
+                READ_CONTROL | WRITE_DAC,
+                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                ptr::null(),
+                OPEN_EXISTING,
+                FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+                ptr::null_mut(),
+            )
+        })
+        .unwrap();
+        // Owner-rights ACE suppresses the owner's implicit READ_CONTROL.
         let restricted =
             Security::from_sddl(&format!("O:{sid}D:P(A;;0xa0;;;{sid})(A;;WD;;;OW)")).unwrap();
         let set_dacl = |security: &Security| {
             let (_, acl) = descriptor_parts(&security.0).unwrap();
-            let mut name = wide(ancestor.as_os_str()).unwrap();
-            // SAFETY: The descriptor and mutable terminated name outlive the call.
+            // SAFETY: The descriptor and READ_CONTROL | WRITE_DAC handle remain live.
             let status = unsafe {
-                SetNamedSecurityInfoW(
-                    name.as_mut_ptr(),
+                SetSecurityInfo(
+                    acl_handle.as_raw_handle(),
                     SE_FILE_OBJECT,
                     DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION,
                     ptr::null_mut(),

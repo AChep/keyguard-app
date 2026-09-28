@@ -12,10 +12,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - runner: ubuntu-latest
+          - runner: ubuntu-22.04
             arch: x86_64
             rust-target: x86_64-unknown-linux-gnu
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-22.04-arm
             arch: aarch64
             rust-target: aarch64-unknown-linux-gnu
     steps:

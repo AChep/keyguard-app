@@ -6,6 +6,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.ACCOUNT_ID
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestLogRepository
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.insertUploadTestAccount
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.insertLocalCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.testSend
@@ -154,6 +155,8 @@ private fun createCollectorSweepDatabase(
     attachmentPendingUpload: PendingUploadFile,
     sendPendingUpload: PendingUploadFile,
 ) = createUploadTestDatabase().also { database ->
+    database.insertUploadTestAccount(ACCOUNT_ID)
+    database.insertUploadTestAccount("account-2")
     insertLocalCipher(
         database,
         testBitwardenCipher(

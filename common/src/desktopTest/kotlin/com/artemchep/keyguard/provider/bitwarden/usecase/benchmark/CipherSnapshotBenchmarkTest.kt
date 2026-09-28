@@ -7,6 +7,7 @@ import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestPasswordStrength
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.insertUploadTestAccount
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.testCipher
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherSnapshotLoadResult
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherSnapshotLoadStats
@@ -335,7 +336,7 @@ class CipherSnapshotBenchmarkTest {
     }
 
     private fun createState(cipherCount: Int = CIPHER_COUNT): BenchmarkState {
-        val db = createUploadTestDatabase()
+        val db = createUploadTestDatabase().apply { insertUploadTestAccount() }
         val ciphers = (1..cipherCount).map(::loginCipher)
         ciphers.forEach { cipher -> db.insert(cipher) }
         return BenchmarkState(

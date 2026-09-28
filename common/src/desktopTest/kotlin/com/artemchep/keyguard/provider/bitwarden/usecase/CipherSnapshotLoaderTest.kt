@@ -11,6 +11,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestPasswordStrength
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestServer
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.insertUploadTestAccount
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.testCipher
 import com.artemchep.keyguard.test.gpgCanonicalMetadata
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,7 +29,7 @@ class CipherSnapshotLoaderTest {
     @Test
     fun `loads only changed payloads and evicts deleted snapshots`() = runTest {
         val countingAdapter = CountingCipherDataAdapter()
-        val db = createUploadTestDatabase(cipherDataAdapter = countingAdapter)
+        val db = createUploadTestDatabase(cipherDataAdapter = countingAdapter).apply { insertUploadTestAccount() }
         val storedCiphers = (1..3).map(::loginCipher)
         storedCiphers.forEach { cipher -> db.insert(cipher) }
         val loader = CipherSnapshotLoader(
@@ -79,7 +80,7 @@ class CipherSnapshotLoaderTest {
     @Test
     fun `uses a full payload scan for a large sync`() = runTest {
         val countingAdapter = CountingCipherDataAdapter()
-        val db = createUploadTestDatabase(cipherDataAdapter = countingAdapter)
+        val db = createUploadTestDatabase(cipherDataAdapter = countingAdapter).apply { insertUploadTestAccount() }
         val storedCiphers = (1..80).map(::loginCipher)
         storedCiphers.forEach { cipher -> db.insert(cipher) }
         val loader = CipherSnapshotLoader(
@@ -110,7 +111,7 @@ class CipherSnapshotLoaderTest {
 
     @Test
     fun `regenerates old metadata on first load and persists only the canonical index`() = runTest {
-        val db = createUploadTestDatabase()
+        val db = createUploadTestDatabase().apply { insertUploadTestAccount() }
         val stored = gpgCipher(metadata = GpgAgentKeyMetadata())
         db.insert(stored)
         var resolutions = 0
@@ -150,7 +151,7 @@ class CipherSnapshotLoaderTest {
 
     @Test
     fun `never exposes old metadata when regeneration is unavailable`() = runTest {
-        val db = createUploadTestDatabase()
+        val db = createUploadTestDatabase().apply { insertUploadTestAccount() }
         val stored = gpgCipher(metadata = GpgAgentKeyMetadata())
         db.insert(stored)
         val loader = CipherSnapshotLoader(

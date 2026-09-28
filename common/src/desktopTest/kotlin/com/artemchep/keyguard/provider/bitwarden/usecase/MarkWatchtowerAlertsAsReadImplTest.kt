@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.CipherId
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.insertUploadTestAccount
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.testCipher
 import kotlinx.coroutines.test.runTest
 import java.sql.SQLException
@@ -116,6 +117,7 @@ class MarkWatchtowerAlertsAsReadImplTest {
         val driver = JdbcSqliteDriver(
             url = JdbcSqliteDriver.IN_MEMORY,
             properties = Properties().apply {
+                setProperty("foreign_keys", "true")
                 // Exercise SQLite's real parameter limit with a small vault fixture.
                 setProperty("limit_variable_number", "999")
             },
@@ -123,6 +125,7 @@ class MarkWatchtowerAlertsAsReadImplTest {
         try {
             Database.Schema.create(driver)
             val db = createUploadTestDatabase(driver)
+            db.insertUploadTestAccount()
             block(db, driver)
         } finally {
             driver.close()

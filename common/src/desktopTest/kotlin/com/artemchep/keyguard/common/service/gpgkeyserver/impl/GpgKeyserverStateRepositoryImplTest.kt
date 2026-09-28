@@ -28,6 +28,9 @@ import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestPasswordStrength
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.insertUploadTestAccount
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.insertLocalCipher
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenCipher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
@@ -302,7 +305,7 @@ class GpgKeyserverStateRepositoryImplTest {
 
     @Test
     fun `put normalizes fingerprint and looks up state`() = runTest {
-        val repository = createRepository()
+        val repository = createRepository(cipherIds = listOf("cipher-a"))
 
         repository.put(
             model(
@@ -348,7 +351,7 @@ class GpgKeyserverStateRepositoryImplTest {
 
     @Test
     fun `remove by fingerprint and remove all clear state`() = runTest {
-        val repository = createRepository()
+        val repository = createRepository(cipherIds = listOf("cipher-b"))
         repository.put(model(fingerprint = "ab cd ef 01"))()
         repository.put(model(fingerprint = "12 34", cipherId = "cipher-b"))()
 
@@ -431,10 +434,19 @@ private suspend fun TestScope.assertPublishingTimeline(
 @OptIn(ExperimentalCoroutinesApi::class)
 private fun createRepository(
     database: Database = createUploadTestDatabase(),
-): GpgKeyserverStateRepositoryImpl = GpgKeyserverStateRepositoryImpl(
-    databaseManager = UploadTestVaultDatabaseManager(database),
-    dispatcher = UnconfinedTestDispatcher(),
-)
+    cipherIds: List<String> = emptyList(),
+): GpgKeyserverStateRepositoryImpl {
+    if (cipherIds.isNotEmpty()) {
+        database.insertUploadTestAccount()
+        cipherIds.forEach { cipherId ->
+            insertLocalCipher(database, testBitwardenCipher(cipherId = cipherId))
+        }
+    }
+    return GpgKeyserverStateRepositoryImpl(
+        databaseManager = UploadTestVaultDatabaseManager(database),
+        dispatcher = UnconfinedTestDispatcher(),
+    )
+}
 
 private fun model(
     fingerprint: String,

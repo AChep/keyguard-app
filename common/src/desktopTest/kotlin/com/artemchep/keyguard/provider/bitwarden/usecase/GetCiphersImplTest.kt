@@ -8,6 +8,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestLogRepository
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.insertUploadTestAccount
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.testCipher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,7 +27,7 @@ import kotlin.time.Instant
 class GetCiphersImplTest {
     @Test
     fun `get ciphers reuses the shared decoded snapshot`() = runTest {
-        val db = createUploadTestDatabase()
+        val db = createUploadTestDatabase().apply { insertUploadTestAccount() }
         val stored = testCipher(
             localId = "cipher-1",
             remoteId = "remote-cipher-1",
@@ -99,7 +100,7 @@ class GetCiphersImplTest {
 
     @Test
     fun `get cipher snapshots reuses unchanged domain objects`() = runTest {
-        val db = createUploadTestDatabase()
+        val db = createUploadTestDatabase().apply { insertUploadTestAccount() }
         val storedCiphers = listOf(
             loginCipher(
                 localId = "cipher-1",

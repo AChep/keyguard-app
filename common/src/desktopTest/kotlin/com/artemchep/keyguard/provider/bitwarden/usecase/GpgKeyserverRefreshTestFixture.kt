@@ -40,6 +40,7 @@ import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestPasswordStrength
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.insertUploadTestAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +59,7 @@ import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder
 import java.util.Date
+import java.util.Properties
 import kotlin.test.assertIs
 import kotlin.time.Instant
 
@@ -103,7 +105,12 @@ internal class GpgKeyserverRefreshTestFixture(
     reconciler: GpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
     resolver: GpgKeyMetadataResolver = NativeGpgKeyMetadataResolver,
 ) : AutoCloseable {
-    private val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+    private val driver = JdbcSqliteDriver(
+        url = JdbcSqliteDriver.IN_MEMORY,
+        properties = Properties().apply {
+            setProperty("foreign_keys", "true")
+        },
+    )
     val database = createUploadTestDatabase(
         driver = driver.also { Database.Schema.create(it) },
     )
@@ -120,6 +127,7 @@ internal class GpgKeyserverRefreshTestFixture(
     var afterCipherWrite: () -> Unit = {}
 
     init {
+        initial.map { it.accountId }.distinct().forEach(database::insertUploadTestAccount)
         initial.forEach(::insert)
     }
 
@@ -208,6 +216,9 @@ internal class GpgKeyserverRefreshTestFixture(
         database.transaction {
             // The normal upsert intentionally cannot move a cipher between accounts.
             if (updated.accountId != current.accountId) {
+                if (database.accountQueries.getByAccountId(updated.accountId).executeAsOneOrNull() == null) {
+                    database.insertUploadTestAccount(updated.accountId)
+                }
                 database.cipherQueries.deleteByCipherId(current.cipherId)
             }
             insert(updated)

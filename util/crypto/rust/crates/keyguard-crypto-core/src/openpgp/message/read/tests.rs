@@ -61,6 +61,42 @@ const SUBKEY_FINGERPRINT: &str = "93ABCF804D85EE79D6E1DB0E77648D3E5D4E7699";
 const SUBKEY_KEYGRIP: &str = "85C1DE785BEE9244BAFBA73A09E6085BA7A35C8E";
 const USER_ID: &str = "Keyguard Test CV25519 <cv25519@test.invalid>";
 
+#[test]
+fn secp256k1_high_s_message_and_certificate_verify_in_one_shot_and_streaming() {
+    let _guard = verifier_worker_test_guard();
+    use crate::openpgp::crypto::verifier::tests::{high_s_signature, secp256k1_fixture};
+    let secret = secp256k1_fixture();
+    let signature = high_s_signature(&detached_signature_signed_by(
+        &secret.primary_key,
+        HashAlgorithm::Sha256,
+        (REFERENCE_TIME - 1) as u32,
+        [],
+    ));
+    let mut request = detached_request(
+        DETACHED_BODY.to_vec(),
+        vec![
+            secret
+                .to_public_key()
+                .to_bytes()
+                .expect("serialize high-S certificate"),
+        ],
+    );
+    request.signature = serialized_detached_signature(signature);
+    for verify in [verification, |request| {
+        streamed_detached_verification(&request)
+    }] {
+        let valid = verify(request.clone());
+        assert_eq!(valid.status, OpenPgpVerificationStatus::Valid as i32);
+        assert!(valid.warnings.is_empty());
+        let mut tampered = request.clone();
+        tampered.content[0] ^= 1;
+        assert_eq!(
+            verify(tampered).status,
+            OpenPgpVerificationStatus::Invalid as i32
+        );
+    }
+}
+
 static VERIFIER_WORKER_TEST_LOCK: Mutex<()> = Mutex::new(());
 
 fn parse_public_key_request(
@@ -4801,6 +4837,7 @@ fn signer_revocation_scope_and_creation_time_control_verification_status() {
 
 #[test]
 fn restored_keys_preserve_historical_revocation_intervals() {
+    let _guard = verifier_worker_test_guard();
     let secret = historical_signing_certificate(RENEWAL_TEST_CREATION_TIME);
     let signing_index = signing_subkey_index(&secret);
     let signing_subkey = &secret.secret_subkeys[signing_index].key;
@@ -4963,6 +5000,7 @@ fn restored_keys_preserve_historical_revocation_intervals() {
 
 #[test]
 fn signer_expiration_preserves_math_status_with_warning_across_verification_paths() {
+    let _guard = verifier_worker_test_guard();
     const KEY_CREATION_TIME: u64 = 1_700_000_000;
     const KEY_LIFETIME: u32 = 60;
     const LIVE_SIGNATURE_TIME: u32 = 1_700_000_020;
@@ -5516,6 +5554,7 @@ fn unsupported_detached_signature_forms_do_not_hide_a_valid_peer() {
 
 #[test]
 fn malformed_detached_signatures_never_report_success_without_a_valid_peer() {
+    let _guard = verifier_worker_test_guard();
     let malformed = malformed_v6_salt_signature_packet();
     let unknown_version = fixed_openpgp_packet(SIGNATURE_TAG, &[99]);
     let mut binary = malformed;

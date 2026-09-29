@@ -461,7 +461,11 @@ impl PublicCertificatePacketSet {
                     };
                     if budget.verify(|| {
                         signature
-                            .verify_certification(primary, tag, &RawIdentityBody(&identity.body))
+                            .verify_certification(
+                                &OpenPgpVerifier(primary),
+                                tag,
+                                &RawIdentityBody(&identity.body),
+                            )
                             .is_ok()
                     })? {
                         return Ok(vec![SignaturePlacement::Identity(identity.clone())]);
@@ -481,7 +485,11 @@ impl PublicCertificatePacketSet {
                     };
                     if budget.verify(|| {
                         signature
-                            .verify_certification(primary, tag, &RawIdentityBody(&identity.body))
+                            .verify_certification(
+                                &OpenPgpVerifier(primary),
+                                tag,
+                                &RawIdentityBody(&identity.body),
+                            )
                             .is_ok()
                     })? {
                         matches.push(SignaturePlacement::Identity(identity.clone()));
@@ -498,9 +506,11 @@ impl PublicCertificatePacketSet {
                         .get(fingerprint)
                         .ok_or(CertificateMergeError::Internal)?;
                     let subkey = parse_public_subkey(&component.packet)?;
-                    if budget
-                        .verify(|| signature.verify_subkey_binding(primary, &subkey).is_ok())?
-                    {
+                    if budget.verify(|| {
+                        signature
+                            .verify_subkey_binding(&OpenPgpVerifier(primary), &subkey)
+                            .is_ok()
+                    })? {
                         return Ok(vec![SignaturePlacement::Subkey(fingerprint.clone())]);
                     }
                 }
@@ -516,9 +526,11 @@ impl PublicCertificatePacketSet {
                         .get(fingerprint)
                         .ok_or(CertificateMergeError::Internal)?;
                     let subkey = parse_public_subkey(&component.packet)?;
-                    if budget
-                        .verify(|| signature.verify_subkey_binding(primary, &subkey).is_ok())?
-                    {
+                    if budget.verify(|| {
+                        signature
+                            .verify_subkey_binding(&OpenPgpVerifier(primary), &subkey)
+                            .is_ok()
+                    })? {
                         matches.push(SignaturePlacement::Subkey(fingerprint.clone()));
                         if matches.len() == 2 {
                             break;

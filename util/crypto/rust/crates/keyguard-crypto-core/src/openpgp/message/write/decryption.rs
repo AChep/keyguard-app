@@ -4,6 +4,7 @@
 //! verification retain their established ordering and error behavior.
 
 use super::*;
+use crate::openpgp::crypto::verifier::OpenPgpVerifier;
 use crate::openpgp::message::VerificationStatus;
 
 pub(super) struct OpenPgpDecryptWorkerConfig {
@@ -755,7 +756,7 @@ pub(super) fn evaluate_inline_verification(
                 return false;
             };
             message
-                .verify_nested_explicit(nested_index, component)
+                .verify_nested_explicit(nested_index, &OpenPgpVerifier(component))
                 .is_ok()
         },
     )

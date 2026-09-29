@@ -465,7 +465,11 @@ impl PublicCertificatePacketSet {
                     signature.typ() == Some(SignatureType::SubkeyBinding)
                         && signature_verification_compatible(signature, &primary)
                         && signature_ignoring_unhashed_issuer_hints(signature).is_some_and(
-                            |signature| signature.verify_subkey_binding(&primary, &subkey).is_ok(),
+                            |signature| {
+                                signature
+                                    .verify_subkey_binding(&OpenPgpVerifier(&primary), &subkey)
+                                    .is_ok()
+                            },
                         )
                 })
             });

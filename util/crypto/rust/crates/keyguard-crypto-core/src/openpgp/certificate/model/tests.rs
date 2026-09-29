@@ -23,6 +23,80 @@ const OTHER_SECRET_KEY: &[u8] = include_bytes!("../../../../tests/fixtures/openp
 const REVOKED_PUBLIC_KEY: &[u8] =
     include_bytes!("../../../../tests/fixtures/openpgp/designated-revoked-public.asc");
 
+#[test]
+fn secp256k1_high_s_certificate_export_preserves_the_original_signature() {
+    let secret = crate::openpgp::crypto::verifier::tests::secp256k1_fixture();
+    let bytes = secret
+        .to_public_key()
+        .to_bytes()
+        .expect("serialize high-S public key");
+    let exported = export_public_certificate_preserving_framing(&bytes)
+        .expect("export authenticated high-S certificate");
+    assert_eq!(exported, bytes);
+    let certificate = parse_document(&bytes).remove(0);
+    assert_eq!(
+        certificate
+            .canonical_bytes()
+            .expect("canonical high-S certificate"),
+        bytes
+    );
+}
+
+#[test]
+fn secp256k1_high_s_subkey_binding_is_placed_rehomed_and_exported() {
+    use crate::openpgp::crypto::verifier::tests::{secp256k1_fixture, with_high_s_signing_subkey};
+    let secret = with_high_s_signing_subkey(
+        secp256k1_fixture(),
+        KeyType::ECDSA(pgp::crypto::ecc_curve::ECCCurve::Secp256k1),
+        1_700_000_000,
+    );
+    let bytes = secret
+        .to_public_key()
+        .to_bytes()
+        .expect("serialize high-S subkey certificate");
+    assert_eq!(
+        export_public_certificate_preserving_framing(&bytes)
+            .expect("export high-S subkey certificate"),
+        bytes
+    );
+    let certificate =
+        parse_single_certificate_packet_set(&bytes).expect("parse high-S subkey certificate");
+    assert!(
+        certificate
+            .subkeys_are_bound()
+            .expect("check subkey bindings")
+    );
+    let subkey = certificate.subkeys.values().next().expect("one subkey");
+    assert!(
+        subkey
+            .attached
+            .entries()
+            .all(|(_, entry)| entry.quality == SignatureVariantQuality::VerifiedByPrimary),
+        "the binding verifies where it was parsed",
+    );
+
+    // A binding in front of its subkey is placed only by verifying it.
+    let stream = RawPacketStream::parse(&bytes, MAX_MERGE_PACKETS).expect("scan certificate");
+    let (binding, rest) = stream
+        .packets()
+        .split_last()
+        .expect("trailing subkey binding");
+    assert_eq!(binding.tag(), SIGNATURE_TAG);
+    let mut displaced = stream.raw(&rest[0]).to_vec();
+    displaced.extend_from_slice(stream.raw(binding));
+    for packet in &rest[1..] {
+        displaced.extend_from_slice(stream.raw(packet));
+    }
+    assert_eq!(
+        canonicalize_public_certificate(&displaced)
+            .expect("rehome high-S subkey binding")
+            .0,
+        canonicalize_public_certificate(&bytes)
+            .expect("canonicalize high-S subkey certificate")
+            .0,
+    );
+}
+
 struct TestRawPackets<'a>(&'a [u8]);
 
 impl Serialize for TestRawPackets<'_> {

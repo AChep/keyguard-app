@@ -20,6 +20,8 @@
 //! into a [`CanonicalCertificate`]. Policy evaluation happens afterwards, on
 //! the retained view in the [`CanonicalCertificate`].
 
+use crate::openpgp::crypto::verifier::OpenPgpVerifier;
+
 use std::{
     borrow::Cow,
     collections::{BTreeMap, BTreeSet},
@@ -748,7 +750,7 @@ fn is_exportable_direct_self_signature_parsed(
     if !signature_matches_signer(&signature, primary) {
         return Ok(false);
     }
-    budget.verify(|| signature.verify_key(primary).is_ok())
+    budget.verify(|| signature.verify_key(&OpenPgpVerifier(primary)).is_ok())
 }
 
 #[cfg(test)]
@@ -840,7 +842,11 @@ fn is_exportable_identity_self_signature_parsed(
     }
     budget.verify(|| {
         signature
-            .verify_certification(primary, tag, &RawIdentityBody(&identity.body))
+            .verify_certification(
+                &OpenPgpVerifier(primary),
+                tag,
+                &RawIdentityBody(&identity.body),
+            )
             .is_ok()
     })
 }
@@ -909,7 +915,11 @@ fn is_exportable_subkey_binding_signature_parsed(
     if !signature_matches_signer(&signature, primary) {
         return Ok(false);
     }
-    if !budget.verify(|| signature.verify_subkey_binding(primary, subkey).is_ok())? {
+    if !budget.verify(|| {
+        signature
+            .verify_subkey_binding(&OpenPgpVerifier(primary), subkey)
+            .is_ok()
+    })? {
         return Ok(false);
     }
     if !subkey_binding_requires_cross_certification(&signature, subkey) {
@@ -979,7 +989,11 @@ fn has_valid_embedded_primary_key_binding(
         if !signature_matches_signer(&embedded, subkey) {
             continue;
         }
-        if budget.verify(|| embedded.verify_primary_key_binding(subkey, primary).is_ok())? {
+        if budget.verify(|| {
+            embedded
+                .verify_primary_key_binding(&OpenPgpVerifier(subkey), primary)
+                .is_ok()
+        })? {
             return Ok(true);
         }
     }
@@ -1065,7 +1079,7 @@ fn verify_key_ignoring_unhashed_issuer_hints(signature: &Signature, primary: &Pu
     key_signature_verification_acceptable(primary)
         && signature_ignoring_unhashed_issuer_hints(signature).is_some_and(|candidate| {
             signature_verification_compatible(&candidate, primary)
-                && candidate.verify_key(primary).is_ok()
+                && candidate.verify_key(&OpenPgpVerifier(primary)).is_ok()
         })
 }
 
@@ -1129,8 +1143,12 @@ fn component_verifies_key_revocation(
         return Ok(false);
     }
     budget.verify(|| match candidate {
-        PublicComponent::Primary(key) => signature.verify_key_third_party(primary, key).is_ok(),
-        PublicComponent::Subkey(key) => signature.verify_key_third_party(primary, key).is_ok(),
+        PublicComponent::Primary(key) => signature
+            .verify_key_third_party(primary, &OpenPgpVerifier(key))
+            .is_ok(),
+        PublicComponent::Subkey(key) => signature
+            .verify_key_third_party(primary, &OpenPgpVerifier(key))
+            .is_ok(),
     })
 }
 

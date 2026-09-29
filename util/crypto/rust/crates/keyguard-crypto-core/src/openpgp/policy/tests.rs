@@ -32,6 +32,82 @@ use crate::{
 const TEST_TIME: u64 = 1_700_000_000;
 
 #[test]
+fn secp256k1_high_s_bindings_and_backsignatures_authorize_signing_subkeys() {
+    use crate::openpgp::crypto::verifier::tests::{secp256k1_fixture, with_high_s_signing_subkey};
+    use pgp::{composed::KeyType, crypto::ecc_curve::ECCCurve};
+
+    for (primary_is_secp, primary, subkey_curve) in [
+        (true, secp256k1_fixture(), ECCCurve::P256),
+        (
+            false,
+            generated_test_secret("Back signature <high-s-back@example.test>"),
+            ECCCurve::Secp256k1,
+        ),
+    ] {
+        let primary =
+            with_high_s_signing_subkey(primary, KeyType::ECDSA(subkey_curve), TEST_TIME as u32);
+        let public = primary.to_public_key();
+        let policy = validate_certificate(
+            &public,
+            &all_components(std::slice::from_ref(&public)),
+            TEST_TIME + 2,
+            &mut OpenPgpPolicyBudget::default(),
+        )
+        .expect("evaluate mixed-curve high-S bindings");
+        assert!(policy.primary_available());
+        assert!(
+            policy
+                .subkeys_matching(&primary.secret_subkeys[0].key)
+                .any(|component| component.signing_usable()),
+            "secp256k1 primary: {primary_is_secp}"
+        );
+    }
+}
+
+#[test]
+fn secp256k1_high_s_self_revocation_disables_the_signing_key() {
+    use crate::openpgp::crypto::verifier::tests::{high_s_signature, secp256k1_fixture};
+    let mut secret = secp256k1_fixture();
+    let signature = high_s_signature(&key_revocation(
+        &secret,
+        (TEST_TIME + 1) as u32,
+        HashAlgorithm::Sha256,
+    ));
+    secret.details.revocation_signatures.push(signature);
+    let public = secret.to_public_key();
+    let policy = validate_certificate(
+        &public,
+        &all_components(std::slice::from_ref(&public)),
+        TEST_TIME + 2,
+        &mut OpenPgpPolicyBudget::default(),
+    )
+    .expect("evaluate high-S revocation");
+    assert_eq!(policy.primary.revocation_status, RevocationStatus::Revoked);
+    assert!(!policy.primary_available());
+}
+
+#[test]
+fn secp256k1_high_s_designated_revocation_uses_the_revokers_curve() {
+    use crate::openpgp::crypto::verifier::tests::{high_s_signature, secp256k1_fixture};
+    let revoker = secp256k1_fixture();
+    let mut target = generated_test_secret("Target <high-s-revocation@example.test>");
+    add_designated_revoker_declaration(&mut target, &revoker);
+    let revocation = high_s_signature(&designated_key_revocation(&target, &revoker));
+    target.details.revocation_signatures.push(revocation);
+    let public = target.to_public_key();
+    let candidates = all_components(&[public.clone(), revoker.to_public_key()]);
+    let policy = validate_certificate(
+        &public,
+        &candidates,
+        TEST_TIME + 3,
+        &mut OpenPgpPolicyBudget::default(),
+    )
+    .expect("evaluate secp256k1 revocation of an Ed25519 certificate");
+    assert_eq!(policy.primary.revocation_status, RevocationStatus::Revoked);
+    assert!(!policy.primary_available());
+}
+
+#[test]
 fn signature_versions_match_only_registered_signer_key_versions() {
     for (signature_version, signer_version) in [
         (SignatureVersion::V3, KeyVersion::V3),

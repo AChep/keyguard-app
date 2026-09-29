@@ -3,6 +3,8 @@
 //! This module turns retained certificate evidence into one policy-qualified
 //! [`ValidatedCertificate`](super::model::ValidatedCertificate) view.
 
+use crate::openpgp::crypto::verifier::OpenPgpVerifier;
+
 use pgp::{
     crypto::{hash::HashAlgorithm, public_key::PublicKeyAlgorithm},
     packet::{
@@ -97,10 +99,9 @@ impl PublicComponent {
             return Ok(false);
         };
         budget.charge_public_key_verification()?;
-        Ok(match self {
-            Self::Primary(key) => key.verify(config.hash_alg, digest, signature_bytes).is_ok(),
-            Self::Subkey(key) => key.verify(config.hash_alg, digest, signature_bytes).is_ok(),
-        })
+        Ok(OpenPgpVerifier(self)
+            .verify(config.hash_alg, digest, signature_bytes)
+            .is_ok())
     }
 
     fn verifies_key_revocation(
@@ -119,8 +120,12 @@ impl PublicComponent {
         Ok(
             signature_ignoring_unhashed_issuer_hints(signature).is_some_and(
                 |signature| match self {
-                    Self::Primary(key) => signature.verify_key_third_party(primary, key).is_ok(),
-                    Self::Subkey(key) => signature.verify_key_third_party(primary, key).is_ok(),
+                    Self::Primary(key) => signature
+                        .verify_key_third_party(primary, &OpenPgpVerifier(key))
+                        .is_ok(),
+                    Self::Subkey(key) => signature
+                        .verify_key_third_party(primary, &OpenPgpVerifier(key))
+                        .is_ok(),
                 },
             ),
         )
@@ -147,10 +152,20 @@ impl PublicComponent {
             signature_ignoring_unhashed_issuer_hints(signature).is_some_and(
                 |signature| match self {
                     Self::Primary(key) => signature
-                        .verify_third_party_certification(primary, key, tag, identity)
+                        .verify_third_party_certification(
+                            primary,
+                            &OpenPgpVerifier(key),
+                            tag,
+                            identity,
+                        )
                         .is_ok(),
                     Self::Subkey(key) => signature
-                        .verify_third_party_certification(primary, key, tag, identity)
+                        .verify_third_party_certification(
+                            primary,
+                            &OpenPgpVerifier(key),
+                            tag,
+                            identity,
+                        )
                         .is_ok(),
                 },
             ),
@@ -228,9 +243,11 @@ where
     if digest.get(..expected_prefix.len()) != Some(expected_prefix.as_slice()) {
         return false;
     }
-    signature
-        .signature()
-        .is_some_and(|value| signer.verify(config.hash_alg, &digest, value).is_ok())
+    signature.signature().is_some_and(|value| {
+        OpenPgpVerifier(signer)
+            .verify(config.hash_alg, &digest, value)
+            .is_ok()
+    })
 }
 
 /// Computes the digest signed by a primary-key-only signature.
@@ -294,7 +311,7 @@ where
         return Ok(false);
     };
     budget.charge_public_key_verification()?;
-    Ok(signer
+    Ok(OpenPgpVerifier(signer)
         .verify(config.hash_alg, &digest, signature_bytes)
         .is_ok())
 }
@@ -798,21 +815,12 @@ fn authenticate_direct_third_party_revocations<'a>(
             else {
                 continue;
             };
-            let authentic = match candidate {
-                PublicComponent::Primary(key) => verify_direct_certification_revocation(
-                    signature,
-                    &certificate.primary_key,
-                    key,
-                    budget,
-                )?,
-                PublicComponent::Subkey(key) => verify_direct_certification_revocation(
-                    signature,
-                    &certificate.primary_key,
-                    key,
-                    budget,
-                )?,
-            };
-            if authentic {
+            if verify_direct_certification_revocation(
+                signature,
+                &certificate.primary_key,
+                candidate,
+                budget,
+            )? {
                 verified.push(AuthenticatedDirectThirdPartyRevocation {
                     signature,
                     signer: declaration.clone(),
@@ -1671,7 +1679,7 @@ fn validate_certificate_intern<'a>(
 
 fn verifies_primary_key_signature(signature: &Signature, primary: &PublicKey) -> bool {
     signature_ignoring_unhashed_issuer_hints(signature)
-        .is_some_and(|signature| signature.verify_key(primary).is_ok())
+        .is_some_and(|signature| signature.verify_key(&OpenPgpVerifier(primary)).is_ok())
 }
 
 fn verifies_primary_certification(
@@ -1682,7 +1690,7 @@ fn verifies_primary_certification(
 ) -> bool {
     signature_ignoring_unhashed_issuer_hints(signature).is_some_and(|signature| {
         signature
-            .verify_certification(primary, tag, identity)
+            .verify_certification(&OpenPgpVerifier(primary), tag, identity)
             .is_ok()
     })
 }
@@ -1692,8 +1700,11 @@ fn verifies_primary_subkey_binding(
     primary: &PublicKey,
     subkey: &PublicSubkey,
 ) -> bool {
-    signature_ignoring_unhashed_issuer_hints(signature)
-        .is_some_and(|signature| signature.verify_subkey_binding(primary, subkey).is_ok())
+    signature_ignoring_unhashed_issuer_hints(signature).is_some_and(|signature| {
+        signature
+            .verify_subkey_binding(&OpenPgpVerifier(primary), subkey)
+            .is_ok()
+    })
 }
 
 fn authenticate_certificate_bindings<'a>(

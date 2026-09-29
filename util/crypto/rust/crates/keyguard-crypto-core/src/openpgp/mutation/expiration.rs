@@ -11,6 +11,8 @@
 //! re-validated exactly once. RSA private signatures are routed through the
 //! AWS-LC adapter in [`crate::openpgp::crypto`].
 
+use crate::openpgp::crypto::verifier::OpenPgpVerifier;
+
 use pgp::{
     composed::{SignedPublicKey, SignedPublicSubKey},
     crypto::{hash::HashAlgorithm, public_key::PublicKeyAlgorithm},
@@ -536,7 +538,7 @@ fn issue_renewal(
                 .sign_key(signer, &Password::empty(), primary)
                 .map_err(|_| ExpirationUpdateFailure::InternalFailure)?;
             if !signature_verification_compatible(&signature, signer)
-                || signature.verify_key(primary).is_err()
+                || signature.verify_key(&OpenPgpVerifier(primary)).is_err()
             {
                 return Err(ExpirationUpdateFailure::SignatureVerificationFailed);
             }
@@ -612,7 +614,7 @@ fn issue_renewal(
                 .map_err(|_| ExpirationUpdateFailure::InternalFailure)?;
             if !signature_verification_compatible(&signature, signer)
                 || signature
-                    .verify_subkey_binding(primary, &subkey.key)
+                    .verify_subkey_binding(&OpenPgpVerifier(primary), &subkey.key)
                     .is_err()
             {
                 return Err(ExpirationUpdateFailure::SignatureVerificationFailed);
@@ -733,7 +735,7 @@ fn valid_embedded_signature(
                 && signature_verification_compatible(signature, subkey)
                 && signature_ignoring_unhashed_issuer_hints(signature).is_some_and(|signature| {
                     signature
-                        .verify_primary_key_binding(subkey, primary)
+                        .verify_primary_key_binding(&OpenPgpVerifier(subkey), primary)
                         .is_ok()
                 })
         })
@@ -791,7 +793,7 @@ fn create_primary_binding(
         || !signature_issuer_consistent(&signature, subkey)
         || !signature_verification_compatible(&signature, subkey)
         || signature
-            .verify_primary_key_binding(subkey, primary)
+            .verify_primary_key_binding(&OpenPgpVerifier(subkey), primary)
             .is_err()
     {
         return Err(ExpirationUpdateFailure::SignatureVerificationFailed);

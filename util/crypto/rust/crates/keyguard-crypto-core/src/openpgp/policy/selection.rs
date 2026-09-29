@@ -4,6 +4,8 @@
 //! view. Equal-time valid statements are ordered by their cryptographic
 //! signature material, so unauthenticated packet order cannot change policy.
 
+use crate::openpgp::crypto::verifier::OpenPgpVerifier;
+
 use pgp::{
     crypto::public_key::PublicKeyAlgorithm,
     packet::{KeyFlags, PublicKey, PublicSubkey, Signature, SubpacketData},
@@ -334,8 +336,11 @@ pub(super) fn embedded_cross_certified(
             continue;
         }
         budget.charge_public_key_verification()?;
-        verified |= signature_ignoring_unhashed_issuer_hints(embedded)
-            .is_some_and(|embedded| embedded.verify_primary_key_binding(subkey, primary).is_ok());
+        verified |= signature_ignoring_unhashed_issuer_hints(embedded).is_some_and(|embedded| {
+            embedded
+                .verify_primary_key_binding(&OpenPgpVerifier(subkey), primary)
+                .is_ok()
+        });
     }
     Ok(verified)
 }

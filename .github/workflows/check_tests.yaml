@@ -294,7 +294,7 @@ jobs:
           targets: "aarch64-apple-darwin,aarch64-apple-ios,aarch64-apple-ios-sim"
       - name: Build Apple billing and license tests
         run: >-
-          ./gradlew :appleApp:macosArm64Test :appleApp:assembleKeyguardSharedDebugXCFramework
+          ./gradlew --max-workers=1 :appleApp:macosArm64Test :appleApp:assembleKeyguardSharedDebugXCFramework
           :common:generateAppleStrings
       - name: Generate Xcode projects
         run: |

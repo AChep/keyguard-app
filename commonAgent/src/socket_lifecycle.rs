@@ -1018,6 +1018,30 @@ mod tests {
         assert!(child.wait().expect("reap peer listener").success());
     }
 
+    fn reacquire_released_lifecycle_lock(
+        mut acquire: impl FnMut() -> Result<SocketLifecycleLock>,
+    ) -> SocketLifecycleLock {
+        // A subprocess spawned by another test can inherit the descriptor
+        // until exec. Wait for those copies to close after dropping our lock.
+        let deadline = Instant::now() + Duration::from_secs(1);
+        loop {
+            match acquire() {
+                Ok(lock) => return lock,
+                Err(error) => {
+                    assert!(
+                        error.to_string().contains("already using socket"),
+                        "unexpected error reacquiring released lifecycle lock: {error:#}"
+                    );
+                    assert!(
+                        Instant::now() < deadline,
+                        "released lifecycle lock remained held: {error:#}"
+                    );
+                }
+            }
+            std::thread::sleep(Duration::from_millis(1));
+        }
+    }
+
     #[test]
     fn lifecycle_lock_blocks_second_process_and_persists_inode() {
         let tmp = tempdir().expect("tempdir");
@@ -1070,9 +1094,9 @@ mod tests {
         assert_eq!(entry_identity(&released_metadata), original_identity);
         assert_eq!(released_metadata.mode() & 0o7777, LIFECYCLE_LOCK_MODE);
 
-        let reacquired = LIFECYCLE
-            .acquire_lifecycle_lock_in(&socket_path, current_uid(), &lock_directory)
-            .expect("reacquire released lock");
+        let reacquired = reacquire_released_lifecycle_lock(|| {
+            LIFECYCLE.acquire_lifecycle_lock_in(&socket_path, current_uid(), &lock_directory)
+        });
         drop(reacquired);
         assert_eq!(
             entry_identity(&fs::symlink_metadata(&lock_path).expect("final lock metadata")),
@@ -1141,9 +1165,9 @@ mod tests {
             original_ancestor_mode
         );
         drop(lock);
-        let _next = LIFECYCLE
-            .acquire_lifecycle_lock_in_directory(&socket, current_uid(), &directory)
-            .expect("lock after release");
+        let _next = reacquire_released_lifecycle_lock(|| {
+            LIFECYCLE.acquire_lifecycle_lock_in_directory(&socket, current_uid(), &directory)
+        });
         assert_eq!(
             entry_identity(&fs::symlink_metadata(lock_path).unwrap()),
             identity

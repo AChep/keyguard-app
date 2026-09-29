@@ -299,7 +299,6 @@
     <ID>FunctionNaming:AddRoute.kt:fun LeAddRoute: Route</ID>
     <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) fun LazyListScope.AddScreenItems</ID>
     <ID>FunctionNaming:AutomaticBackupsEnabledSection.kt:internal fun LazyListScope.AutomaticBackupsEnabledContent</ID>
-    <ID>FunctionNaming:AutomaticBackupsSetupSection.kt:internal fun LazyListScope.AutomaticBackupsSetupContent</ID>
     <ID>FunctionNaming:ChangePasswordScreen.kt:private fun LazyListScope.ChangePasswordContent</ID>
     <ID>FunctionNaming:ChangePasswordScreen.kt:private fun LazyListScope.ChangePasswordContentSkeleton</ID>
     <ID>FunctionNaming:DFilter.kt:DFilter.Companion$private fun &lt;T&gt; _findAny: T?</ID>
@@ -450,7 +449,6 @@
     <ID>LongMethod:AutofillWindow.kt:@Composable fun ColumnScope.RecentsWindowOk</ID>
     <ID>LongMethod:AutofillWindow.kt:@Composable private fun ColumnScope.GeneratorValue2</ID>
     <ID>LongMethod:AutomaticBackupsSettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun AutomaticBackupsSettingsContent</ID>
-    <ID>LongMethod:AutomaticBackupsSetupSection.kt:internal fun LazyListScope.AutomaticBackupsSetupContent</ID>
     <ID>LongMethod:AutomaticBackupsStatusSection.kt:@Composable private fun AutomaticBackupsLastSyncLines</ID>
     <ID>LongMethod:AutomaticBackupsStatusSection.kt:@Composable private fun AutomaticBackupsStatusPanel</ID>
     <ID>LongMethod:BackupObjectStore.kt:BackupObjectStore$suspend fun test: BackupObjectStoreTestResult</ID>

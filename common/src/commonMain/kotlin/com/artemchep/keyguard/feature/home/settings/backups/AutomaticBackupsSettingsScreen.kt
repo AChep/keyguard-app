@@ -1,15 +1,11 @@
 package com.artemchep.keyguard.feature.home.settings.backups
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,10 +14,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.tooling.preview.Preview
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.util.int
-import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.platform.CurrentPlatform
@@ -34,7 +30,6 @@ import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.RequestLazyListScrollOnRevision
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.skeletonItems
-import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
@@ -49,7 +44,6 @@ fun AutomaticBackupsSettingsScreen() {
             AutomaticBackupsSettingsLoadingContent()
         },
         ifOk = { okState ->
-            FilePickerEffect(okState.filePickerIntentFlow)
             AutomaticBackupsSettingsContent(
                 state = okState,
                 dateFormatter = dateFormatter,
@@ -104,24 +98,15 @@ private fun AutomaticBackupsSettingsContent(
     val components = LocalSettingPaneComponents.current
 
     val isBackupRunning = state.status.currentRun != null
-    val fabState = when {
-        !state.config.enabled && isSupported -> {
-            FabState(
-                onClick = state.onEnableClick.takeUnless { state.isTestingLocation },
-                model = null,
-            )
-        }
-
-        state.config.enabled && isSupported -> {
-            FabState(
-                onClick = state.onRunNow.takeIf {
-                    state.config.canRun() && !isBackupRunning
-                },
-                model = state.status.currentRun,
-            )
-        }
-
-        else -> null
+    val fabState = if (state.config.enabled && isSupported) {
+        FabState(
+            onClick = state.onRunNow.takeIf {
+                state.config.canRun() && !isBackupRunning
+            },
+            model = state.status.currentRun,
+        )
+    } else {
+        null
     }
 
     val listState = remember {
@@ -152,17 +137,13 @@ private fun AutomaticBackupsSettingsContent(
             DefaultFab(
                 icon = {
                     Crossfade(
-                        targetState = state.isTestingLocation || isBackupRunning,
+                        targetState = isBackupRunning,
                     ) { isLoading ->
                         if (isLoading) {
                             KeyguardLoadingIndicator()
                         } else {
                             Icon(
-                                imageVector = if (state.config.enabled) {
-                                    Icons.Outlined.PlayArrow
-                                } else {
-                                    Icons.Outlined.Check
-                                },
+                                imageVector = Icons.Outlined.PlayArrow,
                                 contentDescription = null,
                             )
                         }
@@ -170,11 +151,7 @@ private fun AutomaticBackupsSettingsContent(
                 },
                 text = {
                     Text(
-                        text = if (state.config.enabled) {
-                            stringResource(Res.string.pref_item_automatic_backups_run_now_title)
-                        } else {
-                            stringResource(Res.string.pref_item_automatic_backups_enable_button)
-                        },
+                        text = stringResource(Res.string.pref_item_automatic_backups_run_now_title),
                     )
                 },
             )
@@ -205,12 +182,43 @@ private fun AutomaticBackupsSettingsContent(
                 components = components,
             )
         } else {
-            AutomaticBackupsSetupContent(
-                state = state,
+            automaticBackupsDisabledContent(
+                onSetupClick = state.onSetupClick,
                 isSupported = isSupported,
                 setupSectionTitle = setupSectionTitle,
                 components = components,
             )
         }
     }
+}
+
+@Composable
+private fun AutomaticBackupsSettingsPreview(
+    enabled: Boolean = true,
+    dark: Boolean = false,
+) {
+    AutomaticBackupsPreview(dark = dark) {
+        AutomaticBackupsSettingsContent(
+            state = AutomaticBackupsPreviewData.settings(enabled = enabled),
+            dateFormatter = AutomaticBackupsPreviewData.dateFormatter,
+        )
+    }
+}
+
+@Preview(name = "Settings — setup landing", group = "Backup settings", widthDp = 390, heightDp = 844)
+@Composable
+internal fun AutomaticBackupsSettingsDisabledPreview() {
+    AutomaticBackupsSettingsPreview(enabled = false)
+}
+
+@Preview(name = "Settings — enabled", group = "Backup settings", widthDp = 390, heightDp = 844)
+@Composable
+internal fun AutomaticBackupsSettingsEnabledPreview() {
+    AutomaticBackupsSettingsPreview()
+}
+
+@Preview(name = "Settings — enabled dark", group = "Backup settings", widthDp = 390, heightDp = 844)
+@Composable
+internal fun AutomaticBackupsSettingsDarkPreview() {
+    AutomaticBackupsSettingsPreview(dark = true)
 }

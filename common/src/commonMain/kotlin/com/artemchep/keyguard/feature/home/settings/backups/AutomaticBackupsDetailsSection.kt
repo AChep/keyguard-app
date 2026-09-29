@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -192,7 +193,7 @@ private fun AutomaticBackupsRepositoryTree() {
                 .fillMaxWidth()
                 .background(
                     color = MaterialTheme.colorScheme.surfaceContainer,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = MaterialTheme.shapes.large,
                 )
                 .padding(12.dp),
         ) {
@@ -209,5 +210,13 @@ private fun AutomaticBackupsRepositoryTree() {
                 )
             }
         }
+    }
+}
+
+@Preview(name = "Backup explanation", group = "Backup settings", widthDp = 390, heightDp = 1800)
+@Composable
+internal fun AutomaticBackupsDetailsPreview() {
+    AutomaticBackupsPreview {
+        AutomaticBackupsDetailsSection()
     }
 }

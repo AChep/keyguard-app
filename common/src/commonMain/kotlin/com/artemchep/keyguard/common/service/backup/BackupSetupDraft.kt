@@ -1,12 +1,9 @@
-package com.artemchep.keyguard.apple.settings
+package com.artemchep.keyguard.common.service.backup
 
 import com.artemchep.keyguard.common.model.Password
-import com.artemchep.keyguard.common.service.backup.BackupConfig
-import com.artemchep.keyguard.common.service.backup.BackupRetention
-import com.artemchep.keyguard.common.service.backup.BackupStoreConfig
 
 /** A complete, memory-only configuration; credentials and folder grants never cross the UI bridge. */
-internal class BackupSetupDraft(initial: BackupConfig) {
+class BackupSetupDraft(initial: BackupConfig) {
     var config: BackupConfig = initial
         private set
 
@@ -19,7 +16,7 @@ internal class BackupSetupDraft(initial: BackupConfig) {
         stores = BackupStoreDrafts()
     }
 
-    fun setStoreKind(kind: String) {
+    fun setStoreKind(kind: BackupStoreKind) {
         config = config.copy(store = stores.select(config.store, kind))
     }
 
@@ -59,7 +56,9 @@ internal class BackupSetupDraft(initial: BackupConfig) {
 
     fun setRetention(maxSnapshots: Int) {
         config = config.copy(
-            retention = BackupRetention(maxSnapshots.coerceIn(0, BackupRetention.MAX_SNAPSHOTS_LIMIT)),
+            retention = BackupRetention(
+                maxSnapshots.coerceIn(BackupRetention.NEVER_CLEAR_MAX_SNAPSHOTS, BackupRetention.MAX_SNAPSHOTS_LIMIT),
+            ),
         )
     }
 }

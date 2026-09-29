@@ -1,9 +1,6 @@
-package com.artemchep.keyguard.apple.settings
+package com.artemchep.keyguard.common.service.backup
 
 import com.artemchep.keyguard.common.model.Password
-import com.artemchep.keyguard.common.service.backup.BackupConfig
-import com.artemchep.keyguard.common.service.backup.BackupRetention
-import com.artemchep.keyguard.common.service.backup.BackupStoreConfig
 import com.artemchep.keyguard.common.service.file.FileAccessToken
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async

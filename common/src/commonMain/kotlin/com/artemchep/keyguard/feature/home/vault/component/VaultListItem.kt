@@ -1010,6 +1010,7 @@ fun FlatItemLayoutExpressive(
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
     enabled: Boolean = onClick != null,
+    rowModifier: Modifier = Modifier,
 ) {
     val haptic by rememberUpdatedState(LocalHapticFeedback.current)
     val background = run {
@@ -1071,7 +1072,7 @@ fun FlatItemLayoutExpressive(
             .then(background),
     ) {
         Row(
-            modifier = Modifier
+            modifier = rowModifier
                 .fillMaxWidth()
                 .then(clickable)
                 .minimumInteractiveComponentSize()

@@ -2097,6 +2097,8 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setBackupStoreWebDav(url: String, username: String, password: String) =
         backupsController.setBackupStoreWebDav(url, username, password)
 
+    fun isValidBackupWebDavUrl(url: String): Boolean = backupsController.isValidBackupWebDavUrl(url)
+
     fun pickBackupLocation() = backupsController.pickBackupLocation()
 
     fun enableBackup() = backupsController.enableBackup()

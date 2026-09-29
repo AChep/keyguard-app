@@ -1,7 +1,6 @@
-package com.artemchep.keyguard.apple.settings
+package com.artemchep.keyguard.common.service.backup
 
 import com.artemchep.keyguard.common.model.Password
-import com.artemchep.keyguard.common.service.backup.BackupStoreConfig
 import com.artemchep.keyguard.common.service.file.FileAccessToken
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,10 +15,10 @@ class BackupStoreDraftsTest {
             accessToken = FileAccessToken("test-bookmark"),
         )
 
-        val webDav = drafts.select(folder, "webdav")
+        val webDav = drafts.select(folder, BackupStoreKind.WebDav)
 
         assertEquals(BackupStoreConfig.WebDav(), webDav)
-        assertSame(folder, drafts.select(webDav, "local"))
+        assertSame(folder, drafts.select(webDav, BackupStoreKind.Local))
     }
 
     @Test
@@ -31,10 +30,10 @@ class BackupStoreDraftsTest {
             password = Password("test-password"),
         )
 
-        val folder = drafts.select(webDav, "local")
+        val folder = drafts.select(webDav, BackupStoreKind.Local)
 
         assertEquals(BackupStoreConfig.Local(), folder)
-        assertSame(webDav, drafts.select(folder, "webdav"))
+        assertSame(webDav, drafts.select(folder, BackupStoreKind.WebDav))
     }
 
     @Test
@@ -46,9 +45,8 @@ class BackupStoreDraftsTest {
         )
         val webDav = BackupStoreConfig.WebDav(url = "https://example.com/backups")
 
-        assertSame(folder, drafts.select(folder, "local"))
-        assertSame(webDav, drafts.select(webDav, "webdav"))
-        assertSame(webDav, drafts.select(webDav, "unknown"))
+        assertSame(folder, drafts.select(folder, BackupStoreKind.Local))
+        assertSame(webDav, drafts.select(webDav, BackupStoreKind.WebDav))
     }
 
     @Test
@@ -58,18 +56,18 @@ class BackupStoreDraftsTest {
             path = "file:///original",
             accessToken = FileAccessToken("original-bookmark"),
         )
-        drafts.select(folder, "webdav")
+        drafts.select(folder, BackupStoreKind.WebDav)
         val webDav = BackupStoreConfig.WebDav(
             url = "https://example.com/backups",
             password = Password("test-password"),
         )
-        drafts.select(webDav, "local")
+        drafts.select(webDav, BackupStoreKind.Local)
         val replacementFolder = folder.copy(
             path = "file:///replacement",
             accessToken = FileAccessToken("replacement-bookmark"),
         )
 
-        assertSame(webDav, drafts.select(replacementFolder, "webdav"))
-        assertSame(replacementFolder, drafts.select(webDav, "local"))
+        assertSame(webDav, drafts.select(replacementFolder, BackupStoreKind.WebDav))
+        assertSame(replacementFolder, drafts.select(webDav, BackupStoreKind.Local))
     }
 }

@@ -188,7 +188,7 @@ struct BackupSetupWizard: View {
             } header: {
                 Text(L10n.prefItemAutomaticBackupsWebdavServerTitle)
             } footer: {
-                if !webDavURL.isEmpty && !BackupSetupValidation.isValidWebDAVURL(webDavURL) {
+                if !webDavURL.isEmpty && !backupsModel.isValidBackupWebDavURL(webDavURL) {
                     Label(L10n.prefItemAutomaticBackupsWizardInvalidUrlError, systemImage: "exclamationmark.circle")
                         .foregroundStyle(.red)
                 } else if s.setupHasWebDavPassword && webDavURL == initialWebDavURL
@@ -335,7 +335,7 @@ struct BackupSetupWizard: View {
         switch step {
         case .destination:
             s.setupStoreKind == "webdav"
-                ? BackupSetupValidation.isValidWebDAVURL(webDavURL) : !(s.setupLocalPath ?? "").isEmpty
+                ? backupsModel.isValidBackupWebDavURL(webDavURL) : !(s.setupLocalPath ?? "").isEmpty
         case .protection:
             (initialHasPassword && !replacePassword) || encryptionPassword.isEmpty
                 || encryptionPassword == confirmationPassword

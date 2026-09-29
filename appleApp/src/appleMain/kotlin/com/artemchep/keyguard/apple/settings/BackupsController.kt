@@ -5,11 +5,15 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.backup.BackupConfig
+import com.artemchep.keyguard.common.service.backup.BackupSetupDraft
+import com.artemchep.keyguard.common.service.backup.verifyAndSaveBackupSetup
 import com.artemchep.keyguard.common.service.backup.BackupConfigRepository
 import com.artemchep.keyguard.common.service.backup.BackupStoreConfig
+import com.artemchep.keyguard.common.service.backup.BackupStoreKind
 import com.artemchep.keyguard.common.service.file.FileAccessToken
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.util.webdav.isValidWebDavCollectionUrl
 import com.artemchep.keyguard.common.usecase.RunBackupNow
 import com.artemchep.keyguard.common.usecase.TestBackupLocation
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
@@ -90,8 +94,6 @@ internal class BackupsController(
                     .automaticBackupsSettingsStateProducer(
                         backupConfigRepository = sessionKoin.get(),
                         runBackupNow = sessionKoin.get(),
-                        testBackupLocation = sessionKoin.get(),
-                        confirmationRouteFactory = sessionKoin.get(),
                     )
             } catch (e: CancellationException) {
                 throw e
@@ -200,7 +202,14 @@ internal class BackupsController(
         restorePassword(latestBackupState?.config ?: return@editSetup)
     }
 
-    fun setBackupStoreKind(kind: String) = editSetup { setStoreKind(kind) }
+    fun setBackupStoreKind(kind: String) = editSetup {
+        val storeKind = when (kind) {
+            "local" -> BackupStoreKind.Local
+            "webdav" -> BackupStoreKind.WebDav
+            else -> return@editSetup
+        }
+        setStoreKind(storeKind)
+    }
 
     fun setBackupStoreLocalPath(path: String) = editSetup {
         setStore(BackupStoreConfig.Local(path = path.trim()))
@@ -209,6 +218,8 @@ internal class BackupsController(
     fun setBackupStoreWebDav(url: String, username: String, password: String) = editSetup {
         setWebDav(url, username, password)
     }
+
+    fun isValidBackupWebDavUrl(url: String): Boolean = isValidWebDavCollectionUrl(url)
 
     fun setBackupSetupRetention(maxSnapshots: Int) = editSetup { setRetention(maxSnapshots) }
 

@@ -1866,7 +1866,6 @@
     <string name="pref_item_automatic_backups_unsupported_text">Automatic backups are available on Android, desktop, macOS, and iOS.</string>
     <string name="pref_item_automatic_backups_enable_button">Enable backups</string>
     <string name="pref_item_automatic_backups_setup_intro">Backups save vault snapshots to a location you choose. Keyguard creates them on vault changes, and you can trigger a snapshot manually anytime.</string>
-    <string name="pref_item_automatic_backups_setup_logic">The backup repository stores metadata, snapshots, and optional attachment files as separate ZIP archives. Specify the backup password to encrypt the archives using AES-256 encryption.</string>
     <string name="pref_item_automatic_backups_details_321_title">3-2-1 backup rule</string>
     <string name="pref_item_automatic_backups_details_321_text">Keep at least three copies of your vault data: your active vault and two backups. Store those copies in at least two independent places or storage types, and keep one copy off this device or off-site. A synced folder is useful, but it should not be your only backup because deletions, corruption, and unwanted changes can sync too.</string>
     <string name="pref_item_automatic_backups_details_321_three">Active vault plus two backups</string>
@@ -1879,8 +1878,6 @@
     <string name="pref_item_automatic_backups_details_sync_title">Cloud sync</string>
     <string name="pref_item_automatic_backups_details_sync_text">Sync the whole backup folder. Use the same backup password on every device that reads encrypted archives.</string>
     <string name="pref_item_automatic_backups_location_title">Backup location</string>
-    <string name="pref_item_automatic_backups_store_folder_title">Folder</string>
-    <string name="pref_item_automatic_backups_store_webdav_title">WebDAV</string>
     <string name="pref_item_automatic_backups_password_title">Backup password</string>
     <string name="pref_item_automatic_backups_password_message">This password encrypts the backup repository. If multiple app instances share the backup repository they must use the same password.</string>
     <string name="pref_item_automatic_backups_password_not_set">Password not set; backup files are not encrypted</string>

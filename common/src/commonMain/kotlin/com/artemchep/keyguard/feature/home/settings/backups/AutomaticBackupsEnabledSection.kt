@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.artemchep.keyguard.common.service.backup.BackupRetention
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.feature.home.settings.KgAction
@@ -54,7 +55,8 @@ internal fun LazyListScope.AutomaticBackupsEnabledContent(
 
     item("config.retention") {
         AutomaticBackupsRetentionRow(
-            state = state,
+            maxSnapshots = state.config.retention.maxSnapshots,
+            onRetentionChange = state.onRetentionChange,
             components = components,
         )
     }
@@ -79,18 +81,18 @@ internal fun LazyListScope.AutomaticBackupsEnabledContent(
 }
 
 @Composable
-private fun AutomaticBackupsRetentionRow(
-    state: AutomaticBackupsSettingsState,
+internal fun AutomaticBackupsRetentionRow(
+    maxSnapshots: Int,
+    onRetentionChange: ((Int) -> Unit)?,
     components: SettingPaneComponents,
 ) {
-    val maxSnapshots = state.config.retention.maxSnapshots
     components.KgPicker(
         icon = Icons.Outlined.History,
         title = stringResource(Res.string.pref_item_automatic_backups_retention_title),
         text = retentionText(maxSnapshots),
         dropdown = rememberAutomaticBackupsRetentionDropdown(
             maxSnapshots = maxSnapshots,
-            onRetentionChange = state.onRetentionChange,
+            onRetentionChange = onRetentionChange,
         ),
     )
 }
@@ -98,7 +100,7 @@ private fun AutomaticBackupsRetentionRow(
 @Composable
 private fun rememberAutomaticBackupsRetentionDropdown(
     maxSnapshots: Int,
-    onRetentionChange: (Int) -> Unit,
+    onRetentionChange: ((Int) -> Unit)?,
 ): List<FlatItemAction> {
     val fiveSnapshotsText = retentionText(5)
     val tenSnapshotsText = retentionText(10)
@@ -162,14 +164,12 @@ private fun automaticBackupsRetentionAction(
     option: Int,
     title: String,
     maxSnapshots: Int,
-    onRetentionChange: (Int) -> Unit,
+    onRetentionChange: ((Int) -> Unit)?,
 ) = FlatItemAction(
     id = "settings.automaticBackups.retention.$option",
     title = TextHolder.Value(title),
     selected = option == maxSnapshots,
-    onClick = {
-        onRetentionChange(option)
-    },
+    onClick = onRetentionChange?.let { change -> { change(option) } },
 )
 
 @Composable
@@ -182,4 +182,41 @@ private fun DisableAutomaticBackupsAction(
         contentColor = MaterialTheme.colorScheme.danger,
         onClick = onDisableClick,
     )
+}
+
+@Composable
+private fun AutomaticBackupsRetentionPreview(maxSnapshots: Int) {
+    AutomaticBackupsPreview {
+        AutomaticBackupsRetentionRow(
+            maxSnapshots = maxSnapshots,
+            onRetentionChange = {},
+            components = LocalSettingPaneComponents.current,
+        )
+    }
+}
+
+@Preview(name = "Retention — 30 snapshots", group = "Backup settings", widthDp = 390)
+@Composable
+internal fun AutomaticBackupsRetentionPresetPreview() {
+    AutomaticBackupsRetentionPreview(AutomaticBackupsPreviewData.config.retention.maxSnapshots)
+}
+
+@Preview(name = "Retention — custom value", group = "Backup settings", widthDp = 390)
+@Composable
+internal fun AutomaticBackupsRetentionCustomPreview() {
+    AutomaticBackupsRetentionPreview(AutomaticBackupsPreviewData.CUSTOM_MAX_SNAPSHOTS)
+}
+
+@Preview(name = "Retention — never clear", group = "Backup settings", widthDp = 390)
+@Composable
+internal fun AutomaticBackupsRetentionNeverClearPreview() {
+    AutomaticBackupsRetentionPreview(BackupRetention.NEVER_CLEAR_MAX_SNAPSHOTS)
+}
+
+@Preview(name = "Turn off backups", group = "Backup settings", widthDp = 390)
+@Composable
+internal fun AutomaticBackupsDisableActionPreview() {
+    AutomaticBackupsPreview {
+        DisableAutomaticBackupsAction(onDisableClick = {})
+    }
 }

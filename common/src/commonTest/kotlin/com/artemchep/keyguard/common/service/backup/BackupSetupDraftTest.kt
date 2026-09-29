@@ -1,9 +1,6 @@
-package com.artemchep.keyguard.apple.settings
+package com.artemchep.keyguard.common.service.backup
 
 import com.artemchep.keyguard.common.model.Password
-import com.artemchep.keyguard.common.service.backup.BackupConfig
-import com.artemchep.keyguard.common.service.backup.BackupRetention
-import com.artemchep.keyguard.common.service.backup.BackupStoreConfig
 import com.artemchep.keyguard.common.service.file.FileAccessToken
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -22,7 +19,7 @@ class BackupSetupDraftTest {
             retention = BackupRetention(60),
         )
         val draft = BackupSetupDraft(saved)
-        draft.setStoreKind("webdav")
+        draft.setStoreKind(BackupStoreKind.WebDav)
         draft.setWebDav("https://example.com/backups", "test", "changed")
         draft.setPassword("replacement")
         draft.setIncludeAttachments(false)
@@ -34,9 +31,9 @@ class BackupSetupDraftTest {
         draft.reset(saved)
 
         assertEquals(saved, draft.config)
-        draft.setStoreKind("webdav")
+        draft.setStoreKind(BackupStoreKind.WebDav)
         assertEquals(BackupStoreConfig.WebDav(), draft.config.store)
-        draft.setStoreKind("local")
+        draft.setStoreKind(BackupStoreKind.Local)
         assertEquals(folder, draft.config.store)
     }
 
@@ -85,12 +82,12 @@ class BackupSetupDraftTest {
     fun destinationChoicesPreserveEachDraftUntilTheEditorIsReset() {
         val folder = BackupStoreConfig.Local("file:///backups", FileAccessToken("saved-bookmark"))
         val draft = BackupSetupDraft(BackupConfig(store = folder))
-        draft.setStoreKind("webdav")
+        draft.setStoreKind(BackupStoreKind.WebDav)
         draft.setWebDav("https://example.com/backups", "test", "password")
         val webDav = draft.config.store
-        draft.setStoreKind("local")
+        draft.setStoreKind(BackupStoreKind.Local)
         assertEquals(folder, draft.config.store)
-        draft.setStoreKind("webdav")
+        draft.setStoreKind(BackupStoreKind.WebDav)
         assertEquals(webDav, draft.config.store)
     }
 
@@ -111,7 +108,7 @@ class BackupSetupDraftTest {
     fun restoringTheSavedPasswordKeepsOtherWizardEdits() {
         val saved = BackupConfig(password = Password("original-password"))
         val draft = BackupSetupDraft(saved)
-        draft.setStoreKind("webdav")
+        draft.setStoreKind(BackupStoreKind.WebDav)
         draft.setWebDav("https://example.com/backups", "test", "webdav-password")
         draft.setIncludeAttachments(false)
         draft.setRetention(90)

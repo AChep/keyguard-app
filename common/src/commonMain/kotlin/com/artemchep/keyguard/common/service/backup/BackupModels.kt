@@ -25,6 +25,11 @@ data class BackupConfig(
             store.requiresNetwork
 }
 
+enum class BackupStoreKind {
+    Local,
+    WebDav,
+}
+
 @Serializable
 sealed interface BackupStoreConfig {
     val isConfigured: Boolean
@@ -72,6 +77,29 @@ data class BackupRetention(
         const val NEVER_CLEAR_MAX_SNAPSHOTS = 0
         const val MAX_SNAPSHOTS_LIMIT = 365
     }
+}
+
+/** Normalizes user-entered fields before a config is persisted. */
+internal fun BackupConfig.sanitized(): BackupConfig = copy(
+    store = store.sanitized(),
+    retention = BackupRetention(
+        maxSnapshots = retention.maxSnapshots.coerceIn(
+            BackupRetention.NEVER_CLEAR_MAX_SNAPSHOTS,
+            BackupRetention.MAX_SNAPSHOTS_LIMIT,
+        ),
+    ),
+)
+
+private fun BackupStoreConfig.sanitized(): BackupStoreConfig = when (this) {
+    is BackupStoreConfig.Local -> copy(
+        path = path?.trim(),
+    )
+
+    is BackupStoreConfig.WebDav -> copy(
+        url = url?.trim(),
+        username = username?.trim()?.takeIf { it.isNotEmpty() },
+        password = password?.takeIf { it.value.isNotEmpty() },
+    )
 }
 
 @Serializable

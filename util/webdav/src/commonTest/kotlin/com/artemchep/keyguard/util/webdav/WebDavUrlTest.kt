@@ -1,9 +1,13 @@
-import XCTest
-@testable import KeyguardUI
+package com.artemchep.keyguard.util.webdav
 
-final class BackupSetupValidationTests: XCTestCase {
-    func testAcceptsAbsoluteHTTPAndHTTPSDestinations() {
-        for value in [
+import kotlin.test.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+
+class WebDavUrlTest {
+    @Test
+    fun `collection url accepts absolute http and https destinations`() {
+        listOf(
             "https://example.com",
             "http://localhost:8080/backups/",
             "https://example.com/remote.php/dav/files/vault/",
@@ -12,13 +16,13 @@ final class BackupSetupValidationTests: XCTestCase {
             "https://[::1]:8443/backups",
             "HTTPS://EXAMPLE.COM/backups",
             " \nhttps://example.com/backups\t ",
-        ] {
-            XCTAssertTrue(BackupSetupValidation.isValidWebDAVURL(value), value)
-        }
+            "https://example.com/backups%23folder",
+        ).forEach { assertTrue(isValidWebDavCollectionUrl(it), it) }
     }
 
-    func testRejectsEmptyRelativeAndUnsupportedDestinations() {
-        for value in [
+    @Test
+    fun `collection url rejects empty relative and unsupported destinations`() {
+        listOf(
             "",
             " \n\t ",
             "example.com/backups",
@@ -29,42 +33,36 @@ final class BackupSetupValidationTests: XCTestCase {
             "https:",
             "https:///backups",
             "https://",
-        ] {
-            XCTAssertFalse(BackupSetupValidation.isValidWebDAVURL(value), value)
-        }
+        ).forEach { assertFalse(isValidWebDavCollectionUrl(it), it) }
     }
 
-    func testRejectsMalformedURLsWithoutSilentlyEscapingThem() {
-        for value in [
+    @Test
+    fun `collection url rejects malformed urls without escaping them`() {
+        listOf(
             "https://exa mple.com/backups",
             "https://example.com/my backups",
             "https://example.com/%invalid",
             "https://example.com/%",
             "https://[::1/backups",
             "https://example.com:invalid/backups",
-        ] {
-            XCTAssertFalse(BackupSetupValidation.isValidWebDAVURL(value), value)
-        }
+        ).forEach { assertFalse(isValidWebDavCollectionUrl(it), it) }
     }
 
-    func testRequiresCredentialsInSeparateFields() {
-        for value in [
+    @Test
+    fun `collection url requires credentials in separate fields`() {
+        listOf(
             "https://user:secret@example.com/backups",
             "https://user@example.com/backups",
             "https://:secret@example.com/backups",
             "https://@example.com/backups",
-        ] {
-            XCTAssertFalse(BackupSetupValidation.isValidWebDAVURL(value), value)
-        }
+        ).forEach { assertFalse(isValidWebDavCollectionUrl(it), it) }
     }
 
-    func testRejectsFragmentsIncludingAnEmptyFragment() {
-        for value in [
+    @Test
+    fun `collection url rejects fragments including an empty fragment`() {
+        listOf(
             "https://example.com/backups#folder",
             "https://example.com/backups#",
-        ] {
-            XCTAssertFalse(BackupSetupValidation.isValidWebDAVURL(value), value)
-        }
-        XCTAssertTrue(BackupSetupValidation.isValidWebDAVURL("https://example.com/backups%23folder"))
+        ).forEach { assertFalse(isValidWebDavCollectionUrl(it), it) }
     }
 }

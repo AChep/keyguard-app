@@ -39,6 +39,8 @@ final class BackupSettingsModel: SnapshotObserving {
         core.setBackupStoreWebDav(url: url, username: username, password: password)
     }
 
+    func isValidBackupWebDavURL(_ url: String) -> Bool { core.isValidBackupWebDavUrl(url: url) }
+
     func pickBackupLocation() { core.pickBackupLocation() }
 
     func enableBackup() { core.enableBackup() }

@@ -10,7 +10,8 @@
 #
 # The roots are listed explicitly because the app directories also hold build output
 # (`build/`, `.build-run/`) with vendored dependency sources that must not be touched.
-# Generated code opts out through `.swift-format-ignore` next to it.
+# Generated L10n.swift is excluded explicitly for toolchains that do not support
+# `.swift-format-ignore` files.
 set -eu
 
 cd "$(dirname "$0")/../.."
@@ -26,10 +27,15 @@ xcode/BillingTests \
 xcode/PrivacyTests"
 
 if [ "${1:-}" = "--fix" ]; then
-    # shellcheck disable=SC2086 # the roots are a deliberate word-split list.
-    exec swift format --in-place --parallel --recursive --configuration .swift-format $ROOTS
+    set -- --in-place
+else
+    # `--strict` promotes the lint findings to a non-zero exit, so CI fails on them.
+    set -- lint --strict
 fi
 
-# `--strict` promotes the lint findings to a non-zero exit, so CI fails on them.
+# Preserve recursive swift-format's exclusion of hidden build directories.
 # shellcheck disable=SC2086 # the roots are a deliberate word-split list.
-exec swift format lint --strict --parallel --recursive --configuration .swift-format $ROOTS
+exec find $ROOTS -name '.*' -prune -o \
+    -type f -name '*.swift' \
+    ! -path 'appleUi/Sources/KeyguardUI/Generated/L10n.swift' \
+    -exec swift format "$@" --parallel --configuration .swift-format {} +

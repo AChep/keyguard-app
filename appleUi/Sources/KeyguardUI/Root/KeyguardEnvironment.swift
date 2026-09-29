@@ -49,5 +49,8 @@ private struct KeyguardEnvironment: ViewModifier {
             .environment(model.feedback)
             .environment(model.navigationSettings)
             .environment(model.backups)
+            #if os(iOS)
+        .environment(model.screenAwake)
+            #endif
     }
 }

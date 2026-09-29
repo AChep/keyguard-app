@@ -896,16 +896,22 @@ struct DisplaySettingsView: View {
                     L10n.prefItemLoadGravatarIconsTitle,
                     isOn: boolBinding({ s.gravatar }, { securityModel.setGravatar($0) }))
             }
-            #if os(macOS)
             Section(L10n.settingsExperienceHeaderTitle) {
+                #if os(iOS)
+                Toggle(
+                    L10n.prefItemKeepScreenOnTitle,
+                    isOn: boolBinding({ s.keepScreenOn }, { preferencesModel.setKeepScreenOn($0) })
+                )
+                .disabled(!s.loaded)
+                #else
                 Toggle(
                     L10n.prefItemMinimizeOnCopyTitle,
                     isOn: boolBinding({ s.minimizeOnCopy }, { preferencesModel.setMinimizeOnCopy($0) }))
                 Toggle(
                     L10n.prefItemCloseToMenuBarTitle,
                     isOn: boolBinding({ s.closeToTray }, { preferencesModel.setCloseToTray($0) }))
+                #endif
             }
-            #endif
         }
         .formStyle(.grouped)
         .navigationTitle(item.title)

@@ -21,6 +21,7 @@ struct BarcodeView: View {
                 Color.clear
             }
         }
+        .keepScreenAwake(requiresPreference: false)
     }
 
     @ViewBuilder

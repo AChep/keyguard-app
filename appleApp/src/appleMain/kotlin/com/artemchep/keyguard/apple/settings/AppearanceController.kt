@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.usecase.GetColorsVariants
 import com.artemchep.keyguard.common.usecase.GetFont
 import com.artemchep.keyguard.common.usecase.GetFontVariants
 import com.artemchep.keyguard.common.usecase.GetGravatar
+import com.artemchep.keyguard.common.usecase.GetKeepScreenOn
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetLocaleVariants
 import com.artemchep.keyguard.common.usecase.GetMarkdown
@@ -32,6 +33,7 @@ import com.artemchep.keyguard.common.usecase.PutAllowTwoPanelLayoutInPortrait
 import com.artemchep.keyguard.common.usecase.PutCloseToTray
 import com.artemchep.keyguard.common.usecase.PutColors
 import com.artemchep.keyguard.common.usecase.PutFont
+import com.artemchep.keyguard.common.usecase.PutKeepScreenOn
 import com.artemchep.keyguard.common.usecase.PutLocale
 import com.artemchep.keyguard.common.usecase.PutMarkdown
 import com.artemchep.keyguard.common.usecase.PutMinimizeOnCopy
@@ -86,6 +88,8 @@ internal class AppearanceController(
     private val putNavLabel: PutNavLabel by lazy { ctx.koin.get() }
     private val getUseExternalBrowser: GetUseExternalBrowser by lazy { ctx.koin.get() }
     private val putUseExternalBrowser: PutUseExternalBrowser by lazy { ctx.koin.get() }
+    private val getKeepScreenOn: GetKeepScreenOn by lazy { ctx.koin.get() }
+    private val putKeepScreenOn: PutKeepScreenOn by lazy { ctx.koin.get() }
     private val getMinimizeOnCopy: GetMinimizeOnCopy by lazy { ctx.koin.get() }
     private val putMinimizeOnCopy: PutMinimizeOnCopy by lazy { ctx.koin.get() }
     private val getCloseToTray: GetCloseToTray by lazy { ctx.koin.get() }
@@ -126,6 +130,7 @@ internal class AppearanceController(
         val togglesC = combine(
             getTwoPanelPortrait(),
             getTwoPanelLandscape(),
+            getKeepScreenOn(),
         ) { values -> values.toList() }
         val themeFlow = combine(getTheme(), getThemeVariants()) { current, variants -> current to variants }
         val fontFlow = combine(getFont(), getFontVariants()) { current, variants -> current to variants }
@@ -167,6 +172,7 @@ internal class AppearanceController(
                     gravatar = tB[4],
                     twoPanelPortrait = tC[0],
                     twoPanelLandscape = tC[1],
+                    keepScreenOn = tC[2],
                     themeTitle = themeTitle(theme.first, leContext),
                     themeOptions = theme.second.map { value ->
                         SettingOptionSnapshot(value.optionId(), themeTitle(value, leContext), value == theme.first)
@@ -224,6 +230,7 @@ internal class AppearanceController(
     fun setMarkdown(value: Boolean) { putMarkdown(value).launchIn(ctx.scope) }
     fun setNavLabel(value: Boolean) { putNavLabel(value).launchIn(ctx.scope) }
     fun setUseExternalBrowser(value: Boolean) { putUseExternalBrowser(value).launchIn(ctx.scope) }
+    fun setKeepScreenOn(value: Boolean) { putKeepScreenOn(value).launchIn(ctx.scope) }
     fun setMinimizeOnCopy(value: Boolean) { putMinimizeOnCopy(value).launchIn(ctx.scope) }
     fun setCloseToTray(value: Boolean) { putCloseToTray(value).launchIn(ctx.scope) }
     fun setTwoPanelPortrait(value: Boolean) { putTwoPanelPortrait(value).launchIn(ctx.scope) }
@@ -263,7 +270,7 @@ internal class AppearanceController(
 
     /**
      * Observes the preferences the SwiftUI shell applies app-wide (theme, accent,
-     * close-to-tray). Invoked on the main thread on any change.
+     * close-to-tray, keep-screen-on). Invoked on the main thread on any change.
      */
     fun observeAppPreferences(
         onChange: (AppPreferencesSnapshot) -> Unit,
@@ -288,6 +295,8 @@ internal class AppearanceController(
                     navLabel = navLabel,
                     closeToTray = closeToTray,
                 )
+            }.combine(getKeepScreenOn()) { preferences, keepScreenOn ->
+                preferences.copy(keepScreenOn = keepScreenOn)
             }.collect { onChange(it) }
         }
         return KeyguardCancellable(job)

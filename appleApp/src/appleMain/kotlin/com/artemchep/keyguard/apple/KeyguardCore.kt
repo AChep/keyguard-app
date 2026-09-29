@@ -1999,8 +1999,8 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     // Appearance settings. Thin bridge over the shared Get/Put use cases that back
     // the macOS-relevant items of the common UiSettingsScreen. Enum pickers (theme,
     // accent, font, nav animation, locale) are surfaced as SettingOptionSnapshot
-    // lists keyed by the variant's list index. Mobile-only items (app icons, keep
-    // screen on) are intentionally not surfaced.
+    // lists keyed by the variant's list index. Keep-screen-on is applied by iOS;
+    // Android app icons are intentionally not surfaced.
     // ---------------------------------------------------------------------------
 
     private val appearanceController by lazy { AppearanceController(context) }
@@ -2014,6 +2014,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setMarkdown(value: Boolean) = appearanceController.setMarkdown(value)
     fun setNavLabel(value: Boolean) = appearanceController.setNavLabel(value)
     fun setUseExternalBrowser(value: Boolean) = appearanceController.setUseExternalBrowser(value)
+    fun setKeepScreenOn(value: Boolean) = appearanceController.setKeepScreenOn(value)
     fun setMinimizeOnCopy(value: Boolean) = appearanceController.setMinimizeOnCopy(value)
     fun setCloseToTray(value: Boolean) = appearanceController.setCloseToTray(value)
     fun setTwoPanelPortrait(value: Boolean) = appearanceController.setTwoPanelPortrait(value)

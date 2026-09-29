@@ -118,6 +118,7 @@ data class AppearanceSettingsSnapshot(
     val markdown: Boolean = false,
     val navLabel: Boolean = false,
     val useExternalBrowser: Boolean = false,
+    val keepScreenOn: Boolean = false,
     val minimizeOnCopy: Boolean = false,
     val closeToTray: Boolean = false,
     val websiteIcons: Boolean = false,
@@ -160,6 +161,8 @@ data class AppPreferencesSnapshot(
      * menu bar; false quits the app instead.
      */
     val closeToTray: Boolean = false,
+    /** Keeps supported iOS detail views awake while foreground and unlocked. */
+    val keepScreenOn: Boolean = false,
 ) {
     companion object {
         val empty = AppPreferencesSnapshot()

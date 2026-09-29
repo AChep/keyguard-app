@@ -1,6 +1,9 @@
 import SwiftUI
 import Observation
 @preconcurrency import KeyguardShared
+#if os(iOS)
+import UIKit
+#endif
 
 /// Creates the process-wide core and shared feature models for every Apple surface.
 /// Feature state and observation lifetimes live in the models below.
@@ -54,6 +57,9 @@ public final class AppViewModel {
     let backups: BackupSettingsModel
     let external: ExternalActions
     let autofillIndex: AutofillIndexService
+    #if os(iOS)
+    let screenAwake = ScreenAwakeCoordinator { UIApplication.shared.isIdleTimerDisabled = $0 }
+    #endif
 
     /// Construction wires dependencies; only the shared app starts workers.
     init(core: KeyguardCore) {

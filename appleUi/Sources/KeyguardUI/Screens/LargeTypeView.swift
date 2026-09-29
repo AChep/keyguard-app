@@ -18,6 +18,7 @@ struct LargeTypeView: View {
                 Color.clear
             }
         }
+        .keepScreenAwake(requiresPreference: false)
     }
 
     @ViewBuilder

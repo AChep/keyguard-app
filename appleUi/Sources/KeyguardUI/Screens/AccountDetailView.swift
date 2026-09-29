@@ -24,6 +24,7 @@ struct AccountDetailView: View {
         #else
         .navigationTitle(detail.title.isEmpty ? L10n.account : detail.title)
         #endif
+        .keepScreenAwake()
     }
 
     private var content: some View {

@@ -55,6 +55,7 @@ struct CipherDetailView: View {
                 content
             }
         }
+        .keepScreenAwake()
     }
 
     private var content: some View {

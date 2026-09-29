@@ -225,26 +225,92 @@ fn generated_secret(key_type: KeyType) -> SignedSecretKey {
         .unwrap()
 }
 
+macro_rules! nist_s_forms_test {
+    ($name:ident, $curve:ident, $signature:ty, $field_len:expr) => {
+        #[test]
+        fn $name() {
+            let key = generated_secret(KeyType::ECDSA(ECCCurve::$curve));
+            let digest = [0x42; 64];
+            let signature = key
+                .primary_key
+                .sign(&Password::empty(), HashAlgorithm::Sha512, &digest)
+                .expect("sign fixed digest");
+            let SignatureBytes::Mpis(mpis) = signature else {
+                panic!("expected ECDSA MPIs");
+            };
+            assert_eq!(mpis.len(), 2);
+            let mut bytes = [0_u8; 2 * $field_len];
+            for (field, mpi) in bytes.chunks_exact_mut($field_len).zip(&mpis) {
+                let value: &[u8] = mpi.as_ref();
+                let offset = field.len() - value.len();
+                field[offset..].copy_from_slice(value);
+            }
+            let signature = <$signature>::from_slice(&bytes).expect("valid NIST curve scalars");
+            // Force both representatives regardless of which one signing produced.
+            let low = signature.normalize_s().unwrap_or(signature);
+            let (r, s) = low.split_scalars();
+            let high = <$signature>::from_scalars(r.to_bytes(), (-s).to_bytes())
+                .expect("equivalent high-S signature");
+            assert!(low.normalize_s().is_none());
+            assert_eq!(high.normalize_s().as_ref(), Some(&low));
+
+            let public = key.primary_key.public_key();
+            for (form, signature) in [("low-S", low), ("high-S", high)] {
+                let (r, s) = signature.split_bytes();
+                let signature =
+                    SignatureBytes::Mpis(vec![Mpi::from_slice(&r), Mpi::from_slice(&s)]);
+                // NIST curves must accept both forms without our secp256k1 adapter.
+                let result = public.verify(HashAlgorithm::Sha512, &digest, &signature);
+                assert!(result.is_ok(), "rPGP rejected {form}: {result:?}");
+                let result =
+                    OpenPgpVerifier(public).verify(HashAlgorithm::Sha512, &digest, &signature);
+                assert!(
+                    result.is_ok(),
+                    "OpenPgpVerifier rejected {form}: {result:?}"
+                );
+                assert!(
+                    OpenPgpVerifier(public)
+                        .verify(HashAlgorithm::Sha512, &[0x43; 64], &signature)
+                        .is_err(),
+                    "{form} verified a wrong digest",
+                );
+            }
+        }
+    };
+}
+
+nist_s_forms_test!(
+    p256_both_s_forms_verify_and_wrong_digest_fails,
+    P256,
+    p256::ecdsa::Signature,
+    32
+);
+nist_s_forms_test!(
+    p384_both_s_forms_verify_and_wrong_digest_fails,
+    P384,
+    p384::ecdsa::Signature,
+    48
+);
+nist_s_forms_test!(
+    p521_both_s_forms_verify_and_wrong_digest_fails,
+    P521,
+    p521::ecdsa::Signature,
+    66
+);
+
 #[test]
-fn other_verification_algorithms_keep_their_existing_behavior() {
-    for key_type in [
-        KeyType::ECDSA(ECCCurve::P256),
-        KeyType::ECDSA(ECCCurve::P384),
-        KeyType::ECDSA(ECCCurve::P521),
-        KeyType::Ed25519Legacy,
-    ] {
-        let key = generated_secret(key_type);
-        let signature = key
-            .primary_key
-            .sign(&Password::empty(), HashAlgorithm::Sha512, &[0x42; 64])
-            .unwrap();
+fn ed25519_verification_keeps_its_existing_behavior() {
+    let key = generated_secret(KeyType::Ed25519Legacy);
+    let signature = key
+        .primary_key
+        .sign(&Password::empty(), HashAlgorithm::Sha512, &[0x42; 64])
+        .unwrap();
+    OpenPgpVerifier(key.primary_key.public_key())
+        .verify(HashAlgorithm::Sha512, &[0x42; 64], &signature)
+        .unwrap();
+    assert!(
         OpenPgpVerifier(key.primary_key.public_key())
-            .verify(HashAlgorithm::Sha512, &[0x42; 64], &signature)
-            .unwrap();
-        assert!(
-            OpenPgpVerifier(key.primary_key.public_key())
-                .verify(HashAlgorithm::Sha512, &[0x43; 64], &signature)
-                .is_err()
-        );
-    }
+            .verify(HashAlgorithm::Sha512, &[0x43; 64], &signature)
+            .is_err()
+    );
 }

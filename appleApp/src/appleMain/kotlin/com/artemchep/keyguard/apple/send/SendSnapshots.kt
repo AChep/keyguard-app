@@ -77,6 +77,11 @@ data class SendListSnapshot(
      * `.dropDestination` when true, invoking [KeyguardCore.dropFileOnSendList].
      */
     val canDropFile: Boolean = false,
+    /**
+     * Whether an account can create a File send. The native create sheet hides
+     * the File type when false.
+     */
+    val canCreateFileSend: Boolean = false,
 ) {
     companion object {
         val empty = SendListSnapshot(
@@ -96,6 +101,7 @@ data class SendListSnapshot(
             selectionActions = emptyList(),
             listActions = emptyList(),
             canDropFile = false,
+            canCreateFileSend = false,
         )
     }
 }

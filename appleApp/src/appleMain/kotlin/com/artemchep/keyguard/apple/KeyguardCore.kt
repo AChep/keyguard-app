@@ -1388,6 +1388,12 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun cancelAddFilePicker(requestId: String) = addItemController.cancelAddFilePicker(requestId)
 
+    fun dropFileOnAddForm(uri: String, name: String?, size: Long) =
+        addItemController.dropFileOnAddForm(uri, name, size)
+
+    fun dropFileOnAddItem(itemId: String, uri: String, name: String?, size: Long) =
+        addItemController.dropFileOnAddItem(itemId, uri, name, size)
+
     fun setAddDatePickerRequestHandler(handler: ((AddDatePickerRequest) -> Unit)?) =
         addItemController.setAddDatePickerRequestHandler(handler)
 

@@ -89,7 +89,7 @@ struct SendView: View {
             )
             .toolbar { macToolbar }
             .sheet(isPresented: $showingAddItem, onDismiss: addItemModel.stopAddFormObservation) {
-                AddItemSheet(mode: .send)
+                AddItemSheet(mode: .send, canCreateFileSend: snapshot.canCreateFileSend)
             }
             .onChange(of: detailObservationTarget, initial: true) { _, target in
                 syncDetailObservation(target)
@@ -229,7 +229,7 @@ struct SendView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .sheet(isPresented: $showingAddItem, onDismiss: addItemModel.stopAddFormObservation) {
-            AddItemSheet(mode: .send)
+            AddItemSheet(mode: .send, canCreateFileSend: snapshot.canCreateFileSend)
         }
         .onChange(of: detailObservationTarget, initial: true) { _, target in
             syncDetailObservation(target)
@@ -256,7 +256,7 @@ struct SendView: View {
                 .environment(\.editMode, $selection.editMode)
         }
         .sheet(isPresented: $showingAddItem, onDismiss: addItemModel.stopAddFormObservation) {
-            AddItemSheet(mode: .send)
+            AddItemSheet(mode: .send, canCreateFileSend: snapshot.canCreateFileSend)
         }
         .onChange(of: selection.editMode) { _, mode in
             handleEditModeChange(mode)

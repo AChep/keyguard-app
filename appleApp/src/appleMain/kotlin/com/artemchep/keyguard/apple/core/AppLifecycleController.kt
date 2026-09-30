@@ -19,6 +19,7 @@ import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
+import com.artemchep.keyguard.copy.AppleManagedImportFiles
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.apple.KeyguardCore
@@ -91,6 +92,12 @@ internal class AppLifecycleController(
         // Mirror the in-app language override into AppleLanguages so the shared
         // string resources resolve to the chosen language on the next launch.
         startLocaleApplier(ctx)
+
+        // Picked-file copies belong to the forms of a previous process;
+        // a form that got cancelled never staged (and so never deleted) its copy.
+        ctx.backgroundScope.launch {
+            AppleManagedImportFiles.clear()
+        }
     }
 
     private var watchtowerStarted = false

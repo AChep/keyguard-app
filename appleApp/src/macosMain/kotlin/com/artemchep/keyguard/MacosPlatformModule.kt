@@ -115,9 +115,6 @@ import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.appleKeyguardAtomicDataDirectory
 import com.artemchep.keyguard.platform.appleKeyguardDataDirectory
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirectory
-import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
 import com.artemchep.keyguard.util.io.resolve
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
@@ -221,9 +218,6 @@ internal class MacosPlatformModule {
         single<AppleBiometricKeychain> { get<KeychainRepositoryApple>() }
         single<CacheDirProvider> {
             MacosCacheDirProvider
-        }
-        single<PendingUploadDirProvider> {
-            MacosPendingUploadDirProvider
         }
         single<DownloadRepository> {
             DownloadRepositoryInMemory()
@@ -440,16 +434,6 @@ private object MacosCacheDirProvider : CacheDirProvider {
 
     private fun cacheDir(): LocalPath = appleKeyguardDataDirectory()
         .resolve("cache")
-}
-
-private object MacosPendingUploadDirProvider : PendingUploadDirProvider {
-    override suspend fun get(
-        accountId: String,
-        namespace: String,
-    ): PendingUploadDirectory = appleKeyguardAtomicDataDirectory()
-        .resolveDirectory(AtomicPathComponent.parse("pending_uploads"))
-        .resolveDirectory(AtomicPathComponent.parse(namespace))
-        .resolveDirectory(AtomicPathComponent.parse(accountId))
 }
 
 private object MacosNoOpAutofillService : AutofillService {

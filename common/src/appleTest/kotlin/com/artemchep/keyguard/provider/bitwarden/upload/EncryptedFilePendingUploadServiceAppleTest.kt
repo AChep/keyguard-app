@@ -90,6 +90,40 @@ class EncryptedFilePendingUploadServiceAppleTest {
     }
 
     @Test
+    fun stagingDeletesManagedPickerCopy() = runTest {
+        val directory = LocalPath(NSTemporaryDirectory())
+            .resolve("keyguard-import", NSUUID().UUIDString)
+        SystemFileSystem.createDirectories(directory.toKotlinxIoPath())
+        val sourceUri = directory.writeSourceFile("source.bin", "plain-sample".encodeToByteArray())
+
+        service.stage(
+            accountId = ACCOUNT_ID,
+            namespace = NAMESPACE,
+            fileId = "attachment-1",
+            sourceUri = sourceUri,
+            fileKey = FILE_KEY,
+        )
+
+        // The plaintext copy must not outlive staging.
+        assertFalse(exists(directory.value))
+    }
+
+    @Test
+    fun stagingKeepsUnmanagedSource() = runTest {
+        val sourceUri = root.writeSourceFile("source.bin", "plain-sample".encodeToByteArray())
+
+        service.stage(
+            accountId = ACCOUNT_ID,
+            namespace = NAMESPACE,
+            fileId = "attachment-1",
+            sourceUri = sourceUri,
+            fileKey = FILE_KEY,
+        )
+
+        assertTrue(exists(root.resolve("source.bin").value))
+    }
+
+    @Test
     fun uploadedMarkerTogglesIsUploaded() = runTest {
         val pendingUpload = stageSample()
 

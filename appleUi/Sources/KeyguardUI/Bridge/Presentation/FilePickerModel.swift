@@ -185,10 +185,8 @@ final class FilePickerModel {
                 cancel(request.requestId)
                 return
             }
-            let values = try? url.resourceValues(forKeys: [.fileSizeKey, .nameKey])
-            let size = Int64(values?.fileSize ?? -1)
-            let name = values?.name ?? url.lastPathComponent
-            resolve(request.requestId, url.absoluteString, name, size, token)
+            let file = url.fileNameAndSize
+            resolve(request.requestId, url.absoluteString, file.name, file.size, token)
         } else {
             cancel(request.requestId)
         }
@@ -257,15 +255,13 @@ final class FilePickerModel {
                 core.cancelKeePassFilePicker(requestId: request.requestId)
                 return
             }
-            let values = try? url.resourceValues(forKeys: [.fileSizeKey, .nameKey])
-            let size = Int64(values?.fileSize ?? -1)
-            let name = values?.name ?? url.lastPathComponent
+            let file = url.fileNameAndSize
             let token = url.securityScopedBookmarkToken()
             core.resolveKeePassFilePicker(
                 requestId: request.requestId,
                 uri: url.absoluteString,
-                name: name,
-                size: size,
+                name: file.name,
+                size: file.size,
                 accessToken: token
             )
         }
@@ -319,6 +315,12 @@ final class FilePickerModel {
     }
 
     #if os(iOS)
+    /// The `.fileImporter` cancellation callback; safe to receive after a
+    /// completion has already consumed the request.
+    func cancelFilePicker(requestId: String? = nil) {
+        resolveFilePicker(result: .failure(CocoaError(.userCancelled)), requestId: requestId)
+    }
+
     func resolveFilePicker(result: Result<[URL], Error>, requestId: String? = nil) {
         guard let pending = pendingFilePicker else { return }
         // A dismissed importer's completion must not consume a newer request.
@@ -348,25 +350,17 @@ final class FilePickerModel {
                 // The shared code keeps reading and writing this file for the
                 // lifetime of a KeePass account, so hand over the ORIGINAL url
                 // plus a security-scoped bookmark token — never a temp copy.
-                let name = (try? url.resourceValues(forKeys: [.nameKey]))?.name ?? url.lastPathComponent
-                let size = Int64((try? url.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? -1)
+                let file = url.fileNameAndSize
                 let token = url.securityScopedBookmarkToken()
-                pending.resolve(pending.requestId, url.absoluteString, name, size, token)
+                pending.resolve(pending.requestId, url.absoluteString, file.name, file.size, token)
                 return
             }
 
-            // Copy into a unique temp directory so the original name is preserved and
-            // the file outlives the security-scoped access window.
-            let name = (try? url.resourceValues(forKeys: [.nameKey]))?.name ?? url.lastPathComponent
-            let tempDir = FileManager.default.temporaryDirectory
-                .appendingPathComponent("keyguard-import", isDirectory: true)
-                .appendingPathComponent(UUID().uuidString, isDirectory: true)
-            let dest = tempDir.appendingPathComponent(name)
+            // Copy so the file outlives the security-scoped access window.
             do {
-                try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-                try FileManager.default.copyItem(at: url, to: dest)
-                let size = Int64((try? dest.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? -1)
-                pending.resolve(pending.requestId, dest.absoluteString, name, size, nil)
+                let dest = try ManagedImportCopy.copy(from: url)
+                let file = dest.fileNameAndSize
+                pending.resolve(pending.requestId, dest.absoluteString, file.name, file.size, nil)
             } catch {
                 pending.cancel(pending.requestId)
             }

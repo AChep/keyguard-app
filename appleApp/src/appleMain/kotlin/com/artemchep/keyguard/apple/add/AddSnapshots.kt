@@ -98,6 +98,11 @@ data class AddTextFieldSnapshot(
 data class AddAttachmentSnapshot(
     val size: String?,
     val synced: Boolean,
+    /**
+     * The hint shown while a file is dragged over the row, or null if the row
+     * does not accept drops. A drop goes to [KeyguardCore.dropFileOnAddItem].
+     */
+    val dropText: String? = null,
 )
 
 /** The decoded key material of an [AddItemKind.SSH_KEY] row. [hasKey] is false before generate/import. */
@@ -204,6 +209,11 @@ data class AddItemFormSnapshot(
     val merge: AddMergeSnapshot? = null,
     val items: List<AddItemSnapshot>,
     val actions: List<AddActionSnapshot>,
+    /**
+     * The hint shown while a file is dragged over the form, or null if the form
+     * does not accept drops. A drop goes to [KeyguardCore.dropFileOnAddForm].
+     */
+    val fileDropText: String? = null,
 ) {
     companion object {
         val empty = AddItemFormSnapshot(

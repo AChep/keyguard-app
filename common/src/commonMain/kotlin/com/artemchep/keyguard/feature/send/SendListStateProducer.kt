@@ -856,6 +856,10 @@ suspend fun RememberStateFlowScope.sendListScreenStateProducer(
         state.copy(
             onFileDrop = onFileDrop,
         )
+    }.combine(canCreateFileSendFlow) { state, canCreateFileSend ->
+        state.copy(
+            canCreateFileSend = canCreateFileSend,
+        )
     }.combine(actionsFlow) { state, actions ->
         state.copy(
             actions = actions,

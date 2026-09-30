@@ -95,8 +95,8 @@ import com.artemchep.keyguard.apple.directory.toServiceDirectoryDetailSnapshot
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.core.toNSData
+import com.artemchep.keyguard.apple.core.filePickerResultOf
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.platform.leParseUri
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.elevatedaccess_biometric_auth_confirm_title
 import com.artemchep.keyguard.res.Res
@@ -1828,6 +1828,7 @@ internal class DialogController(
                     publish(
                         AccountPickerSnapshot(
                             title = title,
+                            note = args.decor.note?.text,
                             newFolderName = content.folderNew?.text,
                             newFolderNameRevision = content.folderNew?.textRevision ?: 0,
                             newFolderNameError = content.folderNew?.error,
@@ -1964,13 +1965,7 @@ internal class DialogController(
     /** Feeds a chosen file back into the confirmation producer continuation for [requestId]. */
     fun resolveConfirmationFilePicker(requestId: String, uri: String, name: String?, size: Long) {
         val handler = confirmationFilePickerHandlers.remove(requestId) ?: return
-        handler(
-            FilePickerResult(
-                uri = leParseUri(uri),
-                name = name,
-                size = size.takeIf { it >= 0L },
-            ),
-        )
+        handler(filePickerResultOf(uri, name, size))
     }
 
     /** Cancels an in-flight confirmation file-picker request for [requestId]. */

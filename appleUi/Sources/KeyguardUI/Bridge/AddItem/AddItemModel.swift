@@ -174,6 +174,18 @@ final class AddItemModel {
         core.scanAddTotp(id: id, value: value)
     }
 
+    /// Adds a file dropped onto the form as an attachment.
+    func dropFileOnForm(url: URL) {
+        let file = url.fileNameAndSize
+        core.dropFileOnAddForm(uri: url.absoluteString, name: file.name, size: file.size)
+    }
+
+    /// Feeds a file dropped onto the row `itemId`, e.g. replacing a Send's file.
+    func dropFile(onItem itemId: String, url: URL) {
+        let file = url.fileNameAndSize
+        core.dropFileOnAddItem(itemId: itemId, uri: url.absoluteString, name: file.name, size: file.size)
+    }
+
     /// Submits the active create form (runs the shared `AddCipher` / `AddSend`).
     func submitAddItem() {
         core.submitAddItem()

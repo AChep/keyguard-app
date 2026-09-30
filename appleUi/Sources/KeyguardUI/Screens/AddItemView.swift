@@ -49,14 +49,23 @@ struct AddItemSheet: View {
     /// list "clone"): skips the type chooser and starts the form pre-filled from
     /// the stashed model rather than empty.
     let editRequest: AddEditPrefill?
+    /// Whether an account can create a File send; the Send type chooser hides
+    /// File otherwise, as the shared list does.
+    let canCreateFileSend: Bool
 
     @State private var chosenType: String?
     @State private var didStartObservation = false
 
-    init(mode: AddSheetMode, prefill: AddCipherPrefill? = nil, editRequest: AddEditPrefill? = nil) {
+    init(
+        mode: AddSheetMode,
+        prefill: AddCipherPrefill? = nil,
+        editRequest: AddEditPrefill? = nil,
+        canCreateFileSend: Bool = true
+    ) {
         self.mode = mode
         self.prefill = prefill
         self.editRequest = editRequest
+        self.canCreateFileSend = canCreateFileSend
         // The edit form has no type chooser; jump straight to the form. The
         // concrete cipher / Send type comes from the stashed model, so any
         // non-nil placeholder skips the chooser.
@@ -79,10 +88,13 @@ struct AddItemSheet: View {
                 AddTypeOption(id: "GpgKey", title: L10n.cipherTypeGpgKey, systemImage: "key.horizontal"),
             ]
         case .send:
-            return [
-                AddTypeOption(id: "Text", title: L10n.sendTypeText, systemImage: "text.alignleft"),
-                AddTypeOption(id: "File", title: L10n.sendTypeFile, systemImage: "doc"),
+            var options = [
+                AddTypeOption(id: "Text", title: L10n.sendTypeText, systemImage: "text.alignleft")
             ]
+            if canCreateFileSend {
+                options.append(AddTypeOption(id: "File", title: L10n.sendTypeFile, systemImage: "doc"))
+            }
+            return options
         }
     }
 
@@ -178,18 +190,7 @@ struct AddItemSheet: View {
         }
         #if os(iOS)
         // Present above this modal form, rather than from the covered root.
-        // Selection and cancellation are delivered by the completion callback;
-        // SwiftUI resets the binding before that callback arrives.
-        .fileImporter(
-            isPresented: Binding(
-                get: { filePickerModel.pendingFilePicker?.presentsInAddForm == true },
-                set: { _ in }
-            ),
-            allowedContentTypes: filePickerModel.pendingFilePicker?.allowedContentTypes ?? [.data, .item],
-            allowsMultipleSelection: false
-        ) { result in
-            filePickerModel.resolveFilePicker(result: result)
-        }
+        .pendingFileImporter { $0.presentsInAddForm }
         #endif
         // Import and mutation results arrive on the shared message bus. Native
         // sheets cover the root overlay, so keep feedback inside the editor.
@@ -308,6 +309,9 @@ struct AddItemSheet: View {
                 }
             }
             .formStyle(.grouped)
+            .fileDropTarget(text: form.fileDropText) { url in
+                addItemModel.dropFileOnForm(url: url)
+            }
         }
     }
 
@@ -597,6 +601,11 @@ private struct AddItemRow: View {
         HStack(spacing: 8) {
             Image(systemName: "paperclip")
                 .foregroundStyle(.secondary)
+                .overlay(alignment: .bottomTrailing) {
+                    if let attachment = item.attachment {
+                        attachmentSyncBadge(synced: attachment.synced)
+                    }
+                }
             if let field = firstField {
                 fieldEditor(field: field, fallbackLabel: L10n.fileNamePlaceholder)
             }
@@ -607,6 +616,21 @@ private struct AddItemRow: View {
             }
             overflowMenu(item.actions)
         }
+        .fileDropTarget(text: item.attachment?.dropText) { url in
+            addItemModel.dropFile(onItem: item.id, url: url)
+        }
+    }
+
+    /// Whether the file already lives on the server or is waiting for the next sync.
+    private func attachmentSyncBadge(synced: Bool) -> some View {
+        Image(systemName: synced ? "checkmark.icloud.fill" : "icloud.and.arrow.up.fill")
+            .font(.system(size: 8, weight: .semibold))
+            .foregroundStyle(.tint)
+            .padding(1)
+            .background(.background, in: Circle())
+            .offset(x: 5, y: 4)
+            .accessibilityLabel(L10n.fileStatusPendingUpload)
+            .accessibilityHidden(synced)
     }
 
     // MARK: - SSH key

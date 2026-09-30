@@ -30,6 +30,13 @@ struct AccountPickerView: View {
     @ViewBuilder
     private func content(_ snapshot: AccountPickerSnapshot) -> some View {
         Form {
+            if let note = snapshot.note, !note.isEmpty {
+                Section {
+                    LeakNote(kind: .info, text: note)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                }
+            }
             ForEach(Array(snapshot.sections.enumerated()), id: \.offset) { _, section in
                 Section(section.title ?? "") {
                     ForEach(section.items, id: \.key) { item in

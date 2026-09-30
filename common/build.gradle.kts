@@ -260,6 +260,16 @@ kotlin {
             kotlin.include("com/artemchep/keyguard/common/service/download/TestDownloadAttachmentSourceLoader.kt")
             kotlin.include("com/artemchep/keyguard/common/service/vault/TestVaultSession.kt")
             kotlin.include("com/artemchep/keyguard/common/usecase/impl/GetAppBuildDateImplTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/api/builder/ServerEnvApiAzureUploadValidationTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/api/builder/ServerEnvApiMultipartFilenameParameterTest.kt")
+            kotlin.include("com/artemchep/keyguard/feature/fileupload/FileUploadTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/entity/SendFileUploadEntityTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/sync/v2/SyncV2PipelineFixtures.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/sync/v2/SyncV2UploadReconciliationPolicyTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/sync/v2/bitwarden/ops/UploadFailureClassificationTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/upload/**")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/usecase/AddCipherPendingUploadPreparationTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/usecase/AddSendPendingUploadPreparationTest.kt")
             dependencies {
                 implementation(libs.ktor.ktor.client.mock)
             }

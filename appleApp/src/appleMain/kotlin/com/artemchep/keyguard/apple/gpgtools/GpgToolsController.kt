@@ -4,13 +4,13 @@ import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.core.sessionKoin
+import com.artemchep.keyguard.apple.core.filePickerResultOf
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
-import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.gpgagent.tools.GpgToolsOperation
 import com.artemchep.keyguard.feature.gpgagent.tools.GpgToolsPublicKeyValidationResult
 import com.artemchep.keyguard.feature.gpgagent.tools.GpgToolsScope
@@ -27,7 +27,6 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.platform.leParseUri
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.gpg_tools_encrypted_text_label
 import com.artemchep.keyguard.res.gpg_tools_signed_text_label
@@ -261,9 +260,7 @@ internal class GpgToolsController(private val ctx: CoreContext) {
         val request = imports.remove(id) ?: return
         try {
             if (active === request.owner && name != null) {
-                request.intent.onResult(FilePickerResult(
-                    uri = leParseUri(request.file.uri), name = name, size = size.takeIf { it >= 0 },
-                ))
+                request.intent.onResult(filePickerResultOf(request.file.uri, name, size))
             } else {
                 request.intent.onResult(null)
                 request.owner.files.discard(request.file.id)

@@ -46,12 +46,12 @@ import kotlinx.datetime.toLocalDateTime
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
+import com.artemchep.keyguard.apple.core.filePickerResultOf
 import com.artemchep.keyguard.apple.model.ActionKeyAllocator
 import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.apple.model.toFieldSnapshot
 import com.artemchep.keyguard.apple.throttleLatest
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.platform.leParseUri
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -99,6 +99,8 @@ internal class AddItemController(
         val ownership: AddStateOwnership?,
         val onSave: (() -> Unit)?,
         val merge: AddState.Merge? = null,
+        /** Dropping a file anywhere on the form adds it as an attachment. */
+        val fileDrag: AddState.FileDrag? = null,
     )
 
     private var addFieldHandlers: Map<String, (String) -> Unit> = emptyMap()
@@ -119,6 +121,9 @@ internal class AddItemController(
      * and the producer parses it into the secret / digits / algorithm fields.
      */
     private var addTotpScanHandlers: Map<String, (String) -> Unit> = emptyMap()
+    private var addFormFileDropHandler: ((FilePickerResult) -> Unit)? = null
+    /** Per-row file drops (replace a Send's file), keyed by the item id. */
+    private var addItemFileDropHandlers: Map<String, (FilePickerResult) -> Unit> = emptyMap()
     private var addSaveHandler: (() -> Unit)? = null
     private var formIdentity: Any? = null
     private var keyTargets: Map<String, KeyTarget> = emptyMap()
@@ -435,6 +440,7 @@ internal class AddItemController(
                         ownership = s.ownership.ui,
                         merge = s.merge,
                         onSave = s.onSave,
+                        fileDrag = s.fileDrag,
                     )
                 },
                 leContext = leContext,
@@ -551,15 +557,8 @@ internal class AddItemController(
         launch {
             producerFlow.collect { latest.value = it }
         }
-        // The producer builds one stable EventFlow for its lifetime, so a single
-        // subscription off the first emitted model captures every intent.
         launch {
-            val model = latest.filterNotNull().first()
-            model.filePickerIntentFlow.collect { intent ->
-                ctx.publishOnMain {
-                    handleFilePickerIntent(intent)
-                }
-            }
+            collectFilePickerIntents(latest)
         }
         latest.filterNotNull()
             .flatMapLatest { model ->
@@ -581,6 +580,7 @@ internal class AddItemController(
                 val switchHandlers = LinkedHashMap<String, (Boolean) -> Unit>()
                 val actionHandlers = LinkedHashMap<String, () -> Unit>()
                 val totpScanHandlers = LinkedHashMap<String, (String) -> Unit>()
+                val fileDropHandlers = LinkedHashMap<String, (FilePickerResult) -> Unit>()
                 val targets = LinkedHashMap<String, KeyTarget>()
                 val snapshot = buildAddItemSnapshot(
                     model,
@@ -590,6 +590,7 @@ internal class AddItemController(
                     switchHandlers,
                     actionHandlers,
                     totpScanHandlers,
+                    fileDropHandlers,
                     targets,
                 )
                     .let { it.copy(canSave = it.canSave && !saving) }
@@ -599,12 +600,25 @@ internal class AddItemController(
                     addSwitchHandlers = switchHandlers
                     addActionHandlers = actionHandlers
                     addTotpScanHandlers = totpScanHandlers
+                    addFormFileDropHandler = model.fileDrag?.onFileDrop.takeUnless { saving }
+                    addItemFileDropHandlers = fileDropHandlers.takeUnless { saving }.orEmpty()
                     keyTargets = targets.takeUnless { saving }.orEmpty()
                     addSaveHandler = model.onSave.takeUnless { saving }
                     addOwnershipHandler = model.ownership?.onClick
                     onChange(snapshot)
                 }
             }
+    }
+
+    // The producer builds one stable EventFlow for its lifetime, so a single
+    // subscription off the first emitted model captures every intent.
+    private suspend fun collectFilePickerIntents(models: Flow<AddFormModel?>) {
+        val model = models.filterNotNull().first()
+        model.filePickerIntentFlow.collect { intent ->
+            ctx.publishOnMain {
+                handleFilePickerIntent(intent)
+            }
+        }
     }
 
     private suspend fun buildAddItemSnapshot(
@@ -615,6 +629,7 @@ internal class AddItemController(
         switchHandlers: LinkedHashMap<String, (Boolean) -> Unit>,
         actionHandlers: LinkedHashMap<String, () -> Unit>,
         totpScanHandlers: LinkedHashMap<String, (String) -> Unit>,
+        fileDropHandlers: LinkedHashMap<String, (FilePickerResult) -> Unit>,
         keyTargets: LinkedHashMap<String, KeyTarget>,
     ): AddItemFormSnapshot {
         // The cipher's current URI context, used by the in-form username / email
@@ -842,11 +857,18 @@ internal class AddItemController(
 
                 is AddStateItem.Attachment<*> -> {
                     val st = item.state.flow.value
+                    item.fileDrop?.let { fileDrop ->
+                        fileDropHandlers[item.id] = fileDrop.onFileDrop
+                    }
                     snapshot(
                         item.id,
                         AddItemKind.ATTACHMENT,
                         fields = listOf(textField(item.id, st.name, null, false, false)),
-                        attachment = AddAttachmentSnapshot(size = st.size, synced = st.synced),
+                        attachment = AddAttachmentSnapshot(
+                            size = st.size,
+                            synced = st.synced,
+                            dropText = item.fileDrop?.text,
+                        ),
                         actions = actionList("${item.id}:opt", item.options),
                     )
                 }
@@ -1043,6 +1065,7 @@ internal class AddItemController(
             merge = merge,
             items = items,
             actions = formActions,
+            fileDropText = model.fileDrag?.text,
         )
     }
 
@@ -1153,6 +1176,8 @@ internal class AddItemController(
         addSwitchHandlers = emptyMap()
         addActionHandlers = emptyMap()
         addTotpScanHandlers = emptyMap()
+        addFormFileDropHandler = null
+        addItemFileDropHandlers = emptyMap()
         addSaveHandler = null
         addOwnershipHandler = null
         addFilePickerHandlers.clear()
@@ -1273,14 +1298,17 @@ internal class AddItemController(
     /** Feeds a chosen file back into the producer continuation for [requestId]. */
     fun resolveAddFilePicker(requestId: String, uri: String, name: String?, size: Long, accessToken: String? = null) {
         val handler = addFilePickerHandlers.remove(requestId) ?: return
-        handler(
-            FilePickerResult(
-                uri = leParseUri(uri),
-                accessToken = accessToken,
-                name = name,
-                size = size.takeIf { it >= 0L },
-            ),
-        )
+        handler(filePickerResultOf(uri, name, size, accessToken))
+    }
+
+    /** Adds a file dropped onto the form as an attachment. No-op unless [AddItemFormSnapshot.fileDropText]. */
+    fun dropFileOnAddForm(uri: String, name: String?, size: Long) {
+        addFormFileDropHandler?.invoke(filePickerResultOf(uri, name, size))
+    }
+
+    /** Feeds a file dropped onto the row [itemId]. No-op unless its [AddAttachmentSnapshot.dropText]. */
+    fun dropFileOnAddItem(itemId: String, uri: String, name: String?, size: Long) {
+        addItemFileDropHandlers[itemId]?.invoke(filePickerResultOf(uri, name, size))
     }
 
     /** Cancels an in-flight file-picker request for [requestId]. */

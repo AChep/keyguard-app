@@ -106,8 +106,6 @@ import com.artemchep.keyguard.platform.iosKeyguardAtomicDataDirectory
 import com.artemchep.keyguard.platform.iosKeyguardCacheDirectory
 import com.artemchep.keyguard.platform.iosKeyguardDataDirectory
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProviderIos
 import com.artemchep.keyguard.util.io.resolve
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
@@ -202,9 +200,6 @@ internal class IosPlatformModule {
         single<AppleBiometricKeychain> { get<KeychainRepositoryApple>() }
         single<CacheDirProvider> {
             CacheDirProviderIos
-        }
-        single<PendingUploadDirProvider> {
-            PendingUploadDirProviderIos
         }
         single<DownloadRepository> {
             DownloadRepositoryInMemory()

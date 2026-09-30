@@ -3,7 +3,6 @@ package com.artemchep.keyguard.apple.send
 import androidx.compose.ui.graphics.Color
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.apple.core.sessionKoin
-import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.send.SendItem
@@ -15,6 +14,7 @@ import com.artemchep.keyguard.feature.send.sendListScreenStateProducer
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
+import com.artemchep.keyguard.apple.core.filePickerResultOf
 import com.artemchep.keyguard.apple.model.VaultActionSnapshot
 import com.artemchep.keyguard.apple.model.VaultFilterItemKind
 import com.artemchep.keyguard.apple.model.invokeAction
@@ -26,7 +26,6 @@ import com.artemchep.keyguard.apple.model.buildMenuActionSnapshots
 import com.artemchep.keyguard.apple.model.buildSelectionActionSnapshots
 import com.artemchep.keyguard.apple.throttleLatest
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.platform.leParseUri
 import kotlinx.coroutines.flow.collect
 import org.koin.core.scope.Scope
 
@@ -175,13 +174,7 @@ internal class SendListController(
      * native create sheet. No-op unless [SendListSnapshot.canDropFile].
      */
     fun dropFileOnSendList(uri: String, name: String?, size: Long) {
-        latestSendListState?.onFileDrop?.invoke(
-            FilePickerResult(
-                uri = leParseUri(uri),
-                name = name,
-                size = size.takeIf { it >= 0L },
-            ),
-        )
+        latestSendListState?.onFileDrop?.invoke(filePickerResultOf(uri, name, size))
     }
 
     /**
@@ -279,6 +272,7 @@ internal class SendListController(
             selectionActions = selectionActions,
             listActions = listActions,
             canDropFile = state.onFileDrop != null,
+            canCreateFileSend = state.canCreateFileSend,
         )
     }
 

@@ -16,14 +16,16 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
 import io.ktor.http.content.OutgoingContent
-import io.ktor.utils.io.jvm.javaio.toByteReadChannel
-import io.ktor.utils.io.streams.asInput
-import java.io.File
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
+import io.ktor.http.toHttpDate
+import io.ktor.util.date.GMTDate
+import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.writePacket
+import kotlinx.io.Source
+import kotlinx.io.buffered
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 
-internal actual suspend fun platformUploadFileToTargetDirect(
+internal suspend fun uploadFileToTargetDirect(
     httpClient: HttpClient,
     env: ServerEnv,
     token: String,
@@ -45,9 +47,7 @@ internal actual suspend fun platformUploadFileToTargetDirect(
                             value = InputProvider(
                                 size = fileLength,
                             ) {
-                                File(filePath)
-                                    .inputStream()
-                                    .asInput()
+                                openUploadFile(filePath)
                             },
                             headers = Headers.build {
                                 append(
@@ -68,7 +68,7 @@ internal actual suspend fun platformUploadFileToTargetDirect(
         .bodyOrApiExceptionUnitStrict()
 }
 
-internal actual suspend fun platformUploadFileToTargetAzure(
+internal suspend fun uploadFileToTargetAzure(
     httpClient: HttpClient,
     env: ServerEnv,
     target: SendFileUploadTarget,
@@ -80,24 +80,29 @@ internal actual suspend fun platformUploadFileToTargetAzure(
         .put(target.resolveUrl(env)) {
             val uploadUrl = Url(target.resolveUrl(env))
             header("x-ms-blob-type", "BlockBlob")
-            header(
-                "x-ms-date",
-                DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneOffset.UTC)),
-            )
+            header("x-ms-date", GMTDate().toHttpDate())
             uploadUrl.parameters["sv"]?.let { version ->
                 header("x-ms-version", version)
             }
             setBody(
-                object : OutgoingContent.ReadChannelContent() {
+                object : OutgoingContent.WriteChannelContent() {
                     override val contentType = ContentType.Application.OctetStream
                     override val contentLength = fileLength
 
-                    override fun readFrom() = File(filePath)
-                        .inputStream()
-                        .toByteReadChannel()
+                    // Closes the file once sent; a ByteReadChannel over it would keep it open.
+                    override suspend fun writeTo(channel: ByteWriteChannel) {
+                        openUploadFile(filePath).use { source ->
+                            channel.writePacket(source)
+                        }
+                    }
                 },
             )
             attributes.put(routeAttribute, route)
         }
         .bodyOrApiExceptionUnitStrict(expectedStatus = HttpStatusCode.Created)
 }
+
+// Called again for every retry attempt, so each attempt reads the file from the start.
+private fun openUploadFile(filePath: String): Source = SystemFileSystem
+    .source(Path(filePath))
+    .buffered()

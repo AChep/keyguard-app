@@ -4,7 +4,6 @@ import UniformTypeIdentifiers
 
 struct BackupSetupWizard: View {
     @Environment(BackupSettingsModel.self) private var backupsModel
-    @Environment(FilePickerModel.self) private var filePickerModel
     @Environment(\.dismiss) private var dismiss
 
     @State private var path: [BackupSetupStep] = []
@@ -39,9 +38,6 @@ struct BackupSetupWizard: View {
     private var s: BackupSettingsSnapshot { backupsModel.backupSettings }
 
     var body: some View {
-        #if os(iOS)
-        let pickerRequest = filePickerModel.pendingFilePicker.flatMap { $0.presentsInBackupSetup ? $0 : nil }
-        #endif
         NavigationStack(path: $path) {
             page(.destination)
                 .navigationDestination(for: BackupSetupStep.self) { step in page(step) }
@@ -77,18 +73,7 @@ struct BackupSetupWizard: View {
         #if os(iOS)
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
-        .fileImporter(
-            isPresented: Binding(
-                get: { filePickerModel.pendingFilePicker?.presentsInBackupSetup == true },
-                set: { _ in }
-            ),
-            allowedContentTypes: pickerRequest?.allowedContentTypes ?? [.folder],
-            allowsMultipleSelection: false
-        ) { result in
-            if let request = pickerRequest {
-                filePickerModel.resolveFilePicker(result: result, requestId: request.requestId)
-            }
-        }
+        .pendingFileImporter(defaultContentTypes: [.folder]) { $0.presentsInBackupSetup }
         #else
         .frame(minWidth: 480, idealWidth: 540, minHeight: 520, idealHeight: 660)
         #endif

@@ -95,6 +95,9 @@ class FileServiceApple(
 
     override fun delete(uri: String): Boolean = delegate.delete(uri)
 
+    override fun deleteManagedSourceFile(uri: String): Boolean =
+        AppleManagedImportFiles.deleteIfManaged(uri)
+
     @OptIn(ExperimentalForeignApi::class)
     private fun <T> withSecurityScopedUrl(
         uri: String,

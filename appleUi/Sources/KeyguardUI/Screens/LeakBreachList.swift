@@ -236,16 +236,30 @@ struct LeakChip: View {
 }
 
 /// The warning / all-clear note shown above the breach list (and as the failure /
-/// no-breaches state). Mirrors the Compose `FlatSimpleNote`.
+/// no-breaches state), and the informational note of other screens. Mirrors the
+/// Compose `FlatSimpleNote`.
 struct LeakNote: View {
-    enum Kind { case warning, ok }
+    enum Kind { case warning, ok, info }
 
     let kind: Kind
     var title: String? = nil
     var text: String? = nil
 
-    private var tint: Color { kind == .warning ? .orange : .green }
-    private var symbol: String { kind == .warning ? "exclamationmark.triangle.fill" : "checkmark.circle.fill" }
+    private var tint: Color {
+        switch kind {
+        case .warning: return .orange
+        case .ok: return .green
+        case .info: return .accentColor
+        }
+    }
+
+    private var symbol: String {
+        switch kind {
+        case .warning: return "exclamationmark.triangle.fill"
+        case .ok: return "checkmark.circle.fill"
+        case .info: return "info.circle.fill"
+        }
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {

@@ -7,7 +7,6 @@ public struct RootContainer<Main: View>: View {
     @Environment(QuickSearchModel.self) private var quickSearchModel
     @Environment(VaultSessionModel.self) private var authModel
     @Environment(DialogsModel.self) private var dialogsModel
-    @Environment(FilePickerModel.self) private var filePickerModel
     @Environment(NavigationModel.self) private var navigationModel
     @Environment(AppPreferencesModel.self) private var preferencesModel
     @Environment(\.colorScheme) private var colorScheme
@@ -101,12 +100,8 @@ public struct RootContainer<Main: View>: View {
         // iOS has no NSOpenPanel; a running form's / dialog's file request is
         // presented here as the system document picker. The choice routes back into
         // whichever producer continuation raised it via `resolveFilePicker`.
-        .fileImporter(
-            isPresented: filePickerPresented,
-            allowedContentTypes: filePickerModel.pendingFilePicker?.allowedContentTypes ?? [.data, .item],
-            allowsMultipleSelection: false
-        ) { result in
-            filePickerModel.resolveFilePicker(result: result)
+        .pendingFileImporter {
+            !$0.presentsInAddForm && !$0.presentsInBackupSetup && !$0.presentsInKeePassLogin
         }
         #endif
         // Mirror the effective appearance into the shared bridge so headless
@@ -174,22 +169,6 @@ public struct RootContainer<Main: View>: View {
             AccountPickerView()
         }
     }
-
-    #if os(iOS)
-    private var filePickerPresented: Binding<Bool> {
-        // The importer reports cancellation as well as selection. Its binding
-        // becomes false before the completion callback, so only that callback
-        // may consume the pending request.
-        Binding(
-            get: {
-                filePickerModel.pendingFilePicker.map {
-                    !$0.presentsInAddForm && !$0.presentsInBackupSetup && !$0.presentsInKeePassLogin
-                } ?? false
-            },
-            set: { _ in }
-        )
-    }
-    #endif
 }
 
 private struct OnboardingBanner: View {

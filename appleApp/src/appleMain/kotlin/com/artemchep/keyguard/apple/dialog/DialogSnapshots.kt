@@ -422,6 +422,8 @@ data class AccountPickerSnapshot(
     val newFolderNameRevision: Int = 0,
     val newFolderNameError: String? = null,
     val title: String,
+    /** An informational note above the sections, e.g. why some accounts are missing. */
+    val note: String? = null,
     val sections: List<AccountPickerSectionSnapshot>,
     val confirmEnabled: Boolean,
 )

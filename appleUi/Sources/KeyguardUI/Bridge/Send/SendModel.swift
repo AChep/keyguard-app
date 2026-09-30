@@ -140,10 +140,8 @@ final class SendModel: SnapshotObserving {
     /// the shared producer's `onFileDrop`, which opens the native create sheet
     /// pre-filled with the dropped file.
     func dropFileOnSendList(url: URL) {
-        let values = try? url.resourceValues(forKeys: [.fileSizeKey, .nameKey])
-        let size = Int64(values?.fileSize ?? -1)
-        let name = values?.name ?? url.lastPathComponent
-        core.dropFileOnSendList(uri: url.absoluteString, name: name, size: size)
+        let file = url.fileNameAndSize
+        core.dropFileOnSendList(uri: url.absoluteString, name: file.name, size: file.size)
     }
     #endif
 

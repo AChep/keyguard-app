@@ -20,10 +20,10 @@ import com.artemchep.keyguard.apple.add.AddFilePickerKind
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
+import com.artemchep.keyguard.apple.core.filePickerResultOf
 import com.artemchep.keyguard.apple.model.toFieldSnapshot
 import com.artemchep.keyguard.apple.throttleLatest
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.platform.leParseUri
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -358,14 +358,7 @@ internal class KeePassLoginController(
         accessToken: String?,
     ) {
         val handler = filePickerHandlers.remove(requestId) ?: return
-        handler(
-            FilePickerResult(
-                uri = leParseUri(uri),
-                name = name,
-                size = size.takeIf { it >= 0L },
-                accessToken = accessToken,
-            ),
-        )
+        handler(filePickerResultOf(uri, name, size, accessToken))
     }
 
     /** Cancels an in-flight file-picker request for [requestId]. */

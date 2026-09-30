@@ -1,5 +1,0 @@
-package com.artemchep.keyguard.provider.bitwarden.send
-
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProviderAndroid
-
-typealias SendFilePendingUploadDirProviderAndroid = PendingUploadDirProviderAndroid

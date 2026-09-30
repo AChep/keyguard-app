@@ -214,7 +214,13 @@ struct SortMenu: View {
                 }
                 Divider()
             }
-            ForEach(sortMenuGroups(sort)) { group in
+            ForEach(
+                snapshotListSections(
+                    sort, id: { $0.id },
+                    sectionTitle: {
+                        $0.kind == VaultSortItemKind.section ? $0.title : nil
+                    })
+            ) { group in
                 sortPicker(group)
             }
         } label: {
@@ -224,8 +230,21 @@ struct SortMenu: View {
     }
 
     @ViewBuilder
-    private func sortPicker(_ group: SortGroup) -> some View {
-        if group.title.isEmpty {
+    private func sortPicker(_ group: SnapshotListSection<VaultSortItemSnapshot>) -> some View {
+        if let title = group.title {
+            Picker(
+                title,
+                selection: Binding(
+                    get: { group.items.first(where: { $0.checked })?.id ?? "" },
+                    set: { invoke($0) }
+                )
+            ) {
+                ForEach(group.items, id: \.id) { item in
+                    Text(item.title).tag(item.id)
+                }
+            }
+            .pickerStyle(.inline)
+        } else {
             // An inline `Picker("")` reserves a blank header row for its empty
             // title — the large gap under the "Default order" divider — so the
             // leading, header-less group renders as plain checkmark buttons instead.
@@ -240,49 +259,8 @@ struct SortMenu: View {
                     }
                 }
             }
-        } else {
-            Picker(
-                group.title,
-                selection: Binding(
-                    get: { group.items.first(where: { $0.checked })?.id ?? "" },
-                    set: { invoke($0) }
-                )
-            ) {
-                ForEach(group.items, id: \.id) { item in
-                    Text(item.title).tag(item.id)
-                }
-            }
-            .pickerStyle(.inline)
         }
     }
-}
-
-private struct SortGroup: Identifiable {
-    let id: String
-    let title: String
-    var items: [VaultSortItemSnapshot]
-}
-
-/// Splits the flat sort list into groups keyed by their preceding SECTION marker.
-/// The leading group (options before any SECTION) carries an empty title and is
-/// rendered without a header; empty groups are dropped.
-private func sortMenuGroups(_ sort: [VaultSortItemSnapshot]) -> [SortGroup] {
-    var result: [SortGroup] = []
-    var current = SortGroup(id: "", title: "", items: [])
-    for item in sort {
-        if item.kind == VaultSortItemKind.section {
-            if !current.items.isEmpty {
-                result.append(current)
-            }
-            current = SortGroup(id: item.id, title: item.title, items: [])
-        } else {
-            current.items.append(item)
-        }
-    }
-    if !current.items.isEmpty {
-        result.append(current)
-    }
-    return result
 }
 
 private struct FilterGroup: Identifiable {

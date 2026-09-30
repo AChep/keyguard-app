@@ -5,7 +5,6 @@ import com.artemchep.keyguard.main
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AgentStatus
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.seedHex
@@ -48,10 +47,8 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -101,6 +98,7 @@ internal class SshAgentController(
 
     private var latestSshApprovalWindowVariants: List<Duration> = emptyList()
     private var latestSshAgentFiltersState: SshAgentFiltersState? = null
+    private var filterObservationGeneration = 0L
     private var sshAgentFilterHandlers: Map<String, () -> Unit> = emptyMap()
 
     fun startSshAgentApplier() {
@@ -331,54 +329,51 @@ internal class SshAgentController(
         onChange: (SshAgentFiltersSnapshot) -> Unit,
         onClose: () -> Unit,
     ): KeyguardCancellable {
+        val observationGeneration = ++filterObservationGeneration
         // The producer dispatches the pop intent from the background pipeline;
         // hop to the main scope before invoking the Swift-facing callback.
         val interceptor: (NavigationIntent) -> Boolean = { intent ->
             when (intent) {
                 is NavigationIntent.Pop, is NavigationIntent.PopById -> {
-                    ctx.scope.launch { onClose() }
+                    ctx.scope.launch {
+                        if (filterObservationGeneration == observationGeneration) onClose()
+                    }
                     true
                 }
 
                 else -> false
             }
         }
-        return ctx.launchObserver {
-            try {
-                ctx.unlockUseCase().collectLatest { state ->
-                    if (state is VaultState.Main) {
-                        coroutineScope {
-                            val producerScope = this
-                            val producerFlow = sshAgentFiltersStateFlow(producerScope, state.sessionKoin, interceptor)
-                            producerFlow
-                                .map { loadable ->
-                                    val filtersState = loadable.getOrNull()
-                                    val handlers = LinkedHashMap<String, () -> Unit>()
-                                    val snapshot = buildSshAgentFiltersSnapshot(filtersState, handlers)
-                                    Triple(filtersState, snapshot, handlers)
-                                }
-                                .collectOnMain { (filtersState, snapshot, handlers) ->
-                                    latestSshAgentFiltersState = filtersState
-                                    sshAgentFilterHandlers = handlers
-                                    onChange(snapshot)
-                                }
-                        }
-                    } else {
-                        ctx.publishOnMain {
-                            latestSshAgentFiltersState = null
-                            sshAgentFilterHandlers = emptyMap()
-                            onChange(SshAgentFiltersSnapshot.empty)
-                        }
-                    }
+        return ctx.launchSessionObserver(
+            onLocked = {
+                if (filterObservationGeneration == observationGeneration) {
+                    latestSshAgentFiltersState = null
+                    sshAgentFilterHandlers = emptyMap()
+                    onChange(SshAgentFiltersSnapshot.empty)
                 }
-            } finally {
-                // Runs on teardown (cancellation included), so the main hop must
-                // survive the cancelled job.
-                withContext(NonCancellable + Dispatchers.Main) {
+            },
+            onTeardown = {
+                if (filterObservationGeneration == observationGeneration) {
                     latestSshAgentFiltersState = null
                     sshAgentFilterHandlers = emptyMap()
                 }
-            }
+            },
+        ) { state ->
+            val producerScope = this
+            val producerFlow = sshAgentFiltersStateFlow(producerScope, state.sessionKoin, interceptor)
+            producerFlow
+                .map { loadable ->
+                    val filtersState = loadable.getOrNull()
+                    val handlers = LinkedHashMap<String, () -> Unit>()
+                    val snapshot = buildSshAgentFiltersSnapshot(filtersState, handlers)
+                    Triple(filtersState, snapshot, handlers)
+                }
+                .collectOnMain { (filtersState, snapshot, handlers) ->
+                    if (filterObservationGeneration != observationGeneration) return@collectOnMain
+                    latestSshAgentFiltersState = filtersState
+                    sshAgentFilterHandlers = handlers
+                    onChange(snapshot)
+                }
         }
     }
 

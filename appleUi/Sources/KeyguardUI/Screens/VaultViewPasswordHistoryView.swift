@@ -94,7 +94,7 @@ struct VaultViewPasswordHistoryView: View {
     @ViewBuilder
     private func rowContextMenu(_ item: PasswordHistoryItemSnapshot) -> some View {
         if showsBulkContextMenu {
-            selectionContextMenuItems(actions: snapshot.selectionActions) {
+            listActionMenuItems(actions: snapshot.selectionActions) {
                 cipherDetailModel.invokePasswordHistorySelectionAction(id: $0)
             }
         } else {

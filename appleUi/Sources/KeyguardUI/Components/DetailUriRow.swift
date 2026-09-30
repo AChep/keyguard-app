@@ -11,11 +11,7 @@ struct DetailUriRow: View {
             rowLabel
         } else {
             Menu {
-                ForEach(item.actions, id: \.id) { action in
-                    Button(action.title, role: action.danger ? .destructive : nil) {
-                        invoke(action.id)
-                    }
-                }
+                listActionMenuItems(actions: item.actions) { invoke($0) }
             } label: {
                 rowLabel
             }

@@ -143,15 +143,9 @@ struct GeneratorView: View {
     @ViewBuilder
     private func valueButtons(_ value: GeneratorValueSnapshot) -> some View {
         if value.canCopy {
-            Button {
+            DetailIconButton(title: L10n.copy, systemImage: "doc.on.doc") {
                 generatorModel.invokeGeneratorAction(id: "value:copy")
-            } label: {
-                Image(systemName: "doc.on.doc")
-                    .touchTarget()
             }
-            .buttonStyle(.borderless)
-            .help(L10n.copy)
-            .accessibilityLabel(L10n.copy)
             // Copying an empty placeholder would put an empty string on the
             // clipboard; gate the action on an actual generated value.
             .disabled(value.value.isEmpty)
@@ -206,15 +200,9 @@ struct GeneratorView: View {
                     .font(.callout)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if tip.canHide {
-                    Button {
+                    DetailIconButton(title: L10n.hide, systemImage: "xmark") {
                         generatorModel.invokeGeneratorAction(id: "tip:hide")
-                    } label: {
-                        Image(systemName: "xmark")
-                            .touchTarget()
                     }
-                    .buttonStyle(.borderless)
-                    .help(L10n.hide)
-                    .accessibilityLabel(L10n.hide)
                 }
             }
             if tip.canLearnMore {

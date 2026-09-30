@@ -96,7 +96,7 @@ import com.artemchep.keyguard.apple.directory.directoryLinkTitles
 import com.artemchep.keyguard.apple.directory.toServiceDirectoryDetailSnapshot
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
-import com.artemchep.keyguard.apple.core.toNSData
+import com.artemchep.keyguard.util.io.toNSData
 import com.artemchep.keyguard.apple.core.filePickerResultOf
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*

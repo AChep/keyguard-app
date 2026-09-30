@@ -5,7 +5,6 @@ import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.launchIn
-import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.CheckHibpApiToken
 import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
@@ -18,7 +17,6 @@ import com.artemchep.keyguard.common.usecase.PutCheckPwnedPasswords
 import com.artemchep.keyguard.common.usecase.PutCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.PutCheckTwoFA
 import com.artemchep.keyguard.common.usecase.PutHibpApiToken
-import com.artemchep.keyguard.common.usecase.UnlockUseCase
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -30,6 +28,7 @@ import com.artemchep.keyguard.feature.watchtower.alerts.watchtowerNewAlertsState
 import com.artemchep.keyguard.feature.watchtower.watchtowerStateProducer
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
+import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.model.ActionKeyAllocator
 import com.artemchep.keyguard.apple.model.VaultFilterItemKind
@@ -41,11 +40,9 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -66,7 +63,6 @@ internal class WatchtowerController(
     private val args: WatchtowerRoute.Args = WatchtowerRoute.Args(),
     private val persistenceScope: String = "watchtower",
 ) {
-    private val unlockUseCase: UnlockUseCase by lazy { ctx.koin.get() }
     private val getCheckPwnedPasswords: GetCheckPwnedPasswords by lazy { ctx.koin.get() }
     private val putCheckPwnedPasswords: PutCheckPwnedPasswords by lazy { ctx.koin.get() }
     private val getCheckPwnedServices: GetCheckPwnedServices by lazy { ctx.koin.get() }
@@ -93,6 +89,10 @@ internal class WatchtowerController(
     // unlocked session sub-DI, so they're resolved per-session inside
     // observeWatchtowerSettings. The Put is cached for setHibpApiToken.
     private var watchtowerPutHibpApiToken: PutHibpApiToken? = null
+
+    // Only the newest settings observer owns the putter, so a stale teardown
+    // can't clear the one a reopened screen just published.
+    private var settingsObservationGeneration = 0L
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeWatchtower(
@@ -646,42 +646,53 @@ internal class WatchtowerController(
     fun observeWatchtowerSettings(
         onChange: (WatchtowerSettingsSnapshot) -> Unit,
     ): KeyguardCancellable {
-        val job = ctx.scope.launch {
-            unlockUseCase().collectLatest { state ->
-                if (state !is VaultState.Main) {
+        val observationGeneration = ++settingsObservationGeneration
+        return ctx.launchSessionObserver(
+            onLocked = {
+                if (settingsObservationGeneration == observationGeneration) {
                     watchtowerPutHibpApiToken = null
-                    onChange(WatchtowerSettingsSnapshot.empty)
-                    return@collectLatest
                 }
-                val sessionKoin = state.sessionKoin
-                val getHibpApiToken = sessionKoin.get<GetHibpApiToken>()
-                val checkHibpApiToken = sessionKoin.get<CheckHibpApiToken>()
-                watchtowerPutHibpApiToken = sessionKoin.get<PutHibpApiToken>()
-                val hibpFlow = getHibpApiToken()
-                    .distinctUntilChanged()
-                    .flatMapLatest { token -> hibpCheckStateFlow(token, checkHibpApiToken) }
-                coroutineScope {
-                    combine(
-                        getCheckPwnedPasswords(),
-                        getCheckPwnedServices(),
-                        getCheckTwoFA(),
-                        getCheckPasskeys(),
-                        hibpFlow,
-                    ) { pwnedPasswords, pwnedServices, twoFa, passkeys, hibp ->
-                        WatchtowerSettingsSnapshot(
-                            loaded = true,
-                            checkPwnedPasswords = pwnedPasswords,
-                            checkPwnedServices = pwnedServices,
-                            checkTwoFa = twoFa,
-                            checkPasskeys = passkeys,
-                            hibpApiToken = hibp.first,
-                            hibpCheckState = hibp.second,
-                        )
-                    }.collect { onChange(it) }
+                onChange(WatchtowerSettingsSnapshot.empty)
+            },
+            onTeardown = {
+                if (settingsObservationGeneration == observationGeneration) {
+                    watchtowerPutHibpApiToken = null
+                }
+            },
+        ) { state ->
+            val sessionKoin = state.sessionKoin
+            val getHibpApiToken = sessionKoin.get<GetHibpApiToken>()
+            val checkHibpApiToken = sessionKoin.get<CheckHibpApiToken>()
+            val putHibpApiToken = sessionKoin.get<PutHibpApiToken>()
+            // setHibpApiToken reads the putter on the main thread.
+            ctx.publishOnMain {
+                if (settingsObservationGeneration == observationGeneration) {
+                    watchtowerPutHibpApiToken = putHibpApiToken
                 }
             }
+            val hibpFlow = getHibpApiToken()
+                .distinctUntilChanged()
+                .flatMapLatest { token -> hibpCheckStateFlow(token, checkHibpApiToken) }
+            combine(
+                getCheckPwnedPasswords(),
+                getCheckPwnedServices(),
+                getCheckTwoFA(),
+                getCheckPasskeys(),
+                hibpFlow,
+            ) { pwnedPasswords, pwnedServices, twoFa, passkeys, hibp ->
+                WatchtowerSettingsSnapshot(
+                    loaded = true,
+                    checkPwnedPasswords = pwnedPasswords,
+                    checkPwnedServices = pwnedServices,
+                    checkTwoFa = twoFa,
+                    checkPasskeys = passkeys,
+                    hibpApiToken = hibp.first,
+                    hibpCheckState = hibp.second,
+                )
+            }.collectOnMain { snapshot ->
+                onChange(snapshot)
+            }
         }
-        return KeyguardCancellable(job)
     }
 
     /**

@@ -16,6 +16,7 @@ import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.util.foundation.crypto.ensurePlatformCryptoReady
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -179,14 +180,6 @@ internal class CoreContext(
     ): T = withContext(Dispatchers.Main, block)
 
     /**
-     * [launchObserver] specialisation for the vault-gated screens: while the
-     * vault is unlocked, runs [block] in a child scope handed the session's
-     * [VaultState.Main] (the scope is cancelled, and [block] re-run, on every
-     * vault-state change); otherwise runs [onLocked] on the main thread —
-     * reset the screen's `latest*` / handler-map fields there and emit the
-     * empty snapshot.
-     */
-    /**
      * Awaits and returns the current settled vault state (skipping the transient
      * [VaultState.Loading]). Shared by the one-shot bridge calls that need the
      * unlocked session's sub-DI (quick copy, wordlist / email-relay
@@ -203,18 +196,37 @@ internal class CoreContext(
     suspend fun awaitMain(): VaultState.Main =
         unlockUseCase().first { it is VaultState.Main } as VaultState.Main
 
+    /**
+     * [launchObserver] specialisation for the vault-gated screens: while the
+     * vault is unlocked, runs [block] in a child scope handed the session's
+     * [VaultState.Main] (the scope is cancelled, and [block] re-run, on every
+     * vault-state change); otherwise runs [onLocked] on the main thread —
+     * reset the screen's `latest*` / handler-map fields there and emit the
+     * empty snapshot. [onTeardown] runs on the main thread once the observer
+     * stops, cancellation included.
+     */
     fun launchSessionObserver(
         onLocked: suspend () -> Unit,
+        onTeardown: (suspend () -> Unit)? = null,
         block: suspend CoroutineScope.(VaultState.Main) -> Unit,
     ): KeyguardCancellable = launchObserver {
-        unlockUseCase().collectLatest { state ->
-            if (state is VaultState.Main) {
-                coroutineScope {
-                    block(state)
+        try {
+            unlockUseCase().collectLatest { state ->
+                if (state is VaultState.Main) {
+                    coroutineScope {
+                        block(state)
+                    }
+                } else {
+                    publishOnMain {
+                        onLocked()
+                    }
                 }
-            } else {
-                publishOnMain {
-                    onLocked()
+            }
+        } finally {
+            if (onTeardown != null) {
+                // The main hop must survive the cancelled job.
+                withContext(NonCancellable + Dispatchers.Main) {
+                    onTeardown()
                 }
             }
         }

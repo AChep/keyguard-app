@@ -8,6 +8,7 @@ import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.find
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
+import com.artemchep.keyguard.feature.search.search.searchDebounceMillis
 import com.artemchep.keyguard.platform.recordException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -70,7 +71,7 @@ internal class ServiceDirectoryListSession(
                         val rows = if (text.isEmpty()) {
                             catalog.rows.map { it.snapshot() }
                         } else {
-                            delay(if (text.length <= 3) 200L else 88L)
+                            delay(searchDebounceMillis(text))
                             val index = IndexedText(text)
                             catalog.rows.parallelSearch { row -> row.index.find(index)?.let { row to it } }
                                 .sortedByDescending { (_, match) -> match.score }

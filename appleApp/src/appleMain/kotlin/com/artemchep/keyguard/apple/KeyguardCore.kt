@@ -171,7 +171,6 @@ import com.artemchep.keyguard.apple.watchtower.WatchtowerSnapshot
 import com.artemchep.keyguard.res.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
@@ -193,16 +192,6 @@ import platform.Foundation.create
 internal val SNAPSHOT_THROTTLE = 48.milliseconds
 
 /**
- * Byte length of the random challenge generated when enrolling YubiKey unlock
- * (matches the shared Android `settingYubiKeyUnlockProvider`). The challenge is
- * stored and replayed verbatim at unlock, so the length only matters at enroll.
- */
-private const val YUBIKEY_CHALLENGE_LENGTH = 32
-
-/** Byte length of the HMAC-SHA1 secret written when provisioning a slot. */
-private const val YUBIKEY_SECRET_LENGTH = 20
-
-/**
  * Emits the first value immediately, then at most one value per [period],
  * always ending with the latest upstream value. Bounds the K/N -> Swift
  * bridging and SwiftUI diffing work to ~20 snapshots/s per observer while
@@ -221,48 +210,8 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     /**
      * Shared kernel: the DI graph, the coroutine scopes and the observer
      * plumbing that enforces the bridge's threading contract (see [CoreContext]).
-     * The feature code below still reaches these through the thin forwarders that
-     * follow; as that code moves out into dedicated controllers it will depend on
-     * [context] directly and the forwarders fall away.
      */
     private val context = CoreContext(runtime)
-
-    private val scope get() = context.scope
-    private val backgroundScope get() = context.backgroundScope
-
-    /**
-     * Launches an observer pipeline on [backgroundScope] and wraps the job in a
-     * [KeyguardCancellable]. The pipeline must route its `onChange` callbacks —
-     * and any handler-map side effects the Swift-facing `invoke*` methods read —
-     * through [publishOnMain], which keeps that state main-confined. (The Swift
-     * callers additionally re-dispatch via `DispatchQueue.main.async`, so a
-     * callback arriving from a background thread would also be safe.)
-     */
-    private fun launchObserver(
-        block: suspend CoroutineScope.() -> Unit,
-    ): KeyguardCancellable = context.launchObserver(block)
-
-    /**
-     * Runs [block] on the main thread. This is the final stage of an observer
-     * pipeline: snapshot delivery plus the handler-map mutations, which must
-     * stay main-confined because Swift reads them from main-thread calls.
-     */
-    private suspend fun <T> publishOnMain(
-        block: suspend CoroutineScope.() -> T,
-    ): T = context.publishOnMain(block)
-
-    /**
-     * [launchObserver] specialisation for the vault-gated screens: while the
-     * vault is unlocked, runs [block] in a child scope handed the session's
-     * [VaultState.Main] (the scope is cancelled, and [block] re-run, on every
-     * vault-state change); otherwise runs [onLocked] on the main thread —
-     * reset the screen's `latest*` / handler-map fields there and emit the
-     * empty snapshot.
-     */
-    private fun launchSessionObserver(
-        onLocked: suspend () -> Unit,
-        block: suspend CoroutineScope.(VaultState.Main) -> Unit,
-    ): KeyguardCancellable = context.launchSessionObserver(onLocked, block)
 
     /**
      * The SwiftUI-presented dialog subsystem (Large Type, Barcode, passkey
@@ -908,13 +857,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     // SwiftUI-presented dialogs (Large Type, Barcode, passkey credential,
     // attachment preview). The channel state, headless producers and snapshot
     // projection all live in [DialogController]; the methods below delegate.
-    // [dialogNavigationInterceptor] is the hook the detail observers hand to
-    // their producers so the dialog routes are caught (see observeCipherDetail).
     // ---------------------------------------------------------------------------
-
-    private fun dialogNavigationInterceptor(
-        sessionKoin: Scope? = null,
-    ): (NavigationIntent) -> Boolean = dialogController.navigationInterceptor(sessionKoin)
 
     fun observePasswordMemory(
         onChange: (PasswordMemorySnapshot?) -> Unit,

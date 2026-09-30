@@ -23,6 +23,13 @@ const val SEARCH_DEBOUNCE = 88L
 
 const val SEARCH_DEBOUNCE_LONG = 200L
 
+/** Short queries match a lot, so wait longer before running them. */
+fun searchDebounceMillis(query: String): Long = when {
+    query.isEmpty() -> 0L
+    query.length <= 3 -> SEARCH_DEBOUNCE_LONG
+    else -> SEARCH_DEBOUNCE
+}
+
 class SearchQueryHandle(
     val scope: RememberStateFlowScope,
     /** Owns the canonical query cell; shared field semantics. */
@@ -96,14 +103,7 @@ suspend fun <T> RememberStateFlowScope.searchFilter(
 fun <T> Flow<T>.debounceSearch(
     getter: (T) -> String,
 ) = this
-    .debounce {
-        val query = getter(it)
-        when {
-            query.isEmpty() -> 0L
-            query.length <= 3 -> SEARCH_DEBOUNCE_LONG
-            else -> SEARCH_DEBOUNCE
-        }
-    }
+    .debounce { searchDebounceMillis(getter(it)) }
 
 fun <T> Flow<List<IndexedModel<T>>>.mapSearch(
     handle: SearchQueryHandle,

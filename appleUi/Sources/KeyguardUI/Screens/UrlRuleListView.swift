@@ -153,7 +153,7 @@ struct UrlRuleListView: View {
     @ViewBuilder
     private func rowContextMenu(_ item: UrlRuleItemSnapshot) -> some View {
         if showsBulkContextMenu {
-            selectionContextMenuItems(actions: snapshot.selectionActions) {
+            listActionMenuItems(actions: snapshot.selectionActions) {
                 invokeSelectionAction($0)
             }
         } else {

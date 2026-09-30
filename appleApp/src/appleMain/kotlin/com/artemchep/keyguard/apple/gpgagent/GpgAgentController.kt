@@ -51,7 +51,6 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -345,60 +344,51 @@ internal class GpgAgentController(
                 else -> false
             }
         }
-        return ctx.launchObserver {
-            try {
-                ctx.unlockUseCase().collectLatest { state ->
-                    if (state is VaultState.Main) {
-                        coroutineScope {
-                            val producerScope = this
-                            val producerFlow = with(state.sessionKoin) {
-                                ctx.koin.newHeadlessStateFlowScope("gpg_agent_filters", producerScope, interceptor)
-                                    .gpgAgentFiltersStateProducer(
-                                        filterContext = get(),
-                                        getCipherFilters = get(),
-                                        getGpgAgentFilter = get(),
-                                        putGpgAgentFilter = get(),
-                                        getCiphers = get(),
-                                        getAccounts = get(),
-                                        getProfiles = get(),
-                                        getTags = get(),
-                                        getFolders = get(),
-                                        getCollections = get(),
-                                        getOrganizations = get(),
-                                    )
-                            }
-                            producerFlow
-                                .map { loadable ->
-                                    val filtersState = loadable.getOrNull()
-                                    val handlers = LinkedHashMap<String, () -> Unit>()
-                                    val snapshot = buildGpgAgentFiltersSnapshot(filtersState, handlers)
-                                    Triple(filtersState, snapshot, handlers)
-                                }
-                                .collectOnMain { (filtersState, snapshot, handlers) ->
-                                    if (filterObservationGeneration != observationGeneration) return@collectOnMain
-                                    latestGpgAgentFiltersState = filtersState
-                                    gpgAgentFilterHandlers = handlers
-                                    onChange(snapshot)
-                                }
-                        }
-                    } else {
-                        ctx.publishOnMain {
-                            if (filterObservationGeneration != observationGeneration) return@publishOnMain
-                            latestGpgAgentFiltersState = null
-                            gpgAgentFilterHandlers = emptyMap()
-                            onChange(GpgAgentFiltersSnapshot.empty)
-                        }
-                    }
+        return ctx.launchSessionObserver(
+            onLocked = {
+                if (filterObservationGeneration == observationGeneration) {
+                    latestGpgAgentFiltersState = null
+                    gpgAgentFilterHandlers = emptyMap()
+                    onChange(GpgAgentFiltersSnapshot.empty)
                 }
-            } finally {
-                // Runs on teardown (cancellation included), so the main hop must
-                // survive the cancelled job.
-                withContext(NonCancellable + Dispatchers.Main) {
-                    if (filterObservationGeneration != observationGeneration) return@withContext
+            },
+            onTeardown = {
+                if (filterObservationGeneration == observationGeneration) {
                     latestGpgAgentFiltersState = null
                     gpgAgentFilterHandlers = emptyMap()
                 }
+            },
+        ) { state ->
+            val producerScope = this
+            val producerFlow = with(state.sessionKoin) {
+                ctx.koin.newHeadlessStateFlowScope("gpg_agent_filters", producerScope, interceptor)
+                    .gpgAgentFiltersStateProducer(
+                        filterContext = get(),
+                        getCipherFilters = get(),
+                        getGpgAgentFilter = get(),
+                        putGpgAgentFilter = get(),
+                        getCiphers = get(),
+                        getAccounts = get(),
+                        getProfiles = get(),
+                        getTags = get(),
+                        getFolders = get(),
+                        getCollections = get(),
+                        getOrganizations = get(),
+                    )
             }
+            producerFlow
+                .map { loadable ->
+                    val filtersState = loadable.getOrNull()
+                    val handlers = LinkedHashMap<String, () -> Unit>()
+                    val snapshot = buildGpgAgentFiltersSnapshot(filtersState, handlers)
+                    Triple(filtersState, snapshot, handlers)
+                }
+                .collectOnMain { (filtersState, snapshot, handlers) ->
+                    if (filterObservationGeneration != observationGeneration) return@collectOnMain
+                    latestGpgAgentFiltersState = filtersState
+                    gpgAgentFilterHandlers = handlers
+                    onChange(snapshot)
+                }
         }
     }
 

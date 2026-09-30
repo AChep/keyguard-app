@@ -495,7 +495,7 @@ struct SendView: View {
                 // bar must not restructure every row, or the list scroll jumps.
                 .contextMenu {
                     if showsBulkContextMenu(editing: editing) {
-                        selectionContextMenuItems(actions: snapshot.selectionActions) {
+                        listActionMenuItems(actions: snapshot.selectionActions) {
                             sendModel.invokeSendListSelectionAction(id: $0)
                         }
                     }

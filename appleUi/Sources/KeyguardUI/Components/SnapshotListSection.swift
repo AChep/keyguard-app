@@ -1,5 +1,6 @@
 /// Converts shared flat lists with section markers into native list sections.
 /// Empty markers are omitted; rows before the first marker retain an unheaded section.
+/// A blank marker title becomes `nil`, so callers draw a header only when `title` is set.
 struct SnapshotListSection<Item>: Identifiable {
     enum ID: Hashable {
         case leading
@@ -29,7 +30,7 @@ func snapshotListSections<Item>(
             occurrences[markerID] = occurrence + 1
             current = SnapshotListSection(
                 id: .marker(markerID, occurrence: occurrence),
-                title: title,
+                title: title.isEmpty ? nil : title,
                 items: []
             )
         } else {

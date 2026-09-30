@@ -43,19 +43,13 @@ struct SettingsView: View {
     /// isn't part of the shared settings catalog, so it carries its own fixed id.
     static let generalTag = "macos_general"
 
-    static func groupedSettings(_ items: [SettingsItemSnapshot]) -> [SettingsSectionGroup] {
-        var groups: [SettingsSectionGroup] = []
-        for item in items {
-            if item.kind == SettingsItemKind.section {
-                groups.append(SettingsSectionGroup(id: item.id, title: item.title, actions: []))
-            } else if item.kind == SettingsItemKind.action {
-                if groups.isEmpty {
-                    groups.append(SettingsSectionGroup(id: "__leading__", title: nil, actions: []))
-                }
-                groups[groups.count - 1].actions.append(item)
-            }
-        }
-        return groups
+    /// The catalog's `.action` rows grouped under their preceding `.section` marker.
+    static func groupedSettings(_ items: [SettingsItemSnapshot]) -> [SnapshotListSection<SettingsItemSnapshot>] {
+        snapshotListSections(
+            items, id: { $0.id },
+            sectionTitle: {
+                $0.kind == SettingsItemKind.section ? $0.title : nil
+            })
     }
 
     var body: some View {
@@ -290,7 +284,7 @@ struct SettingsView: View {
             // styled text row in the flat list.
             ForEach(SettingsView.groupedSettings(items)) { group in
                 Section {
-                    ForEach(group.actions, id: \.id) { item in
+                    ForEach(group.items, id: \.id) { item in
                         NavigationLink {
                             SettingsSubroute(item: item)
                         } label: {
@@ -360,14 +354,6 @@ struct SettingsView: View {
     }
 }
 
-/// One grouped settings section: the catalog `.section` marker's title (or `nil`
-/// for the leading header-less group) plus its subsequent `.action` rows.
-struct SettingsSectionGroup: Identifiable {
-    let id: String
-    let title: String?
-    var actions: [SettingsItemSnapshot]
-}
-
 struct SettingsSidebar: View {
     let accounts: [AccountListItemSnapshot]
     let items: [SettingsItemSnapshot]
@@ -378,11 +364,15 @@ struct SettingsSidebar: View {
     /// Forwards an account-list selection action (toggle / bulk) to the producer.
     var invokeAccountListAction: (String) -> Void = { _ in }
 
-    private var groups: [SettingsSectionGroup] { SettingsView.groupedSettings(items) }
+    private var groups: [SnapshotListSection<SettingsItemSnapshot>] { SettingsView.groupedSettings(items) }
     /// Catalog actions that appear before any `.section` marker — rendered next to
     /// the macOS-only "General" category in the leading header-less section.
-    private var leadingGroup: SettingsSectionGroup? { groups.first(where: { $0.title == nil }) }
-    private var titledGroups: [SettingsSectionGroup] { groups.filter { $0.title != nil } }
+    private var leadingGroup: SnapshotListSection<SettingsItemSnapshot>? {
+        groups.first(where: { $0.id == .leading })
+    }
+    private var titledGroups: [SnapshotListSection<SettingsItemSnapshot>] {
+        groups.filter { $0.id != .leading }
+    }
 
     var body: some View {
         List(selection: $selection) {
@@ -401,13 +391,13 @@ struct SettingsSidebar: View {
             Section {
                 SettingsCategoryLabel(title: L10n.settingsGeneralHeaderTitle, id: SettingsView.generalTag)
                     .tag(SettingsView.generalTag)
-                ForEach(leadingGroup?.actions ?? [], id: \.id) { item in
+                ForEach(leadingGroup?.items ?? [], id: \.id) { item in
                     row(item)
                 }
             }
             ForEach(titledGroups) { group in
                 Section(group.title ?? "") {
-                    ForEach(group.actions, id: \.id) { item in
+                    ForEach(group.items, id: \.id) { item in
                         row(item)
                     }
                 }
@@ -415,7 +405,7 @@ struct SettingsSidebar: View {
             #else
             ForEach(groups) { group in
                 Section {
-                    ForEach(group.actions, id: \.id) { item in
+                    ForEach(group.items, id: \.id) { item in
                         row(item)
                     }
                 } header: {

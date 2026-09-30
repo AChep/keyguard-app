@@ -65,24 +65,13 @@ struct SelectionActionBar: View {
 
     var body: some View {
         SelectionBarChrome(count: count, clear: clear, hasActions: !actions.isEmpty) {
-            selectionContextMenuItems(actions: actions, invoke: invoke)
+            listActionMenuItems(actions: actions, invoke: invoke)
         }
     }
 }
 
-/// The bulk actions of the active multi-selection, rendered as plain buttons for
-/// use inside a row's `.contextMenu`. The actions operate on the current
-/// shared-producer selection.
-@ViewBuilder
-func selectionContextMenuItems(
-    actions: [VaultActionSnapshot],
-    invoke: @escaping @MainActor @Sendable (String) -> Void
-) -> some View {
-    ForEach(actions, id: \.id) { action in
-        Button(action.title, role: action.danger ? .destructive : nil) { invoke(action.id) }
-    }
-}
-
+/// Snapshot actions as menu items: a divider before each `startsSection` action,
+/// a toggle for a `switchState`, and the destructive role for `danger`.
 @ViewBuilder
 func listActionMenuItems(
     actions: [VaultActionSnapshot],

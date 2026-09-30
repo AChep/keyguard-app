@@ -28,15 +28,9 @@ struct AddFieldEditor: View {
     /// fields. Only rendered by callers when `field.autofill != nil`; presents
     /// `AutofillGeneratorSheet` and writes the chosen value back into the field.
     private var autofillButton: some View {
-        Button {
+        DetailIconButton(title: L10n.generatorHeaderTitle, systemImage: "wand.and.stars") {
             showAutofill = true
-        } label: {
-            Image(systemName: "wand.and.stars")
-                .touchTarget()
         }
-        .buttonStyle(.borderless)
-        .help(L10n.generatorHeaderTitle)
-        .accessibilityLabel(L10n.generatorHeaderTitle)
     }
 
     var body: some View {
@@ -124,18 +118,13 @@ struct AddFieldEditor: View {
                         .inputHints(hint)
                         .accessibilityLabel(label ?? field.placeholder ?? "")
                 }
-                Button {
+                // Matches the reveal toggle in ValueFieldCell.
+                DetailIconButton(
+                    title: reveal ? L10n.hide : L10n.fileActionRevealTitle,
+                    systemImage: reveal ? "eye.slash" : "eye"
+                ) {
                     reveal.toggle()
-                } label: {
-                    Image(systemName: reveal ? "eye.slash" : "eye")
-                        .touchTarget()
                 }
-                .buttonStyle(.borderless)
-                // Matches the reveal-toggle labeling used in DetailItems'
-                // ValueFieldCell: a hover tooltip on macOS and a VoiceOver label
-                // on both platforms, plus a 44pt iOS touch target.
-                .help(reveal ? L10n.hide : L10n.fileActionRevealTitle)
-                .accessibilityLabel(reveal ? L10n.hide : L10n.fileActionRevealTitle)
                 if field.autofill != nil {
                     autofillButton
                 }

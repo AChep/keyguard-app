@@ -46,10 +46,15 @@ struct AccountPickerView: View {
             }
             if let name = snapshot.newFolderName {
                 Section(L10n.folderNew) {
-                    AccountPickerFolderNameField(
-                        remote: name,
-                        revision: snapshot.newFolderNameRevision
+                    BridgedTextField(
+                        label: L10n.folderNew,
+                        text: name,
+                        textRevision: snapshot.newFolderNameRevision,
+                        secure: false,
+                        send: { dialogsModel.setAccountPickerNewFolderName($0) },
+                        style: .automatic
                     )
+                    .accessibilityIdentifier("accountPicker.newFolderName")
                     if let error = snapshot.newFolderNameError {
                         Text(error).font(.footnote).foregroundStyle(.red)
                     }
@@ -85,20 +90,5 @@ struct AccountPickerView: View {
         .buttonStyle(.plain)
         .disabled(!item.enabled)
         .accessibilityAddTraits(item.selected ? [.isButton, .isSelected] : .isButton)
-    }
-}
-
-private struct AccountPickerFolderNameField: View {
-    @Environment(DialogsModel.self) private var dialogsModel
-    let remote: String
-    let revision: Int32
-    @State private var text = ""
-
-    var body: some View {
-        TextField(L10n.folderNew, text: $text)
-            .accessibilityIdentifier("accountPicker.newFolderName")
-            .bridgedText($text, remote: remote, remoteRevision: revision) {
-                dialogsModel.setAccountPickerNewFolderName($0)
-            }
     }
 }

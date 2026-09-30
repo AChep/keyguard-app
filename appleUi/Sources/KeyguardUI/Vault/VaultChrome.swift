@@ -122,8 +122,25 @@ struct VaultSortMenuView: View {
                 Button(L10n.sortDefaultOrderTitle) { clear() }
                 Divider()
             }
-            ForEach(sortGroups) { group in
-                if group.title.isEmpty {
+            ForEach(
+                snapshotListSections(
+                    menu.items, id: { $0.id },
+                    sectionTitle: { $0.isSection ? $0.title : nil })
+            ) { group in
+                if let title = group.title {
+                    Picker(
+                        title,
+                        selection: Binding(
+                            get: { group.items.first(where: { $0.checked })?.id ?? "" },
+                            set: { invoke($0) }
+                        )
+                    ) {
+                        ForEach(group.items) { item in
+                            Text(item.title).tag(item.id)
+                        }
+                    }
+                    .pickerStyle(.inline)
+                } else {
                     ForEach(group.items) { item in
                         Button {
                             invoke(item.id)
@@ -135,48 +152,12 @@ struct VaultSortMenuView: View {
                             }
                         }
                     }
-                } else {
-                    Picker(
-                        group.title,
-                        selection: Binding(
-                            get: { group.items.first(where: { $0.checked })?.id ?? "" },
-                            set: { invoke($0) }
-                        )
-                    ) {
-                        ForEach(group.items) { item in
-                            Text(item.title).tag(item.id)
-                        }
-                    }
-                    .pickerStyle(.inline)
                 }
             }
         } label: {
             Label(L10n.sortAction, systemImage: "arrow.up.arrow.down")
         }
         .disabled(menu.items.isEmpty)
-    }
-
-    private struct SortGroup: Identifiable {
-        let id: String
-        let title: String
-        var items: [VaultSortItem]
-    }
-
-    /// Splits the flat sort list into groups keyed by their preceding `isSection`
-    /// marker (the leading group carries an empty header), dropping empty groups.
-    private var sortGroups: [SortGroup] {
-        var result: [SortGroup] = []
-        var current = SortGroup(id: "", title: "", items: [])
-        for item in menu.items {
-            if item.isSection {
-                if !current.items.isEmpty { result.append(current) }
-                current = SortGroup(id: item.id, title: item.title, items: [])
-            } else {
-                current.items.append(item)
-            }
-        }
-        if !current.items.isEmpty { result.append(current) }
-        return result
     }
 }
 
@@ -672,14 +653,4 @@ struct VaultSelectionActionBar: View {
             vaultActionMenuItems(actions, invoke: invoke)
         }
     }
-}
-
-/// The bulk actions of the active multi-selection for use inside a row
-/// `.contextMenu`, the twin of `selectionContextMenuItems`.
-@ViewBuilder
-func vaultSelectionContextMenuItems(
-    actions: [VaultAction],
-    invoke: @escaping @MainActor @Sendable (String) -> Void
-) -> some View {
-    vaultActionMenuItems(actions, invoke: invoke)
 }

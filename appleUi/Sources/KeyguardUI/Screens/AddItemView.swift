@@ -871,7 +871,6 @@ private struct AddItemRow: View {
 
 private struct CipherLinkPickerSheet: View {
     @Environment(DialogsModel.self) private var dialogsModel
-    @State private var query = ""
 
     var body: some View {
         ModalSheet(
@@ -883,14 +882,14 @@ private struct CipherLinkPickerSheet: View {
         ) {
             if let snapshot = dialogsModel.cipherLinkPicker {
                 VStack(alignment: .leading, spacing: 12) {
-                    TextField(L10n.vaultMainSearchPlaceholder, text: $query)
-                        .textFieldStyle(.roundedBorder)
-                        .bridgedText(
-                            $query,
-                            remote: snapshot.query,
-                            remoteRevision: snapshot.queryRevision,
-                            send: dialogsModel.setCipherLinkPickerQuery
-                        )
+                    BridgedTextField(
+                        label: L10n.vaultMainSearchPlaceholder,
+                        text: snapshot.query,
+                        textRevision: snapshot.queryRevision,
+                        secure: false,
+                        send: dialogsModel.setCipherLinkPickerQuery,
+                        style: .roundedBorder
+                    )
                     if snapshot.items.isEmpty {
                         Text(L10n.itemsEmptyLabel)
                             .foregroundStyle(.secondary)

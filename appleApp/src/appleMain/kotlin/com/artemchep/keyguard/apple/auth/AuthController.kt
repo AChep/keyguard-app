@@ -43,7 +43,14 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
+/**
+ * Byte length of the random challenge generated when enrolling YubiKey unlock
+ * (matches the shared Android `settingYubiKeyUnlockProvider`). The challenge is
+ * stored and replayed verbatim at unlock, so the length only matters at enroll.
+ */
 private const val YUBIKEY_CHALLENGE_LENGTH = 32
+
+/** Byte length of the HMAC-SHA1 secret written when provisioning a slot. */
 private const val YUBIKEY_SECRET_LENGTH = 20
 
 /**

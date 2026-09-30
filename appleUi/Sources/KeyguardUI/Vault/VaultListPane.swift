@@ -267,7 +267,7 @@ struct VaultRowContextMenu: ViewModifier {
             content
                 .contextMenu {
                     if let selectedIds = contextualSelectedIds {
-                        vaultSelectionContextMenuItems(actions: model.selection.actions) {
+                        vaultActionMenuItems(model.selection.actions) {
                             model.invokeSelectionAction(id: $0, selectedIds: selectedIds)
                         }
                     } else {

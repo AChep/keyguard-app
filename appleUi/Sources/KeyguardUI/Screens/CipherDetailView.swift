@@ -121,11 +121,7 @@ struct CipherDetailView: View {
         if !detail.actions.isEmpty {
             ToolbarItem(id: "vault.item.more", placement: actionPlacement) {
                 Menu(L10n.moreActions, systemImage: "ellipsis") {
-                    ForEach(detail.actions, id: \.id) { action in
-                        Button(action.title, role: action.danger ? .destructive : nil) {
-                            invoke(action.id)
-                        }
-                    }
+                    listActionMenuItems(actions: detail.actions) { invoke($0) }
                 }
                 .help(L10n.moreActions)
             }

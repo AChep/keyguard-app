@@ -51,13 +51,20 @@ struct GpgAgentHistoryView: View {
 
     private var list: some View {
         List {
-            ForEach(historyGroups(snapshot.items)) { group in
-                if group.title.isEmpty {
-                    ForEach(group.items, id: \.id) { row($0) }
-                } else {
-                    Section(group.title) {
-                        ForEach(group.items, id: \.id) { row($0) }
+            // The shared producer reuses a section marker's `caller` for its date header.
+            ForEach(
+                snapshotListSections(
+                    snapshot.items, id: { $0.id },
+                    sectionTitle: {
+                        $0.kind == GpgAgentHistoryItemKind.section ? $0.caller : nil
+                    })
+            ) { section in
+                if let title = section.title {
+                    Section(title) {
+                        ForEach(section.items, id: \.id) { row($0) }
                     }
+                } else {
+                    ForEach(section.items, id: \.id) { row($0) }
                 }
             }
         }
@@ -134,36 +141,6 @@ struct GpgAgentHistoryView: View {
         default: return .secondary
         }
     }
-}
-
-private struct HistoryGroup: Identifiable {
-    let id: String
-    /// The date header, taken from the section marker's `caller` (the shared
-    /// producer reuses that field for the section title). Empty for the leading
-    /// group of rows that precede any SECTION marker.
-    let title: String
-    var items: [GpgAgentHistoryItemSnapshot]
-}
-
-/// Groups the flat history list into sections keyed by their preceding SECTION
-/// marker, so the list can render native `Section` headers.
-private func historyGroups(_ items: [GpgAgentHistoryItemSnapshot]) -> [HistoryGroup] {
-    var result: [HistoryGroup] = []
-    var current = HistoryGroup(id: "", title: "", items: [])
-    for item in items {
-        if item.kind == GpgAgentHistoryItemKind.section {
-            if !current.items.isEmpty {
-                result.append(current)
-            }
-            current = HistoryGroup(id: item.id, title: item.caller, items: [])
-        } else {
-            current.items.append(item)
-        }
-    }
-    if !current.items.isEmpty {
-        result.append(current)
-    }
-    return result
 }
 
 #endif

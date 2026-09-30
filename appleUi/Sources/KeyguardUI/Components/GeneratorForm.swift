@@ -22,7 +22,14 @@ struct GeneratorTypePicker: View {
 
     var body: some View {
         Picker(L10n.type, selection: selection) {
-            ForEach(groups) { group in
+            // Section markers only split the list; their titles aren't shown.
+            ForEach(
+                snapshotListSections(
+                    types, id: { $0.id },
+                    sectionTitle: {
+                        $0.kind == GeneratorTypeItemKind.section ? ($0.title ?? "") : nil
+                    })
+            ) { group in
                 Section {
                     ForEach(group.items, id: \.id) { item in
                         Text(item.title ?? "").tag(item.id)
@@ -41,32 +48,6 @@ struct GeneratorTypePicker: View {
             },
             set: { actions.invoke($0) }
         )
-    }
-
-    /// Contiguous runs of `type` items split at each `section` marker.
-    private var groups: [TypeGroup] {
-        var groups: [TypeGroup] = []
-        var current: [GeneratorTypeItemSnapshot] = []
-        func flush() {
-            if !current.isEmpty {
-                groups.append(TypeGroup(id: "\(groups.count)", items: current))
-                current = []
-            }
-        }
-        for item in types {
-            if item.kind == GeneratorTypeItemKind.section {
-                flush()
-            } else {
-                current.append(item)
-            }
-        }
-        flush()
-        return groups
-    }
-
-    private struct TypeGroup: Identifiable {
-        let id: String
-        let items: [GeneratorTypeItemSnapshot]
     }
 }
 

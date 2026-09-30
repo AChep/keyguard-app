@@ -3,7 +3,6 @@ package com.artemchep.keyguard.apple.settings
 import com.artemchep.keyguard.main
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
-import com.artemchep.keyguard.common.usecase.UnlockUseCase
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.changepassword.ChangePasswordState
 import com.artemchep.keyguard.feature.changepassword.changePasswordStateProducer
@@ -47,7 +46,6 @@ internal class ChangePasswordController(
         onChange: (ChangePasswordSnapshot) -> Unit,
         onClose: () -> Unit,
     ): KeyguardCancellable {
-        val unlockUseCase = ctx.koin.get<UnlockUseCase>()
         val getBiometricRequireConfirmation = ctx.koin.get<GetBiometricRequireConfirmation>()
         val windowCoroutineScope = ctx.koin.get<WindowCoroutineScope>()
         val leContext = ctx.koin.get<LeContext>()
@@ -74,7 +72,7 @@ internal class ChangePasswordController(
             var promptCollectorStarted = false
             ctx.koin.newHeadlessStateFlowScope("change_password", this, interceptor)
                 .changePasswordStateProducer(
-                    unlockUseCase = unlockUseCase,
+                    unlockUseCase = ctx.unlockUseCase,
                     getBiometricRequireConfirmation = getBiometricRequireConfirmation,
                     windowCoroutineScope = windowCoroutineScope,
                 )

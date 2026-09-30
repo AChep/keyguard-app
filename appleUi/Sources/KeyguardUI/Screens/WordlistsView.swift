@@ -199,7 +199,7 @@ struct WordlistsView: View {
     @ViewBuilder
     private func rowContextMenu(_ item: WordlistListItemSnapshot) -> some View {
         if showsBulkContextMenu {
-            selectionContextMenuItems(actions: snapshot.selectionActions) {
+            listActionMenuItems(actions: snapshot.selectionActions) {
                 requestAction($0)
             }
         } else {

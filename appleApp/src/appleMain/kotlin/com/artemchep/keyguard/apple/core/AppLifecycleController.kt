@@ -18,7 +18,6 @@ import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
-import com.artemchep.keyguard.common.usecase.UnlockUseCase
 import com.artemchep.keyguard.copy.AppleManagedImportFiles
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -48,7 +47,6 @@ import platform.Foundation.NSUserDefaults
 internal class AppLifecycleController(
     private val ctx: CoreContext,
 ) {
-    private val unlockUseCase: UnlockUseCase by lazy { ctx.koin.get() }
     private val getVaultSession: GetVaultSession by lazy { ctx.koin.get() }
     private val getVaultPersist: GetVaultPersist by lazy { ctx.koin.get() }
     private val keyReadWriteRepository: KeyReadWriteRepository by lazy { ctx.koin.get() }
@@ -126,7 +124,7 @@ internal class AppLifecycleController(
 
     private fun startFaviconServers() {
         ctx.backgroundScope.launch {
-            unlockUseCase().collectLatest { state ->
+            ctx.unlockUseCase().collectLatest { state ->
                 if (state is VaultState.Main) {
                     val getAccounts = state.sessionKoin.get<GetAccounts>()
                     coroutineScope {
@@ -208,7 +206,7 @@ internal class AppLifecycleController(
         onChange: (KeyguardVaultStatus) -> Unit,
     ): KeyguardCancellable {
         val job = ctx.scope.launch {
-            unlockUseCase()
+            ctx.unlockUseCase()
                 .map { it.toStatus() }
                 .collect { onChange(it) }
         }

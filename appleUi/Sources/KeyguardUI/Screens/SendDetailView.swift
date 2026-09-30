@@ -86,10 +86,8 @@ struct SendDetailView: View {
         if !detail.actions.isEmpty {
             ToolbarItem(id: "send.item.more", placement: actionPlacement) {
                 Menu(L10n.moreActions, systemImage: "ellipsis") {
-                    ForEach(detail.actions, id: \.id) { action in
-                        Button(action.title, role: action.danger ? .destructive : nil) {
-                            sendModel.invokeSendAction(id: action.id)
-                        }
+                    listActionMenuItems(actions: detail.actions) {
+                        sendModel.invokeSendAction(id: $0)
                     }
                 }
                 .help(L10n.moreActions)

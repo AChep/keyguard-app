@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
 import com.artemchep.keyguard.common.usecase.GetWordlists
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.find
+import com.artemchep.keyguard.feature.search.search.searchDebounceMillis
 import com.artemchep.keyguard.platform.recordException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -93,7 +94,7 @@ internal class WordlistDetailSession(
                         val matches = if (text.isEmpty()) {
                             rows.items.map { WordlistWordSnapshot(it.id, it.text) }
                         } else {
-                            delay(if (text.length <= 3) 200L else 88L)
+                            delay(searchDebounceMillis(text))
                             val index = IndexedText(text)
                             rows.items.parallelSearch { word -> word.index.find(index)?.let { word to it } }
                                 .sortedByDescending { (_, match) -> match.score }

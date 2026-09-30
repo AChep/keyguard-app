@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.plus
+import org.jetbrains.compose.resources.StringResource
 
 /** One option of a settings picker (dropdown). [id] is an opaque, stable key. */
 data class SettingOptionSnapshot(
@@ -161,6 +162,19 @@ internal suspend fun buildVaultItemSnapshots(
             )
         }
         return acc
+    }
+
+    // Registers [onClick] under the item's [suffix] id and returns the row's action.
+    suspend fun registerAction(
+        itemId: String,
+        onClick: (() -> Unit)?,
+        title: StringResource,
+        suffix: String = "onclick",
+    ): VaultActionSnapshot? {
+        onClick ?: return null
+        val actionId = "$itemId:$suffix"
+        actionHandlers[actionId] = onClick
+        return VaultActionSnapshot(actionId, textResource(title, leContext), isCopy = false)
     }
 
     for (item in items) {
@@ -483,49 +497,47 @@ internal suspend fun buildVaultItemSnapshots(
             }
 
             is VaultViewItem.ReusedPassword -> {
-                val actionId = "${item.id}:onclick"
-                actionHandlers[actionId] = item.onClick
                 out += alertSnapshot(
                     item.id,
-                    "Reused password",
-                    "Used by ${item.count} items",
-                    actionId,
+                    textResource(Res.string.reused_password, leContext),
+                    textResource(
+                        Res.plurals.reused_password_items_count_plural,
+                        leContext,
+                        item.count,
+                        item.count,
+                    ),
+                    registerAction(item.id, item.onClick, Res.string.open_action),
                     shapeState = item.shapeState,
                     severity = VaultAlertSeverity.ERROR,
                 )
             }
 
             is VaultViewItem.InactiveTotp -> {
-                val actionId = item.onClick?.let { "${item.id}:onclick".also { id -> actionHandlers[id] = it } }
                 out += alertSnapshot(
                     item.id,
-                    "Inactive one-time password",
+                    textResource(Res.string.twofa_available, leContext),
                     null,
-                    actionId,
+                    registerAction(item.id, item.onClick, Res.string.open_action),
                     shapeState = item.shapeState,
                     severity = VaultAlertSeverity.WARNING,
                 )
             }
 
             is VaultViewItem.InactivePasskey -> {
-                val actionId = "${item.id}:onclick"
-                actionHandlers[actionId] = item.onClick
                 out += alertSnapshot(
                     item.id,
-                    "Inactive passkey",
+                    textResource(Res.string.passkey_available, leContext),
                     null,
-                    actionId,
+                    registerAction(item.id, item.onClick, Res.string.open_action),
                     shapeState = item.shapeState,
                     severity = VaultAlertSeverity.INFO,
                 )
             }
 
             is VaultViewItem.Passkey -> {
-                val useActions = item.onUse?.let { onUse ->
-                    val actionId = "${item.id}:use"
-                    actionHandlers[actionId] = onUse
-                    listOf(VaultActionSnapshot(actionId, "Use", isCopy = false))
-                } ?: emptyList()
+                val useActions = listOfNotNull(
+                    registerAction(item.id, item.onUse, Res.string.passkey_use_short, suffix = "use"),
+                )
                 val clickActionId = item.onClick?.let { onClick ->
                     "${item.id}:onclick".also { id -> actionHandlers[id] = onClick }
                 }
@@ -545,23 +557,22 @@ internal suspend fun buildVaultItemSnapshots(
             }
 
             is VaultViewItem.Error -> {
-                val actionId = item.onRetry?.let { "${item.id}:onclick".also { id -> actionHandlers[id] = it } }
                 out += alertSnapshot(
                     item.id,
                     item.name,
                     item.message,
-                    actionId,
-                    actionTitle = "Retry",
+                    registerAction(item.id, item.onRetry, Res.string.retry),
                     shapeState = item.shapeState,
                 )
             }
 
             is VaultViewItem.Info -> {
-                out += alertSnapshot(item.id, item.name, item.message, null)
+                out += alertSnapshot(item.id, item.name, item.message)
             }
 
             is VaultViewItem.Planeta -> {
-                out += alertSnapshot(item.id, "Fingerprint", item.fingerprint, null)
+                val title = textResource(Res.string.fingerprint, leContext)
+                out += alertSnapshot(item.id, title, item.fingerprint)
             }
 
             is VaultViewItem.Tags -> {
@@ -800,15 +811,14 @@ internal suspend fun List<FlatItemAction>.toHeaderActionSnapshots(
 
 /**
  * Builds an [VaultItemKind.ALERT] row for the various warning / security / info
- * detail items. [actionId] (when present) is the synthesized id its caller has
- * already registered in [KeyguardCore.vaultActionHandlers].
+ * detail items. [action] (when present) is already registered in the caller's
+ * action handlers.
  */
 internal fun alertSnapshot(
     id: String,
     title: String,
     message: String?,
-    actionId: String?,
-    actionTitle: String = "Open",
+    action: VaultActionSnapshot? = null,
     shapeState: Int = -1,
     severity: VaultAlertSeverity? = null,
 ): VaultItemSnapshot = VaultItemSnapshot(
@@ -820,11 +830,7 @@ internal fun alertSnapshot(
     monospace = false,
     launchUrl = null,
     switchValue = false,
-    actions = if (actionId != null) {
-        listOf(VaultActionSnapshot(actionId, actionTitle, isCopy = false))
-    } else {
-        emptyList()
-    },
+    actions = listOfNotNull(action),
     shapeState = shapeState,
     alertSeverity = severity,
 )

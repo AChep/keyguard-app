@@ -37,7 +37,7 @@ struct StackVaultListView: View {
                 LoadingIndicator()
             }
         }
-        .navigationTitle(entry.title)
+        .navigationTitle(entry.title.isEmpty ? L10n.homeVaultLabel : entry.title)
         .onAppear {
             if model == nil, let session = entry.vaultListSession {
                 model = VaultListSessionModel(session: session)

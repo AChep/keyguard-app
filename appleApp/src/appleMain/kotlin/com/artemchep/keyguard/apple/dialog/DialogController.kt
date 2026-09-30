@@ -90,7 +90,9 @@ import com.artemchep.keyguard.apple.add.AddFilePickerKind
 import com.artemchep.keyguard.apple.add.AddFilePickerRequest
 import com.artemchep.keyguard.apple.auth.AuthPromptHost
 import com.artemchep.keyguard.apple.core.CoreContext
+import com.artemchep.keyguard.apple.directory.DirectoryLinkTitles
 import com.artemchep.keyguard.apple.directory.ServiceDirectoryDetailSnapshot
+import com.artemchep.keyguard.apple.directory.directoryLinkTitles
 import com.artemchep.keyguard.apple.directory.toServiceDirectoryDetailSnapshot
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
@@ -418,7 +420,7 @@ internal class DialogController(
         val confirmation = intent.toConfirmationOrNull()
         val tagsConfirmation = intent.toTagsConfirmationOrNull()
         val elevatedAccess = intent.toElevatedAccessOrNull()
-        val serviceInfo = intent.toServiceInfoSnapshotOrNull()
+        val serviceInfo = intent.toServiceInfoOrNull()
         val emailLeakArgs = intent.toEmailLeakArgsOrNull()
         val passwordLeakArgs = intent.toPasswordLeakArgsOrNull()
         val websiteLeakArgs = intent.toWebsiteLeakArgsOrNull()
@@ -574,19 +576,22 @@ internal class DialogController(
 
     // The "Inactive one-time password" / "Inactive passkey" rows navigate to one of
     // these dialog routes; the args carry the full service model, projected here into
-    // the same flat snapshot the directory detail screen renders.
-    private fun NavigationIntent.toServiceInfoSnapshotOrNull(): ServiceDirectoryDetailSnapshot? {
+    // the same flat snapshot the directory detail screen renders. The projection
+    // needs the localized link titles, which are resolved when the dialog presents.
+    private fun NavigationIntent.toServiceInfoOrNull(): ((DirectoryLinkTitles) -> ServiceDirectoryDetailSnapshot)? {
         val route = (this as? NavigationIntent.NavigateToRoute)?.route ?: return null
         return when (route) {
-            is TwoFaServiceViewDialogRoute -> route.args.model.toServiceDirectoryDetailSnapshot()
-            is PasskeysServiceViewDialogRoute -> route.args.model.toServiceDirectoryDetailSnapshot()
+            is TwoFaServiceViewDialogRoute -> { titles -> route.args.model.toServiceDirectoryDetailSnapshot(titles) }
+            is PasskeysServiceViewDialogRoute -> { titles -> route.args.model.toServiceDirectoryDetailSnapshot(titles) }
             // A login whose URL matches a known JustGetMyData / JustDeleteMe service:
             // the cipher detail's "Get my data" / "How to delete account" overflow
             // actions navigate to these dialog routes (args carry the full service
             // model), projected here into the same flat snapshot the directory detail
             // screen renders so the shared service-info dialog presents.
-            is JustGetMyDataViewDialogRoute -> route.args.model.toServiceDirectoryDetailSnapshot()
-            is JustDeleteMeServiceViewDialogRoute -> route.args.justDeleteMe.toServiceDirectoryDetailSnapshot()
+            is JustGetMyDataViewDialogRoute -> { titles -> route.args.model.toServiceDirectoryDetailSnapshot(titles) }
+            is JustDeleteMeServiceViewDialogRoute -> { titles ->
+                route.args.justDeleteMe.toServiceDirectoryDetailSnapshot(titles)
+            }
             else -> null
         }
     }
@@ -1396,10 +1401,10 @@ internal class DialogController(
         onChange: (ServiceDirectoryDetailSnapshot?) -> Unit,
     ): KeyguardCancellable = serviceInfoDialog.register(onChange)
 
-    /** Presents a single static service-info [snapshot]; tears down any previous one. */
-    private fun presentServiceInfo(snapshot: ServiceDirectoryDetailSnapshot) {
+    /** Presents a single static service-info snapshot; tears down any previous one. */
+    private fun presentServiceInfo(project: (DirectoryLinkTitles) -> ServiceDirectoryDetailSnapshot) {
         serviceInfoDialog.present { publish ->
-            publish(snapshot, Unit)
+            publish(project(directoryLinkTitles(ctx.koin.get())), Unit)
         }
     }
 

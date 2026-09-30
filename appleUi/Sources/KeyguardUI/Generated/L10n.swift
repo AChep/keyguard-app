@@ -4989,6 +4989,10 @@ public enum L10n {
     public static var passkeysDirectorySearchPlaceholder: String {
         String(localized: "passkeys_directory_search_placeholder", bundle: AppLocalization.shared.bundle)
     }
+    /// passkeys_directory_setup_title
+    public static var passkeysDirectorySetupTitle: String {
+        String(localized: "passkeys_directory_setup_title", bundle: AppLocalization.shared.bundle)
+    }
     /// passkeys_directory_text
     public static var passkeysDirectoryText: String {
         String(localized: "passkeys_directory_text", bundle: AppLocalization.shared.bundle)
@@ -9409,6 +9413,14 @@ public enum L10n {
     public static func resultCountPlural(_ count: Int) -> String {
         String(
             format: NSLocalizedString("result_count_plural", bundle: AppLocalization.shared.bundle, comment: ""),
+            locale: AppLocalization.shared.locale,
+            count
+        )
+    }
+    /// reused_password_items_count_plural (plural)
+    public static func reusedPasswordItemsCountPlural(_ count: Int) -> String {
+        String(
+            format: NSLocalizedString("reused_password_items_count_plural", bundle: AppLocalization.shared.bundle, comment: ""),
             locale: AppLocalization.shared.locale,
             count
         )

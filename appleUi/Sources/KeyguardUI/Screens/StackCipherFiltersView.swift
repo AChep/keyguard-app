@@ -40,7 +40,7 @@ struct StackCipherFiltersView: View {
                 }
             }
         }
-        .navigationTitle(entry.title)
+        .navigationTitle(L10n.customfiltersHeaderTitle)
         .listSearchable(text: $query, prompt: Text(L10n.customfiltersSearchPlaceholder))
         .bridgedText(
             $query,

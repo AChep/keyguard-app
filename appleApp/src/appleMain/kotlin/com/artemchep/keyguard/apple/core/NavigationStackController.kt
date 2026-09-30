@@ -56,6 +56,7 @@ import com.artemchep.keyguard.apple.directory.ServiceDirectoryListSession
 import com.artemchep.keyguard.apple.directory.ServiceDirectoryController
 import com.artemchep.keyguard.apple.directory.ServiceDirectoryDetailSnapshot
 import com.artemchep.keyguard.apple.directory.ServiceDirectorySnapshot
+import com.artemchep.keyguard.apple.directory.directoryTitle
 import com.artemchep.keyguard.apple.vault.CipherDetailController
 import com.artemchep.keyguard.apple.vault.CollectionsController
 import com.artemchep.keyguard.apple.vault.CollectionsSnapshot
@@ -246,18 +247,17 @@ internal sealed interface ScreenKind {
     }
 
     data class Export(
-        val title: String,
+        val title: String?,
         val filter: DFilter?,
     ) : ScreenKind {
         override val entryKind get() = ScreenEntryKind.EXPORT
-        override val defaultTitle get() = title
+        override val defaultTitle get() = title.orEmpty()
     }
 
-    data class CipherFiltersList(
-        val title: String,
-    ) : ScreenKind {
+    /** The custom cipher filters list; the Swift view sets its localized title. */
+    data object CipherFiltersList : ScreenKind {
         override val entryKind get() = ScreenEntryKind.CIPHER_FILTERS_LIST
-        override val defaultTitle get() = title
+        override val defaultTitle get() = ""
     }
 
     data class CipherFilterDetail(
@@ -1264,7 +1264,7 @@ internal class NavigationStackController(
                 preselect = descriptor.preselect,
                 canAddSecrets = descriptor.canAddSecrets,
             )
-            ScreenKind.VaultList(args = args, title = args.appBar?.title ?: "Vault")
+            ScreenKind.VaultList(args = args, title = args.appBar?.title.orEmpty())
         }
 
         is RouteDescriptor.SendView ->
@@ -1286,7 +1286,7 @@ internal class NavigationStackController(
             ScreenKind.CollectionsList(
                 accountId = descriptor.accountId,
                 organizationId = descriptor.organizationId,
-                title = "Collections",
+                title = "",
             )
 
         is RouteDescriptor.EquivalentDomains ->
@@ -1301,7 +1301,7 @@ internal class NavigationStackController(
             args = WatchtowerAlertsRoute.Args(filter = descriptor.filter),
         )
 
-        RouteDescriptor.CipherFilters -> ScreenKind.CipherFiltersList(title = "Custom filters")
+        RouteDescriptor.CipherFilters -> ScreenKind.CipherFiltersList
 
         RouteDescriptor.GeneratorHistory -> ScreenKind.GeneratorHistory
 
@@ -1314,16 +1314,16 @@ internal class NavigationStackController(
         RouteDescriptor.Subscriptions -> ScreenKind.Subscriptions
 
         RouteDescriptor.TwoFaServices ->
-            ScreenKind.ServiceDirectoryList(DIRECTORY_KIND_TWO_FA, "Two-factor auth")
+            ScreenKind.ServiceDirectoryList(DIRECTORY_KIND_TWO_FA, "")
 
         RouteDescriptor.PasskeysServices ->
-            ScreenKind.ServiceDirectoryList(DIRECTORY_KIND_PASSKEYS, "Passkeys")
+            ScreenKind.ServiceDirectoryList(DIRECTORY_KIND_PASSKEYS, "")
 
         RouteDescriptor.JustGetMyDataServices ->
-            ScreenKind.ServiceDirectoryList(DIRECTORY_KIND_GET_MY_DATA, "Get my data")
+            ScreenKind.ServiceDirectoryList(DIRECTORY_KIND_GET_MY_DATA, "")
 
         RouteDescriptor.JustDeleteMeServices ->
-            ScreenKind.ServiceDirectoryList(DIRECTORY_KIND_DELETE_ACCOUNT, "Delete account")
+            ScreenKind.ServiceDirectoryList(DIRECTORY_KIND_DELETE_ACCOUNT, "")
 
         is RouteDescriptor.Folders -> {
             val accountId = DFilter.findOne<DFilter.ById>(descriptor.filter ?: DFilter.All) {
@@ -1339,7 +1339,7 @@ internal class NavigationStackController(
             ScreenKind.Duplicates(filter = descriptor.filter, title = "Duplicate items")
 
         is RouteDescriptor.Export ->
-            ScreenKind.Export(title = descriptor.title ?: "Export items", filter = descriptor.filter)
+            ScreenKind.Export(title = descriptor.title, filter = descriptor.filter)
 
         is RouteDescriptor.CipherFilterView ->
             // Push by id + title; the detail controller loads the DCipherFilter from the
@@ -1444,7 +1444,20 @@ internal class NavigationStackController(
                 }
             }
 
-            is ScreenKind.ServiceDirectoryList ->
+            is ScreenKind.ServiceDirectoryList -> {
+                // The four directories share one entry kind, so Swift can't pick the
+                // title; resolve it here once per entry.
+                if (entry.title.isEmpty()) {
+                    entry.job = scope.launch {
+                        val title = directoryTitle(kind.kind)
+                            ?.let { textResource(it, ctx.koin.get<LeContext>()) }
+                            .orEmpty()
+                        ctx.publishOnMain {
+                            entry.title = title
+                            emitFor(entry)
+                        }
+                    }
+                }
                 entry.directorySession = serviceDirectoryController.createListSession(
                     scope = scope,
                     kind = kind.kind,
@@ -1455,6 +1468,7 @@ internal class NavigationStackController(
                         emitFor(entry)
                     },
                 )
+            }
 
             is ScreenKind.ServiceDirectoryDetail ->
                 entry.cancellable = serviceDirectoryController.observeServiceDirectoryDetail(

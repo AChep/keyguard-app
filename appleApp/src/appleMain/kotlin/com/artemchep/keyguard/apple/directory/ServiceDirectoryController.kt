@@ -47,18 +47,19 @@ internal class ServiceDirectoryController(private val ctx: CoreContext) {
     }
 
     private suspend fun loadEntries(kind: String): List<DirectoryEntry> = with(ctx.koin) {
+        val titles = directoryLinkTitles(get())
         when (kind) {
             DIRECTORY_KIND_PASSKEYS -> get<GetPasskeys>()()().map {
-                DirectoryEntry(it.id, it.name, it.documentation, it.toServiceDirectoryDetailSnapshot())
+                DirectoryEntry(it.id, it.name, it.documentation, it.toServiceDirectoryDetailSnapshot(titles))
             }
             DIRECTORY_KIND_TWO_FA -> get<GetTwoFa>()()().map {
-                DirectoryEntry(it.name, it.name, it.documentation, it.toServiceDirectoryDetailSnapshot())
+                DirectoryEntry(it.name, it.name, it.documentation, it.toServiceDirectoryDetailSnapshot(titles))
             }
             DIRECTORY_KIND_GET_MY_DATA -> get<JustGetMyDataService>().get()().map {
-                DirectoryEntry(it.name, it.name, it.url, it.toServiceDirectoryDetailSnapshot())
+                DirectoryEntry(it.name, it.name, it.url, it.toServiceDirectoryDetailSnapshot(titles))
             }
             DIRECTORY_KIND_DELETE_ACCOUNT -> get<JustDeleteMeService>().get()().map {
-                DirectoryEntry(it.name, it.name, it.url, it.toServiceDirectoryDetailSnapshot())
+                DirectoryEntry(it.name, it.name, it.url, it.toServiceDirectoryDetailSnapshot(titles))
             }
             else -> error("Unknown directory kind: $kind")
         }

@@ -31,7 +31,7 @@
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.productivity</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Keyguard uses the camera to scan QR codes for one-time password (TOTP) setup.</string>
+	<string>Used to scan QR codes</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

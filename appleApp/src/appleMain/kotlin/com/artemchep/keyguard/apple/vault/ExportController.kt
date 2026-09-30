@@ -91,12 +91,13 @@ internal class ExportController(
     suspend fun produceExportInto(
         scope: CoroutineScope,
         sessionKoin: Scope,
-        title: String,
+        title: String?,
         filter: DFilter?,
         interceptor: (NavigationIntent) -> Boolean,
         publish: suspend (ExportSnapshot, Map<String, () -> Unit>, ExportState?) -> Unit,
     ) {
         val stateScope = ctx.koin.newHeadlessStateFlowScope("export", scope, interceptor)
+        val screenTitle = title ?: stateScope.translate(Res.string.exportaccount_header_title)
         val execution = ExportExecution(
             scope = scope,
             manager = sessionKoin.get<ExportManager>(),
@@ -158,7 +159,7 @@ internal class ExportController(
                     attachments.onView?.let { handlers["export:view:atts"] = it }
                     val snapshot = ExportSnapshot(
                         loaded = true,
-                        title = title,
+                        title = screenTitle,
                         itemsCount = items.count,
                         attachmentsCount = attachments.count,
                         attachmentsSize = attachments.size,

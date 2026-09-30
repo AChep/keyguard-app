@@ -16,6 +16,14 @@
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
     </plurals>
+    <plurals name="reused_password_items_count_plural">
+        <item quantity="zero">Used by <xliff:g id="number" example="0">%1$d</xliff:g> items</item>
+        <item quantity="one">Used by <xliff:g id="number" example="1">%1$d</xliff:g> item</item>
+        <item quantity="two">Used by <xliff:g id="number" example="2">%1$d</xliff:g> items</item>
+        <item quantity="few">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="many">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="other">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+    </plurals>
     <plurals name="word_count_plural">
         <item quantity="zero"><xliff:g id="number" example="0">%1$s</xliff:g> words</item>
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> word</item>

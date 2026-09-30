@@ -929,6 +929,7 @@
     <string name="passkeys_directory_title">Passkeys</string>
     <string name="passkeys_directory_text">List of websites with passkeys support</string>
     <string name="passkeys_directory_search_placeholder">Search websites</string>
+    <string name="passkeys_directory_setup_title">Set up a passkey</string>
 
 
     <!-- Title of the 'Email data breach' dialog -->

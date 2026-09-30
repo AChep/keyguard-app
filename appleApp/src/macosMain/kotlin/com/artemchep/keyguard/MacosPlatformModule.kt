@@ -115,6 +115,7 @@ import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.appleKeyguardAtomicDataDirectory
 import com.artemchep.keyguard.platform.appleKeyguardDataDirectory
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
+import com.artemchep.keyguard.provider.bitwarden.api.builder.configureBitwardenHttpRetry
 import com.artemchep.keyguard.util.io.resolve
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
@@ -422,6 +423,7 @@ private fun macosHttpClient(
         // In memory.
     }
     install(HttpRequestRetry) {
+        configureBitwardenHttpRetry()
     }
 }
 

@@ -76,26 +76,16 @@ internal class GeneratorHistoryController(
                         confirmationRouteFactory = get(),
                     )
             }
+            // Build the snapshot + handler maps off the main thread, then install
+            // the maps and deliver on the main thread together.
             producerFlow
-                .map { loadable -> loadable.getOrNull() }
-                .collectOnMain { historyState ->
-                    // Build the snapshot + handler maps off the producer pipeline,
-                    // then install the maps and deliver on the main thread together.
-                    val itemHandlers = LinkedHashMap<String, () -> Unit>()
-                    val options = LinkedHashMap<String, () -> Unit>()
-                    val selectionHandlers = LinkedHashMap<String, () -> Unit>()
-                    val snapshot = buildGeneratorHistorySnapshot(
-                        state = historyState,
-                        leContext = leContext,
-                        itemHandlers = itemHandlers,
-                        optionHandlers = options,
-                        selectionHandlers = selectionHandlers,
-                    )
-                    latestState = historyState
-                    itemActionHandlers = itemHandlers
-                    optionHandlers = options
-                    selectionActionHandlers = selectionHandlers
-                    onChange(snapshot)
+                .map { loadable -> projectGeneratorHistory(loadable.getOrNull(), leContext) }
+                .collectOnMain { projection ->
+                    latestState = projection.state
+                    itemActionHandlers = projection.itemHandlers
+                    optionHandlers = projection.optionHandlers
+                    selectionActionHandlers = projection.selectionHandlers
+                    onChange(projection.snapshot)
                 }
         }
     }
@@ -138,6 +128,29 @@ internal class GeneratorHistoryController(
     /** Selects every value row. No-op unless the producer offers a select-all handle. */
     fun selectAllGeneratorHistory() {
         latestState?.selection?.onSelectAll?.invoke()
+    }
+
+    private suspend fun projectGeneratorHistory(
+        state: GeneratorHistoryState?,
+        leContext: LeContext,
+    ): GeneratorHistoryProjection {
+        val itemHandlers = LinkedHashMap<String, () -> Unit>()
+        val optionHandlers = LinkedHashMap<String, () -> Unit>()
+        val selectionHandlers = LinkedHashMap<String, () -> Unit>()
+        val snapshot = buildGeneratorHistorySnapshot(
+            state = state,
+            leContext = leContext,
+            itemHandlers = itemHandlers,
+            optionHandlers = optionHandlers,
+            selectionHandlers = selectionHandlers,
+        )
+        return GeneratorHistoryProjection(
+            state = state,
+            snapshot = snapshot,
+            itemHandlers = itemHandlers,
+            optionHandlers = optionHandlers,
+            selectionHandlers = selectionHandlers,
+        )
     }
 
     /**
@@ -210,4 +223,12 @@ internal class GeneratorHistoryController(
             selectionActions = selectionActions,
         )
     }
+
+    private data class GeneratorHistoryProjection(
+        val state: GeneratorHistoryState?,
+        val snapshot: GeneratorHistorySnapshot,
+        val itemHandlers: Map<String, () -> Unit>,
+        val optionHandlers: Map<String, () -> Unit>,
+        val selectionHandlers: Map<String, () -> Unit>,
+    )
 }

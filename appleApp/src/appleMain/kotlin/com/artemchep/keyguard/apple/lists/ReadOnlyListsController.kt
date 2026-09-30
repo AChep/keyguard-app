@@ -169,10 +169,10 @@ internal class ReadOnlyListsController(
                         itemId = itemId,
                     )
             }
+            // Build the snapshot + handler maps off the main thread, then install
+            // the maps and deliver on the main thread together.
             producerFlow
-                .collectOnMain { historyState ->
-                    // Build the snapshot + handler maps off the producer pipeline,
-                    // then install the maps and deliver on the main thread together.
+                .map { historyState ->
                     val itemHandlers = LinkedHashMap<String, () -> Unit>()
                     val selectionHandlers = LinkedHashMap<String, () -> Unit>()
                     val actionHandlers = LinkedHashMap<String, () -> Unit>()
@@ -183,12 +183,20 @@ internal class ReadOnlyListsController(
                         selectionHandlers = selectionHandlers,
                         actionHandlers = actionHandlers,
                     )
-                    passwordHistoryState =
-                        historyState.content as? VaultViewPasswordHistoryState.Content.Cipher
-                    passwordHistoryItemHandlers = itemHandlers
-                    passwordHistorySelectionHandlers = selectionHandlers
-                    passwordHistoryActionHandlers = actionHandlers
-                    onChange(snapshot)
+                    PasswordHistoryProjection(
+                        content = historyState.content as? VaultViewPasswordHistoryState.Content.Cipher,
+                        snapshot = snapshot,
+                        itemHandlers = itemHandlers,
+                        selectionHandlers = selectionHandlers,
+                        actionHandlers = actionHandlers,
+                    )
+                }
+                .collectOnMain { projection ->
+                    passwordHistoryState = projection.content
+                    passwordHistoryItemHandlers = projection.itemHandlers
+                    passwordHistorySelectionHandlers = projection.selectionHandlers
+                    passwordHistoryActionHandlers = projection.actionHandlers
+                    onChange(projection.snapshot)
                 }
         }
     }
@@ -460,11 +468,11 @@ internal class ReadOnlyListsController(
                             getUrlBlocks = get(),
                         )
                 }
+                // Build the snapshot + handler maps off the main thread, then install
+                // the maps and deliver on the main thread together.
                 producerFlow
-                    .map { loadable -> loadable.getOrNull()?.content?.getOrNull()?.getOrNull() }
-                    .collectOnMain { content ->
-                        // Build the snapshot + handler maps off the producer pipeline,
-                        // then install the maps and deliver on the main thread together.
+                    .map { loadable ->
+                        val content = loadable.getOrNull()?.content?.getOrNull()?.getOrNull()
                         val itemHandlers = LinkedHashMap<String, () -> Unit>()
                         val selectionHandlers = LinkedHashMap<String, () -> Unit>()
                         val snapshot = buildUrlBlockSnapshot(
@@ -473,10 +481,18 @@ internal class ReadOnlyListsController(
                             itemHandlers = itemHandlers,
                             selectionHandlers = selectionHandlers,
                         )
-                        urlBlockState = content
-                        urlBlockItemHandlers = itemHandlers
-                        urlBlockSelectionHandlers = selectionHandlers
-                        onChange(snapshot)
+                        UrlRuleListProjection(
+                            content = content,
+                            snapshot = snapshot,
+                            itemHandlers = itemHandlers,
+                            selectionHandlers = selectionHandlers,
+                        )
+                    }
+                    .collectOnMain { projection ->
+                        urlBlockState = projection.content
+                        urlBlockItemHandlers = projection.itemHandlers
+                        urlBlockSelectionHandlers = projection.selectionHandlers
+                        onChange(projection.snapshot)
                     }
             }
         }
@@ -593,9 +609,11 @@ internal class ReadOnlyListsController(
                             executeCommand = get(),
                         )
                 }
+                // Build the snapshot + handler maps off the main thread, then install
+                // the maps and deliver on the main thread together.
                 producerFlow
-                    .map { loadable -> loadable.getOrNull()?.content?.getOrNull()?.getOrNull() }
-                    .collectOnMain { content ->
+                    .map { loadable ->
+                        val content = loadable.getOrNull()?.content?.getOrNull()?.getOrNull()
                         val itemHandlers = LinkedHashMap<String, () -> Unit>()
                         val selectionHandlers = LinkedHashMap<String, () -> Unit>()
                         val snapshot = buildUrlOverrideSnapshot(
@@ -604,10 +622,18 @@ internal class ReadOnlyListsController(
                             itemHandlers = itemHandlers,
                             selectionHandlers = selectionHandlers,
                         )
-                        urlOverrideState = content
-                        urlOverrideItemHandlers = itemHandlers
-                        urlOverrideSelectionHandlers = selectionHandlers
-                        onChange(snapshot)
+                        UrlRuleListProjection(
+                            content = content,
+                            snapshot = snapshot,
+                            itemHandlers = itemHandlers,
+                            selectionHandlers = selectionHandlers,
+                        )
+                    }
+                    .collectOnMain { projection ->
+                        urlOverrideState = projection.content
+                        urlOverrideItemHandlers = projection.itemHandlers
+                        urlOverrideSelectionHandlers = projection.selectionHandlers
+                        onChange(projection.snapshot)
                     }
             }
         }
@@ -683,4 +709,19 @@ internal class ReadOnlyListsController(
     fun clearUrlOverrideListSelection() {
         urlOverrideState?.selection?.onClear?.invoke()
     }
+
+    private data class PasswordHistoryProjection(
+        val content: VaultViewPasswordHistoryState.Content.Cipher?,
+        val snapshot: PasswordHistorySnapshot,
+        val itemHandlers: Map<String, () -> Unit>,
+        val selectionHandlers: Map<String, () -> Unit>,
+        val actionHandlers: Map<String, () -> Unit>,
+    )
+
+    private data class UrlRuleListProjection<T>(
+        val content: T?,
+        val snapshot: UrlRuleListSnapshot,
+        val itemHandlers: Map<String, () -> Unit>,
+        val selectionHandlers: Map<String, () -> Unit>,
+    )
 }

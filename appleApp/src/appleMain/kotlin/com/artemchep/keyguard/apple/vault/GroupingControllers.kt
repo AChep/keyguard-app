@@ -35,6 +35,7 @@ import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.map
 import org.koin.core.scope.Scope
 
 // ---------------------------------------------------------------------------
@@ -189,37 +190,37 @@ internal class OrganizationsController(
                     collectionsRouteFactory = get(),
                 )
         }
-        producerFlow.collectOnMain { state ->
-            val handlers = LinkedHashMap<String, () -> Unit>()
-            val content = state.content.getOrNull()
-            val items = content?.items.orEmpty().map { item ->
-                val itemsActionId = item.onViewItemsClick?.let { onClick ->
-                    val id = "${item.key}:items"
-                    handlers[id] = onClick
-                    id
+        producerFlow
+            .map { state ->
+                val handlers = LinkedHashMap<String, () -> Unit>()
+                val content = state.content.getOrNull()
+                val items = content?.items.orEmpty().map { item ->
+                    val itemsActionId = item.onViewItemsClick?.let { onClick ->
+                        val id = "${item.key}:items"
+                        handlers[id] = onClick
+                        id
+                    }
+                    val infoActionId = item.actions.infoOnClick()?.let { onClick ->
+                        val id = "${item.key}:info"
+                        handlers[id] = onClick
+                        id
+                    }
+                    OrganizationListItemSnapshot(
+                        id = item.key,
+                        title = item.title,
+                        ciphers = item.ciphers,
+                        itemsActionId = itemsActionId,
+                        infoActionId = infoActionId,
+                    )
                 }
-                val infoActionId = item.actions.infoOnClick()?.let { onClick ->
-                    val id = "${item.key}:info"
-                    handlers[id] = onClick
-                    id
-                }
-                OrganizationListItemSnapshot(
-                    id = item.key,
-                    title = item.title,
-                    ciphers = item.ciphers,
-                    itemsActionId = itemsActionId,
-                    infoActionId = infoActionId,
-                )
-            }
-            publish(
-                OrganizationsSnapshot(
+                val snapshot = OrganizationsSnapshot(
                     loaded = content != null,
                     accountId = accountId,
                     items = items,
-                ),
-                handlers,
-            )
-        }
+                )
+                snapshot to handlers
+            }
+            .collectOnMain { (snapshot, handlers) -> publish(snapshot, handlers) }
     }
 }
 
@@ -248,39 +249,39 @@ internal class CollectionsController(
                     vaultRouteFactory = get(),
                 )
         }
-        producerFlow.collectOnMain { state ->
-            val handlers = LinkedHashMap<String, () -> Unit>()
-            val content = state.content.getOrNull()
-            val items = content?.items.orEmpty()
-                .filterIsInstance<CollectionsState.Content.Item.Collection>()
-                .map { item ->
-                    val itemsActionId = item.onViewItemsClick?.let { onClick ->
-                        val id = "${item.key}:items"
-                        handlers[id] = onClick
-                        id
+        producerFlow
+            .map { state ->
+                val handlers = LinkedHashMap<String, () -> Unit>()
+                val content = state.content.getOrNull()
+                val items = content?.items.orEmpty()
+                    .filterIsInstance<CollectionsState.Content.Item.Collection>()
+                    .map { item ->
+                        val itemsActionId = item.onViewItemsClick?.let { onClick ->
+                            val id = "${item.key}:items"
+                            handlers[id] = onClick
+                            id
+                        }
+                        val infoActionId = item.actions.infoOnClick()?.let { onClick ->
+                            val id = "${item.key}:info"
+                            handlers[id] = onClick
+                            id
+                        }
+                        CollectionListItemSnapshot(
+                            id = item.key,
+                            title = item.title,
+                            ciphers = item.ciphers,
+                            organizationName = item.organization?.name,
+                            itemsActionId = itemsActionId,
+                            infoActionId = infoActionId,
+                        )
                     }
-                    val infoActionId = item.actions.infoOnClick()?.let { onClick ->
-                        val id = "${item.key}:info"
-                        handlers[id] = onClick
-                        id
-                    }
-                    CollectionListItemSnapshot(
-                        id = item.key,
-                        title = item.title,
-                        ciphers = item.ciphers,
-                        organizationName = item.organization?.name,
-                        itemsActionId = itemsActionId,
-                        infoActionId = infoActionId,
-                    )
-                }
-            publish(
-                CollectionsSnapshot(
+                val snapshot = CollectionsSnapshot(
                     loaded = content != null,
                     items = items,
-                ),
-                handlers,
-            )
-        }
+                )
+                snapshot to handlers
+            }
+            .collectOnMain { (snapshot, handlers) -> publish(snapshot, handlers) }
     }
 }
 
@@ -321,68 +322,68 @@ internal class FoldersController(
                     vaultRouteFactory = get(),
                 )
         }
-        producerFlow.collectOnMain { state ->
-            // All handlers share the entry's single action-handler map (invoked via
-            // KeyguardCore.invokeEntryAction): per-row "view items" + per-row selection
-            // toggle (folder:toggle) + the bulk-selection actions (selection:action:*,
-            // each navigating the producer's own confirmation-dialog route — rename /
-            // merge / delete — through the bridge).
-            val handlers = LinkedHashMap<String, () -> Unit>()
-            val content = state.content.getOrNull()
-            val items = content?.items.orEmpty()
-                .filterIsInstance<FoldersState.Content.Item.Folder>()
-                .map { item ->
-                    val itemsActionId = item.onViewItemsClick?.let { onClick ->
-                        val id = "${item.key}:items"
-                        handlers[id] = onClick
-                        id
+        producerFlow
+            .map { state ->
+                // All handlers share the entry's single action-handler map (invoked via
+                // KeyguardCore.invokeEntryAction): per-row "view items" + per-row selection
+                // toggle (folder:toggle) + the bulk-selection actions (selection:action:*,
+                // each navigating the producer's own confirmation-dialog route — rename /
+                // merge / delete — through the bridge).
+                val handlers = LinkedHashMap<String, () -> Unit>()
+                val content = state.content.getOrNull()
+                val items = content?.items.orEmpty()
+                    .filterIsInstance<FoldersState.Content.Item.Folder>()
+                    .map { item ->
+                        val itemsActionId = item.onViewItemsClick?.let { onClick ->
+                            val id = "${item.key}:items"
+                            handlers[id] = onClick
+                            id
+                        }
+                        // The per-row tap (while selecting) / long-press (to start a
+                        // selection) both toggle this folder's membership; register both
+                        // under one id so the Swift checkmark drives the producer selection.
+                        val toggleActionId = (item.onLongClick ?: item.onClick)?.let { onClick ->
+                            val id = "${item.key}:toggle"
+                            handlers[id] = onClick
+                            id
+                        }
+                        fun registerAction(suffix: String): String? {
+                            val action = item.actions.filterIsInstance<FlatItemAction>()
+                                .firstOrNull { it.id == "folder.${item.key}.$suffix" }
+                            val onClick = action?.onClick ?: return null
+                            val id = "${item.key}:$suffix"
+                            handlers[id] = onClick
+                            return id
+                        }
+                        FolderListItemSnapshot(
+                            renameActionId = registerAction("rename"),
+                            deleteActionId = registerAction("delete"),
+                            id = item.key,
+                            title = item.title,
+                            ciphers = item.ciphers,
+                            synced = item.synced,
+                            failed = item.failed,
+                            itemsActionId = itemsActionId,
+                            selecting = item.selecting,
+                            selected = item.selected,
+                            toggleActionId = toggleActionId,
+                        )
                     }
-                    // The per-row tap (while selecting) / long-press (to start a
-                    // selection) both toggle this folder's membership; register both
-                    // under one id so the Swift checkmark drives the producer selection.
-                    val toggleActionId = (item.onLongClick ?: item.onClick)?.let { onClick ->
-                        val id = "${item.key}:toggle"
-                        handlers[id] = onClick
-                        id
-                    }
-                    fun registerAction(suffix: String): String? {
-                        val action = item.actions.filterIsInstance<FlatItemAction>()
-                            .firstOrNull { it.id == "folder.${item.key}.$suffix" }
-                        val onClick = action?.onClick ?: return null
-                        val id = "${item.key}:$suffix"
-                        handlers[id] = onClick
-                        return id
-                    }
-                    FolderListItemSnapshot(
-                        renameActionId = registerAction("rename"),
-                        deleteActionId = registerAction("delete"),
-                        id = item.key,
-                        title = item.title,
-                        ciphers = item.ciphers,
-                        synced = item.synced,
-                        failed = item.failed,
-                        itemsActionId = itemsActionId,
-                        selecting = item.selecting,
-                        selected = item.selected,
-                        toggleActionId = toggleActionId,
-                    )
-                }
-            val selection = state.selection
-            val selectionActions =
-                buildSelectionActionSnapshots(selection?.actions, leContext, handlers)
-            // The "clear selection" affordance (the bulk bar's x button).
-            selection?.onClear?.let { handlers["selection:clear"] = it }
-            publish(
-                FoldersSnapshot(
+                val selection = state.selection
+                val selectionActions =
+                    buildSelectionActionSnapshots(selection?.actions, leContext, handlers)
+                // The "clear selection" affordance (the bulk bar's x button).
+                selection?.onClear?.let { handlers["selection:clear"] = it }
+                val snapshot = FoldersSnapshot(
                     loaded = content != null,
                     accountId = accountId,
                     items = items,
                     selectionCount = selection?.count ?: 0,
                     selectionActions = selectionActions,
-                ),
-                handlers,
-            )
-        }
+                )
+                snapshot to handlers
+            }
+            .collectOnMain { (snapshot, handlers) -> publish(snapshot, handlers) }
     }
 
     // Native folder mutations — the shared producer drives these through a
@@ -444,30 +445,32 @@ internal class EquivalentDomainsController(
                     getEquivalentDomains = get(),
                 )
         }
-        producerFlow.collectOnMain { state ->
-            val content = state.content.getOrNull()
-            val items = content?.items.orEmpty().map { item ->
-                when (item) {
-                    is EquivalentDomainsState.Content.Item.Section ->
-                        EquivalentDomainItemSnapshot(
-                            isSection = true,
-                            id = item.key,
-                            title = item.text.orEmpty(),
-                            excluded = false,
-                            global = false,
-                        )
+        producerFlow
+            .map { state ->
+                val content = state.content.getOrNull()
+                val items = content?.items.orEmpty().map { item ->
+                    when (item) {
+                        is EquivalentDomainsState.Content.Item.Section ->
+                            EquivalentDomainItemSnapshot(
+                                isSection = true,
+                                id = item.key,
+                                title = item.text.orEmpty(),
+                                excluded = false,
+                                global = false,
+                            )
 
-                    is EquivalentDomainsState.Content.Item.Content ->
-                        EquivalentDomainItemSnapshot(
-                            isSection = false,
-                            id = item.key,
-                            title = item.title,
-                            excluded = item.excluded,
-                            global = item.global,
-                        )
+                        is EquivalentDomainsState.Content.Item.Content ->
+                            EquivalentDomainItemSnapshot(
+                                isSection = false,
+                                id = item.key,
+                                title = item.title,
+                                excluded = item.excluded,
+                                global = item.global,
+                            )
+                    }
                 }
+                EquivalentDomainsSnapshot(loaded = content != null, items = items)
             }
-            publish(EquivalentDomainsSnapshot(loaded = content != null, items = items))
-        }
+            .collectOnMain { snapshot -> publish(snapshot) }
     }
 }

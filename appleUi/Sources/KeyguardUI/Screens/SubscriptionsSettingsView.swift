@@ -21,12 +21,22 @@ struct SubscriptionsSettingsView: View {
 
     @ViewBuilder
     private var form: some View {
-        Form {
-            if s.isPremium {
-                Section {
-                    Label(L10n.prefItemPremiumMembershipActiveTitle, systemImage: "checkmark.seal.fill")
-                        .foregroundStyle(.green)
+        SettingsForm(
+            ready: s.loaded, aliases: AppleLicenseSection.searchAliases(s.license, storeAvailable: s.storeAvailable)
+        ) {
+            Section {
+                LabeledContent(L10n.settingssearchMembershipStatusTitle) {
+                    if s.isPremium {
+                        Text(L10n.prefItemPremiumMembershipActiveTitle)
+                            .foregroundStyle(.green)
+                    } else if s.loaded && (!s.storeAvailable || s.billing.entitlementsLoaded) {
+                        Text(L10n.settingssearchMembershipInactiveText)
+                    } else {
+                        ProgressView()
+                    }
                 }
+                .fixedSize(horizontal: false, vertical: true)
+                .settingsSearchTarget(.membershipStatus)
             }
 
             Section {
@@ -73,7 +83,9 @@ struct SubscriptionsSettingsView: View {
             if s.storeAvailable {
                 Section {
                     Button(L10n.premiumPurchaseRestoreAction) { subscriptionsModel.restorePurchases() }
+                        .settingsSearchTarget(.restorePurchases)
                     Button(L10n.premiumPurchaseManageSubscriptionAction) { subscriptionsModel.manageSubscriptions() }
+                        .settingsSearchTarget(.managePurchases)
                 } footer: {
                     Text(L10n.premiumPurchaseRestoreNote)
                 }
@@ -85,6 +97,7 @@ struct SubscriptionsSettingsView: View {
                     }
                     if let url = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/") {
                         Link(L10n.premiumPurchaseTermsTitle, destination: url)
+                            .settingsSearchTarget(.purchaseTerms)
                     }
                 } footer: {
                     Text(L10n.premiumPurchaseStorekitRenewalNote)
@@ -96,7 +109,6 @@ struct SubscriptionsSettingsView: View {
             AppleLicenseSection(snapshot: s.license, storeAvailable: s.storeAvailable)
 
         }
-        .formStyle(.grouped)
     }
 
     @ViewBuilder

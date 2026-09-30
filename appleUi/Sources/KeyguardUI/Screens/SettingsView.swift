@@ -7,6 +7,15 @@ struct SettingsView: View {
     @Environment(SettingsModel.self) private var settingsModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectedId: String?
+    @State private var query = ""
+    @State private var searchSelection: String?
+    @State private var revealRequest: SettingsRevealRequest?
+    @State private var results: [SettingsSearchEntrySnapshot] = []
+    #if os(macOS)
+    @State private var searchFocusRequest = 0
+    #endif
+
+    private var searching: Bool { !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
     private var items: [SettingsItemSnapshot] { settingsModel.settings.items }
     private var accounts: [AccountListItemSnapshot] { accountsModel.accountList.items }
@@ -51,7 +60,7 @@ struct SettingsView: View {
 
     var body: some View {
         baseBody
-            .task { await settingsModel.loadSettings() }
+            .task(id: AppLocalization.shared.locale.identifier) { await settingsModel.loadSettings() }
             .onAppear {
                 accountsModel.startAccountListObservation()
                 syncAccountDetailObservation()
@@ -63,6 +72,11 @@ struct SettingsView: View {
             .onChange(of: selectedId) {
                 syncAccountDetailObservation()
             }
+            .onChange(of: query, initial: true) {
+                searchSelection = nil
+                refreshResults()
+            }
+            .onChange(of: settingsModel.searchIndex) { refreshResults() }
             .onChange(of: accountsModel.accountList.loaded ? accounts.map(\.id) : nil) { _, accountIds in
                 // Signing out removes the sidebar row, but List keeps its selection.
                 // Ignore loading/reset snapshots so navigating away does not clear it.
@@ -113,13 +127,18 @@ struct SettingsView: View {
         #if os(macOS)
         NavStackContainer(scope: "settings") {
             HSplitView {
-                SettingsSidebar(
-                    accounts: accounts,
-                    items: items,
-                    selection: $selectedId,
-                    selecting: selectingAccounts,
-                    invokeAccountListAction: { invokeAccountListAction($0) }
-                )
+                VStack(spacing: 0) {
+                    NativeListSearchField(
+                        text: $query, prompt: L10n.settingssearchSearchPlaceholder, focusRequest: searchFocusRequest
+                    )
+                    .padding(12)
+                    .background {
+                        Button(L10n.settingssearchSearchPlaceholder) { searchFocusRequest += 1 }
+                            .keyboardShortcut("f", modifiers: [.command, .option])
+                            .hidden()
+                    }
+                    searchableSidebar
+                }
                 .frame(width: SidebarLayout.width)
                 detailColumn
                     .frame(minWidth: SidebarLayout.detailMinWidth, maxWidth: .infinity, maxHeight: .infinity)
@@ -135,23 +154,101 @@ struct SettingsView: View {
             scope: "settings",
             compact: { compactSettingsList },
             sidebar: {
-                SettingsSidebar(
-                    accounts: accounts,
-                    items: items,
-                    selection: $selectedId,
-                    selecting: selectingAccounts,
-                    invokeAccountListAction: { invokeAccountListAction($0) }
-                )
-                .navigationTitle(L10n.settingsMainHeaderTitle)
-                .toolbar { addAccountToolbar }
+                searchableSidebar
+                    .searchable(text: $query, placement: .sidebar, prompt: Text(L10n.settingssearchSearchPlaceholder))
+                    .navigationTitle(L10n.settingsMainHeaderTitle)
+                    .toolbar { addAccountToolbar }
             },
             detail: { detailColumn }
         )
         #endif
     }
 
+    @ViewBuilder
+    private var searchableSidebar: some View {
+        if searching {
+            List(selection: $searchSelection) {
+                ForEach(results, id: \.id) { entry in
+                    Button {
+                        // A new selection activates through `onChange`; a repeated click reveals again.
+                        if searchSelection == entry.id { activate(entry) } else { searchSelection = entry.id }
+                    } label: {
+                        SettingsCategoryLabel(title: entry.title, id: entry.categoryId, subtitle: entry.path)
+                    }
+                    .buttonStyle(.plain)
+                    .tag(entry.id)
+                }
+            }
+            #if os(macOS)
+            .listStyle(.sidebar)
+            #else
+            .listStyle(.insetGrouped)
+            #endif
+            .overlay { searchEmptyState }
+            .onChange(of: searchSelection) { _, id in
+                if let entry = results.first(where: { $0.id == id }) { activate(entry) }
+            }
+        } else {
+            SettingsSidebar(
+                accounts: accounts,
+                items: items,
+                selection: $selectedId,
+                selecting: selectingAccounts,
+                invokeAccountListAction: { invokeAccountListAction($0) }
+            )
+            .onChange(of: selectedId) { _, _ in revealRequest = nil }
+        }
+    }
+
+    @ViewBuilder
+    private var searchEmptyState: some View {
+        if settingsModel.searchLoadFailed {
+            ContentUnavailableView {
+                Label(L10n.settingssearchSearchPlaceholder, systemImage: "exclamationmark.triangle")
+            } actions: {
+                Button(L10n.retry) { Task { await settingsModel.loadSettings() } }
+            }
+        } else if settingsModel.searchIndex == nil {
+            ProgressView()
+        } else if results.isEmpty {
+            ContentUnavailableView.search(text: query)
+        }
+    }
+
+    private func refreshResults() {
+        results = settingsModel.searchIndex?.search(query: query) ?? []
+    }
+
+    private func activate(_ entry: SettingsSearchEntrySnapshot) {
+        // Exit an account's pushed detail stack before revealing a settings page.
+        navigationModel.clearScope("settings")
+        selectedId = entry.categoryId
+        revealRequest = entry.target.map { SettingsRevealRequest(target: $0) }
+    }
+
     #if os(iOS)
     private var compactSettingsList: some View {
+        Group {
+            if searching {
+                List(results, id: \.id) { entry in
+                    NavigationLink {
+                        SettingsSearchDestination(entry: entry)
+                    } label: {
+                        SettingsCategoryLabel(title: entry.title, id: entry.categoryId, subtitle: entry.path)
+                    }
+                }
+                .overlay { searchEmptyState }
+            } else {
+                compactCategories
+            }
+        }
+        .listStyle(.insetGrouped)
+        .listSearchable(text: $query, prompt: Text(L10n.settingssearchSearchPlaceholder))
+        .navigationTitle(L10n.settingsMainHeaderTitle)
+        .toolbar { addAccountToolbar }
+    }
+
+    private var compactCategories: some View {
         List {
             if !accounts.isEmpty {
                 Section(L10n.accounts) {
@@ -207,9 +304,6 @@ struct SettingsView: View {
                 }
             }
         }
-        .listStyle(.insetGrouped)
-        .navigationTitle(L10n.settingsMainHeaderTitle)
-        .toolbar { addAccountToolbar }
     }
 
     private func compactAccountRow(_ account: AccountListItemSnapshot) -> some View {
@@ -238,6 +332,7 @@ struct SettingsView: View {
         #if os(macOS)
         if selectedId == Self.generalTag {
             GeneralSettingsView()
+                .environment(\.settingsRevealRequest, revealRequest)
         } else {
             selectedDetailContent
         }
@@ -254,6 +349,7 @@ struct SettingsView: View {
             let item = items.first(where: { $0.id == id && $0.kind == SettingsItemKind.action })
         {
             SettingsSubroute(item: item)
+                .environment(\.settingsRevealRequest, revealRequest)
         } else {
             ContentUnavailableView {
                 Label(L10n.settingsNoSelectionTitle, systemImage: "gearshape")

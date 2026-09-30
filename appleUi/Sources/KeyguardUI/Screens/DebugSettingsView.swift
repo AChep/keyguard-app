@@ -8,7 +8,7 @@ struct DebugSettingsView: View {
     private var s: DebugSettingsSnapshot { settingsModel.debugSettings }
 
     var body: some View {
-        Form {
+        SettingsForm(ready: s.loaded) {
             if !s.loaded {
                 ProgressView()
             } else if s.premiumOverrideAvailable {
@@ -18,13 +18,14 @@ struct DebugSettingsView: View {
                         isOn: Binding(
                             get: { s.premiumOverrideEnabled },
                             set: { settingsModel.setDebugPremium($0) }
-                        ))
+                        )
+                    )
+                    .settingsSearchTarget(.debugPremium)
                 } footer: {
                     Text(L10n.prefItemDebugPremiumText)
                 }
             }
         }
-        .formStyle(.grouped)
         .navigationTitle(item.title)
         .observing(
             start: { settingsModel.startDebugSettingsObservation() },

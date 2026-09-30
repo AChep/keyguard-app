@@ -165,6 +165,11 @@ final class NavigationModel {
         core.popScreen(scope: scope)
     }
 
+    /// Pops every screen instance of a scope back to its root.
+    func clearScope(_ scope: String) {
+        core.clearNavScope(scope: scope)
+    }
+
     /// Invokes a cipher-detail item action of the stacked entry with `instanceId`.
     func invokeEntryAction(instanceId: Int64, actionId: String) {
         core.invokeEntryAction(instanceId: instanceId, actionId: actionId)

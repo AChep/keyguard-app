@@ -128,7 +128,9 @@ import com.artemchep.keyguard.apple.settings.LaunchAtLoginController
 import com.artemchep.keyguard.apple.settings.LaunchAtLoginSnapshot
 import com.artemchep.keyguard.apple.settings.SecurityController
 import com.artemchep.keyguard.apple.settings.SecuritySettingsSnapshot
+import com.artemchep.keyguard.apple.settings.SettingsItemSnapshot
 import com.artemchep.keyguard.apple.settings.SettingsListSnapshot
+import com.artemchep.keyguard.apple.settings.SettingsSearchIndex
 import com.artemchep.keyguard.apple.settings.StaticDataController
 import com.artemchep.keyguard.apple.settings.AppInformationController
 import com.artemchep.keyguard.apple.settings.AppInformationSnapshot
@@ -1831,6 +1833,13 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     suspend fun deleteWordlists(ids: List<Long>) = wordlistController.deleteWordlists(ids)
 
     suspend fun loadSettingsList(): SettingsListSnapshot = staticDataController.loadSettingsList()
+
+    @Throws(Exception::class)
+    suspend fun loadSettingsSearch(
+        categories: List<SettingsItemSnapshot>,
+        biometricTitle: String,
+        localeIdentifier: String,
+    ): SettingsSearchIndex = staticDataController.loadSettingsSearch(categories, biometricTitle, localeIdentifier)
 
     // ---------------------------------------------------------------------------
     // Watchtower settings. Thin bridge over the shared Get/Put use cases that back

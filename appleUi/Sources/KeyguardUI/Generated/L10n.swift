@@ -7557,6 +7557,42 @@ public enum L10n {
     public static var settingsWatchtowerHeaderTitle: String {
         String(localized: "settings_watchtower_header_title", bundle: AppLocalization.shared.bundle)
     }
+    /// settingssearch_autofill_index_status_title
+    public static var settingssearchAutofillIndexStatusTitle: String {
+        String(localized: "settingssearch_autofill_index_status_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_autofill_keywords
+    public static var settingssearchAutofillKeywords: String {
+        String(localized: "settingssearch_autofill_keywords", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_backup_keywords
+    public static var settingssearchBackupKeywords: String {
+        String(localized: "settingssearch_backup_keywords", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_backup_location_keywords
+    public static var settingssearchBackupLocationKeywords: String {
+        String(localized: "settingssearch_backup_location_keywords", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_backup_password_keywords
+    public static var settingssearchBackupPasswordKeywords: String {
+        String(localized: "settingssearch_backup_password_keywords", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_biometric_keywords
+    public static var settingssearchBiometricKeywords: String {
+        String(localized: "settingssearch_biometric_keywords", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_breach_keywords
+    public static var settingssearchBreachKeywords: String {
+        String(localized: "settingssearch_breach_keywords", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_build_ref_keywords
+    public static var settingssearchBuildRefKeywords: String {
+        String(localized: "settingssearch_build_ref_keywords", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_clipboard_keywords
+    public static var settingssearchClipboardKeywords: String {
+        String(localized: "settingssearch_clipboard_keywords", bundle: AppLocalization.shared.bundle)
+    }
     /// settingssearch_header_subtitle
     public static var settingssearchHeaderSubtitle: String {
         String(localized: "settingssearch_header_subtitle", bundle: AppLocalization.shared.bundle)
@@ -7565,9 +7601,49 @@ public enum L10n {
     public static var settingssearchHeaderTitle: String {
         String(localized: "settingssearch_header_title", bundle: AppLocalization.shared.bundle)
     }
+    /// settingssearch_language_keywords
+    public static var settingssearchLanguageKeywords: String {
+        String(localized: "settingssearch_language_keywords", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_license_keywords
+    public static var settingssearchLicenseKeywords: String {
+        String(localized: "settingssearch_license_keywords", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_lock_keywords
+    public static var settingssearchLockKeywords: String {
+        String(localized: "settingssearch_lock_keywords", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_membership_inactive_text
+    public static var settingssearchMembershipInactiveText: String {
+        String(localized: "settingssearch_membership_inactive_text", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_membership_status_title
+    public static var settingssearchMembershipStatusTitle: String {
+        String(localized: "settingssearch_membership_status_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_navigation_keywords
+    public static var settingssearchNavigationKeywords: String {
+        String(localized: "settingssearch_navigation_keywords", bundle: AppLocalization.shared.bundle)
+    }
     /// settingssearch_search_placeholder
     public static var settingssearchSearchPlaceholder: String {
         String(localized: "settingssearch_search_placeholder", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_ssh_socket_keywords
+    public static var settingssearchSshSocketKeywords: String {
+        String(localized: "settingssearch_ssh_socket_keywords", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_ssh_socket_title
+    public static var settingssearchSshSocketTitle: String {
+        String(localized: "settingssearch_ssh_socket_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_startup_keywords
+    public static var settingssearchStartupKeywords: String {
+        String(localized: "settingssearch_startup_keywords", bundle: AppLocalization.shared.bundle)
+    }
+    /// settingssearch_theme_keywords
+    public static var settingssearchThemeKeywords: String {
+        String(localized: "settingssearch_theme_keywords", bundle: AppLocalization.shared.bundle)
     }
     /// setup_action_erase_data_text
     public static var setupActionEraseDataText: String {

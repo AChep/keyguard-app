@@ -22,7 +22,9 @@ struct GpgAgentSettingsSections: View {
                     isOn: Binding(get: { settings.enabled }, set: { model.setGpgAgentEnabled($0) })
                 )
                 .disabled(!settings.loaded || (status.state == .unsupported && !settings.enabled))
+                .settingsSearchTarget(.gpgEnable)
                 statusRow
+                    .settingsSearchTarget(.gpgStatus)
                 if let diagnostic = status.diagnostic, !diagnostic.isEmpty {
                     Text(diagnostic).font(.callout).foregroundStyle(.secondary).textSelection(.enabled)
                 }
@@ -30,18 +32,12 @@ struct GpgAgentSettingsSections: View {
                     Button(L10n.retry) { model.retryGpgAgent() }
                 }
                 Button(L10n.prefItemGpgAgentSetupTitle) { dialog = .setup }
+                    .settingsSearchTarget(.gpgSetup)
             } header: {
                 Text(L10n.gpgAgent)
             } footer: {
                 Text(L10n.gpgAgentSetupIntro)
             }
-            .observing(
-                start: {
-                    model.startGpgAgentObservation()
-                    model.startGpgAgentSettingsObservation()
-                },
-                stop: { model.stopGpgAgentSettingsObservation() }
-            )
             .sheet(item: $dialog) { dialog in
                 switch dialog {
                 case .setup:
@@ -60,12 +56,14 @@ struct GpgAgentSettingsSections: View {
                     currentTitle: settings.approvalWindowTitle,
                     set: { model.setGpgAgentApprovalWindow(optionId: $0) }
                 )
+                .settingsSearchTarget(.gpgApproval)
                 optionPicker(
                     L10n.prefItemAgentApprovalScopeTitle,
                     options: settings.approvalCachePolicyOptions,
                     currentTitle: settings.approvalCachePolicyTitle,
                     set: { model.setGpgAgentApprovalCachePolicy(optionId: $0) }
                 )
+                .settingsSearchTarget(.gpgScope)
             } header: {
                 Text(L10n.agentApprovalsHeaderTitle)
             } footer: {
@@ -79,6 +77,7 @@ struct GpgAgentSettingsSections: View {
                     isOn: Binding(get: { settings.displayKeyNames }, set: { model.setGpgAgentDisplayKeyNames($0) })
                 )
                 .disabled(!settings.loaded)
+                .settingsSearchTarget(.gpgNames)
             } header: {
                 Text(L10n.agentKeysHeaderTitle)
             } footer: {
@@ -99,11 +98,13 @@ struct GpgAgentSettingsSections: View {
                         .font(.callout).foregroundStyle(.secondary)
                     }
                 }
+                .settingsSearchTarget(.gpgFilters)
                 Button {
                     dialog = .history
                 } label: {
                     Label(L10n.prefItemGpgAgentHistoryTitle, systemImage: "clock.arrow.circlepath")
                 }
+                .settingsSearchTarget(.gpgHistory)
             }
         }
 

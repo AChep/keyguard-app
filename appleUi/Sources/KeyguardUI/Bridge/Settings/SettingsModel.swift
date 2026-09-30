@@ -12,9 +12,10 @@ final class SettingsModel: SnapshotObserving {
     }
 
     /// The settings categories list, projected from the shared Kotlin settings
-    /// catalog by `KeyguardCore.loadSettingsList`. Static for a given build, so
-    /// it is loaded once (one-shot) rather than observed.
+    /// catalog by `KeyguardCore.loadSettingsList`, refreshed with the search index.
     private(set) var settings: SettingsListSnapshot = SettingsListSnapshot.companion.empty
+    private(set) var searchIndex: SettingsSearchIndex?
+    private(set) var searchLoadFailed = false
 
     private(set) var debugSettings: DebugSettingsSnapshot = DebugSettingsSnapshot.companion.empty
 
@@ -33,12 +34,25 @@ final class SettingsModel: SnapshotObserving {
         core.setDebugPremium(enabled: enabled)
     }
 
-    /// Loads the settings categories from the shared catalog. Idempotent — the
-    /// list is constant for a build, so it is only computed once.
+    /// Refresh localization and device capabilities on each visit to Settings.
     func loadSettings() async {
-        guard settings.items.isEmpty else { return }
-        if let snapshot = try? await core.loadSettingsList() {
+        searchLoadFailed = false
+        let localization = AppLocalization.shared
+        do {
+            let snapshot = try await core.loadSettingsList()
+            guard !Task.isCancelled else { return }
             settings = snapshot
+            let index = try await core.loadSettingsSearch(
+                categories: snapshot.items,
+                biometricTitle: AppleBiometry.current.unlockTitle(bundle: localization.bundle),
+                localeIdentifier: localization.locale.identifier
+            )
+            guard !Task.isCancelled else { return }
+            searchIndex = index
+        } catch {
+            guard !Task.isCancelled else { return }
+            searchIndex = nil
+            searchLoadFailed = true
         }
     }
 }

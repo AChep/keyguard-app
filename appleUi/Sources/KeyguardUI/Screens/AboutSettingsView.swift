@@ -16,24 +16,28 @@ struct AboutSettingsView: View {
     var body: some View {
         // Grouped Form to match every sibling sub-route (Security/Display/Watchtower/
         // AutoFill/Developer/Backups), keeping consistent row insets and background.
-        Form {
+        SettingsForm(ready: appInformationModel.appInformation.loaded) {
             Section {
                 Button {
                     dialog = .feedback
                 } label: {
                     Label(L10n.contactusHeaderTitle, systemImage: "envelope")
                 }
+                .settingsSearchTarget(.feedback)
                 Button {
                     dialog = .team
                 } label: {
                     Label(L10n.prefItemAppTeamTitle, systemImage: "person.2")
                 }
+                .settingsSearchTarget(.team)
                 Link(destination: URL(string: "https://www.reddit.com/r/keyguard/")!) {
                     Label(L10n.prefItemRedditCommunityTitle, systemImage: "bubble.left.and.bubble.right")
                 }
+                .settingsSearchTarget(.community)
                 Link(destination: URL(string: "https://github.com/AChep/keyguard-app/")!) {
                     Label(L10n.prefItemGithubTitle, systemImage: "chevron.left.forwardslash.chevron.right")
                 }
+                .settingsSearchTarget(.source)
             }
             Section {
                 Button {
@@ -41,19 +45,23 @@ struct AboutSettingsView: View {
                 } label: {
                     Label(L10n.prefItemOpenSourceLicensesTitle, systemImage: "doc.plaintext")
                 }
+                .settingsSearchTarget(.licenses)
                 Button {
                     dialog = .localization
                 } label: {
                     Label(L10n.settingsLocalizationHeaderTitle, systemImage: "character.bubble")
                 }
+                .settingsSearchTarget(.translations)
                 Button {
                     dialog = .dataSafety
                 } label: {
                     Label(L10n.prefItemDataSafetyTitle, systemImage: "lock.shield")
                 }
+                .settingsSearchTarget(.dataSafety)
                 Link(destination: URL(string: "https://gist.github.com/AChep/1fd4e019a4ad8f9647ba3b4694b5dc1c")!) {
                     Label(L10n.prefItemPrivacyPolicyTitle, systemImage: "hand.raised")
                 }
+                .settingsSearchTarget(.privacyPolicy)
             }
             Section(L10n.settingsDiagnosticsHeaderTitle) {
                 NavigationLink {
@@ -61,6 +69,7 @@ struct AboutSettingsView: View {
                 } label: {
                     Label(L10n.logsHeaderTitle, systemImage: "doc.text.magnifyingglass")
                 }
+                .settingsSearchTarget(.logs)
                 NavigationLink {
                     UrlRuleListView(
                         title: L10n.prefItemUrlOverrideTitle,
@@ -79,13 +88,17 @@ struct AboutSettingsView: View {
                 } label: {
                     Label(L10n.prefItemUrlOverrideTitle, systemImage: "arrow.triangle.branch")
                 }
+                .settingsSearchTarget(.urlRules)
             }
             Section {
                 LabeledContent(L10n.prefItemAppVersionTitle, value: appInformationModel.appVersion)
+                    .settingsSearchTarget(.appVersion)
                 if !appInformationModel.appInformation.buildDate.isEmpty {
                     LabeledContent(
                         L10n.prefItemAppBuildDateTitle,
-                        value: appInformationModel.appInformation.buildDate)
+                        value: appInformationModel.appInformation.buildDate
+                    )
+                    .settingsSearchTarget(.buildDate)
                 }
                 if let ref = appInformationModel.appInformation.buildRef,
                     let urlString = appInformationModel.appInformation.buildRefUrl,
@@ -98,6 +111,7 @@ struct AboutSettingsView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
+                    .settingsSearchTarget(.buildRef)
                 }
                 if let text = appInformationModel.appInformation.changelogText,
                     let urlString = appInformationModel.appInformation.changelogUrl,
@@ -110,10 +124,10 @@ struct AboutSettingsView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
+                    .settingsSearchTarget(.changelog)
                 }
             }
         }
-        .formStyle(.grouped)
         .navigationTitle(item.title)
         .observing(
             start: { appInformationModel.startAppInformationObservation() },

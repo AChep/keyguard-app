@@ -52,10 +52,11 @@ struct GeneralSettingsView: View {
     }
 
     var body: some View {
-        Form {
+        SettingsForm {
             Section(L10n.settingsStartupHeaderTitle) {
                 Toggle(L10n.prefItemLaunchAtLoginTitle, isOn: launchBinding)
                     .disabled(!launch.available)
+                    .settingsSearchTarget(.launchAtLogin)
                 if launch.requiresApproval {
                     HStack(spacing: 8) {
                         Image(systemName: "exclamationmark.triangle.fill")
@@ -74,12 +75,12 @@ struct GeneralSettingsView: View {
             }
             Section(L10n.settingsMenuBarHeaderTitle) {
                 Toggle(L10n.prefItemMenuBarOnlyTitle, isOn: $menuBarOnly)
+                    .settingsSearchTarget(.menuBar)
                 Text(L10n.prefItemMenuBarOnlyText)
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
         }
-        .formStyle(.grouped)
         .navigationTitle(L10n.settingsGeneralHeaderTitle)
         .observing(
             start: { launchAtLoginModel.startLaunchAtLoginObservation() },
@@ -106,25 +107,33 @@ struct AutofillSettingsView: View {
     }
 
     var body: some View {
-        Form {
+        SettingsForm(aliases: autofillIndex.coordinator.isEnabled ? [.autofillEnable: .autofill] : [:]) {
             Section {
-                if autofillIndex.coordinator.isEnabled {
-                    Label(L10n.prefItemAutofillServiceEnabledText, systemImage: "checkmark.circle")
-                } else {
+                if !autofillIndex.coordinator.isEnabled {
                     Button(L10n.prefItemAutofillServiceEnableAction) {
                         Task { await autofillIndex.enable() }
                     }
                     .disabled(autofillIndex.isEnabling)
-                    Text(L10n.prefItemAutofillServiceDisabledText).foregroundStyle(.secondary)
+                    .settingsSearchTarget(.autofillEnable)
                 }
+                Group {
+                    if autofillIndex.coordinator.isEnabled {
+                        Label(L10n.prefItemAutofillServiceEnabledText, systemImage: "checkmark.circle")
+                    } else {
+                        Text(L10n.prefItemAutofillServiceDisabledText).foregroundStyle(.secondary)
+                    }
+                }
+                .settingsSearchTarget(.autofillStatus)
                 Button(L10n.prefItemAutofillServiceOpenSettingsAction) { Task { await autofillIndex.openSettings() } }
+                    .settingsSearchTarget(.autofill)
                 Text(indexStatus).foregroundStyle(.secondary)
+                    .settingsSearchTarget(.autofillIndexStatus)
                 Button(L10n.prefItemAutofillServiceRefreshAction) { autofillIndex.refreshAutofillIdentities() }
                     .disabled(autofillIndex.coordinator.state == .updating)
+                    .settingsSearchTarget(.autofillRefresh)
             }
         }
         .onAppear { autofillIndex.refreshAutofillIdentities() }
-        .formStyle(.grouped)
         .navigationTitle(item.title)
 
     }
@@ -154,20 +163,30 @@ struct SecuritySettingsView: View {
     }
 
     var body: some View {
-        Form {
+        SettingsForm(
+            ready: s.loaded,
+            aliases: [
+                .biometricTimeout: s.biometricUnlockEnabled ? .biometricTimeout : .biometric,
+                .lockReboot: s.lockAfterRebootVisible ? .lockReboot : .persist,
+            ]
+        ) {
             // Biometric unlock — its own section so the explanation lands in the
             // native inset footnote rather than as a full-width gray row.
             if s.biometricUnlockSupported {
                 Section {
                     Toggle(
                         AppleBiometry.current.unlockTitle(bundle: AppLocalization.shared.bundle),
-                        isOn: boolBinding({ s.biometricUnlockEnabled }, { securityModel.setBiometricUnlock($0) }))
+                        isOn: boolBinding({ s.biometricUnlockEnabled }, { securityModel.setBiometricUnlock($0) })
+                    )
+                    .settingsSearchTarget(.biometric)
                     if s.biometricUnlockEnabled {
                         durationPicker(
                             L10n.prefItemBiometricUnlockTimeoutTitle,
                             options: s.biometricTimeoutOptions,
                             currentTitle: s.biometricTimeoutTitle,
-                            set: { securityModel.setBiometricTimeout($0) })
+                            set: { securityModel.setBiometricTimeout($0) }
+                        )
+                        .settingsSearchTarget(.biometricTimeout)
                     }
                 } header: {
                     Text(L10n.homeVaultLabel)
@@ -179,7 +198,9 @@ struct SecuritySettingsView: View {
                 Section {
                     Toggle(
                         L10n.fido2UnlockTitle,
-                        isOn: boolBinding({ s.fido2UnlockEnabled }, { securityModel.setFido2Unlock($0) }))
+                        isOn: boolBinding({ s.fido2UnlockEnabled }, { securityModel.setFido2Unlock($0) })
+                    )
+                    .settingsSearchTarget(.fido2)
                 } footer: {
                     Text(L10n.fido2UnlockDescription)
                 }
@@ -196,7 +217,9 @@ struct SecuritySettingsView: View {
                                 } else {
                                     securityModel.setYubiKeyUnlock(false)
                                 }
-                            }))
+                            })
+                    )
+                    .settingsSearchTarget(.yubikey)
                 } header: {
                     // The "Vault" header rides with the first visible section; only
                     // repeat it here when biometric unlock wasn't shown above.
@@ -208,18 +231,25 @@ struct SecuritySettingsView: View {
             Section {
                 Toggle(
                     L10n.prefItemVaultLockTimeoutNeverTitle,
-                    isOn: boolBinding({ s.vaultPersist }, { securityModel.setVaultPersist($0) }))
+                    isOn: boolBinding({ s.vaultPersist }, { securityModel.setVaultPersist($0) })
+                )
+                .settingsSearchTarget(.persist)
                 durationPicker(
                     L10n.prefItemVaultLockTimeoutTitle,
                     options: s.lockTimeoutOptions,
                     currentTitle: s.lockTimeoutTitle,
-                    set: { securityModel.setVaultLockTimeout($0) })
+                    set: { securityModel.setVaultLockTimeout($0) }
+                )
+                .settingsSearchTarget(.lockTimeout)
                 if s.lockAfterRebootVisible {
                     Toggle(
                         L10n.prefItemLockVaultAfterRebootText,
-                        isOn: boolBinding({ s.lockAfterReboot }, { securityModel.setVaultLockAfterReboot($0) }))
+                        isOn: boolBinding({ s.lockAfterReboot }, { securityModel.setVaultLockAfterReboot($0) })
+                    )
+                    .settingsSearchTarget(.lockReboot)
                 }
                 Button(L10n.prefItemLockVaultTitle) { authModel.lockVault() }
+                    .settingsSearchTarget(.lock)
             } header: {
                 // Repeat the "Vault" header only if neither biometric nor YubiKey
                 // section rendered it above.
@@ -237,12 +267,16 @@ struct SecuritySettingsView: View {
                     L10n.prefItemClipboardAutoClearTitle,
                     options: s.clipboardAutoClearOptions,
                     currentTitle: s.clipboardAutoClearTitle,
-                    set: { securityModel.setClipboardAutoClear($0) })
+                    set: { securityModel.setClipboardAutoClear($0) }
+                )
+                .settingsSearchTarget(.clipboard)
             }
             Section {
                 Toggle(
                     L10n.prefItemConcealFieldsTitle,
-                    isOn: boolBinding({ s.conceal }, { securityModel.setConcealFields($0) }))
+                    isOn: boolBinding({ s.conceal }, { securityModel.setConcealFields($0) })
+                )
+                .settingsSearchTarget(.conceal)
                 Toggle(
                     L10n.prefItemLoadWebsiteIconsTitle,
                     isOn: boolBinding({ s.websiteIcons }, { securityModel.setWebsiteIcons($0) }))
@@ -254,9 +288,9 @@ struct SecuritySettingsView: View {
             }
             Section(L10n.password) {
                 Button(L10n.prefItemChangeMasterPasswordAction) { changingPassword = true }
+                    .settingsSearchTarget(.changePassword)
             }
         }
-        .formStyle(.grouped)
         .navigationTitle(item.title)
         .observing(
             start: { securityModel.startSecuritySettingsObservation() },
@@ -444,6 +478,9 @@ private struct ChangePasswordSheet: View {
 /// `SshAgentModel.sshAgentSettings`) and the in-app logs.
 struct DeveloperSettingsView: View {
     @Environment(SshAgentModel.self) private var sshAgentModel
+    #if os(macOS)
+    @Environment(GpgAgentModel.self) private var gpgAgentModel
+    #endif
     let item: SettingsItemSnapshot
 
     private enum Dialog: String, Identifiable {
@@ -456,8 +493,19 @@ struct DeveloperSettingsView: View {
     private var s: SshAgentSettingsSnapshot { sshAgentModel.sshAgentSettings }
     private var status: SshAgentStatusSnapshot { sshAgentModel.sshAgentStatus }
 
+    private var searchReady: Bool {
+        #if os(macOS)
+        s.loaded && gpgAgentModel.gpgAgentSettings.loaded
+        #else
+        s.loaded
+        #endif
+    }
+
     var body: some View {
-        Form {
+        SettingsForm(
+            ready: searchReady,
+            aliases: status.running && status.sshAuthSock != nil ? [:] : [.sshSocket: .sshEnable]
+        ) {
             #if os(macOS)
             sshAgentSection
             approvalsSection
@@ -470,14 +518,20 @@ struct DeveloperSettingsView: View {
             }
             #endif
         }
-        .formStyle(.grouped)
         .navigationTitle(item.title)
         #if os(macOS)
-        .onAppear {
-            sshAgentModel.startSshAgentSettingsObservation()
-            sshAgentModel.startSshAgentObservation()
-        }
-        .onDisappear { sshAgentModel.stopSshAgentSettingsObservation() }
+        .observing(
+            start: {
+                sshAgentModel.startSshAgentSettingsObservation()
+                sshAgentModel.startSshAgentObservation()
+                gpgAgentModel.startGpgAgentObservation()
+                gpgAgentModel.startGpgAgentSettingsObservation()
+            },
+            stop: {
+                sshAgentModel.stopSshAgentSettingsObservation()
+                gpgAgentModel.stopGpgAgentSettingsObservation()
+            }
+        )
         .sheet(item: $dialog) { dialog in
             switch dialog {
             case .clientSetup:
@@ -508,7 +562,9 @@ struct DeveloperSettingsView: View {
             // Allow switching OFF even when the binary is missing, so the
             // preference can't get stuck enabled on an unsupported build.
             .disabled(status.state == SshAgentRunState.unsupported && !s.enabled)
+            .settingsSearchTarget(.sshEnable)
             statusRow
+                .settingsSearchTarget(.sshStatus)
             if let sock = status.sshAuthSock, status.running {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(L10n.sshAgentSetupClientSocketNote)
@@ -518,8 +574,10 @@ struct DeveloperSettingsView: View {
                         .font(.callout.monospaced())
                         .textSelection(.enabled)
                 }
+                .settingsSearchTarget(.sshSocket)
             }
             Button(L10n.prefItemSshAgentSetupTitle) { dialog = .clientSetup }
+                .settingsSearchTarget(.sshSetup)
         } header: {
             Text(L10n.sshAgent)
         } footer: {
@@ -557,7 +615,9 @@ struct DeveloperSettingsView: View {
                 L10n.prefItemSshAgentApprovalWindowTitle,
                 options: s.approvalWindowOptions,
                 currentTitle: s.approvalWindowTitle,
-                set: { sshAgentModel.setSshAgentApprovalWindow(optionId: $0) })
+                set: { sshAgentModel.setSshAgentApprovalWindow(optionId: $0) }
+            )
+            .settingsSearchTarget(.sshApproval)
         } header: {
             Text(L10n.agentApprovalsHeaderTitle)
         } footer: {
@@ -575,7 +635,9 @@ struct DeveloperSettingsView: View {
                 isOn: Binding(
                     get: { s.displayKeyNames },
                     set: { sshAgentModel.setSshAgentDisplayKeyNames($0) }
-                ))
+                )
+            )
+            .settingsSearchTarget(.sshNames)
         } header: {
             Text(L10n.agentKeysHeaderTitle)
         } footer: {
@@ -596,11 +658,13 @@ struct DeveloperSettingsView: View {
                     .foregroundStyle(.secondary)
                 }
             }
+            .settingsSearchTarget(.sshFilters)
             Button {
                 dialog = .history
             } label: {
                 Label(L10n.prefItemSshAgentHistoryTitle, systemImage: "clock.arrow.circlepath")
             }
+            .settingsSearchTarget(.sshHistory)
         }
     }
 
@@ -658,15 +722,20 @@ struct WatchtowerSettingsView: View {
     }
 
     var body: some View {
-        Form {
+        SettingsForm(ready: s.loaded) {
             Section {
                 Toggle(
                     L10n.prefItemCheckPwnedPasswordsTitle,
-                    isOn: boolBinding({ s.checkPwnedPasswords }, { watchtowerModel.setCheckPwnedPasswords($0) }))
+                    isOn: boolBinding({ s.checkPwnedPasswords }, { watchtowerModel.setCheckPwnedPasswords($0) })
+                )
+                .settingsSearchTarget(.pwnedPasswords)
                 Toggle(
                     L10n.prefItemCheckPwnedServicesTitle,
-                    isOn: boolBinding({ s.checkPwnedServices }, { watchtowerModel.setCheckPwnedServices($0) }))
+                    isOn: boolBinding({ s.checkPwnedServices }, { watchtowerModel.setCheckPwnedServices($0) })
+                )
+                .settingsSearchTarget(.pwnedServices)
                 hibpTokenRow
+                    .settingsSearchTarget(.hibpToken)
             } header: {
                 Text(L10n.prefItemHibpHeaderTitle)
             } footer: {
@@ -675,7 +744,9 @@ struct WatchtowerSettingsView: View {
             Section {
                 Toggle(
                     L10n.prefItemCheckInactive2faTitle,
-                    isOn: boolBinding({ s.checkTwoFa }, { watchtowerModel.setCheckTwoFa($0) }))
+                    isOn: boolBinding({ s.checkTwoFa }, { watchtowerModel.setCheckTwoFa($0) })
+                )
+                .settingsSearchTarget(.twoFa)
             } header: {
                 Text(L10n.tfaDirectoryTitle)
             } footer: {
@@ -684,14 +755,15 @@ struct WatchtowerSettingsView: View {
             Section {
                 Toggle(
                     L10n.prefItemCheckInactivePasskeysTitle,
-                    isOn: boolBinding({ s.checkPasskeys }, { watchtowerModel.setCheckPasskeys($0) }))
+                    isOn: boolBinding({ s.checkPasskeys }, { watchtowerModel.setCheckPasskeys($0) })
+                )
+                .settingsSearchTarget(.passkeys)
             } header: {
                 Text(L10n.passkeysDirectoryTitle)
             } footer: {
                 markdownText(L10n.watchtowerPasskeysDirectoryAttributionText)
             }
         }
-        .formStyle(.grouped)
         .navigationTitle(item.title)
         .observing(
             start: { watchtowerModel.startWatchtowerSettingsObservation() },
@@ -855,11 +927,12 @@ struct DisplaySettingsView: View {
     }
 
     var body: some View {
-        Form {
+        SettingsForm(ready: s.loaded) {
             Section {
                 optionPicker(L10n.prefItemLocaleTitle, options: s.localeOptions, currentTitle: s.localeTitle) {
                     preferencesModel.setLocale($0)
                 }
+                .settingsSearchTarget(.locale)
             } header: {
                 Text(L10n.prefItemLocaleTitle)
             } footer: {
@@ -869,9 +942,11 @@ struct DisplaySettingsView: View {
                 optionPicker(L10n.prefItemColorSchemeTitle, options: s.themeOptions, currentTitle: s.themeTitle) {
                     preferencesModel.setTheme($0)
                 }
+                .settingsSearchTarget(.theme)
                 optionPicker(L10n.prefItemColorAccentTitle, options: s.accentOptions, currentTitle: s.accentTitle) {
                     preferencesModel.setColors($0)
                 }
+                .settingsSearchTarget(.accent)
             }
             Section(L10n.settingsNavigationHeaderTitle) {
                 // Per-item visibility / order / custom filter tabs; supersedes
@@ -881,20 +956,29 @@ struct DisplaySettingsView: View {
                 } label: {
                     Label(L10n.settingsNavigationItemsHeaderTitle, systemImage: "list.bullet.rectangle")
                 }
+                .settingsSearchTarget(.navigation)
                 Toggle(
                     L10n.prefItemNavLabelShortTitle,
-                    isOn: boolBinding({ s.navLabel }, { preferencesModel.setNavLabel($0) }))
+                    isOn: boolBinding({ s.navLabel }, { preferencesModel.setNavLabel($0) })
+                )
+                .settingsSearchTarget(.navigationLabels)
                 Toggle(
                     L10n.prefItemRenderMarkdownTitle,
-                    isOn: boolBinding({ s.markdown }, { preferencesModel.setMarkdown($0) }))
+                    isOn: boolBinding({ s.markdown }, { preferencesModel.setMarkdown($0) })
+                )
+                .settingsSearchTarget(.markdown)
             }
             Section(L10n.settingsIconsHeaderTitle) {
                 Toggle(
                     L10n.prefItemLoadWebsiteIconsTitle,
-                    isOn: boolBinding({ s.websiteIcons }, { securityModel.setWebsiteIcons($0) }))
+                    isOn: boolBinding({ s.websiteIcons }, { securityModel.setWebsiteIcons($0) })
+                )
+                .settingsSearchTarget(.websiteIcons)
                 Toggle(
                     L10n.prefItemLoadGravatarIconsTitle,
-                    isOn: boolBinding({ s.gravatar }, { securityModel.setGravatar($0) }))
+                    isOn: boolBinding({ s.gravatar }, { securityModel.setGravatar($0) })
+                )
+                .settingsSearchTarget(.gravatar)
             }
             Section(L10n.settingsExperienceHeaderTitle) {
                 #if os(iOS)
@@ -903,22 +987,27 @@ struct DisplaySettingsView: View {
                     isOn: boolBinding({ s.useExternalBrowser }, { preferencesModel.setUseExternalBrowser($0) })
                 )
                 .disabled(!s.loaded)
+                .settingsSearchTarget(.externalBrowser)
                 Toggle(
                     L10n.prefItemKeepScreenOnTitle,
                     isOn: boolBinding({ s.keepScreenOn }, { preferencesModel.setKeepScreenOn($0) })
                 )
                 .disabled(!s.loaded)
+                .settingsSearchTarget(.keepAwake)
                 #else
                 Toggle(
                     L10n.prefItemMinimizeOnCopyTitle,
-                    isOn: boolBinding({ s.minimizeOnCopy }, { preferencesModel.setMinimizeOnCopy($0) }))
+                    isOn: boolBinding({ s.minimizeOnCopy }, { preferencesModel.setMinimizeOnCopy($0) })
+                )
+                .settingsSearchTarget(.minimize)
                 Toggle(
                     L10n.prefItemCloseToMenuBarTitle,
-                    isOn: boolBinding({ s.closeToTray }, { preferencesModel.setCloseToTray($0) }))
+                    isOn: boolBinding({ s.closeToTray }, { preferencesModel.setCloseToTray($0) })
+                )
+                .settingsSearchTarget(.closeToTray)
                 #endif
             }
         }
-        .formStyle(.grouped)
         .navigationTitle(item.title)
         .observing(
             start: { preferencesModel.startAppearanceSettingsObservation() },

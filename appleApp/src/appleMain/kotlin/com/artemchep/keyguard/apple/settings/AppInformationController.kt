@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.usecase.GetVersionLog
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 
 internal class AppInformationController(
     private val ctx: CoreContext,
@@ -21,12 +22,16 @@ internal class AppInformationController(
     fun observeAppInformation(
         onChange: (AppInformationSnapshot) -> Unit,
     ): KeyguardCancellable = ctx.launchObserver {
-        appInformationFlow(
-            buildDate = getAppBuildDate(),
-            buildRef = getAppBuildRef(),
-            versionLog = getVersionLog(),
-        ).collectOnMain { onChange(it) }
+        informationFlow().collectOnMain { onChange(it) }
     }
+
+    suspend fun loadAppInformation(): AppInformationSnapshot = informationFlow().first()
+
+    private fun informationFlow() = appInformationFlow(
+        buildDate = getAppBuildDate(),
+        buildRef = getAppBuildRef(),
+        versionLog = getVersionLog(),
+    )
 }
 
 internal fun appInformationFlow(
@@ -44,6 +49,7 @@ internal fun appInformationFlow(
     val newRef = refs.getOrNull(0)
     val oldRef = refs.getOrNull(1)
     AppInformationSnapshot(
+        loaded = true,
         buildDate = date,
         buildRef = currentRef,
         buildRefUrl = currentRef?.let { "$PROJECT_URL/tree/$it" },

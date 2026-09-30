@@ -2,6 +2,10 @@ package com.artemchep.keyguard.apple.settings
 
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
+import com.artemchep.keyguard.common.model.BiometricStatus
+import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
+import com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability
+import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.feature.datasafety.DataSafetyItem
 import com.artemchep.keyguard.feature.datasafety.dataSafetyCatalog
 import com.artemchep.keyguard.feature.home.settings.SettingsCatalogItem
@@ -14,12 +18,35 @@ import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.learn_more
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 /** Swift-facing projections of the shared static catalogs; no unlocked vault needed. */
 internal class StaticDataController(
     private val ctx: CoreContext,
 ) {
+    suspend fun loadSettingsSearch(
+        categories: List<SettingsItemSnapshot>,
+        biometricTitle: String,
+        localeIdentifier: String,
+    ): SettingsSearchIndex = withContext(Dispatchers.Default) {
+        val context = ctx.koin.get<LeContext>()
+        val capabilities = SettingsSearchCapabilities(
+            macOS = CurrentPlatform is Platform.Desktop,
+            biometric = ctx.koin.get<BiometricStatusUseCase>()().first() is BiometricStatus.Available,
+            fido2 = ctx.koin.get<Fido2UnlockAvailability>().isSupported(),
+            yubiKey = ctx.koin.get<YubiKeyUnlockAvailability>().isSupported(),
+            store = !ctx.koin.get<FlavorConfig>().isFreeAsBeer,
+            appInformation = AppInformationController(ctx).loadAppInformation(),
+        )
+        SettingsSearchIndex(
+            entries = SettingsSearchCatalog.entries(categories, capabilities, biometricTitle) {
+                textResource(it, context)
+            },
+            localeIdentifier = localeIdentifier,
+        )
+    }
+
     suspend fun loadAboutTeam(): AboutTeamSnapshot = withContext(Dispatchers.Default) {
         val leContext = ctx.koin.get<LeContext>()
         AboutTeamSnapshot(

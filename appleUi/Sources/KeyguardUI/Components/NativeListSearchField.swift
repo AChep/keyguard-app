@@ -8,12 +8,14 @@ import SwiftUI
 struct NativeListSearchField: NSViewRepresentable {
     @Binding var text: String
     let prompt: String
+    var focusRequest = 0
 
     func makeCoordinator() -> Coordinator { Coordinator(text: $text) }
 
     func makeNSView(context: Context) -> NSSearchField {
         let field = NSSearchField()
         field.placeholderString = prompt
+        field.setAccessibilityLabel(prompt)
         field.stringValue = text
         field.maximumRecents = 0
         field.sendsWholeSearchString = false
@@ -32,14 +34,23 @@ struct NativeListSearchField: NSViewRepresentable {
     }
 
     func updateNSView(_ field: NSSearchField, context: Context) {
+        if context.coordinator.focusRequest != focusRequest {
+            context.coordinator.focusRequest = focusRequest
+            DispatchQueue.main.async { [weak field] in
+                guard let field else { return }
+                field.window?.makeFirstResponder(field)
+            }
+        }
         context.coordinator.text = $text
         field.placeholderString = prompt
+        field.setAccessibilityLabel(prompt)
         if field.stringValue != text {
             field.stringValue = text
         }
     }
 
     final class Coordinator: NSObject, NSSearchFieldDelegate {
+        var focusRequest = 0
         var text: Binding<String>
         weak var field: NSSearchField?
 

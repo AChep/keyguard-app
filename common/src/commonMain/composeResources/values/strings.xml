@@ -1748,6 +1748,25 @@
 
     <string name="settingssearch_header_title">Search</string>
     <string name="settingssearch_header_subtitle">Settings</string>
+    <string name="settingssearch_startup_keywords">startup automatically start login</string>
+    <string name="settingssearch_biometric_keywords">biometrics fingerprint face recognition Touch ID Face ID</string>
+    <string name="settingssearch_lock_keywords">timeout automatic lock inactivity</string>
+    <string name="settingssearch_clipboard_keywords">copy paste clipboard clear erase</string>
+    <string name="settingssearch_language_keywords">language translation locale</string>
+    <string name="settingssearch_theme_keywords">theme appearance light dark system</string>
+    <string name="settingssearch_navigation_keywords">tabs sidebar navigation order visibility</string>
+    <string name="settingssearch_autofill_keywords">autofill passwords passkeys fill</string>
+    <string name="settingssearch_backup_keywords">backup restore destination folder WebDAV encryption password attachments retention snapshots</string>
+    <string name="settingssearch_breach_keywords">breach leaked compromised passwords</string>
+    <string name="settingssearch_autofill_index_status_title">AutoFill suggestions status</string>
+    <string name="settingssearch_ssh_socket_title">SSH socket</string>
+    <string name="settingssearch_ssh_socket_keywords">SSH_AUTH_SOCK socket path environment client</string>
+    <string name="settingssearch_membership_status_title">Premium status</string>
+    <string name="settingssearch_membership_inactive_text">No active membership</string>
+    <string name="settingssearch_backup_location_keywords">destination folder server WebDAV</string>
+    <string name="settingssearch_backup_password_keywords">encryption password configured</string>
+    <string name="settingssearch_build_ref_keywords">revision commit source build reference</string>
+    <string name="settingssearch_license_keywords">license licence entitlement token</string>
     <string name="settingssearch_search_placeholder">Search settings</string>
 
     <string name="settings_appearance_header_title">Appearance</string>

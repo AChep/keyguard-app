@@ -28,7 +28,17 @@ struct AutomaticBackupsSettingsView: View {
             } else if !s.loaded {
                 ProgressView()
             } else {
-                Form {
+                SettingsForm(
+                    aliases: s.enabled
+                        ? [.backupSetup: .backupConfig]
+                        : [
+                            .backupRun: .backupSetup, .backupConfig: .backupSetup,
+                            .backupAttachments: .backupSetup, .backupRetention: .backupSetup,
+                            .backupDisable: .backupSetup,
+                            .backupStatus: .backupSetup, .backupLastSuccess: .backupSetup,
+                            .backupLocation: .backupSetup, .backupPassword: .backupSetup,
+                        ]
+                ) {
                     if s.enabled {
                         statusSection
                         configurationSection
@@ -48,12 +58,12 @@ struct AutomaticBackupsSettingsView: View {
                                     .controlSize(.large)
                             }
                             .padding(.vertical, 12)
+                            .settingsSearchTarget(.backupSetup)
                         } footer: {
                             Text(L10n.prefItemAutomaticBackupsSetupIntro)
                         }
                     }
                 }
-                .formStyle(.grouped)
             }
         }
         .navigationTitle(item.title)
@@ -90,9 +100,12 @@ struct AutomaticBackupsSettingsView: View {
         Section(L10n.prefItemAutomaticBackupsPanelStatusLabel) {
             Label(L10n.prefItemAutomaticBackupsEnabledTitle, systemImage: "checkmark.circle.fill")
                 .foregroundStyle(.green)
+                .settingsSearchTarget(.backupStatus)
             LabeledContent(
                 L10n.prefItemAutomaticBackupsPanelLastSyncTitle,
-                value: s.lastSuccessfulBackupAtMs.map { Self.formatDate($0.int64Value) } ?? L10n.expirationDateNever)
+                value: s.lastSuccessfulBackupAtMs.map { Self.formatDate($0.int64Value) } ?? L10n.expirationDateNever
+            )
+            .settingsSearchTarget(.backupLastSuccess)
             if s.isDirty {
                 Text(L10n.prefItemAutomaticBackupsPendingChangesText)
                     .font(.subheadline).foregroundStyle(.secondary)
@@ -106,29 +119,40 @@ struct AutomaticBackupsSettingsView: View {
             }
             Button(L10n.prefItemAutomaticBackupsRunNowTitle) { backupsModel.triggerBackupNow() }
                 .disabled(s.isRunning)
+                .settingsSearchTarget(.backupRun)
         }
     }
 
     private var configurationSection: some View {
         Section {
             BackupLocationLabel(
-                isWebDav: s.storeKind == "webdav", location: s.storeKind == "webdav" ? s.webDavUrl : s.localPath)
+                isWebDav: s.storeKind == "webdav", location: s.storeKind == "webdav" ? s.webDavUrl : s.localPath
+            )
+            .settingsSearchTarget(.backupLocation)
             Label(
                 s.hasPassword ? L10n.prefItemAutomaticBackupsPasswordSet : L10n.prefItemAutomaticBackupsPasswordNotSet,
-                systemImage: s.hasPassword ? "lock.shield" : "lock.open")
+                systemImage: s.hasPassword ? "lock.shield" : "lock.open"
+            )
+            .settingsSearchTarget(.backupPassword)
             LabeledContent(
                 L10n.prefItemAutomaticBackupsIncludeAttachmentsTitle,
                 value: s.includeAttachments
                     ? L10n.prefItemAutomaticBackupsIncludeAttachmentsEnabledSummary
-                    : L10n.prefItemAutomaticBackupsIncludeAttachmentsDisabledSummary)
+                    : L10n.prefItemAutomaticBackupsIncludeAttachmentsDisabledSummary
+            )
+            .settingsSearchTarget(.backupAttachments)
             LabeledContent(
                 L10n.prefItemAutomaticBackupsRetentionLabel,
                 value: s.retentionMaxSnapshots == 0
                     ? L10n.prefItemAutomaticBackupsRetentionKeepAll
-                    : L10n.prefItemAutomaticBackupsRetentionKeepSnapshotCount(Int(s.retentionMaxSnapshots)))
+                    : L10n.prefItemAutomaticBackupsRetentionKeepSnapshotCount(Int(s.retentionMaxSnapshots))
+            )
+            .settingsSearchTarget(.backupRetention)
             Button(L10n.prefItemAutomaticBackupsChangeConfigurationAction, action: configure)
                 .disabled(s.isTestingLocation)
+                .settingsSearchTarget(.backupConfig)
             Button(L10n.prefItemAutomaticBackupsDisableAction, role: .destructive) { confirmingDisable = true }
+                .settingsSearchTarget(.backupDisable)
         }
     }
 

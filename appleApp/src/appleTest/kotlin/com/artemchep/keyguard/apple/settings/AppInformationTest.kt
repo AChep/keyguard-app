@@ -4,6 +4,8 @@ import com.artemchep.keyguard.common.model.AppVersionLog
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 import kotlin.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +22,8 @@ class AppInformationTest {
     fun freshInstallAndSingleBuildHaveNoChangelog() = runTest {
         for (refs in listOf(emptyList(), listOf("abc123"))) {
             val snapshot = snapshot(refs)
+            assertFalse(AppInformationSnapshot.empty.loaded)
+            assertTrue(snapshot.loaded)
             assertEquals("Sep 16, 2026", snapshot.buildDate)
             assertEquals("abc123", snapshot.buildRef)
             assertEquals("https://github.com/AChep/keyguard-app/tree/abc123", snapshot.buildRefUrl)

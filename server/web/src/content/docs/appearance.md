@@ -49,8 +49,8 @@ mostly affect tablets and desktop windows.
 
 ## Behavior
 
-- **Open links in external browser** *(Android)* — opens URLs in your default
-  browser app rather than an in-app browser tab.
+- **Open links in external browser** *(Android, iOS)* — opens URLs in your default
+  browser app rather than an in-app browser.
 - **Keep the screen on while viewing items** — prevents the screen from dimming
   off while an item is open.
 - **Minimize on copy** *(Desktop)* — hides the window after you copy a value.

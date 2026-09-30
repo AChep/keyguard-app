@@ -10,14 +10,16 @@ final class BitwardenLoginModel {
     private let observeLogin:
         (@escaping (LoginSnapshot) -> Void, @escaping () -> Void, @escaping () -> Void) -> BridgeObservation
     private let observeTwofa: (@escaping (TwofaSnapshot) -> Void, @escaping () -> Void) -> BridgeObservation
+    private let openExternalURL: @MainActor (String) -> Void
 
-    convenience init(core: KeyguardCore) {
+    convenience init(core: KeyguardCore, links: LinkOpeningCoordinator) {
         self.init(
             coreProvider: { core },
             observeLogin: {
                 BridgeObservation(core.observeBitwardenLogin(onChange: $0, onSuccess: $1, onTwofaRequired: $2))
             },
-            observeTwofa: { BridgeObservation(core.observeBitwardenLoginTwofa(onChange: $0, onSuccess: $1)) }
+            observeTwofa: { BridgeObservation(core.observeBitwardenLoginTwofa(onChange: $0, onSuccess: $1)) },
+            openExternalURL: { links.open($0, forceSystem: true) }
         )
     }
 
@@ -27,11 +29,13 @@ final class BitwardenLoginModel {
         observeLogin:
             @escaping (@escaping (LoginSnapshot) -> Void, @escaping () -> Void, @escaping () -> Void) ->
             BridgeObservation,
-        observeTwofa: @escaping (@escaping (TwofaSnapshot) -> Void, @escaping () -> Void) -> BridgeObservation
+        observeTwofa: @escaping (@escaping (TwofaSnapshot) -> Void, @escaping () -> Void) -> BridgeObservation,
+        openExternalURL: @escaping @MainActor (String) -> Void
     ) {
         self.coreProvider = coreProvider
         self.observeLogin = observeLogin
         self.observeTwofa = observeTwofa
+        self.openExternalURL = openExternalURL
     }
 
     /// Current Bitwarden login state.
@@ -175,6 +179,6 @@ final class BitwardenLoginModel {
     /// method not supported in-app (Duo / FIDO2-WebAuthn).
     func openTwofaWebVault() {
         guard let urlString = twofa.webVaultUrl else { return }
-        ExternalActions.openExternalURL(urlString)
+        openExternalURL(urlString)
     }
 }

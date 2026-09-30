@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import SafariServices
 import XCTest
 @testable import KeyguardUI
 
@@ -59,6 +60,192 @@ final class ScenePrivacyCoverTests: XCTestCase {
         XCTAssertNil(privacyCover(in: window))
         XCTAssertTrue(window.rootViewController?.presentedViewController === sheet)
         XCTAssertFalse(window.accessibilityElementsHidden)
+    }
+
+    func testSafariPresentsAboveSheetAndStaysCoveredWhileInactive() async throws {
+        let sheet = UIViewController()
+        sheet.modalPresentationStyle = .pageSheet
+        await withCheckedContinuation { continuation in
+            window.rootViewController?.present(sheet, animated: false) { continuation.resume() }
+        }
+        let presenter = SafariBrowserPresenter()
+        presenter.window = window
+        let url = try XCTUnwrap(URL(string: "https://example.invalid"))
+
+        let opened = await presenter.open(url, systemBrowser: nil)
+        XCTAssertTrue(opened)
+        let browser = try XCTUnwrap(sheet.presentedViewController as? SFSafariViewController)
+        XCTAssertNil(browser.parent, "Safari must be presented modally, not embedded")
+
+        let reopened = await presenter.open(url, systemBrowser: nil)
+        XCTAssertTrue(reopened)
+        XCTAssertNil(browser.presentedViewController, "Repeated requests must not stack Safari controllers")
+
+        post(UIScene.willDeactivateNotification)
+        try assertCovered(window)
+        XCTAssertEqual(snapshotPixel(window), [255, 255, 255, 255])
+        post(UIScene.didActivateNotification)
+        XCTAssertTrue(sheet.presentedViewController === browser)
+
+        await withCheckedContinuation { continuation in
+            sheet.dismiss(animated: false) { continuation.resume() }
+        }
+        XCTAssertTrue(window.rootViewController?.presentedViewController === sheet)
+    }
+
+    func testSystemBrowserUsesAttachedPresenterWithoutCreatingSafariFallback() async throws {
+        let presenter = SafariBrowserPresenter()
+        presenter.window = window
+        let url = try XCTUnwrap(URL(string: "https://example.invalid"))
+        var openedURLs: [URL] = []
+
+        let opened = await presenter.open(url) { openedURLs.append($0) }
+
+        XCTAssertTrue(opened)
+        XCTAssertEqual(openedURLs, [url])
+        XCTAssertNil(window.rootViewController?.presentedViewController)
+    }
+
+    func testBrowserWithoutAttachedWindowDoesNotOpenElsewhere() async throws {
+        let presenter = SafariBrowserPresenter()
+        let url = try XCTUnwrap(URL(string: "https://example.invalid"))
+        var didOpen = false
+
+        let opened = await presenter.open(url) { _ in didOpen = true }
+
+        XCTAssertFalse(opened)
+        XCTAssertFalse(didOpen)
+    }
+
+    func testTransitionCompletionAfterFalseReturnDoesNotResumeTwice() async throws {
+        var completion: (@MainActor () -> Void)?
+
+        await SafariBrowserPresenter.waitForTransition {
+            completion = $0
+            return false
+        }
+
+        let finish = try XCTUnwrap(completion)
+        finish()
+    }
+
+    func testTransitionCompletionBeforeFalseReturnDoesNotResumeTwice() async {
+        await SafariBrowserPresenter.waitForTransition { completion in
+            completion()
+            return false
+        }
+    }
+
+    func testScheduledTransitionWaitsForCompletion() async throws {
+        let scheduled = expectation(description: "Transition completion is scheduled")
+        var completion: (@MainActor () -> Void)?
+        var finished = false
+        let waiting = Task { @MainActor in
+            await SafariBrowserPresenter.waitForTransition {
+                completion = $0
+                scheduled.fulfill()
+                return true
+            }
+            finished = true
+        }
+        await fulfillment(of: [scheduled], timeout: 5)
+        XCTAssertFalse(finished)
+
+        let finish = try XCTUnwrap(completion)
+        finish()
+        await waiting.value
+        XCTAssertTrue(finished)
+    }
+
+    func testSwiftUISystemBrowserPresentsFromRoot() async throws {
+        guard #available(iOS 26.0, *) else { throw XCTSkip("The SwiftUI browser API requires iOS 26") }
+        let ready = expectation(description: "System URL action is attached to the window")
+        var openURL: OpenURLAction?
+        let host = UIHostingController(
+            rootView: SystemBrowserProbe { action in
+                guard openURL == nil else { return }
+                openURL = action
+                ready.fulfill()
+            }
+        )
+        window.rootViewController = host
+        await fulfillment(of: [ready], timeout: 5)
+        let action = try XCTUnwrap(openURL)
+        let presenter = SafariBrowserPresenter()
+        presenter.window = window
+        let url = try XCTUnwrap(URL(string: "https://example.invalid"))
+        var usedSystemAction = false
+
+        let opened = await presenter.open(url) {
+            usedSystemAction = true
+            action($0, prefersInApp: true)
+        }
+        XCTAssertTrue(opened)
+        XCTAssertTrue(usedSystemAction)
+        let presented = expectation(
+            for: NSPredicate { _, _ in
+                MainActor.assumeIsolated { host.presentedViewController != nil }
+            }, evaluatedWith: nil
+        )
+        await fulfillment(of: [presented], timeout: 5)
+        XCTAssertTrue(host.presentedViewController is SFSafariViewController)
+        let reopened = await presenter.open(url, systemBrowser: nil)
+        XCTAssertTrue(reopened)
+        await withCheckedContinuation { continuation in
+            host.dismiss(animated: false) { continuation.resume() }
+        }
+    }
+
+    func testBrowserPresentsAboveSheetWithoutUsingRootSwiftUIAction() async throws {
+        guard #available(iOS 26.0, *) else { throw XCTSkip("The SwiftUI browser API requires iOS 26") }
+        let ready = expectation(description: "System URL action is attached to the window")
+        var openURL: OpenURLAction?
+        let host = UIHostingController(
+            rootView: SystemBrowserProbe { action in
+                guard openURL == nil else { return }
+                openURL = action
+                ready.fulfill()
+            }
+        )
+        window.rootViewController = host
+        await fulfillment(of: [ready], timeout: 5)
+        let action = try XCTUnwrap(openURL)
+        let sheet = UIViewController()
+        sheet.modalPresentationStyle = .pageSheet
+        await withCheckedContinuation { continuation in
+            host.present(sheet, animated: false) { continuation.resume() }
+        }
+        let presenter = SafariBrowserPresenter()
+        presenter.window = window
+        let url = try XCTUnwrap(URL(string: "https://example.invalid"))
+
+        var usedRootAction = false
+        let opened = await presenter.open(url) {
+            usedRootAction = true
+            action($0, prefersInApp: true)
+        }
+        XCTAssertTrue(opened)
+        XCTAssertFalse(usedRootAction, "The root action cannot present over an existing sheet")
+        let presented = expectation(
+            for: NSPredicate { _, _ in
+                MainActor.assumeIsolated { sheet.presentedViewController != nil }
+            }, evaluatedWith: nil
+        )
+        await fulfillment(of: [presented], timeout: 5)
+        XCTAssertTrue(host.presentedViewController === sheet)
+        XCTAssertTrue(sheet.presentedViewController is SFSafariViewController)
+        await withCheckedContinuation { continuation in
+            sheet.dismiss(animated: false) { continuation.resume() }
+        }
+    }
+
+    private struct SystemBrowserProbe: View {
+        @Environment(\.openURL) private var openURL
+        let onReady: (OpenURLAction) -> Void
+
+        var body: some View {
+            Color.clear.onAppear { onReady(openURL) }
+        }
     }
 
     func testBackgroundReassertsCoverAndForegroundWaitsUntilActive() throws {

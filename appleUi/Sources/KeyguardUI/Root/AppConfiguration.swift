@@ -21,6 +21,7 @@ private struct KeyguardAppConfiguration: ViewModifier {
                 set: { model.pendingUnlockAction = $0 }
             ))
             #elseif os(iOS)
+        .modifier(LinkOpeningModifier(links: model.links))
         .background(PrivacyScreen().allowsHitTesting(false).accessibilityHidden(true))
             #endif
             .keyguardEnvironment(model: model)

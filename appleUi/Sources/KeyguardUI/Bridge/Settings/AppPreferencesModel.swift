@@ -6,9 +6,11 @@ import KeyguardShared
 @Observable
 final class AppPreferencesModel: SnapshotObserving {
     private let core: KeyguardCore
+    private let links: LinkOpeningCoordinator
 
-    init(core: KeyguardCore) {
+    init(core: KeyguardCore, links: LinkOpeningCoordinator) {
         self.core = core
+        self.links = links
     }
 
     @ObservationIgnored private var started = false
@@ -16,13 +18,14 @@ final class AppPreferencesModel: SnapshotObserving {
     func start() {
         guard !started else { return }
         started = true
-        // App-wide preferences (theme, accent, close-to-tray) apply to the
+        // App-wide preferences (theme, accent, close-to-tray, links) apply to the
         // whole shell, so observe them for the app's lifetime.
         appPreferencesSubscription = BridgeObservation(
             core.observeAppPreferences { [weak self] snapshot in
                 Task { @MainActor [weak self] in
                     AppLocalization.shared.languageTag = snapshot.locale
                     self?.appPreferences = snapshot
+                    self?.links.updatePreference(useExternalBrowser: snapshot.useExternalBrowser)
                     Self.applyAppearance(theme: snapshot.theme)
                 }
             })

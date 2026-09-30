@@ -297,6 +297,8 @@ internal class AppearanceController(
                 )
             }.combine(getKeepScreenOn()) { preferences, keepScreenOn ->
                 preferences.copy(keepScreenOn = keepScreenOn)
+            }.combine(getUseExternalBrowser()) { preferences, useExternalBrowser ->
+                preferences.copy(useExternalBrowser = useExternalBrowser)
             }.collect { onChange(it) }
         }
         return KeyguardCancellable(job)

@@ -412,6 +412,10 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setOpenUrlHandler(handler: ((String) -> Unit)?) =
         navigationStackController.setOpenUrlHandler(handler)
 
+    /** Opens system actions (Maps, Mail, Phone, Messages) independently of browser preferences. */
+    fun setOpenSystemUrlHandler(handler: ((String) -> Unit)?) =
+        navigationStackController.setOpenSystemUrlHandler(handler)
+
     /**
      * Sets the handler that presents the native share sheet for a producer-emitted
      * [com.artemchep.keyguard.feature.navigation.NavigationIntent.NavigateToShare]
@@ -1567,7 +1571,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun observeFeedback(onChange: (FeedbackSnapshot) -> Unit): KeyguardCancellable =
         feedbackController.observeFeedback(
             onChange = onChange,
-            openUrl = { url -> navigationStackController.openUrl(url) },
+            openUrl = { url -> navigationStackController.openSystemUrl(url) },
         )
 
     /** Writes [text] into the standalone feedback sheet's message field. */

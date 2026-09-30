@@ -518,8 +518,7 @@ internal class NavigationStackController(
     /**
      * Opens an external URL for a producer-emitted [NavigationIntent.NavigateToBrowser]
      * (e.g. the account "premium" row, autofill help links). Set by the shell so the
-     * native layer opens it via UIApplication / NSWorkspace; without it such intents
-     * are dropped.
+     * native layer applies its browser preference; without it such intents are dropped.
      */
     private var openUrlHandler: ((String) -> Unit)? = null
 
@@ -530,6 +529,17 @@ internal class NavigationStackController(
     /** Opens [url] via the host's open-url handler (the same path interceptor uses). */
     fun openUrl(url: String) {
         openUrlHandler?.invoke(url)
+    }
+
+    private var openSystemUrlHandler: ((String) -> Unit)? = null
+
+    fun setOpenSystemUrlHandler(handler: ((String) -> Unit)?) {
+        openSystemUrlHandler = handler
+    }
+
+    /** Preserves system actions, including Maps actions whose URL uses HTTPS. */
+    fun openSystemUrl(url: String) {
+        openSystemUrlHandler?.invoke(url)
     }
 
     /**
@@ -1132,23 +1142,23 @@ internal class NavigationStackController(
         is NavigationIntent.NavigateToEmail -> {
             // The feedback ("Contact us") send button emits this; build a mailto:
             // URL (subject/body percent-encoded) and open it natively.
-            openUrlHandler?.invoke(intent.toMailtoUrl())
+            openSystemUrl(intent.toMailtoUrl())
             true
         }
 
         is NavigationIntent.NavigateToPhone -> {
             // The identity detail's call / text / navigate actions.
-            openUrlHandler?.invoke(intent.toTelUrl())
+            openSystemUrl(intent.toTelUrl())
             true
         }
 
         is NavigationIntent.NavigateToSms -> {
-            openUrlHandler?.invoke(intent.toSmsUrl())
+            openSystemUrl(intent.toSmsUrl())
             true
         }
 
         is NavigationIntent.NavigateToMaps -> {
-            openUrlHandler?.invoke(intent.toMapsUrl())
+            openSystemUrl(intent.toMapsUrl())
             true
         }
 

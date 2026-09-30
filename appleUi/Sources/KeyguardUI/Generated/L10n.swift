@@ -2109,6 +2109,10 @@ public enum L10n {
     public static var errorFailedOpenAppFor: String {
         String(localized: "error_failed_open_app_for", bundle: AppLocalization.shared.bundle)
     }
+    /// error_failed_open_link
+    public static var errorFailedOpenLink: String {
+        String(localized: "error_failed_open_link", bundle: AppLocalization.shared.bundle)
+    }
     /// error_failed_open_uri
     public static var errorFailedOpenUri: String {
         String(localized: "error_failed_open_uri", bundle: AppLocalization.shared.bundle)

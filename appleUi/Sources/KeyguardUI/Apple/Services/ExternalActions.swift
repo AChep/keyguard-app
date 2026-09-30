@@ -6,9 +6,11 @@ import UniformTypeIdentifiers
 @MainActor
 final class ExternalActions {
     private let core: KeyguardCore
+    private let links: LinkOpeningCoordinator
 
-    init(core: KeyguardCore) {
+    init(core: KeyguardCore, links: LinkOpeningCoordinator) {
         self.core = core
+        self.links = links
     }
 
     private var started = false
@@ -16,15 +18,11 @@ final class ExternalActions {
     func start() {
         guard !started else { return }
         started = true
-        // Quick-search "open in browser" actions open via NSWorkspace.
-        core.setQuickSearchOpenUrlHandler { urlString in
-            ExternalActions.openExternalURL(urlString)
-        }
+        core.setQuickSearchOpenUrlHandler(handler: linkHandler())
         // Producer-emitted NavigateToBrowser intents (account "premium", autofill
         // help links, …) routed through the navigation interceptor.
-        core.setOpenUrlHandler { urlString in
-            ExternalActions.openExternalURL(urlString)
-        }
+        core.setOpenUrlHandler(handler: linkHandler())
+        core.setOpenSystemUrlHandler(handler: linkHandler(forceSystem: true))
         // The Send detail "share" action emits a NavigateToShare intent carrying the
         // public Send link; present the system share sheet over it.
         core.setShareHandler { text in
@@ -93,6 +91,13 @@ final class ExternalActions {
 
     private var minimizeOnCopySubscription: BridgeObservation?
 
+    /// Hops to the main actor, since producer callbacks may fire off it.
+    private func linkHandler(forceSystem: Bool = false) -> (String) -> Void {
+        { [weak self] urlString in
+            Task { @MainActor in self?.links.open(urlString, forceSystem: forceSystem) }
+        }
+    }
+
     /// Miniaturizes the main window after a copy, but only while it is the key
     /// window — copies made from the menu-bar popover or the Quick Search panel
     /// (whose own panels are key at that moment) leave the main window alone.
@@ -103,20 +108,6 @@ final class ExternalActions {
         else { return }
         window.miniaturize(nil)
         #endif
-    }
-
-    /// Opens an external URL natively (shared by the quick-search and producer
-    /// `NavigateToBrowser` handlers). Hops to the main actor since the producer
-    /// callbacks may fire off it.
-    nonisolated static func openExternalURL(_ urlString: String) {
-        Task { @MainActor in
-            guard let url = URL(string: urlString) else { return }
-            #if os(macOS)
-            NSWorkspace.shared.open(url)
-            #else
-            UIApplication.shared.open(url)
-            #endif
-        }
     }
 
     nonisolated static func presentShareSheet(_ text: String) {

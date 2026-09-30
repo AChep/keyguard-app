@@ -21,7 +21,8 @@ final class FeatureObservationTests: XCTestCase {
                 starts += 1
                 completeTwofa = onSuccess
                 return BridgeObservation(cancel: { cancellations += 1 })
-            }
+            },
+            openExternalURL: { _ in }
         )
         model?.startLoginObservation()
         model?.startLoginObservation()

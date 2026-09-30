@@ -105,12 +105,20 @@ final class NotificationsModel {
     func showOperationError(_ error: Error) {
         // These direct bridge operations do not run through the shared message
         // hub. Use the same visible feedback as producer errors on every surface.
+        showError(title: L10n.prefItemAutomaticBackupsPanelErrorLabel, text: error.localizedDescription)
+    }
+
+    func showLinkOpeningError() {
+        showError(title: L10n.errorFailedOpenLink, text: nil)
+    }
+
+    private func showError(title: String, text: String?) {
         showToast(
             MessageSnapshot(
                 id: UUID().uuidString,
                 type: "ERROR",
-                title: L10n.prefItemAutomaticBackupsPanelErrorLabel,
-                text: error.localizedDescription,
+                title: title,
+                text: text,
                 durationMillis: 6000
             ))
     }

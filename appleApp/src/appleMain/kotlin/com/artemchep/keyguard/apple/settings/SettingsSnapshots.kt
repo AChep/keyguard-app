@@ -163,6 +163,8 @@ data class AppPreferencesSnapshot(
     val closeToTray: Boolean = false,
     /** Keeps supported iOS detail views awake while foreground and unlocked. */
     val keepScreenOn: Boolean = false,
+    /** Opens ordinary web links with the system instead of the in-app browser. */
+    val useExternalBrowser: Boolean = false,
 ) {
     companion object {
         val empty = AppPreferencesSnapshot()

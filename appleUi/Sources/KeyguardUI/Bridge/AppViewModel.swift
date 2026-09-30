@@ -56,6 +56,7 @@ public final class AppViewModel {
     let navigationSettings: NavigationSettingsModel
     let backups: BackupSettingsModel
     let external: ExternalActions
+    let links: LinkOpeningCoordinator
     let autofillIndex: AutofillIndexService
     #if os(iOS)
     let screenAwake = ScreenAwakeCoordinator { UIApplication.shared.isIdleTimerDisabled = $0 }
@@ -68,9 +69,27 @@ public final class AppViewModel {
         self.autofillIndex = autofillIndex
         let notifications = NotificationsModel(core: core)
         self.notifications = notifications
+        let links = LinkOpeningCoordinator(
+            supportsInAppBrowser: {
+                #if os(iOS)
+                true
+                #else
+                false
+                #endif
+            }(),
+            openSystem: { url, universalLinksOnly in
+                #if os(iOS)
+                await UIApplication.shared.open(url, options: universalLinksOnly ? [.universalLinksOnly: true] : [:])
+                #else
+                NSWorkspace.shared.open(url)
+                #endif
+            },
+            showFailure: { notifications.showLinkOpeningError() }
+        )
+        self.links = links
         let auth = VaultSessionModel(core: core, notifications: notifications)
         self.auth = auth
-        let login = BitwardenLoginModel(core: core)
+        let login = BitwardenLoginModel(core: core, links: links)
         self.login = login
         let keepass = KeePassLoginModel(core: core)
         self.keepass = keepass
@@ -80,7 +99,7 @@ public final class AppViewModel {
         self.dialogs = dialogs
         let filePicker = FilePickerModel(core: core)
         self.filePicker = filePicker
-        let preferences = AppPreferencesModel(core: core)
+        let preferences = AppPreferencesModel(core: core, links: links)
         self.preferences = preferences
         let accounts = AccountsModel(core: core)
         self.accounts = accounts
@@ -135,7 +154,7 @@ public final class AppViewModel {
         self.navigationSettings = navigationSettings
         let backups = BackupSettingsModel(core: core)
         self.backups = backups
-        let external = ExternalActions(core: core)
+        let external = ExternalActions(core: core, links: links)
         self.external = external
     }
 
@@ -197,6 +216,7 @@ public final class AppViewModel {
             core.setScenePhase(phase: KeyguardScenePhase.inactive)
         case .background:
             autofillIndex.setForeground(false)
+            links.cancelPendingRequests()
             core.setScenePhase(phase: KeyguardScenePhase.background)
         @unknown default:
             core.setScenePhase(phase: KeyguardScenePhase.inactive)

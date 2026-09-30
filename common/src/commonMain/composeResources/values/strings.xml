@@ -845,6 +845,7 @@
     <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
     <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_open_link">Could not open this link</string>
     <string name="error_failed_unknown">Something went wrong</string>
     <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
     <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>

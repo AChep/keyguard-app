@@ -899,6 +899,11 @@ struct DisplaySettingsView: View {
             Section(L10n.settingsExperienceHeaderTitle) {
                 #if os(iOS)
                 Toggle(
+                    L10n.prefItemOpenLinksInExternalBrowserTitle,
+                    isOn: boolBinding({ s.useExternalBrowser }, { preferencesModel.setUseExternalBrowser($0) })
+                )
+                .disabled(!s.loaded)
+                Toggle(
                     L10n.prefItemKeepScreenOnTitle,
                     isOn: boolBinding({ s.keepScreenOn }, { preferencesModel.setKeepScreenOn($0) })
                 )

@@ -94,7 +94,10 @@ struct GeneralSettingsView: View {
 
 struct AutofillSettingsView: View {
     @Environment(AutofillIndexService.self) private var autofillIndex
+    @Environment(AutofillSettingsModel.self) private var settingsModel
     let item: SettingsItemSnapshot
+
+    private var settings: AutofillSettingsSnapshot { settingsModel.autofillSettings }
 
     private var indexStatus: String {
         switch autofillIndex.coordinator.state {
@@ -107,7 +110,10 @@ struct AutofillSettingsView: View {
     }
 
     var body: some View {
-        SettingsForm(aliases: autofillIndex.coordinator.isEnabled ? [.autofillEnable: .autofill] : [:]) {
+        SettingsForm(
+            ready: settings.loaded,
+            aliases: autofillIndex.coordinator.isEnabled ? [.autofillEnable: .autofill] : [:]
+        ) {
             Section {
                 if !autofillIndex.coordinator.isEnabled {
                     Button(L10n.prefItemAutofillServiceEnableAction) {
@@ -132,10 +138,21 @@ struct AutofillSettingsView: View {
                     .disabled(autofillIndex.coordinator.state == .updating)
                     .settingsSearchTarget(.autofillRefresh)
             }
+            Section {
+                optionPicker(
+                    L10n.prefItemAutofillDefaultMatchDetectionTitle,
+                    options: settings.defaultMatchDetectionOptions,
+                    currentTitle: settings.defaultMatchDetectionTitle
+                ) { settingsModel.setAutofillDefaultMatchDetection($0) }
+                .settingsSearchTarget(.autofillDefaultMatchDetection)
+            }
         }
         .onAppear { autofillIndex.refreshAutofillIdentities() }
         .navigationTitle(item.title)
-
+        .observing(
+            start: { settingsModel.startAutofillSettingsObservation() },
+            stop: { settingsModel.stopAutofillSettingsObservation() }
+        )
     }
 }
 
@@ -1014,31 +1031,35 @@ struct DisplaySettingsView: View {
             stop: { preferencesModel.stopAppearanceSettingsObservation() }
         )
     }
+}
 
-    @ViewBuilder
-    private func optionPicker(
-        _ title: String,
-        options: [SettingOptionSnapshot],
-        currentTitle: String,
-        set: @escaping (String) -> Void
-    ) -> some View {
-        if options.isEmpty {
-            HStack {
-                Text(title)
-                Spacer()
-                Text(currentTitle).foregroundStyle(.secondary)
-            }
-        } else {
-            Picker(
-                title,
-                selection: Binding(
-                    get: { options.first(where: { $0.selected })?.id ?? options.first?.id ?? "" },
-                    set: { set($0) }
-                )
-            ) {
-                ForEach(options, id: \.id) { option in
-                    Text(option.title).tag(option.id)
-                }
+/// A native `Picker` over shared setting options. The snapshot marks the selected
+/// option; the binding forwards the chosen opaque id to the bridge. Falls back to
+/// a static row until the options have loaded.
+@MainActor
+@ViewBuilder
+private func optionPicker(
+    _ title: String,
+    options: [SettingOptionSnapshot],
+    currentTitle: String,
+    set: @escaping (String) -> Void
+) -> some View {
+    if options.isEmpty {
+        HStack {
+            Text(title)
+            Spacer()
+            Text(currentTitle).foregroundStyle(.secondary)
+        }
+    } else {
+        Picker(
+            title,
+            selection: Binding(
+                get: { options.first(where: { $0.selected })?.id ?? options.first?.id ?? "" },
+                set: { set($0) }
+            )
+        ) {
+            ForEach(options, id: \.id) { option in
+                Text(option.title).tag(option.id)
             }
         }
     }

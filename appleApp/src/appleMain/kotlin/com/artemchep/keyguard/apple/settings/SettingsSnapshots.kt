@@ -237,18 +237,20 @@ data class LaunchAtLoginSnapshot(
 // ---------------------------------------------------------------------------
 
 /**
- * Flat, Swift-friendly projection of the Apple-applicable AutoFill toggles,
+ * Flat, Swift-friendly projection of the Apple-applicable AutoFill preferences,
  * produced by [KeyguardCore.observeAutofillSettings]. Mirrors the macOS/iOS-
  * relevant items of the common `AutofillSettingsScreen`: copy-TOTP-to-clipboard,
- * save-credential prompts, and save-URI-to-existing-item prompts. The Android-
- * only items (inline suggestions, manual selection, respect autofill-off,
- * default match detection, credential-provider registration) are not surfaced.
+ * save-credential prompts, save-URI-to-existing-item prompts, and default URI
+ * matching. The Android-only items (inline suggestions, manual selection, respect autofill-off,
+ * credential-provider registration) are not surfaced.
  */
 data class AutofillSettingsSnapshot(
     val loaded: Boolean = false,
     val copyTotp: Boolean = false,
     val saveRequest: Boolean = false,
     val saveUri: Boolean = false,
+    val defaultMatchDetectionTitle: String = "",
+    val defaultMatchDetectionOptions: List<SettingOptionSnapshot> = emptyList(),
 ) {
     companion object {
         val empty = AutofillSettingsSnapshot()

@@ -3,6 +3,8 @@ package com.artemchep.keyguard.apple
 import com.artemchep.keyguard.AppleBillingBridge
 import com.artemchep.keyguard.apple.core.sessionKoin
 import com.artemchep.keyguard.main
+import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.registerLaunchAtLoginBridge
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.usecase.PutLaunchAtLogin
@@ -1900,12 +1902,26 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setGravatar(value: Boolean) = securityController.setGravatar(value)
 
     // ---------------------------------------------------------------------------
-    // AutoFill settings (the Apple-applicable toggles: copy-TOTP-to-clipboard,
+    // AutoFill settings (default URI matching, copy-TOTP-to-clipboard,
     // save-credential prompts, save-URI prompts). Thin bridge over the shared
     // Get/Put preference use cases.
     // ---------------------------------------------------------------------------
 
-    private val autofillSettingsController by lazy { AutofillSettingsController(context) }
+    private val autofillSettingsController by lazy {
+        val leContext = context.koin.get<LeContext>()
+        AutofillSettingsController(
+            getAutofillCopyTotp = context.koin.get(),
+            putAutofillCopyTotp = context.koin.get(),
+            getAutofillSaveRequest = context.koin.get(),
+            putAutofillSaveRequest = context.koin.get(),
+            getAutofillSaveUri = context.koin.get(),
+            putAutofillSaveUri = context.koin.get(),
+            getAutofillDefaultMatchDetection = context.koin.get(),
+            putAutofillDefaultMatchDetection = context.koin.get(),
+            scope = context.backgroundScope,
+            text = { textResource(it, leContext) },
+        )
+    }
 
     fun observeAutofillSettings(
         onChange: (AutofillSettingsSnapshot) -> Unit,
@@ -1916,6 +1932,9 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setAutofillSaveRequest(value: Boolean) = autofillSettingsController.setSaveRequest(value)
 
     fun setAutofillSaveUri(value: Boolean) = autofillSettingsController.setSaveUri(value)
+
+    fun setAutofillDefaultMatchDetection(optionId: String) =
+        autofillSettingsController.setDefaultMatchDetection(optionId)
 
     // ---------------------------------------------------------------------------
     // Subscriptions / in-app purchases (the paywall). The shared billing use

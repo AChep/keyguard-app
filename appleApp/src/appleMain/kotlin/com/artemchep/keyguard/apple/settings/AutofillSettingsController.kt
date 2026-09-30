@@ -2,67 +2,88 @@ package com.artemchep.keyguard.apple.settings
 
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetAutofillCopyTotp
+import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetAutofillSaveRequest
 import com.artemchep.keyguard.common.usecase.GetAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.PutAutofillCopyTotp
+import com.artemchep.keyguard.common.usecase.PutAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.PutAutofillSaveRequest
 import com.artemchep.keyguard.common.usecase.PutAutofillSaveUri
-import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.collectOnMain
-import kotlinx.coroutines.coroutineScope
+import com.artemchep.keyguard.apple.model.SettingOptionSnapshot
+import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.titleH
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.StringResource
 
 /**
  * The Apple-applicable AutoFill preferences: copy-TOTP-to-clipboard, save-
- * credential prompts (save request), and save-URI-to-existing-item prompts.
+ * credential prompts (save request), save-URI-to-existing-item prompts, and
+ * default URI matching.
  * Thin bridge over the shared Get/Put use cases (global preferences, so no
- * session is required); mirrors [SecurityController]. The Android-only toggles
+ * session is required); mirrors [DebugSettingsController]. The Android-only toggles
  * the common screen exposes (inline suggestions, manual selection, respect
- * autofill-off, default match detection) and the credential-provider
- * registration row are intentionally not surfaced — they are no-ops or N/A on
- * Apple.
+ * autofill-off) and the Android credential-provider registration row are not surfaced.
  */
 internal class AutofillSettingsController(
-    private val ctx: CoreContext,
+    private val getAutofillCopyTotp: GetAutofillCopyTotp,
+    private val putAutofillCopyTotp: PutAutofillCopyTotp,
+    private val getAutofillSaveRequest: GetAutofillSaveRequest,
+    private val putAutofillSaveRequest: PutAutofillSaveRequest,
+    private val getAutofillSaveUri: GetAutofillSaveUri,
+    private val putAutofillSaveUri: PutAutofillSaveUri,
+    private val getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
+    private val putAutofillDefaultMatchDetection: PutAutofillDefaultMatchDetection,
+    private val scope: CoroutineScope,
+    private val text: suspend (StringResource) -> String,
 ) {
-    private val getAutofillCopyTotp: GetAutofillCopyTotp by lazy { ctx.koin.get() }
-    private val putAutofillCopyTotp: PutAutofillCopyTotp by lazy { ctx.koin.get() }
-    private val getAutofillSaveRequest: GetAutofillSaveRequest by lazy { ctx.koin.get() }
-    private val putAutofillSaveRequest: PutAutofillSaveRequest by lazy { ctx.koin.get() }
-    private val getAutofillSaveUri: GetAutofillSaveUri by lazy { ctx.koin.get() }
-    private val putAutofillSaveUri: PutAutofillSaveUri by lazy { ctx.koin.get() }
-
     fun observeAutofillSettings(
         onChange: (AutofillSettingsSnapshot) -> Unit,
     ): KeyguardCancellable {
-        return ctx.launchObserver {
-            coroutineScope {
-                combine(
-                    getAutofillCopyTotp(),
-                    getAutofillSaveRequest(),
-                    getAutofillSaveUri(),
-                ) { copyTotp, saveRequest, saveUri ->
-                    AutofillSettingsSnapshot(
-                        loaded = true,
-                        copyTotp = copyTotp,
-                        saveRequest = saveRequest,
-                        saveUri = saveUri,
+        val job = scope.launch {
+            combine(
+                getAutofillCopyTotp(),
+                getAutofillSaveRequest(),
+                getAutofillSaveUri(),
+                getAutofillDefaultMatchDetection(),
+            ) { copyTotp, saveRequest, saveUri, defaultMatchDetection ->
+                val options = DSecret.Uri.MatchType.entries.map { value ->
+                    SettingOptionSnapshot(
+                        id = value.name,
+                        title = text(value.titleH()),
+                        selected = value == defaultMatchDetection,
                     )
-                }.collectOnMain { onChange(it) }
-            }
+                }
+                AutofillSettingsSnapshot(
+                    loaded = true,
+                    copyTotp = copyTotp,
+                    saveRequest = saveRequest,
+                    saveUri = saveUri,
+                    defaultMatchDetectionTitle = options.first { it.selected }.title,
+                    defaultMatchDetectionOptions = options,
+                )
+            }.collectOnMain { onChange(it) }
         }
+        return KeyguardCancellable(job)
     }
 
     fun setCopyTotp(value: Boolean) {
-        putAutofillCopyTotp(value).launchIn(ctx.scope)
+        putAutofillCopyTotp(value).launchIn(scope)
     }
 
     fun setSaveRequest(value: Boolean) {
-        putAutofillSaveRequest(value).launchIn(ctx.scope)
+        putAutofillSaveRequest(value).launchIn(scope)
     }
 
     fun setSaveUri(value: Boolean) {
-        putAutofillSaveUri(value).launchIn(ctx.scope)
+        putAutofillSaveUri(value).launchIn(scope)
+    }
+
+    fun setDefaultMatchDetection(optionId: String) {
+        val value = DSecret.Uri.MatchType.entries.firstOrNull { it.name == optionId } ?: return
+        putAutofillDefaultMatchDetection(value).launchIn(scope)
     }
 }

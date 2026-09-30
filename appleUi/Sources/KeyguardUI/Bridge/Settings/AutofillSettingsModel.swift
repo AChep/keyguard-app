@@ -11,7 +11,7 @@ final class AutofillSettingsModel: SnapshotObserving {
         self.core = core
     }
 
-    /// AutoFill settings (the Apple-applicable toggles), produced by the shared
+    /// AutoFill preferences, produced by the shared
     /// Kotlin AutoFill preference use cases running inside `KeyguardCore`. Only
     /// live while the AutoFill settings screen is on screen.
     private(set) var autofillSettings: AutofillSettingsSnapshot = AutofillSettingsSnapshot.companion.empty
@@ -33,4 +33,8 @@ final class AutofillSettingsModel: SnapshotObserving {
     func setAutofillSaveRequest(_ value: Bool) { core.setAutofillSaveRequest(value: value) }
 
     func setAutofillSaveUri(_ value: Bool) { core.setAutofillSaveUri(value: value) }
+
+    func setAutofillDefaultMatchDetection(_ optionId: String) {
+        core.setAutofillDefaultMatchDetection(optionId: optionId)
+    }
 }

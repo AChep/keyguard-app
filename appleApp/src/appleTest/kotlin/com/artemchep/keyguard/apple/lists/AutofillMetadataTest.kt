@@ -109,9 +109,27 @@ class AutofillMetadataTest {
             uri, uri, uri.copy(uri = "https://excluded.test", match = BitwardenCipher.Login.Uri.MatchType.Never),
             uri.copy(uri = null), uri.copy(uri = " "),
         ), password = "password"))
-        val identities = listOf(cipher).toAutofillIndex().passwords
+        val identities = listOf(cipher).toAutofillIndex(excludeInheritedUris = false).passwords
         assertEquals(listOf("https://example.test"), identities.map { it.serviceIdentifier })
         assertEquals("account|item", identities.single().recordId)
+    }
+
+    @Test
+    fun inheritedNeverExcludesPasswordsAndCodesButKeepsExplicitOverridesAndPasskeys() {
+        val explicit = uri.copy(match = BitwardenCipher.Login.Uri.MatchType.Exact)
+        val ciphers = listOf(cipher(BitwardenCipher.Login(
+            uris = listOf(uri, explicit, uri.copy(uri = "https://inherited.test")),
+            password = "password",
+            totp = "JBSWY3DPEHPK3PXP",
+            fido2Credentials = listOf(passkey("59e2144e-f203-48dd-8aa1-65986c24d87d")),
+        )))
+        val excluded = ciphers.toAutofillIndex(excludeInheritedUris = true)
+        // Filtering must happen before deduplication so the explicit override survives.
+        assertEquals(listOf(uri.uri), excluded.passwords.map { it.serviceIdentifier })
+        assertEquals(excluded.passwords, excluded.oneTimeCodes)
+        assertEquals(1, excluded.passkeys.size)
+        val restored = ciphers.toAutofillIndex(excludeInheritedUris = false)
+        assertEquals(listOf(uri.uri, "https://inherited.test"), restored.passwords.map { it.serviceIdentifier })
     }
 
     @Test
@@ -119,7 +137,7 @@ class AutofillMetadataTest {
         val cipher = cipher(BitwardenCipher.Login(uris = listOf(uri), fido2Credentials = listOf(
             passkey("59e2144e-f203-48dd-8aa1-65986c24d87d"),
         )))
-        val snapshot = listOf(cipher).toAutofillIndex()
+        val snapshot = listOf(cipher).toAutofillIndex(excludeInheritedUris = false)
         assertTrue(snapshot.passwords.isEmpty())
         assertEquals(1, snapshot.passkeys.size)
         assertEquals(0, snapshot.skippedPasskeys)
@@ -132,7 +150,7 @@ class AutofillMetadataTest {
         assertFalse(invalid.hasAutofillOneTimeCode())
         assertFalse(cipher(BitwardenCipher.Login(uris = listOf(uri), totp = " ")).hasAutofillOneTimeCode())
         assertTrue(valid.hasAutofillOneTimeCode())
-        assertEquals(1, listOf(invalid, valid).toAutofillIndex().oneTimeCodes.size)
+        assertEquals(1, listOf(invalid, valid).toAutofillIndex(excludeInheritedUris = false).oneTimeCodes.size)
     }
 
     @Test
@@ -141,7 +159,7 @@ class AutofillMetadataTest {
             passkey(null), passkey("not-a-uuid").copy(userHandle = "%%%"),
             passkey("59e2144e-f203-48dd-8aa1-65986c24d87d"),
         )))
-        val snapshot = listOf(cipher).toAutofillIndex()
+        val snapshot = listOf(cipher).toAutofillIndex(excludeInheritedUris = false)
         assertEquals(1, snapshot.passwords.size)
         assertEquals(1, snapshot.passkeys.size)
         assertEquals(2, snapshot.skippedPasskeys)

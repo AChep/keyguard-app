@@ -185,6 +185,11 @@ enum class SettingsSearchTarget(
         SettingsDestination.AUTOFILL.id,
         Res.string.pref_item_autofill_service_refresh_action,
     ),
+    AUTOFILL_DEFAULT_MATCH_DETECTION(
+        SettingsDestination.AUTOFILL.id,
+        Res.string.pref_item_autofill_default_match_detection_title,
+        keywords = listOf(Res.string.settingssearch_autofill_keywords, Res.string.uri, Res.string.url),
+    ),
     BACKUP_STATUS(
         SettingsDestination.AUTOMATIC_BACKUPS.id,
         Res.string.pref_item_automatic_backups_panel_status_label,

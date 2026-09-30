@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.service.extract.impl.LinkInfoPlatformExtractor
+import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.apple.core.CoreContext
@@ -22,9 +23,12 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.canEdit
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 
@@ -36,6 +40,13 @@ import kotlinx.coroutines.Dispatchers
 internal class AutofillController(
     private val ctx: CoreContext,
 ) {
+    /** Whether URLs without their own match mode are left out of the system index. */
+    private val excludeInheritedUris: Flow<Boolean> by lazy {
+        ctx.koin.get<GetAutofillDefaultMatchDetection>()()
+            .map { it == DSecret.Uri.MatchType.Never }
+            .distinctUntilChanged()
+    }
+
     /**
      * The login credentials to register in the system AutoFill index, one entry
      * per (login cipher × uri). [AutofillIdentitySnapshot.recordId] round-trips
@@ -46,7 +57,8 @@ internal class AutofillController(
 
     private suspend fun identities(predicate: (BitwardenCipher) -> Boolean): List<AutofillIdentitySnapshot> {
         val state = ctx.currentState() as? VaultState.Main ?: return emptyList()
-        return AutofillVaultReader(state.sessionKoin).read().filter(predicate).toIdentities()
+        return AutofillVaultReader(state.sessionKoin).read().filter(predicate)
+            .toIdentities(excludeInheritedUris.first())
     }
 
     fun observeChanges(onChange: (Boolean) -> Unit, onFailure: () -> Unit): KeyguardCancellable =
@@ -59,7 +71,8 @@ internal class AutofillController(
                             combine(
                                 db.cipherQueries.getCipherSnapshotKeys().asFlow(),
                                 db.profileQueries.get().asFlow(),
-                            ) { _, _ -> Unit }
+                                excludeInheritedUris,
+                            ) { _, _, _ -> Unit }
                                 .collectOnMain { onChange(true) }
                         }
                         is VaultState.Create -> ctx.publishOnMain { onChange(true) }
@@ -78,7 +91,7 @@ internal class AutofillController(
         if (state is VaultState.Create) return@withContext AutofillIndexSnapshot(emptyList(), emptyList(), emptyList())
         if (state !is VaultState.Main) return@withContext null
         val ciphers = AutofillVaultReader(state.sessionKoin).read()
-        ciphers.toAutofillIndex()
+        ciphers.toAutofillIndex(excludeInheritedUris.first())
     }
 
     /**
@@ -206,9 +219,14 @@ private fun DSecret.toSuggestion(
     accountName = accountNames[accountId].orEmpty(),
 )
 
-internal fun List<BitwardenCipher>.toIdentities(): List<AutofillIdentitySnapshot> = flatMap { cipher ->
+internal fun List<BitwardenCipher>.toIdentities(
+    excludeInheritedUris: Boolean,
+): List<AutofillIdentitySnapshot> = flatMap { cipher ->
     cipher.login?.uris.orEmpty()
-        .filter { it.match != BitwardenCipher.Login.Uri.MatchType.Never && !it.uri.isNullOrBlank() }
+        .filter { uri ->
+            val never = uri.match?.let { it == BitwardenCipher.Login.Uri.MatchType.Never } ?: excludeInheritedUris
+            !never && !uri.uri.isNullOrBlank()
+        }
         .distinctBy { it.uri }
         .map { uri ->
             AutofillIdentitySnapshot(
@@ -221,11 +239,13 @@ internal fun List<BitwardenCipher>.toIdentities(): List<AutofillIdentitySnapshot
         }
 }
 
-internal fun List<BitwardenCipher>.toAutofillIndex(): AutofillIndexSnapshot {
+internal fun List<BitwardenCipher>.toAutofillIndex(
+    excludeInheritedUris: Boolean,
+): AutofillIndexSnapshot {
     val passkeys = toPasskeyIdentities()
     return AutofillIndexSnapshot(
-        passwords = filter { !it.login?.password.isNullOrEmpty() }.toIdentities(),
-        oneTimeCodes = filter { it.hasAutofillOneTimeCode() }.toIdentities(),
+        passwords = filter { !it.login?.password.isNullOrEmpty() }.toIdentities(excludeInheritedUris),
+        oneTimeCodes = filter { it.hasAutofillOneTimeCode() }.toIdentities(excludeInheritedUris),
         passkeys = passkeys,
         skippedPasskeys = sumOf { it.login?.fido2Credentials?.size ?: 0 } - passkeys.size,
     )

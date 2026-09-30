@@ -125,6 +125,9 @@ class SettingsSearchTest {
             Res.string.settingssearch_backup_password_keywords to "encryption password configured",
             Res.string.settingssearch_ssh_socket_keywords to "SSH_AUTH_SOCK socket path environment client",
             Res.string.settingssearch_build_ref_keywords to "revision commit source build reference",
+            Res.string.pref_item_autofill_default_match_detection_title to "Default match detection",
+            Res.string.uri to "URI",
+            Res.string.url to "URL",
         )
         val metadata = AppInformationSnapshot(
             loaded = true, buildDate = "private-date", buildRef = "private-revision", buildRefUrl = "private-url",
@@ -139,6 +142,8 @@ class SettingsSearchTest {
             "encryption configured" to SettingsSearchTarget.BACKUP_PASSWORD,
             "SSH_AUTH_SOCK" to SettingsSearchTarget.SSH_SOCKET,
             "revision commit" to SettingsSearchTarget.BUILD_REF,
+            "URI match" to SettingsSearchTarget.AUTOFILL_DEFAULT_MATCH_DETECTION,
+            "URL match" to SettingsSearchTarget.AUTOFILL_DEFAULT_MATCH_DETECTION,
         )
         queries.forEach { (query, target) -> assertEquals(target, index.search(query).single().target, query) }
         listOf("private-date", "private-revision", "private-url").forEach { assertTrue(index.search(it).isEmpty()) }

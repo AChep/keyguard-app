@@ -69,23 +69,19 @@ final class GpgAgentModel: SnapshotObserving {
     func startGpgAgentFiltersObservation(onClose: @escaping () -> Void) -> UUID {
         let observer = UUID()
         filterObservers[observer] = onClose
-        guard filtersSubscription == nil else { return observer }
-        let generation = UUID()
-        let subscription = core.observeGpgAgentFilters(
-            onChange: { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    guard let self, self.filtersSubscription?.id == generation else { return }
-                    self.gpgAgentFilters = snapshot
-                }
-            },
-            onClose: { [weak self] in
-                Task { @MainActor [weak self] in
-                    guard let self, self.filtersSubscription?.id == generation else { return }
-                    for close in Array(self.filterObservers.values) { close() }
-                }
-            }
-        )
-        filtersSubscription = BridgeObservation(id: generation, cancel: { subscription.cancel() })
+        startObservation(\.filtersSubscription) { deliver in
+            BridgeObservation(
+                core.observeGpgAgentFilters(
+                    onChange: { snapshot in
+                        deliver { $0.gpgAgentFilters = snapshot }
+                    },
+                    onClose: {
+                        deliver { model in
+                            for close in Array(model.filterObservers.values) { close() }
+                        }
+                    }
+                ))
+        }
         return observer
     }
 

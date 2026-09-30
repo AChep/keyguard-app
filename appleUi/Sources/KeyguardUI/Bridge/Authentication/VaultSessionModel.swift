@@ -4,7 +4,7 @@ import KeyguardShared
 
 @MainActor
 @Observable
-final class VaultSessionModel {
+final class VaultSessionModel: SnapshotObserving {
     private let core: KeyguardCore
     private let notifications: NotificationsModel
 
@@ -13,41 +13,34 @@ final class VaultSessionModel {
         self.notifications = notifications
     }
 
-    @ObservationIgnored private var started = false
-
     func start() {
-        guard !started else { return }
-        started = true
-        fido2Subscription = BridgeObservation(
-            core.observeFido2Prompt { [weak self] phase in
-                Task { @MainActor [weak self] in self?.fido2Phase = phase }
-            })
-        statusSubscription = BridgeObservation(
-            core.observeStatus { [weak self] status in
-                Task { @MainActor [weak self] in
-                    self?.applyStatus(status: status)
-                }
-            })
+        startObservation(\.fido2Subscription, into: \.fido2Phase, observe: core.observeFido2Prompt)
+        startObservation(\.statusSubscription) { deliver in
+            BridgeObservation(
+                core.observeStatus { status in
+                    deliver { $0.applyStatus(status: status) }
+                })
+        }
         // First-run onboarding: observed app-wide (not per-screen) so the root
         // banner reflects it the moment the vault unlocks and survives navigation.
-        onboardingSubscription = BridgeObservation(
-            core.observeOnboarding { [weak self] hasOnboarded in
-                Task { @MainActor [weak self] in
-                    self?.hasOnboarded = hasOnboarded.boolValue
-                }
-            })
-        unlockSubscription = BridgeObservation(
-            core.observeUnlock { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.applyUnlock(unlock: snapshot)
-                }
-            })
-        setupSubscription = BridgeObservation(
-            core.observeSetup { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.applySetup(setup: snapshot)
-                }
-            })
+        startObservation(\.onboardingSubscription) { deliver in
+            BridgeObservation(
+                core.observeOnboarding { hasOnboarded in
+                    deliver { $0.hasOnboarded = hasOnboarded.boolValue }
+                })
+        }
+        startObservation(\.unlockSubscription) { deliver in
+            BridgeObservation(
+                core.observeUnlock { snapshot in
+                    deliver { $0.applyUnlock(unlock: snapshot) }
+                })
+        }
+        startObservation(\.setupSubscription) { deliver in
+            BridgeObservation(
+                core.observeSetup { snapshot in
+                    deliver { $0.applySetup(setup: snapshot) }
+                })
+        }
     }
 
     private(set) var status: VaultStatus = .loading

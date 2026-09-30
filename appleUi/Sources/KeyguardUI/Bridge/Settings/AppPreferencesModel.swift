@@ -13,22 +13,20 @@ final class AppPreferencesModel: SnapshotObserving {
         self.links = links
     }
 
-    @ObservationIgnored private var started = false
-
     func start() {
-        guard !started else { return }
-        started = true
         // App-wide preferences (theme, accent, close-to-tray, links) apply to the
         // whole shell, so observe them for the app's lifetime.
-        appPreferencesSubscription = BridgeObservation(
-            core.observeAppPreferences { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    AppLocalization.shared.languageTag = snapshot.locale
-                    self?.appPreferences = snapshot
-                    self?.links.updatePreference(useExternalBrowser: snapshot.useExternalBrowser)
-                    Self.applyAppearance(theme: snapshot.theme)
-                }
-            })
+        startObservation(\.appPreferencesSubscription) { deliver in
+            BridgeObservation(
+                core.observeAppPreferences { snapshot in
+                    deliver { model in
+                        AppLocalization.shared.languageTag = snapshot.locale
+                        model.appPreferences = snapshot
+                        model.links.updatePreference(useExternalBrowser: snapshot.useExternalBrowser)
+                        Self.applyAppearance(theme: snapshot.theme)
+                    }
+                })
+        }
     }
 
     /// Appearance settings, produced by the shared Kotlin appearance settings use

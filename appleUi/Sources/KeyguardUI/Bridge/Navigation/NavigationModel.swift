@@ -4,7 +4,7 @@ import KeyguardShared
 
 @MainActor
 @Observable
-final class NavigationModel {
+final class NavigationModel: SnapshotObserving {
     private let core: KeyguardCore
 
     init(core: KeyguardCore) {
@@ -103,6 +103,8 @@ final class NavigationModel {
 
     private let navItemsObservation = SharedObservation()
 
+    @ObservationIgnored private var navItemsSubscription: BridgeObservation?
+
     @ObservationIgnored private var navScopeSubs: [String: BridgeObservation] = [:]
 
     /// Starts the whole-stack session gate for the unlocked lifetime. Call from the
@@ -139,13 +141,12 @@ final class NavigationModel {
     /// `NavStackContainer.onAppear`; balance with `stopNavScopeObservation`.
     func startNavScopeObservation(_ scope: String) {
         navScopeConsumers[scope, default: 0] += 1
-        guard navScopeSubs[scope] == nil else { return }
-        navScopeSubs[scope] = BridgeObservation(
-            core.observeNavStack(scope: scope) { [weak self] entries in
-                Task { @MainActor [weak self] in
-                    self?.navStacks[scope] = entries
-                }
-            })
+        startObservation(\.navScopeSubs[scope]) { deliver in
+            BridgeObservation(
+                core.observeNavStack(scope: scope) { entries in
+                    deliver { $0.navStacks[scope] = entries }
+                })
+        }
     }
 
     func stopNavScopeObservation(_ scope: String) {
@@ -155,8 +156,7 @@ final class NavigationModel {
             return
         }
         navScopeConsumers[scope] = nil
-        navScopeSubs[scope]?.cancel()
-        navScopeSubs[scope] = nil
+        stopObservation(\.navScopeSubs[scope])
         navStacks[scope] = nil
     }
 
@@ -296,17 +296,15 @@ final class NavigationModel {
     /// unlocked shell (`MainView` / `KeyguardRootiOS`) and stopped with it.
     func startNavItemsObservation() {
         navItemsObservation.acquire {
-            BridgeObservation(
-                core.observeNavItems { [weak self] snapshot in
-                    Task { @MainActor [weak self] in
-                        self?.navItems = snapshot
-                    }
-                })
+            startObservation(\.navItemsSubscription, into: \.navItems, observe: core.observeNavItems)
+            return BridgeObservation { [weak self] in
+                self?.stopObservation(
+                    \.navItemsSubscription, resetting: \.navItems, to: NavItemsSnapshot.companion.empty)
+            }
         }
     }
 
     func stopNavItemsObservation() {
-        guard navItemsObservation.release() else { return }
-        navItems = NavItemsSnapshot.companion.empty
+        navItemsObservation.release()
     }
 }

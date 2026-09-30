@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import XCTest
 @testable import KeyguardUI
 
@@ -69,6 +70,44 @@ final class BridgeObservationTests: XCTestCase {
     }
 
     @MainActor
+    func testDeliveriesFromStoppedOrReplacedObservationsAreDropped() async throws {
+        let model = SnapshotObservationFixture()
+        var completions: [() -> Void] = []
+        let start = {
+            model.startObservation(\.observation) { deliver in
+                completions.append { deliver { $0.completions += 1 } }
+                return BridgeObservation(cancel: {})
+            }
+        }
+        start()
+        completions[0]()
+        model.stopObservation(\.observation)
+        start()
+        try await Task.sleep(for: .milliseconds(20))
+        XCTAssertEqual(model.completions, 0)
+        completions[1]()
+        try await Task.sleep(for: .milliseconds(20))
+        XCTAssertEqual(model.completions, 1)
+    }
+
+    /// Bridge models assign observed values directly and rely on this.
+    @MainActor
+    func testEqualAssignmentsDoNotNotifyObservers() {
+        let model = SnapshotObservationFixture()
+        let notifications = NotificationCount()
+        withObservationTracking {
+            _ = model.snapshot
+        } onChange: {
+            notifications.value += 1
+        }
+        model.snapshot = 0
+        model[keyPath: \.snapshot] = 0
+        XCTAssertEqual(notifications.value, 0)
+        model.snapshot = 1
+        XCTAssertEqual(notifications.value, 1)
+    }
+
+    @MainActor
     func testCallbackDoesNotRetainItsOwner() {
         var model: SnapshotObservationFixture? = SnapshotObservationFixture()
         weak var weakModel = model
@@ -88,7 +127,13 @@ final class BridgeObservationTests: XCTestCase {
 }
 
 @MainActor
+@Observable
 private final class SnapshotObservationFixture: SnapshotObserving {
-    var observation: BridgeObservation?
+    @ObservationIgnored var observation: BridgeObservation?
     var snapshot = 0
+    var completions = 0
+}
+
+private final class NotificationCount: @unchecked Sendable {
+    var value = 0
 }

@@ -25,25 +25,23 @@ final class GeneratorModel: SnapshotObserving {
     /// Starts running the shared generator producer. Call when the generator
     /// screen appears; balance with `stopGeneratorObservation()` on disappear.
     func startGeneratorObservation() {
-        guard generatorSubscription == nil else { return }
-        generatorSubscription = BridgeObservation(
-            core.observeGenerator { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.setGeneratorSnapshot(snapshot)
-                }
-            })
+        startObservation(\.generatorSubscription) { deliver in
+            BridgeObservation(
+                core.observeGenerator { snapshot in
+                    deliver { $0.setGeneratorSnapshot(snapshot) }
+                })
+        }
     }
 
     func stopGeneratorObservation() {
-        generatorSubscription?.cancel()
-        generatorSubscription = nil
+        stopObservation(\.generatorSubscription)
         setGeneratorSnapshot(GeneratorSnapshot.companion.empty)
     }
 
     private func setGeneratorSnapshot(_ snapshot: GeneratorSnapshot) {
         generator = snapshot
         #if os(macOS)
-        assignIfChanged(&generatorOptionsToolbar, GeneratorOptionsToolbarState(snapshot: snapshot))
+        generatorOptionsToolbar = GeneratorOptionsToolbarState(snapshot: snapshot)
         #endif
     }
 

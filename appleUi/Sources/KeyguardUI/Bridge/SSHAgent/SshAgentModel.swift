@@ -45,29 +45,13 @@ final class SshAgentModel: SnapshotObserving {
     /// Starts observing SSH agent approval requests + status. Call once (e.g. on
     /// the main window appearing) so approval prompts can be shown.
     func startSshAgentObservation() {
-        if sshRequestsSubscription == nil {
-            sshRequestsSubscription = BridgeObservation(
-                core.observeSshAgentRequests { [weak self] requests in
-                    Task { @MainActor [weak self] in
-                        self?.sshAgentRequests = requests
-                    }
-                })
-        }
-        if sshStatusSubscription == nil {
-            sshStatusSubscription = BridgeObservation(
-                core.observeSshAgentStatus { [weak self] status in
-                    Task { @MainActor [weak self] in
-                        self?.sshAgentStatus = status
-                    }
-                })
-        }
+        startObservation(\.sshRequestsSubscription, into: \.sshAgentRequests, observe: core.observeSshAgentRequests)
+        startObservation(\.sshStatusSubscription, into: \.sshAgentStatus, observe: core.observeSshAgentStatus)
     }
 
     func stopSshAgentObservation() {
-        sshRequestsSubscription?.cancel()
-        sshRequestsSubscription = nil
-        sshStatusSubscription?.cancel()
-        sshStatusSubscription = nil
+        stopObservation(\.sshRequestsSubscription)
+        stopObservation(\.sshStatusSubscription)
     }
 
     /// Persists the shared "SSH agent" preference; the applier started in
@@ -101,26 +85,22 @@ final class SshAgentModel: SnapshotObserving {
     /// filters screen appears; balance with `stopSshAgentFiltersObservation()`.
     /// `onClose` fires when the producer pops itself after a successful save.
     func startSshAgentFiltersObservation(onClose: @escaping () -> Void) {
-        guard sshAgentFiltersSubscription == nil else { return }
-        sshAgentFiltersSubscription = BridgeObservation(
-            core.observeSshAgentFilters(
-                onChange: { [weak self] snapshot in
-                    Task { @MainActor [weak self] in
-                        self?.sshAgentFilters = snapshot
+        startObservation(\.sshAgentFiltersSubscription) { deliver in
+            BridgeObservation(
+                core.observeSshAgentFilters(
+                    onChange: { snapshot in
+                        deliver { $0.sshAgentFilters = snapshot }
+                    },
+                    onClose: {
+                        deliver { _ in onClose() }
                     }
-                },
-                onClose: {
-                    Task { @MainActor in
-                        onClose()
-                    }
-                }
-            ))
+                ))
+        }
     }
 
     func stopSshAgentFiltersObservation() {
-        sshAgentFiltersSubscription?.cancel()
-        sshAgentFiltersSubscription = nil
-        sshAgentFilters = SshAgentFiltersSnapshot.companion.empty
+        stopObservation(
+            \.sshAgentFiltersSubscription, resetting: \.sshAgentFilters, to: SshAgentFiltersSnapshot.companion.empty)
     }
 
     /// Toggles a filter chip (or section header) by its snapshot id.

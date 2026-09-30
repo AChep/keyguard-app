@@ -47,6 +47,29 @@ final class FeatureObservationTests: XCTestCase {
     }
 
     @MainActor
+    func testLoginSuccessQueuedBeforeStopDoesNotDismissTheNextLogin() async throws {
+        var completeLogin: [() -> Void] = []
+        let model = BitwardenLoginModel(
+            coreProvider: { fatalError("An observation test must not access the user's vault") },
+            observeLogin: { _, onSuccess, _ in
+                completeLogin.append(onSuccess)
+                return BridgeObservation(cancel: {})
+            },
+            observeTwofa: { _, _ in BridgeObservation(cancel: {}) },
+            openExternalURL: { _ in }
+        )
+        model.startLoginObservation()
+        completeLogin[0]()
+        model.stopLoginObservation()
+        model.startLoginObservation()
+        try await Task.sleep(for: .milliseconds(20))
+        XCTAssertFalse(model.loginDidSucceed)
+        completeLogin[1]()
+        try await Task.sleep(for: .milliseconds(20))
+        XCTAssertTrue(model.loginDidSucceed)
+    }
+
+    @MainActor
     func testAddFormRejectsOldCompletionAndClearsTheMatchingEditRequest() async throws {
         var clearedRequests: [String] = []
         var cancellations = 0

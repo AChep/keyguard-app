@@ -44,6 +44,8 @@ final class AccountsModel: SnapshotObserving {
 
     private let syncStatusObservation = SharedObservation()
 
+    @ObservationIgnored private var syncStatusSubscription: BridgeObservation?
+
     @ObservationIgnored private var accountListSubscription: BridgeObservation?
 
     @ObservationIgnored private var accountDetailSubscription: BridgeObservation?
@@ -53,21 +55,16 @@ final class AccountsModel: SnapshotObserving {
     /// `stopSyncStatusObservation()` on disappear.
     func startSyncStatusObservation() {
         syncStatusObservation.acquire {
-            BridgeObservation(
-                core.observeSyncStatus { [weak self] snapshot in
-                    Task { @MainActor [weak self] in
-                        // Skip no-op reassignments so an unchanged sync status doesn't
-                        // re-render the toolbar / header that reads it.
-                        guard let self, self.syncStatus != snapshot else { return }
-                        self.syncStatus = snapshot
-                    }
-                })
+            startObservation(\.syncStatusSubscription, into: \.syncStatus, observe: core.observeSyncStatus)
+            return BridgeObservation { [weak self] in
+                self?.stopObservation(
+                    \.syncStatusSubscription, resetting: \.syncStatus, to: SyncStatusSnapshot.companion.empty)
+            }
         }
     }
 
     func stopSyncStatusObservation() {
-        guard syncStatusObservation.release() else { return }
-        syncStatus = SyncStatusSnapshot.companion.empty
+        syncStatusObservation.release()
     }
 
     /// Queues a sync of every account (menu-bar "Sync vault"). Progress surfaces

@@ -4,7 +4,7 @@ import KeyguardShared
 
 @MainActor
 @Observable
-final class KeePassLoginModel {
+final class KeePassLoginModel: SnapshotObserving {
     private let core: KeyguardCore
 
     init(core: KeyguardCore) {
@@ -27,30 +27,24 @@ final class KeePassLoginModel {
     /// KeePass login screen appears; balance with `stopKeePassLoginObservation()`
     /// on disappear.
     func startKeePassLoginObservation() {
-        guard keepassLoginSubscription == nil else { return }
-        keepassLoginSubscription = BridgeObservation(
-            core.observeKeePassLogin(
-                onChange: { [weak self] snapshot in
-                    Task { @MainActor [weak self] in
-                        self?.keepass = snapshot
+        startObservation(\.keepassLoginSubscription) { deliver in
+            BridgeObservation(
+                core.observeKeePassLogin(
+                    onChange: { snapshot in
+                        deliver { $0.keepass = snapshot }
+                    },
+                    onSuccess: {
+                        deliver { $0.keepassDidSucceed = true }
+                    },
+                    onWebDavChange: { snapshot in
+                        deliver { $0.keepassWebDav = snapshot }
                     }
-                },
-                onSuccess: { [weak self] in
-                    Task { @MainActor [weak self] in
-                        self?.keepassDidSucceed = true
-                    }
-                },
-                onWebDavChange: { [weak self] snapshot in
-                    Task { @MainActor [weak self] in
-                        self?.keepassWebDav = snapshot
-                    }
-                }
-            ))
+                ))
+        }
     }
 
     func stopKeePassLoginObservation() {
-        keepassLoginSubscription?.cancel()
-        keepassLoginSubscription = nil
+        stopObservation(\.keepassLoginSubscription)
         keepass = KeePassLoginSnapshot.companion.empty
         keepassDidSucceed = false
         keepassWebDav = nil

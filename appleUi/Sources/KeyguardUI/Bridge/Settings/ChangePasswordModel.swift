@@ -4,7 +4,7 @@ import KeyguardShared
 
 @MainActor
 @Observable
-final class ChangePasswordModel {
+final class ChangePasswordModel: SnapshotObserving {
     private let core: KeyguardCore
 
     init(core: KeyguardCore) {
@@ -21,23 +21,21 @@ final class ChangePasswordModel {
     /// Starts the headless change-password producer. `onClose` fires when the
     /// producer signals success (it pops its own screen), so the sheet can dismiss.
     func startChangePasswordObservation(onClose: @escaping () -> Void) {
-        guard changePasswordSubscription == nil else { return }
-        changePasswordSubscription = BridgeObservation(
-            core.observeChangePassword(
-                onChange: { [weak self] snapshot in
-                    Task { @MainActor [weak self] in
-                        self?.changePassword = snapshot
-                    }
-                },
-                onClose: {
-                    Task { @MainActor in onClose() }
-                }))
+        startObservation(\.changePasswordSubscription) { deliver in
+            BridgeObservation(
+                core.observeChangePassword(
+                    onChange: { snapshot in
+                        deliver { $0.changePassword = snapshot }
+                    },
+                    onClose: {
+                        deliver { _ in onClose() }
+                    }))
+        }
     }
 
     func stopChangePasswordObservation() {
-        changePasswordSubscription?.cancel()
-        changePasswordSubscription = nil
-        changePassword = ChangePasswordSnapshot.companion.empty
+        stopObservation(
+            \.changePasswordSubscription, resetting: \.changePassword, to: ChangePasswordSnapshot.companion.empty)
     }
 
     func setChangePasswordCurrent(_ text: String) { core.setChangePasswordCurrent(text: text) }

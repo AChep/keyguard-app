@@ -70,26 +70,24 @@ final class WatchtowerModel: SnapshotObserving {
     /// Starts running the shared watchtower producer. Call when the watchtower
     /// screen appears; balance with `stopWatchtowerObservation()` on disappear.
     func startWatchtowerObservation() {
-        guard watchtowerSubscription == nil else { return }
-        watchtowerSubscription = BridgeObservation(
-            core.observeWatchtower { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.setWatchtowerSnapshot(snapshot)
-                }
-            })
+        startObservation(\.watchtowerSubscription) { deliver in
+            BridgeObservation(
+                core.observeWatchtower { snapshot in
+                    deliver { $0.setWatchtowerSnapshot(snapshot) }
+                })
+        }
     }
 
     func stopWatchtowerObservation() {
-        watchtowerSubscription?.cancel()
-        watchtowerSubscription = nil
+        stopObservation(\.watchtowerSubscription)
         setWatchtowerSnapshot(WatchtowerSnapshot.companion.empty)
     }
 
     private func setWatchtowerSnapshot(_ snapshot: WatchtowerSnapshot) {
         watchtower = snapshot
         #if os(macOS)
-        assignIfChanged(&watchtowerFilterToolbar, FilterToolbarState(snapshot: snapshot))
-        assignIfChanged(&watchtowerOptionsToolbar, WatchtowerOptionsToolbarState(snapshot: snapshot))
+        watchtowerFilterToolbar = FilterToolbarState(snapshot: snapshot)
+        watchtowerOptionsToolbar = WatchtowerOptionsToolbarState(snapshot: snapshot)
         #endif
     }
 
@@ -112,17 +110,14 @@ final class WatchtowerModel: SnapshotObserving {
     /// Starts running the shared watchtower new-alerts producer. Call when the
     /// alerts screen appears; balance with `stopWatchtowerAlertsObservation()`.
     func startWatchtowerAlertsObservation() {
-        guard watchtowerAlertsSubscription == nil else { return }
-        watchtowerAlertsSubscription = BridgeObservation(
-            core.observeWatchtowerNewAlerts { [weak self] snapshot in
-                Task { @MainActor [weak self] in self?.watchtowerAlerts = snapshot }
-            })
+        startObservation(
+            \.watchtowerAlertsSubscription, into: \.watchtowerAlerts, observe: core.observeWatchtowerNewAlerts)
     }
 
     func stopWatchtowerAlertsObservation() {
-        watchtowerAlertsSubscription?.cancel()
-        watchtowerAlertsSubscription = nil
-        watchtowerAlerts = WatchtowerAlertsSnapshot.companion.empty
+        stopObservation(
+            \.watchtowerAlertsSubscription, resetting: \.watchtowerAlerts,
+            to: WatchtowerAlertsSnapshot.companion.empty)
     }
 
     /// Opens the cipher affected by a watchtower alert (by its alert id). Routes

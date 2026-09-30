@@ -63,28 +63,26 @@ final class SendModel: SnapshotObserving {
     /// Starts running the shared Send list producer. Call when the Send screen
     /// appears; balance with `stopSendListObservation()` on disappear.
     func startSendListObservation() {
-        guard sendListSubscription == nil else { return }
-        sendListSubscription = BridgeObservation(
-            core.observeSendList { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.setSendListSnapshot(snapshot)
-                }
-            })
+        startObservation(\.sendListSubscription) { deliver in
+            BridgeObservation(
+                core.observeSendList { snapshot in
+                    deliver { $0.setSendListSnapshot(snapshot) }
+                })
+        }
     }
 
     func stopSendListObservation() {
-        sendListSubscription?.cancel()
-        sendListSubscription = nil
+        stopObservation(\.sendListSubscription)
         setSendListSnapshot(SendListSnapshot.companion.empty)
     }
 
     private func setSendListSnapshot(_ snapshot: SendListSnapshot) {
         sendList = snapshot
         #if os(macOS)
-        assignIfChanged(&sendFilterToolbar, FilterToolbarState(snapshot: snapshot))
-        assignIfChanged(&sendSortToolbar, SendSortToolbarState(snapshot: snapshot))
-        assignIfChanged(&sendCreateToolbar, SendCreateToolbarState(snapshot: snapshot))
-        assignIfChanged(&sendActionsToolbar, ListActionsToolbarState(actions: snapshot.listActions))
+        sendFilterToolbar = FilterToolbarState(snapshot: snapshot)
+        sendSortToolbar = SendSortToolbarState(snapshot: snapshot)
+        sendCreateToolbar = SendCreateToolbarState(snapshot: snapshot)
+        sendActionsToolbar = ListActionsToolbarState(actions: snapshot.listActions)
         #endif
     }
 

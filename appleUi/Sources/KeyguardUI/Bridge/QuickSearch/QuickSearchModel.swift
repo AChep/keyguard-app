@@ -4,7 +4,7 @@ import KeyguardShared
 
 @MainActor
 @Observable
-final class QuickSearchModel {
+final class QuickSearchModel: SnapshotObserving {
     private let core: KeyguardCore
     private let vaultActions: VaultActionsModel
 
@@ -40,12 +40,7 @@ final class QuickSearchModel {
     /// balance with `stopQuickSearchObservation()` on dismiss.
     func startQuickSearchObservation() {
         guard quickSearchSubscription == nil else { return }
-        quickSearchSubscription = BridgeObservation(
-            core.observeQuickSearch { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.quickSearch = snapshot
-                }
-            })
+        startObservation(\.quickSearchSubscription, into: \.quickSearch, observe: core.observeQuickSearch)
         // The results-list model rides the same lifecycle (and thus the 300s
         // preservation window) as the producer + detail + action + TOTP channels.
         let listModel =
@@ -63,9 +58,7 @@ final class QuickSearchModel {
     }
 
     func stopQuickSearchObservation() {
-        quickSearchSubscription?.cancel()
-        quickSearchSubscription = nil
-        quickSearch = QuickSearchSnapshot.companion.empty
+        stopObservation(\.quickSearchSubscription, resetting: \.quickSearch, to: QuickSearchSnapshot.companion.empty)
         _quickSearchListModel?.stop()
     }
 

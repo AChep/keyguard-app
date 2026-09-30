@@ -97,8 +97,8 @@ final class VaultListSessionModel {
                 MainActor.assumeIsolated {
                     guard let self else { return }
                     self.header = value
-                    self.assignIfChanged(&self.createActions, value.createActions)
-                    self.assignIfChanged(&self.needsAccount, value.needsAccount)
+                    self.createActions = value.createActions
+                    self.needsAccount = value.needsAccount
                 }
             })
         subscriptions.append(
@@ -122,8 +122,8 @@ final class VaultListSessionModel {
                 MainActor.assumeIsolated {
                     guard let self else { return }
                     self.toolbar = value
-                    self.assignIfChanged(&self.toolbarActions, value.actions)
-                    self.assignIfChanged(&self.toolbarSyncing, value.syncing)
+                    self.toolbarActions = value.actions
+                    self.toolbarSyncing = value.syncing
                 }
             })
         subscriptions.append(
@@ -164,12 +164,6 @@ final class VaultListSessionModel {
         toolbarSyncing = false
         selection = .empty
         totpStates = [:]
-    }
-
-    private func assignIfChanged<Value: Equatable>(_ storage: inout Value, _ value: Value) {
-        if storage != value {
-            storage = value
-        }
     }
 
     func setQuery(_ text: String) {

@@ -4,7 +4,7 @@ import KeyguardShared
 
 @MainActor
 @Observable
-final class NotificationsModel {
+final class NotificationsModel: SnapshotObserving {
     private let observeMessages: (@escaping (MessageSnapshot) -> Void) -> BridgeObservation
     private let scheduleDismiss: (TimeInterval, @escaping @MainActor () -> Void) -> BridgeObservation
 
@@ -23,17 +23,13 @@ final class NotificationsModel {
         self.scheduleDismiss = scheduleDismiss
     }
 
-    @ObservationIgnored private var started = false
-
     func start() {
-        guard !started else { return }
-        started = true
         // Surface producer runtime errors (e.g. a wrong master password on the
         // unlock screen) that the shared screen executors route to the global
         // message bus instead of into a screen state.
-        messagesSubscription = observeMessages { [weak self] snapshot in
-            Task { @MainActor [weak self] in
-                self?.applyMessage(message: snapshot)
+        startObservation(\.messagesSubscription) { deliver in
+            observeMessages { snapshot in
+                deliver { $0.applyMessage(message: snapshot) }
             }
         }
     }

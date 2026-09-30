@@ -4,7 +4,7 @@ import KeyguardShared
 
 @MainActor
 @Observable
-final class BitwardenLoginModel {
+final class BitwardenLoginModel: SnapshotObserving {
     private let coreProvider: () -> KeyguardCore
     private var core: KeyguardCore { coreProvider() }
     private let observeLogin:
@@ -63,29 +63,23 @@ final class BitwardenLoginModel {
     /// Starts running the shared Bitwarden login producer. Call when the login
     /// screen appears; balance with `stopLoginObservation()` on disappear.
     func startLoginObservation() {
-        guard loginSubscription == nil else { return }
-        loginSubscription = observeLogin(
-            { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.login = snapshot
+        startObservation(\.loginSubscription) { deliver in
+            observeLogin(
+                { snapshot in
+                    deliver { $0.login = snapshot }
+                },
+                {
+                    deliver { $0.loginDidSucceed = true }
+                },
+                {
+                    deliver { $0.twofaActive = true }
                 }
-            },
-            { [weak self] in
-                Task { @MainActor [weak self] in
-                    self?.loginDidSucceed = true
-                }
-            },
-            { [weak self] in
-                Task { @MainActor [weak self] in
-                    self?.twofaActive = true
-                }
-            }
-        )
+            )
+        }
     }
 
     func stopLoginObservation() {
-        loginSubscription?.cancel()
-        loginSubscription = nil
+        stopObservation(\.loginSubscription)
         login = LoginSnapshot.companion.empty
         loginDidSucceed = false
     }
@@ -120,26 +114,24 @@ final class BitwardenLoginModel {
     /// by the login producer. Call when the 2FA screen appears; balance with
     /// `stopTwofaObservation()` on disappear.
     func startTwofaObservation() {
-        guard twofaSubscription == nil else { return }
-        twofaSubscription = observeTwofa(
-            { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.twofa = snapshot
+        startObservation(\.twofaSubscription) { deliver in
+            observeTwofa(
+                { snapshot in
+                    deliver { $0.twofa = snapshot }
+                },
+                {
+                    deliver {
+                        // Dismiss both the 2FA screen and the login screen beneath it.
+                        $0.twofaDidSucceed = true
+                        $0.loginDidSucceed = true
+                    }
                 }
-            },
-            { [weak self] in
-                Task { @MainActor [weak self] in
-                    // Dismiss both the 2FA screen and the login screen beneath it.
-                    self?.twofaDidSucceed = true
-                    self?.loginDidSucceed = true
-                }
-            }
-        )
+            )
+        }
     }
 
     func stopTwofaObservation() {
-        twofaSubscription?.cancel()
-        twofaSubscription = nil
+        stopObservation(\.twofaSubscription)
         twofa = TwofaSnapshot.companion.empty
         twofaActive = false
         twofaDidSucceed = false

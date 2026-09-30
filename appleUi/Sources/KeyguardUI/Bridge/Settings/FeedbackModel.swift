@@ -4,7 +4,7 @@ import KeyguardShared
 
 @MainActor
 @Observable
-final class FeedbackModel {
+final class FeedbackModel: SnapshotObserving {
     private let core: KeyguardCore
 
     init(core: KeyguardCore) {
@@ -21,19 +21,11 @@ final class FeedbackModel {
     /// Starts the standalone "Contact us" feedback observation backing the modal
     /// sheet (Settings → About). Idempotent; pair with `stopFeedbackObservation`.
     func startFeedbackObservation() {
-        guard feedbackSubscription == nil else { return }
-        feedbackSubscription = BridgeObservation(
-            core.observeFeedback(onChange: { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.feedback = snapshot
-                }
-            }))
+        startObservation(\.feedbackSubscription, into: \.feedback, observe: core.observeFeedback)
     }
 
     func stopFeedbackObservation() {
-        feedbackSubscription?.cancel()
-        feedbackSubscription = nil
-        feedback = FeedbackSnapshot.companion.empty
+        stopObservation(\.feedbackSubscription, resetting: \.feedback, to: FeedbackSnapshot.companion.empty)
     }
 
     func setFeedbackMessage(_ text: String) { core.setFeedbackMessage(text: text) }

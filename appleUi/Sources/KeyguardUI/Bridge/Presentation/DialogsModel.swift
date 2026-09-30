@@ -4,126 +4,39 @@ import KeyguardShared
 
 @MainActor
 @Observable
-final class DialogsModel {
+final class DialogsModel: SnapshotObserving {
     private let core: KeyguardCore
 
     init(core: KeyguardCore) {
         self.core = core
     }
 
-    @ObservationIgnored private var started = false
-
+    /// Dialogs are global: any screen's action can surface one, so each is observed
+    /// once for the app's lifetime and presented as an app-level sheet.
     func start() {
-        guard !started else { return }
-        started = true
-        // The "Show in Large Type" dialog is global: any field's action surfaces it,
-        // so observe it once at the app level and present an app-level sheet.
-        passwordMemorySubscription = BridgeObservation(
-            core.observePasswordMemory { [weak self] snapshot in
-                Task { @MainActor [weak self] in self?.passwordMemory = snapshot }
-            })
-        largeTypeSubscription = BridgeObservation(
-            core.observeLargeType { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.largeType = snapshot
-                }
-            })
-        // The "Show as Barcode" dialog is global in the same way; observe it once
-        // and present an app-level sheet.
-        barcodeSubscription = BridgeObservation(
-            core.observeBarcode { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.barcode = snapshot
-                }
-            })
-        // The passkey credential detail dialog is global in the same way; observe
-        // it once and present an app-level sheet.
-        passkeyCredentialSubscription = BridgeObservation(
-            core.observePasskeyCredential { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.passkeyCredential = snapshot
-                }
-            })
-        // The attachment preview dialog is global in the same way; observe it
-        // once and present an app-level sheet.
-        attachmentPreviewSubscription = BridgeObservation(
-            core.observeAttachmentPreview { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.attachmentPreview = snapshot
-                }
-            })
-        // The generic confirmation dialog is global in the same way; observe it
-        // once and present an app-level sheet.
-        confirmationSubscription = BridgeObservation(
-            core.observeConfirmation { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.confirmation = snapshot
-                }
-            })
-        // The master-password re-prompt dialog is global in the same way; observe it
-        // once and present an app-level sheet.
-        elevatedAccessSubscription = BridgeObservation(
-            core.observeElevatedAccess { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.elevatedAccess = snapshot
-                }
-            })
-        // The cipher detail's inactive-TOTP / inactive-passkey info dialog is global
-        // in the same way; observe it once and present an app-level sheet.
-        serviceInfoSubscription = BridgeObservation(
-            core.observeServiceInfo { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.serviceInfo = snapshot
-                }
-            })
-        // The HIBP breach dialogs (email / username, password, website) are global
-        // in the same way; observe each once and present an app-level sheet.
-        emailLeakSubscription = BridgeObservation(
-            core.observeEmailLeak { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.emailLeak = snapshot
-                }
-            })
-        passwordLeakSubscription = BridgeObservation(
-            core.observePasswordLeak { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.passwordLeak = snapshot
-                }
-            })
-        websiteLeakSubscription = BridgeObservation(
-            core.observeWebsiteLeak { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.websiteLeak = snapshot
-                }
-            })
-        // The account "Change color" picker dialog is global in the same way; observe
-        // it once and present an app-level sheet.
-        colorPickerSubscription = BridgeObservation(
-            core.observeColorPicker { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.colorPicker = snapshot
-                }
-            })
-        // The collection / organization read-only "info" dialog is global in the same
-        // way; observe it once and present an app-level sheet.
-        infoDialogSubscription = BridgeObservation(
-            core.observeInfoDialog { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.infoDialog = snapshot
-                }
-            })
-        // The create-form ownership "Save to" account picker is global in the same
-        // way; observe it once and present an app-level sheet.
-        cipherLinkPickerSubscription = BridgeObservation(
-            core.observeCipherLinkPicker { [weak self] snapshot in
-                Task { @MainActor [weak self] in self?.cipherLinkPicker = snapshot }
-            })
-        accountPickerSubscription = BridgeObservation(
-            core.observeAccountPicker { [weak self] snapshot in
-                Task { @MainActor [weak self] in
-                    self?.accountPicker = snapshot
-                }
-            })
+        startObservation(\.passwordMemorySubscription, into: \.passwordMemory, observe: core.observePasswordMemory)
+        startObservation(\.largeTypeSubscription, into: \.largeType, observe: core.observeLargeType)
+        startObservation(\.barcodeSubscription, into: \.barcode, observe: core.observeBarcode)
+        startObservation(
+            \.passkeyCredentialSubscription, into: \.passkeyCredential, observe: core.observePasskeyCredential)
+        startObservation(
+            \.attachmentPreviewSubscription, into: \.attachmentPreview, observe: core.observeAttachmentPreview)
+        startObservation(\.confirmationSubscription, into: \.confirmation, observe: core.observeConfirmation)
+        startObservation(\.elevatedAccessSubscription, into: \.elevatedAccess, observe: core.observeElevatedAccess)
+        // The cipher detail's inactive-TOTP / inactive-passkey info dialog.
+        startObservation(\.serviceInfoSubscription, into: \.serviceInfo, observe: core.observeServiceInfo)
+        // The HIBP breach dialogs (email / username, password, website).
+        startObservation(\.emailLeakSubscription, into: \.emailLeak, observe: core.observeEmailLeak)
+        startObservation(\.passwordLeakSubscription, into: \.passwordLeak, observe: core.observePasswordLeak)
+        startObservation(\.websiteLeakSubscription, into: \.websiteLeak, observe: core.observeWebsiteLeak)
+        // The account "Change color" picker.
+        startObservation(\.colorPickerSubscription, into: \.colorPicker, observe: core.observeColorPicker)
+        // The collection / organization read-only "info" dialog.
+        startObservation(\.infoDialogSubscription, into: \.infoDialog, observe: core.observeInfoDialog)
+        // The create-form ownership "Save to" account picker.
+        startObservation(
+            \.cipherLinkPickerSubscription, into: \.cipherLinkPicker, observe: core.observeCipherLinkPicker)
+        startObservation(\.accountPickerSubscription, into: \.accountPicker, observe: core.observeAccountPicker)
     }
 
     /// Current Large Type dialog state.

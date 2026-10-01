@@ -43,6 +43,9 @@ internal class QuickSearchController(
     private var quickSearchOpenUrlHandler: ((String) -> Unit)? = null
     private val quickSearchTotpTokens = MutableStateFlow<List<Pair<String, TotpToken>>>(emptyList())
 
+    // Only the newest observation may publish or clear the session state above.
+    private var quickSearchGeneration = 0L
+
     /**
      * State-anchored delta publisher (full-frame diff + lock-reset) for the
      * results list. Owns no per-session state — the last-delivered frame lives
@@ -59,11 +62,23 @@ internal class QuickSearchController(
     fun observeQuickSearch(
         onChange: (QuickSearchSnapshot) -> Unit,
     ): KeyguardCancellable {
+        val observationGeneration = ++quickSearchGeneration
         return ctx.launchSessionObserver(
+            // The controller holds decrypted results and the TOTP tokens hold
+            // secrets; drop both as soon as the vault locks or the panel stops
+            // observing (Swift stops it 300 s after the panel hides).
             onLocked = {
-                quickSearchController.value = null
-                quickSearchTotpTokens.value = emptyList()
-                onChange(QuickSearchSnapshot.empty)
+                if (quickSearchGeneration == observationGeneration) {
+                    quickSearchController.value = null
+                    quickSearchTotpTokens.value = emptyList()
+                    onChange(QuickSearchSnapshot.empty)
+                }
+            },
+            onTeardown = {
+                if (quickSearchGeneration == observationGeneration) {
+                    quickSearchController.value = null
+                    quickSearchTotpTokens.value = emptyList()
+                }
             },
         ) { state ->
             val controller = ctx.koin.newHeadlessStateFlowScope("quicksearch", this)
@@ -74,10 +89,13 @@ internal class QuickSearchController(
                     // perform* calls, i.e. on the main thread.
                     onOpenUrl = { url -> quickSearchOpenUrlHandler?.invoke(url) },
                 )
-            ctx.publishOnMain { quickSearchController.value = controller }
+            ctx.publishOnMain {
+                if (quickSearchGeneration == observationGeneration) quickSearchController.value = controller
+            }
             controller.state
                 .throttleLatest()
                 .collectOnMain { headless ->
+                    if (quickSearchGeneration != observationGeneration) return@collectOnMain
                     quickSearchTotpTokens.value = headless.results.mapNotNull { r ->
                         r.token?.let { r.id to it }
                     }

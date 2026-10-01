@@ -193,7 +193,6 @@ private class AppleFileSampler(
     }
 }
 
-/** Returns the event that [snapshot] reports after [previous], or `null` when there is none. */
 private fun eventKind(
     previous: AppleFileSnapshot?,
     snapshot: AppleFileSnapshot,

@@ -21,7 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
-/** Swift-facing projections of the shared static catalogs; no unlocked vault needed. */
+/** The shared static catalogs; no unlocked vault needed. */
 internal class StaticDataController(
     private val ctx: CoreContext,
 ) {

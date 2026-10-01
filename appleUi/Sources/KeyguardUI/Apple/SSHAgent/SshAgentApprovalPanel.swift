@@ -2,11 +2,9 @@
 import AppKit
 
 /// A borderless, non-activating floating panel that hosts the SSH agent approval
-/// prompt. Mirrors `QuickSearchPanel`: `.nonactivatingPanel` + `canBecomeKey == true`
-/// lets the Approve / Deny buttons accept clicks and keyboard shortcuts without
-/// yanking the foreground app's activation. Unlike Quick Search it has no
-/// auto-dismiss-on-resign behaviour — the controller closes it only when the
-/// pending-request queue empties.
+/// prompt. `.nonactivatingPanel` + `canBecomeKey == true` lets the Approve / Deny
+/// buttons accept clicks and keyboard input without yanking the foreground app's
+/// activation.
 final class SshAgentApprovalPanel: NSPanel {
     init(contentView: NSView) {
         super.init(

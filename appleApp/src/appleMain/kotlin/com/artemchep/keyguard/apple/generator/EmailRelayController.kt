@@ -18,13 +18,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
-/** Provider forms and feature mutations. Navigation entries own list state and commands. */
+/** Provider forms and mutations only; navigation entries own the list state and its commands. */
 internal class EmailRelayController(private val ctx: CoreContext) {
-    /**
-     * Returns the catalog of available email-forwarder services (one per
-     * registered [EmailRelay] schema), each as a blank [EmailRelayFormSnapshot]
-     * the native "add" form renders. Sorted by service name.
-     */
     suspend fun loadEmailRelayServices(): List<EmailRelayFormSnapshot> = withContext(Dispatchers.Default) {
         val main = ctx.awaitMain()
         val leContext = ctx.koin.get<LeContext>()
@@ -34,11 +29,6 @@ internal class EmailRelayController(private val ctx: CoreContext) {
             .sortedBy { it.serviceName.lowercase() }
     }
 
-    /**
-     * Loads a single existing email forwarder as a prefilled [EmailRelayFormSnapshot]
-     * for the native edit form, or null if [id] is unknown / its service schema is
-     * no longer registered.
-     */
     suspend fun loadEmailRelay(id: String): EmailRelayFormSnapshot? = withContext(Dispatchers.Default) {
         val main = ctx.awaitMain()
         val leContext = ctx.koin.get<LeContext>()
@@ -76,10 +66,6 @@ internal class EmailRelayController(private val ctx: CoreContext) {
         )
     }
 
-    /**
-     * Creates a new email forwarder (when [id] is null) or updates an existing one.
-     * [values] maps each schema field key to its entered value.
-     */
     suspend fun saveEmailRelay(
         id: String?,
         type: String,
@@ -98,7 +84,6 @@ internal class EmailRelayController(private val ctx: CoreContext) {
         addEmailRelay(model).bind()
     }
 
-    /** Duplicates an existing email forwarder under a new id. */
     suspend fun duplicateEmailRelay(id: String) {
         val main = ctx.awaitMain()
         val getEmailRelays = main.sessionKoin.get<GetEmailRelays>()
@@ -109,7 +94,6 @@ internal class EmailRelayController(private val ctx: CoreContext) {
         addEmailRelay(model).bind()
     }
 
-    /** Deletes the email forwarders with the given ids. */
     suspend fun deleteEmailRelays(ids: List<String>) {
         val main = ctx.awaitMain()
         val removeEmailRelayById = main.sessionKoin.get<RemoveEmailRelayById>()

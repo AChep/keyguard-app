@@ -37,8 +37,6 @@ struct FaviconView: View {
 
     private enum PlaceholderContent { case loading, failed }
 
-    /// The placeholder fill — a subtle tint of the item accent, or the neutral
-    /// quaternary fill when there is no accent.
     private var placeholderFill: AnyShapeStyle {
         if let accent { return AnyShapeStyle(accent.opacity(0.18)) }
         return AnyShapeStyle(.quaternary)
@@ -55,7 +53,6 @@ struct FaviconView: View {
                 .frame(width: size, height: size)
                 .background(placeholderFill, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         } else if let accent {
-            // Rich rows: a subtle accent box behind the cipher-type symbol.
             Image(systemName: fallbackSymbol)
                 .font(.system(size: size * 0.5))
                 .foregroundStyle(accent)

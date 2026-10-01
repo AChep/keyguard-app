@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.apple.vault
 
-/** Maps stable vault-list action ids to SF Symbol names. */
 internal object VaultActionSymbols {
     private val symbols: Map<String, String> = mapOf(
         // Toolbar overflow (vaultListToolbarFlow).
@@ -70,77 +69,6 @@ internal object VaultActionSymbols {
         "vaultList.subscriptions" to "star.circle",
     )
 
-    /**
-     * The documented action-id vocabulary the pipeline emits, typed out
-     * independently of the [symbols] keys on purpose: the session's
-     * `!isRelease` debug path runs [validate] over it at start-up, so the
-     * two lists drifting apart (an id added to one but not the other) is
-     * caught as a loud log rather than a silently icon-less action.
-     * A NEW producer id missing from BOTH lists is caught by the per-miss
-     * log in [symbolFor] the first time it is projected.
-     */
-    val expectedVocabulary: List<String> = listOf(
-        "vaultList.archive",
-        "vaultList.trash",
-        "vaultList.downloads",
-        "cipherFilters.action",
-        "vault.action.always_show_keyboard.true",
-        "vault.action.always_show_keyboard.false",
-        "vault.action.remember_sorting.true",
-        "vault.action.remember_sorting.false",
-        "vaultList.sync",
-        "vaultList.lock",
-        "vaultList.renameFolder",
-        "vaultList.item.copyUsername",
-        "vaultList.item.copyPassword",
-        "vaultList.item.copyOtp",
-        "vaultList.item.copyCardNumber",
-        "vaultList.item.copyCvv",
-        "vaultList.item.copyPhone",
-        "vaultList.item.copyEmail",
-        "vaultList.item.copyPassportNumber",
-        "vaultList.item.copyLicenseNumber",
-        "vaultList.pick.autofill",
-        "vaultList.pick.autofillAndSave",
-        "vaultList.pick.viewDetails",
-        "vaultList.save.viewDetails",
-        "vaultList.save.saveTo",
-        "vaultList.savePasskey.saveTo",
-        "vaultList.savePassword.saveTo",
-        "duplicates.selection.addToFavorites",
-        "duplicates.selection.removeFromFavorites",
-        "cipher.enableConfirmAccess",
-        "cipher.disableConfirmAccess",
-        "cipher.edit",
-        "cipher.viewPasswordHistory",
-        "cipher.viewSshAgentHistory",
-        "cipher.changeName",
-        "cipher.changeTags",
-        "cipher.changePassword",
-        "cipher.mergeInto",
-        "cipher.send",
-        "cipher.copyTo",
-        "cipher.moveToFolder",
-        "cipher.watchtowerAlerts",
-        "cipher.export",
-        "cipher.archive",
-        "cipher.unarchive",
-        "cipher.trash",
-        "cipher.restore",
-        "cipher.delete",
-        "vaultList.create.Login",
-        "vaultList.create.Card",
-        "vaultList.create.Identity",
-        "vaultList.create.SecureNote",
-        "vaultList.create.SshKey",
-        "vaultList.create.GpgKey",
-        "vaultList.subscriptions",
-    )
-
-    /**
-     * The SF Symbol for [actionId], or `""` with a loud log when the id has
-     * no mapping (the Swift menus render the row icon-less in that case).
-     */
     fun symbolFor(actionId: String): String {
         val symbol = symbols[actionId]
         if (symbol == null) {
@@ -152,7 +80,4 @@ internal object VaultActionSymbols {
         }
         return symbol
     }
-
-    /** The subset of [ids] that has no symbol mapping. Pure; no logging. */
-    fun validate(ids: List<String>): List<String> = ids.filter { it !in symbols }
 }

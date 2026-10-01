@@ -3,12 +3,8 @@ import SwiftUI
 import KeyguardShared
 
 /// Restricts which GPG keys the agent serves, mirroring the common
-/// `GpgAgentFiltersScreen`. The filter tree is produced by the shared
-/// `gpgAgentFiltersStateProducer` running headless inside `KeyguardCore` and
-/// rendered with the same `FilterSidebar` used by the vault list. Presented as
-/// a modal sheet in the standard header/content/footer layout: saving persists
-/// the filter; the producer then pops itself, which dismisses the sheet via the
-/// bridge `onClose` callback.
+/// `GpgAgentFiltersScreen`. Save does not dismiss: the producer pops itself,
+/// which dismisses the sheet via the bridge `onClose` callback.
 struct GpgAgentFiltersView: View {
     @Environment(GpgAgentModel.self) private var gpgAgentModel
     @Environment(\.dismiss) private var dismiss

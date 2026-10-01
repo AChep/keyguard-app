@@ -25,7 +25,6 @@ class SshAgentManagerApple(
     private val log: (String) -> Unit = {},
 ) {
     companion object {
-        /** Whether the bundled agent binary exists; cheap, bundle-only lookup. */
         val isBinaryAvailable: Boolean
             get() = findBundledBinary() != null
 
@@ -71,7 +70,6 @@ class SshAgentManagerApple(
         serverJob = scope.launch(Dispatchers.Default) {
             ipcServer.start(ipcSocket)
         }
-        // Give the IPC server time to bind before spawning the agent.
         return spawn(binaryPath, ipcSocket, sshSocket)
     }
 

@@ -139,7 +139,6 @@ enum DetailRowsPreviewFixtures {
             item("qr", .qr, text: "WIFI:T:WPA;S:Example;P:synthetic-password;;"),
             item("spacer", .spacer),
             item("label", .label, text: "Saved to a synthetic account."),
-            item("unsupported", .unsupported),
             item("empty-section", .section, title: "Empty section"),
         ]
     }

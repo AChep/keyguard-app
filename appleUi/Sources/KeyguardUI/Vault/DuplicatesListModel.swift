@@ -7,23 +7,17 @@ import KeyguardShared
 @MainActor
 @Observable
 final class DuplicatesListModel: VaultRowListModel {
-    /// Row content + structure; the list body and cells observe this.
     let store = VaultRowStore()
 
-    /// The active multi-selection (`count == 0` = inactive); read by the bulk bar
-    /// and the row context menu's bulk swap.
     private(set) var selection: VaultSelection = .empty
 
     var loaded: Bool { store.structure.revision != 0 }
 
     @ObservationIgnored private let session: DuplicatesSession
-    /// The shared FIFO background→Main delta pump, bound to this model's `store`.
     @ObservationIgnored private lazy var pump = VaultDeltaPump(store: store)
     @ObservationIgnored private var subscriptions: [KeyguardCancellable] = []
     @ObservationIgnored private var started = false
 
-    /// The well-known row-action id dispatched through `performVaultRowAction` to
-    /// begin / toggle a row's selection membership (the context-menu "Select").
     private enum RowAction {
         static let toggleSelect = "duplicates.toggleSelect"
     }
@@ -37,15 +31,11 @@ final class DuplicatesListModel: VaultRowListModel {
 
     // MARK: - Lifecycle
 
-    /// Subscribes the two channels + starts the delta pump. Call on appear;
-    /// balance with `stop()` on disappear. No-op while already started.
+    /// Call on appear; balance with `stop()` on disappear. No-op while already started.
     func start() {
         guard !started else { return }
         started = true
 
-        // The one-hop FIFO apply pipeline (shared helper): re-baselines the store,
-        // captures the run generation, starts the apply task and hands back the
-        // continuation the background delta callback yields into.
         let continuation = pump.start()
 
         // THE LIST. Background-delivered BY DESIGN (like the main list): convert
@@ -69,7 +59,6 @@ final class DuplicatesListModel: VaultRowListModel {
             })
     }
 
-    /// Cancels both channels, stops the pump and clears state.
     func stop() {
         subscriptions.forEach { $0.cancel() }
         subscriptions = []
@@ -80,20 +69,18 @@ final class DuplicatesListModel: VaultRowListModel {
 
     // MARK: - VaultRowListModel commands
 
-    /// A tap when no selection is active opens the cipher (the `.openOrToggle`
-    /// bridge routes here); the canonical Kotlin open path pushes the detail.
+    /// A tap with no active selection; the canonical Kotlin open path pushes the detail.
     func openVaultRow(rowId: String) {
         session.openVaultRow(rowId: rowId)
     }
 
-    /// A tap while selecting, or the context-menu "Select" to begin — routes to
-    /// the producer's group-scoped toggle (a cross-group toggle is a Kotlin no-op).
+    /// Routes to the producer's group-scoped toggle; a cross-group toggle is a Kotlin no-op.
     func toggleSelection(rowId: String) {
         session.toggleSelection(rowId: rowId)
     }
 
-    /// Dispatches a per-row action: the context-menu "Select" toggle, or the
-    /// per-group "Merge" button (whose action id is the button row id).
+    /// The context-menu "Select" toggle, or the per-group "Merge" button, whose
+    /// action id is the button row id.
     func performVaultRowAction(rowId: String, actionId: String) {
         if actionId == RowAction.toggleSelect {
             session.toggleSelection(rowId: rowId)
@@ -102,8 +89,6 @@ final class DuplicatesListModel: VaultRowListModel {
         }
     }
 
-    /// One of the active multi-selection's bulk actions (favourite / rename /
-    /// trash / send / merge / …), fired by its `FlatItemAction.id`.
     func invokeSelectionAction(id: String) {
         session.invokeSelectionAction(id: id)
     }
@@ -113,14 +98,12 @@ final class DuplicatesListModel: VaultRowListModel {
         session.invokeSelectionActionForItems(id: id, itemIds: selectedIds.sorted())
     }
 
-    /// Clears the active multi-selection (the bulk bar's X).
     func clearSelection() {
         session.clearSelection()
     }
 
-    /// The row's context menu, synthesized Swift-side: a single "Select" toggle
-    /// (begins a selection, or toggles this row's membership). Fetched on demand by
-    /// `VaultRowContextMenu` like the main list's `rowActions`.
+    /// Synthesized Swift-side: a single "Select" toggle that begins a selection or
+    /// toggles this row's membership.
     func rowActions(rowId: String) async -> [VaultAction] {
         [VaultAction(id: RowAction.toggleSelect, title: L10n.select, symbol: "checkmark.circle")]
     }

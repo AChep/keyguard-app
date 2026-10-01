@@ -133,8 +133,6 @@ class SshAgentRequestProcessorApple(
             return SshAgentRequestProcessor.SignDataResult.KeyNotFound
         }
 
-        // Record the SSH usage for this
-        // specific sign data request.
         suspend fun recordSshUsageSignData(
             response: SshUsageHistoryResponseType,
         ) = recordSshUsage(
@@ -371,7 +369,6 @@ class SshAgentRequestProcessorApple(
 
     private object NoOpAddSshUsageHistory : AddSshUsageHistory {
         override fun invoke(request: AddSshUsageHistoryRequest): IO<Unit> = {
-            // Do nothing
         }
     }
 }

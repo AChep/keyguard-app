@@ -8,7 +8,6 @@ import KeyguardShared
 struct VaultListTableView: NSViewRepresentable {
     let model: any VaultRowListModel
     let selection: VaultSelectionModel
-    /// The surface's interaction policy (multi-select, context menu, …).
     let config: VaultListConfig
     let colorScheme: ColorScheme
 
@@ -53,8 +52,8 @@ struct VaultListTableView: NSViewRepresentable {
 
         private var lastRevealToken = 0
 
-        /// One-shot subscribe-time scroll restore guard (mirrors the SwiftUI
-        /// pane's `didRestoreScroll`), and the throttle state for scroll reporting.
+        /// One-shot subscribe-time scroll restore guard, and the throttle state for
+        /// scroll reporting.
         private var didRestoreScroll = false
         private lazy var scrollReporter = VaultScrollReporter(
             visibleAnchor: { [weak self] in self?.visibleAnchor() },
@@ -213,8 +212,8 @@ struct VaultListTableView: NSViewRepresentable {
             var snapshot = NSDiffableDataSourceSnapshot<Int, String>()
             snapshot.appendSections([0])
             snapshot.appendItems(projection.ids, toSection: 0)
-            // O(changes) native row update — the perf fix. No per-row SwiftUI
-            // identity reconcile; only newly-visible rows ask for a cell.
+            // O(changes) native row update: no per-row SwiftUI identity
+            // reconcile; only newly-visible rows ask for a cell.
             dataSource.apply(snapshot, animatingDifferences: false)
             return true
         }
@@ -297,9 +296,8 @@ struct VaultListTableView: NSViewRepresentable {
 
         // MARK: Selection
 
-        /// Pushes the model's `selectedRowIds` into the table's selected rows. Ids
-        /// no longer present in the frame are dropped. Guarded so the resulting
-        /// delegate callback does not echo the same set back to the model.
+        /// Pushes the model's `selectedRowIds` into the table; ids no longer present
+        /// in the frame are dropped.
         private func reflectSelection(_ selectedRowIds: Set<String>, in table: NSTableView) {
             var desired = IndexSet()
             for id in selectedRowIds {
@@ -314,7 +312,7 @@ struct VaultListTableView: NSViewRepresentable {
         }
 
         /// Only `.item` rows are selectable (sections / markers / the quick-filter
-        /// row are not), matching the SwiftUI path's `.selectionDisabled()`.
+        /// row are not).
         func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
             guard let id = dataSource.itemIdentifier(forRow: row),
                 let entry = entriesById[id]
@@ -337,9 +335,8 @@ struct VaultListTableView: NSViewRepresentable {
                 return
             }
             if config.rowTap == .copyPrimary {
-                // A Recents-style read-only picker: a row click copies its primary
-                // value and clears the selection (a momentary tap, not a persisted
-                // selection). Never mirror into `selectedRowIds`.
+                // A Recents-style read-only picker: a momentary tap, not a
+                // persisted selection. Never mirror into `selectedRowIds`.
                 if let id = ids.first {
                     model.copyPrimaryRow(rowId: id)
                 }
@@ -353,7 +350,6 @@ struct VaultListTableView: NSViewRepresentable {
             if config.rowTap == .openOrToggle {
                 // The Duplicates surface: selection is Kotlin-owned (group-scoped)
                 // and shown via the row flags, so never persist a native selection.
-                // A tap toggles while a selection is active, else opens the row.
                 if let id = ids.first {
                     if model.selection.count > 0 {
                         model.toggleSelection(rowId: id)
@@ -426,7 +422,7 @@ private final class VaultTableView: NSTableView {
         // SwiftUI-hosted cells can change the native selection while leaving the
         // search field as first responder. Transfer keyboard focus before the
         // click so subsequent selection shortcuts operate on the vault rows.
-        // Quick Search keeps its existing search-field keyboard handling.
+        // Quick Search opts out to keep its search-field keyboard handling.
         if focusOnMouseDown {
             window?.makeFirstResponder(self)
         }

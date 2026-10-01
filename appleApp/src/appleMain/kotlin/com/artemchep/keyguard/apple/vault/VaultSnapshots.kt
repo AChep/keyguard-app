@@ -1,7 +1,5 @@
 package com.artemchep.keyguard.apple.vault
 
-import arrow.core.right
-import com.artemchep.keyguard.main
 import com.artemchep.keyguard.feature.home.vault.quicksearch.QuickSearchHeadlessEmptyState
 import com.artemchep.keyguard.feature.home.vault.quicksearch.QuickSearchHeadlessState
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewState
@@ -9,14 +7,8 @@ import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.apple.model.TotpFieldSnapshot
 import com.artemchep.keyguard.apple.model.VaultActionSnapshot
 import com.artemchep.keyguard.apple.model.VaultItemSnapshot
-import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.tabs.CallsTabs
-import kotlinx.coroutines.flow.map
 
-/**
- * A flat, Swift-friendly projection of the shared [VaultViewState] for the
- * SwiftUI vault item detail panel. Built by [KeyguardCore.buildDetailSnapshot].
- */
 data class VaultDetailSnapshot(
     val title: String,
     val typeIcon: String,
@@ -26,26 +18,20 @@ data class VaultDetailSnapshot(
     val cipherId: String,
     val items: List<VaultItemSnapshot>,
     /**
-     * A concrete, directly-loadable website favicon URL for the header, or `null`
-     * when there is no website icon (icon disabled, no site URL, or a non-login
-     * type). The SwiftUI header falls back to [typeIcon] in that case.
+     * A directly-loadable website favicon URL, or `null` when there is no website icon
+     * (icon disabled, no site URL, or a non-login type); the header then falls back to [typeIcon].
      */
     val iconUrl: String? = null,
     /** Initials to render when [iconUrl] is `null` / fails to load. */
     val iconPlaceholder: String? = null,
     /**
-     * The synthesized id of the cipher's edit action, registered in the controller's
-     * action-handler map, or `null` when the cipher is read-only. The SwiftUI header
-     * renders a dedicated edit button and routes it back via [KeyguardCore.invokeVaultAction]
+     * `null` when the cipher is read-only. Routes back via [KeyguardCore.invokeVaultAction]
      * (or the entry action for a stacked detail).
      */
     val editActionId: String? = null,
     /**
-     * The cipher's top-level overflow actions (move to folder, change password, create
-     * send, export, archive, trash, delete, view password history, …) — the shared
-     * `VaultViewState.Content.Cipher.actions` projected to flat snapshots and routed
-     * back by [VaultActionSnapshot.id] via [KeyguardCore.invokeVaultAction]. Mirrors the
-     * Compose toolbar's options menu.
+     * The overflow actions of [VaultViewState.Content.Cipher.actions], routed back by
+     * [VaultActionSnapshot.id] like [editActionId].
      */
     val actions: List<VaultActionSnapshot> = emptyList(),
 ) {
@@ -63,9 +49,7 @@ data class VaultDetailSnapshot(
 }
 
 /**
- * The live TOTP badges of one cipher detail, keyed by [VaultItemSnapshot.id].
- * Delivered on its own channel so the per-second countdown does not rebuild the
- * whole [VaultDetailSnapshot]. [cipherId] lets SwiftUI ignore badges of a cipher
+ * Keyed by [VaultItemSnapshot.id]. [cipherId] lets SwiftUI ignore badges of a cipher
  * it no longer shows (TOTP row ids are the same for every cipher).
  */
 data class VaultDetailTotpSnapshot(
@@ -73,23 +57,12 @@ data class VaultDetailTotpSnapshot(
     val states: Map<String, TotpFieldSnapshot>,
 )
 
-/**
- * One tab of the Recents window — "Recently opened" / "Often opened" — with its
- * title localized in shared Kotlin. [key] is the [CallsTabs.key] to pass back to
- * [KeyguardCore.setRecentsTab].
- */
+/** [title] is localized in shared Kotlin; [key] is the [CallsTabs.key] to pass back to [KeyguardCore.setRecentsTab]. */
 data class RecentsTabSnapshot(
     val key: String,
     val title: String,
 )
-/**
- * The Recents window's tab bar as its OWN small channel, split off the
- * item stream: the item rows now ride the state-anchored [VaultListDelta]
- * pipeline ([RecentsController.observeRecentsListDelta], off-main), while this
- * cheap on-main channel carries just the tab titles + current selection so the
- * segmented `Picker` never depends on the item projection. [loaded] is `true`
- * once the shared producer is live (an unlocked vault); `false` while locked.
- */
+/** [loaded] is `false` while the vault is locked. */
 data class RecentsTabsSnapshot(
     val loaded: Boolean,
     val tabs: List<RecentsTabSnapshot>,
@@ -111,8 +84,7 @@ enum class QuickSearchEmptyKind {
     ADD_ACCOUNT,
 }
 
-/** A copy / open action for the selected item. [type] routes back via
- * [KeyguardCore.invokeQuickSearchAction]; [shortcut] is the macOS key hint. */
+/** [type] routes back via [KeyguardCore.invokeQuickSearchAction]; [shortcut] is the macOS key hint. */
 data class QuickSearchActionSnapshot(
     val type: String,
     val title: String,
@@ -120,7 +92,6 @@ data class QuickSearchActionSnapshot(
     val selected: Boolean,
 )
 
-/** The highlighted item's detail, shown in the quick-search right pane. */
 data class QuickSearchDetailSnapshot(
     val title: String,
     val primaryType: String?,
@@ -132,12 +103,8 @@ data class QuickSearchDetailSnapshot(
 )
 
 /**
- * One quick-search result row, slimmed to only what the SwiftUI overlay still reads:
- * the row [id] (matched against [QuickSearchSnapshot.selectedItemId] to source the
- * detail pane's favicon) plus that favicon's [iconUrl] / [iconPlaceholder]. The
- * result ROWS themselves render from the shared diffable store (the
- * `observeQuickSearchListDelta` channel), so no rich per-row projection is carried
- * on the snapshot anymore.
+ * Only sources the detail pane's favicon (matched by [id] against [QuickSearchSnapshot.selectedItemId]);
+ * the result rows render from the `observeQuickSearchListDelta` channel.
  */
 data class QuickSearchResultSnapshot(
     val id: String,
@@ -145,7 +112,6 @@ data class QuickSearchResultSnapshot(
     val iconPlaceholder: String?,
 )
 
-/** Flat projection of the quick-search overlay state. Built by [KeyguardCore.observeQuickSearch]. */
 data class QuickSearchSnapshot(
     val query: String,
     val queryRevision: Int,

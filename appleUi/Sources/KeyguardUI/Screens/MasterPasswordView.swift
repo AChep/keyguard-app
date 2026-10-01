@@ -37,8 +37,6 @@ struct MasterPasswordView: View {
     /// The toolbar's recovery action awaiting confirmation.
     @State private var pendingAction: UnlockActionSnapshot?
     #endif
-    /// Keyboard focus for the password field. macOS unlock has no explicit Unlock
-    /// button, so the field is focused on entry to keep Return-to-submit reliable.
     @FocusState private var passwordFocused: Bool
 
     private var canSubmit: Bool {
@@ -58,7 +56,7 @@ struct MasterPasswordView: View {
 
     /// Only the producer's inline validation error (min-length / empty). Runtime
     /// failures (wrong master password, failed create) arrive as toasts over the
-    /// form via the global message bus, mirroring Compose's `ToastMessageHost`.
+    /// form via the global message bus.
     private var errorText: String? {
         switch mode {
         case .create: return authModel.setupPasswordError
@@ -73,7 +71,7 @@ struct MasterPasswordView: View {
         }
     }
 
-    /// `.create` only: two-way bindings backed by the shared setup producer.
+    /// `.create` only.
     private var biometricBinding: Binding<Bool> {
         Binding(get: { authModel.setupBiometricEnabled }, set: { authModel.setSetupBiometric($0) })
     }
@@ -110,8 +108,6 @@ struct MasterPasswordView: View {
                         masterPasswordField
 
                         if mode == .create {
-                            // The crash-reporting opt-in and biometric enrollment toggle
-                            // mirror the Compose setup screen — both owned by the producer.
                             if authModel.setupHasBiometric {
                                 Toggle(
                                     AppleBiometry.current.unlockTitle(bundle: AppLocalization.shared.bundle),
@@ -299,6 +295,3 @@ struct MasterPasswordView: View {
         }
     }
 }
-
-// `VisualEffectBackground` now lives in `Platform/VisualEffectBackground.swift`
-// (shared, cross-platform via NS/UIViewRepresentable).

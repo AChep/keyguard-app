@@ -53,13 +53,12 @@ struct GeneratorTypePicker: View {
 
 // MARK: - Option sections
 
-/// The generator's option groups: the length slider (leading the first group) plus
-/// every switch / text / enum filter.
+/// The generator's option groups: the length slider plus every switch / text / enum
+/// filter.
 ///
 /// A free `@ViewBuilder` function rather than a `View` type on purpose — it resolves
-/// to the same `ForEach<_, _, Section<…>>` the screens used to write inline, so
-/// `Form` sees exactly the section structure it did before and each builder-emitted
-/// sibling stays its own form row.
+/// to a plain `ForEach<_, _, Section<…>>`, so `Form` sees the section structure
+/// directly and each builder-emitted sibling stays its own form row.
 @MainActor
 @ViewBuilder
 func generatorOptionSections(
@@ -125,8 +124,6 @@ func generatorOptionGroups(
     return sections
 }
 
-// MARK: - Length
-
 @MainActor
 @ViewBuilder
 func generatorLengthRows(
@@ -179,8 +176,7 @@ private func generatorSwitchRow(
         set: { actions.setSwitch(filter.key, $0) }
     )
     if let counter = filter.counter {
-        // A switch with an associated min-count stepper (e.g. minimum digits):
-        // the title leads, the stepper and switch trail.
+        // A switch with an associated min-count stepper (e.g. minimum digits).
         HStack(spacing: 12) {
             Text(filter.title ?? "")
             Spacer()

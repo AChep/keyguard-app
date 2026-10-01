@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Which provider the user chose in the add-account menu. Mirrors the shared
-/// `AccountType` enum (Bitwarden, and KeePass which is beta + local-only).
 enum AddAccountKind: String, Identifiable, Hashable {
     case bitwarden
     case keepass
@@ -28,7 +26,6 @@ struct AddAccountMenuItems: View {
     }
 }
 
-/// The pushed login screen for a chosen provider.
 struct AddAccountDestination: View {
     let kind: AddAccountKind
 

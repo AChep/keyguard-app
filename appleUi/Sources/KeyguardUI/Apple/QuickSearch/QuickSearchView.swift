@@ -4,12 +4,8 @@ import AppKit
 import KeyguardShared
 
 /// Spotlight-style Quick Search overlay, mirroring the Compose two-pane quick
-/// panel: a search field on top, then a results list (left) + a detail pane
-/// (right), and an action strip at the bottom. A thin renderer over the shared
-/// quick-search producer (`model.quickSearch`): arrow keys move the producer's
-/// selection, Tab cycles the selected action, Return performs the selected-or-
-/// default action, and ⌘C / ⌘⇧C / ⌘⌥C / ⌘⇧F invoke the specific copy/open
-/// actions — all of which run in shared Kotlin.
+/// panel. A thin renderer over the shared quick-search producer: selection,
+/// action cycling and the copy/open actions all run in shared Kotlin.
 struct QuickSearchView: View {
     @Environment(VaultSessionModel.self) private var authModel
     @Environment(DialogsModel.self) private var dialogsModel
@@ -30,10 +26,7 @@ struct QuickSearchView: View {
     /// `selectedItemId`), so the table's native selection channel is inert.
     @State private var listSelection = VaultSelectionModel()
 
-    /// The interaction policy for the Quick Search results table: a tap SELECTS
-    /// (populates the detail pane) rather than opening; the single highlighted row
-    /// + scroll-to ride `selectedRowId`; no multi-select, no context menu (Quick
-    /// Search uses the action strip), no sync header, no quick filters.
+    /// No context menu: Quick Search uses the action strip.
     private var listConfig: VaultListConfig {
         VaultListConfig(
             rowTap: .select,
@@ -75,8 +68,8 @@ struct QuickSearchView: View {
             unlockedContent
         case .locked:
             // Gate on panel visibility: the hosting view is cached, so this keeps
-            // the unlock form (and the Touch ID host it arms) tied to the panel
-            // actually being on screen.
+            // the unlock form (and the Touch ID host it arms, which auto-prompts on
+            // entry) tied to the panel actually being on screen.
             if quickSearchModel.quickSearchVisible {
                 QuickSearchUnlock()
             } else {
@@ -123,7 +116,6 @@ struct QuickSearchView: View {
                     remoteRevision: snapshot.queryRevision,
                     send: quickSearchModel.setQuickSearchQuery
                 )
-            // Hidden shortcut catchers (⌘C / ⌘⇧C / ⌘⌥C / ⌘⇧F).
             shortcut("CopyPrimary", "c", .command)
             shortcut("CopySecret", "c", [.command, .shift])
             shortcut("CopyOtp", "c", [.command, .option])
@@ -138,8 +130,6 @@ struct QuickSearchView: View {
             quickSearchModel.moveQuickSearchSelection(-1); return .handled
         }
         .onKeyPress(.tab, phases: .down) { press in
-            // Shift+Tab cycles backward; the bridge accepts negative directions
-            // (the same path the upArrow handler uses).
             quickSearchModel.moveQuickSearchActionSelection(press.modifiers.contains(.shift) ? -1 : 1)
             return .handled
         }
@@ -195,14 +185,8 @@ struct QuickSearchView: View {
         }
     }
 
-    /// The results list, now backed by the SHARED diffable renderer
-    /// (`VaultListTableView` → `NSTableView` + diffable data source) driven by the
-    /// focused `QuickSearchListModel` — the same rows the vault list / Recents use,
-    /// with real cell reuse (only visible rows realize). The rows themselves ride
-    /// the background-delivered `observeQuickSearchListDelta` channel; selection /
-    /// detail / actions / TOTP stay on their existing channels. A tap selects (via
-    /// the model's `selectRow` → `selectQuickSearchItem`), the arrow-key-moved
-    /// `selectedItemId` drives the highlight + scroll-to (`selectedRowId`).
+    /// Rows arrive on the background-delivered `observeQuickSearchListDelta` channel;
+    /// selection, detail, actions and TOTP stay on their own channels.
     @ViewBuilder
     private var resultsList: some View {
         if let listModel = quickSearchModel.quickSearchListModel {
@@ -215,21 +199,17 @@ struct QuickSearchView: View {
         }
     }
 
-    // MARK: - Detail pane
-
     @ViewBuilder
     private var detailPane: some View {
         if let detail = snapshot.selectedDetail {
-            // The detail snapshot carries no icon, so source it from the matching
-            // result row (which does) for the shared `DetailHeaderBar` header.
+            // The detail snapshot carries no icon, so take it from the matching result row.
             let selectedItem = items.first { $0.id == snapshot.selectedItemId }
             QuickSearchDetail(
                 detail: detail,
                 iconUrl: selectedItem?.iconUrl,
                 iconPlaceholder: selectedItem?.iconPlaceholder,
-                // Reuse the live row-level TOTP channel (the detail snapshot carries
-                // only `hasOtp`, no code) so the OTP field shows the real rotating
-                // code + countdown instead of a static placeholder.
+                // The detail snapshot carries only `hasOtp`, so take the live code from
+                // the row-level TOTP channel.
                 totp: snapshot.selectedItemId.flatMap { quickSearchModel.quickSearchListModel?.totpStates[$0] }
             ) { type in
                 quickSearchModel.invokeQuickSearchAction(type: type)
@@ -271,8 +251,6 @@ struct QuickSearchView: View {
         }
     }
 
-    // MARK: - Actions
-
     private func performEnter() {
         if let idx = snapshot.selectedActionIndex?.intValue,
             idx >= 0, Int(idx) < snapshot.actions.count
@@ -285,12 +263,7 @@ struct QuickSearchView: View {
     }
 }
 
-/// The Quick Search panel's inline unlock form, shown in place of the search UI while
-/// the vault is locked. Mirrors `MasterPasswordView(mode:.unlock)` but sized for the
-/// overlay: it reuses the same shared unlock API on `VaultSessionModel` (no duplicated
-/// unlock logic). It arms the bridge's Touch ID prompt host only while it is on screen
-/// (gated by the panel-visibility flag at the call site), which also auto-prompts
-/// Touch ID on entry; the master password is cleared on dismiss (never preserved).
+/// Mirrors `MasterPasswordView(mode:.unlock)`, sized for the overlay.
 private struct QuickSearchUnlock: View {
     @Environment(VaultSessionModel.self) private var authModel
     @Environment(QuickSearchModel.self) private var quickSearchModel
@@ -379,8 +352,6 @@ private struct QuickSearchUnlock: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(24)
-        // Arm the Touch ID host (which also auto-prompts on entry) only while the
-        // form is on screen, and focus the password field.
         .onAppear {
             authModel.setUnlockScreenVisible(true)
             passwordFocused = true
@@ -396,7 +367,7 @@ private struct QuickSearchUnlock: View {
                 submit()
             }
         }
-        // Re-assert focus on every panel show, the same mechanism the search field uses.
+        // Re-assert focus on every panel show.
         .onChange(of: quickSearchModel.quickSearchFocusToken) { _, _ in passwordFocused = true }
     }
 
@@ -412,19 +383,14 @@ private struct QuickSearchUnlock: View {
     }
 }
 
-/// The quick-search right pane. Mirrors the regular Vault detail (`CipherDetailView`):
-/// a frosted favicon + title `DetailHeaderBar` floated over a grouped `Form` of
-/// `FieldCell` rows, so it reads as the same screen. It stays on the quick-search
-/// data (`QuickSearchDetailSnapshot`) and routes copy/open through the producer's
-/// quick-search actions — it does NOT touch the shared `model.detail` channel that
-/// the main window owns. The secret field reveals on demand.
+/// Looks like the Vault detail (`CipherDetailView`), but stays on the quick-search
+/// data and actions: it must not touch the detail channel that the main window owns.
 private struct QuickSearchDetail: View {
     @Environment(QuickSearchModel.self) private var quickSearchModel
     let detail: QuickSearchDetailSnapshot
     let iconUrl: String?
     let iconPlaceholder: String?
-    /// Live TOTP for the selected item (sourced from the row-level quick-search
-    /// TOTP channel); nil until the first per-second push arrives.
+    /// nil until the first per-second push arrives.
     let totp: TotpFieldSnapshot?
     let invoke: (String) -> Void
     @State private var revealSecret = false
@@ -471,7 +437,6 @@ private struct QuickSearchDetail: View {
         .onChange(of: quickSearchModel.quickSearchFocusToken) { _, _ in
             revealSecret = false
         }
-        // Float the header over the form, identical to `CipherDetailView.content`.
         .safeAreaInset(edge: .top, spacing: 0) {
             DetailHeaderBar(title: detail.title) {
                 FaviconView(
@@ -486,10 +451,8 @@ private struct QuickSearchDetail: View {
         }
     }
 
-    /// One value field rendered with the shared `FieldCell` (same look as a Vault
-    /// detail row). `actions: []` keeps the cell's built-in menu / copy control off,
-    /// so the reveal eye and copy / open button in `accessories` own the affordances
-    /// and route to the quick-search action `invoke`.
+    /// `actions: []` turns off the cell's built-in menu and copy control, so the
+    /// `accessories` buttons own the affordances and route through `invoke`.
     @ViewBuilder
     private func field(
         label: String,
@@ -530,11 +493,6 @@ private struct QuickSearchDetail: View {
         }
     }
 
-    /// The one-time-password field. Renders the live rotating code + countdown ring
-    /// from the shared TOTP channel via `TotpBadgeView` (the same badge the vault
-    /// detail uses) rather than a static placeholder; until the first per-second push
-    /// arrives it shows a small spinner, never a fake masked value. Copy stays routed
-    /// through the producer's `CopyOtp` action.
     @ViewBuilder
     private var otpField: some View {
         FieldCell(

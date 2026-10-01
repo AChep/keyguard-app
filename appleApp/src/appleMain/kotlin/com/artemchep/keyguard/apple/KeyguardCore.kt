@@ -1,24 +1,11 @@
 package com.artemchep.keyguard.apple
 
-import com.artemchep.keyguard.AppleBillingBridge
 import com.artemchep.keyguard.apple.core.sessionKoin
-import com.artemchep.keyguard.main
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.registerLaunchAtLoginBridge
-import com.artemchep.keyguard.common.model.VaultState
-import com.artemchep.keyguard.common.usecase.PutLaunchAtLogin
-import com.artemchep.keyguard.feature.auth.accountStateProducer
-import com.artemchep.keyguard.feature.changepassword.changePasswordStateProducer
 import com.artemchep.keyguard.feature.generator.GeneratorRoute
-import com.artemchep.keyguard.feature.home.settings.accounts.accountListScreenStateProducer
-import com.artemchep.keyguard.feature.home.settings.backups.AutomaticBackupsSettingsState
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
-import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
-import com.artemchep.keyguard.feature.home.vault.quicksearch.QuickSearchHeadlessController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.feature.send.sendListScreenStateProducer
-import com.artemchep.keyguard.feature.send.view.sendViewScreenStateProducer
 import com.artemchep.keyguard.apple.account.AccountDetailSnapshot
 import com.artemchep.keyguard.apple.account.AccountListSnapshot
 import com.artemchep.keyguard.apple.account.AccountsController
@@ -87,7 +74,6 @@ import com.artemchep.keyguard.apple.gpgtools.GpgToolsResultSnapshot
 import com.artemchep.keyguard.apple.gpgtools.GpgToolsSnapshot
 import com.artemchep.keyguard.apple.lists.AutofillController
 import com.artemchep.keyguard.apple.lists.AutofillCredentialSnapshot
-import com.artemchep.keyguard.apple.lists.AutofillIdentitySnapshot
 import com.artemchep.keyguard.apple.lists.AutofillSuggestionSnapshot
 import com.artemchep.keyguard.apple.lists.PasskeyAssertionSnapshot
 import com.artemchep.keyguard.apple.lists.PasskeyController
@@ -101,9 +87,7 @@ import com.artemchep.keyguard.apple.lists.ReadOnlyListsController
 import com.artemchep.keyguard.apple.lists.SshAgentHistorySnapshot
 import com.artemchep.keyguard.apple.lists.UrlRuleListSnapshot
 import com.artemchep.keyguard.apple.onboarding.OnboardingController
-import com.artemchep.keyguard.apple.model.SettingOptionSnapshot
 import com.artemchep.keyguard.apple.model.TotpFieldSnapshot
-import com.artemchep.keyguard.apple.model.VaultItemSnapshot
 import com.artemchep.keyguard.apple.send.SendDetailController
 import com.artemchep.keyguard.apple.send.SendDetailSnapshot
 import com.artemchep.keyguard.apple.send.SendListController
@@ -164,25 +148,21 @@ import com.artemchep.keyguard.apple.vault.VaultDetailTotpSnapshot
 import com.artemchep.keyguard.apple.vault.VaultListSession
 import com.artemchep.keyguard.apple.vault.VaultListSessionConfig
 import com.artemchep.keyguard.apple.vault.toArgs
-import com.artemchep.keyguard.apple.watchtower.WatchtowerAlertsSnapshot
 import com.artemchep.keyguard.apple.watchtower.WatchtowerController
 import com.artemchep.keyguard.apple.watchtower.WatchtowerSettingsSnapshot
 import com.artemchep.keyguard.apple.watchtower.WatchtowerSnapshot
-import com.artemchep.keyguard.res.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.koin.core.scope.Scope
 import platform.Foundation.create
 
-/** Facade exposing shared Keyguard logic to native SwiftUI clients. */
 /**
  * How long the bridge may coalesce successive snapshot emissions of one
  * observer. Echo latency is invisible to the user: the SwiftUI edit
@@ -205,62 +185,34 @@ internal fun <T> Flow<T>.throttleLatest(
         delay(period)
     }
 
+/** Facade exposing shared Keyguard logic to native SwiftUI clients. */
 class KeyguardCore(runtime: KeyguardRuntime) {
     constructor() : this(KeyguardRuntime.APP)
-    /**
-     * Shared kernel: the DI graph, the coroutine scopes and the observer
-     * plumbing that enforces the bridge's threading contract (see [CoreContext]).
-     */
     private val context = CoreContext(runtime)
 
-    /**
-     * The SwiftUI-presented dialog subsystem (Large Type, Barcode, passkey
-     * credential, attachment preview). All channel state + headless producers
-     * live in [DialogController]; the vault / send / account / password-history
-     * detail observers hand its [DialogController.navigationInterceptor] to their
-     * producers to catch the dialog routes.
-     */
-    /**
-     * The native biometric (Touch ID / Face ID) + YubiKey prompt host, shared by
-     * the create / unlock flow ([AuthController]) and the master-password re-prompt
-     * dialog ([DialogController]). YubiKey operations use the shared native client.
-     */
     private val authPromptHost = AuthPromptHost(context, com.artemchep.keyguard.util.yubikey.NativeYubiKeyClient())
 
     private val dialogController by lazy { DialogController(context, authPromptHost) }
 
-    /**
-     * The password / passphrase / username / email generator. All producer
-     * wiring + snapshot projection live in [GeneratorController].
-     */
     private val generatorController by lazy { GeneratorController(context) }
 
-    /**
-     * A second generator instance dedicated to the in-form Autofill / generate
-     * affordance of the add / edit item form (the username / password field's
-     * generate button). Runs the same shared producer with field-specific args
-     * (and a stable producer key per field), independent of the main generator
-     * screen so the two never share routing tables.
-     */
+    /** The add form's in-form generator; separate from the generator screen so the two never share routing tables. */
     private val autofillGeneratorController by lazy { GeneratorController(context) }
 
-    /**
-     * The native "GPG Tools" section (encrypt / decrypt / sign / verify). All
-     * producer wiring + snapshot projection live in [GpgToolsController]; the run
-     * outcome is surfaced via a separate result callback (the shared producer
-     * delivers it through a result-dialog navigation intent the controller
-     * intercepts).
-     */
     private val gpgToolsController by lazy { GpgToolsController(context) }
 
     private val appLifecycleController = AppLifecycleController(context)
 
+    /** Report every SwiftUI `scenePhase` change; the sync worker and the auto-lock timer follow it. */
     fun setScenePhase(phase: KeyguardScenePhase) = appLifecycleController.setScenePhase(phase)
 
+    /** Main app only; a no-op in the AutoFill runtime and on repeat calls. */
     fun startAutomaticBackups() = appLifecycleController.startAutomaticBackups()
 
+    /** Main app only; a no-op in the AutoFill runtime and on repeat calls. */
     fun startWatchtower() = appLifecycleController.startWatchtower()
 
+    /** [onChange] runs on the main thread on every status change. */
     fun observeStatus(
         onChange: (KeyguardVaultStatus) -> Unit,
     ): KeyguardCancellable = appLifecycleController.observeStatus(onChange)
@@ -275,19 +227,20 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     private val quickCopyController by lazy { QuickCopyController(context) }
 
+    /**
+     * [field] is "username", "password" or "otp"; passwords are copied concealed. No-op while locked or when the
+     * field is absent. Named `quick…`, not `copy…`: Kotlin/Native exports `copy`-family names as `doCopy…`.
+     */
     suspend fun quickCopyCipherField(secretId: String, accountId: String, field: String) =
         quickCopyController.quickCopyCipherField(secretId, accountId, field)
 
     suspend fun generateAndCopyPassword() = quickCopyController.generateAndCopyPassword()
 
-    // ---------------------------------------------------------------------------
-    // Launch at login (macOS). Thin bridge over the shared Get/PutLaunchAtLogin
-    // use cases, which delegate to the Swift SMAppService bridge registered at
-    // startup via [registerLaunchAtLoginBridge].
-    // ---------------------------------------------------------------------------
+    // Launch at login (macOS). Delegates to the Swift bridge set via [registerLaunchAtLoginBridge].
 
     private val launchAtLoginController by lazy { LaunchAtLoginController(context) }
 
+    /** Emits on every registration change; `requiresApproval` and `available` are sampled only then. */
     fun observeLaunchAtLogin(
         onChange: (LaunchAtLoginSnapshot) -> Unit,
     ): KeyguardCancellable = launchAtLoginController.observeLaunchAtLogin(onChange)
@@ -296,34 +249,27 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun openLoginItemsSettings() = launchAtLoginController.openLoginItemsSettings()
 
-    // ---------------------------------------------------------------------------
-    // First-run onboarding. Thin bridge over the shared Get/PutOnboardingLastVisit
-    // use cases that back the Compose OnboardingBanner / OnboardingScreen pair: the
-    // banner is shown until the user has visited (or dismissed) the onboarding, and
-    // [markOnboarded] stamps the instant so it never shows again. The feature cards
-    // are static localized content rendered natively in Swift.
-    // ---------------------------------------------------------------------------
+    // First-run onboarding
 
     private val onboardingController by lazy { OnboardingController(context) }
 
+    /** Emits `true` once [markOnboarded] has run, `false` before: the inverse of the Compose banner's visibility. */
     fun observeOnboarding(
         onChange: (Boolean) -> Unit,
     ): KeyguardCancellable = onboardingController.observeOnboarding(onChange)
 
     fun markOnboarded() = onboardingController.markOnboarded()
 
-    // ---------------------------------------------------------------------------
-    // Quick Search (global hotkey overlay). Reuses the shared quick-search
-    // producer + copy/open logic headless via [QuickSearchHeadlessController];
-    // the Swift panel maps key events to the semantic input methods below.
-    // ---------------------------------------------------------------------------
+    // Quick Search (global hotkey overlay)
 
     private val quickSearchController by lazy { QuickSearchController(context) }
 
+    /** Emits [QuickSearchSnapshot.empty] while the vault is locked. */
     fun observeQuickSearch(
         onChange: (QuickSearchSnapshot) -> Unit,
     ): KeyguardCancellable = quickSearchController.observeQuickSearch(onChange)
 
+    /** Live TOTP codes keyed by item id, pushed on Main once per second; empty while locked. */
     fun observeQuickSearchTotp(
         onChange: (Map<String, TotpFieldSnapshot>) -> Unit,
     ): KeyguardCancellable = quickSearchController.observeQuickSearchTotp(onChange)
@@ -331,8 +277,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     /**
      * The Quick Search result rows as state-anchored [VaultListDelta]s — the SAME
      * background-delivered contract as the vault list's `observeListDelta` and
-     * Recents' `observeRecentsListDelta`. See
-     * [QuickSearchController.observeQuickSearchListDelta].
+     * Recents' `observeRecentsListDelta`.
      */
     fun observeQuickSearchListDelta(
         onChange: (com.artemchep.keyguard.apple.vault.VaultListDelta) -> Unit,
@@ -340,8 +285,10 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun setQuickSearchQuery(text: String) = quickSearchController.setQuickSearchQuery(text)
 
+    /** Bumps the field revision, so the SwiftUI buffer adopts the empty text (unlike [setQuickSearchQuery]). */
     fun clearQuickSearchQuery() = quickSearchController.clearQuickSearchQuery()
 
+    /** Moves the highlighted result by [direction]: +1 down, -1 up. */
     fun moveQuickSearchSelection(direction: Int) = quickSearchController.moveQuickSearchSelection(direction)
 
     fun moveQuickSearchActionSelection(direction: Int) =
@@ -356,12 +303,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setQuickSearchOpenUrlHandler(handler: ((String) -> Unit)?) =
         quickSearchController.setQuickSearchOpenUrlHandler(handler)
 
-    /**
-     * Sets the handler that opens external URLs for producer-emitted
-     * [com.artemchep.keyguard.feature.navigation.NavigationIntent.NavigateToBrowser]
-     * intents (account "premium", autofill help links, …), threaded through the
-     * navigation interceptor.
-     */
+    /** Sets the handler that opens external URLs for producer-emitted [NavigationIntent.NavigateToBrowser] intents. */
     fun setOpenUrlHandler(handler: ((String) -> Unit)?) =
         navigationStackController.setOpenUrlHandler(handler)
 
@@ -371,9 +313,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     /**
      * Sets the handler that presents the native share sheet for a producer-emitted
-     * [com.artemchep.keyguard.feature.navigation.NavigationIntent.NavigateToShare]
-     * intent (the Send detail "share" action), threaded through the navigation
-     * interceptor with the public Send link text.
+     * [NavigationIntent.NavigateToShare] intent; the argument is the text to share (the public Send link).
      */
     fun setShareHandler(handler: ((String) -> Unit)?) =
         navigationStackController.setShareHandler(handler)
@@ -394,8 +334,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     /**
      * Sets the handler that presents the native create-item sheet for a
-     * producer-emitted `AddRoute` (the generator's "create login / SSH key"),
-     * with the generated value flattened to (type, name, username, password).
+     * producer-emitted `AddRoute`; the arguments are (type, name, username, password).
      */
     fun setAddCipherHandler(handler: ((String, String?, String?, String?) -> Unit)?) =
         navigationStackController.setAddCipherHandler(handler)
@@ -408,23 +347,15 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setAddAccountHandler(handler: ((String) -> Unit)?) =
         navigationStackController.setAddAccountHandler(handler)
 
-    /**
-     * Sets the handler that reveals a local file natively (the KeePass account
-     * detail's "open local vault" action); the argument is the file uri.
-     */
+    /** Sets the handler that reveals a local file natively; the argument is the file uri. */
     fun setRevealFileHandler(handler: ((String) -> Unit)?) =
         navigationStackController.setRevealFileHandler(handler)
 
-    // ---------------------------------------------------------------------------
-    // SSH agent. Spawns the reused Rust binary (NSTask), serves list/sign over a
-    // POSIX IPC socket, and gates each signature through a per-request approval
-    // surfaced to Swift. Signing runs through the shared native (Rust) SSH engine.
-    // The on/off state is the shared persisted "ssh_agent" preference; the
-    // start/stop side effect lives in [startSshAgentApplier].
-    // ---------------------------------------------------------------------------
+    // SSH agent
 
     private val sshAgentController by lazy { SshAgentController(context) }
 
+    /** Starts and stops the agent with its setting. Main app only: the AutoFill extension must never spawn it. */
     fun startSshAgentApplier() = sshAgentController.startSshAgentApplier()
 
     fun setSshAgentEnabled(value: Boolean) = sshAgentController.setSshAgentEnabled(value)
@@ -439,9 +370,10 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (SshAgentStatusSnapshot) -> Unit,
     ): KeyguardCancellable = sshAgentController.observeSshAgentStatus(onChange)
 
-    // GPG is also started explicitly by the main app; AutoFill remains inert.
+    // GPG agent
     private val gpgAgentController by lazy { GpgAgentController(context) }
 
+    /** Starts and stops the agent with its setting. Main app only: the AutoFill extension must never spawn it. */
     fun startGpgAgentApplier() = gpgAgentController.startGpgAgentApplier()
 
     fun setGpgAgentEnabled(value: Boolean) = gpgAgentController.setGpgAgentEnabled(value)
@@ -475,6 +407,10 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun invokeGpgAgentFilter(id: String) = gpgAgentController.invokeGpgAgentFilter(id)
 
+    /**
+     * Denies every pending signing request, then saves the pending filters; on success the `onClose` of
+     * [observeGpgAgentFilters] fires.
+     */
     fun saveGpgAgentFilters() = gpgAgentController.saveGpgAgentFilters()
 
     fun resetGpgAgentFilters() = gpgAgentController.resetGpgAgentFilters()
@@ -483,13 +419,10 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (GpgAgentHistorySnapshot) -> Unit,
     ): KeyguardCancellable = gpgAgentController.observeGpgAgentHistory(onChange)
 
+    /** Clears without asking; confirm with the user first. */
     fun clearGpgAgentHistory() = gpgAgentController.clearGpgAgentHistory()
 
-    // ---------------------------------------------------------------------------
-    // AutoFill (credential provider). The app populates the QuickType index
-    // (ASCredentialIdentityStore) from these; the appex resolves a selected
-    // credential. Reuses the unlocked-session ciphers (login + uris).
-    // ---------------------------------------------------------------------------
+    // AutoFill (credential provider)
 
     private val autofillController by lazy { AutofillController(context) }
 
@@ -500,30 +433,29 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     suspend fun loadAutofillIndex(): com.artemchep.keyguard.apple.lists.AutofillIndexSnapshot? =
         autofillController.loadIndex()
 
-    @Throws(Exception::class)
-    suspend fun loadAutofillIdentities(): List<AutofillIdentitySnapshot> =
-        autofillController.loadAutofillIdentities()
-
+    /** [recordId] is `accountId|cipherId` (an index or suggestion record id); null while locked or when gone. */
     @Throws(Exception::class)
     suspend fun loadAutofillCredential(recordId: String): AutofillCredentialSnapshot? =
         autofillController.loadAutofillCredential(recordId)
 
+    /**
+     * [serviceIdentifiers] are URLs / domains from `ASCredentialServiceIdentifier`. Matches come first (ranked like
+     * the Android provider, `suggested` set), then every other login with a password. Empty while locked.
+     */
     @Throws(Exception::class)
     suspend fun loadAutofillSuggestions(
         serviceIdentifiers: List<String>,
     ): List<AutofillSuggestionSnapshot> =
         autofillController.loadAutofillSuggestions(serviceIdentifiers)
 
-    @Throws(Exception::class)
-    suspend fun loadOneTimeCodeIdentities(): List<AutofillIdentitySnapshot> =
-        autofillController.loadOneTimeCodeIdentities()
-
+    /** Like [loadAutofillSuggestions], but only logins with a valid TOTP secret. */
     @Throws(Exception::class)
     suspend fun loadOneTimeCodeSuggestions(
         serviceIdentifiers: List<String>,
     ): List<AutofillSuggestionSnapshot> =
         autofillController.loadOneTimeCodeSuggestions(serviceIdentifiers)
 
+    /** TOTP code of the login [recordId] (`accountId|cipherId`); null while locked, when gone or without TOTP. */
     @Throws(Exception::class)
     suspend fun loadOneTimeCode(recordId: String): String? =
         autofillController.loadOneTimeCode(recordId)
@@ -535,20 +467,22 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     private val passkeyController by lazy { PasskeyController(context) }
 
     @Throws(Exception::class)
-    suspend fun loadPasskeyIdentities(): List<PasskeyIdentitySnapshot> =
-        passkeyController.loadPasskeyIdentities()
-
-    @Throws(Exception::class)
     suspend fun loadMatchingPasskeyIdentities(
         rpId: String,
         allowedCredentialIds: List<ByteArray>,
     ): List<PasskeyIdentitySnapshot> =
         passkeyController.loadMatchingPasskeyIdentities(rpId, allowedCredentialIds)
 
+    /** Call after consent, inside the provider's store lock and before the write ([createPasskey]). */
     @Throws(Exception::class)
     suspend fun hasExcludedPasskeyCredential(rpId: String, credentialIds: List<ByteArray>): Boolean =
         passkeyController.hasExcludedPasskeyCredential(rpId, credentialIds)
 
+    /**
+     * [recordId] is a [PasskeyIdentitySnapshot.recordId]; the system supplies [clientDataHash]. Null while locked, or
+     * when the credential is gone or does not match [expectedRpId] / [expectedCredentialId]. Invalid requests and
+     * signing errors throw.
+     */
     @Throws(Exception::class)
     suspend fun assertPasskey(
         recordId: String,
@@ -569,6 +503,10 @@ class KeyguardCore(runtime: KeyguardRuntime) {
             userVerified = userVerified,
         )
 
+    /**
+     * Attaches a new passkey ("none" attestation) to the login [cipherRecordId] (`accountId|cipherId`). Null when
+     * the login is gone or read-only, or saving fails; crypto errors throw.
+     */
     @Throws(Exception::class)
     suspend fun createPasskey(
         cipherRecordId: String,
@@ -594,20 +532,12 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     private val fido2PromptHost by lazy { com.artemchep.keyguard.apple.auth.Fido2PromptController(context) }
     private val authController by lazy { AuthController(context, authPromptHost, fido2PromptHost) }
 
-    suspend fun createVault(password: String, biometric: Boolean) =
-        authController.createVault(password, biometric)
-
-    suspend fun createVaultSupportsBiometric(): Boolean =
-        authController.createVaultSupportsBiometric()
-
-    suspend fun unlockVault(password: String) = authController.unlockVault(password)
-
     private val recentsController by lazy { RecentsController(context) }
 
     /**
      * The Recents item rows as state-anchored [VaultListDelta]s — the SAME
      * background-delivered contract as [makeVaultListSession]'s
-     * `observeListDelta`. See [RecentsController.observeRecentsListDelta].
+     * `observeListDelta`.
      */
     fun observeRecentsListDelta(
         onChange: (com.artemchep.keyguard.apple.vault.VaultListDelta) -> Unit,
@@ -618,6 +548,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (RecentsTabsSnapshot) -> Unit,
     ): KeyguardCancellable = recentsController.observeRecentsTabs(onChange)
 
+    /** Live TOTP codes keyed by item id, pushed on Main once per second; empty while locked. */
     fun observeRecentsTotp(
         onChange: (Map<String, TotpFieldSnapshot>) -> Unit,
     ): KeyguardCancellable = recentsController.observeRecentsTotp(onChange)
@@ -628,6 +559,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (UnlockSnapshot) -> Unit,
     ): KeyguardCancellable = authController.observeUnlock(onChange)
 
+    /** Report the unlock screen's visibility; biometric, YubiKey and FIDO2 prompts only appear while it is visible. */
     fun setUnlockScreenVisible(visible: Boolean) = authController.setUnlockScreenVisible(visible)
 
     fun setUnlockPassword(text: String) = authController.setUnlockPassword(text)
@@ -655,6 +587,10 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         }
     }
 
+    /**
+     * [slot] is 1 or 2. With [provision], enabling first writes a fresh secret to the slot; [overwrite] allows
+     * replacing an already configured one.
+     */
     fun setYubiKeyUnlock(value: Boolean, slot: Int, provision: Boolean, overwrite: Boolean) =
         authController.setYubiKeyUnlock(value, slot, provision, overwrite)
 
@@ -662,6 +598,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (SetupSnapshot) -> Unit,
     ): KeyguardCancellable = authController.observeSetup(onChange)
 
+    /** Report the setup screen's visibility; its biometric prompt only appears while it is visible. */
     fun setSetupScreenVisible(visible: Boolean) = authController.setSetupScreenVisible(visible)
 
     fun setSetupPassword(text: String) = authController.setSetupPassword(text)
@@ -674,6 +611,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     private val messagesController by lazy { MessagesController(context) }
 
+    /** [onMessage] runs on the main thread. */
     fun observeMessages(
         onMessage: (MessageSnapshot) -> Unit,
     ): KeyguardCancellable = messagesController.observeMessages(onMessage)
@@ -696,6 +634,10 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun submitLogin() = loginController.submitLogin()
 
+    /**
+     * Call on the main thread after [observeBitwardenLogin]'s `onTwofaRequired` fires; before that it only emits
+     * [TwofaSnapshot.empty].
+     */
     fun observeBitwardenLoginTwofa(
         onChange: (TwofaSnapshot) -> Unit,
         onSuccess: () -> Unit,
@@ -730,6 +672,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun selectKeePassLocation(key: String) = keePassLoginController.selectKeePassLocation(key)
 
+    /** For a WebDAV location this re-opens the WebDAV sheet instead of a file picker. */
     fun pickKeePassDbFile() = keePassLoginController.pickKeePassDbFile()
 
     fun clearKeePassDbFile() = keePassLoginController.clearKeePassDbFile()
@@ -745,17 +688,24 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setKeePassFilePickerRequestHandler(handler: ((KeePassFilePickerRequest) -> Unit)?) =
         keePassLoginController.setKeePassFilePickerRequestHandler(handler)
 
+    /**
+     * [uri] must be the original picked URL (not a copy) and [accessToken] the Base64 of its security-scoped bookmark,
+     * created while access was active. The bookmark keeps the account's access to the file across relaunches.
+     */
     fun resolveKeePassFilePicker(requestId: String, uri: String, name: String?, size: Long, accessToken: String?) =
         keePassLoginController.resolveKeePassFilePicker(requestId, uri, name, size, accessToken)
 
     fun cancelKeePassFilePicker(requestId: String) = keePassLoginController.cancelKeePassFilePicker(requestId)
 
+    /** [id] is "url", "username" or "password". */
     fun setWebDavField(id: String, text: String) = keePassLoginController.setWebDavField(id, text)
 
     fun submitWebDavSettings() = keePassLoginController.submitWebDavSettings()
 
+    /** The result arrives through [observeMessages], not in a snapshot. */
     fun testWebDavConnection() = keePassLoginController.testWebDavConnection()
 
+    /** Call when the user closes the WebDAV sheet: nothing is applied, and the form keeps its previous location. */
     fun cancelWebDavSettings() = keePassLoginController.cancelWebDavSettings()
 
     private val cipherDetailController by lazy { CipherDetailController(context, dialogController) }
@@ -770,21 +720,16 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onTotpChange: (VaultDetailTotpSnapshot?) -> Unit = {},
     ): KeyguardCancellable = cipherDetailController.observeCipherDetail(onChange, onTotpChange)
 
+    /** A null [itemId] or [accountId] shows the empty pane; the observer keeps running. */
     fun setDetailTarget(itemId: String?, accountId: String?) =
         cipherDetailController.setDetailTarget(itemId, accountId)
 
     fun invokeVaultAction(id: String) = cipherDetailController.invokeVaultAction(id)
 
+    /** No-op when the shown cipher has no favourite action (e.g. read-only ciphers). */
     fun toggleVaultFavorite() = cipherDetailController.toggleVaultFavorite()
 
-    // ---------------------------------------------------------------------------
-    // Navigation stack. A stack of screen instances layered ABOVE the selection-
-    // driven root detail; pushes are driven by the shared producers' full-screen
-    // navigation intents (a folder chip in a detail, opening an item in a pushed
-    // list) via [NavigationStackController.interceptor]. Lets multiple screens of
-    // the same type (e.g. the root vault list + a folder-filtered vault list) be
-    // alive at once. SwiftUI mirrors the stack with a NavigationStack(path:).
-    // ---------------------------------------------------------------------------
+    // Navigation stack. Screens layered above the selection-driven root detail, one stack per scope.
 
     /** Starts the whole-stack session gate for the unlocked lifetime (shell-owned). */
     fun startNavStackSession(): KeyguardCancellable = navigationStackController.startSession()
@@ -807,15 +752,15 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (List<ScreenEntrySnapshot>) -> Unit,
     ): KeyguardCancellable = navigationStackController.observeNavStack(scope, onChange)
 
-    /** Observes the live TOTP badges of the stacked cipher details, keyed by cipher id. */
+    /** Live TOTP badges of the stacked cipher details, keyed by cipher id. Nothing arrives after cancellation. */
     fun observeNavStackTotp(
         onChange: (Map<String, VaultDetailTotpSnapshot>) -> Unit,
     ): KeyguardCancellable = navigationStackController.observeNavStackTotp(onChange)
 
+    /** Pops the top screen of [scope]. Safe from any thread. */
     fun popScreen(scope: String) = navigationStackController.popScreen(scope)
 
-    fun popToScreen(instanceId: Long) = navigationStackController.popToScreen(instanceId)
-
+    /** Pops every screen of [scope], back to its root. Safe from any thread. */
     fun clearNavScope(scope: String) = navigationStackController.clearScope(scope)
 
     fun invokeEntryAction(instanceId: Long, actionId: String) =
@@ -853,11 +798,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onResult: (EmailRelayActionRequestSnapshot?) -> Unit,
     ) = navigationStackController.requestEntryEmailRelayAction(instanceId, actionId, itemId, onResult)
 
-    // ---------------------------------------------------------------------------
-    // SwiftUI-presented dialogs (Large Type, Barcode, passkey credential,
-    // attachment preview). The channel state, headless producers and snapshot
-    // projection all live in [DialogController]; the methods below delegate.
-    // ---------------------------------------------------------------------------
+    // Dialogs
 
     fun observePasswordMemory(
         onChange: (PasswordMemorySnapshot?) -> Unit,
@@ -896,16 +837,18 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (AttachmentPreviewSnapshot?) -> Unit,
     ): KeyguardCancellable = dialogController.observeAttachmentPreview(onChange)
 
+    /** Report the effective SwiftUI color scheme on every change; an open preview re-highlights its code with it. */
     fun setInterfaceDarkMode(isDark: Boolean) = dialogController.setInterfaceDarkMode(isDark)
 
+    /**
+     * Copies the previewed text through the app clipboard, so auto-clear applies. Named `invoke…`, not `copy…`:
+     * Kotlin/Native exports `copy`-family names as `doCopy…`.
+     */
     fun invokeAttachmentPreviewCopy() = dialogController.invokeAttachmentPreviewCopy()
 
     fun closeAttachmentPreview() = dialogController.closeAttachmentPreview()
 
-    // The generic confirmation dialog (rename, change password, trash / delete,
-    // "Configure Watchtower alerts", pickers). Driven headless by the shared
-    // confirmationStateProducer; its file-picker bridge reuses the create-form
-    // AddFilePickerRequest type + Swift NSOpenPanel / .fileImporter presentation.
+    // Confirmation dialog
 
     fun observeConfirmation(
         onChange: (ConfirmationSnapshot?) -> Unit,
@@ -935,8 +878,6 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun confirmConfirmation() = dialogController.confirmConfirmation()
 
-    fun denyConfirmation() = dialogController.denyConfirmation()
-
     fun closeConfirmation() = dialogController.closeConfirmation()
 
     fun setConfirmationFilePickerRequestHandler(handler: ((AddFilePickerRequest) -> Unit)?) =
@@ -948,10 +889,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun cancelConfirmationFilePicker(requestId: String) =
         dialogController.cancelConfirmationFilePicker(requestId)
 
-    // The master-password re-prompt ("elevated access") dialog: a reprompt-protected
-    // cipher's copy / reveal / edit action runs the shared elevatedAccessStateProducer
-    // headlessly; password verification + Touch ID / Face ID / YubiKey go through the
-    // shared AuthPromptHost.
+    // Master-password re-prompt ("elevated access") dialog
 
     fun observeElevatedAccess(
         onChange: (ElevatedAccessSnapshot?) -> Unit,
@@ -966,13 +904,9 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun confirmElevatedAccess() = dialogController.confirmElevatedAccess()
 
-    fun denyElevatedAccess() = dialogController.denyElevatedAccess()
-
     fun closeElevatedAccess() = dialogController.closeElevatedAccess()
 
-    // The service-info dialog (the cipher detail's "Inactive one-time password" /
-    // "Inactive passkey" rows): a static snapshot describing the matched service's
-    // 2FA / passkey support, presented as a sheet.
+    // Service info dialog
 
     fun observeServiceInfo(
         onChange: (ServiceDirectoryDetailSnapshot?) -> Unit,
@@ -980,10 +914,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun closeServiceInfo() = dialogController.closeServiceInfo()
 
-    // The HIBP breach dialogs (a cipher / account field's "Check data breaches"
-    // action): each runs its shared leak producer headlessly via the dialog
-    // navigation interceptor. The email / website dialogs list per-breach details;
-    // the password dialog shows an occurrence count.
+    // Data breach (HIBP) dialogs
 
     fun observeEmailLeak(
         onChange: (EmailLeakSnapshot?) -> Unit,
@@ -1003,9 +934,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun closeWebsiteLeak() = dialogController.closeWebsiteLeak()
 
-    // The color picker dialog (the account detail's "Change color" action): runs the
-    // shared colorPickerStateProducer headlessly via the dialog navigation interceptor;
-    // selecting a swatch + confirming persists the account's accent color.
+    // Color picker dialog
 
     fun observeColorPicker(
         onChange: (ColorPickerSnapshot?) -> Unit,
@@ -1015,13 +944,9 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun confirmColorPicker() = dialogController.confirmColorPicker()
 
-    fun denyColorPicker() = dialogController.denyColorPicker()
-
     fun closeColorPicker() = dialogController.closeColorPicker()
 
-    // The collection / organization read-only "info" dialog (a grouping row's "Info"
-    // action): runs the shared collection / organization screen-state producer headlessly
-    // via the dialog navigation interceptor, projecting the capability flags.
+    // Collection / organization info dialog
 
     fun observeInfoDialog(
         onChange: (InfoDialogSnapshot?) -> Unit,
@@ -1029,10 +954,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun closeInfoDialog() = dialogController.closeInfoDialog()
 
-    // The add / Send create form ownership "Save to" account picker: runs the shared
-    // organization-confirmation producer headlessly via the dialog navigation
-    // interceptor, projecting the selectable account (+ org / collection / folder)
-    // sections.
+    // The add form's "Link to an item" cipher picker.
 
     fun observeCipherLinkPicker(
         onChange: (com.artemchep.keyguard.apple.dialog.CipherLinkPickerSnapshot?) -> Unit,
@@ -1044,6 +966,8 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun closeCipherLinkPicker() = dialogController.closeCipherLinkPicker()
 
+    // Account picker ("Save to", "Copy to…") and folder picker ("Move to folder")
+
     fun observeAccountPicker(
         onChange: (AccountPickerSnapshot?) -> Unit,
     ): KeyguardCancellable = dialogController.observeAccountPicker(onChange)
@@ -1054,15 +978,9 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun confirmAccountPicker() = dialogController.confirmAccountPicker()
 
-    fun denyAccountPicker() = dialogController.denyAccountPicker()
-
     fun closeAccountPicker() = dialogController.closeAccountPicker()
 
-    // ---------------------------------------------------------------------------
-    // Send list / detail. Mirrors the vault list / detail bridge above, reusing
-    // the shared sendListScreenStateProducer / sendViewScreenStateProducer and the
-    // shared VaultItemSnapshot mapping (Send items are the same VaultViewItem type).
-    // ---------------------------------------------------------------------------
+    // Send list / detail
 
     private val sendListController by lazy { SendListController(context) }
     private val sendDetailController by lazy { SendDetailController(context, dialogController) }
@@ -1100,12 +1018,14 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun invokeSendAction(id: String) = sendDetailController.invokeSendAction(id)
 
+    /** Copies the Send's share link. */
     fun sendCopy() = sendDetailController.sendCopy()
 
     fun sendShare() = sendDetailController.sendShare()
 
     fun sendEdit() = sendDetailController.sendEdit()
 
+    /** Emits [GeneratorSnapshot.empty] while the vault is locked; [onChange] runs on the main thread. */
     fun observeGenerator(
         onChange: (GeneratorSnapshot) -> Unit,
     ): KeyguardCancellable = generatorController.observeGenerator(onChange = onChange)
@@ -1123,12 +1043,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun setGeneratorLength(value: Int) = generatorController.setGeneratorLength(value)
 
-    // ----------------------------------------------------------------------
-    // GPG Tools (encrypt / decrypt / sign / verify). One producer instance per
-    // operation string; the run outcome arrives on [onResult] (the shared
-    // producer delivers it through a result-dialog navigation intent the
-    // controller intercepts). Mutate through the typed setters below.
-    // ----------------------------------------------------------------------
+    // GPG Tools (encrypt / decrypt / sign / verify)
 
     fun observeGpgTools(
         operation: String,
@@ -1197,15 +1112,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun invokeGpgToolsResultCopy() = gpgToolsController.invokeGpgToolsResultCopy()
 
-    fun invokeGpgToolsResultSave() = gpgToolsController.invokeGpgToolsResultSave()
-
-    // ----------------------------------------------------------------------
-    // In-form Autofill / generate (the add / edit item form's username /
-    // password generate button). A separate generator instance, parameterised
-    // with the field kind + the cipher's URI context, projecting the same
-    // GeneratorSnapshot. The chosen value is written back through
-    // [setAddFieldText] (the revision-bumping onSetText path), NOT setAddField.
-    // ----------------------------------------------------------------------
+    // In-form generators (add / edit form)
 
     fun observeAddKeyGenerator(
         itemId: String,
@@ -1227,6 +1134,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun useAddGeneratedKey(sessionId: String): Boolean = addItemController.useGeneratedKey(sessionId)
 
+    /** Emits [GeneratorSnapshot.empty] while the vault is locked; [onChange] runs on the main thread. */
     fun observeAutofillGenerator(
         username: Boolean,
         password: Boolean,
@@ -1269,12 +1177,11 @@ class KeyguardCore(runtime: KeyguardRuntime) {
      * Writes the in-form generator's chosen value into the add-form field [id]
      * through its revision-bumping `onSetText` sink, so the SwiftUI buffer adopts
      * it (distinct from [setAddField], which uses `onChange` and would be ignored).
+     * Only fields with an `AddTextFieldSnapshot.autofill` accept it; a no-op for others.
      */
     fun setAddFieldText(id: String, text: String) = addItemController.setAddFieldText(id, text)
 
-    // ----------------------------------------------------------------------
-    // Add (create) form — cipher & Send
-    // ----------------------------------------------------------------------
+    // Add / edit form (cipher and Send)
 
     private val addItemController by lazy { AddItemController(context) }
 
@@ -1369,8 +1276,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     private val feedbackController by lazy { FeedbackController(context) }
 
     // Declared here (after every controller it references) so its property
-    // initializer doesn't forward-reference an uninitialized controller. The
-    // Swift-facing forwarders live up next to the cipher-detail section.
+    // initializer doesn't forward-reference an uninitialized controller.
     private val navigationStackController by lazy {
         NavigationStackController(
             context,
@@ -1392,23 +1298,17 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     init {
         if (context.runtime == KeyguardRuntime.APP) {
-            // Dialog producers' links open like every other external link.
             dialogController.openUrl = navigationStackController::openUrl
-            // A producer's Bitwarden login (an account's re-login) opens the native
-            // login sheet with the route's args.
             navigationStackController.bitwardenLoginArgsHandler = loginController::prepareBitwardenLogin
             // Late-bind the producers' interceptor to the stack so their full-screen
-            // routes push instead of being dropped (cipher detail's folder chips,
-            // watchtower's cards / directory shortcuts / alerts). Done here to break
-            // the controller <-> stack reference cycle.
+            // routes push instead of being dropped. Done here to break the
+            // controller <-> stack reference cycle.
             val provider: (Scope) -> ((NavigationIntent) -> Boolean) = { sessionKoin ->
                 navigationStackController.interceptor(sessionKoin)
             }
             quickCopyController.navigationInterceptorProvider = provider
             cipherDetailController.navigationInterceptorProvider = provider
             watchtowerController.navigationInterceptorProvider = provider
-            // The generator's "create login / SSH key" actions emit an AddRoute; thread
-            // the interceptor so they reach the stack (which presents the add sheet).
             generatorController.navigationInterceptorProvider = { sessionKoin ->
                 val stackInterceptor = provider(sessionKoin)
                 val interceptor: (NavigationIntent) -> Boolean = { intent ->
@@ -1416,36 +1316,18 @@ class KeyguardCore(runtime: KeyguardRuntime) {
                 }
                 interceptor
             }
-            // The in-form Autofill generator can emit the same routes; give it the same
-            // interceptor so they are handled identically rather than dropped.
             autofillGeneratorController.navigationInterceptorProvider = provider
-            // GPG Tools captures its own result-dialog + custom-key routes; everything
-            // else it emits is delegated to the stack interceptor.
             gpgToolsController.navigationInterceptorProvider = provider
-            // The Send detail's "edit" action emits a SendAddRoute; thread the
-            // interceptor so it reaches the stack (which opens the native edit sheet)
-            // instead of being dropped by the dialog-only interceptor.
             sendDetailController.navigationInterceptorProvider = provider
-            // The add / Send create form's ownership "Save to" row emits an
-            // OrganizationConfirmationRoute; hand it the dialog interceptor so the
-            // account picker is presented instead of being dropped (the date / time
-            // pickers are caught by the controller's own interceptor regardless).
+            // Add / Send forms emit dialog routes; date / time pickers are caught by the controller itself.
             addItemController.navigationInterceptorProvider = { sessionKoin ->
                 dialogController.navigationInterceptor(sessionKoin = sessionKoin)
             }
-            // The Send list's file drop emits a SendAddRoute (a new File send pre-filled
-            // with the dropped file); thread the stack interceptor so it opens the native
-            // create sheet instead of being dropped.
             sendListController.navigationInterceptorProvider = provider
         }
     }
 
-    /**
-     * Creates a vault-list session (the data-only delta/snapshot pipeline
-     * wrapping the commonMain `AppleVaultListSource`). This is the live path for the
-     * main vault list. Each call returns an independent instance; tear it down
-     * with [VaultListSession.close].
-     */
+    /** Creates an independent vault-list session per call; tear it down with [VaultListSession.close]. */
     fun makeVaultListSession(config: VaultListSessionConfig): VaultListSession =
         makeVaultListSession(
             args = config.toArgs(),
@@ -1461,121 +1343,54 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         ctx = context,
         args = args,
         persistenceScope = persistenceScope,
-        // Route row opens and toolbar actions through the current stack scope.
         navigationInterceptorProvider = { sessionKoin ->
             navigationStackController.interceptor(sessionKoin)
         },
         cipherFilterId = cipherFilterId,
     )
 
-    /** Pushes a cipher detail onto the stack (an iPhone vault row tap). */
-    fun pushCipherDetail(itemId: String, accountId: String) =
-        navigationStackController.pushCipherDetail(itemId, accountId)
-
-    /** Pushes a service-directory list (a watchtower "Tools" row, Swift-initiated). */
-    fun pushServiceDirectoryList(kind: String, title: String) =
-        navigationStackController.pushServiceDirectoryList(kind, title)
-
-    /** Pushes a service-directory service detail (list item tap, Swift-initiated). */
-    fun pushServiceDirectoryDetail(kind: String, itemId: String, title: String) =
-        navigationStackController.pushServiceDirectoryDetail(kind, itemId, title)
-
-    /** Pushes the generator history (a generator "Tools" row, Swift-initiated). */
-    fun pushGeneratorHistory() = navigationStackController.pushGeneratorHistory()
-
-    /** Pushes the email-relay list (a generator "Tools" row, Swift-initiated). */
-    fun pushEmailRelayList() = navigationStackController.pushEmailRelayList()
-
-    /** Pushes the wordlists list (a generator "Tools" row, Swift-initiated). */
-    fun pushWordlistList() = navigationStackController.pushWordlistList()
-
-    /** Pushes a single wordlist's detail (a wordlists list-item tap, Swift-initiated). */
-    fun pushWordlistDetail(wordlistId: Long, title: String) =
-        navigationStackController.pushWordlistDetail(wordlistId, title)
-
-    /** Pushes a cipher's password history (the cipher detail header button). */
-    fun pushPasswordHistory(itemId: String) =
-        navigationStackController.pushPasswordHistory(itemId)
-
-    /** Pushes a Send detail (an iPhone Send row tap, Swift-initiated). */
     fun pushSendDetail(sendId: String, accountId: String) =
         navigationStackController.pushSendDetail(sendId, accountId)
 
-    /** Pushes an account detail (an iPhone Settings account-row tap, Swift-initiated). */
+    /** Not restored on relaunch: account details have no route descriptor. */
     fun pushAccountDetail(accountId: String) =
         navigationStackController.pushAccountDetail(accountId)
 
-    /** Pushes the "Contact us" feedback screen (a Settings → About row, Swift-initiated). */
-    fun pushFeedback() = navigationStackController.pushFeedback()
-
-    /** Writes [text] into a feedback entry's message field. */
     fun setEntryFeedbackMessage(instanceId: Long, text: String) =
         navigationStackController.setEntryFeedbackMessage(instanceId, text)
 
-    /** Submits a feedback entry (sends the message via a native mailto:). */
     fun submitEntryFeedback(instanceId: Long) =
         navigationStackController.submitEntryFeedback(instanceId)
 
-    /**
-     * Standalone "Contact us" observation for the native modal sheet (macOS / iOS
-     * Settings → About row). Mirrors [observeChangePassword]: runs the shared feedback
-     * producer headlessly and opens the send `mailto:` via the host's open-url handler.
-     */
+    /** The standalone "Contact us" sheet; it never closes itself. Its `mailto:` opens via [setOpenSystemUrlHandler]. */
     fun observeFeedback(onChange: (FeedbackSnapshot) -> Unit): KeyguardCancellable =
         feedbackController.observeFeedback(
             onChange = onChange,
             openUrl = { url -> navigationStackController.openSystemUrl(url) },
         )
 
-    /** Writes [text] into the standalone feedback sheet's message field. */
     fun setFeedbackMessage(text: String) = feedbackController.setFeedbackMessage(text)
 
-    /** Submits the standalone feedback sheet (sends the message via a native mailto:). */
     fun submitFeedback() = feedbackController.submitFeedback()
 
-    /** Writes [text] into an export entry's password field. */
     fun setExportPassword(instanceId: Long, text: String) =
         navigationStackController.setExportPassword(instanceId, text)
 
-    /** Pushes an organization's collections (an organizations list-item tap). */
     fun pushCollectionsList(accountId: String, organizationId: String?, title: String) =
         navigationStackController.pushCollectionsList(accountId, organizationId, title)
 
-    /** Creates a folder in [accountId] (the folders screen's native add). */
     @Throws(Exception::class)
     suspend fun addFolder(accountId: String, name: String) =
         foldersController.addFolder(accountId, name)
 
-    /** Renames the folder [id] (the folders screen's native rename). */
-    @Throws(Exception::class)
-    suspend fun renameFolder(id: String, name: String) =
-        foldersController.renameFolder(id, name)
-
-    /** Deletes the folder [id], optionally trashing its ciphers (native delete). */
-    @Throws(Exception::class)
-    suspend fun deleteFolder(id: String, trashCiphers: Boolean) =
-        foldersController.deleteFolder(id, trashCiphers)
-
-    fun observeServiceDirectoryDetail(
-        kind: String,
-        itemId: String,
-        onChange: (ServiceDirectoryDetailSnapshot) -> Unit,
-    ): KeyguardCancellable = serviceDirectoryController.observeServiceDirectoryDetail(kind, itemId, onChange)
-
-    // ---------------------------------------------------------------------------
-    // Account list / detail. Renders the list of accounts on top of the Settings
-    // screen and a per-account detail pane, reusing the shared
-    // accountListScreenStateProducer / accountStateProducer and the shared
-    // VaultItemSnapshot mapping (account detail rows are the same VaultViewItem type).
-    // ---------------------------------------------------------------------------
+    // Account list / detail
 
     private val accountsController by lazy { AccountsController(context, dialogController) }
 
     init {
         if (context.runtime == KeyguardRuntime.APP) {
             // Late-bind here (a second init block) because accountsController is declared
-            // after the navigation stack; its detail "view items" (a VaultRoute) then
-            // pushes onto the Settings-scope stack instead of being dropped.
+            // after the navigation stack.
             accountsController.navigationInterceptorProvider = { sessionKoin ->
                 navigationStackController.interceptor(sessionKoin)
             }
@@ -1599,10 +1414,6 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun invokeAccountListAction(id: String) = accountsController.invokeAccountListAction(id)
 
-    // Email forwarders and wordlists.
-
-    /** Suspends until the vault is unlocked, returning its session [VaultState.Main]. */
-
     private val emailRelayController by lazy { EmailRelayController(context) }
 
     private val generatorHistoryController by lazy { GeneratorHistoryController(context, dialogController) }
@@ -1611,32 +1422,24 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (GeneratorHistorySnapshot) -> Unit,
     ): KeyguardCancellable = generatorHistoryController.observeGeneratorHistory(onChange)
 
-    /** Runs a per-item dropdown action of a generator history row by its id. */
     fun invokeGeneratorHistoryItemAction(id: String) =
         generatorHistoryController.invokeGeneratorHistoryItemAction(id)
 
-    /** Runs a top-level overflow option (Clear history) by its id. */
     fun invokeGeneratorHistoryOption(id: String) =
         generatorHistoryController.invokeGeneratorHistoryOption(id)
 
-    /** Runs a bulk action of the active generator history multi-selection by its id. */
     fun invokeGeneratorHistorySelectionAction(id: String) =
         generatorHistoryController.invokeGeneratorHistorySelectionAction(id)
 
-    /** Toggles whether a generator history row is part of the multi-selection. */
     fun toggleGeneratorHistorySelection(itemId: String) =
         generatorHistoryController.toggleGeneratorHistorySelection(itemId)
 
-    /** Clears the active generator history multi-selection. */
     fun clearGeneratorHistorySelection() =
         generatorHistoryController.clearGeneratorHistorySelection()
 
-    /** Selects every generator history value row. */
-    fun selectAllGeneratorHistory() =
-        generatorHistoryController.selectAllGeneratorHistory()
-
     private val readOnlyListsController by lazy { ReadOnlyListsController(context, dialogController) }
 
+    /** History of the cipher [cipherId], or of every cipher when `null`. */
     fun observeSshAgentHistory(
         cipherId: String?,
         onChange: (SshAgentHistorySnapshot) -> Unit,
@@ -1647,27 +1450,18 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (PasswordHistorySnapshot) -> Unit,
     ): KeyguardCancellable = readOnlyListsController.observePasswordHistory(itemId, onChange)
 
-    /**
-     * Runs a per-entry dropdown action of a password-history row (copy password /
-     * remove from history / show in large type / show-and-lock / check data
-     * breaches) by its id.
-     */
     fun invokePasswordHistoryItemAction(id: String) =
         readOnlyListsController.invokePasswordHistoryItemAction(id)
 
-    /** Runs a bulk action of the active password-history multi-selection (Delete) by its id. */
     fun invokePasswordHistorySelectionAction(id: String) =
         readOnlyListsController.invokePasswordHistorySelectionAction(id)
 
-    /** Runs a top-level password-history action (the "Clear history" action) by its id. */
     fun invokePasswordHistoryAction(id: String) =
         readOnlyListsController.invokePasswordHistoryAction(id)
 
-    /** Toggles whether a password-history row is part of the multi-selection. */
     fun togglePasswordHistorySelection(itemId: String) =
         readOnlyListsController.togglePasswordHistorySelection(itemId)
 
-    /** Clears the active password-history multi-selection. */
     fun clearPasswordHistorySelection() =
         readOnlyListsController.clearPasswordHistorySelection()
 
@@ -1687,23 +1481,18 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (UrlRuleListSnapshot) -> Unit,
     ): KeyguardCancellable = readOnlyListsController.observeUrlBlockList(onChange)
 
-    /** Runs a per-row dropdown action of a blocked-URL row (edit / duplicate / delete) by its id. */
     fun invokeUrlBlockListItemAction(id: String) =
         readOnlyListsController.invokeUrlBlockListItemAction(id)
 
-    /** Runs a bulk action of the active blocked-URL multi-selection (Delete) by its id. */
     fun invokeUrlBlockListSelectionAction(id: String) =
         readOnlyListsController.invokeUrlBlockListSelectionAction(id)
 
-    /** Opens the create-new blocked-URL form. */
     fun invokeUrlBlockListPrimaryAction() =
         readOnlyListsController.invokeUrlBlockListPrimaryAction()
 
-    /** Toggles whether a blocked-URL row is part of the multi-selection. */
     fun toggleUrlBlockListSelection(itemId: String) =
         readOnlyListsController.toggleUrlBlockListSelection(itemId)
 
-    /** Clears the active blocked-URL multi-selection. */
     fun clearUrlBlockListSelection() =
         readOnlyListsController.clearUrlBlockListSelection()
 
@@ -1711,33 +1500,20 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (UrlRuleListSnapshot) -> Unit,
     ): KeyguardCancellable = readOnlyListsController.observeUrlOverrideList(onChange)
 
-    /** Runs a per-row dropdown action of a URL-override row (edit / duplicate / delete) by its id. */
     fun invokeUrlOverrideListItemAction(id: String) =
         readOnlyListsController.invokeUrlOverrideListItemAction(id)
 
-    /** Runs a bulk action of the active URL-override multi-selection (Delete) by its id. */
     fun invokeUrlOverrideListSelectionAction(id: String) =
         readOnlyListsController.invokeUrlOverrideListSelectionAction(id)
 
-    /** Opens the create-new URL-override form. */
     fun invokeUrlOverrideListPrimaryAction() =
         readOnlyListsController.invokeUrlOverrideListPrimaryAction()
 
-    /** Toggles whether a URL-override row is part of the multi-selection. */
     fun toggleUrlOverrideListSelection(itemId: String) =
         readOnlyListsController.toggleUrlOverrideListSelection(itemId)
 
-    /** Clears the active URL-override multi-selection. */
     fun clearUrlOverrideListSelection() =
         readOnlyListsController.clearUrlOverrideListSelection()
-
-    fun observeWatchtowerNewAlerts(
-        onChange: (WatchtowerAlertsSnapshot) -> Unit,
-    ): KeyguardCancellable = watchtowerController.observeWatchtowerNewAlerts(onChange = onChange)
-
-    fun invokeWatchtowerAlertItem(id: String) = watchtowerController.invokeWatchtowerAlertItem(id)
-
-    fun markAllWatchtowerAlertsRead() = watchtowerController.markAllWatchtowerAlertsRead()
 
     private val appInformationController by lazy { AppInformationController(context) }
 
@@ -1755,9 +1531,11 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     suspend fun loadEmailRelayServices(): List<EmailRelayFormSnapshot> =
         emailRelayController.loadEmailRelayServices()
 
+    /** Null if [id] is unknown or its service is no longer registered. */
     suspend fun loadEmailRelay(id: String): EmailRelayFormSnapshot? =
         emailRelayController.loadEmailRelay(id)
 
+    /** Creates a forwarder when [id] is null, otherwise updates it. [values] is keyed by schema field key. */
     suspend fun saveEmailRelay(
         id: String?,
         type: String,
@@ -1792,12 +1570,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         localeIdentifier: String,
     ): SettingsSearchIndex = staticDataController.loadSettingsSearch(categories, biometricTitle, localeIdentifier)
 
-    // ---------------------------------------------------------------------------
-    // Watchtower settings. Thin bridge over the shared Get/Put use cases that back
-    // the common WatchtowerSettingsScreen items (check pwned passwords / services,
-    // inactive 2FA, inactive passkeys, HIBP API token). Mirrors the per-item
-    // providers in feature/home/settings/component/ — no UI logic re-derived here.
-    // ---------------------------------------------------------------------------
+    // Watchtower settings
 
     fun observeWatchtowerSettings(
         onChange: (WatchtowerSettingsSnapshot) -> Unit,
@@ -1811,20 +1584,15 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun setCheckPasskeys(value: Boolean) = watchtowerController.setCheckPasskeys(value)
 
+    /** A blank [token] clears the saved one; input that fails [isValidHibpApiToken] is ignored. */
     fun setHibpApiToken(token: String) = watchtowerController.setHibpApiToken(token)
 
+    /** True for a blank [token] (clears it) or 32 hex characters, ignoring surrounding whitespace. */
     fun isValidHibpApiToken(token: String): Boolean = watchtowerController.isValidHibpApiToken(token)
 
-    // ---------------------------------------------------------------------------
-    // Security settings. Thin bridge over the shared Get/Put use cases that back
-    // the macOS-relevant items of the common SecuritySettingsScreen (vault persist,
-    // auto-lock timeout, lock-after-reboot, lock now, clipboard auto-clear, conceal
-    // fields, website icons, Gravatar, Touch ID unlock). Items the common providers
-    // hide on Apple — screen-off lock, clipboard auto-refresh, YubiKey, clipboard
-    // notifications, screenshots, clear vault (Wear-only) — are intentionally not
-    // surfaced here. Change-master-password is a separate sheet (see
-    // observeChangePassword).
-    // ---------------------------------------------------------------------------
+    // Security settings. Items the common providers hide on Apple — screen-off lock, clipboard
+    // auto-refresh, clipboard notifications, screenshots, clear vault (Wear-only) — are intentionally
+    // not surfaced here.
 
     private val securityController by lazy { SecurityController(context) }
 
@@ -1832,6 +1600,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (SecuritySettingsSnapshot) -> Unit,
     ): KeyguardCancellable = securityController.observeSecuritySettings(onChange)
 
+    /** Enabling first shows the system biometric prompt; a cancelled or failed prompt leaves the setting off. */
     fun setBiometricUnlock(value: Boolean) = securityController.setBiometricUnlock(value)
 
     fun setVaultPersist(value: Boolean) = securityController.setVaultPersist(value)
@@ -1850,11 +1619,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun setGravatar(value: Boolean) = securityController.setGravatar(value)
 
-    // ---------------------------------------------------------------------------
-    // AutoFill settings (default URI matching, copy-TOTP-to-clipboard,
-    // save-credential prompts, save-URI prompts). Thin bridge over the shared
-    // Get/Put preference use cases.
-    // ---------------------------------------------------------------------------
+    // AutoFill settings
 
     private val autofillSettingsController by lazy {
         val leContext = context.koin.get<LeContext>()
@@ -1885,11 +1650,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setAutofillDefaultMatchDetection(optionId: String) =
         autofillSettingsController.setDefaultMatchDetection(optionId)
 
-    // ---------------------------------------------------------------------------
-    // Subscriptions / in-app purchases (the paywall). The shared billing use
-    // cases are driven headlessly; purchase / restore / manage route to the
-    // Swift StoreKit bridge (see SubscriptionsController + AppleBillingBridge).
-    // ---------------------------------------------------------------------------
+    // Subscriptions / in-app purchases
 
     private val subscriptionsController by lazy { SubscriptionsController(context) }
 
@@ -1911,11 +1672,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun refreshAppleLicense() = subscriptionsController.refreshLicense()
 
 
-    // ---------------------------------------------------------------------------
-    // SSH agent settings (the Developer pane). Built from the same shared
-    // Get/Put use cases the desktop settings use; the enabled toggle goes
-    // through setSshAgentEnabled (see the SSH agent section above).
-    // ---------------------------------------------------------------------------
+    // SSH agent settings
 
     fun observeSshAgentSettings(
         onChange: (SshAgentSettingsSnapshot) -> Unit,
@@ -1932,19 +1689,16 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun invokeSshAgentFilter(id: String) = sshAgentController.invokeSshAgentFilter(id)
 
+    /** Saves the pending filters; on success the `onClose` of [observeSshAgentFilters] fires. */
     fun saveSshAgentFilters() = sshAgentController.saveSshAgentFilters()
 
     fun resetSshAgentFilters() = sshAgentController.resetSshAgentFilters()
 
-    // ---------------------------------------------------------------------------
-    // Change master password sheet. Runs the shared change-password producer
-    // headlessly (see changePasswordStateProducer). On success the producer pops
-    // its own screen via navigatePopSelf -> PopById, which the interceptor turns
-    // into the [onClose] callback so SwiftUI can dismiss the sheet.
-    // ---------------------------------------------------------------------------
+    // Change master password
 
     private val changePasswordController by lazy { ChangePasswordController(context, authPromptHost) }
 
+    /** [onClose] fires on the main thread once the password has changed; dismiss the sheet then. */
     fun observeChangePassword(
         onChange: (ChangePasswordSnapshot) -> Unit,
         onClose: () -> Unit,
@@ -1958,9 +1712,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun submitChangePassword() = changePasswordController.submitChangePassword()
 
-    // ---------------------------------------------------------------------------
     // Development settings. Debug overrides are unavailable in Release builds.
-    // ---------------------------------------------------------------------------
 
     private val debugSettingsController by lazy {
         DebugSettingsController(
@@ -1976,13 +1728,8 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun setDebugPremium(enabled: Boolean) = debugSettingsController.setPremiumOverride(enabled)
 
-    // ---------------------------------------------------------------------------
-    // Appearance settings. Thin bridge over the shared Get/Put use cases that back
-    // the macOS-relevant items of the common UiSettingsScreen. Enum pickers (theme,
-    // accent, font, nav animation, locale) are surfaced as SettingOptionSnapshot
-    // lists keyed by the variant's list index. Keep-screen-on is applied by iOS;
-    // Android app icons are intentionally not surfaced.
-    // ---------------------------------------------------------------------------
+    // Appearance settings. Option ids are variant names ("system" for the default, locale tag for
+    // locales). Keep-screen-on is applied by iOS; Android app icons are intentionally not surfaced.
 
     private val appearanceController by lazy { AppearanceController(context) }
 
@@ -2006,18 +1753,17 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setLocale(optionId: String) = appearanceController.setLocale(optionId)
     fun setNavAnimation(optionId: String) = appearanceController.setNavAnimation(optionId)
 
+    /** [onChange] runs on the main thread. */
     fun observeAppPreferences(
         onChange: (AppPreferencesSnapshot) -> Unit,
     ): KeyguardCancellable = appearanceController.observeAppPreferences(onChange)
 
+    /** Invokes [onMinimize] after every clipboard copy made while "Minimize after copying" is on. */
     fun observeMinimizeOnCopy(
         onMinimize: () -> Unit,
     ): KeyguardCancellable = appearanceController.observeMinimizeOnCopy(onMinimize)
 
-    // ---------------------------------------------------------------------------
-    // Navigation items. The resolved top-level section list (order, visibility and
-    // custom cipher-filter tabs from the shared NavItemsConfig) plus the
-    // "Navigation items" settings screen, which runs the shared producer headlessly.
+    // Navigation items
 
     private val navItemsController by lazy { NavItemsController(context, dialogController) }
 
@@ -2030,7 +1776,6 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (NavItemsSnapshot) -> Unit,
     ): KeyguardCancellable = navItemsController.observeNavItems(onChange)
 
-    /** Observes the "Navigation items" settings screen state. */
     fun observeNavItemsSettings(
         onChange: (NavItemsSettingsSnapshot) -> Unit,
     ): KeyguardCancellable = navItemsController.observeNavItemsSettings(onChange)
@@ -2047,12 +1792,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     /** Fires the reset flow (native confirmation dialog, then defaults). */
     fun resetNavItems() = navItemsController.resetNavItems()
 
-    // ---------------------------------------------------------------------------
-    // Automatic Backups. Runs the shared AutomaticBackupsSettingsState producer
-    // headlessly for saved configuration and status. Native setup keeps a complete
-    // in-memory draft until destination verification succeeds; the folder picker
-    // reuses the existing file-picker bridge ([handleAddFilePickerIntent]).
-    // ---------------------------------------------------------------------------
+    // Automatic backups
 
     private val backupsController by lazy { BackupsController(context, addItemController) }
 
@@ -2062,6 +1802,10 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun setBackupIncludeAttachments(value: Boolean) = backupsController.setBackupIncludeAttachments(value)
 
+    /**
+     * Starts a setup draft from the saved configuration, secrets included. Draft edits are saved only when
+     * [enableBackup] verifies the destination.
+     */
     fun beginBackupSetup() = backupsController.beginBackupSetup()
 
     fun cancelBackupSetup() = backupsController.cancelBackupSetup()
@@ -2083,6 +1827,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun pickBackupLocation() = backupsController.pickBackupLocation()
 
+    /** Verifies and saves the draft. Only a `setupSaveRevision` bump signals success; status updates never do. */
     fun enableBackup() = backupsController.enableBackup()
 
     fun triggerBackupNow() = backupsController.triggerBackupNow()

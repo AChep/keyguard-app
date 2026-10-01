@@ -1,8 +1,6 @@
 package com.artemchep.keyguard.apple.add
 
 import com.artemchep.keyguard.apple.core.sessionKoin
-import com.artemchep.keyguard.main
-import com.artemchep.keyguard.pick
 import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.create.CreateRequest
@@ -73,27 +71,19 @@ import kotlinx.coroutines.isActive
 import org.koin.core.scope.Scope
 
 /**
- * The create form for both ciphers and Sends (the Send form is a strict subset),
- * plus the file-picker bridge that surfaces a producer [FilePickerIntent] to a
- * native panel. Both shared producers expose the same create-form shape, so one
- * observer / builder serves both. The file-picker bridge ([handleFilePickerIntent])
- * is also used by the Backups screen's folder picker.
+ * One observer and builder serve both the cipher and Send forms (the Send form is a strict subset).
+ * [handleFilePickerIntent] also serves the Backups screen's folder picker.
  */
 internal class AddItemController(
     private val ctx: CoreContext,
 ) {
     /**
-     * Resolves the dialog navigation interceptor handed to the add-form producers for
-     * a given session DI, composed with the bridge's own [dateTimeInterceptor]. The
-     * dialog interceptor catches the ownership "Save to" picker route
-     * (`OrganizationConfirmationRoute`) and presents the account-picker dialog;
-     * [KeyguardCore] late-binds it (it owns the [DialogController]). Defaults to no
-     * dialog interceptor (only the date / time pickers are caught).
+     * The session's dialog interceptor (pickers and every other dialog route). `KeyguardCore` late-binds it;
+     * the default catches nothing, so only date / time pickers are handled.
      */
     var navigationInterceptorProvider: (Scope) -> ((NavigationIntent) -> Boolean)? =
         { _ -> null }
 
-    /** The common slice of AddState / SendAddState the bridge projects. */
     private class AddFormModel(
         val title: String,
         val filePickerIntentFlow: Flow<FilePickerIntent<*>>,
@@ -102,30 +92,15 @@ internal class AddItemController(
         val ownership: AddStateOwnership?,
         val onSave: (() -> Unit)?,
         val merge: AddState.Merge? = null,
-        /** Dropping a file anywhere on the form adds it as an attachment. */
         val fileDrag: AddState.FileDrag? = null,
     )
 
     private var addFieldHandlers: Map<String, (String) -> Unit> = emptyMap()
-    /**
-     * The revision-bumping programmatic-write sinks (the field models' `onSetText`),
-     * keyed by snapshot field id, populated only for the username / password fields
-     * that carry an [AddAutofillSnapshot]. Distinct from [addFieldHandlers] (the
-     * `onChange` sinks): a generated value must go through `onSetText` so the field's
-     * text revision advances and the SwiftUI buffer adopts it. Read by [setAddFieldText].
-     */
     private var addFieldSetTextHandlers: Map<String, (String) -> Unit> = emptyMap()
     private var addSwitchHandlers: Map<String, (Boolean) -> Unit> = emptyMap()
     private var addActionHandlers: Map<String, () -> Unit> = emptyMap()
-    /**
-     * The TOTP "scanned QR value" sinks of the active form, keyed by the snapshot
-     * item id. Each is the shared `AddStateItem.Totp.State.onScanned` closure: it
-     * takes the raw scanned string (an `otpauth://` URI or a bare Base32 secret)
-     * and the producer parses it into the secret / digits / algorithm fields.
-     */
     private var addTotpScanHandlers: Map<String, (String) -> Unit> = emptyMap()
     private var addFormFileDropHandler: ((FilePickerResult) -> Unit)? = null
-    /** Per-row file drops (replace a Send's file), keyed by the item id. */
     private var addItemFileDropHandlers: Map<String, (FilePickerResult) -> Unit> = emptyMap()
     private var addSaveHandler: (() -> Unit)? = null
     private var formIdentity: Any? = null
@@ -181,56 +156,32 @@ internal class AddItemController(
         keyGenerator.setCounter(sessionId, key, value)
     fun useGeneratedKey(sessionId: String): Boolean = keyGenerator.use(sessionId)
 
-    /** The ownership "Save to" account-row tap closure (opens the account picker). */
     private var addOwnershipHandler: (() -> Unit)? = null
     private var addFilePickerHandlers: MutableMap<String, (FilePickerResult?) -> Unit> = mutableMapOf()
 
-    /** Monotonic id source for in-flight file-picker requests. */
     private var addFilePickerRequestCounter: Long = 0L
 
-    /** Swift-registered sink for file-selection requests bubbled up from a form. */
     private var onAddFilePickerRequest: ((AddFilePickerRequest) -> Unit)? = null
 
-    /** Monotonic id source for stashed edit-form requests. */
     private var editRequestCounter: Long = 0L
 
-    /**
-     * Full cipher / Send edit args (carrying the `initialValue` [DSecret] / [DSend])
-     * stashed by the interceptor under a request id. Swift opens the edit sheet
-     * keyed by that id and starts the matching observation, which threads the
-     * stashed `initialValue` into the producer. The args cannot be flattened to
-     * scalars for the Swift sheet (the producer needs the whole object), so they
-     * are kept here instead.
-     */
+    /** Whole form args (edits, clones, generated keys) that can't be flattened for Swift, keyed by request id. */
     private val editCipherArgs: MutableMap<String, AddRoute.Args> = mutableMapOf()
     private val editSendArgs: MutableMap<String, SendAddRoute.Args> = mutableMapOf()
 
-    /** Swift-registered sink that presents the native edit sheet for a request id. */
     private var onEditFormRequest: ((AddEditFormRequest) -> Unit)? = null
 
-    /** Monotonic id source for in-flight date / time picker requests. */
     private var datePickerRequestCounter: Long = 0L
 
-    /**
-     * The result transmitters of the date / time picker routes a running add form
-     * emitted, stashed under a request id. Swift presents a native SwiftUI
-     * `DatePicker` sheet keyed by that id and feeds the choice back through
-     * [resolveAddDatePicker] / [cancelAddDatePicker], which invokes the matching
-     * transmitter to drive the producer's date-time sink.
-     */
     private val monthYearResultHandlers: MutableMap<String, RouteResultTransmitter<DatePickerResult>> = mutableMapOf()
     private val dateResultHandlers: MutableMap<String, RouteResultTransmitter<DateDayPickerResult>> = mutableMapOf()
     private val timeResultHandlers: MutableMap<String, RouteResultTransmitter<TimePickerResult>> = mutableMapOf()
 
-    /** Swift-registered sink that presents the native date / time picker sheet. */
     private var onAddDatePickerRequest: ((AddDatePickerRequest) -> Unit)? = null
 
     /**
-     * The navigation interceptor handed to the add-form producers: catches the
-     * `DateDayPickerRoute` / `TimePickerRoute` a [AddStateItem.DateTime] row emits
-     * (the Send custom deletion / expiration date), unwraps the result transmitter
-     * and surfaces a native picker request. Every other intent is left unhandled
-     * (dropped, as before). Defined lazily so it reads the live field values.
+     * Catches [DatePickerRoute] (a card's month / year), [DateDayPickerRoute] and [TimePickerRoute], stashes the
+     * result transmitter and sends a native picker request to Swift.
      */
     private val dateTimeInterceptor: (NavigationIntent) -> Boolean = { intent ->
         val route = (intent as? NavigationIntent.NavigateToRoute)?.route
@@ -294,10 +245,8 @@ internal class AddItemController(
     }
 
     /**
-     * Builds the composed interceptor for an add-form producer running with [sessionKoin]:
-     * the bridge's own [dateTimeInterceptor] (date / time pickers) plus the late-bound
-     * dialog interceptor (the ownership account picker). Date / time pickers take
-     * precedence; whatever neither claims is dropped, as before.
+     * Closes the form when it pops its own [screenId], then tries [dateTimeInterceptor], then the dialog
+     * interceptor from [navigationInterceptorProvider]; anything else is dropped.
      */
     private fun addInterceptor(
         sessionKoin: Scope,
@@ -344,11 +293,6 @@ internal class AddItemController(
         )
     }
 
-    /**
-     * Runs the edit form for the cipher [requestId] (stashed by [stashEditCipher]).
-     * Threads the full `initialValue` [DSecret] into [addCipherStateProducer] so the
-     * form opens pre-filled — the create/edit difference is entirely in the args.
-     */
     fun observeEditCipher(
         requestId: String,
         onClose: () -> Unit = {},
@@ -467,11 +411,6 @@ internal class AddItemController(
         )
     }
 
-    /**
-     * Runs the edit form for the Send [requestId] (stashed by [stashEditSend]).
-     * Threads the full `initialValue` [DSend] into [sendAddStateProducer] so the
-     * form opens pre-filled.
-     */
     fun observeEditSend(
         requestId: String,
         onClose: () -> Unit = {},
@@ -632,8 +571,6 @@ internal class AddItemController(
         fileDropHandlers: LinkedHashMap<String, (FilePickerResult) -> Unit>,
         keyTargets: LinkedHashMap<String, KeyTarget>,
     ): AddItemFormSnapshot {
-        // The cipher's current URI context, used by the in-form username / email
-        // generators (mirrors the shared AddScreen.obtainUriContext).
         val autofillUris = collectAutofillUris(model.items)
         fun textField(
             fieldId: String,
@@ -643,8 +580,6 @@ internal class AddItemController(
             multiline: Boolean,
             autofill: AddAutofillSnapshot? = null,
         ): AddTextFieldSnapshot {
-            // Register the revision-bumping programmatic-write sink so the in-form
-            // generator's chosen value can be pushed back through onSetText.
             if (autofill != null) {
                 model.onSetText?.let { setTextHandlers[fieldId] = it }
             }
@@ -770,9 +705,6 @@ internal class AddItemController(
 
                 is AddStateItem.Totp<*> -> {
                     val st = item.state.flow.value
-                    // Surface the producer's QR-scan sink so the iOS camera scanner can
-                    // feed a raw `otpauth://` URI / Base32 secret back into the form; the
-                    // producer parses it. Absent (null) when the form can't accept a scan.
                     val scanId = st.onScanned?.let { onScanned ->
                         val id = "${item.id}:scan"
                         totpScanHandlers[id] = onScanned
@@ -1019,9 +951,6 @@ internal class AddItemController(
 
         val formActions = actionList("form", model.actions)
 
-        // The ownership "Save to" account row: the selected account's title + email
-        // come off the AddStateOwnership account element; tapping (when not read-only)
-        // opens the account picker dialog through the producer's onClick.
         val ownership = model.ownership?.account?.let { account ->
             val accountItem = account.items.firstOrNull()
             AddOwnershipSnapshot(
@@ -1069,18 +998,12 @@ internal class AddItemController(
         )
     }
 
-    /** Translates a producer [FilePickerIntent] into an [AddFilePickerRequest] for Swift. */
     fun handleFilePickerIntent(intent: FilePickerIntent<*>) {
         val requestId = "fp:${addFilePickerRequestCounter++}"
         addFilePickerHandlers[requestId] = intent.onFilePickerResult
         onAddFilePickerRequest?.invoke(intent.toFilePickerRequest(requestId, ::AddFilePickerRequest))
     }
 
-    /**
-     * Stashes a date-picker [transmitter] under a fresh request id and asks Swift to
-     * present a native day picker initialised at [DateDayPickerRoute.Args.initialDate]
-     * (today when null), bounded by [DateDayPickerRoute.Args.selectableDates].
-     */
     private fun presentDatePicker(
         args: DateDayPickerRoute.Args,
         transmitter: RouteResultTransmitter<DateDayPickerResult>,
@@ -1112,11 +1035,6 @@ internal class AddItemController(
         )
     }
 
-    /**
-     * Stashes a time-picker [transmitter] under a fresh request id and asks Swift to
-     * present a native time picker initialised at [TimePickerRoute.Args.initialTime]
-     * (midnight when null).
-     */
     private fun presentTimePicker(
         args: TimePickerRoute.Args,
         transmitter: RouteResultTransmitter<TimePickerResult>,
@@ -1165,11 +1083,8 @@ internal class AddItemController(
     }
 
     /**
-     * Collects the cipher's current URI context for the in-form username / email
-     * generators, mirroring the shared `AddScreen.obtainUriContext`: every
-     * [AddStateItem.Url] item's raw url text, except those whose match type is a
-     * regular expression (which would be a poor generator hint). Returns a plain
-     * [List] for the Swift bridge.
+     * The URI context of the in-form username / email generators, as in the shared `AddScreen.obtainUriContext`;
+     * regular-expression urls are skipped as poor generator hints.
      */
     private fun collectAutofillUris(items: List<AddStateItem>): List<String> =
         items.mapNotNull { item ->
@@ -1181,128 +1096,84 @@ internal class AddItemController(
             state.text.text
         }
 
-    /** Writes [text] into an add-form text field identified by its snapshot field id. */
     fun setAddField(id: String, text: String) {
         addFieldHandlers[id]?.invoke(text)
     }
 
-    /**
-     * Writes [text] into an add-form text field through its revision-bumping
-     * programmatic-write sink (the field model's `onSetText`), used by the in-form
-     * Autofill / generator to push a generated value into the username / password
-     * field. Distinct from [setAddField], which routes through `onChange` and does
-     * NOT advance the text revision — so the SwiftUI buffer would ignore it. Only
-     * the username / password fields register a sink here.
-     */
     fun setAddFieldText(id: String, text: String) {
         addFieldSetTextHandlers[id]?.invoke(text)
     }
 
-    /** Toggles an add-form switch identified by its [AddItemSnapshot.switchId]. */
     fun setAddSwitch(id: String, value: Boolean) {
         addSwitchHandlers[id]?.invoke(value)
     }
 
-    /** Invokes an add-form `() -> Unit` closure by its snapshot action id. */
     fun invokeAddAction(id: String) {
         addActionHandlers.invokeAction(id)
     }
 
-    /**
-     * Feeds a scanned QR payload into the TOTP item identified by its
-     * [AddItemSnapshot.totpScanId]. [value] is the raw scanned string (an
-     * `otpauth://` URI or a bare Base32 secret); the shared producer parses it.
-     */
     fun scanAddTotp(id: String, value: String) {
         addTotpScanHandlers[id]?.invoke(value)
     }
 
-    /** Submits the active create form. */
     fun submitAddItem() {
         addSaveHandler?.invoke()
     }
 
-    /**
-     * Opens the ownership "Save to" account picker of the active form. Fires the
-     * producer's ownership `onClick`, which emits an `OrganizationConfirmationRoute`
-     * caught by the add-form interceptor and presented as the account-picker dialog.
-     * No-op when the form's account is read-only.
-     */
     fun invokeAddOwnership() {
         addOwnershipHandler?.invoke()
     }
 
-    /** Registers the SwiftUI sink that presents a native file panel for intents. */
     fun setAddFilePickerRequestHandler(handler: ((AddFilePickerRequest) -> Unit)?) {
         onAddFilePickerRequest = handler
     }
 
-    /** Registers the SwiftUI sink that presents the native edit sheet for a request. */
     fun setEditFormRequestHandler(handler: ((AddEditFormRequest) -> Unit)?) {
         onEditFormRequest = handler
     }
 
-    /**
-     * Stashes full [AddRoute.Args] under a fresh request id and asks Swift to open
-     * the form. Used for edits, clones, and generated keys whose structured values
-     * cannot be represented by the scalar create callback. The args determine
-     * whether the producer creates a new cipher or edits an existing one.
-     */
     fun stashEditCipher(args: AddRoute.Args) {
         val requestId = "edit:${editRequestCounter++}"
         editCipherArgs[requestId] = args
         onEditFormRequest?.invoke(AddEditFormRequest(requestId = requestId, isSend = false))
     }
 
-    /**
-     * Stashes a Send edit [SendAddRoute.Args] (carrying its `initialValue` [DSend])
-     * under a fresh request id and asks Swift to open the edit sheet. Called from
-     * the navigation interceptor for a producer-emitted `SendAddRoute`.
-     */
     fun stashEditSend(args: SendAddRoute.Args) {
         val requestId = "edit:${editRequestCounter++}"
         editSendArgs[requestId] = args
         onEditFormRequest?.invoke(AddEditFormRequest(requestId = requestId, isSend = true))
     }
 
-    /** Drops the stashed edit args for [requestId] once its sheet is dismissed. */
     fun clearEditForm(requestId: String) {
         editCipherArgs.remove(requestId)
         editSendArgs.remove(requestId)
     }
 
-    /** Feeds a chosen file back into the producer continuation for [requestId]. */
     fun resolveAddFilePicker(requestId: String, uri: String, name: String?, size: Long, accessToken: String? = null) {
         val handler = addFilePickerHandlers.remove(requestId) ?: return
         handler(filePickerResultOf(uri, name, size, accessToken))
     }
 
-    /** Adds a file dropped onto the form as an attachment. No-op unless [AddItemFormSnapshot.fileDropText]. */
     fun dropFileOnAddForm(uri: String, name: String?, size: Long) {
         addFormFileDropHandler?.invoke(filePickerResultOf(uri, name, size))
     }
 
-    /** Feeds a file dropped onto the row [itemId]. No-op unless its [AddAttachmentSnapshot.dropText]. */
     fun dropFileOnAddItem(itemId: String, uri: String, name: String?, size: Long) {
         addItemFileDropHandlers[itemId]?.invoke(filePickerResultOf(uri, name, size))
     }
 
-    /** Cancels an in-flight file-picker request for [requestId]. */
     fun cancelAddFilePicker(requestId: String) {
         val handler = addFilePickerHandlers.remove(requestId) ?: return
         handler(null)
     }
 
-    /** Registers the SwiftUI sink that presents the native date / time picker sheet. */
     fun setAddDatePickerRequestHandler(handler: ((AddDatePickerRequest) -> Unit)?) {
         onAddDatePickerRequest = handler
     }
 
     /**
-     * Confirms an in-flight date / time picker [requestId] with the chosen value,
-     * driving the producer's date-time sink (the picked date keeps the time, or
-     * vice-versa — the producer's onSelectDate / onSelectTime closures merge them).
-     * Date requests read [year] / [month] / [day]; time requests read [hour] / [minute].
+     * Date requests read [year] / [month] / [day]; time requests read [hour] / [minute]. The producer keeps the
+     * other half: a picked date keeps the field's time, and vice versa.
      */
     fun resolveAddDatePicker(requestId: String, year: Int, month: Int, day: Int, hour: Int, minute: Int) {
         monthYearResultHandlers.remove(requestId)?.let { transmitter ->
@@ -1318,14 +1189,12 @@ internal class AddItemController(
         }
     }
 
-    /** Cancels an in-flight date / time picker request for [requestId]. */
     fun cancelAddDatePicker(requestId: String) {
         monthYearResultHandlers.remove(requestId)?.invoke(DatePickerResult.Deny)
         dateResultHandlers.remove(requestId)?.invoke(DateDayPickerResult.Deny)
         timeResultHandlers.remove(requestId)?.invoke(TimePickerResult.Deny)
     }
 
-    /** Today in the system time zone (the day-picker fallback when no initial date). */
     private fun nowLocalDate(): LocalDate =
         Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 }

@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.apple.settings
 
-import com.artemchep.keyguard.main
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
@@ -57,13 +56,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-/**
- * The Appearance settings screen plus the two app-wide preference effects that
- * feed the SwiftUI shell ([observeAppPreferences]) and the minimize-on-copy
- * trigger ([observeMinimizeOnCopy]). Thin bridge over the shared Get/Put use
- * cases; enum pickers (theme, accent, font, nav animation, locale) are surfaced
- * as [SettingOptionSnapshot] lists keyed by the variant's name (see [setTheme]).
- */
 internal class AppearanceController(
     private val ctx: CoreContext,
 ) {
@@ -269,10 +261,6 @@ internal class AppearanceController(
         putNavAnimation(value).launchIn(ctx.scope)
     }
 
-    /**
-     * Observes the preferences the SwiftUI shell applies app-wide (theme, accent,
-     * close-to-tray, keep-screen-on). Invoked on the main thread on any change.
-     */
     fun observeAppPreferences(
         onChange: (AppPreferencesSnapshot) -> Unit,
     ): KeyguardCancellable {
@@ -305,10 +293,6 @@ internal class AppearanceController(
         return KeyguardCancellable(job)
     }
 
-    /**
-     * Invokes [onMinimize] after every clipboard copy made while the shared
-     * "Minimize after copying" preference is enabled.
-     */
     fun observeMinimizeOnCopy(
         onMinimize: () -> Unit,
     ): KeyguardCancellable {

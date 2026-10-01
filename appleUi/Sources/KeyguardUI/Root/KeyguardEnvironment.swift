@@ -31,7 +31,6 @@ private struct KeyguardEnvironment: ViewModifier {
             .environment(model.addItem)
             .environment(model.send)
             .environment(model.watchtower)
-            .environment(model.directories)
             .environment(model.emailRelay)
             .environment(model.wordlists)
             .environment(model.sshAgent)

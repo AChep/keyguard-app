@@ -7,12 +7,9 @@ struct QRScannerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
 
-    /// Called with the raw scanned string once the user (implicitly) accepts the
-    /// first recognised QR code; the sheet then dismisses.
+    /// Called with the first recognised QR payload; the sheet then dismisses itself.
     let onScanned: (String) -> Void
 
-    /// Camera-authorization gate, refreshed when the scene activates. Drives which page shows:
-    /// the live scanner, a permission request, or a "denied / open Settings" notice.
     @State private var authorization = AVCaptureDevice.authorizationStatus(for: .video)
     @State private var requestingAccess = false
     @State private var scannerError: String?
@@ -52,14 +49,12 @@ struct QRScannerView: View {
         case .notDetermined:
             requestAccess
         default:
-            // .denied / .restricted: the camera can't be opened; point the user at
-            // Settings to flip the toggle.
+            // .denied / .restricted: point the user at Settings.
             permissionDenied
         }
     }
 
-    /// The live VisionKit scanner, or a graceful fallback when the device / OS
-    /// can't run it (the Simulator reports `isSupported == false`).
+    /// Falls back to a notice where VisionKit can't run (the Simulator reports `isSupported == false`).
     @ViewBuilder
     private var scanner: some View {
         if let scannerError {
@@ -87,7 +82,6 @@ struct QRScannerView: View {
         }
     }
 
-    /// First-launch state: the camera permission hasn't been asked for yet.
     private var requestAccess: some View {
         notice(
             systemImage: "camera",
@@ -102,7 +96,6 @@ struct QRScannerView: View {
         }
     }
 
-    /// Permission was previously denied / restricted: deep-link to Settings.
     private var permissionDenied: some View {
         notice(
             systemImage: "camera.fill",
@@ -116,7 +109,6 @@ struct QRScannerView: View {
         }
     }
 
-    /// Centered icon + title + message, with an optional trailing action button.
     private func notice(
         systemImage: String,
         title: String,
@@ -143,8 +135,6 @@ struct QRScannerView: View {
     }
 }
 
-/// Bridges VisionKit's `DataScannerViewController` into SwiftUI. Scans QR / barcode
-/// payloads; the first recognised item's string is reported through [onFound].
 private struct DataScannerRepresentable: UIViewControllerRepresentable {
     let isActive: Bool
     let onFound: (String) -> Void

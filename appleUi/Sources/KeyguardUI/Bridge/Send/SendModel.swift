@@ -26,8 +26,6 @@ final class SendModel: SnapshotObserving {
         self.observeDetail = observeDetail
     }
 
-    /// Searchable / filterable / sortable Send list state, produced by the shared
-    /// Kotlin `sendListScreenStateProducer` running headless inside `KeyguardCore`.
     /// Only live while the Send screen is on screen.
     private(set) var sendList: SendListSnapshot = SendListSnapshot.companion.empty
 
@@ -47,9 +45,7 @@ final class SendModel: SnapshotObserving {
     private(set) var sendActionsToolbar = ListActionsToolbarState.empty
     #endif
 
-    /// Full detail of the selected Send, produced by the shared Kotlin
-    /// `sendViewScreenStateProducer` running headless inside `KeyguardCore`. Only
-    /// live while a Send is selected in the two-pane layout.
+    /// Only live while a Send is selected in the two-pane layout.
     private var sendDetailState = ObservedDetail<SendDetailSnapshot, SendDetailIdentity>(
         snapshot: SendDetailSnapshot.companion.empty)
 
@@ -60,8 +56,7 @@ final class SendModel: SnapshotObserving {
 
     @ObservationIgnored private var sendDetailSubscription: BridgeObservation?
 
-    /// Starts running the shared Send list producer. Call when the Send screen
-    /// appears; balance with `stopSendListObservation()` on disappear.
+    /// Call when the Send screen appears; balance with `stopSendListObservation()`.
     func startSendListObservation() {
         startObservation(\.sendListSubscription) { deliver in
             BridgeObservation(
@@ -86,7 +81,6 @@ final class SendModel: SnapshotObserving {
         #endif
     }
 
-    /// Forwards typed text into the shared Send list search field.
     func setSendListQuery(_ text: String) {
         core.setSendListQuery(text: text)
     }
@@ -96,46 +90,37 @@ final class SendModel: SnapshotObserving {
         core.invokeSendListFilter(id: id)
     }
 
-    /// Selects a Send sort option by its snapshot id.
     func invokeSendListSort(id: String) {
         core.invokeSendListSort(id: id)
     }
 
-    /// Clears every active Send list filter.
     func clearSendListFilters() {
         core.clearSendListFilters()
     }
 
-    /// Resets the Send list sort back to its default.
     func clearSendListSort() {
         core.clearSendListSort()
     }
 
-    /// Toggles whether the Send with the given snapshot id is part of the
-    /// multi-selection. Routes through the shared producer's selection handle.
     func toggleSendListSelection(id: String) {
         core.toggleSendListSelection(itemId: id)
     }
 
-    /// Runs a bulk action of the active Send multi-selection by its snapshot id.
     func invokeSendListSelectionAction(id: String) {
         core.invokeSendListSelectionAction(id: id)
     }
 
-    /// Runs a top-level Send-list overflow action (the keyboard toggle / sync / lock)
-    /// by its snapshot id.
+    /// Runs a top-level Send-list overflow action.
     func invokeSendListAction(id: String) {
         core.invokeSendListAction(id: id)
     }
 
-    /// Clears the active Send multi-selection.
     func clearSendListSelection() {
         core.clearSendListSelection()
     }
 
     #if os(macOS)
-    /// Creates a new File send from a file dropped onto the Send list (macOS). Fires
-    /// the shared producer's `onFileDrop`, which opens the native create sheet
+    /// Fires the shared producer's `onFileDrop`, which opens the native create sheet
     /// pre-filled with the dropped file.
     func dropFileOnSendList(url: URL) {
         let file = url.fileNameAndSize
@@ -143,8 +128,7 @@ final class SendModel: SnapshotObserving {
     }
     #endif
 
-    /// Starts running the shared Send detail producer for the given Send. Call
-    /// when a Send is selected; balance with `stopSendDetailObservation()`.
+    /// Call when a Send is selected; balance with `stopSendDetailObservation()`.
     func startSendDetailObservation(itemId: String, accountId: String) {
         stopSendDetailObservation()
         let identity = SendDetailIdentity(itemId: itemId, accountId: accountId)
@@ -161,7 +145,7 @@ final class SendModel: SnapshotObserving {
             to: ObservedDetail(snapshot: SendDetailSnapshot.companion.empty))
     }
 
-    /// Invokes a Send detail item / header context action by its snapshot id.
+    /// Invokes a Send detail item / header context action.
     func invokeSendAction(id: String) {
         core.invokeSendAction(id: id)
     }
@@ -171,12 +155,10 @@ final class SendModel: SnapshotObserving {
         core.sendCopy()
     }
 
-    /// Opens the native share sheet for the currently observed Send.
     func sendShare() {
         core.sendShare()
     }
 
-    /// Opens the currently observed Send for editing.
     func sendEdit() {
         core.sendEdit()
     }

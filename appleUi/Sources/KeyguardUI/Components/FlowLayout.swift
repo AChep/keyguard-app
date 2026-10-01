@@ -2,8 +2,7 @@ import SwiftUI
 
 /// A flexbox-style layout: lays subviews out left-to-right, wrapping to a new
 /// line when the next subview would overflow the proposed width. Mirrors the
-/// Compose `FlowRow` that backs the filter chips, the detail tag / quick-action
-/// rows, the vault row badges and the Large Type / leak-breach chip flows.
+/// Compose `FlowRow`.
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
 

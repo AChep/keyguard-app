@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.apple.lists
 
 import com.artemchep.keyguard.apple.core.sessionKoin
-import com.artemchep.keyguard.main
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.home.vault.model.VaultPasswordHistoryItem
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewPasswordHistoryState
@@ -35,32 +34,18 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
-/**
- * The read-only list screens that just run a shared producer and project it into
- * a flat snapshot: SSH agent signing history, a cipher's password history, and
- * the about/developer screens (licenses, localization contributors, logs,
- * blocked-URL list, URL-override list). The vault-backed ones await
- * [com.artemchep.keyguard.common.model.VaultState.Main]; the static/global ones
- * run off the global DI.
- */
 internal class ReadOnlyListsController(
     private val ctx: CoreContext,
     private val dialogController: DialogController,
 ) {
-    // Blocked-URL list interactive state (the per-row edit/duplicate/delete
-    // dropdown, the bulk-delete selection, and the create-new primary action).
     private var urlBlockState: UrlBlockListState.Content? = null
     private var urlBlockItemHandlers: Map<String, () -> Unit> = emptyMap()
     private var urlBlockSelectionHandlers: Map<String, () -> Unit> = emptyMap()
 
-    // URL-override list interactive state (mirrors the blocked-URL one).
     private var urlOverrideState: UrlOverrideListState.Content? = null
     private var urlOverrideItemHandlers: Map<String, () -> Unit> = emptyMap()
     private var urlOverrideSelectionHandlers: Map<String, () -> Unit> = emptyMap()
 
-    // Password-history interactive state (the per-entry dropdown — copy password /
-    // remove from history / show in large type / show-and-lock / check data breaches,
-    // the bulk-delete multi-selection, and the top-level "Clear history" action).
     private var passwordHistoryState: VaultViewPasswordHistoryState.Content.Cipher? = null
     private var passwordHistoryItemHandlers: Map<String, () -> Unit> = emptyMap()
     private var passwordHistorySelectionHandlers: Map<String, () -> Unit> = emptyMap()
@@ -69,7 +54,6 @@ internal class ReadOnlyListsController(
     // Only the newest observation may write or clear the password-history state.
     private var passwordHistoryGeneration = 0L
 
-    /** Observes the SSH agent history of the cipher [cipherId], or of all ciphers when `null`. */
     fun observeSshAgentHistory(
         cipherId: String?,
         onChange: (SshAgentHistorySnapshot) -> Unit,
@@ -128,18 +112,7 @@ internal class ReadOnlyListsController(
         return SshAgentHistorySnapshot(loaded = true, subtitle = state.subtitle, items = items)
     }
 
-    /**
-     * Observes a cipher's password history by running the shared
-     * [vaultViewPasswordHistoryScreenStateProducer]. Threads the dialog interceptor
-     * so the producer's routes reach a renderer instead of being dropped: the
-     * per-entry "Check data breaches" (PasswordLeakRoute) / "Show in large type" /
-     * "Show and lock" (LargeTypeRoute), and the per-item / bulk / clear-all Delete
-     * confirmations (ConfirmationRoute). Projects each entry's own dropdown (copy
-     * password / remove from history / large-type / show-and-lock / check breaches),
-     * the bulk-delete multi-selection and the top-level "Clear history" action; the
-     * SwiftUI screen drives them through the opaque-id `invokePasswordHistory*` /
-     * `togglePasswordHistorySelection` / `clearPasswordHistorySelection` methods.
-     */
+    /** Threads the dialog interceptor so the producer's routes reach a renderer instead of being dropped. */
     fun observePasswordHistory(
         itemId: String,
         onChange: (PasswordHistorySnapshot) -> Unit,
@@ -209,7 +182,6 @@ internal class ReadOnlyListsController(
         }
     }
 
-    /** Clears the password-history state if [generation] is the newest observation; returns whether it was. */
     private fun clearPasswordHistory(generation: Long): Boolean {
         if (passwordHistoryGeneration != generation) return false
         passwordHistoryState = null
@@ -277,29 +249,21 @@ internal class ReadOnlyListsController(
         }
     }
 
-    /**
-     * Runs a per-entry dropdown action of a password-history row (copy password /
-     * remove from history / show in large type / show-and-lock / check data
-     * breaches) by its id.
-     */
     fun invokePasswordHistoryItemAction(id: String) {
         passwordHistoryItemHandlers[id]?.invoke()
     }
 
-    /** Runs a bulk action of the active password-history multi-selection (Delete) by its id. */
     fun invokePasswordHistorySelectionAction(id: String) {
         passwordHistorySelectionHandlers[id]?.invoke()
     }
 
-    /** Runs a top-level password-history action (the "Clear history" action) by its id. */
     fun invokePasswordHistoryAction(id: String) {
         passwordHistoryActionHandlers.invokeAction(id)
     }
 
     /**
-     * Toggles whether the password-history row with [itemId] is part of the
-     * multi-selection. Routes through the producer's per-item selection handle
-     * (onClick while a selection is active, otherwise onLongClick which begins one).
+     * Routes through the producer's per-item selection handle (onClick while a
+     * selection is active, otherwise onLongClick which begins one).
      */
     fun togglePasswordHistorySelection(itemId: String) {
         val item = passwordHistoryState
@@ -310,12 +274,10 @@ internal class ReadOnlyListsController(
         (item.onClick ?: item.onLongClick)?.invoke()
     }
 
-    /** Clears the active password-history multi-selection. */
     fun clearPasswordHistorySelection() {
         passwordHistoryState?.selection?.onClear?.invoke()
     }
 
-    /** Observes the open-source licenses list by running the shared [licenseStateProducer]. */
     fun observeLicense(
         onChange: (LicenseListSnapshot) -> Unit,
     ): KeyguardCancellable {
@@ -351,7 +313,6 @@ internal class ReadOnlyListsController(
         return LicenseListSnapshot(loaded = true, items = items)
     }
 
-    /** Observes the localization contributors list by running the shared producer. */
     fun observeLocalizationContributors(
         onChange: (LocalizationContributorsSnapshot) -> Unit,
     ): KeyguardCancellable {
@@ -384,7 +345,6 @@ internal class ReadOnlyListsController(
         return LocalizationContributorsSnapshot(loaded = true, items = items)
     }
 
-    /** Observes the app logs by running the shared [logsStateProducer]. */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeLogs(
         onChange: (LogsSnapshot) -> Unit,
@@ -448,16 +408,6 @@ internal class ReadOnlyListsController(
         return LogsSnapshot(loaded = true, items = items)
     }
 
-    /**
-     * Observes the blocked-URL list by running the shared [urlBlockListStateProducer].
-     * Threads the dialog interceptor so the producer's CRUD routes reach a renderer
-     * instead of being dropped: the add/edit form (ConfirmationRoute with
-     * name/description/enabled/exposed/uri/mode) and the per-item / bulk Delete
-     * confirmations. Projects the per-row edit/duplicate/delete dropdown, the
-     * bulk-delete multi-selection and the create-new primary action; the SwiftUI
-     * screen drives them through the opaque-id `invokeUrlBlockList*` /
-     * `toggleUrlBlockListSelection` / `clearUrlBlockListSelection` methods.
-     */
     fun observeUrlBlockList(
         onChange: (UrlRuleListSnapshot) -> Unit,
     ): KeyguardCancellable {
@@ -486,8 +436,6 @@ internal class ReadOnlyListsController(
                             getUrlBlocks = get(),
                         )
                 }
-                // Build the snapshot + handler maps off the main thread, then install
-                // the maps and deliver on the main thread together.
                 producerFlow
                     .map { loadable ->
                         val content = loadable.getOrNull()?.content?.getOrNull()?.getOrNull()
@@ -557,47 +505,28 @@ internal class ReadOnlyListsController(
         )
     }
 
-    /** Runs a per-row dropdown action of a blocked-URL row (edit / duplicate / delete) by its id. */
     fun invokeUrlBlockListItemAction(id: String) {
         urlBlockItemHandlers[id]?.invoke()
     }
 
-    /** Runs a bulk action of the active blocked-URL multi-selection (Delete) by its id. */
     fun invokeUrlBlockListSelectionAction(id: String) {
         urlBlockSelectionHandlers[id]?.invoke()
     }
 
-    /** Opens the create-new blocked-URL form (the producer's primary action). */
     fun invokeUrlBlockListPrimaryAction() {
         urlBlockState?.primaryAction?.invoke()
     }
 
-    /**
-     * Toggles whether the blocked-URL row with [itemId] is part of the multi-selection.
-     * Routes through the producer's per-item selection handle (onClick while a
-     * selection is active, otherwise onLongClick which begins one).
-     */
     fun toggleUrlBlockListSelection(itemId: String) {
         val item = urlBlockState?.items?.firstOrNull { it.key == itemId } ?: return
         val selectable = item.selectableState.value
         (selectable.onClick ?: selectable.onLongClick)?.invoke()
     }
 
-    /** Clears the active blocked-URL multi-selection. */
     fun clearUrlBlockListSelection() {
         urlBlockState?.selection?.onClear?.invoke()
     }
 
-    /**
-     * Observes the URL-override list by running the shared [urlOverrideListStateProducer].
-     * Threads the dialog interceptor so the producer's CRUD routes reach a renderer
-     * instead of being dropped: the add/edit form (ConfirmationRoute with
-     * name/regex/command/enabled) and the per-item / bulk Delete confirmations.
-     * Projects the per-row edit/duplicate/delete dropdown, the bulk-delete
-     * multi-selection and the create-new primary action; the SwiftUI screen drives
-     * them through the opaque-id `invokeUrlOverrideList*` /
-     * `toggleUrlOverrideListSelection` / `clearUrlOverrideListSelection` methods.
-     */
     fun observeUrlOverrideList(
         onChange: (UrlRuleListSnapshot) -> Unit,
     ): KeyguardCancellable {
@@ -627,8 +556,6 @@ internal class ReadOnlyListsController(
                             executeCommand = get(),
                         )
                 }
-                // Build the snapshot + handler maps off the main thread, then install
-                // the maps and deliver on the main thread together.
                 producerFlow
                     .map { loadable ->
                         val content = loadable.getOrNull()?.content?.getOrNull()?.getOrNull()
@@ -698,32 +625,24 @@ internal class ReadOnlyListsController(
         )
     }
 
-    /** Runs a per-row dropdown action of a URL-override row (edit / duplicate / delete) by its id. */
     fun invokeUrlOverrideListItemAction(id: String) {
         urlOverrideItemHandlers[id]?.invoke()
     }
 
-    /** Runs a bulk action of the active URL-override multi-selection (Delete) by its id. */
     fun invokeUrlOverrideListSelectionAction(id: String) {
         urlOverrideSelectionHandlers[id]?.invoke()
     }
 
-    /** Opens the create-new URL-override form (the producer's primary action). */
     fun invokeUrlOverrideListPrimaryAction() {
         urlOverrideState?.primaryAction?.invoke()
     }
 
-    /**
-     * Toggles whether the URL-override row with [itemId] is part of the
-     * multi-selection. Routes through the producer's per-item selection handle.
-     */
     fun toggleUrlOverrideListSelection(itemId: String) {
         val item = urlOverrideState?.items?.firstOrNull { it.key == itemId } ?: return
         val selectable = item.selectableState.value
         (selectable.onClick ?: selectable.onLongClick)?.invoke()
     }
 
-    /** Clears the active URL-override multi-selection. */
     fun clearUrlOverrideListSelection() {
         urlOverrideState?.selection?.onClear?.invoke()
     }

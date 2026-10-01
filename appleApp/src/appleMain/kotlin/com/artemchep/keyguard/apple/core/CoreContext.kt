@@ -20,7 +20,6 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.first
@@ -34,15 +33,10 @@ import org.koin.dsl.module
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 
 /**
- * Shared kernel for the native (SwiftUI) Apple bridge (macOS + iOS).
- *
- * Owns the DI graph and the two coroutine scopes every bridge controller runs
- * on, plus the observer plumbing that enforces the bridge's threading contract:
- * producer pipelines run on [backgroundScope] (Default), while snapshot delivery
- * and the mutation of the Swift-facing handler maps hop back to the main thread
- * through [publishOnMain]. The feature controllers extracted out of
- * [KeyguardCore] take an instance of this kernel and route all of their work
- * through these helpers, so the contract lives in exactly one place.
+ * Shared kernel of the Apple bridge (macOS + iOS): the DI graph, the two coroutine scopes and the observer
+ * plumbing that enforces the threading contract. Producer pipelines run on [backgroundScope]; snapshot
+ * delivery and the Swift-facing handler maps hop back to the main thread through [publishOnMain]. Every
+ * controller behind [KeyguardCore] routes its work through these helpers, so the contract lives in one place.
  */
 internal class CoreContext(
     val runtime: KeyguardRuntime = KeyguardRuntime.APP,
@@ -133,35 +127,25 @@ internal class CoreContext(
     }
 
     /**
-     * Background counterpart of [scope]: the same supervisor job, but
-     * [Dispatchers.Default]. Observer pipelines and the app-wide workers run
-     * here so the headless producers' flow machinery (search, sorting,
-     * filtering, counters) stays off the main thread — matching the
-     * Default-dispatcher screen scope the Compose `FlowHolderViewModel` gives
-     * the very same producers, and the desktop app's `GlobalScope` worker
-     * bootstrap. Snapshot publication (and every mutation of the Swift-facing
-     * handler maps) hops back to the main thread through [publishOnMain].
+     * The same supervisor job as [scope] on [Dispatchers.Default], so the headless producers' flow machinery
+     * (search, sorting, filtering, counters) stays off the main thread — matching the Default-dispatcher
+     * scope the Compose `FlowHolderViewModel` gives the same producers.
      */
     val backgroundScope = scope + Dispatchers.Default
 
     val unlockUseCase: UnlockUseCase by lazy { koin.get() }
 
     /**
-     * Mirrors the effective SwiftUI appearance so headless producers that read
-     * the Compose color scheme (the attachment preview's syntax highlighting)
-     * pick the matching light / dark palette. Updated from Swift via
-     * `setInterfaceDarkMode`; writes go through the core [scope] so Compose
-     * snapshot state never races the producers.
+     * Mirrors the effective SwiftUI appearance so headless producers that read the Compose color scheme
+     * (the attachment preview's syntax highlighting) pick the matching palette. Writes go through the
+     * core [scope] so Compose snapshot state never races the producers.
      */
     val interfaceColorSchemeState = mutableStateOf(lightColorScheme())
 
     /**
-     * Launches an observer pipeline on [backgroundScope] and wraps the job in a
-     * [KeyguardCancellable]. The pipeline must route its `onChange` callbacks —
-     * and any handler-map side effects the Swift-facing `invoke*` methods read —
-     * through [publishOnMain], which keeps that state main-confined. (The Swift
-     * callers additionally re-dispatch via `DispatchQueue.main.async`, so a
-     * callback arriving from a background thread would also be safe.)
+     * Runs on [backgroundScope]. The pipeline must route its `onChange` callbacks — and any handler-map side
+     * effects the Swift-facing `invoke*` methods read — through [publishOnMain], which keeps that state
+     * main-confined.
      */
     fun launchObserver(
         block: suspend CoroutineScope.() -> Unit,
@@ -171,39 +155,25 @@ internal class CoreContext(
     }
 
     /**
-     * Runs [block] on the main thread. This is the final stage of an observer
-     * pipeline: snapshot delivery plus the handler-map mutations, which must
+     * The final stage of an observer pipeline: snapshot delivery plus the handler-map mutations, which must
      * stay main-confined because Swift reads them from main-thread calls.
      */
     suspend fun <T> publishOnMain(
         block: suspend CoroutineScope.() -> T,
     ): T = withContext(Dispatchers.Main, block)
 
-    /**
-     * Awaits and returns the current settled vault state (skipping the transient
-     * [VaultState.Loading]). Shared by the one-shot bridge calls that need the
-     * unlocked session's sub-DI (quick copy, wordlist / email-relay
-     * mutations, …).
-     */
+    /** The current settled vault state, skipping the transient [VaultState.Loading]. */
     suspend fun currentState(): VaultState =
         unlockUseCase().first { it !is VaultState.Loading }
 
-    /**
-     * Suspends until the vault is unlocked and returns the [VaultState.Main]. Used
-     * by the one-shot mutations (wordlist / email-relay add / rename / delete) that
-     * need the session sub-DI and can assume an unlocked vault.
-     */
     suspend fun awaitMain(): VaultState.Main =
         unlockUseCase().first { it is VaultState.Main } as VaultState.Main
 
     /**
-     * [launchObserver] specialisation for the vault-gated screens: while the
-     * vault is unlocked, runs [block] in a child scope handed the session's
-     * [VaultState.Main] (the scope is cancelled, and [block] re-run, on every
-     * vault-state change); otherwise runs [onLocked] on the main thread —
-     * reset the screen's `latest*` / handler-map fields there and emit the
-     * empty snapshot. [onTeardown] runs on the main thread once the observer
-     * stops, cancellation included.
+     * While the vault is unlocked, runs [block] in a child scope (cancelled, and [block] re-run, on every
+     * vault-state change); otherwise runs [onLocked] on the main thread — reset the screen's `latest*` /
+     * handler-map fields there and emit the empty snapshot. [onTeardown] runs on the main thread once the
+     * observer stops, cancellation included.
      */
     fun launchSessionObserver(
         onLocked: suspend () -> Unit,

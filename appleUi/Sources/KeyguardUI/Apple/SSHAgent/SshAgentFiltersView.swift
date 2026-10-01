@@ -3,12 +3,8 @@ import SwiftUI
 import KeyguardShared
 
 /// Restricts which SSH keys the agent serves, mirroring the common
-/// `SshAgentFiltersScreen`. The filter tree is produced by the shared
-/// `sshAgentFiltersStateProducer` running headless inside `KeyguardCore` and
-/// rendered with the same `FilterSidebar` used by the vault list. Presented as
-/// a modal sheet in the standard header/content/footer layout: saving persists
-/// the filter; the producer then pops itself, which dismisses the sheet via the
-/// bridge `onClose` callback.
+/// `SshAgentFiltersScreen`. Save does not dismiss: the producer pops itself,
+/// which dismisses the sheet via the bridge `onClose` callback.
 struct SshAgentFiltersView: View {
     @Environment(SshAgentModel.self) private var sshAgentModel
     @Environment(\.dismiss) private var dismiss

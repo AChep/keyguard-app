@@ -4,7 +4,6 @@ import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeServiceInf
 import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataServiceInfo
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
 import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
-import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*
@@ -35,11 +34,6 @@ enum class ServiceDirectoryItemKind {
     CONTENT,
 }
 
-/**
- * One row of a service directory list. [id] routes detail lookups back through
- * [KeyguardCore.observeServiceDirectoryDetail]; [faviconUrl] is the icon
- * image URL, or null if the row has none.
- */
 data class ServiceDirectoryItemSnapshot(
     val id: String,
     val kind: ServiceDirectoryItemKind,
@@ -48,10 +42,6 @@ data class ServiceDirectoryItemSnapshot(
     val highlights: List<DirectoryTextRangeSnapshot> = emptyList(),
 )
 
-/**
- * A flat, Swift-friendly projection of one of the four service directories.
- * Produced by an entry-owned [ServiceDirectoryListSession].
- */
 data class ServiceDirectorySnapshot(
     val status: ServiceDirectoryLoadStatus,
     val query: String,
@@ -72,7 +62,7 @@ data class ServiceDirectorySnapshot(
     }
 }
 
-/** A titled link (website / documentation / mailto) on a directory detail. */
+/** [url] is a web page or a `mailto:` link. */
 data class ServiceDirectoryLinkSnapshot(
     val title: String,
     val url: String,
@@ -98,10 +88,7 @@ private inline fun directoryLinks(
     block: MutableList<ServiceDirectoryLinkSnapshot>.() -> Unit,
 ): List<ServiceDirectoryLinkSnapshot> = buildList(block).distinctBy { it.url }
 
-/**
- * A flat projection of a directory entry's detail; [notes] is markdown.
- * A failed or missing lookup is terminal, distinct from the initial loading state.
- */
+/** [notes] is markdown. A failed or missing lookup is terminal, distinct from the initial loading state. */
 data class ServiceDirectoryDetailSnapshot(
     val loaded: Boolean,
     val title: String,
@@ -122,12 +109,6 @@ data class ServiceDirectoryDetailSnapshot(
     }
 }
 
-/**
- * Projects a 2FA service model into a flat [ServiceDirectoryDetailSnapshot]
- * (title, the supported 2FA-type chips, markdown notes, website / documentation
- * links). Shared by the directory detail screen and the inactive-TOTP dialog the
- * cipher detail opens.
- */
 internal fun TwoFaServiceInfo.toServiceDirectoryDetailSnapshot(
     titles: DirectoryLinkTitles,
     loaded: Boolean = true,
@@ -142,12 +123,6 @@ internal fun TwoFaServiceInfo.toServiceDirectoryDetailSnapshot(
     },
 )
 
-/**
- * Projects a passkey service model into a flat [ServiceDirectoryDetailSnapshot]
- * (title, the supported feature chips, markdown notes, documentation / setup
- * links). Shared by the directory detail screen and the inactive-passkey dialog
- * the cipher detail opens.
- */
 internal fun PassKeyServiceInfo.toServiceDirectoryDetailSnapshot(
     titles: DirectoryLinkTitles,
     loaded: Boolean = true,
@@ -162,11 +137,6 @@ internal fun PassKeyServiceInfo.toServiceDirectoryDetailSnapshot(
     },
 )
 
-/**
- * Projects a "Get my data" service model into a flat [ServiceDirectoryDetailSnapshot]
- * (title, the difficulty chip, markdown notes, website / mailto links). Shared by the
- * directory detail screen and the cipher detail's "Get my data" dialog.
- */
 internal fun JustGetMyDataServiceInfo.toServiceDirectoryDetailSnapshot(
     titles: DirectoryLinkTitles,
     loaded: Boolean = true,
@@ -181,12 +151,6 @@ internal fun JustGetMyDataServiceInfo.toServiceDirectoryDetailSnapshot(
     },
 )
 
-/**
- * Projects a "How to delete account" service model into a flat
- * [ServiceDirectoryDetailSnapshot] (title, the difficulty chip, markdown notes,
- * website / mailto links). Shared by the directory detail screen and the cipher
- * detail's "How to delete account" dialog.
- */
 internal fun JustDeleteMeServiceInfo.toServiceDirectoryDetailSnapshot(
     titles: DirectoryLinkTitles,
     loaded: Boolean = true,

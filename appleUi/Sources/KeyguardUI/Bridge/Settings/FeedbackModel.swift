@@ -11,15 +11,12 @@ final class FeedbackModel: SnapshotObserving {
         self.core = core
     }
 
-    /// "Contact us" (feedback) sheet state, produced by the shared Kotlin feedback
-    /// producer running headless inside `KeyguardCore`. Only live while the feedback
-    /// modal sheet is presented (the macOS / iOS Settings → About row).
+    /// Only live while the "Contact us" sheet is presented.
     private(set) var feedback: FeedbackSnapshot = FeedbackSnapshot.companion.empty
 
     @ObservationIgnored private var feedbackSubscription: BridgeObservation?
 
-    /// Starts the standalone "Contact us" feedback observation backing the modal
-    /// sheet (Settings → About). Idempotent; pair with `stopFeedbackObservation`.
+    /// Idempotent; balance with `stopFeedbackObservation()`.
     func startFeedbackObservation() {
         startObservation(\.feedbackSubscription, into: \.feedback, observe: core.observeFeedback)
     }

@@ -5,8 +5,8 @@ struct NavSection: Identifiable, Hashable {
     /// `vault`, `sends`, … or `cipher_filter:<id>`; stable identity + selection tag.
     let key: String
     /// The navigation-stack scope this section renders (`setNavScope` +
-    /// `NavStackContainer`). Built-ins keep the pre-existing scope names
-    /// (`send`, `gpg_tools`); cipher filters use `cipher_filter:<id>`.
+    /// `NavStackContainer`). A built-in scope can differ from its key (`sends` →
+    /// `send`); cipher filters use `cipher_filter:<id>`.
     let scope: String
     let isCipherFilter: Bool
     let title: String

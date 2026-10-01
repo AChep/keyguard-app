@@ -44,28 +44,22 @@ final class AutofillGeneratorModel: SnapshotObserving {
             \.autofillGeneratorSubscription, resetting: \.autofillGenerator, to: GeneratorSnapshot.companion.empty)
     }
 
-    /// Invokes an in-form generator `() -> Unit` closure (type select / copy /
-    /// refresh / suggestion / enum option / menu) by its opaque snapshot id.
     func invokeAutofillGeneratorAction(id: String) {
         core.invokeAutofillGeneratorAction(id: id)
     }
 
-    /// Sets a boolean in-form generator filter switch identified by its filter key.
     func setAutofillGeneratorSwitch(key: String, value: Bool) {
         core.setAutofillGeneratorSwitch(key: key, value: value)
     }
 
-    /// Writes text into an in-form generator text filter identified by its filter key.
     func setAutofillGeneratorText(key: String, text: String) {
         core.setAutofillGeneratorText(key: key, text: text)
     }
 
-    /// Sets an integer in-form generator counter identified by its routing key.
     func setAutofillGeneratorCounter(key: String, value: Int32) {
         core.setAutofillGeneratorCounter(key: key, value: value)
     }
 
-    /// Sets the in-form generated value length.
     func setAutofillGeneratorLength(_ value: Int32) {
         core.setAutofillGeneratorLength(value: value)
     }

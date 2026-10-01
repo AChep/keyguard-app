@@ -15,19 +15,12 @@ import com.artemchep.keyguard.feature.home.vault.apple.AppleVaultSortMenu
 import com.artemchep.keyguard.feature.home.vault.apple.AppleVaultStructureOp
 import com.artemchep.keyguard.feature.home.vault.apple.AppleVaultToolbar
 
-/** ObjC-exported mirrors of the common Apple vault-list models. */
-
 /**
- * One incremental update of the list structure + row content. Mirrors
- * `AppleVaultDelta`, with the `AppleVaultEntry` list split into the parallel
+ * Mirrors `AppleVaultDelta`, with the `AppleVaultEntry` list split into the parallel
  * [fullEntryIds] / [fullEntryKinds] arrays for cheap bridging.
  *
- * The current client receives full structure frames; ops are reserved for
- * incremental updates. Row content still crosses as deltas.
- *
- * [isReset] (sent once when the vault locks) means: drop ALL cached state —
- * rows, decorations, anchors, and your notion of [revision]. Revisions are
- * monotonic within one unlock session and re-baseline after a reset.
+ * Clients currently receive full structure frames; row content still crosses as deltas.
+ * Revisions are monotonic within one unlock session and re-baseline after [isReset].
  */
 data class VaultListDelta(
     val revision: Long,
@@ -35,7 +28,10 @@ data class VaultListDelta(
     val baseRevision: Long,
     /** The structure is carried whole in [fullEntryIds]; [ops] is empty. */
     val isFull: Boolean,
-    /** Drop ALL cached state first; the other fields are empty. */
+    /**
+     * Sent once when the vault locks: drop ALL cached state first (rows, decorations, anchors and
+     * [revision]); the other fields are empty.
+     */
     val isReset: Boolean,
     /** The complete new structure, in render order; empty unless [isFull]. */
     val fullEntryIds: List<String>,
@@ -58,7 +54,6 @@ data class VaultListDelta(
     val scrollAnchorOffset: Int,
 )
 
-/** One structural mutation reserved for incremental frames. */
 data class VaultStructureOpSnapshot(
     /** One of the `KIND_*` constants. */
     val kind: Int,
@@ -78,10 +73,7 @@ data class VaultStructureOpSnapshot(
     }
 }
 
-/**
- * The search-independent content of one row; mirrors `AppleVaultRowContent`
- * (including the per-row [rev] fingerprint and the inline [badges]).
- */
+/** The search-independent content of one row. */
 data class VaultRowSnapshot(
     /** Same id scheme as the delta's `fullEntryIds` entries. */
     val id: String,
@@ -124,8 +116,7 @@ data class VaultRowSnapshot(
         const val KIND_NO_ITEMS = 2
         const val KIND_NO_SUGGESTIONS = 3
         const val KIND_QUICK_FILTERS = 4
-        // A full-width tappable button row (Duplicates' merge button); never
-        // emitted by the main vault list. Mirrors `AppleVaultEntry.KIND_BUTTON`.
+        /** A full-width tappable button row (Duplicates' merge button); never emitted by the main vault list. */
         const val KIND_BUTTON = 5
 
         // Content flags; mirror `AppleVaultRowContent.FLAG_*`.
@@ -138,13 +129,12 @@ data class VaultRowSnapshot(
         const val FLAG_CHEVRON = 1 shl 6
         // The per-row multi-selection display bits — set ONLY by the Duplicates
         // sibling surface (the main list projects selection out-of-band via the
-        // selection channel). Mirror `AppleVaultRowContent.FLAG_SELECTED` / `FLAG_SELECTING`.
+        // selection channel).
         const val FLAG_SELECTED = 1 shl 7
         const val FLAG_SELECTING = 1 shl 8
     }
 }
 
-/** One inline badge of a cipher row; mirrors `AppleVaultRowBadge`. */
 data class VaultRowBadgeSnapshot(
     /** Stable within the row, e.g. `"password.0"`, `"passkey.<credentialId>"`. */
     val id: String,
@@ -169,7 +159,7 @@ data class VaultRowBadgeSnapshot(
     }
 }
 
-/** The search-dependent decoration of one row; mirrors `AppleVaultRowDecoration`. */
+/** The search-dependent decoration of one row. */
 data class VaultRowDecorationSnapshot(
     val id: String,
     /** Matched-term bold ranges in the title, as flat `[start, end]` pairs. */
@@ -181,7 +171,6 @@ data class VaultRowDecorationSnapshot(
 )
 
 /**
- * A data-only description of one action; mirrors `AppleVaultActionDescriptor`.
  * Unlike the common model, [symbol] is FILLED here (from [VaultActionSymbols])
  * so the Swift menus render icons without their own id table.
  */
@@ -208,7 +197,6 @@ data class VaultActionDescriptorSnapshot(
     }
 }
 
-/** The chrome above the list; mirrors `AppleVaultHeader`. */
 data class VaultSessionHeaderSnapshot(
     val loaded: Boolean,
     val needsAccount: Boolean,
@@ -246,7 +234,6 @@ data class VaultSessionHeaderSnapshot(
     }
 }
 
-/** The full filter tree; mirrors `AppleVaultFilterCatalog`. */
 data class VaultFilterCatalogSnapshot(
     /** Bumped whenever the catalog itself (not the checked state) changes. */
     val revision: Long,
@@ -260,7 +247,6 @@ data class VaultFilterCatalogSnapshot(
     }
 }
 
-/** One filter section; mirrors `AppleVaultFilterGroup`. */
 data class VaultFilterGroupSnapshot(
     val sectionId: String,
     val title: String,
@@ -270,7 +256,6 @@ data class VaultFilterGroupSnapshot(
     val items: List<VaultFilterChipSnapshot>,
 )
 
-/** One filter chip; mirrors `AppleVaultFilterChip`. */
 data class VaultFilterChipSnapshot(
     val id: String,
     val sectionId: String,
@@ -298,7 +283,7 @@ data class VaultFilterChipSnapshot(
     val isApply: Boolean,
 )
 
-/** The cheap, frequently-changing part of the filter UI; mirrors `AppleVaultFilterState`. */
+/** The cheap, frequently-changing part of the filter UI. */
 data class VaultFilterStateSnapshot(
     /** Bumped on every checked-state change. */
     val filterRevision: Int,
@@ -321,7 +306,6 @@ data class VaultFilterStateSnapshot(
     }
 }
 
-/** The sort menu; mirrors `AppleVaultSortMenu`. */
 data class VaultSessionSortSnapshot(
     val items: List<VaultSessionSortItemSnapshot>,
     val canClear: Boolean,
@@ -336,7 +320,6 @@ data class VaultSessionSortSnapshot(
     }
 }
 
-/** One sort menu entry; mirrors `AppleVaultSortItem`. */
 data class VaultSessionSortItemSnapshot(
     val id: String,
     val title: String,
@@ -347,7 +330,6 @@ data class VaultSessionSortItemSnapshot(
     val isSection: Boolean,
 )
 
-/** The toolbar overflow menu plus the sync indicator; mirrors `AppleVaultToolbar`. */
 data class VaultSessionToolbarSnapshot(
     val actions: List<VaultActionDescriptorSnapshot>,
     val syncing: Boolean,
@@ -360,7 +342,7 @@ data class VaultSessionToolbarSnapshot(
     }
 }
 
-/** The multi-selection bar; mirrors `AppleVaultSelection`. `count == 0` = inactive. */
+/** `count == 0` = inactive. */
 data class VaultSessionSelectionSnapshot(
     val count: Int,
     val actions: List<VaultActionDescriptorSnapshot>,
@@ -374,10 +356,7 @@ data class VaultSessionSelectionSnapshot(
     }
 }
 
-//
-// Mappers. Mechanical, field-for-field; internal because their receivers are
-// non-exported :common types.
-//
+// Mappers are internal because their receivers are non-exported :common types.
 
 internal fun AppleVaultRowContent.toSnapshot(): VaultRowSnapshot = VaultRowSnapshot(
     id = id,

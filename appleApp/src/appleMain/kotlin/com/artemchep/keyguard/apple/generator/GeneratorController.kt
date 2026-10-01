@@ -2,7 +2,6 @@ package com.artemchep.keyguard.apple.generator
 
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.apple.core.sessionKoin
-import com.artemchep.keyguard.main
 import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.relays.EmailRelayRegistry
@@ -30,34 +29,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.koin.core.scope.Scope
 
-/**
- * The password / passphrase / username / email generator screen of the macOS
- * bridge. Runs the shared [generatorStateProducer] headlessly and projects its
- * [GeneratorState] into a flat [GeneratorSnapshot]; the SwiftUI screen mutates
- * it through the opaque-id `setGenerator*` / `invokeGenerator*` methods.
- */
 internal class GeneratorController(
     private val ctx: CoreContext,
 ) {
     /**
-     * Resolves the navigation interceptor handed to the generator producer, so its
-     * "create login / SSH key" actions (which emit an `AddRoute`) reach the stack
-     * interceptor instead of the NoOp controller. Late-bound by [KeyguardCore].
+     * Lets the producer's "create login / SSH key" actions (an `AddRoute`) reach the stack interceptor instead of
+     * the NoOp controller. Late-bound by [KeyguardCore].
      */
     var navigationInterceptorProvider: ((Scope) -> ((NavigationIntent) -> Boolean))? = null
-    /**
-     * Routing tables rebuilt on every [GeneratorSnapshot] emission: they map the
-     * snapshot's string ids / keys back to the live producer closures. The
-     * SwiftUI generator screen only ever passes opaque ids / keys, mirroring the
-     * login and vault detail screens.
-     *  - [generatorActionHandlers]: any `() -> Unit` (type select, suggestion /
-     *    value copy, refresh, menu options, enum option select, tip hide / learn
-     *    more, open history).
-     *  - [generatorSwitchHandlers] / [generatorTextHandlers] / [generatorIntHandlers]:
-     *    the parameterised filter field setters, keyed by the filter item key
-     *    (counter setters keyed by "<key>:counter").
-     *  - [generatorLengthHandlers]: the value-length slider, keyed by "length".
-     */
+    /** Rebuilt on every [GeneratorSnapshot] emission: map the snapshot's ids / keys back to the live closures. */
     private var generatorActionHandlers: Map<String, () -> Unit> = emptyMap()
     private var generatorSwitchHandlers: Map<String, (Boolean) -> Unit> = emptyMap()
     private var generatorTextHandlers: Map<String, (String) -> Unit> = emptyMap()
@@ -65,20 +45,8 @@ internal class GeneratorController(
     private var generatorLengthHandlers: Map<String, (Int) -> Unit> = emptyMap()
 
     /**
-     * Observes the password / passphrase / username / email generator by running
-     * the shared [generatorStateProducer] in a headless
-     * [com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope] —
-     * exactly the way the login and vault detail screens reuse their producers.
-     * All the generation logic (config building, suggestions, live value
-     * generation, wordlists, email relays) stays in the shared producer; this
-     * only projects its [GeneratorState] into a flat [GeneratorSnapshot].
-     *
-     * Optional dependencies (history, profiles, email relays, wordlists) live in
-     * the per-session sub-DI carried by [com.artemchep.keyguard.common.model.VaultState.Main],
-     * so the generator is only available once the vault is unlocked. While the
-     * vault is not in the Main phase the callback receives [GeneratorSnapshot.empty].
-     * Mutate the producer through the `setGenerator*` / `invokeGenerator*` input
-     * methods. Callbacks run on the main thread.
+     * Optional dependencies (history, profiles, email relays, wordlists) live in the per-session sub-DI, so the
+     * generator needs an unlocked vault.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeGenerator(
@@ -148,14 +116,10 @@ internal class GeneratorController(
             var suggestions: List<GeneratorState.Suggestion>? = null
             var suggestionsGeneration = 0
 
-            // Snapshot stream. The top-level GeneratorState rarely
-            // re-emits (only its options menu changes); the live data
-            // — loaded flag, type picker, generated value, quick
-            // suggestions and the filter form — flows through five
-            // inner StateFlows it does NOT re-emit for, so combine
-            // them in: any tick re-runs the builder and pushes a fresh
-            // snapshot. valueState is nullable, so fold it in via a
-            // separate combine to keep null handling explicit.
+            // The top-level GeneratorState rarely re-emits (only its options menu changes); the live data
+            // (loaded flag, type picker, generated value, quick suggestions, filter form) flows through five
+            // inner StateFlows it does NOT re-emit for, so combine them in. valueState is nullable, so fold it
+            // in via a separate combine to keep null handling explicit.
             latest.filterNotNull()
                 .flatMapLatest { gen ->
                     combine(
@@ -210,11 +174,7 @@ internal class GeneratorController(
         }
     }
 
-    /**
-     * Builds the Swift-facing [GeneratorSnapshot], filling the handler maps so
-     * the snapshot's string ids / keys map back to the live producer closures.
-     * Pure apart from the out-params.
-     */
+    /** Pure apart from filling the handler-map out-params. */
     private suspend fun buildGeneratorSnapshot(
         gen: GeneratorState,
         inner: GeneratorInner,
@@ -226,7 +186,7 @@ internal class GeneratorController(
         intHandlers: LinkedHashMap<String, (Long) -> Unit>,
         lengthHandlers: LinkedHashMap<String, (Int) -> Unit>,
     ): GeneratorSnapshot {
-        // Top options menu (tips toggle, email relays, wordlists).
+        // Top options menu.
         val options = ArrayList<GeneratorActionSnapshot>()
         val optionKeys = ActionKeyAllocator("option")
         gen.options.forEach { ci ->
@@ -241,7 +201,7 @@ internal class GeneratorController(
             )
         }
 
-        // Type picker (password / passphrase / username / email / ...).
+        // Type picker.
         val types = ArrayList<GeneratorTypeItemSnapshot>()
         val typeKeys = ActionKeyAllocator("type")
         var typeSectionIndex = 0
@@ -275,7 +235,7 @@ internal class GeneratorController(
             }
         }
 
-        // Generated value (+ its copy / refresh / extra menu actions).
+        // Generated value.
         val value = inner.value?.let { v ->
             v.onCopy?.let { actionHandlers["value:copy"] = it }
             v.onRefresh?.let { actionHandlers["value:refresh"] = it }
@@ -313,7 +273,7 @@ internal class GeneratorController(
             )
         }
 
-        // Filter form: tip, length slider, switch / text / enum rows.
+        // Filter form.
         val tip = inner.filter.tip?.let { t ->
             t.onHide?.let { actionHandlers["tip:hide"] = it }
             t.onLearnMore?.let { actionHandlers["tip:learnMore"] = it }
@@ -441,27 +401,22 @@ internal class GeneratorController(
         )
     }
 
-    /** Invokes a generator `() -> Unit` closure by its snapshot id / key. */
     fun invokeGeneratorAction(id: String) {
         generatorActionHandlers.invokeAction(id)
     }
 
-    /** Sets a boolean generator filter switch identified by its filter key. */
     fun setGeneratorSwitch(key: String, value: Boolean) {
         generatorSwitchHandlers[key]?.invoke(value)
     }
 
-    /** Writes text into a generator text filter identified by its filter key. */
     fun setGeneratorText(key: String, text: String) {
         generatorTextHandlers[key]?.invoke(text)
     }
 
-    /** Sets an integer generator counter identified by its routing key. */
     fun setGeneratorCounter(key: String, value: Int) {
         generatorIntHandlers[key]?.invoke(value.toLong())
     }
 
-    /** Sets the generated value length. */
     fun setGeneratorLength(value: Int) {
         generatorLengthHandlers["length"]?.invoke(value)
     }

@@ -111,7 +111,6 @@ struct BarcodeView: View {
     private func renderBarcodeImage(_ imageID: BarcodeImageID) async {
         guard !barcodeImage.isResolved(for: imageID) else { return }
 
-        barcodeImage = .loading(imageID)
         let image = await BarcodeRenderer.image(for: imageID)
         guard !Task.isCancelled else { return }
 
@@ -138,7 +137,6 @@ private enum BarcodeImageValue {
 
 private enum BarcodeImageResult {
     case empty
-    case loading(BarcodeImageID)
     case resolved(BarcodeImageID, BarcodeImageValue)
 
     func value(for imageID: BarcodeImageID) -> BarcodeImageValue? {

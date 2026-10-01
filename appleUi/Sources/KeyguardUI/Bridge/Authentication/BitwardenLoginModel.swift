@@ -38,30 +38,23 @@ final class BitwardenLoginModel: SnapshotObserving {
         self.openExternalURL = openExternalURL
     }
 
-    /// Current Bitwarden login state.
     private(set) var login: LoginSnapshot = LoginSnapshot.companion.empty
 
-    /// Flips to `true` once the shared producer reports a successful login, so
-    /// the login view can dismiss itself.
     private(set) var loginDidSucceed = false
 
-    /// Current Bitwarden two-factor state.
     private(set) var twofa: TwofaSnapshot = TwofaSnapshot.companion.empty
 
     /// Flips to `true` when the login producer reports a 2FA challenge, pushing
     /// the 2FA screen on top of the login screen.
     var twofaActive = false
 
-    /// Flips to `true` once the 2FA challenge is satisfied, so the 2FA view can
-    /// dismiss itself.
     private(set) var twofaDidSucceed = false
 
     @ObservationIgnored private var loginSubscription: BridgeObservation?
 
     @ObservationIgnored private var twofaSubscription: BridgeObservation?
 
-    /// Starts running the shared Bitwarden login producer. Call when the login
-    /// screen appears; balance with `stopLoginObservation()` on disappear.
+    /// Call when the login screen appears; balance with `stopLoginObservation()`.
     func startLoginObservation() {
         startObservation(\.loginSubscription) { deliver in
             observeLogin(
@@ -84,13 +77,11 @@ final class BitwardenLoginModel: SnapshotObserving {
         loginDidSucceed = false
     }
 
-    /// Forwards typed text into a shared login field, identified by its snapshot
-    /// id. Validation runs in Kotlin and flows back through `observeBitwardenLogin`.
+    /// Validation runs in Kotlin and flows back through `login`.
     func setLoginField(id: String, text: String) {
         core.setLoginField(id: id, text: text)
     }
 
-    /// Selects a server region (US / EU / Custom) by its snapshot key.
     func selectLoginRegion(key: String) {
         core.selectLoginRegion(key: key)
     }
@@ -105,14 +96,12 @@ final class BitwardenLoginModel: SnapshotObserving {
         core.clickLoginRegister()
     }
 
-    /// Submits the Bitwarden login held by the shared producer.
     func submitLogin() {
         core.submitLogin()
     }
 
-    /// Starts running the shared Bitwarden 2FA producer for the challenge raised
-    /// by the login producer. Call when the 2FA screen appears; balance with
-    /// `stopTwofaObservation()` on disappear.
+    /// Runs the 2FA producer for the challenge raised by the login producer. Call when
+    /// the 2FA screen appears; balance with `stopTwofaObservation()`.
     func startTwofaObservation() {
         startObservation(\.twofaSubscription) { deliver in
             observeTwofa(
@@ -137,17 +126,14 @@ final class BitwardenLoginModel: SnapshotObserving {
         twofaDidSucceed = false
     }
 
-    /// Forwards typed text into the shared 2FA verification-code field.
     func setTwofaCode(text: String) {
         core.setTwofaCode(text: text)
     }
 
-    /// Selects a 2FA provider by its snapshot key.
     func selectTwofaProvider(key: String) {
         core.selectTwofaProvider(key: key)
     }
 
-    /// Toggles "remember this device" for providers that support it.
     func toggleTwofaRememberMe(checked: Bool) {
         core.toggleTwofaRememberMe(checked: checked)
     }
@@ -157,12 +143,10 @@ final class BitwardenLoginModel: SnapshotObserving {
         core.resendTwofaCode()
     }
 
-    /// Submits the code-entry 2FA challenge held by the shared producer.
     func submitTwofa() {
         core.submitTwofa()
     }
 
-    /// Completes a YubiKey OTP challenge with the manually-typed token.
     func submitTwofaYubiKey(token: String) {
         core.submitTwofaYubiKey(token: token)
     }

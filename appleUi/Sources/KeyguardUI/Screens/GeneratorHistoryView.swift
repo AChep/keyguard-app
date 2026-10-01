@@ -4,8 +4,6 @@ import KeyguardShared
 struct GeneratorHistoryView: View {
     @Environment(GeneratorHistoryModel.self) private var generatorHistoryModel
 
-    /// The list's multi-selection, kept in lockstep with the shared producer's
-    /// selection handle.
     @State private var selection = ListSelectionModel()
     @State private var presentedItem: ListDetailSheetItem?
     @State private var pendingActionId: String?
@@ -126,8 +124,6 @@ struct GeneratorHistoryView: View {
         .accessibilityElement(children: .combine)
     }
 
-    /// A value row's own dropdown actions (copy / large type / breaches / remove),
-    /// plus the bulk selection actions when a multi-selection is active.
     @ViewBuilder
     private func rowContextMenu(_ item: GeneratorHistoryItemSnapshot) -> some View {
         if showsBulkContextMenu {
@@ -207,10 +203,7 @@ struct GeneratorHistoryView: View {
         }
     }
 
-    // MARK: - Selection
-
-    /// Maps a generated value's category to an SF Symbol. The shared snapshot
-    /// reports the type as an uppercase enum name (or nil when ambiguous).
+    /// The shared snapshot reports the type as an uppercase enum name, or nil when ambiguous.
     private func icon(for type: String?) -> String {
         switch type {
         case "PASSWORD": return "key"

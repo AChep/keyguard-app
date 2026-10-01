@@ -39,9 +39,7 @@ final class GpgToolsModel {
 
     private(set) var gpgToolsObservationId = UUID()
 
-    /// The result of the last GPG Tools run (ciphertext / plaintext / signature /
-    /// verification outcome). `nil` until a run completes; drives the result
-    /// sheet. Cleared by `dismissGpgToolsResult()`.
+    /// `nil` until a run completes; drives the result sheet.
     private(set) var gpgToolsResult: GpgToolsResultSnapshot?
 
     private(set) var pendingGpgToolsFilePicker: PendingGpgToolsFilePicker?
@@ -169,8 +167,6 @@ final class GpgToolsModel {
             || gpgToolsExportRequests.values.contains { $0.observationId == gpgToolsObservationId }
     }
 
-    func clearGpgToolsError() { gpgToolsError = nil }
-
     private func gpgToolsFileError(_ error: Error, fallback: String) -> String {
         // Provider/Foundation errors already contain localized, actionable details
         // such as denied access, an offline document, or insufficient free space.
@@ -294,31 +290,26 @@ final class GpgToolsModel {
         refreshGpgToolsNativeBusy()
     }
 
-    /// Selects the input scope tab (text / file) by its key.
     func setGpgToolsScope(_ key: String) {
         guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
         core.setGpgToolsScope(key: key)
     }
 
-    /// Selects the sign mode (cleartext / detached / inline) by its key.
     func setGpgToolsSignMode(_ key: String) {
         guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
         core.setGpgToolsSignMode(key: key)
     }
 
-    /// Selects the verify mode (inline / detached) by its key.
     func setGpgToolsVerifyMode(_ key: String) {
         guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
         core.setGpgToolsVerifyMode(key: key)
     }
 
-    /// Toggles ASCII-armor output.
     func setGpgToolsArmor(_ value: Bool) {
         guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
         core.setGpgToolsArmor(value: value)
     }
 
-    /// Writes the main input text (message / ciphertext / signed text).
     func setGpgToolsInputText(_ text: String) {
         guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
         core.setGpgToolsInputText(text: text)
@@ -330,7 +321,6 @@ final class GpgToolsModel {
         core.setGpgToolsSignatureText(text: text)
     }
 
-    /// Single-selects the private (signing / decrypting) key by its id.
     func selectGpgToolsPrivateKey(_ id: String) {
         guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
         core.selectGpgToolsPrivateKey(id: id)
@@ -342,7 +332,6 @@ final class GpgToolsModel {
         core.selectGpgToolsEncryptSigningKey(id: id)
     }
 
-    /// Toggles whether the recipient key with `id` is included in the encryption.
     func toggleGpgToolsRecipient(_ id: String) {
         guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
         core.toggleGpgToolsRecipient(id: id)
@@ -355,7 +344,6 @@ final class GpgToolsModel {
         core.runGpgTools()
     }
 
-    /// Copies the result output to the clipboard.
     func invokeGpgToolsResultCopy() {
         core.invokeGpgToolsResultCopy()
     }
@@ -519,7 +507,6 @@ final class GpgToolsModel {
         }
     }
 
-    /// Dismisses the result sheet.
     func dismissGpgToolsResult() {
         gpgToolsExportPreparationID = nil
         for task in gpgToolsExportTasks.values { task.cancel() }

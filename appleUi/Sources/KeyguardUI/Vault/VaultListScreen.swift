@@ -24,8 +24,6 @@ struct VaultListScreen: View {
     @State private var editMode: EditMode = .inactive
     #endif
 
-    /// - Parameter core: the app's single `KeyguardCore` (from `AppViewModel`);
-    ///   the session binds to the same instance.
     init(core: KeyguardCore) {
         _model = State(wrappedValue: VaultListSessionModel(core: core))
     }
@@ -38,7 +36,6 @@ struct VaultListScreen: View {
             .background { revealWatcher }
     }
 
-    /// Watches one-shot reveal requests and retries them as list data arrives.
     @ViewBuilder
     private var revealWatcher: some View {
         #if os(iOS)
@@ -53,8 +50,7 @@ struct VaultListScreen: View {
     private func onAppearScreen() {
         model.start()
         #if os(macOS)
-        // The inline detail pane observes `cipherDetailModel.detail`, fed by `setDetailTarget`;
-        // that observer lives on `CipherDetailModel`. Start it here so the pane is driven
+        // The inline detail pane's observer lives on `CipherDetailModel`; run it only
         // while the vault screen is on screen.
         cipherDetailModel.startDetailObservation()
         #endif
@@ -245,9 +241,9 @@ struct VaultListScreen: View {
         } else if !model.header.loaded {
             LoadingIndicator()
         } else {
-            // The list + selection + bulk bar live in the pane (Fix #2), so a
-            // per-tap `selectedRowIds` change re-bodies only the pane, not this
-            // screen (its search field / toolbar are siblings).
+            // The list + selection + bulk bar live in the pane, so a per-tap
+            // `selectedRowIds` change re-bodies only the pane, not this screen
+            // (its search field / toolbar are siblings).
             VaultListPane(model: model, selection: selection)
         }
     }

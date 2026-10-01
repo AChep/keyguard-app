@@ -86,8 +86,6 @@ struct AutofillGeneratorSheet: View {
         .formStyle(.grouped)
     }
 
-    // MARK: - Generated value
-
     private func valueSection(_ value: GeneratorValueSnapshot?) -> some View {
         Section {
             HStack(alignment: .top, spacing: 12) {
@@ -113,8 +111,6 @@ struct AutofillGeneratorSheet: View {
             }
         }
     }
-
-    // MARK: - Suggestions
 
     private var suggestionsSection: some View {
         Section(L10n.generatorSuggestionsTitle) {

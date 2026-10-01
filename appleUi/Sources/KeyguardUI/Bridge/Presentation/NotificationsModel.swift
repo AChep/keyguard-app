@@ -34,8 +34,6 @@ final class NotificationsModel: SnapshotObserving {
         }
     }
 
-    /// Transient messages shown as auto-dismissing toasts.
-
     private(set) var toasts: [ToastItem] = []
 
     @ObservationIgnored private var toastDismissWork: [String: BridgeObservation] = [:]
@@ -58,7 +56,6 @@ final class NotificationsModel: SnapshotObserving {
         } else {
             toasts.append(item)
         }
-        // (Re)arm auto-dismiss using the producer-supplied duration.
         toastDismissWork[item.id]?.cancel()
         let generation = UUID()
         let seconds = Double(snapshot.durationMillis) / 1000.0
@@ -86,8 +83,7 @@ final class NotificationsModel: SnapshotObserving {
         toastDismissWork[id] = nil
     }
 
-    /// Like `run`, but does not toggle the global busy overlay — for fire-and-forget
-    /// sub-screen mutations (duplicate / delete) that surface errors only.
+    /// Runs `operation` and shows an error toast if it throws.
     func perform(_ operation: @escaping () async throws -> Void) {
         Task { @MainActor in
             do {

@@ -5,10 +5,9 @@ package com.artemchep.keyguard.apple.billing
  * These must match the product ids configured in App Store Connect (and in the
  * local `Keyguard.storekit` test config).
  *
- * Mirrors the Android `GooglePlayBillingCatalog`, but the subscription ids
- * differ on purpose: Apple sells a 3-month + 1-year pair, while Google
- * currently sells `premium` + `premium_3m`. The stores are independent, so
- * the ids don't have to line up — owning any of these grants premium.
+ * Mirrors the Android `GooglePlayBillingCatalog`, but the 1-year subscription id
+ * differs on purpose: `premium_1y` here, `premium` on Google Play. The stores are
+ * independent, so the ids don't have to line up — owning any of these grants premium.
  */
 object AppleBillingProducts {
     const val ID_SUB_3_MONTHS = "premium_3m"

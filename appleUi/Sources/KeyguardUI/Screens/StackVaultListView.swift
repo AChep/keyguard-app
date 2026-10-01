@@ -1,15 +1,12 @@
 import SwiftUI
 import KeyguardShared
 
-/// A vault list pushed onto the navigation stack, such as a folder- or
-/// organization-filtered list. It uses the same virtualized row renderers as
-/// the main list.
+/// A vault list pushed onto the navigation stack, such as a folder- or organization-filtered list.
 struct StackVaultListView: View {
     let entry: ScreenEntrySnapshot
 
-    /// Drives the renderers from the entry's Kotlin-owned session. Created lazily
-    /// on first appear from `entry.vaultListSession` (always non-null for a
-    /// VAULT_LIST entry — `startEntry` sets it before the first snapshot is emitted).
+    /// Created lazily on first appear; `entry.vaultListSession` is always non-null for a
+    /// VAULT_LIST entry (`startEntry` sets it before the first snapshot is emitted).
     @State private var model: VaultListSessionModel?
 
     var body: some View {
@@ -25,8 +22,6 @@ struct StackVaultListView: View {
     }
 }
 
-/// The searchable list shared by `StackVaultListView` and `CipherFilterTabView`,
-/// rendered with the `.stacked` interaction policy.
 struct StackVaultListContent: View {
     @Environment(AccountsModel.self) private var accountsModel
     @Environment(\.colorScheme) private var colorScheme

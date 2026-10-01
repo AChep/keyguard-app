@@ -1,41 +1,28 @@
 package com.artemchep.keyguard.apple.auth
 
 import com.artemchep.keyguard.common.model.ToastMessage
-import com.artemchep.keyguard.feature.auth.bitwarden.LoginState
-import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.TwoFactorState
 import com.artemchep.keyguard.feature.keyguard.setup.SetupState
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockState
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.apple.model.ActionKeyAllocator
-import com.artemchep.keyguard.apple.model.KeyguardCipher
 import com.artemchep.keyguard.apple.model.TextFieldSnapshot
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
-import kotlinx.coroutines.flow.map
-import platform.Foundation.create
 
-/**
- * A flat, Swift-friendly projection of [UnlockState] for the SwiftUI unlock
- * screen. Mirrors the style of [KeyguardCipher].
- */
 data class UnlockSnapshot(
     val password: String,
     val passwordError: String?,
     val isLoading: Boolean,
     val canUnlock: Boolean,
     val hasBiometric: Boolean,
-    /** Device has a YubiKey unlock factor enrolled (offers the YubiKey button). */
     val hasYubiKey: Boolean,
     val hasFido2: Boolean = false,
-    /** Why the vault locked (e.g. "Locked manually"), shown above the form. */
+    /** Why the vault locked (e.g. "Locked manually"). */
     val lockReason: String?,
     /**
-     * Escape-hatch actions offered on the unlock screen — chiefly "Erase data"
-     * for a forgotten password. [UnlockActionSnapshot.id] routes back to
-     * [KeyguardCore.invokeUnlockAction]. All are treated as destructive by the
-     * SwiftUI screen (it confirms before invoking).
+     * Escape-hatch actions such as "Erase data"; [UnlockActionSnapshot.id] routes back to
+     * [KeyguardCore.invokeUnlockAction]. The SwiftUI screen confirms each one as destructive before invoking it.
      */
     val actions: List<UnlockActionSnapshot>,
 ) {
@@ -52,7 +39,6 @@ data class UnlockSnapshot(
         )
     }
 }
-/** An unlock-screen escape-hatch action (e.g. "Erase data"). */
 data class UnlockActionSnapshot(
     val id: String,
     val title: String,
@@ -75,12 +61,6 @@ internal fun UnlockState?.toUnlockSnapshot(
     )
 }
 
-/**
- * Projects the unlock screen's [UnlockState.actions] into flat snapshots,
- * capturing each [FlatItemAction.onClick] into [handlers] keyed by the assigned
- * id (mirrors the login screen's action handler map). Non-action context items
- * (dividers, etc.) are skipped.
- */
 internal suspend fun UnlockState?.toUnlockActionSnapshots(
     leContext: LeContext,
     handlers: MutableMap<String, () -> Unit>,
@@ -102,20 +82,6 @@ internal suspend fun UnlockState?.toUnlockActionSnapshots(
     return acc
 }
 
-/**
- * A flat, Swift-friendly projection of [SetupState] for the SwiftUI create-vault
- * screen. The sibling of [UnlockSnapshot]: the shared `setupStateProducer` owns
- * password validation, the crash-reporting opt-in, biometric enrollment and the
- * "can create" gate, so the Swift screen renders this and hands edits back
- * through [KeyguardCore.setSetupPassword] / `setSetupCrashlytics` /
- * `setSetupBiometric` / `submitSetup`.
- *
- *  - [passwordError]: inline validation error (e.g. min-length), or null,
- *  - [crashlyticsEnabled]: state of the "send crash reports" checkbox,
- *  - [hasBiometric]: device supports Touch ID enrollment (toggle visible),
- *  - [biometricEnabled]: the biometric checkbox is ticked,
- *  - [canCreate]: the producer's `onCreateVault` gate is satisfied.
- */
 data class SetupSnapshot(
     val passwordError: String?,
     val crashlyticsEnabled: Boolean,
@@ -149,11 +115,9 @@ internal fun SetupState?.toSetupSnapshot(): SetupSnapshot {
 }
 
 /**
- * A flat projection of a shared [ToastMessage] for SwiftUI. The shared producers
- * route their runtime errors (a wrong master password on unlock, a failed create
- * IO, sync failures, …) through the global message bus rather than into a screen
- * state, so [KeyguardCore.observeMessages] forwards them as these. [type] is the
- * [ToastMessage.Type] name ("INFO" / "ERROR" / "SUCCESS"), or null.
+ * Shared producers report runtime errors (a wrong master password, a failed save, sync failures) through the
+ * global message bus rather than screen state; [KeyguardCore.observeMessages] forwards them as these.
+ * [type] is the [ToastMessage.Type] name ("INFO" / "ERROR" / "SUCCESS"), or null.
  */
 data class MessageSnapshot(
     val id: String,
@@ -180,14 +144,13 @@ internal fun ToastMessage.toMessageSnapshot(): MessageSnapshot = MessageSnapshot
     },
 )
 
-/** A selectable server region (US / EU / Custom) for the segmented selector. */
 data class LoginRegionSnapshot(
     val key: String,
     val title: String,
     val checked: Boolean,
 )
 
-/** A menu / button action; [id] routes back to [KeyguardCore.invokeLoginAction]. */
+/** [id] routes back to [KeyguardCore.invokeLoginAction]. */
 data class LoginActionSnapshot(
     val id: String,
     val title: String,
@@ -204,7 +167,7 @@ enum class LoginItemKind {
 /**
  * One row of the dynamic self-hosted custom-environment editor. The populated
  * fields depend on [kind]:
- * - [LoginItemKind.URL]: [field] (the URL text field, carries its label).
+ * - [LoginItemKind.URL]: [field] (the URL text field) + [label].
  * - [LoginItemKind.HEADER]: [keyField] + [field] (header name + value) and [actions].
  * - [LoginItemKind.SECTION] / [LoginItemKind.LABEL]: [text].
  * - [LoginItemKind.ADD]: [text] (button title) + [actions].
@@ -219,11 +182,7 @@ data class LoginItemSnapshot(
     val actions: List<LoginActionSnapshot>,
 )
 
-/**
- * A flat, Swift-friendly projection of [LoginState] for the SwiftUI Bitwarden
- * login screen. Mirrors the full Compose form: region selector, optional CAPTCHA
- * client secret, the dynamic custom-environment editor, register + login actions.
- */
+/** [clientSecret] is the CAPTCHA client secret field, or null while the server doesn't ask for one. */
 data class LoginSnapshot(
     val email: TextFieldSnapshot,
     val password: TextFieldSnapshot,
@@ -250,8 +209,7 @@ data class LoginSnapshot(
     }
 }
 
-/** A selectable 2FA provider for the segmented selector; [key] routes back to
- * [KeyguardCore.selectTwofaProvider]. */
+/** [key] routes back to [KeyguardCore.selectTwofaProvider]. */
 data class TwofaProviderSnapshot(
     val key: String,
     val title: String,
@@ -259,11 +217,8 @@ data class TwofaProviderSnapshot(
 )
 
 /**
- * Which 2FA UI to render. The code-entry kinds (authenticator / email /
- * email-new-device / yubikey) drive a verification-code form; [FALLBACK] covers
- * providers that need an embedded WebView or browser callback not supported on
- * macOS yet (Duo / FIDO2-WebAuthn / otherwise unsupported) and offers a
- * "finish in the web vault" escape hatch.
+ * [FALLBACK] covers providers that need a WebView or browser callback the Apple apps don't support (Duo,
+ * FIDO2 WebAuthn, unknown providers) and offers to finish in the web vault.
  */
 enum class TwofaKind {
     SKELETON,
@@ -275,10 +230,8 @@ enum class TwofaKind {
 }
 
 /**
- * A flat, Swift-friendly projection of the shared `TwoFactorState` for the
- * SwiftUI 2FA screen. [code] (id "twofa.code") backs the verification-code field
- * for the authenticator / email kinds; the yubikey kind keeps its OTP Swift-side
- * and submits via [KeyguardCore.submitTwofaYubiKey].
+ * [code] (id "twofa.code") backs the verification-code field of the authenticator / email kinds; the yubikey
+ * kind keeps its OTP Swift-side and submits via [KeyguardCore.submitTwofaYubiKey].
  */
 data class TwofaSnapshot(
     val providers: List<TwofaProviderSnapshot>,

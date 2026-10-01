@@ -87,10 +87,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.koin.core.scope.Scope
 
-/**
- * The kind of a navigation-stack entry, plus the args needed to (re)run its
- * producer. Internal to the bridge — Swift sees only the flat [ScreenEntrySnapshot].
- */
+/** The kind of a navigation-stack entry, plus the args needed to (re)run its producer. */
 internal sealed interface ScreenKind {
     val entryKind: ScreenEntryKind
     val defaultTitle: String
@@ -141,10 +138,6 @@ internal sealed interface ScreenKind {
         override val defaultTitle get() = title
     }
 
-    // Self-observing screens: the Swift view drives its own model-backed
-    // observation from the entry's scalar args, so the bridge launches no
-    // per-entry producer (see [startEntry]).
-
     data object GeneratorHistory : ScreenKind {
         override val entryKind get() = ScreenEntryKind.GENERATOR_HISTORY
         override val defaultTitle get() = "History"
@@ -175,7 +168,7 @@ internal sealed interface ScreenKind {
         override val defaultTitle get() = "Password history"
     }
 
-    /** The SSH agent history of one cipher; the Swift view sets its localized title. */
+    /** The Swift view sets the localized title. */
     data class SshAgentHistory(
         val cipherId: String?,
     ) : ScreenKind {
@@ -190,10 +183,6 @@ internal sealed interface ScreenKind {
         override val entryKind get() = ScreenEntryKind.SEND_DETAIL
         override val defaultTitle get() = ""
     }
-
-    // Account groupings — each runs its shared screen-state producer headlessly
-    // with the interceptor, so a row's "view items" fires the producer's own
-    // filtered-vault navigation.
 
     data class OrganizationsList(
         val accountId: String,
@@ -216,7 +205,7 @@ internal sealed interface ScreenKind {
         // Null for the watchtower "empty folders" maintenance list (no account scope).
         val accountId: String?,
         val title: String,
-        // Scope the list to empty folders only (the watchtower "empty folders" card).
+        // Lists only the empty folders.
         val empty: Boolean = false,
     ) : ScreenKind {
         override val entryKind get() = ScreenEntryKind.FOLDERS_LIST
@@ -254,7 +243,7 @@ internal sealed interface ScreenKind {
         override val defaultTitle get() = title.orEmpty()
     }
 
-    /** The custom cipher filters list; the Swift view sets its localized title. */
+    /** The Swift view sets the localized title. */
     data object CipherFiltersList : ScreenKind {
         override val entryKind get() = ScreenEntryKind.CIPHER_FILTERS_LIST
         override val defaultTitle get() = ""
@@ -315,28 +304,21 @@ enum class ScreenEntryKind {
 }
 
 /**
- * One entry of the navigation stack, as delivered to SwiftUI. [instanceId] is a
- * monotonic id (globally unique across scopes) that is never reused, so a late
- * action invocation for a popped entry resolves to nothing instead of hitting a
- * recycled entry. The per-entry content travels inline (one non-null field per
- * [kind]) so SwiftUI renders the whole stack from a single
- * [NavigationStackController.observeNavStack] feed.
+ * One entry of a navigation stack. [instanceId] is monotonic, unique across scopes and never reused,
+ * so a late action for a popped entry resolves to nothing instead of hitting a recycled entry.
+ * Only the fields for [kind] are non-null: an inline snapshot, a session that Kotlin creates and
+ * closes (Swift subscribes, never closes), or scalar args the Swift view starts its own observation from.
  */
 data class ScreenEntrySnapshot(
     val instanceId: Long,
     val kind: ScreenEntryKind,
     val title: String,
     val detail: VaultDetailSnapshot?,
-    // The session a stacked vault-list entry owns (created + closed Kotlin-side).
-    // Non-null only for VAULT_LIST entries; Swift subscribes it directly. The session
-    // class is ObjC-exported, so the handle is bridgeable.
     val vaultListSession: VaultListSession?,
     val watchtower: WatchtowerSnapshot?,
     val watchtowerAlerts: WatchtowerAlertsSnapshot?,
     val serviceDirectory: ServiceDirectorySnapshot?,
     val serviceDirectoryDetail: ServiceDirectoryDetailSnapshot?,
-    // Scalar args for the self-observing screens (the Swift view starts its own
-    // model observation from these instead of reading an inline snapshot).
     val wordlistId: Long?,
     val wordlistList: WordlistListSnapshot?,
     val emailRelayList: EmailRelayListSnapshot?,
@@ -345,15 +327,11 @@ data class ScreenEntrySnapshot(
     val sshAgentHistoryCipherId: String?,
     val sendId: String?,
     val sendAccountId: String?,
-    // Account-grouping screens (organizations / collections / folders).
     val organizations: OrganizationsSnapshot?,
     val collections: CollectionsSnapshot?,
     val folders: FoldersSnapshot?,
     val accountDetailId: String?,
     val equivalentDomains: EquivalentDomainsSnapshot?,
-    // The session a Duplicates entry owns (created + closed Kotlin-side). Swift
-    // subscribes it directly. ObjC-exported, so the handle is bridgeable — mirrors
-    // [vaultListSession].
     val duplicatesSession: DuplicatesSession?,
     val export: ExportSnapshot?,
     val cipherFilters: CipherFiltersListSnapshot?,
@@ -363,24 +341,12 @@ data class ScreenEntrySnapshot(
 )
 
 /**
- * The bridge-side navigation stack: one ordered list of screen instances **per
- * scope** (a section / tab — "vault", "watchtower", …), layered above each
- * section's selection-driven root. Each entry runs its own shared producer in its
- * own scope and owns its own snapshot + handler maps, so multiple screens of the
- * same type are alive at once, and each section keeps its own drill-down across
- * section/tab switches (no global clear).
+ * The bridge-side navigation stacks: one ordered list of screen instances **per scope** (a section or tab),
+ * above that section's selection-driven root. Each entry runs its own producer, so several screens of one type
+ * are alive at once and each section keeps its drill-down across tab switches.
  *
- * Pushes are driven by the shared producers: the cipher-detail / vault-list /
- * watchtower producers are handed [interceptor], which turns a full-screen
- * [NavigationIntent.NavigateToRoute] into a push onto the **current scope**
- * ([setScope], set by the shell when the visible section/tab changes), and
- * [NavigationIntent.Pop] into a pop. Dialog routes keep flowing to [DialogController].
- *
- * Lifetime nests as `core ⊃ session ⊃ entry`: one [startSession] gate owns the
- * session scope for ALL scopes (entries re-keyed on a vault-state change, torn down
- * on lock); each entry owns a child [Job] (cipher / vault producers) or its own
- * [KeyguardCancellable] (watchtower / directory entries reuse the session-gated
- * observers). All [stacks] / [sinks] access is main-confined.
+ * Lifetime nests as `core ⊃ session ⊃ entry`: one [startSession] gate owns the session for all scopes.
+ * All [stacks] / [sinks] access is main-confined.
  */
 internal class NavigationStackController(
     private val ctx: CoreContext,
@@ -402,15 +368,12 @@ internal class NavigationStackController(
         val instanceId: Long,
         val kind: ScreenKind,
     ) {
-        // Serializable identity of this entry, for state restoration. Null for the few
-        // bridge-only screens with no RouteDescriptor yet (AccountDetail /
-        // ServiceDirectoryDetail) — those are simply not restored.
+        // Identity for state restoration; null for bridge-only screens, which are not restored.
         var descriptor: RouteDescriptor? = null
         var job: Job? = null
         var cancellable: KeyguardCancellable? = null
         var title: String = kind.defaultTitle
         var detail: VaultDetailSnapshot? = null
-        // A stacked vault-list entry owns its session and Swift subscription.
         var vaultListSession: VaultListSession? = null
         var scopedWatchtowerController: WatchtowerController? = null
         var watchtower: WatchtowerSnapshot? = null
@@ -432,9 +395,6 @@ internal class NavigationStackController(
         var collections: CollectionsSnapshot? = null
         var folders: FoldersSnapshot? = null
         var equivalentDomains: EquivalentDomainsSnapshot? = null
-        // A Duplicates entry OWNS its session (its own lock/unlock gate +
-        // headless producer), created in [startEntry] and closed in [release] —
-        // exactly like [vaultListSession] for the stacked vault lists.
         var duplicatesSession: DuplicatesSession? = null
         var export: ExportSnapshot? = null
         var exportState: ExportState? = null
@@ -467,16 +427,9 @@ internal class NavigationStackController(
             wordlistDetail = null
         }
 
-        /**
-         * Full teardown for a REMOVED entry (popped / scope cleared / vault locked):
-         * pauses the producer and closes the owned session (its gate + headless
-         * source + channels). Idempotent.
-         */
+        /** Full teardown for a removed entry (popped, scope cleared, locked); closes the owned sessions. Idempotent. */
         fun release() {
             stop()
-            wordlistSelection.value = emptySet()
-            emailRelaySelection.value = emptySet()
-            wordlistQuery.value = EntryListQuery()
             vaultListSession?.close()
             vaultListSession = null
             duplicatesSession?.close()
@@ -515,18 +468,13 @@ internal class NavigationStackController(
         )
     }
 
-    /**
-     * Opens an external URL for a producer-emitted [NavigationIntent.NavigateToBrowser]
-     * (e.g. the account "premium" row, autofill help links). Set by the shell so the
-     * native layer applies its browser preference; without it such intents are dropped.
-     */
+    /** Lets the native layer apply its browser preference; without it browser intents are dropped. */
     private var openUrlHandler: ((String) -> Unit)? = null
 
     fun setOpenUrlHandler(handler: ((String) -> Unit)?) {
         openUrlHandler = handler
     }
 
-    /** Opens [url] via the host's open-url handler (the same path interceptor uses). */
     fun openUrl(url: String) {
         openUrlHandler?.invoke(url)
     }
@@ -542,36 +490,20 @@ internal class NavigationStackController(
         openSystemUrlHandler?.invoke(url)
     }
 
-    /**
-     * Shares plain text (the public Send link) for a producer-emitted
-     * [NavigationIntent.NavigateToShare] (the Send detail "share" action). Set by the
-     * shell so the native layer presents a UIActivityViewController (iOS) /
-     * NSSharingServicePicker (macOS); without it such intents are dropped.
-     */
     private var shareHandler: ((String) -> Unit)? = null
 
     fun setShareHandler(handler: ((String) -> Unit)?) {
         shareHandler = handler
     }
 
-    /**
-     * Asks the shell to switch the visible section (tab) to [scope] — used when a deep link
-     * targets a screen in a different section than the one currently shown. Set by the shell;
-     * scope keys match the SwiftUI `NavStackContainer(scope:)` sections ("vault" / "send" /
-     * "generator" / "watchtower" / "settings").
-     */
+    /** Receives a scope key; keys match the SwiftUI `NavStackContainer(scope:)` sections. */
     private var selectScopeHandler: ((String) -> Unit)? = null
 
     fun setSelectScopeHandler(handler: ((String) -> Unit)?) {
         selectScopeHandler = handler
     }
 
-    /**
-     * Presents the native create-item sheet for a producer-emitted `AddRoute` (the
-     * generator's "create login / SSH key" actions). The args are flattened to
-     * scalars (type name + prefilled name / username / password) for the Swift sheet;
-     * without a handler the route is dropped.
-     */
+    /** Args: type name, then the prefilled name / username / password. */
     private var addCipherHandler: ((String, String?, String?, String?) -> Unit)? = null
 
     fun setAddCipherHandler(handler: ((String, String?, String?, String?) -> Unit)?) {
@@ -579,10 +511,7 @@ internal class NavigationStackController(
     }
 
     /**
-     * Presents the native add-account flow for a producer-emitted login route
-     * ([BitwardenLoginRoute] / [KeePassLoginRoute], e.g. the account list's
-     * add-account items or quick search's zero-accounts action). The argument is
-     * the [AccountType] name ("BITWARDEN" / "KEEPASS"); without a handler the
+     * The argument is the [AccountType] name ("BITWARDEN" / "KEEPASS"); without a handler the
      * route is dropped (recorded as unmapped).
      */
     private var addAccountHandler: ((String) -> Unit)? = null
@@ -592,17 +521,11 @@ internal class NavigationStackController(
     }
 
     /**
-     * Receives the args of a producer-emitted [BitwardenLoginRoute] right before
-     * [addAccountHandler] presents the login sheet, so a re-login keeps the
-     * account's email and server. Late-bound by [KeyguardCore].
+     * Receives a [BitwardenLoginRoute]'s args right before [addAccountHandler] presents the login sheet,
+     * so a re-login keeps the account's email and server.
      */
     var bitwardenLoginArgsHandler: ((BitwardenLoginRoute.Args) -> Unit)? = null
 
-    /**
-     * Reveals a local file natively (Finder selection / iOS fallback) for a
-     * producer-emitted [NavigationIntent.NavigateToPreviewInFileManager] — e.g.
-     * the KeePass account detail's "open local vault" action.
-     */
     private var revealFileHandler: ((String) -> Unit)? = null
 
     fun setRevealFileHandler(handler: ((String) -> Unit)?) {
@@ -628,38 +551,28 @@ internal class NavigationStackController(
     private val stacks = mutableMapOf<String, MutableList<ScreenEntry>>()
     private val sinks = mutableMapOf<String, (List<ScreenEntrySnapshot>) -> Unit>()
 
-    // The live TOTP badges of the stacked cipher details, per entry. They travel on
-    // their own channel ([observeNavStackTotp]) so a countdown tick does not
-    // re-emit the stacks.
+    // TOTP badges travel on their own channel ([observeNavStackTotp]) so a countdown
+    // tick does not re-emit the stacks.
     private val entryTotp = mutableMapOf<Long, VaultDetailTotpSnapshot>()
     private val totpSinks = mutableListOf<(Map<String, VaultDetailTotpSnapshot>) -> Unit>()
     private var currentScope: String = ""
     private var sessionScope: CoroutineScope? = null
     private var sessionKoin: Scope? = null
 
-    /**
-     * A deep link received while locked / before the session was ready; applied once the
-     * vault reaches Main (see [openDeepLink] / [startSession]).
-     */
+    /** A deep link received before the session was ready; applied once the vault reaches Main. */
     private var pendingDeepLink: RouteDescriptor? = null
 
-    /**
-     * Durable per-scope descriptor stacks for state restoration: nav scope → the ordered
-     * [RouteDescriptor]s of that scope's pushed entries. Written on every navigation
-     * mutation ([persist]) and read once on unlock ([startSession]).
-     */
+    /** Nav scope → the ordered [RouteDescriptor]s of that scope's pushed entries. */
     private val navStackPersistence: NavigationStackPersistence by lazy { ctx.koin.get() }
 
     /**
-     * Starts the single whole-stack session gate (shell owns this for the unlocked
-     * lifetime). On lock it tears every entry down across all scopes and reports
-     * empty; on a vault-state change it re-keys the live entries.
+     * The single session gate for all scopes, owned by the shell for the unlocked lifetime. On lock it
+     * releases every entry and reports empty stacks; on a vault-state change it re-keys the live entries.
      */
     fun startSession(): KeyguardCancellable = ctx.launchSessionObserver(
         onLocked = {
-            // Main thread. The session scope was already cancelled (tearing down the
-            // cipher / vault producer jobs); release the rest (incl. the owned
-            // sessions), drop everything, report empty.
+            // Main thread. The session scope is already cancelled, which stopped the
+            // producer jobs; release the owned sessions too.
             sessionScope = null
             sessionKoin = null
             stacks.values.flatten().forEach { it.release() }
@@ -682,7 +595,6 @@ internal class NavigationStackController(
             }
             stacks.values.flatten().forEach { startEntry(it) }
             stacks.keys.forEach { emit(it) }
-            // Apply a deep link that arrived while locked, now that the session is live.
             pendingDeepLink?.let { descriptor ->
                 pendingDeepLink = null
                 applyDeepLink(descriptor)
@@ -691,7 +603,6 @@ internal class NavigationStackController(
         awaitCancellation()
     }
 
-    /** Registers the SwiftUI sink for [scope]; emits its current stack immediately. */
     fun observeNavStack(
         scope: String,
         onChange: (List<ScreenEntrySnapshot>) -> Unit,
@@ -711,11 +622,7 @@ internal class NavigationStackController(
         )
     }
 
-    /**
-     * Observes the live TOTP badges of every stacked cipher detail, keyed by cipher
-     * id (entries of the same cipher show the same codes). Emits the current map
-     * immediately; nothing is delivered once the returned handle is cancelled.
-     */
+    /** Keyed by cipher id, as entries of the same cipher show the same codes. */
     fun observeNavStackTotp(
         onChange: (Map<String, VaultDetailTotpSnapshot>) -> Unit,
     ): KeyguardCancellable = KeyguardCancellable(
@@ -734,7 +641,6 @@ internal class NavigationStackController(
         },
     )
 
-    /** Sets the scope that subsequent pushes target (the visible section / tab). */
     fun setScope(scope: String) = onMain {
         currentScope = scope
     }
@@ -751,58 +657,18 @@ internal class NavigationStackController(
         persist()
     }
 
-    /** Pushes a cipher detail (an iPhone vault row tap, Swift-initiated). */
-    fun pushCipherDetail(itemId: String, accountId: String) =
-        pushScreen(
-            ScreenKind.CipherDetail(itemId = itemId, accountId = accountId),
-            RouteDescriptor.VaultCipherView(itemId = itemId, accountId = accountId),
-        )
-
-    /** Pushes a service-directory list (a watchtower "Tools" row, Swift-initiated). */
-    fun pushServiceDirectoryList(kind: String, title: String) =
-        pushScreen(
-            ScreenKind.ServiceDirectoryList(kind = kind, title = title),
-            serviceDirectoryDescriptor(kind),
-        )
-
-    /** Pushes a service-directory service detail (a directory list-item tap). */
     fun pushServiceDirectoryDetail(kind: String, itemId: String, title: String) =
         pushScreen(ScreenKind.ServiceDirectoryDetail(kind = kind, itemId = itemId, title = title))
 
-    /** Pushes the generator history (a generator "Tools" row, Swift-initiated). */
-    fun pushGeneratorHistory() =
-        pushScreen(ScreenKind.GeneratorHistory, RouteDescriptor.GeneratorHistory)
-
-    /** Pushes the email-relay list (a generator "Tools" row, Swift-initiated). */
-    fun pushEmailRelayList() =
-        pushScreen(ScreenKind.EmailRelayList, RouteDescriptor.EmailRelayList)
-
-    /** Pushes the wordlists list (a generator "Tools" row, Swift-initiated). */
-    fun pushWordlistList() =
-        pushScreen(ScreenKind.WordlistList, RouteDescriptor.WordlistList)
-
-    /** Pushes a single wordlist's detail (a wordlists list-item tap). */
     fun pushWordlistDetail(wordlistId: Long, title: String) =
         pushScreen(
             ScreenKind.WordlistDetail(wordlistId = wordlistId, title = title),
             RouteDescriptor.WordlistView(wordlistId = wordlistId),
         )
 
-    /** Pushes a cipher's password history (the cipher detail header button). */
-    fun pushPasswordHistory(itemId: String) =
-        pushScreen(
-            ScreenKind.PasswordHistory(itemId = itemId),
-            RouteDescriptor.PasswordHistory(itemId = itemId),
-        )
-
-    /**
-     * Pushes an account detail (an iPhone Settings account-row tap, Swift-initiated).
-     * No [RouteDescriptor] yet (bridge-only screen), so it is not restored on relaunch.
-     */
     fun pushAccountDetail(accountId: String) =
         pushScreen(ScreenKind.AccountDetail(accountId = accountId))
 
-    /** Pushes an organization's collections (an organizations list-item tap). */
     fun pushCollectionsList(accountId: String, organizationId: String?, title: String) =
         pushScreen(
             ScreenKind.CollectionsList(
@@ -813,31 +679,12 @@ internal class NavigationStackController(
             RouteDescriptor.Collections(accountId = accountId, organizationId = organizationId),
         )
 
-    /** Pushes a Send detail (an iPhone Send row tap, Swift-initiated). */
     fun pushSendDetail(sendId: String, accountId: String) =
         pushScreen(
             ScreenKind.SendDetail(sendId = sendId, accountId = accountId),
             RouteDescriptor.SendView(sendId = sendId, accountId = accountId),
         )
 
-    /** Pushes the "Contact us" feedback screen (a Settings → About row, Swift-initiated). */
-    fun pushFeedback() = pushScreen(ScreenKind.Feedback, RouteDescriptor.Feedback)
-
-    /** Maps a service-directory [kind] constant to its [RouteDescriptor] (null = unknown). */
-    private fun serviceDirectoryDescriptor(kind: String): RouteDescriptor? = when (kind) {
-        DIRECTORY_KIND_TWO_FA -> RouteDescriptor.TwoFaServices
-        DIRECTORY_KIND_PASSKEYS -> RouteDescriptor.PasskeysServices
-        DIRECTORY_KIND_GET_MY_DATA -> RouteDescriptor.JustGetMyDataServices
-        DIRECTORY_KIND_DELETE_ACCOUNT -> RouteDescriptor.JustDeleteMeServices
-        else -> null
-    }
-
-    /**
-     * Opens a deep link (a `keyguard://` URL): resolves it to a [RouteDescriptor] and pushes
-     * the matching screen onto the current scope. If the vault is still locked the link is
-     * stashed and applied once it unlocks (see [startSession]). A URL that is not a
-     * recognized deep link is ignored.
-     */
     fun openDeepLink(url: String) = onMain {
         val descriptor = routeDescriptorFromDeepLink(url) ?: return@onMain
         if (sessionScope != null && sessionKoin != null) {
@@ -848,10 +695,8 @@ internal class NavigationStackController(
     }
 
     /**
-     * Routes a deep-link [descriptor] to its owning section: asks the shell to switch the
-     * visible tab ([selectScopeHandler]) and pushes the screen onto that section's stack —
-     * not whichever section happens to be active. Main-confined; the caller ensures the
-     * session is live. No-op for a descriptor with no native screen.
+     * Pushes onto the descriptor's own section, not the active one, and asks the shell to switch tabs.
+     * Main-confined; the caller ensures the session is live.
      */
     private fun applyDeepLink(descriptor: RouteDescriptor) {
         val kind = descriptorScreen(descriptor) ?: return
@@ -866,10 +711,7 @@ internal class NavigationStackController(
         persist()
     }
 
-    /**
-     * The nav scope (section) a deep-link descriptor belongs to, so it opens in the right
-     * tab. Keys match the SwiftUI `NavStackContainer(scope:)` sections.
-     */
+    /** Keys match the SwiftUI `NavStackContainer(scope:)` sections. */
     private fun descriptorScope(descriptor: RouteDescriptor): String = when (descriptor) {
         is RouteDescriptor.SendView -> "send"
 
@@ -890,27 +732,21 @@ internal class NavigationStackController(
         RouteDescriptor.Subscriptions,
         -> "settings"
 
-        // Everything vault-related (cipher / list / folders / collections / organizations /
-        // equivalent domains / duplicates / export / custom filters / downloads).
         else -> "vault"
     }
 
-    /** Writes [text] into a feedback entry's message field. */
     fun setEntryFeedbackMessage(instanceId: Long, text: String) = onMain {
         entry(instanceId)?.feedbackState?.message?.onChange?.invoke(text)
     }
 
-    /** Submits a feedback entry (fires the producer's send → NavigateToEmail). */
     fun submitEntryFeedback(instanceId: Long) = onMain {
         entry(instanceId)?.feedbackState?.onSendClick?.invoke()
     }
 
-    /** Writes [text] into an export entry's password field. */
     fun setExportPassword(instanceId: Long, text: String) = onMain {
         entry(instanceId)?.exportState?.passwordFlow?.value?.model?.onChange?.invoke(text)
     }
 
-    /** Pops the top screen instance of [scope]. Safe from any thread. */
     fun popScreen(scope: String) = onMain {
         val entry = stacks[scope]?.removeLastOrNull() ?: return@onMain
         entry.release()
@@ -918,19 +754,6 @@ internal class NavigationStackController(
         persist()
     }
 
-    /** Pops every screen instance above [instanceId] (in whichever scope holds it). */
-    fun popToScreen(instanceId: Long) = onMain {
-        val scope = stacks.entries.firstOrNull { (_, list) -> list.any { it.instanceId == instanceId } }?.key
-            ?: return@onMain
-        val list = stacks[scope] ?: return@onMain
-        val idx = list.indexOfFirst { it.instanceId == instanceId }
-        if (idx < 0) return@onMain
-        while (list.size > idx + 1) list.removeAt(list.lastIndex).release()
-        emit(scope)
-        persist()
-    }
-
-    /** Clears the [scope] stack back to its root. Safe from any thread. */
     fun clearScope(scope: String) = onMain {
         val list = stacks[scope] ?: return@onMain
         if (list.isEmpty()) return@onMain
@@ -940,7 +763,6 @@ internal class NavigationStackController(
         persist()
     }
 
-    /** Invokes a cipher-detail item action of the entry with [instanceId]. */
     fun invokeEntryAction(instanceId: Long, actionId: String) = onMain {
         val entry = entry(instanceId) ?: return@onMain
         val watchtower = entry.scopedWatchtowerController
@@ -958,12 +780,10 @@ internal class NavigationStackController(
         }
     }
 
-    /** Toggles the favourite flag of a cipher-detail entry. */
     fun toggleEntryFavorite(instanceId: Long) = onMain {
         entry(instanceId)?.favourite?.invoke()
     }
 
-    /** Writes [text] into a directory / cipher-filters entry's search field. */
     fun setEntryListQuery(instanceId: Long, text: String) = onMain {
         val entry = entry(instanceId) ?: return@onMain
         when (val kind = entry.kind) {
@@ -987,11 +807,6 @@ internal class NavigationStackController(
         entry.wordlistDetailSession?.retry()
     }
 
-    /**
-     * Opens an item of a list entry. For a directory list it pushes the service
-     * detail by id (the bridge resolves the cached model); for a cipher-filters
-     * list it pushes the filter's detail.
-     */
     fun openEntryListItem(instanceId: Long, itemId: String) = onMain {
         val entry = entry(instanceId) ?: return@onMain
         when (val kind = entry.kind) {
@@ -1048,11 +863,6 @@ internal class NavigationStackController(
         onResult(entry(instanceId)?.emailRelayListSession?.requestAction(actionId, itemId))
     }
 
-    /**
-     * The composed interceptor handed to the detail / list / watchtower producers.
-     * Dialog routes go to [DialogController]; a full-screen route or pop becomes a
-     * stack operation on the current scope; everything else is left unhandled.
-     */
     fun interceptor(sessionKoin: Scope): (NavigationIntent) -> Boolean {
         val dialogInterceptor = dialogController.navigationInterceptor(sessionKoin = sessionKoin)
         fun dispatch(intent: NavigationIntent): Boolean {
@@ -1073,13 +883,10 @@ internal class NavigationStackController(
                 val args = (intent.route as AddRouteImpl).args
                 val hasGeneratedKey = args.keyPair != null || args.gpgKey != null || args.gpgKeyValue != null
                 if (args.initialValue != null || hasGeneratedKey) {
-                    // Existing ciphers and generated keys carry structured values
-                    // that the scalar create callback cannot represent. Preserve
-                    // the full args; the producer still determines create vs edit.
+                    // Existing ciphers and generated keys don't fit the scalar [addCipherHandler], so stash the
+                    // full args. The producer still determines create vs edit.
                     addItemController.stashEditCipher(args)
                 } else {
-                    // The generator's "create login / SSH key" → present the native add
-                    // sheet prefilled with the generated value.
                     addCipherHandler?.invoke(
                         args.type?.name ?: "Login",
                         args.name,
@@ -1089,9 +896,8 @@ internal class NavigationStackController(
                 }
                 true
             } else if (intent is NavigationIntent.NavigateToRoute && intent.route is SendAddRoute) {
-                // Editing an existing Send (the Send detail "edit" button): the
-                // producer carries the whole DSend in initialValue — stash it and
-                // open the native edit sheet pre-filled.
+                // The producer carries the whole DSend in initialValue; stash it for the
+                // native edit sheet.
                 addItemController.stashEditSend((intent.route as SendAddRoute).args)
                 true
             } else {
@@ -1111,20 +917,14 @@ internal class NavigationStackController(
         return ::dispatch
     }
 
-    /**
-     * Hands an intent that leaves the app (a link, a share sheet, a file preview,
-     * mail / phone / maps) to its native handler; `false` for any other intent.
-     */
+    /** Hands an intent that leaves the app to its native handler; `false` for any other intent. */
     private fun handleExternalIntent(intent: NavigationIntent): Boolean = when (intent) {
         is NavigationIntent.NavigateToBrowser -> {
-            // Open external links (account "premium", autofill help, …) natively.
             openUrlHandler?.invoke(intent.url)
             true
         }
 
         is NavigationIntent.NavigateToShare -> {
-            // The Send detail "share" action emits this with the public Send
-            // link; present the native share sheet over the shared text.
             shareHandler?.invoke(intent.text)
             true
         }
@@ -1140,14 +940,11 @@ internal class NavigationStackController(
         }
 
         is NavigationIntent.NavigateToEmail -> {
-            // The feedback ("Contact us") send button emits this; build a mailto:
-            // URL (subject/body percent-encoded) and open it natively.
             openSystemUrl(intent.toMailtoUrl())
             true
         }
 
         is NavigationIntent.NavigateToPhone -> {
-            // The identity detail's call / text / navigate actions.
             openSystemUrl(intent.toTelUrl())
             true
         }
@@ -1163,8 +960,6 @@ internal class NavigationStackController(
         }
 
         is NavigationIntent.NavigateToPreviewInFileManager -> {
-            // The KeePass account detail's "open local vault" action: reveal
-            // the database file natively (Finder selection / iOS fallback).
             revealFileHandler?.invoke(intent.uri)
             true
         }
@@ -1172,8 +967,7 @@ internal class NavigationStackController(
         else -> false
     }
 
-    // An intent this returns `false` for is reported by the headless scope's
-    // navigation controller (see [DroppedNavigation]).
+    // A `false` result is reported to [DroppedNavigation] by the headless scope's navigation controller.
     private fun handleFullScreen(intent: NavigationIntent): Boolean {
         val op = resolveFullScreen(intent) ?: return false
         applyStackOp(op)
@@ -1182,18 +976,14 @@ internal class NavigationStackController(
 
     private class AddAccountRequest(
         val type: AccountType,
-        /** The login form's args; set for Bitwarden, including a re-login. */
         val bitwardenArgs: BitwardenLoginRoute.Args? = null,
     )
 
     /**
-     * Recognizes a producer-emitted add-account navigation: [KeePassLoginRoute] or
-     * a [BitwardenLoginRoute] (a fresh login, or an account's re-login with its
-     * email and server locked), possibly wrapped by `registerRouteResultReceiver`.
-     * The wrapped receiver's only effect everywhere in common/ is `navigate(Pop)`,
-     * which in the headless bridge would pop an unrelated top entry of the current
-     * scope — so the result transmitter is deliberately NOT fired; Swift dismisses
-     * its own login sheet on success.
+     * Recognizes a producer's add-account route, possibly wrapped by `registerRouteResultReceiver`.
+     * The wrapped receiver's only effect everywhere in common/ is `navigate(Pop)`, which in the headless
+     * bridge would pop an unrelated top entry of the current scope — so the result transmitter is
+     * deliberately NOT fired; Swift dismisses its own login sheet on success.
      */
     private fun NavigationIntent.toAddAccountRequestOrNull(): AddAccountRequest? {
         val route = (this as? NavigationIntent.NavigateToRoute)?.route ?: return null
@@ -1218,17 +1008,10 @@ internal class NavigationStackController(
         is NavigationIntent.Pop -> StackOp.Pop
         is NavigationIntent.PopById -> StackOp.Pop
 
-        // Everything else (SetRoute / NavigateToStack / Exit / the
-        // platform intents) is intentionally left for the existing handlers or
-        // dropped, matching the pre-stack behaviour.
+        // Everything else is intentionally left unhandled.
         else -> null
     }
 
-    /**
-     * Resolves a [NavigationIntent.NavigateToRoute] to a stack op by dispatching on the
-     * route's data-only [RouteDescriptor]. A route with no mapping resolves to
-     * [RouteDescriptor.Unmapped] → null here, and the interceptor records + logs it.
-     */
     private fun resolveRoute(route: Route): StackOp? {
         // The generator menu opens the Compose wordlists router. Native apps
         // host the list and its details in their existing navigation stack.
@@ -1239,18 +1022,13 @@ internal class NavigationStackController(
         return descriptorScreen(descriptor)?.let { StackOp.Push(it, descriptor) }
     }
 
-    /**
-     * Maps a migrated route's [RouteDescriptor] to its native screen. Exhaustive over
-     * the sealed config: a new descriptor cannot be added without a mapping here (the
-     * compiler enforces it), which is what kills the old silent `else -> null`.
-     */
+    /** Exhaustive on purpose: the compiler forces every new [RouteDescriptor] to get a mapping here. */
     private fun descriptorScreen(descriptor: RouteDescriptor): ScreenKind? = when (descriptor) {
         is RouteDescriptor.VaultCipherView ->
             ScreenKind.CipherDetail(itemId = descriptor.itemId, accountId = descriptor.accountId)
 
         is RouteDescriptor.VaultList -> {
-            // Rebuild the shared VaultRoute.Args from the serializable descriptor. Sort
-            // is a stable-id singleton (Sort.valueOf); the AppBar subtitle is dropped
+            // Sort is a stable-id singleton (Sort.valueOf); the AppBar subtitle is dropped
             // (the native toolbar only uses the title); everything else round-trips.
             val args = VaultRoute.Args(
                 appBar = descriptor.title?.let { VaultRoute.Args.AppBar(title = it) },
@@ -1329,9 +1107,6 @@ internal class NavigationStackController(
             val accountId = DFilter.findOne<DFilter.ById>(descriptor.filter ?: DFilter.All) {
                 it.what == DFilter.ById.What.ACCOUNT
             }?.id
-            // The watchtower "empty folders" card emits Folders(empty=true) with NO account
-            // filter; push the native folders list unscoped to an account but carrying the
-            // empty-only flag. The account-detail entry still pushes the account-scoped list.
             ScreenKind.FoldersList(accountId = accountId, title = "Folders", empty = descriptor.empty)
         }
 
@@ -1342,15 +1117,12 @@ internal class NavigationStackController(
             ScreenKind.Export(title = descriptor.title, filter = descriptor.filter)
 
         is RouteDescriptor.CipherFilterView ->
-            // Push by id + title; the detail controller loads the DCipherFilter from the
-            // repo (fallbackModel = null) exactly like the custom-filters list-item tap,
-            // so the rich model never has to cross the bridge as serialized data.
+            // The detail loads the DCipherFilter from the repo (no fallback model), so the
+            // model never has to cross the bridge as serialized data.
             ScreenKind.CipherFilterDetail(filterId = descriptor.filterId, title = descriptor.title)
 
-        // Root nav sections, not stack entries: the native shell selects them through
-        // the nav-items configuration (SwiftUI owns the section switch), so there is no
-        // screen to PUSH for them. Resolving to null lets the interceptor record the
-        // attempt instead of pushing a duplicate root.
+        // Root nav sections, not stack entries: SwiftUI owns the section switch, so there
+        // is nothing to push; null records the attempt instead of pushing a duplicate root.
         is RouteDescriptor.SendList,
         is RouteDescriptor.Generator,
 
@@ -1362,7 +1134,6 @@ internal class NavigationStackController(
         // password, so there is nothing to reconstruct it from.
         RouteDescriptor.PasswordMemory -> null
 
-        // No native screen for this route; record it instead of pushing a duplicate.
         is RouteDescriptor.Unmapped -> null
     }
 
@@ -1371,11 +1142,9 @@ internal class NavigationStackController(
         StackOp.Pop -> popScreen(currentScope)
     }
 
-    // --- internals (main-confined) -------------------------------------------
+    // Internals (main-confined)
 
-    /**
-     * Per-stacked-list persistence namespace, derived from the route identity.
-     */
+    /** Per-stacked-list persistence namespace, derived from the route identity. */
     private fun stackedVaultListScope(kind: ScreenKind.VaultList): String {
         val args = kind.args
         val discriminator = buildString {
@@ -1421,9 +1190,8 @@ internal class NavigationStackController(
                     )
                 }
 
-            // Watchtower entries reuse the existing session-gated
-            // observers (each delivers on the main thread), so they hold a
-            // KeyguardCancellable rather than a session-scope job.
+            // Watchtower entries reuse the session-gated observers (each delivers on the
+            // main thread), so they hold a KeyguardCancellable rather than a session-scope job.
             is ScreenKind.Watchtower -> {
                 val controller = WatchtowerController(ctx, kind.args, "watchtower.${entry.instanceId}")
                 controller.navigationInterceptorProvider = { sessionKoin -> interceptor(sessionKoin) }
@@ -1678,9 +1446,8 @@ internal class NavigationStackController(
                     },
                 )
 
-            // Self-observing screens: the Swift view starts its own model-backed
-            // observation (from the entry's scalar args) on appear, so there is no
-            // per-entry producer to launch here.
+            // Self-observing screens: the Swift view starts its own observation from the
+            // entry's scalar args on appear, so there is no producer to launch here.
             ScreenKind.GeneratorHistory,
             ScreenKind.Subscriptions,
             is ScreenKind.PasswordHistory,
@@ -1723,9 +1490,8 @@ internal class NavigationStackController(
         entryTotp.values.associateBy { it.cipherId }
 
     /**
-     * Persists the current per-scope stacks as [RouteDescriptor] lists (dropping entries
-     * with no descriptor). Fire-and-forget on the background scope; called after every
-     * mutation. NOT called on lock, so the saved stack survives to the next unlock.
+     * Fire-and-forget on the background scope; called after every mutation. NOT called on lock,
+     * so the saved stack survives to the next unlock.
      */
     private fun persist() {
         val snapshot = stacks
@@ -1735,11 +1501,7 @@ internal class NavigationStackController(
             .launchIn(ctx.backgroundScope)
     }
 
-    /**
-     * Rebuilds in-memory entries from a persisted [saved] descriptor map. The caller starts
-     * them afterwards (the [startSession] startEntry loop). Descriptors that no longer map
-     * to a screen ([RouteDescriptor.Unmapped]) are skipped.
-     */
+    /** Rebuilds entries without starting them (the caller does); unmappable descriptors are skipped. */
     private fun restoreStacks(saved: Map<String, List<RouteDescriptor>>) {
         saved.forEach { (scopeKey, descriptors) ->
             val list = stacks.getOrPut(scopeKey) { mutableListOf() }

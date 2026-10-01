@@ -1,11 +1,6 @@
 package com.artemchep.keyguard.apple.settings
 
-import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.apple.model.SettingOptionSnapshot
-import com.artemchep.keyguard.res.*
-import kotlin.time.Duration
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 
 enum class SettingsItemKind {
     /** A non-selectable group header (e.g. "Options"). */
@@ -15,17 +10,12 @@ enum class SettingsItemKind {
     ACTION,
 }
 
-/** One row of the settings list — either a section header or a navigable action. */
 data class SettingsItemSnapshot(
     val id: String,
     val kind: SettingsItemKind,
     val title: String,
     val text: String?,
 )
-/**
- * A flat, Swift-friendly projection of the shared settings catalog. Built by
- * [KeyguardCore.loadSettingsList].
- */
 data class SettingsListSnapshot(
     val items: List<SettingsItemSnapshot>,
 ) {
@@ -45,11 +35,8 @@ data class DebugSettingsSnapshot(
 }
 
 /**
- * Flat, Swift-friendly projection of the Security settings screen, produced by
- * [KeyguardCore.observeSecuritySettings]. Duration pickers are surfaced as
- * [SettingOptionSnapshot] lists; the selected option's display string is also
- * provided directly. [lockAfterRebootVisible] mirrors the common rule that the
- * lock-after-reboot toggle only applies when the vault persists to disk.
+ * [lockAfterRebootVisible] mirrors the common rule that the lock-after-reboot toggle only applies when the vault
+ * persists to disk.
  */
 data class SecuritySettingsSnapshot(
     val loaded: Boolean = false,
@@ -78,16 +65,11 @@ data class SecuritySettingsSnapshot(
 }
 
 /**
- * Flat, Swift-friendly projection of the change-master-password screen, produced
- * by [KeyguardCore.observeChangePassword]. [canConfirm] is true only when both
- * fields are valid and non-empty.
+ * [canConfirm] is true only when both fields are valid and non-empty.
  *
- * [biometricVisible] mirrors the shared producer's `state.biometric != null` rule:
- * the "Use biometric authentication" re-enroll checkbox is shown only when the
- * account currently has biometric unlock enabled. When the box is checked, the
- * producer routes the confirm through the biometric path, which emits a
- * [com.artemchep.keyguard.common.model.BiometricAuthPrompt] that the controller
- * delivers through the shared native prompt host before the password is changed.
+ * [biometricVisible] mirrors the shared producer's `state.biometric != null` rule: the "Use biometric
+ * authentication" re-enroll checkbox shows only when the account has biometric unlock enabled. When it is checked,
+ * confirming shows a biometric prompt through the shared native prompt host before the password changes.
  */
 data class ChangePasswordSnapshot(
     val loaded: Boolean = false,
@@ -105,12 +87,7 @@ data class ChangePasswordSnapshot(
     }
 }
 
-/**
- * Flat, Swift-friendly projection of the Appearance settings screen, produced by
- * [KeyguardCore.observeAppearanceSettings]. Enum pickers carry their options as
- * [SettingOptionSnapshot] lists (the option id is the variant's list index) plus
- * the selected option's display title.
- */
+/** An option id is the variant's name (the locale tag for locales), or "system" for the follow-system entry. */
 data class AppearanceSettingsSnapshot(
     val loaded: Boolean = false,
     val amoledDark: Boolean = false,
@@ -141,11 +118,7 @@ data class AppearanceSettingsSnapshot(
     }
 }
 
-/**
- * The preferences the SwiftUI shell applies app-wide, produced by
- * [KeyguardCore.observeAppPreferences]. Observed for the app's whole lifetime
- * (unlike the per-screen settings snapshots).
- */
+/** Preferences the SwiftUI shell applies app-wide. Observed for the app's whole lifetime, not per screen. */
 data class AppPreferencesSnapshot(
     /** BCP-47 override, or null to follow the system language. */
     val locale: String? = null,
@@ -156,10 +129,7 @@ data class AppPreferencesSnapshot(
     val accentArgb: Long? = null,
     /** True when navigation tab/rail labels should be shown. */
     val navLabel: Boolean = true,
-    /**
-     * True when closing the last window should keep the app running in the
-     * menu bar; false quits the app instead.
-     */
+    /** True when closing the last window keeps the app running in the menu bar; false quits the app. */
     val closeToTray: Boolean = false,
     /** Keeps supported iOS detail views awake while foreground and unlocked. */
     val keepScreenOn: Boolean = false,
@@ -172,9 +142,7 @@ data class AppPreferencesSnapshot(
 }
 
 /**
- * Flat, Swift-friendly projection of the Automatic Backups screen, produced by
- * [KeyguardCore.observeBackupSettings]. `…` (no prefix) fields are the saved
- * config; `setup…` fields are the in-memory editing buffer surfaced for the form.
+ * Unprefixed fields are the saved config; `setup…` fields are the form's in-memory editing buffer.
  * [storeKind] / [setupStoreKind] are "local" or "webdav".
  */
 data class BackupSettingsSnapshot(
@@ -211,12 +179,8 @@ data class BackupSettingsSnapshot(
 }
 
 /**
- * A flat projection of the macOS launch-at-login state. Built by
- * [KeyguardCore.observeLaunchAtLogin].
- *  - [enabled]: the app is registered as a login item,
- *  - [requiresApproval]: registered but awaiting the user's approval in
- *    System Settings ▸ Login Items,
- *  - [available]: the underlying service could be queried at all.
+ * macOS launch-at-login state. [requiresApproval]: registered but awaiting the user's approval in
+ * System Settings ▸ Login Items. [available]: the underlying service could be queried at all.
  */
 data class LaunchAtLoginSnapshot(
     val enabled: Boolean,
@@ -232,17 +196,9 @@ data class LaunchAtLoginSnapshot(
     }
 }
 
-// ---------------------------------------------------------------------------
-// AutoFill snapshots.
-// ---------------------------------------------------------------------------
-
 /**
- * Flat, Swift-friendly projection of the Apple-applicable AutoFill preferences,
- * produced by [KeyguardCore.observeAutofillSettings]. Mirrors the macOS/iOS-
- * relevant items of the common `AutofillSettingsScreen`: copy-TOTP-to-clipboard,
- * save-credential prompts, save-URI-to-existing-item prompts, and default URI
- * matching. The Android-only items (inline suggestions, manual selection, respect autofill-off,
- * credential-provider registration) are not surfaced.
+ * The Apple-applicable items of the common `AutofillSettingsScreen`. The Android-only items (inline suggestions,
+ * manual selection, respect autofill-off, credential-provider registration) are not surfaced.
  */
 data class AutofillSettingsSnapshot(
     val loaded: Boolean = false,
@@ -257,24 +213,18 @@ data class AutofillSettingsSnapshot(
     }
 }
 
-/** One social link on the About-the-team screen. */
 data class AboutTeamSocialSnapshot(
     val title: String,
     val username: String,
     val url: String,
 )
 
-/** The static About-the-team content. Built by [KeyguardCore.loadAboutTeam]. */
 data class AboutTeamSnapshot(
     val name: String,
     val flag: String,
     val about: String,
     val socialNetworks: List<AboutTeamSocialSnapshot>,
 )
-
-// ---------------------------------------------------------------------------
-// Data safety snapshots (static document).
-// ---------------------------------------------------------------------------
 
 enum class DataSafetyItemKind {
     LARGE_SECTION,

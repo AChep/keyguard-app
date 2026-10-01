@@ -35,16 +35,11 @@ final class FilePickerModel {
     func start() {
         guard !started else { return }
         started = true
-        // A running create form's DateTime row (the Send custom deletion / expiration
-        // date) surfaces a native date / time picker request; present a SwiftUI sheet.
         core.setAddDatePickerRequestHandler { [weak self] request in
             Task { @MainActor [weak self] in
                 self?.pendingDatePicker = PendingDatePicker(request)
             }
         }
-        // Present a native open/save panel whenever a running create form needs a
-        // file (attachment upload, SSH-key import, File Send) and route the choice
-        // back into the shared producer.
         core.setAddFilePickerRequestHandler { [weak self] request in
             // Capture ownership before the hop: a dismissed wizard must not turn
             // its queued folder request into an orphaned add-form request.
@@ -78,8 +73,6 @@ final class FilePickerModel {
                 )
             }
         }
-        // A confirmation dialog FILE item ("choose file", e.g. wordlist import)
-        // uses the same native panel, resolving into the confirmation producer.
         core.setConfirmationFilePickerRequestHandler { [weak self] request in
             Task { @MainActor [weak self] in
                 self?.presentFilePicker(
@@ -119,9 +112,7 @@ final class FilePickerModel {
     var pendingFileExport: PendingFileExport?
     #endif
 
-    /// Confirms an in-flight create-form date / time picker with the chosen value
-    /// (date requests read year/month/day; time requests read hour/minute), then clears
-    /// the pending request.
+    /// Date requests read year/month/day; time requests read hour/minute.
     func resolveDatePicker(year: Int32, month: Int32, day: Int32, hour: Int32, minute: Int32) {
         guard let pending = pendingDatePicker else { return }
         pendingDatePicker = nil
@@ -135,7 +126,6 @@ final class FilePickerModel {
         )
     }
 
-    /// Cancels the in-flight create-form date / time picker, then clears the request.
     func cancelDatePicker() {
         guard let pending = pendingDatePicker else { return }
         pendingDatePicker = nil

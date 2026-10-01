@@ -7,11 +7,7 @@ import KeyguardShared
 import AppKit
 #endif
 
-/// The AutoFill manual picker (`prepareCredentialList`), shared by the macOS and iOS
-/// extensions. Lists logins matching the requested service identifiers — ranked by the
-/// shared `GetSuggestions` matcher via
-/// `KeyguardCore.loadAutofillSuggestions(serviceIdentifiers:)` — with a search box.
-/// Unlocks the vault inline first when needed (reusing `AutofillUnlockView`).
+/// The AutoFill manual picker, shared by the macOS and iOS extensions.
 struct AutofillCredentialListView: View {
     @State private var model: AutofillListModel
     @State private var query: String = ""
@@ -75,7 +71,6 @@ struct AutofillCredentialListView: View {
                 Button(L("retry"), action: model.retry)
             }
         } else if results.isEmpty {
-            // Distinguish an empty vault from a query with no matching logins.
             Group {
                 if query.isEmpty {
                     ContentUnavailableView {
@@ -153,16 +148,13 @@ struct AutofillCredentialListView: View {
     }
 }
 
-/// Which kind of credential the manual picker is listing.
 enum AutofillListMode {
     case passwords
     case oneTimeCodes
     case registration
 }
 
-/// Drives the manual picker: observes the shared vault status, unlocks inline if
-/// needed (via a child `AutofillUnlockModel`), and once unlocked loads the matching
-/// logins through the shared `GetSuggestions` path.
+/// Loads the matching logins through the shared `GetSuggestions` path.
 @MainActor
 @Observable
 final class AutofillListModel {
@@ -189,9 +181,8 @@ final class AutofillListModel {
     private(set) var isPicking = false
     var loadError: String?
     var suggestions: [AutofillSuggestionSnapshot] = []
-    /// Inline unlock screen shown while the vault is locked. `onUnlocked` is a no-op;
-    /// this model's own status subscription drives the locked → unlocked transition
-    /// (and the suggestion load) so both the picker and the unlock UI stay in sync.
+    /// `onUnlocked` is a no-op: this model's own status subscription drives the
+    /// locked → unlocked transition and the suggestion load.
     let unlockModel: AutofillUnlockModel
 
     init(

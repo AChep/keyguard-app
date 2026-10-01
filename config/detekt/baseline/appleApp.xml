@@ -56,7 +56,6 @@
     <ID>LoopWithTooManyJumpStatements:AuthSnapshots.kt:for</ID>
     <ID>LoopWithTooManyJumpStatements:GpgAgentRuntimeMacos.kt:MacosGpgIpcServer$while</ID>
     <ID>LoopWithTooManyJumpStatements:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$while</ID>
-    <ID>ReturnCount:AuthPromptHost.kt:AuthPromptHost$private fun String.hexToByteArrayOrNull: ByteArray?</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$private suspend fun suggestions: List&lt;AutofillSuggestionSnapshot&gt;</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$suspend fun loadAutofillCredential: AutofillCredentialSnapshot?</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$suspend fun loadOneTimeCode: String?</ID>

@@ -1,8 +1,7 @@
 import Foundation
 
-/// Root-owned app dialog routes. Priority intentionally follows the old modifier
-/// order so simultaneous shared-producer emissions become deterministic without
-/// changing which pending app dialog wins first.
+/// Root-owned app dialog routes. Case order is the presentation priority: when
+/// shared producers emit several dialogs at once, the first pending case wins.
 enum RootAppSheetRoute: String, Identifiable, Equatable, CaseIterable {
     case passwordMemory
     case largeType

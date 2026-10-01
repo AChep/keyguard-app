@@ -11,7 +11,6 @@ import com.artemchep.keyguard.common.usecase.RemoveWordlistById
 
 /** Feature mutations; list state and commands belong to navigation entries. */
 internal class WordlistController(private val ctx: CoreContext) {
-    /** Imports a new wordlist from a local file [uri]. */
     suspend fun addWordlistFromFile(name: String, uri: String) {
         val main = ctx.awaitMain()
         val addWordlist = main.sessionKoin.get<AddWordlist>()
@@ -22,7 +21,6 @@ internal class WordlistController(private val ctx: CoreContext) {
         addWordlist(request).bind()
     }
 
-    /** Imports a new wordlist by downloading it from [url]. */
     suspend fun addWordlistFromUrl(name: String, url: String) {
         val main = ctx.awaitMain()
         val addWordlist = main.sessionKoin.get<AddWordlist>()
@@ -33,14 +31,12 @@ internal class WordlistController(private val ctx: CoreContext) {
         addWordlist(request).bind()
     }
 
-    /** Renames the wordlist with the given id. */
     suspend fun renameWordlist(id: Long, name: String) {
         val main = ctx.awaitMain()
         val editWordlist = main.sessionKoin.get<EditWordlist>()
         editWordlist(EditWordlistRequest(id = id, name = name)).bind()
     }
 
-    /** Deletes the wordlists with the given ids. */
     suspend fun deleteWordlists(ids: List<Long>) {
         val main = ctx.awaitMain()
         val removeWordlistById = main.sessionKoin.get<RemoveWordlistById>()

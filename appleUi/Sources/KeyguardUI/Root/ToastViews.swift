@@ -90,7 +90,7 @@ private struct ToastCardView: View {
         )
         #else
         // macOS: top-anchored material card with a hairline border and an explicit
-        // close button — unchanged.
+        // close button.
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: iconName)
                 .foregroundStyle(iconColor)

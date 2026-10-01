@@ -27,21 +27,17 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 /**
- * One top-level navigation destination, resolved from the shared
- * [com.artemchep.keyguard.common.model.NavItemsConfig] (order, visibility and
- * custom cipher-filter tabs already applied). Built-ins carry an empty [title]
- * and [iconHint] — Swift owns their L10n labels and SF Symbols, exactly like
- * the enum it replaces; cipher filters carry the filter name plus a stable
- * icon hint.
+ * One top-level navigation destination, with the shared order, visibility and custom cipher-filter tabs already
+ * applied. Built-ins carry an empty [title] and [iconHint] (Swift owns their labels and SF Symbols); cipher filters
+ * carry the filter name and a stable icon hint.
  */
 data class NavSectionSnapshot(
     /** `vault`, `sends`, … or `cipher_filter:<id>`; stable row identity. */
     val key: String,
     val isCipherFilter: Boolean,
     /**
-     * The navigation-stack scope this section renders (`setNavScope` +
-     * `NavStackContainer`). Built-ins keep the pre-existing Swift scope names
-     * (`send`, not `sends`); filters use their `cipher_filter:<id>` stack id.
+     * The navigation-stack scope this section renders. Built-ins use the Swift scope names (`send`, not `sends`);
+     * filters use their `cipher_filter:<id>` stack id.
      */
     val scope: String,
     val title: String,
@@ -58,7 +54,6 @@ data class NavItemsSnapshot(
     }
 }
 
-/** One row of the "Navigation items" settings screen (configured or available-to-add). */
 data class NavItemsSettingsRowSnapshot(
     /** The producer's stable ref key: `built_in:vault` / `cipher_filter:<id>`. */
     val key: String,
@@ -85,19 +80,7 @@ data class NavItemsSettingsSnapshot(
     }
 }
 
-/**
- * Navigation-item customization: the resolved top-level section list the
- * SwiftUI shell renders ([observeNavItems]) and the "Navigation items"
- * settings screen ([observeNavItemsSettings]), the latter running the shared
- * [navigationItemsSettingsStateProducer] headlessly so hide / reorder / add /
- * remove / reset behave exactly like the Compose screen. The reset
- * confirmation is a `ConfirmationRoute` fired by the producer itself, routed
- * to the native dialog bridge via [DialogController.navigationInterceptor].
- *
- * Commands are looked up in main-confined `latest*` maps keyed by the
- * producer's stable ref keys (the `AppearanceController.latest*Variants`
- * pattern).
- */
+/** Commands are looked up in main-confined `latest*` maps keyed by the producer's stable ref keys. */
 internal class NavItemsController(
     private val ctx: CoreContext,
     private val dialogController: DialogController,
@@ -106,11 +89,6 @@ internal class NavItemsController(
     private var latestItemsByKey: Map<String, NavigationItemsSettingsState.Item> = emptyMap()
     private var latestAvailableByKey: Map<String, NavigationItemsSettingsState.AvailableItem> = emptyMap()
 
-    /**
-     * Emits the resolved section list on every config / filter change; the
-     * empty snapshot while locked (only the unlocked shell renders sections,
-     * Swift falls back to the default six).
-     */
     fun observeNavItems(
         onChange: (NavItemsSnapshot) -> Unit,
     ): KeyguardCancellable = ctx.launchSessionObserver(
@@ -199,10 +177,8 @@ internal class NavItemsController(
     }
 
     /**
-     * Commits a drag-reorder: [keys] is the full row order the user dropped.
-     * Keys that no longer resolve are skipped; the producer appends any
-     * configured items missing from the list, so a stale reorder degrades
-     * gracefully instead of dropping items.
+     * Keys that no longer resolve are skipped; the producer appends any configured items missing from the list,
+     * so a stale reorder degrades gracefully instead of dropping items.
      */
     fun reorderNavItems(keys: List<String>) {
         val state = latestSettingsState ?: return
@@ -213,7 +189,6 @@ internal class NavItemsController(
         }
     }
 
-    /** Fires the producer's reset flow (native confirmation dialog, then defaults). */
     fun resetNavItems() {
         latestSettingsState?.onReset?.invoke()
     }
@@ -259,7 +234,6 @@ internal class NavItemsController(
     }
 }
 
-/** Kotlin built-in keys → the pre-existing Swift navigation-stack scopes. */
 private val builtInScopes = mapOf(
     NavItemsConfigDefaults.BUILT_IN_VAULT to "vault",
     NavItemsConfigDefaults.BUILT_IN_SENDS to "send",

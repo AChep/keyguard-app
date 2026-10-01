@@ -3,8 +3,6 @@ package com.artemchep.keyguard.apple.sshagent
 import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.apple.model.SettingOptionSnapshot
 import com.artemchep.keyguard.apple.model.VaultFilterItemSnapshot
-import com.artemchep.keyguard.res.*
-import kotlin.time.Duration.Companion.milliseconds
 
 /** A pending per-sign approval request shown by the SSH approval window. */
 data class SshAgentRequestSnapshot(
@@ -15,11 +13,9 @@ data class SshAgentRequestSnapshot(
     val callerPath: String,
     /** Total approval window in ms — the countdown denominator. */
     val timeoutMs: Long,
-    /** Absolute deadline as epoch millis; the UI counts down to this. */
     val expiresAtEpochMs: Long,
 )
 
-/** The SSH agent's running status + advertised SSH_AUTH_SOCK path. */
 enum class SshAgentRunState {
     UNSUPPORTED,
     STOPPED,
@@ -27,6 +23,7 @@ enum class SshAgentRunState {
     READY,
     FAILED,
 }
+
 data class SshAgentStatusSnapshot(
     val running: Boolean,
     val enabled: Boolean,
@@ -43,11 +40,7 @@ data class SshAgentStatusSnapshot(
     }
 }
 
-/**
- * The SSH agent preferences, built from the shared Get/Put use cases by
- * [KeyguardCore.observeSshAgentSettings]. The approval-window picker follows
- * the duration-picker convention: option id = whole milliseconds as a string.
- */
+/** The approval-window picker follows the duration-picker convention: option id = whole milliseconds as a string. */
 data class SshAgentSettingsSnapshot(
     val loaded: Boolean,
     val enabled: Boolean,
@@ -69,9 +62,7 @@ data class SshAgentSettingsSnapshot(
 }
 
 /**
- * A flat projection of the SSH agent filters screen, built by
- * [KeyguardCore.observeSshAgentFilters] from the shared producer. Items reuse
- * the vault [VaultFilterItemSnapshot] projection; toggling goes through
+ * Items reuse the vault [VaultFilterItemSnapshot] projection; toggling goes through
  * [KeyguardCore.invokeSshAgentFilter].
  */
 data class SshAgentFiltersSnapshot(

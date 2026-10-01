@@ -10,8 +10,6 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSFilePosixPermissions
-import platform.Foundation.NSFileProtectionComplete
-import platform.Foundation.NSFileProtectionKey
 import platform.Foundation.NSFileType
 import platform.Foundation.NSFileTypeDirectory
 import platform.Foundation.NSLock

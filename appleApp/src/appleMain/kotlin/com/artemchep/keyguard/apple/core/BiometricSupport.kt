@@ -19,11 +19,10 @@ import platform.LocalAuthentication.LAErrorUserFallback
 import platform.LocalAuthentication.LAPolicyDeviceOwnerAuthenticationWithBiometrics
 
 /**
- * Shows the system biometrics (Touch ID) sheet and suspends until it resolves.
+ * Shows the system biometrics (Touch ID / Face ID) sheet and suspends until it resolves.
  * Returns `null` on success, otherwise the failure mapped onto the shared
  * [BiometricAuthException] codes (user cancellation maps to codes the shared
- * producers silently ignore). Shared by the unlock / setup flow and the Security
- * settings "enable Touch ID" toggle.
+ * producers silently ignore).
  */
 internal suspend fun evaluateBiometrics(
     reason: String,

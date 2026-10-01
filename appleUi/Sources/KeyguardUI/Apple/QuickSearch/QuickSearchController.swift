@@ -3,8 +3,7 @@ import AppKit
 import SwiftUI
 import Carbon.HIToolbox
 
-/// Owns the global hotkey + the Quick Search panel lifecycle. Lives for the whole
-/// process (created by the app delegate) and drives the one shared `AppViewModel`.
+/// Owns the global hotkey and the Quick Search panel lifecycle; lives for the whole process.
 @MainActor
 public final class QuickSearchController {
     private let quickSearchModel: QuickSearchModel
@@ -18,8 +17,6 @@ public final class QuickSearchController {
     /// reopen within it restores the same query and selection; a vault lock resets it
     /// sooner via `observeQuickSearch`'s `onLocked`.
     private let preservationWindow: TimeInterval = 300
-    /// The scheduled teardown after `preservationWindow`; cancelled when the panel is
-    /// shown again before it fires.
     private var pendingReset: DispatchWorkItem?
 
     public init(model: AppViewModel) {
@@ -27,7 +24,6 @@ public final class QuickSearchController {
         self.makeRoot = { onDismiss in
             AnyView(QuickSearchView(onDismiss: onDismiss).keyguardEnvironment(model: model))
         }
-        // Default ⌘⇧Space. kVK_Space == 49.
         do {
             hotKey = try GlobalHotkey(
                 keyCode: UInt32(kVK_Space),
@@ -67,8 +63,6 @@ public final class QuickSearchController {
         // producer, so the previous query + selection are still there.
         pendingReset?.cancel()
         pendingReset = nil
-        // Marks the panel on screen so the view can mount the inline unlock form
-        // (and arm the Touch ID host) only while actually visible.
         quickSearchModel.setQuickSearchVisible(true)
         if !quickSearchModel.isObservingQuickSearch {
             // Fresh open (first time, after the window elapsed, or after a lock
@@ -93,14 +87,11 @@ public final class QuickSearchController {
         }
         panel?.orderOut(nil)
         quickSearchModel.setQuickSearchVisible(false)
-        // Keep the producer alive so a reopen restores the query + selection; tear it
-        // down only once the preservation window elapses.
         scheduleReset()
     }
 
-    /// Schedules the deferred teardown of the quick-search producer. Tearing the
-    /// observation down resets the snapshot to `.empty`, which clears the search
-    /// field's local buffer (via `bridgedText`), so the next open starts fresh.
+    /// Tearing the observation down resets the snapshot to `.empty`, which clears the
+    /// search field's local buffer (via `bridgedText`), so the next open starts fresh.
     private func scheduleReset() {
         pendingReset?.cancel()
         let work = DispatchWorkItem { [weak self] in

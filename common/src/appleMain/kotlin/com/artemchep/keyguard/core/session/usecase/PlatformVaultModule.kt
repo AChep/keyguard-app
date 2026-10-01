@@ -127,11 +127,6 @@ class PlatformVaultModule {
                     sqlManager = sqlManager,
                 )
             }
-            // Real suggestion matching (the impl now lives in commonMain): matches the
-            // requested service identifiers to login ciphers via CipherUrlCheck + equivalent
-            // domains. Drives the iOS AutoFill manual picker (and the macOS picker). The
-            // Android-specific link extractors it would resolve are simply absent here
-            // leaving the web/host matching path.
             scoped<GetSuggestions<Any?>> {
                 GetSuggestionsImpl(
                     getAutofillDefaultMatchDetection = get(),

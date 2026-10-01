@@ -12,7 +12,8 @@ final class DialogsModel: SnapshotObserving {
     }
 
     /// Dialogs are global: any screen's action can surface one, so each is observed
-    /// once for the app's lifetime and presented as an app-level sheet.
+    /// once for the app's lifetime and presented as an app-level sheet. Closing a dialog
+    /// tears its headless producer down.
     func start() {
         startObservation(\.passwordMemorySubscription, into: \.passwordMemory, observe: core.observePasswordMemory)
         startObservation(\.largeTypeSubscription, into: \.largeType, observe: core.observeLargeType)
@@ -33,30 +34,25 @@ final class DialogsModel: SnapshotObserving {
         startObservation(\.colorPickerSubscription, into: \.colorPicker, observe: core.observeColorPicker)
         // The collection / organization read-only "info" dialog.
         startObservation(\.infoDialogSubscription, into: \.infoDialog, observe: core.observeInfoDialog)
-        // The create-form ownership "Save to" account picker.
         startObservation(
             \.cipherLinkPickerSubscription, into: \.cipherLinkPicker, observe: core.observeCipherLinkPicker)
+        // The create-form ownership "Save to" account picker.
         startObservation(\.accountPickerSubscription, into: \.accountPicker, observe: core.observeAccountPicker)
     }
 
-    /// Current Large Type dialog state.
     private(set) var passwordMemory: PasswordMemorySnapshot?
 
     private(set) var largeType: LargeTypeSnapshot?
 
-    /// Current barcode dialog state.
     private(set) var barcode: BarcodeSnapshot?
 
-    /// Current passkey credential dialog state.
     private(set) var passkeyCredential: PasskeyCredentialSnapshot?
 
-    /// Current attachment preview dialog state.
     private(set) var attachmentPreview: AttachmentPreviewSnapshot?
 
-    /// Current confirmation dialog state.
     private(set) var confirmation: ConfirmationSnapshot?
 
-    /// Current master-password re-prompt state.
+    /// The master-password re-prompt.
     private(set) var elevatedAccess: ElevatedAccessSnapshot?
 
     // Auxiliary windows and Recents present authentication in their own sheet
@@ -67,19 +63,14 @@ final class DialogsModel: SnapshotObserving {
         elevatedAccessLocalHosts.max(by: { $0.rawValue < $1.rawValue })
     }
 
-    /// Current service-information dialog state.
     private(set) var serviceInfo: ServiceDirectoryDetailSnapshot?
 
-    /// Current email/username breach dialog state.
     private(set) var emailLeak: EmailLeakSnapshot?
 
-    /// Current password breach dialog state.
     private(set) var passwordLeak: PasswordLeakSnapshot?
 
-    /// Current website breach dialog state.
     private(set) var websiteLeak: WebsiteLeakSnapshot?
 
-    /// Color-picker dialog state from the shared producer.
     private(set) var colorPicker: ColorPickerSnapshot?
 
     private(set) var infoDialog: InfoDialogSnapshot?
@@ -118,13 +109,11 @@ final class DialogsModel: SnapshotObserving {
 
     @ObservationIgnored private var cipherLinkPickerSubscription: BridgeObservation?
 
-    /// Highlights every Large Type tile up to (and including) `index`; the shared
-    /// producer re-emits and `largeType` refreshes.
+    /// Highlights every Large Type tile up to (and including) `index`.
     func selectLargeTypeSymbol(index: Int) {
         core.selectLargeTypeSymbol(index: Int32(index))
     }
 
-    /// Dismisses the Large Type dialog and tears its headless producer down.
     func setPasswordMemoryText(_ text: String) { core.setPasswordMemoryText(text: text) }
 
     func verifyPasswordMemory() { core.verifyPasswordMemory() }
@@ -135,25 +124,19 @@ final class DialogsModel: SnapshotObserving {
         core.closeLargeType()
     }
 
-    /// Switches the rendered barcode to the format with the given option id; the
-    /// shared producer re-emits and `barcode` refreshes.
     func selectBarcodeFormat(id: String) {
         core.selectBarcodeFormat(id: id)
     }
 
-    /// Dismisses the "Show as Barcode" dialog and tears its headless producer down.
     func closeBarcode() {
         core.closeBarcode()
     }
 
-    /// Uses the shown passkey credential. Only available when the producer
-    /// exposes the use action (pick-passkey app mode).
+    /// Only available when the producer exposes the use action (pick-passkey app mode).
     func usePasskeyCredential() {
         core.usePasskeyCredential()
     }
 
-    /// Dismisses the passkey credential detail dialog and tears its headless
-    /// producer down.
     func closePasskeyCredential() {
         core.closePasskeyCredential()
     }
@@ -164,38 +147,34 @@ final class DialogsModel: SnapshotObserving {
         core.invokeAttachmentPreviewCopy()
     }
 
-    /// Dismisses the attachment preview dialog and tears its headless producer
-    /// down.
     func closeAttachmentPreview() {
         core.closeAttachmentPreview()
     }
 
-    /// Toggles a confirmation BOOLEAN item; the shared producer re-emits and
-    /// `confirmation` refreshes (including the `confirmEnabled` validation).
     func setConfirmationItemBoolean(key: String, value: Bool) {
         core.setConfirmationItemBoolean(key: key, value: value)
     }
 
-    /// Writes text into a confirmation STRING item identified by `key`.
     func setConfirmationItemString(key: String, text: String) {
         core.setConfirmationItemString(key: key, text: text)
     }
 
-    /// Selects an option of a confirmation ENUM item identified by `key`.
+    /// Selects an option of a confirmation CHOICE item identified by `key`.
     func selectConfirmationItemEnum(key: String, optionKey: String) {
         core.selectConfirmationItemEnum(key: key, optionKey: optionKey)
     }
 
-    /// Opens the native file picker for a confirmation FILE item identified by `key`.
+    /// Adds a row to a list confirmation (Change tags).
     func addConfirmationItem() { core.addConfirmationItem() }
 
     func removeConfirmationItem(key: String) { core.removeConfirmationItem(key: key) }
 
+    /// Opens the native file picker for a confirmation FILE item identified by `key`.
     func selectConfirmationItemFile(key: String) {
         core.selectConfirmationItemFile(key: key)
     }
 
-    /// Clears the chosen file of a confirmation FILE item identified by `key`.
+    /// Opens the "Learn more" link of the selected option of confirmation CHOICE item `key`.
     func openConfirmationItemDoc(key: String) {
         core.openConfirmationItemDoc(key: key)
     }
@@ -204,28 +183,24 @@ final class DialogsModel: SnapshotObserving {
         core.clearConfirmationItemFile(key: key)
     }
 
-    /// Confirms the dialog (only enabled while every item validates); the shared
-    /// producer runs the action's real work, then the dialog dismisses.
+    /// Only enabled while every item validates; the shared producer runs the action,
+    /// then the dialog dismisses.
     func confirmConfirmation() {
         core.confirmConfirmation()
     }
 
-    /// Dismisses the confirmation dialog and tears its headless producer down.
     func closeConfirmation() {
         core.closeConfirmation()
     }
 
-    /// Writes text into the re-prompt dialog's master-password field.
     func setElevatedAccessPassword(text: String) {
         core.setElevatedAccessPassword(text: text)
     }
 
-    /// Fires the re-prompt dialog's biometric (Touch ID / Face ID) prompt.
     func triggerElevatedAccessBiometric() {
         core.triggerElevatedAccessBiometric()
     }
 
-    /// Fires the re-prompt dialog's YubiKey challenge-response prompt.
     func triggerElevatedAccessYubiKey() {
         core.triggerElevatedAccessYubiKey()
     }
@@ -236,49 +211,39 @@ final class DialogsModel: SnapshotObserving {
         core.confirmElevatedAccess()
     }
 
-    /// Dismisses the re-prompt dialog and tears its headless producer down.
     func closeElevatedAccess() {
         core.closeElevatedAccess()
     }
 
-    /// Dismisses the service-info dialog.
     func closeServiceInfo() {
         core.closeServiceInfo()
     }
 
-    /// Dismisses the email / username breach dialog and tears its producer down.
     func closeEmailLeak() {
         core.closeEmailLeak()
     }
 
-    /// Dismisses the password breach dialog and tears its producer down.
     func closePasswordLeak() {
         core.closePasswordLeak()
     }
 
-    /// Dismisses the website breach dialog and tears its producer down.
     func closeWebsiteLeak() {
         core.closeWebsiteLeak()
     }
 
-    /// Highlights a color-picker swatch; the shared producer re-emits and `colorPicker`
-    /// refreshes (the selected index moves).
     func selectColorPickerSwatch(id: String) {
         core.selectColorPickerSwatch(id: id)
     }
 
-    /// Confirms the color picker; the shared producer persists the chosen accent color
-    /// (`PutAccountColorById`), then the dialog dismisses.
+    /// The shared producer persists the chosen account color, then the dialog dismisses.
     func confirmColorPicker() {
         core.confirmColorPicker()
     }
 
-    /// Dismisses the color picker dialog and tears its headless producer down.
     func closeColorPicker() {
         core.closeColorPicker()
     }
 
-    /// Dismisses the collection / organization "info" dialog and tears its producer down.
     func closeInfoDialog() {
         core.closeInfoDialog()
     }
@@ -303,13 +268,12 @@ final class DialogsModel: SnapshotObserving {
         core.selectAccountPickerItem(key: key)
     }
 
-    /// Confirms the account picker; the shared producer transmits the chosen ownership
-    /// back into the create form's ownership sink, then the dialog dismisses.
+    /// The shared producer sends the chosen ownership back into the create form,
+    /// then the dialog dismisses.
     func confirmAccountPicker() {
         core.confirmAccountPicker()
     }
 
-    /// Dismisses the account picker dialog and tears its headless producer down.
     func closeAccountPicker() {
         core.closeAccountPicker()
     }

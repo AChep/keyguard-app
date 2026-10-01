@@ -45,7 +45,7 @@ struct SshAgentSetupView: View {
                     .foregroundStyle(.secondary)
 
                 // Use the shared step-1 title to match steps 2/3 and the common
-                // SshAgentSetupScreen; appleEnableTheSshAgent stays as body copy.
+                // SshAgentSetupScreen.
                 stepHeader(L10n.sshAgentSetupStep1Title)
                 Text(L10n.sshAgentSetupEnableStepText)
                 codeBlock(socketPath)
@@ -114,10 +114,7 @@ struct SshAgentSetupView: View {
     }
 }
 
-/// Copy-to-pasteboard button with transient confirmation: the icon swaps to a
-/// checkmark and the tooltip/label change to "Copied" for ~1.5s after a tap, so
-/// the user gets feedback that the snippet was copied. Carries an explicit
-/// accessibilityLabel since `.help()` is only a hover tooltip.
+/// Carries an explicit `accessibilityLabel` since `.help()` is only a hover tooltip.
 private struct CopyButton: View {
     let text: String
 

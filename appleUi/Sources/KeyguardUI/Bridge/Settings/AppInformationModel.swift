@@ -36,18 +36,13 @@ final class AppInformationModel: SnapshotObserving {
             \.appInformationSubscription, resetting: \.appInformation, to: AppInformationSnapshot.companion.empty)
     }
 
-    /// Open-source licenses list (app-global), produced by the shared Kotlin
-    /// `licenseStateProducer` running headless inside `KeyguardCore`. Only live
-    /// while the licenses screen is on screen.
+    /// Only live while the licenses screen is on screen.
     private(set) var licenseList: LicenseListSnapshot = LicenseListSnapshot.companion.empty
 
-    /// Localization contributors list (app-global), produced by the shared Kotlin
-    /// localization contributors producer running headless inside `KeyguardCore`.
     private(set) var localizationContributors: LocalizationContributorsSnapshot = LocalizationContributorsSnapshot
         .companion.empty
 
-    /// In-memory app logs (app-global), produced by the shared Kotlin
-    /// `logsStateProducer` running headless inside `KeyguardCore`.
+    /// In-memory app logs.
     private(set) var logs: LogsSnapshot = LogsSnapshot.companion.empty
 
     @ObservationIgnored private var licenseSubscription: BridgeObservation?
@@ -84,12 +79,10 @@ final class AppInformationModel: SnapshotObserving {
         stopObservation(\.logsSubscription, resetting: \.logs, to: LogsSnapshot.companion.empty)
     }
 
-    /// Loads the static About-the-team content (localized bio + social links).
     func loadAboutTeam() async -> AboutTeamSnapshot? {
         try? await core.loadAboutTeam()
     }
 
-    /// Loads the static Data Safety content (localized structured document).
     func loadDataSafety() async -> [DataSafetyItemSnapshot] {
         (try? await core.loadDataSafety()) ?? []
     }

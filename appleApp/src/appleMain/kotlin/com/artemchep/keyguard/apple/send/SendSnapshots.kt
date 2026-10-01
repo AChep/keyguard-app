@@ -7,15 +7,11 @@ import com.artemchep.keyguard.apple.model.VaultActionSnapshot
 import com.artemchep.keyguard.apple.model.VaultFilterItemSnapshot
 import com.artemchep.keyguard.apple.model.VaultItemSnapshot
 import com.artemchep.keyguard.apple.model.VaultListItemKind
-import com.artemchep.keyguard.apple.model.VaultListItemSnapshot
 import com.artemchep.keyguard.apple.model.VaultSortItemSnapshot
-import com.artemchep.keyguard.res.*
 
 /**
- * A flat, Swift-friendly projection of one row of the shared Send list. Mirrors
- * [VaultListItemSnapshot] (reusing [VaultListItemKind]); for [VaultListItemKind.ITEM]
- * rows [secretId] + [accountId] identify the Send so the detail pane can observe it
- * via [KeyguardCore.observeSendDetail]. Sends have no favourite flag.
+ * For [VaultListItemKind.ITEM] rows [secretId] + [accountId] identify the Send so the detail pane can observe it
+ * via [KeyguardCore.observeSendDetail].
  */
 data class SendListItemSnapshot(
     val id: String,
@@ -26,20 +22,14 @@ data class SendListItemSnapshot(
     val text: String?,
 )
 
-/**
- * A flat, Swift-friendly projection of the shared Send list screen state. Built by
- * [KeyguardCore.buildSendListSnapshot]; the filter / sort rows reuse the vault
- * [VaultFilterItemSnapshot] / [VaultSortItemSnapshot] projections.
- */
 data class SendListSnapshot(
     val loaded: Boolean,
     val needsAccount: Boolean,
     val query: String,
     val queryRevision: Int,
     /**
-     * The shared producer's items revision; changes whenever the query / filter /
-     * sort configuration changes. Each revision the list should be read from the
-     * top, so the SwiftUI side resets its scroll position on change.
+     * Changes whenever the query / filter / sort configuration changes. Each revision the list should be read
+     * from the top, so the SwiftUI side resets its scroll position on change.
      */
     val itemsRevision: Int,
     val filters: List<VaultFilterItemSnapshot>,
@@ -56,31 +46,19 @@ data class SendListSnapshot(
      * rows draw highlighted.
      */
     val selectionCount: Int,
-    /**
-     * Bulk actions for the current multi-selection, routed back by
-     * [VaultActionSnapshot.id] via [KeyguardCore.invokeSendListSelectionAction].
-     * Empty when nothing is selected.
-     */
+    /** Routed back by [VaultActionSnapshot.id] via [KeyguardCore.invokeSendListSelectionAction]. */
     val selectionActions: List<VaultActionSnapshot>,
     /**
-     * The list screen's top-level overflow actions (the keyboard toggle, sync,
-     * lock) — the shared `SendListState.actions` projected to flat snapshots and
-     * routed back by [VaultActionSnapshot.id] via [KeyguardCore.invokeSendListAction].
-     * Mirrors the Compose toolbar's options menu; the SwiftUI toolbar shows them
-     * behind an ellipsis overflow.
+     * The Compose toolbar's options menu, routed back by [VaultActionSnapshot.id] via
+     * [KeyguardCore.invokeSendListAction]. The SwiftUI toolbar shows them behind an ellipsis overflow.
      */
     val listActions: List<VaultActionSnapshot> = emptyList(),
     /**
-     * Whether dropping a file onto the list creates a File send (the shared
-     * `SendListState.onFileDrop` is non-null — the account can edit, nothing is
-     * selected, and File sends are allowed). The macOS Send list shows a
-     * `.dropDestination` when true, invoking [KeyguardCore.dropFileOnSendList].
+     * Whether dropping a file onto the list creates a File send (the shared `SendListState.onFileDrop` is
+     * non-null). The drop goes to [KeyguardCore.dropFileOnSendList].
      */
     val canDropFile: Boolean = false,
-    /**
-     * Whether an account can create a File send. The native create sheet hides
-     * the File type when false.
-     */
+    /** Whether an account can create a File send; the native create sheet hides the File type when false. */
     val canCreateFileSend: Boolean = false,
 ) {
     companion object {
@@ -106,12 +84,9 @@ data class SendListSnapshot(
     }
 }
 /**
- * A flat, Swift-friendly projection of the shared [SendViewState] for the SwiftUI
- * Send detail panel. Built by [KeyguardCore.buildSendDetailSnapshot]; the rows
- * reuse the vault [VaultItemSnapshot] projection. [typeIcon] is the [DSend.Type]
- * name (None / File / Text). [canCopy] / [canShare] / [canEdit] gate the header
- * primary actions [KeyguardCore.sendCopy] / [KeyguardCore.sendShare] /
- * [KeyguardCore.sendEdit]; [actions] are the extra context-menu actions routed by
+ * Projects the shared [SendViewState]. [typeIcon] is the [DSend.Type] name (None / File / Text).
+ * [canCopy] / [canShare] / [canEdit] gate the header primary actions [KeyguardCore.sendCopy] /
+ * [KeyguardCore.sendShare] / [KeyguardCore.sendEdit]; [actions] are the extra context-menu actions routed by
  * [KeyguardCore.invokeSendAction].
  */
 data class SendDetailSnapshot(

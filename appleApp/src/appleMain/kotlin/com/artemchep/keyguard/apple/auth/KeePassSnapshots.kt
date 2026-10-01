@@ -24,11 +24,9 @@ data class KeePassFileSnapshot(
 )
 
 /**
- * A flat, Swift-friendly projection of the shared KeePass login state for the
- * SwiftUI add-KeePass-account screen. Selecting a mode tab launches the shared
- * producer's file picker (open / create database) — surfaced through
- * [KeyguardCore.setKeePassFilePickerRequestHandler] — so there is no separate
- * "browse" affordance for the first selection.
+ * Selecting a mode tab launches the shared producer's file picker (open / create database), surfaced through
+ * [KeyguardCore.setKeePassFilePickerRequestHandler], so there is no separate "browse" affordance for the first
+ * selection.
  */
 data class KeePassLoginSnapshot(
     val tabs: List<KeePassTabSnapshot>,
@@ -59,13 +57,10 @@ data class KeePassLoginSnapshot(
 }
 
 /**
- * A file-selection request bubbled up from the KeePass add-account producer
- * (database file, optional key file, or the new-database save target). Unlike
- * [com.artemchep.keyguard.apple.add.AddFilePickerRequest] the resolution MUST
- * keep a persistent reference to the picked file: resolve with the ORIGINAL
- * url plus a security-scoped bookmark access token via
- * [KeyguardCore.resolveKeePassFilePicker] — never with a temp copy, since the
- * database is synced and written back for the lifetime of the account.
+ * Unlike [com.artemchep.keyguard.apple.add.AddFilePickerRequest] the resolution MUST keep a persistent reference
+ * to the picked file: resolve with the ORIGINAL url plus a security-scoped bookmark access token via
+ * [KeyguardCore.resolveKeePassFilePicker], never with a temp copy, since the database is synced and written back
+ * for the lifetime of the account.
  */
 data class KeePassFilePickerRequest(
     val requestId: String,
@@ -75,9 +70,8 @@ data class KeePassFilePickerRequest(
 )
 
 /**
- * The WebDAV server settings sub-form of the KeePass add-account flow.
- * [errorKind] is a [com.artemchep.keyguard.feature.webdav.WebDavSettingsState.Error]
- * name ("UrlRequired" / "FileUrlRequired" / "PasswordRequiresUsername"), or null.
+ * [errorKind] is a [com.artemchep.keyguard.feature.webdav.WebDavSettingsState.Error] name ("UrlRequired" /
+ * "InvalidUrl" / "FileUrlRequired" / "PasswordRequiresUsername"), or null.
  */
 data class WebDavSettingsSnapshot(
     val url: String,

@@ -5,7 +5,6 @@ import AppKit
 import UniformTypeIdentifiers
 import KeyguardShared
 
-/// Native SwiftUI rendering of the shared Wordlists state.
 struct WordlistsView: View {
     @Environment(NavigationModel.self) private var navigationModel
     @Environment(WordlistsModel.self) private var wordlistsModel
@@ -17,8 +16,6 @@ struct WordlistsView: View {
     @State private var importingFile = false
     @State private var importError: String?
 
-    /// The list's multi-selection, kept in lockstep with the shared producer's
-    /// selection handle.
     @State private var selection = ListSelectionModel()
 
     private var snapshot: WordlistListSnapshot {
@@ -80,9 +77,8 @@ struct WordlistsView: View {
             Text(item.items.map(\.name).joined(separator: "\n"))
         }
         #if os(iOS)
-        // iOS has no NSOpenPanel; present the system document picker. The picked
-        // URL is security-scoped — `WordlistFromFileView.save` holds access for the
-        // import (matching the macOS path).
+        // iOS has no NSOpenPanel. The picked URL is security-scoped;
+        // `WordlistFromFileView.save` holds access for the import.
         .fileImporter(
             isPresented: $importingFile,
             allowedContentTypes: [.plainText, .text, .data],
@@ -194,8 +190,6 @@ struct WordlistsView: View {
         .padding(.vertical, 2)
     }
 
-    /// A row's per-item actions (rename / delete), or the bulk selection actions when
-    /// a multi-selection is active.
     @ViewBuilder
     private func rowContextMenu(_ item: WordlistListItemSnapshot) -> some View {
         if showsBulkContextMenu {
@@ -204,9 +198,9 @@ struct WordlistsView: View {
             }
         } else {
             #if os(macOS)
-            // macOS has no Edit button; a context-menu "Select" begins a
-            // multi-selection (mirroring FoldersListView). The first toggle flips the
-            // list into selection mode so subsequent clicks select instead of navigate.
+            // macOS has no Edit button; a context-menu "Select" begins a multi-selection.
+            // The first toggle flips the list into selection mode so subsequent clicks
+            // select instead of navigate.
             Button {
                 navigationModel.toggleEntryListSelection(instanceId: entry.instanceId, itemId: item.id)
             } label: {
@@ -278,7 +272,6 @@ struct WordlistsView: View {
         }
     }
 
-    /// Presents a file picker for the wordlist source, then opens the name prompt.
     private func pickFile() {
         #if os(macOS)
         let panel = NSOpenPanel()
@@ -292,13 +285,11 @@ struct WordlistsView: View {
             sheet = .fromFile(url: url)
         }
         #else
-        // iOS: present `.fileImporter` at the view layer instead (follow-up).
+        // iOS presents `.fileImporter` at the view layer instead.
         #endif
     }
 }
 
-/// The sheet shown over the wordlists list: importing from a picked file,
-/// importing from a URL, or renaming an existing wordlist.
 private enum WordlistSheet: Identifiable {
     case fromFile(url: URL)
     case fromUrl
@@ -372,8 +363,6 @@ struct WordlistFromFileView: View {
     }
 }
 
-/// Downloads and imports a wordlist from a URL through the shared `AddWordlist`
-/// use case.
 struct WordlistFromUrlView: View {
     @Environment(WordlistsModel.self) private var wordlistsModel
     @Environment(\.dismiss) private var dismiss
@@ -438,7 +427,6 @@ struct WordlistFromUrlView: View {
     }
 }
 
-/// Renames an existing wordlist through the shared `EditWordlist` use case.
 struct WordlistRenameView: View {
     @Environment(WordlistsModel.self) private var wordlistsModel
     @Environment(\.dismiss) private var dismiss

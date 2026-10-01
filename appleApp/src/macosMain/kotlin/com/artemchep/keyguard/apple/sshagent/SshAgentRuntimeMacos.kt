@@ -7,11 +7,6 @@ import kotlinx.coroutines.CoroutineScope
 
 internal actual fun createSshAgentRuntime(): SshAgentRuntime = AppleSshAgentRuntime
 
-/**
- * macOS SSH-agent runtime: wires the [SshAgentRequestProcessorApple] →
- * [SshAgentIpcServerApple] → [SshAgentManagerApple] chain that spawns the reused
- * `keyguard-ssh-agent` binary over a POSIX IPC socket.
- */
 private object AppleSshAgentRuntime : SshAgentRuntime {
     override val sshAuthSockPath: String
         get() = SshAgentManagerApple.defaultSshAuthSockPath

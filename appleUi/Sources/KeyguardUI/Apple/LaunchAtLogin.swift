@@ -7,7 +7,7 @@ import KeyguardShared
 ///
 /// `ServiceManagement` is Swift/ObjC-only and unreachable from Kotlin/Native, so
 /// the registration is done here and surfaced to the shared module through the
-/// bridge registry — mirroring the Ed25519 bridge. macOS 13+ only (we target 14),
+/// bridge registry, like the Keychain bridge. macOS 13+ only (we target 14),
 /// so no legacy `SMLoginItemSetEnabled` / `LSSharedFileList` fallback is needed.
 final class SMAppServiceLaunchAtLoginBridge: LaunchAtLoginBridge {
     func status() -> LaunchAtLoginStatus {
@@ -46,8 +46,7 @@ final class SMAppServiceLaunchAtLoginBridge: LaunchAtLoginBridge {
     }
 }
 
-/// Pushes the SMAppService bridge into the shared registry. Safe to call more than
-/// once; the last registration wins.
+/// Safe to call more than once; the last registration wins.
 func installLaunchAtLoginBridge() {
     LaunchAtLoginBridgeKt.registerLaunchAtLoginBridge(bridge: SMAppServiceLaunchAtLoginBridge())
 }

@@ -16,7 +16,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.map
 import org.koin.core.scope.Scope
 
-/** A flat, Swift-facing projection of the shared `AttachmentsState` (the "Downloads" list). */
 data class DownloadsSnapshot(
     val loaded: Boolean,
     val items: List<DownloadItemSnapshot>,
@@ -36,20 +35,14 @@ data class DownloadItemSnapshot(
     val downloaded: Long?,
     val total: Long?,
     val localUrl: String?,
-    /** Per-row context actions (download / cancel / remove / …), routed by id via invokeEntryAction. */
+    /** Routed by id via `invokeEntryAction`. */
     val actions: List<VaultActionSnapshot>,
 )
 
 /**
- * The "Downloads" screen (`AttachmentsRoute`) — every downloaded/downloading cipher
- * attachment across accounts. Runs the shared `attachmentsScreenStateProducer`
- * headlessly (with the navigation interceptor, so preview / view-cipher rows can push)
- * and projects to a flat [DownloadsSnapshot].
- *
  * The per-row status / actions are persisted [kotlinx.coroutines.flow.StateFlow]s that
  * are frozen headless, so the snapshot reads `.value` at projection time — progress
- * refreshes when the outer list re-emits, not on every byte. The actual download
- * execution is platform-gated by the Apple `DownloadManager` stub.
+ * refreshes when the outer list re-emits, not on every byte.
  */
 internal class DownloadsController(
     private val ctx: CoreContext,

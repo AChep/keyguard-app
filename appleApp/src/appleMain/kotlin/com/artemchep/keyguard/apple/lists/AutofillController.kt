@@ -33,9 +33,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 
 /**
- * AutoFill (credential provider). The app populates the QuickType index
- * (ASCredentialIdentityStore) from these; the appex resolves a selected
- * credential. Reuses the unlocked-session ciphers (login + uris).
+ * The main app populates the QuickType index (ASCredentialIdentityStore) from this; the appex resolves a
+ * selected credential.
  */
 internal class AutofillController(
     private val ctx: CoreContext,
@@ -45,20 +44,6 @@ internal class AutofillController(
         ctx.koin.get<GetAutofillDefaultMatchDetection>()()
             .map { it == DSecret.Uri.MatchType.Never }
             .distinctUntilChanged()
-    }
-
-    /**
-     * The login credentials to register in the system AutoFill index, one entry
-     * per (login cipher × uri). [AutofillIdentitySnapshot.recordId] round-trips
-     * back to [loadAutofillCredential]. Empty while the vault is locked.
-     */
-    suspend fun loadAutofillIdentities(): List<AutofillIdentitySnapshot> =
-        identities { !it.login?.password.isNullOrEmpty() }
-
-    private suspend fun identities(predicate: (BitwardenCipher) -> Boolean): List<AutofillIdentitySnapshot> {
-        val state = ctx.currentState() as? VaultState.Main ?: return emptyList()
-        return AutofillVaultReader(state.sessionKoin).read().filter(predicate)
-            .toIdentities(excludeInheritedUris.first())
     }
 
     fun observeChanges(onChange: (Boolean) -> Unit, onFailure: () -> Unit): KeyguardCancellable =
@@ -94,10 +79,6 @@ internal class AutofillController(
         ciphers.toAutofillIndex(excludeInheritedUris.first())
     }
 
-    /**
-     * Resolves a credential the user picked in AutoFill, by the
-     * [AutofillIdentitySnapshot.recordId]. Returns null while locked or if gone.
-     */
     suspend fun loadAutofillCredential(recordId: String): AutofillCredentialSnapshot? {
         val parts = recordId.split('|', limit = 2)
         if (parts.size != 2) return null
@@ -114,23 +95,11 @@ internal class AutofillController(
         )
     }
 
-    /**
-     * Logins matching the requested AutoFill [serviceIdentifiers] (URLs / domains
-     * from `ASCredentialServiceIdentifier`), ranked by the shared [GetSuggestions]
-     * matcher (the same engine the Android provider uses: URL/host matching +
-     * equivalent domains). Drives the appex's manual credential picker
-     * (`prepareCredentialList`). Includes all eligible logins after the matches so the
-     * user can still browse/search, and is empty while the vault is locked.
-     */
     suspend fun loadAutofillSuggestions(
         serviceIdentifiers: List<String>,
     ): List<AutofillSuggestionSnapshot> =
         suggestions(serviceIdentifiers) { !it.login?.password.isNullOrEmpty() }
 
-    /**
-     * Like [loadAutofillSuggestions] but restricted to logins that carry a TOTP
-     * secret — drives the iOS 18 one-time-code manual picker.
-     */
     suspend fun loadOneTimeCodeSuggestions(
         serviceIdentifiers: List<String>,
     ): List<AutofillSuggestionSnapshot> =
@@ -178,22 +147,6 @@ internal class AutofillController(
         return matches + ciphers.map { it.toSuggestion(accountNames) }.filter { it.recordId !in matchedIds }
     }
 
-    // -----------------------------------------------------------------------
-    // One-time codes (TOTP) — iOS 18 ASOneTimeCodeCredential AutoFill.
-    // -----------------------------------------------------------------------
-
-    /**
-     * Logins that carry a TOTP secret, registered as one-time-code identities (one
-     * entry per (cipher × uri)). [AutofillIdentitySnapshot.recordId] round-trips back
-     * to [loadOneTimeCode]. Empty while the vault is locked.
-     */
-    suspend fun loadOneTimeCodeIdentities(): List<AutofillIdentitySnapshot> =
-        identities { it.hasAutofillOneTimeCode() }
-
-    /**
-     * Computes the current TOTP code for the login identified by [recordId]. Returns
-     * null while locked, if the cipher is gone, or if it has no TOTP secret.
-     */
     suspend fun loadOneTimeCode(recordId: String): String? {
         val parts = recordId.split('|', limit = 2)
         if (parts.size != 2) return null

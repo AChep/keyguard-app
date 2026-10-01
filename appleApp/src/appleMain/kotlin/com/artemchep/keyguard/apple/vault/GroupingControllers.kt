@@ -9,9 +9,7 @@ import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.AddFolderRequest
-import com.artemchep.keyguard.common.usecase.RemoveFolderById
 import com.artemchep.keyguard.common.usecase.ResolveFolderHierarchyMode
-import com.artemchep.keyguard.common.usecase.RenameFolderById
 import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsRoute
 import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsState
 import com.artemchep.keyguard.feature.equivalentdomains.equivalentDomainsScreenStateProducer
@@ -23,7 +21,6 @@ import com.artemchep.keyguard.feature.home.vault.folders.FoldersRouteFactory
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersState
 import com.artemchep.keyguard.feature.home.vault.folders.foldersScreenStateProducer
 import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsRoute
-import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsState
 import com.artemchep.keyguard.feature.home.vault.organizations.organizationsScreenStateProducer
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.apple.core.CoreContext
@@ -38,11 +35,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.map
 import org.koin.core.scope.Scope
 
-// ---------------------------------------------------------------------------
 // Swift-facing snapshots
-// ---------------------------------------------------------------------------
 
-/** A flat, Swift-facing projection of the shared `OrganizationsState`. */
 data class OrganizationsSnapshot(
     val loaded: Boolean,
     /** The account these organizations belong to (drives the collections push). */
@@ -63,7 +57,6 @@ data class OrganizationListItemSnapshot(
     val infoActionId: String?,
 )
 
-/** A flat, Swift-facing projection of the shared `CollectionsState`. */
 data class CollectionsSnapshot(
     val loaded: Boolean,
     val items: List<CollectionListItemSnapshot>,
@@ -84,7 +77,6 @@ data class CollectionListItemSnapshot(
     val infoActionId: String?,
 )
 
-/** A flat, Swift-facing projection of the shared `FoldersState`. */
 data class FoldersSnapshot(
     val loaded: Boolean,
     /** The account these folders belong to; null disables "add folder". */
@@ -92,11 +84,7 @@ data class FoldersSnapshot(
     val items: List<FolderListItemSnapshot>,
     /** Number of selected folders in the active multi-selection; `0` when none. */
     val selectionCount: Int,
-    /**
-     * The bulk actions of the active multi-selection (view items / rename / merge /
-     * delete) — each fires the producer's own confirmation-dialog route through the
-     * bridge. Empty unless [selectionCount] > 0.
-     */
+    /** Empty unless [selectionCount] > 0. */
     val selectionActions: List<VaultActionSnapshot>,
 ) {
     companion object {
@@ -131,7 +119,6 @@ data class FolderListItemSnapshot(
     val toggleActionId: String?,
 )
 
-/** A flat, Swift-facing projection of the shared `EquivalentDomainsState`. */
 data class EquivalentDomainsSnapshot(
     val loaded: Boolean,
     val items: List<EquivalentDomainItemSnapshot>,
@@ -151,22 +138,16 @@ data class EquivalentDomainItemSnapshot(
 )
 
 /**
- * Recovers the "Info" context action's onClick from a grouping row's [actions]: the
- * single [FlatItemAction] carrying the [Icons.Outlined.Info] icon. Invoking it fires the
- * producer's own `CollectionRoute` / `OrganizationRoute` navigation intent, which the
- * dialog navigation interceptor catches and turns into the native read-only info dialog.
+ * The "Info" context action is the single [FlatItemAction] carrying the [Icons.Outlined.Info] icon.
+ * Its `CollectionRoute` / `OrganizationRoute` intent is caught by the dialog navigation interceptor
+ * and shown as the native read-only info dialog.
  */
 private fun List<ContextItem>.infoOnClick(): (() -> Unit)? =
     filterIsInstance<FlatItemAction>()
         .firstOrNull { it.icon == Icons.Outlined.Info }
         ?.onClick
 
-// ---------------------------------------------------------------------------
-// Controllers — each runs the SHARED screen-state producer headlessly (with the
-// navigation interceptor) and projects it to a flat snapshot. The per-row
-// "view items" closure is captured into the entry's action-handler map so a Swift
-// row tap fires the producer's own filtered-vault navigation intent.
-// ---------------------------------------------------------------------------
+// Controllers
 
 internal class OrganizationsController(
     private val ctx: CoreContext,
@@ -324,11 +305,6 @@ internal class FoldersController(
         }
         producerFlow
             .map { state ->
-                // All handlers share the entry's single action-handler map (invoked via
-                // KeyguardCore.invokeEntryAction): per-row "view items" + per-row selection
-                // toggle (folder:toggle) + the bulk-selection actions (selection:action:*,
-                // each navigating the producer's own confirmation-dialog route — rename /
-                // merge / delete — through the bridge).
                 val handlers = LinkedHashMap<String, () -> Unit>()
                 val content = state.content.getOrNull()
                 val items = content?.items.orEmpty()
@@ -386,10 +362,7 @@ internal class FoldersController(
             .collectOnMain { (snapshot, handlers) -> publish(snapshot, handlers) }
     }
 
-    // Native folder mutations — the shared producer drives these through a
-    // confirmation-dialog route that the bridge does not host, so the Swift screen
-    // calls these thin wrappers over the same use cases directly (the WordlistsView
-    // pattern). The list itself still comes from the shared producer above.
+    // Add calls the use case directly; rename / delete go through the producer's own row actions.
 
     suspend fun addFolder(accountId: String, name: String) {
         val main = ctx.awaitMain()
@@ -408,23 +381,6 @@ internal class FoldersController(
                 ),
             ),
         ).bind()
-    }
-
-    suspend fun renameFolder(id: String, name: String) {
-        val main = ctx.awaitMain()
-        val renameFolderById = main.sessionKoin.get<RenameFolderById>()
-        renameFolderById(mapOf(id to name)).bind()
-    }
-
-    suspend fun deleteFolder(id: String, trashCiphers: Boolean) {
-        val main = ctx.awaitMain()
-        val removeFolderById = main.sessionKoin.get<RemoveFolderById>()
-        val onConflict = if (trashCiphers) {
-            RemoveFolderById.OnCiphersConflict.TRASH
-        } else {
-            RemoveFolderById.OnCiphersConflict.IGNORE
-        }
-        removeFolderById(setOf(id), onConflict).bind()
     }
 }
 

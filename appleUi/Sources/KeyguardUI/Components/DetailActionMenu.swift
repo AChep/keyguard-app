@@ -23,7 +23,6 @@ struct DetailActionMenu: View {
     }
 }
 
-/// A row's actions as inline bordered buttons; destructive ones render red.
 struct BorderedActionButtons: View {
     let actions: [VaultActionSnapshot]
     let invoke: (String) -> Void

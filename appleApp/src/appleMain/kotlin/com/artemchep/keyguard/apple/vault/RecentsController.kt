@@ -3,7 +3,6 @@ package com.artemchep.keyguard.apple.vault
 import androidx.compose.ui.graphics.Color
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.apple.core.sessionKoin
-import com.artemchep.keyguard.main
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
@@ -33,33 +32,20 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
-/** Projects the shared Recently used / Often opened state for native clients. */
 internal class RecentsController(
     private val ctx: CoreContext,
 ) {
     /** The live producer state, `null` while the vault is locked / no subscribers. */
     private val activeRecentState = MutableStateFlow<VaultRecentState?>(null)
 
-    /** For [setRecentsTab]; the tab select lambda lives on the producer state. */
-    private var latestRecentState: VaultRecentState? = null
-
     private val recentsTotpTokens = MutableStateFlow<List<Pair<String, TotpToken>>>(emptyList())
 
-    /**
-     * State-anchored delta publisher (full-frame diff + lock-reset). Owns no
-     * per-session state — the last-delivered frame lives inside
-     * [VaultListFramePublisher.run] — so one instance safely serves the
-     * (single) Recents observer.
-     */
     private val framePublisher = VaultListFramePublisher()
 
-    //
     // Reference-counted master gate: runs the producer while ANY channel is
     // subscribed (the sheet is open), tears it down when the last one cancels.
     // Main-confined (every bridge entry point runs on the main thread), so the
     // counter needs no synchronisation.
-    //
-
     private var masterSubscribers = 0
     private var master: KeyguardCancellable? = null
 
@@ -76,16 +62,13 @@ internal class RecentsController(
             // Cancelling the master does NOT run its `onLocked`, so wipe the shared
             // state here — a later re-open starts from a clean slate instead of
             // briefly assembling a frame from the previous session's stale state.
-            latestRecentState = null
             activeRecentState.value = null
             recentsTotpTokens.value = emptyList()
         }
     }
 
-    /** Runs the producer inside the unlock gate and publishes its current state. */
     private fun startMaster(): KeyguardCancellable = ctx.launchSessionObserver(
         onLocked = {
-            latestRecentState = null
             activeRecentState.value = null
             recentsTotpTokens.value = emptyList()
         },
@@ -118,7 +101,6 @@ internal class RecentsController(
         }
         producerFlow.collectLatest { loadable ->
             val recentState = loadable.getOrNull()
-            latestRecentState = recentState
             activeRecentState.value = recentState
             if (recentState == null) {
                 recentsTotpTokens.value = emptyList()
@@ -145,21 +127,9 @@ internal class RecentsController(
         }
     }
 
-    //
-    // The list channel. Callback OFF-MAIN by design (like the vault list).
-    //
-
     /**
-     * The Recents item rows as [VaultListDelta]s, delivered on a BACKGROUND
-     * thread by design — the SAME contract as
-     * `VaultListSession.observeListDelta`: the Swift side converts the delta
-     * off-main and hops to Main itself.
-     *
-     * Delivery is state-anchored: the producer's `recent` list (which already
-     * reflects the selected tab) is projected through the shared
-     * [assembleSiblingAppleVaultState] into a [AppleVaultListState], coalesced to one
-     * flush per ~48ms ([throttleLatest]) and diffed against the last DELIVERED
-     * frame by [framePublisher]. On lock the channel delivers one reset frame.
+     * Delivered on a BACKGROUND thread by design, the SAME contract as [VaultListSession.observeListDelta].
+     * The producer's `recent` list already reflects the selected tab.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeRecentsListDelta(
@@ -189,15 +159,7 @@ internal class RecentsController(
         return trackChannel(channel)
     }
 
-    //
-    // The small channels. Callbacks on Main.
-    //
-
-    /**
-     * The Recents tab bar (titles pre-localized) + current selection as a small
-     * [RecentsTabsSnapshot] pushed on Main. Split off the item stream so the
-     * segmented picker never rides the item projection. Empty while locked.
-     */
+    /** Split off the item stream so the segmented picker never rides the item projection. Empty while locked. */
     fun observeRecentsTabs(
         onChange: (RecentsTabsSnapshot) -> Unit,
     ): KeyguardCancellable {
@@ -230,11 +192,6 @@ internal class RecentsController(
         return trackChannel(channel)
     }
 
-    /**
-     * The live TOTP codes for the Recents window, mirroring the vault list TOTP
-     * channel: a small `Map<itemId, TotpFieldSnapshot>` pushed once per second.
-     * Empty while locked.
-     */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeRecentsTotp(
         onChange: (Map<String, TotpFieldSnapshot>) -> Unit,
@@ -257,6 +214,6 @@ internal class RecentsController(
      */
     fun setRecentsTab(key: String) {
         val tab = CallsTabs.entries.firstOrNull { it.key == key } ?: return
-        latestRecentState?.onSelectTab?.invoke(tab)
+        activeRecentState.value?.onSelectTab?.invoke(tab)
     }
 }

@@ -6,13 +6,6 @@ import AppKit
 /// field accept typing without yanking the foreground app's activation (the
 /// Spotlight / Maccy pattern).
 final class QuickSearchPanel: NSPanel {
-    /// Optional explicit dismissal hook. When set (by the controller), Escape routes
-    /// through here so the full hide bookkeeping (`setQuickSearchVisible(false)` etc.)
-    /// runs. When unset, `cancelOperation` falls back to ordering the panel out, which
-    /// fires `didResignKeyNotification` and so still triggers the controller's
-    /// resign-key `hide()` — Escape works regardless of which inner control has focus.
-    var onCancel: (() -> Void)?
-
     init(contentView: NSView) {
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 700, height: 460),
@@ -43,14 +36,10 @@ final class QuickSearchPanel: NSPanel {
     /// Escape (`cancelOperation`) dismisses the panel even when focus has moved off the
     /// SwiftUI search field onto a real control inside the panel (an action-strip or
     /// unlock-form button), where `QuickSearchView`'s field-scoped `.onKeyPress(.escape)`
-    /// no longer fires. Prefer the controller's `onCancel` hook; otherwise order out,
-    /// which trips the resign-key observer that performs the hide.
+    /// no longer fires. Ordering out fires `didResignKeyNotification`, which trips the
+    /// controller's resign-key observer that performs the full `hide()`.
     override func cancelOperation(_ sender: Any?) {
-        if let onCancel {
-            onCancel()
-        } else {
-            orderOut(sender)
-        }
+        orderOut(sender)
     }
 
     /// Cmd+W: the traffic-light close button is hidden, so route the standard close

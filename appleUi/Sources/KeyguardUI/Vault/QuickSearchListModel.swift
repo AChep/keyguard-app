@@ -7,19 +7,14 @@ import KeyguardShared
 @MainActor
 @Observable
 final class QuickSearchListModel: VaultRowListModel {
-    /// Row content + structure; the list body and cells observe this.
     let store = VaultRowStore()
 
-    /// Live TOTP codes keyed by row id, pushed at 1Hz on the quick-search
-    /// TOTP channel (read by `TotpBadgeCell`).
     private(set) var totpStates: [String: TotpFieldSnapshot] = [:]
 
     @ObservationIgnored private let core: KeyguardCore
-    /// Copies a field ("password" / "otp") of a cipher; wired by the view to
-    /// `VaultActionsModel.copyCipherField`.
+    /// Copies a field ("password" / "otp") of a cipher.
     @ObservationIgnored private let onCopy: (_ secretId: String, _ accountId: String, _ field: String) -> Void
 
-    /// The shared FIFO background→Main delta pump, bound to this model's `store`.
     @ObservationIgnored private lazy var pump = VaultDeltaPump(store: store)
     @ObservationIgnored private var subscriptions: [KeyguardCancellable] = []
     @ObservationIgnored private var started = false
@@ -60,7 +55,6 @@ final class QuickSearchListModel: VaultRowListModel {
             })
     }
 
-    /// Cancels every channel, stops the pump and clears state.
     func stop() {
         subscriptions.forEach { $0.cancel() }
         subscriptions = []
@@ -78,8 +72,7 @@ final class QuickSearchListModel: VaultRowListModel {
         core.selectQuickSearchItem(id: rowId)
     }
 
-    /// The shared item row wires the TOTP badge tap to
-    /// `performVaultRowAction(_, VaultActions.copyOtp)` copies that row's OTP.
+    /// The shared item row dispatches its TOTP badge tap here as `VaultActions.copyOtp`.
     func performVaultRowAction(rowId: String, actionId: String) {
         if actionId == VaultActions.copyOtp {
             copy(rowId: rowId, field: "otp")
@@ -95,9 +88,7 @@ final class QuickSearchListModel: VaultRowListModel {
 
     // MARK: - Internals
 
-    /// Resolves the row's cipher id + account id from the store and copies the
-    /// given field through the shared quick-copy path. A row with no content box
-    /// (or a non-cipher row) is a silent no-op.
+    /// A row with no content box (or a non-cipher row) is a silent no-op.
     private func copy(rowId: String, field: String) {
         guard let row = store.box(for: rowId).row,
             let secretId = row.secretId,

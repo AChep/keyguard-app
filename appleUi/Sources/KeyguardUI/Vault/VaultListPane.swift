@@ -4,9 +4,8 @@ import KeyguardShared
 @MainActor
 @Observable
 final class VaultSelectionModel {
-    /// The list's multi-selection — the source of truth `List(selection:)` binds
-    /// to. Only `.item` rows are selectable (every other row is
-    /// `.selectionDisabled()`), so every id here is a cipher row.
+    /// The list's multi-selection, synced with the native table / collection view.
+    /// Only `.item` rows are selectable, so every id here is a cipher row.
     var selectedRowIds: Set<String> = []
     /// macOS only: whether a single item is selected AND resolved to a detail
     /// target. Drives the detail column; maintained by the list pane's sync.
@@ -15,7 +14,7 @@ final class VaultSelectionModel {
     var revealRowId: String?
     var revealToken = 0
 
-    /// Requests a one-shot scroll to `rowId` (see `revealRowId`).
+    /// Requests a one-shot scroll to `rowId`.
     func reveal(rowId: String) {
         revealRowId = rowId
         revealToken += 1
@@ -45,16 +44,13 @@ final class VaultSelectionModel {
 /// Well-known `FlatItemAction.id`s the client dispatches by name (mirrors the
 /// Kotlin `VaultActionSymbols` table).
 enum VaultActions {
-    /// The per-row "copy one-time password" action (the TOTP badge tap); see
-    /// `VaultActionSymbols.kt` ("vaultList.item.copyOtp").
+    /// The per-row "copy one-time password" action (the TOTP badge tap).
     static let copyOtp = "vaultList.item.copyOtp"
 }
 
 struct VaultListPane: View {
     let model: VaultListSessionModel
     @Bindable var selection: VaultSelectionModel
-    /// The surface's interaction policy; defaults to the main list's current
-    /// behavior so the existing call sites are unchanged.
     var config: VaultListConfig = .vaultMain
 
     @Environment(\.colorScheme) private var colorScheme
@@ -78,17 +74,13 @@ struct VaultListPane: View {
             }
     }
 
-    // MARK: - Selection
-
     private func syncSelection(_ newValue: Set<String>) {
         defer { selection.lastSelectedRowIds = newValue }
         for id in newValue.symmetricDifference(selection.lastSelectedRowIds) {
             model.toggleSelection(rowId: id)
         }
         #if os(macOS)
-        // Single-select drives the inline detail pane only when the surface's
-        // row-tap policy is `.select` (the main list). Behind the config flag so
-        // a sibling surface can opt out of the detail column.
+        // Only a `.select` surface (the main list) drives the inline detail column.
         if config.rowTap == .select {
             updateDetailObservation(newValue)
         }
@@ -153,8 +145,6 @@ struct VaultListPane: View {
     #endif
 }
 
-// MARK: - Detail pane (macOS)
-
 #if os(macOS)
 struct VaultDetailPane: View {
     let selection: VaultSelectionModel
@@ -172,8 +162,6 @@ struct VaultDetailPane: View {
     }
 }
 #endif
-
-// MARK: - Selection echo watcher
 
 private struct VaultSelectionEchoWatcher: View {
     let model: VaultListSessionModel
@@ -193,9 +181,8 @@ private struct VaultSelectionEchoWatcher: View {
 // MARK: - Bulk-action bars
 
 #if os(macOS)
-/// The floating bulk-action bar for macOS (shown at ≥2 selected). Reads
-/// `model.selection` in its OWN view so the selection channel invalidates only the
-/// bar, not the list rows (Fix #4).
+/// Reads `model.selection` in its OWN view so the selection channel invalidates
+/// only the bar, not the list rows.
 private struct VaultMacBulkBar: View {
     let model: VaultListSessionModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -219,8 +206,8 @@ private struct VaultMacBulkBar: View {
 #endif
 
 #if os(iOS)
-/// The floating bulk-action bar for iOS (shown while editing with ≥1 selected).
-/// Isolated for the same reason as its macOS twin (Fix #4).
+/// Isolated in its own view so the selection channel invalidates only the bar,
+/// not the list rows.
 private struct VaultIOSBulkBar: View {
     let model: VaultListSessionModel
     @Environment(\.editMode) private var editMode
@@ -256,8 +243,7 @@ struct VaultRowContextMenu: ViewModifier {
     let rowRevision: Int64?
     /// iOS edit-mode gate for the bulk-action swap; always `false` on macOS.
     let editing: Bool
-    /// Whether this surface shows a row context menu at all (the main list does;
-    /// `VaultListConfig.contextMenu`). When `false` the menu + its prefetch are skipped.
+    /// When `false`, the menu and its prefetch are skipped.
     var enabled: Bool = true
     @State private var rowActionsLoad: VaultRowActionsLoad?
 

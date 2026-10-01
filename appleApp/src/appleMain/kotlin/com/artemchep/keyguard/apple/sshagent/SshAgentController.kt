@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.apple.sshagent
 
 import com.artemchep.keyguard.apple.core.sessionKoin
-import com.artemchep.keyguard.main
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AgentStatus
 import com.artemchep.keyguard.common.model.Loadable
@@ -61,12 +60,9 @@ import org.koin.core.scope.Scope
 private const val SSH_APPROVAL_TIMEOUT_MS = 60_000L
 
 /**
- * The SSH agent: the run lifecycle (spawns the reused binary over a POSIX IPC
- * socket, gates each signature through a per-request approval surfaced to Swift),
- * the Developer-pane settings, and the per-key filters screen. The on/off state
- * is the shared persisted "ssh_agent" preference; [startSshAgentApplier] reacts
- * to it. Deliberately NOT started from [KeyguardCore] init — the AutoFill appex
- * builds its own core and must never spawn the agent.
+ * The on/off state is the shared persisted "ssh_agent" preference; [startSshAgentApplier] reacts to it.
+ * Deliberately NOT started from [KeyguardCore] init — the AutoFill appex builds its own core and must
+ * never spawn the agent.
  */
 internal class SshAgentController(
     private val ctx: CoreContext,
@@ -116,12 +112,10 @@ internal class SshAgentController(
         }
     }
 
-    /** Persists the shared "SSH agent" preference; the applier reacts to it. */
     fun setSshAgentEnabled(value: Boolean) {
         putSshAgent(value).launchIn(ctx.scope)
     }
 
-    /** Starts the SSH agent (idempotent). Requires the bundled binary + a signer. */
     private fun startSshAgent() {
         if (sshAgentHandle?.isRunning == true) return
         if (!sshAgentRuntime.isBinaryAvailable) {
@@ -139,8 +133,7 @@ internal class SshAgentController(
         val logRepository = ctx.koin.get<LogRepository>()
         val token = cryptoGenerator.seed(32)
         // Each run gets a fresh generation so a stale termination callback from a
-        // previous run never flips the status of the current one (the previous
-        // identity check on the concrete manager moved behind the runtime seam).
+        // previous run never flips the status of the current one.
         val generation = ++sshAgentGeneration
         val config = SshAgentRuntimeConfig(
             authToken = token,
@@ -173,7 +166,6 @@ internal class SshAgentController(
         }
     }
 
-    /** Stops the SSH agent and its IPC server. */
     private fun stopSshAgent() {
         // Bump the generation so a termination callback from the stopped run is
         // ignored — an intentional stop must not be reported as a crash.
@@ -182,7 +174,6 @@ internal class SshAgentController(
         sshAgentHandle = null
         sshAgentRunScope?.cancel()
         sshAgentRunScope = null
-        // Fail any in-flight approvals.
         sshApprovals.values.forEach { it.complete(false) }
         sshApprovals.clear()
         sshPendingRequests = emptyList()
@@ -190,7 +181,6 @@ internal class SshAgentController(
         sshAgentStatusService.set(AgentStatus.Stopped)
     }
 
-    /** Observes pending per-sign approval requests for the approval window. */
     fun observeSshAgentRequests(
         onChange: (List<SshAgentRequestSnapshot>) -> Unit,
     ): KeyguardCancellable {
@@ -206,7 +196,6 @@ internal class SshAgentController(
         return KeyguardCancellable(job)
     }
 
-    /** Resolves a pending approval request: approve (true) or deny (false). */
     fun resolveSshAgentRequest(id: String, approved: Boolean) {
         sshApprovals[id]?.complete(approved)
     }
@@ -377,7 +366,6 @@ internal class SshAgentController(
         }
     }
 
-    /** Runs the shared [sshAgentFiltersStateProducer] in a headless scope tied to [scope]. */
     private suspend fun sshAgentFiltersStateFlow(
         scope: CoroutineScope,
         sessionKoin: Scope,
@@ -414,17 +402,14 @@ internal class SshAgentController(
         )
     }
 
-    /** Toggles a filter on / off (or expands / collapses a section header) by id. */
     fun invokeSshAgentFilter(id: String) {
         sshAgentFilterHandlers[id]?.invoke()
     }
 
-    /** Persists the pending filter; the producer pops itself on success. */
     fun saveSshAgentFilters() {
         latestSshAgentFiltersState?.onSave?.invoke()
     }
 
-    /** Clears the pending filter selection. No-op unless any filter is set. */
     fun resetSshAgentFilters() {
         latestSshAgentFiltersState?.onReset?.invoke()
     }

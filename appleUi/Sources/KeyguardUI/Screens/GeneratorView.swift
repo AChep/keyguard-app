@@ -18,8 +18,7 @@ struct GeneratorView: View {
     }
 
     var body: some View {
-        // The generator tools (email forwarders / wordlists / history) and the
-        // per-wordlist detail are pushed through the shared Kotlin nav stack, so the
+        // The generator tools are pushed through the shared Kotlin nav stack, so the
         // section hosts a `NavStackContainer` instead of a plain `NavigationStack`.
         NavStackContainer(scope: "generator") {
             Group {
@@ -47,8 +46,7 @@ struct GeneratorView: View {
             start: { generatorModel.startGeneratorObservation() },
             stop: { generatorModel.stopGeneratorObservation() }
         )
-        // The generated value's "create login / SSH key" action emits an AddRoute;
-        // the prefilled create-item sheet it surfaces is presented at the root
+        // The "create login / SSH key" AddRoute is presented at the root
         // (`RootContainer`) so it works from any screen, not just here.
     }
 

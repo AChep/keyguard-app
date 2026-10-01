@@ -2,7 +2,6 @@ package com.artemchep.keyguard.apple.model
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.left
-import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
@@ -12,10 +11,7 @@ import com.artemchep.keyguard.feature.home.vault.component.formatCardNumber
 import com.artemchep.keyguard.feature.home.vault.component.obscureCardNumber
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.VaultUriIcon
-import com.artemchep.keyguard.feature.home.vault.screen.RichBadge
 import com.artemchep.keyguard.feature.localization.textResource
-import com.artemchep.keyguard.apple.KeyguardCore
-import com.artemchep.keyguard.apple.vault.toSnapshot
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
@@ -23,8 +19,6 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.totp.TotpCodeState
 import com.artemchep.keyguard.ui.totp.totpCodeFlow
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -39,17 +33,9 @@ data class SettingOptionSnapshot(
 )
 
 /**
- * A single text field projected for SwiftUI. [id] is an opaque routing key the
- * UI passes back to [KeyguardCore.setLoginField]; [label] is set for the dynamic
- * custom-environment URL / header fields and null for email / password / secret.
- */
-/**
- * The generic, Swift-facing projection of a shared [TextFieldState]: a pure
- * value (no closures) that every field-bearing screen snapshot embeds. The
- * live edit closure is kept Kotlin-side, keyed by [id] (the field's
- * producer-assigned identity); SwiftUI echoes [id] back through the owning
- * screen's `set…` method to reach it. [vlType] / [vlText] carry the optional
- * inline validation banner (severity name + message).
+ * A text field. The edit closure stays Kotlin-side, keyed by [id]; SwiftUI echoes [id] back through the
+ * owning screen's `set…` method to reach it. [vlType] / [vlText] carry the optional inline validation
+ * banner (severity name + message).
  */
 data class TextFieldSnapshot(
     val id: String,
@@ -75,11 +61,6 @@ data class TextFieldSnapshot(
     }
 }
 
-/**
- * Pure projection of a [TextFieldModel] into a [TextFieldSnapshot]. [id]
- * defaults to the field's producer-assigned [TextFieldState.id]; pass an
- * explicit id for fields whose producer does not yet assign one.
- */
 internal fun TextFieldModel.toFieldSnapshot(
     id: String = state.id,
     placeholder: String? = hint,
@@ -94,11 +75,7 @@ internal fun TextFieldModel.toFieldSnapshot(
     editable = onChange != null,
 )
 
-/**
- * Like [toFieldSnapshot] but also registers the field's live [onChange] into
- * [handlers] under the snapshot [id], so the owning screen's `set…(id, text)`
- * method can route an edit back to the producer.
- */
+/** Also registers the live [onChange] into [handlers] under [id], for the owning screen's `set…(id, text)`. */
 internal fun TextFieldModel.toFieldSnapshot(
     handlers: MutableMap<String, (String) -> Unit>,
     id: String = state.id,
@@ -109,24 +86,18 @@ internal fun TextFieldModel.toFieldSnapshot(
 }
 
 /**
- * Maps the shared `List<VaultViewItem>` produced by both the vault-view and the
- * send-view state producers into the flat `List<VaultItemSnapshot>` the SwiftUI
- * detail screens render. Side-effect: registers every item action closure into
- * [actionHandlers] under a synthesized opaque id so SwiftUI can invoke it back
- * by id alone. [notesText] supplies the Markdown note body (the cipher's or the
- * send's `notes`), which the `Note` item only carries as a rendering flag.
+ * Side effect: registers every item action closure into [actionHandlers] under an opaque id that SwiftUI
+ * invokes back. [notesText] is the Markdown note body, which the `Note` item only carries as a rendering flag.
  */
 internal suspend fun buildVaultItemSnapshots(
     items: List<VaultViewItem>,
     notesText: String?,
     leContext: LeContext,
     actionHandlers: MutableMap<String, () -> Unit>,
-    // Live per-second TOTP badge state keyed by item id. Only the cipher detail
-    // supplies this; Send / Account details carry no TOTP rows.
+    // Keyed by item id; only the cipher detail has TOTP rows.
     totpStates: Map<String, TotpFieldSnapshot> = emptyMap(),
-    // The Gravatar URL of the cipher's username, rendered as the avatar of the
-    // "login.username" value row. Only the cipher detail supplies this, and only
-    // while the shared Gravatar preference is enabled.
+    // The Gravatar URL for the "login.username" row; null unless the Gravatar
+    // preference is on.
     usernameAvatarUrl: String? = null,
     // Per-field reveal gating for concealed VALUE / CARD rows, supplied only by the
     // cipher detail. [revealedIds] is the set of item ids the user has already
@@ -137,8 +108,7 @@ internal suspend fun buildVaultItemSnapshots(
     // BEFORE the value is disclosed, exactly like the copy action.
     //
     // When null (Send / Account details, which carry no concealed reprompt fields),
-    // concealed rows fall back to the legacy behavior — the value is sent and SwiftUI
-    // masks it locally — so those surfaces are entirely unaffected.
+    // a concealed row's value is sent and SwiftUI masks it locally.
     revealedIds: Set<String>? = null,
     onRequestReveal: ((VaultViewItem) -> String?)? = null,
     uriAppIcons: Map<VaultUriIcon.App, String?> = emptyMap(),
@@ -164,7 +134,6 @@ internal suspend fun buildVaultItemSnapshots(
         return acc
     }
 
-    // Registers [onClick] under the item's [suffix] id and returns the row's action.
     suspend fun registerAction(
         itemId: String,
         onClick: (() -> Unit)?,
@@ -180,18 +149,10 @@ internal suspend fun buildVaultItemSnapshots(
     for (item in items) {
         when (item) {
             is VaultViewItem.Value -> {
-                // Reveal gating: a concealed value (e.g. a password / CVV) on a
-                // master-password-reprompt cipher must NOT have its plaintext sent to
-                // SwiftUI until the producer reports it revealed. The reveal request
-                // goes through the producer's `Visibility.transformUserEvent`, i.e. the
-                // SAME `executeWithRePrompt` path the copy action uses — so the
-                // elevated-access dialog fires before disclosure. A hidden field (policy
-                // forbids ever seeing it) is never revealable.
-                // A field hidden by org policy (Visibility.hidden) can NEVER be
-                // revealed — Compose renders no toggle for it. In the cipher-detail
-                // context (onRequestReveal != null) we lock it: withhold the plaintext
-                // and emit no reveal toggle. Outside that context (legacy Send/Account)
-                // there are no hidden-policy fields, so behaviour is unchanged.
+                // Reveal gating (cipher detail only): a concealed value's plaintext is
+                // withheld until the producer reports it revealed. The reveal request
+                // goes through `Visibility.transformUserEvent`, so a reprompt fires first.
+                // A policy-hidden field (Visibility.hidden) is never revealable.
                 val revealLocked = item.visibility.concealed &&
                     item.visibility.hidden &&
                     onRequestReveal != null
@@ -290,10 +251,9 @@ internal suspend fun buildVaultItemSnapshots(
             )
 
             is VaultViewItem.Table -> {
-                // A key/value table (GPG key metadata, SSH key details, generator key
-                // type). SwiftUI has no dedicated table row yet, so flatten it: the
-                // optional header becomes a SECTION, then each row is a monospace VALUE
-                // (fingerprints / algorithms / key ids read best fixed-width).
+                // SwiftUI has no table row, so flatten it: the optional header becomes a
+                // SECTION, then each row is a monospace VALUE (fingerprints / algorithms /
+                // key ids read best fixed-width).
                 item.title?.let { title ->
                     out += VaultItemSnapshot(
                         id = "${item.id}:header",
@@ -348,10 +308,8 @@ internal suspend fun buildVaultItemSnapshots(
             )
 
             is VaultViewItem.Link -> {
-                // Cipher links ("Linked items" / "Referenced by"). The native detail
-                // screen has no dedicated linked-item row yet, so the link is projected
-                // as a tappable ACTION row carrying the target's name / subtitle; the
-                // click opens the linked cipher through the producer's own handler.
+                // There is no native linked-item row, so a cipher link becomes a tappable
+                // ACTION row carrying the target's name / subtitle.
                 val actionId = "${item.id}:onclick"
                 item.onClick?.let { actionHandlers[actionId] = it }
                 val title = item.presentation?.title?.text
@@ -412,14 +370,9 @@ internal suspend fun buildVaultItemSnapshots(
             }
 
             is VaultViewItem.Card -> {
-                // The card visual header (mirrors the Compose `VaultViewCardItem`): the
-                // brand / credit-card-type label, the formatted + obscured number, and
-                // the cardholder name. The expiry / CVV / valid-from rows are emitted
-                // SEPARATELY by the producer as their own localized VALUE rows, so we
-                // do NOT re-flatten them here. The card-level copy / large-type / barcode
-                // / share actions ride in [VaultViewItem.Card.dropdown]; project them so
-                // the SwiftUI card draws the menu + copy shortcut just like every other
-                // field row.
+                // Mirrors the Compose `VaultViewCardItem` header. The producer emits the
+                // expiry / CVV / valid-from rows SEPARATELY as localized VALUE rows, so do
+                // NOT re-flatten them here.
                 val card = item.data
                 val number = card.number
                 // The card number reveal is gated identically to a Value field: the
@@ -445,7 +398,6 @@ internal suspend fun buildVaultItemSnapshots(
                     id = item.id,
                     kind = VaultItemKind.CARD,
                     title = null,
-                    // [text] is the cardholder name shown under the number.
                     text = card.cardholderName,
                     concealed = numberConcealed,
                     monospace = true,
@@ -453,8 +405,7 @@ internal suspend fun buildVaultItemSnapshots(
                     switchValue = false,
                     actions = item.dropdown.toActionSnapshots(item.id),
                     shapeState = item.shapeState,
-                    // The brand label, falling back to the resolved credit-card type
-                    // (same choice as the Compose item).
+                    // Falls back to the credit-card type, like the Compose item.
                     cardBrand = card.brand ?: card.creditCardType?.name,
                     // Withhold the formatted (plaintext) number while gated + concealed;
                     // the obscured variant is always safe to send so the masked dots
@@ -472,12 +423,9 @@ internal suspend fun buildVaultItemSnapshots(
             }
 
             is VaultViewItem.Identity -> {
-                // The identity header (mirrors the Compose `VaultViewIdentityItem`): the
-                // title and the joined full name, plus the quick-action buttons (call /
-                // text / email / navigate-to-maps) the producer attaches as [actions].
-                // Every individual identity field (name parts, contact info, misc,
-                // address) is emitted SEPARATELY by the producer as a localized VALUE
-                // row under its section header, so we do NOT re-flatten them here.
+                // Mirrors the Compose `VaultViewIdentityItem` header. The producer emits
+                // every identity field SEPARATELY as a localized VALUE row, so do NOT
+                // re-flatten them here.
                 val idn = item.data
                 val name = listOfNotNull(idn.firstName, idn.middleName, idn.lastName)
                     .joinToString(separator = " ")
@@ -485,7 +433,6 @@ internal suspend fun buildVaultItemSnapshots(
                 out += VaultItemSnapshot(
                     id = item.id,
                     kind = VaultItemKind.IDENTITY,
-                    // [title] is the identity title (Mr./Mrs./…), [text] the full name.
                     title = idn.title?.takeIf { it.isNotBlank() },
                     text = name,
                     concealed = false,
@@ -781,12 +728,8 @@ internal suspend fun buildVaultItemSnapshots(
 }
 
 /**
- * Projects a list of top-level [FlatItemAction]s (the cipher detail's overflow /
- * toolbar actions) into flat [VaultActionSnapshot]s, registering each action's
- * [FlatItemAction.onClick] into [actionHandlers] under a synthesized opaque id
- * (`"$idPrefix:action:N"`) so SwiftUI can invoke it back by id alone. The same
- * id-routing scheme as the field-row actions in [buildVaultItemSnapshots]; pass a
- * distinct [idPrefix] (e.g. `"header"`) so the ids cannot collide with row ids.
+ * Registers each action's handler into [actionHandlers] under an id scoped by [idPrefix]. Pass a distinct
+ * [idPrefix] (e.g. `"header"`) so the ids cannot collide with row ids.
  */
 internal suspend fun List<FlatItemAction>.toHeaderActionSnapshots(
     idPrefix: String,
@@ -809,11 +752,7 @@ internal suspend fun List<FlatItemAction>.toHeaderActionSnapshots(
     return acc
 }
 
-/**
- * Builds an [VaultItemKind.ALERT] row for the various warning / security / info
- * detail items. [action] (when present) is already registered in the caller's
- * action handlers.
- */
+/** [action], when present, must already be registered in the caller's action handlers. */
 internal fun alertSnapshot(
     id: String,
     title: String,
@@ -864,61 +803,35 @@ enum class VaultItemKind {
     ATTACHMENT,
     QR,
     SPACER,
-    // The credit-card visual header (brand + formatted/obscured number + cardholder),
-    // mirroring the Compose `VaultViewCardItem`. The card-level copy / large-type /
-    // barcode / share actions ride in [VaultItemSnapshot.actions]; the per-field rows
-    // (expiry, CVV) are emitted separately by the producer as VALUE rows.
+
+    /** The card header; the expiry, CVV and other card fields arrive as separate VALUE rows. */
     CARD,
-    // The identity header (title + full name) plus the quick-action buttons (call /
-    // text / email / navigate), mirroring the Compose `VaultViewIdentityItem`. Every
-    // individual identity field (name parts, contact info, misc, address) is emitted
-    // separately by the producer as localized VALUE rows under section headers.
+
+    /**
+     * The identity header: [VaultItemSnapshot.title] is the honorific (Mr./Mrs./…), [VaultItemSnapshot.text]
+     * the full name, and the actions are the quick-action buttons. Each field arrives as a separate VALUE row.
+     */
     IDENTITY,
-    UNSUPPORTED,
 }
 
-/** A menu / button action; [id] routes back to [KeyguardCore.invokeVaultAction]. */
+/** A menu / button action; [id] routes back through the owning screen's `invoke…` method. */
 data class VaultActionSnapshot(
     val id: String,
     val title: String,
     val isCopy: Boolean,
-    /**
-     * SF Symbol name for the action's icon, mapped from the shared
-     * [FlatItemAction.icon] via [toActionIconName]. Used by the identity header's
-     * quick-action buttons (call / text / email / navigate) to draw the icon above
-     * the label, mirroring the Compose `VaultViewIdentityItem`. `null` when the
-     * source icon has no SF Symbol mapping (most menu/dropdown actions).
-     */
+    /** SF Symbol name of the icon; `null` when the shared icon has no SF Symbol mapping (most menu actions). */
     val iconName: String? = null,
-    /**
-     * `true` when this action opens a new visual group in an overflow menu — the
-     * SwiftUI menu draws a divider before it. Set only by [buildMenuActionSnapshots]
-     * (mirroring the Compose options-menu section dividers); the per-row / selection
-     * action families leave it `false`.
-     */
+    /** `true` when this action opens a new group in an overflow menu; SwiftUI draws a divider before it. */
     val startsSection: Boolean = false,
-    /**
-     * For an overflow action backed by a toggle (the vault list's "always show
-     * keyboard" / "remember sorting" switches), the toggle's current on/off state
-     * — so the SwiftUI menu can render a Switch / checkmark, mirroring the Compose
-     * options-menu `Switch`. `null` for plain actions. Set only by
-     * [buildMenuActionSnapshots], which reads the producer's non-visual action id.
-     */
+    /** The on/off state of a toggle-backed overflow action, rendered as a checkmark; `null` for plain actions. */
     val switchState: Boolean? = null,
-    /**
-     * `true` for a destructive action (trash / delete / remove), from the shared
-     * [FlatItemAction.danger], so SwiftUI can give it the destructive role without
-     * inspecting its localized title.
-     */
+    /** `true` for a destructive action, so SwiftUI can give it the destructive role. */
     val danger: Boolean = false,
 )
 
 /**
- * Maps a shared [FlatItemAction] Material [ImageVector] to the closest SF Symbol
- * name for the native Apple UI. Only the icons that actually surface as labelled
- * action buttons (the identity header's call / text / email / navigate actions)
- * are mapped; anything else returns `null` and the SwiftUI side falls back to a
- * text-only button. Keyed by [ImageVector.name] (e.g. `"Outlined.Call"`).
+ * Only the icons shown on labelled buttons (the identity quick actions) are mapped; for anything else
+ * SwiftUI falls back to a text-only button.
  */
 private fun ImageVector?.toActionIconName(): String? = when (this?.name) {
     "Outlined.Call" -> "phone"
@@ -944,9 +857,8 @@ enum class AttachmentStatusKind {
 }
 
 /**
- * Live download state of a single attachment row, sampled from the shared
- * [AttachmentItem]'s state flows each time the snapshot stream rebuilds.
- * [progress] is the downloaded fraction (0..1), or -1 when indeterminate.
+ * Sampled from the shared [AttachmentItem] each time the snapshot rebuilds. [progress] is the downloaded
+ * fraction (0..1), or -1 when indeterminate.
  */
 data class AttachmentFieldSnapshot(
     val status: AttachmentStatusKind,
@@ -956,9 +868,8 @@ data class AttachmentFieldSnapshot(
 )
 
 /**
- * The live state of a single TOTP badge, computed entirely by shared Kotlin
- * (the [totpCodeFlow] producer, shared with the Compose UI) and pushed to
- * SwiftUI every second so the macOS view only renders / animates it.
+ * The live state of a TOTP badge, computed by the shared [totpCodeFlow] and pushed every second, so the
+ * Swift view only renders / animates it.
  *
  * [groups] is the code split into groups of code points (e.g. `[[1,2,3],[4,5,6]]`)
  * so the Swift view can draw the group separators and animate each digit. For a
@@ -997,13 +908,7 @@ data class TotpFieldSnapshot(
     }
 }
 
-/**
- * Adapts the shared [totpCodeFlow] (the single source of truth for the live
- * code, countdown and progress, shared with the Compose UI) into the flat
- * [TotpFieldSnapshot] the SwiftUI view renders. Starts with
- * [TotpFieldSnapshot.loading] so the combine in
- * [KeyguardCore.observeCipherDetail] can emit before the first code arrives.
- */
+/** Starts with [TotpFieldSnapshot.loading] so downstream combines can emit before the first code arrives. */
 internal fun totpBadgeFlow(
     getTotpCode: GetTotpCodeWithOffset,
     token: TotpToken,
@@ -1041,10 +946,8 @@ internal fun TotpCodeState.toFieldSnapshot(): TotpFieldSnapshot = when (this) {
 }
 
 /**
- * One flat row of the vault item detail. The populated fields depend on [kind];
- * [text] is the primary value (masked in the UI when [concealed]), [totp] holds
- * the live rendered code + countdown for [VaultItemKind.TOTP], and [launchUrl]
- * the open target for [VaultItemKind.URI].
+ * One row of the vault item detail; the populated fields depend on [kind]. [text] is the primary value,
+ * masked in the UI when [concealed].
  */
 data class VaultItemSnapshot(
     val id: String,
@@ -1057,59 +960,54 @@ data class VaultItemSnapshot(
     val launchUrl: String?,
     val switchValue: Boolean,
     val actions: List<VaultActionSnapshot>,
-    // NOTE only: true when the shared producer parsed the note as Markdown
-    // (the "Render Markdown" preference is on and the body parses), so the
-    // SwiftUI row renders it as rich text instead of plain text.
+    // NOTE only: render [text] as Markdown (the preference is on and the body parses).
     val markdown: Boolean = false,
-    // VALUE only: a directly-loadable avatar URL rendered before the value
-    // (the username row's Gravatar; null when the preference is off).
+    // VALUE only: the username row's Gravatar; null when the preference is off.
     val avatarUrl: String? = null,
-    // Card-grouping shape from the producer's transformShapes(): a ShapeState
-    // bitmask (START/END/CENTER/ALL). -1 means the row is not grouped (plain).
+    /** A ShapeState bitmask (START/END/CENTER/ALL) from the producer's transformShapes(); -1 = not grouped. */
     val shapeState: Int = -1,
-    // Row-level onClick: opens the passkey credential sheet for PASSKEY, the
-    // attachment preview for ATTACHMENT, and navigates (currently a no-op on
-    // macOS) for FOLDER / ORGANIZATION / COLLECTION.
+    /** The row's own tap action; null when the row itself is not tappable. */
     val clickActionId: String? = null,
     val badges: List<VaultBadgeSnapshot> = emptyList(),
     val attachment: AttachmentFieldSnapshot? = null,
-    // SPACER height in points (the Dp value of the shared item).
+    /** SPACER height in points. */
     val spacerHeight: Float = 0f,
-    // CARD only: the brand / credit-card-type label drawn above the number (null when
-    // unknown), and the number pre-formatted (with group spaces) for display + the
-    // same number pre-obscured (leading digits replaced with •) so the masked vs.
-    // revealed strings are computed by shared Kotlin, not re-derived in Swift. The
-    // number's reveal toggle reuses [concealed]; [text] holds the cardholder name.
+    /**
+     * CARD only: the brand label drawn above the number; null when unknown. [text] holds the
+     * cardholder name and the number's reveal toggle reuses [concealed].
+     */
     val cardBrand: String? = null,
+    /** CARD only: the number with group spaces; null while the plaintext is withheld (see [isVisible]). */
     val cardNumberFormatted: String? = null,
+    /** CARD only: the number with leading digits replaced with •; always safe to send. */
     val cardNumberObscured: String? = null,
-    // VALUE / CARD reveal gating (mirrors the Compose per-field Visibility state):
-    // whether the producer currently reports the concealed field as revealed. While a
-    // concealed field is NOT visible, the bridge withholds the plaintext entirely
-    // ([text] / [cardNumberFormatted] are null), so SwiftUI cannot leak it by flipping
-    // a local @State. Always `true` for non-concealed rows, which carry their value as
-    // before.
+    /**
+     * VALUE / CARD reveal gating (mirrors the Compose per-field Visibility state): whether the producer
+     * reports the concealed field as revealed. While a concealed field is NOT visible, the bridge withholds
+     * the plaintext entirely ([text] / [cardNumberFormatted] are null), so SwiftUI cannot leak it by flipping
+     * a local @State. Always `true` for non-concealed rows.
+     */
     val isVisible: Boolean = true,
-    // VALUE / CARD only: the handler id (routed via [KeyguardCore.invokeVaultAction])
-    // the eye toggle invokes to REQUEST a reveal. The handler runs the shared
-    // producer's `Visibility.transformUserEvent`, i.e. the SAME `executeWithRePrompt`
-    // path the copy action uses — so on a master-password-reprompt cipher the
-    // elevated-access dialog fires FIRST, and only on success does the producer flip
-    // visibility and re-emit the snapshot with the value + [isVisible] = true. `null`
-    // for non-concealable rows; tapping it never discloses anything by itself.
+    /**
+     * VALUE / CARD only: the action id the eye toggle invokes to REQUEST a reveal. The handler runs the
+     * shared producer's `Visibility.transformUserEvent`, i.e. the SAME `executeWithRePrompt` path the copy
+     * action uses — so on a master-password-reprompt cipher the elevated-access dialog fires FIRST, and only
+     * on success does the producer re-emit the snapshot with the value + [isVisible] = true. `null` for
+     * non-concealable rows; invoking it never discloses anything by itself.
+     */
     val revealActionId: String? = null,
-    // VALUE / CARD only: the field is concealed by an org "hide passwords" policy
-    // (Visibility.hidden) — the secret can NEVER be revealed (not even behind a
-    // reprompt), exactly as Compose renders no reveal toggle for it. When true the
-    // bridge withholds the plaintext ([text] / [cardNumberFormatted] are null),
-    // [isVisible] is false, [revealActionId] is null, and SwiftUI must render the
-    // masked value with NO eye toggle (and must NOT fall back to a local @State
-    // reveal). Distinguishes a cipher-detail policy-masked field from a legacy
-    // Send/Account concealed field (which keeps the local reveal toggle).
+    /**
+     * VALUE / CARD only: the field is concealed by an org "hide passwords" policy (Visibility.hidden), so
+     * the secret can NEVER be revealed (not even behind a reprompt), exactly as Compose renders no reveal
+     * toggle for it. When true the bridge withholds the plaintext ([text] / [cardNumberFormatted] are null),
+     * [isVisible] is false, [revealActionId] is null, and SwiftUI must render the masked value with NO eye
+     * toggle (and must NOT fall back to a local @State reveal). Distinguishes a cipher-detail policy-masked
+     * field from a Send/Account concealed field, which keeps the local reveal toggle.
+     */
     val revealLocked: Boolean = false,
-    // ALERT only: null retains the ordinary action / message presentation.
+    /** ALERT only; null keeps the ordinary action / message presentation. */
     val alertSeverity: VaultAlertSeverity? = null,
-    // VALUE / URI only: use password character colors, as requested by the producer.
+    // VALUE / URI only: use password character colors.
     val colorize: Boolean = false,
     // URI only: resolved artwork and its loading/disabled/failure placeholder.
     val uriIcon: UriIconSnapshot? = null,
@@ -1123,10 +1021,7 @@ enum class VaultFilterItemKind {
     ITEM,
 }
 
-/**
- * A flat, Swift-friendly projection of one row of a shared filter tree (vault
- * list / Watchtower / SSH agent); toggle it / expand it via its handler [id].
- */
+/** One row of a shared filter tree; toggle or expand it via its handler [id]. */
 data class VaultFilterItemSnapshot(
     val id: String,
     val kind: VaultFilterItemKind,
@@ -1144,10 +1039,7 @@ enum class VaultSortItemKind {
     ITEM,
 }
 
-/**
- * A flat, Swift-friendly projection of one list sort option (vault list / Send);
- * select it via its handler [id].
- */
+/** One list sort option; select it via its handler [id]. */
 data class VaultSortItemSnapshot(
     val id: String,
     val kind: VaultSortItemKind,
@@ -1159,91 +1051,9 @@ enum class VaultListItemKind {
     /** A titled group header. */
     SECTION,
 
-    /** A vault item (cipher) row; [VaultListItemSnapshot.secretId] is set. */
+    /** An item row; the row's `secretId` is set. */
     ITEM,
 
     /** The "no items" placeholder. */
     NO_ITEMS,
-
-    /** The "no suggestions" placeholder. */
-    NO_SUGGESTIONS,
-
-    /**
-     * A marker for the inline quick-filter chip flow (the saved custom filters),
-     * rendered from the snapshot's custom-section `filters` at this row's position.
-     */
-    QUICK_FILTERS,
 }
-
-/**
- * A flat, Swift-friendly projection of one row of the shared vault list. For
- * [VaultListItemKind.ITEM] rows, [secretId] + [accountId] identify the cipher so
- * the detail pane can observe it via [KeyguardCore.observeCipherDetail].
- */
-/** One inline badge of a cipher row — an icon plus a title and optional subtitle. */
-data class VaultListBadgeSnapshot(
-    val title: String,
-    val text: String?,
-    val iconName: String,
-)
-
-internal fun RichBadge.toSnapshot(): VaultListBadgeSnapshot =
-    VaultListBadgeSnapshot(title = title, text = text, iconName = iconName)
-
-data class VaultListItemSnapshot(
-    val id: String,
-    val kind: VaultListItemKind,
-    val secretId: String?,
-    val accountId: String?,
-    val title: String,
-    val text: String?,
-    val favourite: Boolean,
-    /**
-     * A concrete, directly-loadable website favicon URL for [VaultListItemKind.ITEM]
-     * rows, or `null` when there is no website icon (icon disabled, no site URL, or a
-     * non-login type). Resolved by the shared favicon server, honoring the user's
-     * "load website icons" setting.
-     */
-    val iconUrl: String?,
-    /** Initials to render when [iconUrl] is `null` / fails to load. */
-    val iconPlaceholder: String?,
-    val typeName: String? = null,
-    val accentArgbLight: Int? = null,
-    val accentArgbDark: Int? = null,
-    val reprompt: Boolean = false,
-    val hasAttachments: Boolean = false,
-    val hasError: Boolean = false,
-    val isMultiline: Boolean = false,
-    val organizationName: String? = null,
-    val organizationAccentArgbLight: Int? = null,
-    val organizationAccentArgbDark: Int? = null,
-    val shapeState: Int = 0,
-    val hasChevron: Boolean = false,
-    val selected: Boolean = false,
-    val selecting: Boolean = false,
-    val hasTotp: Boolean = false,
-    val passwordBadges: List<VaultListBadgeSnapshot> = emptyList(),
-    val passkeyBadges: List<VaultListBadgeSnapshot> = emptyList(),
-    val attachmentBadges: List<VaultListBadgeSnapshot> = emptyList(),
-    /**
-     * The matched-field context badge shown under the row while a search is active
-     * (e.g. the matched note / username snippet with its field icon), or `null` when
-     * the item is not a search hit. Mirrors the Compose `VaultItemSearchContextBadge`.
-     */
-    val searchContextBadge: VaultListBadgeSnapshot? = null,
-    /**
-     * Handler id (routed via [KeyguardCore.invokeEntryAction]) that toggles this row's
-     * membership in the active multi-selection — a long-press to begin selecting, or a
-     * tap while selecting. Set only on [VaultListItemKind.ITEM] rows of a list that
-     * supports selection (the Duplicates screen); `null` everywhere else. Mirrors the
-     * Folders row's `toggleActionId`.
-     */
-    val toggleActionId: String? = null,
-)
-
-data class KeyguardCipher(
-    val id: String,
-    val accountId: String,
-    val name: String,
-    val username: String?,
-)

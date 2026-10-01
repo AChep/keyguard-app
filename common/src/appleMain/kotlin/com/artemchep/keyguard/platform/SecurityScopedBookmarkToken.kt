@@ -21,7 +21,6 @@ internal fun String.toSecurityScopedBookmarkDataOrNull(): NSData? = runCatching 
         .toNSData()
 }.getOrNull()
 
-/** Resolves this bookmark, or returns `null` when it is invalid. */
 @OptIn(ExperimentalForeignApi::class)
 internal fun FileAccessToken.resolveSecurityScopedUrlOrNull(
     isStale: CPointer<BooleanVar>? = null,

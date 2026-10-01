@@ -85,8 +85,8 @@ targets:
     type: app-extension
     platform: iOS
     sources:
-      # Principal class + Info.plist/entitlements live here; the screens and the
-      # credential-request plumbing are shared with the macOS extension.
+      # Info.plist, entitlements and privacy manifest only; the principal class, screens
+      # and credential-request plumbing come from ../appleAutofill, shared with macOS.
       - path: KeyguardAutofill
       - path: Resources/InfoPlist.xcstrings
         buildPhase: resources

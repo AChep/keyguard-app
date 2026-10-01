@@ -19,12 +19,10 @@ final class ExternalActions {
         guard !started else { return }
         started = true
         core.setQuickSearchOpenUrlHandler(handler: linkHandler())
-        // Producer-emitted NavigateToBrowser intents (account "premium", autofill
-        // help links, …) routed through the navigation interceptor.
+        // Producer-emitted `NavigateToBrowser` intents from the navigation interceptor.
         core.setOpenUrlHandler(handler: linkHandler())
         core.setOpenSystemUrlHandler(handler: linkHandler(forceSystem: true))
-        // The Send detail "share" action emits a NavigateToShare intent carrying the
-        // public Send link; present the system share sheet over it.
+        // `NavigateToShare` intents carry text, e.g. a Send's public link.
         core.setShareHandler { text in
             ExternalActions.presentShareSheet(text)
         }
@@ -61,8 +59,6 @@ final class ExternalActions {
                 ExternalActions.presentShareItems([url])
             }
         }
-        // The KeePass account detail's "open local vault" action: reveal the
-        // database file natively (Finder selection; the Files app on iOS).
         core.setRevealFileHandler { uriString in
             Task { @MainActor in
                 #if os(macOS)
@@ -79,8 +75,7 @@ final class ExternalActions {
                 #endif
             }
         }
-        // "Minimize after copying": fires after any clipboard copy made while
-        // the preference is enabled; which window to miniaturize is decided here.
+        // Fires after any clipboard copy while "Minimize after copying" is enabled.
         minimizeOnCopySubscription = BridgeObservation(
             core.observeMinimizeOnCopy {
                 Task { @MainActor in

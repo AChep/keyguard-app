@@ -35,8 +35,6 @@ struct TotpBadgeView: View {
         }
     }
 
-    // The code split into groups of code points; a small dot separates the groups
-    // and each group rolls (.numericText) when the rotated code changes.
     private var codeContent: some View {
         HStack(spacing: 0) {
             if totp.groups.isEmpty {

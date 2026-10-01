@@ -28,12 +28,10 @@ final class EmailRelayModel {
         try await core.saveEmailRelay(id: id, type: type, name: name, values: values)
     }
 
-    /// Duplicates an existing forwarder under a new id.
     func duplicateEmailRelay(id: String) {
         notifications.perform { try await self.core.duplicateEmailRelay(id: id) }
     }
 
-    /// Deletes the forwarders with the given entity ids.
     func deleteEmailRelays(ids: [String]) {
         notifications.perform { try await self.core.deleteEmailRelays(ids: ids) }
     }

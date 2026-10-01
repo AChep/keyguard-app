@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Native empty-list styling shared by Send and the vault list surfaces.
 struct ListEmptyState: View {
     let title: String
     let systemImage: String

@@ -3,9 +3,7 @@ import KeyguardShared
 
 struct SubscriptionsSettingsView: View {
     @Environment(SubscriptionsModel.self) private var subscriptionsModel
-    /// Navigation title. Supplied by the settings sub-route (its category title);
-    /// defaults to the subscriptions header when pushed from the vault-list paywall
-    /// CTA via the navigation stack.
+    /// The settings sub-route passes its category title; the paywall push uses the default.
     var title: String = L10n.settingsSubscriptionsHeaderTitle
 
     private var s: SubscriptionsSnapshot { subscriptionsModel.subscriptions }

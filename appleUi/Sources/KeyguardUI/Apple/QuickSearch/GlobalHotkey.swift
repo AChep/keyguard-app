@@ -4,9 +4,7 @@ import Carbon.HIToolbox
 
 /// A minimal zero-dependency wrapper around Carbon `RegisterEventHotKey`, the
 /// sandbox-/App-Store-safe way to register a system-wide hotkey that needs **no
-/// Accessibility permission**. Used for the Quick Search overlay (default
-/// ⌘⇧Space). One instance == one registered hotkey; call `invalidate()` to
-/// unregister explicitly.
+/// Accessibility permission**.
 // Carbon delivers hot-key events on the main run loop and registration/teardown must
 // happen there too, so the whole wrapper — including the shared registry — lives on
 // the main actor.

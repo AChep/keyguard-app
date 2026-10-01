@@ -140,7 +140,6 @@ private struct LeakBreachListRow: Identifiable {
     }
 }
 
-/// One breached service row.
 private struct LeakBreachRow: View {
     let breach: LeakBreachSnapshot
     let description: AttributedString?
@@ -221,8 +220,7 @@ private enum LeakStableID {
     }
 }
 
-/// A single data-class chip (e.g. "Email addresses", "Passwords"), matching the
-/// Compose `FlatTextFieldBadge` info-container look.
+/// A breach data-class chip, e.g. "Email addresses".
 struct LeakChip: View {
     let text: String
 
@@ -235,9 +233,6 @@ struct LeakChip: View {
     }
 }
 
-/// The warning / all-clear note shown above the breach list (and as the failure /
-/// no-breaches state), and the informational note of other screens. Mirrors the
-/// Compose `FlatSimpleNote`.
 struct LeakNote: View {
     enum Kind { case warning, ok, info }
 
@@ -284,9 +279,7 @@ struct LeakNote: View {
     }
 }
 
-/// Renders the precomputed HIBP breach description. The source arrives as a small
-/// HTML fragment (paragraph text with the occasional `<a>` link); conversion is
-/// cached by the owning list so this view remains a cheap Text wrapper.
+/// The owning list converts and caches the HIBP HTML fragment, so this stays a cheap `Text` wrapper.
 struct LeakHTMLText: View {
     let attributed: AttributedString
 
@@ -400,8 +393,6 @@ private final class LeakHTMLAttributedStringCache: @unchecked Sendable {
     }
 }
 
-/// The skeleton placeholder while a breach producer is still loading. Mirrors the
-/// Compose `ContentSkeleton` (a single flat item with two shimmer lines).
 struct LeakLoadingSkeleton: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -419,9 +410,6 @@ struct LeakLoadingSkeleton: View {
     }
 }
 
-/// The "Powered by haveibeenpwned.com" footnote shown at the bottom of every breach
-/// dialog. The snapshot carries the (markdown-link) string; render it as a quiet
-/// footnote with the link rendered inline.
 struct LeakPoweredByFooter: View {
     let text: String
 

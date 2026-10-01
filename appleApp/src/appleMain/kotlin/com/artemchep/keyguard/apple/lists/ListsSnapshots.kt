@@ -1,10 +1,8 @@
 package com.artemchep.keyguard.apple.lists
 
-import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.apple.model.VaultActionSnapshot
-import com.artemchep.keyguard.res.*
 
 /** One entry of the system AutoFill (QuickType) index. */
 data class AutofillIdentitySnapshot(
@@ -15,7 +13,6 @@ data class AutofillIdentitySnapshot(
     val accountId: String,
 )
 
-/** A resolved AutoFill credential (the appex fills these). */
 data class AutofillCredentialSnapshot(
     val user: String,
     val password: String,
@@ -65,21 +62,15 @@ data class PasskeyRegistrationSnapshot(
     val identity: PasskeyIdentitySnapshot,
 )
 
-// ---------------------------------------------------------------------------
-// SSH agent snapshots.
-// ---------------------------------------------------------------------------
-
 enum class SshAgentHistoryItemKind {
     SECTION,
     VALUE,
 }
 
 /**
- * One row of the SSH agent signing history. For SECTION headers only [caller]
- * (the date label) is set. For VALUE rows [caller] is the requesting client,
- * [description] the request details line, and [response] the uppercase name of
- * the response category (e.g. APPROVED / DENIED) the SwiftUI layer maps to an
- * icon.
+ * For SECTION headers only [caller] (the date label) is set. For VALUE rows [caller] is the requesting client,
+ * [description] the request details line, and [response] the uppercase
+ * [com.artemchep.keyguard.common.model.SshUsageHistoryResponseType] name (e.g. SUCCESS / USER_DENIED).
  */
 data class SshAgentHistoryItemSnapshot(
     val id: String,
@@ -91,7 +82,6 @@ data class SshAgentHistoryItemSnapshot(
     val response: String?,
 )
 
-/** A flat projection of the SSH agent history. Built by [KeyguardCore.observeSshAgentHistory]. */
 data class SshAgentHistorySnapshot(
     val loaded: Boolean,
     val subtitle: String?,
@@ -102,17 +92,9 @@ data class SshAgentHistorySnapshot(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Password history snapshots.
-// ---------------------------------------------------------------------------
-
 /**
- * One previous password of a cipher. [date] is the localized change time (nullable).
- * [actions] are the row's own dropdown actions (copy password / remove from history /
- * show in large type / show-and-lock / check data breaches) the shared producer
- * attaches to the entry; each id routes back through
- * [KeyguardCore.invokePasswordHistoryItemAction]. [selected] / [selecting] mirror
- * the producer's per-item multi-selection handle.
+ * [date] is the localized change time. Each [actions] id routes back through
+ * [KeyguardCore.invokePasswordHistoryItemAction].
  */
 data class PasswordHistoryItemSnapshot(
     val id: String,
@@ -125,12 +107,8 @@ data class PasswordHistoryItemSnapshot(
 )
 
 /**
- * A flat projection of a single cipher's password history. Built by
- * [KeyguardCore.observePasswordHistory]; [notFound] is true when the cipher id
- * no longer resolves. [selectionCount] / [selectionActions] mirror the active
- * multi-selection (the bulk Delete action). [actions] are the screen's top-level
- * overflow actions (the "Clear history" action); each id routes back through
- * [KeyguardCore.invokePasswordHistoryAction].
+ * [notFound] is true when the cipher id no longer resolves. [actions] are the screen's top-level overflow
+ * actions; each id routes back through [KeyguardCore.invokePasswordHistoryAction].
  */
 data class PasswordHistorySnapshot(
     val loaded: Boolean,
@@ -152,11 +130,6 @@ data class PasswordHistorySnapshot(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Open-source licenses snapshots.
-// ---------------------------------------------------------------------------
-
-/** One dependency in the open-source licenses list. */
 data class LicenseItemSnapshot(
     val id: String,
     val name: String,
@@ -165,7 +138,6 @@ data class LicenseItemSnapshot(
     val url: String?,
 )
 
-/** A flat projection of the open-source licenses list. Built by [KeyguardCore.observeLicense]. */
 data class LicenseListSnapshot(
     val loaded: Boolean,
     val items: List<LicenseItemSnapshot>,
@@ -175,18 +147,13 @@ data class LicenseListSnapshot(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Localization contributors snapshots.
-// ---------------------------------------------------------------------------
-
-/** One contributor in the localization contributors list. [score] is the translated-strings count. */
+/** [score] is the translated-strings count. */
 data class LocalizationContributorItemSnapshot(
     val id: String,
     val name: String,
     val score: Int,
 )
 
-/** A flat projection of the localization contributors. Built by [KeyguardCore.observeLocalizationContributors]. */
 data class LocalizationContributorsSnapshot(
     val loaded: Boolean,
     val items: List<LocalizationContributorItemSnapshot>,
@@ -196,19 +163,14 @@ data class LocalizationContributorsSnapshot(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Logs snapshots.
-// ---------------------------------------------------------------------------
-
 enum class LogsItemKind {
     SECTION,
     VALUE,
 }
 
 /**
- * One row of the in-memory logs. For SECTION headers only [text] is set; for
- * VALUE rows [level] is the uppercase [com.artemchep.keyguard.common.service.logging.LogLevel]
- * name and [time] the formatted timestamp.
+ * For SECTION headers only [text] is set; for VALUE rows [level] is the uppercase [LogLevel] name and [time]
+ * the formatted timestamp.
  */
 data class LogsItemSnapshot(
     val id: String,
@@ -218,7 +180,6 @@ data class LogsItemSnapshot(
     val time: String?,
 )
 
-/** A flat projection of the in-memory logs. Built by [KeyguardCore.observeLogs]. */
 data class LogsSnapshot(
     val loaded: Boolean,
     val items: List<LogsItemSnapshot>,
@@ -228,17 +189,10 @@ data class LogsSnapshot(
     }
 }
 
-// ---------------------------------------------------------------------------
-// URL block / URL override snapshots (shared shape).
-// ---------------------------------------------------------------------------
-
 /**
- * One row of a URL rule list. For blocked URLs [subtitle] is the matched URI and
- * [detail] the block mode; for URL overrides [subtitle] is the regex and [detail]
- * the command. [actions] are the per-row dropdown actions (edit / duplicate /
- * delete) the shared producer attaches to the row; each id routes back through
+ * For blocked URLs [subtitle] is the matched URI and [detail] the block mode; for URL overrides [subtitle] is
+ * the regex and [detail] the command. Each [actions] id routes back through
  * [KeyguardCore.invokeUrlBlockListItemAction] / [KeyguardCore.invokeUrlOverrideListItemAction].
- * [selected] / [selecting] mirror the producer's per-item multi-selection handle.
  */
 data class UrlRuleItemSnapshot(
     val id: String,
@@ -252,12 +206,8 @@ data class UrlRuleItemSnapshot(
 )
 
 /**
- * A flat projection of a URL rule list (blocked URLs or URL overrides). Built by
- * [KeyguardCore.observeUrlBlockList] / [KeyguardCore.observeUrlOverrideList].
- * [hasPrimaryAction] is true when the producer offers a create-new ("+") action;
- * the SwiftUI screen surfaces it via [KeyguardCore.invokeUrlBlockListPrimaryAction]
- * / [KeyguardCore.invokeUrlOverrideListPrimaryAction]. [selectionCount] /
- * [selectionActions] mirror the active multi-selection (the bulk Delete action).
+ * [hasPrimaryAction] is true when the producer offers a create-new ("+") action, run via
+ * [KeyguardCore.invokeUrlBlockListPrimaryAction] / [KeyguardCore.invokeUrlOverrideListPrimaryAction].
  */
 data class UrlRuleListSnapshot(
     val loaded: Boolean,
@@ -276,7 +226,3 @@ data class UrlRuleListSnapshot(
         )
     }
 }
-
-// ---------------------------------------------------------------------------
-// Watchtower alerts snapshots.
-// ---------------------------------------------------------------------------

@@ -20,12 +20,8 @@ struct SettingsView: View {
     private var items: [SettingsItemSnapshot] { settingsModel.settings.items }
     private var accounts: [AccountListItemSnapshot] { accountsModel.accountList.items }
 
-    /// `true` while the shared account-list producer reports an active multi-selection
-    /// (bulk Sync / Sign-out). Mirrors the Desktop/Android account multi-select mode.
     private var selectingAccounts: Bool { accountsModel.accountList.selectionCount >= 1 }
 
-    /// Forwards an account-list selection action (per-row toggle / bulk sync /
-    /// select-all / sign-out / clear) to the shared producer through the bridge.
     private func invokeAccountListAction(_ id: String) {
         accountsModel.invokeAccountListAction(id: id)
     }
@@ -248,8 +244,6 @@ struct SettingsView: View {
                 Section(L10n.accounts) {
                     ForEach(accounts, id: \.id) { account in
                         Button {
-                            // While selecting, a tap toggles membership through the
-                            // shared producer; otherwise it pushes the detail.
                             if account.selecting {
                                 toggleAccount(account)
                             } else {
@@ -279,9 +273,6 @@ struct SettingsView: View {
                     }
                 }
             }
-            // Real grouped-list sections keyed off the catalog's `.section` markers,
-            // so each settings group renders as a native section header rather than a
-            // styled text row in the flat list.
             ForEach(SettingsView.groupedSettings(items)) { group in
                 Section {
                     ForEach(group.items, id: \.id) { item in
@@ -313,7 +304,6 @@ struct SettingsView: View {
         .contentShape(Rectangle())
     }
 
-    /// Toggles the account's selection membership through the shared producer.
     private func toggleAccount(_ account: AccountListItemSnapshot) {
         if let actionId = account.toggleActionId {
             accountsModel.invokeAccountListAction(id: actionId)
@@ -358,10 +348,7 @@ struct SettingsSidebar: View {
     let accounts: [AccountListItemSnapshot]
     let items: [SettingsItemSnapshot]
     @Binding var selection: String?
-    /// `true` while an account multi-selection is active; account rows then toggle
-    /// membership on tap instead of driving the navigation `selection` tag.
     var selecting: Bool = false
-    /// Forwards an account-list selection action (toggle / bulk) to the producer.
     var invokeAccountListAction: (String) -> Void = { _ in }
 
     private var groups: [SnapshotListSection<SettingsItemSnapshot>] { SettingsView.groupedSettings(items) }
@@ -376,8 +363,6 @@ struct SettingsSidebar: View {
 
     var body: some View {
         List(selection: $selection) {
-            // Accounts as a real source-list section so SwiftUI renders the native
-            // header treatment instead of a pseudo-header text row.
             if !accounts.isEmpty {
                 Section(L10n.accounts) {
                     ForEach(accounts, id: \.id) { account in
@@ -385,8 +370,6 @@ struct SettingsSidebar: View {
                     }
                 }
             }
-            // The macOS-only "General" category sits in the leading, header-less
-            // section alongside any catalog actions that precede a `.section` marker.
             #if os(macOS)
             Section {
                 SettingsCategoryLabel(title: L10n.settingsGeneralHeaderTitle, id: SettingsView.generalTag)
@@ -460,32 +443,20 @@ struct SettingsSidebar: View {
         }
     }
 
-    /// Toggles the account's selection membership through the shared producer.
     private func toggle(_ account: AccountListItemSnapshot) {
         if let actionId = account.toggleActionId {
             invokeAccountListAction(actionId)
         }
     }
 
-    /// Renders a single selectable category row. Section grouping is now handled by
-    /// `body` via real `Section`s, so only `.action` items reach here; a `.section`
-    /// item (should one slip through) falls back to a quiet pseudo-header.
-    @ViewBuilder
     private func row(_ item: SettingsItemSnapshot) -> some View {
-        if item.kind == SettingsItemKind.section {
-            Text(item.title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-        } else {
-            SettingsCategoryLabel(title: item.title, id: item.id)
-                .tag(item.id)
-        }
+        SettingsCategoryLabel(title: item.title, id: item.id)
+            .tag(item.id)
     }
 }
 
-/// Maps a settings category's stable id to an SF Symbol. The shared snapshot
-/// intentionally drops the Compose `ImageVector` icons (they don't translate to
-/// SF Symbols), so the macOS-appropriate glyph is chosen here by id.
+/// The shared snapshot intentionally drops the Compose `ImageVector` icons (they don't
+/// translate to SF Symbols), so the glyph is chosen here by category id.
 enum SettingsIcon {
     static func symbol(for id: String) -> String {
         switch id {
@@ -542,7 +513,6 @@ struct AccountSelectionBar: View {
                 .buttonStyle(.plain)
                 .help(L10n.selectionClearAction)
                 .accessibilityLabel(L10n.selectionClearAction)
-                // Esc clears the selection on macOS, matching the native cancel idiom.
                 #if os(macOS)
                 .keyboardShortcut(.cancelAction)
                 #endif
@@ -565,7 +535,6 @@ struct AccountSelectionBar: View {
                 .buttonStyle(.plain)
                 .help(L10n.selectionSelectAllAction)
                 .accessibilityLabel(L10n.selectionSelectAllAction)
-                // Cmd-A selects all on macOS, the standard select-all shortcut.
                 #if os(macOS)
                 .keyboardShortcut("a", modifiers: .command)
                 #endif

@@ -57,7 +57,6 @@ import org.koin.core.scope.Scope
 
 private val HIBP_API_TOKEN_REGEX = Regex("^[0-9a-fA-F]{32}$")
 
-/** Watchtower dashboard, alerts, and settings projected from shared producers. */
 internal class WatchtowerController(
     private val ctx: CoreContext,
     private val args: WatchtowerRoute.Args = WatchtowerRoute.Args(),
@@ -79,9 +78,6 @@ internal class WatchtowerController(
     private var latestWatchtowerState: WatchtowerState? = null
     private var watchtowerFilterHandlers: Map<String, () -> Unit> = emptyMap()
 
-    // Per-alert "open the affected cipher" closures (keyed by the alert id) and
-    // the "mark all as read" closure, captured from the latest alerts state so
-    // their taps route through the bound nav interceptor.
     private var watchtowerAlertItemHandlers: Map<String, () -> Unit> = emptyMap()
     private var watchtowerMarkAllReadHandler: (() -> Unit)? = null
 
@@ -140,13 +136,10 @@ internal class WatchtowerController(
             // producer is cold, so fan out from one StateFlow.
             val latest = producerFlow.stateIn<WatchtowerState?>(this, SharingStarted.Eagerly, null)
 
-            // The live counters live behind inner StateFlows in
-            // the state's Content that the top-level state does NOT
-            // re-emit for, so combine them in: any counter tick
-            // re-runs the builder and pushes a fresh snapshot. Key the
-            // inner subscription on the stable Content instance:
-            // resubscribing per top-level emission would cancel and
-            // restart every counter pipeline (duplicates scan included).
+            // The live counters live behind inner StateFlows in the state's Content that the top-level state
+            // does NOT re-emit for, so combine them in. Key the inner subscription on the stable Content
+            // instance: resubscribing per top-level emission would cancel and restart every counter pipeline
+            // (duplicates scan included).
             val innerTickFlow = latest
                 .filterNotNull()
                 .map { wt -> wt.content.getOrNull() }
@@ -205,12 +198,12 @@ internal class WatchtowerController(
         actionHandlers: LinkedHashMap<String, () -> Unit>,
         filterHandlers: LinkedHashMap<String, () -> Unit>,
     ): WatchtowerSnapshot {
-        // Filter tree (same shape as the vault list filters).
+        // Filter tree.
         val filters = mapFilterItemsToSnapshots(state.filter.items, filterHandlers)
         val canClearFilters = state.filter.onClear != null
         val activeFilterCount = filters.count { it.kind == VaultFilterItemKind.ITEM && it.checked }
 
-        // Toolbar directory shortcuts (2FA / passkeys / just-get-my-data / etc.).
+        // Toolbar directory shortcuts.
         val optionKeys = ActionKeyAllocator("option")
         val options = ArrayList<WatchtowerOptionSnapshot>()
         state.actions.forEach { ci ->
@@ -521,23 +514,20 @@ internal class WatchtowerController(
         )
     }
 
-    /** Invokes a watchtower navigation closure by its fixed snapshot id. */
     fun invokeWatchtowerAction(id: String) {
         watchtowerActionHandlers.invokeAction(id)
     }
 
-    /** Toggles a watchtower filter on / off (or expands / collapses a section). */
     fun invokeWatchtowerFilter(id: String) {
         watchtowerFilterHandlers[id]?.invoke()
     }
 
-    /** Clears every active watchtower filter. No-op unless any filter is set. */
     fun clearWatchtowerFilters() {
         latestWatchtowerState?.filter?.onClear?.invoke()
     }
 
     fun observeWatchtowerNewAlerts(
-        alertArgs: WatchtowerAlertsRoute.Args = WatchtowerAlertsRoute.Args(),
+        alertArgs: WatchtowerAlertsRoute.Args,
         onChange: (WatchtowerAlertsSnapshot) -> Unit,
     ): KeyguardCancellable {
         val leContext = ctx.koin.get<LeContext>()
@@ -605,9 +595,7 @@ internal class WatchtowerController(
                 )
 
                 is WatchtowerNewAlertsState.Item.Alert -> {
-                    // The cipher row carries the "open the affected item" closure
-                    // as its Go action; capture it so the row tap routes through
-                    // the bound nav interceptor (NavigateToRoute(VaultViewRoute)).
+                    // The cipher row carries the "open the affected item" closure as its Go action.
                     val onClick = (item.item.action as? VaultItem2.Item.Action.Go)?.onClick
                     onClick?.let { itemHandlers[item.id] = it }
                     WatchtowerAlertItemSnapshot(
@@ -629,7 +617,6 @@ internal class WatchtowerController(
         )
     }
 
-    /** Opens the cipher affected by a watchtower alert by its alert id. */
     fun invokeWatchtowerAlertItem(id: String) {
         watchtowerAlertItemHandlers[id]?.invoke()
     }
@@ -692,10 +679,7 @@ internal class WatchtowerController(
         }
     }
 
-    /**
-     * Emits the HIBP token paired with its verification state ("checking" ->
-     * "verified" / "rejected" / "failed", or null when blank).
-     */
+    /** Emits the token paired with its [WatchtowerSettingsSnapshot.hibpCheckState]; "checking" comes first. */
     private fun hibpCheckStateFlow(
         token: String?,
         checkHibpApiToken: CheckHibpApiToken,
@@ -737,10 +721,6 @@ internal class WatchtowerController(
         putCheckPasskeys(value).launchIn(ctx.scope)
     }
 
-    /**
-     * Persists the HIBP API token. A blank token clears it; otherwise it must be
-     * 32 hex characters. Invalid input is ignored (Swift validates first).
-     */
     fun setHibpApiToken(token: String) {
         val put = watchtowerPutHibpApiToken ?: return
         val normalized = token.trim()
@@ -753,7 +733,6 @@ internal class WatchtowerController(
         }
     }
 
-    /** True if [token] is blank (clears the token) or a valid 32-hex-char token. */
     fun isValidHibpApiToken(token: String): Boolean {
         val normalized = token.trim()
         return normalized.isEmpty() || HIBP_API_TOKEN_REGEX.matches(normalized)

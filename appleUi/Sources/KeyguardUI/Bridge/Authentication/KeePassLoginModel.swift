@@ -11,21 +11,16 @@ final class KeePassLoginModel: SnapshotObserving {
         self.core = core
     }
 
-    /// Current KeePass login state.
     private(set) var keepass: KeePassLoginSnapshot = KeePassLoginSnapshot.companion.empty
 
-    /// Flips to `true` once the shared producer reports the account was added,
-    /// so the KeePass login view can dismiss itself.
     private(set) var keepassDidSucceed = false
 
-    /// WebDAV sub-form state for the KeePass add-account flow.
     private(set) var keepassWebDav: WebDavSettingsSnapshot?
 
     @ObservationIgnored private var keepassLoginSubscription: BridgeObservation?
 
-    /// Starts running the shared KeePass add-account producer. Call when the
-    /// KeePass login screen appears; balance with `stopKeePassLoginObservation()`
-    /// on disappear.
+    /// Call when the KeePass login screen appears; balance with
+    /// `stopKeePassLoginObservation()`.
     func startKeePassLoginObservation() {
         startObservation(\.keepassLoginSubscription) { deliver in
             BridgeObservation(
@@ -50,13 +45,11 @@ final class KeePassLoginModel: SnapshotObserving {
         keepassWebDav = nil
     }
 
-    /// Selects a KeePass mode tab ("open" / "new"); the shared producer then
-    /// launches the matching file picker (see `presentKeePassFilePicker`).
+    /// Selecting a tab makes the shared producer launch the matching file picker.
     func selectKeePassTab(key: String) {
         core.selectKeePassTab(key: key)
     }
 
-    /// Selects the database location ("local" / "webdav") by its snapshot key.
     /// Selecting WebDAV surfaces the settings sheet through `keepassWebDav`.
     func selectKeePassLocation(key: String) {
         core.selectKeePassLocation(key: key)
@@ -71,7 +64,6 @@ final class KeePassLoginModel: SnapshotObserving {
         core.clearKeePassDbFile()
     }
 
-    /// Picks the optional key file.
     func pickKeePassKeyFile() {
         core.pickKeePassKeyFile()
     }
@@ -80,17 +72,15 @@ final class KeePassLoginModel: SnapshotObserving {
         core.clearKeePassKeyFile()
     }
 
-    /// Forwards typed text into the shared KeePass master-password field.
     func setKeePassPassword(text: String) {
         core.setKeePassPassword(text: text)
     }
 
-    /// Submits the KeePass add-account form held by the shared producer.
     func submitKeePassLogin() {
         core.submitKeePassLogin()
     }
 
-    /// Forwards typed text into a WebDAV settings field: "url" / "username" / "password".
+    /// `id` is "url", "username" or "password".
     func setWebDavField(id: String, text: String) {
         core.setWebDavField(id: id, text: text)
     }
@@ -106,7 +96,6 @@ final class KeePassLoginModel: SnapshotObserving {
         core.testWebDavConnection()
     }
 
-    /// Dismisses the WebDAV settings sheet without saving.
     func dismissWebDavSettings() {
         keepassWebDav = nil
         core.cancelWebDavSettings()

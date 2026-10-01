@@ -5,14 +5,12 @@ import Security
 import KeyguardShared
 
 /// Keychain Services (`SecItem*`) implementation of the shared `KeychainBridge`.
-/// Generic-password items keyed by account. Both the app and the AutoFill extension
-/// compile this file; the service id is a **fixed shared constant** (not the
-/// per-target bundle id) so a generic-password item written by the app is found by
-/// the appex — the service attribute is part of the item's primary key, so the two
-/// processes must agree on it for the shared biometric-unlock key to resolve.
+/// Both the app and the AutoFill extension compile this file.
 final class SecItemKeychainBridge: KeychainBridge {
     /// Shared across app + appex; deliberately not `Bundle.main.bundleIdentifier`,
-    /// which differs between the two targets.
+    /// which differs between the two targets. The service attribute is part of the
+    /// item's primary key, so the two processes must agree on it for the shared
+    /// biometric-unlock key to resolve.
     private let service = "com.artemchep.keyguard.shared"
     /// nil → the keychain item uses the first `keychain-access-groups` entry from
     /// the entitlements automatically. Both targets list the shared group, so once
@@ -231,8 +229,7 @@ final class SecItemKeychainBridge: KeychainBridge {
     }
 }
 
-/// Pushes the keychain bridge into the shared registry. Call at startup before
-/// any secret is read or written.
+/// Call at startup, before any secret is read or written.
 func installKeychainBridge() {
     KeychainBridgeKt.registerKeychainBridge(bridge: SecItemKeychainBridge())
 }

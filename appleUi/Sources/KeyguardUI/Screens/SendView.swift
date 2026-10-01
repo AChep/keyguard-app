@@ -6,9 +6,7 @@ struct SendView: View {
     @Environment(NavigationModel.self) private var navigationModel
     @Environment(SendModel.self) private var sendModel
     @State private var showingAddItem = false
-    /// The list's multi-selection, kept in lockstep with the shared producer's
-    /// selection handle. Send publishes no per-item `selected` flag, so the
-    /// reconcile is the count-only variant.
+    /// Send publishes no per-item `selected` flag, so the reconcile is the count-only variant.
     @State private var selection = ListSelectionModel()
 
     #if os(macOS)
@@ -16,18 +14,13 @@ struct SendView: View {
     #endif
 
     #if os(iOS)
-    /// Drives the iPhone (compact) vs iPad (regular) layout split: compact gets a
-    /// `NavigationStack` (so the search bar collapses under the title and reveals on
-    /// swipe-down), regular keeps the two-column `NavigationSplitView`.
+    /// Compact width gets a `NavigationStack` so the search bar collapses under the title
+    /// and reveals on swipe-down; regular width keeps the two-column `NavigationSplitView`.
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    /// iPad single selection that drives the side-pane detail column. On iPhone the
-    /// detail is a shared-nav-stack entry instead (see `openDetail`), so this is only
-    /// read on iPad (regular width).
+    /// iPad only: on iPhone the detail is a shared nav-stack entry instead (see `openDetail`).
     @State private var selectedDetailId: String?
     @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
 
-    /// Opens a Send item: on iPhone (compact) it pushes a Send-detail entry onto the
-    /// shared Kotlin nav stack; on iPad (regular) it selects the side-pane detail.
     private func openDetail(_ item: SendListItemSnapshot) {
         if horizontalSizeClass == .compact {
             guard let secretId = item.secretId, let accountId = item.accountId else { return }
@@ -146,7 +139,6 @@ struct SendView: View {
             sendModel.dropFileOnSendList(url: url)
             return true
         }
-        // Floating bulk-action bar, shown once two or more Sends are selected.
         .selectionBar(
             count: snapshot.selectionCount,
             visible: snapshot.selectionCount >= 2,
@@ -171,22 +163,6 @@ struct SendView: View {
         .scrollsToTop(onChangeOf: snapshot.itemsRevision, topId: sections.first?.items.first?.id)
     }
 
-    /// Observes the detail of the single selected Send, or stops when the selection
-    /// is empty or holds more than one Send. macOS-only.
-    private func updateDetailObservation() {
-        let items = selectedItemRows
-        if items.count == 1,
-            let item = items.first,
-            let secretId = item.secretId,
-            let accountId = item.accountId
-        {
-            sendModel.startSendDetailObservation(itemId: secretId, accountId: accountId)
-        } else {
-            sendModel.stopSendDetailObservation()
-        }
-    }
-
-    /// The detail pane is shown only for a single selected Send.
     private var isItemSelected: Bool {
         selectedItemRows.count == 1
     }
@@ -204,8 +180,6 @@ struct SendView: View {
         }
     }
 
-    /// iPad (regular width): the two-column master-detail split, search in the
-    /// sidebar column. Unchanged from the original iOS body.
     private var splitBody: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             sidebarColumn
@@ -422,16 +396,13 @@ struct SendView: View {
         }
     }
 
-    /// The currently selected rows that are real Sends (ignoring any stale ids the
-    /// producer pruned out of the visible list).
+    /// Ignores stale ids the producer pruned out of the visible list.
     private var selectedItemRows: [SendListItemSnapshot] {
         snapshot.items.filter {
             $0.kind == VaultListItemKind.item && selection.selectedRowIds.contains($0.id)
         }
     }
 
-    /// Forwards the list's selection delta to the shared producer. The detail pane
-    /// observation is derived separately from the current selection and item list.
     private func syncSelection(_ newValue: Set<String>) {
         selection.sync(
             newValue,

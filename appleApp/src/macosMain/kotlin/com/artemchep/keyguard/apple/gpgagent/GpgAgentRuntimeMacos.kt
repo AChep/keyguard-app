@@ -42,7 +42,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.sync.Semaphore
 import platform.Foundation.NSBundle
-import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSPipe
 import platform.Foundation.NSTask
 import platform.Foundation.NSURL
@@ -68,7 +67,6 @@ import platform.posix.accept
 import platform.posix.bind
 import platform.posix.chmod
 import platform.posix.close
-import platform.posix.connect
 import platform.posix.errno
 import platform.posix.fcntl
 import platform.posix.geteuid
@@ -84,7 +82,6 @@ import platform.posix.setsockopt
 import platform.posix.sockaddr
 import platform.posix.socket
 import platform.posix.stat
-import platform.posix.symlink
 import platform.posix.unlink
 import platform.posix.write
 

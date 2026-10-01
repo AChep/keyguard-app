@@ -3,13 +3,11 @@ import KeyguardShared
 
 struct WatchtowerAlertsView: View {
     @Environment(NavigationModel.self) private var navigationModel
-    @Environment(WatchtowerModel.self) private var watchtowerModel
+    let entry: ScreenEntrySnapshot
 
-    /// When non-nil this view renders a navigation-stack entry's inline snapshot
-    /// instead of the single-slot observation, and skips owning the observation.
-    var entry: ScreenEntrySnapshot? = nil
-
-    private var snapshot: WatchtowerAlertsSnapshot { entry?.watchtowerAlerts ?? watchtowerModel.watchtowerAlerts }
+    private var snapshot: WatchtowerAlertsSnapshot {
+        entry.watchtowerAlerts ?? WatchtowerAlertsSnapshot.companion.empty
+    }
 
     var body: some View {
         SnapshotContent(loaded: snapshot.loaded, isEmpty: snapshot.items.isEmpty) {
@@ -23,11 +21,6 @@ struct WatchtowerAlertsView: View {
         }
         .navigationTitle(L10n.watchtowerAlertsNewTitle)
         .toolbar { markAllToolbar }
-        .observing(
-            enabled: entry == nil,
-            start: { watchtowerModel.startWatchtowerAlertsObservation() },
-            stop: { watchtowerModel.stopWatchtowerAlertsObservation() }
-        )
     }
 
     private var list: some View {
@@ -43,11 +36,7 @@ struct WatchtowerAlertsView: View {
                     ForEach(section.items, id: \.id) { item in
                         if item.canClick {
                             Button {
-                                if let entry {
-                                    navigationModel.invokeEntryAction(instanceId: entry.instanceId, actionId: item.id)
-                                } else {
-                                    watchtowerModel.invokeWatchtowerAlertItem(id: item.id)
-                                }
+                                navigationModel.invokeEntryAction(instanceId: entry.instanceId, actionId: item.id)
                             } label: {
                                 HStack {
                                     row(item)
@@ -70,18 +59,13 @@ struct WatchtowerAlertsView: View {
         }
     }
 
-    /// "Mark all as read" lives in the toolbar; the shared producer marks every
-    /// alert read and pops this list. Hidden when there are no alerts.
+    /// The shared producer marks every alert read and pops this list.
     @ToolbarContentBuilder
     private var markAllToolbar: some ToolbarContent {
         if snapshot.canMarkAllRead {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    if let entry {
-                        navigationModel.invokeEntryAction(instanceId: entry.instanceId, actionId: "markAllRead")
-                    } else {
-                        watchtowerModel.markAllWatchtowerAlertsRead()
-                    }
+                    navigationModel.invokeEntryAction(instanceId: entry.instanceId, actionId: "markAllRead")
                 } label: {
                     Label(L10n.watchtowerMarkAllAsReadTitle, systemImage: "checkmark.circle")
                 }

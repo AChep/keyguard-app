@@ -11,15 +11,11 @@ final class NavigationSettingsModel: SnapshotObserving {
         self.core = core
     }
 
-    /// The "Navigation items" settings screen state, produced by the shared
-    /// Kotlin producer running headless inside `KeyguardCore`. Only live while
-    /// that settings screen is on screen.
+    /// Only live while the "Navigation items" settings screen is on screen.
     private(set) var navItemsSettings: NavItemsSettingsSnapshot = NavItemsSettingsSnapshot.companion.empty
 
     @ObservationIgnored private var navItemsSettingsSubscription: BridgeObservation?
 
-    /// Observes the "Navigation items" settings screen state; only live while
-    /// that screen is on screen.
     func startNavItemsSettingsObservation() {
         startObservation(
             \.navItemsSettingsSubscription, into: \.navItemsSettings, observe: core.observeNavItemsSettings)

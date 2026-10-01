@@ -19,15 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 
-/**
- * The Apple-applicable AutoFill preferences: copy-TOTP-to-clipboard, save-
- * credential prompts (save request), save-URI-to-existing-item prompts, and
- * default URI matching.
- * Thin bridge over the shared Get/Put use cases (global preferences, so no
- * session is required); mirrors [DebugSettingsController]. The Android-only toggles
- * the common screen exposes (inline suggestions, manual selection, respect
- * autofill-off) and the Android credential-provider registration row are not surfaced.
- */
+/** Global preferences, so no session is required. */
 internal class AutofillSettingsController(
     private val getAutofillCopyTotp: GetAutofillCopyTotp,
     private val putAutofillCopyTotp: PutAutofillCopyTotp,

@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.apple.core
 
-import com.artemchep.keyguard.main
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -38,11 +37,9 @@ import org.koin.core.qualifier.named
 import platform.Foundation.NSUserDefaults
 
 /**
- * App-wide lifecycle: the startup wiring that runs for the whole process (sync
- * worker, favicon servers, vault-persist writer, inactivity auto-lock, locale
- * applier), the scene-phase mirror, the high-level vault status, and the
- * menu-bar "lock now". Its [init] is the macOS analogue of the desktop app's
- * `Main.kt` bootstrap; it runs when [KeyguardCore] constructs this controller.
+ * App-wide lifecycle: the process-wide startup wiring, the scene-phase mirror, the vault status and
+ * "lock now". Its [init], run when [KeyguardCore] constructs this controller in the main app, is the
+ * Apple analogue of the desktop app's `Main.kt` bootstrap.
  */
 internal class AppLifecycleController(
     private val ctx: CoreContext,
@@ -69,9 +66,8 @@ internal class AppLifecycleController(
     }
 
     private fun startAppWorkers() {
-        // Launch the shared sync worker. It tracks the vault session itself and
-        // only runs once unlocked, so no gating is needed here. This is the same
-        // entry point the desktop app uses; it runs on the background scope.
+        // The shared sync worker tracks the vault session itself and only runs once
+        // unlocked, so no gating is needed here (the same entry point as desktop).
         val appWorker = ctx.koin.get<AppWorker>(qualifier = named(AppWorker.Feature.SYNC))
         appWorker.launch(ctx.backgroundScope, lifecycleStateFlow)
 
@@ -100,7 +96,6 @@ internal class AppLifecycleController(
 
     private var watchtowerStarted = false
 
-    /** Called by the main app, never by the AutoFill extension sharing this core. */
     fun startWatchtower() {
         if (ctx.runtime != KeyguardRuntime.APP) return
         if (watchtowerStarted) return
@@ -113,7 +108,6 @@ internal class AppLifecycleController(
 
     private var backupSchedulerStarted = false
 
-    /** Called by the main app, never by the AutoFill extension sharing this core. */
     fun startAutomaticBackups() {
         if (ctx.runtime != KeyguardRuntime.APP) return
         if (backupSchedulerStarted) return
@@ -168,10 +162,6 @@ internal class AppLifecycleController(
         }
     }
 
-    /**
-     * Mirrors the SwiftUI app `scenePhase` into the lifecycle flow so the sync
-     * worker stays active in the foreground and pauses when backgrounded.
-     */
     fun setScenePhase(phase: KeyguardScenePhase) {
         if (phase == KeyguardScenePhase.BACKGROUND) refreshBiometricsOnActivation = true
         // A biometric sheet can itself make the scene inactive. Refresh only
@@ -198,10 +188,6 @@ internal class AppLifecycleController(
         }
     }
 
-    /**
-     * Observes the high-level vault status. The callback is invoked on the main
-     * thread every time the status changes.
-     */
     fun observeStatus(
         onChange: (KeyguardVaultStatus) -> Unit,
     ): KeyguardCancellable {
@@ -213,21 +199,13 @@ internal class AppLifecycleController(
         return KeyguardCancellable(job)
     }
 
-    /**
-     * Locks the vault (menu-bar "Lock now"). Calls the already-bound
-     * [ClearVaultSession]; after locking, [observeStatus] flips to LOCKED.
-     */
     fun lockVault() {
         val reason = TextHolder.Res(Res.string.lock_reason_manually)
         clearVaultSession(LockReason.LOCK, reason)
             .launchIn(ctx.scope)
     }
 
-    /**
-     * Queues a sync of every account (menu-bar "Sync vault"). Mirrors the vault
-     * list's `vaultList.sync` action; the sync worker reports progress through the
-     * observed sync status.
-     */
+    /** Queues a sync of every account; the sync worker reports progress through the observed sync status. */
     fun syncVault() {
         ctx.scope.launch {
             // Sync dependencies belong to the unlocked session, not the app DI.

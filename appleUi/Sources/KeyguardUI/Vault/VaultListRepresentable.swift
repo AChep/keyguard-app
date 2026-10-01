@@ -3,11 +3,9 @@ import SwiftUI
 /// The virtualizing vault list, resolved to the platform's native list bridge:
 /// `NSTableView` on macOS, `UICollectionView` on iOS.
 ///
-/// Every vault-list surface (the split-view pane, the stacked list, a custom
-/// filter tab, Duplicates) renders the same two representables behind the same
-/// `#if os(...)`, so the split lives here once. Representables aren't auto-extended
-/// under system bars like SwiftUI lists are. The viewport extends under chrome
-/// here; native scrolling insets keep the first and last rows reachable.
+/// Representables aren't auto-extended under system bars like SwiftUI lists are.
+/// The viewport extends under chrome here; native scrolling insets keep the first
+/// and last rows reachable.
 struct VaultListRepresentable: View {
     let model: any VaultRowListModel
     let selection: VaultSelectionModel

@@ -15,19 +15,12 @@ struct UrlRuleListView: View {
     private var snapshot: UrlRuleListSnapshot { model[keyPath: snapshotKeyPath] }
     let start: () -> Void
     let stop: () -> Void
-    /// Opens the producer's create-new form.
     let onNew: () -> Void
-    /// Runs a per-row dropdown action (edit / duplicate / delete) by its opaque id.
     let invokeItemAction: (String) -> Void
-    /// Runs a bulk action of the active multi-selection (Delete) by its opaque id.
     let invokeSelectionAction: (String) -> Void
-    /// Toggles whether the row with the given id is part of the multi-selection.
     let toggleSelection: (String) -> Void
-    /// Clears the active multi-selection.
     let clearSelection: () -> Void
 
-    /// The list's multi-selection, kept in lockstep with the shared producer's
-    /// selection handle.
     @State private var selection = ListSelectionModel()
     @State private var presentedRule: ListDetailSheetItem?
     @State private var pendingActionId: String?
@@ -148,8 +141,6 @@ struct UrlRuleListView: View {
         .accessibilityElement(children: .combine)
     }
 
-    /// A row's own dropdown actions (edit / duplicate / delete), or — while a
-    /// multi-selection is active — the bulk selection actions.
     @ViewBuilder
     private func rowContextMenu(_ item: UrlRuleItemSnapshot) -> some View {
         if showsBulkContextMenu {
@@ -174,7 +165,6 @@ struct UrlRuleListView: View {
         }
     }
 
-    /// The same per-row actions surfaced as trailing swipe buttons.
     @ViewBuilder
     private func rowSwipeActions(_ item: UrlRuleItemSnapshot) -> some View {
         if !editing {

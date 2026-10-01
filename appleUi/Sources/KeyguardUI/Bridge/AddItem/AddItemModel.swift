@@ -63,9 +63,8 @@ final class AddItemModel {
         core.setAddFieldText(id: id, text: text)
     }
 
-    /// Starts a fresh create-cipher form for the given `DSecret.Type` name
-    /// (`Login` / `SecureNote` / `Card` / `Identity` / `SshKey`). Call when the
-    /// create sheet appears; balance with `stopAddFormObservation()` on dismiss.
+    /// `type` is a `DSecret.Type` name (`Login` / `SecureNote` / `Card` / `Identity` /
+    /// `SshKey`). Call when the create sheet appears; balance with `stopAddFormObservation()`.
     func startAddCipherObservation(
         type: String,
         name: String? = nil,
@@ -85,9 +84,8 @@ final class AddItemModel {
         }
     }
 
-    /// Starts a fresh create-Send form for the given `DSend.Type` name
-    /// (`Text` / `File`). Call when the create sheet appears; balance with
-    /// `stopAddFormObservation()` on dismiss.
+    /// `type` is a `DSend.Type` name (`Text` / `File`). Call when the create sheet
+    /// appears; balance with `stopAddFormObservation()`.
     func startAddSendObservation(type: String) {
         startAddFormObservation { onChange, onClose in
             BridgeObservation(core.observeAddSend(type: type, onClose: onClose, onChange: onChange))
@@ -100,9 +98,8 @@ final class AddItemModel {
         }
     }
 
-    /// Starts the edit-Send form for a stashed request id (the Send detail "edit"
-    /// action). The shared `sendAddStateProducer` runs pre-filled from the stashed
-    /// `initialValue`; balance with `stopAddFormObservation()` on dismiss.
+    /// The shared producer runs pre-filled from the request's stashed `initialValue`;
+    /// balance with `stopAddFormObservation()`.
     func startEditSendObservation(requestId: String) {
         startAddFormObservation(requestId: requestId) { onChange, onClose in
             BridgeObservation(core.observeEditSend(requestId: requestId, onClose: onClose, onChange: onChange))
@@ -165,7 +162,6 @@ final class AddItemModel {
         core.setAddSwitch(id: id, value: value)
     }
 
-    /// Invokes a create-form action / option closure by its opaque snapshot id.
     func invokeAddAction(id: String) {
         core.invokeAddAction(id: id)
     }
@@ -186,13 +182,11 @@ final class AddItemModel {
         core.dropFileOnAddItem(itemId: itemId, uri: url.absoluteString, name: file.name, size: file.size)
     }
 
-    /// Submits the active create form (runs the shared `AddCipher` / `AddSend`).
     func submitAddItem() {
         core.submitAddItem()
     }
 
-    /// Opens the create-form ownership "Save to" account picker (fires the producer's
-    /// ownership onClick, which surfaces the `accountPicker` dialog).
+    /// Opens the create-form ownership "Save to" account picker (the `accountPicker` dialog).
     func invokeAddOwnership() {
         core.invokeAddOwnership()
     }

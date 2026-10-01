@@ -30,8 +30,8 @@ internal object SettingsSearchCatalog {
         val resolve: suspend (StringResource) -> String = {
             if (it == Res.string.unlock_biometric_title) biometricTitle else text(it)
         }
-        // Notifications is still a placeholder in the native apps, even when the
-        // development catalog exposes it. Search only offers usable destinations.
+        // Notifications is a placeholder in the native apps, even when the development
+        // catalog exposes it. Search only offers usable destinations.
         val availableCategories = categories.filter {
             it.kind == SettingsItemKind.ACTION && it.id != SettingsDestination.NOTIFICATIONS.id
         }.toMutableList()

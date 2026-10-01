@@ -8,10 +8,7 @@ import com.artemchep.keyguard.URL_MAC_APP_STORE_SUBSCRIPTIONS
 import com.artemchep.keyguard.URL_PRIVACY_POLICY
 import com.artemchep.keyguard.URL_REDDIT
 
-/**
- * Re-exports the shared URL constants to Swift, which can't see
- * the top-level declarations of `:common`.
- */
+/** Re-exports the shared URL constants to Swift, which can't see the top-level declarations of `:common`. */
 object KeyguardUrls {
     const val GITHUB = URL_GITHUB
     const val REDDIT = URL_REDDIT

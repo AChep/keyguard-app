@@ -13,9 +13,6 @@ import platform.UserNotifications.UNAuthorizationStatusNotDetermined
 import platform.UserNotifications.UNAuthorizationStatusProvisional
 import platform.UserNotifications.UNUserNotificationCenter
 
-/**
- * Notification authorization, shared by the poster and the permission service.
- */
 internal object AppleNotificationAuthorization {
     // Requesting without `Badge` silently drops the badge of a posted notification.
     private val options: ULong = UNAuthorizationOptionAlert or
@@ -31,10 +28,7 @@ internal object AppleNotificationAuthorization {
             }
     }
 
-    /**
-     * Shows the system alert only while the status is `notDetermined`; otherwise
-     * resolves with the standing answer.
-     */
+    /** Shows the system alert only while the status is `notDetermined`; otherwise resolves with the standing answer. */
     suspend fun request(): Boolean = suspendCancellableCoroutine { continuation ->
         UNUserNotificationCenter.currentNotificationCenter()
             .requestAuthorizationWithOptions(

@@ -15,7 +15,6 @@ import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.core.filePickerResultOf
-import com.artemchep.keyguard.apple.model.VaultActionSnapshot
 import com.artemchep.keyguard.apple.model.VaultFilterItemKind
 import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.apple.model.VaultFilterItemSnapshot
@@ -29,20 +28,12 @@ import com.artemchep.keyguard.platform.LeContext
 import kotlinx.coroutines.flow.collect
 import org.koin.core.scope.Scope
 
-/**
- * The Send list screen — searchable, filterable, sortable, multi-select. Runs the
- * shared [sendListScreenStateProducer] headlessly and projects it into a
- * [SendListSnapshot].
- */
 internal class SendListController(
     private val ctx: CoreContext,
 ) {
     /**
-     * Resolves the navigation interceptor the Send list producer is handed for a
-     * given session DI. [KeyguardCore] late-binds it to the navigation stack's
-     * composed interceptor so a file drop's `SendAddRoute` (a new File send pre-filled
-     * with the dropped file) reaches the stack — which opens the native create sheet —
-     * instead of being dropped. Defaults to no interceptor.
+     * [KeyguardCore] late-binds this to the navigation stack's composed interceptor so a file drop's
+     * `SendAddRoute` reaches the stack, which opens the native create sheet, instead of being dropped.
      */
     var navigationInterceptorProvider: (Scope) -> ((NavigationIntent) -> Boolean)? =
         { _ -> null }
@@ -116,32 +107,26 @@ internal class SendListController(
         }
     }
 
-    /** Writes [text] into the Send list search field. */
     fun setSendListQuery(text: String) {
         latestSendListState?.query?.onChange?.invoke(text)
     }
 
-    /** Toggles a Send filter / expands a section. */
     fun invokeSendListFilter(id: String) {
         sendListFilterHandlers[id]?.invoke()
     }
 
-    /** Selects a Send sort option by its [VaultSortItemSnapshot] id. */
     fun invokeSendListSort(id: String) {
         sendListSortHandlers[id]?.invoke()
     }
 
-    /** Clears every active Send filter. No-op unless any filter is set. */
     fun clearSendListFilters() {
         latestSendListState?.clearFilters?.invoke()
     }
 
-    /** Resets the Send sort back to its default. No-op unless a custom sort is active. */
     fun clearSendListSort() {
         latestSendListState?.clearSort?.invoke()
     }
 
-    /** Toggles a Send's membership in the multi-selection. */
     fun toggleSendListSelection(itemId: String) {
         val content = latestSendListState?.content as? SendListState.Content.Items ?: return
         val item = content.list
@@ -151,36 +136,23 @@ internal class SendListController(
         (selectable.onClick ?: selectable.onLongClick)?.invoke()
     }
 
-    /** Runs a bulk action of the active Send multi-selection by its [VaultActionSnapshot] id. */
     fun invokeSendListSelectionAction(id: String) {
         sendListSelectionActionHandlers.invokeAction(id)
     }
 
-    /** Runs a top-level overflow action by its [VaultActionSnapshot] id. */
     fun invokeSendListAction(id: String) {
         sendListActionHandlers.invokeAction(id)
     }
 
-    /** Clears the active Send multi-selection. No-op unless something is selected. */
     fun clearSendListSelection() {
         val content = latestSendListState?.content as? SendListState.Content.Items ?: return
         content.selection?.onClear?.invoke()
     }
 
-    /**
-     * Creates a new File send from a file dropped onto the list (macOS). Fires the
-     * shared `SendListState.onFileDrop`, which emits a `SendAddRoute` pre-filled with
-     * the file — caught by the late-bound navigation interceptor, which opens the
-     * native create sheet. No-op unless [SendListSnapshot.canDropFile].
-     */
     fun dropFileOnSendList(uri: String, name: String?, size: Long) {
         latestSendListState?.onFileDrop?.invoke(filePickerResultOf(uri, name, size))
     }
 
-    /**
-     * Builds the Swift-facing [SendListSnapshot], filling [filterHandlers] /
-     * [sortHandlers] / [selectionHandlers]. Pure apart from the out-params.
-     */
     private suspend fun buildSendListSnapshot(
         state: SendListState,
         leContext: LeContext,

@@ -2,16 +2,10 @@ import SwiftUI
 import KeyguardShared
 
 struct ServiceDirectoryDetailView: View {
-    @Environment(ServiceDirectoryModel.self) private var directoriesModel
-
-    var kind: String = ""
-    var itemId: String = ""
-    /// When non-nil this view renders a navigation-stack entry's inline snapshot
-    /// instead of the single-slot observation, and skips owning the observation.
-    var entry: ScreenEntrySnapshot? = nil
+    let entry: ScreenEntrySnapshot
 
     private var detail: ServiceDirectoryDetailSnapshot {
-        entry?.serviceDirectoryDetail ?? directoriesModel.directoryDetail
+        entry.serviceDirectoryDetail ?? ServiceDirectoryDetailSnapshot.companion.empty
     }
 
     var body: some View {
@@ -27,11 +21,6 @@ struct ServiceDirectoryDetailView: View {
             }
         }
         .navigationTitle(detail.title)
-        .observing(
-            enabled: entry == nil,
-            start: { directoriesModel.startServiceDirectoryDetailObservation(kind: kind, itemId: itemId) },
-            stop: { directoriesModel.stopServiceDirectoryDetailObservation() }
-        )
     }
 
     private var content: some View {

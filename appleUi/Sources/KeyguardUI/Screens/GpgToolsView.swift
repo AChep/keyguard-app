@@ -1,7 +1,6 @@
 import SwiftUI
 import KeyguardShared
 
-/// Native task layouts over the shared GPG Tools state.
 struct GpgToolsView: View {
     @Environment(GpgToolsModel.self) private var gpgToolsModel
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize

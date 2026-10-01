@@ -62,8 +62,6 @@ struct LargeTypeView: View {
     }
 }
 
-/// A single large code-point tile: the symbol in a large monospaced font with its
-/// 1-based position beneath. Background turns to the accent colour while selected.
 private struct SymbolTile: View {
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
     @ScaledMetric(relativeTo: .largeTitle) private var symbolSize = 34.0

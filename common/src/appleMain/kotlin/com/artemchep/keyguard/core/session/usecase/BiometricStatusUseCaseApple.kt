@@ -17,13 +17,7 @@ import kotlinx.coroutines.flow.update
 import platform.LocalAuthentication.LAContext
 import platform.LocalAuthentication.LAPolicyDeviceOwnerAuthenticationWithBiometrics
 
-/**
- * Apple implementation of [BiometricStatusUseCase], mirroring the desktop
- * `BiometricStatusUseCaseImpl`: available when the device can evaluate the
- * biometrics policy (Touch ID on Macs), with the cipher's AES key stored in
- * the keychain. The biometric gate itself is the system Touch ID sheet
- * evaluated by the caller before the cipher is materialized.
- */
+/** Mirrors the desktop `BiometricStatusUseCaseImpl`. */
 class BiometricStatusUseCaseApple(
     private val base64Service: Base64Service,
     private val cryptoGenerator: CryptoGenerator,
@@ -60,7 +54,6 @@ class BiometricStatusUseCaseApple(
 
                 val key = cryptoGenerator.seed(length = 32)
                 val keyBase64 = base64Service.encodeToString(key)
-                // Save the key in the keychain.
                 biometricKeychain.putBiometric(
                     KeychainIds.BIOMETRIC_UNLOCK.value, keyBase64, context,
                 )
@@ -69,8 +62,6 @@ class BiometricStatusUseCaseApple(
 
             is BiometricPurpose.Decrypt -> {
                 cipher._iv = purpose.iv.byteArray
-                // Obtain the cipher key from the
-                // keychain.
                 val keyBase64 = biometricKeychain.getBiometric(
                     KeychainIds.BIOMETRIC_UNLOCK.value, context,
                 )

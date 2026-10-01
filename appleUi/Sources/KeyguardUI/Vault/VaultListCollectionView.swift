@@ -10,7 +10,6 @@ struct VaultListCollectionView: UIViewRepresentable {
     let selection: VaultSelectionModel
     /// The app-lifetime model, read only for the sync-status header row.
     let accountsModel: AccountsModel
-    /// The surface's interaction policy (row-tap, multi-select, sync header, …).
     let config: VaultListConfig
     let colorScheme: ColorScheme
     /// The `EditMode` gate: drives multi-select + the row context menu bulk swap.
@@ -74,8 +73,8 @@ struct VaultListCollectionView: UIViewRepresentable {
 
         private var lastRevealToken = 0
 
-        /// One-shot subscribe-time scroll restore guard (mirrors the SwiftUI pane's
-        /// `didRestoreScroll`), and the throttle state for scroll reporting.
+        /// One-shot subscribe-time scroll restore guard, and the throttle state for
+        /// scroll reporting.
         private var didRestoreScroll = false
         private lazy var scrollReporter = VaultScrollReporter(
             visibleAnchor: { [weak self] in self?.visibleAnchor() },
@@ -115,7 +114,7 @@ struct VaultListCollectionView: UIViewRepresentable {
             cv.allowsSelection = true
             cv.allowsMultipleSelection = false
             // Multi-select drives the bulk bar while editing; the `.multiselect`
-            // accessory + `isEditing` show the leading circles like the SwiftUI List.
+            // accessory + `isEditing` show the leading circles.
             cv.allowsMultipleSelectionDuringEditing = self.config.supportsMultiSelect
             cv.keyboardDismissMode = .onDrag
             cv.contentInsetAdjustmentBehavior = .automatic
@@ -124,7 +123,7 @@ struct VaultListCollectionView: UIViewRepresentable {
             let registration = UICollectionView.CellRegistration<UICollectionViewListCell, String> {
                 [weak self] cell, _, id in
                 // Runs on the main thread; `assumeIsolated` reaches the `@MainActor`
-                // coordinator without a hop (mirrors the macOS data source).
+                // coordinator without a hop.
                 MainActor.assumeIsolated {
                     self?.configure(cell: cell, id: id)
                 }
@@ -139,9 +138,7 @@ struct VaultListCollectionView: UIViewRepresentable {
             return cv
         }
 
-        /// Configures one list cell for a diffable id. The hosted SwiftUI content is
-        /// the SAME `VaultRowHost` the macOS bridge uses (identical visuals); the
-        /// synthetic sync-header id renders the shared `SyncStatusFooter` instead.
+        /// Hosts the same `VaultRowHost` as the macOS table, so both render identical rows.
         private func configure(cell: UICollectionViewListCell, id: String) {
             if id == Self.syncHeaderId {
                 cell.contentConfiguration = UIHostingConfiguration {
@@ -265,8 +262,8 @@ struct VaultListCollectionView: UIViewRepresentable {
             var snapshot = NSDiffableDataSourceSnapshot<Int, String>()
             snapshot.appendSections([0])
             snapshot.appendItems(projection.ids, toSection: 0)
-            // O(changes) native cell update — the perf fix. No per-row SwiftUI
-            // identity reconcile; only newly-visible rows ask for a cell.
+            // O(changes) native cell update: no per-row SwiftUI identity
+            // reconcile; only newly-visible rows ask for a cell.
             dataSource.apply(snapshot, animatingDifferences: false)
             return changes.entriesChanged
         }
@@ -310,7 +307,7 @@ struct VaultListCollectionView: UIViewRepresentable {
 
         /// Only `.item` rows are selectable / highlightable (sections, markers, the
         /// quick-filter row and the sync header are not), matching the macOS
-        /// `shouldSelectRow` and the SwiftUI path's `.selectionDisabled()`.
+        /// `shouldSelectRow`.
         func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
             isItem(at: indexPath)
         }
@@ -333,9 +330,8 @@ struct VaultListCollectionView: UIViewRepresentable {
                 collectionView.deselectItem(at: indexPath, animated: false)
                 model.selectRow(rowId: id)
             } else {
-                // Browse-mode tap policy per the surface's config; the main list
-                // opens the row. (`List` rows do not persist selection on a
-                // browse tap, so `.open` immediately deselects.)
+                // Browse-mode tap policy per the surface's config; only `.select`
+                // keeps the tap selection.
                 switch config.rowTap {
                 case .open:
                     collectionView.deselectItem(at: indexPath, animated: false)
@@ -344,9 +340,8 @@ struct VaultListCollectionView: UIViewRepresentable {
                     // A single-row highlight surface keeps the tap selection.
                     break
                 case .copyPrimary:
-                    // A Recents-style read-only picker: copy the row's primary
-                    // value and immediately deselect (a momentary tap, no
-                    // persisted selection).
+                    // A Recents-style read-only picker: a momentary tap, no
+                    // persisted selection.
                     collectionView.deselectItem(at: indexPath, animated: false)
                     model.copyPrimaryRow(rowId: id)
                 case .openOrToggle:
@@ -356,8 +351,6 @@ struct VaultListCollectionView: UIViewRepresentable {
                     } else {
                         model.openVaultRow(rowId: id)
                     }
-                case .none:
-                    collectionView.deselectItem(at: indexPath, animated: false)
                 }
             }
         }
@@ -420,8 +413,6 @@ struct VaultListCollectionView: UIViewRepresentable {
 
     }
 }
-
-// MARK: - Sync-status header host
 
 /// Hosts the shared `SyncStatusFooter` inside the pinned header cell, reading
 /// `accountsModel.syncStatus` via Observation so the row's text updates in place; whether

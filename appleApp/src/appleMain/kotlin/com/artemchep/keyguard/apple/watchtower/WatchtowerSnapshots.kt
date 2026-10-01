@@ -1,15 +1,9 @@
 package com.artemchep.keyguard.apple.watchtower
 
-import com.artemchep.keyguard.feature.watchtower.WatchtowerState
 import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.apple.model.VaultFilterItemSnapshot
-import com.artemchep.keyguard.res.*
 
-/**
- * Flat, Swift-friendly projection of the Watchtower settings screen, produced by
- * [KeyguardCore.observeWatchtowerSettings]. [hibpCheckState] is one of "checking",
- * "verified", "rejected", "failed" or null (no/blank token).
- */
+/** [hibpCheckState] is one of "checking", "verified", "rejected", "failed" or null (no / blank token). */
 data class WatchtowerSettingsSnapshot(
     val loaded: Boolean = false,
     val checkPwnedPasswords: Boolean = false,
@@ -25,9 +19,8 @@ data class WatchtowerSettingsSnapshot(
 }
 
 /**
- * Severity of a watchtower card, mirroring the Compose screen's status icon
- * (a green check when [OK], escalating to [INFO] / [WARNING] / [ERROR] as the
- * card's count crosses its thresholds).
+ * Mirrors the Compose screen's status icon: a green check when [OK], escalating to [INFO] / [WARNING] / [ERROR]
+ * as the card's count crosses its thresholds.
  */
 enum class WatchtowerCardStatus {
     OK,
@@ -36,11 +29,7 @@ enum class WatchtowerCardStatus {
     ERROR,
 }
 
-/**
- * One security / maintenance card of the watchtower dashboard. [id] routes its
- * tap back to [KeyguardCore.invokeWatchtowerAction]; [count] is the headline
- * number, [new] the unread-since-last-visit badge.
- */
+/** [id] routes its tap back to [KeyguardCore.invokeWatchtowerAction]; [new] is the unread-since-last-visit badge. */
 data class WatchtowerCardSnapshot(
     val id: String,
     val title: String,
@@ -52,9 +41,8 @@ data class WatchtowerCardSnapshot(
 )
 
 /**
- * One password-strength bucket (Weak / Fair / Good / Strong / VeryStrong) of the
- * dashboard distribution. [score] is the enum name; [id] routes its tap back to
- * [KeyguardCore.invokeWatchtowerAction].
+ * [score] is the `PasswordStrength.Score` name (Weak / Fair / Good / Strong / VeryStrong); [id] routes its tap
+ * back to [KeyguardCore.invokeWatchtowerAction].
  */
 data class WatchtowerStrengthSnapshot(
     val id: String,
@@ -70,10 +58,6 @@ data class WatchtowerOptionSnapshot(
     val title: String,
 )
 
-/**
- * A flat, Swift-friendly projection of the shared [WatchtowerState] for the
- * SwiftUI watchtower dashboard. Built by [KeyguardCore.buildWatchtowerSnapshot].
- */
 data class WatchtowerSnapshot(
     val loaded: Boolean,
     val unreadCount: Int,
@@ -108,11 +92,9 @@ enum class WatchtowerAlertItemKind {
 }
 
 /**
- * One row of the watchtower alerts list. For SECTION headers only [title] (the
- * date label) is set; for ALERT rows [title] is the cipher name, [text] the
- * localized alert-type title, [date] the formatted report time and [read] the
- * read flag. [canClick] is true for ALERT rows that open the affected cipher;
- * its tap routes back through [KeyguardCore.invokeWatchtowerAlertItem].
+ * For SECTION headers only [title] (the date label) is set; for ALERT rows [title] is the cipher name, [text] the
+ * localized alert-type title and [date] the formatted report time. [canClick] is true for ALERT rows that open the
+ * affected cipher; the tap passes [id] to [KeyguardCore.invokeEntryAction].
  */
 data class WatchtowerAlertItemSnapshot(
     val id: String,
@@ -125,10 +107,8 @@ data class WatchtowerAlertItemSnapshot(
 )
 
 /**
- * A flat projection of the watchtower alerts. Built by
- * [KeyguardCore.observeWatchtowerNewAlerts]. [canMarkAllRead] gates the toolbar
- * "mark all as read" button, which routes back through
- * [KeyguardCore.markAllWatchtowerAlertsRead].
+ * [canMarkAllRead] gates the toolbar "mark all as read" button, which passes the fixed id "markAllRead" to
+ * [KeyguardCore.invokeEntryAction].
  */
 data class WatchtowerAlertsSnapshot(
     val loaded: Boolean,
@@ -139,7 +119,3 @@ data class WatchtowerAlertsSnapshot(
         val empty = WatchtowerAlertsSnapshot(loaded = false, items = emptyList())
     }
 }
-
-// ---------------------------------------------------------------------------
-// About-the-team snapshots (static content).
-// ---------------------------------------------------------------------------

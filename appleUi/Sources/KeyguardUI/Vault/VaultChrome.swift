@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Vault-list filters, sort, toolbar, create menu, and selection bar.
-
 #if os(macOS)
 let menuBarHoistedActionIds: Set<String> = [
     "vaultList.sync",
@@ -13,9 +11,6 @@ let menuBarHoistedActionIds: Set<String> = [
 
 // MARK: - Shared action rendering
 
-/// Renders a flat list of `VaultAction`s as menu rows (toolbar overflow / bulk
-/// selection), honouring the descriptor `role` (TOGGLE → checkmark toggle,
-/// DESTRUCTIVE → red role), `startsSection` (divider) and `symbol`.
 @ViewBuilder
 func vaultActionMenuItems(
     _ actions: [VaultAction],
@@ -27,9 +22,7 @@ func vaultActionMenuItems(
         }
         switch action.role {
         case .toggleOn, .toggleOff:
-            // A `Toggle` inside a `Menu` renders as a checkmark item on both
-            // platforms; the descriptor role carries the current on/off state
-            // and each flip routes back through the single `invoke(id)`.
+            // A `Toggle` inside a `Menu` renders as a checkmark item on both platforms.
             Toggle(
                 isOn: Binding(
                     get: { action.role == .toggleOn },
@@ -56,8 +49,6 @@ func vaultActionMenuItems(
     }
 }
 
-/// A `VaultAction`'s label — an SF-Symbol `Label` when the descriptor carries a
-/// symbol, else plain text.
 @ViewBuilder
 func vaultActionLabel(_ action: VaultAction) -> some View {
     if let symbol = action.symbol {
@@ -69,8 +60,8 @@ func vaultActionLabel(_ action: VaultAction) -> some View {
 
 // MARK: - Toolbar overflow ("more")
 
-/// The list screen's top-level overflow actions (`toolbar.actions`), the twin
-/// of `HomeView`'s ellipsis `Menu`.
+/// The macOS toolbar overflow menu; iOS puts the same actions in `VaultListScreen`'s
+/// ellipsis `Menu`.
 struct VaultToolbarOverflowMenu: View {
     let actions: [VaultAction]
     let invoke: @MainActor @Sendable (String) -> Void
@@ -87,9 +78,8 @@ struct VaultToolbarOverflowMenu: View {
 
 // MARK: - Create menu
 
-/// The "new item" create menu (`header.createActions`). Each action routes
-/// through `createItem(id)`; a paywalled create surfaces a premium CTA that the
-/// session already folds into `createActions`.
+/// The "new item" create menu. The session already folds a paywalled create's
+/// premium CTA into `createActions`.
 struct VaultCreateMenu: View {
     let actions: [VaultAction]
     let disabled: Bool
@@ -108,9 +98,8 @@ struct VaultCreateMenu: View {
 
 // MARK: - Sort menu
 
-/// The sort dropdown (`sortMenu`). Mirrors `SortMenu`: groups keyed by their
-/// `isSection` markers render as inline `Picker`s (checkmark on the active row +
-/// the "selected" VoiceOver trait); `canClear` adds a leading default-order item.
+/// Groups keyed by their `isSection` markers render as inline `Picker`s, for the
+/// checkmark on the active row + the "selected" VoiceOver trait.
 struct VaultSortMenuView: View {
     let menu: VaultSortMenu
     let invoke: @MainActor @Sendable (String) -> Void
@@ -163,8 +152,7 @@ struct VaultSortMenuView: View {
 
 // MARK: - Filters (toolbar menu form)
 
-/// The collapsed toolbar form of the filter tree (`filterCatalog` + `filterState`),
-/// the twin of `FilterMenu`.
+/// The collapsed toolbar form of the filter tree.
 struct VaultFilterMenuView: View {
     let catalog: VaultFilterCatalog
     let state: VaultFilterState
@@ -357,8 +345,6 @@ struct VaultFilterSidebar: View, @MainActor Equatable {
     }
 }
 
-/// A collapsible filter section header; tapping toggles the section's collapsed
-/// state through `toggleFilterSection`. The chevron reflects `!collapsed`.
 private struct VaultFilterSectionHeader: View {
     let group: VaultFilterGroup
     let toggle: @MainActor @Sendable (String) -> Void
@@ -414,7 +400,8 @@ private struct VaultFilterListSection: View {
                         invoke: invoke,
                         toggleExpansion: { toggleExpansion(chip) }
                     )
-                    // Same rationale as the chip flow's per-chip `.equatable()`.
+                    // Every filter toggle re-runs this body; comparing the row's
+                    // values keeps unchanged siblings from re-bodying.
                     .equatable()
                 }
             }
@@ -455,8 +442,8 @@ private struct VaultFilterListRow: View, @MainActor Equatable {
     let toggleExpansion: @MainActor @Sendable () -> Void
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
 
-    /// Same key rationale as `VaultFilterChipView`: exactly the value data the
-    /// body renders; the closures capture stable context and are excluded.
+    /// Compares exactly the value data the body renders; the closures capture
+    /// stable context and are excluded.
     static func == (lhs: VaultFilterListRow, rhs: VaultFilterListRow) -> Bool {
         lhs.chip == rhs.chip && lhs.checked == rhs.checked
             && lhs.enabled == rhs.enabled && lhs.expanded == rhs.expanded
@@ -537,8 +524,7 @@ private struct VaultFilterListRow: View, @MainActor Equatable {
         }
     }
 
-    /// Fixed-width leading slot keeping titles aligned: a chevron on expandable
-    /// nodes, an SF symbol on known leaf rows, empty spacing otherwise.
+    /// Fixed-width leading slot keeping titles aligned.
     @ViewBuilder
     private var leadingSlot: some View {
         Group {
@@ -609,9 +595,8 @@ struct VaultFilterChipView: View, @MainActor Equatable {
     }
 }
 
-/// The inline quick-filter chip flow rendered at the `QUICK_FILTERS` marker row,
-/// mirroring the Compose `QuickFilters`. Fed from the filter catalog's "custom"
-/// (saved-filter) section; the hosting screen hides it while a query is active.
+/// The inline quick-filter chip flow rendered at the `.quickFilters` marker row,
+/// mirroring the Compose `QuickFilters`.
 struct VaultQuickFilterChips: View {
     let chips: [VaultFilterChip]
     let state: VaultFilterState
@@ -638,10 +623,8 @@ struct VaultQuickFilterChips: View {
 
 // MARK: - Multi-selection bar
 
-/// The floating bulk-action bar shown while a multi-selection is active, the
-/// twin of `SelectionActionBar` (same glass capsule visuals) over `VaultAction`s.
-/// The selection bar of the virtualizing vault list. Same chrome as the
-/// snapshot-driven screens' `SelectionActionBar`; only the action model differs.
+/// The floating bulk-action bar; shares its chrome with `SelectionActionBar` and
+/// differs only in the action model (`VaultAction`).
 struct VaultSelectionActionBar: View {
     let count: Int
     let actions: [VaultAction]

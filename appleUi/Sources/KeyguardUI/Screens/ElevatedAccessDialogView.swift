@@ -27,14 +27,10 @@ struct ElevatedAccessDialogView: View {
             }
         } actions: {
             let isLoading = dialogsModel.elevatedAccess?.isLoading ?? false
-            // Action-specific verb (not a generic "OK"): this gate re-verifies the
-            // master password to unlock a concealed cipher field, so "Continue"
-            // communicates the outcome of confirming.
+            // An action-specific verb rather than a generic "OK": "Continue" names
+            // the outcome of confirming the master password.
             Button(action: submit) {
                 if isLoading {
-                    // Show a working state during the (slow KDF / round-trip)
-                    // verification so the user is not left wondering, and the
-                    // disabled state below blocks a second tap.
                     ProgressView()
                         .controlSize(.small)
                 } else {

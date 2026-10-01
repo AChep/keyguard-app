@@ -123,8 +123,8 @@ class DateFormatterAppleTest {
     @Test
     fun usesCurrentCalendarForPresentationOnly() {
         // Also run this test in separate processes with -AppleLocale overrides. Unlike
-        // injected locales, those change NSCalendar.currentCalendar and expose the old
-        // bug even on a host whose normal calendar is Gregorian.
+        // injected locales, those change NSCalendar.currentCalendar, so a conversion that
+        // depends on it fails even on a host whose normal calendar is Gregorian.
         val expectedCalendar = NSProcessInfo.processInfo.environment["KEYGUARD_TEST_CALENDAR"] as? String
         if (expectedCalendar != null) {
             assertEquals(expectedCalendar, NSCalendar.currentCalendar.calendarIdentifier)

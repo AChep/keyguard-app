@@ -6,9 +6,8 @@ enum SidebarLayout {
 
     static let listWidth: CGFloat = 240
 
-    /// Minimum width of the flexible detail pane, shared by the Vault, Send,
-    /// Settings and Watchtower columns. The detail pane stretches to fill whatever
-    /// is left.
+    /// Minimum width of the flexible detail pane, which stretches to fill
+    /// whatever is left.
     static let detailMinWidth: CGFloat = 200
 
     /// Content width below which the filter sidebar collapses into a toolbar menu:
@@ -27,7 +26,6 @@ enum FilterSidebarMemory {
         set { UserDefaults.standard.set(newValue, forKey: mainKey) }
     }
 
-    /// Watchtower (macOS) sidebar decision.
     static var watchtowerWide: Bool {
         get { (UserDefaults.standard.object(forKey: watchtowerKey) as? Bool) ?? true }
         set { UserDefaults.standard.set(newValue, forKey: watchtowerKey) }
@@ -42,15 +40,12 @@ struct FilterSidebar: View {
     /// Watchtower dashboard, which has no flat item list.
     let count: Int?
     let canClearFilters: Bool
-    /// Whether the current selection can be saved as a named custom filter. When
-    /// `true` a "Save filters" action sits beside "Clear filters". `nil` hides it
-    /// (screens without a save affordance, e.g. Watchtower / SSH agent).
+    /// When `true`, a "Save filters" action sits beside "Clear filters".
     var canSaveFilters: Bool = false
     let invoke: (String) -> Void
     let clear: () -> Void
     /// Saves the current filter selection as a named custom filter. The shared
-    /// producer presents the name-entry dialog; defaults to a no-op for screens that
-    /// pass `canSaveFilters: false`.
+    /// producer presents the name-entry dialog.
     var save: () -> Void = {}
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -126,13 +121,12 @@ private struct FilterSectionHeader: View {
     }
 }
 
-/// Adapts a shared filter snapshot to the native toggle control.
 private struct FilterChip: View, @MainActor Equatable {
     let item: VaultFilterItemSnapshot
     let invoke: (String) -> Void
 
     // The chip flow re-lays out on every filter-toggle emission; comparing the item
-    // keeps that from re-bodying every sibling chip. (Mirrors `VaultFilterChipView`.)
+    // keeps that from re-bodying every sibling chip.
     static func == (lhs: FilterChip, rhs: FilterChip) -> Bool {
         lhs.item == rhs.item
     }

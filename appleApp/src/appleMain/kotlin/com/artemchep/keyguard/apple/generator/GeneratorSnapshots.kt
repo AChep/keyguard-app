@@ -3,14 +3,7 @@ package com.artemchep.keyguard.apple.generator
 import com.artemchep.keyguard.feature.generator.GeneratorState
 import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.apple.model.VaultActionSnapshot
-import com.artemchep.keyguard.res.*
-import kotlinx.coroutines.plus
 
-/**
- * The latest values of [GeneratorState]'s five inner StateFlows, gathered by
- * [KeyguardCore.observeGenerator] so [KeyguardCore.buildGeneratorSnapshot] can
- * project them together.
- */
 internal data class GeneratorInner(
     val suggestions: List<GeneratorState.Suggestion>,
     val loading: GeneratorState.Loading,
@@ -19,24 +12,19 @@ internal data class GeneratorInner(
     val value: GeneratorState.Value?,
 )
 
-/**
- * A menu / option / type / suggestion action; [id] routes back to
- * [KeyguardCore.invokeGeneratorAction]. [selected] marks the currently chosen
- * entry (type picker, enum dropdown).
- */
+/** [id] routes back to [KeyguardCore.invokeGeneratorAction]; [selected] marks the chosen entry. */
 data class GeneratorActionSnapshot(
     val id: String,
     val title: String,
     val selected: Boolean,
 )
 
-/** Discriminator for an entry of the generator type picker. */
 enum class GeneratorTypeItemKind {
     TYPE,
     SECTION,
 }
 
-/** One entry of the type picker; [id] routes back to [KeyguardCore.invokeGeneratorAction]. */
+/** A TYPE entry's [id] routes back to [KeyguardCore.invokeGeneratorAction]. */
 data class GeneratorTypeItemSnapshot(
     val id: String,
     val kind: GeneratorTypeItemKind,
@@ -44,11 +32,7 @@ data class GeneratorTypeItemSnapshot(
     val selected: Boolean,
 )
 
-/**
- * The generated value (password / passphrase / username / email / key
- * fingerprint). [actions] are extra menu actions; copy / refresh route through
- * the fixed ids "value:copy" / "value:refresh".
- */
+/** [actions] are extra menu actions; copy / refresh route through the fixed ids "value:copy" / "value:refresh". */
 data class GeneratorValueSnapshot(
     val title: String?,
     val value: String,
@@ -58,21 +42,19 @@ data class GeneratorValueSnapshot(
     val actions: List<GeneratorActionSnapshot>,
 )
 
-/** A quick suggestion; [id] routes its copy action. [length] is -1 when not shown. */
+/** [id] routes its copy action; [length] is -1 when not shown. */
 data class GeneratorSuggestionSnapshot(
     val id: String,
     val value: String,
     val length: Int,
 )
 
-/** The contextual tip shown above the filter form. */
 data class GeneratorTipSnapshot(
     val text: String,
     val canHide: Boolean,
     val canLearnMore: Boolean,
 )
 
-/** The value-length slider; mutated through [KeyguardCore.setGeneratorLength]. */
 data class GeneratorLengthSnapshot(
     val value: Int,
     val min: Int,
@@ -86,7 +68,6 @@ data class GeneratorCounterSnapshot(
     val max: Int,
 )
 
-/** Discriminator for the flat [GeneratorFilterSnapshot]. */
 enum class GeneratorFilterKind {
     SWITCH_FIELD,
     TEXT_FIELD,
@@ -96,12 +77,12 @@ enum class GeneratorFilterKind {
 
 /**
  * One row of the generator filter form. The populated fields depend on [kind]:
- *  - [GeneratorFilterKind.SWITCH]: [switchValue] / [switchEnabled] (+ optional
+ *  - [GeneratorFilterKind.SWITCH_FIELD]: [switchValue] / [switchEnabled] (+ optional
  *    [counter]); mutate via [KeyguardCore.setGeneratorSwitch] (key) and
  *    [KeyguardCore.setGeneratorCounter] ("<key>:counter").
- *  - [GeneratorFilterKind.TEXT]: [textValue] / [textPlaceholder] / [textError];
+ *  - [GeneratorFilterKind.TEXT_FIELD]: [textValue] / [textPlaceholder] / [textError];
  *    mutate via [KeyguardCore.setGeneratorText].
- *  - [GeneratorFilterKind.ENUM]: [enumValue] (current label) + [enumOptions];
+ *  - [GeneratorFilterKind.ENUM_FIELD]: [enumValue] (current label) + [enumOptions];
  *    select via [KeyguardCore.invokeGeneratorAction] on an option id.
  *  - [GeneratorFilterKind.SECTION]: [text] only.
  */
@@ -121,10 +102,6 @@ data class GeneratorFilterSnapshot(
     val counter: GeneratorCounterSnapshot?,
 )
 
-/**
- * A flat, Swift-friendly projection of the shared [GeneratorState] for the
- * SwiftUI generator screen. Built by [KeyguardCore.buildGeneratorSnapshot].
- */
 data class GeneratorSnapshot(
     val loaded: Boolean,
     val typeTitle: String,
@@ -186,23 +163,15 @@ data class EmailRelayActionRequestSnapshot(
 
 data class EmailRelayActionTargetSnapshot(val id: String, val name: String)
 
-// ---------------------------------------------------------------------------
-// Generator history snapshots.
-// ---------------------------------------------------------------------------
-
 enum class GeneratorHistoryItemKind {
     SECTION,
     VALUE,
 }
 
 /**
- * One row of the generator history list. [date]/[type] are null for SECTION
- * headers; [type] is the uppercase name of the generated value's category
- * (PASSWORD / USERNAME / EMAIL / EMAIL_RELAY / SSH_KEY) or null when ambiguous.
- * [actions] are the per-item dropdown actions (copy / show in large type / check
- * breaches / remove) the shared producer attaches to a VALUE row; each id routes
- * back through [KeyguardCore.invokeGeneratorHistoryItemAction]. [selected] /
- * [selecting] mirror the producer's per-item multi-selection handle.
+ * [date] / [type] are null for SECTION headers; [type] is the `GeneratorHistoryItem.Value.Type` name
+ * (PASSWORD, SSH_KEY, …), or null when ambiguous. [actions] ids route back through
+ * [KeyguardCore.invokeGeneratorHistoryItemAction].
  */
 data class GeneratorHistoryItemSnapshot(
     val id: String,
@@ -215,11 +184,6 @@ data class GeneratorHistoryItemSnapshot(
     val selecting: Boolean = false,
 )
 
-/**
- * A flat projection of the generator history. Built by [KeyguardCore.observeGeneratorHistory].
- * [options] are the screen's top-level overflow actions (Clear history); [selectionCount] /
- * [selectionActions] mirror the active multi-selection (the bulk Remove from history action).
- */
 data class GeneratorHistorySnapshot(
     val loaded: Boolean,
     val items: List<GeneratorHistoryItemSnapshot>,
@@ -238,11 +202,6 @@ data class GeneratorHistorySnapshot(
     }
 }
 
-// ---------------------------------------------------------------------------
-// SSH agent history snapshots.
-// ---------------------------------------------------------------------------
-
-/** A single configurable field of an email-forwarder form, derived from its schema. */
 data class EmailRelayFieldSnapshot(
     val key: String,
     val title: String,
@@ -254,9 +213,8 @@ data class EmailRelayFieldSnapshot(
 )
 
 /**
- * The data the native add / edit email-forwarder form renders. [id] is null for a
- * new entry. Returned by [KeyguardCore.loadEmailRelayServices] (one per service,
- * blank) and [KeyguardCore.loadEmailRelay] (prefilled from an existing entry).
+ * [id] is null for a new entry. [KeyguardCore.loadEmailRelayServices] returns one blank form per service,
+ * [KeyguardCore.loadEmailRelay] one prefilled from an existing entry.
  */
 data class EmailRelayFormSnapshot(
     val id: String?,
@@ -266,10 +224,6 @@ data class EmailRelayFormSnapshot(
     val name: String,
     val fields: List<EmailRelayFieldSnapshot>,
 )
-
-// ---------------------------------------------------------------------------
-// Wordlists snapshots.
-// ---------------------------------------------------------------------------
 
 enum class WordlistLoadStatus { LOADING, READY, FAILED }
 

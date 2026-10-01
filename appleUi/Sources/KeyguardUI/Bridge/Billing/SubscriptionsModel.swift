@@ -34,7 +34,6 @@ final class SubscriptionsModel: SnapshotObserving {
         core.restorePurchases()
     }
 
-    /// Opens the system manage-subscriptions surface.
     func manageSubscriptions() {
         core.manageSubscriptions()
     }

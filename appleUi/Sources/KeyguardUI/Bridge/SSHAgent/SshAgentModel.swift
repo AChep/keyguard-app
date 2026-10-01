@@ -11,24 +11,17 @@ final class SshAgentModel: SnapshotObserving {
         self.core = core
     }
 
-    /// Pending SSH agent per-sign approval requests, surfaced by `KeyguardCore`.
+    /// Pending per-sign approval requests.
     private(set) var sshAgentRequests: [SshAgentRequestSnapshot] = []
 
-    /// SSH agent running status + advertised SSH_AUTH_SOCK path.
     private(set) var sshAgentStatus: SshAgentStatusSnapshot = SshAgentStatusSnapshot.companion.empty
 
-    /// SSH agent signing history list state, produced by the shared Kotlin
-    /// `sshAgentHistoryStateProducer` running headless inside `KeyguardCore`. Only
-    /// live while the SSH agent history screen is on screen.
+    /// Only live while the SSH agent history screen is on screen.
     private(set) var sshAgentHistory: SshAgentHistorySnapshot = SshAgentHistorySnapshot.companion.empty
 
-    /// SSH agent preferences (the Developer pane), produced by the shared Kotlin
-    /// SSH agent settings use cases running inside `KeyguardCore`. Only live
-    /// while the Developer settings screen is on screen.
+    /// Only live while the Developer settings screen is on screen.
     private(set) var sshAgentSettings: SshAgentSettingsSnapshot = SshAgentSettingsSnapshot.companion.empty
 
-    /// SSH agent filters screen state, produced by the shared Kotlin
-    /// `sshAgentFiltersStateProducer` running headless inside `KeyguardCore`.
     /// Only live while the SSH agent filters screen is on screen.
     private(set) var sshAgentFilters: SshAgentFiltersSnapshot = SshAgentFiltersSnapshot.companion.empty
 
@@ -42,26 +35,19 @@ final class SshAgentModel: SnapshotObserving {
 
     @ObservationIgnored private var sshAgentFiltersSubscription: BridgeObservation?
 
-    /// Starts observing SSH agent approval requests + status. Call once (e.g. on
-    /// the main window appearing) so approval prompts can be shown.
+    /// Call once so approval prompts can be shown.
     func startSshAgentObservation() {
         startObservation(\.sshRequestsSubscription, into: \.sshAgentRequests, observe: core.observeSshAgentRequests)
         startObservation(\.sshStatusSubscription, into: \.sshAgentStatus, observe: core.observeSshAgentStatus)
     }
 
-    func stopSshAgentObservation() {
-        stopObservation(\.sshRequestsSubscription)
-        stopObservation(\.sshStatusSubscription)
-    }
-
-    /// Persists the shared "SSH agent" preference; the applier started in
-    /// `init` starts or stops the agent in response.
+    /// Persists the shared "SSH agent" preference; an app-level applier starts or stops
+    /// the agent in response.
     func setSshAgentEnabled(_ value: Bool) {
         core.setSshAgentEnabled(value: value)
     }
 
-    /// Starts running the shared SSH agent settings use cases. Call when the
-    /// Developer settings screen appears; balance with
+    /// Call when the Developer settings screen appears; balance with
     /// `stopSshAgentSettingsObservation()`.
     func startSshAgentSettingsObservation() {
         startObservation(
@@ -81,8 +67,7 @@ final class SshAgentModel: SnapshotObserving {
         core.setSshAgentDisplayKeyNames(value: value)
     }
 
-    /// Starts running the shared SSH agent filters producer. Call when the
-    /// filters screen appears; balance with `stopSshAgentFiltersObservation()`.
+    /// Call when the filters screen appears; balance with `stopSshAgentFiltersObservation()`.
     /// `onClose` fires when the producer pops itself after a successful save.
     func startSshAgentFiltersObservation(onClose: @escaping () -> Void) {
         startObservation(\.sshAgentFiltersSubscription) { deliver in
@@ -108,24 +93,20 @@ final class SshAgentModel: SnapshotObserving {
         core.invokeSshAgentFilter(id: id)
     }
 
-    /// Persists the pending filter; the producer pops itself on success.
     func saveSshAgentFilters() {
         core.saveSshAgentFilters()
     }
 
-    /// Clears the pending filter selection.
     func resetSshAgentFilters() {
         core.resetSshAgentFilters()
     }
 
-    /// Approves (or denies) a pending SSH sign request by its id.
     func resolveSshAgentRequest(id: String, approved: Bool) {
         core.resolveSshAgentRequest(id: id, approved: approved)
     }
 
-    /// Starts running the shared SSH agent history producer, for one cipher or (`nil`)
-    /// all of them. Call when the SSH agent history screen appears; balance with
-    /// `stopSshAgentHistoryObservation()`.
+    /// For one cipher or (`nil`) all of them. Call when the SSH agent history screen
+    /// appears; balance with `stopSshAgentHistoryObservation()`.
     func startSshAgentHistoryObservation(cipherId: String? = nil) {
         stopSshAgentHistoryObservation()
         startObservation(\.sshAgentHistorySubscription, into: \.sshAgentHistory) { onChange in

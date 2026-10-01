@@ -50,13 +50,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
-/**
- * The Security settings screen: vault persist, auto-lock timeout, lock-after-
- * reboot, clipboard auto-clear, conceal fields, website icons, Gravatar, and
- * Touch ID unlock. Thin bridge over the shared Get/Put use cases; enabling Touch
- * ID shows the system sheet via the shared [evaluateBiometrics]. Items the common
- * providers hide on Apple are intentionally not surfaced.
- */
+/** Items the common providers hide on Apple are intentionally not surfaced. */
 internal class SecurityController(
     private val ctx: CoreContext,
 ) {
@@ -89,7 +83,6 @@ internal class SecurityController(
     private var latestClipboardAutoClearVariants: List<Duration> = emptyList()
     private var latestBiometricTimeoutVariants: List<Duration> = emptyList()
 
-    /** Combined Touch ID + YubiKey unlock state for [observeSecuritySettings]. */
     private data class BiometricSettings(
         val supported: Boolean,
         val enabled: Boolean,
@@ -195,11 +188,6 @@ internal class SecurityController(
         return KeyguardCancellable(job)
     }
 
-    /**
-     * Enables / disables biometric (Touch ID) unlock. Enabling shows the system
-     * Touch ID sheet first, then persists the biometric-encrypted master key; a
-     * cancelled or failed prompt leaves the setting off.
-     */
     fun setBiometricUnlock(value: Boolean) {
         ctx.scope.launch(Dispatchers.Default) {
             try {

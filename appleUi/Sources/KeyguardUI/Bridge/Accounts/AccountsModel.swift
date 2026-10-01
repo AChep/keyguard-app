@@ -26,16 +26,12 @@ final class AccountsModel: SnapshotObserving {
         self.observeDetail = observeDetail
     }
 
-    /// The list of accounts shown on top of the Settings screen, produced by the
-    /// shared Kotlin `accountListScreenStateProducer` running headless inside
-    /// `KeyguardCore`. Only live while the Settings screen is on screen.
+    /// Only live while the Settings screen is on screen.
     private(set) var accountList: AccountListSnapshot = AccountListSnapshot.companion.empty
 
     private(set) var syncStatus: SyncStatusSnapshot = SyncStatusSnapshot.companion.empty
 
-    /// Full detail of the selected account, produced by the shared Kotlin
-    /// `accountStateProducer` running headless inside `KeyguardCore`. Only live
-    /// while an account is selected in the Settings two-pane layout.
+    /// Only live while an account is selected in the Settings two-pane layout.
     private var accountDetailState = ObservedDetail<AccountDetailSnapshot, String>(
         snapshot: AccountDetailSnapshot.companion.empty)
 
@@ -50,9 +46,7 @@ final class AccountsModel: SnapshotObserving {
 
     @ObservationIgnored private var accountDetailSubscription: BridgeObservation?
 
-    /// Starts observing the aggregated sync status shown at the bottom of the
-    /// main sidebar. Call when the main shell appears; balance with
-    /// `stopSyncStatusObservation()` on disappear.
+    /// Call when the main shell appears; balance with `stopSyncStatusObservation()`.
     func startSyncStatusObservation() {
         syncStatusObservation.acquire {
             startObservation(\.syncStatusSubscription, into: \.syncStatus, observe: core.observeSyncStatus)
@@ -67,15 +61,13 @@ final class AccountsModel: SnapshotObserving {
         syncStatusObservation.release()
     }
 
-    /// Queues a sync of every account (menu-bar "Sync vault"). Progress surfaces
-    /// through the observed `syncStatus`; the shared worker de-dupes if a sync is
-    /// already in flight.
+    /// Queues a sync of every account. Progress surfaces through the observed
+    /// `syncStatus`; the shared worker de-dupes if a sync is already in flight.
     func syncVault() {
         core.syncVault()
     }
 
-    /// Starts running the shared account list producer. Call when the Settings
-    /// screen appears; balance with `stopAccountListObservation()` on disappear.
+    /// Call when the Settings screen appears; balance with `stopAccountListObservation()`.
     func startAccountListObservation() {
         startObservation(\.accountListSubscription, into: \.accountList, observe: core.observeAccountList)
     }
@@ -84,7 +76,6 @@ final class AccountsModel: SnapshotObserving {
         stopObservation(\.accountListSubscription, resetting: \.accountList, to: AccountListSnapshot.companion.empty)
     }
 
-    /// Starts running the shared account detail producer for the given account.
     /// Call when an account is selected; balance with `stopAccountDetailObservation()`.
     func startAccountDetailObservation(accountId: String) {
         stopAccountDetailObservation()
@@ -102,7 +93,7 @@ final class AccountsModel: SnapshotObserving {
             to: ObservedDetail(snapshot: AccountDetailSnapshot.companion.empty))
     }
 
-    /// Invokes an account detail item / header context action by its snapshot id.
+    /// Invokes an account detail item / header context action.
     func invokeAccountAction(id: String) {
         core.invokeAccountAction(id: id)
     }

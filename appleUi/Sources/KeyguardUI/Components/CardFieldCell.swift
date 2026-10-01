@@ -71,7 +71,7 @@ struct CardFieldCell: View {
     private var numberContent: some View {
         // When concealed + not yet revealed, render the obscured string. In the
         // producer-gated mode the formatted (plaintext) number is withheld until the
-        // reveal succeeds; in the legacy mode both strings are present and we pick.
+        // reveal succeeds; without a reveal handler both strings are present and we pick.
         if item.concealed && !revealed {
             Text(item.cardNumberObscured ?? "")
                 .font(.body.monospaced())

@@ -19,13 +19,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import org.koin.core.scope.Scope
 
-/**
- * One-shot clipboard helpers — quick copy of a single cipher field, and
- * quick-generate a password — fired from the menu-bar popover and the Recents
- * list. The searchable item lists themselves are served by the
- * `VaultListSession` / delta pipelines; this holds only the copy / generate
- * actions, which are independent of any list.
- */
 internal class QuickCopyController(
     private val ctx: CoreContext,
 ) {
@@ -34,16 +27,6 @@ internal class QuickCopyController(
     private val clipboardService: ClipboardService by lazy { ctx.koin.get() }
     private val getPassword: GetPassword by lazy { ctx.koin.get() }
 
-    /**
-     * One-shot copy of a single field of a vault item to the clipboard, used by
-     * the menu-bar popover. [field] is "username", "password" or "otp". Resolves
-     * the cipher from the unlocked session, reuses the shared [ClipboardService]
-     * (passwords are copied concealed), and computes the live OTP via the shared
-     * [GetTotpCode]. No-op while locked or when the field is absent.
-     *
-     * Named "quick…" rather than "copy…": Kotlin/Native drops methods whose name
-     * is in the Objective-C `copy` family from the Swift-visible API.
-     */
     suspend fun quickCopyCipherField(secretId: String, accountId: String, field: String) {
         val state = ctx.currentState() as? VaultState.Main ?: return
         val getCiphers = state.sessionKoin.get<GetCiphers>()
@@ -94,11 +77,7 @@ internal class QuickCopyController(
         }
     }
 
-    /**
-     * One-shot "quick generate": generates a strong 16-character password using
-     * the shared [GetPassword] use case and copies it to the clipboard. The full
-     * generator screen remains the place to customize options.
-     */
+    /** A fixed strong config; the full generator screen remains the place to customize options. */
     suspend fun generateAndCopyPassword() {
         val config = PasswordGeneratorConfig.Password(
             length = 16,

@@ -29,9 +29,8 @@ struct LogsView: View {
                     }
                 }
             }
-            // Match the sibling read-only data lists (LicenseView /
-            // LocalizationContributorsView) so dense monospaced log rows get
-            // macOS row striping for separation.
+            // Row striping separates the dense monospaced log rows, as in the other
+            // read-only data lists.
             #if os(macOS)
             .alternatingRowBackgrounds()
             #endif
@@ -74,7 +73,7 @@ struct LogsView: View {
         }
         .padding(.vertical, 1)
         // macOS pointer users expect a right-click Copy for diagnostic content;
-        // text selection alone is the only existing copy path.
+        // otherwise text selection is the only copy path.
         #if os(macOS)
         .contextMenu {
             Button(L10n.copy) {

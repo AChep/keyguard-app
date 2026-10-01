@@ -28,12 +28,10 @@ struct OnboardingView: View {
             Button(L10n.ok) { dismiss() }
                 .keyboardShortcut(.defaultAction)
         }
-        // Visiting the onboarding marks it done, mirroring the Compose
-        // `OnboardingScreen` `LaunchedEffect` that stamps the last-visit instant.
+        // Visiting the onboarding marks it done, as the Compose `OnboardingScreen` does.
         .onAppear { authModel.markOnboarded() }
     }
 
-    /// Use the same responsive card widths as the Watchtower dashboard.
     @ViewBuilder
     private func grid(_ items: [OnboardingItem]) -> some View {
         CardGridLayout {
@@ -46,7 +44,6 @@ struct OnboardingView: View {
     @ViewBuilder
     private func card(_ item: OnboardingItem) -> some View {
         ZStack(alignment: .topTrailing) {
-            // Faint background glyph, like the Compose card's 3.5%-alpha icon.
             Image(systemName: item.symbol)
                 .font(.system(size: 56))
                 .foregroundStyle(.primary.opacity(0.05))
@@ -73,19 +70,16 @@ struct OnboardingView: View {
         .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 12))
     }
 
-    // MARK: - Static content (mirrors Compose `onboardingSections`)
+    // MARK: - Static content
 
-    /// One onboarding feature card. Mirrors the Compose `OnboardingItem`.
     struct OnboardingItem: Identifiable {
         let id: String
         let title: String
         let text: String
         var premium: Bool = false
-        /// SF Symbol approximating the Compose Material icon for the feature.
         let symbol: String
     }
 
-    /// A titled group of onboarding cards. Mirrors the Compose `OnboardingSection`.
     struct OnboardingSection: Identifiable {
         let id: String
         var title: String? = nil

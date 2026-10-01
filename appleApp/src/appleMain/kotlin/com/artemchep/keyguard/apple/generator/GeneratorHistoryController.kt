@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.apple.generator
 
 import com.artemchep.keyguard.apple.core.sessionKoin
-import com.artemchep.keyguard.main
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryItem
 import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryState
@@ -17,15 +16,7 @@ import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.platform.LeContext
 import kotlinx.coroutines.flow.map
 
-/**
- * The generator history screen. Runs the shared [generatorHistoryStateProducer]
- * headlessly; the history use cases live in the per-session sub-DI, so this gates
- * on an unlocked vault. Projects the producer's per-item dropdown actions, the
- * multi-selection (count + bulk actions + per-item selection handle) and the
- * top-level Clear history option; the SwiftUI screen drives them through the
- * opaque-id `invokeGeneratorHistory*` / `toggleGeneratorHistorySelection` /
- * `clearGeneratorHistorySelection` methods.
- */
+/** The history use cases live in the per-session sub-DI, so this gates on an unlocked vault. */
 internal class GeneratorHistoryController(
     private val ctx: CoreContext,
     private val dialogController: DialogController,
@@ -50,12 +41,9 @@ internal class GeneratorHistoryController(
         ) { state ->
             val producerScope = this
             val producerFlow = with(state.sessionKoin) {
-                // Thread the dialog interceptor so the producer's full-screen
-                // routes reach a renderer instead of being dropped: the per-item /
-                // bulk / "Clear history" Remove confirmations (ConfirmationRoute),
-                // "Show in large type" (LargeTypeRoute) and "Check data breaches"
-                // (PasswordLeakRoute). Pass the session DI so the breach checker
-                // resolves its session-scoped dependencies.
+                // Thread the dialog interceptor so the producer's dialog routes (Remove confirmations, large type,
+                // data breaches) reach a renderer instead of being dropped. The session DI lets the breach checker
+                // resolve its session-scoped dependencies.
                 ctx.koin.newHeadlessStateFlowScope(
                     "generator_history",
                     producerScope,
@@ -90,26 +78,21 @@ internal class GeneratorHistoryController(
         }
     }
 
-    /** Runs a per-item dropdown action (copy / show in large type / remove) by its id. */
     fun invokeGeneratorHistoryItemAction(id: String) {
         itemActionHandlers.invokeAction(id)
     }
 
-    /** Runs a top-level overflow option (Clear history) by its id. */
     fun invokeGeneratorHistoryOption(id: String) {
         optionHandlers[id]?.invoke()
     }
 
-    /** Runs a bulk action of the active multi-selection (Remove from history) by its id. */
     fun invokeGeneratorHistorySelectionAction(id: String) {
         selectionActionHandlers.invokeAction(id)
     }
 
     /**
-     * Toggles whether the value row with [itemId] is part of the multi-selection.
-     * Routes through the producer's per-item selection handle (onClick while a
-     * selection is active, otherwise onLongClick which begins one). No-op for
-     * section headers or rows the producer cannot select.
+     * Goes through the producer's per-item selection handle: onClick while a selection is active, otherwise
+     * onLongClick, which begins one. No-op for section headers or rows the producer cannot select.
      */
     fun toggleGeneratorHistorySelection(itemId: String) {
         val state = latestState ?: return
@@ -120,14 +103,8 @@ internal class GeneratorHistoryController(
         (selectable.onClick ?: selectable.onLongClick)?.invoke()
     }
 
-    /** Clears the active multi-selection. No-op unless something is selected. */
     fun clearGeneratorHistorySelection() {
         latestState?.selection?.onClear?.invoke()
-    }
-
-    /** Selects every value row. No-op unless the producer offers a select-all handle. */
-    fun selectAllGeneratorHistory() {
-        latestState?.selection?.onSelectAll?.invoke()
     }
 
     private suspend fun projectGeneratorHistory(
@@ -153,12 +130,6 @@ internal class GeneratorHistoryController(
         )
     }
 
-    /**
-     * Builds the Swift-facing [GeneratorHistorySnapshot], filling [itemHandlers] /
-     * [optionHandlers] / [selectionHandlers] so each snapshot id maps back to the
-     * live producer closure. Runs on the producer pipeline; the caller installs the
-     * maps on Main.
-     */
     private suspend fun buildGeneratorHistorySnapshot(
         state: GeneratorHistoryState?,
         leContext: LeContext,
@@ -179,9 +150,8 @@ internal class GeneratorHistoryController(
 
                 is GeneratorHistoryItem.Value -> {
                     val selectable = item.selectableState.value
-                    // Reuse the options-menu projection so the dropdown keeps its
-                    // section dividers (copy / large type / breaches / remove); the
-                    // ids are namespaced by the item id so they cannot collide.
+                    // Reuse the options-menu projection so the dropdown keeps its section dividers;
+                    // the ids are namespaced by the item id so they cannot collide.
                     val actions = buildMenuActionSnapshots(
                         actions = item.dropdown,
                         idPrefix = "item:${item.id}",

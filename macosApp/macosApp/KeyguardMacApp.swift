@@ -2,9 +2,7 @@ import SwiftUI
 import AppKit
 import KeyguardUI
 
-/// Owns process-wide AppKit surfaces that live outside the SwiftUI scene graph:
-/// the global Quick Search hotkey + panel and the agent approval panels. All
-/// driven by the one shared `AppViewModel`.
+/// Owns process-wide AppKit surfaces that live outside the SwiftUI scene graph.
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var quickSearch: QuickSearchController?
     private var sshApproval: SshAgentApprovalController?
@@ -54,11 +52,9 @@ struct KeyguardMacApp: App {
                 }
         }
         .windowResizability(.contentSize)
-        // Standard titlebar so each screen's `navigationTitle` (Vault, Send,
-        // Watchtower, Settings, …) shows in the unified titlebar/toolbar.
+        // Standard titlebar so each screen's `navigationTitle` shows in the unified
+        // titlebar/toolbar.
         .windowStyle(.titleBar)
-        // A top-level "Vault" menu: the Unlock screen's escape-hatch actions while
-        // locked, and "Lock" while unlocked.
         .commands {
             VaultCommands()
             ToolbarCommands()

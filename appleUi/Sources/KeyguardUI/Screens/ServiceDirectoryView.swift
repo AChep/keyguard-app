@@ -1,7 +1,7 @@
 import SwiftUI
 import KeyguardShared
 
-/// A native renderer of the shared list contract. The navigation entry owns its lifetime.
+/// The navigation entry owns its lifetime.
 struct ServiceDirectoryView: View {
     let snapshot: ServiceDirectorySnapshot
     let open: (String) -> Void

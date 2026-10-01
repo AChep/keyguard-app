@@ -22,11 +22,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.koin.core.scope.Scope
 
-// ---------------------------------------------------------------------------
-// Swift-facing snapshots
-// ---------------------------------------------------------------------------
-
-/** A flat, Swift-facing projection of the shared `CipherFiltersListState`. */
 data class CipherFiltersListSnapshot(
     val loaded: Boolean,
     val query: String,
@@ -43,12 +38,11 @@ data class CipherFilterRowSnapshot(
     val name: String,
 )
 
-/** A flat, Swift-facing projection of the shared `CipherFilterViewState`. */
 data class CipherFilterDetailSnapshot(
     val loaded: Boolean,
     val title: String,
     val items: List<CipherFilterDetailItemSnapshot>,
-    /** Toolbar actions (rename / delete / add shortcut), routed by id via invokeEntryAction. */
+    /** Toolbar actions, routed by id via [com.artemchep.keyguard.apple.KeyguardCore.invokeEntryAction]. */
     val actions: List<VaultActionSnapshot>,
 ) {
     companion object {
@@ -64,12 +58,9 @@ data class CipherFilterDetailItemSnapshot(
 )
 
 /**
- * "Custom filters" — the two-pane Compose tree (`CipherFiltersRoute`) flattened to two
- * native stacked screens: a list of saved filters and a read-only detail of one. Both
- * run their SHARED producers headlessly (with the navigation interceptor, so the
- * rename / delete confirmation routes reach the dialog bridge). The list caches each
- * row's [DCipherFilter] so a row tap can push the detail by id (the producer's own row
- * click emits an undecomposed Composite, so it is bypassed).
+ * The two-pane Compose `CipherFiltersRoute` flattened to two native stacked screens: a list of saved filters
+ * and a read-only detail of one. The list caches each row's [DCipherFilter] so a row tap can push the detail
+ * by id (the producer's own row click emits an undecomposed Composite, so it is bypassed).
  */
 internal class CipherFiltersController(
     private val ctx: CoreContext,
@@ -214,7 +205,6 @@ internal class CipherFiltersController(
             }
     }
 
-    /** Writes [text] into the filters list search field. */
     fun setQuery(text: String) {
         queryHandler?.invoke(text)
     }

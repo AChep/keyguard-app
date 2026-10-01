@@ -14,8 +14,6 @@ struct AboutSettingsView: View {
     @State private var dialog: Dialog?
 
     var body: some View {
-        // Grouped Form to match every sibling sub-route (Security/Display/Watchtower/
-        // AutoFill/Developer/Backups), keeping consistent row insets and background.
         SettingsForm(ready: appInformationModel.appInformation.loaded) {
             Section {
                 Button {

@@ -7,7 +7,7 @@ struct CipherDetailView: View {
 
     /// When non-nil this view renders a *stacked* detail instance (a navigation-stack
     /// entry) instead of the single-slot root detail, routing its actions by the
-    /// entry's instance id. Defaults to the root detail (`nil`).
+    /// entry's instance id.
     var entry: ScreenEntrySnapshot? = nil
 
     private var detail: VaultDetailSnapshot { entry?.detail ?? cipherDetailModel.detail }

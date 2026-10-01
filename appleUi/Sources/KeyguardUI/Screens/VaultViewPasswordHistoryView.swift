@@ -8,8 +8,6 @@ struct VaultViewPasswordHistoryView: View {
 
     private var snapshot: PasswordHistorySnapshot { cipherDetailModel.passwordHistory }
 
-    /// The list's multi-selection, kept in lockstep with the shared producer's
-    /// selection handle.
     @State private var selection = ListSelectionModel()
 
     var body: some View {
@@ -89,8 +87,6 @@ struct VaultViewPasswordHistoryView: View {
         .padding(.vertical, 2)
     }
 
-    /// An entry's own dropdown actions (copy / remove / large-type / show-and-lock /
-    /// check breaches), or — while a multi-selection is active — the bulk actions.
     @ViewBuilder
     private func rowContextMenu(_ item: PasswordHistoryItemSnapshot) -> some View {
         if showsBulkContextMenu {
@@ -98,17 +94,14 @@ struct VaultViewPasswordHistoryView: View {
                 cipherDetailModel.invokePasswordHistorySelectionAction(id: $0)
             }
         } else {
-            // The producer's dropdown already carries its section dividers, mapped
-            // through `startsSection`; reuse the shared list-action renderer.
             listActionMenuItems(actions: item.actions) {
                 cipherDetailModel.invokePasswordHistoryItemAction(id: $0)
             }
         }
     }
 
-    /// The same per-entry actions surfaced as trailing swipe buttons. Danger is a
-    /// tint, not the destructive role: that role animates the row out before the
-    /// producer's confirmation dialog appears.
+    /// Danger is a tint, not the destructive role: that role animates the row out
+    /// before the producer's confirmation dialog appears.
     @ViewBuilder
     private func rowSwipeActions(_ item: PasswordHistoryItemSnapshot) -> some View {
         ForEach(item.actions, id: \.id) { action in
@@ -137,8 +130,6 @@ struct VaultViewPasswordHistoryView: View {
         if !snapshot.actions.isEmpty {
             ToolbarItem {
                 Menu {
-                    // The producer's top-level overflow ("Clear history") action,
-                    // rendered through the shared list-action menu helper.
                     listActionMenuItems(actions: snapshot.actions) {
                         cipherDetailModel.invokePasswordHistoryAction(id: $0)
                     }

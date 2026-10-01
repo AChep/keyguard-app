@@ -1,13 +1,10 @@
 package com.artemchep.keyguard.apple.account
 
-import com.artemchep.keyguard.main
 import com.artemchep.keyguard.feature.auth.AccountViewState
 import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.apple.model.VaultActionSnapshot
 import com.artemchep.keyguard.apple.model.VaultItemSnapshot
-import com.artemchep.keyguard.res.*
 
-/** A single account row in the Settings sidebar account list. */
 data class AccountListItemSnapshot(
     val id: String,
     val accountId: String,
@@ -23,29 +20,18 @@ data class AccountListItemSnapshot(
     /** `true` when this account is part of the active multi-selection. */
     val selected: Boolean,
     /**
-     * Handler id that toggles this account's selection membership (a long-press to
-     * begin selecting, or a tap while selecting). Routes back via
-     * [KeyguardCore.invokeAccountAction]. Always present (every account row is
-     * selectable), but kept nullable to mirror the folders projection.
+     * Handler id that toggles this account's selection membership, routed back via
+     * [KeyguardCore.invokeAccountListAction]. Always present, but kept nullable to mirror the folders projection.
      */
     val toggleActionId: String?,
 )
 
-/**
- * A flat, Swift-friendly projection of the shared account list state for the
- * SwiftUI Settings sidebar. Built by [KeyguardCore.buildAccountListSnapshot].
- */
 data class AccountListSnapshot(
     val loaded: Boolean,
     val items: List<AccountListItemSnapshot>,
     /** Number of selected accounts in the active multi-selection; `0` when none. */
     val selectionCount: Int,
-    /**
-     * The bulk actions of the active multi-selection — the shared producer's own
-     * "view items" + "Sign out" [com.artemchep.keyguard.ui.ContextItem]s, projected
-     * to Swift-facing actions. "Sign out" fires the producer's confirmation-dialog
-     * route through the bridge interceptor. Empty unless [selectionCount] > 0.
-     */
+    /** The shared producer's bulk actions of the active multi-selection; empty unless [selectionCount] > 0. */
     val selectionActions: List<VaultActionSnapshot>,
     /**
      * Handler id for the selection's "Sync" bulk action (mirrors the dedicated Sync
@@ -73,11 +59,7 @@ data class AccountListSnapshot(
     }
 }
 /**
- * A flat, Swift-friendly projection of the shared
- * [com.artemchep.keyguard.common.model.DAccountStatus] for the sync status
- * footer at the bottom of the SwiftUI main sidebar. Built by
- * [KeyguardCore.observeSyncStatus]. The pending-permissions state is
- * dropped: no native surface renders it yet, and notification
+ * The shared pending-permissions state is dropped: no native surface renders it yet, and notification
  * authorization is requested on the first posted alert.
  */
 data class SyncStatusSnapshot(
@@ -96,12 +78,7 @@ data class SyncStatusSnapshot(
     }
 }
 
-/**
- * A flat, Swift-friendly projection of the shared [AccountViewState] for the
- * SwiftUI account detail panel. Built by [KeyguardCore.buildAccountDetailSnapshot].
- * The rows reuse the shared [VaultItemSnapshot] mapping; [actions] are the header
- * context actions (sync / hide / sign-out).
- */
+/** Projects the shared [AccountViewState]; [actions] are its header context actions. */
 data class AccountDetailSnapshot(
     val loaded: Boolean,
     val notFound: Boolean,

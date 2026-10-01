@@ -21,15 +21,11 @@ import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.RedeemLicenseKey
 import com.artemchep.keyguard.common.usecase.RemoveLicense
 import com.artemchep.keyguard.common.usecase.SyncLicense
-import com.artemchep.keyguard.common.usecase.premium
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.common.util.catch
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -42,13 +38,11 @@ import kotlinx.coroutines.selects.select
 import org.jetbrains.compose.resources.getString
 import org.koin.core.scope.Scope
 
-/** One purchasable subscription row in the paywall. */
 data class SubscriptionItemSnapshot(
     val id: String,
     val title: String,
     val description: String?,
     val price: String,
-    /** Localized billing period, e.g. "3 months" / "1 year". */
     val periodFormatted: String,
     /** This subscription is currently owned. */
     val active: Boolean,
@@ -70,10 +64,8 @@ data class ProductItemSnapshot(
 )
 
 /**
- * Flat, Swift-friendly projection of the paywall, produced by
- * [com.artemchep.keyguard.apple.KeyguardCore.observeSubscriptions]. Combines the
- * shared `GetSubscriptions` / `GetProducts` / `GetPurchased` use cases — the same
- * ones the Android/desktop Compose paywall consumes.
+ * Combines the shared `GetSubscriptions` / `GetProducts` / `GetPurchased` use cases, the same ones the
+ * Android/desktop Compose paywall consumes.
  */
 data class SubscriptionsSnapshot(
     val loaded: Boolean,

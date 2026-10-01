@@ -7,32 +7,26 @@ import KeyguardShared
 @MainActor
 @Observable
 final class VaultListSessionModel {
-    /// Row content + structure; the list body and cells observe this, never
-    /// the bridged snapshots. See `VaultRowStore` for the invalidation model.
+    /// Row content + structure; the list and its cells observe this, never
+    /// the bridged snapshots.
     let store = VaultRowStore()
 
-    /// The chrome above the list (load state, query, create menu, …).
     private(set) var header: VaultHeader = .empty
     /// Header fields consumed by toolbar items. Kept separate so query/header churn
     /// doesn't invalidate toolbar buttons that only care about create availability.
     private(set) var createActions: [VaultAction] = []
     private(set) var needsAccount = false
-    /// The full filter tree (sidebar / filter menu).
     private(set) var filterCatalog: VaultFilterCatalog = .empty
     /// The cheap checked/enabled filter state, on its own channel so a filter
     /// toggle never re-delivers the catalog.
     private(set) var filterState: VaultFilterState = .empty
-    /// The sort menu.
     private(set) var sortMenu: VaultSortMenu = .empty
-    /// The toolbar overflow actions + sync indicator.
     private(set) var toolbar: VaultToolbar = .empty
     /// Toolbar fields split by consumer so the sync indicator and overflow menu
     /// don't invalidate each other on unrelated changes.
     private(set) var toolbarActions: [VaultAction] = []
     private(set) var toolbarSyncing = false
-    /// The multi-selection bar (`count == 0` = inactive).
     private(set) var selection: VaultSelection = .empty
-    /// Live TOTP codes keyed by row id, pushed at 1Hz on a separate channel.
     private(set) var totpStates: [String: TotpFieldSnapshot] = [:]
 
     @ObservationIgnored private let core: KeyguardCore?
@@ -44,8 +38,7 @@ final class VaultListSessionModel {
     /// `stop()`). The main vault list does; a stacked list drives a provided session.
     private var ownsSession: Bool { externalSession == nil }
     @ObservationIgnored private var subscriptions: [KeyguardCancellable] = []
-    /// The FIFO background→Main bridge for the delta channel (see the class KDoc);
-    /// the reusable helper every surface shares, bound to this model's `store`.
+    /// The FIFO background→Main bridge for the delta channel.
     @ObservationIgnored private lazy var deltaPump = VaultDeltaPump(store: store)
 
     init(core: KeyguardCore, config: VaultListSessionConfig = .vaultMain()) {
@@ -69,14 +62,13 @@ final class VaultListSessionModel {
 
         let continuation = deltaPump.start()
 
-        // Use the externally-owned session if provided (a stacked list), else create
-        // one (the main list). The `?? core?...` fallback never fails in practice —
-        // exactly one of `externalSession` / `core` is set per init.
+        // Exactly one of `externalSession` (a stacked list) / `core` (the main list)
+        // is set per init, so the `else` never fires in practice.
         guard let session = externalSession ?? core?.makeVaultListSession(config: config) else { return }
         self.session = session
 
         // THE LIST. Background-delivered BY DESIGN: convert off-main, then one
-        // ordered hop to Main (see the class KDoc). Do not touch any observable
+        // ordered hop to Main through `deltaPump`. Do not touch any observable
         // state directly in this callback.
         subscriptions.append(
             session.observeListDelta { bridged in
@@ -131,8 +123,8 @@ final class VaultListSessionModel {
                 let value = VaultSelection(bridged: bridged)
                 MainActor.assumeIsolated { self?.selection = value }
             })
-        // TOTP rides the existing `[String: TotpFieldSnapshot]` map shape; kept
-        // bridged as-is (small, and `TotpBadgeCell` consumes the snapshot directly).
+        // TOTP stays bridged as-is: the map is small and `TotpBadgeCell` consumes
+        // the snapshot directly.
         subscriptions.append(
             session.observeTotp { [weak self] states in
                 MainActor.assumeIsolated { self?.totpStates = states }
@@ -140,12 +132,9 @@ final class VaultListSessionModel {
     }
 
     /// Cancels every channel, closes the Kotlin session and clears all state.
-    /// The `store.reset()` generation bump drops any delta still in the pipe.
     func stop() {
         subscriptions.forEach { $0.cancel() }
         subscriptions = []
-        // Finish + drain the pump and re-baseline the store (its generation bump
-        // drops any delta still in the pipe).
         deltaPump.stop()
         // Only close a session we created; a provided (stacked-list) session is closed
         // Kotlin-side by its owning navigation-stack entry.
@@ -176,7 +165,6 @@ final class VaultListSessionModel {
         session?.clearQuery()
     }
 
-    /// Accepts the header's qualifier autocomplete suggestion.
     func applyQualifierSuggestion() {
         session?.applyQualifierSuggestion()
     }
@@ -226,7 +214,6 @@ final class VaultListSessionModel {
         session?.clearSelection()
     }
 
-    /// Marks the row the detail pane currently shows (recents / shape accents).
     func setOpenedRow(rowId: String) {
         session?.setOpenedRow(rowId: rowId)
     }
@@ -261,9 +248,8 @@ final class VaultListSessionModel {
         )
     }
 
-    /// Resolves a row's context-menu actions on demand (never carried in
-    /// state). An unknown row — or a stopped session — yields `[]`. The Kotlin
-    /// callback arrives on Main and fires exactly once.
+    /// An unknown row — or a stopped session — yields `[]`. The Kotlin callback
+    /// arrives on Main and fires exactly once.
     func rowActions(rowId: String) async -> [VaultAction] {
         guard let session else { return [] }
         return await withCheckedContinuation { continuation in
@@ -277,11 +263,10 @@ final class VaultListSessionModel {
 // MARK: - VaultRowListModel conformance
 
 extension VaultListSessionModel: VaultRowListModel {
-    /// The quick-filter chips hide while a search query is active.
     var isQueryActive: Bool { !header.query.isEmpty }
 
-    /// The saved-filter ("custom") section's chips, shown at the quick-filters
-    /// marker row (the magic section id stays a main-list detail, off the row host).
+    /// The saved-filter ("custom") section's chips; the magic section id stays a
+    /// main-list detail, off the row host.
     var quickFilterChips: [VaultFilterChip] {
         filterCatalog.groups.first(where: { $0.sectionId == "custom" })?.items ?? []
     }

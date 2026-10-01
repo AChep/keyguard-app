@@ -19,7 +19,6 @@ interface KeychainBridge {
     /** Deletes [account]; returns true if it was removed or already absent. */
     fun delete(account: String): Boolean
 
-    /** Whether an item exists for [account]. */
     fun contains(account: String): Boolean
 }
 

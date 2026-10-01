@@ -2,7 +2,6 @@ package com.artemchep.keyguard.apple.auth
 
 import arrow.core.right
 import com.artemchep.keyguard.apple.core.sessionKoin
-import com.artemchep.keyguard.main
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
@@ -46,12 +45,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
-/**
- * The Bitwarden add-account / login screen and its 2FA challenge. Runs the
- * shared [bitwardenLoginStateProducer] / [bitwardenLoginTwofaStateProducer]
- * headlessly and projects them into [LoginSnapshot] / [TwofaSnapshot]. The 2FA
- * challenge args captured during login are handed off to [observeBitwardenLoginTwofa].
- */
 internal class LoginController(
     private val ctx: CoreContext,
 ) {
@@ -89,9 +82,8 @@ internal class LoginController(
                 onChange(LoginSnapshot.empty)
             },
         ) { state ->
-            // AddAccount lives in the unlocked session sub-DI; the
-            // global bindings (url check, confirmation factory) are
-            // reachable through it too, since it parents the global DI.
+            // AddAccount is session-scoped; the session scope also
+            // resolves global bindings such as the url check.
             val addAccount = state.sessionKoin.get<AddAccount>()
             val cipherUnsecureUrlCheck = state.sessionKoin.get<CipherUnsecureUrlCheck>()
             val confirmationRouteFactory = ctx.koin.get<ConfirmationRouteFactory>()
@@ -287,12 +279,10 @@ internal class LoginController(
         )
     }
 
-    /** Writes [text] into a login text field identified by its snapshot id. */
     fun setLoginField(id: String, text: String) {
         loginFieldHandlers[id]?.invoke(text)
     }
 
-    /** Selects a server region (US / EU / Custom) by its snapshot key. */
     fun selectLoginRegion(key: String) {
         latestLoginState?.regionItems
             ?.firstOrNull { it.key == key }
@@ -300,17 +290,14 @@ internal class LoginController(
             ?.invoke()
     }
 
-    /** Invokes a login item action (header options / add-field button) by its id. */
     fun invokeLoginAction(id: String) {
         loginActionHandlers.invokeAction(id)
     }
 
-    /** Opens the Bitwarden registration page. No-op unless exposed. */
     fun clickLoginRegister() {
         latestLoginState?.onRegisterClick?.invoke()
     }
 
-    /** Submits the Bitwarden login. No-op unless the latest state allows it. */
     fun submitLogin() {
         latestLoginState?.onLoginClick?.invoke()
     }
@@ -331,8 +318,6 @@ internal class LoginController(
                 onChange(TwofaSnapshot.empty)
             },
         ) { state ->
-            // AddAccount / RequestEmailTfa live in the unlocked session
-            // sub-DI; the crypto / serialization services come from global.
             val addAccount = state.sessionKoin.get<AddAccount>()
             val requestEmailTfa = state.sessionKoin.get<RequestEmailTfa>()
             val cryptoGenerator = ctx.koin.get<CryptoGenerator>()
@@ -360,8 +345,7 @@ internal class LoginController(
                     transmitter = transmitter,
                     defaultRememberMe = false,
                 )
-            // Single shared copy of the latest top-level state (the
-            // producer is cold; double-collecting would run it twice).
+            // The producer is cold, so collect it once into a shared StateFlow.
             val latest = MutableStateFlow<TwoFactorState?>(null)
             launch {
                 producerFlow.collect { twofa -> latest.value = twofa }
@@ -460,7 +444,6 @@ internal class LoginController(
         }
     }
 
-    /** Writes [text] into the 2FA verification-code field. */
     fun setTwofaCode(text: String) {
         val onChange = when (val s = latestTwoFactorState?.state) {
             is BitwardenLoginTwofaState.Authenticator -> s.code.onChange
@@ -471,7 +454,6 @@ internal class LoginController(
         onChange?.invoke(text)
     }
 
-    /** Selects a 2FA provider by its snapshot key. */
     fun selectTwofaProvider(key: String) {
         latestTwoFactorState?.providers
             ?.firstOrNull { it.key == key }
@@ -479,7 +461,6 @@ internal class LoginController(
             ?.invoke()
     }
 
-    /** Toggles "remember this device" for providers that support it. */
     fun toggleTwofaRememberMe(checked: Boolean) {
         val onChange = when (val s = latestTwoFactorState?.state) {
             is BitwardenLoginTwofaState.Authenticator -> s.rememberMe.onChange
@@ -490,7 +471,6 @@ internal class LoginController(
         onChange?.invoke(checked)
     }
 
-    /** Requests a fresh verification email (email / email-new-device providers). */
     fun resendTwofaCode() {
         val resend = when (val s = latestTwoFactorState?.state) {
             is BitwardenLoginTwofaState.Email -> s.emailResend
@@ -500,7 +480,6 @@ internal class LoginController(
         resend?.invoke()
     }
 
-    /** Submits the code-entry 2FA challenge. No-op unless the state allows it. */
     fun submitTwofa() {
         val onClick = (latestTwoFactorState?.state as? BitwardenLoginTwofaState.HasPrimaryAction)
             ?.primaryAction
@@ -508,7 +487,6 @@ internal class LoginController(
         onClick?.invoke()
     }
 
-    /** Completes a YubiKey OTP challenge with the manually-typed [token]. */
     fun submitTwofaYubiKey(token: String) {
         val s = latestTwoFactorState?.state as? BitwardenLoginTwofaState.YubiKey
         s?.onComplete?.invoke(token.right())

@@ -4,7 +4,6 @@ import com.artemchep.keyguard.feature.fido2.asFido2AppException
 import com.artemchep.keyguard.common.exception.Readable
 import com.artemchep.keyguard.common.exception.YubiKeyAuthCanceledException
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.model.BiometricAuthException
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.BiometricAuthPromptSimple
 import com.artemchep.keyguard.common.model.ToastMessage
@@ -25,11 +24,9 @@ import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.apple.core.evaluateBiometrics
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.apple.throttleLatest
-import com.artemchep.keyguard.platform.LeBiometricCipherApple
 import com.artemchep.keyguard.platform.LeContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -53,13 +50,6 @@ private const val YUBIKEY_CHALLENGE_LENGTH = 32
 /** Byte length of the HMAC-SHA1 secret written when provisioning a slot. */
 private const val YUBIKEY_SECRET_LENGTH = 20
 
-/**
- * The vault create / unlock flow: the Setup and Unlock screens plus the
- * create/unlock one-shots and the native biometric (Touch ID) + YubiKey prompt
- * handling. Runs the shared [setupStateProducer] / [unlockStateProducer]
- * headlessly; biometric prompts resolve through the shared [evaluateBiometrics],
- * YubiKey prompts through the shared native YubiKey client.
- */
 internal class AuthController(
     private val ctx: CoreContext,
     private val authPromptHost: AuthPromptHost,
@@ -73,54 +63,6 @@ internal class AuthController(
     private var latestUnlockState: UnlockState? = null
     private var latestUnlockActionHandlers: Map<String, () -> Unit> = emptyMap()
     private var latestSetupState: SetupState? = null
-
-    /**
-     * Creates a brand-new vault protected by the given master [password]. When
-     * [biometric] is true and supported, enrolls Touch ID as part of creation
-     * (shows the system sheet, materializes the keychain cipher). A cancelled
-     * prompt aborts silently.
-     */
-    suspend fun createVault(password: String, biometric: Boolean) {
-        val state = ctx.currentState() as? VaultState.Create
-            ?: error("Can not create a vault in the current state: ${ctx.currentState()::class.simpleName}")
-        val withBiometric = state.createWithMasterPasswordAndBiometric
-        if (biometric && withBiometric != null) {
-            val cipher = withBiometric.getCipher().fold(
-                ifLeft = { throw it },
-                ifRight = { it },
-            )
-            val exception = evaluateBiometrics(
-                reason = org.jetbrains.compose.resources.getString(Res.string.setup_biometric_auth_confirm_title),
-            ) { context ->
-                (cipher as LeBiometricCipherApple).materialize(context)
-            }
-            if (exception != null) {
-                when (exception.code) {
-                    BiometricAuthException.ERROR_USER_CANCELED,
-                    BiometricAuthException.ERROR_CANCELED,
-                    BiometricAuthException.ERROR_NEGATIVE_BUTTON -> return
-                    else -> throw exception
-                }
-            }
-            withBiometric.getCreateIo(password).invoke()
-        } else {
-            state.createWithMasterPassword.getCreateIo(password).invoke()
-        }
-    }
-
-    /** True when a vault can be created with Touch ID enrollment. */
-    suspend fun createVaultSupportsBiometric(): Boolean =
-        (ctx.currentState() as? VaultState.Create)?.createWithMasterPasswordAndBiometric != null
-
-    /** Unlocks an existing vault using the given master [password]. */
-    suspend fun unlockVault(password: String) {
-        when (val state = ctx.currentState()) {
-            is VaultState.Unlock ->
-                state.unlockWithMasterPassword.getCreateIo(password).invoke()
-
-            else -> error("Can not unlock a vault in the current state: ${state::class.simpleName}")
-        }
-    }
 
     fun observeUnlock(
         onChange: (UnlockSnapshot) -> Unit,
@@ -216,38 +158,28 @@ internal class AuthController(
         }
     }
 
-    /**
-     * True while the SwiftUI unlock screen is visible. Gates the prompt hosts in
-     * [observeUnlock] so the system Touch ID sheet can never appear without the
-     * unlock screen behind it.
-     */
     private val unlockPromptHostActive = MutableStateFlow(false)
 
     fun setUnlockScreenVisible(visible: Boolean) {
         unlockPromptHostActive.value = visible
     }
 
-    /** Writes [text] into the unlock password field. */
     fun setUnlockPassword(text: String) {
         latestUnlockState?.password?.onChange?.invoke(text)
     }
 
-    /** Submits the current unlock password. */
     fun submitUnlock() {
         latestUnlockState?.unlockVaultByMasterPassword?.invoke()
     }
 
-    /** Triggers the biometric unlock prompt, if the device supports it. */
     fun triggerUnlockBiometric() {
         latestUnlockState?.biometric?.onClick?.invoke()
     }
 
-    /** Invokes an unlock-screen escape-hatch action (e.g. "Erase data") by id. */
     fun invokeUnlockAction(id: String) {
         latestUnlockActionHandlers.invokeAction(id)
     }
 
-    /** Triggers the YubiKey unlock prompt, if the vault has a YubiKey factor. */
     fun triggerUnlockYubiKey() {
         latestUnlockState?.yubiKey?.onClick?.invoke()
     }
@@ -275,7 +207,6 @@ internal class AuthController(
         }
     }
 
-    /** Enables / disables YubiKey unlock, the create-side twin of setBiometricUnlock. */
     fun setYubiKeyUnlock(value: Boolean, slot: Int, provision: Boolean, overwrite: Boolean) {
         ctx.scope.launch(Dispatchers.Default) {
             val outcome = runCatching {
@@ -386,22 +317,18 @@ internal class AuthController(
         setupPromptHostActive.value = visible
     }
 
-    /** Writes [text] into the create-vault password field. */
     fun setSetupPassword(text: String) {
         latestSetupState?.password?.onChange?.invoke(text)
     }
 
-    /** Toggles the "send crash reports" opt-in on the create screen. */
     fun setSetupCrashlytics(enabled: Boolean) {
         latestSetupState?.crashlytics?.onChange?.invoke(enabled)
     }
 
-    /** Toggles Touch ID enrollment for the vault being created. */
     fun setSetupBiometric(enabled: Boolean) {
         latestSetupState?.biometric?.onChange?.invoke(enabled)
     }
 
-    /** Submits the create-vault form. */
     fun submitSetup() {
         latestSetupState?.onCreateVault?.invoke()
     }

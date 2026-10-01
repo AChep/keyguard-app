@@ -29,24 +29,6 @@ final class DetailObservationIsolationTests: XCTestCase {
     }
 
     @MainActor
-    func testDirectoryDetailRejectsReplacedAndStoppedSnapshots() async throws {
-        let probe = DetailObservationProbe<ServiceDirectoryDetailSnapshot>()
-        let model = ServiceDirectoryModel(
-            observeDetail: { _, _, callback in probe.subscribe(callback) })
-        let makeSnapshot = { (title: String) in
-            ServiceDirectoryDetailSnapshot(
-                loaded: true, title: title, chips: [], notes: nil, links: [], failed: false, notFound: false)
-        }
-        try await checkReplacement(
-            probe, first: makeSnapshot("A"), second: makeSnapshot("B"),
-            empty: ServiceDirectoryDetailSnapshot.companion.empty,
-            start: { model.startServiceDirectoryDetailObservation(kind: "passkeys", itemId: String($0)) },
-            stop: model.stopServiceDirectoryDetailObservation,
-            snapshot: { model.directoryDetail }
-        )
-    }
-
-    @MainActor
     func testPasswordHistoryRejectsReplacedAndStoppedSnapshots() async throws {
         let probe = DetailObservationProbe<PasswordHistorySnapshot>()
         let model = CipherDetailModel(

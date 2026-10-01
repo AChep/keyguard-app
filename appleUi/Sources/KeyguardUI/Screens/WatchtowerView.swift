@@ -1,8 +1,6 @@
 import SwiftUI
 import KeyguardShared
 
-/// Native SwiftUI rendering of the Watchtower dashboard. Shared state and
-/// navigation actions are supplied by the Kotlin producer.
 struct WatchtowerView: View {
     var entry: ScreenEntrySnapshot? = nil
     @Environment(NavigationModel.self) private var navigationModel
@@ -76,13 +74,8 @@ struct WatchtowerView: View {
 
     // MARK: - Layout
 
-    /// The dashboard with an optional left-hand filter sidebar. Mirrors the
-    /// `HomeView` / `SendView` two-pane behaviour: the filters become a sidebar
-    /// when wide enough, otherwise they collapse into the toolbar filter menu.
     private var twoPane: some View {
-        // GeometryReader + HStack (deterministic fill) — same approach as
-        // `MasterDetailLayout`; the screen title is rendered by the system in the
-        // titlebar from `.navigationTitle`.
+        // GeometryReader + HStack for a deterministic fill, as in `MasterDetailLayout`.
         GeometryReader { proxy in
             HStack(spacing: 0) {
                 if filterSidebarShown {
@@ -209,8 +202,6 @@ struct WatchtowerView: View {
                     .font(.body.monospaced())
                     .foregroundStyle(.secondary)
                 if watchtower.canClickUnread {
-                    // chevron.forward (layout-direction aware, flips for RTL) to
-                    // match the Tools rows and the package-wide convention.
                     Image(systemName: "chevron.forward")
                         .foregroundStyle(.secondary)
                 }

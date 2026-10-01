@@ -1,9 +1,7 @@
 import SwiftUI
 
 extension View {
-    /// Runs a shared producer's observation for as long as this view is on screen,
-    /// expressing the start/stop pair — and any gate on it — once instead of on two
-    /// separate lines that can drift apart.
+    /// Runs a shared producer's observation for as long as this view is on screen.
     ///
     /// Pass `enabled: false` to skip both ends: the shape a screen takes when it can
     /// also be rendered from a navigation-stack entry's inline snapshot and must not

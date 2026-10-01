@@ -35,7 +35,6 @@ struct FieldCell<Content: View, Accessories: View>: View {
     var body: some View {
         Group {
             if layout == .stacked {
-                // Quick Search keeps its compact, caption-over-value presentation.
                 VStack(alignment: .leading, spacing: 4) {
                     if let title, !title.isEmpty {
                         PasswordText(title, colorize: colorizeTitle)

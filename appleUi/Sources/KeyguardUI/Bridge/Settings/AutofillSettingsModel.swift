@@ -11,9 +11,7 @@ final class AutofillSettingsModel: SnapshotObserving {
         self.core = core
     }
 
-    /// AutoFill preferences, produced by the shared
-    /// Kotlin AutoFill preference use cases running inside `KeyguardCore`. Only
-    /// live while the AutoFill settings screen is on screen.
+    /// Only live while the AutoFill settings screen is on screen.
     private(set) var autofillSettings: AutofillSettingsSnapshot = AutofillSettingsSnapshot.companion.empty
 
     @ObservationIgnored private var autofillSettingsSubscription: BridgeObservation?

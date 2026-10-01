@@ -7,12 +7,7 @@ import io.ktor.http.encodeURLParameter
 // URLs the host's open-url handler opens for the platform navigation intents
 // (UIApplication / NSWorkspace pick the app: Mail, Phone / FaceTime, Messages, Maps).
 
-/**
- * Builds a `mailto:` URL (address / subject / body percent-encoded) from a
- * feedback / contact-us send intent. Shared by the navigation-stack interceptor
- * and the standalone "Contact us" sheet so both open mail the same way via the
- * host's open-url handler.
- */
+/** Builds a `mailto:` URL with the address, subject and body percent-encoded. */
 internal fun NavigationIntent.NavigateToEmail.toMailtoUrl(): String {
     // The address comes from vault items too; encode it so a '?' / '&' / '#'
     // can't inject headers. RFC 6068 allows a literal '@'.

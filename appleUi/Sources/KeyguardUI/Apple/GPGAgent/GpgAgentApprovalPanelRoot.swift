@@ -2,10 +2,8 @@
 import SwiftUI
 import KeyguardShared
 
-/// SwiftUI root hosted inside `GpgAgentApprovalPanel`. Renders the front of the
-/// shared `gpgAgentRequests` queue reactively: resolving the current request
-/// advances this view to the next queued request, or removes the prompt. The
-/// request id resets local form state before the next request can be approved.
+/// SwiftUI root hosted inside `GpgAgentApprovalPanel`. The request id resets local
+/// form state before the next request can be approved.
 struct GpgAgentApprovalPanelRoot: View {
     @Environment(GpgAgentModel.self) private var gpgAgentModel
 

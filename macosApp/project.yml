@@ -89,7 +89,7 @@ targets:
         PRODUCT_NAME: Keyguard
         # App Group (shared vault + agent sockets) + shared keychain group (AutoFill).
         # Requires a real DEVELOPMENT_TEAM + provisioning to actually be granted; the
-        # data-dir resolver falls back to App Support when it isn't (G4/G5).
+        # data-dir resolver falls back to App Support when it isn't.
         CODE_SIGN_ENTITLEMENTS: macosApp/Keyguard.entitlements
         REGISTER_APP_GROUPS: YES
         GENERATE_INFOPLIST_FILE: YES
@@ -186,14 +186,14 @@ targets:
           codesign --force --options runtime $TIMESTAMP --sign "$IDENTITY" \
             --entitlements "$SRCROOT/macosApp/KeyguardGpgAgent.entitlements" "$DEST"
 
-  # AutoFill credential-provider extension (D5). A second sandboxed app-extension
+  # AutoFill credential-provider extension. A second sandboxed app-extension
   # linking the same KeyguardShared framework; embedded in the app above.
   KeyguardAutofill:
     type: app-extension
     platform: macOS
     sources:
-      # Principal class + Info.plist/entitlements live here; the screens and the
-      # credential-request plumbing are shared with the iOS extension.
+      # Info.plist + entitlements only; the principal class, screens and
+      # credential-request plumbing come from ../appleAutofill, shared with iOS.
       - path: KeyguardAutofill
       # Shared AutoFill sources, compiled directly into the appex (it deliberately does
       # NOT link the KeyguardUI product, which would drag in the whole screen layer).

@@ -26,22 +26,14 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.koin.core.scope.Scope
 
-/**
- * The Send detail screen. Runs the shared [sendViewScreenStateProducer]
- * headlessly and projects its [SendViewState] into a [SendDetailSnapshot] (item
- * rows via the shared [buildVaultItemSnapshots]). Hands the producer the
- * [DialogController] interceptor for attachment-preview routes.
- */
 internal class SendDetailController(
     private val ctx: CoreContext,
     private val dialogController: DialogController,
 ) {
     /**
-     * Resolves the navigation interceptor the Send view producer is handed for a
-     * given session DI. Defaults to the dialog-only interceptor; [KeyguardCore]
-     * late-binds it to the navigation stack's composed interceptor so the Send
-     * detail's "edit" action (a `SendAddRoute`) reaches the stack — which opens the
-     * native edit sheet — instead of being dropped.
+     * Defaults to the dialog interceptor for attachment-preview routes; [KeyguardCore] late-binds it to the
+     * navigation stack's composed interceptor so the "edit" action's `SendAddRoute` reaches the stack, which
+     * opens the native edit sheet, instead of being dropped.
      */
     var navigationInterceptorProvider: (Scope) -> ((NavigationIntent) -> Boolean) =
         { sessionKoin -> dialogController.navigationInterceptor(sessionKoin = sessionKoin) }
@@ -99,7 +91,6 @@ internal class SendDetailController(
         }
     }
 
-    /** Runs the shared [sendViewScreenStateProducer] for one Send in a headless scope tied to [scope]. */
     private suspend fun sendViewStateFlow(
         scope: CoroutineScope,
         sessionKoin: Scope,
@@ -139,7 +130,6 @@ internal class SendDetailController(
             )
     }
 
-    /** Builds the Swift-facing [SendDetailSnapshot], filling [actionHandlers]. */
     private suspend fun buildSendDetailSnapshot(
         state: SendViewState,
         leContext: LeContext,
@@ -180,22 +170,18 @@ internal class SendDetailController(
         }
     }
 
-    /** Invokes a Send detail item / header context action by its snapshot id. */
     fun invokeSendAction(id: String) {
         sendActionHandlers.invokeAction(id)
     }
 
-    /** Copies the Send share link. No-op unless the producer exposes the action. */
     fun sendCopy() {
         latestSendContent?.onCopy?.invoke()
     }
 
-    /** Opens the native share sheet for the Send link. No-op unless available. */
     fun sendShare() {
         latestSendContent?.onShare?.invoke()
     }
 
-    /** Opens the Send for editing. No-op unless the producer exposes the action. */
     fun sendEdit() {
         latestSendContent?.onEdit?.invoke()
     }

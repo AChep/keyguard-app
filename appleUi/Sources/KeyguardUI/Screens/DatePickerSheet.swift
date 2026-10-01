@@ -6,8 +6,6 @@ struct DatePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     #if os(iOS)
-    /// On a compact-width iPhone the wheel reads clearly in a medium-detent sheet;
-    /// on a regular-width iPad the system default (`.compact` field) is preferred.
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #endif
 
@@ -118,8 +116,6 @@ struct DatePickerSheet: View {
         )
     }
 
-    /// The inclusive selectable-date range from the request, or the distant range
-    /// when unbounded.
     private var dateRange: ClosedRange<Date> {
         guard request.hasRange else {
             return Date.distantPast...Date.distantFuture
@@ -139,8 +135,6 @@ struct DatePickerSheet: View {
         return lowerDate <= upperDate ? lowerDate...upperDate : Date.distantPast...Date.distantFuture
     }
 
-    /// The request's initial date / time mapped onto today's date so the wheel /
-    /// calendar opens at the producer's current value.
     private static func initialDate(_ request: AddDatePickerRequest) -> Date {
         var comps = DateComponents()
         if request.kind == AddDatePickerKind.time {
@@ -168,9 +162,7 @@ struct DatePickerSheet: View {
     }
 }
 
-/// Wraps the bridge's `AddDatePickerRequest` so it can drive a value-keyed
-/// `.sheet(item:)` (Kotlin data classes are not `Identifiable`). Keyed by the
-/// request's opaque per-request id.
+/// Kotlin data classes are not `Identifiable`, so this keys `.sheet(item:)` by the request id.
 struct PendingDatePicker: Identifiable {
     let id: String
     let request: AddDatePickerRequest

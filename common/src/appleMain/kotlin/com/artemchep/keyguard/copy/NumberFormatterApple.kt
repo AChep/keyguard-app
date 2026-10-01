@@ -5,9 +5,7 @@ import platform.Foundation.NSNumber
 import platform.Foundation.NSNumberFormatter
 import platform.Foundation.NSNumberFormatterDecimalStyle
 
-/**
- * Locale-aware number formatting with grouping separators, like the JVM implementation.
- */
+/** Locale-aware number formatting with grouping separators, like the JVM implementation. */
 class NumberFormatterApple : NumberFormatter {
     private val formatter = LocaleCache { locale ->
         NSNumberFormatter().apply {

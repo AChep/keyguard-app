@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.apple.settings
 
-import com.artemchep.keyguard.main
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
@@ -21,20 +20,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /**
- * The change-master-password sheet. Runs the shared [changePasswordStateProducer]
- * headlessly; on success the producer pops its own screen, which the interceptor
- * turns into the [observeChangePassword] `onClose` callback so SwiftUI can dismiss.
- *
- * When the account has biometric unlock enabled, the shared producer surfaces a
- * "Use biometric authentication" re-enroll checkbox (defaulting to checked). With
- * the box checked, confirming routes through the biometric path, which emits a
- * [BiometricAuthPrompt] on `sideEffects.showBiometricPromptFlow`. This controller
- * collects that flow and routes the prompt through the shared [AuthPromptHost] —
- * the same native Touch ID / Face ID path the unlock screen and the elevated-access
- * re-prompt use. Only after the host resolves biometrics does the producer's
- * `onComplete` run, re-encrypting the biometric unlock key with the new password
- * and changing it. Without this collection the prompt would never appear and the
- * change would silently hang for biometric-unlock users.
+ * Biometric-unlock users confirm through the producer's `sideEffects.showBiometricPromptFlow`: without
+ * collecting it, the prompt never appears and the change hangs.
  */
 internal class ChangePasswordController(
     private val ctx: CoreContext,
@@ -62,13 +49,10 @@ internal class ChangePasswordController(
             }
         }
         return ctx.launchObserver {
-            // The biometric prompt side-effect flow is the same EventFlow instance
-            // for the whole producer lifetime; collect it once and route each
-            // prompt through the shared native prompt host. The host evaluates
-            // Touch ID / Face ID and then (on the main thread) invokes the
-            // prompt's onComplete, which re-encrypts the biometric key with the new
-            // password and launches the password-change IO. On cancel / failure it
-            // delivers the error to onComplete instead, aborting cleanly.
+            // The biometric prompt side-effect flow is the same EventFlow instance for the whole producer
+            // lifetime; collect it once and route each prompt through the shared native prompt host. The host
+            // runs Touch ID / Face ID, then invokes the prompt's onComplete on the main thread (re-encrypt the
+            // biometric key, change the password), or delivers the error on cancel / failure.
             var promptCollectorStarted = false
             ctx.koin.newHeadlessStateFlowScope("change_password", this, interceptor)
                 .changePasswordStateProducer(

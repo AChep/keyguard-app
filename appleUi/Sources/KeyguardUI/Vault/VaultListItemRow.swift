@@ -44,8 +44,7 @@ enum VaultRowInline {
         // (or title + subtitle) row reads as vertically centred next to the icon.
         HStack(alignment: .center, spacing: 10) {
             // The multi-selection affordance — shown ONLY when the row carries the
-            // Duplicates selection flags (the main list never sets them, so this is
-            // inert there).
+            // Duplicates selection flags; the main list never sets them.
             if row.flags.contains(.selecting) {
                 let selected = row.flags.contains(.selected)
                 Image(systemName: selected ? "checkmark.circle.fill" : "circle")
@@ -84,8 +83,7 @@ enum VaultRowInline {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                // The matched-field context badge shown while a search is
-                // active, from the row's search-dependent decoration.
+                // The matched-field context badge, shown while a search is active.
                 if let context = decoration?.contextBadgeText {
                     HStack(spacing: 4) {
                         if let symbol = decoration?.contextBadgeSymbol {
@@ -110,21 +108,17 @@ enum VaultRowInline {
 
     // MARK: - Section / marker rows
 
-    /// A section header row.
     static func sectionRow(title: String) -> some View {
         Text(title)
             .font(.subheadline.weight(.semibold))
             .foregroundStyle(.secondary)
     }
 
-    /// A "no items" / "no suggestions" placeholder marker row.
     static func markerRow(title: String) -> some View {
         Text(title)
             .font(.callout)
             .foregroundStyle(.secondary)
     }
-
-    // MARK: - Button row
 
     static func buttonRow(title: String, onTap: @escaping @MainActor @Sendable () -> Void) -> some View {
         Button(action: onTap) {
@@ -149,7 +143,6 @@ enum VaultRowInline {
     private static func icon(_ row: VaultRow, colorScheme: ColorScheme) -> some View {
         FaviconView(
             url: row.iconUrl,
-            // Other types fall through to their type symbol when initials are absent.
             placeholder: row.iconInitials,
             fallbackSymbol: row.typeSymbol ?? "key",
             size: 30,
@@ -288,13 +281,12 @@ struct VaultRowHost: View {
     let store: VaultRowStore
     let entry: VaultRowEntry
     let model: any VaultRowListModel
-    /// The surface's interaction policy — gates the context menu, the quick
-    /// filters and (for future surfaces) the row-tap behavior.
+    /// Gates the context menu and the quick filters, and carries the highlighted
+    /// `selectedRowId`.
     let config: VaultListConfig
     let colorScheme: ColorScheme
-    /// The iOS edit-mode gate threaded into the row's context menu so an active
-    /// multi-selection swaps in the bulk actions. Always `false` on macOS (the
-    /// default), so the macOS bridge's call site is unchanged.
+    /// The iOS edit-mode gate: while editing, an active multi-selection swaps the
+    /// row's context menu to the bulk actions. Always `false` on macOS.
     var editing: Bool = false
     /// UIKit supplies native cell margins; macOS retains its compact row inset.
     var horizontalPadding: CGFloat = 8
@@ -341,9 +333,8 @@ struct VaultRowHost: View {
                     enabled: config.contextMenu
                 ))
         case .button:
-            // A full-width button row (e.g. Duplicates' merge button). The main
-            // list never emits this kind. The row's own id doubles as the action
-            // id dispatched through the session's `performVaultRowAction`.
+            // The row's own id doubles as the action id dispatched through
+            // `performVaultRowAction`.
             VaultRowInline.buttonRow(title: row?.title ?? "") {
                 model.performVaultRowAction(rowId: entry.id, actionId: entry.id)
             }

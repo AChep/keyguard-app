@@ -1,11 +1,10 @@
 import SwiftUI
 @preconcurrency import KeyguardShared
 
-/// The floating, glass-backed bar that stands in for an active multi-selection:
-/// a clear button, the selected count, and an overflow menu of the bulk actions.
+/// The floating bar that stands in for an active multi-selection.
 ///
 /// The chrome is identical on every surface; only the action model differs (the
-/// bridged `VaultActionSnapshot` on the snapshot-driven screens, the V2 `VaultAction`
+/// bridged `VaultActionSnapshot` on the snapshot-driven screens, `VaultAction`
 /// on the virtualizing vault list), so the menu content is supplied by the caller.
 struct SelectionBarChrome<Actions: View>: View {
     let count: Int
@@ -56,7 +55,6 @@ struct SelectionBarChrome<Actions: View>: View {
     }
 }
 
-/// The selection bar of a snapshot-driven list screen.
 struct SelectionActionBar: View {
     let count: Int
     let actions: [VaultActionSnapshot]
@@ -70,8 +68,6 @@ struct SelectionActionBar: View {
     }
 }
 
-/// Snapshot actions as menu items: a divider before each `startsSection` action,
-/// a toggle for a `switchState`, and the destructive role for `danger`.
 @ViewBuilder
 func listActionMenuItems(
     actions: [VaultActionSnapshot],

@@ -31,12 +31,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 
-/**
- * Automatic Backups. Runs the shared [automaticBackupsSettingsStateProducer]
- * headlessly for the saved config + status. The native setup wizard owns a
- * complete in-memory draft, including retention, until destination verification
- * succeeds. The folder picker reuses [AddItemController]'s file-picker bridge.
- */
+/** The folder picker reuses [AddItemController]'s file-picker bridge. */
 internal class BackupsController(
     private val ctx: CoreContext,
     private val addItemController: AddItemController,
@@ -176,7 +171,6 @@ internal class BackupsController(
         backupOnChange?.invoke(projectBackup(latestBackupState))
     }
 
-    /** Starts a new editor transaction using saved configuration, including its opaque secrets. */
     fun beginBackupSetup() {
         val saved = latestBackupState?.config ?: return
         invalidateSetup()
@@ -248,7 +242,6 @@ internal class BackupsController(
         )
     }
 
-    /** Verifies and commits one immutable draft; status updates never signal setup completion. */
     fun enableBackup() {
         if (setupSaving) return
         val draft = backupSetupDraft
@@ -302,14 +295,13 @@ internal class BackupsController(
     }
 
     fun setBackupRetention(maxSnapshots: Int) {
-        // The legacy immediate-save control also updates the draft so a later
+        // The immediate-save retention control also updates the draft so a later
         // configuration save cannot restore its previous retention value.
         backupSetupDraft?.setRetention(maxSnapshots)
         latestBackupState?.onRetentionChange?.invoke(maxSnapshots)
         reemitBackup()
     }
 
-    /** Disables automatic backups by clearing the saved config. */
     fun disableBackup() {
         invalidateSetup()
         backupConfigRepositoryRef?.setConfig(BackupConfig())?.launchIn(ctx.scope)

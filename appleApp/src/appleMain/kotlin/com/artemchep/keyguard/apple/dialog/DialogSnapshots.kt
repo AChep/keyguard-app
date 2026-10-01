@@ -5,25 +5,15 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import com.artemchep.keyguard.apple.core.toArgbLong
-import com.artemchep.keyguard.pick
 import com.artemchep.keyguard.common.model.BarcodeImageFormat
-import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewState
-import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeState
-import com.artemchep.keyguard.feature.largetype.LargeTypeState
 import com.artemchep.keyguard.apple.KeyguardCore
-import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.format
-import kotlinx.coroutines.flow.mapNotNull
 import platform.Foundation.NSData
 
 /**
- * A flat projection of the shared
- * [com.artemchep.keyguard.feature.largetype.LargeTypeState] for the SwiftUI
- * "Show in Large Type" dialog. [groups] are the phrase groups, each a list of
- * code-point tiles; a tile is highlighted while its [LargeTypeSymbolSnapshot.index]
- * is `<= ` [selectedIndex]. [note] is the optional composite-Unicode warning. Built
- * by [KeyguardCore.buildLargeTypeSnapshot]; `null` from [KeyguardCore.observeLargeType]
- * means the dialog is hidden.
+ * The "Show in Large Type" dialog. [groups] are the phrase groups, each a list of code-point tiles; a tile is
+ * highlighted while its [LargeTypeSymbolSnapshot.index] is `<=` [selectedIndex]. [note] is the optional
+ * composite-Unicode warning. `null` from [KeyguardCore.observeLargeType] means the dialog is hidden.
  */
 data class LargeTypeSnapshot(
     val title: String,
@@ -39,7 +29,6 @@ data class LargeTypeSymbolSnapshot(
     val color: LargeTypeSymbolColor,
 )
 
-/** The colorize bucket of a [LargeTypeSymbolSnapshot] tile. */
 enum class LargeTypeSymbolColor {
     PLAIN,
     DIGIT,
@@ -47,16 +36,10 @@ enum class LargeTypeSymbolColor {
 }
 
 /**
- * A flat projection of the shared
- * [com.artemchep.keyguard.feature.barcodetype.BarcodeTypeState] for the SwiftUI
- * "Show as Barcode" dialog. SwiftUI renders the bitmap natively from [data] +
- * [format] (the [com.artemchep.keyguard.common.model.BarcodeImageFormat] name);
- * [formatTitle] is the human-readable selected format and [options] the format
- * dropdown (each carries an opaque id passed back via
- * [KeyguardCore.selectBarcodeFormat]). [note] is the optional caption shown below
- * the barcode; [formatSelectable] is false when the entry point pins the format
- * (e.g. a TOTP QR code). Built by [KeyguardCore.buildBarcodeSnapshot]; `null` from
- * [KeyguardCore.observeBarcode] means the dialog is hidden.
+ * The "Show as Barcode" dialog. SwiftUI renders the bitmap from [data] and [format], a `BarcodeImageFormat` name
+ * (e.g. `QR_CODE`). Each of [options] carries an opaque id passed back via [KeyguardCore.selectBarcodeFormat].
+ * [note] is the optional caption below the barcode. [formatSelectable] is false when the entry point pins the
+ * format (e.g. a TOTP QR code). `null` from [KeyguardCore.observeBarcode] means the dialog is hidden.
  */
 data class BarcodeSnapshot(
     val title: String,
@@ -68,7 +51,6 @@ data class BarcodeSnapshot(
     val formatSelectable: Boolean,
 )
 
-/** One entry in the "Show as Barcode" format dropdown. */
 data class BarcodeFormatOptionSnapshot(
     val id: String,
     val title: String,
@@ -76,12 +58,9 @@ data class BarcodeFormatOptionSnapshot(
 )
 
 /**
- * A flat projection of the passkey credential detail dialog, mirroring the
- * fields of the shared Compose dialog. When [error] is set the remaining
- * fields are absent. Built by [KeyguardCore.buildPasskeyCredentialSnapshot];
- * `null` from [KeyguardCore.observePasskeyCredential] means the dialog is
- * hidden. [canUse] surfaces the producer's onUse closure (pick-passkey app
- * mode only) behind [KeyguardCore.usePasskeyCredential].
+ * The passkey credential detail dialog. When [error] is set the other fields are absent. [canUse] is true only in
+ * the pick-passkey app mode and enables [KeyguardCore.usePasskeyCredential]. `null` from
+ * [KeyguardCore.observePasskeyCredential] means the dialog is hidden.
  */
 data class PasskeyCredentialSnapshot(
     val title: String,
@@ -97,7 +76,6 @@ data class PasskeyCredentialSnapshot(
     val canUse: Boolean = false,
 )
 
-/** What an [AttachmentPreviewSnapshot] is currently showing. */
 enum class AttachmentPreviewKindSnapshot {
     LOADING,
     IMAGE,
@@ -107,11 +85,8 @@ enum class AttachmentPreviewKindSnapshot {
 }
 
 /**
- * One syntax-highlight run over [AttachmentPreviewSnapshot.text], projected
- * from the shared producer's Compose AnnotatedString span styles so SwiftUI
- * can rebuild the equivalent AttributedString. [colorArgb] is `0` when the
- * run only changes the weight (the highlighter always emits opaque colors,
- * so `0` is never a real value).
+ * One syntax-highlight run over [AttachmentPreviewSnapshot.text]. [colorArgb] is `0` when the run only changes
+ * the weight (the highlighter always emits opaque colors, so `0` is never a real value).
  */
 data class AttachmentPreviewSpanSnapshot(
     val start: Int,
@@ -121,16 +96,10 @@ data class AttachmentPreviewSpanSnapshot(
 )
 
 /**
- * A flat projection of the shared
- * [com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewState]
- * for the SwiftUI attachment preview sheet. Exactly one of the content fields
- * matters depending on [kind]: [imageData] for IMAGE (raw decrypted bytes,
- * crossing as NSData so Swift can feed NSImage(data:) without per-byte objc
- * calls), [text] + [spans] for TEXT / MARKDOWN, [errorMessage] for ERROR.
- * [canCopy] surfaces the producer's copy-all closure behind
- * [KeyguardCore.invokeAttachmentPreviewCopy]. Built by
- * [KeyguardCore.buildAttachmentPreviewSnapshot]; `null` from
- * [KeyguardCore.observeAttachmentPreview] means the dialog is hidden.
+ * The attachment preview sheet. Which content field is set depends on [kind]: [imageData] for IMAGE (raw
+ * decrypted bytes, as NSData so Swift can decode them without per-byte ObjC calls), [text] + [spans] for
+ * TEXT / MARKDOWN, [errorMessage] for ERROR. [canCopy] enables [KeyguardCore.invokeAttachmentPreviewCopy].
+ * `null` from [KeyguardCore.observeAttachmentPreview] means the dialog is hidden.
  */
 data class AttachmentPreviewSnapshot(
     val fileName: String,
@@ -144,16 +113,8 @@ data class AttachmentPreviewSnapshot(
 )
 
 /**
- * A flat projection of the shared
- * [com.artemchep.keyguard.feature.confirmation.ConfirmationState] for the SwiftUI
- * confirmation dialog. This is the generic dialog every cipher action routes
- * through (rename, change password, trash / delete, "Configure Watchtower alerts",
- * the various pickers) via a [com.artemchep.keyguard.feature.confirmation.ConfirmationRoute]
- * navigation intent caught by [DialogController.navigationInterceptor]. [items] are
- * rendered natively; [confirmEnabled] mirrors `state.onConfirm != null` (the shared
- * producer's validation). [docUrl] is the dialog's documentation link. Built by
- * [DialogController]; `null` from [KeyguardCore.observeConfirmation] means the
- * dialog is hidden.
+ * The generic confirmation dialog. [confirmEnabled] is false while the shared producer's validation fails.
+ * `null` from [KeyguardCore.observeConfirmation] means the dialog is hidden.
  */
 data class ConfirmationSnapshot(
     val canAddItem: Boolean = false,
@@ -166,9 +127,8 @@ data class ConfirmationSnapshot(
 )
 
 /**
- * Which kind of input a [ConfirmationItemSnapshot] row is. ([CHOICE] is the
- * single-select dropdown — named CHOICE rather than ENUM because the latter
- * lowercases to the Swift keyword `enum` when exported.)
+ * [CHOICE] is the single-select dropdown. It is not named ENUM because that lowercases to the Swift keyword
+ * `enum` when exported.
  */
 enum class ConfirmationItemKind {
     BOOLEAN,
@@ -178,11 +138,8 @@ enum class ConfirmationItemKind {
 }
 
 /**
- * One row of a [ConfirmationSnapshot], a flat projection of the shared
- * `ConfirmationState.Item` sealed type discriminated by [kind] (the same
- * kind-enum + nullable-fields shape as [AttachmentPreviewSnapshot]). Only the
- * fields relevant to [kind] are populated; SwiftUI switches on [kind] and pushes
- * mutations back through `KeyguardCore` keyed by [key].
+ * One row of a [ConfirmationSnapshot]. Only the fields of its [kind] are set; mutations go back through
+ * `KeyguardCore` keyed by [key].
  */
 data class ConfirmationItemSnapshot(
     val removable: Boolean = false,
@@ -190,7 +147,7 @@ data class ConfirmationItemSnapshot(
     val kind: ConfirmationItemKind,
     val enabled: Boolean,
     val title: String,
-    // BOOLEAN (+ shared subtitle text)
+    // BOOLEAN
     val text: String? = null,
     val booleanValue: Boolean = false,
     // STRING
@@ -204,7 +161,7 @@ data class ConfirmationItemSnapshot(
     val sensitive: Boolean = false,
     val monospace: Boolean = false,
     val password: Boolean = false,
-    // ENUM
+    // CHOICE
     val enumValue: String = "",
     val options: List<ConfirmationEnumOptionSnapshot> = emptyList(),
     val docText: String? = null,
@@ -215,7 +172,7 @@ data class ConfirmationItemSnapshot(
     val hasFile: Boolean = false,
 )
 
-/** One option of a [ConfirmationItemKind.ENUM] row's dropdown. */
+/** One option of a [ConfirmationItemKind.CHOICE] row's dropdown. */
 data class ConfirmationEnumOptionSnapshot(
     val key: String,
     val title: String,
@@ -224,20 +181,9 @@ data class ConfirmationEnumOptionSnapshot(
 )
 
 /**
- * A flat projection of the shared
- * [com.artemchep.keyguard.feature.confirmation.elevatedaccess.ElevatedAccessState]
- * for the SwiftUI master-password re-prompt dialog. A reprompt-protected cipher's
- * copy / reveal / edit action fires an
- * [com.artemchep.keyguard.feature.confirmation.elevatedaccess.ElevatedAccessRoute]
- * navigation intent caught by [DialogController.navigationInterceptor]. SwiftUI
- * renders the [message], the secure [passwordValue] field (writes back through
- * [com.artemchep.keyguard.apple.KeyguardCore.setElevatedAccessPassword]), and — when
- * present — Touch ID / Face ID ([hasBiometric]) and YubiKey ([hasYubiKey]) shortcuts.
- * [confirmEnabled] mirrors `state.onConfirm != null` (the producer's validation; a
- * wrong password surfaces as a toast, not an inline error). Built by
- * [DialogController]; `null` from
- * [com.artemchep.keyguard.apple.KeyguardCore.observeElevatedAccess] means the dialog
- * is hidden.
+ * The master-password re-prompt dialog. [confirmEnabled] is false while the producer's validation fails; a wrong
+ * password surfaces as a toast, not an inline error. `null` from [KeyguardCore.observeElevatedAccess] means the
+ * dialog is hidden.
  */
 data class ElevatedAccessSnapshot(
     val title: String,
@@ -254,26 +200,15 @@ data class ElevatedAccessSnapshot(
     val isLoading: Boolean,
 )
 
-/**
- * One breached service in an [EmailLeakSnapshot] / [WebsiteLeakSnapshot], a flat
- * projection of the shared
- * [com.artemchep.keyguard.feature.emailleak.EmailLeakState.Breach] /
- * [com.artemchep.keyguard.feature.websiteleak.WebsiteLeakState.Breach] (both have
- * the identical shape). SwiftUI renders [icon] as a favicon, [dataClasses] as chips,
- * [count] / [occurredAt] / [reportedAt] as the dated counters, and [description] as
- * HTML (rendered via the shared AttributedString conversion).
- */
+/** One breached service in an [EmailLeakSnapshot] / [WebsiteLeakSnapshot]. [descriptionText] is HTML. */
 data class LeakBreachSnapshot(
     val title: String,
     val domain: String,
-    // Named descriptionText, not description: a Kotlin property exported as
-    // `description` collides with NSObject.description (non-optional) on Swift
-    // (the same gotcha as ConfirmationItemSnapshot).
+    // Not `description`: that collides with NSObject.description (non-optional) on Swift.
     val descriptionText: String,
     val icon: String?,
     val count: Int?,
-    // The localized, number-formatted "Found in N account(s)" line (built in the
-    // controller because plural resolution + number formatting live in Kotlin).
+    /** The localized, number-formatted "Found in N account(s)" line. */
     val countText: String?,
     val occurredAt: String?,
     val reportedAt: String?,
@@ -281,16 +216,8 @@ data class LeakBreachSnapshot(
 )
 
 /**
- * A flat projection of the shared
- * [com.artemchep.keyguard.feature.emailleak.EmailLeakState] for the SwiftUI
- * email / username breach dialog. A cipher / account field's "Check data breaches"
- * action fires an
- * [com.artemchep.keyguard.feature.emailleak.EmailLeakRoute] navigation intent caught
- * by [DialogController.navigationInterceptor]. While [isLoading] the dialog shows a
- * skeleton; on success [breaches] is the (possibly empty) list of breached services;
- * on failure [errorText] carries the already-localized failure note. Built by
- * [DialogController]; `null` from
- * [com.artemchep.keyguard.apple.KeyguardCore.observeEmailLeak] means the dialog is hidden.
+ * The email / username breach dialog. [errorText] is set when the check failed; otherwise [breaches] may be
+ * empty. `null` from [KeyguardCore.observeEmailLeak] means the dialog is hidden.
  */
 data class EmailLeakSnapshot(
     val title: String,
@@ -299,23 +226,14 @@ data class EmailLeakSnapshot(
     val isLoading: Boolean,
     val breaches: List<LeakBreachSnapshot> = emptyList(),
     val errorText: String? = null,
-    // The "Pwned!" / "No breaches found" header titles, pre-resolved.
     val breachFoundTitle: String,
     val breachNotFoundTitle: String,
     val breachSectionTitle: String,
 )
 
 /**
- * A flat projection of the shared
- * [com.artemchep.keyguard.feature.passwordleak.PasswordLeakState] for the SwiftUI
- * password breach dialog. A cipher / generator-history password's "Check data
- * breaches" action fires a
- * [com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute] navigation intent
- * caught by [DialogController.navigationInterceptor]. While [isLoading] the dialog
- * shows a skeleton; on success [occurrences] is the breach count (null means the
- * check failed and [errorText] is shown). Built by [DialogController]; `null` from
- * [com.artemchep.keyguard.apple.KeyguardCore.observePasswordLeak] means the dialog
- * is hidden.
+ * The password breach dialog. [occurrences] is `null` when the check failed; [errorText] is then set.
+ * `null` from [KeyguardCore.observePasswordLeak] means the dialog is hidden.
  */
 data class PasswordLeakSnapshot(
     val title: String,
@@ -323,25 +241,17 @@ data class PasswordLeakSnapshot(
     val poweredBy: String,
     val isLoading: Boolean,
     val occurrences: Int? = null,
-    // The localized, number-formatted "Seen N time(s)" counter, built in the
-    // controller (plural resolution + number formatting live in Kotlin).
+    /** The localized, number-formatted "Seen N time(s)" counter. */
     val occurrencesText: String? = null,
     val errorText: String? = null,
-    // The "Compromised password" header title + subtitle, and the all-clear title.
     val occurrencesFoundTitle: String,
     val occurrencesFoundText: String,
     val occurrencesNotFoundTitle: String,
 )
 
 /**
- * A flat projection of the shared
- * [com.artemchep.keyguard.feature.websiteleak.WebsiteLeakState] for the SwiftUI
- * website breach dialog. A cipher URI's "Check data breaches" action fires a
- * [com.artemchep.keyguard.feature.websiteleak.WebsiteLeakRoute] navigation intent
- * caught by [DialogController.navigationInterceptor]. The website producer never
- * surfaces an error (it falls back to an empty list), so there is no [EmailLeakSnapshot.errorText]
- * counterpart. Built by [DialogController]; `null` from
- * [com.artemchep.keyguard.apple.KeyguardCore.observeWebsiteLeak] means the dialog is hidden.
+ * The website breach dialog. It has no error state: the producer falls back to an empty [breaches] list.
+ * `null` from [KeyguardCore.observeWebsiteLeak] means the dialog is hidden.
  */
 data class WebsiteLeakSnapshot(
     val title: String,
@@ -355,16 +265,9 @@ data class WebsiteLeakSnapshot(
 )
 
 /**
- * A flat projection of the shared
- * [com.artemchep.keyguard.feature.colorpicker.ColorPickerState] for the SwiftUI
- * color picker dialog. The account detail's "Change color" action fires a
- * [com.artemchep.keyguard.feature.colorpicker.ColorPickerRoute] navigation intent
- * caught by [DialogController.navigationInterceptor]. [items] are the selectable
- * accent swatches (each carries an opaque [ColorSwatchSnapshot.id] passed back via
- * [com.artemchep.keyguard.apple.KeyguardCore.selectColorPickerSwatch]); [selectedIndex]
- * mirrors the producer's chosen index (-1 = none). [confirmEnabled] mirrors
- * `state.onConfirm != null`. Built by [DialogController]; `null` from
- * [com.artemchep.keyguard.apple.KeyguardCore.observeColorPicker] means the dialog is hidden.
+ * The account color picker. Each of [items] carries an opaque id passed back via
+ * [KeyguardCore.selectColorPickerSwatch]. [selectedIndex] is a [ColorSwatchSnapshot.index], or `-1` for none.
+ * `null` from [KeyguardCore.observeColorPicker] means the dialog is hidden.
  */
 data class ColorPickerSnapshot(
     val title: String,
@@ -373,11 +276,7 @@ data class ColorPickerSnapshot(
     val confirmEnabled: Boolean,
 )
 
-/**
- * One selectable accent swatch in a [ColorPickerSnapshot]. [argbLight] / [argbDark]
- * are the packed ARGB colors (from Compose's `Color.toArgb()`) for the two
- * appearances, so SwiftUI renders the swatch matching the current color scheme.
- */
+/** One accent swatch; [argbLight] / [argbDark] are packed 0xAARRGGBB colors for the light / dark appearance. */
 data class ColorSwatchSnapshot(
     val id: String,
     val index: Int,
@@ -386,18 +285,9 @@ data class ColorSwatchSnapshot(
 )
 
 /**
- * A flat projection of the shared
- * [com.artemchep.keyguard.feature.home.vault.collection.CollectionState] /
- * [com.artemchep.keyguard.feature.home.vault.organization.OrganizationState] content
- * for the SwiftUI read-only "Collection info" / "Organization info" dialog. A
- * collection / organization row's "Info" action fires a
- * [com.artemchep.keyguard.feature.home.vault.collection.CollectionRoute] /
- * [com.artemchep.keyguard.feature.home.vault.organization.OrganizationRoute] navigation
- * intent caught by [DialogController.navigationInterceptor]. [flags] are the
- * already-localized capability lines ("Read only", "Hide passwords", "Self-hosted"),
- * mirroring the Compose dialog's `ExpandedIfNotEmpty` rows. Built by [DialogController];
- * `null` from [com.artemchep.keyguard.apple.KeyguardCore.observeInfoDialog] means the
- * dialog is hidden.
+ * The read-only "Collection info" / "Organization info" dialog. [flags] are the capability lines ("Read only",
+ * "Hide passwords", "Self-hosted"), English-only like the Compose dialog. `null` from
+ * [KeyguardCore.observeInfoDialog] means the dialog is hidden.
  */
 data class InfoDialogSnapshot(
     val title: String,
@@ -406,17 +296,10 @@ data class InfoDialogSnapshot(
 )
 
 /**
- * A flat projection of the shared
- * [com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationState]
- * for the SwiftUI account picker. The add form's ownership "Save to" row fires an
- * [com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationRoute]
- * navigation intent caught by [DialogController.navigationInterceptor]. For the Send
- * form only the account section is shown (organization / collection / folder are
- * hidden via the route flags); the cipher form additionally surfaces them. SwiftUI
- * renders the sections, taps route back via [DialogController.selectAccountPickerItem]
- * keyed by [AccountPickerItemSnapshot.key], and confirm / deny finish through
- * [DialogController.confirmAccountPicker] / [DialogController.denyAccountPicker].
- * [confirmEnabled] mirrors `state.onConfirm != null` (the producer's validation).
+ * The account picker ("Save to", "Copy to…") and the folder picker ("Move to folder"). Rows are selected via
+ * [KeyguardCore.selectAccountPickerItem] with their [AccountPickerItemSnapshot.key]. [confirmEnabled] is false
+ * while the producer's validation fails. `null` from [KeyguardCore.observeAccountPicker] means the dialog is
+ * hidden.
  */
 data class AccountPickerSnapshot(
     val newFolderName: String? = null,
@@ -429,17 +312,13 @@ data class AccountPickerSnapshot(
     val confirmEnabled: Boolean,
 )
 
-/** One titled group of [AccountPickerSnapshot] choices (accounts / organizations / …). */
+/** A group of [AccountPickerSnapshot] rows; [title] is an optional header, `null` for most sections. */
 data class AccountPickerSectionSnapshot(
     val title: String?,
     val items: List<AccountPickerItemSnapshot>,
 )
 
-/**
- * One selectable row of an [AccountPickerSectionSnapshot]: an account / organization /
- * collection / folder. [key] routes the tap back; [enabled] gates it (a tap re-runs the
- * producer, which re-emits the refreshed selection).
- */
+/** [enabled] gates the tap; a tap re-runs the producer, which re-emits the refreshed [selected] state. */
 data class AccountPickerItemSnapshot(
     val key: String,
     val title: String,
@@ -466,7 +345,7 @@ internal fun AnnotatedString.toAttachmentPreviewSpans(): List<AttachmentPreviewS
     }
 
 
-/** Searchable, account-scoped link targets from the shared picker producer. */
+/** Searchable, account-scoped link targets. */
 data class CipherLinkPickerSnapshot(
     val query: String,
     val queryRevision: Int,

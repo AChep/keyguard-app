@@ -5,14 +5,11 @@ import SwiftUI
 import KeyguardShared
 
 /// Owns the GPG agent approval panel lifecycle. Lives for the whole process
-/// (created by the app delegate) so approval prompts surface as a floating window
-/// regardless of whether the main window is open — including menu-bar-only mode.
+/// so approval prompts surface as a floating window regardless of whether the main
+/// window is open — including menu-bar-only mode.
 ///
-/// Driven by state, not a hotkey: it starts the shared GPG observation and shows
-/// the panel whenever `GpgAgentModel.gpgAgentRequests` is non-empty, hiding it when
-/// the queue drains (user resolves the last request, or the shared producer's 60s
-/// timeout fires). Deliberately has no resign-key auto-dismiss — an approval prompt
-/// must stay put until the user acts.
+/// Deliberately has no resign-key auto-dismiss — an approval prompt must stay put
+/// until the user acts.
 @MainActor
 public final class GpgAgentApprovalController {
     private let gpgAgentModel: GpgAgentModel

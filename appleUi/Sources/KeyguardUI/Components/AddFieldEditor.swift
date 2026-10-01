@@ -6,16 +6,13 @@ import KeyguardShared
 struct AddFieldEditor: View {
     let field: AddTextFieldSnapshot
     let fallbackLabel: String?
-    /// iOS input hints derived from the owning row's kind (defaults to `.plain`
-    /// so callers that don't care need not pass it).
+    /// iOS input hints derived from the owning row's kind.
     var hint: AddFieldInputHint = .plain
     let onChange: (String) -> Void
     let onAutofill: (String) -> Void
 
     @State private var reveal = false
 
-    /// Drives the in-form generator sheet (the "wand" button). Only reachable when
-    /// `field.autofill != nil` (username / password fields).
     @State private var showAutofill = false
 
     /// Local typing buffer; the Kotlin field cell stays the source of
@@ -24,9 +21,8 @@ struct AddFieldEditor: View {
 
     private var label: String? { field.label ?? fallbackLabel }
 
-    /// The "generate / autofill" trigger placed next to the username / password
-    /// fields. Only rendered by callers when `field.autofill != nil`; presents
-    /// `AutofillGeneratorSheet` and writes the chosen value back into the field.
+    /// The in-form generator trigger next to the username / password fields: presents
+    /// `AutofillGeneratorSheet`, which writes the chosen value back into the field.
     private var autofillButton: some View {
         DetailIconButton(title: L10n.generatorHeaderTitle, systemImage: "wand.and.stars") {
             showAutofill = true
@@ -118,7 +114,6 @@ struct AddFieldEditor: View {
                         .inputHints(hint)
                         .accessibilityLabel(label ?? field.placeholder ?? "")
                 }
-                // Matches the reveal toggle in ValueFieldCell.
                 DetailIconButton(
                     title: reveal ? L10n.hide : L10n.fileActionRevealTitle,
                     systemImage: reveal ? "eye.slash" : "eye"
@@ -130,8 +125,6 @@ struct AddFieldEditor: View {
                 }
             }
         } else if field.autofill != nil {
-            // Username (plain, fillable) field: pair the bare TextField with
-            // the in-form generator trigger.
             HStack {
                 TextField(label ?? "", text: binding, prompt: field.placeholder.map { Text($0) })
                     .textFieldStyle(.automatic)

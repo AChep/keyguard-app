@@ -29,10 +29,6 @@ internal val FilePickerIntent<*>.onFilePickerResult: (FilePickerResult?) -> Unit
         is FilePickerIntent.NewDocument -> onResult
     }
 
-/**
- * Maps a producer [FilePickerIntent] to a Swift picker request built by [create]:
- * the native panel kind, the allowed mime types and the suggested file name.
- */
 internal inline fun <R> FilePickerIntent<*>.toFilePickerRequest(
     requestId: String,
     create: (requestId: String, kind: AddFilePickerKind, mimeTypes: List<String>, suggestedName: String?) -> R,

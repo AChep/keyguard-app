@@ -1,11 +1,8 @@
 import SwiftUI
 import KeyguardShared
 
-// Native SwiftUI rendering of Organizations, Collections, and Folders.
-
 // MARK: - Shared count badge
 
-/// A trailing item-count, styled like the secondary counts in Settings lists.
 private struct CountBadge: View {
     let count: Int
 
@@ -29,8 +26,6 @@ private struct DisclosureChevron: View {
 
 // MARK: - Organizations
 
-/// Lists the organizations an account belongs to. Tapping a row drills into that
-/// organization's collections; "View items" opens the filtered vault list.
 struct OrganizationsListView: View {
     @Environment(NavigationModel.self) private var navigationModel
     let entry: ScreenEntrySnapshot
@@ -127,8 +122,6 @@ struct OrganizationsListView: View {
 
 // MARK: - Collections
 
-/// Lists an account's collections, grouped by organization. Tapping a row opens the
-/// filtered vault list of that collection's items.
 struct CollectionsListView: View {
     @Environment(NavigationModel.self) private var navigationModel
     let entry: ScreenEntrySnapshot
@@ -271,7 +264,6 @@ struct FoldersListView: View {
 
     private var canAdd: Bool { snapshot.accountId != nil }
 
-    /// `true` while the shared producer reports an active multi-selection.
     private var selecting: Bool { snapshot.selectionCount >= 1 }
 
     var body: some View {
@@ -323,8 +315,6 @@ struct FoldersListView: View {
             }
         } label: {
             HStack(spacing: 12) {
-                // While selecting, the leading glyph becomes a selection checkmark
-                // (mirroring the producer's `selected`); otherwise the folder icon.
                 if item.selecting {
                     Image(systemName: item.selected ? "checkmark.circle.fill" : "circle")
                         .foregroundStyle(item.selected ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
@@ -356,8 +346,7 @@ struct FoldersListView: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(item.selected ? .isSelected : [])
-        // A long-press begins a multi-selection (the producer's `onLongClick`); once
-        // selecting, taps toggle membership through the button above.
+        // A long-press begins a multi-selection, as the producer's `onLongClick` does.
         .onLongPressGesture {
             if !item.selecting { toggle(item) }
         }
@@ -409,7 +398,6 @@ struct FoldersListView: View {
         }
     }
 
-    /// Toggles the folder's selection membership through the shared producer.
     private func toggle(_ item: FolderListItemSnapshot) {
         if let actionId = item.toggleActionId {
             navigationModel.invokeEntryAction(instanceId: entry.instanceId, actionId: actionId)
@@ -494,8 +482,8 @@ struct EquivalentDomainsView: View {
     }
 
     private func tag(_ text: String) -> some View {
-        // Bumped from caption2/secondary-on-quaternary (low contrast) to a heavier
-        // caption with a stronger fill and primary text so the status reads clearly.
+        // Heavier caption and primary text on a stronger fill: secondary-on-quaternary
+        // is too low-contrast for the status to read clearly.
         Text(text)
             .font(.caption.weight(.semibold))
             .padding(.horizontal, 6)
@@ -507,25 +495,20 @@ struct EquivalentDomainsView: View {
 
 // MARK: - Duplicates
 
-/// Lists duplicate vault items using the shared row renderers and Kotlin-owned
-/// group-scoped selection.
 struct DuplicatesView: View {
     @Environment(AccountsModel.self) private var accountsModel
     @Environment(\.colorScheme) private var colorScheme
     let entry: ScreenEntrySnapshot
 
-    /// Drives the renderers from the entry's Kotlin-owned session. Created lazily
-    /// on first appear from `entry.duplicatesSession` (always non-null for a
-    /// DUPLICATES entry — `startEntry` sets it before the first snapshot is emitted).
+    /// Created lazily on first appear; `entry.duplicatesSession` is always non-null for a
+    /// DUPLICATES entry (`startEntry` sets it before the first snapshot is emitted).
     @State private var listModel: DuplicatesListModel?
     /// Required by the shared renderers; unused here — Duplicates owns its selection
     /// via the projected row flags (Kotlin-side, group-scoped), not the native list
     /// selection, so the `.openOrToggle` bridge never writes `selectedRowIds`.
     @State private var selection = VaultSelectionModel()
 
-    /// The Duplicates interaction policy: tap opens (or toggles while selecting), no
-    /// native multi-select highlight, row context menus on (the "Select" begin), no
-    /// iOS sync-status header, no quick-filter chips.
+    /// Row context menus stay on: they carry the "Select" action that begins a selection.
     private let config = VaultListConfig(
         rowTap: .openOrToggle,
         supportsMultiSelect: false,
@@ -564,9 +547,6 @@ struct DuplicatesView: View {
                 Text(L10n.vaultDuplicatesEmptyText)
             }
         } content: {
-            // The `.openOrToggle` row-tap policy is handled inside the bridge
-            // (deselects the momentary native selection and calls open / toggle),
-            // so no open-on-selection bridge is needed here.
             VaultListRepresentable(
                 model: listModel,
                 selection: selection,
@@ -575,9 +555,6 @@ struct DuplicatesView: View {
                 colorScheme: colorScheme
             )
         }
-        // The bulk-action bar appears once a multi-selection is active; its overflow
-        // menu carries the producer's full cipher bulk-action set (favourite / rename /
-        // trash / send / merge / …), each routed through the entry's interceptor.
         .vaultListBottomBar {
             DuplicatesBulkBar(model: listModel)
         }
@@ -606,15 +583,13 @@ private struct DuplicatesBulkBar: View {
     }
 }
 
-/// A minimal name prompt reused by the folder add / rename flows, in the shared
-/// `ModalSheet` chrome.
+/// Folder add only; rename goes through the shared producer.
 private struct FolderNameSheet: View {
 
     @Environment(\.dismiss) private var dismiss
 
     let title: String
     let confirmLabel: String
-    var initialName: String = ""
     let save: (String) async throws -> Void
 
     @State private var name: String = ""
@@ -648,7 +623,6 @@ private struct FolderNameSheet: View {
                 .keyboardShortcut(.defaultAction)
                 .disabled(!canSave)
         }
-        .onAppear { name = initialName }
     }
 
     private func submit() {

@@ -14,7 +14,6 @@ private func markdownText(_ string: String) -> Text {
     return Text(string)
 }
 
-/// Routes a settings category by stable id; unknown ids use a placeholder.
 struct SettingsSubroute: View {
     let item: SettingsItemSnapshot
 
@@ -26,7 +25,6 @@ struct SettingsSubroute: View {
         case "security": SecuritySettingsView(item: item)
         case "developer": DeveloperSettingsView(item: item)
         case "watchtower": WatchtowerSettingsView(item: item)
-        case "notifications": NotificationsSettingsView(item: item)
         case "display": DisplaySettingsView(item: item)
         case "debug": DebugSettingsView(item: item)
         case "about": AboutSettingsView(item: item)
@@ -349,8 +347,6 @@ struct SecuritySettingsView: View {
         }
     }
 
-    /// Probes the chosen slot: an empty slot is configured automatically; a slot
-    /// that already holds a configuration prompts before overwriting.
     private func beginYubiKeyEnroll(slot: Int) {
         Task {
             let configured = await securityModel.inspectYubiKeySlot(slot)
@@ -363,9 +359,6 @@ struct SecuritySettingsView: View {
         }
     }
 
-    /// A native `Picker` over the shared duration variants. The snapshot marks the
-    /// selected option; the binding forwards the chosen opaque id to the bridge.
-    /// Falls back to a static row until the options have loaded.
     @ViewBuilder
     private func durationPicker(
         _ title: String,
@@ -395,9 +388,7 @@ struct SecuritySettingsView: View {
     }
 }
 
-/// Modal change-master-password flow, driven by the shared change-password
-/// producer running headless in the bridge. Dismisses itself when the producer
-/// signals success (via the bridge `onClose` callback).
+/// Dismisses itself when the producer signals success.
 private struct ChangePasswordSheet: View {
     @Environment(ChangePasswordModel.self) private var changePasswordModel
     @Binding var isPresented: Bool
@@ -490,9 +481,6 @@ private struct ChangePasswordSheet: View {
     }
 }
 
-/// Developer preferences: the SSH agent (mirroring the common SSH agent
-/// settings items, driven by the shared Get/Put use cases surfaced as
-/// `SshAgentModel.sshAgentSettings`) and the in-app logs.
 struct DeveloperSettingsView: View {
     @Environment(SshAgentModel.self) private var sshAgentModel
     #if os(macOS)
@@ -685,9 +673,6 @@ struct DeveloperSettingsView: View {
         }
     }
 
-    /// A native `Picker` over the shared duration variants. The snapshot marks the
-    /// selected option; the binding forwards the chosen opaque id to the bridge.
-    /// Falls back to a static row until the options have loaded.
     @ViewBuilder
     private func durationPicker(
         _ title: String,
@@ -717,9 +702,6 @@ struct DeveloperSettingsView: View {
     }
 }
 
-/// Watchtower (breach detection) preferences. Mirrors the common
-/// `WatchtowerSettingsScreen`, driven by the shared Get/Put use cases surfaced as
-/// `WatchtowerModel.watchtowerSettings`.
 struct WatchtowerSettingsView: View {
     @Environment(WatchtowerModel.self) private var watchtowerModel
     let item: SettingsItemSnapshot
@@ -859,8 +841,7 @@ struct WatchtowerSettingsView: View {
     }
 }
 
-/// Modal token entry for the HIBP API key. Validates that the value is empty
-/// (clears the key) or a 32-hex-character token before allowing save.
+/// An empty token clears the key.
 private struct HibpTokenEditor: View {
     let currentToken: String
     let onSave: (String) -> Void
@@ -921,11 +902,6 @@ private struct HibpTokenEditor: View {
     }
 }
 
-struct NotificationsSettingsView: View {
-    let item: SettingsItemSnapshot
-    var body: some View { SettingsPlaceholder(item: item) }
-}
-
 struct DisplaySettingsView: View {
     @Environment(AppPreferencesModel.self) private var preferencesModel
     @Environment(SecuritySettingsModel.self) private var securityModel
@@ -966,8 +942,6 @@ struct DisplaySettingsView: View {
                 .settingsSearchTarget(.accent)
             }
             Section(L10n.settingsNavigationHeaderTitle) {
-                // Per-item visibility / order / custom filter tabs; supersedes
-                // the old "Hide the Send feature" toggle (PR #1434 parity).
                 NavigationLink {
                     NavigationItemsSettingsView()
                 } label: {
@@ -1033,9 +1007,7 @@ struct DisplaySettingsView: View {
     }
 }
 
-/// A native `Picker` over shared setting options. The snapshot marks the selected
-/// option; the binding forwards the chosen opaque id to the bridge. Falls back to
-/// a static row until the options have loaded.
+/// Forwards the chosen opaque option id; falls back to a static row until the options have loaded.
 @MainActor
 @ViewBuilder
 private func optionPicker(

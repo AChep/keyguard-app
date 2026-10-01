@@ -1,9 +1,6 @@
 import SwiftUI
 import KeyguardShared
 
-/// Native SwiftUI rendering of the open-source licenses screen. The list is
-/// produced by the shared Kotlin `licenseStateProducer` running headless inside
-/// `KeyguardCore`, surfaced as a flat `LicenseListSnapshot` on `AppInformationModel`.
 struct LicenseView: View {
     @Environment(AppInformationModel.self) private var appInformationModel
 

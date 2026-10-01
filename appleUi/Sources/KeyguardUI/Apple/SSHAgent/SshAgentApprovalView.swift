@@ -3,9 +3,7 @@ import SwiftUI
 import Combine
 import KeyguardShared
 
-/// Per-sign approval prompt for the SSH agent. Rendered from the shared
-/// `SshAgentRequestSnapshot`; Approve / Deny resolve the shared producer's
-/// pending request (which unblocks or fails the signature).
+/// Per-sign approval prompt for the SSH agent.
 struct SshAgentApprovalView: View {
     @Environment(SshAgentModel.self) private var sshAgentModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -34,10 +32,7 @@ struct SshAgentApprovalView: View {
         VStack(spacing: 0) {
             content
                 .padding(20)
-            // Full-width countdown bar flush at the bottom edge, mirroring the
-            // shared desktop screen's LinearProgressIndicator. Paired with a
-            // textual countdown so the deadline is not animation-only and is
-            // announced to assistive technology.
+            // Mirrors the shared desktop screen's `LinearProgressIndicator`.
             ProgressView(value: timeoutProgress) {
                 Text(countdownText)
                     .font(.caption)

@@ -28,18 +28,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.map
 import org.koin.core.scope.Scope
 
-/**
- * The accounts list (atop Settings), the aggregated sync-status footer, and the
- * per-account detail pane. Reuses the shared account producers and the shared
- * [buildVaultItemSnapshots] mapping; account detail takes the [DialogController]
- * interceptor.
- */
 internal class AccountsController(
     private val ctx: CoreContext,
     private val dialogController: DialogController,
 ) {
     /**
-     * Resolves the navigation interceptor the account-detail producer is handed.
      * Defaults to the dialog-only interceptor; [KeyguardCore] late-binds it to the
      * navigation stack so the account's "view items" (a [VaultRoute]) pushes onto
      * the Settings-scope stack instead of being dropped.
@@ -47,15 +40,9 @@ internal class AccountsController(
     var navigationInterceptorProvider: (Scope) -> ((NavigationIntent) -> Boolean) =
         { sessionKoin -> dialogController.navigationInterceptor(sessionKoin = sessionKoin) }
 
-    private var latestAccountContent: AccountViewState.Content.Data? = null
     private var accountActionHandlers: Map<String, () -> Unit> = emptyMap()
 
-    /**
-     * Handler map for the account *list* — per-row selection toggles plus the active
-     * multi-selection's bulk actions (sync / select-all / sign-out / clear). Kept
-     * separate from [accountActionHandlers] (the detail pane) so the two id spaces
-     * never collide; invoked via [invokeAccountListAction].
-     */
+    /** Kept separate from [accountActionHandlers] (the detail pane) so the two id spaces never collide. */
     private var accountListActionHandlers: Map<String, () -> Unit> = emptyMap()
 
     fun observeAccountList(
@@ -69,11 +56,8 @@ internal class AccountsController(
             },
         ) { state ->
             val producerScope = this
-            // The account-list selection's bulk actions navigate the producer's own
-            // routes: "view items" pushes a VaultRoute and "Sign out" opens a
-            // ConfirmationRoute. Thread the same interceptor the detail pane uses so
-            // those intents are handled (dialog route → DialogController; vault route →
-            // Settings-scope nav stack) instead of being dropped.
+            // The selection's bulk actions navigate; thread the same interceptor the detail
+            // pane uses so those intents are handled instead of being dropped.
             val producerFlow = with(state.sessionKoin) {
                 ctx.koin.newHeadlessStateFlowScope(
                     "account_list",
@@ -149,9 +133,8 @@ internal class AccountsController(
             }
         }
 
-        // The active multi-selection's bulk actions: the producer's own "view items" +
-        // "Sign out" ContextItems behind the overflow, plus the dedicated Sync /
-        // Select-all / Clear affordances the Compose AccountsSelection bar renders.
+        // Besides the overflow actions, the Compose AccountsSelection bar renders dedicated
+        // Sync / Select-all / Clear affordances.
         val selectionActions =
             buildSelectionActionSnapshots(selection?.actions, leContext, handlers)
         val selectionSyncActionId = selection?.onSync?.let { onSync ->
@@ -178,10 +161,6 @@ internal class AccountsController(
         )
     }
 
-    /**
-     * Invokes an account-list action (per-row selection toggle, or a bulk
-     * sync / select-all / sign-out / clear) by its synthesized snapshot id.
-     */
     fun invokeAccountListAction(id: String) {
         accountListActionHandlers.invokeAction(id)
     }
@@ -216,7 +195,6 @@ internal class AccountsController(
         val leContext = ctx.koin.get<LeContext>()
         return ctx.launchSessionObserver(
             onLocked = {
-                latestAccountContent = null
                 accountActionHandlers = emptyMap()
                 onChange(AccountDetailSnapshot.empty)
             },
@@ -264,10 +242,9 @@ internal class AccountsController(
                 .map { accountState ->
                     val actionHandlers = LinkedHashMap<String, () -> Unit>()
                     val snapshot = buildAccountDetailSnapshot(accountState, leContext, actionHandlers)
-                    Triple(accountState, snapshot, actionHandlers)
+                    snapshot to actionHandlers
                 }
-                .collectOnMain { (accountState, snapshot, actionHandlers) ->
-                    latestAccountContent = accountState.content as? AccountViewState.Content.Data
+                .collectOnMain { (snapshot, actionHandlers) ->
                     accountActionHandlers = actionHandlers
                     onChange(snapshot)
                 }
@@ -345,10 +322,6 @@ internal class AccountsController(
         }
     }
 
-    /**
-     * Invokes an account detail action (item dropdown / header sync / hide /
-     * sign-out) by its synthesized snapshot id.
-     */
     fun invokeAccountAction(id: String) {
         accountActionHandlers.invokeAction(id)
     }

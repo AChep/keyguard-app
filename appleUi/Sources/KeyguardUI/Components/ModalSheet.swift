@@ -6,8 +6,7 @@ struct ModalSheet<Content: View, Actions: View, HeaderActions: View>: View {
     var width: CGFloat = 520
     /// macOS panel height (ignored on iOS).
     var height: CGFloat = 560
-    /// iOS presentation detents (ignored on macOS). Defaults to a full-height
-    /// sheet; pass `[.medium, .large]` for short editors / compact dialogs.
+    /// iOS presentation detents (ignored on macOS).
     var detents: Set<PresentationDetent> = [.large]
     /// The leading dismiss button's label — "Close" for informational sheets,
     /// "Cancel" for editors that can be abandoned.

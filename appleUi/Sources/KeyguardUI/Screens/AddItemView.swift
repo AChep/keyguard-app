@@ -4,16 +4,12 @@ import KeyguardShared
 import UniformTypeIdentifiers
 #endif
 
-/// Which kind of item the create sheet builds. Each maps onto a shared Kotlin
-/// producer (`addCipherStateProducer` for ciphers, `sendAddStateProducer` for
-/// Sends) run headless inside `KeyguardCore`.
 enum AddSheetMode {
     case cipher
     case send
 }
 
-/// A generated-value prefill carried into the create sheet from the generator's
-/// "create login / SSH key" action. `id` lets it drive a `.sheet(item:)`.
+/// A generated-value prefill from the generator's "create login / SSH key" action.
 struct AddCipherPrefill: Identifiable {
     let id = UUID()
     let type: String
@@ -28,7 +24,6 @@ struct AddEditPrefill: Identifiable {
     let isSend: Bool
 }
 
-/// A selectable type shown by the chooser that precedes the form.
 private struct AddTypeOption: Identifiable {
     let id: String
     let title: String
@@ -42,12 +37,9 @@ struct AddItemSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let mode: AddSheetMode
-    /// Optional generated-value prefill (generator "create login / SSH key"): skips
-    /// the type chooser and starts the form prefilled.
+    /// Skips the type chooser and starts the form prefilled.
     let prefill: AddCipherPrefill?
-    /// Optional edit-an-existing-item request (cipher / Send detail "edit", vault
-    /// list "clone"): skips the type chooser and starts the form pre-filled from
-    /// the stashed model rather than empty.
+    /// Edit or clone request: skips the type chooser and starts the form from the stashed model.
     let editRequest: AddEditPrefill?
     /// Whether an account can create a File send; the Send type chooser hides
     /// File otherwise, as the shared list does.
@@ -66,9 +58,8 @@ struct AddItemSheet: View {
         self.prefill = prefill
         self.editRequest = editRequest
         self.canCreateFileSend = canCreateFileSend
-        // The edit form has no type chooser; jump straight to the form. The
-        // concrete cipher / Send type comes from the stashed model, so any
-        // non-nil placeholder skips the chooser.
+        // The edit form has no type chooser. The concrete cipher / Send type
+        // comes from the stashed model, so any non-nil placeholder skips the chooser.
         _chosenType = State(initialValue: prefill?.type ?? (editRequest != nil ? "" : nil))
     }
 
@@ -144,8 +135,6 @@ struct AddItemSheet: View {
             guard !didStartObservation else { return }
             didStartObservation = true
             if let editRequest {
-                // Editing an existing cipher / Send: the chooser is skipped and the
-                // form starts from the stashed model (carrying its initialValue).
                 if editRequest.isSend {
                     addItemModel.startEditSendObservation(requestId: editRequest.requestId)
                 } else {
@@ -204,8 +193,6 @@ struct AddItemSheet: View {
         )
     }
 
-    /// Drives the "Save to" account picker sheet from `dialogsModel.accountPicker`; an external
-    /// dismissal routes back through `closeAccountPicker` to cancel the producer.
     private var accountPickerPresented: Binding<Bool> {
         Binding(
             get: { dialogsModel.accountPicker != nil },
@@ -213,7 +200,6 @@ struct AddItemSheet: View {
         )
     }
 
-    /// The navigation-bar / panel title for the current page.
     private var sheetTitle: String {
         if isEditing {
             // The producer sets the title to the edited item's name; while it
@@ -229,9 +215,6 @@ struct AddItemSheet: View {
 
     // MARK: - Type chooser
 
-    /// Grouped-form list of creatable types, one navigable row per type in the
-    /// System Settings style: tinted symbol, title, trailing chevron. Picking a
-    /// row immediately starts the matching form (no select-then-confirm step).
     private var chooser: some View {
         Form {
             Section {
@@ -343,9 +326,6 @@ struct AddItemSheet: View {
         }
     }
 
-    /// The ownership "Save to" account row, mirroring the Compose add screen's
-    /// ownership selector: the chosen account name + email, tappable (when not
-    /// read-only) to open the native account picker dialog.
     @ViewBuilder
     private func ownershipRow(_ ownership: AddOwnershipSnapshot) -> some View {
         Button {
@@ -381,14 +361,11 @@ struct AddItemSheet: View {
     }
 }
 
-/// Renders one flat `AddItemSnapshot`, switching on its `kind`. Mirrors the
-/// shared Compose add screen, projecting each variant onto a native control.
 private struct AddItemRow: View {
     @Environment(AddItemModel.self) private var addItemModel
     let item: AddItemSnapshot
 
     #if os(iOS)
-    /// Drives the camera QR-scan sheet for the TOTP secret (iOS only).
     @State private var scanningTotp = false
     #endif
 
@@ -610,7 +587,6 @@ private struct AddItemRow: View {
         }
     }
 
-    /// Whether the file already lives on the server or is waiting for the next sync.
     private func attachmentSyncBadge(synced: Bool) -> some View {
         Image(systemName: synced ? "checkmark.icloud.fill" : "icloud.and.arrow.up.fill")
             .font(.system(size: 8, weight: .semibold))

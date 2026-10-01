@@ -21,7 +21,6 @@ import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.model.TotpFieldSnapshot
 import com.artemchep.keyguard.apple.model.totpMapFlow
 import com.artemchep.keyguard.apple.throttleLatest
-import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,28 +33,20 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.core.scope.Scope
 
-/** ObjC-exported wrapper around [AppleVaultListSource], one per visible list. */
+/** Wraps [AppleVaultListSource]; one per visible list. */
 class VaultListSession internal constructor(
     private val ctx: CoreContext,
     private val args: VaultRoute.Args,
     private val persistenceScope: String,
-    /**
-     * Provides the navigation interceptor (the stack + dialog composition,
-     * see `NavigationStackController.interceptor`) for the unlocked
-     * session's sub-DI; `null` = row opens and route-firing toolbar actions
-     * are dropped (loudly).
-     */
+    /** `null` = row opens and route-firing toolbar actions are dropped (loudly). */
     private val navigationInterceptorProvider: ((Scope) -> ((NavigationIntent) -> Boolean))?,
     /**
-     * Non-null = a custom cipher-filter tab: the filter is resolved per-unlock
-     * from the session sub-DI and the canonical filter-tab args replace [args]
-     * (mirroring the shared `createCipherFilterHomeNavigationItem`). A filter
-     * that no longer exists keeps the session empty — the navigation snapshot
-     * drops its tab in the same emission, so nothing renders it.
+     * Non-null = a custom cipher-filter tab: the filter is resolved per unlock and its tab args
+     * replace [args]. A filter that no longer exists keeps the session empty; the navigation
+     * snapshot drops its tab in the same emission, so nothing renders it.
      */
     private val cipherFilterId: String? = null,
 ) {
-    /** The per-unlock live source plus the session-DI helpers the channels need. */
     private class ActiveSource(
         val source: AppleVaultListSource,
         val getTotpCode: GetTotpCodeWithOffset,
@@ -67,22 +58,13 @@ class VaultListSession internal constructor(
     /**
      * Every not-yet-cancelled channel handed out by `observe*`, so [close]
      * tears the whole session down even if Swift forgot individual
-     * cancellables. Main-confined (see the class KDoc threading contract).
+     * cancellables. Main-confined: `observe*` and [close] are called from the
+     * main thread.
      */
     private val channels = mutableListOf<KeyguardCancellable>()
 
-    /**
-     * The state-anchored delta publisher (full-frame diff + lock-reset). Owns
-     * no per-session state itself — the per-observer last-delivered frame lives
-     * inside [VaultListFramePublisher.run] — so a single instance is fine.
-     */
     private val framePublisher = VaultListFramePublisher()
 
-    /**
-     * The master gate: rebuilds the headless source on every unlock, clears
-     * it on every lock ([CoreContext.launchSessionObserver] semantics), and
-     * routes the source's cipher-open events into navigation.
-     */
     private val master: KeyguardCancellable = ctx.launchSessionObserver(
         onLocked = {
             activeState.value = null
@@ -105,25 +87,10 @@ class VaultListSession internal constructor(
             args = effectiveArgs,
             mode = AppMode.Main,
         )
-        if (!isRelease) {
-            // Debug-only completeness sweep of the symbol table against the
-            // documented vocabulary; a NEW producer id missing from both is
-            // additionally caught per-miss by `symbolFor` at projection time.
-            // (:appleApp wires no test source set; the CI-grade completeness
-            // test lives common-side with the parity suite.)
-            val missing = VaultActionSymbols.validate(VaultActionSymbols.expectedVocabulary)
-            if (missing.isNotEmpty()) {
-                println(
-                    "[Keyguard][vaultList] VaultActionSymbols is missing SF Symbols " +
-                            "for ${missing.size} known action id(s): $missing",
-                )
-            }
-        }
         activeState.value = ActiveSource(
             source = source,
             getTotpCode = state.sessionKoin.get(),
         )
-        // Forward cipher-open effects through the shared navigation interceptor.
         source.cipherOpenEvents.collect { secret ->
             val route = VaultViewRoute(
                 itemId = secret.id,
@@ -140,46 +107,24 @@ class VaultListSession internal constructor(
         }
     }
 
-    //
-    // The list channel.
-    //
-
     /**
-     * The list structure + row content as [VaultListDelta]s.
-     *
      * WARNING — unlike every other bridge channel, [onChange] is invoked on a
      * BACKGROUND thread by design: the Swift side converts the (potentially
      * large) delta off-main and hops to Main itself. Do not touch UI state in
      * the callback directly.
      *
-     * Delivery is state-anchored: a flush gate coalesces bursts to one flush
-     * per ~48ms (first immediately); each flush re-reads the LATEST pipeline
-     * state and diffs it against the last DELIVERED state, so coalescing can
-     * never drop a change — anything an intermediate (conflated-away) state
-     * carried is, by construction, part of the latest state's diff against
-     * what was last delivered. A no-change diff publishes nothing.
-     *
-     * The current client receives full structure frames ([VaultListDelta.isFull]):
-     * the complete entry order plus row upserts/removals relative to the
-     * last delivered frame. On lock the channel delivers exactly one
-     * [VaultListDelta.isReset] frame (revision bumped past the last
-     * delivered one) telling the client to drop all cached state.
+     * Delivery is state-anchored: bursts coalesce to one flush per ~48ms (first
+     * immediately), and each flush diffs the LATEST pipeline state against the
+     * last DELIVERED one, so coalescing can never drop a change. A no-change diff
+     * publishes nothing.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeListDelta(
         onChange: (VaultListDelta) -> Unit,
     ): KeyguardCancellable = track(
         ctx.launchObserver {
-            // Flatten the unlock gate + the source's state flow into ONE
-            // nullable frame stream for the publisher: `null` = locked/torn
-            // down (→ a single reset frame), non-null = a live pipeline state
-            // coalesced to one flush per ~48ms (`throttleLatest`) before the
-            // publisher diffs it against the last DELIVERED frame. The
-            // `flatMapLatest` cancel-on-switch reproduces the previous
-            // `collectLatest` teardown-on-lock exactly (transitions are only
-            // null<->active, so no active->active reorder is possible), and the
-            // per-observer last-delivered state lives inside `run`, surviving
-            // lock/unlock like the previous local vars did.
+            // Transitions are only null<->active, so the `flatMapLatest` cancel-on-switch
+            // cannot reorder frames of two active sources.
             val frames: Flow<AppleVaultListState?> = activeState.flatMapLatest { active ->
                 if (active == null) {
                     flowOf<AppleVaultListState?>(null)
@@ -191,9 +136,7 @@ class VaultListSession internal constructor(
         },
     )
 
-    //
     // The small channels. Callbacks on Main.
-    //
 
     fun observeHeader(
         onChange: (VaultSessionHeaderSnapshot) -> Unit,
@@ -261,11 +204,6 @@ class VaultListSession internal constructor(
         },
     )
 
-    /**
-     * Shared shape of the small channels: emit [empty] while locked; while
-     * unlocked map the source flow to snapshots, dedup structurally and
-     * throttle off-main, deliver on Main — the established bridge pattern.
-     */
     private fun <T> observeChannel(
         empty: T,
         flowOf: (AppleVaultListSource) -> Flow<T>,
@@ -290,9 +228,7 @@ class VaultListSession internal constructor(
         return cancellable
     }
 
-    //
     // Commands delegate to the source and are safe from any thread.
-    //
 
     private val source: AppleVaultListSource?
         get() = activeState.value?.source
@@ -358,16 +294,14 @@ class VaultListSession internal constructor(
         source?.setOpenedRow(rowId)
     }
 
-    /** Opens the row: routes the cipher through the canonical open path (see the master gate). */
+    /** Opens the cipher through the navigation interceptor; dropped (loudly) when none claims it. */
     fun openVaultRow(rowId: String) {
         source?.openVaultRow(rowId)
     }
 
     /**
-     * Resolves the row's context-menu actions (fetched on demand — never
-     * carried in state) and hands the projected snapshots to [callback] on
-     * the MAIN thread. An unknown row (or a locked vault) yields an empty
-     * list.
+     * Fetched on demand, never carried in state. [callback] runs on the MAIN thread;
+     * an unknown row (or a locked vault) yields an empty list.
      */
     fun rowActions(
         rowId: String,
@@ -401,19 +335,14 @@ class VaultListSession internal constructor(
     }
 
     /**
-     * Reports the client's scroll anchor. [structureRevision] must be the
-     * [VaultListDelta.revision] of the frame the client is rendering; a
-     * report against a stale frame is ignored (the source's identity guard).
+     * [structureRevision] must be the [VaultListDelta.revision] of the frame the client
+     * is rendering; a report against a stale frame is ignored.
      */
     fun reportScroll(anchorId: String, offset: Int, structureRevision: Long) {
         source?.reportScroll(anchorId, offset, structureRevision)
     }
 
-    /**
-     * Tears the session down: the master gate (and with it the headless
-     * source, its universe lease and persistence bridges) plus every
-     * channel handed out by `observe*`. Idempotent.
-     */
+    /** Tears down the headless source and every channel handed out by `observe*`. Idempotent. */
     fun close() {
         master.cancel()
         channels.forEach { it.cancel() }

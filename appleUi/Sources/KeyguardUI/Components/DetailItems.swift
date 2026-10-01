@@ -114,7 +114,7 @@ struct DetailForm<Header: View>: View {
             } else if item.kind == VaultItemKind.tags && item.actions.isEmpty {
                 // An empty pill collection must not create an empty form card.
                 continue
-            } else if item.kind != VaultItemKind.unsupported {
+            } else {
                 if !currentLabels.isEmpty {
                     flush()
                     currentTitle = nil
@@ -441,7 +441,6 @@ struct DetailRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // Organization / collection rows: icon + title + chevron.
     @ViewBuilder
     private func navRow(_ item: VaultItemSnapshot, icon: String) -> some View {
         clickableRowContent(clickActionId: item.clickActionId) {
@@ -542,8 +541,7 @@ struct DetailRow: View {
         }
     }
 
-    // The Wi-Fi network QR code; drawn natively from the producer's payload by
-    // the same renderer as the "Show as Barcode" dialog.
+    // The Wi-Fi network QR code, drawn natively from the producer's payload.
     @ViewBuilder
     private func qrRow(_ item: VaultItemSnapshot) -> some View {
         HStack {
@@ -609,8 +607,6 @@ struct DetailRow: View {
             .accessibilityHidden(true)
     }
 
-    // Wraps the row content in a plain full-width button when the bridge
-    // registered a row-level click handler; renders it plain otherwise.
     @ViewBuilder
     private func clickableRowContent<RowContent: View>(
         clickActionId: String?,
@@ -660,8 +656,6 @@ private extension View {
         #endif
     }
 }
-
-// MARK: - Reusable cells
 
 // MARK: - TOTP badge
 

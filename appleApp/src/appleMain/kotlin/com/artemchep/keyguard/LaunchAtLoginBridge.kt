@@ -1,6 +1,5 @@
 package com.artemchep.keyguard
 
-import com.artemchep.keyguard.apple.KeyguardCore
 import kotlin.concurrent.Volatile
 
 enum class LaunchAtLoginStatus {

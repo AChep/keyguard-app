@@ -5,12 +5,12 @@
 #
 # :appleApp is the ONLY producer of this framework — the app directories carry no
 # Kotlin of their own. The assemble task is finalized by a sync task that ditto's the
-# artifact to build/XCFrameworks/swiftpm/ (see appleApp/build.gradle.kts). This script
-# picks the Debug or Release task from $CONFIGURATION.
+# artifact to build/XCFrameworks/swiftpm/ (see appleApp/build.gradle.kts).
 #
-# Runs once in the shared scheme pre-action on both platforms, before Xcode
-# copies the SwiftPM binary target and builds the app + AutoFill extension.
-# (see xcode/keyguard-common.yml).
+# Runs once in the build pre-action of the shared "Keyguard" scheme (both platforms,
+# xcode/keyguard-common.yml) and of the macOS "Keyguard App Store" scheme
+# (macosApp/project.yml), before Xcode copies the SwiftPM binary target and builds
+# the app + AutoFill extension.
 set -eu
 
 # Xcode ignores a failing pre-action and would go on to build the Swift sources

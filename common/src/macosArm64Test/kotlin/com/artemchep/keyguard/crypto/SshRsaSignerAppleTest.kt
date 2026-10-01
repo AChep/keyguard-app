@@ -8,11 +8,10 @@ import kotlin.test.assertEquals
 /**
  * Cross-platform RSA SSH-signing parity through the Apple native-crypto static library.
  *
- * RSA PKCS#1 v1.5 is deterministic, so unlike Ed25519 the Apple output must be
- * byte-for-byte identical to the historical JVM signer. The expected signatures were
- * generated independently with `openssl dgst -<hash> -sign`, and the JVM side asserts the
- * same values in `common/src/desktopTest/.../SshSigningParityTest.kt`. Keep these constants
- * byte-identical to the Kotlin/JVM and Swift tests.
+ * RSA PKCS#1 v1.5 is deterministic, so the Apple output must be byte-for-byte identical
+ * to the JVM signer. The expected signatures were generated independently with
+ * `openssl dgst -<hash> -sign`, and the JVM side asserts the same values in
+ * `common/src/desktopTest/.../SshSigningParityTest.kt`. Keep these constants byte-identical.
  *
  * Both stored key formats are covered: PKCS#1 (what the app generates) and openssh-key-v1
  * (what Bitwarden stores) — the latter exercises the dP/dQ reconstruction.

@@ -38,7 +38,6 @@ public final class AppViewModel {
     let addItem: AddItemModel
     let send: SendModel
     let watchtower: WatchtowerModel
-    let directories: ServiceDirectoryModel
     let emailRelay: EmailRelayModel
     let wordlists: WordlistsModel
     let gpgAgent: GpgAgentModel
@@ -87,7 +86,7 @@ public final class AppViewModel {
             showFailure: { notifications.showLinkOpeningError() }
         )
         self.links = links
-        let auth = VaultSessionModel(core: core, notifications: notifications)
+        let auth = VaultSessionModel(core: core)
         self.auth = auth
         let login = BitwardenLoginModel(core: core, links: links)
         self.login = login
@@ -121,8 +120,6 @@ public final class AppViewModel {
         self.send = send
         let watchtower = WatchtowerModel(core: core)
         self.watchtower = watchtower
-        let directories = ServiceDirectoryModel(core: core)
-        self.directories = directories
         let emailRelay = EmailRelayModel(core: core, notifications: notifications)
         self.emailRelay = emailRelay
         let wordlists = WordlistsModel(core: core, notifications: notifications)
@@ -171,7 +168,6 @@ public final class AppViewModel {
         installBillingBridge()
         core.startBilling()
         #if os(macOS)
-        // Make SMAppService launch-at-login available to the shared module.
         installLaunchAtLoginBridge()
         #endif
         // Auto-start the SSH agent whenever the persisted "SSH agent" preference
@@ -223,8 +219,8 @@ public final class AppViewModel {
         }
     }
 
-    /// Routes a `keyguard://` deep link to the shared navigation stack. Wired from
-    /// each app's SwiftUI `onOpenURL`; unrecognized URLs are ignored by the core.
+    /// Routes a `keyguard://` deep link to the shared navigation stack; unrecognized
+    /// URLs are ignored by the core.
     public func handleDeepLink(_ url: URL) {
         core.handleDeepLink(url: url.absoluteString)
     }

@@ -11,9 +11,7 @@ final class WatchtowerModel: SnapshotObserving {
         self.core = core
     }
 
-    /// Watchtower (security dashboard) state, produced by the shared Kotlin
-    /// `watchtowerStateProducer` running headless inside `KeyguardCore`. Only live
-    /// while the watchtower screen is on screen.
+    /// Only live while the watchtower screen is on screen.
     private(set) var watchtower: WatchtowerSnapshot = WatchtowerSnapshot.companion.empty
 
     #if os(macOS)
@@ -24,24 +22,15 @@ final class WatchtowerModel: SnapshotObserving {
     private(set) var watchtowerOptionsToolbar = WatchtowerOptionsToolbarState.empty
     #endif
 
-    /// Watchtower "new alerts" list, produced by the shared Kotlin
-    /// `watchtowerNewAlertsStateProducer` running headless inside `KeyguardCore`.
-    /// Only live while the watchtower alerts screen is on screen.
-    private(set) var watchtowerAlerts: WatchtowerAlertsSnapshot = WatchtowerAlertsSnapshot.companion.empty
-
-    /// Watchtower settings, produced by the shared Kotlin Watchtower settings use
-    /// cases running inside `KeyguardCore`. Only live while the Watchtower settings
-    /// screen is on screen.
+    /// Only live while the Watchtower settings screen is on screen.
     private(set) var watchtowerSettings: WatchtowerSettingsSnapshot = WatchtowerSettingsSnapshot.companion.empty
 
     @ObservationIgnored private var watchtowerSubscription: BridgeObservation?
 
-    @ObservationIgnored private var watchtowerAlertsSubscription: BridgeObservation?
-
     @ObservationIgnored private var watchtowerSettingsSubscription: BridgeObservation?
 
-    /// Starts observing the Watchtower settings. Call when the Watchtower settings
-    /// screen appears; balance with `stopWatchtowerSettingsObservation()`.
+    /// Call when the Watchtower settings screen appears; balance with
+    /// `stopWatchtowerSettingsObservation()`.
     func startWatchtowerSettingsObservation() {
         startObservation(
             \.watchtowerSettingsSubscription, into: \.watchtowerSettings, observe: core.observeWatchtowerSettings)
@@ -67,8 +56,7 @@ final class WatchtowerModel: SnapshotObserving {
         return true
     }
 
-    /// Starts running the shared watchtower producer. Call when the watchtower
-    /// screen appears; balance with `stopWatchtowerObservation()` on disappear.
+    /// Call when the watchtower screen appears; balance with `stopWatchtowerObservation()`.
     func startWatchtowerObservation() {
         startObservation(\.watchtowerSubscription) { deliver in
             BridgeObservation(
@@ -91,8 +79,7 @@ final class WatchtowerModel: SnapshotObserving {
         #endif
     }
 
-    /// Invokes a watchtower navigation closure (card / strength chip / new-alerts
-    /// row / directory option) by its opaque snapshot id.
+    /// Invokes a watchtower navigation closure (card, chip, row or option).
     func invokeWatchtowerAction(id: String) {
         core.invokeWatchtowerAction(id: id)
     }
@@ -102,33 +89,7 @@ final class WatchtowerModel: SnapshotObserving {
         core.invokeWatchtowerFilter(id: id)
     }
 
-    /// Clears every active watchtower filter.
     func clearWatchtowerFilters() {
         core.clearWatchtowerFilters()
-    }
-
-    /// Starts running the shared watchtower new-alerts producer. Call when the
-    /// alerts screen appears; balance with `stopWatchtowerAlertsObservation()`.
-    func startWatchtowerAlertsObservation() {
-        startObservation(
-            \.watchtowerAlertsSubscription, into: \.watchtowerAlerts, observe: core.observeWatchtowerNewAlerts)
-    }
-
-    func stopWatchtowerAlertsObservation() {
-        stopObservation(
-            \.watchtowerAlertsSubscription, resetting: \.watchtowerAlerts,
-            to: WatchtowerAlertsSnapshot.companion.empty)
-    }
-
-    /// Opens the cipher affected by a watchtower alert (by its alert id). Routes
-    /// through the bound nav interceptor, which pushes the cipher detail.
-    func invokeWatchtowerAlertItem(id: String) {
-        core.invokeWatchtowerAlertItem(id: id)
-    }
-
-    /// Marks every watchtower alert as read; the shared producer then pops the
-    /// alerts list.
-    func markAllWatchtowerAlertsRead() {
-        core.markAllWatchtowerAlertsRead()
     }
 }

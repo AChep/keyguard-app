@@ -5,7 +5,6 @@ import com.artemchep.keyguard.util.fido2.NativeFido2Client
 import com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability
 
 import androidx.compose.ui.graphics.ImageBitmap
-import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.apple.billing.GetPurchasedApple
 import com.artemchep.keyguard.apple.billing.SubscriptionServiceApple
 import com.artemchep.keyguard.apple.billing.appleIsFreeDistribution
@@ -86,7 +85,6 @@ import com.artemchep.keyguard.common.usecase.impl.GetLocaleImpl
 import com.artemchep.keyguard.common.usecase.impl.PutLocaleImpl
 import com.artemchep.keyguard.common.usecase.impl.RunBackupNowImpl
 import com.artemchep.keyguard.common.usecase.impl.TestBackupLocationImpl
-import com.artemchep.keyguard.common.usecase.premium
 import com.artemchep.keyguard.common.worker.WorkerRegistry
 import com.artemchep.keyguard.copy.ClearDataApple
 import com.artemchep.keyguard.copy.ClipboardServiceMacos
@@ -332,8 +330,8 @@ internal class MacosPlatformModule {
             Fido2UnlockAvailability { NativeFido2Client().isSupported }
         }
         single<YubiKeyUnlockAvailability> {
-            // macOS performs the HMAC-SHA1 challenge-response natively over USB HID
-            // Device operations use the shared util/yubikey Rust backend.
+            // macOS performs the HMAC-SHA1 challenge-response over USB HID
+            // through the shared util/yubikey Rust backend.
             YubiKeyUnlockAvailability { true }
         }
         single<GpgAgentCrypto> {

@@ -4,28 +4,20 @@ import KeyguardShared
 /// Rendering seam for vault-list rows and their actions.
 @MainActor
 protocol VaultRowListModel: AnyObject {
-    /// The per-cell content cache the renderers diff over — the ONE member every
-    /// surface must provide (there is no sensible default for "the rows").
+    /// The per-cell content cache the renderers diff over.
     var store: VaultRowStore { get }
 
-    /// Live TOTP codes keyed by row id (pushed at 1Hz); read by item rows.
+    /// Live TOTP codes keyed by row id, pushed at 1Hz.
     var totpStates: [String: TotpFieldSnapshot] { get }
-    /// The multi-selection state (`count == 0` = inactive); read by the row
-    /// context menu's bulk-action swap.
     var selection: VaultSelection { get }
-    /// The cheap checked/enabled filter state; read by the quick-filter chips.
     var filterState: VaultFilterState { get }
-    /// Whether a search query is active — hides the quick-filter chips (the
-    /// row host reads this instead of the raw header query text).
+    /// Whether a search query is active; hides the quick-filter chips.
     var isQueryActive: Bool { get }
-    /// The saved-filter chips rendered at the quick-filters marker row (the row
-    /// host reads these instead of reaching into the filter catalog itself).
+    /// The saved-filter chips rendered at the quick-filters marker row.
     var quickFilterChips: [VaultFilterChip] { get }
 
-    /// Opens the row through the surface's canonical open path.
     func openVaultRow(rowId: String)
-    /// Copies the row's primary value (the `VaultListConfig.RowTap.copyPrimary`
-    /// affordance — a Recents-style read-only picker copies the password on tap).
+    /// Backs `VaultListConfig.RowTap.copyPrimary` (Recents copies the password on tap).
     func copyPrimaryRow(rowId: String)
     func selectRow(rowId: String)
     func performVaultRowAction(rowId: String, actionId: String)
@@ -70,17 +62,14 @@ struct VaultListConfig {
     enum RowTap: Equatable {
         /// Push the row's detail (iOS main list).
         case open
-        /// Copy the row's primary value (later-wave affordance; not wired here).
+        /// Copy the row's primary value (Recents).
         case copyPrimary
         /// Select the row — drives the inline detail column (macOS main list).
         case select
         case openOrToggle
-        /// Ignore the tap.
-        case none
     }
 
     var rowTap: RowTap
-    /// The surface supports multi-selection (bulk actions / edit mode).
     var supportsMultiSelect: Bool
     /// Item rows carry a context menu.
     var contextMenu: Bool
@@ -97,7 +86,6 @@ struct VaultListConfig {
     var selectedRowId: String? = nil
     var highlightsSelectedRowId: Bool = false
 
-    /// Configuration for the main vault list.
     static var vaultMain: VaultListConfig {
         #if os(macOS)
         VaultListConfig(
@@ -120,9 +108,7 @@ struct VaultListConfig {
         #endif
     }
 
-    /// Configuration for a stacked filtered list or a custom-filter tab: tap
-    /// opens the row, no multi-select, row context menus on, no iOS sync-status
-    /// header, no quick-filter chips.
+    /// A stacked filtered list or a custom-filter tab.
     static var stacked: VaultListConfig {
         VaultListConfig(
             rowTap: .open,

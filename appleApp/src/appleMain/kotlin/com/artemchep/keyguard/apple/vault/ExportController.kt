@@ -25,11 +25,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import org.koin.core.scope.Scope
 
-/**
- * A flat, Swift-facing projection of the shared [ExportState]. The export *form*
- * (password + attachments toggle + item/attachment counts + a filter list) renders
- * natively, with a screen-scoped export run and native destination picker.
- */
 data class ExportSnapshot(
     val loaded: Boolean,
     val title: String,
@@ -73,16 +68,9 @@ data class ExportSnapshot(
 }
 
 /**
- * The "Export vault" screen. Runs the shared [exportScreenStateProducer] headlessly
- * (with the navigation interceptor, so the "View N items" rows can push a filtered
- * vault list) and projects it to a flat [ExportSnapshot]. The producer's [ExportState]
- * is a holder of five inner [kotlinx.coroutines.flow.StateFlow]s, so the controller
- * combines them into one snapshot stream and hands the live state back so the password
- * field can be edited per-instance.
- *
- * The per-row / per-action closures (run / toggle attachments / clear filters / view
- * items / view attachments / each filter) are captured into the entry's action-handler
- * map; the password edit is routed through the live state (it carries a String).
+ * The producer's [ExportState] holds five inner StateFlows, so they are combined into one snapshot
+ * stream. The live state is published too: the password edit carries a String, so it cannot go
+ * through the action-handler map.
  */
 internal class ExportController(
     private val ctx: CoreContext,

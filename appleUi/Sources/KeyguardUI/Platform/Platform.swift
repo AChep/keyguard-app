@@ -12,10 +12,7 @@ public typealias PlatformFont = UIFont
 public typealias PlatformImage = UIImage
 #endif
 
-// MARK: - Color bridging
-
 public extension Color {
-    /// Cross-platform bridge from a platform color (NSColor / UIColor).
     init(platform color: PlatformColor) {
         #if os(macOS)
         self.init(nsColor: color)
@@ -51,10 +48,8 @@ public extension Color {
     }
 }
 
-// MARK: - PlatformColor helpers
-
 public extension PlatformColor {
-    /// Device-RGB components, normalized 0...1. Works on both NSColor and UIColor.
+    /// Device-RGB components, normalized 0...1.
     func rgbaComponents() -> (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
         #if os(macOS)
         let c = usingColorSpace(.deviceRGB) ?? self
@@ -66,7 +61,6 @@ public extension PlatformColor {
         #endif
     }
 
-    /// The system control-accent / tint color.
     static var platformAccent: PlatformColor {
         #if os(macOS)
         return .controlAccentColor
@@ -75,10 +69,8 @@ public extension PlatformColor {
         #endif
     }
 
-    /// The system "danger" red.
     static var platformDanger: PlatformColor { .systemRed }
 
-    /// The primary label / text color.
     static var platformLabel: PlatformColor {
         #if os(macOS)
         return .textColor
@@ -87,7 +79,6 @@ public extension PlatformColor {
         #endif
     }
 
-    /// The hairline separator color.
     static var platformSeparator: PlatformColor {
         #if os(macOS)
         return .separatorColor
@@ -96,7 +87,6 @@ public extension PlatformColor {
         #endif
     }
 
-    /// A subtle control / grouped-content background fill.
     static var platformControlBackground: PlatformColor {
         #if os(macOS)
         return .controlBackgroundColor
@@ -106,10 +96,7 @@ public extension PlatformColor {
     }
 }
 
-// MARK: - Image bridging
-
 public extension Image {
-    /// Cross-platform bridge from a platform image (NSImage / UIImage).
     init(platform image: PlatformImage) {
         #if os(macOS)
         self.init(nsImage: image)
@@ -118,8 +105,6 @@ public extension Image {
         #endif
     }
 }
-
-// MARK: - Touch targets
 
 public extension View {
     @ViewBuilder

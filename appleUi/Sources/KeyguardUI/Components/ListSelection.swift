@@ -12,18 +12,14 @@ import KeyguardShared
 ///   bar's X was tapped) — the new set is mirrored up into the `List`.
 ///
 /// The mirror write is made self-cancelling by advancing `lastSeen` *before* it, so
-/// the `onChange` it provokes diffs to nothing. That replaces the
-/// `suppressSelectionDiff` flag the screens used to carry, and with it the
-/// `DispatchQueue.main.async` hop that lifted the flag on an unordered turn of the
-/// main queue.
+/// the `onChange` it provokes diffs to nothing. A suppression flag would need lifting
+/// on a later main-queue turn, which is not ordered against SwiftUI's change delivery.
 @MainActor
 @Observable
 final class ListSelectionModel {
-    /// Bound to `List(selection:)`.
     var selectedRowIds: Set<String> = []
 
     #if os(iOS)
-    /// Edit-mode state. macOS has no Edit button, so no equivalent.
     var editMode: EditMode = .inactive
     #endif
 
@@ -64,7 +60,6 @@ final class ListSelectionModel {
         }
     }
 
-    /// Mirrors the producer's authoritative selection down into the list.
     func reconcile(_ producerSelection: Set<String>) {
         guard selectedRowIds != producerSelection else {
             lastSeen = producerSelection
@@ -160,7 +155,6 @@ private struct ListSelectionModifier: ViewModifier {
             #if os(iOS)
         .environment(\.editMode, $selection.editMode)
         .onChange(of: selection.editMode) { _, mode in
-            // Leaving Edit mode drops the selection on both edges.
             if !mode.isEditing { selection.clear(clear) }
         }
             #endif
@@ -168,8 +162,7 @@ private struct ListSelectionModifier: ViewModifier {
                 selection.sync(newValue, isKnownId: isKnownId, toggle: toggle)
             }
             // `initial: true` also mirrors a selection the producer already held
-            // when the screen mounted — the old per-screen copies only watched for a
-            // clear, so a pre-existing selection rendered as an empty list.
+            // when the screen mounted; otherwise it renders as an empty list.
             .onChange(of: producerSelection ?? [], initial: true) { _, newValue in
                 if producerSelection != nil { selection.reconcile(newValue) }
             }

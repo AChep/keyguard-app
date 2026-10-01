@@ -20,8 +20,6 @@ struct InfoDialogView: View {
         }
     }
 
-    /// True when the dialog carries neither a subtitle nor any capability flags, so
-    /// the body would otherwise render as a blank titled panel.
     private func isEmpty(_ snapshot: InfoDialogSnapshot) -> Bool {
         let hasSubtitle = !(snapshot.subtitle?.isEmpty ?? true)
         return !hasSubtitle && snapshot.flags.isEmpty
@@ -43,8 +41,6 @@ struct InfoDialogView: View {
                             .font(.callout)
                             .foregroundStyle(.secondary)
                     }
-                    // Mirrors the Compose dialog's `ExpandedIfNotEmpty` rows: only the
-                    // applicable capability flags are shown (nothing when there are none).
                     ForEach(snapshot.flags, id: \.self) { flag in
                         Text(flag)
                             .font(.subheadline)

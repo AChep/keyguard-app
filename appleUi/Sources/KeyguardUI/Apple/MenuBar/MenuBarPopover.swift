@@ -10,36 +10,18 @@ public struct MenuBarPopover: View {
     @Environment(VaultActionsModel.self) private var vaultActionsModel
     @Environment(\.openWindow) private var openWindow
 
-    /// The self-owned session driving the popover. Created lazily on first
-    /// appear from the shared `KeyguardCore` (the same instance `AppViewModel`
-    /// owns), `start()`ed on appear and `stop()`ed on disappear — because this
-    /// model owns its session, `stop()` closes it. Optional because the
-    /// `@Environment` `KeyguardCore` is only reachable inside `body` (the
-    /// `StackVaultListView` lazy-create pattern).
+    /// Created lazily on first appear: the `@Environment` core is only reachable inside
+    /// `body`. This model owns its session, so `stop()` on disappear closes it.
     @State private var listModel: VaultListSessionModel?
 
-    /// The menu-bar session configuration. Mirrors the menu-bar vault list's
-    /// original args: `vaultListScreenStateProducer(args = VaultRoute.Args(),
-    /// mode = AppMode.Main)` under the `"menuvaultlist"` persistence scope. So:
-    /// - `persistenceScope: "menuvaultlist"` — its own persisted query/sort/filter
-    ///   memory, independent of the main list's `"vaultlist"` scope;
-    /// - `main: false` — `VaultRoute.Args().main` defaults to `false` (it only
-    ///   gates the deeplinked-custom-filter flow, a main-list concern the popover
-    ///   never renders);
-    /// - every other field keeps the `VaultRoute.Args()` default.
-    ///
-    /// The session always runs `AppMode.Main` internally, matching the
-    /// controller's `mode = AppMode.Main`, so the popover shares the main list's
-    /// already-decrypted cipher universe (cheap) while keeping its own scope.
+    /// `"menuvaultlist"` keeps the popover's query/sort/filter memory separate from the
+    /// main list's `"vaultlist"` scope. The session runs `AppMode.Main`, so the popover
+    /// shares the main list's already-decrypted cipher universe.
     private var menuConfig: VaultListSessionConfig {
         .vaultMain(persistenceScope: "menuvaultlist", main: false)
     }
 
-    /// Only real cipher rows are shown in the popover (no section / button / empty
-    /// rows). Read straight off the store: iterate the structure in render
-    /// order, keep the `item` entries, and hand back each row's decoded content.
-    /// Rows whose content has not landed yet are simply omitted (the popover shows
-    /// no skeletons — a quick picker, not the full list).
+    /// Rows whose content has not landed yet are omitted: the popover shows no skeletons.
     private var items: [VaultRow] {
         guard let listModel else { return [] }
         return listModel.store.structure.entries
@@ -47,22 +29,17 @@ public struct MenuBarPopover: View {
             .compactMap { listModel.store.box(for: $0.id).row }
     }
 
-    /// The Kotlin-owned search text (source of truth via `bridgedText`).
     private var remoteQuery: String { listModel?.header.query ?? "" }
     /// Bumped on every programmatic query write (clear / restore).
     private var remoteQueryRevision: Int32 { listModel?.header.queryRevision ?? 0 }
-    /// The rendered structure revision — used to scroll-to-top and drop a stale
-    /// keyboard selection when the result set changes underneath it.
     private var structureRevision: Int64 { listModel?.store.structure.revision ?? 0 }
 
     /// Local typing buffer; the session's query stays the source of truth through
     /// the `bridgedText` reconciliation on the field.
     @State private var query = ""
 
-    /// Keyboard-driven selection for the results list (the row `id`). Owned
-    /// Swift-side: the popover has no multi-selection channel, but copy actions
-    /// take the row directly, so a local selection is sufficient and keeps the
-    /// popover keyboard-navigable like Quick Search.
+    /// Owned Swift-side: the popover has no multi-selection channel, but copy actions
+    /// take the row directly, so a local selection is sufficient.
     @State private var selection: String?
 
     public var body: some View {
@@ -75,10 +52,8 @@ public struct MenuBarPopover: View {
             footer
         }
         .frame(width: 360, height: 480)
-        // Producer messages (copy confirmations, quick-generate, errors) reach
-        // the shared `NotificationsModel.toasts`; render them here too so they are not
-        // dropped when the popover is the active surface (e.g. menu-bar-only
-        // mode). Mirrors the main window's overlay — the macOS analogue of
+        // Producer messages reach the shared toasts; render them here too so they are not
+        // dropped when the popover is the active surface (e.g. menu-bar-only mode), like
         // Compose's per-window `ToastMessageHost`.
         .overlay(alignment: .top) {
             ToastStackView()
@@ -185,8 +160,6 @@ public struct MenuBarPopover: View {
                     send: { listModel?.setQuery($0) }
                 )
                 .textFieldStyle(.plain)
-                // Return copies the selected row (or the first when nothing is
-                // selected yet), so a non-first result is reachable by keyboard.
                 .onSubmit { copyPrimary(selectedItem ?? items.first) }
             if !remoteQuery.isEmpty {
                 Button {
@@ -204,8 +177,7 @@ public struct MenuBarPopover: View {
         .padding(.vertical, 8)
         // Arrow keys move the selection while focus stays in the search field.
         // Attached to the containing row (not the TextField) so the key event
-        // bubbles up past the field's own cursor handling — the same placement
-        // QuickSearchView uses for its arrow-key navigation.
+        // bubbles up past the field's own cursor handling.
         .onKeyPress(.downArrow) {
             moveSelection(1); return .handled
         }
@@ -214,14 +186,11 @@ public struct MenuBarPopover: View {
         }
     }
 
-    /// The currently keyboard-selected row, if it still exists in the results.
     private var selectedItem: VaultRow? {
         guard let selection else { return nil }
         return items.first { $0.id == selection }
     }
 
-    /// Move the keyboard selection by `delta`, clamped, defaulting to the first
-    /// row when nothing is selected yet.
     private func moveSelection(_ delta: Int) {
         let items = items
         guard !items.isEmpty else { return }
@@ -236,10 +205,8 @@ public struct MenuBarPopover: View {
     }
 
     private var resultsList: some View {
-        // A `selection`-bound List gives native click + arrow-key selection and a
-        // highlight, so the clickable area is discoverable before the (sensitive)
-        // copy action runs; copy is an explicit per-row control / Return, not a
-        // bare whole-row tap.
+        // A `selection`-bound List makes a row click select: copying a secret is an
+        // explicit per-row control or Return, never a bare whole-row tap.
         List(selection: $selection) {
             ForEach(items, id: \.id) { item in
                 ResultRow(
@@ -333,11 +300,8 @@ public struct MenuBarPopover: View {
     }
 }
 
-/// A single result row: an explicit, labelled copy button copies the password and
-/// a trailing menu offers the other quick actions. Copy actions route through the
-/// shared producer so the app's clipboard-clear behaviour is honoured (no plaintext
-/// handled in Swift). Selecting the row is non-destructive — copying a secret is an
-/// explicit control, never an undiscoverable whole-row tap.
+/// Copy actions route through the shared producer so the app's clipboard-clear behaviour
+/// is honoured (no plaintext handled in Swift).
 private struct ResultRow: View {
     let item: VaultRow
     let copyPassword: () -> Void
@@ -366,9 +330,6 @@ private struct ResultRow: View {
                     .font(.caption2)
                     .foregroundStyle(.yellow)
             }
-            // Explicit, visible primary affordance for the sensitive copy action,
-            // so the clipboard write is discoverable rather than bound to a bare
-            // whole-row tap.
             Button {
                 copyPassword()
             } label: {
@@ -408,9 +369,6 @@ private struct ResultRow: View {
             .accessibilityLabel(L10n.moreActions)
         }
         .padding(.vertical, 2)
-        // The whole-row click now selects (handled by the enclosing
-        // `List(selection:)`); copying the password is an explicit control above,
-        // so a bare row tap no longer silently writes a secret to the clipboard.
         .contentShape(Rectangle())
     }
 }

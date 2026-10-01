@@ -15,8 +15,6 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.toArgb
 import com.artemchep.keyguard.AppMode
-import com.artemchep.keyguard.main
-import com.artemchep.keyguard.pick
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.BiometricAuthPromptSimple
 import com.artemchep.keyguard.common.model.LockReason
@@ -112,31 +110,20 @@ import kotlinx.coroutines.launch
 import org.koin.core.scope.Scope
 
 /**
- * The SwiftUI-presented dialog subsystem of the macOS bridge: the "Show in
- * Large Type", "Show as Barcode", passkey credential detail and attachment
- * preview sheets.
- *
- * Each is a [DialogHost] channel fed by the shared headless producers. The
- * detail screens (cipher / send / account / password history) don't present
- * these themselves — they hand [navigationInterceptor] to their producer's
- * [com.artemchep.keyguard.feature.navigation.NavigationController], which
- * catches the matching navigation route and turns it into a [DialogHost.present]
- * call on this controller.
+ * SwiftUI-presented dialogs (iOS + macOS). Each dialog is a [DialogHost] channel
+ * fed by a shared headless producer. Screens pass [navigationInterceptor] to their
+ * producer; it catches the dialog routes and presents them here.
  */
 internal class DialogController(
     private val ctx: CoreContext,
     private val authPromptHost: AuthPromptHost,
 ) {
     /**
-     * Shared plumbing for the SwiftUI-presented dialogs: a registered Swift sink
-     * that receives `null` while hidden, at most one running headless producer
-     * job, and the per-presentation [handlers] backing the dialog's Swift-facing
-     * invoke / select methods. All fields are main-confined — [register],
-     * [present] and [close] are called on the main thread (the dialog navigation
-     * interceptor hops before presenting) — while the producer launched by
-     * [present] runs on [CoreContext.backgroundScope] and delivers through its
-     * `publish` parameter, which installs the handlers and pushes the snapshot
-     * on the main thread.
+     * One dialog channel: a Swift sink (`null` while hidden), at most one headless producer job, and the
+     * per-presentation [handlers] behind the dialog's Swift-facing methods. All fields are main-confined:
+     * [register], [present] and [close] run on main (the navigation interceptor hops before presenting).
+     * The producer runs on [CoreContext.backgroundScope]; its `publish` installs the handlers and pushes the
+     * snapshot on main.
      */
     private inner class DialogHost<S : Any, H>(
         private val noHandlers: H,
@@ -155,10 +142,8 @@ internal class DialogController(
         }
 
         /**
-         * Starts a presentation: tears the previous producer down and runs
-         * [block] on [CoreContext.backgroundScope]. [block] delivers every
-         * snapshot — and the handlers backing the snapshot's ids — through its
-         * `publish` parameter. No-op while no sink is registered.
+         * Replaces the running producer with [block], which delivers each snapshot together with the handlers
+         * behind its ids through `publish`. No-op while no sink is registered.
          */
         fun present(
             block: suspend CoroutineScope.(publish: suspend (S, H) -> Unit) -> Unit,
@@ -187,7 +172,6 @@ internal class DialogController(
             pop
         }
 
-        /** Dismisses the dialog and tears the headless producer down. */
         fun close() {
             job?.cancel()
             job = null
@@ -196,52 +180,19 @@ internal class DialogController(
         }
     }
 
-    /**
-     * The "Show in Large Type" dialog channel: a detail producer's
-     * [LargeTypeRoute] navigation intent is caught by [navigationInterceptor]
-     * and turned into a [presentLargeType] call. The handlers map a tile index
-     * to the producer's select closure so [selectLargeTypeSymbol] only ever
-     * passes an index.
-     */
     private val largeTypeDialog =
         DialogHost<LargeTypeSnapshot, Map<Int, () -> Unit>>(emptyMap())
 
-    /**
-     * The "Show as Barcode" dialog channel: a detail producer's
-     * [BarcodeTypeRoute] navigation intent is caught by [navigationInterceptor]
-     * and turned into a [presentBarcode] call. The handlers map a format-option
-     * id to the producer's select closure so [selectBarcodeFormat] only ever
-     * passes an opaque id.
-     */
     private val barcodeDialog =
         DialogHost<BarcodeSnapshot, Map<String, () -> Unit>>(emptyMap())
 
-    /**
-     * The passkey credential detail dialog channel: a detail producer's
-     * [PasskeysCredentialViewRoute] navigation intent (a passkey row click) is
-     * caught by [navigationInterceptor] and turned into a
-     * [presentPasskeyCredential] call. The handler is the producer's onUse
-     * closure (only present in the pick-passkey app mode), behind
-     * [usePasskeyCredential].
-     */
     private val passkeyCredentialDialog =
         DialogHost<PasskeyCredentialSnapshot, (() -> Unit)?>(null)
 
-    /**
-     * The attachment preview dialog channel: clicking a previewable attachment
-     * row fires the shared producer's [AttachmentPreviewRoute] navigation
-     * intent, caught by [navigationInterceptor] and turned into a
-     * [presentAttachmentPreview] call. The handler is the text content's
-     * copy-all closure behind [invokeAttachmentPreviewCopy].
-     */
     private val attachmentPreviewDialog =
         DialogHost<AttachmentPreviewSnapshot, (() -> Unit)?>(null)
 
-    /**
-     * The per-presentation closures backing the confirmation dialog's Swift-facing
-     * mutators, refreshed on every producer emission (the maps are keyed by the
-     * snapshot item / option keys SwiftUI passes back).
-     */
+    /** The maps are keyed by the snapshot item / option keys SwiftUI passes back. */
     private class ConfirmationHandlers(
         val onAdd: (() -> Unit)? = null,
         val onRemove: Map<String, () -> Unit> = emptyMap(),
@@ -254,175 +205,82 @@ internal class DialogController(
         // itemKey -> the selected option's "learn more" link
         val docOnLearnMore: Map<String, () -> Unit> = emptyMap(),
         val onConfirm: (() -> Unit)? = null,
-        val onDeny: (() -> Unit)? = null,
     )
 
-    /**
-     * The generic confirmation dialog channel: every cipher action that asks for
-     * confirmation (rename, change password, trash / delete, "Configure Watchtower
-     * alerts", the various pickers) fires a [ConfirmationRoute] navigation intent,
-     * caught by [navigationInterceptor] and turned into a [presentConfirmation]
-     * call running the shared [confirmationStateProducer] headlessly. The handlers
-     * back the Swift-facing item mutators and confirm / deny closures.
-     */
     private val confirmationDialog =
         DialogHost<ConfirmationSnapshot, ConfirmationHandlers>(ConfirmationHandlers())
 
     /**
      * Opens a link a dialog producer emits ([NavigationIntent.NavigateToBrowser]).
-     * Late-bound by [KeyguardCore] to the navigation stack's open-url handler.
+     * Late-bound by `KeyguardCore` to the navigation stack's open-url handler.
      */
     var openUrl: (String) -> Unit = {}
 
-    /**
-     * The per-presentation closures backing the master-password re-prompt dialog's
-     * Swift-facing mutators, refreshed on every producer emission.
-     */
     private class ElevatedAccessHandlers(
         val passwordOnChange: ((String) -> Unit)? = null,
         val onBiometric: (() -> Unit)? = null,
         val onYubiKey: (() -> Unit)? = null,
         val onConfirm: (() -> Unit)? = null,
-        val onDeny: (() -> Unit)? = null,
     )
 
-    /**
-     * The master-password re-prompt ("elevated access") dialog channel: a
-     * reprompt-protected cipher's copy / reveal / edit action fires an
-     * [ElevatedAccessRoute] navigation intent (wrapped in a
-     * [com.artemchep.keyguard.feature.navigation.RouteResultReceiver]), caught by
-     * [navigationInterceptor] and turned into a [presentElevatedAccess] call running
-     * the shared [elevatedAccessStateProducer] headlessly. The producer also emits
-     * biometric / YubiKey side-effects, which this channel routes through the shared
-     * [AuthPromptHost] (the same native Touch ID / YubiKey path as the unlock screen).
-     */
     private val elevatedAccessDialog =
         DialogHost<ElevatedAccessSnapshot, ElevatedAccessHandlers>(ElevatedAccessHandlers())
 
-    /**
-     * The service-info dialog channel: the cipher detail's "Inactive one-time
-     * password" / "Inactive passkey" rows fire a [TwoFaServiceViewDialogRoute] /
-     * [PasskeysServiceViewDialogRoute] navigation intent, caught by
-     * [navigationInterceptor] and turned into a [presentServiceInfo] call. The
-     * route args already carry the full service model, so this is a single static
-     * snapshot — no producer, no handlers (the dialog only renders + closes).
-     */
+    /** The route args carry the full service model, so this dialog is one static snapshot with no producer. */
     private val serviceInfoDialog =
         DialogHost<ServiceDirectoryDetailSnapshot, Unit>(Unit)
 
-    /**
-     * The email / username breach ("Have I Been Pwned") dialog channel: a cipher /
-     * account field's "Check data breaches" action fires an [EmailLeakRoute]
-     * navigation intent, caught by [navigationInterceptor] and turned into a
-     * [presentEmailLeak] call running the shared [emailLeakStateProducer]
-     * headlessly. The dialog only renders + closes, so there are no handlers.
-     */
     private val emailLeakDialog =
         DialogHost<EmailLeakSnapshot, Unit>(Unit)
 
-    /**
-     * The password breach dialog channel: a cipher / generator-history password's
-     * "Check data breaches" action fires a [PasswordLeakRoute] navigation intent,
-     * caught by [navigationInterceptor] and turned into a [presentPasswordLeak] call
-     * running the shared [passwordLeakStateProducer] headlessly. No handlers.
-     */
     private val passwordLeakDialog =
         DialogHost<PasswordLeakSnapshot, Unit>(Unit)
 
-    /**
-     * The website breach dialog channel: a cipher URI's "Check data breaches" action
-     * fires a [WebsiteLeakRoute] navigation intent, caught by [navigationInterceptor]
-     * and turned into a [presentWebsiteLeak] call running the shared
-     * [websiteLeakStateProducer] headlessly. No handlers.
-     */
     private val websiteLeakDialog =
         DialogHost<WebsiteLeakSnapshot, Unit>(Unit)
 
-    /**
-     * The color picker dialog channel: the account detail's "Change color" action
-     * fires a [ColorPickerRoute] navigation intent (wrapped in a
-     * [com.artemchep.keyguard.feature.navigation.RouteResultReceiver]), caught by
-     * [navigationInterceptor] and turned into a [presentColorPicker] call running the
-     * shared [produceColorPickerState] headlessly. The handlers map a swatch id to the
-     * producer's per-color select closure plus the confirm / deny closures.
-     */
     private val colorPickerDialog =
         DialogHost<ColorPickerSnapshot, ColorPickerHandlers>(ColorPickerHandlers())
 
-    /**
-     * The per-presentation closures backing the color picker dialog's Swift-facing
-     * mutators, refreshed on every producer emission.
-     */
     private class ColorPickerHandlers(
-        // swatchId -> select closure (highlights the swatch in the producer)
+        // swatchId -> select closure
         val onSelect: Map<String, () -> Unit> = emptyMap(),
         val onConfirm: (() -> Unit)? = null,
-        val onDeny: (() -> Unit)? = null,
     )
 
-    /**
-     * The collection / organization "info" dialog channel: a collection / organization
-     * row's "Info" action fires a [CollectionRoute] / [OrganizationRoute] navigation
-     * intent, caught by [navigationInterceptor] and turned into a [presentCollectionInfo] /
-     * [presentOrganizationInfo] call running the shared [collectionScreenState] /
-     * [organizationScreenState] headlessly. The dialog only renders + closes, so there
-     * are no handlers.
-     */
     private val infoDialog =
         DialogHost<InfoDialogSnapshot, Unit>(Unit)
 
-    /**
-     * The per-presentation closures backing the account picker dialog's Swift-facing
-     * mutators, refreshed on every producer emission.
-     */
     private class AccountPickerHandlers(
         val onNewFolderName: ((String) -> Unit)? = null,
-        // itemKey -> select closure (re-runs the producer with the new selection)
+        // itemKey -> select closure
         val onSelect: Map<String, () -> Unit> = emptyMap(),
         val onConfirm: (() -> Unit)? = null,
-        val onDeny: (() -> Unit)? = null,
     )
 
-    /**
-     * The account picker dialog channel: the add form's ownership "Save to" row fires
-     * an [OrganizationConfirmationRoute] navigation intent (wrapped in a
-     * [com.artemchep.keyguard.feature.navigation.RouteResultReceiver]), caught by
-     * [navigationInterceptor] and turned into a [presentAccountPicker] call running
-     * the shared [organizationConfirmationStateProducer] headlessly. The handlers map
-     * a row key to the producer's per-item select closure plus the confirm / deny
-     * closures.
-     */
+    /** Shared by the account picker and the folder picker ([presentFolderPicker]). */
     private val accountPickerDialog =
         DialogHost<AccountPickerSnapshot, AccountPickerHandlers>(AccountPickerHandlers())
 
     private data class CipherLinkPickerHandlers(
         val onQuery: ((String) -> Unit)? = null,
         val onSelect: Map<String, () -> Unit> = emptyMap(),
-        val onDeny: (() -> Unit)? = null,
     )
 
     private val cipherLinkPickerDialog =
         DialogHost<CipherLinkPickerSnapshot, CipherLinkPickerHandlers>(CipherLinkPickerHandlers())
 
-    // The confirmation dialog's file-picker bridge (a FileItem row's "choose file"
-    // action): the shared producer emits a FilePickerIntent through its
-    // sideEffects flow; translate it to an AddFilePickerRequest (reusing the
-    // create-form file-picker request type + Swift NSOpenPanel / .fileImporter
-    // presentation) and feed the chosen file back into the producer continuation.
+    // Confirmation FILE items: each producer FilePickerIntent becomes an AddFilePickerRequest (the create-form
+    // type, so Swift reuses its file panel) and waits here, keyed by request id, until Swift resolves or cancels it.
     private var onConfirmationFilePickerRequest: ((AddFilePickerRequest) -> Unit)? = null
     private val confirmationFilePickerHandlers = LinkedHashMap<String, (FilePickerResult?) -> Unit>()
     private var confirmationFilePickerRequestCounter = 0
 
     /**
-     * A navigation interceptor for the detail producers: catches the dialog routes
-     * that SwiftUI presents itself — the [LargeTypeRoute] push (and the mobile-only
-     * [NavigationIntent.NavigateToLargeType]) and the [BarcodeTypeRoute] push — and
-     * presents the matching dialog, swallowing the intent. Every other intent is
-     * left unhandled (dropped, as before).
+     * Catches every dialog route handled below, presents the matching dialog and
+     * returns true. Other intents return false. Most dialogs need [sessionKoin] for
+     * their per-session use cases and are not caught without it.
      */
-    // [sessionKoin] is required to present the passkey credential dialog: its
-    // producer resolves per-session use-cases (GetCiphers / PasskeyTargetCheck)
-    // that the root DI does not bind. Call sites without passkey rows omit it.
     fun navigationInterceptor(
         sessionKoin: Scope? = null,
     ): (NavigationIntent) -> Boolean = { intent ->
@@ -435,7 +293,6 @@ internal class DialogController(
         val emailLeakArgs = intent.routeOrNull<EmailLeakRoute>()?.args
         val passwordLeakArgs = intent.routeOrNull<PasswordLeakRoute>()?.args
         val websiteLeakArgs = intent.routeOrNull<WebsiteLeakRoute>()?.args
-        // The collection / organization "Info" rows navigate to a plain dialog route.
         val collectionInfoArgs = intent.routeOrNull<CollectionRoute>()?.args
         val organizationInfoArgs = intent.routeOrNull<OrganizationRoute>()?.args
         // These dialogs return a result, so their routes come wrapped by
@@ -561,20 +418,12 @@ internal class DialogController(
         else -> null
     }
 
-    // The "Inactive one-time password" / "Inactive passkey" rows navigate to one of
-    // these dialog routes; the args carry the full service model, projected here into
-    // the same flat snapshot the directory detail screen renders. The projection
-    // needs the localized link titles, which are resolved when the dialog presents.
+    // Returns a projection, not a snapshot: it needs the localized link titles, resolved when the dialog presents.
     private fun NavigationIntent.toServiceInfoOrNull(): ((DirectoryLinkTitles) -> ServiceDirectoryDetailSnapshot)? {
         val route = (this as? NavigationIntent.NavigateToRoute)?.route ?: return null
         return when (route) {
             is TwoFaServiceViewDialogRoute -> { titles -> route.args.model.toServiceDirectoryDetailSnapshot(titles) }
             is PasskeysServiceViewDialogRoute -> { titles -> route.args.model.toServiceDirectoryDetailSnapshot(titles) }
-            // A login whose URL matches a known JustGetMyData / JustDeleteMe service:
-            // the cipher detail's "Get my data" / "How to delete account" overflow
-            // actions navigate to these dialog routes (args carry the full service
-            // model), projected here into the same flat snapshot the directory detail
-            // screen renders so the shared service-info dialog presents.
             is JustGetMyDataViewDialogRoute -> { titles -> route.args.model.toServiceDirectoryDetailSnapshot(titles) }
             is JustDeleteMeServiceViewDialogRoute -> { titles ->
                 route.args.justDeleteMe.toServiceDirectoryDetailSnapshot(titles)
@@ -583,11 +432,6 @@ internal class DialogController(
         }
     }
 
-    /**
-     * Registers the SwiftUI sink for the Large Type dialog. The callback receives
-     * `null` while hidden and a [LargeTypeSnapshot] once a field's "Show in Large
-     * Type" action fires. Mutate / dismiss via [selectLargeTypeSymbol] / [closeLargeType].
-     */
     private val passwordMemoryDialog = DialogHost<PasswordMemorySnapshot, PasswordMemoryState?>(null)
 
     fun observePasswordMemory(onChange: (PasswordMemorySnapshot?) -> Unit): KeyguardCancellable =
@@ -616,11 +460,6 @@ internal class DialogController(
         onChange: (LargeTypeSnapshot?) -> Unit,
     ): KeyguardCancellable = largeTypeDialog.register(onChange)
 
-    /**
-     * Runs the shared [largeTypeStateProducer] headlessly for [args] and projects
-     * each emission into a [LargeTypeSnapshot]. Tears down any previously presented
-     * instance first.
-     */
     private fun presentLargeType(args: LargeTypeRoute.Args, lockVault: Boolean) {
         val leContext = ctx.koin.get<LeContext>()
         largeTypeDialog.present { publish ->
@@ -651,16 +490,10 @@ internal class DialogController(
         }
     }
 
-    /**
-     * Highlights every tile up to (and including) [index] by routing through the
-     * producer's per-code-point select closure; the producer re-emits and the
-     * refreshed [LargeTypeSnapshot] flows back to SwiftUI.
-     */
     fun selectLargeTypeSymbol(index: Int) {
         largeTypeDialog.handlers[index]?.invoke()
     }
 
-    /** Dismisses the Large Type dialog and tears the headless producer down. */
     fun closeLargeType() {
         largeTypeDialog.close()
     }
@@ -683,8 +516,7 @@ internal class DialogController(
         },
     )
 
-    // Mirrors the colorize decision in the Compose SymbolItem: colour only a
-    // single-code-point tile, digits one way, symbols another, letters plain.
+    // Mirrors the colorize decision in the Compose SymbolItem.
     private fun LargeTypeState.Item.toSymbolColor(): LargeTypeSymbolColor = when {
         !colorize || text.length > 1 -> LargeTypeSymbolColor.PLAIN
         text[0].isDigit() -> LargeTypeSymbolColor.DIGIT
@@ -692,22 +524,13 @@ internal class DialogController(
         else -> LargeTypeSymbolColor.SYMBOL
     }
 
-    /**
-     * Registers the SwiftUI sink for the "Show as Barcode" dialog. The callback
-     * receives `null` while hidden and a [BarcodeSnapshot] once a field's "Show as
-     * Barcode" action fires. Change format / dismiss via [selectBarcodeFormat] /
-     * [closeBarcode].
-     */
     fun observeBarcode(
         onChange: (BarcodeSnapshot?) -> Unit,
     ): KeyguardCancellable = barcodeDialog.register(onChange)
 
     /**
-     * Runs the shared [barcodeTypeStateProducer] headlessly for [args] and projects
-     * each emission into a [BarcodeSnapshot]. Tears down any previously presented
-     * instance first. The barcode-usage-history use cases may be absent in the
-     * macOS DI graph; the producer falls back to on-disk format persistence in
-     * that case.
+     * The barcode-usage-history use cases are vault-session scoped, so this root-graph lookup returns null and
+     * the producer falls back to on-disk format persistence.
      */
     private fun presentBarcode(args: BarcodeTypeRoute.Args) {
         val leContext = ctx.koin.get<LeContext>()
@@ -738,16 +561,10 @@ internal class DialogController(
         }
     }
 
-    /**
-     * Switches the rendered barcode format by routing through the producer's
-     * per-format select closure; the producer re-emits and the refreshed
-     * [BarcodeSnapshot] flows back to SwiftUI.
-     */
     fun selectBarcodeFormat(id: String) {
         barcodeDialog.handlers[id]?.invoke()
     }
 
-    /** Dismisses the "Show as Barcode" dialog and tears the headless producer down. */
     fun closeBarcode() {
         barcodeDialog.close()
     }
@@ -767,21 +584,10 @@ internal class DialogController(
         formatSelectable = !args.disallowFormatSelection,
     )
 
-    /**
-     * Registers the SwiftUI sink for the passkey credential detail dialog. The
-     * callback receives `null` while hidden and a [PasskeyCredentialSnapshot]
-     * once a passkey row is clicked. Dismiss via [closePasskeyCredential].
-     */
     fun observePasskeyCredential(
         onChange: (PasskeyCredentialSnapshot?) -> Unit,
     ): KeyguardCancellable = passkeyCredentialDialog.register(onChange)
 
-    /**
-     * Runs the shared [passkeysCredentialViewStateProducer] headlessly for [args]
-     * and projects each emission into a [PasskeyCredentialSnapshot]. Tears down any
-     * previously presented instance first. [sessionKoin] resolves the per-session
-     * use-cases the producer needs.
-     */
     private fun presentPasskeyCredential(
         args: PasskeysCredentialViewRoute.Args,
         sessionKoin: Scope,
@@ -805,16 +611,11 @@ internal class DialogController(
         }
     }
 
-    /** Uses the shown passkey credential (only available in the pick-passkey mode). */
     fun usePasskeyCredential() {
         passkeyCredentialDialog.handlers?.invoke()
     }
 
-    /**
-     * Dismisses the passkey credential dialog and tears the headless producer
-     * down. The producer's own onClose only pops the (non-existent) navigation
-     * stack, so it is intentionally not invoked — same as the Large Type dialog.
-     */
+    /** The producer's onClose only pops the (non-existent) navigation stack, so it is intentionally not invoked. */
     fun closePasskeyCredential() {
         passkeyCredentialDialog.close()
     }
@@ -847,20 +648,10 @@ internal class DialogController(
         },
     )
 
-    /**
-     * Registers the SwiftUI sink for the attachment preview dialog. The callback
-     * receives `null` while hidden and an [AttachmentPreviewSnapshot] once a
-     * previewable attachment row is clicked. Dismiss via [closeAttachmentPreview];
-     * copy the text content via [invokeAttachmentPreviewCopy].
-     */
     fun observeAttachmentPreview(
         onChange: (AttachmentPreviewSnapshot?) -> Unit,
     ): KeyguardCancellable = attachmentPreviewDialog.register(onChange)
 
-    /**
-     * Mirrors the effective SwiftUI appearance into [CoreContext.interfaceColorSchemeState]
-     * so an open preview re-highlights its code live when the system theme flips.
-     */
     fun setInterfaceDarkMode(isDark: Boolean) {
         ctx.scope.launch {
             ctx.interfaceColorSchemeState.value = if (isDark) {
@@ -871,12 +662,6 @@ internal class DialogController(
         }
     }
 
-    /**
-     * Runs the shared [attachmentPreviewStateProducer] headlessly for [args] and
-     * projects each emission into an [AttachmentPreviewSnapshot]. Tears down any
-     * previously presented instance first. [sessionKoin] resolves the per-session
-     * use-cases the producer needs.
-     */
     private fun presentAttachmentPreview(
         args: AttachmentPreviewRoute.Args,
         sessionKoin: Scope,
@@ -915,40 +700,19 @@ internal class DialogController(
         }
     }
 
-    /**
-     * Copies the previewed text / markdown content through the shared CopyText
-     * (so clipboard auto-clear and copy events keep working). Named `invoke…`
-     * rather than `copy…` because Objective-C treats `copy`-prefixed selectors
-     * as an ownership family and Kotlin/Native would export it as `doCopy…`.
-     */
     fun invokeAttachmentPreviewCopy() {
         attachmentPreviewDialog.handlers?.invoke()
     }
 
-    /** Dismisses the attachment preview dialog and tears the producer down. */
     fun closeAttachmentPreview() {
         attachmentPreviewDialog.close()
     }
 
-    /**
-     * Registers the SwiftUI sink for the confirmation dialog. The callback receives
-     * `null` while hidden and a [ConfirmationSnapshot] once a confirmation action
-     * fires. Mutate items via the `setConfirmationItem*` / `selectConfirmationItem*`
-     * methods; finish via [confirmConfirmation] / [denyConfirmation] / [closeConfirmation].
-     */
     fun observeConfirmation(
         onChange: (ConfirmationSnapshot?) -> Unit,
     ): KeyguardCancellable = confirmationDialog.register(onChange)
 
-    /**
-     * Runs the shared [confirmationStateProducer] headlessly for [args] and projects
-     * each emission into a [ConfirmationSnapshot] + the handlers backing the item
-     * mutators. Tears down any previously presented instance first.
-     *
-     * [transmitter] is the registered result receiver recovered from the navigated
-     * route; the producer calls it (after popping itself) when the user confirms /
-     * denies, which runs the action's real work (e.g. `patchWatchtowerAlertCipher`).
-     */
+    /** The producer calls [transmitter] after popping itself on confirm; that runs the action's real work. */
     private fun presentConfirmation(
         args: ConfirmationRoute.Args,
         transmitter: RouteResultTransmitter<ConfirmationResult>,
@@ -1030,7 +794,6 @@ internal class DialogController(
                             }.toMap(),
                             onAdd = state.onAdd,
                             onConfirm = state.onConfirm,
-                            onDeny = state.onDeny,
                         ),
                     )
                 }
@@ -1045,17 +808,14 @@ internal class DialogController(
         confirmationDialog.handlers.onRemove[key]?.invoke()
     }
 
-    /** Toggles a confirmation BOOLEAN item; the producer re-emits and the snapshot refreshes. */
     fun setConfirmationItemBoolean(key: String, value: Boolean) {
         confirmationDialog.handlers.booleanOnChange[key]?.invoke(value)
     }
 
-    /** Writes [text] into a confirmation STRING item identified by [key]. */
     fun setConfirmationItemString(key: String, text: String) {
         confirmationDialog.handlers.stringOnChange[key]?.invoke(text)
     }
 
-    /** Selects [optionKey] of a confirmation ENUM item identified by [key]. */
     fun selectConfirmationItemEnum(key: String, optionKey: String) {
         confirmationDialog.handlers.enumOnClick[key]?.get(optionKey)?.invoke()
     }
@@ -1065,7 +825,6 @@ internal class DialogController(
         confirmationDialog.handlers.fileOnSelect[key]?.invoke()
     }
 
-    /** Clears the chosen file of a confirmation FILE item identified by [key]. */
     fun openConfirmationItemDoc(key: String) {
         confirmationDialog.handlers.docOnLearnMore[key]?.invoke()
     }
@@ -1074,46 +833,19 @@ internal class DialogController(
         confirmationDialog.handlers.fileOnClear[key]?.invoke()
     }
 
-    /** Confirms the dialog (only enabled while every item validates). */
     fun confirmConfirmation() {
         confirmationDialog.handlers.onConfirm?.invoke()
     }
 
-    /** Denies the dialog (transmits a deny result and pops). */
-    fun denyConfirmation() {
-        confirmationDialog.handlers.onDeny?.invoke()
-    }
-
-    /** Dismisses the confirmation dialog and tears the headless producer down. */
     fun closeConfirmation() {
         confirmationDialog.close()
     }
 
-    /**
-     * Registers the SwiftUI sink for the master-password re-prompt dialog. The
-     * callback receives `null` while hidden and an [ElevatedAccessSnapshot] once a
-     * reprompt-protected cipher action fires. Edit the password via
-     * [setElevatedAccessPassword]; trigger biometrics / YubiKey via
-     * [triggerElevatedAccessBiometric] / [triggerElevatedAccessYubiKey]; finish via
-     * [confirmElevatedAccess] / [denyElevatedAccess] / [closeElevatedAccess].
-     */
     fun observeElevatedAccess(
         onChange: (ElevatedAccessSnapshot?) -> Unit,
     ): KeyguardCancellable = elevatedAccessDialog.register(onChange)
 
-    /**
-     * Runs the shared [elevatedAccessStateProducer] headlessly for the given
-     * [transmitter] and projects each emission into an [ElevatedAccessSnapshot] +
-     * the handlers backing the password / biometric / YubiKey / confirm closures.
-     * Tears down any previously presented instance first.
-     *
-     * The producer pops itself right before transmitting the result; a local
-     * interceptor catches that and closes the sheet (same as [presentConfirmation]).
-     * It also emits biometric / YubiKey side-effects, collected once on the first
-     * content-carrying emission and routed through the shared [AuthPromptHost] — the
-     * biometric prompt auto-fires on first subscription. [sessionKoin] resolves the
-     * session-scoped use-cases the producer needs (the master-key verifier etc.).
-     */
+    /** Biometric / YubiKey side-effects go through the shared [AuthPromptHost], the same path as unlock. */
     private fun presentElevatedAccess(
         transmitter: RouteResultTransmitter<ElevatedAccessResult>,
         sessionKoin: Scope,
@@ -1175,32 +907,22 @@ internal class DialogController(
         }
     }
 
-    /** Writes [text] into the re-prompt dialog's password field. */
     fun setElevatedAccessPassword(text: String) {
         elevatedAccessDialog.handlers.passwordOnChange?.invoke(text)
     }
 
-    /** Fires the biometric (Touch ID / Face ID) prompt of the re-prompt dialog. */
     fun triggerElevatedAccessBiometric() {
         elevatedAccessDialog.handlers.onBiometric?.invoke()
     }
 
-    /** Fires the YubiKey challenge-response prompt of the re-prompt dialog. */
     fun triggerElevatedAccessYubiKey() {
         elevatedAccessDialog.handlers.onYubiKey?.invoke()
     }
 
-    /** Confirms the re-prompt with the typed master password (only when it validates). */
     fun confirmElevatedAccess() {
         elevatedAccessDialog.handlers.onConfirm?.invoke()
     }
 
-    /** Denies the re-prompt (transmits a deny result and pops). */
-    fun denyElevatedAccess() {
-        elevatedAccessDialog.handlers.onDeny?.invoke()
-    }
-
-    /** Dismisses the re-prompt dialog and tears the headless producer down. */
     fun closeElevatedAccess() {
         elevatedAccessDialog.close()
     }
@@ -1236,47 +958,28 @@ internal class DialogController(
             onBiometric = content?.biometric?.onClick,
             onYubiKey = content?.yubiKey?.onClick,
             onConfirm = state.onConfirm,
-            onDeny = state.onDeny,
         )
     }
 
-    /**
-     * Registers the SwiftUI sink for the service-info dialog. The callback receives
-     * `null` while hidden and a [ServiceDirectoryDetailSnapshot] once an inactive
-     * TOTP / passkey row is clicked. Dismiss via [closeServiceInfo].
-     */
     fun observeServiceInfo(
         onChange: (ServiceDirectoryDetailSnapshot?) -> Unit,
     ): KeyguardCancellable = serviceInfoDialog.register(onChange)
 
-    /** Presents a single static service-info snapshot; tears down any previous one. */
     private fun presentServiceInfo(project: (DirectoryLinkTitles) -> ServiceDirectoryDetailSnapshot) {
         serviceInfoDialog.present { publish ->
             publish(project(directoryLinkTitles(ctx.koin.get())), Unit)
         }
     }
 
-    /** Dismisses the service-info dialog. */
     fun closeServiceInfo() {
         serviceInfoDialog.close()
     }
 
-    /**
-     * Registers the SwiftUI sink for the email / username breach dialog. The callback
-     * receives `null` while hidden and an [EmailLeakSnapshot] once a "Check data
-     * breaches" action fires. Dismiss via [closeEmailLeak].
-     */
     fun observeEmailLeak(
         onChange: (EmailLeakSnapshot?) -> Unit,
     ): KeyguardCancellable = emailLeakDialog.register(onChange)
 
-    /**
-     * Runs the shared [emailLeakStateProducer] headlessly for [args] and projects each
-     * emission into an [EmailLeakSnapshot]. Pushes a loading snapshot first (the
-     * producer suspends through the HIBP request before its first emission). Tears
-     * down any previously presented instance first. [sessionKoin] resolves the
-     * per-session use-cases (the breach checker + date formatter).
-     */
+    /** Pushes a loading snapshot first: the producer suspends through the HIBP request before its first emission. */
     private fun presentEmailLeak(
         args: EmailLeakRoute.Args,
         sessionKoin: Scope,
@@ -1297,26 +1000,14 @@ internal class DialogController(
         }
     }
 
-    /** Dismisses the email / username breach dialog and tears its producer down. */
     fun closeEmailLeak() {
         emailLeakDialog.close()
     }
 
-    /**
-     * Registers the SwiftUI sink for the password breach dialog. The callback receives
-     * `null` while hidden and a [PasswordLeakSnapshot] once a "Check data breaches"
-     * action fires. Dismiss via [closePasswordLeak].
-     */
     fun observePasswordLeak(
         onChange: (PasswordLeakSnapshot?) -> Unit,
     ): KeyguardCancellable = passwordLeakDialog.register(onChange)
 
-    /**
-     * Runs the shared [passwordLeakStateProducer] headlessly for [args] and projects
-     * each emission into a [PasswordLeakSnapshot]. Pushes a loading snapshot first.
-     * Tears down any previously presented instance first. [sessionKoin] resolves the
-     * per-session breach checker.
-     */
     private fun presentPasswordLeak(
         args: PasswordLeakRoute.Args,
         sessionKoin: Scope,
@@ -1336,27 +1027,14 @@ internal class DialogController(
         }
     }
 
-    /** Dismisses the password breach dialog and tears its producer down. */
     fun closePasswordLeak() {
         passwordLeakDialog.close()
     }
 
-    /**
-     * Registers the SwiftUI sink for the website breach dialog. The callback receives
-     * `null` while hidden and a [WebsiteLeakSnapshot] once a "Check data breaches"
-     * action fires. Dismiss via [closeWebsiteLeak].
-     */
     fun observeWebsiteLeak(
         onChange: (WebsiteLeakSnapshot?) -> Unit,
     ): KeyguardCancellable = websiteLeakDialog.register(onChange)
 
-    /**
-     * Runs the shared [websiteLeakStateProducer] headlessly for [args] and projects
-     * each emission into a [WebsiteLeakSnapshot]. Pushes a loading snapshot first
-     * (the producer suspends loading the breach database). Tears down any previously
-     * presented instance first. [sessionKoin] resolves the per-session breach
-     * repository + date formatter.
-     */
     private fun presentWebsiteLeak(
         args: WebsiteLeakRoute.Args,
         sessionKoin: Scope,
@@ -1377,31 +1055,14 @@ internal class DialogController(
         }
     }
 
-    /** Dismisses the website breach dialog and tears its producer down. */
     fun closeWebsiteLeak() {
         websiteLeakDialog.close()
     }
 
-    /**
-     * Registers the SwiftUI sink for the color picker dialog. The callback receives
-     * `null` while hidden and a [ColorPickerSnapshot] once the account "Change color"
-     * action fires. Select a swatch via [selectColorPickerSwatch]; finish via
-     * [confirmColorPicker] / [denyColorPicker] / [closeColorPicker].
-     */
     fun observeColorPicker(
         onChange: (ColorPickerSnapshot?) -> Unit,
     ): KeyguardCancellable = colorPickerDialog.register(onChange)
 
-    /**
-     * Runs the shared [colorPickerStateProducer] headlessly for [args] and projects each
-     * emission into a [ColorPickerSnapshot] + the handlers backing the swatch select /
-     * confirm / deny closures. Tears down any previously presented instance first.
-     *
-     * The producer pops itself right before transmitting the result; a local interceptor
-     * catches that and closes the sheet (same as [presentConfirmation]). [transmitter] is
-     * the registered result receiver recovered from the navigated route; the producer calls
-     * it on confirm, which persists the chosen color via `PutAccountColorById`.
-     */
     private fun presentColorPicker(
         args: ColorPickerRoute.Args,
         transmitter: RouteResultTransmitter<ColorPickerResult>,
@@ -1435,48 +1096,28 @@ internal class DialogController(
                         ColorPickerHandlers(
                             onSelect = handlers,
                             onConfirm = state.onConfirm,
-                            onDeny = state.onDeny,
                         ),
                     )
                 }
         }
     }
 
-    /** Highlights a color swatch by routing through the producer's select closure. */
     fun selectColorPickerSwatch(id: String) {
         colorPickerDialog.handlers.onSelect[id]?.invoke()
     }
 
-    /** Confirms the color picker (persists the chosen color) and dismisses. */
     fun confirmColorPicker() {
         colorPickerDialog.handlers.onConfirm?.invoke()
     }
 
-    /** Denies the color picker (no change) and dismisses. */
-    fun denyColorPicker() {
-        colorPickerDialog.handlers.onDeny?.invoke()
-    }
-
-    /** Dismisses the color picker dialog and tears its headless producer down. */
     fun closeColorPicker() {
         colorPickerDialog.close()
     }
 
-    /**
-     * Registers the SwiftUI sink for the collection / organization "info" dialog. The
-     * callback receives `null` while hidden and an [InfoDialogSnapshot] once a collection /
-     * organization row's "Info" action fires. Dismiss via [closeInfoDialog].
-     */
     fun observeInfoDialog(
         onChange: (InfoDialogSnapshot?) -> Unit,
     ): KeyguardCancellable = infoDialog.register(onChange)
 
-    /**
-     * Runs the shared [collectionScreenStateProducer] headlessly for [args] and projects
-     * each emission into an [InfoDialogSnapshot] (the collection name + its read-only /
-     * hide-passwords capability flags, mirroring the Compose dialog). Tears down any
-     * previously presented instance first. [sessionKoin] resolves the per-session use cases.
-     */
     private fun presentCollectionInfo(
         args: CollectionRoute.Args,
         sessionKoin: Scope,
@@ -1498,11 +1139,6 @@ internal class DialogController(
         }
     }
 
-    /**
-     * Runs the shared [organizationScreenStateProducer] headlessly for [args] and projects
-     * each emission into an [InfoDialogSnapshot] (the organization name + its self-hosted
-     * flag). Tears down any previously presented instance first.
-     */
     private fun presentOrganizationInfo(
         args: OrganizationRoute.Args,
         sessionKoin: Scope,
@@ -1523,7 +1159,6 @@ internal class DialogController(
         }
     }
 
-    /** Dismisses the collection / organization "info" dialog. */
     fun closeInfoDialog() {
         infoDialog.close()
     }
@@ -1552,12 +1187,6 @@ internal class DialogController(
         },
     )
 
-    /**
-     * Registers the SwiftUI sink for the account picker dialog. The callback receives
-     * `null` while hidden and an [AccountPickerSnapshot] once the add form's ownership
-     * "Save to" row fires. Select a row via [selectAccountPickerItem]; finish via
-     * [confirmAccountPicker] / [denyAccountPicker] / [closeAccountPicker].
-     */
     fun observeCipherLinkPicker(
         onChange: (CipherLinkPickerSnapshot?) -> Unit,
     ): KeyguardCancellable = cipherLinkPickerDialog.register(onChange)
@@ -1591,7 +1220,7 @@ internal class DialogController(
                                 )
                             },
                         ),
-                        CipherLinkPickerHandlers(state.query.onChange, handlers, state.onDeny),
+                        CipherLinkPickerHandlers(state.query.onChange, handlers),
                     )
                 }
         }
@@ -1606,7 +1235,6 @@ internal class DialogController(
     }
 
     fun closeCipherLinkPicker() {
-        cipherLinkPickerDialog.handlers.onDeny?.invoke()
         cipherLinkPickerDialog.close()
     }
 
@@ -1614,18 +1242,6 @@ internal class DialogController(
         onChange: (AccountPickerSnapshot?) -> Unit,
     ): KeyguardCancellable = accountPickerDialog.register(onChange)
 
-    /**
-     * Runs the shared [organizationConfirmationStateProducer] headlessly for [args]
-     * and projects each emission into an [AccountPickerSnapshot] + the handlers backing
-     * the row select / confirm / deny closures. Tears down any previously presented
-     * instance first.
-     *
-     * The producer pops itself right before transmitting the result; a local interceptor
-     * catches that and closes the sheet (same as [presentConfirmation]). [transmitter] is
-     * the registered result receiver recovered from the navigated route; the producer calls
-     * it on confirm, which updates the add form's ownership sink. [sessionKoin] resolves the
-     * per-session use cases the producer needs.
-     */
     private fun presentAccountPicker(
         args: OrganizationConfirmationRoute.Args,
         transmitter: RouteResultTransmitter<OrganizationConfirmationResult>,
@@ -1662,19 +1278,13 @@ internal class DialogController(
                             onSelect = handlers,
                             onNewFolderName = content.folderNew?.onChange,
                             onConfirm = state.onConfirm,
-                            onDeny = state.onDeny,
                         ),
                     )
                 }
         }
     }
 
-    /**
-     * Projects the picker's account / organization / collection / folder sections into
-     * flat snapshots, registering each item's select closure under its key. The Send
-     * form only ever surfaces the account section (the others are hidden via the route
-     * flags, so they arrive null here); the cipher form may surface them all.
-     */
+    /** Sections hidden by the route flags (all but accounts for the Send form) arrive `null` and are skipped. */
     private fun buildAccountPickerSections(
         content: OrganizationConfirmationState.Content,
         handlers: LinkedHashMap<String, () -> Unit>,
@@ -1741,7 +1351,6 @@ internal class DialogController(
                             onSelect = handlers,
                             onNewFolderName = content.new?.onChange,
                             onConfirm = state.onConfirm,
-                            onDeny = state.onDeny,
                         ),
                     )
                 }
@@ -1752,44 +1361,32 @@ internal class DialogController(
         accountPickerDialog.handlers.onNewFolderName?.invoke(text)
     }
 
-    /** Selects an account picker row by its key (re-runs the producer with the new selection). */
     fun selectAccountPickerItem(key: String) {
         accountPickerDialog.handlers.onSelect[key]?.invoke()
     }
 
-    /** Confirms the account picker (transmits the chosen ownership) and dismisses. */
     fun confirmAccountPicker() {
         accountPickerDialog.handlers.onConfirm?.invoke()
     }
 
-    /** Denies the account picker (no change) and dismisses. */
-    fun denyAccountPicker() {
-        accountPickerDialog.handlers.onDeny?.invoke()
-    }
-
-    /** Dismisses the account picker dialog and tears its headless producer down. */
     fun closeAccountPicker() {
         accountPickerDialog.close()
     }
 
-    /** Registers the SwiftUI sink that presents a native file panel for confirmation FILE items. */
     fun setConfirmationFilePickerRequestHandler(handler: ((AddFilePickerRequest) -> Unit)?) {
         onConfirmationFilePickerRequest = handler
     }
 
-    /** Feeds a chosen file back into the confirmation producer continuation for [requestId]. */
     fun resolveConfirmationFilePicker(requestId: String, uri: String, name: String?, size: Long) {
         val handler = confirmationFilePickerHandlers.remove(requestId) ?: return
         handler(filePickerResultOf(uri, name, size))
     }
 
-    /** Cancels an in-flight confirmation file-picker request for [requestId]. */
     fun cancelConfirmationFilePicker(requestId: String) {
         val handler = confirmationFilePickerHandlers.remove(requestId) ?: return
         handler(null)
     }
 
-    /** Translates a producer [FilePickerIntent] into an [AddFilePickerRequest] for Swift. */
     private fun handleConfirmationFilePickerIntent(intent: FilePickerIntent<*>) {
         val requestId = "cfp:${confirmationFilePickerRequestCounter++}"
         confirmationFilePickerHandlers[requestId] = intent.onFilePickerResult
@@ -1905,15 +1502,10 @@ internal class DialogController(
             fileOnClear = fileOnClear,
             docOnLearnMore = docOnLearnMore,
             onConfirm = state.onConfirm,
-            onDeny = state.onDeny,
         )
     }
 
-    // ---------------------------------------------------------------------------
-    // HIBP breach dialog snapshot builders. The user-facing text is resolved here
-    // (Kotlin side) because plural resolution + number formatting live in Kotlin;
-    // SwiftUI only renders the pre-resolved strings + the favicon / chips / dates.
-    // ---------------------------------------------------------------------------
+    // HIBP breach dialogs: the text is resolved here because plural resolution and number formatting live in Kotlin.
 
     private suspend fun buildEmailLeakLoadingSnapshot(
         leContext: LeContext,

@@ -11,23 +11,22 @@ final class VaultRowStore {
         var decoration: VaultRowDecoration?
     }
 
-    /// The list's order / membership, separate from row content so the two
-    /// invalidate independently (see the class KDoc).
+    /// The list's order / membership, kept apart from row content so a
+    /// content-only update does not invalidate the whole list.
     @MainActor
     @Observable
     final class Structure {
-        /// The complete render order. The list `ForEach`es over this.
+        /// The complete render order.
         var entries: [VaultRowEntry] = []
         /// The revision of the frame currently rendered; `reportScroll` must
         /// echo it so the source can ignore reports against stale frames.
         var revision: Int64 = 0
-        /// The number of cipher rows of the main list (sections excluded).
         var itemCount = 0
-        /// The row to keep anchored on structure changes; `nil` = none.
         var scrollAnchor: (id: String, offset: Int)?
     }
 
-    /// Row content keyed by row id. Not observable by design — see the class KDoc.
+    /// Row content keyed by row id. Not observable by design: each row observes
+    /// only its own `RowBox`, so a content update re-renders that row alone.
     private(set) var boxes: [String: RowBox] = [:]
     let structure = Structure()
 
@@ -40,8 +39,6 @@ final class VaultRowStore {
 
     private var pendingBackfill: [VaultRow] = []
     private var backfillTask: Task<Void, Never>?
-
-    // MARK: - Reads
 
     func box(for id: String) -> RowBox {
         if let box = boxes[id] { return box }
@@ -92,7 +89,6 @@ final class VaultRowStore {
             vaultLog("full delta rev \(delta.revision) unexpectedly carries ops — ignoring them")
         }
 
-        // 1. Removals: drop the content cache entries.
         for id in delta.removedIds {
             boxes.removeValue(forKey: id)
         }
@@ -139,9 +135,9 @@ final class VaultRowStore {
             }
         }
 
-        // 4. Decorations: reset replaces the whole map (clear everything the
-        //    upserts don't re-carry), then upserts, then removals. All writes
-        //    equality-guarded — decorations have no rev fingerprint.
+        // Decorations: reset replaces the whole map (clear everything the
+        // upserts don't re-carry), then upserts, then removals. All writes
+        // equality-guarded — decorations have no rev fingerprint.
         if delta.decorationsReset {
             let upsertIds = Set(delta.decorationUpserts.map(\.id))
             for (id, box) in boxes where box.decoration != nil && !upsertIds.contains(id) {
@@ -167,8 +163,7 @@ final class VaultRowStore {
     }
 
     /// Drops ALL cached state and bumps the generation, cutting off any deltas
-    /// still in flight from before the cut. Called by the session model's
-    /// `stop()` (and by `apply` for an in-band `isReset` frame).
+    /// still in flight from before the cut.
     func reset() {
         backfillTask?.cancel()
         backfillTask = nil

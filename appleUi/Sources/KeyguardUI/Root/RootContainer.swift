@@ -104,11 +104,11 @@ public struct RootContainer<Main: View>: View {
             !$0.presentsInAddForm && !$0.presentsInBackupSetup && !$0.presentsInKeePassLogin
         }
         #endif
-        // Mirror the effective appearance into the shared bridge so headless
-        // producers (attachment-preview syntax highlighting) follow it.
         .onChange(of: preferredAppDialogRoute, initial: true) { _, route in
             presentedAppDialogRoute = route
         }
+        // Mirror the effective appearance into the shared bridge so headless
+        // producers (attachment-preview syntax highlighting) follow it.
         .onChange(of: colorScheme, initial: true) { _, scheme in
             preferencesModel.setInterfaceDarkMode(scheme == .dark)
         }

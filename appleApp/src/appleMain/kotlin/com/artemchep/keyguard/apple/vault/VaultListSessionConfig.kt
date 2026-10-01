@@ -6,18 +6,14 @@ import com.artemchep.keyguard.feature.home.vault.search.sort.Sort
 import com.artemchep.keyguard.feature.localization.TextHolder
 
 /**
- * The exported, flat configuration of one [VaultListSession]. Mirrors the
- * bridge-relevant subset of the shared `VaultRoute.Args` with the usual
- * ObjC conventions: `""` for absent strings and an `Int` tri-state
- * (`-1` any / `0` off / `1` on) for the nullable booleans.
- *
- * The session is used by the main and stacked vault lists.
+ * The bridge-relevant subset of the shared `VaultRoute.Args`; stacked lists build
+ * their session from route args instead.
  */
 data class VaultListSessionConfig(
     /** The per-screen persistence namespace for sort, filter, and query memory. */
     val persistenceScope: String = VaultListPersistence.SCREEN_APPLE,
     /**
-     * The stacked-list title (e.g. "Archive"); `""` = the main vault list.
+     * The list title; `""` = no app bar (the main list).
      * Exactly like the canonical `VaultRoute.Args.appBar`, a non-empty
      * title also turns OFF quick filters and the always-show-keyboard
      * memory (`canQuickFilter` / `canAlwaysShowKeyboard` derive from it).
@@ -29,28 +25,23 @@ data class VaultListSessionConfig(
     val trash: Int = 0,
     /** Tri-state: `-1` both / `0` only active / `1` only archived. */
     val archive: Int = 0,
-    /**
-     * Forces a fixed sort by its stable `Sort.id` (e.g. the watchtower
-     * drill-downs); `""` = user-controlled sorting.
-     */
+    /** Forces a fixed sort by its stable `Sort.id`; `""` = user-controlled sorting. */
     val sortOverrideId: String = "",
     /** This is the main vault list (deeplinked custom filters target it). */
     val main: Boolean = true,
-    /** The search also matches password values (the autofill pick screens). */
+    /** The search also matches password values. */
     val searchByPassword: Boolean = false,
     val canAddSecrets: Boolean = true,
     /**
-     * Non-empty = a custom cipher-filter tab: the session resolves the
-     * `DCipherFilter` per-unlock from the session sub-DI and builds the
-     * canonical filter-tab args (title, filter, no add), OVERRIDING the
-     * other fields of this config.
+     * Non-empty = a custom cipher-filter tab: the session builds the canonical
+     * filter-tab args (title, filter, no add) per unlock, OVERRIDING the other
+     * fields of this config.
      */
     val cipherFilterId: String = "",
 )
 
 /**
- * Projects the flat config into the canonical `VaultRoute.Args`. An empty
- * [VaultListSessionConfig.appBarTitle] maps to a `null` appBar — NOT an
+ * An empty [VaultListSessionConfig.appBarTitle] maps to a `null` appBar — NOT an
  * empty one — so `canQuickFilter` / `canAlwaysShowKeyboard` derive exactly
  * like the canonical main list's.
  */

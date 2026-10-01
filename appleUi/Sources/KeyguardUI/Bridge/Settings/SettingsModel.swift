@@ -11,8 +11,6 @@ final class SettingsModel: SnapshotObserving {
         self.core = core
     }
 
-    /// The settings categories list, projected from the shared Kotlin settings
-    /// catalog by `KeyguardCore.loadSettingsList`, refreshed with the search index.
     private(set) var settings: SettingsListSnapshot = SettingsListSnapshot.companion.empty
     private(set) var searchIndex: SettingsSearchIndex?
     private(set) var searchLoadFailed = false

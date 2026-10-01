@@ -1,7 +1,6 @@
 import SwiftUI
 import KeyguardShared
 
-/// Recently used / Often opened items presented in a modal sheet.
 struct RecentsView: View {
     @Environment(AccountsModel.self) private var accountsModel
     @Environment(VaultSessionModel.self) private var authModel
@@ -16,9 +15,6 @@ struct RecentsView: View {
     /// Required by the shared renderers; unused here (Recents has no multi-select).
     @State private var selection = VaultSelectionModel()
 
-    /// Recents is a read-only quick picker: primary tap copies the password, the
-    /// row context menu carries the rest, no selection / sort / filters / quick
-    /// filters / sync header.
     private static let listConfig = VaultListConfig(
         rowTap: .copyPrimary,
         supportsMultiSelect: false,
@@ -50,7 +46,6 @@ struct RecentsView: View {
                     vaultActionsModel.copyCipherField(secretId: secretId, accountId: accountId, field: field)
                 },
                 onReveal: { secretId in
-                    // Point the vault list at the item and dismiss.
                     navigationModel.pendingRevealSecretId = secretId
                     dismiss()
                 }
@@ -63,8 +58,6 @@ struct RecentsView: View {
             listModel = nil
         }
     }
-
-    // MARK: - Content
 
     @ViewBuilder
     private var unlockedContent: some View {
@@ -105,8 +98,6 @@ struct RecentsView: View {
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            // Hosted in a popover / sheet, which has no toolbar or navigation bar
-            // to scroll under.
             VaultListRepresentable(
                 model: listModel,
                 selection: selection,
@@ -126,8 +117,6 @@ struct RecentsView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-
-    // MARK: - Tab binding
 
     private func tabBinding(_ listModel: RecentsListModel) -> Binding<String> {
         Binding(

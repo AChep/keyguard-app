@@ -11,9 +11,7 @@ final class SecuritySettingsModel: SnapshotObserving {
         self.core = core
     }
 
-    /// Security settings, produced by the shared Kotlin security settings use cases
-    /// running inside `KeyguardCore`. Only live while the Security settings screen
-    /// is on screen.
+    /// Only live while the Security settings screen is on screen.
     private(set) var securitySettings: SecuritySettingsSnapshot = SecuritySettingsSnapshot.companion.empty
 
     @ObservationIgnored private var securitySettingsSubscription: BridgeObservation?

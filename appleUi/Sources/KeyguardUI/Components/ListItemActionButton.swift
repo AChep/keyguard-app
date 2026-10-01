@@ -6,7 +6,7 @@ struct ListItemActionButton: View {
     let invoke: (String) -> Void
 
     // These list producers supply stable semantic action ids; the last component
-    // picks a fallback icon. The destructive role comes from `danger`.
+    // picks a fallback icon.
     private var kind: Substring? { action.id.split(separator: ".").last }
 
     private var iconName: String? {

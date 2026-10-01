@@ -11,9 +11,7 @@ final class BackupSettingsModel: SnapshotObserving {
         self.core = core
     }
 
-    /// Automatic Backups settings, produced by the shared Kotlin backups state
-    /// producer running headless inside `KeyguardCore`. Only live while the
-    /// Automatic Backups settings screen is on screen.
+    /// Only live while the Automatic Backups settings screen is on screen.
     private(set) var backupSettings: BackupSettingsSnapshot = BackupSettingsSnapshot.companion.empty
 
     @ObservationIgnored private var backupSettingsSubscription: BridgeObservation?

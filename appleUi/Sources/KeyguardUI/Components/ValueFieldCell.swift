@@ -4,14 +4,12 @@ import KeyguardShared
 struct ValueFieldCell: View {
     let item: VaultItemSnapshot
     let invoke: (String) -> Void
-    // Only used by the legacy local-toggle mode (no producer reveal handler).
+    // Only used when the producer registers no reveal handler (`revealActionId == nil`).
     @State private var localRevealed = false
 
     /// `true` when the producer drives reveal (and so the reprompt gate).
     private var producerGated: Bool { item.revealActionId != nil }
 
-    /// Whether the value is currently shown: never for a policy-locked field, the
-    /// producer's flag when gated, the local toggle otherwise.
     private var revealed: Bool {
         if item.revealLocked { return false }
         return producerGated ? item.isVisible : localRevealed
@@ -49,7 +47,7 @@ struct ValueFieldCell: View {
                 AnimatedConcealedText(
                     // Gated + still concealed: the producer sends no plaintext, so
                     // this is empty until a successful (possibly reprompt-gated)
-                    // reveal. Legacy mode always carries the value.
+                    // reveal. Without a reveal handler the value is always present.
                     text: item.text ?? "",
                     masked: item.concealed && !revealed,
                     monospace: item.monospace,

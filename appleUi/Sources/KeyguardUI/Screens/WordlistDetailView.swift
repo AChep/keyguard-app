@@ -84,7 +84,7 @@ struct WordlistDetailView: View {
             }
         } else {
             // The screen is `.searchable`; use the system no-results state so the
-            // query is echoed back, matching QuickSearchView.
+            // query is echoed back.
             ContentUnavailableView.search(text: snapshot.resultQuery)
         }
     }

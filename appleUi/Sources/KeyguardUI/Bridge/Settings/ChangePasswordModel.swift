@@ -11,15 +11,13 @@ final class ChangePasswordModel: SnapshotObserving {
         self.core = core
     }
 
-    /// Change-master-password sheet state, produced by the shared Kotlin
-    /// change-password producer running headless inside `KeyguardCore`. Only live
-    /// while the change-password sheet is presented.
+    /// Only live while the change-password sheet is presented.
     private(set) var changePassword: ChangePasswordSnapshot = ChangePasswordSnapshot.companion.empty
 
     @ObservationIgnored private var changePasswordSubscription: BridgeObservation?
 
-    /// Starts the headless change-password producer. `onClose` fires when the
-    /// producer signals success (it pops its own screen), so the sheet can dismiss.
+    /// `onClose` fires when the producer signals success (it pops its own screen),
+    /// so the sheet can dismiss.
     func startChangePasswordObservation(onClose: @escaping () -> Void) {
         startObservation(\.changePasswordSubscription) { deliver in
             BridgeObservation(

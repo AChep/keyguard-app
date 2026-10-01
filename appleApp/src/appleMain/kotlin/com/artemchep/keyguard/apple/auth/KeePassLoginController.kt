@@ -40,14 +40,6 @@ import kotlinx.coroutines.launch
 private const val LOCATION_LOCAL = "local"
 private const val LOCATION_WEBDAV = "webdav"
 
-/**
- * The add-KeePass-account screen. Runs the shared [keePassLoginStateProducer]
- * headlessly and projects it into [KeePassLoginSnapshot]. The producer's file
- * pickers surface as [KeePassFilePickerRequest]s that Swift must resolve with a
- * persistent (security-scoped bookmark) reference — see [resolveKeePassFilePicker].
- * The WebDAV location sub-form (the producer navigates to [WebDavSettingsRoute])
- * runs as a child producer and surfaces through the `onWebDavChange` sink.
- */
 internal class KeePassLoginController(
     private val ctx: CoreContext,
 ) {
@@ -61,14 +53,13 @@ internal class KeePassLoginController(
     private var latestTabs: KeePassLoginState.Tabs? = null
     private var fieldHandlers: Map<String, (String) -> Unit> = emptyMap()
 
-    // File-picker plumbing. Deliberately separate from the add-form picker maps:
-    // the KeePass resolution contract differs (original url + bookmark token,
-    // never a temp copy), so the two must not share a Swift presentation path.
+    // Deliberately separate from the add-form picker maps: the KeePass
+    // resolution contract differs (original url + bookmark token, never a
+    // temp copy), so the two must not share a Swift presentation path.
     private var onFilePickerRequest: ((KeePassFilePickerRequest) -> Unit)? = null
     private val filePickerHandlers = mutableMapOf<String, (FilePickerResult?) -> Unit>()
     private var filePickerRequestCounter = 0
 
-    // WebDAV child producer plumbing.
     private var latestWebDavState: WebDavSettingsState? = null
     private var webDavJob: Job? = null
 
@@ -94,9 +85,8 @@ internal class KeePassLoginController(
                 onChange(KeePassLoginSnapshot.empty)
             },
         ) { state ->
-            // AddKeePassAccount lives in the unlocked session sub-DI; the global
-            // bindings (webdav connection check) are reachable through it too,
-            // since it parents the global DI.
+            // AddKeePassAccount is session-scoped; the session scope also
+            // resolves global bindings such as the WebDAV connection check.
             val addKeepassAccount = state.sessionKoin.get<AddKeePassAccount>()
             val checkWebDavConnection = state.sessionKoin.get<CheckWebDavConnection>()
             // The WebDAV child producer must die with the session (a lock mid-
@@ -258,7 +248,6 @@ internal class KeePassLoginController(
         size = size ?: -1L,
     )
 
-    /** Selects a mode tab ("open" / "new"); the producer then launches a file picker. */
     fun selectKeePassTab(key: String) {
         latestTabs?.items
             ?.firstOrNull { it.key == key }
@@ -266,7 +255,6 @@ internal class KeePassLoginController(
             ?.invoke()
     }
 
-    /** Selects a database location ("local" / "webdav") by its snapshot key. */
     fun selectKeePassLocation(key: String) {
         latestLocation?.items
             ?.firstOrNull { it.type.toLocationKey() == key }
@@ -274,59 +262,40 @@ internal class KeePassLoginController(
             ?.invoke()
     }
 
-    /** Re-picks the database file (or re-opens the WebDAV form for a WebDAV location). */
     fun pickKeePassDbFile() {
         latestDbFile?.onClick?.invoke()
     }
 
-    /** Clears the chosen database file. No-op unless one is chosen. */
     fun clearKeePassDbFile() {
         latestDbFile?.onClear?.invoke()
     }
 
-    /** Picks the optional key file. */
     fun pickKeePassKeyFile() {
         latestKeyFile?.onClick?.invoke()
     }
 
-    /** Clears the chosen key file. No-op unless one is chosen. */
     fun clearKeePassKeyFile() {
         latestKeyFile?.onClear?.invoke()
     }
 
-    /** Writes [text] into the master-password field. */
     fun setKeePassPassword(text: String) {
         fieldHandlers["keepass.password"]?.invoke(text)
     }
 
-    /** Submits the form. No-op unless the latest state allows it. */
     fun submitKeePassLogin() {
         latestAction?.onClick?.invoke()
     }
 
-    // ------------------------------------------------------------------
-    // File picker
-    // ------------------------------------------------------------------
-
-    /** Registers the SwiftUI sink that presents the native kdbx / key-file picker. */
     fun setKeePassFilePickerRequestHandler(handler: ((KeePassFilePickerRequest) -> Unit)?) {
         onFilePickerRequest = handler
     }
 
-    /** Translates a producer [FilePickerIntent] into a [KeePassFilePickerRequest] for Swift. */
     private fun handleFilePickerIntent(intent: FilePickerIntent<*>) {
         val requestId = "kfp:${filePickerRequestCounter++}"
         filePickerHandlers[requestId] = intent.onFilePickerResult
         onFilePickerRequest?.invoke(intent.toFilePickerRequest(requestId, ::KeePassFilePickerRequest))
     }
 
-    /**
-     * Feeds the chosen file back into the producer continuation for [requestId].
-     * [uri] must be the ORIGINAL picked url (not a copy) and [accessToken] the
-     * Base64 of its security-scoped bookmark data, created while access to the
-     * security-scoped resource was active; it becomes the account's persistent
-     * key to the file across relaunches (resolved by FileServiceApple).
-     */
     fun resolveKeePassFilePicker(
         requestId: String,
         uri: String,
@@ -338,15 +307,10 @@ internal class KeePassLoginController(
         handler(filePickerResultOf(uri, name, size, accessToken))
     }
 
-    /** Cancels an in-flight file-picker request for [requestId]. */
     fun cancelKeePassFilePicker(requestId: String) {
         val handler = filePickerHandlers.remove(requestId) ?: return
         handler(null)
     }
-
-    // ------------------------------------------------------------------
-    // WebDAV settings child producer
-    // ------------------------------------------------------------------
 
     private fun startWebDavSettings(
         sessionScope: CoroutineScope,
@@ -400,7 +364,6 @@ internal class KeePassLoginController(
         }
     }
 
-    /** Writes [text] into a WebDAV settings field: "url" / "username" / "password". */
     fun setWebDavField(id: String, text: String) {
         val state = latestWebDavState ?: return
         when (id) {
@@ -412,20 +375,14 @@ internal class KeePassLoginController(
         }
     }
 
-    /** Validates and saves the WebDAV settings; on success the sheet dismisses. */
     fun submitWebDavSettings() {
         latestWebDavState?.onSave?.invoke()
     }
 
-    /** Validates the settings and pings the server; result arrives as a toast. */
     fun testWebDavConnection() {
         latestWebDavState?.onTestConnection?.invoke()
     }
 
-    /**
-     * Tears the WebDAV child producer down without transmitting a result (the
-     * user closed the sheet). The KeePass form keeps its previous location state.
-     */
     fun cancelWebDavSettings() {
         latestWebDavState = null
         webDavJob?.cancel()

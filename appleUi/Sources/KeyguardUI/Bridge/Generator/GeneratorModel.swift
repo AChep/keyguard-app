@@ -11,9 +11,7 @@ final class GeneratorModel: SnapshotObserving {
         self.core = core
     }
 
-    /// Generator screen state, produced by the shared Kotlin
-    /// `generatorStateProducer` running headless inside `KeyguardCore`. Only live
-    /// while the generator screen is on screen.
+    /// Only live while the generator screen is on screen.
     private(set) var generator: GeneratorSnapshot = GeneratorSnapshot.companion.empty
 
     #if os(macOS)
@@ -22,8 +20,7 @@ final class GeneratorModel: SnapshotObserving {
 
     @ObservationIgnored private var generatorSubscription: BridgeObservation?
 
-    /// Starts running the shared generator producer. Call when the generator
-    /// screen appears; balance with `stopGeneratorObservation()` on disappear.
+    /// Call when the generator screen appears; balance with `stopGeneratorObservation()`.
     func startGeneratorObservation() {
         startObservation(\.generatorSubscription) { deliver in
             BridgeObservation(
@@ -45,28 +42,22 @@ final class GeneratorModel: SnapshotObserving {
         #endif
     }
 
-    /// Invokes a generator `() -> Unit` closure (type select / copy / refresh /
-    /// suggestion / enum option / menu) by its opaque snapshot id.
     func invokeGeneratorAction(id: String) {
         core.invokeGeneratorAction(id: id)
     }
 
-    /// Sets a boolean generator filter switch identified by its filter key.
     func setGeneratorSwitch(key: String, value: Bool) {
         core.setGeneratorSwitch(key: key, value: value)
     }
 
-    /// Writes text into a generator text filter identified by its filter key.
     func setGeneratorText(key: String, text: String) {
         core.setGeneratorText(key: key, text: text)
     }
 
-    /// Sets an integer generator counter identified by its routing key.
     func setGeneratorCounter(key: String, value: Int32) {
         core.setGeneratorCounter(key: key, value: value)
     }
 
-    /// Sets the generated value length.
     func setGeneratorLength(_ value: Int32) {
         core.setGeneratorLength(value: value)
     }

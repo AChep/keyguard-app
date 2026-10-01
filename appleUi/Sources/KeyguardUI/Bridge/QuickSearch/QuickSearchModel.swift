@@ -13,21 +13,17 @@ final class QuickSearchModel: SnapshotObserving {
         self.vaultActions = vaultActions
     }
 
-    /// Quick-search overlay state, produced by the shared Kotlin quick-search
-    /// producer running headless inside `KeyguardCore`. Only live while the
-    /// global-hotkey panel is on screen.
+    /// Only live while the global-hotkey panel is on screen.
     private(set) var quickSearch: QuickSearchSnapshot = QuickSearchSnapshot.companion.empty
 
     /// Bumped on every quick-search `show()` to re-request keyboard focus for the
-    /// search field (the cached panel's `.onAppear` only fires once). See
-    /// `requestQuickSearchFocus()`.
+    /// search field (the cached panel's `.onAppear` only fires once).
     private(set) var quickSearchFocusToken: Int = 0
 
     private(set) var quickSearchVisible = false
 
     func setQuickSearchVisible(_ visible: Bool) { quickSearchVisible = visible }
 
-    /// Diffable results owned by this Quick Search model.
     @ObservationIgnored private var _quickSearchListModel: QuickSearchListModel?
 
     var quickSearchListModel: QuickSearchListModel? { _quickSearchListModel }
@@ -36,8 +32,7 @@ final class QuickSearchModel: SnapshotObserving {
 
     var isObservingQuickSearch: Bool { quickSearchSubscription != nil }
 
-    /// Starts the shared quick-search producer. Call when the panel appears;
-    /// balance with `stopQuickSearchObservation()` on dismiss.
+    /// Call when the panel appears; balance with `stopQuickSearchObservation()`.
     func startQuickSearchObservation() {
         guard quickSearchSubscription == nil else { return }
         startObservation(\.quickSearchSubscription, into: \.quickSearch, observe: core.observeQuickSearch)

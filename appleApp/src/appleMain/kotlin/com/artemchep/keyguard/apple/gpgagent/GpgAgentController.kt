@@ -407,19 +407,16 @@ internal class GpgAgentController(
         )
     }
 
-    /** Toggles a filter on / off (or expands / collapses a section header) by id. */
     fun invokeGpgAgentFilter(id: String) {
         gpgAgentFilterHandlers[id]?.invoke()
     }
 
-    /** Persists the pending filter; the producer pops itself on success. */
     fun saveGpgAgentFilters() {
         val onSave = latestGpgAgentFiltersState?.onSave ?: return
         requests.denyAll()
         onSave()
     }
 
-    /** Clears the pending filter selection. No-op unless any filter is set. */
     fun resetGpgAgentFilters() {
         latestGpgAgentFiltersState?.onReset?.invoke()
     }
@@ -441,7 +438,6 @@ internal class GpgAgentController(
             }.map { it.getOrNull().toHistorySnapshot() }.collectOnMain(onChange)
         }
 
-    /** The native surface presents confirmation before calling this mutation. */
     fun clearGpgAgentHistory() {
         ctx.backgroundScope.launch {
             val state = ctx.currentState() as? VaultState.Main ?: return@launch

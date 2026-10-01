@@ -5,7 +5,6 @@ import KeyguardUI
 struct ContentView: View {
     @Environment(AppViewModel.self) private var model
 
-    /// Whether the unlocked app (with its per-screen titlebar titles) is showing.
     private var isUnlocked: Bool {
         if case .unlocked = model.status { return true }
         return false

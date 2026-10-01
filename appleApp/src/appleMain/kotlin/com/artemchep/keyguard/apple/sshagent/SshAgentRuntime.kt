@@ -8,7 +8,6 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import kotlinx.coroutines.CoroutineScope
 
-/** Info shown in the per-sign approval window. */
 data class SshAgentApprovalInfo(
     val keyName: String,
     val keyFingerprint: String,
@@ -16,11 +15,6 @@ data class SshAgentApprovalInfo(
     val callerPath: String,
 )
 
-/**
- * Everything the platform SSH-agent runtime needs to spawn and serve the agent.
- * Assembled by [SshAgentController]; the platform implementation
- * ([createSshAgentRuntime]) wires it into the macOS process / IPC machinery.
- */
 class SshAgentRuntimeConfig(
     val authToken: ByteArray,
     val sessionId: String,
@@ -35,19 +29,12 @@ class SshAgentRuntimeConfig(
     val log: (String) -> Unit,
 )
 
-/** A running SSH agent, returned by [SshAgentRuntime.start]. */
 interface SshAgentRuntimeHandle {
     val isRunning: Boolean
     val sshAuthSockPath: String?
     fun stop()
 }
 
-/**
- * Platform seam for the SSH agent. The macOS actual spawns the bundled
- * `keyguard-ssh-agent` binary over a POSIX IPC socket; the iOS actual is inert
- * (process spawning is unavailable on iOS), so [SshAgentController] simply
- * reports the agent as unsupported there.
- */
 interface SshAgentRuntime {
     /** Configured socket path, available before the agent is enabled. */
     val sshAuthSockPath: String? get() = null

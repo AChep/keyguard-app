@@ -5,18 +5,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 
 /**
- * The state-anchored delta publisher for the vault list: turns a flow of
- * pipeline states (with `null` marking a locked / torn-down source) into the
- * background-delivered [VaultListDelta] stream that
- * [VaultListSession.observeListDelta] hands to Swift.
- *
- * Extracted out of [VaultListSession] so ANY producer emitting
- * [AppleVaultListState] can reuse the exact publishing contract:
+ * Every surface emitting [AppleVaultListState] reuses this exact publishing contract:
  * - full frames diffed against the last DELIVERED state ([diffFullFrame]); a
  *   no-change diff publishes nothing;
- * - a single monotonic-revision reset frame on lock ([resetDelta]), emitted
- *   only if the client ever received content (a reset before the first frame
- *   would be pure noise);
+ * - a single monotonic-revision reset frame on lock ([resetDelta]);
  * - per-observer [run] state (last delivered frame + revision), so ONE
  *   publisher instance safely serves multiple concurrent observers.
  *
@@ -25,22 +17,11 @@ import kotlinx.coroutines.flow.collect
  * design, the contract the Swift FIFO delta pump depends on) and applies the
  * ~48ms burst coalescing (`throttleLatest`) to the non-null runs of [states]
  * BEFORE they reach [run]. The `null` lock marker is delivered un-throttled so a
- * reset is never coalesced away. Because coalescing re-reads the LATEST state
- * and [diffFullFrame] diffs against the last DELIVERED frame, a dropped
- * intermediate state can never drop a change.
+ * reset is never coalesced away.
  */
 internal class VaultListFramePublisher {
 
-    /**
-     * Consumes [states] until cancelled, invoking [onChange] with each frame in
-     * strict delivery order.
-     *
-     * A `null` element means the source locked / tore down: the client is reset
-     * ONCE (and only if it had received content), with a revision bumped past
-     * the last delivered one so the monotonic-revision contract holds. A
-     * non-null element is diffed against the last delivered frame; an
-     * unchanged diff publishes nothing.
-     */
+    /** A `null` element means the source locked / tore down. */
     suspend fun run(
         states: Flow<AppleVaultListState?>,
         onChange: (VaultListDelta) -> Unit,
@@ -52,8 +33,8 @@ internal class VaultListFramePublisher {
         var lastRevision = 0L
         states.collect { state ->
             if (state == null) {
-                // Locked (or not yet unlocked). Reset the client once — but only
-                // if it ever received content.
+                // Locked (or not yet unlocked). A reset before the first frame
+                // would be pure noise.
                 if (lastDelivered != null) {
                     lastDelivered = null
                     lastRevision += 1
@@ -70,14 +51,9 @@ internal class VaultListFramePublisher {
     }
 
     /**
-     * Diffs [state] against the last DELIVERED state into a full-frame
-     * [VaultListDelta], or `null` when nothing changed (skip the publish).
-     *
-     * Upserts follow the `AppleVaultRowContent.rev` contract: a row is carried when it
-     * is new to the client or its content fingerprint changed (`rev` changes
-     * iff a rendered field changed — sections fold their title into it, marker
-     * rows are constant). Decorations have no fingerprint and are compared
-     * structurally.
+     * `null` when nothing changed. A row is carried when it is new to the client or its `rev` changed
+     * (sections fold their title into it, marker rows are constant); decorations have no fingerprint,
+     * so they are compared structurally.
      */
     private fun diffFullFrame(
         state: AppleVaultListState,

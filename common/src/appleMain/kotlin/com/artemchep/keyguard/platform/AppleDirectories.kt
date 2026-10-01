@@ -15,17 +15,12 @@ import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUUID
 import platform.Foundation.NSUserDomainMask
 
-/**
- * App Group container shared by the main app and the AutoFill
- * credential-provider extension. Resolving the vault data dir from here
- * is the single high-leverage change that lets both see the same storage
- * (see IMPL.md G4).
- */
+/** App Group container shared by the main app and the AutoFill credential-provider extension. */
 private const val DEFAULT_APP_GROUP_IDENTIFIER = "group.com.artemchep.keyguard"
 
 /**
- * Reads the per-bundle `KeyguardAppGroupIdentifier` Info.plist key, set from
- * `KEYGUARD_APP_GROUP_ID` (see "Signing and identifiers" in `appleUi/README.md`).
+ * Reads the per-bundle `KeyguardAppGroupIdentifier` Info.plist key, set from `KEYGUARD_APP_GROUP_ID`
+ * in `xcode/Signing.xcconfig` (overridable in `xcode/Signing.local.xcconfig`).
  */
 private fun appGroupIdentifier(): String {
     val value = NSBundle.mainBundle
@@ -45,9 +40,7 @@ private fun appGroupIdentifier(): String {
 fun appleKeyguardDataDirectory(): LocalPath =
     appleKeyguardAtomicDataDirectory().path
 
-/**
- * Existing Apple-managed container plus Keyguard's strict descendant.
- */
+/** Existing Apple-managed container plus Keyguard's strict descendant. */
 fun appleKeyguardAtomicDataDirectory(): AtomicDirectoryDestination {
     val root = writableAppGroupContainerPath ?: run {
         val base = NSSearchPathForDirectoriesInDomains(
@@ -65,9 +58,7 @@ fun appleKeyguardAtomicDataDirectory(): AtomicDirectoryDestination {
     )
 }
 
-/**
- * The App Group container path, or null when the entitlement isn't present.
- */
+/** The App Group container path, or null when the entitlement isn't present or the container isn't writable. */
 fun appleAppGroupContainerPath(): String? = writableAppGroupContainerPath
 
 private val writableAppGroupContainerPath: String? by lazy {

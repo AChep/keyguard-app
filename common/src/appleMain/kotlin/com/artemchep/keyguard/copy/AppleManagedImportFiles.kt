@@ -58,7 +58,6 @@ object AppleManagedImportFiles {
             }
     }
 
-    /** Deletes every managed copy. */
     @OptIn(ExperimentalForeignApi::class)
     fun clear() {
         NSFileManager.defaultManager.removeItemAtPath(

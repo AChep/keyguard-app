@@ -20,10 +20,7 @@ private const val PRIVATE_DIRECTORY_PERMISSIONS = 448
 // 0600
 internal const val PRIVATE_FILE_PERMISSIONS = 384
 
-/**
- * Writes the export into a private temporary file, hands the file to [block],
- * then deletes it.
- */
+/** Writes the export into a private temporary file, hands the file to [block], then deletes it. */
 @OptIn(ExperimentalForeignApi::class)
 internal suspend fun <T> withPrivateExportFile(
     fileName: String,

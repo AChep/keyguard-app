@@ -1,8 +1,8 @@
 import SwiftUI
 
 extension View {
-    /// Wraps the view in a Liquid Glass capsule on macOS 26+, falling back to a
-    /// frosted material capsule (matching `QuickSearchView`) on macOS 14–25.
+    /// Wraps the view in a Liquid Glass capsule on macOS / iOS 26+, falling back
+    /// to a frosted material capsule on earlier versions.
     @ViewBuilder
     func glassCapsule() -> some View {
         if #available(macOS 26.0, iOS 26.0, *) {

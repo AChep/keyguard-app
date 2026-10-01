@@ -6,11 +6,9 @@ import KeyguardShared
 @Observable
 final class VaultSessionModel: SnapshotObserving {
     private let core: KeyguardCore
-    private let notifications: NotificationsModel
 
-    init(core: KeyguardCore, notifications: NotificationsModel) {
+    init(core: KeyguardCore) {
         self.core = core
-        self.notifications = notifications
     }
 
     func start() {
@@ -45,9 +43,6 @@ final class VaultSessionModel: SnapshotObserving {
 
     private(set) var status: VaultStatus = .loading
 
-    private(set) var isBusy = false
-
-    /// Current unlock-form state.
     private(set) var unlockPasswordError: String?
 
     private(set) var unlockCanSubmit = false
@@ -58,7 +53,6 @@ final class VaultSessionModel: SnapshotObserving {
 
     private(set) var unlockHasBiometric = false
 
-    /// Device has a YubiKey unlock factor enrolled (offers the YubiKey button).
     private(set) var unlockHasYubiKey = false
     private(set) var unlockHasFido2 = false
     private(set) var fido2Phase: Fido2PromptPhase = .hidden
@@ -68,7 +62,6 @@ final class VaultSessionModel: SnapshotObserving {
     func cancelFido2Prompt() { core.cancelFido2Prompt() }
     func triggerUnlockFido2() { core.triggerUnlockFido2() }
 
-    /// Why the vault locked (e.g. "Locked manually"), shown above the form.
     private(set) var unlockLockReason: String?
 
     /// Destructive recovery actions for a forgotten password.
@@ -77,7 +70,6 @@ final class VaultSessionModel: SnapshotObserving {
     /// Unlock action awaiting confirmation from the macOS Vault menu.
     var pendingUnlockAction: UnlockActionSnapshot?
 
-    /// Current create-vault form state.
     private(set) var setupPasswordError: String?
 
     private(set) var setupCanCreate = false
@@ -100,23 +92,20 @@ final class VaultSessionModel: SnapshotObserving {
 
     @ObservationIgnored private var setupSubscription: BridgeObservation?
 
-    /// Forwards typed text into the shared setup producer. Validation (and the
-    /// "can create" gate) runs in Kotlin and flows back through `observeSetup`.
+    /// Validation (and the "can create" gate) runs in Kotlin and flows back through
+    /// `observeSetup`.
     func setSetupPassword(_ text: String) {
         core.setSetupPassword(text: text)
     }
 
-    /// Toggles the "send crash reports" opt-in on the create screen.
     func setSetupCrashlytics(_ enabled: Bool) {
         core.setSetupCrashlytics(enabled: enabled)
     }
 
-    /// Toggles Touch ID enrollment for the vault being created.
     func setSetupBiometric(_ enabled: Bool) {
         core.setSetupBiometric(enabled: enabled)
     }
 
-    /// Submits the create-vault form held by the shared setup producer.
     func submitSetup() {
         core.submitSetup()
     }
@@ -127,17 +116,11 @@ final class VaultSessionModel: SnapshotObserving {
         core.setSetupScreenVisible(visible: visible)
     }
 
-    func unlockVault(password: String) {
-        run { try await self.core.unlockVault(password: password) }
-    }
-
-    /// Forwards typed text into the shared unlock producer. Validation runs in
-    /// Kotlin and flows back through `observeUnlock`.
+    /// Validation runs in Kotlin and flows back through `observeUnlock`.
     func setUnlockPassword(_ text: String) {
         core.setUnlockPassword(text: text)
     }
 
-    /// Submits the password held by the shared unlock producer.
     func submitUnlock() {
         core.submitUnlock()
     }
@@ -155,21 +138,19 @@ final class VaultSessionModel: SnapshotObserving {
         if was != now { core.setUnlockScreenVisible(visible: now) }
     }
 
-    /// Invokes an unlock-screen escape-hatch action (e.g. "Erase data") by id.
-    /// Destructive — the caller (unlock screen / macOS "Vault" menu) confirms first.
+    /// Invokes an unlock-screen escape-hatch action (e.g. "Erase data"). Destructive:
+    /// the caller confirms first.
     func invokeUnlockAction(_ id: String) {
         core.invokeUnlockAction(id: id)
     }
 
-    /// Triggers the YubiKey unlock prompt (shown only when a YubiKey factor is
-    /// enrolled). The shared producer emits a prompt that the registered native
-    /// transmitter resolves.
+    /// The shared producer emits a prompt that the registered native transmitter resolves.
     func triggerUnlockYubiKey() {
         core.triggerUnlockYubiKey()
     }
 
-    /// Locks the vault (menu-bar "Lock now"). The shared producer flips the
-    /// observed status to `.locked`, which every scene reacts to.
+    /// The shared producer flips the observed status to `.locked`, which every scene
+    /// reacts to.
     func lockVault() {
         core.lockVault()
     }
@@ -206,21 +187,8 @@ final class VaultSessionModel: SnapshotObserving {
             self.status = .locked
         } else if status == KeyguardVaultStatus.unlocked {
             self.status = .unlocked
-            // AutoFill observes committed database changes independently.
         } else {
             self.status = .loading
-        }
-    }
-
-    private func run(_ operation: @escaping () async throws -> Void) {
-        isBusy = true
-        Task { @MainActor in
-            do {
-                try await operation()
-            } catch {
-                notifications.showOperationError(error)
-            }
-            isBusy = false
         }
     }
 }

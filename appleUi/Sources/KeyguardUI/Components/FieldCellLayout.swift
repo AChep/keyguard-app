@@ -1,4 +1,4 @@
-/// Detail forms adapt to their width; Quick Search retains its existing density.
+/// Detail forms adapt to their width; Quick Search keeps its compact, caption-over-value rows.
 enum FieldCellLayout {
     case adaptive
     case stacked

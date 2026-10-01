@@ -1,19 +1,8 @@
 package com.artemchep.keyguard.apple.add
 
-import com.artemchep.keyguard.pick
-import com.artemchep.keyguard.feature.add.AddStateItem
-import com.artemchep.keyguard.feature.home.vault.add.AddState
-import com.artemchep.keyguard.feature.send.add.SendAddState
 import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.apple.model.TextFieldSnapshot
-import com.artemchep.keyguard.res.*
-import platform.Foundation.create
 
-/**
- * Discriminator for the flat [AddItemSnapshot]. One value per
- * [com.artemchep.keyguard.feature.add.AddStateItem] variant; [UNKNOWN] is a
- * defensive fallback for any future variant the bridge does not yet project.
- */
 enum class AddItemKind {
     TITLE,
     USERNAME,
@@ -38,28 +27,18 @@ enum class AddItemKind {
     DATE_TIME,
     ADD,
     SUGGESTION,
-    UNKNOWN,
 }
 
-/**
- * A selectable / clickable action surfaced by an add-form item — a context-menu
- * entry, an enum / match-type dropdown choice, a quick suggestion, or an entry
- * of an "add more" menu. [id] routes back to [KeyguardCore.invokeAddAction];
- * [selected] marks the currently chosen entry of a dropdown.
- */
+/** [id] routes back to [KeyguardCore.invokeAddAction]; [selected] marks the chosen entry of a dropdown. */
 data class AddActionSnapshot(
     val id: String,
     val title: String,
     val selected: Boolean,
 )
+
 /**
- * The in-form Autofill / generate affordance carried by a username / password
- * text field. Mirrors the shared `AutofillButton` (the trailing generate button
- * the Compose add form shows on the username / password fields): [username] /
- * [password] pick which kind of value the in-form generator produces, and [uris]
- * is the cipher's current URI context (used by the username / email generators).
- * Swift presents [AutofillGeneratorSheet] from this, then writes the chosen value
- * back through [KeyguardCore.setAddFieldText] (the revision-bumping onSetText path).
+ * Arguments for [KeyguardCore.observeAutofillGenerator]; [uris] is the cipher's URI context for the
+ * username / email generators.
  */
 data class AddAutofillSnapshot(
     val username: Boolean,
@@ -67,26 +46,18 @@ data class AddAutofillSnapshot(
     val uris: List<String>,
 )
 
-/**
- * One editable text field of an add-form item. Most items expose zero or one;
- * a custom text field exposes two (its name + its value). [id] routes edits
- * back to [KeyguardCore.setAddField].
- */
 data class AddTextFieldSnapshot(
     val field: TextFieldSnapshot,
     val label: String?,
     val hidden: Boolean,
     val multiline: Boolean,
     /**
-     * The in-form Autofill / generate affordance, set only for the username and
-     * password fields; null for every other field. Carries the generator flags
-     * (username / password) plus the cipher's current context URIs.
+     * The in-form generate button (the shared `AutofillButton`), set only for the username and password fields.
+     * Write the generated value back through [KeyguardCore.setAddFieldText], not [KeyguardCore.setAddField].
      */
     val autofill: AddAutofillSnapshot? = null,
 ) {
-    // Forwarding accessors so the SwiftUI add form keeps reading the field
-    // flatly (`field.value`, `field.id`, …) while the projection itself is
-    // the shared [TextFieldSnapshot].
+    // Flat accessors for the SwiftUI add form over the shared [TextFieldSnapshot].
     val id get() = field.id
     val value get() = field.text
     val textRevision get() = field.textRevision
@@ -137,10 +108,9 @@ data class AddMergeSnapshot(
 )
 
 /**
- * A flat, Swift-friendly projection of one shared
- * [com.artemchep.keyguard.feature.add.AddStateItem]. The populated fields
- * depend on [kind]:
- *  - editable text lives in [fields] (routed via [KeyguardCore.setAddField]);
+ * The populated fields depend on [kind]:
+ *  - editable text lives in [fields] (routed via [KeyguardCore.setAddField]); a custom text field has two
+ *    (name, value), a month / year date two (month, year), other items at most one;
  *  - a toggle lives in [switchValue] / [switchEnabled] / [switchId] (routed via
  *    [KeyguardCore.setAddSwitch]);
  *  - a current dropdown value is [enumValue], its choices [options];
@@ -164,10 +134,8 @@ data class AddItemSnapshot(
     val gpgKey: AddGpgKeySnapshot?,
     val passkeyName: String?,
     /**
-     * For an [AddItemKind.TOTP] row only: the id of the shared producer's QR-scan
-     * sink, or null when the form can't accept a scan. The iOS camera scanner feeds
-     * a raw scanned string back through [KeyguardCore.scanAddTotp]; the producer
-     * parses the `otpauth://` URI / Base32 secret into the form's fields.
+     * TOTP rows only: pass a raw scanned `otpauth://` URI or Base32 secret to [KeyguardCore.scanAddTotp] with
+     * this id. Null when the form can't accept a scan.
      */
     val totpScanId: String?,
     val options: List<AddActionSnapshot>,
@@ -175,12 +143,8 @@ data class AddItemSnapshot(
 )
 
 /**
- * A flat, Swift-friendly projection of the shared add form's ownership selector
- * (the "Save to" account row). Mirrors the selected
- * [com.artemchep.keyguard.feature.add.AddStateOwnership] account [Element];
- * [title] / [text] are the account name + email, [canPick] gates the row tap.
- * Tapping fires the producer's ownership `onClick` (an `OrganizationConfirmationRoute`,
- * surfaced as the account-picker dialog) via [KeyguardCore.invokeAddOwnership].
+ * The "Save to" account row: [title] / [text] are the account name and email. [canPick] gates the row tap,
+ * which goes to [KeyguardCore.invokeAddOwnership] and opens the account picker.
  */
 data class AddOwnershipSnapshot(
     val title: String,
@@ -188,23 +152,12 @@ data class AddOwnershipSnapshot(
     val canPick: Boolean,
 )
 
-/**
- * A flat, Swift-friendly projection of the shared
- * [com.artemchep.keyguard.feature.home.vault.add.AddState] /
- * [com.artemchep.keyguard.feature.send.add.SendAddState] used by the SwiftUI
- * create-item sheet. Built by [KeyguardCore.buildAddItemSnapshot]; both the
- * cipher and Send forms share this shape (the Send form is a strict subset).
- * Submit via [KeyguardCore.submitAddItem] when [canSave] is true.
- */
+/** Shared by the cipher and Send forms. Submit via [KeyguardCore.submitAddItem] when [canSave] is true. */
 data class AddItemFormSnapshot(
     val loaded: Boolean,
     val title: String,
     val canSave: Boolean,
-    /**
-     * The ownership "Save to" account selector, or null while loading / when the
-     * form has no ownership (the cipher edit form with a read-only account still
-     * shows it disabled). Tapping opens the account picker dialog.
-     */
+    /** Null while loading or when the form has no ownership. */
     val ownership: AddOwnershipSnapshot?,
     val merge: AddMergeSnapshot? = null,
     val items: List<AddItemSnapshot>,
@@ -227,13 +180,7 @@ data class AddItemFormSnapshot(
     }
 }
 
-/**
- * A file-selection request bubbled up from a running add form's
- * [com.artemchep.keyguard.feature.add.AddStateItem] (attachment upload,
- * SSH-key import, File Send). [requestId] routes the user's choice back to the
- * producer through [KeyguardCore.resolveAddFilePicker] /
- * [KeyguardCore.cancelAddFilePicker].
- */
+/** [requestId] routes the choice back via [KeyguardCore.resolveAddFilePicker] / [KeyguardCore.cancelAddFilePicker]. */
 data class AddFilePickerRequest(
     val requestId: String,
     val kind: AddFilePickerKind,
@@ -241,7 +188,6 @@ data class AddFilePickerRequest(
     val suggestedName: String?,
 )
 
-/** Which native panel an [AddFilePickerRequest] maps to. */
 enum class AddFilePickerKind {
     OPEN_DOCUMENT,
     OPEN_DIRECTORY,
@@ -249,16 +195,10 @@ enum class AddFilePickerKind {
 }
 
 /**
- * A request to present a native date / time picker for a running add form's
- * [com.artemchep.keyguard.feature.add.AddStateItem.DateTime] row (the Send custom
- * deletion / expiration date). The shared producer emits a `DateDayPickerRoute` /
- * `TimePickerRoute` (wrapped in a result receiver) when the user taps the date /
- * time button; the bridge stashes its transmitter and surfaces this request, then
- * Swift presents a SwiftUI `DatePicker` sheet and feeds the choice back through
- * [KeyguardCore.resolveAddDatePicker] / [KeyguardCore.cancelAddDatePicker].
- *
- * Dates use [year] / [month] (1-12) / [day]; times use [hour] (0-23) / [minute].
- * The unused component triple is zero for the inactive [kind].
+ * Swift feeds the choice back through [KeyguardCore.resolveAddDatePicker] / [KeyguardCore.cancelAddDatePicker].
+ * Dates use [year] / [month] (1-12) / [day]; times use [hour] (0-23) / [minute]; unused components are
+ * placeholders. The inclusive `min*` / `max*` range is valid only when [hasRange]. [presentsInAddForm] is false
+ * when the day picker comes from another screen.
  */
 data class AddDatePickerRequest(
     val requestId: String,
@@ -268,8 +208,6 @@ data class AddDatePickerRequest(
     val day: Int,
     val hour: Int,
     val minute: Int,
-    // The inclusive selectable-date range (a DATE picker only), or null for no
-    // bound; mirrors the shared `DateDayPickerRoute.Args.selectableDates`.
     val minYear: Int,
     val minMonth: Int,
     val minDay: Int,
@@ -280,7 +218,6 @@ data class AddDatePickerRequest(
     val presentsInAddForm: Boolean = true,
 )
 
-/** Whether an [AddDatePickerRequest] picks a calendar day or a time of day. */
 enum class AddDatePickerKind {
     MONTH_YEAR,
     DATE,
@@ -288,13 +225,8 @@ enum class AddDatePickerKind {
 }
 
 /**
- * A request to present the edit form for an existing cipher / Send, bubbled up
- * when a shared producer navigates to its `AddRoute` / `SendAddRoute` with a
- * non-null `initialValue` (the cipher / Send detail "edit" or vault list "clone"
- * action). The full args (carrying the model) are stashed inside
- * [com.artemchep.keyguard.apple.add.AddItemController]; Swift opens the edit
- * sheet keyed by [requestId] and starts the matching observation
- * ([KeyguardCore.observeEditCipher] / [KeyguardCore.observeEditSend]).
+ * Swift opens the form keyed by [requestId], runs [KeyguardCore.observeEditCipher] or
+ * [KeyguardCore.observeEditSend] per [isSend], and calls [KeyguardCore.clearEditForm] once it is dismissed.
  */
 data class AddEditFormRequest(
     val requestId: String,

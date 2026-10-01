@@ -40,8 +40,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
@@ -449,7 +447,6 @@ internal class GpgToolsController(private val ctx: CoreContext) {
     fun clearGpgToolsSignatureFile() { current?.takeUnless { it.busy }?.onClearSignatureFile?.invoke() }
     fun runGpgTools() { current?.onRun?.invoke() }
     fun invokeGpgToolsResultCopy() { active?.result?.output?.onCopy?.invoke() }
-    fun invokeGpgToolsResultSave() { active?.result?.output?.onSave?.invoke() }
 
     private suspend fun GpgPublicKeyInfo.toPublicKeySnapshot(
         id: String,

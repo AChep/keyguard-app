@@ -3,11 +3,8 @@ import SwiftUI
 import AuthenticationServices
 import KeyguardShared
 
-/// In-extension unlock screen, hosted by `CredentialProviderViewController` when a
-/// credential is selected but the App-Group vault is locked. Shared by the macOS and
-/// iOS extensions. Mirrors the main app's `MasterPasswordView(.unlock)` and is driven
-/// by the **extension's** own `KeyguardCore` via the same shared unlock producer
-/// (`observeUnlock` + `setUnlockPassword` / `submitUnlock` / `triggerUnlockBiometric`).
+/// In-extension unlock screen, shared by the macOS and iOS extensions. Mirrors the main
+/// app's `MasterPasswordView(.unlock)`, driven by the **extension's** own `KeyguardCore`.
 /// Biometrics reuse the keychain-backed cipher (shared keychain group,
 /// provisioning-gated).
 struct AutofillUnlockView: View {
@@ -177,10 +174,6 @@ struct AutofillUnlockView: View {
     }
 }
 
-/// Thin observable wrapper over the extension's `KeyguardCore` unlock subset — the
-/// same bridge calls `AppViewModel` uses, scoped to what the appex needs. On the vault
-/// reaching the unlocked state it invokes `onUnlocked`; the view controller then
-/// resolves the picked credential and completes the request.
 @MainActor
 @Observable
 final class AutofillUnlockModel {
@@ -196,9 +189,8 @@ final class AutofillUnlockModel {
 
     var needsSetup = false
     var passwordError: String?
-    /// Runtime error forwarded from the shared producer (e.g. a wrong master password)
-    /// via the global message bus — the extension has no toast host, so it is shown
-    /// inline beneath the field like `passwordError`.
+    /// Error from the global message bus (e.g. a wrong master password). The extension
+    /// has no toast host, so it is shown inline beneath the field.
     var messageError: String?
     /// The password associated with the producer's current submit callback.
     /// Validation snapshots can trail the native field by a few keystrokes.

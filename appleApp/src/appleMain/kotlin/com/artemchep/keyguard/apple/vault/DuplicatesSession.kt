@@ -36,27 +36,14 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.koin.core.scope.Scope
 
-/** ObjC-exported Duplicates session backed by [duplicatesListStateProducer]. */
 class DuplicatesSession internal constructor(
     private val ctx: CoreContext,
     private val filter: DFilter?,
-    /**
-     * Provides the navigation interceptor (stack + dialog composition, see
-     * `NavigationStackController.interceptor`) for the unlocked session's sub-DI:
-     * the per-group "Merge" action and the multi-selection bulk actions
-     * (rename / trash / send / merge / …) reach a real dialog / sheet through it,
-     * and a cipher open routes a `VaultViewRoute` intent through it. `null` = those
-     * are dropped (loudly).
-     */
+    /** `null` = the "Merge" action, the bulk actions and cipher opens are dropped (loudly). */
     private val navigationInterceptorProvider: ((Scope) -> ((NavigationIntent) -> Boolean))?,
 ) {
-    /** The live producer state + the scope/interceptor its commands need. */
     private class Active(
         val state: DuplicatesListState,
-        /**
-     * The producer's [com.artemchep.keyguard.feature.navigation.state.TranslatorScope]
-     * for building selection descriptors.
-     */
         val scope: RememberStateFlowScopeImpl,
         val interceptor: ((NavigationIntent) -> Boolean)?,
     )
@@ -67,14 +54,8 @@ class DuplicatesSession internal constructor(
     /** Every not-yet-cancelled channel, so [close] tears the whole session down. */
     private val channels = mutableListOf<KeyguardCancellable>()
 
-    /** The state-anchored delta publisher (full-frame diff + lock-reset). */
     private val framePublisher = VaultListFramePublisher()
 
-    /**
-     * The master gate: rebuilds the headless producer on every unlock, clears it
-     * on every lock, and keeps the producer flow collected so the per-item
-     * selection flows stay alive.
-     */
     private val master: KeyguardCancellable = ctx.launchSessionObserver(
         onLocked = {
             activeState.value = null
@@ -105,32 +86,15 @@ class DuplicatesSession internal constructor(
                 confirmationRouteFactory = get(),
             )
         }
-        // Collecting keeps this session block alive (the flow never completes);
-        // each Loadable.Ok republishes the live state to the channels.
+        // Keep collecting so the per-item selection flows stay alive (the flow never
+        // completes); each Loadable.Ok republishes the live state to the channels.
         producerFlow.collect { loadable ->
             val listState = loadable.getOrNull()
             activeState.value = listState?.let { Active(it, producerScope, interceptor) }
         }
     }
 
-    //
-    // The list channel. Callback OFF-MAIN by design (like the vault list).
-    //
-
-    /**
-     * The Duplicates item / section / merge-button rows as [VaultListDelta]s,
-     * delivered on a BACKGROUND thread by design — the SAME contract as
-     * `VaultListSession.observeListDelta` / `RecentsController.observeRecentsListDelta`.
-     *
-     * The producer's flat `List<VaultItem2>` (already reflecting grouping + the
-     * per-group merge buttons + the blank section separators) is projected through
-     * the shared [assembleSiblingAppleVaultState]. Because the producer does NOT re-emit
-     * the outer state on a selection toggle (selection rides each item's own
-     * `localStateFlow`), the projection re-runs whenever ANY per-item selectable
-     * state changes ([combine] over the item rows' local flows), folding the
-     * group-scoped selection into the row flags + fingerprint so a toggle re-diffs
-     * exactly the affected rows.
-     */
+    /** Delivered on a BACKGROUND thread by design, the SAME contract as [VaultListSession.observeListDelta]. */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeListDelta(
         onChange: (VaultListDelta) -> Unit,
@@ -142,9 +106,9 @@ class DuplicatesSession internal constructor(
                     flowOf<AppleVaultListState?>(null)
                 } else {
                     val itemRows = active.state.items.filterIsInstance<VaultItem2.Item>()
-                    // Re-emit whenever any per-item selectable state changes; the
-                    // selecting/selected values are re-read fresh inside the
-                    // projection off each item's `localStateFlow.value`.
+                    // The producer does NOT re-emit on a selection toggle (selection rides
+                    // each item's own `localStateFlow`), so re-run the projection whenever
+                    // any per-item selectable state changes.
                     val selectionTrigger: Flow<Unit> =
                         if (itemRows.isEmpty()) {
                             flowOf(Unit)
@@ -168,17 +132,7 @@ class DuplicatesSession internal constructor(
         },
     )
 
-    //
-    // The selection channel. Callback on Main.
-    //
-
-    /**
-     * The active multi-selection (count + bulk actions) as a small
-     * [VaultSessionSelectionSnapshot] pushed on Main; `count == 0` = inactive. The
-     * producer's `Selection.actions` ([ContextItem]s) are projected into the
-     * pure-data descriptor vocabulary through the SHARED
-     * [buildSiblingAppleActionDescriptors], then symbol-filled by [toSnapshot].
-     */
+    /** Delivers on Main. */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeSelection(
         onChange: (VaultSessionSelectionSnapshot) -> Unit,
@@ -211,16 +165,11 @@ class DuplicatesSession internal constructor(
         },
     )
 
-    //
-    // Commands: thin delegates resolved off the live producer state. Safe from
-    // any thread; silent no-ops while the vault is locked.
-    //
+    // Commands are safe from any thread and silent no-ops while the vault is locked.
 
     /**
-     * Toggles the row's selection membership through the producer's own
-     * group-scoped handle: a tap while selecting (`onClick`) or the long-press /
-     * "Select" begin (`onLongClick`). A cross-group toggle resolves to a `null`
-     * handle Kotlin-side and is a no-op — the group-scoping is preserved.
+     * Uses the producer's group-scoped handle (a tap while selecting, else the long-press begin);
+     * a cross-group toggle resolves to a `null` handle and is a no-op.
      */
     fun toggleSelection(rowId: String) {
         val item = itemFor(rowId) ?: return
@@ -228,7 +177,6 @@ class DuplicatesSession internal constructor(
         (selectable.onClick ?: selectable.onLongClick)?.invoke()
     }
 
-    /** Invokes one of the active multi-selection's bulk actions by its `FlatItemAction.id`. */
     fun invokeSelectionAction(id: String) {
         invokeSelectionAction(id, expectedSelectedIds = null)
     }
@@ -247,16 +195,11 @@ class DuplicatesSession internal constructor(
             ?.invoke()
     }
 
-    /** Clears the active multi-selection (the bulk bar's X). */
     fun clearSelection() {
         activeState.value?.state?.selectionStateFlow?.value?.onClear?.invoke()
     }
 
-    /**
-     * Dispatches a per-row action. The only one this surface carries is the
-     * per-group "Merge" button ([rowId] == the button entry id): its producer
-     * closure opens the native merged-cipher edit sheet through the interceptor.
-     */
+    /** The only per-row action this surface carries is the per-group "Merge" button ([rowId] == its entry id). */
     fun performVaultRowAction(rowId: String, actionId: String) {
         val button = activeState.value?.state?.items
             ?.filterIsInstance<VaultItem2.Button>()
@@ -268,7 +211,6 @@ class DuplicatesSession internal constructor(
         println("[Keyguard][duplicates] unknown row action '$actionId' for row '$rowId' — dropped")
     }
 
-    /** Opens a duplicate row through the shared navigation interceptor. */
     fun openVaultRow(rowId: String) {
         val active = activeState.value ?: return
         val item = itemFor(rowId) ?: return
@@ -285,20 +227,13 @@ class DuplicatesSession internal constructor(
         }
     }
 
-    /**
-     * Tears the session down: the master gate (and with it the headless producer)
-     * plus every channel handed out by `observe*`. Idempotent.
-     */
+    /** Tears down the headless producer and every channel handed out by `observe*`. Idempotent. */
     fun close() {
         master.cancel()
         channels.forEach { it.cancel() }
         channels.clear()
         activeState.value = null
     }
-
-    //
-    // Internals.
-    //
 
     private fun itemFor(rowId: String): VaultItem2.Item? =
         activeState.value?.state?.items

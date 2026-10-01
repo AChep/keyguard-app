@@ -28,16 +28,6 @@ import com.artemchep.keyguard.util.webauthn.findExcludedPasskeyCredentialOrNull
 internal class PasskeyController(
     private val ctx: CoreContext,
 ) {
-    /**
-     * One entry per discoverable FIDO2 credential, to register as `ASPasskeyCredentialIdentity`.
-     * Empty while the vault is locked.
-     */
-    suspend fun loadPasskeyIdentities(): List<PasskeyIdentitySnapshot> {
-        val state = ctx.currentState() as? VaultState.Main ?: return emptyList()
-        val reader = AutofillVaultReader(state.sessionKoin)
-        return reader.read().toPasskeyIdentities(reader.accountNames())
-    }
-
     suspend fun loadMatchingPasskeyIdentities(
         rpId: String,
         allowedCredentialIds: List<ByteArray>,
@@ -51,7 +41,6 @@ internal class PasskeyController(
         )
     }
 
-    /** Called after consent, inside the provider's store lock and before its write. */
     suspend fun hasExcludedPasskeyCredential(rpId: String, credentialIds: List<ByteArray>): Boolean {
         val state = ctx.currentState() as? VaultState.Main
         if (state == null || credentialIds.isEmpty()) return false
@@ -65,12 +54,6 @@ internal class PasskeyController(
         ) != null
     }
 
-    /**
-     * Computes a WebAuthn assertion for the passkey identified by [recordId]
-     * (`accountId|cipherId|credentialId`): builds the assertion authenticator data and
-     * signs `authenticatorData ‖ clientDataHash` (the system supplies [clientDataHash]).
-     * Null while locked or if the credential is gone. Invalid requests and signing errors throw.
-     */
     suspend fun assertPasskey(
         recordId: String,
         clientDataHash: ByteArray,
@@ -119,12 +102,6 @@ internal class PasskeyController(
         )
     }
 
-    /**
-     * Creates a new passkey and attaches it to the existing login [cipherRecordId]
-     * (`accountId|cipherId`): generates a P-256 key pair, builds the "none"-attestation
-     * object, and persists the credential via the shared [AddCredentialCipher] use case.
-     * Returns null when the target is unavailable or persistence fails. Crypto errors throw.
-     */
     suspend fun createPasskey(
         cipherRecordId: String,
         rpId: String,

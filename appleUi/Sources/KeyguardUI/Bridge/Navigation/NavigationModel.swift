@@ -16,15 +16,11 @@ final class NavigationModel: SnapshotObserving {
     func start() {
         guard !started else { return }
         started = true
-        // A `keyguard://` deep link targets a screen in a specific section; the core pushes
-        // it onto that section's stack and asks the visible tab to switch to it.
         core.setSelectScopeHandler { [weak self] scope in
             Task { @MainActor [weak self] in
                 self?.pendingDeepLinkScope = scope
             }
         }
-        // The generator's "create login / SSH key" action emits an AddRoute; present
-        // the native create-item sheet prefilled with the generated value.
         core.setAddCipherHandler { [weak self] type, name, username, password in
             Task { @MainActor [weak self] in
                 self?.pendingAddCipher = AddCipherPrefill(
@@ -46,9 +42,8 @@ final class NavigationModel: SnapshotObserving {
                 )
             }
         }
-        // A shared producer navigated to an add-account login route (quick search's
-        // zero-accounts action, account-list add options); present the native login
-        // flow for the requested provider from the root.
+        // A shared producer navigated to an add-account login route; present the native
+        // login flow for the requested provider from the root.
         core.setAddAccountHandler { [weak self] typeName in
             Task { @MainActor [weak self] in
                 self?.addAccountRequest = typeName == "KEEPASS" ? .keepass : .bitwarden
@@ -59,35 +54,32 @@ final class NavigationModel: SnapshotObserving {
     /// Navigation stacks keyed by section scope.
     private(set) var navStacks: [String: [ScreenEntrySnapshot]] = [:]
 
-    /// The navigation stack for one section/tab scope (empty if none).
     func navStack(_ scope: String) -> [ScreenEntrySnapshot] { navStacks[scope] ?? [] }
 
     /// Live TOTP badges of the stacked cipher details, keyed by cipher id. Kept
     /// off `navStacks` so the per-second countdown does not re-render the stacks.
     private(set) var entryTotp: [String: VaultDetailTotpSnapshot] = [:]
 
-    /// Set when the generator's "create login / SSH key" action fires (a producer
-    /// `AddRoute`); drives a create-item sheet on the generator screen, prefilled
-    /// with the generated value. Cleared when that sheet dismisses.
+    /// Set when the generator's "create login / SSH key" action fires; the root presents
+    /// a create-item sheet prefilled with the generated value. Cleared when that sheet dismisses.
     var pendingAddCipher: AddCipherPrefill?
 
     var addAccountRequest: AddAccountKind?
 
     var pendingEditItem: AddEditPrefill?
 
-    /// Cipher id the Recents sheet asked the vault list to reveal. `MainView`
-    /// switches the sidebar to the Vault section on it; `HomeView` consumes it by
-    /// selecting (and scrolling to) the matching row once the vault list carries it.
+    /// Cipher id the Recents sheet asked the vault list to reveal. On macOS the shell
+    /// switches to the Vault section on it; the vault list consumes it by selecting (and
+    /// scrolling to) the matching row once it carries it.
     var pendingRevealSecretId: String?
 
-    /// Nav scope a `keyguard://` deep link asked to open. The active root (MainView /
-    /// KeyguardRootiOS) switches its selected section to match, then clears it; the deep
-    /// link's screen is already pushed onto that section's stack by the core.
+    /// Nav scope a `keyguard://` deep link asked to open. The shell switches its selected
+    /// section to match, then clears it; the deep link's screen is already pushed onto
+    /// that section's stack by the core.
     var pendingDeepLinkScope: String?
 
     private(set) var navItems: NavItemsSnapshot = NavItemsSnapshot.companion.empty
 
-    /// The top-level sections the shell renders (macOS sidebar / iOS tab bar).
     var navSections: [NavSection] {
         guard navItems.loaded, !navItems.sections.isEmpty else {
             return NavSection.defaults
@@ -107,8 +99,8 @@ final class NavigationModel: SnapshotObserving {
 
     @ObservationIgnored private var navScopeSubs: [String: BridgeObservation] = [:]
 
-    /// Starts the whole-stack session gate for the unlocked lifetime. Call from the
-    /// shell (MainView / KeyguardRootiOS); balance with `stopNavStackSession()`.
+    /// Starts the whole-stack session gate for the unlocked lifetime; balance with
+    /// `stopNavStackSession()`.
     func startNavStackSession() {
         navStackSession.acquire {
             let session = core.startNavStackSession()
@@ -137,8 +129,7 @@ final class NavigationModel: SnapshotObserving {
         core.setNavScope(scope: scope)
     }
 
-    /// Observes one section's navigation stack. Call from that section's
-    /// `NavStackContainer.onAppear`; balance with `stopNavScopeObservation`.
+    /// Observes one section's navigation stack; balance with `stopNavScopeObservation`.
     func startNavScopeObservation(_ scope: String) {
         navScopeConsumers[scope, default: 0] += 1
         startObservation(\.navScopeSubs[scope]) { deliver in
@@ -160,7 +151,6 @@ final class NavigationModel: SnapshotObserving {
         navStacks[scope] = nil
     }
 
-    /// Pops the top screen instance of a scope (e.g. on user back).
     func popScreen(scope: String) {
         core.popScreen(scope: scope)
     }
@@ -175,12 +165,10 @@ final class NavigationModel: SnapshotObserving {
         core.invokeEntryAction(instanceId: instanceId, actionId: actionId)
     }
 
-    /// Toggles the favourite flag of a stacked cipher-detail entry.
     func toggleEntryFavorite(instanceId: Int64) {
         core.toggleEntryFavorite(instanceId: instanceId)
     }
 
-    /// Writes text into the addressed list entry's search field.
     func setEntryListQuery(instanceId: Int64, text: String) {
         core.setEntryListQuery(instanceId: instanceId, text: text)
     }
@@ -222,57 +210,14 @@ final class NavigationModel: SnapshotObserving {
             instanceId: instanceId, actionId: actionId, itemId: itemId, onResult: onResult)
     }
 
-    /// Pushes a cipher detail onto the stack (an iPhone vault row tap).
-    func pushCipherDetail(itemId: String, accountId: String) {
-        core.pushCipherDetail(itemId: itemId, accountId: accountId)
-    }
-
-    /// Pushes a service-directory list onto the stack (a watchtower "Tools" row).
-    func pushServiceDirectoryList(kind: String, title: String) {
-        core.pushServiceDirectoryList(kind: kind, title: title)
-    }
-
-    /// Pushes the generator history onto the stack (a generator "Tools" row).
-    func pushGeneratorHistory() {
-        core.pushGeneratorHistory()
-    }
-
-    /// Pushes the email-relay list onto the stack (a generator "Tools" row).
-    func pushEmailRelayList() {
-        core.pushEmailRelayList()
-    }
-
-    /// Pushes the wordlists list onto the stack (a generator "Tools" row).
-    func pushWordlistList() {
-        core.pushWordlistList()
-    }
-
-    /// Pushes a single wordlist's detail onto the stack (a wordlists row tap).
-    func pushWordlistDetail(wordlistId: Int64, title: String) {
-        core.pushWordlistDetail(wordlistId: wordlistId, title: title)
-    }
-
-    /// Pushes a cipher's password history onto the stack (cipher detail header).
-    func pushPasswordHistory(itemId: String) {
-        core.pushPasswordHistory(itemId: itemId)
-    }
-
-    /// Pushes a Send detail onto the stack (an iPhone Send row tap).
     func pushSendDetail(sendId: String, accountId: String) {
         core.pushSendDetail(sendId: sendId, accountId: accountId)
     }
 
-    /// Pushes an account detail onto the stack (an iPhone Settings account-row tap).
     func pushAccountDetail(accountId: String) {
         core.pushAccountDetail(accountId: accountId)
     }
 
-    /// Pushes the "Contact us" feedback screen onto the stack (a Settings → About row).
-    func pushFeedback() {
-        core.pushFeedback()
-    }
-
-    /// Writes `text` into a stacked feedback entry's message field.
     func setEntryFeedbackMessage(instanceId: Int64, text: String) {
         core.setEntryFeedbackMessage(instanceId: instanceId, text: text)
     }
@@ -282,18 +227,16 @@ final class NavigationModel: SnapshotObserving {
         core.submitEntryFeedback(instanceId: instanceId)
     }
 
-    /// Writes `text` into a stacked export entry's password field.
     func setExportPassword(instanceId: Int64, text: String) {
         core.setExportPassword(instanceId: instanceId, text: text)
     }
 
-    /// Pushes an organization's collections onto the stack (organizations row tap).
     func pushCollectionsList(accountId: String, organizationId: String?, title: String) {
         core.pushCollectionsList(accountId: accountId, organizationId: organizationId, title: title)
     }
 
-    /// Observes the resolved top-level navigation sections. Started by the
-    /// unlocked shell (`MainView` / `KeyguardRootiOS`) and stopped with it.
+    /// Observes the resolved top-level navigation sections; balance with
+    /// `stopNavItemsObservation()`.
     func startNavItemsObservation() {
         navItemsObservation.acquire {
             startObservation(\.navItemsSubscription, into: \.navItems, observe: core.observeNavItems)

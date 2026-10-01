@@ -70,9 +70,8 @@ struct AccountDetailView: View {
 
     @ViewBuilder
     private var headerActions: some View {
-        // "Launch the vault" affordances, mirroring the Compose account-view
-        // toolbar: the web vault for a Bitwarden account, revealing the local
-        // database file for a KeePass one.
+        // The web vault is for a Bitwarden account; the local vault reveals a
+        // KeePass account's database file.
         if let actionId = detail.openWebVaultActionId {
             Button {
                 accountsModel.invokeAccountAction(id: actionId)

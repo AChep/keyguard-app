@@ -6,11 +6,8 @@ import KeyguardShared
 @MainActor
 @Observable
 final class RecentsListModel: VaultRowListModel {
-    /// Row content + structure; the list body and cells observe this.
     let store = VaultRowStore()
 
-    /// Live TOTP codes keyed by row id, pushed at 1Hz on the session's separate
-    /// lightweight channel (read by `TotpBadgeCell`).
     private(set) var totpStates: [String: TotpFieldSnapshot] = [:]
 
     /// The tab bar titles (pre-localized) + current selection, on their own
@@ -22,14 +19,11 @@ final class RecentsListModel: VaultRowListModel {
     private(set) var loaded = false
 
     @ObservationIgnored private let core: KeyguardCore
-    /// Copies a field ("password" / "username" / "otp") of a cipher; wired by the
-    /// view to `VaultActionsModel.copyCipherField`.
+    /// Copies a field ("password" / "username" / "otp") of a cipher.
     @ObservationIgnored private let onCopy: (_ secretId: String, _ accountId: String, _ field: String) -> Void
-    /// Reveals a cipher in the vault list; wired by the view to set
-    /// `pendingRevealSecretId` + dismiss the sheet.
+    /// Reveals a cipher in the vault list and dismisses the sheet.
     @ObservationIgnored private let onReveal: (_ secretId: String) -> Void
 
-    /// The shared FIFO background→Main delta pump, bound to this model's `store`.
     @ObservationIgnored private lazy var pump = VaultDeltaPump(store: store)
     @ObservationIgnored private var subscriptions: [KeyguardCancellable] = []
     @ObservationIgnored private var started = false
@@ -53,15 +47,11 @@ final class RecentsListModel: VaultRowListModel {
 
     // MARK: - Lifecycle
 
-    /// Subscribes the three channels + starts the delta pump. Call on appear;
-    /// balance with `stop()` on disappear. No-op while already started.
+    /// Call on appear; balance with `stop()` on disappear. No-op while already started.
     func start() {
         guard !started else { return }
         started = true
 
-        // The one-hop FIFO apply pipeline (shared helper): re-baselines the
-        // store, captures the run generation, starts the apply task and hands
-        // back the continuation the background delta callback yields into.
         let continuation = pump.start()
 
         // THE LIST. Background-delivered BY DESIGN (like the main list): convert
@@ -93,7 +83,6 @@ final class RecentsListModel: VaultRowListModel {
             })
     }
 
-    /// Cancels every channel, stops the pump and clears state.
     func stop() {
         subscriptions.forEach { $0.cancel() }
         subscriptions = []
@@ -113,14 +102,11 @@ final class RecentsListModel: VaultRowListModel {
 
     // MARK: - VaultRowListModel commands
 
-    /// A primary row tap copies the password.
     func copyPrimaryRow(rowId: String) {
         copy(rowId: rowId, field: "password")
     }
 
-    /// The shared item row wires the TOTP badge tap to
-    /// `performVaultRowAction(_, VaultActions.copyOtp)`; the context menu dispatches
-    /// its own Recents ids the same way.
+    /// The shared item row dispatches its TOTP badge tap here as `VaultActions.copyOtp`.
     func performVaultRowAction(rowId: String, actionId: String) {
         switch actionId {
         case RowAction.copyPassword:
@@ -144,9 +130,7 @@ final class RecentsListModel: VaultRowListModel {
         }
     }
 
-    /// The row's context menu, synthesized Swift-side (Recents actions are not
-    /// Kotlin descriptors). Fetched on demand by `VaultRowContextMenu` like the main
-    /// list's `rowActions`.
+    /// Synthesized Swift-side: Recents actions are not Kotlin descriptors.
     func rowActions(rowId: String) async -> [VaultAction] {
         [
             VaultAction(id: RowAction.copyPassword, title: L10n.copyPassword, symbol: "key", isCopy: true),
@@ -159,9 +143,7 @@ final class RecentsListModel: VaultRowListModel {
 
     // MARK: - Internals
 
-    /// Resolves the row's cipher id + account id from the store and copies the
-    /// given field through the shared quick-copy path. A row with no content box
-    /// (or a non-cipher row) is a silent no-op.
+    /// A row with no content box (or a non-cipher row) is a silent no-op.
     private func copy(rowId: String, field: String) {
         guard let row = store.box(for: rowId).row,
             let secretId = row.secretId,

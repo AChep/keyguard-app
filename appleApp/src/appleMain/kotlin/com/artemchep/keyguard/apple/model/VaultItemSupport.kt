@@ -14,16 +14,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 /**
- * Pure projection helpers shared by the vault-list family (vault list, recents,
- * menu-bar quick access, quick search) and — for the filter projection — the
- * Watchtower dashboard and SSH agent filters. They carry no bridge state, so
- * they live as plain top-level functions rather than on any one controller.
- */
-
-/**
- * Combines one per-second [totpBadgeFlow] per `(itemId, token)` into a single
- * `Map<itemId, TotpFieldSnapshot>` stream — the live countdown the list / recents
- * / quick-search TOTP channels publish without rebuilding their big snapshots.
+ * Combines the per-second [totpBadgeFlow]s into one `Map<itemId, TotpFieldSnapshot>` stream, so the TOTP
+ * channels publish the live countdown without rebuilding their big snapshots.
  */
 internal fun totpMapFlow(
     getTotpCode: GetTotpCodeWithOffset,
@@ -36,12 +28,6 @@ internal fun totpMapFlow(
     return combine(flows) { pairs -> pairs.toMap() }
 }
 
-/**
- * Projects the bulk-action list of an active multi-selection into Swift-facing
- * [VaultActionSnapshot]s, filling [handlers] so each snapshot id routes back to
- * the live `onClick`. Non-action [ContextItem]s (section headers / custom rows)
- * are dropped. Mirrors the per-item `toActionSnapshots` helper in KeyguardSnapshots.
- */
 internal suspend fun buildSelectionActionSnapshots(
     actions: List<ContextItem>?,
     leContext: LeContext,
@@ -67,14 +53,9 @@ internal fun vaultItemFingerprint(item: VaultItem2.Item): Long {
 }
 
 /**
- * Projects a screen's top-level overflow ("more") actions — the shared producer's
- * `actions` list shown behind the Compose options menu — into Swift-facing
- * [VaultActionSnapshot]s, filling [handlers] so each id routes back to the live
- * `onClick`. [ContextItem.Section] markers are not emitted as rows; instead the
- * first action after one carries [VaultActionSnapshot.startsSection] so the SwiftUI
- * menu draws a divider there (mirroring the Compose section dividers). Custom rows
- * are dropped. [idPrefix] keeps the synthesized ids from colliding with the other
- * action families on the same snapshot.
+ * [ContextItem.Section] markers are not emitted as rows; instead the first action after one carries
+ * [VaultActionSnapshot.startsSection], mirroring the Compose section dividers. [idPrefix] keeps the ids
+ * from colliding with the other action families on the same snapshot.
  */
 internal suspend fun buildMenuActionSnapshots(
     actions: List<ContextItem>,
@@ -98,10 +79,6 @@ internal suspend fun buildMenuActionSnapshots(
                     title = title,
                     isCopy = ci.type == FlatItemAction.Type.COPY,
                     startsSection = pendingSection,
-                    // The vault list's "always show keyboard" / "remember sorting"
-                    // overflow toggles carry their on/off state in their (non-visual)
-                    // producer id; project it so the SwiftUI menu renders a Switch /
-                    // checkmark. Plain actions leave [switchState] null.
                     switchState = ci.id?.toggleStateOrNull(),
                     danger = ci.danger,
                 )
@@ -115,11 +92,9 @@ internal suspend fun buildMenuActionSnapshots(
 }
 
 /**
- * Decodes the on/off state a switch-backed overflow action ("always show keyboard"
- * / "remember sorting") carries in its non-visual producer id (e.g.
- * `"vault.action.remember_sorting.true"`). Returns `null` for any other id, so a
- * plain action projects no switch. Mirrors the trailing `Switch(checked = …)` the
- * Compose options menu renders for those actions.
+ * Decodes the on/off state a switch-backed overflow action carries in its non-visual producer id
+ * (e.g. `"vault.action.remember_sorting.true"`), like the Compose options menu's trailing `Switch`.
+ * `null` for any other id.
  */
 private fun String.toggleStateOrNull(): Boolean? = when {
     endsWith(".true") && startsWith("vault.action.") -> true
@@ -127,12 +102,6 @@ private fun String.toggleStateOrNull(): Boolean? = when {
     else -> null
 }
 
-/**
- * Maps a shared filter tree ([FilterItem]) to the Swift-facing
- * [VaultFilterItemSnapshot] projection and, as a side effect, fills [handlers]
- * so each snapshot id maps back to the live producer closure. Shared by the
- * vault list, the Watchtower dashboard and the SSH agent filters screen.
- */
 internal fun mapFilterItemsToSnapshots(
     items: List<FilterItem>,
     handlers: LinkedHashMap<String, () -> Unit>,

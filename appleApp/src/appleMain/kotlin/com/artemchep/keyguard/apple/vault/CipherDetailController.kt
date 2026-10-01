@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.Color
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.apple.core.sessionKoin
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderFactoryRegistry
-import com.artemchep.keyguard.main
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.usecase.GetGravatarUrl
@@ -55,26 +54,6 @@ import kotlinx.coroutines.launch
 import org.koin.core.Koin
 import org.koin.core.scope.Scope
 
-/**
- * The cipher detail screen. Runs the shared [vaultViewScreenStateProducer]
- * headlessly and projects its [VaultViewState] into a flat [VaultDetailSnapshot]
- * (field rows via the shared [buildVaultItemSnapshots]).
- *
- * Two entry points share one producer-and-projection core ([cipherDetailFlows]):
- *  - [observeCipherDetail] — the single-slot root detail pane. Holds the live
- *    producer closures behind controller fields; [invokeVaultAction] /
- *    [toggleVaultFavorite] act on them.
- *  - [produceDetailInto] — an instance-keyed variant for the navigation stack:
- *    the caller supplies the scope + session DI + a per-instance `publish`, so
- *    many cipher details can be alive at once without sharing the controller's
- *    single slot (see [com.artemchep.keyguard.apple.core.NavigationStackController]).
- *
- * The navigation interceptor handed to the producer is resolved through
- * [navigationInterceptorProvider]; by default it catches only the dialog routes
- * ([DialogController.navigationInterceptor]), but [KeyguardCore] late-binds it to
- * the navigation stack so full-screen routes (a folder chip, an associated login)
- * push onto the stack instead of being dropped.
- */
 internal class CipherDetailController(
     private val ctx: CoreContext,
     private val dialogController: DialogController,
@@ -82,10 +61,9 @@ internal class CipherDetailController(
     private val getGravatarUrl: GetGravatarUrl by lazy { ctx.koin.get() }
 
     /**
-     * Resolves the navigation interceptor the detail producer is handed for a
-     * given session DI. Defaults to the dialog-only interceptor; [KeyguardCore]
-     * replaces it with the navigation stack's composed interceptor so full-screen
-     * routes drive the stack.
+     * Defaults to the dialog-only interceptor; [KeyguardCore] replaces it with the navigation stack's
+     * interceptor so full-screen routes (a folder chip, an associated login) push onto the stack instead
+     * of being dropped.
      */
     var navigationInterceptorProvider: (Scope) -> ((NavigationIntent) -> Boolean) =
         { sessionKoin -> dialogController.navigationInterceptor(sessionKoin = sessionKoin) }
@@ -96,29 +74,19 @@ internal class CipherDetailController(
     private data class DetailTarget(val itemId: String, val accountId: String)
 
     /**
-     * The root detail pane's currently selected target (`null` = nothing selected).
-     * The single long-lived [observeCipherDetail] observer `flatMapLatest`es over this,
-     * so selecting a different item swaps the per-cipher producer in place — no observer
-     * teardown / cold restart, and the previously shown cipher stays on screen until the
-     * new one's first snapshot arrives (no empty-pane flash). Updated via [setDetailTarget].
+     * The long-lived [observeCipherDetail] observer `flatMapLatest`s over this, so a new selection swaps the
+     * producer in place and the previous cipher stays on screen until the new one's first snapshot arrives
+     * (no empty-pane flash).
      */
     private val detailTarget = MutableStateFlow<DetailTarget?>(null)
 
-    /** The two channels of one running cipher detail, see [cipherDetailFlows]. */
     private class CipherDetailFlows(
-        /** A `(state, snapshot, handlers)` triple on every change of the detail. */
         val snapshots: Flow<Triple<VaultViewState, VaultDetailSnapshot, LinkedHashMap<String, () -> Unit>>>,
-        /** The live TOTP badges; `null` while the cipher is not loaded. */
+        /** `null` while the cipher is not loaded. */
         val totp: Flow<VaultDetailTotpSnapshot?>,
     )
 
-    /**
-     * The shared producer-and-projection core. Runs [vaultViewScreenStateProducer]
-     * for [itemId] / [accountId] in a headless scope tied to [scope], folds in the
-     * reprompt lock, and exposes the detail snapshots plus a separate per-second
-     * TOTP badge channel. Pure — no controller state is touched here, so it is
-     * safe to run many instances concurrently.
-     */
+    /** Touches no controller state, so it is safe to run many instances concurrently. */
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun cipherDetailFlows(
         scope: CoroutineScope,
@@ -129,27 +97,18 @@ internal class CipherDetailController(
     ): CipherDetailFlows {
         val leContext = ctx.koin.get<LeContext>()
         val producerFlow = vaultViewStateFlow(scope, sessionKoin, itemId, accountId, interceptor)
-        // The shared use-case that generates the rotating TOTP codes; we drive the
-        // macOS badge from it directly so the codes, countdown and progress are all
-        // computed by shared Kotlin (never re-derived in Swift).
+        // Drives the TOTP badge, so the codes, countdown and progress are computed by
+        // shared Kotlin, never re-derived in Swift.
         val getTotpCode = sessionKoin.get<GetTotpCodeWithOffset>()
 
-        // Single shared copy of the latest top-level state; the producer is cold,
-        // so fan out from one StateFlow.
+        // The producer is cold, so fan out from one StateFlow.
         val latest = MutableStateFlow<VaultViewState?>(null)
         scope.launch {
             producerFlow.collect { vaultState -> latest.value = vaultState }
         }
 
-        // The set of concealed VALUE / CARD rows the user has revealed, after the
-        // reveal request passed the shared producer's `executeWithRePrompt` gate (the
-        // elevated-access dialog on a master-password-reprompt cipher). This is the
-        // bridge analog of the per-field Compose `rememberVisibilityState`: the
-        // producer's `transformUserEvent` decides IF a reveal is allowed (firing the
-        // prompt), and only on success do we add the id here. Folding it into the
-        // combine below re-runs the builder so the snapshot re-emits with the value.
-        // Scoped to this producer run, so it resets whenever the cipher reloads / the
-        // vault locks (the flow is re-collected).
+        // The bridge analog of the per-field Compose `rememberVisibilityState`. Scoped to
+        // this producer run, so it resets when the detail is re-opened or the vault locks.
         val revealedIds = MutableStateFlow<Set<String>>(emptySet())
 
         val iosAppParser = sessionKoin.get<IosAppAppStoreParser>()
@@ -166,16 +125,10 @@ internal class CipherDetailController(
             }
         }.stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
-        // Snapshot stream. A Cipher's reprompt lock, the TOTP codes, the attachment
-        // progress and the reveal set carry their own live inner state that the
-        // top-level state does NOT re-emit for, so combine them in: a change of any
-        // of them re-runs the builder and pushes a fresh snapshot. The per-second
-        // TOTP countdown is not part of it, see [totp].
         val snapshots = cipherDetailSnapshots(latest, leContext, revealedIds, uriAppIcons)
 
-        // The live TOTP badges on their own channel: the countdown ticks every
-        // second, and folding it into [snapshots] would rebuild the whole detail
-        // (rows, handler maps, avatar lookup) on every tick.
+        // The TOTP countdown ticks every second; folding it into [snapshots] would
+        // rebuild the whole detail (rows, handler maps, avatar lookup) on every tick.
         val totp = cipherDetailTotp(latest, getTotpCode)
         return CipherDetailFlows(
             snapshots = snapshots,
@@ -183,7 +136,6 @@ internal class CipherDetailController(
         )
     }
 
-    /** Runs the shared [vaultViewScreenStateProducer] for one cipher, see [cipherDetailFlows]. */
     private suspend fun vaultViewStateFlow(
         scope: CoroutineScope,
         sessionKoin: Scope,
@@ -277,7 +229,10 @@ internal class CipherDetailController(
             )
     }
 
-    /** The detail snapshot channel of [cipherDetailFlows], projected from its [latest] state. */
+    /**
+     * The reprompt lock, TOTP codes, attachment progress and reveal set carry live inner state the top-level
+     * state does NOT re-emit for, so they are combined in to re-run the builder.
+     */
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun cipherDetailSnapshots(
         latest: StateFlow<VaultViewState?>,
@@ -307,8 +262,6 @@ internal class CipherDetailController(
                                 add(item.item.statusState)
                                 add(item.item.actionsState)
                             }
-                        // A reveal flip must re-run the builder so the now-visible
-                        // field's value is projected.
                         add(revealedIds)
                         add(uriAppIcons)
                     }
@@ -331,7 +284,6 @@ internal class CipherDetailController(
                 Triple(vaultState, snapshot, actionHandlers)
             }
 
-    /** The live TOTP badge channel of [cipherDetailFlows], projected from its [latest] state. */
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun cipherDetailTotp(
         latest: StateFlow<VaultViewState?>,
@@ -360,11 +312,8 @@ internal class CipherDetailController(
             }
 
     /**
-     * Observes the single-slot root detail pane: runs [cipherDetailFlows]
-     * while the vault is unlocked and delivers each [VaultDetailSnapshot] on the
-     * main thread, caching the live producer closures behind controller fields for
-     * [invokeVaultAction] / [toggleVaultFavorite]. The live TOTP badges of the shown
-     * cipher go to [onTotpChange], also on the main thread.
+     * The single-slot root detail pane: caches the live producer closures in controller fields for
+     * [invokeVaultAction] / [toggleVaultFavorite]. Delivers on the main thread.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeCipherDetail(
@@ -421,11 +370,6 @@ internal class CipherDetailController(
         }
     }
 
-    /**
-     * Sets (or clears, with null ids) the root detail pane's target. The long-lived
-     * [observeCipherDetail] observer swaps producers in place; passing nulls shows the
-     * empty pane without tearing the observer down.
-     */
     fun setDetailTarget(itemId: String?, accountId: String?) {
         detailTarget.value = if (itemId != null && accountId != null) {
             DetailTarget(itemId, accountId)
@@ -435,13 +379,9 @@ internal class CipherDetailController(
     }
 
     /**
-     * Instance-keyed variant for the navigation stack. Runs the same producer +
-     * projection in the supplied [scope] (the stack entry's lifetime) against the
-     * supplied [sessionKoin], and delivers each emission through [publish] on the main
-     * thread together with the entry's own action handler map and favourite toggle —
-     * so the stack entry owns its slot instead of sharing the controller's fields.
-     * The live TOTP badges go to [publishTotp] (main thread) instead. Suspends until
-     * [scope] is cancelled (the entry is popped or the vault locks).
+     * Instance-keyed variant for the navigation stack: each entry gets its own action handler map and
+     * favourite toggle instead of sharing the controller's fields, so many details can be alive at once.
+     * Delivers on the main thread and suspends until [scope] is cancelled (the entry is popped or the vault locks).
      */
     suspend fun produceDetailInto(
         scope: CoroutineScope,
@@ -466,10 +406,6 @@ internal class CipherDetailController(
             }
     }
 
-    /**
-     * Builds the Swift-facing [VaultDetailSnapshot], filling [actionHandlers] so
-     * the snapshot's string ids map back to the live producer closures.
-     */
     private suspend fun buildDetailSnapshot(
         state: VaultViewState,
         leContext: LeContext,
@@ -491,14 +427,7 @@ internal class CipherDetailController(
                             .getOrNull()
                             ?.url
                     }
-                // Registers the gated reveal handler for a concealed VALUE / CARD row
-                // and returns its handler id. The handler runs the shared producer's
-                // `Visibility.transformUserEvent` — the SAME `executeWithRePrompt` path
-                // the copy action uses — so the master-password / biometric prompt
-                // fires BEFORE the value is disclosed. The setter only runs on success
-                // (the user passed the prompt, or the cipher has no reprompt), and only
-                // then is the id added to [revealedIds], re-running the builder so the
-                // value is projected with isVisible = true.
+                // Returns the reveal handler id of a concealed VALUE / CARD row, null for other rows.
                 val onRequestReveal: (VaultViewItem) -> String? = { item ->
                     val visibility: Visibility? = when (item) {
                         is VaultViewItem.Value -> item.visibility
@@ -520,10 +449,9 @@ internal class CipherDetailController(
                                 visibility.transformUserEvent(false) { }
                                 revealedIds.value = emptySet()
                             } else {
-                                // Request a reveal. This runs `executeWithRePrompt`
-                                // inside `transformUserEvent`, firing the elevated-access
-                                // prompt on a reprompt cipher; the setter (and so the
-                                // disclosure) only runs on success.
+                                // `transformUserEvent` runs `executeWithRePrompt` (the same gate
+                                // as the copy action), so the elevated-access prompt fires BEFORE
+                                // the value is disclosed; the setter only runs on success.
                                 visibility.transformUserEvent(true) { newValue ->
                                     if (newValue) {
                                         revealedIds.update { it + item.id }
@@ -544,12 +472,9 @@ internal class CipherDetailController(
                     onRequestReveal = onRequestReveal,
                     uriAppIcons = uriAppIcons,
                 )
-                // The top-level toolbar / header actions, mirroring the Compose
-                // `VaultViewCipherTitleActions`: a dedicated edit button plus the
-                // overflow menu. Their closures are registered in the same
-                // [actionHandlers] map as the field-row actions, so both the root
-                // pane ([invokeVaultAction]) and stacked entries ([invokeEntryAction])
-                // route them with no extra wiring.
+                // Mirrors the Compose `VaultViewCipherTitleActions`: an edit button plus the
+                // overflow menu. Registered in the same [actionHandlers] map as the field-row
+                // actions, so the root pane and stacked entries route them with no extra wiring.
                 val editActionId = content.onEdit?.let { onEdit ->
                     "header:edit".also { id -> actionHandlers[id] = onEdit }
                 }
@@ -579,18 +504,10 @@ internal class CipherDetailController(
         }
     }
 
-    /**
-     * Invokes a vault detail item action (copy / open / toggle / retry / etc.)
-     * by its synthesized snapshot id. The closure runs inside the shared producer.
-     */
     fun invokeVaultAction(id: String) {
         vaultActionHandlers.invokeAction(id)
     }
 
-    /**
-     * Toggles the favourite flag of the currently observed cipher. No-op unless
-     * the producer exposes the favourite action (e.g. read-only ciphers).
-     */
     fun toggleVaultFavorite() {
         val content = latestVaultContent ?: return
         content.onFavourite?.invoke(!content.data.favorite)

@@ -6,7 +6,6 @@ import com.artemchep.keyguard.di.VaultModuleCommon
 import com.artemchep.keyguard.feature.navigation.NavigationModule
 import org.koin.core.module.Module
 
-/** Platform bindings of the current Apple target (iOS or macOS). */
 internal expect fun applePlatformModule(): Module
 
 /** The complete application graph of the native Apple apps, in load order. */

@@ -129,9 +129,8 @@ struct BitwardenTwofaView: View {
         }
     }
 
-    /// Verification-code input. On iOS it requests `.oneTimeCode` AutoFill
-    /// (QuickType pulls a texted code) and the number pad; both are iOS-only
-    /// `BridgedTextField` parameters, so the macOS call omits them.
+    /// `contentType`, `keyboard` and `autocapitalization` are iOS-only `BridgedTextField`
+    /// parameters, so the macOS call omits them.
     @ViewBuilder
     private var codeField: some View {
         #if os(iOS)

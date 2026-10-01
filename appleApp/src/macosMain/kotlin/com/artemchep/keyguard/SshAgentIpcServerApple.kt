@@ -170,8 +170,6 @@ class SshAgentIpcServerApple(
         error = SshAgentMessages.ErrorResponse(message = message, code = code),
     )
 
-    // --- framing (length-prefixed, big-endian) -------------------------------
-
     private fun readPacket(fd: Int): ByteArray? {
         val lenBytes = readFully(fd, 4) ?: return null
         val len = ((lenBytes[0].toInt() and 0xFF) shl 24) or

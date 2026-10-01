@@ -1,15 +1,13 @@
 import SwiftUI
 import KeyguardShared
 
-/// Native SwiftUI rendering of the shared email-forwarder state.
 struct EmailForwardersView: View {
     @Environment(EmailRelayModel.self) private var emailRelayModel
     @Environment(NavigationModel.self) private var navigationModel
 
     let entry: ScreenEntrySnapshot
 
-    /// The catalog of available services, loaded once via
-    /// `loadEmailRelayServices()`; each entry is a blank form the "add" menu opens.
+    /// Each entry is a blank form the "add" menu opens.
     @State private var services: [EmailRelayFormSnapshot] = []
     @State private var sheet: EmailForwarderSheet?
     @State private var pendingDetailAction: (itemId: String, actionId: String)?
@@ -17,8 +15,6 @@ struct EmailForwardersView: View {
     @State private var loadError: String?
     @State private var editingRelayId: String?
 
-    /// The list's multi-selection, kept in lockstep with the shared producer's
-    /// selection handle.
     @State private var selection = ListSelectionModel()
 
     private var snapshot: EmailRelayListSnapshot {
@@ -171,8 +167,6 @@ struct EmailForwardersView: View {
         .accessibilityElement(children: .combine)
     }
 
-    /// A row's per-item actions (edit / duplicate / delete), or the bulk selection
-    /// actions when a multi-selection is active.
     @ViewBuilder
     private func rowContextMenu(_ item: EmailRelayListItemSnapshot) -> some View {
         if showsBulkContextMenu {

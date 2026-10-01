@@ -14,8 +14,8 @@ final class AppPreferencesModel: SnapshotObserving {
     }
 
     func start() {
-        // App-wide preferences (theme, accent, close-to-tray, links) apply to the
-        // whole shell, so observe them for the app's lifetime.
+        // App-wide preferences apply to the whole shell, so observe them for the
+        // app's lifetime.
         startObservation(\.appPreferencesSubscription) { deliver in
             BridgeObservation(
                 core.observeAppPreferences { snapshot in
@@ -29,9 +29,7 @@ final class AppPreferencesModel: SnapshotObserving {
         }
     }
 
-    /// Appearance settings, produced by the shared Kotlin appearance settings use
-    /// cases running inside `KeyguardCore`. Only live while the Appearance settings
-    /// screen is on screen.
+    /// Only live while the Appearance settings screen is on screen.
     private(set) var appearanceSettings: AppearanceSettingsSnapshot = AppearanceSettingsSnapshot.companion.empty
 
     private(set) var appPreferences: AppPreferencesSnapshot = AppPreferencesSnapshot.companion.empty

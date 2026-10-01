@@ -10,16 +10,9 @@ import UIKit
 #endif
 
 /// AutoFill credential-provider extension principal class, shared by the macOS and iOS
-/// extensions. Links the same shared `KeyguardShared` framework as the app and resolves
-/// the selected credential via `KeyguardCore.loadAutofillCredential(recordId:)` against
-/// the App-Group vault.
+/// extensions.
 ///
-/// `ASCredentialProviderViewController` is an `NSViewController` on macOS and a
-/// `UIViewController` on iOS, so the only platform split in this file is how the
-/// in-extension SwiftUI is hosted (`presentHosted`). Everything else — the request
-/// dispatch, TOTP, and passkey assertion/registration — is identical.
-///
-/// This file is compiled directly into each appex target (see the `../appleAutofill`
+/// This file is compiled directly into each appex target (the `../appleAutofill`
 /// source entry in both project.yml files) rather than vended as a package product: the
 /// principal class is resolved by name from Info.plist as
 /// `$(PRODUCT_MODULE_NAME).CredentialProviderViewController`, and nothing in the appex
@@ -29,9 +22,6 @@ import UIKit
 /// Cross-process keychain sharing and system request routing must also be verified
 /// on a signed device build; compilation alone cannot establish those contracts.
 class CredentialProviderViewController: ASCredentialProviderViewController {
-    /// The appex is its own process, so it builds its own shared graph over the
-    /// App-Group vault. Installing the Keychain Services bridge first lets the shared
-    /// biometric cipher read the unlock key from the shared keychain group.
     private enum RegistrationFailure: Error { case excludedCredential }
 
     private var activeCore: KeyguardCore?
@@ -67,6 +57,9 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
     }
     #endif
 
+    /// The appex is its own process, so it builds its own shared graph over the
+    /// App-Group vault. Installing the Keychain Services bridge first lets the shared
+    /// biometric cipher read the unlock key from the shared keychain group.
     private var core: KeyguardCore {
         if let activeCore { return activeCore }
         installKeychainBridge()
@@ -108,9 +101,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         cancel(.userInteractionRequired)
     }
 
-    /// The user tapped a saved login but interaction is required (e.g. unlock). Hosts
-    /// the in-extension unlock screen; once the vault is unlocked the picked credential
-    /// is resolved and the request completed.
     override func prepareInterfaceToProvideCredential(
         for credentialIdentity: ASPasswordCredentialIdentity
     ) {
@@ -119,10 +109,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         presentUnlock { [weak self] in self?.completePassword(recordId: recordId) }
     }
 
-    /// The user opened the AutoFill list manually (no auto-match). Hosts a SwiftUI list
-    /// of logins matching `serviceIdentifiers` (ranked by the shared `GetSuggestions`
-    /// matcher), unlocking the vault inline first when needed, and completes with the
-    /// chosen credential.
     override func prepareCredentialList(
         for serviceIdentifiers: [ASCredentialServiceIdentifier]
     ) {
@@ -148,9 +134,7 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
 
     // MARK: - Unified credential requests (macOS 14+ / iOS 17+)
 
-    /// Both platforms route every credential type through the generic request. Dispatch
-    /// on the concrete subtype: passwords and one-time codes are handled here; passkeys
-    /// (`ASPasskeyCredentialRequest`) use the shared WebAuthn authenticator.
+    /// Both platforms route every credential type through the generic request.
     ///
     /// `ASOneTimeCodeCredentialRequest` only exists on macOS 15 / iOS 18, so it is
     /// checked ahead of the switch under a combined availability guard. The iOS
@@ -213,8 +197,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
 
     // MARK: - One-time codes (TOTP)
 
-    /// The user opened the verification-code AutoFill list manually. Hosts the picker
-    /// restricted to logins carrying a TOTP secret, unlocking inline if needed.
     override func prepareOneTimeCodeCredentialList(
         for serviceIdentifiers: [ASCredentialServiceIdentifier]
     ) {
@@ -243,7 +225,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         cancel(.userInteractionRequired)
     }
 
-    /// Resolves and completes the one-time code for the picked/selected record.
     private func completeOneTimeCode(recordId: String?) {
         guard let recordId else {
             cancel(.credentialIdentityNotFound)
@@ -280,8 +261,7 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         cancel(.userInteractionRequired)
     }
 
-    /// Passkey assertion with UI: unlock the vault (the unlock counts as user
-    /// verification), then sign for the requested credential.
+    /// The vault unlock counts as user verification for the assertion.
     private func prepareInterfaceForPasskeyAssertion(_ request: ASPasskeyCredentialRequest) {
         guard let identity = request.credentialIdentity as? ASPasskeyCredentialIdentity,
             let recordId = identity.recordIdentifier
@@ -299,8 +279,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         }
     }
 
-    /// The user manually opened the passkey AutoFill list. Unlocks, then asserts the
-    /// stored passkey matching the request's relying party (and allow-list, if any).
     override func prepareCredentialList(
         for serviceIdentifiers: [ASCredentialServiceIdentifier],
         requestParameters: ASPasskeyCredentialRequestParameters
@@ -390,9 +368,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         }
     }
 
-    /// Passkey registration: let the user pick an existing login to attach the new
-    /// passkey to (logins matching the relying-party domain), generate + store it, and
-    /// return the attestation.
     override func prepareInterface(forPasskeyRegistration registrationRequest: any ASCredentialRequest) {
         guard let request = registrationRequest as? ASPasskeyCredentialRequest,
             let identity = request.credentialIdentity as? ASPasskeyCredentialIdentity
@@ -519,8 +494,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
 
     // MARK: - Helpers
 
-    /// Resolves the picked password credential against the now-unlocked vault and
-    /// completes the request (or cancels if it can't be resolved).
     private func completePassword(recordId: String?) {
         guard let recordId else {
             cancel(.credentialIdentityNotFound)
@@ -540,8 +513,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         }
     }
 
-    /// Hosts the in-extension unlock screen, invoking `onUnlocked` once the shared vault
-    /// reaches the unlocked state.
     private func presentUnlock(onUnlocked: @escaping () -> Void) {
         guard beginRequest() else { return }
         let core = core
@@ -559,7 +530,6 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         presentHosted(AutofillUnlockView(model: model))
     }
 
-    /// Embeds a SwiftUI root as a child view filling the controller.
     private func presentHosted<V: View>(_ rootView: V) {
         removeHostedContent()
         #if os(macOS)

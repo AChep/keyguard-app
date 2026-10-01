@@ -149,13 +149,11 @@ private struct AttachmentPreviewImageView: View {
             if let decodedImage, decodedImage.key == key {
                 if let image = decodedImage.image {
                     #if os(iOS)
-                    // iOS expects an inspectable image: pinch / double-tap / pan,
-                    // the system Photos & QuickLook gesture set.
+                    // Pinch / double-tap / pan, the Photos & QuickLook gesture set.
                     ZoomableImageView(image: image, accessibilityLabel: accessibilityLabel)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     #else
-                    // macOS expects to be able to inspect image detail too: pinch /
-                    // scroll to magnify, drag to pan while zoomed, double-click to reset.
+                    // Pinch / scroll to magnify, drag to pan while zoomed, double-click to reset.
                     MacZoomableImageView(image: image, accessibilityLabel: accessibilityLabel)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     #endif

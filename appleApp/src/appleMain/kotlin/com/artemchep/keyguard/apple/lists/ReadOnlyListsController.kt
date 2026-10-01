@@ -66,6 +66,9 @@ internal class ReadOnlyListsController(
     private var passwordHistorySelectionHandlers: Map<String, () -> Unit> = emptyMap()
     private var passwordHistoryActionHandlers: Map<String, () -> Unit> = emptyMap()
 
+    // Only the newest observation may write or clear the password-history state.
+    private var passwordHistoryGeneration = 0L
+
     /** Observes the SSH agent history of the cipher [cipherId], or of all ciphers when `null`. */
     fun observeSshAgentHistory(
         cipherId: String?,
@@ -142,10 +145,14 @@ internal class ReadOnlyListsController(
         onChange: (PasswordHistorySnapshot) -> Unit,
     ): KeyguardCancellable {
         val leContext = ctx.koin.get<LeContext>()
+        val observationGeneration = ++passwordHistoryGeneration
         return ctx.launchSessionObserver(
+            // The state holds plaintext passwords; drop it as soon as the vault
+            // locks or the screen stops observing.
             onLocked = {
-                onChange(PasswordHistorySnapshot.empty)
+                if (clearPasswordHistory(observationGeneration)) onChange(PasswordHistorySnapshot.empty)
             },
+            onTeardown = { clearPasswordHistory(observationGeneration) },
         ) { state ->
             val producerScope = this
             val producerFlow = with(state.sessionKoin) {
@@ -192,6 +199,7 @@ internal class ReadOnlyListsController(
                     )
                 }
                 .collectOnMain { projection ->
+                    if (passwordHistoryGeneration != observationGeneration) return@collectOnMain
                     passwordHistoryState = projection.content
                     passwordHistoryItemHandlers = projection.itemHandlers
                     passwordHistorySelectionHandlers = projection.selectionHandlers
@@ -199,6 +207,16 @@ internal class ReadOnlyListsController(
                     onChange(projection.snapshot)
                 }
         }
+    }
+
+    /** Clears the password-history state if [generation] is the newest observation; returns whether it was. */
+    private fun clearPasswordHistory(generation: Long): Boolean {
+        if (passwordHistoryGeneration != generation) return false
+        passwordHistoryState = null
+        passwordHistoryItemHandlers = emptyMap()
+        passwordHistorySelectionHandlers = emptyMap()
+        passwordHistoryActionHandlers = emptyMap()
+        return true
     }
 
     private suspend fun buildPasswordHistorySnapshot(

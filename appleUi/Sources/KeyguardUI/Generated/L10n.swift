@@ -5525,10 +5525,6 @@ public enum L10n {
     public static var prefItemAutomaticBackupsDisableAction: String {
         String(localized: "pref_item_automatic_backups_disable_action", bundle: AppLocalization.shared.bundle)
     }
-    /// pref_item_automatic_backups_disable_confirmation_text
-    public static var prefItemAutomaticBackupsDisableConfirmationText: String {
-        String(localized: "pref_item_automatic_backups_disable_confirmation_text", bundle: AppLocalization.shared.bundle)
-    }
     /// pref_item_automatic_backups_disable_message
     public static var prefItemAutomaticBackupsDisableMessage: String {
         String(localized: "pref_item_automatic_backups_disable_message", bundle: AppLocalization.shared.bundle)

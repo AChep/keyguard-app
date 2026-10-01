@@ -72,10 +72,10 @@ struct AutomaticBackupsSettingsView: View {
             stop: { backupsModel.stopBackupSettingsObservation() }
         )
         .confirmationDialog(L10n.prefItemAutomaticBackupsDisableTitle, isPresented: $confirmingDisable) {
-            Button(L10n.prefItemYubikeyUnlockDisableTitle, role: .destructive) { backupsModel.disableBackup() }
+            Button(L10n.prefItemAutomaticBackupsDisableTitle, role: .destructive) { backupsModel.disableBackup() }
             Button(L10n.cancel, role: .cancel) {}
         } message: {
-            Text(L10n.prefItemAutomaticBackupsDisableConfirmationText)
+            Text(L10n.prefItemAutomaticBackupsDisableMessage)
         }
         .sheet(isPresented: $configuring, onDismiss: endSetup) {
             BackupSetupWizard(initial: s)

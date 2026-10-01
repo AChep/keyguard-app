@@ -922,7 +922,7 @@ internal class DialogController(
                 )
                 .collect { loadable ->
                     val state = loadable.getOrNull() ?: return@collect
-                    val snapshot = buildPasskeyCredentialSnapshot(title, state)
+                    val snapshot = buildPasskeyCredentialSnapshot(title, state, leContext)
                     publish(snapshot, state.content.getOrNull()?.onUse)
                 }
         }
@@ -942,14 +942,15 @@ internal class DialogController(
         passkeyCredentialDialog.close()
     }
 
-    private fun buildPasskeyCredentialSnapshot(
+    private suspend fun buildPasskeyCredentialSnapshot(
         title: String,
         state: PasskeysCredentialViewState,
+        leContext: LeContext,
     ): PasskeyCredentialSnapshot = state.content.fold(
         ifLeft = { e ->
             PasskeyCredentialSnapshot(
                 title = title,
-                error = e.message ?: "Something went wrong",
+                error = e.message ?: textResource(Res.string.error_failed_unknown, leContext),
             )
         },
         ifRight = { content ->

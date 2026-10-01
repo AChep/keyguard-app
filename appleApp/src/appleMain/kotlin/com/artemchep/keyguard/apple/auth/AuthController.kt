@@ -315,7 +315,7 @@ internal class AuthController(
             title = textResource(e.title, leContext)
             text = textResource(e.text, leContext)
         } else {
-            title = "Failed to enable YubiKey unlock"
+            title = textResource(Res.string.yubikey_error_title, leContext)
             text = e.message
         }
         showMessage.copy(

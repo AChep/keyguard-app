@@ -23,11 +23,17 @@ struct BridgedTextField: View {
     var submitLabel: SubmitLabel
     var disablesAutocorrection: Bool
 
+    /// An owner that outlives this view can retain a draft across adaptive layouts.
+    /// Its binding handles edits and snapshot reconciliation instead of `bridgedText`.
+    var draft: Binding<String>?
+
     #if os(iOS)
     var contentType: UITextContentType?
     var keyboard: UIKeyboardType
     var autocapitalization: TextInputAutocapitalization?
     var showsClearButton: Bool
+    var requestedFocus: Bool?
+    var onFocusChange: ((Bool) -> Void)?
     @FocusState private var isFocused: Bool
     #endif
 
@@ -87,15 +93,23 @@ struct BridgedTextField: View {
     }
     #endif
 
+    private var textBinding: Binding<String> { draft ?? $buffer }
+
     var body: some View {
-        styledField
-            .submitLabel(submitLabel)
-            .bridgedText(
-                $buffer,
-                remote: text,
-                remoteRevision: textRevision,
-                send: send
-            )
+        Group {
+            if draft != nil {
+                styledField
+            } else {
+                styledField
+                    .bridgedText(
+                        $buffer,
+                        remote: text,
+                        remoteRevision: textRevision,
+                        send: send
+                    )
+            }
+        }
+        .submitLabel(submitLabel)
     }
 
     @ViewBuilder
@@ -114,9 +128,9 @@ struct BridgedTextField: View {
     private var inputField: some View {
         let field = Group {
             if secure {
-                SecureField(label, text: $buffer, prompt: prompt.map { Text($0) })
+                SecureField(label, text: textBinding, prompt: prompt.map { Text($0) })
             } else {
-                TextField(label, text: $buffer, prompt: prompt.map { Text($0) })
+                TextField(label, text: textBinding, prompt: prompt.map { Text($0) })
             }
         }
         #if os(iOS)
@@ -127,6 +141,14 @@ struct BridgedTextField: View {
             .textInputAutocapitalization(autocapitalization)
             .autocorrectionDisabled(disablesAutocorrection)
             .focused($isFocused)
+            .onChange(of: isFocused) { _, focused in onFocusChange?(focused) }
+            .task(id: requestedFocus) {
+                guard let requestedFocus else { return }
+                // Let the new form row join the focus hierarchy before restoring it.
+                await Task.yield()
+                guard !Task.isCancelled else { return }
+                isFocused = requestedFocus
+            }
         if showsClearButton {
             configuredField
                 // Reserve horizontal space without making the native form row
@@ -154,10 +176,10 @@ struct BridgedTextField: View {
     }
 
     #if os(iOS)
-    private var canClear: Bool { isFocused && !buffer.isEmpty }
+    private var canClear: Bool { isFocused && !textBinding.wrappedValue.isEmpty }
 
     private func clearText() {
-        buffer = ""
+        textBinding.wrappedValue = ""
         isFocused = true
     }
     #endif

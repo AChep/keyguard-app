@@ -64,7 +64,8 @@ struct GeneratorTypePicker: View {
 func generatorOptionSections(
     filters: [GeneratorFilterSnapshot],
     length: GeneratorLengthSnapshot?,
-    actions: GeneratorActions
+    actions: GeneratorActions,
+    editing: GeneratorEditingState? = nil
 ) -> some View {
     let sections = generatorOptionGroups(filters: filters, hasLength: length != nil)
     ForEach(sections) { section in
@@ -75,7 +76,7 @@ func generatorOptionSections(
                 generatorLengthRows(length, actions: actions)
             }
             ForEach(section.fields, id: \.key) { filter in
-                generatorFilterRow(filter, actions: actions)
+                generatorFilterRow(filter, actions: actions, editing: editing)
             }
         } header: {
             if let header = section.header {
@@ -153,12 +154,13 @@ func generatorLengthRows(
 @ViewBuilder
 func generatorFilterRow(
     _ filter: GeneratorFilterSnapshot,
-    actions: GeneratorActions
+    actions: GeneratorActions,
+    editing: GeneratorEditingState? = nil
 ) -> some View {
     if filter.kind == GeneratorFilterKind.switchField {
-        generatorSwitchRow(filter, actions: actions)
+        generatorSwitchRow(filter, actions: actions, adaptive: editing != nil)
     } else if filter.kind == GeneratorFilterKind.textField {
-        generatorTextRow(filter, actions: actions)
+        generatorTextRow(filter, actions: actions, editing: editing)
     } else if filter.kind == GeneratorFilterKind.enumField {
         generatorEnumRow(filter, actions: actions)
     }
@@ -169,7 +171,8 @@ func generatorFilterRow(
 @ViewBuilder
 private func generatorSwitchRow(
     _ filter: GeneratorFilterSnapshot,
-    actions: GeneratorActions
+    actions: GeneratorActions,
+    adaptive: Bool
 ) -> some View {
     let toggle = Binding<Bool>(
         get: { filter.switchValue },
@@ -177,14 +180,35 @@ private func generatorSwitchRow(
     )
     if let counter = filter.counter {
         // A switch with an associated min-count stepper (e.g. minimum digits).
-        HStack(spacing: 12) {
-            Text(filter.title ?? "")
-            Spacer()
+        let controls = HStack(spacing: 12) {
             generatorCounterStepper(filter.key, counter, actions: actions)
                 .accessibilityLabel(filter.title ?? "")
             Toggle(filter.title ?? "", isOn: toggle)
                 .labelsHidden()
                 .disabled(!filter.switchEnabled)
+        }
+        let horizontal = HStack(spacing: 12) {
+            Text(filter.title ?? "")
+            Spacer()
+            controls
+        }
+        Group {
+            if adaptive {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 12) {
+                        Text(filter.title ?? "").fixedSize()
+                        Spacer()
+                        controls.fixedSize()
+                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(filter.title ?? "")
+                            .fixedSize(horizontal: false, vertical: true)
+                        controls.frame(maxWidth: .infinity, alignment: .trailing)
+                    }
+                }
+            } else {
+                horizontal
+            }
         }
         .accessibilityElement(children: .contain)
     } else {
@@ -219,12 +243,19 @@ private func generatorCounterStepper(
 @MainActor
 private func generatorTextRow(
     _ filter: GeneratorFilterSnapshot,
-    actions: GeneratorActions
+    actions: GeneratorActions,
+    editing: GeneratorEditingState?
 ) -> some View {
-    let field = generatorTextField(filter, actions: actions)
-        // The per-field local buffer must reset when this row is reused for a
-        // different filter field.
-        .id(filter.key)
+    let field = Group {
+        if let editing {
+            GeneratorEditingTextField(filter: filter, actions: actions, editing: editing)
+        } else {
+            generatorTextField(filter, actions: actions)
+        }
+    }
+    // The per-field local buffer must reset when this row is reused for a
+    // different filter field.
+    .id(filter.key)
     // Keep a text filter as one Form row. Emitting the field and optional
     // validation as siblings lets native Form rebuild its flattened rows while
     // editing, which discards the text field's first responder.
@@ -248,7 +279,7 @@ private func generatorTextRow(
 }
 
 @MainActor
-private func generatorTextField(
+func generatorTextField(
     _ filter: GeneratorFilterSnapshot,
     actions: GeneratorActions
 ) -> BridgedTextField {

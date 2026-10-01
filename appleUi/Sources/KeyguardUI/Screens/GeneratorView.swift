@@ -1,9 +1,28 @@
 import SwiftUI
 import KeyguardShared
+#if os(iOS)
+import UIKit
+#endif
 
 struct GeneratorView: View {
     @Environment(FilePickerModel.self) private var filePickerModel
     @Environment(GeneratorModel.self) private var generatorModel
+    @State private var editing = GeneratorEditingState()
+    @State private var layout = GeneratorWorkspaceLayout.compact
+    @State private var rootVisible = false
+    #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .body) private var breakpoint = GeneratorWorkspaceLayout.breakpoint
+    #endif
+
+    private var isPad: Bool {
+        #if os(iOS)
+        UIDevice.current.userInterfaceIdiom == .pad
+        #else
+        false
+        #endif
+    }
 
     private var generator: GeneratorSnapshot { generatorModel.generator }
 
@@ -18,6 +37,12 @@ struct GeneratorView: View {
     }
 
     var body: some View {
+        #if os(iOS)
+        let useAdaptiveLayout = isPad
+        let isRegular = horizontalSizeClass == .regular
+        let isAccessibilitySize = dynamicTypeSize.isAccessibilitySize
+        let textScale = breakpoint / GeneratorWorkspaceLayout.breakpoint
+        #endif
         // The generator tools are pushed through the shared Kotlin nav stack, so the
         // section hosts a `NavStackContainer` instead of a plain `NavigationStack`.
         NavStackContainer(scope: "generator") {
@@ -28,11 +53,57 @@ struct GeneratorView: View {
                 if generator.types.isEmpty {
                     LoadingIndicator()
                 } else {
-                    content
+                    GeneratorContentView(
+                        generator: generator,
+                        actions: actions,
+                        editing: isPad ? editing : nil,
+                        layout: layout
+                    )
                 }
             }
+            #if os(iOS)
+            .onGeometryChange(for: GeneratorWorkspaceLayout.self) { geometry in
+                GeneratorWorkspaceLayout(
+                    width: geometry.size.width,
+                    isPad: useAdaptiveLayout,
+                    isRegular: isRegular,
+                    isAccessibilitySize: isAccessibilitySize,
+                    textScale: textScale
+                )
+            } action: { newLayout in
+                if newLayout.isWide != layout.isWide { editing.prepareForRemount() }
+                layout = newLayout
+            }
+            .background {
+                if isPad, rootVisible {
+                    Button(L10n.generatorRegenerateButton) {
+                        generatorModel.invokeGeneratorAction(id: "value:refresh")
+                    }
+                    .keyboardShortcut("r", modifiers: .command)
+                    .disabled(generator.value?.canRefresh != true)
+                    .hidden()
+                    .accessibilityHidden(true)
+                }
+            }
+            #endif
             .navigationTitle(L10n.generatorHeaderTitle)
+            #if os(iOS)
+            // Keep the title out of the independently scrolling columns. Restore
+            // the large title explicitly when resizing back to a single form.
+            .toolbarTitleDisplayMode(isPad ? (layout.isWide ? .inline : .large) : .automatic)
+            #endif
             .toolbar { generatorToolbar }
+            .onAppear { rootVisible = true }
+            .onDisappear {
+                rootVisible = false
+                editing.endFocus()
+            }
+            .onChange(of: generator.types.first(where: \.selected)?.id) { _, _ in
+                editing.reset()
+            }
+            .onChange(of: generator.filters.map(\.key)) { _, keys in
+                editing.retain(keys: Set(keys))
+            }
         }
         .sheet(
             item: Binding(
@@ -48,28 +119,6 @@ struct GeneratorView: View {
         )
         // The "create login / SSH key" AddRoute is presented at the root
         // (`RootContainer`) so it works from any screen, not just here.
-    }
-
-    private var content: some View {
-        Form {
-            Section { GeneratorTypePicker(types: generator.types, actions: actions) }
-            // Reserve the output row while validation/generation has no value.
-            // Inserting a whole section above the inputs makes native Form
-            // recreate their rows and drops the active field's first responder.
-            valueSection(generator.value)
-            if !generator.suggestions.isEmpty {
-                suggestionsSection
-            }
-            if let tip = generator.tip {
-                tipSection(tip)
-            }
-            generatorOptionSections(
-                filters: generator.filters,
-                length: generator.length,
-                actions: actions
-            )
-        }
-        .formStyle(.grouped)
     }
 
     // MARK: - Toolbar
@@ -94,124 +143,29 @@ struct GeneratorView: View {
     #else
     @ToolbarContentBuilder
     private var generatorToolbar: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            GeneratorRefreshToolbarButton()
+        if layout.isWide {
+            if generator.canOpenHistory {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(L10n.generatorhistoryHeaderTitle, systemImage: "clock.arrow.circlepath") {
+                        generatorModel.invokeGeneratorAction(id: "history")
+                    }
+                    .help(L10n.generatorhistoryHeaderTitle)
+                }
+            }
+        } else {
+            ToolbarItem(placement: .topBarTrailing) {
+                GeneratorRefreshToolbarButton()
+            }
         }
         ToolbarItem(placement: .topBarTrailing) {
-            if generator.canOpenHistory || !generator.options.isEmpty {
-                GeneratorOptionsToolbarButton(options: generator.options, canOpenHistory: generator.canOpenHistory)
+            if (!layout.isWide && generator.canOpenHistory) || !generator.options.isEmpty {
+                GeneratorOptionsToolbarButton(
+                    options: generator.options,
+                    canOpenHistory: !layout.isWide && generator.canOpenHistory
+                )
             }
         }
     }
     #endif
-
-    // MARK: - Generated value
-
-    private func valueSection(_ value: GeneratorValueSnapshot?) -> some View {
-        Section {
-            HStack(alignment: .top, spacing: 12) {
-                Group {
-                    if let value, !value.value.isEmpty {
-                        PasswordText(value.value)
-                            .textSelection(.enabled)
-                    } else {
-                        // Keep the placeholder meaningful to VoiceOver without
-                        // overriding the label of AppKit-backed selectable text.
-                        Text("—")
-                            .accessibilityLabel(L10n.emptyValue)
-                    }
-                }
-                .font(.title3.monospaced())
-                .frame(maxWidth: .infinity, alignment: .leading)
-                if !generator.loaded {
-                    ProgressView()
-                        .controlSize(.small)
-                }
-                if let value {
-                    valueButtons(value)
-                }
-            }
-        } header: {
-            if let title = value?.title, !title.isEmpty {
-                Text(title)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func valueButtons(_ value: GeneratorValueSnapshot) -> some View {
-        if value.canCopy {
-            DetailIconButton(title: L10n.copy, systemImage: "doc.on.doc") {
-                generatorModel.invokeGeneratorAction(id: "value:copy")
-            }
-            // Copying an empty placeholder would put an empty string on the
-            // clipboard; gate the action on an actual generated value.
-            .disabled(value.value.isEmpty)
-        }
-        if !value.actions.isEmpty {
-            Menu {
-                ForEach(value.actions, id: \.id) { action in
-                    Button(action.title) { generatorModel.invokeGeneratorAction(id: action.id) }
-                }
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .touchTarget()
-            }
-            .menuStyle(.borderlessButton)
-            .fixedSize()
-            .accessibilityLabel(L10n.moreActions)
-        }
-    }
-
-    // MARK: - Suggestions
-
-    private var suggestionsSection: some View {
-        Section(L10n.generatorSuggestionsTitle) {
-            ForEach(generator.suggestions, id: \.id) { suggestion in
-                Button {
-                    generatorModel.invokeGeneratorAction(id: suggestion.id)
-                } label: {
-                    HStack {
-                        PasswordText(suggestion.value)
-                            .font(.body.monospaced())
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                        Spacer()
-                        Image(systemName: "doc.on.doc")
-                            .foregroundStyle(.secondary)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-
-    // MARK: - Tip
-
-    private func tipSection(_ tip: GeneratorTipSnapshot) -> some View {
-        Section {
-            HStack(alignment: .top, spacing: 8) {
-                Image(systemName: "lightbulb")
-                    .foregroundStyle(.tint)
-                Text(tip.text)
-                    .font(.callout)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                if tip.canHide {
-                    DetailIconButton(title: L10n.hide, systemImage: "xmark") {
-                        generatorModel.invokeGeneratorAction(id: "tip:hide")
-                    }
-                }
-            }
-            if tip.canLearnMore {
-                Button(L10n.learnMore) { generatorModel.invokeGeneratorAction(id: "tip:learnMore") }
-                    #if os(macOS)
-                .buttonStyle(.link)
-                    #else
-                .buttonStyle(.borderless)
-                    #endif
-            }
-        }
-    }
 
 }

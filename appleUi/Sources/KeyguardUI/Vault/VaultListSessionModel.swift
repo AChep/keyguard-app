@@ -12,6 +12,9 @@ final class VaultListSessionModel {
     let store = VaultRowStore()
 
     private(set) var header: VaultHeader = .empty
+    var isLoaded: Bool { header.loaded || header.needsAccount }
+    /// The row of the detail this list opened, set by `VaultBrowseSelectionWatcher`.
+    var browseSelectedRowId: String? = nil
     /// Header fields consumed by toolbar items. Kept separate so query/header churn
     /// doesn't invalidate toolbar buttons that only care about create availability.
     private(set) var createActions: [VaultAction] = []
@@ -33,6 +36,12 @@ final class VaultListSessionModel {
     @ObservationIgnored private let config: VaultListSessionConfig
     @ObservationIgnored private let externalSession: VaultListSession?
     @ObservationIgnored private var session: VaultListSession?
+    @ObservationIgnored private var navigationOrigin: ListNavigationOrigin?
+
+    func setNavigationOrigin(_ origin: ListNavigationOrigin?) {
+        navigationOrigin = origin
+        session?.setNavigationOrigin(origin: origin)
+    }
 
     /// Whether this model created its own session (and must therefore `close()` it in
     /// `stop()`). The main vault list does; a stacked list drives a provided session.
@@ -66,6 +75,7 @@ final class VaultListSessionModel {
         // is set per init, so the `else` never fires in practice.
         guard let session = externalSession ?? core?.makeVaultListSession(config: config) else { return }
         self.session = session
+        session.setNavigationOrigin(origin: navigationOrigin)
 
         // THE LIST. Background-delivered BY DESIGN: convert off-main, then one
         // ordered hop to Main through `deltaPump`. Do not touch any observable
@@ -143,6 +153,7 @@ final class VaultListSessionModel {
         }
         session = nil
         header = .empty
+        browseSelectedRowId = nil
         createActions = []
         needsAccount = false
         filterCatalog = .empty

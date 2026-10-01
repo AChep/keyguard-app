@@ -208,7 +208,7 @@ struct VaultListScreen: View {
 
     #if os(iOS)
     private var platformBody: some View {
-        NavStackContainer(scope: "vault") {
+        NavStackContainer(scope: "vault", rootList: .vault, rootVaultList: model) {
             iosContent
                 .navigationTitle(L10n.homeVaultLabel)
                 .navigationBarTitleDisplayMode(.large)
@@ -426,9 +426,7 @@ private struct VaultRevealWatcher: View {
     /// Resolves a pending secret id to a row, clearing search if needed.
     private func attemptReveal() {
         guard let pending = navigationModel.pendingRevealSecretId else { return }
-        let rowId = model.store.structure.entries.first { entry in
-            entry.kind == .item && model.store.box(for: entry.id).row?.secretId == pending
-        }?.id
+        let rowId = model.store.firstItemRowId { $0.secretId == pending }
 
         if let rowId {
             // Consume the request before driving the list.

@@ -15,6 +15,8 @@ protocol VaultRowListModel: AnyObject {
     var isQueryActive: Bool { get }
     /// The saved-filter chips rendered at the quick-filters marker row.
     var quickFilterChips: [VaultFilterChip] { get }
+    /// iPad: the row whose detail is open beside the list.
+    var browseSelectedRowId: String? { get }
 
     func openVaultRow(rowId: String)
     /// Backs `VaultListConfig.RowTap.copyPrimary` (Recents copies the password on tap).
@@ -41,6 +43,7 @@ extension VaultRowListModel {
     var filterState: VaultFilterState { .empty }
     var isQueryActive: Bool { false }
     var quickFilterChips: [VaultFilterChip] { [] }
+    var browseSelectedRowId: String? { nil }
 
     func openVaultRow(rowId: String) {}
     func copyPrimaryRow(rowId: String) {}

@@ -151,8 +151,22 @@ final class NavigationModel: SnapshotObserving {
         navStacks[scope] = nil
     }
 
-    func popScreen(scope: String) {
-        core.popScreen(scope: scope)
+    func popToScreen(scope: String, instanceId: Int64?) {
+        core.popToScreen(scope: scope, instanceId: instanceId.map { KotlinLong(value: $0) })
+    }
+
+    func clearListDetail(origin: ListNavigationOrigin, detailInstanceId: Int64) {
+        core.clearListDetail(origin: origin, detailInstanceId: detailInstanceId)
+    }
+
+    /// Clears the detail branch the list in `context` owns, if one is open.
+    func clearListDetail(_ context: NavigationListContext) {
+        guard let detail = context.detail else { return }
+        clearListDetail(origin: context.origin, detailInstanceId: detail.instanceId)
+    }
+
+    func openListSend(origin: ListNavigationOrigin, sendId: String, accountId: String) {
+        core.openListSend(origin: origin, sendId: sendId, accountId: accountId)
     }
 
     /// Pops every screen instance of a scope back to its root.

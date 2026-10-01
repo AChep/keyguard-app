@@ -299,13 +299,16 @@ struct VaultRowHost: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, horizontalPadding)
             .padding(.vertical, 2)
-            .background(alignment: .center) {
-                if isRowSelected {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.accentColor.opacity(0.2))
-                        .padding(.horizontal, 4)
-                }
+            .accessibilityAddTraits(isRowSelected ? .isSelected : [])
+            #if os(macOS)
+        .background(alignment: .center) {
+            if isRowSelected {
+                RoundedRectangle(cornerRadius: 8)
+                .fill(Color.accentColor.opacity(0.2))
+                .padding(.horizontal, 4)
             }
+        }
+            #endif
     }
 
     private var isRowSelected: Bool {

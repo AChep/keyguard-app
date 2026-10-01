@@ -129,7 +129,8 @@ final class SendModel: SnapshotObserving {
     #endif
 
     /// Call when a Send is selected; balance with `stopSendDetailObservation()`.
-    func startSendDetailObservation(itemId: String, accountId: String) {
+    @discardableResult
+    func startSendDetailObservation(itemId: String, accountId: String) -> UUID? {
         stopSendDetailObservation()
         let identity = SendDetailIdentity(itemId: itemId, accountId: accountId)
         startObservation(\.sendDetailSubscription, into: \.sendDetailState) { onChange in
@@ -137,6 +138,13 @@ final class SendModel: SnapshotObserving {
                 onChange(ObservedDetail(snapshot: snapshot, identity: identity))
             }
         }
+        return sendDetailSubscription?.id
+    }
+
+    /// Stops only the observation `owner` started, so a disappearing view can't stop its replacement.
+    func stopSendDetailObservation(owner: UUID?) {
+        guard let owner, sendDetailSubscription?.id == owner else { return }
+        stopSendDetailObservation()
     }
 
     func stopSendDetailObservation() {

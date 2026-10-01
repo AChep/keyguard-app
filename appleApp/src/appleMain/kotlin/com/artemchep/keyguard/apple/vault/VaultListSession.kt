@@ -15,6 +15,7 @@ import com.artemchep.keyguard.feature.home.vault.apple.AppleVaultListState
 import com.artemchep.keyguard.feature.home.vault.apple.createAppleVaultListSource
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.apple.core.CoreContext
+import com.artemchep.keyguard.apple.core.ListNavigationOrigin
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
@@ -46,7 +47,14 @@ class VaultListSession internal constructor(
      * snapshot drops its tab in the same emission, so nothing renders it.
      */
     private val cipherFilterId: String? = null,
+    private val openListCipher: (ListNavigationOrigin, String, String) -> Unit,
 ) {
+    private val navigationOrigin = MutableStateFlow<ListNavigationOrigin?>(null)
+
+    fun setNavigationOrigin(origin: ListNavigationOrigin?) {
+        navigationOrigin.value = origin
+    }
+
     private class ActiveSource(
         val source: AppleVaultListSource,
         val getTotpCode: GetTotpCodeWithOffset,
@@ -92,6 +100,11 @@ class VaultListSession internal constructor(
             getTotpCode = state.sessionKoin.get(),
         )
         source.cipherOpenEvents.collect { secret ->
+            val origin = navigationOrigin.value
+            if (origin != null) {
+                openListCipher(origin, secret.id, secret.accountId)
+                return@collect
+            }
             val route = VaultViewRoute(
                 itemId = secret.id,
                 accountId = secret.accountId,

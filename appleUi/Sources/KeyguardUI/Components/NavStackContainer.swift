@@ -6,7 +6,19 @@ struct NavStackContainer<Content: View>: View {
     /// The section/tab scope this container renders ("vault", "watchtower", …). Each
     /// section observes its own stack, so drill-down survives section/tab switches.
     let scope: String
+    var rootList: NavigationListKind? = nil
+    var rootVaultList: VaultListSessionModel? = nil
     @ViewBuilder var content: () -> Content
+
+    @State private var listSessions = NavigationListSessions()
+
+    private var usesPanels: Bool { ListDetailNavigation.usesPanels }
+
+    private var projection: ListDetailNavigation {
+        ListDetailNavigation(
+            root: rootList,
+            entries: entries.map { .init(id: $0.instanceId, isVaultList: $0.kind == .vaultList) })
+    }
 
     private var entries: [ScreenEntrySnapshot] { navigationModel.navStack(scope) }
 
@@ -14,25 +26,88 @@ struct NavStackContainer<Content: View>: View {
         Binding(
             get: { entries.map { $0.instanceId } },
             set: { newPath in
-                let pops = entries.count - newPath.count
-                guard pops > 0 else { return }
-                for _ in 0..<pops { navigationModel.popScreen(scope: scope) }
+                guard newPath.count < entries.count else { return }
+                navigationModel.popToScreen(scope: scope, instanceId: newPath.last)
             }
         )
     }
 
     var body: some View {
+        ZStack {
+            platformBody
+        }
+        .observing(
+            start: { navigationModel.startNavScopeObservation(scope) },
+            stop: { navigationModel.stopNavScopeObservation(scope) }
+        )
+        .onAppear { updateListSessions() }
+        // Gated so only iPad containers observe their stack here.
+        .onChange(of: usesPanels ? entries.map(\.instanceId) : []) { _, _ in updateListSessions() }
+        .onDisappear { listSessions.stop() }
+        .background { selectionWatcher }
+    }
+
+    @ViewBuilder
+    private var selectionWatcher: some View {
+        if usesPanels, projection.kind == .vault, let model = activeVaultList {
+            VaultBrowseSelectionWatcher(model: model, context: listContext(for: projection.listEntryId))
+                .id(projection.listEntryId)
+        }
+    }
+
+    private var activeVaultList: VaultListSessionModel? {
+        if let id = projection.listEntryId { return listSessions.models[id] }
+        return rootVaultList
+    }
+
+    @ViewBuilder
+    private var platformBody: some View {
+        #if os(iOS)
+        if usesPanels, projection.kind != nil {
+            splitBody
+        } else {
+            stackBody
+        }
+        #else
+        stackBody
+        #endif
+    }
+
+    private var stackBody: some View {
         NavigationStack(path: navPath) {
             content()
                 .navigationDestination(for: Int64.self) { id in
                     screenView(for: id)
                 }
         }
-        .observing(
-            start: { navigationModel.startNavScopeObservation(scope) },
-            stop: { navigationModel.stopNavScopeObservation(scope) }
+    }
+
+    private func updateListSessions() {
+        if usesPanels { listSessions.update(entries: entries, scope: scope) }
+    }
+
+    private func listContext(for id: Int64?) -> NavigationListContext {
+        let start = id.flatMap { id in entries.firstIndex { $0.instanceId == id }.map { $0 + 1 } } ?? 0
+        return NavigationListContext(
+            scope: scope, listEntryId: id,
+            detail: entries.indices.contains(start) ? NavigationListContext.Detail(entries[start]) : nil,
+            isActive: projection.listEntryId == id)
+    }
+
+    #if os(iOS)
+    private var splitBody: some View {
+        ListDetailNavigationView(
+            projection: projection,
+            popTo: { navigationModel.popToScreen(scope: scope, instanceId: $0) },
+            clearDetail: { navigationModel.clearListDetail(listContext(for: projection.listEntryId)) },
+            sidebar: { content().environment(\.navigationListContext, listContext(for: nil)) },
+            sidebarDestination: { id in
+                screenView(for: id).environment(\.navigationListContext, listContext(for: id))
+            },
+            detailDestination: { id in screenView(for: id) }
         )
     }
+    #endif
 
     /// Renders a pushed navigation-stack entry by its instance id. Each entry reads
     /// its own inline snapshot and routes input by its instance id, so a folder-
@@ -43,7 +118,12 @@ struct NavStackContainer<Content: View>: View {
             if entry.kind == ScreenEntryKind.cipherDetail {
                 CipherDetailView(entry: entry)
             } else if entry.kind == ScreenEntryKind.vaultList {
-                StackVaultListView(entry: entry)
+                if usesPanels {
+                    StackVaultListContent(model: listSessions.models[id])
+                        .navigationTitle(entry.title.isEmpty ? L10n.homeVaultLabel : entry.title)
+                } else {
+                    StackVaultListView(entry: entry)
+                }
             } else if entry.kind == ScreenEntryKind.serviceDirectoryList {
                 StackServiceDirectoryView(entry: entry)
             } else if entry.kind == ScreenEntryKind.serviceDirectoryDetail {

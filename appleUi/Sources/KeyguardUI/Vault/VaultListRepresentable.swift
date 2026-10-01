@@ -1,4 +1,5 @@
 import SwiftUI
+import KeyguardShared
 
 /// The virtualizing vault list, resolved to the platform's native list bridge:
 /// `NSTableView` on macOS, `UICollectionView` on iOS.
@@ -15,6 +16,15 @@ struct VaultListRepresentable: View {
     let colorScheme: ColorScheme
 
     @Environment(\.vaultListBottomBarHeight) private var bottomBarHeight
+    @Environment(\.navigationListContext) private var navigationContext
+    @Environment(NavigationModel.self) private var navigationModel
+
+    private var browseConfig: VaultListConfig {
+        guard let navigationContext else { return config }
+        var value = config
+        value.selectedRowId = navigationContext.isActive && !editing ? model.browseSelectedRowId : nil
+        return value
+    }
 
     /// iOS `EditMode` gate: drives multi-select and the row context-menu swap.
     /// Ignored on macOS, which has no Edit button.
@@ -46,7 +56,7 @@ struct VaultListRepresentable: View {
                 model: model,
                 selection: selection,
                 accountsModel: accountsModel,
-                config: config,
+                config: browseConfig,
                 colorScheme: colorScheme,
                 editing: editing,
                 additionalBottomInset: extendsUnderChrome ? bottomBarHeight : 0
@@ -54,6 +64,11 @@ struct VaultListRepresentable: View {
             // Extend only under container chrome; keep SwiftUI keyboard avoidance.
             .ignoresSafeArea(.container, edges: extendsUnderChrome ? .vertical : [])
             #endif
+        }
+        .onChange(of: editing) { _, value in
+            if value, let navigationContext, navigationContext.isActive {
+                navigationModel.clearListDetail(navigationContext)
+            }
         }
         .overlay {
             if config.usesNativeEmptyState && VaultListProjection.hasNoItems(in: model.store.structure.entries) {

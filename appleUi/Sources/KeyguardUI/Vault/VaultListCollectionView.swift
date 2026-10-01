@@ -140,6 +140,9 @@ struct VaultListCollectionView: UIViewRepresentable {
 
         /// Hosts the same `VaultRowHost` as the macOS table, so both render identical rows.
         private func configure(cell: UICollectionViewListCell, id: String) {
+            // Reused marker cells must not retain a cipher's selection styling.
+            cell.configurationUpdateHandler = nil
+            cell.automaticallyUpdatesBackgroundConfiguration = false
             if id == Self.syncHeaderId {
                 cell.contentConfiguration = UIHostingConfiguration {
                     VaultSyncStatusHeaderHost(accountsModel: accountsModel)
@@ -170,7 +173,19 @@ struct VaultListCollectionView: UIViewRepresentable {
             if entry.kind == .item {
                 // Only cipher rows take part in edit-mode multi-select.
                 cell.accessories = [.multiselect(displayed: .whenEditing)]
-                cell.backgroundConfiguration = .listCell()
+                let browseSelected = config.selectedRowId == id
+                cell.configurationUpdateHandler = { cell, state in
+                    var background = UIBackgroundConfiguration.clear()
+                    background.cornerRadius = 8
+                    background.backgroundInsets = NSDirectionalEdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8)
+                    if browseSelected || state.isSelected {
+                        background.backgroundColor = cell.tintColor.withAlphaComponent(0.2)
+                    } else if state.isHighlighted || state.isFocused {
+                        background.backgroundColor = .tertiarySystemFill
+                    }
+                    cell.backgroundConfiguration = background
+                }
+                cell.setNeedsUpdateConfiguration()
             } else {
                 cell.accessories = []
                 cell.backgroundConfiguration = .clear()

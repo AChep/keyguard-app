@@ -69,6 +69,7 @@ struct CipherDetailView: View {
                 )
             }
         }
+        .id(entry?.instanceId)
         .environment(\.detailTotpProvider, totpProvider)
         .toolbar { detailToolbar }
     }

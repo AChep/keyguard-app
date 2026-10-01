@@ -14,19 +14,40 @@ struct SendView: View {
     #endif
 
     #if os(iOS)
-    /// Compact width gets a `NavigationStack` so the search bar collapses under the title
-    /// and reveals on swipe-down; regular width keeps the two-column `NavigationSplitView`.
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    /// iPad only: on iPhone the detail is a shared nav-stack entry instead (see `openDetail`).
-    @State private var selectedDetailId: String?
-    @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
+    private var usesPanels: Bool { ListDetailNavigation.usesPanels }
+    private var listOrigin: ListNavigationOrigin { ListNavigationOrigin(scope: "send", listEntryId: nil) }
+    private var browseDetail: ScreenEntrySnapshot? {
+        guard usesPanels, let entry = navigationModel.navStack("send").first, entry.kind == .sendDetail else {
+            return nil
+        }
+        return entry
+    }
+    private var selectedDetailId: String? { browseDetail.flatMap(rowId(for:)) }
+    private func rowId(for detail: ScreenEntrySnapshot) -> String? {
+        snapshot.items.first {
+            $0.kind == .item && $0.secretId == detail.sendId && $0.accountId == detail.sendAccountId
+        }?.id
+    }
+    private var browseSelectionInput: BrowseSelectionInput {
+        guard let detail = browseDetail else { return BrowseSelectionInput() }
+        return BrowseSelectionInput(
+            detailId: detail.instanceId, fromList: detail.fromList,
+            isPresent: rowId(for: detail) != nil, isLoaded: snapshot.loaded || snapshot.needsAccount)
+    }
+    private var browseSelection: Binding<String?> {
+        Binding(
+            get: { selectedDetailId },
+            set: { id in
+                if let item = snapshot.items.first(where: { $0.id == id }) { openDetail(item) }
+            })
+    }
 
     private func openDetail(_ item: SendListItemSnapshot) {
-        if horizontalSizeClass == .compact {
-            guard let secretId = item.secretId, let accountId = item.accountId else { return }
-            navigationModel.pushSendDetail(sendId: secretId, accountId: accountId)
+        guard let secretId = item.secretId, let accountId = item.accountId else { return }
+        if usesPanels {
+            navigationModel.openListSend(origin: listOrigin, sendId: secretId, accountId: accountId)
         } else {
-            selectedDetailId = item.id
+            navigationModel.pushSendDetail(sendId: secretId, accountId: accountId)
         }
     }
     #endif
@@ -171,51 +192,8 @@ struct SendView: View {
     // MARK: - iOS body
 
     #if os(iOS)
-    @ViewBuilder
     private var iosBody: some View {
-        if horizontalSizeClass == .compact {
-            compactBody
-        } else {
-            splitBody
-        }
-    }
-
-    private var splitBody: some View {
-        NavigationSplitView(columnVisibility: $columnVisibility) {
-            sidebarColumn
-                .navigationTitle(L10n.send)
-                .listSearchable(text: $query, prompt: Text(L10n.sendMainSearchPlaceholder))
-                .bridgedText(
-                    $query,
-                    remote: snapshot.query,
-                    remoteRevision: snapshot.queryRevision,
-                    send: sendModel.setSendListQuery
-                )
-                .toolbar { iosToolbar }
-                .environment(\.editMode, $selection.editMode)
-        } detail: {
-            // The selection-driven side-pane detail (single-slot `sendModel.sendDetail`)
-            // is the root; producer pushes from it render above it via the shared
-            // Kotlin nav stack.
-            NavStackContainer(scope: "send") {
-                detailColumn
-            }
-        }
-        .navigationSplitViewStyle(.balanced)
-        .sheet(isPresented: $showingAddItem, onDismiss: addItemModel.stopAddFormObservation) {
-            AddItemSheet(mode: .send, canCreateFileSend: snapshot.canCreateFileSend)
-        }
-        .onChange(of: detailObservationTarget, initial: true) { _, target in
-            syncDetailObservation(target)
-            clearMissingSelectedDetail()
-        }
-        .onChange(of: selection.editMode) { _, mode in
-            handleEditModeChange(mode)
-        }
-    }
-
-    private var compactBody: some View {
-        NavStackContainer(scope: "send") {
+        NavStackContainer(scope: "send", rootList: .send) {
             sidebarColumn
                 .navigationTitle(L10n.send)
                 .navigationBarTitleDisplayMode(.large)
@@ -235,6 +213,7 @@ struct SendView: View {
         .onChange(of: selection.editMode) { _, mode in
             handleEditModeChange(mode)
         }
+        .clearsMissingBrowseSelection(browseSelectionInput) { clearBrowseSelection() }
     }
 
     @ViewBuilder
@@ -278,7 +257,7 @@ struct SendView: View {
                     }
                 }
             }
-            : List(selection: $selectedDetailId) {
+            : List(selection: browseSelection) {
                 ForEach(sections) { section in
                     Section {
                         ForEach(section.items, id: \.id) { item in
@@ -293,7 +272,7 @@ struct SendView: View {
 
     @ViewBuilder
     private func iosRow(_ item: SendListItemSnapshot, editing: Bool) -> some View {
-        if item.kind == VaultListItemKind.item && horizontalSizeClass == .compact && !editing {
+        if item.kind == VaultListItemKind.item && !usesPanels && !editing {
             Button {
                 openDetail(item)
             } label: {
@@ -341,50 +320,30 @@ struct SendView: View {
 
     private func handleEditModeChange(_ mode: EditMode) {
         if mode.isEditing {
-            selectedDetailId = nil
+            clearBrowseSelection()
         } else {
             selection.clear { sendModel.clearSendListSelection() }
         }
     }
 
-    private func clearMissingSelectedDetail() {
-        guard let id = selectedDetailId else { return }
-        let itemExists = snapshot.items.contains {
-            $0.id == id && $0.kind == VaultListItemKind.item
-        }
-        if !itemExists {
-            selectedDetailId = nil
-        }
+    private func clearBrowseSelection() {
+        guard let detail = browseDetail else { return }
+        navigationModel.clearListDetail(origin: listOrigin, detailInstanceId: detail.instanceId)
     }
     #endif
 
     // MARK: - Selection
 
+    #if os(macOS)
     private struct DetailObservationTarget: Equatable {
         let itemId: String
         let accountId: String
     }
 
     private var detailObservationTarget: DetailObservationTarget? {
-        #if os(iOS)
-        guard let selectedDetailId else { return nil }
-        return makeDetailObservationTarget(forRowId: selectedDetailId)
-        #else
         let items = selectedItemRows
-        guard items.count == 1, let item = items.first else { return nil }
-        return makeDetailObservationTarget(for: item)
-        #endif
-    }
-
-    private func makeDetailObservationTarget(forRowId id: String) -> DetailObservationTarget? {
-        guard let item = snapshot.items.first(where: { $0.id == id && $0.kind == VaultListItemKind.item }) else {
-            return nil
-        }
-        return makeDetailObservationTarget(for: item)
-    }
-
-    private func makeDetailObservationTarget(for item: SendListItemSnapshot) -> DetailObservationTarget? {
-        guard let secretId = item.secretId, let accountId = item.accountId else { return nil }
+        guard items.count == 1, let item = items.first, let secretId = item.secretId, let accountId = item.accountId
+        else { return nil }
         return DetailObservationTarget(itemId: secretId, accountId: accountId)
     }
 
@@ -402,6 +361,7 @@ struct SendView: View {
             $0.kind == VaultListItemKind.item && selection.selectedRowIds.contains($0.id)
         }
     }
+    #endif
 
     private func syncSelection(_ newValue: Set<String>) {
         selection.sync(
@@ -427,27 +387,16 @@ struct SendView: View {
         }
     }
 
+    #if os(macOS)
     @ViewBuilder
     private var detailColumn: some View {
-        if isDetailItemSelected {
+        if isItemSelected {
             SendDetailView()
         } else {
-            ContentUnavailableView {
-                Label(L10n.sendViewNoSelectionTitle, systemImage: "sidebar.right")
-            } description: {
-                Text(L10n.sendViewNoSelectionText)
-            }
+            ListNoSelectionView(kind: .send)
         }
     }
-
-    private var isDetailItemSelected: Bool {
-        #if os(iOS)
-        guard let id = selectedDetailId else { return false }
-        return snapshot.items.contains { $0.id == id && $0.kind == VaultListItemKind.item }
-        #else
-        return isItemSelected
-        #endif
-    }
+    #endif
 
     private var sections: [SnapshotListSection<SendListItemSnapshot>] {
         snapshotListSections(

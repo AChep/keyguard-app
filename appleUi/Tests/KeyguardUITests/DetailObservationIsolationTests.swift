@@ -29,6 +29,22 @@ final class DetailObservationIsolationTests: XCTestCase {
     }
 
     @MainActor
+    func testDisappearingSendDetailCannotStopItsReplacement() async throws {
+        let probe = DetailObservationProbe<SendDetailSnapshot>()
+        let model = SendModel(coreProvider: unusedCore, observeDetail: { _, _, callback in probe.subscribe(callback) })
+        let oldOwner = model.startSendDetailObservation(itemId: "A", accountId: "account")
+        let newOwner = model.startSendDetailObservation(itemId: "B", accountId: "account")
+        model.stopSendDetailObservation(owner: oldOwner)
+        XCTAssertEqual(probe.cancellations, 1)
+        probe.callbacks[1](send("B"))
+        try await settle()
+        XCTAssertEqual(model.sendDetail.title, "B")
+        model.stopSendDetailObservation(owner: newOwner)
+        XCTAssertEqual(probe.cancellations, 2)
+        XCTAssertNil(model.sendDetailIdentity)
+    }
+
+    @MainActor
     func testPasswordHistoryRejectsReplacedAndStoppedSnapshots() async throws {
         let probe = DetailObservationProbe<PasswordHistorySnapshot>()
         let model = CipherDetailModel(

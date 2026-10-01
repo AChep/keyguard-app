@@ -153,11 +153,7 @@ struct VaultDetailPane: View {
         if selection.detailShown {
             CipherDetailView()
         } else {
-            ContentUnavailableView {
-                Label(L10n.vaultViewNoItemSelectedTitle, systemImage: "sidebar.right")
-            } description: {
-                Text(L10n.vaultViewSelectItemHint)
-            }
+            ListNoSelectionView(kind: .vault)
         }
     }
 }

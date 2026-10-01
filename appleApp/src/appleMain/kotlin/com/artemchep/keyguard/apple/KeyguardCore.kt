@@ -39,6 +39,7 @@ import com.artemchep.keyguard.apple.core.KeyguardScenePhase
 import com.artemchep.keyguard.apple.core.KeyguardVaultStatus
 import com.artemchep.keyguard.apple.core.NavigationStackController
 import com.artemchep.keyguard.apple.core.ScreenEntrySnapshot
+import com.artemchep.keyguard.apple.core.ListNavigationOrigin
 import com.artemchep.keyguard.apple.dialog.AccountPickerSnapshot
 import com.artemchep.keyguard.apple.dialog.AttachmentPreviewSnapshot
 import com.artemchep.keyguard.apple.dialog.BarcodeSnapshot
@@ -757,9 +758,6 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (Map<String, VaultDetailTotpSnapshot>) -> Unit,
     ): KeyguardCancellable = navigationStackController.observeNavStackTotp(onChange)
 
-    /** Pops the top screen of [scope]. Safe from any thread. */
-    fun popScreen(scope: String) = navigationStackController.popScreen(scope)
-
     /** Pops every screen of [scope], back to its root. Safe from any thread. */
     fun clearNavScope(scope: String) = navigationStackController.clearScope(scope)
 
@@ -1347,7 +1345,17 @@ class KeyguardCore(runtime: KeyguardRuntime) {
             navigationStackController.interceptor(sessionKoin)
         },
         cipherFilterId = cipherFilterId,
+        openListCipher = navigationStackController::openListCipher,
     )
+
+    fun openListSend(origin: ListNavigationOrigin, sendId: String, accountId: String) =
+        navigationStackController.openListSend(origin, sendId, accountId)
+
+    fun clearListDetail(origin: ListNavigationOrigin, detailInstanceId: Long) =
+        navigationStackController.clearListDetail(origin, detailInstanceId)
+
+    fun popToScreen(scope: String, instanceId: Long?) =
+        navigationStackController.popToScreen(scope, instanceId)
 
     fun pushSendDetail(sendId: String, accountId: String) =
         navigationStackController.pushSendDetail(sendId, accountId)

@@ -1,12 +1,23 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
-/// A filter backed by the producer's selection, using the platform's button styling.
+/// A filter backed by the producer's selection.
 struct FilterToggle: View {
     let title: String
     let subtitle: String?
     let isOn: Bool
     let action: () -> Void
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
+
+    private var usesPhoneStyle: Bool {
+        #if os(iOS)
+        UIDevice.current.userInterfaceIdiom == .phone
+        #else
+        false
+        #endif
+    }
 
     private var selection: Binding<Bool> {
         Binding(
@@ -18,9 +29,9 @@ struct FilterToggle: View {
     }
 
     var body: some View {
-        Toggle(isOn: selection) {
+        let toggle = Toggle(isOn: selection) {
             HStack {
-                if isOn && differentiateWithoutColor {
+                if usesPhoneStyle && isOn && differentiateWithoutColor {
                     Image(systemName: "checkmark")
                         .accessibilityHidden(true)
                 }
@@ -29,18 +40,34 @@ struct FilterToggle: View {
                     if let subtitle, !subtitle.isEmpty {
                         Text(subtitle)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(
+                                !usesPhoneStyle && isOn
+                                    ? Color.accentColor.contrastingTextColor.opacity(0.85) : .secondary)
                     }
                 }
                 .fixedSize(horizontal: false, vertical: true)
             }
         }
         .toggleStyle(.button)
-        .buttonStyle(.bordered)
-        .buttonBorderShape(.capsule)
+        .accessibilityAddTraits(isOn ? .isSelected : [])
+
         #if os(iOS)
-        .controlSize(.regular)
+        Group {
+            if usesPhoneStyle {
+                toggle
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.capsule)
+                    .controlSize(.regular)
+            } else {
+                toggle
+                    .buttonStyle(FilterToggleButtonStyle(isOn: isOn))
+            }
+        }
         .font(.subheadline)
+        #else
+        toggle
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.capsule)
         #endif
     }
 }

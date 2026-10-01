@@ -338,6 +338,9 @@ data class ScreenEntrySnapshot(
     val cipherFilterDetail: CipherFilterDetailSnapshot?,
     val downloads: DownloadsSnapshot?,
     val feedback: FeedbackSnapshot?,
+    val cipherId: String?,
+    val cipherAccountId: String?,
+    val fromList: Boolean,
 )
 
 /**
@@ -370,6 +373,7 @@ internal class NavigationStackController(
     ) {
         // Identity for state restoration; null for bridge-only screens, which are not restored.
         var descriptor: RouteDescriptor? = null
+        var fromList = false
         var job: Job? = null
         var cancellable: KeyguardCancellable? = null
         var title: String = kind.defaultTitle
@@ -465,6 +469,9 @@ internal class NavigationStackController(
             cipherFilterDetail = cipherFilterDetail,
             downloads = downloads,
             feedback = feedback,
+            cipherId = (kind as? ScreenKind.CipherDetail)?.itemId,
+            cipherAccountId = (kind as? ScreenKind.CipherDetail)?.accountId,
+            fromList = fromList,
         )
     }
 
@@ -648,13 +655,29 @@ internal class NavigationStackController(
     /** Pushes a new screen instance onto the current scope. Safe from any thread. */
     fun pushScreen(kind: ScreenKind, descriptor: RouteDescriptor? = null) = onMain {
         if (sessionScope == null || sessionKoin == null) return@onMain
-        val scope = currentScope
+        pushEntry(currentScope, kind, descriptor)
+    }
+
+    private fun pushEntry(
+        scope: String,
+        kind: ScreenKind,
+        descriptor: RouteDescriptor?,
+        fromList: Boolean = false,
+    ) {
         val entry = ScreenEntry(nextId++, kind)
         entry.descriptor = descriptor
+        entry.fromList = fromList
         stacks.getOrPut(scope) { mutableListOf() }.add(entry)
         startEntry(entry)
         emit(scope)
         persist()
+    }
+
+    /** Releases and removes every entry from [start] onwards; the caller emits. */
+    private fun MutableList<ScreenEntry>.dropFrom(start: Int) {
+        val tail = subList(start, size)
+        tail.forEach { it.release() }
+        tail.clear()
     }
 
     fun pushServiceDirectoryDetail(kind: String, itemId: String, title: String) =
@@ -685,6 +708,59 @@ internal class NavigationStackController(
             RouteDescriptor.SendView(sendId = sendId, accountId = accountId),
         )
 
+    fun openListCipher(origin: ListNavigationOrigin, itemId: String, accountId: String) =
+        replaceListDetail(
+            origin,
+            ScreenKind.CipherDetail(itemId, accountId),
+            RouteDescriptor.VaultCipherView(itemId = itemId, accountId = accountId),
+        )
+
+    fun openListSend(origin: ListNavigationOrigin, sendId: String, accountId: String) =
+        replaceListDetail(
+            origin,
+            ScreenKind.SendDetail(sendId, accountId),
+            RouteDescriptor.SendView(sendId = sendId, accountId = accountId),
+        )
+
+    private fun replaceListDetail(
+        origin: ListNavigationOrigin,
+        kind: ScreenKind,
+        descriptor: RouteDescriptor,
+    ) = onMain {
+        if (sessionScope == null || sessionKoin == null) return@onMain
+        val list = stacks.getOrPut(origin.scope) { mutableListOf() }
+        val start = detailStart(list, origin) ?: return@onMain
+        // Reselecting the same row keeps its producer and local reveal state.
+        if (list.getOrNull(start)?.kind == kind && list.size == start + 1) return@onMain
+        list.dropFrom(start)
+        pushEntry(origin.scope, kind, descriptor, fromList = true)
+    }
+
+    /** Conditional clear prevents an old list frame from dismissing a newer selection. */
+    fun clearListDetail(origin: ListNavigationOrigin, detailInstanceId: Long) = onMain {
+        val list = stacks[origin.scope] ?: return@onMain
+        val start = detailStart(list, origin) ?: return@onMain
+        if (list.getOrNull(start)?.instanceId != detailInstanceId) return@onMain
+        list.dropFrom(start)
+        emit(origin.scope)
+        persist()
+    }
+
+    private fun detailStart(list: List<ScreenEntry>, origin: ListNavigationOrigin): Int? {
+        val start = listDetailStartIndex(list.map { it.instanceId }, origin.listEntryId) ?: return null
+        return start.takeIf { it == 0 || list[it - 1].kind is ScreenKind.VaultList }
+    }
+
+    /** Pop a projected column path atomically, including the other column's descendants. */
+    fun popToScreen(scope: String, instanceId: Long?) = onMain {
+        val list = stacks[scope] ?: return@onMain
+        val start = listDetailStartIndex(list.map { it.instanceId }, instanceId) ?: return@onMain
+        if (start == list.size) return@onMain
+        list.dropFrom(start)
+        emit(scope)
+        persist()
+    }
+
     fun openDeepLink(url: String) = onMain {
         val descriptor = routeDescriptorFromDeepLink(url) ?: return@onMain
         if (sessionScope != null && sessionKoin != null) {
@@ -703,12 +779,7 @@ internal class NavigationStackController(
         val scope = descriptorScope(descriptor)
         currentScope = scope
         selectScopeHandler?.invoke(scope)
-        val entry = ScreenEntry(nextId++, kind)
-        entry.descriptor = descriptor
-        stacks.getOrPut(scope) { mutableListOf() }.add(entry)
-        startEntry(entry)
-        emit(scope)
-        persist()
+        pushEntry(scope, kind, descriptor)
     }
 
     /** Keys match the SwiftUI `NavStackContainer(scope:)` sections. */
@@ -757,8 +828,7 @@ internal class NavigationStackController(
     fun clearScope(scope: String) = onMain {
         val list = stacks[scope] ?: return@onMain
         if (list.isEmpty()) return@onMain
-        list.forEach { it.release() }
-        list.clear()
+        list.dropFrom(0)
         emit(scope)
         persist()
     }
@@ -1187,6 +1257,7 @@ internal class NavigationStackController(
                         args = kind.args,
                         persistenceScope = stackedVaultListScope(kind),
                         navigationInterceptorProvider = { sessionKoin -> interceptor(sessionKoin) },
+                        openListCipher = ::openListCipher,
                     )
                 }
 

@@ -48,6 +48,14 @@ final class VaultRowStore {
         return box
     }
 
+    /// The first item row, in render order, whose content matches.
+    func firstItemRowId(where matches: (VaultRow) -> Bool) -> String? {
+        structure.entries.first { entry in
+            guard entry.kind == .item, let row = boxes[entry.id]?.row else { return false }
+            return matches(row)
+        }?.id
+    }
+
     // MARK: - Apply
 
     @discardableResult

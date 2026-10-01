@@ -107,6 +107,7 @@ struct SendDetailView: View {
 
 struct StackSendDetailView: View {
     @Environment(SendModel.self) private var sendModel
+    @State private var observationOwner: UUID?
 
     let sendId: String
     let accountId: String
@@ -118,8 +119,13 @@ struct StackSendDetailView: View {
             sendModel.sendDetail.title.isEmpty ? L10n.credentialExchangeImportUntitled : sendModel.sendDetail.title)
             #endif
             .observing(
-                start: { sendModel.startSendDetailObservation(itemId: sendId, accountId: accountId) },
-                stop: { sendModel.stopSendDetailObservation() }
+                start: {
+                    observationOwner = sendModel.startSendDetailObservation(itemId: sendId, accountId: accountId)
+                },
+                stop: {
+                    sendModel.stopSendDetailObservation(owner: observationOwner)
+                    observationOwner = nil
+                }
             )
     }
 }

@@ -93,6 +93,11 @@ internal suspend fun directoryLinkTitles(leContext: LeContext) = DirectoryLinkTi
     email = textResource(Res.string.justdeleteme_send_email_title, leContext),
 )
 
+/** One page gets one row, and the URL stays unique as the SwiftUI row id. */
+private inline fun directoryLinks(
+    block: MutableList<ServiceDirectoryLinkSnapshot>.() -> Unit,
+): List<ServiceDirectoryLinkSnapshot> = buildList(block).distinctBy { it.url }
+
 /**
  * A flat projection of a directory entry's detail; [notes] is markdown.
  * A failed or missing lookup is terminal, distinct from the initial loading state.
@@ -131,7 +136,7 @@ internal fun TwoFaServiceInfo.toServiceDirectoryDetailSnapshot(
     title = name,
     chips = tfa.toList(),
     notes = notes,
-    links = buildList {
+    links = directoryLinks {
         url?.let { add(ServiceDirectoryLinkSnapshot(titles.website, it)) }
         documentation?.let { add(ServiceDirectoryLinkSnapshot(titles.documentation, it)) }
     },
@@ -151,7 +156,7 @@ internal fun PassKeyServiceInfo.toServiceDirectoryDetailSnapshot(
     title = name,
     chips = features.toList(),
     notes = notes,
-    links = buildList {
+    links = directoryLinks {
         documentation?.let { add(ServiceDirectoryLinkSnapshot(titles.documentation, it)) }
         setup?.let { add(ServiceDirectoryLinkSnapshot(titles.setup, it)) }
     },
@@ -170,7 +175,7 @@ internal fun JustGetMyDataServiceInfo.toServiceDirectoryDetailSnapshot(
     title = name,
     chips = listOfNotNull(difficulty),
     notes = notes,
-    links = buildList {
+    links = directoryLinks {
         url?.let { add(ServiceDirectoryLinkSnapshot(titles.website, it)) }
         email?.let { add(ServiceDirectoryLinkSnapshot(titles.email, "mailto:$it")) }
     },
@@ -190,7 +195,7 @@ internal fun JustDeleteMeServiceInfo.toServiceDirectoryDetailSnapshot(
     title = name,
     chips = listOfNotNull(difficulty),
     notes = notes,
-    links = buildList {
+    links = directoryLinks {
         url?.let { add(ServiceDirectoryLinkSnapshot(titles.website, it)) }
         email?.let { add(ServiceDirectoryLinkSnapshot(titles.email, "mailto:$it")) }
     },

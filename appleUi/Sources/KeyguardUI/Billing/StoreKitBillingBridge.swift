@@ -180,7 +180,7 @@ final class StoreKitBillingBridge: AppleBillingBridge {
                 }
                 try await AppStore.showManageSubscriptions(in: scene)
                 #else
-                guard let url = URL(string: "macappstore://apps.apple.com/account/subscriptions"),
+                guard let url = URL(string: KeyguardUrls.shared.MAC_APP_STORE_SUBSCRIPTIONS),
                     NSWorkspace.shared.open(url)
                 else {
                     self.complete(.failure, L10n.premiumPurchaseManageFailedText) { _ in }

@@ -22,15 +22,18 @@ struct WebDavSettingsSheet: View {
         ) {
             Form {
                 Section {
-                    TextField(L10n.url, text: $url, prompt: Text("https://example.com/dav/vault.kdbx"))
-                        #if os(iOS)
+                    TextField(
+                        L10n.url, text: $url,
+                        prompt: Text(verbatim: KeyguardUrls.shared.PLACEHOLDER_WEBDAV_KEEPASS_DATABASE)
+                    )
+                    #if os(iOS)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .keyboardType(.URL)
-                        #endif
-                        .onChange(of: url) { _, text in
-                            keepassModel.setWebDavField(id: "url", text: text)
-                        }
+                    #endif
+                    .onChange(of: url) { _, text in
+                        keepassModel.setWebDavField(id: "url", text: text)
+                    }
                     TextField(L10n.username, text: $username)
                         #if os(iOS)
                     .textInputAutocapitalization(.never)

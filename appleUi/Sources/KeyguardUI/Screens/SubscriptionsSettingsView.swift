@@ -92,10 +92,10 @@ struct SubscriptionsSettingsView: View {
                 .disabled(s.billing.busy)
 
                 Section {
-                    if let url = URL(string: "https://gist.github.com/AChep/1fd4e019a4ad8f9647ba3b4694b5dc1c") {
+                    if let url = URL(string: KeyguardUrls.shared.PRIVACY_POLICY) {
                         Link(L10n.prefItemPrivacyPolicyTitle, destination: url)
                     }
-                    if let url = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/") {
+                    if let url = URL(string: KeyguardUrls.shared.APPLE_STANDARD_EULA) {
                         Link(L10n.premiumPurchaseTermsTitle, destination: url)
                             .settingsSearchTarget(.purchaseTerms)
                     }

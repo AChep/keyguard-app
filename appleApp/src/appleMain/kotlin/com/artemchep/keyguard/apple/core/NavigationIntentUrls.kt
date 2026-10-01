@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.apple.core
 
+import com.artemchep.keyguard.URL_APPLE_MAPS
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import io.ktor.http.encodeURLParameter
 
@@ -36,7 +37,7 @@ internal fun NavigationIntent.NavigateToMaps.toMapsUrl(): String {
     val address = listOfNotNull(address1, address2, address3, city, state, postalCode, country)
         .filter { it.isNotBlank() }
         .joinToString(separator = ", ")
-    return "https://maps.apple.com/?q=" + address.encodeURLParameter()
+    return "$URL_APPLE_MAPS?q=" + address.encodeURLParameter()
 }
 
 // Spaces and brackets make the URL invalid, so they have to go.

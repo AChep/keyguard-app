@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import com.artemchep.keyguard.URL_GITHUB
 import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -45,7 +46,7 @@ fun settingGitHubProvider(): SettingComponent = kotlin.run {
         SettingGitHub(
             onClick = {
                 val intent = NavigationIntent.NavigateToBrowser(
-                    url = "https://github.com/AChep/keyguard-app/",
+                    url = URL_GITHUB,
                 )
                 navigationController.queue(intent)
             },

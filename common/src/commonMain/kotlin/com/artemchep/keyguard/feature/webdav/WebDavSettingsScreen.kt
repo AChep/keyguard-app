@@ -24,6 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.artemchep.keyguard.PLACEHOLDER_URL_WEBDAV_COLLECTION
+import com.artemchep.keyguard.PLACEHOLDER_URL_WEBDAV_KEEPASS_DATABASE
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.UsernameVariation
 import com.artemchep.keyguard.common.model.icon
@@ -151,8 +153,8 @@ private fun WebDavSettingsContent(
                 text = state.url.value,
                 error = urlError,
                 hint = when (purpose) {
-                    WebDavSettingsRoute.Purpose.Collection -> "https://example.com/keyguard-backups/"
-                    WebDavSettingsRoute.Purpose.KeePassDatabase -> "https://example.com/keyguard.kdbx"
+                    WebDavSettingsRoute.Purpose.Collection -> PLACEHOLDER_URL_WEBDAV_COLLECTION
+                    WebDavSettingsRoute.Purpose.KeePassDatabase -> PLACEHOLDER_URL_WEBDAV_KEEPASS_DATABASE
                 },
                 onChange = state.onUrlChange,
             )

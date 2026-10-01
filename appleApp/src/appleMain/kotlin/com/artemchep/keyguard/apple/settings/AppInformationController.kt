@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.apple.settings
 
+import com.artemchep.keyguard.URL_GITHUB
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.collectOnMain
@@ -52,13 +53,11 @@ internal fun appInformationFlow(
         loaded = true,
         buildDate = date,
         buildRef = currentRef,
-        buildRefUrl = currentRef?.let { "$PROJECT_URL/tree/$it" },
+        buildRefUrl = currentRef?.let { "$URL_GITHUB/tree/$it" },
         changelogText = if (oldRef != null) "$newRef...$oldRef" else null,
-        changelogUrl = if (oldRef != null) "$PROJECT_URL/compare/$oldRef...$newRef" else null,
+        changelogUrl = if (oldRef != null) "$URL_GITHUB/compare/$oldRef...$newRef" else null,
     )
 }.distinctUntilChanged()
 
 private fun isAvailableBuildRef(ref: String): Boolean =
     ref.isNotBlank() && !ref.equals("unknown", ignoreCase = true)
-
-private const val PROJECT_URL = "https://github.com/AChep/keyguard-app"

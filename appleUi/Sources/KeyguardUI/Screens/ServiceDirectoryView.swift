@@ -75,7 +75,7 @@ struct ServiceDirectoryView: View {
 
     @ViewBuilder
     private func favicon(_ raw: String?) -> some View {
-        if let iconURL = Self.faviconImageURL(raw) {
+        if let raw, let iconURL = URL(string: raw) {
             AsyncImage(url: iconURL) { phase in
                 if let image = phase.image {
                     image.resizable().scaledToFit()
@@ -92,12 +92,5 @@ struct ServiceDirectoryView: View {
 
     private var placeholderIcon: some View {
         Image(systemName: "globe").foregroundStyle(.secondary)
-    }
-
-    static func faviconImageURL(_ raw: String?) -> URL? {
-        guard let raw, !raw.isEmpty else { return nil }
-        let host = URL(string: raw)?.host ?? URL(string: "https://\(raw)")?.host
-        guard let host, !host.isEmpty else { return nil }
-        return URL(string: "https://icons.duckduckgo.com/ip3/\(host).ico")
     }
 }

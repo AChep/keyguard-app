@@ -5,6 +5,7 @@ import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import com.artemchep.keyguard.URL_REDDIT
 import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -47,7 +48,7 @@ fun settingAboutTelegramProvider(): SettingComponent = kotlin.run {
         SettingAboutTelegram(
             onClick = {
                 val intent = NavigationIntent.NavigateToBrowser(
-                    url = "https://www.reddit.com/r/keyguard/",
+                    url = URL_REDDIT,
                 )
                 navigationController.queue(intent)
             },

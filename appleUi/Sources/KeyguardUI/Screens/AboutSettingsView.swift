@@ -30,11 +30,11 @@ struct AboutSettingsView: View {
                     Label(L10n.prefItemAppTeamTitle, systemImage: "person.2")
                 }
                 .settingsSearchTarget(.team)
-                Link(destination: URL(string: "https://www.reddit.com/r/keyguard/")!) {
+                Link(destination: URL(string: KeyguardUrls.shared.REDDIT)!) {
                     Label(L10n.prefItemRedditCommunityTitle, systemImage: "bubble.left.and.bubble.right")
                 }
                 .settingsSearchTarget(.community)
-                Link(destination: URL(string: "https://github.com/AChep/keyguard-app/")!) {
+                Link(destination: URL(string: KeyguardUrls.shared.GITHUB)!) {
                     Label(L10n.prefItemGithubTitle, systemImage: "chevron.left.forwardslash.chevron.right")
                 }
                 .settingsSearchTarget(.source)
@@ -58,7 +58,7 @@ struct AboutSettingsView: View {
                     Label(L10n.prefItemDataSafetyTitle, systemImage: "lock.shield")
                 }
                 .settingsSearchTarget(.dataSafety)
-                Link(destination: URL(string: "https://gist.github.com/AChep/1fd4e019a4ad8f9647ba3b4694b5dc1c")!) {
+                Link(destination: URL(string: KeyguardUrls.shared.PRIVACY_POLICY)!) {
                     Label(L10n.prefItemPrivacyPolicyTitle, systemImage: "hand.raised")
                 }
                 .settingsSearchTarget(.privacyPolicy)

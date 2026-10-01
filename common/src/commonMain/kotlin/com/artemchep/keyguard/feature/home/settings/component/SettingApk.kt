@@ -5,6 +5,7 @@ import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import com.artemchep.keyguard.URL_GITHUB
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
@@ -57,7 +58,7 @@ private fun SettingApk() {
         onClick = {
             val intent = run {
                 val url =
-                    "https://github.com/AChep/keyguard-app/releases"
+                    "$URL_GITHUB/releases"
                 NavigationIntent.NavigateToBrowser(url)
             }
             controller.queue(intent)

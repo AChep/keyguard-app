@@ -150,15 +150,18 @@ struct BackupSetupWizard: View {
         }
         if s.setupStoreKind == "webdav" {
             Section {
-                TextField(L10n.url, text: $webDavURL, prompt: Text(verbatim: "https://example.com/dav"))
-                    .focused($focusedField, equals: .server)
-                    .submitLabel(.next)
-                    .onSubmit { focusedField = .username }
-                    #if os(iOS)
+                TextField(
+                    L10n.url, text: $webDavURL,
+                    prompt: Text(verbatim: KeyguardUrls.shared.PLACEHOLDER_WEBDAV_COLLECTION)
+                )
+                .focused($focusedField, equals: .server)
+                .submitLabel(.next)
+                .onSubmit { focusedField = .username }
+                #if os(iOS)
                 .keyboardType(.URL)
                 .textInputAutocapitalization(.never)
-                    #endif
-                    .autocorrectionDisabled()
+                #endif
+                .autocorrectionDisabled()
                 TextField(L10n.username, text: $webDavUsername)
                     .focused($focusedField, equals: .username)
                     .submitLabel(.next)

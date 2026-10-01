@@ -37,8 +37,8 @@ enum class ServiceDirectoryItemKind {
 
 /**
  * One row of a service directory list. [id] routes detail lookups back through
- * [KeyguardCore.observeServiceDirectoryDetail]; [faviconUrl] is the raw source
- * URL whose host the SwiftUI layer resolves into an icon.
+ * [KeyguardCore.observeServiceDirectoryDetail]; [faviconUrl] is the icon
+ * image URL, or null if the row has none.
  */
 data class ServiceDirectoryItemSnapshot(
     val id: String,

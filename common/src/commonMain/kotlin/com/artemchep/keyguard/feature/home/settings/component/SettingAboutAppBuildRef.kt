@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.home.settings.component
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import com.artemchep.keyguard.URL_GITHUB
 import com.artemchep.keyguard.common.usecase.GetAppBuildRef
 import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
@@ -73,7 +74,7 @@ private fun SettingAboutAppBuildRef(
             {
                 val intent = run {
                     val url =
-                        "https://github.com/AChep/keyguard-app/tree/$buildRef"
+                        "$URL_GITHUB/tree/$buildRef"
                     NavigationIntent.NavigateToBrowser(url)
                 }
                 controller.queue(intent)

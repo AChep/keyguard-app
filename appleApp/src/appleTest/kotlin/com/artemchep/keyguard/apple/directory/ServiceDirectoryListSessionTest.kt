@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -203,10 +204,19 @@ class ServiceDirectoryListSessionTest {
         }
     }
 
-    private fun entry(name: String) = DirectoryEntry(
+    @Test
+    fun `rows resolve the favicon url from the entry host`() {
+        fun favicon(url: String?) = directoryRows(listOf(entry("Alpha", url))).single().snapshot().faviconUrl
+        assertEquals("https://icons.duckduckgo.com/ip3/example.com.ico", favicon("https://example.com/docs?q=1"))
+        assertEquals("https://icons.duckduckgo.com/ip3/example.com.ico", favicon("example.com/docs"))
+        assertNull(favicon("http://localhost/docs"))
+        assertNull(favicon(null))
+    }
+
+    private fun entry(name: String, faviconUrl: String? = null) = DirectoryEntry(
         key = name,
         name = name,
-        faviconUrl = null,
+        faviconUrl = faviconUrl,
         detail = ServiceDirectoryDetailSnapshot(true, name, emptyList(), null, emptyList()),
     )
 }

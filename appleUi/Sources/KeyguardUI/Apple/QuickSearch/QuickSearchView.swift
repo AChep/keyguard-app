@@ -566,7 +566,8 @@ private struct QuickSearchDetail: View {
         case "CARD_NUMBER": return L10n.cardNumber
         case "CARD_CVV": return L10n.cardCvvShortLabel
         case "PASSWORD": return L10n.password
-        case "KEY": return L10n.encryptionKey
+        case "PUBLIC_KEY": return L10n.publicKey
+        case "PRIVATE_KEY": return L10n.privateKey
         case "VALUE": return L10n.fieldValue
         default: return nil
         }

@@ -25,7 +25,7 @@ it any time via **Change app password** without touching your accounts.
 Besides typing the app password, you can unlock with:
 
 - **Biometrics** (Android, macOS, Windows) — enable it during setup or later in the
-  security settings;
+  security settings. See [Android](#android) below;
 - **System authentication** (Linux) — the desktop's polkit dialog, which accepts a
   fingerprint or your login password. See [Linux](#linux) below;
 - **YubiKey** (Android, macOS, Windows, Linux) — unlock over **USB**, or
@@ -50,6 +50,12 @@ viewed or autofilled — see the
 [authentication re-prompt](/docs/items/#per-item-protection). When such an
 item is opened, Keyguard shows a **Confirm access** prompt that accepts your
 app password or biometrics.
+
+### Android
+
+Keyguard supports only strong biometrics, such as most fingerprint sensors.
+Weak biometrics do not protect encryption keys, so using them would make your vault less secure. 
+If your phone has only weak biometrics set up, Keyguard hides the biometric unlock option.
 
 ### Linux
 

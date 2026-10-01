@@ -73,7 +73,6 @@ import com.artemchep.keyguard.feature.largetype.LargeTypeState
 import com.artemchep.keyguard.feature.largetype.largeTypeStateProducer
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.feature.navigation.RouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewState
@@ -86,7 +85,6 @@ import com.artemchep.keyguard.feature.tfa.directory.TwoFaServiceViewDialogRoute
 import com.artemchep.keyguard.feature.websiteleak.WebsiteLeakRoute
 import com.artemchep.keyguard.feature.websiteleak.WebsiteLeakState
 import com.artemchep.keyguard.feature.websiteleak.websiteLeakStateProducer
-import com.artemchep.keyguard.apple.add.AddFilePickerKind
 import com.artemchep.keyguard.apple.add.AddFilePickerRequest
 import com.artemchep.keyguard.apple.auth.AuthPromptHost
 import com.artemchep.keyguard.apple.core.CoreContext
@@ -96,8 +94,13 @@ import com.artemchep.keyguard.apple.directory.directoryLinkTitles
 import com.artemchep.keyguard.apple.directory.toServiceDirectoryDetailSnapshot
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
+import com.artemchep.keyguard.apple.core.resultRouteOrNull
+import com.artemchep.keyguard.apple.core.routeOrNull
+import com.artemchep.keyguard.apple.core.toArgbLong
 import com.artemchep.keyguard.util.io.toNSData
 import com.artemchep.keyguard.apple.core.filePickerResultOf
+import com.artemchep.keyguard.apple.core.onFilePickerResult
+import com.artemchep.keyguard.apple.core.toFilePickerRequest
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.elevatedaccess_biometric_auth_confirm_title
@@ -171,6 +174,17 @@ internal class DialogController(
                     }
                 }
             }
+        }
+
+        /**
+         * An interceptor that closes the dialog once its producer pops itself.
+         * Producers pop right before transmitting their result, so the close hops
+         * to the main scope and runs async: the transmit that follows still runs.
+         */
+        fun closeOnPop(): (NavigationIntent) -> Boolean = { intent ->
+            val pop = intent is NavigationIntent.Pop || intent is NavigationIntent.PopById
+            if (pop) ctx.scope.launch { close() }
+            pop
         }
 
         /** Dismisses the dialog and tears the headless producer down. */
@@ -412,24 +426,27 @@ internal class DialogController(
     fun navigationInterceptor(
         sessionKoin: Scope? = null,
     ): (NavigationIntent) -> Boolean = { intent ->
-        val passwordMemory = (intent as? NavigationIntent.NavigateToRoute)?.route as? PasswordMemoryRoute
+        val passwordMemory = intent.routeOrNull<PasswordMemoryRoute>()
         val largeTypeArgs = intent.toLargeTypeArgsOrNull()
-        val barcodeArgs = intent.toBarcodeArgsOrNull()
-        val passkeyCredentialArgs = intent.toPasskeyCredentialArgsOrNull()
-        val attachmentPreviewArgs = intent.toAttachmentPreviewArgsOrNull()
-        val confirmation = intent.toConfirmationOrNull()
-        val tagsConfirmation = intent.toTagsConfirmationOrNull()
-        val elevatedAccess = intent.toElevatedAccessOrNull()
+        val barcodeArgs = intent.routeOrNull<BarcodeTypeRoute>()?.args
+        val passkeyCredentialArgs = intent.routeOrNull<PasskeysCredentialViewRoute>()?.args
+        val attachmentPreviewArgs = intent.routeOrNull<AttachmentPreviewRoute>()?.args
         val serviceInfo = intent.toServiceInfoOrNull()
-        val emailLeakArgs = intent.toEmailLeakArgsOrNull()
-        val passwordLeakArgs = intent.toPasswordLeakArgsOrNull()
-        val websiteLeakArgs = intent.toWebsiteLeakArgsOrNull()
-        val colorPicker = intent.toColorPickerOrNull()
-        val cipherLinkPicker = intent.toCipherLinkPickerOrNull()
-        val accountPicker = intent.toAccountPickerOrNull()
-        val folderPicker = intent.toFolderPickerOrNull()
-        val collectionInfoArgs = intent.toCollectionInfoArgsOrNull()
-        val organizationInfoArgs = intent.toOrganizationInfoArgsOrNull()
+        val emailLeakArgs = intent.routeOrNull<EmailLeakRoute>()?.args
+        val passwordLeakArgs = intent.routeOrNull<PasswordLeakRoute>()?.args
+        val websiteLeakArgs = intent.routeOrNull<WebsiteLeakRoute>()?.args
+        // The collection / organization "Info" rows navigate to a plain dialog route.
+        val collectionInfoArgs = intent.routeOrNull<CollectionRoute>()?.args
+        val organizationInfoArgs = intent.routeOrNull<OrganizationRoute>()?.args
+        // These dialogs return a result, so their routes come wrapped by
+        // registerRouteResultReceiver; unwrap the route and its result transmitter.
+        val confirmation = intent.resultRouteOrNull<ConfirmationRoute, ConfirmationResult>()
+        val tagsConfirmation = intent.resultRouteOrNull<TagsConfirmationRoute, TagsConfirmationResult>()
+        val elevatedAccess = intent.resultRouteOrNull<ElevatedAccessRoute, ElevatedAccessResult>()?.second
+        val colorPicker = intent.resultRouteOrNull<ColorPickerRoute, ColorPickerResult>()
+        val cipherLinkPicker = intent.resultRouteOrNull<CipherLinkPickerRoute, CipherLinkPickerResult>()
+        val accountPicker = intent.resultRouteOrNull<OrganizationConfirmationRoute, OrganizationConfirmationResult>()
+        val folderPicker = intent.resultRouteOrNull<FolderConfirmationRoute, FolderConfirmationResult>()
         // The producers dispatch their navigation intents from the background
         // pipeline, while the dialog state (the present* job + handler fields)
         // is main-confined — hop to the main scope before presenting.
@@ -440,7 +457,7 @@ internal class DialogController(
             }
             cipherLinkPicker != null && sessionKoin != null -> {
                 ctx.scope.launch {
-                    presentCipherLinkPicker(cipherLinkPicker.first, cipherLinkPicker.second, sessionKoin)
+                    presentCipherLinkPicker(cipherLinkPicker.first.args, cipherLinkPicker.second, sessionKoin)
                 }
                 true
             }
@@ -471,12 +488,12 @@ internal class DialogController(
             }
 
             tagsConfirmation != null -> {
-                ctx.scope.launch { presentTagsConfirmation(tagsConfirmation.first, tagsConfirmation.second) }
+                ctx.scope.launch { presentTagsConfirmation(tagsConfirmation.first.args, tagsConfirmation.second) }
                 true
             }
 
             confirmation != null -> {
-                ctx.scope.launch { presentConfirmation(confirmation.first, confirmation.second) }
+                ctx.scope.launch { presentConfirmation(confirmation.first.args, confirmation.second) }
                 true
             }
 
@@ -506,17 +523,17 @@ internal class DialogController(
             }
 
             colorPicker != null -> {
-                ctx.scope.launch { presentColorPicker(colorPicker.first, colorPicker.second) }
+                ctx.scope.launch { presentColorPicker(colorPicker.first.args, colorPicker.second) }
                 true
             }
 
             folderPicker != null && sessionKoin != null -> {
-                ctx.scope.launch { presentFolderPicker(folderPicker.first, folderPicker.second, sessionKoin) }
+                ctx.scope.launch { presentFolderPicker(folderPicker.first.args, folderPicker.second, sessionKoin) }
                 true
             }
 
             accountPicker != null && sessionKoin != null -> {
-                ctx.scope.launch { presentAccountPicker(accountPicker.first, accountPicker.second, sessionKoin) }
+                ctx.scope.launch { presentAccountPicker(accountPicker.first.args, accountPicker.second, sessionKoin) }
                 true
             }
 
@@ -544,36 +561,6 @@ internal class DialogController(
         else -> null
     }
 
-    private fun NavigationIntent.toBarcodeArgsOrNull(): BarcodeTypeRoute.Args? = when (this) {
-        is NavigationIntent.NavigateToRoute -> (route as? BarcodeTypeRoute)?.args
-        else -> null
-    }
-
-    private fun NavigationIntent.toPasskeyCredentialArgsOrNull(): PasskeysCredentialViewRoute.Args? = when (this) {
-        is NavigationIntent.NavigateToRoute -> (route as? PasskeysCredentialViewRoute)?.args
-        else -> null
-    }
-
-    private fun NavigationIntent.toAttachmentPreviewArgsOrNull(): AttachmentPreviewRoute.Args? = when (this) {
-        is NavigationIntent.NavigateToRoute -> (route as? AttachmentPreviewRoute)?.args
-        else -> null
-    }
-
-    private fun NavigationIntent.toEmailLeakArgsOrNull(): EmailLeakRoute.Args? = when (this) {
-        is NavigationIntent.NavigateToRoute -> (route as? EmailLeakRoute)?.args
-        else -> null
-    }
-
-    private fun NavigationIntent.toPasswordLeakArgsOrNull(): PasswordLeakRoute.Args? = when (this) {
-        is NavigationIntent.NavigateToRoute -> (route as? PasswordLeakRoute)?.args
-        else -> null
-    }
-
-    private fun NavigationIntent.toWebsiteLeakArgsOrNull(): WebsiteLeakRoute.Args? = when (this) {
-        is NavigationIntent.NavigateToRoute -> (route as? WebsiteLeakRoute)?.args
-        else -> null
-    }
-
     // The "Inactive one-time password" / "Inactive passkey" rows navigate to one of
     // these dialog routes; the args carry the full service model, projected here into
     // the same flat snapshot the directory detail screen renders. The projection
@@ -596,110 +583,6 @@ internal class DialogController(
         }
     }
 
-    // A confirmation dialog route is always wrapped by registerRouteResultReceiver,
-    // so the navigated route is an anonymous holder, not the ConfirmationRoute
-    // itself — unwrap it through RouteResultReceiver to recover both the args and
-    // the transmitter that delivers the result back to the registered receiver.
-    private fun NavigationIntent.toCipherLinkPickerOrNull(): Pair<
-        CipherLinkPickerRoute.Args,
-        RouteResultTransmitter<CipherLinkPickerResult>,
-    >? {
-        val route = (this as? NavigationIntent.NavigateToRoute)?.route ?: return null
-        val holder = route as? RouteResultReceiver<*> ?: return null
-        val inner = holder.innerRoute as? CipherLinkPickerRoute ?: return null
-        @Suppress("UNCHECKED_CAST")
-        return inner.args to (holder.resultTransmitter as RouteResultTransmitter<CipherLinkPickerResult>)
-    }
-
-    private fun NavigationIntent.toConfirmationOrNull(): Pair<
-        ConfirmationRoute.Args,
-        RouteResultTransmitter<ConfirmationResult>,
-    >? {
-        val route = (this as? NavigationIntent.NavigateToRoute)?.route ?: return null
-        val holder = route as? RouteResultReceiver<*> ?: return null
-        val inner = holder.innerRoute as? ConfirmationRoute ?: return null
-        @Suppress("UNCHECKED_CAST")
-        return inner.args to (holder.resultTransmitter as RouteResultTransmitter<ConfirmationResult>)
-    }
-
-    private fun NavigationIntent.toTagsConfirmationOrNull(): Pair<
-        TagsConfirmationRoute.Args,
-        RouteResultTransmitter<TagsConfirmationResult>,
-    >? {
-        val route = (this as? NavigationIntent.NavigateToRoute)?.route ?: return null
-        val holder = route as? RouteResultReceiver<*> ?: return null
-        val inner = holder.innerRoute as? TagsConfirmationRoute ?: return null
-        @Suppress("UNCHECKED_CAST")
-        return inner.args to (holder.resultTransmitter as RouteResultTransmitter<TagsConfirmationResult>)
-    }
-
-    // The elevated-access dialog route is likewise wrapped by
-    // registerRouteResultReceiver, so unwrap the holder to recover the transmitter
-    // that delivers the Allow / Deny result back to the registered receiver (which
-    // runs the original copy / reveal / edit once access is granted). The route
-    // carries no args.
-    private fun NavigationIntent.toElevatedAccessOrNull(): RouteResultTransmitter<ElevatedAccessResult>? {
-        val route = (this as? NavigationIntent.NavigateToRoute)?.route ?: return null
-        val holder = route as? RouteResultReceiver<*> ?: return null
-        holder.innerRoute as? ElevatedAccessRoute ?: return null
-        @Suppress("UNCHECKED_CAST")
-        return holder.resultTransmitter as RouteResultTransmitter<ElevatedAccessResult>
-    }
-
-    // The color-picker dialog route is likewise wrapped by registerRouteResultReceiver
-    // (createColorPickerDialogIntent), so unwrap the holder to recover both the args
-    // (the current accent color) and the transmitter that delivers the chosen color
-    // back to the registered receiver (which persists it via PutAccountColorById).
-    private fun NavigationIntent.toColorPickerOrNull(): Pair<
-        ColorPickerRoute.Args,
-        RouteResultTransmitter<ColorPickerResult>,
-    >? {
-        val route = (this as? NavigationIntent.NavigateToRoute)?.route ?: return null
-        val holder = route as? RouteResultReceiver<*> ?: return null
-        val inner = holder.innerRoute as? ColorPickerRoute ?: return null
-        @Suppress("UNCHECKED_CAST")
-        return inner.args to (holder.resultTransmitter as RouteResultTransmitter<ColorPickerResult>)
-    }
-
-    // The ownership "Save to" account picker route is wrapped by
-    // registerRouteResultReceiver (see produceOwnershipFlow), so unwrap the holder to
-    // recover both the args (the current account / flags) and the transmitter that
-    // delivers the chosen ownership back to the registered receiver (which updates the
-    // add form's ownership sink).
-    private fun NavigationIntent.toAccountPickerOrNull(): Pair<
-        OrganizationConfirmationRoute.Args,
-        RouteResultTransmitter<OrganizationConfirmationResult>,
-    >? {
-        val route = (this as? NavigationIntent.NavigateToRoute)?.route ?: return null
-        val holder = route as? RouteResultReceiver<*> ?: return null
-        val inner = holder.innerRoute as? OrganizationConfirmationRoute ?: return null
-        @Suppress("UNCHECKED_CAST")
-        return inner.args to (holder.resultTransmitter as RouteResultTransmitter<OrganizationConfirmationResult>)
-    }
-
-    private fun NavigationIntent.toFolderPickerOrNull(): Pair<
-        FolderConfirmationRoute.Args,
-        RouteResultTransmitter<FolderConfirmationResult>,
-    >? {
-        val route = (this as? NavigationIntent.NavigateToRoute)?.route ?: return null
-        val holder = route as? RouteResultReceiver<*> ?: return null
-        val inner = holder.innerRoute as? FolderConfirmationRoute ?: return null
-        @Suppress("UNCHECKED_CAST")
-        return inner.args to (holder.resultTransmitter as RouteResultTransmitter<FolderConfirmationResult>)
-    }
-
-    // The collection / organization "Info" rows navigate to a plain DialogRoute (not
-    // wrapped in a result receiver), so recover the args directly off the route.
-    private fun NavigationIntent.toCollectionInfoArgsOrNull(): CollectionRoute.Args? = when (this) {
-        is NavigationIntent.NavigateToRoute -> (route as? CollectionRoute)?.args
-        else -> null
-    }
-
-    private fun NavigationIntent.toOrganizationInfoArgsOrNull(): OrganizationRoute.Args? = when (this) {
-        is NavigationIntent.NavigateToRoute -> (route as? OrganizationRoute)?.args
-        else -> null
-    }
-
     /**
      * Registers the SwiftUI sink for the Large Type dialog. The callback receives
      * `null` while hidden and a [LargeTypeSnapshot] once a field's "Show in Large
@@ -716,13 +599,7 @@ internal class DialogController(
 
     private fun presentPasswordMemory(args: PasswordMemoryRoute.Args) {
         passwordMemoryDialog.present { publish ->
-            val intercept: (NavigationIntent) -> Boolean = { intent ->
-                if (intent is NavigationIntent.Pop || intent is NavigationIntent.PopById) {
-                    ctx.scope.launch { closePasswordMemory() }
-                    true
-                } else false
-            }
-            ctx.koin.newHeadlessStateFlowScope("password_memory", this, intercept)
+            ctx.koin.newHeadlessStateFlowScope("password_memory", this, passwordMemoryDialog.closeOnPop())
                 .passwordMemoryStateProducer(args)
                 .collect { state ->
                     publish(PasswordMemorySnapshot(
@@ -1077,25 +954,14 @@ internal class DialogController(
         transmitter: RouteResultTransmitter<ConfirmationResult>,
     ) {
         confirmationDialog.present { publish ->
-            // The producer pops itself (PopById) right before transmitting the
-            // result; catch it and close the sheet. Hop to the main scope and
-            // close async so the transmit line that follows still runs.
+            val closeOnPop = confirmationDialog.closeOnPop()
             val interceptor: (NavigationIntent) -> Boolean = { navIntent ->
-                when (navIntent) {
-                    is NavigationIntent.Pop,
-                    is NavigationIntent.PopById,
-                    -> {
-                        ctx.scope.launch { confirmationDialog.close() }
-                        true
-                    }
-
+                if (navIntent is NavigationIntent.NavigateToBrowser) {
                     // An option's "learn more" link.
-                    is NavigationIntent.NavigateToBrowser -> {
-                        openUrl(navIntent.url)
-                        true
-                    }
-
-                    else -> false
+                    openUrl(navIntent.url)
+                    true
+                } else {
+                    closeOnPop(navIntent)
                 }
             }
             var filePickerStarted = false
@@ -1130,15 +996,7 @@ internal class DialogController(
         transmitter: RouteResultTransmitter<TagsConfirmationResult>,
     ) {
         confirmationDialog.present { publish ->
-            val interceptor: (NavigationIntent) -> Boolean = { intent ->
-                when (intent) {
-                    is NavigationIntent.Pop, is NavigationIntent.PopById -> {
-                        ctx.scope.launch { confirmationDialog.close() }
-                        true
-                    }
-                    else -> false
-                }
-            }
+            val interceptor = confirmationDialog.closeOnPop()
             val leContext = ctx.koin.get<LeContext>()
             ctx.koin.newHeadlessStateFlowScope("tags_confirmation", this, interceptor)
                 .tagsConfirmationStateProducer(args, transmitter)
@@ -1262,18 +1120,7 @@ internal class DialogController(
     ) {
         val leContext = ctx.koin.get<LeContext>()
         elevatedAccessDialog.present { publish ->
-            val interceptor: (NavigationIntent) -> Boolean = { navIntent ->
-                when (navIntent) {
-                    is NavigationIntent.Pop,
-                    is NavigationIntent.PopById,
-                    -> {
-                        ctx.scope.launch { elevatedAccessDialog.close() }
-                        true
-                    }
-
-                    else -> false
-                }
-            }
+            val interceptor = elevatedAccessDialog.closeOnPop()
             var promptHostStarted = false
             ctx.koin.newHeadlessStateFlowScope("elevated_access", this, interceptor)
                 .elevatedAccessStateProducer(
@@ -1562,18 +1409,7 @@ internal class DialogController(
         val leContext = ctx.koin.get<LeContext>()
         colorPickerDialog.present { publish ->
             val title = textResource(Res.string.colorpicker_title, leContext)
-            val interceptor: (NavigationIntent) -> Boolean = { navIntent ->
-                when (navIntent) {
-                    is NavigationIntent.Pop,
-                    is NavigationIntent.PopById,
-                    -> {
-                        ctx.scope.launch { colorPickerDialog.close() }
-                        true
-                    }
-
-                    else -> false
-                }
-            }
+            val interceptor = colorPickerDialog.closeOnPop()
             ctx.koin.newHeadlessStateFlowScope("color_picker", this, interceptor)
                 .colorPickerStateProducer(args, transmitter)
                 .collect { loadable ->
@@ -1585,8 +1421,8 @@ internal class DialogController(
                         ColorSwatchSnapshot(
                             id = id,
                             index = item.key,
-                            argbLight = item.color.light.toArgb().toLong().and(0xFFFFFFFFL),
-                            argbDark = item.color.dark.toArgb().toLong().and(0xFFFFFFFFL),
+                            argbLight = item.color.light.toArgb().toArgbLong(),
+                            argbDark = item.color.dark.toArgb().toArgbLong(),
                         )
                     }
                     publish(
@@ -1732,15 +1568,7 @@ internal class DialogController(
         sessionKoin: Scope,
     ) {
         cipherLinkPickerDialog.present { publish ->
-            val interceptor: (NavigationIntent) -> Boolean = { intent ->
-                when (intent) {
-                    is NavigationIntent.Pop, is NavigationIntent.PopById -> {
-                        ctx.scope.launch { cipherLinkPickerDialog.close() }
-                        true
-                    }
-                    else -> false
-                }
-            }
+            val interceptor = cipherLinkPickerDialog.closeOnPop()
             ctx.koin.newHeadlessStateFlowScope("cipher_link_picker", this, interceptor)
                 .cipherLinkPickerStateProducer(
                     args = args,
@@ -1805,18 +1633,7 @@ internal class DialogController(
     ) {
         accountPickerDialog.present { publish ->
             val title = args.decor.title
-            val interceptor: (NavigationIntent) -> Boolean = { navIntent ->
-                when (navIntent) {
-                    is NavigationIntent.Pop,
-                    is NavigationIntent.PopById,
-                    -> {
-                        ctx.scope.launch { accountPickerDialog.close() }
-                        true
-                    }
-
-                    else -> false
-                }
-            }
+            val interceptor = accountPickerDialog.closeOnPop()
             ctx.koin.newHeadlessStateFlowScope("account_picker", this, interceptor)
                 .organizationConfirmationStateProducer(
                     args = args,
@@ -1892,15 +1709,7 @@ internal class DialogController(
         sessionKoin: Scope,
     ) {
         accountPickerDialog.present { publish ->
-            val interceptor: (NavigationIntent) -> Boolean = { intent ->
-                when (intent) {
-                    is NavigationIntent.Pop, is NavigationIntent.PopById -> {
-                        ctx.scope.launch { accountPickerDialog.close() }
-                        true
-                    }
-                    else -> false
-                }
-            }
+            val interceptor = accountPickerDialog.closeOnPop()
             ctx.koin.newHeadlessStateFlowScope("folder_picker", this, interceptor)
                 .folderConfirmationStateProducer(args, transmitter, sessionKoin.get())
                 .collect { state ->
@@ -1983,32 +1792,8 @@ internal class DialogController(
     /** Translates a producer [FilePickerIntent] into an [AddFilePickerRequest] for Swift. */
     private fun handleConfirmationFilePickerIntent(intent: FilePickerIntent<*>) {
         val requestId = "cfp:${confirmationFilePickerRequestCounter++}"
-        @Suppress("UNCHECKED_CAST")
-        val onResult = intent.onResult as (FilePickerResult?) -> Unit
-        confirmationFilePickerHandlers[requestId] = onResult
-        val request = when (intent) {
-            is FilePickerIntent.OpenDocument -> AddFilePickerRequest(
-                requestId = requestId,
-                kind = AddFilePickerKind.OPEN_DOCUMENT,
-                mimeTypes = intent.mimeTypes.toList(),
-                suggestedName = null,
-            )
-
-            is FilePickerIntent.OpenDirectory -> AddFilePickerRequest(
-                requestId = requestId,
-                kind = AddFilePickerKind.OPEN_DIRECTORY,
-                mimeTypes = emptyList(),
-                suggestedName = null,
-            )
-
-            is FilePickerIntent.NewDocument -> AddFilePickerRequest(
-                requestId = requestId,
-                kind = AddFilePickerKind.NEW_DOCUMENT,
-                mimeTypes = listOf(intent.mimeType),
-                suggestedName = intent.fileName,
-            )
-        }
-        onConfirmationFilePickerRequest?.invoke(request)
+        confirmationFilePickerHandlers[requestId] = intent.onFilePickerResult
+        onConfirmationFilePickerRequest?.invoke(intent.toFilePickerRequest(requestId, ::AddFilePickerRequest))
     }
 
     private fun buildConfirmationSnapshot(

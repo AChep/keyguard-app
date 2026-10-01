@@ -9,8 +9,7 @@ struct PasswordMemoryView: View {
             title: L10n.passwordActionTestMemoryTitle,
             width: 420,
             height: 280,
-            detents: [.medium, .large],
-            dismissLabel: L10n.close
+            detents: [.medium, .large]
         ) {
             if let snapshot = dialogsModel.passwordMemory {
                 ScrollView {

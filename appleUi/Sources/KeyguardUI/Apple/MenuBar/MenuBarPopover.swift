@@ -26,27 +26,13 @@ public struct MenuBarPopover: View {
     /// - `main: false` — `VaultRoute.Args().main` defaults to `false` (it only
     ///   gates the deeplinked-custom-filter flow, a main-list concern the popover
     ///   never renders);
-    /// - `canAddSecrets: true` — `VaultRoute.Args().canAddSecrets` defaults to
-    ///   `true` (the popover renders no create affordance, so it is inert here);
-    /// - no title / trash / archive / sort override / password-search — all the
-    ///   `VaultRoute.Args()` defaults.
+    /// - every other field keeps the `VaultRoute.Args()` default.
     ///
     /// The session always runs `AppMode.Main` internally, matching the
     /// controller's `mode = AppMode.Main`, so the popover shares the main list's
     /// already-decrypted cipher universe (cheap) while keeping its own scope.
     private var menuConfig: VaultListSessionConfig {
-        VaultListSessionConfig(
-            persistenceScope: "menuvaultlist",
-            appBarTitle: "",
-            appBarSubtitle: "",
-            trash: 0,
-            archive: 0,
-            sortOverrideId: "",
-            main: false,
-            searchByPassword: false,
-            canAddSecrets: true,
-            cipherFilterId: ""
-        )
+        .vaultMain(persistenceScope: "menuvaultlist", main: false)
     }
 
     /// Only real cipher rows are shown in the popover (no section / button / empty

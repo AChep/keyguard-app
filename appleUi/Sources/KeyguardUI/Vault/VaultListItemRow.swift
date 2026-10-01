@@ -380,19 +380,10 @@ private extension VaultRowBadge.Kind {
     }
 }
 
-/// Decodes a packed ARGB accent (`0` = no accent) into a SwiftUI `Color` —
-/// the twin of `cipherColor(_:)`, over the raw `Int32` the pure-Swift
-/// vocabulary carries instead of a bridged `KotlinInt`.
+/// Decodes a packed ARGB accent (`0` = no accent) into a SwiftUI `Color`.
 func vaultAccentColor(_ argb: Int32) -> Color? {
     guard argb != 0 else { return nil }
-    let value = UInt32(bitPattern: argb)
-    return Color(
-        .sRGB,
-        red: Double((value >> 16) & 0xFF) / 255.0,
-        green: Double((value >> 8) & 0xFF) / 255.0,
-        blue: Double(value & 0xFF) / 255.0,
-        opacity: Double((value >> 24) & 0xFF) / 255.0
-    )
+    return Color(argb: UInt32(bitPattern: argb))
 }
 
 private struct TotpBadgeCell: View {

@@ -119,4 +119,18 @@ struct VaultListConfig {
         )
         #endif
     }
+
+    /// Configuration for a stacked filtered list or a custom-filter tab: tap
+    /// opens the row, no multi-select, row context menus on, no iOS sync-status
+    /// header, no quick-filter chips.
+    static var stacked: VaultListConfig {
+        VaultListConfig(
+            rowTap: .open,
+            supportsMultiSelect: false,
+            contextMenu: true,
+            syncHeader: false,
+            quickFilters: false,
+            usesNativeEmptyState: true
+        )
+    }
 }

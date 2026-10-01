@@ -1,5 +1,6 @@
 import Foundation
 import KeyguardShared
+import OSLog
 
 /// Sendable Swift value types used by the vault-list bridge.
 
@@ -649,6 +650,9 @@ private func unpackHighlightTriplets(_ flat: [KotlinInt]) -> [VaultQueryHighligh
 
 // MARK: - Logging
 
+private let vaultLogger = Logger(subsystem: "com.artemchep.keyguard", category: "VaultList")
+
 func vaultLog(_ message: @autoclosure () -> String) {
-    print("[Keyguard][vaultList][swift] \(message())")
+    let message = message()
+    vaultLogger.warning("\(message)")
 }

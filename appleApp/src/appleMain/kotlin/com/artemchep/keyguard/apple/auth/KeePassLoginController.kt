@@ -10,17 +10,18 @@ import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.feature.navigation.RouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.webdav.WebDavSettingsResult
 import com.artemchep.keyguard.feature.webdav.WebDavSettingsRoute
 import com.artemchep.keyguard.feature.webdav.WebDavSettingsState
 import com.artemchep.keyguard.feature.webdav.webDavSettingsStateProducer
-import com.artemchep.keyguard.apple.add.AddFilePickerKind
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
+import com.artemchep.keyguard.apple.core.resultRouteOrNull
 import com.artemchep.keyguard.apple.core.filePickerResultOf
+import com.artemchep.keyguard.apple.core.onFilePickerResult
+import com.artemchep.keyguard.apple.core.toFilePickerRequest
 import com.artemchep.keyguard.apple.model.toFieldSnapshot
 import com.artemchep.keyguard.apple.throttleLatest
 import com.artemchep.keyguard.platform.LeContext
@@ -105,7 +106,7 @@ internal class KeePassLoginController(
             // result receiver) when the user picks the WebDAV location; claim it
             // and run the settings producer as a child instead of dropping it.
             val interceptor = interceptor@{ intent: NavigationIntent ->
-                val webdav = intent.toWebDavSettingsOrNull()
+                val webdav = intent.resultRouteOrNull<WebDavSettingsRoute, WebDavSettingsResult>()
                     ?: return@interceptor false
                 val (route, transmitter) = webdav
                 startWebDavSettings(
@@ -315,32 +316,8 @@ internal class KeePassLoginController(
     /** Translates a producer [FilePickerIntent] into a [KeePassFilePickerRequest] for Swift. */
     private fun handleFilePickerIntent(intent: FilePickerIntent<*>) {
         val requestId = "kfp:${filePickerRequestCounter++}"
-        @Suppress("UNCHECKED_CAST")
-        val onResult = intent.onResult as (FilePickerResult?) -> Unit
-        filePickerHandlers[requestId] = onResult
-        val request = when (intent) {
-            is FilePickerIntent.OpenDocument -> KeePassFilePickerRequest(
-                requestId = requestId,
-                kind = AddFilePickerKind.OPEN_DOCUMENT,
-                mimeTypes = intent.mimeTypes.toList(),
-                suggestedName = null,
-            )
-
-            is FilePickerIntent.OpenDirectory -> KeePassFilePickerRequest(
-                requestId = requestId,
-                kind = AddFilePickerKind.OPEN_DIRECTORY,
-                mimeTypes = emptyList(),
-                suggestedName = null,
-            )
-
-            is FilePickerIntent.NewDocument -> KeePassFilePickerRequest(
-                requestId = requestId,
-                kind = AddFilePickerKind.NEW_DOCUMENT,
-                mimeTypes = listOf(intent.mimeType),
-                suggestedName = intent.fileName,
-            )
-        }
-        onFilePickerRequest?.invoke(request)
+        filePickerHandlers[requestId] = intent.onFilePickerResult
+        onFilePickerRequest?.invoke(intent.toFilePickerRequest(requestId, ::KeePassFilePickerRequest))
     }
 
     /**
@@ -370,17 +347,6 @@ internal class KeePassLoginController(
     // ------------------------------------------------------------------
     // WebDAV settings child producer
     // ------------------------------------------------------------------
-
-    private fun NavigationIntent.toWebDavSettingsOrNull(): Pair<
-        WebDavSettingsRoute,
-        RouteResultTransmitter<WebDavSettingsResult>,
-    >? {
-        val route = (this as? NavigationIntent.NavigateToRoute)?.route ?: return null
-        val holder = route as? RouteResultReceiver<*> ?: return null
-        val inner = holder.innerRoute as? WebDavSettingsRoute ?: return null
-        @Suppress("UNCHECKED_CAST")
-        return inner to (holder.resultTransmitter as RouteResultTransmitter<WebDavSettingsResult>)
-    }
 
     private fun startWebDavSettings(
         sessionScope: CoroutineScope,

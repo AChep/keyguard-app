@@ -21,12 +21,13 @@ import com.artemchep.keyguard.apple.model.ActionKeyAllocator
 import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import org.koin.core.scope.Scope
 
 /**
@@ -137,12 +138,9 @@ internal class GeneratorController(
             }
             // Single shared copy of the latest top-level state; the
             // producer is cold, so fan out from one StateFlow.
-            val latest = MutableStateFlow<GeneratorState?>(null)
-            launch {
-                producerFlow.collect { loadable ->
-                    latest.value = loadable.getOrNull()
-                }
-            }
+            val latest = producerFlow
+                .map { loadable -> loadable.getOrNull() }
+                .stateIn(this, SharingStarted.Eagerly, null)
 
             // Suggestions are regenerated wholesale (refresh, type switch), so
             // their ids carry a generation: a tap on the previous list misses

@@ -9,9 +9,7 @@ struct DetailActionMenu: View {
     var body: some View {
         if !actions.isEmpty {
             Menu {
-                ForEach(actions, id: \.id) { action in
-                    Button(action.title) { invoke(action.id) }
-                }
+                listActionMenuItems(actions: actions) { invoke($0) }
             } label: {
                 Label(L10n.moreActions, systemImage: "ellipsis")
                     .labelStyle(.iconOnly)
@@ -21,6 +19,20 @@ struct DetailActionMenu: View {
             .buttonStyle(.borderless)
             .menuIndicator(.hidden)
             .help(L10n.moreActions)
+        }
+    }
+}
+
+/// A row's actions as inline bordered buttons; destructive ones render red.
+struct BorderedActionButtons: View {
+    let actions: [VaultActionSnapshot]
+    let invoke: (String) -> Void
+
+    var body: some View {
+        ForEach(actions, id: \.id) { action in
+            Button(action.title, role: action.danger ? .destructive : nil) { invoke(action.id) }
+                .buttonStyle(.bordered)
+                .touchTarget()
         }
     }
 }

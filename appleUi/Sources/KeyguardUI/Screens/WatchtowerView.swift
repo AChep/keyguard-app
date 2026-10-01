@@ -187,15 +187,7 @@ struct WatchtowerView: View {
         }
         if !watchtower.options.isEmpty {
             ToolbarItem {
-                Menu {
-                    ForEach(watchtower.options, id: \.id) { option in
-                        Button(option.title) {
-                            invokeAction(id: option.id)
-                        }
-                    }
-                } label: {
-                    Label(L10n.moreActions, systemImage: "ellipsis.circle")
-                }
+                WatchtowerOptionsToolbarButton(options: watchtower.options, invoke: { invokeAction(id: $0) })
             }
         }
     }
@@ -441,6 +433,7 @@ private struct WatchtowerFilterToolbarButton: View {
         )
     }
 }
+#endif
 
 private struct WatchtowerOptionsToolbarButton: View {
     let options: [WatchtowerOptionSnapshot]
@@ -458,4 +451,3 @@ private struct WatchtowerOptionsToolbarButton: View {
         }
     }
 }
-#endif

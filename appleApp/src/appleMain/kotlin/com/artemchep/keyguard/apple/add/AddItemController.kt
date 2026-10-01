@@ -46,7 +46,10 @@ import kotlinx.datetime.toLocalDateTime
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
+import com.artemchep.keyguard.apple.core.resultRouteOrNull
 import com.artemchep.keyguard.apple.core.filePickerResultOf
+import com.artemchep.keyguard.apple.core.onFilePickerResult
+import com.artemchep.keyguard.apple.core.toFilePickerRequest
 import com.artemchep.keyguard.apple.model.ActionKeyAllocator
 import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.apple.model.toFieldSnapshot
@@ -282,23 +285,20 @@ internal class AddItemController(
         }
     }
 
+    /** Presents a day picker above a feature screen rather than an add form. */
+    internal fun interceptDateTimePicker(intent: NavigationIntent): Boolean {
+        val (route, transmitter) = intent.resultRouteOrNull<DateDayPickerRoute, DateDayPickerResult>()
+            ?: return false
+        ctx.scope.launch { presentDatePicker(route.args, transmitter, presentsInAddForm = false) }
+        return true
+    }
+
     /**
      * Builds the composed interceptor for an add-form producer running with [sessionKoin]:
      * the bridge's own [dateTimeInterceptor] (date / time pickers) plus the late-bound
      * dialog interceptor (the ownership account picker). Date / time pickers take
      * precedence; whatever neither claims is dropped, as before.
      */
-    /** Presents a day picker above a feature screen rather than an add form. */
-    internal fun interceptDateTimePicker(intent: NavigationIntent): Boolean {
-        val route = (intent as? NavigationIntent.NavigateToRoute)?.route
-        val holder = route as? RouteResultReceiver<*> ?: return false
-        val inner = holder.innerRoute as? DateDayPickerRoute ?: return false
-        @Suppress("UNCHECKED_CAST")
-        val transmitter = holder.resultTransmitter as RouteResultTransmitter<DateDayPickerResult>
-        ctx.scope.launch { presentDatePicker(inner.args, transmitter, presentsInAddForm = false) }
-        return true
-    }
-
     private fun addInterceptor(
         sessionKoin: Scope,
         screenId: String,
@@ -1072,32 +1072,8 @@ internal class AddItemController(
     /** Translates a producer [FilePickerIntent] into an [AddFilePickerRequest] for Swift. */
     fun handleFilePickerIntent(intent: FilePickerIntent<*>) {
         val requestId = "fp:${addFilePickerRequestCounter++}"
-        @Suppress("UNCHECKED_CAST")
-        val onResult = intent.onResult as (FilePickerResult?) -> Unit
-        addFilePickerHandlers[requestId] = onResult
-        val request = when (intent) {
-            is FilePickerIntent.OpenDocument -> AddFilePickerRequest(
-                requestId = requestId,
-                kind = AddFilePickerKind.OPEN_DOCUMENT,
-                mimeTypes = intent.mimeTypes.toList(),
-                suggestedName = null,
-            )
-
-            is FilePickerIntent.OpenDirectory -> AddFilePickerRequest(
-                requestId = requestId,
-                kind = AddFilePickerKind.OPEN_DIRECTORY,
-                mimeTypes = emptyList(),
-                suggestedName = null,
-            )
-
-            is FilePickerIntent.NewDocument -> AddFilePickerRequest(
-                requestId = requestId,
-                kind = AddFilePickerKind.NEW_DOCUMENT,
-                mimeTypes = listOf(intent.mimeType),
-                suggestedName = intent.fileName,
-            )
-        }
-        onAddFilePickerRequest?.invoke(request)
+        addFilePickerHandlers[requestId] = intent.onFilePickerResult
+        onAddFilePickerRequest?.invoke(intent.toFilePickerRequest(requestId, ::AddFilePickerRequest))
     }
 
     /**

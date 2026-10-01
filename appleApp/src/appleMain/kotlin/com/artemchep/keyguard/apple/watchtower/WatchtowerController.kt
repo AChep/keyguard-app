@@ -41,7 +41,7 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
@@ -51,7 +51,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.compose.resources.StringResource
 import org.koin.core.scope.Scope
 
@@ -138,10 +138,7 @@ internal class WatchtowerController(
             }
             // Single shared copy of the latest top-level state; the
             // producer is cold, so fan out from one StateFlow.
-            val latest = MutableStateFlow<WatchtowerState?>(null)
-            launch {
-                producerFlow.collect { wt -> latest.value = wt }
-            }
+            val latest = producerFlow.stateIn<WatchtowerState?>(this, SharingStarted.Eagerly, null)
 
             // The live counters live behind inner StateFlows in
             // the state's Content that the top-level state does NOT

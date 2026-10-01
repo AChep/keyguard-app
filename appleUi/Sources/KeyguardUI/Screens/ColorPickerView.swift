@@ -12,8 +12,7 @@ struct ColorPickerView: View {
             title: dialogsModel.colorPicker?.title ?? L10n.colorpickerTitle,
             width: 460,
             height: 360,
-            detents: [.medium],
-            dismissLabel: L10n.close
+            detents: [.medium]
         ) {
             if let snapshot = dialogsModel.colorPicker {
                 content(snapshot)
@@ -43,8 +42,9 @@ struct ColorPickerView: View {
     }
 
     private func swatch(_ item: ColorSwatchSnapshot, selected: Bool) -> some View {
-        let argb = colorScheme == .dark ? item.argbDark : item.argbLight
-        let color = swatchColor(argb)
+        // The bridge masks the 32-bit ARGB value into a non-negative `Int64`.
+        let argb = UInt32(truncatingIfNeeded: colorScheme == .dark ? item.argbDark : item.argbLight)
+        let color = Color(argb: argb)
         return Button {
             dialogsModel.selectColorPickerSwatch(id: item.id)
         } label: {
@@ -66,20 +66,7 @@ struct ColorPickerView: View {
         .buttonStyle(.plain)
         // The palette has no localized color names. Expose its displayed RGB
         // value so every swatch remains distinguishable with VoiceOver.
-        .accessibilityLabel(Text(verbatim: String(format: "#%06X", UInt32(truncatingIfNeeded: argb) & 0xFFFFFF)))
+        .accessibilityLabel(Text(verbatim: String(format: "#%06X", argb & 0xFFFFFF)))
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
-    }
-
-    /// Decodes a packed ARGB long (from Compose's `Color.toArgb()`) into a SwiftUI
-    /// `Color`. Mirrors `cipherColor` but takes the 32-bit value already masked to a
-    /// non-negative `Int64` by the bridge.
-    private func swatchColor(_ argb: Int64) -> Color {
-        Color(
-            .sRGB,
-            red: Double((argb >> 16) & 0xFF) / 255.0,
-            green: Double((argb >> 8) & 0xFF) / 255.0,
-            blue: Double(argb & 0xFF) / 255.0,
-            opacity: Double((argb >> 24) & 0xFF) / 255.0
-        )
     }
 }

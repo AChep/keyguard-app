@@ -56,25 +56,16 @@
     <ID>LoopWithTooManyJumpStatements:AuthSnapshots.kt:for</ID>
     <ID>LoopWithTooManyJumpStatements:GpgAgentRuntimeMacos.kt:MacosGpgIpcServer$while</ID>
     <ID>LoopWithTooManyJumpStatements:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$while</ID>
-    <ID>ReturnCount:AddItemController.kt:AddItemController$internal fun interceptDateTimePicker: Boolean</ID>
     <ID>ReturnCount:AuthPromptHost.kt:AuthPromptHost$private fun String.hexToByteArrayOrNull: ByteArray?</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$private suspend fun suggestions: List&lt;AutofillSuggestionSnapshot&gt;</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$suspend fun loadAutofillCredential: AutofillCredentialSnapshot?</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$suspend fun loadOneTimeCode: String?</ID>
     <ID>ReturnCount:BackupsController.kt:BackupsController$fun setBackupStoreKind</ID>
-    <ID>ReturnCount:DialogController.kt:DialogController$private fun NavigationIntent.toAccountPickerOrNull: Pair&lt; OrganizationConfirmationRoute.Args, RouteResultTransmitter&lt;OrganizationConfirmationResult&gt;, &gt;?</ID>
-    <ID>ReturnCount:DialogController.kt:DialogController$private fun NavigationIntent.toCipherLinkPickerOrNull: Pair&lt; CipherLinkPickerRoute.Args, RouteResultTransmitter&lt;CipherLinkPickerResult&gt;, &gt;?</ID>
-    <ID>ReturnCount:DialogController.kt:DialogController$private fun NavigationIntent.toColorPickerOrNull: Pair&lt; ColorPickerRoute.Args, RouteResultTransmitter&lt;ColorPickerResult&gt;, &gt;?</ID>
-    <ID>ReturnCount:DialogController.kt:DialogController$private fun NavigationIntent.toConfirmationOrNull: Pair&lt; ConfirmationRoute.Args, RouteResultTransmitter&lt;ConfirmationResult&gt;, &gt;?</ID>
-    <ID>ReturnCount:DialogController.kt:DialogController$private fun NavigationIntent.toElevatedAccessOrNull: RouteResultTransmitter&lt;ElevatedAccessResult&gt;?</ID>
-    <ID>ReturnCount:DialogController.kt:DialogController$private fun NavigationIntent.toFolderPickerOrNull: Pair&lt; FolderConfirmationRoute.Args, RouteResultTransmitter&lt;FolderConfirmationResult&gt;, &gt;?</ID>
-    <ID>ReturnCount:DialogController.kt:DialogController$private fun NavigationIntent.toTagsConfirmationOrNull: Pair&lt; TagsConfirmationRoute.Args, RouteResultTransmitter&lt;TagsConfirmationResult&gt;, &gt;?</ID>
     <ID>ReturnCount:GpgAgentRuntimeMacos.kt:@OptIn(ExperimentalForeignApi::class) private suspend fun readFully: ByteArray?</ID>
     <ID>ReturnCount:GpgAgentRuntimeMacos.kt:@OptIn(ExperimentalForeignApi::class) private suspend fun writeFully: Boolean</ID>
     <ID>ReturnCount:GpgAgentRuntimeMacos.kt:internal suspend fun readPacket: ByteArray?</ID>
     <ID>ReturnCount:GpgToolsController.kt:GpgToolsController$fun finishGpgToolsPublicKey</ID>
     <ID>ReturnCount:GpgToolsController.kt:GpgToolsController$fun prepareGpgToolsExport</ID>
-    <ID>ReturnCount:KeePassLoginController.kt:KeePassLoginController$private fun NavigationIntent.toWebDavSettingsOrNull: Pair&lt; WebDavSettingsRoute, RouteResultTransmitter&lt;WebDavSettingsResult&gt;, &gt;?</ID>
     <ID>ReturnCount:PasskeyController.kt:PasskeyController$suspend fun assertPasskey: PasskeyAssertionSnapshot?</ID>
     <ID>ReturnCount:PasskeyController.kt:PasskeyController$suspend fun createPasskey: PasskeyRegistrationSnapshot?</ID>
     <ID>ReturnCount:QuickCopyController.kt:QuickCopyController$suspend fun quickCopyCipherField</ID>

@@ -24,6 +24,17 @@ public extension Color {
         #endif
     }
 
+    /// Decodes a packed sRGB ARGB value (Compose's `Color.toArgb()`).
+    internal init(argb: UInt32) {
+        self.init(
+            .sRGB,
+            red: Double((argb >> 16) & 0xFF) / 255.0,
+            green: Double((argb >> 8) & 0xFF) / 255.0,
+            blue: Double(argb & 0xFF) / 255.0,
+            opacity: Double((argb >> 24) & 0xFF) / 255.0
+        )
+    }
+
     var contrastingTextColor: Color {
         let (r, g, b, _) = PlatformColor(self).rgbaComponents()
         // WCAG relative luminance: linearize each sRGB component, then weight.

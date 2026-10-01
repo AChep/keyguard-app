@@ -9,8 +9,7 @@ struct InfoDialogView: View {
             title: dialogsModel.infoDialog?.title ?? "",
             width: 460,
             height: 300,
-            detents: [.medium],
-            dismissLabel: L10n.close
+            detents: [.medium]
         ) {
             if let snapshot = dialogsModel.infoDialog {
                 content(snapshot)

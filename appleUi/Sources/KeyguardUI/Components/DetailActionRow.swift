@@ -54,11 +54,7 @@ struct DetailActionRow: View {
                 }
                 if !item.actions.isEmpty {
                     FlowLayout(spacing: 8, clampsToWidth: true) {
-                        ForEach(item.actions, id: \.id) { action in
-                            Button(action.title) { invoke(action.id) }
-                                .buttonStyle(.bordered)
-                                .touchTarget()
-                        }
+                        BorderedActionButtons(actions: item.actions, invoke: invoke)
                     }
                 }
             }

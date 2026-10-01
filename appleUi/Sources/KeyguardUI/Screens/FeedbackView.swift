@@ -81,8 +81,7 @@ struct FeedbackSheet: View {
             title: L10n.contactusHeaderTitle,
             width: 460,
             height: 420,
-            detents: [.large],
-            dismissLabel: L10n.close
+            detents: [.large]
         ) {
             FeedbackFormContent(snapshot: snapshot, draft: $draft) {
                 feedbackModel.setFeedbackMessage($0)

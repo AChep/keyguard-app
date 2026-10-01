@@ -260,7 +260,7 @@ struct GpgToolsView: View {
                 L10n.input,
                 selection: Binding(
                     get: { gpgTools.scope },
-                    set: { value in MainActor.assumeIsolated { gpgToolsModel.setGpgToolsScope(value) } }
+                    set: { value in gpgToolsModel.setGpgToolsScope(value) }
                 )
             ) {
                 ForEach(gpgTools.scopes, id: \.key) { Text($0.title).tag($0.key) }
@@ -338,7 +338,7 @@ struct GpgToolsView: View {
                 L10n.gpgToolsFormatLabel,
                 selection: Binding(
                     get: { gpgTools.signMode },
-                    set: { value in MainActor.assumeIsolated { gpgToolsModel.setGpgToolsSignMode(value) } }
+                    set: { value in gpgToolsModel.setGpgToolsSignMode(value) }
                 )
             ) {
                 ForEach(gpgTools.signModes, id: \.key) { Text($0.title).tag($0.key) }
@@ -350,7 +350,7 @@ struct GpgToolsView: View {
                 L10n.gpgToolsFormatLabel,
                 selection: Binding(
                     get: { gpgTools.verifyMode },
-                    set: { value in MainActor.assumeIsolated { gpgToolsModel.setGpgToolsVerifyMode(value) } }
+                    set: { value in gpgToolsModel.setGpgToolsVerifyMode(value) }
                 )
             ) {
                 ForEach(gpgTools.verifyModes, id: \.key) { Text($0.title).tag($0.key) }
@@ -362,7 +362,7 @@ struct GpgToolsView: View {
                 L10n.gpgToolsArmorLabel,
                 isOn: Binding(
                     get: { gpgTools.armor },
-                    set: { value in MainActor.assumeIsolated { gpgToolsModel.setGpgToolsArmor(value) } }
+                    set: { value in gpgToolsModel.setGpgToolsArmor(value) }
                 )
             )
             .disabled(busy)
@@ -408,7 +408,7 @@ struct GpgToolsView: View {
                     L10n.gpgToolsSignWith,
                     selection: Binding<String?>(
                         get: { signingKeyId },
-                        set: { value in MainActor.assumeIsolated { selectSigningKey(value) } }
+                        set: { value in selectSigningKey(value) }
                     )
                 ) {
                     Text(operation == "encrypt" ? L10n.gpgToolsSignNone : L10n.gpgToolsChooseSigningKey)

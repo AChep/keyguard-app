@@ -587,9 +587,7 @@ struct AccountSelectionBar: View {
 
             if !snapshot.selectionActions.isEmpty {
                 Menu {
-                    ForEach(snapshot.selectionActions, id: \.id) { action in
-                        Button(action.title) { invoke(action.id) }
-                    }
+                    listActionMenuItems(actions: snapshot.selectionActions) { invoke($0) }
                 } label: {
                     Image(systemName: "ellipsis.circle")
                         .font(.title3)

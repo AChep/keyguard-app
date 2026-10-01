@@ -173,7 +173,9 @@ internal class GpgToolsFiles(
                     }
                 }
             }
-            check(manager.createDirectoryAtPath(path, true, mapOf(NSFilePosixPermissions to 448), null))
+            check(manager.createDirectoryAtPath(
+                path, true, mapOf(NSFilePosixPermissions to PRIVATE_DIRECTORY_PERMISSIONS), null,
+            ))
             path
         }
     }

@@ -371,11 +371,7 @@ struct DetailRow: View {
                 )
             }
         } accessories: {
-            ForEach(item.actions, id: \.id) { action in
-                Button(action.title) { invoke(action.id) }
-                    .buttonStyle(.bordered)
-                    .touchTarget()
-            }
+            BorderedActionButtons(actions: item.actions, invoke: invoke)
         }
     }
 
@@ -460,11 +456,7 @@ struct DetailRow: View {
     @ViewBuilder
     private func quickActionsRow(_ item: VaultItemSnapshot) -> some View {
         FlowLayout(spacing: 8, clampsToWidth: true) {
-            ForEach(item.actions, id: \.id) { action in
-                Button(action.title) { invoke(action.id) }
-                    .buttonStyle(.bordered)
-                    .touchTarget()
-            }
+            BorderedActionButtons(actions: item.actions, invoke: invoke)
         }
     }
 

@@ -144,7 +144,7 @@ struct GpgAgentSettingsSections: View {
                 title,
                 selection: Binding(
                     get: { options.first(where: { $0.selected })?.id ?? "" },
-                    set: { value in MainActor.assumeIsolated { set(value) } }
+                    set: { value in set(value) }
                 )
             ) {
                 ForEach(options, id: \.id) { option in Text(option.title).tag(option.id) }

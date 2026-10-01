@@ -401,95 +401,57 @@ internal class LoginController(
             placeholder = null,
         )
 
-        fun fallback() = TwofaSnapshot(
+        // Each kind starts from the empty snapshot and sets only the fields it shows.
+        val base = TwofaSnapshot.empty.copy(
             providers = providers,
-            kind = TwofaKind.FALLBACK,
-            code = null,
-            emailNote = null,
-            canResend = false,
-            rememberMe = false,
-            rememberMeEnabled = false,
-            fallbackTitle = providers.firstOrNull { it.checked }?.title,
-            webVaultUrl = args.env.buildWebVaultUrl(),
-            primaryActionText = null,
-            canSubmit = false,
             isLoading = isLoading,
         )
 
+        fun fallback() = base.copy(
+            kind = TwofaKind.FALLBACK,
+            fallbackTitle = providers.firstOrNull { it.checked }?.title,
+            webVaultUrl = args.env.buildWebVaultUrl(),
+        )
+
         return when (val s = twofa.state) {
-            is BitwardenLoginTwofaState.Skeleton -> TwofaSnapshot(
-                providers = providers,
+            is BitwardenLoginTwofaState.Skeleton -> base.copy(
                 kind = TwofaKind.SKELETON,
-                code = null,
-                emailNote = null,
-                canResend = false,
-                rememberMe = false,
-                rememberMeEnabled = false,
-                fallbackTitle = null,
-                webVaultUrl = null,
-                primaryActionText = null,
-                canSubmit = false,
-                isLoading = isLoading,
             )
 
-            is BitwardenLoginTwofaState.Authenticator -> TwofaSnapshot(
-                providers = providers,
+            is BitwardenLoginTwofaState.Authenticator -> base.copy(
                 kind = TwofaKind.AUTHENTICATOR,
                 code = codeField(s.code),
-                emailNote = null,
-                canResend = false,
                 rememberMe = s.rememberMe.checked,
                 rememberMeEnabled = s.rememberMe.onChange != null,
-                fallbackTitle = null,
-                webVaultUrl = null,
                 primaryActionText = s.primaryAction?.text,
                 canSubmit = s.primaryAction?.onClick != null,
-                isLoading = isLoading,
             )
 
-            is BitwardenLoginTwofaState.Email -> TwofaSnapshot(
-                providers = providers,
+            is BitwardenLoginTwofaState.Email -> base.copy(
                 kind = TwofaKind.EMAIL,
                 code = codeField(s.code),
                 emailNote = s.email,
                 canResend = s.emailResend != null,
                 rememberMe = s.rememberMe.checked,
                 rememberMeEnabled = s.rememberMe.onChange != null,
-                fallbackTitle = null,
-                webVaultUrl = null,
                 primaryActionText = s.primaryAction?.text,
                 canSubmit = s.primaryAction?.onClick != null,
-                isLoading = isLoading,
             )
 
-            is BitwardenLoginTwofaState.EmailNewDevice -> TwofaSnapshot(
-                providers = providers,
+            is BitwardenLoginTwofaState.EmailNewDevice -> base.copy(
                 kind = TwofaKind.EMAIL_NEW_DEVICE,
                 code = codeField(s.code),
                 emailNote = s.email,
                 canResend = s.emailResend != null,
-                rememberMe = false,
-                rememberMeEnabled = false,
-                fallbackTitle = null,
-                webVaultUrl = null,
                 primaryActionText = s.primaryAction?.text,
                 canSubmit = s.primaryAction?.onClick != null,
-                isLoading = isLoading,
             )
 
-            is BitwardenLoginTwofaState.YubiKey -> TwofaSnapshot(
-                providers = providers,
+            is BitwardenLoginTwofaState.YubiKey -> base.copy(
                 kind = TwofaKind.YUBIKEY,
-                code = null,
-                emailNote = null,
-                canResend = false,
                 rememberMe = s.rememberMe.checked,
                 rememberMeEnabled = s.rememberMe.onChange != null,
-                fallbackTitle = null,
-                webVaultUrl = null,
-                primaryActionText = null,
                 canSubmit = s.onComplete != null,
-                isLoading = isLoading,
             )
 
             is BitwardenLoginTwofaState.Unsupported -> fallback()

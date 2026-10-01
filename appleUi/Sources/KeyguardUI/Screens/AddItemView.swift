@@ -417,7 +417,7 @@ private struct AddItemRow: View {
         } else if kind == AddItemKind.fieldLinkedId {
             linkedIdRow
         } else if kind == AddItemKind.tag {
-            fieldsWithOptions
+            customFieldRow
         } else if kind == AddItemKind.passkey {
             passkeyRow
         } else if kind == AddItemKind.attachment {
@@ -561,17 +561,6 @@ private struct AddItemRow: View {
                 }
                 if let value = item.enumValue, !item.options.isEmpty {
                     dropdown(title: value, options: item.options)
-                }
-            }
-            overflowMenu(item.actions)
-        }
-    }
-
-    private var fieldsWithOptions: some View {
-        HStack(alignment: .top, spacing: 8) {
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(item.fields, id: \.id) { field in
-                    fieldEditor(field: field, fallbackLabel: nil)
                 }
             }
             overflowMenu(item.actions)

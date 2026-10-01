@@ -54,13 +54,7 @@ final class AppPreferencesModel: SnapshotObserving {
     /// The "Accent color" preference; `nil` keeps the system accent.
     var accentColor: Color? {
         guard let argb = appPreferences.accentArgb?.int64Value else { return nil }
-        return Color(
-            .sRGB,
-            red: Double((argb >> 16) & 0xFF) / 255.0,
-            green: Double((argb >> 8) & 0xFF) / 255.0,
-            blue: Double(argb & 0xFF) / 255.0,
-            opacity: Double((argb >> 24) & 0xFF) / 255.0
-        )
+        return Color(argb: UInt32(truncatingIfNeeded: argb))
     }
 
     func startAppearanceSettingsObservation() {

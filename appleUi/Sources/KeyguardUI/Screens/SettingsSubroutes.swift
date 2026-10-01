@@ -174,8 +174,8 @@ struct SecuritySettingsView: View {
         _ set: @escaping @MainActor @Sendable (Bool) -> Void
     ) -> Binding<Bool> {
         Binding(
-            get: { MainActor.assumeIsolated { get() } },
-            set: { value in MainActor.assumeIsolated { set(value) } }
+            get: { get() },
+            set: { value in set(value) }
         )
     }
 
@@ -733,8 +733,8 @@ struct WatchtowerSettingsView: View {
         _ set: @escaping @MainActor @Sendable (Bool) -> Void
     ) -> Binding<Bool> {
         Binding(
-            get: { MainActor.assumeIsolated { get() } },
-            set: { value in MainActor.assumeIsolated { set(value) } }
+            get: { get() },
+            set: { value in set(value) }
         )
     }
 
@@ -938,8 +938,8 @@ struct DisplaySettingsView: View {
         _ set: @escaping @MainActor @Sendable (Bool) -> Void
     ) -> Binding<Bool> {
         Binding(
-            get: { MainActor.assumeIsolated { get() } },
-            set: { value in MainActor.assumeIsolated { set(value) } }
+            get: { get() },
+            set: { value in set(value) }
         )
     }
 

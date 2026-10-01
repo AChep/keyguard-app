@@ -88,9 +88,7 @@ struct FieldCell<Content: View, Accessories: View>: View {
                 .textSelection(.enabled)
         } else {
             Menu {
-                ForEach(actions, id: \.id) { action in
-                    Button(action.title) { invoke(action.id) }
-                }
+                listActionMenuItems(actions: actions) { invoke($0) }
             } label: {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     content()

@@ -5,7 +5,6 @@ import com.artemchep.keyguard.common.usecase.MessageHub
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.platform.WindowId
-import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 
 /**
@@ -36,10 +35,6 @@ internal class MessagesController(
             // message; deliver on the main thread like every other observer.
             ctx.scope.launch { onMessage(snapshot) }
         }
-        // The hub returns a plain unsubscribe lambda; bridge it to the
-        // cancellable a job would give by tying it to a no-op job.
-        val job = ctx.scope.launch { awaitCancellation() }
-        job.invokeOnCompletion { unregister() }
-        return KeyguardCancellable(job)
+        return KeyguardCancellable(onCancel = unregister)
     }
 }

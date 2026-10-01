@@ -39,6 +39,9 @@ class KeyguardCancellable internal constructor(
     }
 }
 
+/** A packed ARGB color as a non-negative 32-bit value, the form Swift decodes. */
+internal fun Int.toArgbLong(): Long = toUInt().toLong()
+
 internal fun VaultState.toStatus(): KeyguardVaultStatus = when (this) {
     is VaultState.Loading -> KeyguardVaultStatus.LOADING
     is VaultState.Create -> KeyguardVaultStatus.NEEDS_CREATE

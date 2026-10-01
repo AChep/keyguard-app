@@ -5,8 +5,8 @@ struct ListItemActionButton: View {
     let action: VaultActionSnapshot
     let invoke: (String) -> Void
 
-    // These list producers supply stable semantic action ids. Use those instead of
-    // localized titles or menu positions to identify destructive actions.
+    // These list producers supply stable semantic action ids; the last component
+    // picks a fallback icon. The destructive role comes from `danger`.
     private var kind: Substring? { action.id.split(separator: ".").last }
 
     private var iconName: String? {
@@ -23,7 +23,7 @@ struct ListItemActionButton: View {
     }
 
     var body: some View {
-        Button(role: kind == "delete" || kind == "remove" ? .destructive : nil) {
+        Button(role: action.danger ? .destructive : nil) {
             invoke(action.id)
         } label: {
             if let iconName {

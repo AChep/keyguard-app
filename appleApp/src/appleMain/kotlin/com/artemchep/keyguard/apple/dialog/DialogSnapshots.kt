@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import com.artemchep.keyguard.apple.core.toArgbLong
 import com.artemchep.keyguard.pick
 import com.artemchep.keyguard.common.model.BarcodeImageFormat
 import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewState
@@ -459,7 +460,7 @@ internal fun AnnotatedString.toAttachmentPreviewSpans(): List<AttachmentPreviewS
         AttachmentPreviewSpanSnapshot(
             start = range.start,
             end = range.end,
-            colorArgb = color?.toLong()?.and(ARGB_MASK) ?: 0L,
+            colorArgb = color?.toArgbLong() ?: 0L,
             bold = bold,
         )
     }
@@ -485,5 +486,3 @@ data class PasswordMemorySnapshot(
     val error: String?,
     val canVerify: Boolean,
 )
-
-private const val ARGB_MASK = 0xFFFFFFFFL

@@ -106,7 +106,9 @@ struct VaultViewPasswordHistoryView: View {
         }
     }
 
-    /// The same per-entry actions surfaced as trailing swipe buttons.
+    /// The same per-entry actions surfaced as trailing swipe buttons. Danger is a
+    /// tint, not the destructive role: that role animates the row out before the
+    /// producer's confirmation dialog appears.
     @ViewBuilder
     private func rowSwipeActions(_ item: PasswordHistoryItemSnapshot) -> some View {
         ForEach(item.actions, id: \.id) { action in
@@ -115,6 +117,7 @@ struct VaultViewPasswordHistoryView: View {
             } label: {
                 Text(action.title)
             }
+            .tint(action.danger ? Color(platform: .platformDanger) : nil)
         }
     }
 

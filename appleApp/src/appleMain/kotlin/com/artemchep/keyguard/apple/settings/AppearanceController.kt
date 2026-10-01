@@ -47,6 +47,7 @@ import com.artemchep.keyguard.copy.CopyEventsSource
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
+import com.artemchep.keyguard.apple.core.toArgbLong
 import com.artemchep.keyguard.apple.model.SettingOptionSnapshot
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LeLocale
@@ -291,7 +292,7 @@ internal class AppearanceController(
                         AppTheme.LIGHT -> "light"
                         null -> null
                     },
-                    accentArgb = colors?.color?.toLong()?.and(0xFFFFFFFFL),
+                    accentArgb = colors?.color?.toArgbLong(),
                     navLabel = navLabel,
                     closeToTray = closeToTray,
                 )

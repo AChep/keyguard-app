@@ -21,12 +21,14 @@ import com.artemchep.keyguard.feature.urloverride.UrlOverrideListState
 import com.artemchep.keyguard.feature.urloverride.urlOverrideListStateProducer
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
+import com.artemchep.keyguard.apple.core.ListSession
+import com.artemchep.keyguard.apple.core.ListSessionActions
+import com.artemchep.keyguard.apple.core.toggle
 import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.dialog.DialogController
 import com.artemchep.keyguard.apple.model.buildMenuActionSnapshots
 import com.artemchep.keyguard.apple.model.buildSelectionActionSnapshots
-import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.platform.LeContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
@@ -38,29 +40,12 @@ internal class ReadOnlyListsController(
     private val ctx: CoreContext,
     private val dialogController: DialogController,
 ) {
-    private var urlBlockState: UrlBlockListState.Content? = null
-    private var urlBlockItemHandlers: Map<String, () -> Unit> = emptyMap()
-    private var urlBlockSelectionHandlers: Map<String, () -> Unit> = emptyMap()
-
-    private var urlOverrideState: UrlOverrideListState.Content? = null
-    private var urlOverrideItemHandlers: Map<String, () -> Unit> = emptyMap()
-    private var urlOverrideSelectionHandlers: Map<String, () -> Unit> = emptyMap()
-
-    private var passwordHistoryState: VaultViewPasswordHistoryState.Content.Cipher? = null
-    private var passwordHistoryItemHandlers: Map<String, () -> Unit> = emptyMap()
-    private var passwordHistorySelectionHandlers: Map<String, () -> Unit> = emptyMap()
-    private var passwordHistoryActionHandlers: Map<String, () -> Unit> = emptyMap()
-
-    // Only the newest observation may write or clear the password-history state.
-    private var passwordHistoryGeneration = 0L
-
-    fun observeSshAgentHistory(
+    fun makeSshAgentHistorySession(
         cipherId: String?,
-        onChange: (SshAgentHistorySnapshot) -> Unit,
-    ): KeyguardCancellable {
-        return ctx.launchSessionObserver(
+    ): SshAgentHistorySession = SshAgentHistorySession { publish ->
+        ctx.launchSessionObserver(
             onLocked = {
-                onChange(SshAgentHistorySnapshot.empty)
+                publish(SshAgentHistorySnapshot.empty)
             },
         ) { state ->
             val producerScope = this
@@ -78,7 +63,7 @@ internal class ReadOnlyListsController(
             }
             producerFlow
                 .map { loadable -> buildSshAgentHistorySnapshot(loadable.getOrNull()) }
-                .collectOnMain { onChange(it) }
+                .collectOnMain { publish(it) }
         }
     }
 
@@ -113,19 +98,16 @@ internal class ReadOnlyListsController(
     }
 
     /** Threads the dialog interceptor so the producer's routes reach a renderer instead of being dropped. */
-    fun observePasswordHistory(
+    fun makePasswordHistorySession(
         itemId: String,
-        onChange: (PasswordHistorySnapshot) -> Unit,
-    ): KeyguardCancellable {
+    ): ListSession<PasswordHistorySnapshot> = ListSession { publish ->
         val leContext = ctx.koin.get<LeContext>()
-        val observationGeneration = ++passwordHistoryGeneration
-        return ctx.launchSessionObserver(
-            // The state holds plaintext passwords; drop it as soon as the vault
-            // locks or the screen stops observing.
+        ctx.launchSessionObserver(
             onLocked = {
-                if (clearPasswordHistory(observationGeneration)) onChange(PasswordHistorySnapshot.empty)
+                publish(PasswordHistorySnapshot.empty, ListSessionActions())
             },
-            onTeardown = { clearPasswordHistory(observationGeneration) },
+            // Also drop retained password actions if the producer terminates unexpectedly.
+            onTeardown = { publish(PasswordHistorySnapshot.empty, ListSessionActions()) },
         ) { state ->
             val producerScope = this
             val producerFlow = with(state.sessionKoin) {
@@ -163,32 +145,25 @@ internal class ReadOnlyListsController(
                         selectionHandlers = selectionHandlers,
                         actionHandlers = actionHandlers,
                     )
-                    PasswordHistoryProjection(
-                        content = historyState.content as? VaultViewPasswordHistoryState.Content.Cipher,
-                        snapshot = snapshot,
-                        itemHandlers = itemHandlers,
-                        selectionHandlers = selectionHandlers,
-                        actionHandlers = actionHandlers,
+                    val content = historyState.content as? VaultViewPasswordHistoryState.Content.Cipher
+                    // Keep only selection callbacks, rather than retaining the cipher's plaintext data.
+                    val toggles = content?.items
+                        ?.filterIsInstance<VaultPasswordHistoryItem.Value>()
+                        ?.mapNotNull { item ->
+                            (item.onClick ?: item.onLongClick)?.let { item.id to it }
+                        }
+                        ?.toMap()
+                        .orEmpty()
+                    snapshot to ListSessionActions(
+                        items = itemHandlers,
+                        selection = selectionHandlers,
+                        screen = actionHandlers,
+                        toggleSelection = { id -> toggles[id]?.invoke() },
+                        clearSelection = content?.selection?.onClear,
                     )
                 }
-                .collectOnMain { projection ->
-                    if (passwordHistoryGeneration != observationGeneration) return@collectOnMain
-                    passwordHistoryState = projection.content
-                    passwordHistoryItemHandlers = projection.itemHandlers
-                    passwordHistorySelectionHandlers = projection.selectionHandlers
-                    passwordHistoryActionHandlers = projection.actionHandlers
-                    onChange(projection.snapshot)
-                }
+                .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
         }
-    }
-
-    private fun clearPasswordHistory(generation: Long): Boolean {
-        if (passwordHistoryGeneration != generation) return false
-        passwordHistoryState = null
-        passwordHistoryItemHandlers = emptyMap()
-        passwordHistorySelectionHandlers = emptyMap()
-        passwordHistoryActionHandlers = emptyMap()
-        return true
     }
 
     private suspend fun buildPasswordHistorySnapshot(
@@ -247,35 +222,6 @@ internal class ReadOnlyListsController(
             is VaultViewPasswordHistoryState.Content.Loading ->
                 PasswordHistorySnapshot.empty
         }
-    }
-
-    fun invokePasswordHistoryItemAction(id: String) {
-        passwordHistoryItemHandlers[id]?.invoke()
-    }
-
-    fun invokePasswordHistorySelectionAction(id: String) {
-        passwordHistorySelectionHandlers[id]?.invoke()
-    }
-
-    fun invokePasswordHistoryAction(id: String) {
-        passwordHistoryActionHandlers.invokeAction(id)
-    }
-
-    /**
-     * Routes through the producer's per-item selection handle (onClick while a
-     * selection is active, otherwise onLongClick which begins one).
-     */
-    fun togglePasswordHistorySelection(itemId: String) {
-        val item = passwordHistoryState
-            ?.items
-            ?.filterIsInstance<VaultPasswordHistoryItem.Value>()
-            ?.firstOrNull { it.id == itemId }
-            ?: return
-        (item.onClick ?: item.onLongClick)?.invoke()
-    }
-
-    fun clearPasswordHistorySelection() {
-        passwordHistoryState?.selection?.onClear?.invoke()
     }
 
     fun observeLicense(
@@ -408,17 +354,11 @@ internal class ReadOnlyListsController(
         return LogsSnapshot(loaded = true, items = items)
     }
 
-    fun observeUrlBlockList(
-        onChange: (UrlRuleListSnapshot) -> Unit,
-    ): KeyguardCancellable {
+    fun makeUrlBlockListSession(): ListSession<UrlRuleListSnapshot> = ListSession { publish ->
         val leContext = ctx.koin.get<LeContext>()
-        return ctx.launchSessionObserver(
-            onLocked = {
-                urlBlockState = null
-                urlBlockItemHandlers = emptyMap()
-                urlBlockSelectionHandlers = emptyMap()
-                onChange(UrlRuleListSnapshot.empty)
-            },
+        ctx.launchSessionObserver(
+            onLocked = { publish(UrlRuleListSnapshot.empty, ListSessionActions()) },
+            onTeardown = { publish(UrlRuleListSnapshot.empty, ListSessionActions()) },
         ) { state ->
             coroutineScope {
                 val producerScope = this
@@ -447,19 +387,18 @@ internal class ReadOnlyListsController(
                             itemHandlers = itemHandlers,
                             selectionHandlers = selectionHandlers,
                         )
-                        UrlRuleListProjection(
-                            content = content,
-                            snapshot = snapshot,
-                            itemHandlers = itemHandlers,
-                            selectionHandlers = selectionHandlers,
+                        val items = content?.items.orEmpty()
+                        snapshot to ListSessionActions(
+                            items = itemHandlers,
+                            selection = selectionHandlers,
+                            toggleSelection = { id ->
+                                items.firstOrNull { it.key == id }?.selectableState?.value?.toggle()
+                            },
+                            clearSelection = content?.selection?.onClear,
+                            primary = content?.primaryAction,
                         )
                     }
-                    .collectOnMain { projection ->
-                        urlBlockState = projection.content
-                        urlBlockItemHandlers = projection.itemHandlers
-                        urlBlockSelectionHandlers = projection.selectionHandlers
-                        onChange(projection.snapshot)
-                    }
+                    .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
             }
         }
     }
@@ -505,39 +444,11 @@ internal class ReadOnlyListsController(
         )
     }
 
-    fun invokeUrlBlockListItemAction(id: String) {
-        urlBlockItemHandlers[id]?.invoke()
-    }
-
-    fun invokeUrlBlockListSelectionAction(id: String) {
-        urlBlockSelectionHandlers[id]?.invoke()
-    }
-
-    fun invokeUrlBlockListPrimaryAction() {
-        urlBlockState?.primaryAction?.invoke()
-    }
-
-    fun toggleUrlBlockListSelection(itemId: String) {
-        val item = urlBlockState?.items?.firstOrNull { it.key == itemId } ?: return
-        val selectable = item.selectableState.value
-        (selectable.onClick ?: selectable.onLongClick)?.invoke()
-    }
-
-    fun clearUrlBlockListSelection() {
-        urlBlockState?.selection?.onClear?.invoke()
-    }
-
-    fun observeUrlOverrideList(
-        onChange: (UrlRuleListSnapshot) -> Unit,
-    ): KeyguardCancellable {
+    fun makeUrlOverrideListSession(): ListSession<UrlRuleListSnapshot> = ListSession { publish ->
         val leContext = ctx.koin.get<LeContext>()
-        return ctx.launchSessionObserver(
-            onLocked = {
-                urlOverrideState = null
-                urlOverrideItemHandlers = emptyMap()
-                urlOverrideSelectionHandlers = emptyMap()
-                onChange(UrlRuleListSnapshot.empty)
-            },
+        ctx.launchSessionObserver(
+            onLocked = { publish(UrlRuleListSnapshot.empty, ListSessionActions()) },
+            onTeardown = { publish(UrlRuleListSnapshot.empty, ListSessionActions()) },
         ) { state ->
             coroutineScope {
                 val producerScope = this
@@ -567,19 +478,18 @@ internal class ReadOnlyListsController(
                             itemHandlers = itemHandlers,
                             selectionHandlers = selectionHandlers,
                         )
-                        UrlRuleListProjection(
-                            content = content,
-                            snapshot = snapshot,
-                            itemHandlers = itemHandlers,
-                            selectionHandlers = selectionHandlers,
+                        val items = content?.items.orEmpty()
+                        snapshot to ListSessionActions(
+                            items = itemHandlers,
+                            selection = selectionHandlers,
+                            toggleSelection = { id ->
+                                items.firstOrNull { it.key == id }?.selectableState?.value?.toggle()
+                            },
+                            clearSelection = content?.selection?.onClear,
+                            primary = content?.primaryAction,
                         )
                     }
-                    .collectOnMain { projection ->
-                        urlOverrideState = projection.content
-                        urlOverrideItemHandlers = projection.itemHandlers
-                        urlOverrideSelectionHandlers = projection.selectionHandlers
-                        onChange(projection.snapshot)
-                    }
+                    .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
             }
         }
     }
@@ -624,41 +534,4 @@ internal class ReadOnlyListsController(
             selectionActions = selectionActions,
         )
     }
-
-    fun invokeUrlOverrideListItemAction(id: String) {
-        urlOverrideItemHandlers[id]?.invoke()
-    }
-
-    fun invokeUrlOverrideListSelectionAction(id: String) {
-        urlOverrideSelectionHandlers[id]?.invoke()
-    }
-
-    fun invokeUrlOverrideListPrimaryAction() {
-        urlOverrideState?.primaryAction?.invoke()
-    }
-
-    fun toggleUrlOverrideListSelection(itemId: String) {
-        val item = urlOverrideState?.items?.firstOrNull { it.key == itemId } ?: return
-        val selectable = item.selectableState.value
-        (selectable.onClick ?: selectable.onLongClick)?.invoke()
-    }
-
-    fun clearUrlOverrideListSelection() {
-        urlOverrideState?.selection?.onClear?.invoke()
-    }
-
-    private data class PasswordHistoryProjection(
-        val content: VaultViewPasswordHistoryState.Content.Cipher?,
-        val snapshot: PasswordHistorySnapshot,
-        val itemHandlers: Map<String, () -> Unit>,
-        val selectionHandlers: Map<String, () -> Unit>,
-        val actionHandlers: Map<String, () -> Unit>,
-    )
-
-    private data class UrlRuleListProjection<T>(
-        val content: T?,
-        val snapshot: UrlRuleListSnapshot,
-        val itemHandlers: Map<String, () -> Unit>,
-        val selectionHandlers: Map<String, () -> Unit>,
-    )
 }

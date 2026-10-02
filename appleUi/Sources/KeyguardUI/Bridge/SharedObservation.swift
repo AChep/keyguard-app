@@ -12,6 +12,13 @@ final class SharedObservation {
         observation = subscribe()
     }
 
+    /// Retries the source without changing how many presentations still need it.
+    func restart(_ subscribe: () -> BridgeObservation) {
+        guard consumers > 0 else { return }
+        observation?.cancel()
+        observation = subscribe()
+    }
+
     /// Returns true only when the caller should clear the shared snapshot.
     @discardableResult
     func release() -> Bool {

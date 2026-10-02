@@ -26,12 +26,16 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.sshagent.filter.SshAgentFiltersState
 import com.artemchep.keyguard.feature.sshagent.filter.sshAgentFiltersStateProducer
 import com.artemchep.keyguard.apple.KeyguardCore
+import com.artemchep.keyguard.apple.core.AgentFilterActions
+import com.artemchep.keyguard.apple.core.AgentFiltersSession
+import com.artemchep.keyguard.apple.core.AgentFiltersSnapshot
+import com.artemchep.keyguard.apple.core.agentFiltersFrame
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.collectOnMain
+import com.artemchep.keyguard.apple.core.completeOnPop
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.model.SettingOptionSnapshot
-import com.artemchep.keyguard.apple.model.mapFilterItemsToSnapshots
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
@@ -93,9 +97,6 @@ internal class SshAgentController(
     private var sshRequestCounter = 0
 
     private var latestSshApprovalWindowVariants: List<Duration> = emptyList()
-    private var latestSshAgentFiltersState: SshAgentFiltersState? = null
-    private var filterObservationGeneration = 0L
-    private var sshAgentFilterHandlers: Map<String, () -> Unit> = emptyMap()
 
     fun startSshAgentApplier() {
         if (sshAgentApplierJob != null) return
@@ -314,55 +315,20 @@ internal class SshAgentController(
         putSshAgentDisplayKeyNames(value).launchIn(ctx.scope)
     }
 
-    fun observeSshAgentFilters(
-        onChange: (SshAgentFiltersSnapshot) -> Unit,
-        onClose: () -> Unit,
-    ): KeyguardCancellable {
-        val observationGeneration = ++filterObservationGeneration
-        // The producer dispatches the pop intent from the background pipeline;
-        // hop to the main scope before invoking the Swift-facing callback.
-        val interceptor: (NavigationIntent) -> Boolean = { intent ->
-            when (intent) {
-                is NavigationIntent.Pop, is NavigationIntent.PopById -> {
-                    ctx.scope.launch {
-                        if (filterObservationGeneration == observationGeneration) onClose()
-                    }
-                    true
-                }
-
-                else -> false
-            }
-        }
-        return ctx.launchSessionObserver(
-            onLocked = {
-                if (filterObservationGeneration == observationGeneration) {
-                    latestSshAgentFiltersState = null
-                    sshAgentFilterHandlers = emptyMap()
-                    onChange(SshAgentFiltersSnapshot.empty)
-                }
-            },
-            onTeardown = {
-                if (filterObservationGeneration == observationGeneration) {
-                    latestSshAgentFiltersState = null
-                    sshAgentFilterHandlers = emptyMap()
-                }
-            },
+    fun makeSshAgentFiltersSession(): AgentFiltersSession = AgentFiltersSession { publish, complete ->
+        ctx.launchSessionObserver(
+            onLocked = { publish(AgentFiltersSnapshot.empty, AgentFilterActions()) },
+            onTeardown = { publish(AgentFiltersSnapshot.empty, AgentFilterActions()) },
         ) { state ->
             val producerScope = this
+            val interceptor = producerScope.completeOnPop(ctx.scope, complete)
             val producerFlow = sshAgentFiltersStateFlow(producerScope, state.sessionKoin, interceptor)
             producerFlow
                 .map { loadable ->
-                    val filtersState = loadable.getOrNull()
-                    val handlers = LinkedHashMap<String, () -> Unit>()
-                    val snapshot = buildSshAgentFiltersSnapshot(filtersState, handlers)
-                    Triple(filtersState, snapshot, handlers)
+                    val state = loadable.getOrNull()
+                    agentFiltersFrame(state?.filters, state?.count, state?.onSave, state?.onReset)
                 }
-                .collectOnMain { (filtersState, snapshot, handlers) ->
-                    if (filterObservationGeneration != observationGeneration) return@collectOnMain
-                    latestSshAgentFiltersState = filtersState
-                    sshAgentFilterHandlers = handlers
-                    onChange(snapshot)
-                }
+                .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
         }
     }
 
@@ -387,30 +353,4 @@ internal class SshAgentController(
             )
     }
 
-    private fun buildSshAgentFiltersSnapshot(
-        state: SshAgentFiltersState?,
-        handlers: LinkedHashMap<String, () -> Unit>,
-    ): SshAgentFiltersSnapshot {
-        state ?: return SshAgentFiltersSnapshot.empty
-        val items = mapFilterItemsToSnapshots(state.filters, handlers)
-        return SshAgentFiltersSnapshot(
-            loaded = true,
-            count = state.count ?: 0,
-            items = items,
-            canSave = state.onSave != null,
-            canReset = state.onReset != null,
-        )
-    }
-
-    fun invokeSshAgentFilter(id: String) {
-        sshAgentFilterHandlers[id]?.invoke()
-    }
-
-    fun saveSshAgentFilters() {
-        latestSshAgentFiltersState?.onSave?.invoke()
-    }
-
-    fun resetSshAgentFilters() {
-        latestSshAgentFiltersState?.onReset?.invoke()
-    }
 }

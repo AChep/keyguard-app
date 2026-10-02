@@ -25,16 +25,3 @@ struct AddAccountMenuItems: View {
         }
     }
 }
-
-struct AddAccountDestination: View {
-    let kind: AddAccountKind
-
-    var body: some View {
-        switch kind {
-        case .bitwarden:
-            BitwardenLoginView()
-        case .keepass:
-            KeePassLoginView()
-        }
-    }
-}

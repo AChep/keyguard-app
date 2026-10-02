@@ -30,10 +30,9 @@ private struct AddTypeOption: Identifiable {
     let systemImage: String
 }
 
-struct AddItemSheet: View {
-    @Environment(AddItemModel.self) private var addItemModel
-    @Environment(DialogsModel.self) private var dialogsModel
-    @Environment(FilePickerModel.self) private var filePickerModel
+struct AddItemSheetContent: View {
+    @Environment(AddFormModel.self) private var addItemModel
+    private var dialogsModel: DialogsModel? { addItemModel.dialogs }
     @Environment(\.dismiss) private var dismiss
 
     let mode: AddSheetMode
@@ -154,16 +153,20 @@ struct AddItemSheet: View {
         // Date requests originate from this form and must be presented above it.
         .sheet(
             item: Binding(
-                get: { filePickerModel.pendingDatePicker.flatMap { $0.request.presentsInAddForm ? $0 : nil } },
-                set: { if $0 == nil { filePickerModel.cancelDatePicker() } }
+                get: { addItemModel.pendingDatePicker },
+                set: { if $0 == nil { addItemModel.cancelDatePicker() } }
             )
         ) { pending in
-            DatePickerSheet(request: pending.request)
+            DatePickerSheet(request: pending.request) { year, month, day, hour, minute in
+                addItemModel.resolveDatePicker(
+                    requestId: pending.request.requestId, year: year, month: month, day: day, hour: hour, minute: minute
+                )
+            }
         }
         .sheet(
             isPresented: Binding(
-                get: { dialogsModel.cipherLinkPicker != nil },
-                set: { if !$0 { dialogsModel.closeCipherLinkPicker() } }
+                get: { dialogsModel?.cipherLinkPicker != nil },
+                set: { if !$0 { dialogsModel?.closeCipherLinkPicker() } }
             )
         ) {
             CipherLinkPickerSheet()
@@ -179,7 +182,7 @@ struct AddItemSheet: View {
         }
         #if os(iOS)
         // Present above this modal form, rather than from the covered root.
-        .pendingFileImporter { $0.presentsInAddForm }
+        .pendingFileImporter(session: addItemModel.filePicker)
         #endif
         // Import and mutation results arrive on the shared message bus. Native
         // sheets cover the root overlay, so keep feedback inside the editor.
@@ -188,15 +191,15 @@ struct AddItemSheet: View {
 
     private var confirmationPresented: Binding<Bool> {
         Binding(
-            get: { dialogsModel.confirmation != nil },
-            set: { if !$0 { dialogsModel.closeConfirmation() } }
+            get: { dialogsModel?.confirmation != nil },
+            set: { if !$0 { dialogsModel?.closeConfirmation() } }
         )
     }
 
     private var accountPickerPresented: Binding<Bool> {
         Binding(
-            get: { dialogsModel.accountPicker != nil },
-            set: { if !$0 { dialogsModel.closeAccountPicker() } }
+            get: { dialogsModel?.accountPicker != nil },
+            set: { if !$0 { dialogsModel?.closeAccountPicker() } }
         )
     }
 
@@ -362,7 +365,7 @@ struct AddItemSheet: View {
 }
 
 private struct AddItemRow: View {
-    @Environment(AddItemModel.self) private var addItemModel
+    @Environment(AddFormModel.self) private var addItemModel
     let item: AddItemSnapshot
 
     #if os(iOS)

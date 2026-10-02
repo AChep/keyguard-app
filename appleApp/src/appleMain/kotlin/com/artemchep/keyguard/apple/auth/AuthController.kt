@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.exception.YubiKeyAuthCanceledException
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.BiometricAuthPromptSimple
+import com.artemchep.keyguard.common.model.PureBiometricAuthPrompt
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.YubiKeyAuthPrompt
@@ -15,7 +16,6 @@ import com.artemchep.keyguard.common.usecase.ClearData
 import com.artemchep.keyguard.common.usecase.DisableYubiKeyUnlock
 import com.artemchep.keyguard.common.usecase.EnableYubiKeyUnlock
 import com.artemchep.keyguard.common.usecase.ShowMessage
-import com.artemchep.keyguard.feature.keyguard.setup.SetupState
 import com.artemchep.keyguard.feature.keyguard.setup.setupStateProducer
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockState
 import com.artemchep.keyguard.feature.keyguard.unlock.unlockStateProducer
@@ -25,17 +25,18 @@ import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
-import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.apple.throttleLatest
 import com.artemchep.keyguard.platform.LeContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.combine
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
@@ -62,17 +63,55 @@ internal class AuthController(
 
     private var latestUnlockState: UnlockState? = null
     private var latestUnlockActionHandlers: Map<String, () -> Unit> = emptyMap()
-    private var latestSetupState: SetupState? = null
+    // Shared executor rejects simultaneous unlock/create operations across form owners.
+    private val executor by lazy {
+        ctx.koin.newHeadlessStateFlowScope("authentication", ctx.backgroundScope).screenExecutor()
+    }
+    private val prompts = AuthPromptCoordinator()
 
-    fun observeUnlock(
-        onChange: (UnlockSnapshot) -> Unit,
+    private fun formScope(key: String, scope: CoroutineScope): RememberStateFlowScope {
+        val delegate = ctx.koin.newHeadlessStateFlowScope(key, scope)
+        return object : RememberStateFlowScope by delegate {
+            override fun screenExecutor() = executor
+        }
+    }
+
+    private fun perform(action: (() -> Unit)?) {
+        if (!executor.isExecutingFlow.value && !prompts.isActive.value) action?.invoke()
+    }
+
+    fun makeUnlockSession(): MasterPasswordSession = MasterPasswordSession { publish ->
+        ctx.launchObserver {
+            ctx.unlockUseCase().collectLatest { state ->
+                // Invalidate old callbacks before starting the next vault-state producer.
+                ctx.publishOnMain { publish(MasterPasswordSnapshot.empty, MasterPasswordActions()) }
+                if (state is VaultState.Unlock) coroutineScope {
+                    formScope("unlock", this).unlockStateProducer(
+                        clearData = clearData,
+                        unlockVaultByMasterPassword = state.unlockWithMasterPassword,
+                        unlockVaultByBiometric = null,
+                        unlockVaultByYubiKey = null,
+                    ).throttleLatest().combine(prompts.isActive) { loadable, busy ->
+                        val form = loadable.getOrNull()
+                        form.toMasterPasswordSnapshot(busy) to MasterPasswordActions(
+                            setPassword = form?.password?.onChange,
+                            submit = { perform(form?.unlockVaultByMasterPassword) },
+                        )
+                    }.collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
+                }
+            }
+        }
+    }
+
+    fun observeUnlockOptions(
+        onChange: (UnlockOptionsSnapshot) -> Unit,
     ): KeyguardCancellable {
         val leContext = ctx.koin.get<LeContext>()
         return ctx.launchObserver {
             ctx.unlockUseCase().collectLatest { state ->
                 if (state is VaultState.Unlock) {
                     coroutineScope {
-                        val stateFlow = ctx.koin.newHeadlessStateFlowScope("unlock", this)
+                        val stateFlow = formScope("unlock.options", this)
                             .unlockStateProducer(
                                 clearData = clearData,
                                 unlockVaultByMasterPassword = state.unlockWithMasterPassword,
@@ -91,22 +130,12 @@ internal class AuthController(
                             unlockPromptHostActive.collectLatest { active ->
                                 if (active) {
                                     sideEffects.showBiometricPromptFlow.collect { prompt ->
-                                        when (prompt) {
-                                            is BiometricAuthPrompt ->
-                                                authPromptHost.handleBiometricPrompt(
-                                                    prompt,
-                                                    reason = org.jetbrains.compose.resources.getString(
-                                                        Res.string.unlock_biometric_auth_confirm_title,
-                                                    ),
-                                                )
-                                            is BiometricAuthPromptSimple ->
-                                                authPromptHost.handleBiometricPromptSimple(
-                                                    prompt,
-                                                    reason = org.jetbrains.compose.resources.getString(
-                                                        Res.string.unlock_biometric_auth_confirm_title,
-                                                    ),
-                                                )
-                                        }
+                                        handleBiometricPrompt(
+                                            prompt,
+                                            org.jetbrains.compose.resources.getString(
+                                                Res.string.unlock_biometric_auth_confirm_title,
+                                            ),
+                                        )
                                     }
                                 }
                             }
@@ -119,8 +148,12 @@ internal class AuthController(
                             unlockPromptHostActive.collectLatest { active ->
                                 if (active) {
                                     sideEffects.showYubiKeyPromptFlow.collect { prompt ->
-                                        when (prompt) {
-                                            is YubiKeyAuthPrompt -> authPromptHost.handleYubiKeyPrompt(prompt)
+                                        prompts.run {
+                                            if (!executor.isExecutingFlow.value) {
+                                                when (prompt) {
+                                                    is YubiKeyAuthPrompt -> authPromptHost.handleYubiKeyPrompt(prompt)
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -130,16 +163,19 @@ internal class AuthController(
                         launch {
                             val effects = stateFlow.mapNotNull { it.getOrNull()?.sideEffects }.first()
                             unlockPromptHostActive.collectLatest { active ->
-                                if (active) effects.showFido2PromptFlow.collectLatest(fido2PromptHost::handle)
+                                if (active) effects.showFido2PromptFlow.collectLatest { prompt ->
+                                    prompts.run(onRejected = prompt::cancel) { fido2PromptHost.handle(prompt) }
+                                }
                             }
                         }
 
                         stateFlow
-                            .map { loadable ->
+                            .combine(prompts.isActive) { loadable, busy ->
                                 val unlockState = loadable.getOrNull()
                                 val handlers = LinkedHashMap<String, () -> Unit>()
                                 val actions = unlockState.toUnlockActionSnapshots(leContext, handlers)
-                                Triple(unlockState, unlockState.toUnlockSnapshot(actions), handlers)
+                                val snapshot = unlockState.toUnlockOptionsSnapshot(actions)
+                                Triple(unlockState, snapshot.copy(isLoading = snapshot.isLoading || busy), handlers)
                             }
                             .collectOnMain { (unlockState, snapshot, handlers) ->
                                 latestUnlockState = unlockState
@@ -151,8 +187,19 @@ internal class AuthController(
                     ctx.publishOnMain {
                         latestUnlockState = null
                         latestUnlockActionHandlers = emptyMap()
-                        onChange(UnlockSnapshot.empty)
+                        onChange(UnlockOptionsSnapshot.empty)
                     }
+                }
+            }
+        }
+    }
+
+    private suspend fun handleBiometricPrompt(prompt: PureBiometricAuthPrompt, reason: String) {
+        prompts.run {
+            if (!executor.isExecutingFlow.value) {
+                when (prompt) {
+                    is BiometricAuthPrompt -> authPromptHost.handleBiometricPrompt(prompt, reason)
+                    is BiometricAuthPromptSimple -> authPromptHost.handleBiometricPromptSimple(prompt, reason)
                 }
             }
         }
@@ -164,27 +211,19 @@ internal class AuthController(
         unlockPromptHostActive.value = visible
     }
 
-    fun setUnlockPassword(text: String) {
-        latestUnlockState?.password?.onChange?.invoke(text)
-    }
-
-    fun submitUnlock() {
-        latestUnlockState?.unlockVaultByMasterPassword?.invoke()
-    }
-
     fun triggerUnlockBiometric() {
-        latestUnlockState?.biometric?.onClick?.invoke()
+        perform(latestUnlockState?.biometric?.onClick)
     }
 
     fun invokeUnlockAction(id: String) {
-        latestUnlockActionHandlers.invokeAction(id)
+        perform(latestUnlockActionHandlers[id])
     }
 
     fun triggerUnlockYubiKey() {
-        latestUnlockState?.yubiKey?.onClick?.invoke()
+        perform(latestUnlockState?.yubiKey?.onClick)
     }
 
-    fun triggerUnlockFido2() { latestUnlockState?.fido2?.onClick?.invoke() }
+    fun triggerUnlockFido2() { perform(latestUnlockState?.fido2?.onClick) }
 
     @Suppress("TooGenericExceptionCaught") // Report enrollment failures through the application message bus.
     fun setFido2Unlock(value: Boolean) {
@@ -258,78 +297,40 @@ internal class AuthController(
         )
     }
 
-    fun observeSetup(
-        onChange: (SetupSnapshot) -> Unit,
-    ): KeyguardCancellable {
-        return ctx.launchObserver {
+    fun makeSetupSession(): MasterPasswordSession = MasterPasswordSession { publish ->
+        ctx.launchObserver {
             ctx.unlockUseCase().collectLatest { state ->
-                if (state is VaultState.Create) {
-                    coroutineScope {
-                        val stateFlow = ctx.koin.newHeadlessStateFlowScope("setup", this)
-                            .setupStateProducer(
-                                createVaultWithMasterPassword = state.createWithMasterPassword,
-                                createVaultWithMasterPasswordAndBiometric = state.createWithMasterPasswordAndBiometric,
+                ctx.publishOnMain { publish(MasterPasswordSnapshot.empty, MasterPasswordActions()) }
+                if (state is VaultState.Create) coroutineScope {
+                    val stateFlow = formScope("setup", this)
+                        .setupStateProducer(
+                            createVaultWithMasterPassword = state.createWithMasterPassword,
+                            createVaultWithMasterPasswordAndBiometric = state.createWithMasterPasswordAndBiometric,
+                        )
+                        .throttleLatest()
+                        .shareIn(this, SharingStarted.Eagerly, replay = 1)
+                    launch {
+                        val effects = stateFlow.mapNotNull { it.getOrNull()?.sideEffects }.first()
+                        effects.showBiometricPromptFlow.collect { prompt ->
+                            handleBiometricPrompt(
+                                prompt,
+                                org.jetbrains.compose.resources.getString(
+                                    Res.string.setup_biometric_auth_confirm_title,
+                                ),
                             )
-                            .throttleLatest()
-                            .shareIn(this, SharingStarted.Eagerly, replay = 1)
-
-                        launch {
-                            val sideEffects = stateFlow
-                                .mapNotNull { it.getOrNull()?.sideEffects }
-                                .first()
-                            setupPromptHostActive.collectLatest { active ->
-                                if (active) {
-                                    sideEffects.showBiometricPromptFlow.collect { prompt ->
-                                        authPromptHost.handleBiometricPrompt(
-                                            prompt,
-                                            reason = org.jetbrains.compose.resources.getString(
-                                                Res.string.setup_biometric_auth_confirm_title,
-                                            ),
-                                        )
-                                    }
-                                }
-                            }
                         }
-
-                        stateFlow
-                            .map { loadable ->
-                                val setupState = loadable.getOrNull()
-                                setupState to setupState.toSetupSnapshot()
-                            }
-                            .collectOnMain { (setupState, snapshot) ->
-                                latestSetupState = setupState
-                                onChange(snapshot)
-                            }
                     }
-                } else {
-                    ctx.publishOnMain {
-                        latestSetupState = null
-                        onChange(SetupSnapshot.empty)
-                    }
+                    stateFlow.combine(prompts.isActive) { loadable, busy ->
+                        val form = loadable.getOrNull()
+                        form.toMasterPasswordSnapshot(busy) to MasterPasswordActions(
+                            setPassword = form?.password?.onChange,
+                            setBiometric = form?.biometric?.onChange,
+                            setCrashlytics = form?.crashlytics?.onChange,
+                            submit = { perform(form?.onCreateVault) },
+                        )
+                    }.collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
                 }
             }
         }
-    }
-
-    private val setupPromptHostActive = MutableStateFlow(false)
-
-    fun setSetupScreenVisible(visible: Boolean) {
-        setupPromptHostActive.value = visible
-    }
-
-    fun setSetupPassword(text: String) {
-        latestSetupState?.password?.onChange?.invoke(text)
-    }
-
-    fun setSetupCrashlytics(enabled: Boolean) {
-        latestSetupState?.crashlytics?.onChange?.invoke(enabled)
-    }
-
-    fun setSetupBiometric(enabled: Boolean) {
-        latestSetupState?.biometric?.onChange?.invoke(enabled)
-    }
-
-    fun submitSetup() {
-        latestSetupState?.onCreateVault?.invoke()
     }
 }

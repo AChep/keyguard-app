@@ -6,14 +6,15 @@ import KeyguardShared
 @Observable
 final class DialogsModel: SnapshotObserving {
     private let core: KeyguardCore
+    private let formDialogs: any FormDialogsSource
 
-    init(core: KeyguardCore) {
+    init(core: KeyguardCore, formDialogs: (any FormDialogsSource)? = nil) {
         self.core = core
+        self.formDialogs = formDialogs ?? core
     }
 
-    /// Dialogs are global: any screen's action can surface one, so each is observed
-    /// once for the app's lifetime and presented as an app-level sheet. Closing a dialog
-    /// tears its headless producer down.
+    /// Starts all app-level dialog channels. Editors use `startFormDialogs()`
+    /// with their own source and present those dialogs above the owning form.
     func start() {
         startObservation(\.passwordMemorySubscription, into: \.passwordMemory, observe: core.observePasswordMemory)
         startObservation(\.largeTypeSubscription, into: \.largeType, observe: core.observeLargeType)
@@ -22,7 +23,6 @@ final class DialogsModel: SnapshotObserving {
             \.passkeyCredentialSubscription, into: \.passkeyCredential, observe: core.observePasskeyCredential)
         startObservation(
             \.attachmentPreviewSubscription, into: \.attachmentPreview, observe: core.observeAttachmentPreview)
-        startObservation(\.confirmationSubscription, into: \.confirmation, observe: core.observeConfirmation)
         startObservation(\.elevatedAccessSubscription, into: \.elevatedAccess, observe: core.observeElevatedAccess)
         // The cipher detail's inactive-TOTP / inactive-passkey info dialog.
         startObservation(\.serviceInfoSubscription, into: \.serviceInfo, observe: core.observeServiceInfo)
@@ -34,10 +34,20 @@ final class DialogsModel: SnapshotObserving {
         startObservation(\.colorPickerSubscription, into: \.colorPicker, observe: core.observeColorPicker)
         // The collection / organization read-only "info" dialog.
         startObservation(\.infoDialogSubscription, into: \.infoDialog, observe: core.observeInfoDialog)
+        startFormDialogs()
+    }
+
+    func startFormDialogs() {
+        startObservation(\.confirmationSubscription, into: \.confirmation, observe: formDialogs.observeConfirmation)
         startObservation(
-            \.cipherLinkPickerSubscription, into: \.cipherLinkPicker, observe: core.observeCipherLinkPicker)
-        // The create-form ownership "Save to" account picker.
-        startObservation(\.accountPickerSubscription, into: \.accountPicker, observe: core.observeAccountPicker)
+            \.cipherLinkPickerSubscription, into: \.cipherLinkPicker, observe: formDialogs.observeCipherLinkPicker)
+        startObservation(\.accountPickerSubscription, into: \.accountPicker, observe: formDialogs.observeAccountPicker)
+    }
+
+    func stopFormDialogs() {
+        stopObservation(\.confirmationSubscription, resetting: \.confirmation, to: nil)
+        stopObservation(\.cipherLinkPickerSubscription, resetting: \.cipherLinkPicker, to: nil)
+        stopObservation(\.accountPickerSubscription, resetting: \.accountPicker, to: nil)
     }
 
     private(set) var passwordMemory: PasswordMemorySnapshot?
@@ -152,45 +162,45 @@ final class DialogsModel: SnapshotObserving {
     }
 
     func setConfirmationItemBoolean(key: String, value: Bool) {
-        core.setConfirmationItemBoolean(key: key, value: value)
+        formDialogs.setConfirmationItemBoolean(key: key, value: value)
     }
 
     func setConfirmationItemString(key: String, text: String) {
-        core.setConfirmationItemString(key: key, text: text)
+        formDialogs.setConfirmationItemString(key: key, text: text)
     }
 
     /// Selects an option of a confirmation CHOICE item identified by `key`.
     func selectConfirmationItemEnum(key: String, optionKey: String) {
-        core.selectConfirmationItemEnum(key: key, optionKey: optionKey)
+        formDialogs.selectConfirmationItemEnum(key: key, optionKey: optionKey)
     }
 
     /// Adds a row to a list confirmation (Change tags).
-    func addConfirmationItem() { core.addConfirmationItem() }
+    func addConfirmationItem() { formDialogs.addConfirmationItem() }
 
-    func removeConfirmationItem(key: String) { core.removeConfirmationItem(key: key) }
+    func removeConfirmationItem(key: String) { formDialogs.removeConfirmationItem(key: key) }
 
     /// Opens the native file picker for a confirmation FILE item identified by `key`.
     func selectConfirmationItemFile(key: String) {
-        core.selectConfirmationItemFile(key: key)
+        formDialogs.selectConfirmationItemFile(key: key)
     }
 
     /// Opens the "Learn more" link of the selected option of confirmation CHOICE item `key`.
     func openConfirmationItemDoc(key: String) {
-        core.openConfirmationItemDoc(key: key)
+        formDialogs.openConfirmationItemDoc(key: key)
     }
 
     func clearConfirmationItemFile(key: String) {
-        core.clearConfirmationItemFile(key: key)
+        formDialogs.clearConfirmationItemFile(key: key)
     }
 
     /// Only enabled while every item validates; the shared producer runs the action,
     /// then the dialog dismisses.
     func confirmConfirmation() {
-        core.confirmConfirmation()
+        formDialogs.confirmConfirmation()
     }
 
     func closeConfirmation() {
-        core.closeConfirmation()
+        formDialogs.closeConfirmation()
     }
 
     func setElevatedAccessPassword(text: String) {
@@ -249,32 +259,32 @@ final class DialogsModel: SnapshotObserving {
     }
 
     func setCipherLinkPickerQuery(_ text: String) {
-        core.setCipherLinkPickerQuery(text: text)
+        formDialogs.setCipherLinkPickerQuery(text: text)
     }
 
     func selectCipherLinkPickerItem(id: String) {
-        core.selectCipherLinkPickerItem(id: id)
+        formDialogs.selectCipherLinkPickerItem(id: id)
     }
 
     func closeCipherLinkPicker() {
-        core.closeCipherLinkPicker()
+        formDialogs.closeCipherLinkPicker()
     }
 
     func setAccountPickerNewFolderName(_ text: String) {
-        core.setAccountPickerNewFolderName(text: text)
+        formDialogs.setAccountPickerNewFolderName(text: text)
     }
 
     func selectAccountPickerItem(key: String) {
-        core.selectAccountPickerItem(key: key)
+        formDialogs.selectAccountPickerItem(key: key)
     }
 
     /// The shared producer sends the chosen ownership back into the create form,
     /// then the dialog dismisses.
     func confirmAccountPicker() {
-        core.confirmAccountPicker()
+        formDialogs.confirmAccountPicker()
     }
 
     func closeAccountPicker() {
-        core.closeAccountPicker()
+        formDialogs.closeAccountPicker()
     }
 }

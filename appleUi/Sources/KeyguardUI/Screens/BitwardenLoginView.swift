@@ -51,10 +51,17 @@ struct BitwardenLoginView: View {
         .onChange(of: loginModel.loginDidSucceed) { _, succeeded in
             if succeeded { dismiss() }
         }
-        .observing(
-            start: { loginModel.startLoginObservation() },
-            stop: { loginModel.stopLoginObservation() }
-        )
+        .onAppear {
+            if loginModel.loginDidSucceed { dismiss() } else { loginModel.startLoginObservation() }
+        }
+        .sheet(
+            isPresented: Binding(
+                get: { loginModel.dialogs?.confirmation != nil },
+                set: { if !$0 { loginModel.dialogs?.closeConfirmation() } }
+            )
+        ) {
+            ConfirmationDialogView().environment(loginModel.dialogs)
+        }
     }
 
     // MARK: - Region

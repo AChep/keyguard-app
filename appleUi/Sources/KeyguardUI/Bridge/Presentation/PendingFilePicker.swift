@@ -2,16 +2,13 @@ import Foundation
 import UniformTypeIdentifiers
 import KeyguardShared
 
-#if os(iOS)
 struct PendingFilePicker: Identifiable {
     let id = UUID()
     let requestId: String
     let kind: AddFilePickerKind
     let mimeTypes: [String]
     let persistent: Bool
-    var presentsInAddForm = false
-    var presentsInBackupSetup = false
-    var presentsInKeePassLogin = false
+    var suggestedName: String? = nil
     let resolve: (_ requestId: String, _ uri: String, _ name: String?, _ size: Int64, _ accessToken: String?) -> Void
     let cancel: (_ requestId: String) -> Void
 
@@ -25,4 +22,3 @@ struct PendingFilePicker: Identifiable {
         return types.isEmpty ? [.data, .item] : types
     }
 }
-#endif

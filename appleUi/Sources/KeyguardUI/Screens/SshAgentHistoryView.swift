@@ -2,12 +2,7 @@ import SwiftUI
 import KeyguardShared
 
 struct SshAgentHistoryView: View {
-    @Environment(SshAgentModel.self) private var sshAgentModel
-
-    /// Limits the history to one cipher (the cipher detail's action); `nil` shows all.
-    var cipherId: String? = nil
-
-    private var snapshot: SshAgentHistorySnapshot { sshAgentModel.sshAgentHistory }
+    let snapshot: SshAgentHistorySnapshot
 
     var body: some View {
         SnapshotContent(loaded: snapshot.loaded, isEmpty: snapshot.items.isEmpty) {
@@ -15,10 +10,6 @@ struct SshAgentHistoryView: View {
         } content: {
             list
         }
-        .observing(
-            start: { sshAgentModel.startSshAgentHistoryObservation(cipherId: cipherId) },
-            stop: { sshAgentModel.stopSshAgentHistoryObservation() }
-        )
     }
 
     private var empty: some View {

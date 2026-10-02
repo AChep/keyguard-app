@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.apple.auth
 
 import com.artemchep.keyguard.common.model.ToastMessage
-import com.artemchep.keyguard.feature.keyguard.setup.SetupState
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockState
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.apple.KeyguardCore
@@ -10,11 +9,8 @@ import com.artemchep.keyguard.apple.model.TextFieldSnapshot
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.ui.FlatItemAction
 
-data class UnlockSnapshot(
-    val password: String,
-    val passwordError: String?,
+data class UnlockOptionsSnapshot(
     val isLoading: Boolean,
-    val canUnlock: Boolean,
     val hasBiometric: Boolean,
     val hasYubiKey: Boolean,
     val hasFido2: Boolean = false,
@@ -27,11 +23,8 @@ data class UnlockSnapshot(
     val actions: List<UnlockActionSnapshot>,
 ) {
     companion object {
-        val empty = UnlockSnapshot(
-            password = "",
-            passwordError = null,
+        val empty = UnlockOptionsSnapshot(
             isLoading = false,
-            canUnlock = false,
             hasBiometric = false,
             hasYubiKey = false,
             lockReason = null,
@@ -44,15 +37,12 @@ data class UnlockActionSnapshot(
     val title: String,
 )
 
-internal fun UnlockState?.toUnlockSnapshot(
+internal fun UnlockState?.toUnlockOptionsSnapshot(
     actions: List<UnlockActionSnapshot> = emptyList(),
-): UnlockSnapshot {
-    this ?: return UnlockSnapshot.empty
-    return UnlockSnapshot(
-        password = password.text,
-        passwordError = password.error,
+): UnlockOptionsSnapshot {
+    this ?: return UnlockOptionsSnapshot.empty
+    return UnlockOptionsSnapshot(
         isLoading = isLoading,
-        canUnlock = unlockVaultByMasterPassword != null,
         hasBiometric = biometric != null,
         hasYubiKey = yubiKey != null,
         hasFido2 = fido2 != null,
@@ -80,38 +70,6 @@ internal suspend fun UnlockState?.toUnlockActionSnapshots(
         )
     }
     return acc
-}
-
-data class SetupSnapshot(
-    val passwordError: String?,
-    val crashlyticsEnabled: Boolean,
-    val hasBiometric: Boolean,
-    val biometricEnabled: Boolean,
-    val isLoading: Boolean,
-    val canCreate: Boolean,
-) {
-    companion object {
-        val empty = SetupSnapshot(
-            passwordError = null,
-            crashlyticsEnabled = false,
-            hasBiometric = false,
-            biometricEnabled = false,
-            isLoading = false,
-            canCreate = false,
-        )
-    }
-}
-
-internal fun SetupState?.toSetupSnapshot(): SetupSnapshot {
-    this ?: return SetupSnapshot.empty
-    return SetupSnapshot(
-        passwordError = password.error,
-        crashlyticsEnabled = crashlytics.checked,
-        hasBiometric = biometric != null,
-        biometricEnabled = biometric?.checked == true,
-        isLoading = isLoading,
-        canCreate = onCreateVault != null,
-    )
 }
 
 /**
@@ -150,7 +108,7 @@ data class LoginRegionSnapshot(
     val checked: Boolean,
 )
 
-/** [id] routes back to [KeyguardCore.invokeLoginAction]. */
+/** [id] routes back to [BitwardenLoginSession.invokeLoginAction]. */
 data class LoginActionSnapshot(
     val id: String,
     val title: String,
@@ -209,7 +167,7 @@ data class LoginSnapshot(
     }
 }
 
-/** [key] routes back to [KeyguardCore.selectTwofaProvider]. */
+/** [key] routes back to [BitwardenLoginSession.selectTwofaProvider]. */
 data class TwofaProviderSnapshot(
     val key: String,
     val title: String,
@@ -231,7 +189,7 @@ enum class TwofaKind {
 
 /**
  * [code] (id "twofa.code") backs the verification-code field of the authenticator / email kinds; the yubikey
- * kind keeps its OTP Swift-side and submits via [KeyguardCore.submitTwofaYubiKey].
+ * kind keeps its OTP Swift-side and submits via [BitwardenLoginSession.submitTwofaYubiKey].
  */
 data class TwofaSnapshot(
     val providers: List<TwofaProviderSnapshot>,

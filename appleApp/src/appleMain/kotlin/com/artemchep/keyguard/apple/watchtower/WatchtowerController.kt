@@ -32,7 +32,6 @@ import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.model.ActionKeyAllocator
 import com.artemchep.keyguard.apple.model.VaultFilterItemKind
-import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.apple.model.mapFilterItemsToSnapshots
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*
@@ -74,10 +73,6 @@ internal class WatchtowerController(
     /** Navigation interceptor for dashboard routes; null drops unhandled routes. */
     var navigationInterceptorProvider: ((Scope) -> ((NavigationIntent) -> Boolean))? = null
 
-    private var watchtowerActionHandlers: Map<String, () -> Unit> = emptyMap()
-    private var latestWatchtowerState: WatchtowerState? = null
-    private var watchtowerFilterHandlers: Map<String, () -> Unit> = emptyMap()
-
     private var watchtowerAlertItemHandlers: Map<String, () -> Unit> = emptyMap()
     private var watchtowerMarkAllReadHandler: (() -> Unit)? = null
 
@@ -91,17 +86,11 @@ internal class WatchtowerController(
     private var settingsObservationGeneration = 0L
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun observeWatchtower(
-        onChange: (WatchtowerSnapshot) -> Unit,
-    ): KeyguardCancellable {
+    fun makeSession(): WatchtowerSession = WatchtowerSession { publish ->
         val leContext = ctx.koin.get<LeContext>()
-        return ctx.launchSessionObserver(
-            onLocked = {
-                watchtowerActionHandlers = emptyMap()
-                watchtowerFilterHandlers = emptyMap()
-                latestWatchtowerState = null
-                onChange(WatchtowerSnapshot.empty)
-            },
+        ctx.launchSessionObserver(
+            onLocked = { publish(WatchtowerSnapshot.empty, WatchtowerSessionActions()) },
+            onTeardown = { publish(WatchtowerSnapshot.empty, WatchtowerSessionActions()) },
         ) { state ->
             val producerScope = this
             val interceptor = navigationInterceptorProvider?.invoke(state.sessionKoin)
@@ -183,10 +172,7 @@ internal class WatchtowerController(
                     val filterHandlers = LinkedHashMap<String, () -> Unit>()
                     val snapshot = buildWatchtowerSnapshot(wt, leContext, actionHandlers, filterHandlers)
                     ctx.publishOnMain {
-                        latestWatchtowerState = wt
-                        watchtowerActionHandlers = actionHandlers
-                        watchtowerFilterHandlers = filterHandlers
-                        onChange(snapshot)
+                        publish(snapshot, WatchtowerSessionActions(actionHandlers, filterHandlers, wt.filter.onClear))
                     }
                 }
         }
@@ -512,18 +498,6 @@ internal class WatchtowerController(
             canClearFilters = canClearFilters,
             activeFilterCount = activeFilterCount,
         )
-    }
-
-    fun invokeWatchtowerAction(id: String) {
-        watchtowerActionHandlers.invokeAction(id)
-    }
-
-    fun invokeWatchtowerFilter(id: String) {
-        watchtowerFilterHandlers[id]?.invoke()
-    }
-
-    fun clearWatchtowerFilters() {
-        latestWatchtowerState?.filter?.onClear?.invoke()
     }
 
     fun observeWatchtowerNewAlerts(

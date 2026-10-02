@@ -10,15 +10,7 @@ struct AutofillGeneratorSheet: View {
 
     private var generator: GeneratorSnapshot { autofillGeneratorModel.autofillGenerator }
 
-    private var actions: GeneratorActions {
-        GeneratorActions(
-            invoke: { autofillGeneratorModel.invokeAutofillGeneratorAction(id: $0) },
-            setSwitch: { autofillGeneratorModel.setAutofillGeneratorSwitch(key: $0, value: $1) },
-            setCounter: { autofillGeneratorModel.setAutofillGeneratorCounter(key: $0, value: $1) },
-            setText: { autofillGeneratorModel.setAutofillGeneratorText(key: $0, text: $1) },
-            setLength: { autofillGeneratorModel.setAutofillGeneratorLength($0) }
-        )
-    }
+    private var actions: GeneratorActions { autofillGeneratorModel.actions }
 
     private var title: String {
         if autofill.password {
@@ -50,7 +42,7 @@ struct AutofillGeneratorSheet: View {
             .disabled(autofillGeneratorModel.autofillGenerator.value?.value.isEmpty ?? true)
         } headerActions: {
             Button(L10n.generatorRegenerateButton, systemImage: "arrow.clockwise") {
-                autofillGeneratorModel.invokeAutofillGeneratorAction(id: "value:refresh")
+                actions.invoke("value:refresh")
             }
             .labelStyle(.iconOnly)
             .help(L10n.generatorRegenerateButton)

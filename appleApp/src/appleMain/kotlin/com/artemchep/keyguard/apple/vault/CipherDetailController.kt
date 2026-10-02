@@ -17,7 +17,6 @@ import com.artemchep.keyguard.feature.home.vault.screen.VaultViewState
 import com.artemchep.keyguard.feature.home.vault.screen.vaultViewScreenStateProducer
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.apple.core.CoreContext
-import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.dialog.DialogController
@@ -26,7 +25,6 @@ import com.artemchep.keyguard.apple.model.resolveUriAppIcons
 import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
 import com.artemchep.keyguard.feature.home.vault.model.VaultUriIcon
-import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.apple.model.toHeaderActionSnapshots
 import com.artemchep.keyguard.apple.model.totpBadgeFlow
 import com.artemchep.keyguard.common.model.LinkInfo
@@ -38,7 +36,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -67,18 +64,6 @@ internal class CipherDetailController(
      */
     var navigationInterceptorProvider: (Scope) -> ((NavigationIntent) -> Boolean) =
         { sessionKoin -> dialogController.navigationInterceptor(sessionKoin = sessionKoin) }
-
-    private var latestVaultContent: VaultViewState.Content.Cipher? = null
-    private var vaultActionHandlers: Map<String, () -> Unit> = emptyMap()
-
-    private data class DetailTarget(val itemId: String, val accountId: String)
-
-    /**
-     * The long-lived [observeCipherDetail] observer `flatMapLatest`s over this, so a new selection swaps the
-     * producer in place and the previous cipher stays on screen until the new one's first snapshot arrives
-     * (no empty-pane flash).
-     */
-    private val detailTarget = MutableStateFlow<DetailTarget?>(null)
 
     private class CipherDetailFlows(
         val snapshots: Flow<Triple<VaultViewState, VaultDetailSnapshot, LinkedHashMap<String, () -> Unit>>>,
@@ -311,77 +296,33 @@ internal class CipherDetailController(
                 }
             }
 
-    /**
-     * The single-slot root detail pane: caches the live producer closures in controller fields for
-     * [invokeVaultAction] / [toggleVaultFavorite]. Delivers on the main thread.
-     */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun observeCipherDetail(
-        onChange: (VaultDetailSnapshot) -> Unit,
-        onTotpChange: (VaultDetailTotpSnapshot?) -> Unit,
-    ): KeyguardCancellable {
-        return ctx.launchSessionObserver(
+    /** Creates a producer and action map owned by one detail presentation. */
+    fun makeSession(
+        itemId: String,
+        accountId: String,
+    ): CipherDetailSession = CipherDetailSession { publish, publishTotp ->
+        ctx.launchSessionObserver(
             onLocked = {
-                latestVaultContent = null
-                vaultActionHandlers = emptyMap()
-                detailTarget.value = null
-                onChange(VaultDetailSnapshot.empty)
-                onTotpChange(null)
+                publish(VaultDetailSnapshot.empty, emptyMap(), null)
+                publishTotp(null)
             },
         ) { state ->
-            val sessionKoin = state.sessionKoin
-            detailTarget
-                .flatMapLatest { target ->
-                    if (target == null) {
-                        flowOf<Triple<VaultViewState, VaultDetailSnapshot, LinkedHashMap<String, () -> Unit>>?>(null)
-                    } else {
-                        // Run each cipher's producer inside a child scope tied to this
-                        // inner flow, so `flatMapLatest` cancels it when the target
-                        // changes. cipherDetailFlows does `scope.launch { … }`,
-                        // so without this the producer collection would leak onto the
-                        // long-lived observer scope on every reselection.
-                        channelFlow {
-                            val flows = cipherDetailFlows(
-                                this,
-                                sessionKoin,
-                                target.itemId,
-                                target.accountId,
-                                navigationInterceptorProvider(sessionKoin),
-                            )
-                            launch {
-                                flows.totp.collectOnMain { onTotpChange(it) }
-                            }
-                            flows.snapshots.collect { send(it) }
-                        }
-                    }
-                }
-                .collectOnMain { triple ->
-                    if (triple == null) {
-                        latestVaultContent = null
-                        vaultActionHandlers = emptyMap()
-                        onChange(VaultDetailSnapshot.empty)
-                        onTotpChange(null)
-                    } else {
-                        latestVaultContent = triple.first.content as? VaultViewState.Content.Cipher
-                        vaultActionHandlers = triple.third
-                        onChange(triple.second)
-                    }
-                }
-        }
-    }
-
-    fun setDetailTarget(itemId: String?, accountId: String?) {
-        detailTarget.value = if (itemId != null && accountId != null) {
-            DetailTarget(itemId, accountId)
-        } else {
-            null
+            produceDetailInto(
+                scope = this,
+                sessionKoin = state.sessionKoin,
+                itemId = itemId,
+                accountId = accountId,
+                interceptor = navigationInterceptorProvider(state.sessionKoin),
+                publishTotp = publishTotp,
+                publish = publish,
+            )
         }
     }
 
     /**
-     * Instance-keyed variant for the navigation stack: each entry gets its own action handler map and
-     * favourite toggle instead of sharing the controller's fields, so many details can be alive at once.
-     * Delivers on the main thread and suspends until [scope] is cancelled (the entry is popped or the vault locks).
+     * Produces one presentation's snapshots and actions without retaining them in the controller.
+     * Used by both navigation entries and standalone sessions. Delivers on the main thread and
+     * suspends until [scope] is cancelled (the presentation closes or the vault locks).
      */
     suspend fun produceDetailInto(
         scope: CoroutineScope,
@@ -474,7 +415,7 @@ internal class CipherDetailController(
                 )
                 // Mirrors the Compose `VaultViewCipherTitleActions`: an edit button plus the
                 // overflow menu. Registered in the same [actionHandlers] map as the field-row
-                // actions, so the root pane and stacked entries route them with no extra wiring.
+                // actions, so standalone sessions and stacked entries use the same rendering.
                 val editActionId = content.onEdit?.let { onEdit ->
                     "header:edit".also { id -> actionHandlers[id] = onEdit }
                 }
@@ -502,15 +443,6 @@ internal class CipherDetailController(
             is VaultViewState.Content.Loading ->
                 VaultDetailSnapshot.empty.copy(isLoading = true)
         }
-    }
-
-    fun invokeVaultAction(id: String) {
-        vaultActionHandlers.invokeAction(id)
-    }
-
-    fun toggleVaultFavorite() {
-        val content = latestVaultContent ?: return
-        content.onFavourite?.invoke(!content.data.favorite)
     }
 }
 

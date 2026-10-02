@@ -29,25 +29,14 @@ final class VaultSessionModel: SnapshotObserving {
         }
         startObservation(\.unlockSubscription) { deliver in
             BridgeObservation(
-                core.observeUnlock { snapshot in
+                core.observeUnlockOptions { snapshot in
                     deliver { $0.applyUnlock(unlock: snapshot) }
                 })
         }
-        startObservation(\.setupSubscription) { deliver in
-            BridgeObservation(
-                core.observeSetup { snapshot in
-                    deliver { $0.applySetup(setup: snapshot) }
-                })
-        }
+
     }
 
     private(set) var status: VaultStatus = .loading
-
-    private(set) var unlockPasswordError: String?
-
-    private(set) var unlockCanSubmit = false
-
-    private(set) var unlockAcknowledgedPassword = ""
 
     private(set) var unlockIsLoading = false
 
@@ -70,18 +59,6 @@ final class VaultSessionModel: SnapshotObserving {
     /// Unlock action awaiting confirmation from the macOS Vault menu.
     var pendingUnlockAction: UnlockActionSnapshot?
 
-    private(set) var setupPasswordError: String?
-
-    private(set) var setupCanCreate = false
-
-    private(set) var setupIsLoading = false
-
-    private(set) var setupHasBiometric = false
-
-    private(set) var setupBiometricEnabled = false
-
-    private(set) var setupCrashlyticsEnabled = false
-
     private(set) var hasOnboarded: Bool = true
 
     @ObservationIgnored private var statusSubscription: BridgeObservation?
@@ -90,40 +67,9 @@ final class VaultSessionModel: SnapshotObserving {
 
     @ObservationIgnored private var unlockSubscription: BridgeObservation?
 
-    @ObservationIgnored private var setupSubscription: BridgeObservation?
+    func makeUnlockSession() -> MasterPasswordSession { core.makeUnlockSession() }
 
-    /// Validation (and the "can create" gate) runs in Kotlin and flows back through
-    /// `observeSetup`.
-    func setSetupPassword(_ text: String) {
-        core.setSetupPassword(text: text)
-    }
-
-    func setSetupCrashlytics(_ enabled: Bool) {
-        core.setSetupCrashlytics(enabled: enabled)
-    }
-
-    func setSetupBiometric(_ enabled: Bool) {
-        core.setSetupBiometric(enabled: enabled)
-    }
-
-    func submitSetup() {
-        core.submitSetup()
-    }
-
-    /// Tells the bridge whether the create screen is on screen, arming the
-    /// Touch ID enrollment prompt host only while it is visible.
-    func setSetupScreenVisible(_ visible: Bool) {
-        core.setSetupScreenVisible(visible: visible)
-    }
-
-    /// Validation runs in Kotlin and flows back through `observeUnlock`.
-    func setUnlockPassword(_ text: String) {
-        core.setUnlockPassword(text: text)
-    }
-
-    func submitUnlock() {
-        core.submitUnlock()
-    }
+    func makeSetupSession() -> MasterPasswordSession { core.makeSetupSession() }
 
     func triggerUnlockBiometric() {
         core.triggerUnlockBiometric()
@@ -159,25 +105,13 @@ final class VaultSessionModel: SnapshotObserving {
         core.markOnboarded()
     }
 
-    private func applyUnlock(unlock snapshot: UnlockSnapshot) {
-        unlockPasswordError = snapshot.passwordError
-        unlockCanSubmit = snapshot.canUnlock
-        unlockAcknowledgedPassword = snapshot.password
+    private func applyUnlock(unlock snapshot: UnlockOptionsSnapshot) {
         unlockIsLoading = snapshot.isLoading
         unlockHasBiometric = snapshot.hasBiometric
         unlockHasYubiKey = snapshot.hasYubiKey
         unlockHasFido2 = snapshot.hasFido2
         unlockLockReason = snapshot.lockReason
         unlockActions = snapshot.actions
-    }
-
-    private func applySetup(setup snapshot: SetupSnapshot) {
-        setupPasswordError = snapshot.passwordError
-        setupCanCreate = snapshot.canCreate
-        setupIsLoading = snapshot.isLoading
-        setupHasBiometric = snapshot.hasBiometric
-        setupBiometricEnabled = snapshot.biometricEnabled
-        setupCrashlyticsEnabled = snapshot.crashlyticsEnabled
     }
 
     private func applyStatus(status: KeyguardVaultStatus) {

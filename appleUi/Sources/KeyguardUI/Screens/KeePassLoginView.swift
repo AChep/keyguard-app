@@ -3,7 +3,6 @@ import UniformTypeIdentifiers
 import KeyguardShared
 
 struct KeePassLoginView: View {
-    @Environment(FilePickerModel.self) private var filePickerModel
     @Environment(KeePassLoginModel.self) private var keepassModel
     @Environment(\.dismiss) private var dismiss
 
@@ -37,7 +36,7 @@ struct KeePassLoginView: View {
         }
         .navigationTitle(L10n.addkeepassHeaderTitle)
         .sheet(isPresented: webdavPresented) {
-            WebDavSettingsSheet()
+            if let snapshot = keepassModel.keepassWebDav { WebDavSettingsSheet(sessionId: snapshot.id) }
         }
         #if os(iOS)
         // KeePass can itself be presented as an add-account sheet. Its document
@@ -45,20 +44,20 @@ struct KeePassLoginView: View {
         .sheet(
             item: Binding(
                 get: {
-                    filePickerModel.pendingFilePicker.flatMap { $0.presentsInKeePassLogin ? $0 : nil }
+                    keepassModel.filePicker.pendingFilePicker.flatMap { $0.kind != .theNewDocument ? $0 : nil }
                 },
                 set: { _ in }
             )
         ) { request in
             DocumentOpenPicker(request: request) { result in
-                filePickerModel.resolveFilePicker(result: result)
+                keepassModel.filePicker.resolve(result: result, requestID: request.id)
             }
             .ignoresSafeArea()
             .interactiveDismissDisabled()
         }
         .sheet(
             item: Binding(
-                get: { filePickerModel.pendingFileExport },
+                get: { keepassModel.filePicker.pendingFileExport },
                 // The document picker delegate consumes Save and Cancel results.
                 set: { _ in }
             )
@@ -71,10 +70,7 @@ struct KeePassLoginView: View {
         .onChange(of: keepassModel.keepassDidSucceed) { _, succeeded in
             if succeeded { dismiss() }
         }
-        .observing(
-            start: { keepassModel.startKeePassLoginObservation() },
-            stop: { keepassModel.stopKeePassLoginObservation() }
-        )
+        .onAppear { keepassModel.startKeePassLoginObservation() }
     }
 
     private var webdavPresented: Binding<Bool> {

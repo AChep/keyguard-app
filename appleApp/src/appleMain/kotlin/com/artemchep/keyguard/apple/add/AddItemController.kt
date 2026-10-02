@@ -42,14 +42,17 @@ import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import com.artemchep.keyguard.apple.core.CoreContext
+import kotlinx.coroutines.CoroutineScope
+import com.artemchep.keyguard.apple.core.launchOnMainWhileActive
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
+import com.artemchep.keyguard.apple.core.collectOnMain
+import com.artemchep.keyguard.apple.core.headlessScreenId
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.core.resultRouteOrNull
 import com.artemchep.keyguard.apple.core.filePickerResultOf
 import com.artemchep.keyguard.apple.core.onFilePickerResult
 import com.artemchep.keyguard.apple.core.toFilePickerRequest
 import com.artemchep.keyguard.apple.model.ActionKeyAllocator
-import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.apple.model.toFieldSnapshot
 import com.artemchep.keyguard.apple.throttleLatest
 import com.artemchep.keyguard.platform.LeContext
@@ -67,12 +70,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.isActive
 import org.koin.core.scope.Scope
+import kotlin.uuid.Uuid
 
 /**
  * One observer and builder serve both the cipher and Send forms (the Send form is a strict subset).
- * [handleFilePickerIntent] also serves the Backups screen's folder picker.
  */
 internal class AddItemController(
     private val ctx: CoreContext,
@@ -83,6 +85,8 @@ internal class AddItemController(
      */
     var navigationInterceptorProvider: (Scope) -> ((NavigationIntent) -> Boolean)? =
         { _ -> null }
+
+    private val ownerId = Uuid.random().toString()
 
     private class AddFormModel(
         val title: String,
@@ -95,58 +99,14 @@ internal class AddItemController(
         val fileDrag: AddState.FileDrag? = null,
     )
 
-    private var addFieldHandlers: Map<String, (String) -> Unit> = emptyMap()
-    private var addFieldSetTextHandlers: Map<String, (String) -> Unit> = emptyMap()
-    private var addSwitchHandlers: Map<String, (Boolean) -> Unit> = emptyMap()
-    private var addActionHandlers: Map<String, () -> Unit> = emptyMap()
-    private var addTotpScanHandlers: Map<String, (String) -> Unit> = emptyMap()
-    private var addFormFileDropHandler: ((FilePickerResult) -> Unit)? = null
-    private var addItemFileDropHandlers: Map<String, (FilePickerResult) -> Unit> = emptyMap()
-    private var addSaveHandler: (() -> Unit)? = null
-    private var formIdentity: Any? = null
-    private var keyTargets: Map<String, KeyTarget> = emptyMap()
     private val keyGenerator by lazy { AddKeyGeneratorController(ctx, dateTimeInterceptor) }
 
-    private class KeyTarget(
-        val kind: AddItemKind,
-        val apply: (GetPasswordResult) -> Boolean,
-    )
-
-    private fun beginForm(): Any {
-        keyGenerator.close()
-        keyTargets = emptyMap()
-        return Any().also { formIdentity = it }
-    }
-
-    private fun formObservation(identity: Any, observation: KeyguardCancellable) = KeyguardCancellable {
-        observation.cancel()
-        if (formIdentity === identity) {
-            formIdentity = null
-            keyGenerator.close()
-            keyTargets = emptyMap()
-        }
-    }
-
     fun observeKeyGenerator(
-        itemId: String,
         sessionId: String,
+        kind: AddItemKind,
+        apply: (GetPasswordResult) -> Boolean,
         onChange: (AddKeyGeneratorSnapshot) -> Unit,
-    ): KeyguardCancellable {
-        val identity = formIdentity
-        val target = keyTargets[itemId]
-        if (identity == null || target == null) {
-            onChange(AddKeyGeneratorSnapshot.empty)
-            return KeyguardCancellable {}
-        }
-        return keyGenerator.observe(
-            id = sessionId,
-            kind = target.kind,
-            apply = { result ->
-                formIdentity === identity && keyTargets[itemId]?.apply?.invoke(result) == true
-            },
-            onChange = onChange,
-        )
-    }
+    ): KeyguardCancellable = keyGenerator.observe(id = sessionId, kind = kind, apply = apply, onChange = onChange)
 
     fun invokeKeyGeneratorAction(sessionId: String, id: String) = keyGenerator.invoke(sessionId, id)
     fun setKeyGeneratorText(sessionId: String, key: String, text: String) = keyGenerator.setText(sessionId, key, text)
@@ -156,7 +116,6 @@ internal class AddItemController(
         keyGenerator.setCounter(sessionId, key, value)
     fun useGeneratedKey(sessionId: String): Boolean = keyGenerator.use(sessionId)
 
-    private var addOwnershipHandler: (() -> Unit)? = null
     private var addFilePickerHandlers: MutableMap<String, (FilePickerResult?) -> Unit> = mutableMapOf()
 
     private var addFilePickerRequestCounter: Long = 0L
@@ -248,7 +207,7 @@ internal class AddItemController(
      * Closes the form when it pops its own [screenId], then tries [dateTimeInterceptor], then the dialog
      * interceptor from [navigationInterceptorProvider]; anything else is dropped.
      */
-    private fun addInterceptor(
+    private fun CoroutineScope.addInterceptor(
         sessionKoin: Scope,
         screenId: String,
         onClose: () -> Unit,
@@ -256,7 +215,7 @@ internal class AddItemController(
         val dialogInterceptor = navigationInterceptorProvider(sessionKoin)
         return { intent ->
             if (intent.closesAddForm(screenId)) {
-                ctx.scope.launch { onClose() }
+                launchOnMainWhileActive(ctx.scope, onClose)
                 true
             } else {
                 dateTimeInterceptor(intent) || (dialogInterceptor?.invoke(intent) ?: false)
@@ -271,7 +230,7 @@ internal class AddItemController(
         username: String? = null,
         password: String? = null,
         onClose: () -> Unit = {},
-        onChange: (AddItemFormSnapshot) -> Unit,
+        publish: (AddItemFormSnapshot, AddFormActions) -> Unit,
     ): KeyguardCancellable {
         val cipherType = when (type) {
             "SecureNote" -> DSecret.Type.SecureNote
@@ -288,7 +247,7 @@ internal class AddItemController(
                 username = username,
                 password = password,
             ),
-            onChange = onChange,
+            publish = publish,
             onClose = onClose,
         )
     }
@@ -296,44 +255,36 @@ internal class AddItemController(
     fun observeEditCipher(
         requestId: String,
         onClose: () -> Unit = {},
-        onChange: (AddItemFormSnapshot) -> Unit,
+        publish: (AddItemFormSnapshot, AddFormActions) -> Unit,
     ): KeyguardCancellable {
         val args = editCipherArgs[requestId]
-            ?: return unavailableEditForm(onChange)
-        return observeCipherForm(args = args, onChange = onChange, onClose = onClose)
+            ?: return unavailableEditForm(publish)
+        return observeCipherForm(args = args, publish = publish, onClose = onClose)
     }
 
     private fun unavailableEditForm(
-        onChange: (AddItemFormSnapshot) -> Unit,
+        publish: (AddItemFormSnapshot, AddFormActions) -> Unit,
     ): KeyguardCancellable {
         // An expired edit request must never turn into a new, saveable item.
-        addSaveHandler = null
-        onChange(AddItemFormSnapshot.empty)
+        publish(AddItemFormSnapshot.empty, AddFormActions())
         return KeyguardCancellable {}
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeCipherForm(
         args: AddRoute.Args,
-        onChange: (AddItemFormSnapshot) -> Unit,
+        publish: (AddItemFormSnapshot, AddFormActions) -> Unit,
         onClose: () -> Unit,
     ): KeyguardCancellable {
         val leContext = ctx.koin.get<LeContext>()
-        val identity = beginForm()
-        val observation = ctx.launchSessionObserver(
-            onLocked = {
-                resetAddHandlers()
-                onChange(AddItemFormSnapshot.empty)
-            },
-        ) { state ->
+        val screenId = headlessScreenId("cipher_add", ownerId)
+        return ctx.launchSessionObserver(onLocked = onClose) { state ->
             val producerScope = this
-            val interceptor = addInterceptor(state.sessionKoin, "cipher_add") {
-                if (producerScope.isActive) onClose()
-            }
+            val interceptor = addInterceptor(state.sessionKoin, screenId, onClose)
             val saveState = AddFormSaveState()
             val producerFlow = with(state.sessionKoin) {
                 val addCipher = get<AddCipher>()
-                ctx.koin.newHeadlessStateFlowScope("cipher_add", producerScope, interceptor)
+                ctx.koin.newHeadlessStateFlowScope("cipher_add", producerScope, interceptor, instanceId = ownerId)
                     .addCipherStateProducer(
                         args = args,
                         getAccounts = get(),
@@ -388,17 +339,16 @@ internal class AddItemController(
                     )
                 },
                 leContext = leContext,
-                onChange = onChange,
+                publish = publish,
                 saveState = saveState,
             )
         }
-        return formObservation(identity, observation)
     }
 
     fun observeAddSend(
         type: String,
         onClose: () -> Unit = {},
-        onChange: (AddItemFormSnapshot) -> Unit,
+        publish: (AddItemFormSnapshot, AddFormActions) -> Unit,
     ): KeyguardCancellable {
         val sendType = when (type) {
             "File" -> DSend.Type.File
@@ -406,7 +356,7 @@ internal class AddItemController(
         }
         return observeSendForm(
             args = SendAddRoute.Args(type = sendType),
-            onChange = onChange,
+            publish = publish,
             onClose = onClose,
         )
     }
@@ -414,35 +364,28 @@ internal class AddItemController(
     fun observeEditSend(
         requestId: String,
         onClose: () -> Unit = {},
-        onChange: (AddItemFormSnapshot) -> Unit,
+        publish: (AddItemFormSnapshot, AddFormActions) -> Unit,
     ): KeyguardCancellable {
         val args = editSendArgs[requestId]
-            ?: return unavailableEditForm(onChange)
-        return observeSendForm(args = args, onChange = onChange, onClose = onClose)
+            ?: return unavailableEditForm(publish)
+        return observeSendForm(args = args, publish = publish, onClose = onClose)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeSendForm(
         args: SendAddRoute.Args,
-        onChange: (AddItemFormSnapshot) -> Unit,
+        publish: (AddItemFormSnapshot, AddFormActions) -> Unit,
         onClose: () -> Unit,
     ): KeyguardCancellable {
         val leContext = ctx.koin.get<LeContext>()
-        val identity = beginForm()
-        val observation = ctx.launchSessionObserver(
-            onLocked = {
-                resetAddHandlers()
-                onChange(AddItemFormSnapshot.empty)
-            },
-        ) { state ->
+        val screenId = headlessScreenId("send_add", ownerId)
+        return ctx.launchSessionObserver(onLocked = onClose) { state ->
             val producerScope = this
-            val interceptor = addInterceptor(state.sessionKoin, "send_add") {
-                if (producerScope.isActive) onClose()
-            }
+            val interceptor = addInterceptor(state.sessionKoin, screenId, onClose)
             val saveState = AddFormSaveState()
             val producerFlow = with(state.sessionKoin) {
                 val addSend = get<AddSend>()
-                ctx.koin.newHeadlessStateFlowScope("send_add", producerScope, interceptor)
+                ctx.koin.newHeadlessStateFlowScope("send_add", producerScope, interceptor, instanceId = ownerId)
                     .sendAddStateProducer(
                         args = args,
                         getAccounts = get(),
@@ -478,18 +421,17 @@ internal class AddItemController(
                     )
                 },
                 leContext = leContext,
-                onChange = onChange,
+                publish = publish,
                 saveState = saveState,
             )
         }
-        return formObservation(identity, observation)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun observeAddForm(
         producerFlow: Flow<AddFormModel?>,
         leContext: LeContext,
-        onChange: (AddItemFormSnapshot) -> Unit,
+        publish: (AddItemFormSnapshot, AddFormActions) -> Unit,
         saveState: AddFormSaveState,
     ) = coroutineScope {
         val latest = MutableStateFlow<AddFormModel?>(null)
@@ -513,14 +455,14 @@ internal class AddItemController(
             }
             .throttleLatest()
             .combine(saveState.running) { model, saving -> model to saving }
-            .collect { (model, saving) ->
+            .map { (model, saving) ->
                 val fieldHandlers = LinkedHashMap<String, (String) -> Unit>()
                 val setTextHandlers = LinkedHashMap<String, (String) -> Unit>()
                 val switchHandlers = LinkedHashMap<String, (Boolean) -> Unit>()
                 val actionHandlers = LinkedHashMap<String, () -> Unit>()
                 val totpScanHandlers = LinkedHashMap<String, (String) -> Unit>()
                 val fileDropHandlers = LinkedHashMap<String, (FilePickerResult) -> Unit>()
-                val targets = LinkedHashMap<String, KeyTarget>()
+                val targets = LinkedHashMap<String, AddKeyTarget>()
                 val snapshot = buildAddItemSnapshot(
                     model,
                     leContext,
@@ -533,20 +475,21 @@ internal class AddItemController(
                     targets,
                 )
                     .let { it.copy(canSave = it.canSave && !saving) }
-                ctx.publishOnMain {
-                    addFieldHandlers = fieldHandlers
-                    addFieldSetTextHandlers = setTextHandlers
-                    addSwitchHandlers = switchHandlers
-                    addActionHandlers = actionHandlers
-                    addTotpScanHandlers = totpScanHandlers
-                    addFormFileDropHandler = model.fileDrag?.onFileDrop.takeUnless { saving }
-                    addItemFileDropHandlers = fileDropHandlers.takeUnless { saving }.orEmpty()
-                    keyTargets = targets.takeUnless { saving }.orEmpty()
-                    addSaveHandler = model.onSave.takeUnless { saving }
-                    addOwnershipHandler = model.ownership?.onClick
-                    onChange(snapshot)
-                }
+                // Saving freezes everything that could edit or resubmit the form.
+                snapshot to AddFormActions(
+                    fields = fieldHandlers,
+                    setText = setTextHandlers,
+                    switches = switchHandlers,
+                    actions = actionHandlers,
+                    totpScan = totpScanHandlers,
+                    formFileDrop = model.fileDrag?.onFileDrop.takeUnless { saving },
+                    itemFileDrop = fileDropHandlers.takeUnless { saving }.orEmpty(),
+                    keyTargets = targets.takeUnless { saving }.orEmpty(),
+                    save = model.onSave.takeUnless { saving },
+                    ownership = model.ownership?.onClick,
+                )
             }
+            .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
     }
 
     // The producer builds one stable EventFlow for its lifetime, so a single
@@ -569,7 +512,7 @@ internal class AddItemController(
         actionHandlers: LinkedHashMap<String, () -> Unit>,
         totpScanHandlers: LinkedHashMap<String, (String) -> Unit>,
         fileDropHandlers: LinkedHashMap<String, (FilePickerResult) -> Unit>,
-        keyTargets: LinkedHashMap<String, KeyTarget>,
+        keyTargets: LinkedHashMap<String, AddKeyTarget>,
     ): AddItemFormSnapshot {
         val autofillUris = collectAutofillUris(model.items)
         fun textField(
@@ -808,7 +751,7 @@ internal class AddItemController(
                 is AddStateItem.SshKey<*> -> {
                     val st = item.state.flow.value
                     actionHandlers["${item.id}:import"] = st.onImport
-                    keyTargets[item.id] = KeyTarget(AddItemKind.SSH_KEY) { result ->
+                    keyTargets[item.id] = AddKeyTarget(AddItemKind.SSH_KEY) { result ->
                         if (result is GetPasswordResult.AsyncKey) {
                             item.state.flow.value.onChange(result.keyPair)
                             true
@@ -835,7 +778,7 @@ internal class AddItemController(
                     val st = item.state.flow.value
                     actionHandlers["${item.id}:import"] = st.onImport
                     if (st.enabled) {
-                        keyTargets[item.id] = KeyTarget(AddItemKind.GPG_KEY) { result ->
+                        keyTargets[item.id] = AddKeyTarget(AddItemKind.GPG_KEY) { result ->
                             val current = item.state.flow.value
                             if (current.enabled && result is GetPasswordResult.AsyncGpgKey) {
                                 current.onChange(result.gpgKey)
@@ -1064,16 +1007,6 @@ internal class AddItemController(
 
     private fun resetAddHandlers() {
         keyGenerator.close()
-        keyTargets = emptyMap()
-        addFieldHandlers = emptyMap()
-        addFieldSetTextHandlers = emptyMap()
-        addSwitchHandlers = emptyMap()
-        addActionHandlers = emptyMap()
-        addTotpScanHandlers = emptyMap()
-        addFormFileDropHandler = null
-        addItemFileDropHandlers = emptyMap()
-        addSaveHandler = null
-        addOwnershipHandler = null
         addFilePickerHandlers.clear()
         monthYearResultHandlers.clear()
         dateResultHandlers.clear()
@@ -1096,34 +1029,6 @@ internal class AddItemController(
             state.text.text
         }
 
-    fun setAddField(id: String, text: String) {
-        addFieldHandlers[id]?.invoke(text)
-    }
-
-    fun setAddFieldText(id: String, text: String) {
-        addFieldSetTextHandlers[id]?.invoke(text)
-    }
-
-    fun setAddSwitch(id: String, value: Boolean) {
-        addSwitchHandlers[id]?.invoke(value)
-    }
-
-    fun invokeAddAction(id: String) {
-        addActionHandlers.invokeAction(id)
-    }
-
-    fun scanAddTotp(id: String, value: String) {
-        addTotpScanHandlers[id]?.invoke(value)
-    }
-
-    fun submitAddItem() {
-        addSaveHandler?.invoke()
-    }
-
-    fun invokeAddOwnership() {
-        addOwnershipHandler?.invoke()
-    }
-
     fun setAddFilePickerRequestHandler(handler: ((AddFilePickerRequest) -> Unit)?) {
         onAddFilePickerRequest = handler
     }
@@ -1144,6 +1049,19 @@ internal class AddItemController(
         onEditFormRequest?.invoke(AddEditFormRequest(requestId = requestId, isSend = true))
     }
 
+    /** Copies immutable route arguments into the presentation that owns the producer. */
+    fun copyEditRequest(requestId: String, destination: AddItemController) {
+        editCipherArgs[requestId]?.let { destination.editCipherArgs[requestId] = it }
+        editSendArgs[requestId]?.let { destination.editSendArgs[requestId] = it }
+    }
+
+    /** A closed form controller presents no more pickers: its Swift sinks are gone. */
+    fun close() {
+        resetAddHandlers()
+        onAddFilePickerRequest = null
+        onAddDatePickerRequest = null
+    }
+
     fun clearEditForm(requestId: String) {
         editCipherArgs.remove(requestId)
         editSendArgs.remove(requestId)
@@ -1152,14 +1070,6 @@ internal class AddItemController(
     fun resolveAddFilePicker(requestId: String, uri: String, name: String?, size: Long, accessToken: String? = null) {
         val handler = addFilePickerHandlers.remove(requestId) ?: return
         handler(filePickerResultOf(uri, name, size, accessToken))
-    }
-
-    fun dropFileOnAddForm(uri: String, name: String?, size: Long) {
-        addFormFileDropHandler?.invoke(filePickerResultOf(uri, name, size))
-    }
-
-    fun dropFileOnAddItem(itemId: String, uri: String, name: String?, size: Long) {
-        addItemFileDropHandlers[itemId]?.invoke(filePickerResultOf(uri, name, size))
     }
 
     fun cancelAddFilePicker(requestId: String) {
@@ -1198,3 +1108,23 @@ internal class AddItemController(
     private fun nowLocalDate(): LocalDate =
         Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 }
+
+/** A key item's generator target: what to generate, and how a result lands in the form. */
+internal class AddKeyTarget(
+    val kind: AddItemKind,
+    val apply: (GetPasswordResult) -> Boolean,
+)
+
+/** One add form's callbacks, published atomically with the snapshot they were built for. */
+internal class AddFormActions(
+    val fields: Map<String, (String) -> Unit> = emptyMap(),
+    val setText: Map<String, (String) -> Unit> = emptyMap(),
+    val switches: Map<String, (Boolean) -> Unit> = emptyMap(),
+    val actions: Map<String, () -> Unit> = emptyMap(),
+    val totpScan: Map<String, (String) -> Unit> = emptyMap(),
+    val formFileDrop: ((FilePickerResult) -> Unit)? = null,
+    val itemFileDrop: Map<String, (FilePickerResult) -> Unit> = emptyMap(),
+    val keyTargets: Map<String, AddKeyTarget> = emptyMap(),
+    val save: (() -> Unit)? = null,
+    val ownership: (() -> Unit)? = null,
+)

@@ -5,34 +5,19 @@ import KeyguardShared
 @MainActor
 @Observable
 final class GpgToolsModel {
-    typealias Observer = (
-        String,
-        @escaping (GpgToolsSnapshot) -> Void,
-        @escaping (GpgToolsResultSnapshot) -> Void,
-        @escaping (GpgToolsFilePickerRequest?) -> Void,
-        @escaping (GpgToolsPublicKeyRequest?) -> Void
-    ) -> BridgeObservation
+    private let source: any GpgToolsSource
+    private let lifetime: BridgeObservation
+    private var closed: Bool { lifetime.isCancelled }
 
-    private let coreProvider: () -> KeyguardCore
-    private var core: KeyguardCore { coreProvider() }
-    private let observeGpgTools: Observer
-    private let stopProducer: () -> Void
-
-    convenience init(core: KeyguardCore) {
-        self.init(
-            coreProvider: { core },
-            observe: {
-                BridgeObservation(
-                    core.observeGpgTools(operation: $0, onChange: $1, onResult: $2, onFilePicker: $3, onPublicKey: $4))
-            },
-            stop: { core.stopGpgTools() }
-        )
+    init(source: any GpgToolsSource) {
+        self.source = source
+        self.lifetime = BridgeObservation { source.close() }
     }
 
-    init(coreProvider: @escaping () -> KeyguardCore, observe: @escaping Observer, stop: @escaping () -> Void) {
-        self.coreProvider = coreProvider
-        self.observeGpgTools = observe
-        self.stopProducer = stop
+    func close() {
+        guard !closed else { return }
+        stopGpgToolsObservation()
+        lifetime.cancel()
     }
 
     private(set) var gpgTools: GpgToolsSnapshot = GpgToolsSnapshot.companion.empty
@@ -83,20 +68,21 @@ final class GpgToolsModel {
     @ObservationIgnored private var gpgToolsOriginalURLs: [URL] = []
 
     func startGpgToolsObservation(operation: String) {
+        guard !closed else { return }
         stopGpgToolsObservation()
         let observationId = UUID()
         gpgToolsObservationId = observationId
-        let coreProvider = self.coreProvider
-        gpgToolsSubscription = observeGpgTools(
-            operation,
-            { [weak self] snapshot in
+        let source = self.source
+        gpgToolsSubscription = source.subscribe(
+            operation: operation,
+            onChange: { [weak self] snapshot in
                 Task { @MainActor [weak self] in
                     guard let self, self.gpgToolsObservationId == observationId else { return }
                     self.gpgTools = snapshot
                     if !snapshot.loaded { self.resetGpgToolsNativeState() }
                 }
             },
-            { [weak self] result in
+            onResult: { [weak self] result in
                 Task { @MainActor [weak self] in
                     guard let self, self.gpgToolsObservationId == observationId else { return }
                     self.gpgToolsResult = result
@@ -104,19 +90,19 @@ final class GpgToolsModel {
                     self.gpgToolsError = nil
                 }
             },
-            { [weak self] request in
+            onFilePicker: { [weak self] request in
                 Task { @MainActor [weak self] in
                     guard let self, self.gpgToolsObservationId == observationId else {
-                        if let request { coreProvider().resolveGpgToolsFilePicker(id: request.id, name: nil, size: -1) }
+                        if let request { source.resolveGpgToolsFilePicker(id: request.id, name: nil, size: -1) }
                         return
                     }
                     self.receiveGpgToolsFilePicker(request, observationId: observationId)
                 }
             },
-            { [weak self] request in
+            onPublicKey: { [weak self] request in
                 Task { @MainActor [weak self] in
                     guard let self, self.gpgToolsObservationId == observationId else {
-                        if let request { coreProvider().finishGpgToolsPublicKey(id: request.id, confirm: false) }
+                        if let request { source.finishGpgToolsPublicKey(id: request.id, confirm: false) }
                         return
                     }
                     self.invalidateGpgToolsPublicKeyValidation()
@@ -129,7 +115,7 @@ final class GpgToolsModel {
     func stopGpgToolsObservation() {
         resetGpgToolsNativeState()
         gpgToolsObservationId = UUID()
-        stopProducer()
+        source.stopGpgTools()
         gpgToolsSubscription?.cancel()
         gpgToolsSubscription = nil
         gpgTools = GpgToolsSnapshot.companion.empty
@@ -146,7 +132,7 @@ final class GpgToolsModel {
         pendingGpgToolsFilePicker = nil
         pendingGpgToolsExport = nil
         if let request = pendingGpgToolsPublicKey {
-            core.finishGpgToolsPublicKey(id: request.id, confirm: false)
+            source.finishGpgToolsPublicKey(id: request.id, confirm: false)
         }
         pendingGpgToolsPublicKey = nil
         invalidateGpgToolsPublicKeyValidation()
@@ -190,12 +176,12 @@ final class GpgToolsModel {
         gpgToolsAwaitingFileRequest = false
         guard gpgToolsImportRequests[request.id] == nil else { return }
         guard !gpgToolsImportRequests.values.contains(where: { $0.observationId == observationId }) else {
-            core.resolveGpgToolsFilePicker(id: request.id, name: nil, size: -1)
+            source.resolveGpgToolsFilePicker(id: request.id, name: nil, size: -1)
             refreshGpgToolsNativeBusy()
             return
         }
         guard let destination = URL(string: request.destinationUri), destination.isFileURL else {
-            core.resolveGpgToolsFilePicker(id: request.id, name: nil, size: -1)
+            source.resolveGpgToolsFilePicker(id: request.id, name: nil, size: -1)
             gpgToolsError = L10n.gpgKeyImportErrorRead
             refreshGpgToolsNativeBusy()
             return
@@ -286,100 +272,100 @@ final class GpgToolsModel {
         }
         // Releasing this request allows Kotlin to delete staging: do it only
         // after importFile has awaited the actual coordinated IO worker.
-        core.resolveGpgToolsFilePicker(id: request.id, name: file?.displayName, size: file?.byteCount ?? -1)
+        source.resolveGpgToolsFilePicker(id: request.id, name: file?.displayName, size: file?.byteCount ?? -1)
         refreshGpgToolsNativeBusy()
     }
 
     func setGpgToolsScope(_ key: String) {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
-        core.setGpgToolsScope(key: key)
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.setGpgToolsScope(key: key)
     }
 
     func setGpgToolsSignMode(_ key: String) {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
-        core.setGpgToolsSignMode(key: key)
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.setGpgToolsSignMode(key: key)
     }
 
     func setGpgToolsVerifyMode(_ key: String) {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
-        core.setGpgToolsVerifyMode(key: key)
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.setGpgToolsVerifyMode(key: key)
     }
 
     func setGpgToolsArmor(_ value: Bool) {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
-        core.setGpgToolsArmor(value: value)
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.setGpgToolsArmor(value: value)
     }
 
     func setGpgToolsInputText(_ text: String) {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
-        core.setGpgToolsInputText(text: text)
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.setGpgToolsInputText(text: text)
     }
 
     /// Writes the detached-signature text (verify + detached mode only).
     func setGpgToolsSignatureText(_ text: String) {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
-        core.setGpgToolsSignatureText(text: text)
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.setGpgToolsSignatureText(text: text)
     }
 
     func selectGpgToolsPrivateKey(_ id: String) {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
-        core.selectGpgToolsPrivateKey(id: id)
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.selectGpgToolsPrivateKey(id: id)
     }
 
     /// Selects the key to sign an encrypted message with, or `nil` for "do not sign".
     func selectGpgToolsEncryptSigningKey(_ id: String?) {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
-        core.selectGpgToolsEncryptSigningKey(id: id)
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.selectGpgToolsEncryptSigningKey(id: id)
     }
 
     func toggleGpgToolsRecipient(_ id: String) {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
-        core.toggleGpgToolsRecipient(id: id)
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.toggleGpgToolsRecipient(id: id)
     }
 
     /// Runs the configured GPG operation; the outcome arrives on the result channel.
     func runGpgTools() {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
         gpgToolsError = nil
-        core.runGpgTools()
+        source.runGpgTools()
     }
 
     func invokeGpgToolsResultCopy() {
-        core.invokeGpgToolsResultCopy()
+        source.invokeGpgToolsResultCopy()
     }
 
     func selectGpgToolsInputFile() {
         guard gpgTools.loaded, !gpgToolsNativeBusy, !gpgTools.busy else { return }
         gpgToolsAwaitingFileRequest = true
         refreshGpgToolsNativeBusy()
-        core.selectGpgToolsInputFile()
+        source.selectGpgToolsInputFile()
     }
 
     func clearGpgToolsInputFile() {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
-        core.clearGpgToolsInputFile()
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.clearGpgToolsInputFile()
     }
 
     func selectGpgToolsSignatureFile() {
         guard gpgTools.loaded, !gpgToolsNativeBusy, !gpgTools.busy else { return }
         gpgToolsAwaitingFileRequest = true
         refreshGpgToolsNativeBusy()
-        core.selectGpgToolsSignatureFile()
+        source.selectGpgToolsSignatureFile()
     }
 
     func clearGpgToolsSignatureFile() {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
-        core.clearGpgToolsSignatureFile()
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.clearGpgToolsSignatureFile()
     }
 
     func addGpgToolsPublicKey() {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
-        core.addGpgToolsPublicKey()
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.addGpgToolsPublicKey()
     }
 
     func removeGpgToolsPublicKey(_ id: String) {
-        guard !gpgToolsNativeBusy, !gpgTools.busy else { return }
-        core.removeGpgToolsPublicKey(id: id)
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.removeGpgToolsPublicKey(id: id)
     }
 
     func invalidateGpgToolsPublicKeyValidation() {
@@ -394,7 +380,7 @@ final class GpgToolsModel {
         let validationId = gpgToolsPublicKeyValidationID
         let observationId = gpgToolsObservationId
         gpgToolsPublicKeyValidating = true
-        core.validateGpgToolsPublicKey(id: id, text: text) { [weak self] validation in
+        source.validateGpgToolsPublicKey(id: id, text: text) { [weak self] validation in
             Task { @MainActor [weak self] in
                 guard let self, self.gpgToolsObservationId == observationId,
                     self.pendingGpgToolsPublicKey?.id == id,
@@ -416,30 +402,30 @@ final class GpgToolsModel {
         }
         pendingGpgToolsPublicKey = nil
         invalidateGpgToolsPublicKeyValidation()
-        core.finishGpgToolsPublicKey(id: id, confirm: confirm)
+        source.finishGpgToolsPublicKey(id: id, confirm: confirm)
     }
 
     func invokeGpgToolsResultSave() {
         guard let result = gpgToolsResult, result.canSave, !gpgToolsNativeBusy else { return }
         let preparationId = UUID()
         let observationId = gpgToolsObservationId
-        let core = self.core
+        let source = self.source
         gpgToolsExportPreparationID = preparationId
         gpgToolsError = nil
         gpgToolsExportSucceeded = false
         refreshGpgToolsNativeBusy()
-        core.prepareGpgToolsExport(resultId: result.id) { [weak self] export in
+        source.prepareGpgToolsExport(resultId: result.id) { [weak self] export in
             Task { @MainActor [weak self] in
                 guard let self, self.gpgToolsObservationId == observationId,
                     self.gpgToolsResult?.id == result.id,
                     self.gpgToolsExportPreparationID == preparationId
                 else {
-                    if let export { core.finishGpgToolsExport(id: export.id) }
+                    if let export { source.finishGpgToolsExport(id: export.id) }
                     return
                 }
                 self.gpgToolsExportPreparationID = nil
                 guard let export, let url = URL(string: export.uri), url.isFileURL else {
-                    if let export { core.finishGpgToolsExport(id: export.id) }
+                    if let export { source.finishGpgToolsExport(id: export.id) }
                     self.gpgToolsError = L10n.gpgToolsExportFailed
                     self.refreshGpgToolsNativeBusy()
                     return
@@ -474,7 +460,7 @@ final class GpgToolsModel {
         gpgToolsExportTasks[id] = nil
         gpgToolsPresentedExports.remove(id)
         if pendingGpgToolsExport?.id == id { pendingGpgToolsExport = nil }
-        core.finishGpgToolsExport(id: id)
+        source.finishGpgToolsExport(id: id)
         if request.observationId == gpgToolsObservationId, gpgToolsResult?.id == request.resultId {
             switch result {
             case .success(let saved): gpgToolsExportSucceeded = saved
@@ -512,7 +498,7 @@ final class GpgToolsModel {
         for task in gpgToolsExportTasks.values { task.cancel() }
         releaseUnpresentedGpgToolsExports()
         pendingGpgToolsExport = nil
-        core.dismissGpgToolsResult()
+        source.dismissGpgToolsResult()
         gpgToolsResult = nil
         gpgToolsError = nil
         gpgToolsExportSucceeded = false

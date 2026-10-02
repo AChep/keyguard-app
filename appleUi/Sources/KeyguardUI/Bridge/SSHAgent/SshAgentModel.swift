@@ -16,24 +16,16 @@ final class SshAgentModel: SnapshotObserving {
 
     private(set) var sshAgentStatus: SshAgentStatusSnapshot = SshAgentStatusSnapshot.companion.empty
 
-    /// Only live while the SSH agent history screen is on screen.
-    private(set) var sshAgentHistory: SshAgentHistorySnapshot = SshAgentHistorySnapshot.companion.empty
-
     /// Only live while the Developer settings screen is on screen.
     private(set) var sshAgentSettings: SshAgentSettingsSnapshot = SshAgentSettingsSnapshot.companion.empty
-
-    /// Only live while the SSH agent filters screen is on screen.
-    private(set) var sshAgentFilters: SshAgentFiltersSnapshot = SshAgentFiltersSnapshot.companion.empty
 
     @ObservationIgnored private var sshRequestsSubscription: BridgeObservation?
 
     @ObservationIgnored private var sshStatusSubscription: BridgeObservation?
 
-    @ObservationIgnored private var sshAgentHistorySubscription: BridgeObservation?
+    @ObservationIgnored private let sshAgentSettingsObservation = SharedObservation()
 
     @ObservationIgnored private var sshAgentSettingsSubscription: BridgeObservation?
-
-    @ObservationIgnored private var sshAgentFiltersSubscription: BridgeObservation?
 
     /// Call once so approval prompts can be shown.
     func startSshAgentObservation() {
@@ -50,13 +42,16 @@ final class SshAgentModel: SnapshotObserving {
     /// Call when the Developer settings screen appears; balance with
     /// `stopSshAgentSettingsObservation()`.
     func startSshAgentSettingsObservation() {
-        startObservation(
-            \.sshAgentSettingsSubscription, into: \.sshAgentSettings, observe: core.observeSshAgentSettings)
+        sshAgentSettingsObservation.acquire {
+            sharedSnapshotObservation(
+                \.sshAgentSettingsSubscription, into: \.sshAgentSettings,
+                empty: SshAgentSettingsSnapshot.companion.empty,
+                observe: core.observeSshAgentSettings)
+        }
     }
 
     func stopSshAgentSettingsObservation() {
-        stopObservation(
-            \.sshAgentSettingsSubscription, resetting: \.sshAgentSettings, to: SshAgentSettingsSnapshot.companion.empty)
+        sshAgentSettingsObservation.release()
     }
 
     func setSshAgentApprovalWindow(optionId: String) {
@@ -67,55 +62,15 @@ final class SshAgentModel: SnapshotObserving {
         core.setSshAgentDisplayKeyNames(value: value)
     }
 
-    /// Call when the filters screen appears; balance with `stopSshAgentFiltersObservation()`.
-    /// `onClose` fires when the producer pops itself after a successful save.
-    func startSshAgentFiltersObservation(onClose: @escaping () -> Void) {
-        startObservation(\.sshAgentFiltersSubscription) { deliver in
-            BridgeObservation(
-                core.observeSshAgentFilters(
-                    onChange: { snapshot in
-                        deliver { $0.sshAgentFilters = snapshot }
-                    },
-                    onClose: {
-                        deliver { _ in onClose() }
-                    }
-                ))
-        }
-    }
-
-    func stopSshAgentFiltersObservation() {
-        stopObservation(
-            \.sshAgentFiltersSubscription, resetting: \.sshAgentFilters, to: SshAgentFiltersSnapshot.companion.empty)
-    }
-
-    /// Toggles a filter chip (or section header) by its snapshot id.
-    func invokeSshAgentFilter(id: String) {
-        core.invokeSshAgentFilter(id: id)
-    }
-
-    func saveSshAgentFilters() {
-        core.saveSshAgentFilters()
-    }
-
-    func resetSshAgentFilters() {
-        core.resetSshAgentFilters()
+    func makeFiltersSession() -> AgentFiltersSession {
+        core.makeSshAgentFiltersSession()
     }
 
     func resolveSshAgentRequest(id: String, approved: Bool) {
         core.resolveSshAgentRequest(id: id, approved: approved)
     }
 
-    /// For one cipher or (`nil`) all of them. Call when the SSH agent history screen
-    /// appears; balance with `stopSshAgentHistoryObservation()`.
-    func startSshAgentHistoryObservation(cipherId: String? = nil) {
-        stopSshAgentHistoryObservation()
-        startObservation(\.sshAgentHistorySubscription, into: \.sshAgentHistory) { onChange in
-            core.observeSshAgentHistory(cipherId: cipherId, onChange: onChange)
-        }
-    }
-
-    func stopSshAgentHistoryObservation() {
-        stopObservation(
-            \.sshAgentHistorySubscription, resetting: \.sshAgentHistory, to: SshAgentHistorySnapshot.companion.empty)
+    func makeHistorySession(target: SshAgentHistoryTarget) -> SshAgentHistorySession {
+        core.makeSshAgentHistorySession(cipherId: target.cipherId)
     }
 }

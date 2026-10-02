@@ -51,18 +51,6 @@ data class GpgAgentSettingsSnapshot(
     }
 }
 
-data class GpgAgentFiltersSnapshot(
-    val loaded: Boolean,
-    val count: Int,
-    val items: List<VaultFilterItemSnapshot>,
-    val canSave: Boolean,
-    val canReset: Boolean,
-) {
-    companion object {
-        val empty = GpgAgentFiltersSnapshot(false, 0, emptyList(), false, false)
-    }
-}
-
 enum class GpgAgentHistoryItemKind {
     SECTION, VALUE,
 }

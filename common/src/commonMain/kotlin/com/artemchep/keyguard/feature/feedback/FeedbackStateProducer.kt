@@ -25,8 +25,10 @@ fun produceFeedbackScreenState(): Loadable<FeedbackState> = produceScreenState(
     feedbackScreenStateProducer()
 }
 
-suspend fun RememberStateFlowScope.feedbackScreenStateProducer(): Flow<Loadable<FeedbackState>> {
-    val storage = kotlin.run {
+suspend fun RememberStateFlowScope.feedbackScreenStateProducer(
+    messageStorage: PersistedStorage? = null,
+): Flow<Loadable<FeedbackState>> {
+    val storage = messageStorage ?: kotlin.run {
         val disk = loadDiskHandle("feedback")
         PersistedStorage.InDisk(disk)
     }

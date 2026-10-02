@@ -79,6 +79,7 @@ import com.artemchep.keyguard.feature.watchtower.WatchtowerRoute
 import com.artemchep.keyguard.apple.watchtower.WatchtowerSnapshot
 import com.artemchep.keyguard.apple.watchtower.WatchtowerAlertsSnapshot
 import com.artemchep.keyguard.apple.watchtower.WatchtowerController
+import com.artemchep.keyguard.apple.watchtower.WatchtowerSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
@@ -379,6 +380,7 @@ internal class NavigationStackController(
         var title: String = kind.defaultTitle
         var detail: VaultDetailSnapshot? = null
         var vaultListSession: VaultListSession? = null
+        var watchtowerSession: WatchtowerSession? = null
         var scopedWatchtowerController: WatchtowerController? = null
         var watchtower: WatchtowerSnapshot? = null
         var watchtowerAlerts: WatchtowerAlertsSnapshot? = null
@@ -418,6 +420,8 @@ internal class NavigationStackController(
             cancellable?.cancel()
             cancellable = null
             scopedWatchtowerController = null
+            watchtowerSession?.close()
+            watchtowerSession = null
             directorySession?.close()
             directorySession = null
             wordlistListSession?.close()
@@ -521,9 +525,9 @@ internal class NavigationStackController(
      * The argument is the [AccountType] name ("BITWARDEN" / "KEEPASS"); without a handler the
      * route is dropped (recorded as unmapped).
      */
-    private var addAccountHandler: ((String) -> Unit)? = null
+    private var addAccountHandler: ((String, String?) -> Unit)? = null
 
-    fun setAddAccountHandler(handler: ((String) -> Unit)?) {
+    fun setAddAccountHandler(handler: ((String, String?) -> Unit)?) {
         addAccountHandler = handler
     }
 
@@ -531,7 +535,7 @@ internal class NavigationStackController(
      * Receives a [BitwardenLoginRoute]'s args right before [addAccountHandler] presents the login sheet,
      * so a re-login keeps the account's email and server.
      */
-    var bitwardenLoginArgsHandler: ((BitwardenLoginRoute.Args) -> Unit)? = null
+    var bitwardenLoginArgsHandler: ((BitwardenLoginRoute.Args) -> String)? = null
 
     private var revealFileHandler: ((String) -> Unit)? = null
 
@@ -835,18 +839,17 @@ internal class NavigationStackController(
 
     fun invokeEntryAction(instanceId: Long, actionId: String) = onMain {
         val entry = entry(instanceId) ?: return@onMain
-        val watchtower = entry.scopedWatchtowerController
-        if (watchtower != null) {
-            when {
-                entry.kind is ScreenKind.WatchtowerAlerts && actionId == "markAllRead" ->
-                    watchtower.markAllWatchtowerAlertsRead()
-                entry.kind is ScreenKind.WatchtowerAlerts -> watchtower.invokeWatchtowerAlertItem(actionId)
-                actionId == "clearFilters" -> watchtower.clearWatchtowerFilters()
-                actionId.startsWith("filter:") -> watchtower.invokeWatchtowerFilter(actionId.removePrefix("filter:"))
-                else -> watchtower.invokeWatchtowerAction(actionId)
+        val dashboard = entry.watchtowerSession
+        val alerts = entry.scopedWatchtowerController
+        when {
+            dashboard != null -> when {
+                actionId == "clearFilters" -> dashboard.clearWatchtowerFilters()
+                actionId.startsWith("filter:") -> dashboard.invokeWatchtowerFilter(actionId.removePrefix("filter:"))
+                else -> dashboard.invokeWatchtowerAction(actionId)
             }
-        } else {
-            entry.actionHandlers[actionId]?.invoke()
+            alerts != null && actionId == "markAllRead" -> alerts.markAllWatchtowerAlertsRead()
+            alerts != null -> alerts.invokeWatchtowerAlertItem(actionId)
+            else -> entry.actionHandlers[actionId]?.invoke()
         }
     }
 
@@ -975,8 +978,10 @@ internal class NavigationStackController(
                     ?.takeIf { addAccountHandler != null }
                 if (addAccount != null) {
                     onMain {
-                        addAccount.bitwardenArgs?.let { args -> bitwardenLoginArgsHandler?.invoke(args) }
-                        addAccountHandler?.invoke(addAccount.type.name)
+                        val requestId = addAccount.bitwardenArgs?.let { args ->
+                            bitwardenLoginArgsHandler?.invoke(args)
+                        }
+                        addAccountHandler?.invoke(addAccount.type.name, requestId)
                     }
                     true
                 } else {
@@ -1266,8 +1271,9 @@ internal class NavigationStackController(
             is ScreenKind.Watchtower -> {
                 val controller = WatchtowerController(ctx, kind.args, "watchtower.${entry.instanceId}")
                 controller.navigationInterceptorProvider = { sessionKoin -> interceptor(sessionKoin) }
-                entry.scopedWatchtowerController = controller
-                entry.cancellable = controller.observeWatchtower { snapshot ->
+                val session = controller.makeSession()
+                entry.watchtowerSession = session
+                entry.cancellable = session.observe { snapshot ->
                     entry.watchtower = snapshot
                     emitFor(entry)
                 }

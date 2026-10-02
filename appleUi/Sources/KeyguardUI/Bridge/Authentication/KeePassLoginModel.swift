@@ -5,16 +5,21 @@ import KeyguardShared
 @MainActor
 @Observable
 final class KeePassLoginModel: SnapshotObserving {
-    private let core: KeyguardCore
+    private let source: any KeePassLoginSource
+    let filePicker = FilePickerSession()
+    /// Cancelled once the form is dismissed or signs in; the source is then never observed again.
+    @ObservationIgnored private let lifetime: BridgeObservation
 
-    init(core: KeyguardCore) {
-        self.core = core
+    init(source: any KeePassLoginSource) {
+        self.source = source
+        lifetime = BridgeObservation(cancel: { source.close() })
     }
 
     private(set) var keepass: KeePassLoginSnapshot = KeePassLoginSnapshot.companion.empty
 
     private(set) var keepassDidSucceed = false
 
+    @ObservationIgnored private var dismissedWebDavId: String?
     private(set) var keepassWebDav: WebDavSettingsSnapshot?
 
     @ObservationIgnored private var keepassLoginSubscription: BridgeObservation?
@@ -22,23 +27,49 @@ final class KeePassLoginModel: SnapshotObserving {
     /// Call when the KeePass login screen appears; balance with
     /// `stopKeePassLoginObservation()`.
     func startKeePassLoginObservation() {
+        guard !lifetime.isCancelled else { return }
         startObservation(\.keepassLoginSubscription) { deliver in
-            BridgeObservation(
-                core.observeKeePassLogin(
-                    onChange: { snapshot in
-                        deliver { $0.keepass = snapshot }
-                    },
-                    onSuccess: {
-                        deliver { $0.keepassDidSucceed = true }
-                    },
-                    onWebDavChange: { snapshot in
-                        deliver { $0.keepassWebDav = snapshot }
+            source.setKeePassFilePickerRequestHandler { [weak self] request in
+                deliver { model in
+                    model.filePicker.presentKeePassFilePicker(
+                        for: request,
+                        resolve: { [weak self] id, uri, name, size, token in
+                            guard let self, !self.lifetime.isCancelled else { return }
+                            self.source.resolveKeePassFilePicker(
+                                requestId: id, uri: uri, name: name, size: size, accessToken: token)
+                        },
+                        cancel: { [weak self] id in
+                            guard let self, !self.lifetime.isCancelled else { return }
+                            self.source.cancelKeePassFilePicker(requestId: id)
+                        }
+                    )
+                }
+            }
+            return source.subscribe(
+                onChange: { snapshot in deliver { $0.keepass = snapshot } },
+                onClose: { deliver { $0.complete() } },
+                onWebDavChange: { snapshot in
+                    deliver { model in
+                        if let snapshot, snapshot.id == model.dismissedWebDavId { return }
+                        model.keepassWebDav = snapshot
                     }
-                ))
+                }
+            )
         }
     }
 
+    /// Ending the subscription drops every callback still queued behind the completion.
+    private func complete() {
+        filePicker.cancel()
+        stopObservation(\.keepassLoginSubscription)
+        lifetime.cancel()
+        keepassWebDav = nil
+        keepassDidSucceed = true
+    }
+
     func stopKeePassLoginObservation() {
+        filePicker.cancel()
+        lifetime.cancel()
         stopObservation(\.keepassLoginSubscription)
         keepass = KeePassLoginSnapshot.companion.empty
         keepassDidSucceed = false
@@ -47,57 +78,58 @@ final class KeePassLoginModel: SnapshotObserving {
 
     /// Selecting a tab makes the shared producer launch the matching file picker.
     func selectKeePassTab(key: String) {
-        core.selectKeePassTab(key: key)
+        source.selectKeePassTab(key: key)
     }
 
     /// Selecting WebDAV surfaces the settings sheet through `keepassWebDav`.
     func selectKeePassLocation(key: String) {
-        core.selectKeePassLocation(key: key)
+        source.selectKeePassLocation(key: key)
     }
 
     /// Re-picks the database file (or re-opens the WebDAV form for a WebDAV location).
     func pickKeePassDbFile() {
-        core.pickKeePassDbFile()
+        source.pickKeePassDbFile()
     }
 
     func clearKeePassDbFile() {
-        core.clearKeePassDbFile()
+        source.clearKeePassDbFile()
     }
 
     func pickKeePassKeyFile() {
-        core.pickKeePassKeyFile()
+        source.pickKeePassKeyFile()
     }
 
     func clearKeePassKeyFile() {
-        core.clearKeePassKeyFile()
+        source.clearKeePassKeyFile()
     }
 
     func setKeePassPassword(text: String) {
-        core.setKeePassPassword(text: text)
+        source.setKeePassPassword(text: text)
     }
 
     func submitKeePassLogin() {
-        core.submitKeePassLogin()
+        source.submitKeePassLogin()
     }
 
     /// `id` is "url", "username" or "password".
-    func setWebDavField(id: String, text: String) {
-        core.setWebDavField(id: id, text: text)
+    func setWebDavField(sessionId: String, id: String, text: String) {
+        source.setWebDavField(sessionId: sessionId, id: id, text: text)
     }
 
     /// Validates and saves the WebDAV settings; the producer then delivers the
     /// location to the KeePass form and the sheet dismisses via `keepassWebDav`.
-    func submitWebDavSettings() {
-        core.submitWebDavSettings()
+    func submitWebDavSettings(sessionId: String) {
+        source.submitWebDavSettings(sessionId: sessionId)
     }
 
     /// Validates the settings and pings the server; the result arrives as a toast.
-    func testWebDavConnection() {
-        core.testWebDavConnection()
+    func testWebDavConnection(sessionId: String) {
+        source.testWebDavConnection(sessionId: sessionId)
     }
 
     func dismissWebDavSettings() {
+        dismissedWebDavId = keepassWebDav?.id
         keepassWebDav = nil
-        core.cancelWebDavSettings()
+        source.cancelWebDavSettings()
     }
 }

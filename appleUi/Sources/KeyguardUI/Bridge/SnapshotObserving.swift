@@ -9,6 +9,31 @@ import KeyguardShared
 protocol SnapshotObserving: AnyObject {}
 
 extension SnapshotObserving {
+    /// A subscription factory for `SharedObservation`: keep the snapshot until the
+    /// last presentation releases it, and reject callbacks from an earlier source.
+    func sharedSnapshotObservation<Snapshot>(
+        _ handle: ReferenceWritableKeyPath<Self, BridgeObservation?>,
+        into property: ReferenceWritableKeyPath<Self, Snapshot>,
+        empty: Snapshot,
+        observe: (@escaping (Snapshot) -> Void) -> KeyguardCancellable
+    ) -> BridgeObservation {
+        sharedSnapshotObservation(handle, into: property, empty: empty) { callback in
+            BridgeObservation(observe(callback))
+        }
+    }
+
+    func sharedSnapshotObservation<Snapshot>(
+        _ handle: ReferenceWritableKeyPath<Self, BridgeObservation?>,
+        into property: ReferenceWritableKeyPath<Self, Snapshot>,
+        empty: Snapshot,
+        subscribe: (@escaping (Snapshot) -> Void) -> BridgeObservation
+    ) -> BridgeObservation {
+        startObservation(handle, into: property, subscribe: subscribe)
+        return BridgeObservation { [weak self] in
+            self?.stopObservation(handle, resetting: property, to: empty)
+        }
+    }
+
     func startObservation<Snapshot>(
         _ handle: ReferenceWritableKeyPath<Self, BridgeObservation?>,
         into property: ReferenceWritableKeyPath<Self, Snapshot>,

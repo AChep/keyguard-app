@@ -14,16 +14,21 @@ final class AutofillSettingsModel: SnapshotObserving {
     /// Only live while the AutoFill settings screen is on screen.
     private(set) var autofillSettings: AutofillSettingsSnapshot = AutofillSettingsSnapshot.companion.empty
 
+    @ObservationIgnored private let autofillSettingsObservation = SharedObservation()
+
     @ObservationIgnored private var autofillSettingsSubscription: BridgeObservation?
 
     func startAutofillSettingsObservation() {
-        startObservation(
-            \.autofillSettingsSubscription, into: \.autofillSettings, observe: core.observeAutofillSettings)
+        autofillSettingsObservation.acquire {
+            sharedSnapshotObservation(
+                \.autofillSettingsSubscription, into: \.autofillSettings,
+                empty: AutofillSettingsSnapshot.companion.empty,
+                observe: core.observeAutofillSettings)
+        }
     }
 
     func stopAutofillSettingsObservation() {
-        stopObservation(
-            \.autofillSettingsSubscription, resetting: \.autofillSettings, to: AutofillSettingsSnapshot.companion.empty)
+        autofillSettingsObservation.release()
     }
 
     func setAutofillCopyTotp(_ value: Bool) { core.setAutofillCopyTotp(value: value) }

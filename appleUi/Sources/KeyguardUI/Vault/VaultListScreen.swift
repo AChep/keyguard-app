@@ -3,7 +3,6 @@ import KeyguardShared
 
 /// Vault-list screen backed by one `VaultListSessionModel` per appearance.
 struct VaultListScreen: View {
-    @Environment(CipherDetailModel.self) private var cipherDetailModel
     @Environment(NavigationModel.self) private var navigationModel
 
     @State private var model: VaultListSessionModel
@@ -13,10 +12,12 @@ struct VaultListScreen: View {
     @State private var selection = VaultSelectionModel()
     /// The provider chosen in the add-account menu; non-nil pushes the matching
     /// login screen (Bitwarden form / KeePass form).
+    @State private var accountLogin = FormPresentation<AccountLoginForm>()
     @State private var pendingLogin: AddAccountKind?
     @State private var showingRecents = false
 
     #if os(macOS)
+    @State private var detailModel: CipherDetailModel
     @State private var filterSidebarShown = FilterSidebarMemory.mainWide
     #endif
 
@@ -26,10 +27,16 @@ struct VaultListScreen: View {
 
     init(core: KeyguardCore) {
         _model = State(wrappedValue: VaultListSessionModel(core: core))
+        #if os(macOS)
+        _detailModel = State(wrappedValue: .cipherDetail(core: core))
+        #endif
     }
 
     var body: some View {
         platformBody
+            .onChange(of: pendingLogin) { _, kind in
+                if kind == nil { accountLogin.close() }
+            }
             .onAppear { onAppearScreen() }
             .onDisappear { onDisappearScreen() }
             // Retry reveal requests as list structure arrives without rebuilding the UI.
@@ -49,18 +56,10 @@ struct VaultListScreen: View {
 
     private func onAppearScreen() {
         model.start()
-        #if os(macOS)
-        // The inline detail pane's observer lives on `CipherDetailModel`; run it only
-        // while the vault screen is on screen.
-        cipherDetailModel.startDetailObservation()
-        #endif
     }
 
     private func onDisappearScreen() {
         model.stop()
-        #if os(macOS)
-        cipherDetailModel.stopDetailObservation()
-        #endif
     }
 
     // MARK: - Shared pieces
@@ -116,7 +115,7 @@ struct VaultListScreen: View {
             )
             .toolbar { macToolbar }
             .navigationDestination(item: $pendingLogin) { kind in
-                AddAccountDestination(kind: kind)
+                AddAccountDestination(kind: kind, presentation: accountLogin)
             }
             .sheet(isPresented: $showingRecents) {
                 RecentsView()
@@ -146,7 +145,7 @@ struct VaultListScreen: View {
         } list: {
             VaultListPane(model: model, selection: selection, config: listConfig)
         } detail: {
-            VaultDetailPane(selection: selection)
+            VaultDetailPane(listModel: model, selection: selection, model: detailModel)
         }
     }
 
@@ -222,7 +221,7 @@ struct VaultListScreen: View {
                 )
                 .toolbar { iosToolbar }
                 .navigationDestination(item: $pendingLogin) { kind in
-                    AddAccountDestination(kind: kind)
+                    AddAccountDestination(kind: kind, presentation: accountLogin)
                 }
                 .environment(\.editMode, $editMode)
         }

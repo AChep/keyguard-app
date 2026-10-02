@@ -2,15 +2,15 @@ import SwiftUI
 import KeyguardShared
 
 struct GeneratorOptionsToolbarButton: View {
-    @Environment(GeneratorModel.self) private var generatorModel
     let options: [GeneratorActionSnapshot]
     let canOpenHistory: Bool
+    let invoke: (String) -> Void
 
     var body: some View {
         Menu {
             if canOpenHistory {
                 Button(L10n.generatorhistoryHeaderTitle, systemImage: "clock.arrow.circlepath") {
-                    generatorModel.invokeGeneratorAction(id: "history")
+                    invoke("history")
                 }
                 if !options.isEmpty {
                     Divider()
@@ -18,7 +18,7 @@ struct GeneratorOptionsToolbarButton: View {
             }
             ForEach(options, id: \.id) { option in
                 Button {
-                    generatorModel.invokeGeneratorAction(id: option.id)
+                    invoke(option.id)
                 } label: {
                     if option.selected {
                         Label(option.title, systemImage: "checkmark")

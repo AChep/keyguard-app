@@ -2,7 +2,6 @@ package com.artemchep.keyguard.apple.generator
 
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.apple.core.sessionKoin
-import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.relays.EmailRelayRegistry
 import com.artemchep.keyguard.feature.generator.GeneratorRoute
@@ -11,13 +10,11 @@ import com.artemchep.keyguard.feature.generator.generatorStateProducer
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.apple.core.CoreContext
-import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.throttleLatest
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.apple.model.ActionKeyAllocator
-import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,19 +34,12 @@ internal class GeneratorController(
      * the NoOp controller. Late-bound by [KeyguardCore].
      */
     var navigationInterceptorProvider: ((Scope) -> ((NavigationIntent) -> Boolean))? = null
-    /** Rebuilt on every [GeneratorSnapshot] emission: map the snapshot's ids / keys back to the live closures. */
-    private var generatorActionHandlers: Map<String, () -> Unit> = emptyMap()
-    private var generatorSwitchHandlers: Map<String, (Boolean) -> Unit> = emptyMap()
-    private var generatorTextHandlers: Map<String, (String) -> Unit> = emptyMap()
-    private var generatorIntHandlers: Map<String, (Long) -> Unit> = emptyMap()
-    private var generatorLengthHandlers: Map<String, (Int) -> Unit> = emptyMap()
-
     /**
      * Optional dependencies (history, profiles, email relays, wordlists) live in the per-session sub-DI, so the
      * generator needs an unlocked vault.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun observeGenerator(
+    fun makeSession(
         args: GeneratorRoute.Args = GeneratorRoute.Args(
             password = true,
             username = true,
@@ -59,19 +49,16 @@ internal class GeneratorController(
         scopeName: String = "generator",
         producerKey: String? = null,
         recordHistory: Boolean = true,
-        onResult: (GetPasswordResult?) -> Unit = {},
-        onChange: (GeneratorSnapshot) -> Unit,
-    ): KeyguardCancellable {
+    ): GeneratorSession = GeneratorSession { publish, onResult ->
         val leContext = ctx.koin.get<LeContext>()
-        return ctx.launchSessionObserver(
+        ctx.launchSessionObserver(
             onLocked = {
-                generatorActionHandlers = emptyMap()
-                generatorSwitchHandlers = emptyMap()
-                generatorTextHandlers = emptyMap()
-                generatorIntHandlers = emptyMap()
-                generatorLengthHandlers = emptyMap()
                 onResult(null)
-                onChange(GeneratorSnapshot.empty)
+                publish(GeneratorSnapshot.empty, GeneratorSessionActions())
+            },
+            onTeardown = {
+                onResult(null)
+                publish(GeneratorSnapshot.empty, GeneratorSessionActions())
             },
         ) { state ->
             val producerScope = this
@@ -162,13 +149,14 @@ internal class GeneratorController(
                         lengthHandlers = lengthHandlers,
                     )
                     ctx.publishOnMain {
-                        generatorActionHandlers = actionHandlers
-                        generatorSwitchHandlers = switchHandlers
-                        generatorTextHandlers = textHandlers
-                        generatorIntHandlers = intHandlers
-                        generatorLengthHandlers = lengthHandlers
                         onResult(inner.value?.source)
-                        onChange(snapshot)
+                        publish(snapshot, GeneratorSessionActions(
+                            actions = actionHandlers,
+                            switches = switchHandlers,
+                            text = textHandlers,
+                            counters = intHandlers,
+                            length = lengthHandlers["length"],
+                        ))
                     }
                 }
         }
@@ -401,23 +389,4 @@ internal class GeneratorController(
         )
     }
 
-    fun invokeGeneratorAction(id: String) {
-        generatorActionHandlers.invokeAction(id)
-    }
-
-    fun setGeneratorSwitch(key: String, value: Boolean) {
-        generatorSwitchHandlers[key]?.invoke(value)
-    }
-
-    fun setGeneratorText(key: String, text: String) {
-        generatorTextHandlers[key]?.invoke(text)
-    }
-
-    fun setGeneratorCounter(key: String, value: Int) {
-        generatorIntHandlers[key]?.invoke(value.toLong())
-    }
-
-    fun setGeneratorLength(value: Int) {
-        generatorLengthHandlers["length"]?.invoke(value)
-    }
 }

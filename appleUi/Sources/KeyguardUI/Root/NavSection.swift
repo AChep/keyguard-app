@@ -108,7 +108,7 @@ func navSectionDetail(_ section: NavSection) -> some View {
     case "generator":
         GeneratorView()
     case "gpg_tools":
-        GpgToolsView()
+        GpgToolsScreen()
     case "watchtower":
         WatchtowerView()
     case "settings":

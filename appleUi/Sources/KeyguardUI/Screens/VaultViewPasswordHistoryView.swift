@@ -2,32 +2,25 @@ import SwiftUI
 import KeyguardShared
 
 struct VaultViewPasswordHistoryView: View {
-    @Environment(CipherDetailModel.self) private var cipherDetailModel
-
-    let itemId: String
-
-    private var snapshot: PasswordHistorySnapshot { cipherDetailModel.passwordHistory }
+    let snapshot: PasswordHistorySnapshot
+    let invokeItem: (String) -> Void
+    let invokeSelection: @MainActor @Sendable (String) -> Void
+    let invokeAction: (String) -> Void
+    let toggleSelection: (String) -> Void
+    let clearSelection: @MainActor @Sendable () -> Void
 
     @State private var selection = ListSelectionModel()
 
     var body: some View {
         content
-            .navigationTitle(L10n.passwordhistoryHeaderTitle)
-            #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-            #endif
             .toolbar { toolbar }
             .listSelection(
                 selection,
                 selectionCount: snapshot.selectionCount,
                 producerSelection: Set(snapshot.items.filter(\.selected).map(\.id)),
                 isKnownId: { id in snapshot.items.contains { $0.id == id } },
-                toggle: cipherDetailModel.togglePasswordHistorySelection(id:),
-                clear: { cipherDetailModel.clearPasswordHistorySelection() }
-            )
-            .observing(
-                start: { cipherDetailModel.startPasswordHistoryObservation(itemId: itemId) },
-                stop: { cipherDetailModel.stopPasswordHistoryObservation() }
+                toggle: toggleSelection,
+                clear: clearSelection
             )
     }
 
@@ -66,8 +59,8 @@ struct VaultViewPasswordHistoryView: View {
         .selectionBar(
             count: snapshot.selectionCount,
             actions: snapshot.selectionActions,
-            invoke: { cipherDetailModel.invokePasswordHistorySelectionAction(id: $0) },
-            clear: { cipherDetailModel.clearPasswordHistorySelection() }
+            invoke: invokeSelection,
+            clear: clearSelection
         )
     }
 
@@ -91,11 +84,11 @@ struct VaultViewPasswordHistoryView: View {
     private func rowContextMenu(_ item: PasswordHistoryItemSnapshot) -> some View {
         if showsBulkContextMenu {
             listActionMenuItems(actions: snapshot.selectionActions) {
-                cipherDetailModel.invokePasswordHistorySelectionAction(id: $0)
+                invokeSelection($0)
             }
         } else {
             listActionMenuItems(actions: item.actions) {
-                cipherDetailModel.invokePasswordHistoryItemAction(id: $0)
+                invokeItem($0)
             }
         }
     }
@@ -106,7 +99,7 @@ struct VaultViewPasswordHistoryView: View {
     private func rowSwipeActions(_ item: PasswordHistoryItemSnapshot) -> some View {
         ForEach(item.actions, id: \.id) { action in
             Button {
-                cipherDetailModel.invokePasswordHistoryItemAction(id: action.id)
+                invokeItem(action.id)
             } label: {
                 Text(action.title)
             }
@@ -131,7 +124,7 @@ struct VaultViewPasswordHistoryView: View {
             ToolbarItem {
                 Menu {
                     listActionMenuItems(actions: snapshot.actions) {
-                        cipherDetailModel.invokePasswordHistoryAction(id: $0)
+                        invokeAction($0)
                     }
                 } label: {
                     Label(L10n.actions, systemImage: "ellipsis.circle")

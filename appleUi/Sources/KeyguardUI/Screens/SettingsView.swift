@@ -53,14 +53,9 @@ struct SettingsView: View {
             .task(id: AppLocalization.shared.locale.identifier) { await settingsModel.loadSettings() }
             .onAppear {
                 accountsModel.startAccountListObservation()
-                syncAccountDetailObservation()
             }
             .onDisappear {
                 accountsModel.stopAccountListObservation()
-                accountsModel.stopAccountDetailObservation()
-            }
-            .onChange(of: selectedId) {
-                syncAccountDetailObservation()
             }
             .onChange(of: query, initial: true) {
                 searchSelection = nil
@@ -93,19 +88,13 @@ struct SettingsView: View {
             }
     }
 
-    private func syncAccountDetailObservation() {
-        if let selectedId, let accountId = Self.accountId(fromTag: selectedId) {
-            accountsModel.startAccountDetailObservation(accountId: accountId)
-        } else {
-            accountsModel.stopAccountDetailObservation()
-        }
-    }
-
     @ToolbarContentBuilder
     private var addAccountToolbar: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
             Menu {
-                AddAccountMenuItems { navigationModel.addAccountRequest = $0 }
+                AddAccountMenuItems {
+                    navigationModel.addAccountRequest = AccountLoginRequest(kind: $0, requestId: nil)
+                }
             } label: {
                 Label(L10n.accountMainAddAccountTitle, systemImage: "person.badge.plus")
             }
@@ -327,8 +316,8 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var selectedDetailContent: some View {
-        if let tag = selectedId, Self.accountId(fromTag: tag) != nil {
-            AccountDetailView()
+        if let tag = selectedId, let accountId = Self.accountId(fromTag: tag) {
+            AccountDetailScreen(accountId: accountId, makeSession: accountsModel.makeDetailSession)
         } else if let id = selectedId,
             let item = items.first(where: { $0.id == id && $0.kind == SettingsItemKind.action })
         {

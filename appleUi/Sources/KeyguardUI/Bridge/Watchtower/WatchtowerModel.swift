@@ -11,35 +11,28 @@ final class WatchtowerModel: SnapshotObserving {
         self.core = core
     }
 
-    /// Only live while the watchtower screen is on screen.
-    private(set) var watchtower: WatchtowerSnapshot = WatchtowerSnapshot.companion.empty
-
-    #if os(macOS)
-    private(set) var watchtowerFilterToolbar = FilterToolbarState.empty
-    #endif
-
-    #if os(macOS)
-    private(set) var watchtowerOptionsToolbar = WatchtowerOptionsToolbarState.empty
-    #endif
+    func makeSession() -> WatchtowerSession { core.makeWatchtowerSession() }
 
     /// Only live while the Watchtower settings screen is on screen.
     private(set) var watchtowerSettings: WatchtowerSettingsSnapshot = WatchtowerSettingsSnapshot.companion.empty
 
-    @ObservationIgnored private var watchtowerSubscription: BridgeObservation?
+    @ObservationIgnored private let watchtowerSettingsObservation = SharedObservation()
 
     @ObservationIgnored private var watchtowerSettingsSubscription: BridgeObservation?
 
     /// Call when the Watchtower settings screen appears; balance with
     /// `stopWatchtowerSettingsObservation()`.
     func startWatchtowerSettingsObservation() {
-        startObservation(
-            \.watchtowerSettingsSubscription, into: \.watchtowerSettings, observe: core.observeWatchtowerSettings)
+        watchtowerSettingsObservation.acquire {
+            sharedSnapshotObservation(
+                \.watchtowerSettingsSubscription, into: \.watchtowerSettings,
+                empty: WatchtowerSettingsSnapshot.companion.empty,
+                observe: core.observeWatchtowerSettings)
+        }
     }
 
     func stopWatchtowerSettingsObservation() {
-        stopObservation(
-            \.watchtowerSettingsSubscription, resetting: \.watchtowerSettings,
-            to: WatchtowerSettingsSnapshot.companion.empty)
+        watchtowerSettingsObservation.release()
     }
 
     func setCheckPwnedPasswords(_ value: Bool) { core.setCheckPwnedPasswords(value: value) }
@@ -56,40 +49,4 @@ final class WatchtowerModel: SnapshotObserving {
         return true
     }
 
-    /// Call when the watchtower screen appears; balance with `stopWatchtowerObservation()`.
-    func startWatchtowerObservation() {
-        startObservation(\.watchtowerSubscription) { deliver in
-            BridgeObservation(
-                core.observeWatchtower { snapshot in
-                    deliver { $0.setWatchtowerSnapshot(snapshot) }
-                })
-        }
-    }
-
-    func stopWatchtowerObservation() {
-        stopObservation(\.watchtowerSubscription)
-        setWatchtowerSnapshot(WatchtowerSnapshot.companion.empty)
-    }
-
-    private func setWatchtowerSnapshot(_ snapshot: WatchtowerSnapshot) {
-        watchtower = snapshot
-        #if os(macOS)
-        watchtowerFilterToolbar = FilterToolbarState(snapshot: snapshot)
-        watchtowerOptionsToolbar = WatchtowerOptionsToolbarState(snapshot: snapshot)
-        #endif
-    }
-
-    /// Invokes a watchtower navigation closure (card, chip, row or option).
-    func invokeWatchtowerAction(id: String) {
-        core.invokeWatchtowerAction(id: id)
-    }
-
-    /// Toggles a watchtower filter on/off (or expands/collapses a section) by its id.
-    func invokeWatchtowerFilter(id: String) {
-        core.invokeWatchtowerFilter(id: id)
-    }
-
-    func clearWatchtowerFilters() {
-        core.clearWatchtowerFilters()
-    }
 }

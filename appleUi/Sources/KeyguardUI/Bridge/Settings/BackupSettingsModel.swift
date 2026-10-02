@@ -14,42 +14,32 @@ final class BackupSettingsModel: SnapshotObserving {
     /// Only live while the Automatic Backups settings screen is on screen.
     private(set) var backupSettings: BackupSettingsSnapshot = BackupSettingsSnapshot.companion.empty
 
+    @ObservationIgnored private let backupSettingsObservation = SharedObservation()
+
     @ObservationIgnored private var backupSettingsSubscription: BridgeObservation?
 
     func startBackupSettingsObservation() {
-        startObservation(\.backupSettingsSubscription, into: \.backupSettings, observe: core.observeBackupSettings)
+        backupSettingsObservation.acquire(makeBackupSettingsObservation)
     }
 
     func stopBackupSettingsObservation() {
-        stopObservation(
-            \.backupSettingsSubscription, resetting: \.backupSettings, to: BackupSettingsSnapshot.companion.empty)
+        backupSettingsObservation.release()
     }
 
-    func setBackupIncludeAttachments(_ value: Bool) { core.setBackupIncludeAttachments(value: value) }
-
-    func setBackupPassword(_ text: String) { core.setBackupPassword(text: text) }
-
-    func setBackupStoreKind(_ kind: String) { core.setBackupStoreKind(kind: kind) }
-
-    func setBackupStoreLocalPath(_ path: String) { core.setBackupStoreLocalPath(path: path) }
-
-    func setBackupStoreWebDav(url: String, username: String, password: String) {
-        core.setBackupStoreWebDav(url: url, username: username, password: password)
+    func retryBackupSettingsObservation() {
+        guard backupSettings.initializationFailed else { return }
+        backupSettingsObservation.restart(makeBackupSettingsObservation)
     }
+
+    private func makeBackupSettingsObservation() -> BridgeObservation {
+        sharedSnapshotObservation(
+            \.backupSettingsSubscription, into: \.backupSettings, empty: BackupSettingsSnapshot.companion.empty,
+            observe: core.observeBackupSettings)
+    }
+
+    func makeBackupSetupSession() -> BackupSetupSession { core.makeBackupSetupSession() }
 
     func isValidBackupWebDavURL(_ url: String) -> Bool { core.isValidBackupWebDavUrl(url: url) }
-
-    func pickBackupLocation() { core.pickBackupLocation() }
-
-    func enableBackup() { core.enableBackup() }
-
-    func beginBackupSetup() { core.beginBackupSetup() }
-
-    func cancelBackupSetup() { core.cancelBackupSetup() }
-
-    func restoreBackupSetupPassword() { core.restoreBackupSetupPassword() }
-
-    func setBackupSetupRetention(_ maxSnapshots: Int32) { core.setBackupSetupRetention(maxSnapshots: maxSnapshots) }
 
     func triggerBackupNow() { core.triggerBackupNow() }
 

@@ -118,6 +118,17 @@ internal class DialogController(
     private val ctx: CoreContext,
     private val authPromptHost: AuthPromptHost,
 ) {
+    private var closed = false
+    private val disposeDialogs = mutableListOf<() -> Unit>()
+
+    fun close() {
+        if (closed) return
+        closed = true
+        disposeDialogs.forEach { it() }
+        confirmationFilePickerHandlers.clear()
+        onConfirmationFilePickerRequest = null
+    }
+
     /**
      * One dialog channel: a Swift sink (`null` while hidden), at most one headless producer job, and the
      * per-presentation [handlers] behind the dialog's Swift-facing methods. All fields are main-confined:
@@ -130,15 +141,37 @@ internal class DialogController(
     ) {
         private var sink: ((S?) -> Unit)? = null
         private var job: Job? = null
+        private var registration: Any? = null
+        private var presentation: Any? = null
+
+        init {
+            disposeDialogs += {
+                close()
+                sink = null
+                registration = null
+            }
+        }
 
         var handlers: H = noHandlers
             private set
 
         /** Registers the SwiftUI sink; emits `null` (hidden) right away. */
         fun register(onChange: (S?) -> Unit): KeyguardCancellable {
+            if (closed) return KeyguardCancellable {}
+            val owner = Any()
+            registration = owner
             sink = onChange
-            val job = ctx.scope.launch { onChange(null) }
-            return KeyguardCancellable(job)
+            val initial = ctx.scope.launch {
+                if (!closed && registration === owner) onChange(null)
+            }
+            return KeyguardCancellable {
+                initial.cancel()
+                if (registration === owner) {
+                    close()
+                    sink = null
+                    registration = null
+                }
+            }
         }
 
         /**
@@ -148,12 +181,15 @@ internal class DialogController(
         fun present(
             block: suspend CoroutineScope.(publish: suspend (S, H) -> Unit) -> Unit,
         ) {
-            if (sink == null) return
+            if (closed || sink == null) return
             job?.cancel()
             handlers = noHandlers
+            val owner = Any()
+            presentation = owner
             job = ctx.backgroundScope.launch {
                 block { snapshot, newHandlers ->
                     ctx.publishOnMain {
+                        if (closed || presentation !== owner) return@publishOnMain
                         handlers = newHandlers
                         sink?.invoke(snapshot)
                     }
@@ -173,6 +209,7 @@ internal class DialogController(
         }
 
         fun close() {
+            presentation = null
             job?.cancel()
             job = null
             handlers = noHandlers
@@ -283,7 +320,8 @@ internal class DialogController(
      */
     fun navigationInterceptor(
         sessionKoin: Scope? = null,
-    ): (NavigationIntent) -> Boolean = { intent ->
+        formDialogsOnly: Boolean = false,
+    ): (NavigationIntent) -> Boolean = interceptor@ { intent ->
         val passwordMemory = intent.routeOrNull<PasswordMemoryRoute>()
         val largeTypeArgs = intent.toLargeTypeArgsOrNull()
         val barcodeArgs = intent.routeOrNull<BarcodeTypeRoute>()?.args
@@ -304,6 +342,9 @@ internal class DialogController(
         val cipherLinkPicker = intent.resultRouteOrNull<CipherLinkPickerRoute, CipherLinkPickerResult>()
         val accountPicker = intent.resultRouteOrNull<OrganizationConfirmationRoute, OrganizationConfirmationResult>()
         val folderPicker = intent.resultRouteOrNull<FolderConfirmationRoute, FolderConfirmationResult>()
+        val hasConfirmation = confirmation != null || tagsConfirmation != null
+        val hasPicker = cipherLinkPicker != null || accountPicker != null || folderPicker != null
+        if (formDialogsOnly && !hasConfirmation && !hasPicker) return@interceptor false
         // The producers dispatch their navigation intents from the background
         // pipeline, while the dialog state (the present* job + handler fields)
         // is main-confined — hop to the main scope before presenting.
@@ -1388,6 +1429,7 @@ internal class DialogController(
     }
 
     private fun handleConfirmationFilePickerIntent(intent: FilePickerIntent<*>) {
+        if (closed) return
         val requestId = "cfp:${confirmationFilePickerRequestCounter++}"
         confirmationFilePickerHandlers[requestId] = intent.onFilePickerResult
         onConfirmationFilePickerRequest?.invoke(intent.toFilePickerRequest(requestId, ::AddFilePickerRequest))

@@ -155,6 +155,7 @@ struct AutofillSettingsView: View {
 }
 
 struct SecuritySettingsView: View {
+    @Environment(SessionFactory.self) private var sessions
     @Environment(VaultSessionModel.self) private var authModel
     @Environment(SecuritySettingsModel.self) private var securityModel
     let item: SettingsItemSnapshot
@@ -312,7 +313,7 @@ struct SecuritySettingsView: View {
             stop: { securityModel.stopSecuritySettingsObservation() }
         )
         .sheet(isPresented: $changingPassword) {
-            ChangePasswordSheet(isPresented: $changingPassword)
+            ChangePasswordSheet(makeSession: sessions.makeChangePasswordSession)
         }
         .confirmationDialog(
             L10n.yubikeySlotPickerTitle,
@@ -388,99 +389,6 @@ struct SecuritySettingsView: View {
     }
 }
 
-/// Dismisses itself when the producer signals success.
-private struct ChangePasswordSheet: View {
-    @Environment(ChangePasswordModel.self) private var changePasswordModel
-    @Binding var isPresented: Bool
-    @State private var currentPassword = ""
-    @State private var newPassword = ""
-
-    private var s: ChangePasswordSnapshot { changePasswordModel.changePassword }
-
-    var body: some View {
-        ModalSheet(
-            title: L10n.changepasswordMasterPasswordTitle,
-            width: 460,
-            height: 420,
-            // Full-height on iOS: two SecureFields plus the software keyboard cramp
-            // the .medium detent (detents are a no-op on macOS).
-            detents: [.large],
-            dismissLabel: L10n.cancel
-        ) {
-            Form {
-                Section {
-                    SecureField(
-                        L10n.currentPassword,
-                        text: Binding(
-                            get: { currentPassword },
-                            set: {
-                                currentPassword = $0
-                                changePasswordModel.setChangePasswordCurrent($0)
-                            }
-                        ))
-                } footer: {
-                    if let error = s.currentError, !error.isEmpty {
-                        Text(error).foregroundStyle(.red)
-                    }
-                }
-                Section {
-                    SecureField(
-                        L10n.newPassword,
-                        text: Binding(
-                            get: { newPassword },
-                            set: {
-                                newPassword = $0
-                                changePasswordModel.setChangePasswordNew($0)
-                            }
-                        ))
-                } footer: {
-                    VStack(alignment: .leading, spacing: 8) {
-                        if let error = s.newError, !error.isEmpty {
-                            Text(error).foregroundStyle(.red)
-                        }
-                        Text(L10n.changepasswordDisclaimerLocalNote)
-                        Text(L10n.changepasswordDisclaimerAbuseNote)
-                    }
-                }
-                if s.biometricVisible {
-                    Section {
-                        Toggle(
-                            L10n.changepasswordBiometricAuthCheckbox,
-                            isOn: Binding(
-                                get: { s.biometricChecked },
-                                set: { changePasswordModel.setChangePasswordBiometric($0) }
-                            ))
-                    }
-                }
-            }
-            .formStyle(.grouped)
-            .disabled(!s.loaded || s.isLoading)
-        } actions: {
-            Button(L10n.change) {
-                changePasswordModel.submitChangePassword()
-            }
-            .keyboardShortcut(.defaultAction)
-            .disabled(
-                !s.canConfirm || s.isLoading || s.currentPassword != currentPassword || s.newPassword != newPassword
-            )
-        }
-        .observing(
-            start: { changePasswordModel.startChangePasswordObservation { isPresented = false } },
-            stop: { changePasswordModel.stopChangePasswordObservation() }
-        )
-        .onChange(of: s.loaded, initial: true) { _, loaded in
-            guard loaded else { return }
-            // Seed once from the producer. Later snapshots echo earlier edits
-            // and must not replace the local buffer while typing.
-            currentPassword = s.currentPassword
-            newPassword = s.newPassword
-        }
-        // Password validation failures arrive on the shared message bus. Keep
-        // their feedback above the native sheet covering the root overlay.
-        .appToastOverlay()
-    }
-}
-
 struct DeveloperSettingsView: View {
     @Environment(SshAgentModel.self) private var sshAgentModel
     #if os(macOS)
@@ -544,10 +452,14 @@ struct DeveloperSettingsView: View {
                     SshAgentSetupView()
                 }
             case .filters:
-                SshAgentFiltersView()
+                AgentFiltersView(
+                    title: L10n.sshAgentFiltersHeaderTitle,
+                    lockedText: L10n.sshAgentFiltersLockedText,
+                    makeSession: sshAgentModel.makeFiltersSession
+                )
             case .history:
                 ModalSheet(title: L10n.sshAgentHistoryHeaderTitle) {
-                    SshAgentHistoryView()
+                    SshAgentHistoryScreen(makeSession: sshAgentModel.makeHistorySession)
                 }
             }
         }

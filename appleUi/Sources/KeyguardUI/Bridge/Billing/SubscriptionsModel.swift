@@ -13,15 +13,20 @@ final class SubscriptionsModel: SnapshotObserving {
 
     private(set) var subscriptions: SubscriptionsSnapshot = SubscriptionsSnapshot.companion.empty
 
+    @ObservationIgnored private let subscriptionsObservation = SharedObservation()
+
     @ObservationIgnored private var subscriptionsSubscription: BridgeObservation?
 
     func startSubscriptionsObservation() {
-        startObservation(\.subscriptionsSubscription, into: \.subscriptions, observe: core.observeSubscriptions)
+        subscriptionsObservation.acquire {
+            sharedSnapshotObservation(
+                \.subscriptionsSubscription, into: \.subscriptions, empty: SubscriptionsSnapshot.companion.empty,
+                observe: core.observeSubscriptions)
+        }
     }
 
     func stopSubscriptionsObservation() {
-        stopObservation(
-            \.subscriptionsSubscription, resetting: \.subscriptions, to: SubscriptionsSnapshot.companion.empty)
+        subscriptionsObservation.release()
     }
 
     /// Launches the StoreKit purchase flow for a subscription or product id.

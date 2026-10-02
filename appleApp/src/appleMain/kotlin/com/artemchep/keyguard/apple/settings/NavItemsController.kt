@@ -122,7 +122,7 @@ internal class NavItemsController(
         val leContext = ctx.koin.get<LeContext>()
         val producer = ctx.koin
             .newHeadlessStateFlowScope(
-                key = "settings_navigation_items",
+                name = "settings_navigation_items",
                 scope = this,
                 navigationInterceptor = dialogController.navigationInterceptor(sessionKoin = sessionKoin),
             )

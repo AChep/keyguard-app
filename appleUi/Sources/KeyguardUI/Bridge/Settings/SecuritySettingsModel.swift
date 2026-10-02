@@ -14,16 +14,21 @@ final class SecuritySettingsModel: SnapshotObserving {
     /// Only live while the Security settings screen is on screen.
     private(set) var securitySettings: SecuritySettingsSnapshot = SecuritySettingsSnapshot.companion.empty
 
+    @ObservationIgnored private let securitySettingsObservation = SharedObservation()
+
     @ObservationIgnored private var securitySettingsSubscription: BridgeObservation?
 
     func startSecuritySettingsObservation() {
-        startObservation(
-            \.securitySettingsSubscription, into: \.securitySettings, observe: core.observeSecuritySettings)
+        securitySettingsObservation.acquire {
+            sharedSnapshotObservation(
+                \.securitySettingsSubscription, into: \.securitySettings,
+                empty: SecuritySettingsSnapshot.companion.empty,
+                observe: core.observeSecuritySettings)
+        }
     }
 
     func stopSecuritySettingsObservation() {
-        stopObservation(
-            \.securitySettingsSubscription, resetting: \.securitySettings, to: SecuritySettingsSnapshot.companion.empty)
+        securitySettingsObservation.release()
     }
 
     func setVaultPersist(_ value: Bool) { core.setVaultPersist(value: value) }

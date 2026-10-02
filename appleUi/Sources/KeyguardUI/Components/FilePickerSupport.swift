@@ -81,23 +81,24 @@ struct DroppedFile: Transferable {
 }
 
 extension View {
-    /// Presents the pending file request that `presents` claims as the system
-    /// file importer, and resolves that request with the selection or the cancellation.
+    /// Presents the session's pending file request as the system file importer,
+    /// and resolves that request with the selection or the cancellation.
     func pendingFileImporter(
-        defaultContentTypes: [UTType] = [.data, .item],
-        where presents: @escaping (PendingFilePicker) -> Bool
+        session: FilePickerSession? = nil,
+        defaultContentTypes: [UTType] = [.data, .item]
     ) -> some View {
-        modifier(PendingFileImporterModifier(defaultContentTypes: defaultContentTypes, presents: presents))
+        modifier(PendingFileImporterModifier(session: session, defaultContentTypes: defaultContentTypes))
     }
 }
 
 private struct PendingFileImporterModifier: ViewModifier {
     @Environment(FilePickerModel.self) private var filePickerModel
+    let session: FilePickerSession?
     let defaultContentTypes: [UTType]
-    let presents: (PendingFilePicker) -> Bool
 
     func body(content: Content) -> some View {
-        let request = filePickerModel.pendingFilePicker.flatMap { presents($0) ? $0 : nil }
+        let owner = session ?? filePickerModel.session
+        let request = owner.pendingFilePicker
         // Only the callbacks may consume the request: SwiftUI resets the
         // binding before either of them arrives.
         content.fileImporter(
@@ -105,10 +106,12 @@ private struct PendingFileImporterModifier: ViewModifier {
             allowedContentTypes: request?.allowedContentTypes ?? defaultContentTypes,
             allowsMultipleSelection: false,
             onCompletion: { result in
-                filePickerModel.resolveFilePicker(result: result, requestId: request?.requestId)
+                guard let request else { return }
+                owner.resolve(result: result, requestID: request.id)
             },
             onCancellation: {
-                filePickerModel.cancelFilePicker(requestId: request?.requestId)
+                guard let request else { return }
+                owner.cancel(requestID: request.id)
             }
         )
     }

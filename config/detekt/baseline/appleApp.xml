@@ -5,8 +5,8 @@
     <ID>CyclomaticComplexMethod:AddItemController.kt:AddItemController$private suspend fun buildAddItemSnapshot: AddItemFormSnapshot</ID>
     <ID>CyclomaticComplexMethod:DialogController.kt:DialogController$fun navigationInterceptor: (NavigationIntent) -&gt; Boolean</ID>
     <ID>CyclomaticComplexMethod:GeneratorController.kt:GeneratorController$private suspend fun buildGeneratorSnapshot: GeneratorSnapshot</ID>
-    <ID>CyclomaticComplexMethod:GpgToolsController.kt:GpgToolsController$fun observeGpgTools: KeyguardCancellable</ID>
-    <ID>CyclomaticComplexMethod:GpgToolsController.kt:GpgToolsController$fun prepareGpgToolsExport</ID>
+    <ID>CyclomaticComplexMethod:GpgToolsSession.kt:GpgToolsSession$fun observeGpgTools: KeyguardCancellable</ID>
+    <ID>CyclomaticComplexMethod:GpgToolsSession.kt:GpgToolsSession$fun prepareGpgToolsExport</ID>
     <ID>CyclomaticComplexMethod:ModelSnapshots.kt:internal suspend fun buildVaultItemSnapshots: List&lt;VaultItemSnapshot&gt;</ID>
     <ID>CyclomaticComplexMethod:NavigationStackController.kt:NavigationStackController$fun interceptor: (NavigationIntent) -&gt; Boolean</ID>
     <ID>CyclomaticComplexMethod:NavigationStackController.kt:NavigationStackController$private fun descriptorScreen: ScreenKind?</ID>
@@ -18,13 +18,11 @@
     <ID>LargeClass:KeyguardCore.kt:KeyguardCore</ID>
     <ID>LargeClass:NavigationStackController.kt:NavigationStackController</ID>
     <ID>LargeClass:WatchtowerController.kt:WatchtowerController</ID>
-    <ID>LongMethod:AccountsController.kt:AccountsController$@OptIn(ExperimentalCoroutinesApi::class) fun observeAccountDetail: KeyguardCancellable</ID>
     <ID>LongMethod:AddItemController.kt:AddItemController$@OptIn(ExperimentalCoroutinesApi::class) private fun observeCipherForm: KeyguardCancellable</ID>
     <ID>LongMethod:AddItemController.kt:AddItemController$private suspend fun buildAddItemSnapshot: AddItemFormSnapshot</ID>
     <ID>LongMethod:AppearanceController.kt:AppearanceController$fun observeAppearanceSettings: KeyguardCancellable</ID>
-    <ID>LongMethod:AuthController.kt:AuthController$fun observeUnlock: KeyguardCancellable</ID>
+    <ID>LongMethod:AuthController.kt:AuthController$fun observeUnlockOptions: KeyguardCancellable</ID>
     <ID>LongMethod:BackupsController.kt:BackupsController$fun observeBackupSettings: KeyguardCancellable</ID>
-    <ID>LongMethod:ChangePasswordController.kt:ChangePasswordController$fun observeChangePassword: KeyguardCancellable</ID>
     <ID>LongMethod:CipherDetailController.kt:CipherDetailController$private suspend fun vaultViewStateFlow: Flow&lt;VaultViewState&gt;</ID>
     <ID>LongMethod:CipherDetailController.kt:CipherDetailController$private suspend fun buildDetailSnapshot: VaultDetailSnapshot</ID>
     <ID>LongMethod:CipherFiltersController.kt:CipherFiltersController$@OptIn(ExperimentalCoroutinesApi::class) suspend fun produceFilterDetailInto</ID>
@@ -32,18 +30,17 @@
     <ID>LongMethod:DialogController.kt:DialogController$private fun presentElevatedAccess</ID>
     <ID>LongMethod:DownloadsController.kt:DownloadsController$suspend fun produceDownloadsInto</ID>
     <ID>LongMethod:ExportController.kt:ExportController$@OptIn(ExperimentalCoroutinesApi::class) suspend fun produceExportInto</ID>
-    <ID>LongMethod:GeneratorController.kt:GeneratorController$@OptIn(ExperimentalCoroutinesApi::class) fun observeGenerator: KeyguardCancellable</ID>
+    <ID>LongMethod:GeneratorController.kt:GeneratorController$@OptIn(ExperimentalCoroutinesApi::class) fun makeSession: GeneratorSession</ID>
     <ID>LongMethod:GeneratorController.kt:GeneratorController$private suspend fun buildGeneratorSnapshot: GeneratorSnapshot</ID>
-    <ID>LongMethod:GpgAgentController.kt:GpgAgentController$fun observeGpgAgentFilters: KeyguardCancellable</ID>
     <ID>LongMethod:GpgAgentController.kt:GpgAgentController$private suspend fun start</ID>
     <ID>LongMethod:GpgAgentRuntimeMacos.kt:MacosGpgAgentRuntime$private suspend fun runHelper: Unit</ID>
     <ID>LongMethod:GpgAgentSandboxProbeTest.kt:GpgAgentSandboxProbeTest$@Test fun externalGnuPgThroughProvisionedSandbox</ID>
-    <ID>LongMethod:GpgToolsController.kt:GpgToolsController$fun observeGpgTools: KeyguardCancellable</ID>
+    <ID>LongMethod:GpgToolsSession.kt:GpgToolsSession$fun observeGpgTools: KeyguardCancellable</ID>
     <ID>LongMethod:GroupingControllers.kt:FoldersController$suspend fun produceFoldersInto</ID>
-    <ID>LongMethod:KeePassLoginController.kt:KeePassLoginController$@OptIn(ExperimentalCoroutinesApi::class) fun observeKeePassLogin: KeyguardCancellable</ID>
-    <ID>LongMethod:LoginController.kt:LoginController$@OptIn(ExperimentalCoroutinesApi::class) fun observeBitwardenLogin: KeyguardCancellable</ID>
-    <ID>LongMethod:LoginController.kt:LoginController$private suspend fun buildLoginSnapshot: LoginSnapshot</ID>
-    <ID>LongMethod:LoginController.kt:LoginController$private suspend fun buildTwofaSnapshot: TwofaSnapshot</ID>
+    <ID>LongMethod:KeePassLoginSession.kt:KeePassLoginSession$@OptIn(ExperimentalCoroutinesApi::class) private fun observeLogin: KeyguardCancellable</ID>
+    <ID>LongMethod:BitwardenLoginSession.kt:BitwardenLoginSession$@OptIn(ExperimentalCoroutinesApi::class) private fun observeLogin: KeyguardCancellable</ID>
+    <ID>LongMethod:BitwardenLoginSession.kt:BitwardenLoginSession$private suspend fun buildLoginSnapshot: LoginSnapshot</ID>
+    <ID>LongMethod:BitwardenLoginSession.kt:BitwardenLoginSession$private suspend fun buildTwofaSnapshot: TwofaSnapshot</ID>
     <ID>LongMethod:MacosAppModule.kt:actual fun DI.Builder.installAppleAppModule</ID>
     <ID>LongMethod:ModelSnapshots.kt:internal suspend fun buildVaultItemSnapshots: List&lt;VaultItemSnapshot&gt;</ID>
     <ID>LongMethod:NavigationStackController.kt:NavigationStackController$private fun descriptorScreen: ScreenKind?</ID>
@@ -51,7 +48,7 @@
     <ID>LongMethod:SecurityController.kt:SecurityController$fun observeSecuritySettings: KeyguardCancellable</ID>
     <ID>LongMethod:SendListController.kt:SendListController$private suspend fun buildSendListSnapshot: SendListSnapshot</ID>
     <ID>LongMethod:ServiceDirectoryController.kt:ServiceDirectoryController$fun observeServiceDirectory: KeyguardCancellable</ID>
-    <ID>LongMethod:WatchtowerController.kt:WatchtowerController$@OptIn(ExperimentalCoroutinesApi::class) fun observeWatchtower: KeyguardCancellable</ID>
+    <ID>LongMethod:WatchtowerController.kt:WatchtowerController$@OptIn(ExperimentalCoroutinesApi::class) fun makeSession: WatchtowerSession</ID>
     <ID>LongMethod:WatchtowerController.kt:WatchtowerController$private suspend fun buildWatchtowerSnapshot: WatchtowerSnapshot</ID>
     <ID>LoopWithTooManyJumpStatements:AuthSnapshots.kt:for</ID>
     <ID>LoopWithTooManyJumpStatements:GpgAgentRuntimeMacos.kt:MacosGpgIpcServer$while</ID>
@@ -59,12 +56,11 @@
     <ID>ReturnCount:AutofillController.kt:AutofillController$private suspend fun suggestions: List&lt;AutofillSuggestionSnapshot&gt;</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$suspend fun loadAutofillCredential: AutofillCredentialSnapshot?</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$suspend fun loadOneTimeCode: String?</ID>
-    <ID>ReturnCount:BackupsController.kt:BackupsController$fun setBackupStoreKind</ID>
     <ID>ReturnCount:GpgAgentRuntimeMacos.kt:@OptIn(ExperimentalForeignApi::class) private suspend fun readFully: ByteArray?</ID>
     <ID>ReturnCount:GpgAgentRuntimeMacos.kt:@OptIn(ExperimentalForeignApi::class) private suspend fun writeFully: Boolean</ID>
     <ID>ReturnCount:GpgAgentRuntimeMacos.kt:internal suspend fun readPacket: ByteArray?</ID>
-    <ID>ReturnCount:GpgToolsController.kt:GpgToolsController$fun finishGpgToolsPublicKey</ID>
-    <ID>ReturnCount:GpgToolsController.kt:GpgToolsController$fun prepareGpgToolsExport</ID>
+    <ID>ReturnCount:GpgToolsSession.kt:GpgToolsSession$fun finishGpgToolsPublicKey</ID>
+    <ID>ReturnCount:GpgToolsSession.kt:GpgToolsSession$fun prepareGpgToolsExport</ID>
     <ID>ReturnCount:PasskeyController.kt:PasskeyController$suspend fun assertPasskey: PasskeyAssertionSnapshot?</ID>
     <ID>ReturnCount:PasskeyController.kt:PasskeyController$suspend fun createPasskey: PasskeyRegistrationSnapshot?</ID>
     <ID>ReturnCount:QuickCopyController.kt:QuickCopyController$suspend fun quickCopyCipherField</ID>
@@ -97,15 +93,15 @@
     <ID>TooManyFunctions:GpgAgentController.kt:GpgAgentController</ID>
     <ID>TooManyFunctions:GpgAgentRuntimeMacos.kt:com.artemchep.keyguard.apple.gpgagent.GpgAgentRuntimeMacos.kt</ID>
     <ID>TooManyFunctions:GpgAgentRuntimeMacosTest.kt:GpgAgentRuntimeMacosTest</ID>
-    <ID>TooManyFunctions:GpgToolsController.kt:GpgToolsController</ID>
+    <ID>TooManyFunctions:GpgToolsSession.kt:GpgToolsSession</ID>
     <ID>TooManyFunctions:GpgToolsFiles.kt:GpgToolsFiles : GpgToolsOutputCoordinator</ID>
-    <ID>TooManyFunctions:KeePassLoginController.kt:KeePassLoginController</ID>
+    <ID>TooManyFunctions:KeePassLoginSession.kt:KeePassLoginSession</ID>
     <ID>TooManyFunctions:KeyguardCore.kt:KeyguardCore</ID>
-    <ID>TooManyFunctions:LoginController.kt:LoginController</ID>
+    <ID>TooManyFunctions:BitwardenLoginSession.kt:BitwardenLoginSession</ID>
     <ID>TooManyFunctions:NavigationStackController.kt:NavigationStackController</ID>
     <ID>TooManyFunctions:ReadOnlyListsController.kt:ReadOnlyListsController</ID>
     <ID>TooManyFunctions:SecurityController.kt:SecurityController</ID>
-    <ID>TooManyFunctions:SendListController.kt:SendListController</ID>
+    <ID>TooManyFunctions:SendListSession.kt:SendListSession</ID>
     <ID>TooManyFunctions:SshAgentController.kt:SshAgentController</ID>
     <ID>TooManyFunctions:SubscriptionsController.kt:SubscriptionsController</ID>
     <ID>TooManyFunctions:VaultListSession.kt:VaultListSession</ID>

@@ -10,13 +10,15 @@ struct DatePickerSheet: View {
     #endif
 
     let request: AddDatePickerRequest
+    private let onConfirm: ((Int32, Int32, Int32, Int32, Int32) -> Void)?
 
     @State private var selectedMonth: Int
     @State private var selectedYear: Int
     @State private var selection: Date
 
-    init(request: AddDatePickerRequest) {
+    init(request: AddDatePickerRequest, onConfirm: ((Int32, Int32, Int32, Int32, Int32) -> Void)? = nil) {
         self.request = request
+        self.onConfirm = onConfirm
         _selection = State(initialValue: Self.initialDate(request))
         _selectedMonth = State(initialValue: Int(request.month))
         _selectedYear = State(initialValue: Int(request.year))
@@ -97,7 +99,7 @@ struct DatePickerSheet: View {
 
     private func confirm() {
         if request.kind == AddDatePickerKind.monthYear {
-            filePickerModel.resolveDatePicker(
+            resolve(
                 year: Int32(selectedYear), month: Int32(selectedMonth),
                 day: 1, hour: 0, minute: 0
             )
@@ -107,13 +109,22 @@ struct DatePickerSheet: View {
             [.year, .month, .day, .hour, .minute],
             from: selection
         )
-        filePickerModel.resolveDatePicker(
+        resolve(
             year: Int32(comps.year ?? 0),
             month: Int32(comps.month ?? 1),
             day: Int32(comps.day ?? 1),
             hour: Int32(comps.hour ?? 0),
             minute: Int32(comps.minute ?? 0)
         )
+    }
+
+    private func resolve(year: Int32, month: Int32, day: Int32, hour: Int32, minute: Int32) {
+        if let onConfirm {
+            onConfirm(year, month, day, hour, minute)
+        } else {
+            filePickerModel.resolveDatePicker(
+                requestId: request.requestId, year: year, month: month, day: day, hour: hour, minute: minute)
+        }
     }
 
     private var dateRange: ClosedRange<Date> {

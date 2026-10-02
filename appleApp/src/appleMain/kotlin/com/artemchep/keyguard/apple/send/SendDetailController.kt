@@ -8,12 +8,10 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.send.view.SendViewState
 import com.artemchep.keyguard.feature.send.view.sendViewScreenStateProducer
 import com.artemchep.keyguard.apple.core.CoreContext
-import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.dialog.DialogController
 import com.artemchep.keyguard.apple.model.buildVaultItemSnapshots
-import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.apple.model.toHeaderActionSnapshots
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -38,21 +36,15 @@ internal class SendDetailController(
     var navigationInterceptorProvider: (Scope) -> ((NavigationIntent) -> Boolean) =
         { sessionKoin -> dialogController.navigationInterceptor(sessionKoin = sessionKoin) }
 
-    private var latestSendContent: SendViewState.Content.Cipher? = null
-    private var sendActionHandlers: Map<String, () -> Unit> = emptyMap()
-
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun observeSendDetail(
+    fun makeSession(
         itemId: String,
         accountId: String,
-        onChange: (SendDetailSnapshot) -> Unit,
-    ): KeyguardCancellable {
+    ): SendDetailSession = SendDetailSession { publish ->
         val leContext = ctx.koin.get<LeContext>()
-        return ctx.launchSessionObserver(
+        ctx.launchSessionObserver(
             onLocked = {
-                latestSendContent = null
-                sendActionHandlers = emptyMap()
-                onChange(SendDetailSnapshot.empty)
+                publish(SendDetailSnapshot.empty, SendDetailActions())
             },
         ) { state ->
             val producerScope = this
@@ -84,9 +76,11 @@ internal class SendDetailController(
                     Triple(sendState, snapshot, actionHandlers)
                 }
                 .collectOnMain { (sendState, snapshot, actionHandlers) ->
-                    latestSendContent = sendState.content as? SendViewState.Content.Cipher
-                    sendActionHandlers = actionHandlers
-                    onChange(snapshot)
+                    val content = sendState.content as? SendViewState.Content.Cipher
+                    publish(
+                        snapshot,
+                        SendDetailActions(actionHandlers, content?.onCopy, content?.onShare, content?.onEdit),
+                    )
                 }
         }
     }
@@ -168,21 +162,5 @@ internal class SendDetailController(
             is SendViewState.Content.Loading ->
                 SendDetailSnapshot.empty.copy(isLoading = true)
         }
-    }
-
-    fun invokeSendAction(id: String) {
-        sendActionHandlers.invokeAction(id)
-    }
-
-    fun sendCopy() {
-        latestSendContent?.onCopy?.invoke()
-    }
-
-    fun sendShare() {
-        latestSendContent?.onShare?.invoke()
-    }
-
-    fun sendEdit() {
-        latestSendContent?.onEdit?.invoke()
     }
 }

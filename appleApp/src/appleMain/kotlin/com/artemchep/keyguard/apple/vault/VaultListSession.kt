@@ -86,7 +86,7 @@ class VaultListSession internal constructor(
         }
         val interceptor = navigationInterceptorProvider?.invoke(state.sessionKoin)
         val scope = ctx.koin.newHeadlessStateFlowScope(
-            key = persistenceScope,
+            name = persistenceScope,
             scope = this,
             navigationInterceptor = interceptor,
         )

@@ -266,14 +266,26 @@ struct QuickSearchView: View {
 /// Mirrors `MasterPasswordView(mode:.unlock)`, sized for the overlay.
 private struct QuickSearchUnlock: View {
     @Environment(VaultSessionModel.self) private var authModel
+
+    var body: some View {
+        MasterPasswordForm(makeSession: authModel.makeUnlockSession) { snapshot, actions in
+            QuickSearchUnlockContent(snapshot: snapshot, actions: actions)
+        }
+    }
+}
+
+private struct QuickSearchUnlockContent: View {
+    let snapshot: MasterPasswordSnapshot
+    let actions: MasterPasswordActions
+    @Environment(VaultSessionModel.self) private var authModel
     @Environment(QuickSearchModel.self) private var quickSearchModel
     @State private var password = ""
     @State private var pendingSubmission: String?
     @FocusState private var passwordFocused: Bool
 
-    private var isBusy: Bool { authModel.unlockIsLoading }
+    private var isBusy: Bool { snapshot.isLoading }
     private var canSubmit: Bool {
-        authModel.unlockCanSubmit && authModel.unlockAcknowledgedPassword == password
+        snapshot.canSubmit && snapshot.password == password
     }
 
     var body: some View {
@@ -300,10 +312,10 @@ private struct QuickSearchUnlock: View {
                 .onSubmit(submit)
                 .onChange(of: password) { _, newValue in
                     if pendingSubmission != newValue { pendingSubmission = nil }
-                    authModel.setUnlockPassword(newValue)
+                    actions.setPassword(newValue)
                 }
 
-            if let error = authModel.unlockPasswordError, !error.isEmpty {
+            if let error = snapshot.passwordError, !error.isEmpty {
                 Text(error)
                     .font(.footnote)
                     .foregroundStyle(.red)
@@ -360,7 +372,7 @@ private struct QuickSearchUnlock: View {
             pendingSubmission = nil
             authModel.setUnlockScreenVisible(false)
             // Don't retain the master password across hide.
-            authModel.setUnlockPassword("")
+            password = ""
         }
         .onChange(of: canSubmit) { _, enabled in
             if enabled, pendingSubmission == password {
@@ -373,13 +385,13 @@ private struct QuickSearchUnlock: View {
 
     private func submit() {
         guard !isBusy, !password.isEmpty else { return }
-        authModel.setUnlockPassword(password)
+        actions.setPassword(password)
         guard canSubmit else {
             pendingSubmission = password
             return
         }
         pendingSubmission = nil
-        authModel.submitUnlock()
+        actions.submit()
     }
 }
 

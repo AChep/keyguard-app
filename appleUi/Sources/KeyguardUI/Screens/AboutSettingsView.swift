@@ -2,8 +2,8 @@ import SwiftUI
 import KeyguardShared
 
 struct AboutSettingsView: View {
+    @Environment(SessionFactory.self) private var sessions
     @Environment(AppInformationModel.self) private var appInformationModel
-    @Environment(UrlRulesModel.self) private var urlRulesModel
     let item: SettingsItemSnapshot
 
     private enum Dialog: String, Identifiable {
@@ -69,19 +69,12 @@ struct AboutSettingsView: View {
                 }
                 .settingsSearchTarget(.logs)
                 NavigationLink {
-                    UrlRuleListView(
+                    UrlRuleListScreen(
                         title: L10n.prefItemUrlOverrideTitle,
                         emptyText: L10n.urloverrideListEmptyText,
                         subtitleLabel: L10n.regex,
                         detailLabel: L10n.command,
-                        snapshotKeyPath: \.urlOverrideList,
-                        start: { urlRulesModel.startUrlOverrideListObservation() },
-                        stop: { urlRulesModel.stopUrlOverrideListObservation() },
-                        onNew: { urlRulesModel.invokeUrlOverrideListPrimaryAction() },
-                        invokeItemAction: { urlRulesModel.invokeUrlOverrideListItemAction(id: $0) },
-                        invokeSelectionAction: { urlRulesModel.invokeUrlOverrideListSelectionAction(id: $0) },
-                        toggleSelection: { urlRulesModel.toggleUrlOverrideListSelection(id: $0) },
-                        clearSelection: { urlRulesModel.clearUrlOverrideListSelection() }
+                        makeSession: sessions.makeUrlOverrideListSession
                     )
                 } label: {
                     Label(L10n.prefItemUrlOverrideTitle, systemImage: "arrow.triangle.branch")
@@ -134,7 +127,7 @@ struct AboutSettingsView: View {
         .sheet(item: $dialog) { dialog in
             switch dialog {
             case .feedback:
-                FeedbackSheet()
+                FeedbackSheet(makeSession: sessions.makeFeedbackSession)
             case .team:
                 ModalSheet(title: L10n.settingsTeamHeaderTitle) {
                     AboutTeamView()

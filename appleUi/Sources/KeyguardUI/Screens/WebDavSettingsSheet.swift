@@ -2,13 +2,14 @@ import SwiftUI
 import KeyguardShared
 
 struct WebDavSettingsSheet: View {
+    let sessionId: String
     @Environment(KeePassLoginModel.self) private var keepassModel
 
     @State private var url: String = ""
     @State private var username: String = ""
     @State private var password: String = ""
 
-    private var webdav: WebDavSettingsSnapshot? { keepassModel.keepassWebDav }
+    private var webdav: WebDavSettingsSnapshot? { keepassModel.keepassWebDav.flatMap { $0.id == sessionId ? $0 : nil } }
 
     var body: some View {
         ModalSheet(
@@ -32,7 +33,7 @@ struct WebDavSettingsSheet: View {
                     .keyboardType(.URL)
                     #endif
                     .onChange(of: url) { _, text in
-                        keepassModel.setWebDavField(id: "url", text: text)
+                        keepassModel.setWebDavField(sessionId: sessionId, id: "url", text: text)
                     }
                     TextField(L10n.username, text: $username)
                         #if os(iOS)
@@ -40,11 +41,11 @@ struct WebDavSettingsSheet: View {
                     .autocorrectionDisabled()
                         #endif
                         .onChange(of: username) { _, text in
-                            keepassModel.setWebDavField(id: "username", text: text)
+                            keepassModel.setWebDavField(sessionId: sessionId, id: "username", text: text)
                         }
                     SecureField(L10n.password, text: $password)
                         .onChange(of: password) { _, text in
-                            keepassModel.setWebDavField(id: "password", text: text)
+                            keepassModel.setWebDavField(sessionId: sessionId, id: "password", text: text)
                         }
                 } footer: {
                     Text(L10n.webdavSettingsAuthNote)
@@ -70,7 +71,7 @@ struct WebDavSettingsSheet: View {
 
             Button(L10n.save) {
                 updateFields()
-                keepassModel.submitWebDavSettings()
+                keepassModel.submitWebDavSettings(sessionId: sessionId)
             }
             .keyboardShortcut(.defaultAction)
             .disabled(url.trimmingCharacters(in: .whitespaces).isEmpty || webdav?.isTestingConnection == true)
@@ -88,7 +89,7 @@ struct WebDavSettingsSheet: View {
     private var testConnectionButton: some View {
         Button {
             updateFields()
-            keepassModel.testWebDavConnection()
+            keepassModel.testWebDavConnection(sessionId: sessionId)
         } label: {
             if webdav?.isTestingConnection == true {
                 ProgressView()
@@ -118,8 +119,8 @@ struct WebDavSettingsSheet: View {
 
     private func updateFields() {
         // Return/click can arrive before the last text-field onChange callback.
-        keepassModel.setWebDavField(id: "url", text: url)
-        keepassModel.setWebDavField(id: "username", text: username)
-        keepassModel.setWebDavField(id: "password", text: password)
+        keepassModel.setWebDavField(sessionId: sessionId, id: "url", text: url)
+        keepassModel.setWebDavField(sessionId: sessionId, id: "username", text: username)
+        keepassModel.setWebDavField(sessionId: sessionId, id: "password", text: password)
     }
 }

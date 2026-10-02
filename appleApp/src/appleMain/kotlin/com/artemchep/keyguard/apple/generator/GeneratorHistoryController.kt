@@ -6,13 +6,14 @@ import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryItem
 import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryState
 import com.artemchep.keyguard.feature.generator.history.generatorHistoryStateProducer
 import com.artemchep.keyguard.apple.core.CoreContext
-import com.artemchep.keyguard.apple.core.KeyguardCancellable
+import com.artemchep.keyguard.apple.core.ListSession
+import com.artemchep.keyguard.apple.core.ListSessionActions
+import com.artemchep.keyguard.apple.core.toggle
 import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.dialog.DialogController
 import com.artemchep.keyguard.apple.model.buildMenuActionSnapshots
 import com.artemchep.keyguard.apple.model.buildSelectionActionSnapshots
-import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.platform.LeContext
 import kotlinx.coroutines.flow.map
 
@@ -21,23 +22,13 @@ internal class GeneratorHistoryController(
     private val ctx: CoreContext,
     private val dialogController: DialogController,
 ) {
-    private var latestState: GeneratorHistoryState? = null
-    private var itemActionHandlers: Map<String, () -> Unit> = emptyMap()
-    private var optionHandlers: Map<String, () -> Unit> = emptyMap()
-    private var selectionActionHandlers: Map<String, () -> Unit> = emptyMap()
-
-    fun observeGeneratorHistory(
-        onChange: (GeneratorHistorySnapshot) -> Unit,
-    ): KeyguardCancellable {
+    fun makeSession(): ListSession<GeneratorHistorySnapshot> = ListSession { publish ->
         val leContext = ctx.koin.get<LeContext>()
-        return ctx.launchSessionObserver(
+        ctx.launchSessionObserver(
             onLocked = {
-                latestState = null
-                itemActionHandlers = emptyMap()
-                optionHandlers = emptyMap()
-                selectionActionHandlers = emptyMap()
-                onChange(GeneratorHistorySnapshot.empty)
+                publish(GeneratorHistorySnapshot.empty, ListSessionActions())
             },
+            onTeardown = { publish(GeneratorHistorySnapshot.empty, ListSessionActions()) },
         ) { state ->
             val producerScope = this
             val producerFlow = with(state.sessionKoin) {
@@ -68,49 +59,14 @@ internal class GeneratorHistoryController(
             // the maps and deliver on the main thread together.
             producerFlow
                 .map { loadable -> projectGeneratorHistory(loadable.getOrNull(), leContext) }
-                .collectOnMain { projection ->
-                    latestState = projection.state
-                    itemActionHandlers = projection.itemHandlers
-                    optionHandlers = projection.optionHandlers
-                    selectionActionHandlers = projection.selectionHandlers
-                    onChange(projection.snapshot)
-                }
+                .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
         }
-    }
-
-    fun invokeGeneratorHistoryItemAction(id: String) {
-        itemActionHandlers.invokeAction(id)
-    }
-
-    fun invokeGeneratorHistoryOption(id: String) {
-        optionHandlers[id]?.invoke()
-    }
-
-    fun invokeGeneratorHistorySelectionAction(id: String) {
-        selectionActionHandlers.invokeAction(id)
-    }
-
-    /**
-     * Goes through the producer's per-item selection handle: onClick while a selection is active, otherwise
-     * onLongClick, which begins one. No-op for section headers or rows the producer cannot select.
-     */
-    fun toggleGeneratorHistorySelection(itemId: String) {
-        val state = latestState ?: return
-        val item = state.items
-            .firstOrNull { it is GeneratorHistoryItem.Value && it.id == itemId } as? GeneratorHistoryItem.Value
-            ?: return
-        val selectable = item.selectableState.value
-        (selectable.onClick ?: selectable.onLongClick)?.invoke()
-    }
-
-    fun clearGeneratorHistorySelection() {
-        latestState?.selection?.onClear?.invoke()
     }
 
     private suspend fun projectGeneratorHistory(
         state: GeneratorHistoryState?,
         leContext: LeContext,
-    ): GeneratorHistoryProjection {
+    ): Pair<GeneratorHistorySnapshot, ListSessionActions> {
         val itemHandlers = LinkedHashMap<String, () -> Unit>()
         val optionHandlers = LinkedHashMap<String, () -> Unit>()
         val selectionHandlers = LinkedHashMap<String, () -> Unit>()
@@ -121,12 +77,16 @@ internal class GeneratorHistoryController(
             optionHandlers = optionHandlers,
             selectionHandlers = selectionHandlers,
         )
-        return GeneratorHistoryProjection(
-            state = state,
-            snapshot = snapshot,
-            itemHandlers = itemHandlers,
-            optionHandlers = optionHandlers,
-            selectionHandlers = selectionHandlers,
+        val items = state?.items.orEmpty()
+        return snapshot to ListSessionActions(
+            items = itemHandlers,
+            screen = optionHandlers,
+            selection = selectionHandlers,
+            toggleSelection = { id ->
+                items.firstNotNullOfOrNull { (it as? GeneratorHistoryItem.Value)?.takeIf { item -> item.id == id } }
+                    ?.selectableState?.value?.toggle()
+            },
+            clearSelection = state?.selection?.onClear,
         )
     }
 
@@ -193,12 +153,4 @@ internal class GeneratorHistoryController(
             selectionActions = selectionActions,
         )
     }
-
-    private data class GeneratorHistoryProjection(
-        val state: GeneratorHistoryState?,
-        val snapshot: GeneratorHistorySnapshot,
-        val itemHandlers: Map<String, () -> Unit>,
-        val optionHandlers: Map<String, () -> Unit>,
-        val selectionHandlers: Map<String, () -> Unit>,
-    )
 }

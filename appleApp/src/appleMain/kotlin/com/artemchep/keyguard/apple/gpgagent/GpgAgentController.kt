@@ -1,12 +1,16 @@
 package com.artemchep.keyguard.apple.gpgagent
 
+import com.artemchep.keyguard.apple.core.AgentFilterActions
+import com.artemchep.keyguard.apple.core.AgentFiltersSession
+import com.artemchep.keyguard.apple.core.AgentFiltersSnapshot
+import com.artemchep.keyguard.apple.core.agentFiltersFrame
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.collectOnMain
+import com.artemchep.keyguard.apple.core.completeOnPop
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.core.sessionKoin
 import com.artemchep.keyguard.apple.model.SettingOptionSnapshot
-import com.artemchep.keyguard.apple.model.mapFilterItemsToSnapshots
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.MasterSession
@@ -32,14 +36,12 @@ import com.artemchep.keyguard.common.usecase.PutGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.PutGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.PutGpgAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.RemoveGpgUsageHistory
-import com.artemchep.keyguard.feature.gpgagent.filter.GpgAgentFiltersState
 import com.artemchep.keyguard.feature.gpgagent.filter.gpgAgentFiltersStateProducer
 import com.artemchep.keyguard.feature.gpgagent.help.macosSandboxGpgAgentSetupCommand
 import com.artemchep.keyguard.feature.gpgagent.history.GpgAgentHistoryItem
 import com.artemchep.keyguard.feature.gpgagent.history.GpgAgentHistoryState
 import com.artemchep.keyguard.feature.gpgagent.history.gpgAgentHistoryStateProducer
 import com.artemchep.keyguard.feature.localization.textResource
-import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.format
@@ -83,9 +85,6 @@ internal class GpgAgentController(
     private var runScope: CoroutineScope? = null
     private var generation = 0L
     private var latestApprovalWindowVariants: List<Duration> = emptyList()
-    private var latestGpgAgentFiltersState: GpgAgentFiltersState? = null
-    private var filterObservationGeneration = 0L
-    private var gpgAgentFilterHandlers: Map<String, () -> Unit> = emptyMap()
 
     fun startGpgAgentApplier() {
         if (applier != null) return
@@ -325,41 +324,13 @@ internal class GpgAgentController(
             context,
         )
 
-    fun observeGpgAgentFilters(
-        onChange: (GpgAgentFiltersSnapshot) -> Unit,
-        onClose: () -> Unit,
-    ): KeyguardCancellable {
-        val observationGeneration = ++filterObservationGeneration
-        // The producer dispatches the pop intent from the background pipeline;
-        // hop to the main scope before invoking the Swift-facing callback.
-        val interceptor: (NavigationIntent) -> Boolean = { intent ->
-            when (intent) {
-                is NavigationIntent.Pop, is NavigationIntent.PopById -> {
-                    ctx.scope.launch {
-                        if (filterObservationGeneration == observationGeneration) onClose()
-                    }
-                    true
-                }
-
-                else -> false
-            }
-        }
-        return ctx.launchSessionObserver(
-            onLocked = {
-                if (filterObservationGeneration == observationGeneration) {
-                    latestGpgAgentFiltersState = null
-                    gpgAgentFilterHandlers = emptyMap()
-                    onChange(GpgAgentFiltersSnapshot.empty)
-                }
-            },
-            onTeardown = {
-                if (filterObservationGeneration == observationGeneration) {
-                    latestGpgAgentFiltersState = null
-                    gpgAgentFilterHandlers = emptyMap()
-                }
-            },
+    fun makeGpgAgentFiltersSession(): AgentFiltersSession = AgentFiltersSession { publish, complete ->
+        ctx.launchSessionObserver(
+            onLocked = { publish(AgentFiltersSnapshot.empty, AgentFilterActions()) },
+            onTeardown = { publish(AgentFiltersSnapshot.empty, AgentFilterActions()) },
         ) { state ->
             val producerScope = this
+            val interceptor = producerScope.completeOnPop(ctx.scope, complete)
             val producerFlow = with(state.sessionKoin) {
                 ctx.koin.newHeadlessStateFlowScope("gpg_agent_filters", producerScope, interceptor)
                     .gpgAgentFiltersStateProducer(
@@ -378,47 +349,18 @@ internal class GpgAgentController(
             }
             producerFlow
                 .map { loadable ->
-                    val filtersState = loadable.getOrNull()
-                    val handlers = LinkedHashMap<String, () -> Unit>()
-                    val snapshot = buildGpgAgentFiltersSnapshot(filtersState, handlers)
-                    Triple(filtersState, snapshot, handlers)
+                    val state = loadable.getOrNull()
+                    // Saving changes which keys the agent serves; deny the requests waiting on the old set.
+                    val save = state?.onSave?.let { onSave ->
+                        {
+                            requests.denyAll()
+                            onSave()
+                        }
+                    }
+                    agentFiltersFrame(state?.filters, state?.count, save, state?.onReset)
                 }
-                .collectOnMain { (filtersState, snapshot, handlers) ->
-                    if (filterObservationGeneration != observationGeneration) return@collectOnMain
-                    latestGpgAgentFiltersState = filtersState
-                    gpgAgentFilterHandlers = handlers
-                    onChange(snapshot)
-                }
+                .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
         }
-    }
-
-    private fun buildGpgAgentFiltersSnapshot(
-        state: GpgAgentFiltersState?,
-        handlers: LinkedHashMap<String, () -> Unit>,
-    ): GpgAgentFiltersSnapshot {
-        state ?: return GpgAgentFiltersSnapshot.empty
-        val items = mapFilterItemsToSnapshots(state.filters, handlers)
-        return GpgAgentFiltersSnapshot(
-            loaded = true,
-            count = state.count ?: 0,
-            items = items,
-            canSave = state.onSave != null,
-            canReset = state.onReset != null,
-        )
-    }
-
-    fun invokeGpgAgentFilter(id: String) {
-        gpgAgentFilterHandlers[id]?.invoke()
-    }
-
-    fun saveGpgAgentFilters() {
-        val onSave = latestGpgAgentFiltersState?.onSave ?: return
-        requests.denyAll()
-        onSave()
-    }
-
-    fun resetGpgAgentFilters() {
-        latestGpgAgentFiltersState?.onReset?.invoke()
     }
 
     fun observeGpgAgentHistory(onChange: (GpgAgentHistorySnapshot) -> Unit): KeyguardCancellable =

@@ -40,9 +40,7 @@ internal class AccountsController(
     var navigationInterceptorProvider: (Scope) -> ((NavigationIntent) -> Boolean) =
         { sessionKoin -> dialogController.navigationInterceptor(sessionKoin = sessionKoin) }
 
-    private var accountActionHandlers: Map<String, () -> Unit> = emptyMap()
-
-    /** Kept separate from [accountActionHandlers] (the detail pane) so the two id spaces never collide. */
+    /** List actions are separate from each presentation's detail session. */
     private var accountListActionHandlers: Map<String, () -> Unit> = emptyMap()
 
     fun observeAccountList(
@@ -188,15 +186,13 @@ internal class AccountsController(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun observeAccountDetail(
+    fun makeDetailSession(
         accountId: String,
-        onChange: (AccountDetailSnapshot) -> Unit,
-    ): KeyguardCancellable {
+    ): AccountDetailSession = AccountDetailSession { publish ->
         val leContext = ctx.koin.get<LeContext>()
-        return ctx.launchSessionObserver(
+        ctx.launchSessionObserver(
             onLocked = {
-                accountActionHandlers = emptyMap()
-                onChange(AccountDetailSnapshot.empty)
+                publish(AccountDetailSnapshot.empty, emptyMap())
             },
         ) { state ->
             val producerScope = this
@@ -245,8 +241,7 @@ internal class AccountsController(
                     snapshot to actionHandlers
                 }
                 .collectOnMain { (snapshot, actionHandlers) ->
-                    accountActionHandlers = actionHandlers
-                    onChange(snapshot)
+                    publish(snapshot, actionHandlers)
                 }
         }
     }
@@ -320,9 +315,5 @@ internal class AccountsController(
             is AccountViewState.Content.Skeleton ->
                 AccountDetailSnapshot.empty
         }
-    }
-
-    fun invokeAccountAction(id: String) {
-        accountActionHandlers.invokeAction(id)
     }
 }

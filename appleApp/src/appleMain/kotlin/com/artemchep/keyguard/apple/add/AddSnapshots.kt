@@ -29,7 +29,7 @@ enum class AddItemKind {
     SUGGESTION,
 }
 
-/** [id] routes back to [KeyguardCore.invokeAddAction]; [selected] marks the chosen entry of a dropdown. */
+/** [id] routes back to [AddFormSession.invokeAddAction]; [selected] marks the chosen entry of a dropdown. */
 data class AddActionSnapshot(
     val id: String,
     val title: String,
@@ -37,7 +37,7 @@ data class AddActionSnapshot(
 )
 
 /**
- * Arguments for [KeyguardCore.observeAutofillGenerator]; [uris] is the cipher's URI context for the
+ * Arguments for [AddFormSession.observeAutofillGenerator]; [uris] is the cipher's URI context for the
  * username / email generators.
  */
 data class AddAutofillSnapshot(
@@ -53,7 +53,7 @@ data class AddTextFieldSnapshot(
     val multiline: Boolean,
     /**
      * The in-form generate button (the shared `AutofillButton`), set only for the username and password fields.
-     * Write the generated value back through [KeyguardCore.setAddFieldText], not [KeyguardCore.setAddField].
+     * Write the generated value back through [AddFormSession.setAddFieldText], not [AddFormSession.setAddField].
      */
     val autofill: AddAutofillSnapshot? = null,
 ) {
@@ -71,7 +71,7 @@ data class AddAttachmentSnapshot(
     val synced: Boolean,
     /**
      * The hint shown while a file is dragged over the row, or null if the row
-     * does not accept drops. A drop goes to [KeyguardCore.dropFileOnAddItem].
+     * does not accept drops. A drop goes to [AddFormSession.dropFileOnAddItem].
      */
     val dropText: String? = null,
 )
@@ -109,13 +109,13 @@ data class AddMergeSnapshot(
 
 /**
  * The populated fields depend on [kind]:
- *  - editable text lives in [fields] (routed via [KeyguardCore.setAddField]); a custom text field has two
+ *  - editable text lives in [fields] (routed via [AddFormSession.setAddField]); a custom text field has two
  *    (name, value), a month / year date two (month, year), other items at most one;
  *  - a toggle lives in [switchValue] / [switchEnabled] / [switchId] (routed via
- *    [KeyguardCore.setAddSwitch]);
+ *    [AddFormSession.setAddSwitch]);
  *  - a current dropdown value is [enumValue], its choices [options];
  *  - inline / overflow actions live in [actions];
- *  - [options] and [actions] entries route via [KeyguardCore.invokeAddAction].
+ *  - [options] and [actions] entries route via [AddFormSession.invokeAddAction].
  */
 data class AddItemSnapshot(
     val id: String,
@@ -134,7 +134,7 @@ data class AddItemSnapshot(
     val gpgKey: AddGpgKeySnapshot?,
     val passkeyName: String?,
     /**
-     * TOTP rows only: pass a raw scanned `otpauth://` URI or Base32 secret to [KeyguardCore.scanAddTotp] with
+     * TOTP rows only: pass a raw scanned `otpauth://` URI or Base32 secret to [AddFormSession.scanAddTotp] with
      * this id. Null when the form can't accept a scan.
      */
     val totpScanId: String?,
@@ -144,7 +144,7 @@ data class AddItemSnapshot(
 
 /**
  * The "Save to" account row: [title] / [text] are the account name and email. [canPick] gates the row tap,
- * which goes to [KeyguardCore.invokeAddOwnership] and opens the account picker.
+ * which goes to [AddFormSession.invokeAddOwnership] and opens the account picker.
  */
 data class AddOwnershipSnapshot(
     val title: String,
@@ -152,7 +152,7 @@ data class AddOwnershipSnapshot(
     val canPick: Boolean,
 )
 
-/** Shared by the cipher and Send forms. Submit via [KeyguardCore.submitAddItem] when [canSave] is true. */
+/** Shared by the cipher and Send forms. Submit via [AddFormSession.submitAddItem] when [canSave] is true. */
 data class AddItemFormSnapshot(
     val loaded: Boolean,
     val title: String,
@@ -164,7 +164,7 @@ data class AddItemFormSnapshot(
     val actions: List<AddActionSnapshot>,
     /**
      * The hint shown while a file is dragged over the form, or null if the form
-     * does not accept drops. A drop goes to [KeyguardCore.dropFileOnAddForm].
+     * does not accept drops. A drop goes to [AddFormSession.dropFileOnAddForm].
      */
     val fileDropText: String? = null,
 ) {
@@ -180,7 +180,7 @@ data class AddItemFormSnapshot(
     }
 }
 
-/** [requestId] routes the choice back via [KeyguardCore.resolveAddFilePicker] / [KeyguardCore.cancelAddFilePicker]. */
+/** [requestId] routes the choice back via [AddFormSession.resolveFilePicker] / [AddFormSession.cancelFilePicker]. */
 data class AddFilePickerRequest(
     val requestId: String,
     val kind: AddFilePickerKind,
@@ -195,7 +195,7 @@ enum class AddFilePickerKind {
 }
 
 /**
- * Swift feeds the choice back through [KeyguardCore.resolveAddDatePicker] / [KeyguardCore.cancelAddDatePicker].
+ * Swift feeds the choice back through [AddFormSession.resolveDatePicker] / [AddFormSession.cancelDatePicker].
  * Dates use [year] / [month] (1-12) / [day]; times use [hour] (0-23) / [minute]; unused components are
  * placeholders. The inclusive `min*` / `max*` range is valid only when [hasRange]. [presentsInAddForm] is false
  * when the day picker comes from another screen.
@@ -225,8 +225,8 @@ enum class AddDatePickerKind {
 }
 
 /**
- * Swift opens the form keyed by [requestId], runs [KeyguardCore.observeEditCipher] or
- * [KeyguardCore.observeEditSend] per [isSend], and calls [KeyguardCore.clearEditForm] once it is dismissed.
+ * Swift opens the form keyed by [requestId] using [KeyguardCore.makeEditCipherSession] or
+ * [KeyguardCore.makeEditSendSession] per [isSend], and closes its session when dismissed.
  */
 data class AddEditFormRequest(
     val requestId: String,

@@ -11,7 +11,7 @@ import com.artemchep.keyguard.apple.model.VaultSortItemSnapshot
 
 /**
  * For [VaultListItemKind.ITEM] rows [secretId] + [accountId] identify the Send so the detail pane can observe it
- * via [KeyguardCore.observeSendDetail].
+ * via [KeyguardCore.makeSendDetailSession].
  */
 data class SendListItemSnapshot(
     val id: String,
@@ -46,16 +46,16 @@ data class SendListSnapshot(
      * rows draw highlighted.
      */
     val selectionCount: Int,
-    /** Routed back by [VaultActionSnapshot.id] via [KeyguardCore.invokeSendListSelectionAction]. */
+    /** Routed back by [VaultActionSnapshot.id] via [SendListSession.invokeSelectionAction]. */
     val selectionActions: List<VaultActionSnapshot>,
     /**
      * The Compose toolbar's options menu, routed back by [VaultActionSnapshot.id] via
-     * [KeyguardCore.invokeSendListAction]. The SwiftUI toolbar shows them behind an ellipsis overflow.
+     * [SendListSession.invokeAction]. The SwiftUI toolbar shows them behind an ellipsis overflow.
      */
     val listActions: List<VaultActionSnapshot> = emptyList(),
     /**
      * Whether dropping a file onto the list creates a File send (the shared `SendListState.onFileDrop` is
-     * non-null). The drop goes to [KeyguardCore.dropFileOnSendList].
+     * non-null). The drop goes to [SendListSession.dropFile].
      */
     val canDropFile: Boolean = false,
     /** Whether an account can create a File send; the native create sheet hides the File type when false. */
@@ -85,9 +85,9 @@ data class SendListSnapshot(
 }
 /**
  * Projects the shared [SendViewState]. [typeIcon] is the [DSend.Type] name (None / File / Text).
- * [canCopy] / [canShare] / [canEdit] gate the header primary actions [KeyguardCore.sendCopy] /
- * [KeyguardCore.sendShare] / [KeyguardCore.sendEdit]; [actions] are the extra context-menu actions routed by
- * [KeyguardCore.invokeSendAction].
+ * [canCopy] / [canShare] / [canEdit] gate the header primary actions [SendDetailSession.sendCopy] /
+ * [SendDetailSession.sendShare] / [SendDetailSession.sendEdit]; [actions] are the extra context-menu actions routed by
+ * [SendDetailSession.invokeAction].
  */
 data class SendDetailSnapshot(
     val title: String,

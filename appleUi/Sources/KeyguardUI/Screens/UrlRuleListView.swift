@@ -2,19 +2,11 @@ import SwiftUI
 import KeyguardShared
 
 struct UrlRuleListView: View {
-    @Environment(UrlRulesModel.self) private var model
-
     let title: String
     let emptyText: String
     let subtitleLabel: String
     let detailLabel: String
-    let snapshotKeyPath: KeyPath<UrlRulesModel, UrlRuleListSnapshot>
-
-    // Read the observable model inside the destination, so updates do not depend
-    // on the presenting settings screen remaining in the navigation hierarchy.
-    private var snapshot: UrlRuleListSnapshot { model[keyPath: snapshotKeyPath] }
-    let start: () -> Void
-    let stop: () -> Void
+    let snapshot: UrlRuleListSnapshot
     let onNew: () -> Void
     let invokeItemAction: (String) -> Void
     let invokeSelectionAction: (String) -> Void
@@ -66,7 +58,6 @@ struct UrlRuleListView: View {
                 self.presentedRule = nil
             }
         }
-        .observing(start: start, stop: stop)
     }
 
     private var list: some View {

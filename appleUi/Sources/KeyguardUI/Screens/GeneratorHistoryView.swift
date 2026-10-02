@@ -2,13 +2,16 @@ import SwiftUI
 import KeyguardShared
 
 struct GeneratorHistoryView: View {
-    @Environment(GeneratorHistoryModel.self) private var generatorHistoryModel
+    let snapshot: GeneratorHistorySnapshot
+    let invokeItemAction: (String) -> Void
+    let invokeOption: (String) -> Void
+    let invokeSelectionAction: (String) -> Void
+    let toggleSelection: (String) -> Void
+    let clearSelection: () -> Void
 
     @State private var selection = ListSelectionModel()
     @State private var presentedItem: ListDetailSheetItem?
     @State private var pendingActionId: String?
-
-    private var snapshot: GeneratorHistorySnapshot { generatorHistoryModel.generatorHistory }
 
     var body: some View {
         SnapshotContent(loaded: snapshot.loaded, isEmpty: snapshot.items.isEmpty) {
@@ -23,8 +26,8 @@ struct GeneratorHistoryView: View {
             selectionCount: snapshot.selectionCount,
             producerSelection: Set(snapshot.items.filter(\.selected).map(\.id)),
             isKnownId: { id in snapshot.items.contains { $0.id == id } },
-            toggle: generatorHistoryModel.toggleGeneratorHistorySelection(id:),
-            clear: { generatorHistoryModel.clearGeneratorHistorySelection() }
+            toggle: toggleSelection,
+            clear: { clearSelection() }
         )
         .sheet(item: $presentedItem, onDismiss: invokePendingAction) { presentedItem in
             if let item = snapshot.items.first(where: { $0.id == presentedItem.id }) {
@@ -38,10 +41,6 @@ struct GeneratorHistoryView: View {
                 self.presentedItem = nil
             }
         }
-        .observing(
-            start: { generatorHistoryModel.startGeneratorHistoryObservation() },
-            stop: { generatorHistoryModel.stopGeneratorHistoryObservation() }
-        )
     }
 
     private var empty: some View {
@@ -76,8 +75,8 @@ struct GeneratorHistoryView: View {
         .selectionBar(
             count: snapshot.selectionCount,
             actions: snapshot.selectionActions,
-            invoke: { generatorHistoryModel.invokeGeneratorHistorySelectionAction(id: $0) },
-            clear: { generatorHistoryModel.clearGeneratorHistorySelection() }
+            invoke: { invokeSelectionAction($0) },
+            clear: { clearSelection() }
         )
     }
 
@@ -130,13 +129,13 @@ struct GeneratorHistoryView: View {
             ForEach(snapshot.selectionActions, id: \.id) { action in
                 ListItemActionButton(
                     action: action,
-                    invoke: generatorHistoryModel.invokeGeneratorHistorySelectionAction(id:)
+                    invoke: invokeSelectionAction
                 )
             }
         } else {
             #if os(macOS)
             Button {
-                generatorHistoryModel.toggleGeneratorHistorySelection(id: item.id)
+                toggleSelection(item.id)
             } label: {
                 Label(L10n.select, systemImage: "checkmark.circle")
             }
@@ -148,7 +147,7 @@ struct GeneratorHistoryView: View {
                 }
                 ListItemActionButton(
                     action: action,
-                    invoke: generatorHistoryModel.invokeGeneratorHistoryItemAction(id:)
+                    invoke: invokeItemAction
                 )
             }
         }
@@ -161,7 +160,7 @@ struct GeneratorHistoryView: View {
         if action.isCopy {
             // Keep the value visible and use the producer's sensitive clipboard
             // handling. The sheet hosts the resulting copy notification.
-            generatorHistoryModel.invokeGeneratorHistoryItemAction(id: actionId)
+            invokeItemAction(actionId)
         } else {
             // Large Type, breach checks, exports, and removal can present at the
             // app root. Close details before invoking any of those actions.
@@ -174,7 +173,7 @@ struct GeneratorHistoryView: View {
         guard let actionId = pendingActionId else { return }
         pendingActionId = nil
         guard snapshot.items.contains(where: { item in item.actions.contains { $0.id == actionId } }) else { return }
-        generatorHistoryModel.invokeGeneratorHistoryItemAction(id: actionId)
+        invokeItemAction(actionId)
     }
 
     private var showsBulkContextMenu: Bool {
@@ -194,7 +193,7 @@ struct GeneratorHistoryView: View {
             ToolbarItem {
                 Menu {
                     listActionMenuItems(actions: snapshot.options) {
-                        generatorHistoryModel.invokeGeneratorHistoryOption(id: $0)
+                        invokeOption($0)
                     }
                 } label: {
                     Label(L10n.more, systemImage: "ellipsis.circle")

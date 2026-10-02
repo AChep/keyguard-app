@@ -22,10 +22,21 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
 import org.koin.core.Koin
+import kotlin.uuid.Uuid
 
-/** Builds a state-flow scope for running shared producers from SwiftUI. */
+/** The screen id of the headless producer [name] with the given [instanceId]. */
+internal fun headlessScreenId(name: String, instanceId: String) = "$name#$instanceId"
+
+/**
+ * Builds a state-flow scope for running shared producers from SwiftUI.
+ *
+ * [name] is stable: it namespaces disk-backed screen state and logs. Each scope
+ * still gets its own screen id, so concurrent presentations of one screen never
+ * share messages or pops. Navigation is consumed once [scope] ends, and results
+ * are never delivered to an ended producer.
+ */
 internal fun Koin.newHeadlessStateFlowScope(
-    key: String,
+    name: String,
     scope: CoroutineScope,
     navigationInterceptor: ((NavigationIntent) -> Boolean)? = null,
     // Created outside a composition on purpose — only constructing and
@@ -33,6 +44,7 @@ internal fun Koin.newHeadlessStateFlowScope(
     // Pass a shared mutable state to let producers that read `colorScheme`
     // (e.g. syntax highlighting) follow the SwiftUI appearance.
     colorSchemeState: State<ColorScheme> = mutableStateOf(lightColorScheme()),
+    instanceId: String = Uuid.random().toString(),
 ): RememberStateFlowScopeImpl {
     // The shared producers must never run their pipelines on the main thread —
     // the Compose FlowHolderViewModel hands these same producers a
@@ -41,8 +53,9 @@ internal fun Koin.newHeadlessStateFlowScope(
     // wrongly-scoped caller cannot reintroduce a main-thread pipeline.
     @Suppress("NAME_SHADOWING")
     val scope = scope + Dispatchers.Default
+    val screenId = headlessScreenId(name, instanceId)
     return RememberStateFlowScopeImpl(
-        key = key,
+        key = screenId,
         bundle = leBundleOf(),
         showMessage = get(),
         clipboardService = get(),
@@ -51,16 +64,16 @@ internal fun Koin.newHeadlessStateFlowScope(
         putScreenState = get(),
         windowCoroutineScope = get(),
         navigationController = navigationInterceptor
-            ?.let { interceptor -> ForwardingNavigationController(key, interceptor) }
-            ?: NoOpNavigationController(key),
+            ?.let { interceptor -> ForwardingNavigationController(name, scope.guardNavigation(interceptor)) }
+            ?: NoOpNavigationController(name),
         backPressInterceptorHost = NoOpBackPressInterceptorHost,
         keyEventInterceptorHost = NoOpKeyEventInterceptorHost,
         json = get(),
         scope = scope,
-        screen = key,
+        screen = screenId,
         colorSchemeState = colorSchemeState,
         windowIdState = mutableStateOf(WindowId(0L)),
-        screenName = key,
+        screenName = name,
         context = get(),
     )
 }

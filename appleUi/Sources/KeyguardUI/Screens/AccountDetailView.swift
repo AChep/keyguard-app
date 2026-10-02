@@ -2,9 +2,8 @@ import SwiftUI
 import KeyguardShared
 
 struct AccountDetailView: View {
-    @Environment(AccountsModel.self) private var accountsModel
-
-    private var detail: AccountDetailSnapshot { accountsModel.accountDetail }
+    let detail: AccountDetailSnapshot
+    let invoke: (String) -> Void
 
     var body: some View {
         Group {
@@ -15,7 +14,7 @@ struct AccountDetailView: View {
             } else if !detail.loaded {
                 LoadingIndicator()
             } else {
-                content
+                accountForm
             }
         }
         #if os(iOS)
@@ -27,16 +26,10 @@ struct AccountDetailView: View {
         .keepScreenAwake()
     }
 
-    private var content: some View {
-        accountForm
-            // Local reveal state belongs to the entity delivered with this snapshot.
-            .id(accountsModel.accountDetailIdentity)
-    }
-
     @ViewBuilder
     private var accountForm: some View {
         #if os(iOS)
-        DetailForm(items: detail.items, invoke: { accountsModel.invokeAccountAction(id: $0) }) {
+        DetailForm(items: detail.items, invoke: invoke) {
             DetailIdentityHeader(
                 title: detail.title.isEmpty ? L10n.account : detail.title,
                 subtitle: detail.host
@@ -59,7 +52,7 @@ struct AccountDetailView: View {
             title: detail.title.isEmpty ? L10n.account : detail.title,
             subtitle: detail.host,
             items: detail.items,
-            invoke: { accountsModel.invokeAccountAction(id: $0) }
+            invoke: invoke
         ) {
             DetailHeaderSymbol(systemName: "person.crop.circle")
         } actions: {
@@ -74,7 +67,7 @@ struct AccountDetailView: View {
         // KeePass account's database file.
         if let actionId = detail.openWebVaultActionId {
             Button {
-                accountsModel.invokeAccountAction(id: actionId)
+                invoke(actionId)
             } label: {
                 Label(L10n.webVault, systemImage: "safari")
             }
@@ -82,7 +75,7 @@ struct AccountDetailView: View {
         }
         if let actionId = detail.openLocalVaultActionId {
             Button {
-                accountsModel.invokeAccountAction(id: actionId)
+                invoke(actionId)
             } label: {
                 Label(L10n.localVault, systemImage: "folder")
             }
@@ -91,7 +84,7 @@ struct AccountDetailView: View {
         if !detail.actions.isEmpty {
             Menu {
                 listActionMenuItems(actions: detail.actions) {
-                    accountsModel.invokeAccountAction(id: $0)
+                    invoke($0)
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")
@@ -102,19 +95,5 @@ struct AccountDetailView: View {
             .accessibilityLabel(L10n.accountActionsTitle)
             .help(L10n.accountActionsTitle)
         }
-    }
-}
-
-struct StackAccountDetailView: View {
-    @Environment(AccountsModel.self) private var accountsModel
-
-    let accountId: String
-
-    var body: some View {
-        AccountDetailView()
-            .observing(
-                start: { accountsModel.startAccountDetailObservation(accountId: accountId) },
-                stop: { accountsModel.stopAccountDetailObservation() }
-            )
     }
 }

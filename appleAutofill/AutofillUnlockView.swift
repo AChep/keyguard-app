@@ -183,6 +183,8 @@ final class AutofillUnlockModel {
 
     @ObservationIgnored private var statusSubscription: KeyguardCancellable?
     @ObservationIgnored private var unlockSubscription: KeyguardCancellable?
+    @ObservationIgnored private var optionsSubscription: KeyguardCancellable?
+    @ObservationIgnored private var session: MasterPasswordSession?
     @ObservationIgnored private var messagesSubscription: KeyguardCancellable?
     @ObservationIgnored private var observationID: UUID?
     @ObservationIgnored private var didUnlock = false
@@ -220,13 +222,20 @@ final class AutofillUnlockModel {
                 }
             }
         }
-        unlockSubscription = core.observeUnlock { [weak self] snapshot in
+        let session = core.makeUnlockSession()
+        self.session = session
+        unlockSubscription = session.observe { [weak self] snapshot in
             Task { @MainActor [weak self] in
                 guard let self, self.observationID == observationID else { return }
                 self.acknowledgedPassword = snapshot.password
                 self.passwordError = snapshot.passwordError
-                self.canSubmit = snapshot.canUnlock
+                self.canSubmit = snapshot.canSubmit
                 self.isLoading = snapshot.isLoading
+            }
+        }
+        optionsSubscription = core.observeUnlockOptions { [weak self] snapshot in
+            Task { @MainActor [weak self] in
+                guard let self, self.observationID == observationID else { return }
                 self.hasBiometric = snapshot.hasBiometric
             }
         }
@@ -251,9 +260,11 @@ final class AutofillUnlockModel {
         statusSubscription = nil
         unlockSubscription?.cancel()
         unlockSubscription = nil
+        session = nil
+        optionsSubscription?.cancel()
+        optionsSubscription = nil
         messagesSubscription?.cancel()
         messagesSubscription = nil
-        core.setUnlockPassword(text: "")
         passwordError = nil
         messageError = nil
         acknowledgedPassword = ""
@@ -264,9 +275,9 @@ final class AutofillUnlockModel {
     func setPassword(_ text: String) {
         // A stale error (e.g. a wrong password) clears as the user edits.
         messageError = nil
-        core.setUnlockPassword(text: text)
+        session?.setPassword(text: text)
     }
-    func submit() { core.submitUnlock() }
+    func submit() { session?.submit() }
     func triggerBiometric() { core.triggerUnlockBiometric() }
     func cancel() { onCancel() }
 }

@@ -34,6 +34,8 @@ final class AppPreferencesModel: SnapshotObserving {
 
     private(set) var appPreferences: AppPreferencesSnapshot = AppPreferencesSnapshot.companion.empty
 
+    @ObservationIgnored private let appearanceSettingsObservation = SharedObservation()
+
     @ObservationIgnored private var appearanceSettingsSubscription: BridgeObservation?
 
     @ObservationIgnored private var appPreferencesSubscription: BridgeObservation?
@@ -56,14 +58,16 @@ final class AppPreferencesModel: SnapshotObserving {
     }
 
     func startAppearanceSettingsObservation() {
-        startObservation(
-            \.appearanceSettingsSubscription, into: \.appearanceSettings, observe: core.observeAppearanceSettings)
+        appearanceSettingsObservation.acquire {
+            sharedSnapshotObservation(
+                \.appearanceSettingsSubscription, into: \.appearanceSettings,
+                empty: AppearanceSettingsSnapshot.companion.empty,
+                observe: core.observeAppearanceSettings)
+        }
     }
 
     func stopAppearanceSettingsObservation() {
-        stopObservation(
-            \.appearanceSettingsSubscription, resetting: \.appearanceSettings,
-            to: AppearanceSettingsSnapshot.companion.empty)
+        appearanceSettingsObservation.release()
     }
 
     func setAmoledDark(_ value: Bool) { core.setAmoledDark(value: value) }

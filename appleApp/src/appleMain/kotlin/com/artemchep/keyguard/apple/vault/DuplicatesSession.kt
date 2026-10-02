@@ -63,7 +63,7 @@ class DuplicatesSession internal constructor(
     ) { state ->
         val interceptor = navigationInterceptorProvider?.invoke(state.sessionKoin)
         val producerScope = ctx.koin.newHeadlessStateFlowScope(
-            key = "duplicates",
+            name = "duplicates",
             scope = this,
             navigationInterceptor = interceptor,
         )

@@ -9,7 +9,7 @@ final class AddKeyGeneratorModel: SnapshotObserving {
 
     let itemId: String
     let isGpg: Bool
-    private let coreProvider: () -> KeyguardCore
+    private let actionsProvider: (String) -> GeneratorActions
     private let observe: Observer
     private let apply: (String) -> Bool
     private let sessionId = UUID().uuidString
@@ -17,44 +17,41 @@ final class AddKeyGeneratorModel: SnapshotObserving {
     private(set) var snapshot = AddKeyGeneratorSnapshot.companion.empty
     @ObservationIgnored private var subscription: BridgeObservation?
 
-    convenience init(core: KeyguardCore, itemId: String, isGpg: Bool) {
+    convenience init(session: AddFormSession, itemId: String, isGpg: Bool) {
         self.init(
             itemId: itemId,
             isGpg: isGpg,
-            coreProvider: { core },
-            observe: { BridgeObservation(core.observeAddKeyGenerator(itemId: $0, sessionId: $1, onChange: $2)) },
-            apply: { core.useAddGeneratedKey(sessionId: $0) }
+            actionsProvider: { id in
+                GeneratorActions(
+                    invoke: { session.invokeAddKeyGeneratorAction(sessionId: id, id: $0) },
+                    setSwitch: { session.setAddKeyGeneratorSwitch(sessionId: id, key: $0, value: $1) },
+                    setCounter: { session.setAddKeyGeneratorCounter(sessionId: id, key: $0, value: $1) },
+                    setText: { session.setAddKeyGeneratorText(sessionId: id, key: $0, text: $1) },
+                    setLength: { _ in }
+                )
+            },
+            observe: { BridgeObservation(session.observeAddKeyGenerator(itemId: $0, sessionId: $1, onChange: $2)) },
+            apply: { session.useAddGeneratedKey(sessionId: $0) }
         )
     }
 
     init(
         itemId: String,
         isGpg: Bool,
-        coreProvider: @escaping () -> KeyguardCore,
+        actionsProvider: @escaping (String) -> GeneratorActions,
         observe: @escaping Observer,
         apply: @escaping (String) -> Bool
     ) {
         self.itemId = itemId
         self.isGpg = isGpg
-        self.coreProvider = coreProvider
+        self.actionsProvider = actionsProvider
         self.observe = observe
         self.apply = apply
     }
 
     var title: String { isGpg ? L10n.generatorHeaderGpgKeyTitle : L10n.generatorHeaderSshKeyTitle }
 
-    var actions: GeneratorActions {
-        GeneratorActions(
-            invoke: { self.coreProvider().invokeAddKeyGeneratorAction(sessionId: self.sessionId, id: $0) },
-            setSwitch: { self.coreProvider().setAddKeyGeneratorSwitch(sessionId: self.sessionId, key: $0, value: $1) },
-            setCounter: {
-                self.coreProvider().setAddKeyGeneratorCounter(sessionId: self.sessionId, key: $0, value: $1)
-            },
-            setText: { self.coreProvider().setAddKeyGeneratorText(sessionId: self.sessionId, key: $0, text: $1) },
-            // Key generators have no length slider; their lengths are enum options.
-            setLength: { _ in }
-        )
-    }
+    var actions: GeneratorActions { actionsProvider(sessionId) }
 
     func start() {
         startObservation(\.subscription, into: \.snapshot) { onChange in

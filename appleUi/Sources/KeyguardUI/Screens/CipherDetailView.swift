@@ -2,35 +2,15 @@ import SwiftUI
 import KeyguardShared
 
 struct CipherDetailView: View {
-    @Environment(CipherDetailModel.self) private var cipherDetailModel
-    @Environment(NavigationModel.self) private var navigationModel
-
-    /// When non-nil this view renders a *stacked* detail instance (a navigation-stack
-    /// entry) instead of the single-slot root detail, routing its actions by the
-    /// entry's instance id.
-    var entry: ScreenEntrySnapshot? = nil
-
-    private var detail: VaultDetailSnapshot { entry?.detail ?? cipherDetailModel.detail }
-
-    private func invoke(_ id: String) {
-        if let entry {
-            navigationModel.invokeEntryAction(instanceId: entry.instanceId, actionId: id)
-        } else {
-            cipherDetailModel.invokeVaultAction(id: id)
-        }
-    }
-
-    private func toggleFavorite() {
-        if let entry {
-            navigationModel.toggleEntryFavorite(instanceId: entry.instanceId)
-        } else {
-            cipherDetailModel.toggleVaultFavorite()
-        }
-    }
+    let detail: VaultDetailSnapshot
+    var showsNavigationTitle = false
+    let invoke: (String) -> Void
+    let toggleFavorite: () -> Void
+    let totpProvider: @MainActor @Sendable (String) -> TotpFieldSnapshot?
 
     var body: some View {
         #if os(macOS)
-        if entry != nil {
+        if showsNavigationTitle {
             detailContent
                 .navigationTitle(detail.title.isEmpty ? L10n.credentialExchangeImportUntitled : detail.title)
         } else {
@@ -69,21 +49,8 @@ struct CipherDetailView: View {
                 )
             }
         }
-        .id(entry?.instanceId)
         .environment(\.detailTotpProvider, totpProvider)
         .toolbar { detailToolbar }
-    }
-
-    /// Reads the live TOTP badges from their separate per-second channel.
-    private var totpProvider: @MainActor @Sendable (String) -> TotpFieldSnapshot? {
-        let cipherId = detail.cipherId
-        if entry != nil {
-            let navigationModel = navigationModel
-            return { rowId in navigationModel.entryTotp[cipherId]?.states[rowId] }
-        } else {
-            let cipherDetailModel = cipherDetailModel
-            return { rowId in cipherDetailModel.totpState(cipherId: cipherId, rowId: rowId) }
-        }
     }
 
     private var actionPlacement: ToolbarItemPlacement {

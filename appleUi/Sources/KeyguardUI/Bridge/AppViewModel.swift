@@ -21,22 +21,15 @@ public final class AppViewModel {
     @ObservationIgnored private let core: KeyguardCore
     @ObservationIgnored private var started = false
     let auth: VaultSessionModel
-    let login: BitwardenLoginModel
-    let keepass: KeePassLoginModel
+    let accountLogin: AccountLoginModel
     let navigation: NavigationModel
     let dialogs: DialogsModel
     let filePicker: FilePickerModel
     let notifications: NotificationsModel
     let preferences: AppPreferencesModel
     let accounts: AccountsModel
-    let cipherDetail: CipherDetailModel
     let vaultActions: VaultActionsModel
-    let generator: GeneratorModel
-    let generatorHistory: GeneratorHistoryModel
-    let autofillGenerator: AutofillGeneratorModel
-    let gpgTools: GpgToolsModel
-    let addItem: AddItemModel
-    let send: SendModel
+    let sessions: SessionFactory
     let watchtower: WatchtowerModel
     let emailRelay: EmailRelayModel
     let wordlists: WordlistsModel
@@ -44,14 +37,11 @@ public final class AppViewModel {
     let sshAgent: SshAgentModel
     let quickSearch: QuickSearchModel
     let appInformation: AppInformationModel
-    let urlRules: UrlRulesModel
     let settings: SettingsModel
     let launchAtLogin: LaunchAtLoginModel
     let security: SecuritySettingsModel
     let autofillSettings: AutofillSettingsModel
     let subscriptions: SubscriptionsModel
-    let changePassword: ChangePasswordModel
-    let feedback: FeedbackModel
     let navigationSettings: NavigationSettingsModel
     let backups: BackupSettingsModel
     let external: ExternalActions
@@ -88,10 +78,7 @@ public final class AppViewModel {
         self.links = links
         let auth = VaultSessionModel(core: core)
         self.auth = auth
-        let login = BitwardenLoginModel(core: core, links: links)
-        self.login = login
-        let keepass = KeePassLoginModel(core: core)
-        self.keepass = keepass
+        self.accountLogin = AccountLoginModel(core: core, links: links)
         let navigation = NavigationModel(core: core)
         self.navigation = navigation
         let dialogs = DialogsModel(core: core)
@@ -102,22 +89,9 @@ public final class AppViewModel {
         self.preferences = preferences
         let accounts = AccountsModel(core: core)
         self.accounts = accounts
-        let cipherDetail = CipherDetailModel(core: core)
-        self.cipherDetail = cipherDetail
         let vaultActions = VaultActionsModel(core: core, notifications: notifications)
         self.vaultActions = vaultActions
-        let generator = GeneratorModel(core: core)
-        self.generator = generator
-        let generatorHistory = GeneratorHistoryModel(core: core)
-        self.generatorHistory = generatorHistory
-        let autofillGenerator = AutofillGeneratorModel(core: core)
-        self.autofillGenerator = autofillGenerator
-        let gpgTools = GpgToolsModel(core: core)
-        self.gpgTools = gpgTools
-        let addItem = AddItemModel(core: core)
-        self.addItem = addItem
-        let send = SendModel(core: core)
-        self.send = send
+        self.sessions = SessionFactory(core: core)
         let watchtower = WatchtowerModel(core: core)
         self.watchtower = watchtower
         let emailRelay = EmailRelayModel(core: core, notifications: notifications)
@@ -131,8 +105,6 @@ public final class AppViewModel {
         self.quickSearch = quickSearch
         let appInformation = AppInformationModel(core: core)
         self.appInformation = appInformation
-        let urlRules = UrlRulesModel(core: core)
-        self.urlRules = urlRules
         let settings = SettingsModel(core: core)
         self.settings = settings
         let launchAtLogin = LaunchAtLoginModel(core: core)
@@ -143,10 +115,6 @@ public final class AppViewModel {
         self.autofillSettings = autofillSettings
         let subscriptions = SubscriptionsModel(core: core)
         self.subscriptions = subscriptions
-        let changePassword = ChangePasswordModel(core: core)
-        self.changePassword = changePassword
-        let feedback = FeedbackModel(core: core)
-        self.feedback = feedback
         let navigationSettings = NavigationSettingsModel(core: core)
         self.navigationSettings = navigationSettings
         let backups = BackupSettingsModel(core: core)

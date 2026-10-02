@@ -3,7 +3,6 @@ import KeyguardShared
 
 struct AutomaticBackupsSettingsView: View {
     @Environment(BackupSettingsModel.self) private var backupsModel
-    @Environment(FilePickerModel.self) private var filePickerModel
     let item: SettingsItemSnapshot
 
     @State private var confirmingDisable = false
@@ -21,8 +20,7 @@ struct AutomaticBackupsSettingsView: View {
                     Text(L10n.prefItemAutomaticBackupsInitializationError)
                 } actions: {
                     Button(L10n.retry) {
-                        backupsModel.stopBackupSettingsObservation()
-                        backupsModel.startBackupSettingsObservation()
+                        backupsModel.retryBackupSettingsObservation()
                     }
                 }
             } else if !s.loaded {
@@ -77,8 +75,11 @@ struct AutomaticBackupsSettingsView: View {
         } message: {
             Text(L10n.prefItemAutomaticBackupsDisableMessage)
         }
-        .sheet(isPresented: $configuring, onDismiss: endSetup) {
-            BackupSetupWizard(initial: s)
+        .sheet(isPresented: $configuring) {
+            BackupSetupWizard(
+                makeSession: backupsModel.makeBackupSetupSession,
+                isValidWebDavURL: backupsModel.isValidBackupWebDavURL
+            )
         }
         .onChange(of: s.loaded) { _, loaded in
             if !loaded { configuring = false }
@@ -86,14 +87,7 @@ struct AutomaticBackupsSettingsView: View {
     }
 
     private func configure() {
-        backupsModel.beginBackupSetup()
-        filePickerModel.beginBackupSetupPickerSession()
         configuring = true
-    }
-
-    private func endSetup() {
-        filePickerModel.endBackupSetupPickerSession()
-        backupsModel.cancelBackupSetup()
     }
 
     private var statusSection: some View {
@@ -149,7 +143,6 @@ struct AutomaticBackupsSettingsView: View {
             )
             .settingsSearchTarget(.backupRetention)
             Button(L10n.prefItemAutomaticBackupsChangeConfigurationAction, action: configure)
-                .disabled(s.isTestingLocation)
                 .settingsSearchTarget(.backupConfig)
             Button(L10n.prefItemAutomaticBackupsDisableAction, role: .destructive) { confirmingDisable = true }
                 .settingsSearchTarget(.backupDisable)

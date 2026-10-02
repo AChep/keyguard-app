@@ -43,7 +43,12 @@ struct GpgAgentSettingsSections: View {
                 case .setup:
                     ModalSheet(title: L10n.gpgAgentSetupHeaderTitle) { GpgAgentSetupView() }
                 case .filters:
-                    GpgAgentFiltersView()
+                    AgentFiltersView(
+                        title: L10n.gpgAgentFiltersHeaderTitle,
+                        lockedText: L10n.sshAgentHistoryResponseVaultLocked,
+                        note: L10n.gpgAgentFiltersNoteSaveToApply,
+                        makeSession: model.makeFiltersSession
+                    )
                 case .history:
                     ModalSheet(title: L10n.gpgAgentHistoryHeaderTitle) { GpgAgentHistoryView() }
                 }

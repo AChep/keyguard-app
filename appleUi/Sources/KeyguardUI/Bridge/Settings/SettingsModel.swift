@@ -17,15 +17,20 @@ final class SettingsModel: SnapshotObserving {
 
     private(set) var debugSettings: DebugSettingsSnapshot = DebugSettingsSnapshot.companion.empty
 
+    @ObservationIgnored private let debugSettingsObservation = SharedObservation()
+
     @ObservationIgnored private var debugSettingsSubscription: BridgeObservation?
 
     func startDebugSettingsObservation() {
-        startObservation(\.debugSettingsSubscription, into: \.debugSettings, observe: core.observeDebugSettings)
+        debugSettingsObservation.acquire {
+            sharedSnapshotObservation(
+                \.debugSettingsSubscription, into: \.debugSettings, empty: DebugSettingsSnapshot.companion.empty,
+                observe: core.observeDebugSettings)
+        }
     }
 
     func stopDebugSettingsObservation() {
-        stopObservation(
-            \.debugSettingsSubscription, resetting: \.debugSettings, to: DebugSettingsSnapshot.companion.empty)
+        debugSettingsObservation.release()
     }
 
     func setDebugPremium(_ enabled: Bool) {

@@ -3,7 +3,9 @@ import UniformTypeIdentifiers
 import KeyguardShared
 
 public struct RootContainer<Main: View>: View {
-    @Environment(AddItemModel.self) private var addItemModel
+    @State private var accountLogin = FormPresentation<AccountLoginForm>()
+    @State private var editForm = AddFormPresentation()
+    @State private var newForm = AddFormPresentation()
     @Environment(QuickSearchModel.self) private var quickSearchModel
     @Environment(VaultSessionModel.self) private var authModel
     @Environment(DialogsModel.self) private var dialogsModel
@@ -67,9 +69,10 @@ public struct RootContainer<Main: View>: View {
             item: Binding(
                 get: { navigationModel.pendingEditItem },
                 set: { navigationModel.pendingEditItem = $0 }
-            ), onDismiss: addItemModel.stopAddFormObservation
+            ), onDismiss: editForm.close
         ) { request in
             AddItemSheet(
+                presentation: editForm,
                 mode: request.isSend ? .send : .cipher,
                 editRequest: request
             )
@@ -78,9 +81,9 @@ public struct RootContainer<Main: View>: View {
             item: Binding(
                 get: { navigationModel.pendingAddCipher },
                 set: { navigationModel.pendingAddCipher = $0 }
-            ), onDismiss: addItemModel.stopAddFormObservation
+            ), onDismiss: newForm.close
         ) { prefill in
-            AddItemSheet(mode: .cipher, prefill: prefill)
+            AddItemSheet(presentation: newForm, mode: .cipher, prefill: prefill)
         }
         // A shared-producer-initiated add-account navigation (e.g. quick search
         // with zero accounts) lands here; the primary UX is the vault screen's
@@ -89,20 +92,18 @@ public struct RootContainer<Main: View>: View {
             item: Binding(
                 get: { navigationModel.addAccountRequest },
                 set: { navigationModel.addAccountRequest = $0 }
-            )
-        ) { kind in
+            ), onDismiss: accountLogin.close
+        ) { request in
             NavigationStack {
-                AddAccountDestination(kind: kind)
+                AddAccountDestination(kind: request.kind, requestId: request.requestId, presentation: accountLogin)
             }
             .appToastOverlay()
         }
         #if os(iOS)
         // iOS has no NSOpenPanel; a running form's / dialog's file request is
         // presented here as the system document picker. The choice routes back into
-        // whichever producer continuation raised it via `resolveFilePicker`.
-        .pendingFileImporter {
-            !$0.presentsInAddForm && !$0.presentsInBackupSetup && !$0.presentsInKeePassLogin
-        }
+        // the producer continuation that raised it through its picker session.
+        .pendingFileImporter()
         #endif
         .onChange(of: preferredAppDialogRoute, initial: true) { _, route in
             presentedAppDialogRoute = route
@@ -118,7 +119,7 @@ public struct RootContainer<Main: View>: View {
     }
 
     private var preferredAppDialogRoute: RootAppSheetRoute? {
-        RootAppSheetRoute.preferred(in: dialogsModel, isAddFormActive: addItemModel.isAddFormActive)
+        RootAppSheetRoute.preferred(in: dialogsModel, isAddFormActive: editForm.model != nil || newForm.model != nil)
     }
 
     private var appDialogRoute: Binding<RootAppSheetRoute?> {

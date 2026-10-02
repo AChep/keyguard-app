@@ -12,7 +12,7 @@ final class AddKeyGeneratorModelTests: XCTestCase {
         func makeModel() -> AddKeyGeneratorModel {
             AddKeyGeneratorModel(
                 itemId: "key", isGpg: true,
-                coreProvider: { fatalError("No live vault in observation tests") },
+                actionsProvider: { _ in fatalError("No generator actions in observation tests") },
                 observe: { _, sessionId, onChange in
                     sessionIds.append(sessionId)
                     callbacks.append(onChange)
@@ -54,7 +54,7 @@ final class AddKeyGeneratorModelTests: XCTestCase {
         var cancellations = 0
         let model = AddKeyGeneratorModel(
             itemId: "ssh", isGpg: false,
-            coreProvider: { fatalError("No live vault in observation tests") },
+            actionsProvider: { _ in fatalError("No generator actions in observation tests") },
             observe: { _, _, onChange in
                 callback = onChange
                 return BridgeObservation(cancel: { cancellations += 1 })

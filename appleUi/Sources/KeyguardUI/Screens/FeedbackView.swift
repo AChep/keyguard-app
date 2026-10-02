@@ -68,37 +68,3 @@ struct FeedbackFormContent: View {
         }
     }
 }
-
-struct FeedbackSheet: View {
-    @Environment(FeedbackModel.self) private var feedbackModel
-
-    @State private var draft = ""
-
-    private var snapshot: FeedbackSnapshot { feedbackModel.feedback }
-
-    var body: some View {
-        ModalSheet(
-            title: L10n.contactusHeaderTitle,
-            width: 460,
-            height: 420,
-            detents: [.large]
-        ) {
-            FeedbackFormContent(snapshot: snapshot, draft: $draft) {
-                feedbackModel.setFeedbackMessage($0)
-            }
-            .formStyle(.grouped)
-        } actions: {
-            Button {
-                feedbackModel.submitFeedback()
-            } label: {
-                Label(L10n.send, systemImage: "paperplane")
-            }
-            .keyboardShortcut(.defaultAction)
-            .disabled(!snapshot.canSend)
-        }
-        .observing(
-            start: { feedbackModel.startFeedbackObservation() },
-            stop: { feedbackModel.stopFeedbackObservation() }
-        )
-    }
-}

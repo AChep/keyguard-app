@@ -4,6 +4,7 @@ import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.generator.GeneratorController
 import com.artemchep.keyguard.apple.generator.GeneratorSnapshot
+import com.artemchep.keyguard.apple.generator.GeneratorSession
 import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.feature.generator.GeneratorRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -25,7 +26,7 @@ internal class AddKeyGeneratorController(
 ) {
     private class Session(
         val id: String,
-        val generator: GeneratorController,
+        val generator: GeneratorSession,
         val selection: AddKeyGeneration,
         val onChange: (AddKeyGeneratorSnapshot) -> Unit,
         var snapshot: GeneratorSnapshot = GeneratorSnapshot.empty,
@@ -44,10 +45,7 @@ internal class AddKeyGeneratorController(
         val controller = GeneratorController(ctx).apply {
             navigationInterceptorProvider = { interceptNavigation }
         }
-        val active = Session(id, controller, AddKeyGeneration(kind, apply), onChange)
-        session = active
-        var source: GetPasswordResult? = null
-        active.subscription = controller.observeGenerator(
+        val generator = controller.makeSession(
             args = GeneratorRoute.Args(
                 sshKey = kind == AddItemKind.SSH_KEY,
                 gpgKey = kind == AddItemKind.GPG_KEY,
@@ -56,6 +54,11 @@ internal class AddKeyGeneratorController(
             scopeName = "add_key_generator",
             producerKey = kind.name,
             recordHistory = false,
+        )
+        val active = Session(id, generator, AddKeyGeneration(kind, apply), onChange)
+        session = active
+        var source: GetPasswordResult? = null
+        active.subscription = generator.observeWithResult(
             onResult = { source = it },
             onChange = { snapshot ->
                 if (session === active) {
@@ -81,7 +84,7 @@ internal class AddKeyGeneratorController(
         AddKeyGeneratorSnapshot(snapshot, selection.canUse, selection.userId),
     )
 
-    private fun mutate(id: String, block: (GeneratorController) -> Unit) {
+    private fun mutate(id: String, block: (GeneratorSession) -> Unit) {
         val active = session?.takeIf { it.id == id } ?: return
         active.selection.invalidate()
         active.publish()

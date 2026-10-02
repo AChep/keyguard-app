@@ -18,6 +18,8 @@ final class AppInformationModel: SnapshotObserving {
 
     private(set) var appInformation: AppInformationSnapshot = AppInformationSnapshot.companion.empty
 
+    @ObservationIgnored private let appInformationObservation = SharedObservation()
+
     @ObservationIgnored private var appInformationSubscription: BridgeObservation?
 
     static func formatAppVersion(version: String?, build: String?) -> String {
@@ -27,13 +29,15 @@ final class AppInformationModel: SnapshotObserving {
     }
 
     func startAppInformationObservation() {
-        startObservation(
-            \.appInformationSubscription, into: \.appInformation, observe: core.observeAppInformation)
+        appInformationObservation.acquire {
+            sharedSnapshotObservation(
+                \.appInformationSubscription, into: \.appInformation, empty: AppInformationSnapshot.companion.empty,
+                observe: core.observeAppInformation)
+        }
     }
 
     func stopAppInformationObservation() {
-        stopObservation(
-            \.appInformationSubscription, resetting: \.appInformation, to: AppInformationSnapshot.companion.empty)
+        appInformationObservation.release()
     }
 
     /// Only live while the licenses screen is on screen.
@@ -45,38 +49,53 @@ final class AppInformationModel: SnapshotObserving {
     /// In-memory app logs.
     private(set) var logs: LogsSnapshot = LogsSnapshot.companion.empty
 
+    @ObservationIgnored private let licenseObservation = SharedObservation()
+
     @ObservationIgnored private var licenseSubscription: BridgeObservation?
 
+    @ObservationIgnored private let localizationContributorsObservation = SharedObservation()
+
     @ObservationIgnored private var localizationContributorsSubscription: BridgeObservation?
+
+    @ObservationIgnored private let logsObservation = SharedObservation()
 
     @ObservationIgnored private var logsSubscription: BridgeObservation?
 
     func startLicenseObservation() {
-        startObservation(\.licenseSubscription, into: \.licenseList, observe: core.observeLicense)
+        licenseObservation.acquire {
+            sharedSnapshotObservation(
+                \.licenseSubscription, into: \.licenseList, empty: LicenseListSnapshot.companion.empty,
+                observe: core.observeLicense)
+        }
     }
 
     func stopLicenseObservation() {
-        stopObservation(\.licenseSubscription, resetting: \.licenseList, to: LicenseListSnapshot.companion.empty)
+        licenseObservation.release()
     }
 
     func startLocalizationContributorsObservation() {
-        startObservation(
-            \.localizationContributorsSubscription, into: \.localizationContributors,
-            observe: core.observeLocalizationContributors)
+        localizationContributorsObservation.acquire {
+            sharedSnapshotObservation(
+                \.localizationContributorsSubscription, into: \.localizationContributors,
+                empty: LocalizationContributorsSnapshot.companion.empty,
+                observe: core.observeLocalizationContributors)
+        }
     }
 
     func stopLocalizationContributorsObservation() {
-        stopObservation(
-            \.localizationContributorsSubscription, resetting: \.localizationContributors,
-            to: LocalizationContributorsSnapshot.companion.empty)
+        localizationContributorsObservation.release()
     }
 
     func startLogsObservation() {
-        startObservation(\.logsSubscription, into: \.logs, observe: core.observeLogs)
+        logsObservation.acquire {
+            sharedSnapshotObservation(
+                \.logsSubscription, into: \.logs, empty: LogsSnapshot.companion.empty,
+                observe: core.observeLogs)
+        }
     }
 
     func stopLogsObservation() {
-        stopObservation(\.logsSubscription, resetting: \.logs, to: LogsSnapshot.companion.empty)
+        logsObservation.release()
     }
 
     func loadAboutTeam() async -> AboutTeamSnapshot? {

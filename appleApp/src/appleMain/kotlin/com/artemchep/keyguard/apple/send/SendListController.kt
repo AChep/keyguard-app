@@ -12,11 +12,12 @@ import com.artemchep.keyguard.feature.send.search.SendSortItem
 import com.artemchep.keyguard.feature.send.search.filter.SendFilterItem
 import com.artemchep.keyguard.feature.send.sendListScreenStateProducer
 import com.artemchep.keyguard.apple.core.CoreContext
-import com.artemchep.keyguard.apple.core.KeyguardCancellable
+import com.artemchep.keyguard.apple.core.ListSessionActions
+import com.artemchep.keyguard.apple.core.toggle
+import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.core.filePickerResultOf
 import com.artemchep.keyguard.apple.model.VaultFilterItemKind
-import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.apple.model.VaultFilterItemSnapshot
 import com.artemchep.keyguard.apple.model.VaultListItemKind
 import com.artemchep.keyguard.apple.model.VaultSortItemKind
@@ -25,7 +26,7 @@ import com.artemchep.keyguard.apple.model.buildMenuActionSnapshots
 import com.artemchep.keyguard.apple.model.buildSelectionActionSnapshots
 import com.artemchep.keyguard.apple.throttleLatest
 import com.artemchep.keyguard.platform.LeContext
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import org.koin.core.scope.Scope
 
 internal class SendListController(
@@ -38,25 +39,11 @@ internal class SendListController(
     var navigationInterceptorProvider: (Scope) -> ((NavigationIntent) -> Boolean)? =
         { _ -> null }
 
-    private var latestSendListState: SendListState? = null
-    private var sendListFilterHandlers: Map<String, () -> Unit> = emptyMap()
-    private var sendListSortHandlers: Map<String, () -> Unit> = emptyMap()
-    private var sendListSelectionActionHandlers: Map<String, () -> Unit> = emptyMap()
-    private var sendListActionHandlers: Map<String, () -> Unit> = emptyMap()
-
-    fun observeSendList(
-        onChange: (SendListSnapshot) -> Unit,
-    ): KeyguardCancellable {
+    fun makeSession(): SendListSession = SendListSession { publish ->
         val leContext = ctx.koin.get<LeContext>()
-        return ctx.launchSessionObserver(
-            onLocked = {
-                latestSendListState = null
-                sendListFilterHandlers = emptyMap()
-                sendListSortHandlers = emptyMap()
-                sendListSelectionActionHandlers = emptyMap()
-                sendListActionHandlers = emptyMap()
-                onChange(SendListSnapshot.empty)
-            },
+        ctx.launchSessionObserver(
+            onLocked = { publish(SendListSnapshot.empty, SendListSessionActions()) },
+            onTeardown = { publish(SendListSnapshot.empty, SendListSessionActions()) },
         ) { state ->
             val interceptor = navigationInterceptorProvider(state.sessionKoin)
             val producerFlow = with(state.sessionKoin) {
@@ -82,75 +69,44 @@ internal class SendListController(
                         confirmationRouteFactory = get(),
                     )
             }
-            producerFlow.throttleLatest().collect { sendListState ->
-                val filterHandlers = LinkedHashMap<String, () -> Unit>()
-                val sortHandlers = LinkedHashMap<String, () -> Unit>()
-                val selectionHandlers = LinkedHashMap<String, () -> Unit>()
-                val actionHandlers = LinkedHashMap<String, () -> Unit>()
-                val snapshot = buildSendListSnapshot(
-                    sendListState,
-                    leContext,
-                    filterHandlers,
-                    sortHandlers,
-                    selectionHandlers,
-                    actionHandlers,
-                )
-                ctx.publishOnMain {
-                    latestSendListState = sendListState
-                    sendListFilterHandlers = filterHandlers
-                    sendListSortHandlers = sortHandlers
-                    sendListSelectionActionHandlers = selectionHandlers
-                    sendListActionHandlers = actionHandlers
-                    onChange(snapshot)
-                }
-            }
+            producerFlow.throttleLatest()
+                .map { projectSendList(it, leContext) }
+                .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
         }
     }
 
-    fun setSendListQuery(text: String) {
-        latestSendListState?.query?.onChange?.invoke(text)
-    }
-
-    fun invokeSendListFilter(id: String) {
-        sendListFilterHandlers[id]?.invoke()
-    }
-
-    fun invokeSendListSort(id: String) {
-        sendListSortHandlers[id]?.invoke()
-    }
-
-    fun clearSendListFilters() {
-        latestSendListState?.clearFilters?.invoke()
-    }
-
-    fun clearSendListSort() {
-        latestSendListState?.clearSort?.invoke()
-    }
-
-    fun toggleSendListSelection(itemId: String) {
-        val content = latestSendListState?.content as? SendListState.Content.Items ?: return
-        val item = content.list
-            .firstOrNull { it is SendItem.Item && it.id == itemId } as? SendItem.Item
-            ?: return
-        val selectable = item.localStateFlow.value.selectableItemState
-        (selectable.onClick ?: selectable.onLongClick)?.invoke()
-    }
-
-    fun invokeSendListSelectionAction(id: String) {
-        sendListSelectionActionHandlers.invokeAction(id)
-    }
-
-    fun invokeSendListAction(id: String) {
-        sendListActionHandlers.invokeAction(id)
-    }
-
-    fun clearSendListSelection() {
-        val content = latestSendListState?.content as? SendListState.Content.Items ?: return
-        content.selection?.onClear?.invoke()
-    }
-
-    fun dropFileOnSendList(uri: String, name: String?, size: Long) {
-        latestSendListState?.onFileDrop?.invoke(filePickerResultOf(uri, name, size))
+    private suspend fun projectSendList(
+        state: SendListState,
+        leContext: LeContext,
+    ): Pair<SendListSnapshot, SendListSessionActions> {
+        val filterHandlers = LinkedHashMap<String, () -> Unit>()
+        val sortHandlers = LinkedHashMap<String, () -> Unit>()
+        val selectionHandlers = LinkedHashMap<String, () -> Unit>()
+        val actionHandlers = LinkedHashMap<String, () -> Unit>()
+        val snapshot = buildSendListSnapshot(
+            state, leContext, filterHandlers, sortHandlers, selectionHandlers, actionHandlers,
+        )
+        val content = state.content as? SendListState.Content.Items
+        val items = content?.list.orEmpty()
+        return snapshot to SendListSessionActions(
+            list = ListSessionActions(
+                screen = actionHandlers,
+                selection = selectionHandlers,
+                toggleSelection = { id ->
+                    items.firstNotNullOfOrNull { (it as? SendItem.Item)?.takeIf { item -> item.id == id } }
+                        ?.localStateFlow?.value?.selectableItemState?.toggle()
+                },
+                clearSelection = content?.selection?.onClear,
+            ),
+            query = state.query.onChange,
+            filters = filterHandlers,
+            sort = sortHandlers,
+            clearFilters = state.clearFilters,
+            clearSort = state.clearSort,
+            dropFile = state.onFileDrop?.let { drop ->
+                { uri, name, size -> drop(filePickerResultOf(uri, name, size)) }
+            },
+        )
     }
 
     private suspend fun buildSendListSnapshot(

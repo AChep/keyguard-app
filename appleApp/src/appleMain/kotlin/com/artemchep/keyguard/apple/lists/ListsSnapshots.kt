@@ -94,7 +94,7 @@ data class SshAgentHistorySnapshot(
 
 /**
  * [date] is the localized change time. Each [actions] id routes back through
- * [KeyguardCore.invokePasswordHistoryItemAction].
+ * [ListSession.invokeItemAction].
  */
 data class PasswordHistoryItemSnapshot(
     val id: String,
@@ -108,7 +108,7 @@ data class PasswordHistoryItemSnapshot(
 
 /**
  * [notFound] is true when the cipher id no longer resolves. [actions] are the screen's top-level overflow
- * actions; each id routes back through [KeyguardCore.invokePasswordHistoryAction].
+ * actions; each id routes back through [ListSession.invokeAction].
  */
 data class PasswordHistorySnapshot(
     val loaded: Boolean,
@@ -192,7 +192,7 @@ data class LogsSnapshot(
 /**
  * For blocked URLs [subtitle] is the matched URI and [detail] the block mode; for URL overrides [subtitle] is
  * the regex and [detail] the command. Each [actions] id routes back through
- * [KeyguardCore.invokeUrlBlockListItemAction] / [KeyguardCore.invokeUrlOverrideListItemAction].
+ * [ListSession.invokeItemAction].
  */
 data class UrlRuleItemSnapshot(
     val id: String,
@@ -207,7 +207,7 @@ data class UrlRuleItemSnapshot(
 
 /**
  * [hasPrimaryAction] is true when the producer offers a create-new ("+") action, run via
- * [KeyguardCore.invokeUrlBlockListPrimaryAction] / [KeyguardCore.invokeUrlOverrideListPrimaryAction].
+ * [ListSession.invokePrimaryAction].
  */
 data class UrlRuleListSnapshot(
     val loaded: Boolean,

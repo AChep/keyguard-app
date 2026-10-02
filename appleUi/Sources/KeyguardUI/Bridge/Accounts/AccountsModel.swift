@@ -5,25 +5,14 @@ import KeyguardShared
 @MainActor
 @Observable
 final class AccountsModel: SnapshotObserving {
-    typealias DetailObserver = (String, @escaping (AccountDetailSnapshot) -> Void) -> BridgeObservation
+    private let core: KeyguardCore
 
-    private let coreProvider: () -> KeyguardCore
-    private var core: KeyguardCore { coreProvider() }
-    private let observeDetail: DetailObserver
-
-    convenience init(core: KeyguardCore) {
-        self.init(
-            coreProvider: { core },
-            observeDetail: { BridgeObservation(core.observeAccountDetail(accountId: $0, onChange: $1)) }
-        )
+    init(core: KeyguardCore) {
+        self.core = core
     }
 
-    init(
-        coreProvider: @escaping () -> KeyguardCore,
-        observeDetail: @escaping DetailObserver
-    ) {
-        self.coreProvider = coreProvider
-        self.observeDetail = observeDetail
+    func makeDetailSession(accountId: String) -> AccountDetailSession {
+        core.makeAccountDetailSession(accountId: accountId)
     }
 
     /// Only live while the Settings screen is on screen.
@@ -31,29 +20,19 @@ final class AccountsModel: SnapshotObserving {
 
     private(set) var syncStatus: SyncStatusSnapshot = SyncStatusSnapshot.companion.empty
 
-    /// Only live while an account is selected in the Settings two-pane layout.
-    private var accountDetailState = ObservedDetail<AccountDetailSnapshot, String>(
-        snapshot: AccountDetailSnapshot.companion.empty)
-
-    var accountDetail: AccountDetailSnapshot { accountDetailState.snapshot }
-    var accountDetailIdentity: String? { accountDetailState.identity }
-
+    private let listObservation = SharedObservation()
     private let syncStatusObservation = SharedObservation()
 
     @ObservationIgnored private var syncStatusSubscription: BridgeObservation?
 
     @ObservationIgnored private var accountListSubscription: BridgeObservation?
 
-    @ObservationIgnored private var accountDetailSubscription: BridgeObservation?
-
     /// Call when the main shell appears; balance with `stopSyncStatusObservation()`.
     func startSyncStatusObservation() {
         syncStatusObservation.acquire {
-            startObservation(\.syncStatusSubscription, into: \.syncStatus, observe: core.observeSyncStatus)
-            return BridgeObservation { [weak self] in
-                self?.stopObservation(
-                    \.syncStatusSubscription, resetting: \.syncStatus, to: SyncStatusSnapshot.companion.empty)
-            }
+            sharedSnapshotObservation(
+                \.syncStatusSubscription, into: \.syncStatus, empty: SyncStatusSnapshot.companion.empty,
+                observe: core.observeSyncStatus)
         }
     }
 
@@ -69,33 +48,15 @@ final class AccountsModel: SnapshotObserving {
 
     /// Call when the Settings screen appears; balance with `stopAccountListObservation()`.
     func startAccountListObservation() {
-        startObservation(\.accountListSubscription, into: \.accountList, observe: core.observeAccountList)
-    }
-
-    func stopAccountListObservation() {
-        stopObservation(\.accountListSubscription, resetting: \.accountList, to: AccountListSnapshot.companion.empty)
-    }
-
-    /// Call when an account is selected; balance with `stopAccountDetailObservation()`.
-    func startAccountDetailObservation(accountId: String) {
-        stopAccountDetailObservation()
-        let identity = accountId
-        startObservation(\.accountDetailSubscription, into: \.accountDetailState) { onChange in
-            observeDetail(accountId) { snapshot in
-                onChange(ObservedDetail(snapshot: snapshot, identity: identity))
-            }
+        listObservation.acquire {
+            sharedSnapshotObservation(
+                \.accountListSubscription, into: \.accountList, empty: AccountListSnapshot.companion.empty,
+                observe: core.observeAccountList)
         }
     }
 
-    func stopAccountDetailObservation() {
-        stopObservation(
-            \.accountDetailSubscription, resetting: \.accountDetailState,
-            to: ObservedDetail(snapshot: AccountDetailSnapshot.companion.empty))
-    }
-
-    /// Invokes an account detail item / header context action.
-    func invokeAccountAction(id: String) {
-        core.invokeAccountAction(id: id)
+    func stopAccountListObservation() {
+        listObservation.release()
     }
 
     func invokeAccountListAction(id: String) {

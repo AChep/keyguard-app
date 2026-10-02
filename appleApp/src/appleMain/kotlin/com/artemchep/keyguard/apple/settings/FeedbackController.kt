@@ -3,9 +3,10 @@ package com.artemchep.keyguard.apple.settings
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.feedback.FeedbackState
 import com.artemchep.keyguard.feature.feedback.feedbackScreenStateProducer
+import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.apple.core.CoreContext
-import com.artemchep.keyguard.apple.core.KeyguardCancellable
+import com.artemchep.keyguard.apple.core.launchOnMainWhileActive
 import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.core.toMailtoUrl
@@ -32,34 +33,26 @@ data class FeedbackSnapshot(
 internal class FeedbackController(
     private val ctx: CoreContext,
 ) {
-    private var latestFeedbackState: FeedbackState? = null
-
-    fun observeFeedback(
-        onChange: (FeedbackSnapshot) -> Unit,
-        openUrl: (String) -> Unit,
-    ): KeyguardCancellable {
-        val interceptor: (NavigationIntent) -> Boolean = { intent ->
-            if (intent is NavigationIntent.NavigateToEmail) {
-                openUrl(intent.toMailtoUrl())
-                true
-            } else {
-                false
+    fun makeFeedbackSession(openUrl: (String) -> Unit): FeedbackSession = FeedbackSession { publish ->
+        ctx.launchObserver {
+            val interceptor: (NavigationIntent) -> Boolean = { intent ->
+                if (intent is NavigationIntent.NavigateToEmail) {
+                    launchOnMainWhileActive(ctx.scope) { openUrl(intent.toMailtoUrl()) }
+                    true
+                } else {
+                    false
+                }
             }
-        }
-        return ctx.launchObserver {
             produceFeedbackInto(this, interceptor) { snapshot, state ->
-                latestFeedbackState = state
-                onChange(snapshot)
+                publish(
+                    snapshot,
+                    FeedbackActions(
+                        setMessage = state?.message?.onChange,
+                        submit = state?.onSendClick,
+                    ),
+                )
             }
         }
-    }
-
-    fun setFeedbackMessage(text: String) {
-        latestFeedbackState?.message?.onChange?.invoke(text)
-    }
-
-    fun submitFeedback() {
-        latestFeedbackState?.onSendClick?.invoke()
     }
 
     suspend fun produceFeedbackInto(
@@ -68,7 +61,7 @@ internal class FeedbackController(
         publish: suspend (FeedbackSnapshot, FeedbackState?) -> Unit,
     ) {
         val producerFlow = ctx.koin.newHeadlessStateFlowScope("feedback", scope, interceptor)
-            .feedbackScreenStateProducer()
+            .feedbackScreenStateProducer(messageStorage = PersistedStorage.InMemory)
         producerFlow.collectOnMain { loadable ->
             val state = loadable.getOrNull()
             val snapshot = if (state == null) {

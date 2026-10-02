@@ -61,24 +61,3 @@ data class SshAgentSettingsSnapshot(
     }
 }
 
-/**
- * Items reuse the vault [VaultFilterItemSnapshot] projection; toggling goes through
- * [KeyguardCore.invokeSshAgentFilter].
- */
-data class SshAgentFiltersSnapshot(
-    val loaded: Boolean,
-    val count: Int,
-    val items: List<VaultFilterItemSnapshot>,
-    val canSave: Boolean,
-    val canReset: Boolean,
-) {
-    companion object {
-        val empty = SshAgentFiltersSnapshot(
-            loaded = false,
-            count = 0,
-            items = emptyList(),
-            canSave = false,
-            canReset = false,
-        )
-    }
-}

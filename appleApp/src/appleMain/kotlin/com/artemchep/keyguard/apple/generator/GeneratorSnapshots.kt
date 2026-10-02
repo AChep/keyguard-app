@@ -12,7 +12,7 @@ internal data class GeneratorInner(
     val value: GeneratorState.Value?,
 )
 
-/** [id] routes back to [KeyguardCore.invokeGeneratorAction]; [selected] marks the chosen entry. */
+/** [id] routes back to [GeneratorSession.invokeGeneratorAction]; [selected] marks the chosen entry. */
 data class GeneratorActionSnapshot(
     val id: String,
     val title: String,
@@ -24,7 +24,7 @@ enum class GeneratorTypeItemKind {
     SECTION,
 }
 
-/** A TYPE entry's [id] routes back to [KeyguardCore.invokeGeneratorAction]. */
+/** A TYPE entry's [id] routes back to [GeneratorSession.invokeGeneratorAction]. */
 data class GeneratorTypeItemSnapshot(
     val id: String,
     val kind: GeneratorTypeItemKind,
@@ -78,12 +78,12 @@ enum class GeneratorFilterKind {
 /**
  * One row of the generator filter form. The populated fields depend on [kind]:
  *  - [GeneratorFilterKind.SWITCH_FIELD]: [switchValue] / [switchEnabled] (+ optional
- *    [counter]); mutate via [KeyguardCore.setGeneratorSwitch] (key) and
- *    [KeyguardCore.setGeneratorCounter] ("<key>:counter").
+ *    [counter]); mutate via [GeneratorSession.setGeneratorSwitch] (key) and
+ *    [GeneratorSession.setGeneratorCounter] ("<key>:counter").
  *  - [GeneratorFilterKind.TEXT_FIELD]: [textValue] / [textPlaceholder] / [textError];
- *    mutate via [KeyguardCore.setGeneratorText].
+ *    mutate via [GeneratorSession.setGeneratorText].
  *  - [GeneratorFilterKind.ENUM_FIELD]: [enumValue] (current label) + [enumOptions];
- *    select via [KeyguardCore.invokeGeneratorAction] on an option id.
+ *    select via [GeneratorSession.invokeGeneratorAction] on an option id.
  *  - [GeneratorFilterKind.SECTION]: [text] only.
  */
 data class GeneratorFilterSnapshot(
@@ -171,7 +171,7 @@ enum class GeneratorHistoryItemKind {
 /**
  * [date] / [type] are null for SECTION headers; [type] is the `GeneratorHistoryItem.Value.Type` name
  * (PASSWORD, SSH_KEY, …), or null when ambiguous. [actions] ids route back through
- * [KeyguardCore.invokeGeneratorHistoryItemAction].
+ * [ListSession.invokeItemAction].
  */
 data class GeneratorHistoryItemSnapshot(
     val id: String,

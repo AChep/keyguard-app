@@ -15,17 +15,22 @@ final class LaunchAtLoginModel: SnapshotObserving {
     /// screen is on screen.
     private(set) var launchAtLogin: LaunchAtLoginSnapshot = LaunchAtLoginSnapshot.companion.empty
 
+    @ObservationIgnored private let launchAtLoginObservation = SharedObservation()
+
     @ObservationIgnored private var launchAtLoginSubscription: BridgeObservation?
 
     /// Call when the General settings screen appears; balance with
     /// `stopLaunchAtLoginObservation()`.
     func startLaunchAtLoginObservation() {
-        startObservation(\.launchAtLoginSubscription, into: \.launchAtLogin, observe: core.observeLaunchAtLogin)
+        launchAtLoginObservation.acquire {
+            sharedSnapshotObservation(
+                \.launchAtLoginSubscription, into: \.launchAtLogin, empty: LaunchAtLoginSnapshot.companion.empty,
+                observe: core.observeLaunchAtLogin)
+        }
     }
 
     func stopLaunchAtLoginObservation() {
-        stopObservation(
-            \.launchAtLoginSubscription, resetting: \.launchAtLogin, to: LaunchAtLoginSnapshot.companion.empty)
+        launchAtLoginObservation.release()
     }
 
     func setLaunchAtLogin(_ enabled: Bool) {

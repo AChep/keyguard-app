@@ -44,9 +44,10 @@ final class NavigationModel: SnapshotObserving {
         }
         // A shared producer navigated to an add-account login route; present the native
         // login flow for the requested provider from the root.
-        core.setAddAccountHandler { [weak self] typeName in
+        core.setAddAccountHandler { [weak self] typeName, requestId in
             Task { @MainActor [weak self] in
-                self?.addAccountRequest = typeName == "KEEPASS" ? .keepass : .bitwarden
+                self?.addAccountRequest = AccountLoginRequest(
+                    kind: typeName == "KEEPASS" ? .keepass : .bitwarden, requestId: requestId)
             }
         }
     }
@@ -64,7 +65,7 @@ final class NavigationModel: SnapshotObserving {
     /// a create-item sheet prefilled with the generated value. Cleared when that sheet dismisses.
     var pendingAddCipher: AddCipherPrefill?
 
-    var addAccountRequest: AddAccountKind?
+    var addAccountRequest: AccountLoginRequest?
 
     var pendingEditItem: AddEditPrefill?
 

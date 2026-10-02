@@ -1,13 +1,14 @@
 import SwiftUI
 
 struct GeneratorRefreshToolbarButton: View {
-    @Environment(GeneratorModel.self) private var generatorModel
+    let canRefresh: Bool
+    let invoke: (String) -> Void
 
     var body: some View {
         Button(L10n.generatorRegenerateButton, systemImage: "arrow.clockwise") {
-            generatorModel.invokeGeneratorAction(id: "value:refresh")
+            invoke("value:refresh")
         }
         .help(L10n.generatorRegenerateButton)
-        .disabled(generatorModel.generator.value?.canRefresh != true)
+        .disabled(!canRefresh)
     }
 }

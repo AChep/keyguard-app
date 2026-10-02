@@ -16,6 +16,10 @@ final class VaultActionsModel {
     /// The core used by this app’s independently owned list sessions.
     var keyguardCore: KeyguardCore { core }
 
+    func makePasswordHistorySession(itemId: String) -> ListSession<PasswordHistorySnapshot> {
+        core.makePasswordHistorySession(itemId: itemId)
+    }
+
     func addFolder(accountId: String, name: String) async throws {
         try await core.addFolder(accountId: accountId, name: name)
     }

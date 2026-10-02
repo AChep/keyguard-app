@@ -2,9 +2,11 @@ import SwiftUI
 import KeyguardShared
 
 struct SendDetailView: View {
-    @Environment(SendModel.self) private var sendModel
-
-    private var detail: SendDetailSnapshot { sendModel.sendDetail }
+    let detail: SendDetailSnapshot
+    let invoke: (String) -> Void
+    let copy: () -> Void
+    let share: () -> Void
+    let edit: () -> Void
 
     var body: some View {
         Group {
@@ -27,7 +29,7 @@ struct SendDetailView: View {
     private var content: some View {
         DetailForm(
             items: detail.items,
-            invoke: { sendModel.invokeSendAction(id: $0) }
+            invoke: invoke
         ) {
             DetailIdentityHeader(title: detail.title) { size in
                 Image(systemName: typeSymbol(detail.typeIcon))
@@ -38,8 +40,6 @@ struct SendDetailView: View {
                     .accessibilityHidden(true)
             }
         }
-        // Local reveal state belongs to the entity delivered with this snapshot.
-        .id(sendModel.sendDetailIdentity)
         .toolbar { detailToolbar }
     }
 
@@ -61,7 +61,7 @@ struct SendDetailView: View {
         if detail.canCopy {
             ToolbarItem(id: "send.item.copy", placement: actionPlacement) {
                 Button(L10n.sendActionCopyLinkTitle, systemImage: "doc.on.doc") {
-                    sendModel.sendCopy()
+                    copy()
                 }
                 .help(L10n.sendActionCopyLinkTitle)
             }
@@ -69,7 +69,7 @@ struct SendDetailView: View {
         if detail.canShare {
             ToolbarItem(id: "send.item.share", placement: actionPlacement) {
                 Button(L10n.share, systemImage: "square.and.arrow.up") {
-                    sendModel.sendShare()
+                    share()
                 }
                 .help(L10n.share)
             }
@@ -77,7 +77,7 @@ struct SendDetailView: View {
         if detail.canEdit {
             ToolbarItem(id: "send.item.edit", placement: actionPlacement) {
                 Button(L10n.edit, systemImage: "pencil") {
-                    sendModel.sendEdit()
+                    edit()
                 }
                 .labelStyle(.iconOnly)
                 .help(L10n.edit)
@@ -87,7 +87,7 @@ struct SendDetailView: View {
             ToolbarItem(id: "send.item.more", placement: actionPlacement) {
                 Menu(L10n.moreActions, systemImage: "ellipsis") {
                     listActionMenuItems(actions: detail.actions) {
-                        sendModel.invokeSendAction(id: $0)
+                        invoke($0)
                     }
                 }
                 .help(L10n.moreActions)
@@ -102,30 +102,5 @@ struct SendDetailView: View {
         case "File": return "doc"
         default: return "paperplane"
         }
-    }
-}
-
-struct StackSendDetailView: View {
-    @Environment(SendModel.self) private var sendModel
-    @State private var observationOwner: UUID?
-
-    let sendId: String
-    let accountId: String
-
-    var body: some View {
-        SendDetailView()
-            #if os(macOS)
-        .navigationTitle(
-            sendModel.sendDetail.title.isEmpty ? L10n.credentialExchangeImportUntitled : sendModel.sendDetail.title)
-            #endif
-            .observing(
-                start: {
-                    observationOwner = sendModel.startSendDetailObservation(itemId: sendId, accountId: accountId)
-                },
-                stop: {
-                    sendModel.stopSendDetailObservation(owner: observationOwner)
-                    observationOwner = nil
-                }
-            )
     }
 }

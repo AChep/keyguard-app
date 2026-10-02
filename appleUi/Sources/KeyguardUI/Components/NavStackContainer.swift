@@ -2,6 +2,10 @@ import SwiftUI
 import KeyguardShared
 
 struct NavStackContainer<Content: View>: View {
+    @Environment(SessionFactory.self) private var sessions
+    @Environment(AccountsModel.self) private var accountsModel
+    @Environment(SshAgentModel.self) private var sshAgentModel
+    @Environment(VaultActionsModel.self) private var vaultActionsModel
     @Environment(NavigationModel.self) private var navigationModel
     /// The section/tab scope this container renders ("vault", "watchtower", …). Each
     /// section observes its own stack, so drill-down survives section/tab switches.
@@ -116,7 +120,7 @@ struct NavStackContainer<Content: View>: View {
     private func screenView(for id: Int64) -> some View {
         if let entry = entries.first(where: { $0.instanceId == id }) {
             if entry.kind == ScreenEntryKind.cipherDetail {
-                CipherDetailView(entry: entry)
+                StackCipherDetailView(entry: entry)
             } else if entry.kind == ScreenEntryKind.vaultList {
                 if usesPanels {
                     StackVaultListContent(model: listSessions.models[id])
@@ -133,7 +137,7 @@ struct NavStackContainer<Content: View>: View {
             } else if entry.kind == ScreenEntryKind.watchtowerAlerts {
                 WatchtowerAlertsView(entry: entry)
             } else if entry.kind == ScreenEntryKind.generatorHistory {
-                GeneratorHistoryView()
+                GeneratorHistoryScreen(makeSession: sessions.makeGeneratorHistorySession)
             } else if entry.kind == ScreenEntryKind.emailRelayList {
                 EmailForwardersView(entry: entry)
             } else if entry.kind == ScreenEntryKind.wordlistList {
@@ -141,15 +145,23 @@ struct NavStackContainer<Content: View>: View {
             } else if entry.kind == ScreenEntryKind.wordlistDetail {
                 WordlistDetailView(entry: entry)
             } else if entry.kind == ScreenEntryKind.passwordHistory {
-                VaultViewPasswordHistoryView(itemId: entry.passwordHistoryItemId ?? "")
-            } else if entry.kind == ScreenEntryKind.sshAgentHistory {
-                SshAgentHistoryView(cipherId: entry.sshAgentHistoryCipherId)
-                    .navigationTitle(L10n.sshAgentHistoryHeaderTitle)
-            } else if entry.kind == ScreenEntryKind.sendDetail {
-                StackSendDetailView(
-                    sendId: entry.sendId ?? "",
-                    accountId: entry.sendAccountId ?? ""
+                PasswordHistoryScreen(
+                    itemId: entry.passwordHistoryItemId ?? "", makeSession: vaultActionsModel.makePasswordHistorySession
                 )
+                .id(entry.instanceId)
+            } else if entry.kind == ScreenEntryKind.sshAgentHistory {
+                SshAgentHistoryScreen(
+                    cipherId: entry.sshAgentHistoryCipherId, makeSession: sshAgentModel.makeHistorySession
+                )
+                .id(entry.instanceId)
+                .navigationTitle(L10n.sshAgentHistoryHeaderTitle)
+            } else if entry.kind == ScreenEntryKind.sendDetail {
+                SendDetailScreen(
+                    target: ItemDetailTarget(itemId: entry.sendId ?? "", accountId: entry.sendAccountId ?? ""),
+                    showsNavigationTitle: true,
+                    makeSession: sessions.makeSendDetailSession
+                )
+                .id(entry.instanceId)
             } else if entry.kind == ScreenEntryKind.organizationsList {
                 OrganizationsListView(entry: entry)
             } else if entry.kind == ScreenEntryKind.collectionsList {
@@ -157,7 +169,10 @@ struct NavStackContainer<Content: View>: View {
             } else if entry.kind == ScreenEntryKind.foldersList {
                 FoldersListView(entry: entry)
             } else if entry.kind == ScreenEntryKind.accountDetail {
-                StackAccountDetailView(accountId: entry.accountDetailId ?? "")
+                AccountDetailScreen(
+                    accountId: entry.accountDetailId ?? "", makeSession: accountsModel.makeDetailSession
+                )
+                .id(entry.instanceId)
             } else if entry.kind == ScreenEntryKind.equivalentDomains {
                 EquivalentDomainsView(entry: entry)
             } else if entry.kind == ScreenEntryKind.duplicates {

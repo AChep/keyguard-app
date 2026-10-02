@@ -29,7 +29,9 @@ enum class WatchtowerCardStatus {
     ERROR,
 }
 
-/** [id] routes its tap back to [KeyguardCore.invokeWatchtowerAction]; [new] is the unread-since-last-visit badge. */
+/**
+ * [id] routes its tap back to [WatchtowerSession.invokeWatchtowerAction]; [new] is the unread-since-last-visit badge.
+ */
 data class WatchtowerCardSnapshot(
     val id: String,
     val title: String,
@@ -42,7 +44,7 @@ data class WatchtowerCardSnapshot(
 
 /**
  * [score] is the `PasswordStrength.Score` name (Weak / Fair / Good / Strong / VeryStrong); [id] routes its tap
- * back to [KeyguardCore.invokeWatchtowerAction].
+ * back to [WatchtowerSession.invokeWatchtowerAction].
  */
 data class WatchtowerStrengthSnapshot(
     val id: String,
@@ -52,7 +54,7 @@ data class WatchtowerStrengthSnapshot(
     val canClick: Boolean,
 )
 
-/** A toolbar directory shortcut; [id] routes back to [KeyguardCore.invokeWatchtowerAction]. */
+/** A toolbar directory shortcut; [id] routes back to [WatchtowerSession.invokeWatchtowerAction]. */
 data class WatchtowerOptionSnapshot(
     val id: String,
     val title: String,

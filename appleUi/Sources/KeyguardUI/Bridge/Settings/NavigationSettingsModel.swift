@@ -14,16 +14,21 @@ final class NavigationSettingsModel: SnapshotObserving {
     /// Only live while the "Navigation items" settings screen is on screen.
     private(set) var navItemsSettings: NavItemsSettingsSnapshot = NavItemsSettingsSnapshot.companion.empty
 
+    @ObservationIgnored private let navItemsSettingsObservation = SharedObservation()
+
     @ObservationIgnored private var navItemsSettingsSubscription: BridgeObservation?
 
     func startNavItemsSettingsObservation() {
-        startObservation(
-            \.navItemsSettingsSubscription, into: \.navItemsSettings, observe: core.observeNavItemsSettings)
+        navItemsSettingsObservation.acquire {
+            sharedSnapshotObservation(
+                \.navItemsSettingsSubscription, into: \.navItemsSettings,
+                empty: NavItemsSettingsSnapshot.companion.empty,
+                observe: core.observeNavItemsSettings)
+        }
     }
 
     func stopNavItemsSettingsObservation() {
-        stopObservation(
-            \.navItemsSettingsSubscription, resetting: \.navItemsSettings, to: NavItemsSettingsSnapshot.companion.empty)
+        navItemsSettingsObservation.release()
     }
 
     func toggleNavItemVisibility(key: String) { core.toggleNavItemVisibility(key: key) }

@@ -16,16 +16,13 @@ final class GpgAgentModel: SnapshotObserving {
     private(set) var gpgAgentStatus = GpgAgentStatusSnapshot.companion.empty
     private(set) var gpgAgentSettings = GpgAgentSettingsSnapshot.companion.empty
     private(set) var gpgAgentHistory = GpgAgentHistorySnapshot.companion.empty
-    private(set) var gpgAgentFilters = GpgAgentFiltersSnapshot.companion.empty
 
     @ObservationIgnored private var requestsSubscription: BridgeObservation?
     @ObservationIgnored private var statusSubscription: BridgeObservation?
     @ObservationIgnored private var settingsSubscription: BridgeObservation?
     @ObservationIgnored private var historySubscription: BridgeObservation?
-    @ObservationIgnored private var filtersSubscription: BridgeObservation?
     @ObservationIgnored private let settingsObservation = SharedObservation()
     @ObservationIgnored private let historyObservation = SharedObservation()
-    @ObservationIgnored private var filterObservers: [UUID: () -> Void] = [:]
 
     func startGpgAgentObservation() {
         startObservation(\.requestsSubscription, into: \.gpgAgentRequests, observe: core.observeGpgAgentRequests)
@@ -42,11 +39,9 @@ final class GpgAgentModel: SnapshotObserving {
 
     func startGpgAgentSettingsObservation() {
         settingsObservation.acquire {
-            startObservation(\.settingsSubscription, into: \.gpgAgentSettings, observe: core.observeGpgAgentSettings)
-            return BridgeObservation { [weak self] in
-                self?.stopObservation(
-                    \.settingsSubscription, resetting: \.gpgAgentSettings, to: GpgAgentSettingsSnapshot.companion.empty)
-            }
+            sharedSnapshotObservation(
+                \.settingsSubscription, into: \.gpgAgentSettings, empty: GpgAgentSettingsSnapshot.companion.empty,
+                observe: core.observeGpgAgentSettings)
         }
     }
 
@@ -66,35 +61,9 @@ final class GpgAgentModel: SnapshotObserving {
         core.setGpgAgentDisplayKeyNames(value: value)
     }
 
-    func startGpgAgentFiltersObservation(onClose: @escaping () -> Void) -> UUID {
-        let observer = UUID()
-        filterObservers[observer] = onClose
-        startObservation(\.filtersSubscription) { deliver in
-            BridgeObservation(
-                core.observeGpgAgentFilters(
-                    onChange: { snapshot in
-                        deliver { $0.gpgAgentFilters = snapshot }
-                    },
-                    onClose: {
-                        deliver { model in
-                            for close in Array(model.filterObservers.values) { close() }
-                        }
-                    }
-                ))
-        }
-        return observer
+    func makeFiltersSession() -> AgentFiltersSession {
+        core.makeGpgAgentFiltersSession()
     }
-
-    func stopGpgAgentFiltersObservation(id: UUID) {
-        filterObservers.removeValue(forKey: id)
-        guard filterObservers.isEmpty else { return }
-        stopObservation(
-            \.filtersSubscription, resetting: \.gpgAgentFilters, to: GpgAgentFiltersSnapshot.companion.empty)
-    }
-
-    func invokeGpgAgentFilter(id: String) { core.invokeGpgAgentFilter(id: id) }
-    func saveGpgAgentFilters() { core.saveGpgAgentFilters() }
-    func resetGpgAgentFilters() { core.resetGpgAgentFilters() }
 
     func resolveGpgAgentRequest(id: String, approved: Bool) {
         core.resolveGpgAgentRequest(id: id, approved: approved)
@@ -102,11 +71,9 @@ final class GpgAgentModel: SnapshotObserving {
 
     func startGpgAgentHistoryObservation() {
         historyObservation.acquire {
-            startObservation(\.historySubscription, into: \.gpgAgentHistory, observe: core.observeGpgAgentHistory)
-            return BridgeObservation { [weak self] in
-                self?.stopObservation(
-                    \.historySubscription, resetting: \.gpgAgentHistory, to: GpgAgentHistorySnapshot.companion.empty)
-            }
+            sharedSnapshotObservation(
+                \.historySubscription, into: \.gpgAgentHistory, empty: GpgAgentHistorySnapshot.companion.empty,
+                observe: core.observeGpgAgentHistory)
         }
     }
 

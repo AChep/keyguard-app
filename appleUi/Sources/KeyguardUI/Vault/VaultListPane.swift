@@ -7,10 +7,6 @@ final class VaultSelectionModel {
     /// The list's multi-selection, synced with the native table / collection view.
     /// Only `.item` rows are selectable, so every id here is a cipher row.
     var selectedRowIds: Set<String> = []
-    /// macOS only: whether a single item is selected AND resolved to a detail
-    /// target. Drives the detail column; maintained by the list pane's sync.
-    var detailShown = false
-
     var revealRowId: String?
     var revealToken = 0
 
@@ -55,7 +51,6 @@ struct VaultListPane: View {
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(AccountsModel.self) private var accountsModel
-    @Environment(CipherDetailModel.self) private var cipherDetailModel
     #if os(iOS)
     @Environment(\.editMode) private var editMode
     #endif
@@ -79,12 +74,6 @@ struct VaultListPane: View {
         for id in newValue.symmetricDifference(selection.lastSelectedRowIds) {
             model.toggleSelection(rowId: id)
         }
-        #if os(macOS)
-        // Only a `.select` surface (the main list) drives the inline detail column.
-        if config.rowTap == .select {
-            updateDetailObservation(newValue)
-        }
-        #endif
     }
 
     // MARK: - macOS
@@ -109,21 +98,6 @@ struct VaultListPane: View {
         }
     }
 
-    private func updateDetailObservation(_ selected: Set<String>) {
-        // Only `.item` rows are selectable, so one selected id is the detail gate.
-        selection.detailShown = selected.count == 1
-        if selected.count == 1,
-            let id = selected.first,
-            let row = model.store.box(for: id).row,
-            let secretId = row.secretId,
-            let accountId = row.accountId
-        {
-            model.setOpenedRow(rowId: id)
-            cipherDetailModel.setDetailTarget(itemId: secretId, accountId: accountId)
-        } else {
-            cipherDetailModel.setDetailTarget(itemId: nil, accountId: nil)
-        }
-    }
     #endif
 
     // MARK: - iOS
@@ -144,20 +118,6 @@ struct VaultListPane: View {
     }
     #endif
 }
-
-#if os(macOS)
-struct VaultDetailPane: View {
-    let selection: VaultSelectionModel
-
-    var body: some View {
-        if selection.detailShown {
-            CipherDetailView()
-        } else {
-            ListNoSelectionView(kind: .vault)
-        }
-    }
-}
-#endif
 
 private struct VaultSelectionEchoWatcher: View {
     let model: VaultListSessionModel

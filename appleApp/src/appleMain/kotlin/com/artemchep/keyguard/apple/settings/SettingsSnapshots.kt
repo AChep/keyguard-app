@@ -141,16 +141,11 @@ data class AppPreferencesSnapshot(
     }
 }
 
-/**
- * Unprefixed fields are the saved config; `setup…` fields are the form's in-memory editing buffer.
- * [storeKind] / [setupStoreKind] are "local" or "webdav".
- */
+/** Saved backup configuration and run status, shared by settings presentations. */
 data class BackupSettingsSnapshot(
     val loaded: Boolean = false,
     val initializationFailed: Boolean = false,
     val enabled: Boolean = false,
-    val isTestingLocation: Boolean = false,
-    val setupError: String? = null,
     val storeKind: String = "local",
     val localPath: String? = null,
     val webDavUrl: String? = null,
@@ -158,15 +153,6 @@ data class BackupSettingsSnapshot(
     val hasPassword: Boolean = false,
     val includeAttachments: Boolean = true,
     val retentionMaxSnapshots: Int = 30,
-    val setupStoreKind: String = "local",
-    val setupLocalPath: String? = null,
-    val setupWebDavUrl: String? = null,
-    val setupWebDavUsername: String? = null,
-    val setupHasWebDavPassword: Boolean = false,
-    val setupHasPassword: Boolean = false,
-    val setupIncludeAttachments: Boolean = true,
-    val setupRetentionMaxSnapshots: Int = 30,
-    val setupSaveRevision: Long = 0,
     val lastSuccessfulBackupAtMs: Long? = null,
     val lastErrorMessage: String? = null,
     val isDirty: Boolean = false,

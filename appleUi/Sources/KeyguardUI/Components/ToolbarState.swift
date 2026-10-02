@@ -14,14 +14,6 @@ struct FilterToolbarState: Equatable {
         activeFilterCount: 0
     )
 
-    init(snapshot: SendListSnapshot) {
-        self.init(
-            filters: snapshot.filters,
-            canClearFilters: snapshot.canClearFilters,
-            activeFilterCount: Int(snapshot.activeFilterCount)
-        )
-    }
-
     init(snapshot: WatchtowerSnapshot) {
         self.init(
             filters: snapshot.filters,
@@ -47,42 +39,6 @@ struct FilterToolbarState: Equatable {
 
     static func == (lhs: FilterToolbarState, rhs: FilterToolbarState) -> Bool {
         lhs.fingerprint == rhs.fingerprint
-    }
-}
-
-struct SendSortToolbarState: Equatable {
-    let sort: [VaultSortItemSnapshot]
-    let canClearSort: Bool
-    private let fingerprint: [String]
-
-    @MainActor static let empty = SendSortToolbarState(sort: [], canClearSort: false)
-
-    init(snapshot: SendListSnapshot) {
-        self.init(sort: snapshot.sort, canClearSort: snapshot.canClearSort)
-    }
-
-    private init(sort: [VaultSortItemSnapshot], canClearSort: Bool) {
-        self.sort = sort
-        self.canClearSort = canClearSort
-        self.fingerprint = ["clear:\(canClearSort)"] + sort.map(sortFingerprint)
-    }
-
-    static func == (lhs: SendSortToolbarState, rhs: SendSortToolbarState) -> Bool {
-        lhs.fingerprint == rhs.fingerprint
-    }
-}
-
-struct SendCreateToolbarState: Equatable {
-    let needsAccount: Bool
-
-    static let empty = SendCreateToolbarState(needsAccount: false)
-
-    init(snapshot: SendListSnapshot) {
-        needsAccount = snapshot.needsAccount
-    }
-
-    private init(needsAccount: Bool) {
-        self.needsAccount = needsAccount
     }
 }
 
@@ -154,15 +110,6 @@ private func filterFingerprint(_ item: VaultFilterItemSnapshot) -> String {
         String(describing: item.kind),
         "\(item.checked)",
         "\(item.enabled)",
-    ].joined(separator: "|")
-}
-
-private func sortFingerprint(_ item: VaultSortItemSnapshot) -> String {
-    [
-        item.id,
-        item.title,
-        String(describing: item.kind),
-        "\(item.checked)",
     ].joined(separator: "|")
 }
 

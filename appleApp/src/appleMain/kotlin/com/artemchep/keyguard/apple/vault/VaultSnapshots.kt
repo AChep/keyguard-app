@@ -25,7 +25,7 @@ data class VaultDetailSnapshot(
     /** Initials to render when [iconUrl] is `null` / fails to load. */
     val iconPlaceholder: String? = null,
     /**
-     * `null` when the cipher is read-only. Routes back via [KeyguardCore.invokeVaultAction]
+     * `null` when the cipher is read-only. Routes back via [CipherDetailSession.invokeAction]
      * (or the entry action for a stacked detail).
      */
     val editActionId: String? = null,
@@ -57,7 +57,7 @@ data class VaultDetailTotpSnapshot(
     val states: Map<String, TotpFieldSnapshot>,
 )
 
-/** [title] is localized in shared Kotlin; [key] is the [CallsTabs.key] to pass back to [KeyguardCore.setRecentsTab]. */
+/** [title] is localized in shared Kotlin; [key] is the [CallsTabs.key] to pass back to [RecentsSession.setTab]. */
 data class RecentsTabSnapshot(
     val key: String,
     val title: String,

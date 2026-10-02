@@ -4,7 +4,7 @@ import KeyguardShared
 struct GpgToolsView: View {
     @Environment(GpgToolsModel.self) private var gpgToolsModel
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @State private var operation = "encrypt"
+    @Binding var operation: String
     @State private var keySelection: KeySelection?
 
     private enum KeySelection: String, Identifiable {

@@ -7,24 +7,29 @@ import KeyguardShared
 final class AutofillGeneratorModel: SnapshotObserving {
     typealias Observer = (Bool, Bool, [String], @escaping (GeneratorSnapshot) -> Void) -> BridgeObservation
 
-    private let coreProvider: () -> KeyguardCore
-    private var core: KeyguardCore { coreProvider() }
+    let actions: GeneratorActions
     private let observeGenerator: Observer
 
-    convenience init(core: KeyguardCore) {
+    convenience init(session: AddFormSession) {
         self.init(
-            coreProvider: { core },
+            actions: GeneratorActions(
+                invoke: { session.invokeAutofillGeneratorAction(id: $0) },
+                setSwitch: { session.setAutofillGeneratorSwitch(key: $0, value: $1) },
+                setCounter: { session.setAutofillGeneratorCounter(key: $0, value: $1) },
+                setText: { session.setAutofillGeneratorText(key: $0, text: $1) },
+                setLength: { session.setAutofillGeneratorLength(value: $0) }
+            ),
             observeGenerator: {
-                BridgeObservation(core.observeAutofillGenerator(username: $0, password: $1, uris: $2, onChange: $3))
+                BridgeObservation(session.observeAutofillGenerator(username: $0, password: $1, uris: $2, onChange: $3))
             }
         )
     }
 
     init(
-        coreProvider: @escaping () -> KeyguardCore,
+        actions: GeneratorActions,
         observeGenerator: @escaping Observer
     ) {
-        self.coreProvider = coreProvider
+        self.actions = actions
         self.observeGenerator = observeGenerator
     }
 
@@ -44,23 +49,4 @@ final class AutofillGeneratorModel: SnapshotObserving {
             \.autofillGeneratorSubscription, resetting: \.autofillGenerator, to: GeneratorSnapshot.companion.empty)
     }
 
-    func invokeAutofillGeneratorAction(id: String) {
-        core.invokeAutofillGeneratorAction(id: id)
-    }
-
-    func setAutofillGeneratorSwitch(key: String, value: Bool) {
-        core.setAutofillGeneratorSwitch(key: key, value: value)
-    }
-
-    func setAutofillGeneratorText(key: String, text: String) {
-        core.setAutofillGeneratorText(key: key, text: text)
-    }
-
-    func setAutofillGeneratorCounter(key: String, value: Int32) {
-        core.setAutofillGeneratorCounter(key: key, value: value)
-    }
-
-    func setAutofillGeneratorLength(_ value: Int32) {
-        core.setAutofillGeneratorLength(value: value)
-    }
 }

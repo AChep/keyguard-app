@@ -5,7 +5,7 @@ import KeyguardShared
 /// List model for the Recents sheet using the shared vault-list renderers.
 @MainActor
 @Observable
-final class RecentsListModel: VaultRowListModel {
+final class RecentsListModel: VaultRowListModel, SnapshotObserving {
     let store = VaultRowStore()
 
     private(set) var totpStates: [String: TotpFieldSnapshot] = [:]
@@ -18,15 +18,15 @@ final class RecentsListModel: VaultRowListModel {
     /// shows a spinner until then, then either the list or the empty state.
     private(set) var loaded = false
 
-    @ObservationIgnored private let core: KeyguardCore
+    @ObservationIgnored private let makeSession: () -> any RecentsSessionSource
     /// Copies a field ("password" / "username" / "otp") of a cipher.
     @ObservationIgnored private let onCopy: (_ secretId: String, _ accountId: String, _ field: String) -> Void
     /// Reveals a cipher in the vault list and dismisses the sheet.
     @ObservationIgnored private let onReveal: (_ secretId: String) -> Void
 
     @ObservationIgnored private lazy var pump = VaultDeltaPump(store: store)
-    @ObservationIgnored private var subscriptions: [KeyguardCancellable] = []
-    @ObservationIgnored private var started = false
+    @ObservationIgnored private var session: (any RecentsSessionSource)?
+    @ObservationIgnored private var subscription: BridgeObservation?
 
     private enum RowAction {
         static let copyPassword = "recents.copyPassword"
@@ -35,12 +35,20 @@ final class RecentsListModel: VaultRowListModel {
         static let reveal = "recents.reveal"
     }
 
-    init(
+    convenience init(
         core: KeyguardCore,
         onCopy: @escaping (_ secretId: String, _ accountId: String, _ field: String) -> Void,
         onReveal: @escaping (_ secretId: String) -> Void
     ) {
-        self.core = core
+        self.init(makeSession: { core.makeRecentsSession() }, onCopy: onCopy, onReveal: onReveal)
+    }
+
+    init(
+        makeSession: @escaping () -> any RecentsSessionSource,
+        onCopy: @escaping (_ secretId: String, _ accountId: String, _ field: String) -> Void,
+        onReveal: @escaping (_ secretId: String) -> Void
+    ) {
+        self.makeSession = makeSession
         self.onCopy = onCopy
         self.onReveal = onReveal
     }
@@ -49,45 +57,33 @@ final class RecentsListModel: VaultRowListModel {
 
     /// Call on appear; balance with `stop()` on disappear. No-op while already started.
     func start() {
-        guard !started else { return }
-        started = true
-
+        guard subscription == nil else { return }
+        let session = makeSession()
+        self.session = session
         let continuation = pump.start()
-
-        // THE LIST. Background-delivered BY DESIGN (like the main list): convert
-        // off-main, then one ordered hop to Main via the pump. Do not touch any
-        // observable state directly here.
-        subscriptions.append(
-            core.observeRecentsListDelta { bridged in
-                assert(
-                    !Thread.isMainThread,
-                    "observeRecentsListDelta must deliver off-main by design; converting on Main defeats the contract"
-                )
-                continuation.yield(VaultDelta(bridged: bridged))
-            })
-
-        // THE SMALL CHANNELS. Main-delivered; assign directly under
-        // `assumeIsolated` (it traps if a callback ever arrives off-main).
-        subscriptions.append(
-            core.observeRecentsTotp { [weak self] states in
-                MainActor.assumeIsolated { self?.totpStates = states }
-            })
-        subscriptions.append(
-            core.observeRecentsTabs { [weak self] snapshot in
-                MainActor.assumeIsolated {
-                    guard let self else { return }
-                    self.loaded = snapshot.loaded
-                    self.tabs = snapshot.tabs
-                    self.selectedTabKey = snapshot.selectedTabKey
-                }
-            })
+        startObservation(\.subscription) { deliver in
+            let observation = session.subscribe(
+                onListDelta: { continuation.yield($0) },
+                onTabs: { snapshot in
+                    deliver {
+                        $0.loaded = snapshot.loaded
+                        $0.tabs = snapshot.tabs
+                        $0.selectedTabKey = snapshot.selectedTabKey
+                    }
+                },
+                onTotp: { states in deliver { $0.totpStates = states } }
+            )
+            return BridgeObservation {
+                continuation.finish()
+                observation.cancel()
+            }
+        }
     }
 
     func stop() {
-        subscriptions.forEach { $0.cancel() }
-        subscriptions = []
+        stopObservation(\.subscription)
+        session = nil
         pump.stop()
-        started = false
         totpStates = [:]
         tabs = []
         selectedTabKey = ""
@@ -97,7 +93,7 @@ final class RecentsListModel: VaultRowListModel {
     /// Selects a Recents tab by its `RecentsTabSnapshot.key`. The shared producer
     /// persists the choice and re-emits the matching items.
     func setTab(key: String) {
-        core.setRecentsTab(key: key)
+        session?.setTab(key: key)
     }
 
     // MARK: - VaultRowListModel commands
@@ -132,7 +128,8 @@ final class RecentsListModel: VaultRowListModel {
 
     /// Synthesized Swift-side: Recents actions are not Kotlin descriptors.
     func rowActions(rowId: String) async -> [VaultAction] {
-        [
+        guard subscription != nil, loaded else { return [] }
+        return [
             VaultAction(id: RowAction.copyPassword, title: L10n.copyPassword, symbol: "key", isCopy: true),
             VaultAction(id: RowAction.copyUsername, title: L10n.copyUsername, symbol: "person", isCopy: true),
             VaultAction(id: RowAction.copyOtp, title: L10n.copyOtpCode, symbol: "clock", isCopy: true),
@@ -145,7 +142,7 @@ final class RecentsListModel: VaultRowListModel {
 
     /// A row with no content box (or a non-cipher row) is a silent no-op.
     private func copy(rowId: String, field: String) {
-        guard let row = store.box(for: rowId).row,
+        guard subscription != nil, loaded, let row = store.boxes[rowId]?.row,
             let secretId = row.secretId,
             let accountId = row.accountId
         else { return }
@@ -153,7 +150,7 @@ final class RecentsListModel: VaultRowListModel {
     }
 
     private func reveal(rowId: String) {
-        guard let secretId = store.box(for: rowId).row?.secretId else { return }
+        guard subscription != nil, loaded, let secretId = store.boxes[rowId]?.row?.secretId else { return }
         onReveal(secretId)
     }
 }

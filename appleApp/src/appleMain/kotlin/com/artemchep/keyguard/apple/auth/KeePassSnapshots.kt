@@ -25,7 +25,7 @@ data class KeePassFileSnapshot(
 
 /**
  * Selecting a mode tab launches the shared producer's file picker (open / create database), surfaced through
- * [KeyguardCore.setKeePassFilePickerRequestHandler], so there is no separate "browse" affordance for the first
+ * [KeePassLoginSession.setKeePassFilePickerRequestHandler], so there is no separate "browse" affordance for the first
  * selection.
  */
 data class KeePassLoginSnapshot(
@@ -59,7 +59,7 @@ data class KeePassLoginSnapshot(
 /**
  * Unlike [com.artemchep.keyguard.apple.add.AddFilePickerRequest] the resolution MUST keep a persistent reference
  * to the picked file: resolve with the ORIGINAL url plus a security-scoped bookmark access token via
- * [KeyguardCore.resolveKeePassFilePicker], never with a temp copy, since the database is synced and written back
+ * [KeePassLoginSession.resolveKeePassFilePicker], never with a temp copy, since the database is synced and written back
  * for the lifetime of the account.
  */
 data class KeePassFilePickerRequest(
@@ -74,6 +74,7 @@ data class KeePassFilePickerRequest(
  * "InvalidUrl" / "FileUrlRequired" / "PasswordRequiresUsername"), or null.
  */
 data class WebDavSettingsSnapshot(
+    val id: String,
     val url: String,
     val username: String,
     val password: String,

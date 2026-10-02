@@ -32,6 +32,7 @@ pure producers to the existing screen lifecycle, persisted fields, navigation, a
 Apply `keyguard.compose-free` to enforce this boundary.
 
 Utility modules each implement a library we wish existed; the modules are independent and granular.
+The exception is `util/ffi/`, the shared native-bridge leaf.
 
 Integration modules implement projects that are useful for testing Keyguard. For example,
 it's a good idea to put a test implementation of Android Credential provider app that we

@@ -29,7 +29,9 @@ kotlin {
             }
         }
 
-        sharedJvmMain()
+        sharedJvmMain().dependencies {
+            implementation(project(":util:ffi"))
+        }
         sharedAppleMain()
         sharedIosTest()
 

@@ -66,6 +66,25 @@ class NativeChangeClassificationTest(unittest.TestCase):
         self.assertFalse(result["android"])
         self.assertTrue(classify(["util/fido2/src/commonMain/kotlin/Fido2Operation.kt"])["android"])
 
+    def test_ffi_selects_every_native_bridge_consumer(self):
+        consumers = ("io", "instance", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
+        for path in (
+            "util/ffi/rust/crates/keyguard-ffi/src/operation.rs",
+            "util/ffi/src/jvmMain/kotlin/com/artemchep/keyguard/util/ffi/JniLibrary.kt",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                for flag in consumers:
+                    self.assertTrue(result[flag], flag)
+                self.assertFalse(result["crypto"])
+                self.assertIn("windows", [host["platform"] for host in result["desktop_matrix"]["include"]])
+        self.assertTrue(classify(["util/ffi/rust/crates/keyguard-ffi/src/lib.rs"])["native_quality"])
+
+        result = classify(["util/ffi/rust/crates/keyguard-ffi/tests/redacting_hook.rs"])
+        self.assertTrue(result["native_quality"])
+        for flag in consumers:
+            self.assertFalse(result[flag], flag)
+
     def test_fuzz_only_edit_does_not_rebuild_apps(self):
         result = classify(["util/crypto/rust/fuzz/fuzz_targets/dispatch.rs"])
         self.assertTrue(result["fuzz"])
@@ -78,6 +97,7 @@ class NativeChangeClassificationTest(unittest.TestCase):
             "util/zxcvbn/rust/Cargo.lock": (True, True, True),
             "util/zip/rust/Cargo.toml": (False, False, True),
             "util/instance/rust/Cargo.lock": (True, False, False),
+            "util/ffi/rust/Cargo.toml": (True, True, True),
         }
         for path, expected in cases.items():
             with self.subTest(path=path):

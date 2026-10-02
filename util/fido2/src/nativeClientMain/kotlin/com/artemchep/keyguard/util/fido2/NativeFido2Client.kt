@@ -1,10 +1,6 @@
 package com.artemchep.keyguard.util.fido2
 
-import kotlin.coroutines.resumeWithException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
+import com.artemchep.keyguard.util.ffi.runNativeOperation
 
 /** Native USB client for desktop; device handles exist only during an operation. */
 class NativeFido2Client {
@@ -15,35 +11,15 @@ class NativeFido2Client {
      * Returns a credential ID for registration, or a 32-byte PRF result for derivation. The caller
      * owns the result and must clear secret bytes after use.
      */
-    @Suppress("TooGenericExceptionCaught") // Finish the caller on every native bridge failure.
     suspend fun execute(operation: Fido2Operation, pin: String?): ByteArray {
         if (!isSupported) throw Fido2Exception(Fido2Failure.UNSUPPORTED)
-        var produced: ByteArray? = null
-        return try {
-            withContext(Dispatchers.IO) {
-                suspendCancellableCoroutine { continuation ->
-                    val handle = NativeFido2.create()
-                    if (handle == 0L) {
-                        continuation.resumeWithException(Fido2Exception(Fido2Failure.BUSY))
-                        return@suspendCancellableCoroutine
-                    }
-                    continuation.invokeOnCancellation { NativeFido2.cancel(handle) }
-                    try {
-                        val result = executeAndDecode(handle, operation, pin)
-                        produced = result
-                        continuation.resume(result) { _, value, _ -> value.fill(0) }
-                    } catch (error: Exception) {
-                        continuation.resumeWithException(error)
-                    } finally {
-                        NativeFido2.close(handle)
-                    }
-                }
-            }
-        } catch (error: Exception) {
-            // withContext can discard a completed result while dispatching back to the caller.
-            produced?.fill(0)
-            throw error
-        }
+        return runNativeOperation(
+            create = NativeFido2::create,
+            cancel = NativeFido2::cancel,
+            close = NativeFido2::close,
+            busy = { Fido2Exception(Fido2Failure.BUSY) },
+            clear = { result -> result.fill(0) },
+        ) { handle -> executeAndDecode(handle, operation, pin) }
     }
 }
 

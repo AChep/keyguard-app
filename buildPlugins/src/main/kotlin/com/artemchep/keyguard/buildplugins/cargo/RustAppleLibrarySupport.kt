@@ -3,6 +3,7 @@ package com.artemchep.keyguard.buildplugins.cargo
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.getByType
@@ -55,6 +56,13 @@ internal fun Project.cargoOfflineProvider(moduleTaskName: String): Provider<Bool
         .orElse(providers.gradleProperty("keyguard.nativeCrypto.cargoOffline"))
         .map(String::toBooleanStrict)
         .orElse(false)
+
+/**
+ * The `keyguard-ffi` crate in `util/ffi/rust`, which every Rust utility library may use by path.
+ */
+fun Project.sharedFfiRustSources(): FileTree = rootProject.fileTree("util/ffi/rust") {
+    exclude("target/**", "**/target/**")
+}
 
 /**
  * Registers the Cargo build tasks that produce the static libraries for the Apple targets.

@@ -9,6 +9,7 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+keyguard-ffi.workspace = true
 self_cell.workspace = true
 zeroize.workspace = true
 zip.workspace = true

@@ -6,77 +6,25 @@
 
 #![deny(unsafe_op_in_unsafe_fn)]
 
-use std::{panic::AssertUnwindSafe, slice, str};
+use keyguard_ffi::{
+    PanicHook, bytes_from_raw, bytes_from_raw_mut, flatten as unwrap, string_from_raw,
+};
+use keyguard_zip_core::{MAX_PATH_BYTES, pack_bridge_internal, pack_bridge_invalid_argument};
 
-use keyguard_zip_core::{
-    MAX_PATH_BYTES, pack_bridge_internal, pack_bridge_invalid_argument, pack_bridge_panic,
+/// Tests keep the default hook so a caught assertion still prints.
+const PANIC_HOOK: PanicHook = if cfg!(test) {
+    PanicHook::Keep
+} else {
+    PanicHook::Redact
 };
 
-/// Runs `body` behind the panic boundary every entry point shares.
-///
-/// The hook is installed *inside* the boundary: `set_hook` panics on a
-/// panicking thread and poisons the `Once`, and outside the boundary that
-/// would escape the `extern "C"` frame and abort the process.
 fn contained<R>(body: impl FnOnce() -> R) -> Result<R, i64> {
-    std::panic::catch_unwind(AssertUnwindSafe(|| {
-        // Tests keep the default hook so a caught assertion still prints.
-        #[cfg(not(test))]
-        keyguard_zip_core::install_redacting_panic_hook();
-        body()
-    }))
-    .map_err(|_| pack_bridge_panic())
+    keyguard_ffi::contained(PANIC_HOOK, body)
 }
 
 /// Returned by `keyguard_zip_reader_next_entry` past the last entry. The
 /// failure layout keeps its reserved bits clear, so `-1` is never a failure.
 const END_OF_ARCHIVE: i64 = -1;
-
-fn unwrap(result: Result<Result<i64, i64>, i64>) -> i64 {
-    match result.and_then(std::convert::identity) {
-        Ok(value) | Err(value) => value,
-    }
-}
-
-/// # Safety
-///
-/// A non-null `pointer` must be valid for `length` readable bytes for the
-/// duration of the call.
-unsafe fn bytes_from_raw<'a>(pointer: *const u8, length: usize) -> Result<&'a [u8], i64> {
-    if length == 0 {
-        return Ok(&[]);
-    }
-    if pointer.is_null() || length > isize::MAX as usize {
-        return Err(pack_bridge_invalid_argument());
-    }
-    // SAFETY: Null and oversized inputs were rejected; the caller contract
-    // guarantees `length` readable bytes.
-    Ok(unsafe { slice::from_raw_parts(pointer, length) })
-}
-
-/// # Safety
-///
-/// A non-null `pointer` must be valid for `length` writable, unaliased bytes
-/// for the duration of the call.
-unsafe fn bytes_from_raw_mut<'a>(pointer: *mut u8, length: usize) -> Result<&'a mut [u8], i64> {
-    if length == 0 {
-        return Ok(&mut []);
-    }
-    if pointer.is_null() || length > isize::MAX as usize {
-        return Err(pack_bridge_invalid_argument());
-    }
-    // SAFETY: Null and oversized inputs were rejected; the caller contract
-    // guarantees `length` writable, unaliased bytes.
-    Ok(unsafe { slice::from_raw_parts_mut(pointer, length) })
-}
-
-/// # Safety
-///
-/// As [`bytes_from_raw`].
-unsafe fn string_from_raw<'a>(pointer: *const u8, length: usize) -> Result<&'a str, i64> {
-    // SAFETY: Forwarded from this function's own contract.
-    let bytes = unsafe { bytes_from_raw(pointer, length) }?;
-    str::from_utf8(bytes).map_err(|_| pack_bridge_invalid_argument())
-}
 
 /// # Safety
 ///
@@ -300,6 +248,7 @@ mod tests {
 
     use keyguard_zip_core::{
         BridgeError, MAX_ENTRY_NAME_BYTES, pack_bridge_error, pack_bridge_invalid_handle,
+        pack_bridge_panic,
     };
     use zip::{CompressionMethod, ZipArchive};
 

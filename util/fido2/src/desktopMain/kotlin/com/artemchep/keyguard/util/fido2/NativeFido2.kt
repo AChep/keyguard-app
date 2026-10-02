@@ -1,15 +1,27 @@
 package com.artemchep.keyguard.util.fido2
 
+import com.artemchep.keyguard.util.ffi.JniLibrary
 import java.io.File
 
 internal actual object NativeFido2 {
+    private val library = JniLibrary(
+        name = "keyguard_fido2_jni",
+        pathProperty = "keyguard.nativeFido2.libraryPath",
+        unavailable = { cause -> Fido2Exception(Fido2Failure.UNSUPPORTED, cause) },
+        verify = {
+            if (NativeFido2Jni.abiVersion() != FIDO2_ABI_VERSION) {
+                throw Fido2Exception(Fido2Failure.PROTOCOL)
+            }
+        },
+    )
+
     // The shipped Flatpak sandbox does not expose /dev/hidraw.
     // Mirrors the Flatpak detection in common's LePlatform.kt; keep all copies listed there in sync.
     actual val isSupported: Boolean =
         System.getenv("container") != "flatpak" && !File("/.flatpak-info").exists()
 
     actual fun create(): Long {
-        NativeFido2LibraryLoader.ensureLoaded()
+        library.ensureLoaded()
         return NativeFido2Jni.create()
     }
 

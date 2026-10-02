@@ -7,8 +7,8 @@ license-file.workspace = true
 [lib]
 crate-type = ["cdylib"]
 [dependencies]
+keyguard-ffi = { workspace = true, features = ["jni"] }
 keyguard-fido2-core.workspace = true
-zeroize.workspace = true
 jni.workspace = true
 [lints]
 workspace = true

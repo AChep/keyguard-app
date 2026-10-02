@@ -15,6 +15,7 @@ repository = "https://github.com/AChep/keyguard-app"
 
 [workspace.dependencies]
 jni = { version = "=0.21.1", default-features = false }
+keyguard-ffi = { path = "../../ffi/rust/crates/keyguard-ffi" }
 zeroize = "=1.9.0"
 zxcvbn = { version = "=3.1.1", default-features = false }
 

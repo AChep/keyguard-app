@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.util.instance
 
+import com.artemchep.keyguard.util.ffi.JniLibrary
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -171,6 +172,7 @@ class InstanceCoordinatorTest {
         val classpath = listOf(
             InstanceProcessFixture::class.java,
             InstanceCoordinator::class.java,
+            JniLibrary::class.java,
             Unit::class.java,
         ).map { Paths.get(it.protectionDomain.codeSource.location.toURI()).toString() }
             .distinct()

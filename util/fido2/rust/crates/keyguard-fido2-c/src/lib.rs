@@ -1,6 +1,13 @@
 //! Bounded C ABI. Pointers are borrowed only for the duration of execute.
+use keyguard_ffi::{PanicHook, contained, execute_into};
 use keyguard_fido2_core as core;
-use std::panic::{AssertUnwindSafe, catch_unwind};
+
+/// Unit tests keep Rust's default hook so a caught assertion still reports its payload.
+const PANIC_HOOK: PanicHook = if cfg!(test) {
+    PanicHook::Keep
+} else {
+    PanicHook::Redact
+};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn keyguard_fido2_abi_version() -> u32 {
@@ -8,15 +15,15 @@ pub extern "C" fn keyguard_fido2_abi_version() -> u32 {
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn keyguard_fido2_create() -> u64 {
-    catch_unwind(core::create).unwrap_or(0)
+    contained(PANIC_HOOK, core::create).unwrap_or(0)
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn keyguard_fido2_cancel(id: u64) {
-    let _ = catch_unwind(|| core::cancel(id));
+    let _ = contained(PANIC_HOOK, || core::cancel(id));
 }
 #[unsafe(no_mangle)]
 pub extern "C" fn keyguard_fido2_close(id: u64) {
-    let _ = catch_unwind(|| core::close(id));
+    let _ = contained(PANIC_HOOK, || core::close(id));
 }
 
 /// Executes a request and copies its result into the caller's buffer.
@@ -32,24 +39,18 @@ pub unsafe extern "C" fn keyguard_fido2_execute(
     output: *mut u8,
     capacity: usize,
 ) -> usize {
-    if input.is_null()
-        || output.is_null()
-        || !(core::HEADER_LENGTH..=core::MAX_REQUEST).contains(&length)
-        || capacity < core::MAX_RESPONSE
-    {
-        return 0;
-    }
-    let result = catch_unwind(AssertUnwindSafe(|| {
-        // SAFETY: The caller guarantees readable bytes; null and oversized buffers were rejected.
-        core::execute(id, unsafe { std::slice::from_raw_parts(input, length) })
-    }))
-    .unwrap_or_else(|_| vec![core::Error::Internal as u8]);
-    let result = zeroize::Zeroizing::new(result);
-    // SAFETY: The output has at least MAX_RESPONSE writable bytes and is disjoint from result.
+    // SAFETY: Forwarded from this function's own contract.
     unsafe {
-        std::ptr::copy_nonoverlapping(result.as_ptr(), output, result.len());
+        execute_into::<core::Error>(
+            PANIC_HOOK,
+            core::LIMITS,
+            input,
+            length,
+            output,
+            capacity,
+            |request| core::execute(id, request),
+        )
     }
-    result.len()
 }
 
 #[cfg(test)]

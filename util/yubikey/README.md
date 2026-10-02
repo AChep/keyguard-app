@@ -1,6 +1,6 @@
 # YubiKey device operations
 
-This independent, Compose-free Kotlin Multiplatform library owns OTP discovery,
+This Compose-free Kotlin Multiplatform library owns OTP discovery,
 OTP capture on Android, slot inspection, HMAC-SHA1 challenge-response, and slot
 provisioning. Vault encryption, persisted protectors, enrollment confirmation,
 localization, and screen lifecycle remain in the application.

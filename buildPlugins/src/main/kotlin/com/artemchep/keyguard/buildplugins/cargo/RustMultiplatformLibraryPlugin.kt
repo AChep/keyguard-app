@@ -29,6 +29,7 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
         pluginManager.apply("keyguard.cargo-common")
 
         val extension = extensions.create<RustMultiplatformLibraryExtension>("keyguardRust", project)
+        extension.extraSourceInputs.from(sharedFfiRustSources())
         val naming = RustModuleNaming(this)
         val moduleName = naming.moduleName
         val moduleTaskName = naming.moduleTaskName

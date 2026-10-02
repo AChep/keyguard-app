@@ -15,7 +15,10 @@ kotlin {
         commonMain.dependencies { api(libs.kotlinx.coroutines.core) }
         sharedJvmMain()
         sharedAppleMain()
-        val nativeClientMain by creating { dependsOn(commonMain.get()) }
+        val nativeClientMain by creating {
+            dependsOn(commonMain.get())
+            dependencies { implementation(project(":util:ffi")) }
+        }
         getByName("desktopMain").dependsOn(nativeClientMain)
         getByName("appleMain").dependsOn(nativeClientMain)
         val nativeClientTest by creating { dependsOn(commonTest.get()) }

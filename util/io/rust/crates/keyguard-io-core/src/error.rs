@@ -2,72 +2,7 @@
 
 use std::io;
 
-/// Stable failure classification independent of [`io::ErrorKind`]'s
-/// implementation and discriminants.
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum FailureKind {
-    /// No failure applies to the outcome.
-    None = 0,
-    /// The operation was denied by filesystem permissions or access policy.
-    PermissionDenied = 1,
-    /// The destination filesystem is read-only.
-    ReadOnlyFilesystem = 2,
-    /// A required filesystem object was not found.
-    NotFound = 3,
-    /// A filesystem object unexpectedly already exists.
-    AlreadyExists = 4,
-    /// The filesystem has no remaining storage capacity.
-    StorageFull = 5,
-    /// The caller's storage quota has been exhausted.
-    QuotaExceeded = 6,
-    /// The filesystem object is currently busy.
-    ResourceBusy = 7,
-    /// An input to the operation was invalid.
-    InvalidInput = 8,
-    /// The operation was interrupted.
-    Interrupted = 9,
-    /// The requested atomic operation is unsupported.
-    Unsupported = 10,
-    /// The failure has no more specific stable classification.
-    Other = 11,
-    /// The native bridge failed internally.
-    Internal = 12,
-    /// The platform could not establish the caller's requested durability.
-    DurabilityUnavailable = 13,
-}
-
-impl FailureKind {
-    pub(crate) fn from_io_error_kind(kind: io::ErrorKind) -> Self {
-        match kind {
-            io::ErrorKind::PermissionDenied => Self::PermissionDenied,
-            io::ErrorKind::ReadOnlyFilesystem => Self::ReadOnlyFilesystem,
-            io::ErrorKind::NotFound => Self::NotFound,
-            io::ErrorKind::AlreadyExists => Self::AlreadyExists,
-            io::ErrorKind::StorageFull => Self::StorageFull,
-            io::ErrorKind::QuotaExceeded => Self::QuotaExceeded,
-            io::ErrorKind::ResourceBusy => Self::ResourceBusy,
-            io::ErrorKind::InvalidInput => Self::InvalidInput,
-            io::ErrorKind::Interrupted => Self::Interrupted,
-            io::ErrorKind::Unsupported => Self::Unsupported,
-            _ => Self::Other,
-        }
-    }
-}
-
-/// Stable namespace of a raw native error code.
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ErrorDomain {
-    /// No raw native error applies.
-    None = 0,
-    /// The raw code is a POSIX `errno`.
-    PosixErrno = 1,
-    /// The raw code was returned by Win32 `GetLastError`.
-    Win32LastError = 2,
-    /// The raw code is defined by the Keyguard bridge.
-    Bridge = 3,
-}
+pub use keyguard_ffi::{ErrorDomain, FailureKind};
 
 /// Protocol step that produced a failure.
 ///

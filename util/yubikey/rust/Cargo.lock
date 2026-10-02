@@ -124,11 +124,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyguard-ffi"
+version = "0.1.0"
+dependencies = [
+ "jni",
+ "zeroize",
+]
+
+[[package]]
 name = "keyguard-yubikey-c"
 version = "0.1.0"
 dependencies = [
+ "keyguard-ffi",
  "keyguard-yubikey-core",
- "zeroize",
 ]
 
 [[package]]
@@ -136,6 +144,7 @@ name = "keyguard-yubikey-core"
 version = "0.1.0"
 dependencies = [
  "hidapi",
+ "keyguard-ffi",
  "zeroize",
 ]
 
@@ -144,8 +153,8 @@ name = "keyguard-yubikey-jni"
 version = "0.1.0"
 dependencies = [
  "jni",
+ "keyguard-ffi",
  "keyguard-yubikey-core",
- "zeroize",
 ]
 
 [[package]]

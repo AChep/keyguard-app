@@ -6,6 +6,7 @@ rust-version.workspace = true
 license-file.workspace = true
 
 [dependencies]
+keyguard-ffi.workspace = true
 zeroize.workspace = true
 sha2 = "=0.10.9"
 

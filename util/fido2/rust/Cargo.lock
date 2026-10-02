@@ -391,11 +391,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyguard-ffi"
+version = "0.1.0"
+dependencies = [
+ "jni",
+ "zeroize",
+]
+
+[[package]]
 name = "keyguard-fido2-c"
 version = "0.1.0"
 dependencies = [
+ "keyguard-ffi",
  "keyguard-fido2-core",
- "zeroize",
 ]
 
 [[package]]
@@ -404,6 +412,7 @@ version = "0.1.0"
 dependencies = [
  "authenticator",
  "base64 0.22.1",
+ "keyguard-ffi",
  "sha2",
  "windows-sys 0.61.2",
  "zeroize",
@@ -414,8 +423,8 @@ name = "keyguard-fido2-jni"
 version = "0.1.0"
 dependencies = [
  "jni",
+ "keyguard-ffi",
  "keyguard-fido2-core",
- "zeroize",
 ]
 
 [[package]]

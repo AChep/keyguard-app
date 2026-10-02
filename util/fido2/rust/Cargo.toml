@@ -10,6 +10,7 @@ license-file = "../../../LICENSE"
 
 [workspace.dependencies]
 keyguard-fido2-core = { path = "crates/keyguard-fido2-core" }
+keyguard-ffi = { path = "../../ffi/rust/crates/keyguard-ffi" }
 jni = { version = "=0.21.1", default-features = false }
 zeroize = "=1.8.2"
 

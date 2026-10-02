@@ -29,12 +29,6 @@ use crate::{
     feedback::{WARNING_NONE, suggestion_bit, warning_code},
 };
 
-const FAILURE_MARKER: u64 = 1 << 63;
-const KIND_SHIFT: u32 = 8;
-const DOMAIN_SHIFT: u32 = 16;
-const RAW_CODE_SHIFT: u32 = 24;
-const OPERATION_MASK: u64 = 0xff;
-
 /// Version of [`ResultWire`].
 pub const RESULT_WIRE_VERSION: u32 = 1;
 
@@ -159,11 +153,7 @@ impl ResultWire {
 #[must_use]
 pub const fn pack_bridge_error(error: BridgeError) -> i64 {
     let (operation, kind, domain, raw_code) = error.wire_parts();
-    (FAILURE_MARKER
-        | (operation as u64 & OPERATION_MASK)
-        | ((kind as u64) << KIND_SHIFT)
-        | ((domain as u64) << DOMAIN_SHIFT)
-        | ((raw_code as u64) << RAW_CODE_SHIFT)) as i64
+    keyguard_ffi::pack_failure(operation as u8, kind, domain, raw_code)
 }
 
 /// Packs an invalid-argument failure for a native ABI boundary.
@@ -219,6 +209,12 @@ mod tests {
         assert_eq!(pack_bridge_panic(), golden::BRIDGE_PANIC);
         assert_eq!(pack_bridge_internal(), golden::BRIDGE_INTERNAL);
         assert_eq!(pack_bridge_input_too_long(), golden::BRIDGE_INPUT_TOO_LONG);
+        // The shared panic boundary and raw readers return these words.
+        assert_eq!(
+            pack_bridge_invalid_argument(),
+            keyguard_ffi::BRIDGE_INVALID_ARGUMENT
+        );
+        assert_eq!(pack_bridge_panic(), keyguard_ffi::BRIDGE_PANIC);
     }
 
     #[test]

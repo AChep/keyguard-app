@@ -1,0 +1,35 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/keyguard-ffi",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94.0"
+license-file = "../../../LICENSE"
+repository = "https://github.com/AChep/keyguard-app"
+
+# Requirements rather than pins: every consumer pins its own versions
+# (zeroize =1.9.0 in io/zip/zxcvbn, =1.8.2 in fido2/yubikey) and its own
+# Cargo.lock decides.
+[workspace.dependencies]
+jni = { version = "0.21.1", default-features = false }
+zeroize = "1.8.2"
+
+[workspace.lints.rust]
+missing_docs = "warn"
+unsafe_op_in_unsafe_fn = "deny"
+unused_lifetimes = "deny"
+unused_qualifications = "warn"
+
+[workspace.lints.clippy]
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "warn", priority = -1 }
+complexity = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
+undocumented_unsafe_blocks = "deny"
+
+# No [profile] section: a path dependency is built with its consumer's profile.

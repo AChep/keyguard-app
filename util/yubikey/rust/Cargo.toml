@@ -10,6 +10,7 @@ license-file = "../../../LICENSE"
 
 [workspace.dependencies]
 keyguard-yubikey-core = { path = "crates/keyguard-yubikey-core" }
+keyguard-ffi = { path = "../../ffi/rust/crates/keyguard-ffi" }
 jni = { version = "=0.21.1", default-features = false }
 zeroize = "=1.8.2"
 

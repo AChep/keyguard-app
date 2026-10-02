@@ -13,6 +13,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 jni.workspace = true
+keyguard-ffi = { workspace = true, features = ["jni"] }
 keyguard-zxcvbn-core = { path = "../keyguard-zxcvbn-core" }
 zeroize.workspace = true
 

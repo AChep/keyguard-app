@@ -9,14 +9,9 @@ mod ctap;
 #[cfg(target_os = "windows")]
 mod windows;
 
+use keyguard_ffi::{OperationLimits, OperationRegistry, OperationStatus, respond};
 use sha2::{Digest, Sha256};
-use std::collections::BTreeMap;
-use std::sync::{
-    Arc, Mutex,
-    atomic::{AtomicBool, AtomicU64, Ordering},
-};
 use std::time::Duration;
-use zeroize::Zeroizing;
 
 pub const ABI_VERSION: u32 = 1;
 pub(crate) const INPUT_LENGTH: usize = 32;
@@ -49,79 +44,57 @@ pub enum Error {
     Rejected = 12,
 }
 
-static NEXT_ID: AtomicU64 = AtomicU64::new(1);
-static OPERATIONS: Mutex<BTreeMap<u64, Arc<AtomicBool>>> = Mutex::new(BTreeMap::new());
-static DEVICE_LOCK: Mutex<()> = Mutex::new(());
+impl OperationStatus for Error {
+    const INVALID_ARGUMENT: Self = Self::InvalidArgument;
+    const CANCELED: Self = Self::Canceled;
+    const PROTOCOL: Self = Self::Protocol;
+    const BUSY: Self = Self::Busy;
+    const INTERNAL: Self = Self::Internal;
+
+    fn code(self) -> u8 {
+        self as u8
+    }
+}
+
+/// Request and response bounds of the C and JNI adapters.
+pub const LIMITS: OperationLimits = OperationLimits {
+    min_request: HEADER_LENGTH,
+    max_request: MAX_REQUEST,
+    max_response: MAX_RESPONSE,
+};
+
+static OPERATIONS: OperationRegistry = OperationRegistry::new();
 
 pub fn create() -> u64 {
-    let Ok(mut operations) = OPERATIONS.lock() else {
-        return 0;
-    };
-    if operations.len() >= 64 {
-        return 0;
-    }
-    let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
-    if id == 0 || id > i64::MAX as u64 {
-        return 0;
-    }
-    operations.insert(id, Arc::new(AtomicBool::new(false)));
-    id
+    OPERATIONS.create()
 }
 
 pub fn cancel(id: u64) {
-    if let Ok(operations) = OPERATIONS.lock()
-        && let Some(token) = operations.get(&id)
-    {
-        token.store(true, Ordering::Release);
-    }
+    OPERATIONS.cancel(id);
 }
 
 pub fn close(id: u64) {
-    if let Ok(mut operations) = OPERATIONS.lock()
-        && let Some(token) = operations.remove(&id)
-    {
-        token.store(true, Ordering::Release);
-    }
+    OPERATIONS.close(id);
 }
 
 pub fn execute(id: u64, bytes: &[u8]) -> Vec<u8> {
-    match run(id, bytes) {
-        Ok(body) => {
-            let body = Zeroizing::new(body);
-            if body.is_empty() || body.len() >= MAX_RESPONSE {
-                return vec![Error::Protocol as u8];
-            }
-            let mut result = vec![0];
-            result.extend_from_slice(&body);
-            result
-        }
-        Err(error) => vec![error as u8],
-    }
+    respond(run(id, bytes), MAX_RESPONSE)
 }
 
 fn run(id: u64, bytes: &[u8]) -> Result<Vec<u8>, Error> {
     let request = Request::parse(bytes)?;
-    let token = OPERATIONS
-        .lock()
-        .map_err(|_| Error::Internal)?
-        .get(&id)
-        .cloned()
-        .ok_or(Error::InvalidArgument)?;
-    if token.load(Ordering::Acquire) {
-        return Err(Error::Canceled);
-    }
-    let _guard = DEVICE_LOCK.try_lock().map_err(|_| Error::Busy)?;
+    let operation = OPERATIONS.begin::<Error>(id)?;
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
-        ctap::execute(&request, &token)
+        ctap::execute(&request, operation.canceled())
     }
     #[cfg(target_os = "windows")]
     {
-        windows::execute(&request, &token)
+        windows::execute(&request, operation.canceled())
     }
     #[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
     {
-        let _ = (request, token);
+        let _ = (request, operation);
         Err(Error::Unsupported)
     }
 }

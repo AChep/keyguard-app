@@ -7,7 +7,7 @@ license-file.workspace = true
 [lib]
 crate-type = ["staticlib"]
 [dependencies]
+keyguard-ffi.workspace = true
 keyguard-yubikey-core.workspace = true
-zeroize.workspace = true
 [lints]
 workspace = true

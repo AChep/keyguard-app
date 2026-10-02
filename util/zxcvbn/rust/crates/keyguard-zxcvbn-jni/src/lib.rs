@@ -5,91 +5,28 @@
 //! adapter. Panics never cross the boundary: they are contained and reported
 //! as a bridge failure with no password disclosure.
 
-use std::panic::AssertUnwindSafe;
-
 use jni::{
     JNIEnv,
     objects::{JLongArray, JObject, JObjectArray, JString},
     sys::{jint, jlong},
 };
+use keyguard_ffi::{PanicHook, flatten as unwrap, java_string};
 use keyguard_zxcvbn_core::{
-    MAX_USER_INPUTS, ResultWire, abi,
+    MAX_USER_INPUTS, ResultWire,
     abi::{pack_bridge_error, pack_bridge_invalid_argument},
 };
 use zeroize::Zeroizing;
 
-/// Runs `body` behind the panic boundary every entry point shares.
-///
-/// The hook is installed *inside* the boundary: `std::panic::set_hook`
-/// "panics if called from a panicking thread", and a panic inside
-/// `Once::call_once` poisons the `Once` so that every later call panics too.
-/// Installed outside the boundary, one such panic would escape the
-/// `extern "system"` frame and abort the process on every subsequent bridge
-/// call — permanently bricking the library rather than failing one estimate.
-fn contained<R>(body: impl FnOnce() -> R) -> Result<R, i64> {
-    std::panic::catch_unwind(AssertUnwindSafe(|| {
-        keyguard_zxcvbn_core::install_redacting_panic_hook();
-        body()
-    }))
-    .map_err(|_| abi::pack_bridge_panic())
-}
+/// Unit tests keep Rust's default hook so a caught assertion still reports
+/// its payload and source location in CI logs.
+const PANIC_HOOK: PanicHook = if cfg!(test) {
+    PanicHook::Keep
+} else {
+    PanicHook::Redact
+};
 
-/// Copies a `java.lang.String` into a zeroized owned string.
-///
-/// `GetStringRegion` is used rather than `GetStringUTFChars` so the copy is
-/// ours from the start: the JVM never hands back a buffer this bridge would
-/// have to release, and the intermediate UTF-16 buffer is wiped on drop
-/// because every string crossing this boundary may be a password.
-fn java_string(
-    environment: &mut JNIEnv<'_>,
-    value: &JString<'_>,
-) -> Result<Zeroizing<String>, i64> {
-    if value.is_null() {
-        return Err(pack_bridge_invalid_argument());
-    }
-    let raw_environment = environment.get_raw();
-    // SAFETY: `JNIEnv` owns a valid JNI function table for this native call.
-    let functions = unsafe { &**raw_environment };
-    let get_length = functions
-        .GetStringLength
-        .ok_or_else(pack_bridge_invalid_argument)?;
-    let get_region = functions
-        .GetStringRegion
-        .ok_or_else(pack_bridge_invalid_argument)?;
-    // SAFETY: Null was rejected and JNI export signatures guarantee that
-    // `value` is a live local java.lang.String reference.
-    let length = unsafe { get_length(raw_environment, value.as_raw()) };
-    let length = usize::try_from(length).map_err(|_| pack_bridge_invalid_argument())?;
-    let mut utf16 = Zeroizing::new(vec![0_u16; length]);
-    if length != 0 {
-        let length = i32::try_from(length).map_err(|_| pack_bridge_invalid_argument())?;
-        // SAFETY: The requested region is the string's exact UTF-16 extent and
-        // the output buffer has matching writable capacity.
-        unsafe {
-            get_region(
-                raw_environment,
-                value.as_raw(),
-                0,
-                length,
-                utf16.as_mut_ptr(),
-            );
-        }
-        if environment.exception_check().unwrap_or(true) {
-            // The JNI spec permits only a short list of functions while an
-            // exception is pending — "the native code must first clear the
-            // exception before making other JNI calls" — and
-            // `SetLongArrayRegion`, which the success path still needs, is not
-            // on it. Leaving the exception pending aborts the VM under
-            // `-Xcheck:jni`. The bridge reports stable packed codes rather
-            // than Java exceptions, so discarding it and returning
-            // invalid-argument is the intended contract.
-            let _ = environment.exception_clear();
-            return Err(pack_bridge_invalid_argument());
-        }
-    }
-    String::from_utf16(&utf16)
-        .map(Zeroizing::new)
-        .map_err(|_| pack_bridge_invalid_argument())
+fn contained<R>(body: impl FnOnce() -> R) -> Result<R, i64> {
+    keyguard_ffi::contained(PANIC_HOOK, body)
 }
 
 /// Copies a nullable `java.lang.String[]` into zeroized owned strings.
@@ -136,12 +73,6 @@ fn java_result_array(environment: &JNIEnv<'_>, out: &JLongArray<'_>) -> Result<(
     Ok(())
 }
 
-fn unwrap(result: Result<Result<i64, i64>, i64>) -> jlong {
-    match result.and_then(std::convert::identity) {
-        Ok(value) | Err(value) => value,
-    }
-}
-
 /// Returns the native function ABI version.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_zxcvbn_NativeZxcvbnJni_abiVersion(
@@ -168,7 +99,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_zxcvbn_NativeZxcvbnJni_e
         // caller that cannot receive it is wasted work on a hot path.
         java_result_array(&environment, &out)?;
         let user_inputs = java_string_array(&mut environment, &user_inputs)?;
-        let password = java_string(&mut environment, &password)?;
+        let password = java_string(&environment, &password)?;
         let borrowed: Vec<&str> = user_inputs.iter().map(|input| input.as_str()).collect();
         let wire = keyguard_zxcvbn_core::estimate(password.as_str(), &borrowed)
             .map_err(pack_bridge_error)?;
@@ -181,7 +112,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_zxcvbn_NativeZxcvbnJni_e
 
 #[cfg(test)]
 mod tests {
-    use keyguard_zxcvbn_core::BridgeError;
+    use keyguard_zxcvbn_core::{BridgeError, abi};
 
     use super::*;
 

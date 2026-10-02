@@ -6,10 +6,11 @@
 
 #![deny(unsafe_op_in_unsafe_fn)]
 
-use std::{mem::size_of, panic::AssertUnwindSafe, ptr, slice, str};
+use std::{mem::size_of, ptr, slice};
 
+use keyguard_ffi::{PanicHook, flatten as unwrap, string_from_raw};
 use keyguard_zxcvbn_core::{
-    MAX_USER_INPUTS, ResultWire, abi,
+    MAX_USER_INPUTS, ResultWire,
     abi::{pack_bridge_error, pack_bridge_invalid_argument},
 };
 
@@ -25,47 +26,16 @@ pub struct StrView {
     pub len: usize,
 }
 
-/// Runs `body` behind the panic boundary every entry point shares.
-///
-/// Production builds install the hook *inside* the boundary:
-/// `std::panic::set_hook`
-/// "panics if called from a panicking thread", and a panic inside
-/// `Once::call_once` poisons the `Once` so that every later call panics too.
-/// Installed outside the boundary, one such panic would escape the
-/// `extern "C"` frame and abort the process on every subsequent bridge call.
+/// Unit tests keep Rust's default hook so a caught assertion still reports
+/// its payload and source location in CI logs.
+const PANIC_HOOK: PanicHook = if cfg!(test) {
+    PanicHook::Keep
+} else {
+    PanicHook::Redact
+};
+
 fn contained<R>(body: impl FnOnce() -> R) -> Result<R, i64> {
-    std::panic::catch_unwind(AssertUnwindSafe(|| {
-        // Unit tests keep Rust's default hook so a caught assertion still
-        // reports its payload and source location in CI logs.
-        #[cfg(not(test))]
-        keyguard_zxcvbn_core::install_redacting_panic_hook();
-        body()
-    }))
-    .map_err(|_| abi::pack_bridge_panic())
-}
-
-fn unwrap(result: Result<Result<i64, i64>, i64>) -> i64 {
-    match result.and_then(std::convert::identity) {
-        Ok(value) | Err(value) => value,
-    }
-}
-
-/// # Safety
-///
-/// A non-empty string must be represented by a non-null pointer to its
-/// declared number of readable UTF-8 bytes, valid for the duration of the
-/// call.
-unsafe fn string_from_raw<'a>(pointer: *const u8, length: usize) -> Result<&'a str, i64> {
-    if length == 0 {
-        return Ok("");
-    }
-    if pointer.is_null() || length > isize::MAX as usize {
-        return Err(pack_bridge_invalid_argument());
-    }
-    // SAFETY: Null and oversized inputs were rejected; the forwarded FFI
-    // contract guarantees `length` readable bytes for the complete call.
-    let bytes = unsafe { slice::from_raw_parts(pointer, length) };
-    str::from_utf8(bytes).map_err(|_| pack_bridge_invalid_argument())
+    keyguard_ffi::contained(PANIC_HOOK, body)
 }
 
 /// # Safety
@@ -160,7 +130,7 @@ pub unsafe extern "C" fn keyguard_zxcvbn_estimate(
 
 #[cfg(test)]
 mod tests {
-    use keyguard_zxcvbn_core::{BridgeError, RESULT_WIRE_VERSION, WARNING_NONE};
+    use keyguard_zxcvbn_core::{BridgeError, RESULT_WIRE_VERSION, WARNING_NONE, abi};
 
     use super::*;
 

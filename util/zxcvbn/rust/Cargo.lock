@@ -246,9 +246,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyguard-ffi"
+version = "0.1.0"
+dependencies = [
+ "jni",
+ "zeroize",
+]
+
+[[package]]
 name = "keyguard-zxcvbn-c"
 version = "0.1.0"
 dependencies = [
+ "keyguard-ffi",
  "keyguard-zxcvbn-core",
 ]
 
@@ -256,6 +265,7 @@ dependencies = [
 name = "keyguard-zxcvbn-core"
 version = "0.1.0"
 dependencies = [
+ "keyguard-ffi",
  "zxcvbn",
 ]
 
@@ -264,6 +274,7 @@ name = "keyguard-zxcvbn-jni"
 version = "0.1.0"
 dependencies = [
  "jni",
+ "keyguard-ffi",
  "keyguard-zxcvbn-core",
  "zeroize",
 ]

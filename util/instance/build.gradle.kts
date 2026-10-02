@@ -3,6 +3,7 @@ import com.artemchep.keyguard.buildplugins.cargo.RustMultiplatformLibraryExtensi
 import com.artemchep.keyguard.buildplugins.cargo.binaryName
 import com.artemchep.keyguard.buildplugins.cargo.detectHostPlatform
 import com.artemchep.keyguard.buildplugins.cargo.dynamicLibraryName
+import com.artemchep.keyguard.buildplugins.cargo.sharedFfiRustSources
 import org.gradle.api.tasks.testing.Test
 
 plugins {
@@ -14,6 +15,9 @@ plugins {
 kotlin {
     jvm("desktop")
     macosArm64()
+    sourceSets.getByName("desktopMain").dependencies {
+        implementation(project(":util:ffi"))
+    }
 }
 
 // Windows instance coordination reuses IO's handle-relative filesystem primitives.
@@ -35,7 +39,7 @@ val nativeFixture = tasks.register<CargoBuildTask>("cargoBuildNativeInstanceFixt
     mustRunAfter("cargoBuildNativeInstanceDesktop")
     sourceDir.set(layout.projectDirectory.dir("rust"))
     sourceFiles.from(fileTree("rust") { exclude("target/**", "**/target/**") })
-    sourceFiles.from(ioRustSources)
+    sourceFiles.from(ioRustSources, sharedFfiRustSources())
     cargoTargetDir.set(layout.buildDirectory.dir("cargo-target"))
     rustTarget.set(hostPlatform.rustTarget)
     cargoPackage.set("keyguard-instance-core")

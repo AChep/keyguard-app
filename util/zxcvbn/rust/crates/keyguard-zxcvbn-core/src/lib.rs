@@ -10,8 +10,6 @@ pub mod abi;
 pub mod error;
 pub mod feedback;
 
-use std::sync::Once;
-
 pub use abi::{RESULT_WIRE_VERSION, ResultWire};
 pub use error::{BridgeError, ErrorDomain, FailureKind, Operation};
 pub use feedback::{SUGGESTION_MASK_ALL, WARNING_NONE, suggestion_bit, warning_code};
@@ -19,14 +17,7 @@ pub use feedback::{SUGGESTION_MASK_ALL, WARNING_NONE, suggestion_bit, warning_co
 /// Version of the direct native function ABI.
 pub const ABI_VERSION: u32 = 1;
 
-/// Reserved error code returned for an invalid native ABI argument.
-pub const BRIDGE_ERROR_INVALID_ARGUMENT: u32 = 1;
-
-/// Reserved error code returned when a panic reaches a native ABI boundary.
-pub const BRIDGE_ERROR_PANIC: u32 = 2;
-
-/// Reserved error code returned when a native ABI adapter fails internally.
-pub const BRIDGE_ERROR_INTERNAL: u32 = 3;
+pub use keyguard_ffi::{BRIDGE_ERROR_INTERNAL, BRIDGE_ERROR_INVALID_ARGUMENT, BRIDGE_ERROR_PANIC};
 
 /// Reserved error code returned when an input exceeds its accepted size.
 pub const BRIDGE_ERROR_INPUT_TOO_LONG: u32 = 4;
@@ -44,18 +35,6 @@ pub const MAX_USER_INPUTS: usize = 64;
 
 /// Largest accepted user input, in UTF-8 bytes.
 pub const MAX_USER_INPUT_BYTES: usize = 256;
-
-static PANIC_HOOK: Once = Once::new();
-
-/// Installs a process-wide panic hook that does not disclose passwords.
-///
-/// Rust's default hook prints panic payloads before [`std::panic::catch_unwind`]
-/// runs, and an upstream scoring panic could carry password-derived tokens in
-/// its message. Native bridges install this hook before entering their panic
-/// boundary and communicate only stable status codes to Kotlin.
-pub fn install_redacting_panic_hook() {
-    PANIC_HOOK.call_once(|| std::panic::set_hook(Box::new(|_| {})));
-}
 
 /// Estimates the strength of `password`, biased by `user_inputs`.
 ///

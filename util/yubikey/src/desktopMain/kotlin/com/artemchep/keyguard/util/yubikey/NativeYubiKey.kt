@@ -1,14 +1,26 @@
 package com.artemchep.keyguard.util.yubikey
 
+import com.artemchep.keyguard.util.ffi.JniLibrary
 import java.io.File
 
 internal actual object NativeYubiKey {
+    private val library = JniLibrary(
+        name = "keyguard_yubikey_jni",
+        pathProperty = "keyguard.nativeYubikey.libraryPath",
+        unavailable = { cause -> YubiKeyException(YubiKeyFailure.UNSUPPORTED, cause) },
+        verify = {
+            if (NativeYubiKeyJni.abiVersion() != YUBIKEY_ABI_VERSION) {
+                throw YubiKeyException(YubiKeyFailure.PROTOCOL)
+            }
+        },
+    )
+
     // The shipped Flatpak sandbox does not expose /dev/hidraw.
     // Mirrors the Flatpak detection in common's LePlatform.kt; keep both in sync.
     actual val isSupported: Boolean =
         System.getenv("container") != "flatpak" && !File("/.flatpak-info").exists()
     actual fun create(): Long {
-        NativeYubiKeyLibraryLoader.ensureLoaded()
+        library.ensureLoaded()
         return NativeYubiKeyJni.create()
     }
     actual fun execute(handle: Long, request: ByteArray): ByteArray = NativeYubiKeyJni.execute(handle, request)

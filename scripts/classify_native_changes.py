@@ -70,6 +70,15 @@ def classify(paths, *, full=False, all_checks=False):
         if path.startswith(".github/native-crypto-"):
             enable("crypto", "desktop", "android", "apple")
             continue
+        # Every native bridge consumes util/ffi: the Rust crate by path, the
+        # JNI loader and handle runner as a Kotlin dependency.
+        if path.startswith("util/ffi/"):
+            if path.startswith("util/ffi/rust/"):
+                enable("native_quality")
+                if is_rust_test_path(path):
+                    continue
+            enable("io", "instance", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
+            continue
         module = re.match(r"util/(crypto|io|zxcvbn|zip|instance|webauthn|yubikey|fido2)/(.+)", path)
         if module:
             name, relative = module.groups()

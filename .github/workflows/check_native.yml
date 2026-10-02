@@ -338,12 +338,14 @@ jobs:
       - name: "Format, lint and test native utility crates"
         shell: bash
         run: |
-          for module in io instance zip zxcvbn yubikey fido2; do
+          for module in ffi io instance zip zxcvbn yubikey fido2; do
             manifest="util/$module/rust/Cargo.toml"
             cargo fmt --manifest-path "$manifest" --all -- --check
             cargo clippy --manifest-path "$manifest" --workspace --all-targets --all-features --locked --no-deps -- -D warnings
             cargo test --manifest-path "$manifest" --workspace --all-features --locked
           done
+          # zip consumes keyguard-ffi without its jni feature.
+          cargo clippy --manifest-path util/ffi/rust/Cargo.toml --workspace --all-targets --locked --no-deps -- -D warnings
 
   desktop-bundle:
     name: "Native desktop (${{ matrix.name }})"
@@ -442,7 +444,7 @@ jobs:
         run: >-
           ${{ matrix.gradle }} --continue --max-workers=1
           "-Pkeyguard.nativeCargo.cargoOffline=true"
-          :util:io:desktopTest :util:instance:desktopTest :desktopApp:jvmTest
+          :util:ffi:desktopTest :util:io:desktopTest :util:instance:desktopTest :desktopApp:jvmTest
       - name: "Run security key JVM regressions"
         if: needs.changes.outputs.desktop == 'true'
         run: >-
@@ -481,6 +483,7 @@ jobs:
           ./gradlew --continue --max-workers=1
           -Pkeyguard.nativeCargo.cargoOffline=true
           :util:crypto:macosArm64Test
+          :util:ffi:macosArm64Test
           :util:io:macosArm64Test
           :util:instance:macosArm64Test
           :util:yubikey:macosArm64Test :util:fido2:macosArm64Test

@@ -58,11 +58,8 @@ kotlin {
             }
         }
 
-        sharedJvmMain(name = "jvmCommonMain")
-        getByName("desktopMain") {
-            dependencies {
-                implementation(libs.java.jna)
-            }
+        sharedJvmMain(name = "jvmCommonMain").dependencies {
+            implementation(project(":util:ffi"))
         }
 
         getByName("iosArm64Main") {

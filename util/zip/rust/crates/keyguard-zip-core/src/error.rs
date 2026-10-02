@@ -1,4 +1,5 @@
-//! Stable, project-owned failure taxonomy, numbered like `util/io`'s so the
+//! Stable, project-owned failure taxonomy. The layout, [`FailureKind`] and
+//! [`ErrorDomain`] come from `keyguard-ffi`, shared with `util/io`, so the
 //! Kotlin decoders stay interchangeable. A `zip` crate error is either an
 //! [`io::Error`], classified like any filesystem failure, or a structural
 //! error mapped to a bridge code.
@@ -20,12 +21,11 @@ use std::io;
 
 use zip::result::ZipError;
 
-/// Raw code of [`BridgeError::InvalidArgument`].
-pub const BRIDGE_ERROR_INVALID_ARGUMENT: u32 = 1;
-/// Raw code of [`BridgeError::Panic`].
-pub const BRIDGE_ERROR_PANIC: u32 = 2;
-/// Raw code of [`BridgeError::Internal`].
-pub const BRIDGE_ERROR_INTERNAL: u32 = 3;
+pub use keyguard_ffi::{
+    BRIDGE_ERROR_INTERNAL, BRIDGE_ERROR_INVALID_ARGUMENT, BRIDGE_ERROR_PANIC, ErrorDomain,
+    FailureKind,
+};
+
 /// Raw code of [`BridgeError::InvalidHandle`].
 pub const BRIDGE_ERROR_INVALID_HANDLE: u32 = 4;
 /// Raw code of [`BridgeError::InvalidState`].
@@ -40,68 +40,6 @@ pub const BRIDGE_ERROR_WRONG_PASSWORD: u32 = 8;
 pub const BRIDGE_ERROR_UNSUPPORTED_ENTRY: u32 = 9;
 /// Raw code of [`BridgeError::BufferTooSmall`].
 pub const BRIDGE_ERROR_BUFFER_TOO_SMALL: u32 = 10;
-
-const FAILURE_MARKER: u64 = 1 << 63;
-const KIND_SHIFT: u32 = 8;
-const DOMAIN_SHIFT: u32 = 16;
-const RAW_CODE_SHIFT: u32 = 24;
-const OPERATION_MASK: u64 = 0xff;
-
-/// Stable failure classification independent of [`io::ErrorKind`].
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[allow(missing_docs)]
-pub enum FailureKind {
-    None = 0,
-    PermissionDenied = 1,
-    ReadOnlyFilesystem = 2,
-    NotFound = 3,
-    AlreadyExists = 4,
-    StorageFull = 5,
-    QuotaExceeded = 6,
-    ResourceBusy = 7,
-    InvalidInput = 8,
-    Interrupted = 9,
-    Unsupported = 10,
-    /// No more specific stable classification applies.
-    Other = 11,
-    /// The native bridge failed internally.
-    Internal = 12,
-}
-
-impl FailureKind {
-    /// Classifies an [`io::ErrorKind`] into the stable taxonomy.
-    #[must_use]
-    pub fn from_io_error_kind(kind: io::ErrorKind) -> Self {
-        match kind {
-            io::ErrorKind::PermissionDenied => Self::PermissionDenied,
-            io::ErrorKind::ReadOnlyFilesystem => Self::ReadOnlyFilesystem,
-            io::ErrorKind::NotFound => Self::NotFound,
-            io::ErrorKind::AlreadyExists => Self::AlreadyExists,
-            io::ErrorKind::StorageFull => Self::StorageFull,
-            io::ErrorKind::QuotaExceeded => Self::QuotaExceeded,
-            io::ErrorKind::ResourceBusy => Self::ResourceBusy,
-            io::ErrorKind::InvalidInput => Self::InvalidInput,
-            io::ErrorKind::Interrupted => Self::Interrupted,
-            io::ErrorKind::Unsupported => Self::Unsupported,
-            _ => Self::Other,
-        }
-    }
-}
-
-/// Stable namespace of a raw native error code.
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ErrorDomain {
-    /// No raw native error applies.
-    None = 0,
-    /// The raw code is a POSIX `errno`.
-    PosixErrno = 1,
-    /// The raw code is a Win32 `GetLastError` value.
-    Win32LastError = 2,
-    /// The raw code is defined by the Keyguard bridge.
-    Bridge = 3,
-}
 
 /// Protocol step that produced a failure, so Kotlin can name it in a message
 /// without the native layer disclosing any path or content.
@@ -197,11 +135,7 @@ pub const fn pack_failure(
     domain: ErrorDomain,
     raw_code: u32,
 ) -> i64 {
-    (FAILURE_MARKER
-        | (operation as u64 & OPERATION_MASK)
-        | ((kind as u64) << KIND_SHIFT)
-        | ((domain as u64) << DOMAIN_SHIFT)
-        | ((raw_code as u64) << RAW_CODE_SHIFT)) as i64
+    keyguard_ffi::pack_failure(operation as u8, kind, domain, raw_code)
 }
 
 /// Packs a bridge failure.
@@ -305,6 +239,12 @@ mod tests {
             golden::BRIDGE_INVALID_ARGUMENT
         );
         assert_eq!(pack_bridge_error(BridgeError::Panic), golden::BRIDGE_PANIC);
+        // The shared panic boundary and raw readers return these words.
+        assert_eq!(
+            pack_bridge_invalid_argument(),
+            keyguard_ffi::BRIDGE_INVALID_ARGUMENT
+        );
+        assert_eq!(pack_bridge_panic(), keyguard_ffi::BRIDGE_PANIC);
         assert_eq!(
             pack_bridge_error(BridgeError::Internal),
             golden::BRIDGE_INTERNAL

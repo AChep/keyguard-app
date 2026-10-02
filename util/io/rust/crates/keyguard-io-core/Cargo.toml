@@ -10,6 +10,7 @@ publish = false
 
 [dependencies]
 getrandom.workspace = true
+keyguard-ffi.workspace = true
 
 [target.'cfg(unix)'.dependencies]
 libc.workspace = true

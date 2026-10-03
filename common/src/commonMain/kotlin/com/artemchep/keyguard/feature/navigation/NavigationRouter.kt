@@ -14,6 +14,7 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -146,20 +147,15 @@ fun NavigationRouter(
     }
 
     val canPop = remember(navPile) {
-        snapshotFlow { navPile.value }
-            .flatMapLatest { pile ->
-                val stack = pile.lastOrNull()
-                val entry = stack?.value?.lastOrNull()
-                if (entry != null) {
-                    return@flatMapLatest entry
-                        .activeBackPressInterceptorsStateFlow
-                        .map { interceptors ->
-                            interceptors.isNotEmpty() || stack.value.size > 1 || pile.size > 1
-                        }
-                }
-
-                flowOf(false)
+        snapshotFlow { navPile.value.map { it.value } }
+            .flatMapLatest { stacks ->
+                // Re-check whenever the top route's interceptors change.
+                stacks.lastOrNull()?.lastOrNull()
+                    ?.activeBackPressInterceptorsStateFlow
+                    ?: flowOf(null)
             }
+            .map { navPile.canPop() }
+            .distinctUntilChanged()
     }
     NavigationController(
         canPop = canPop,
@@ -173,16 +169,7 @@ fun NavigationRouter(
             // the back press interceptors first and only then adjust the
             // navigation stack.
             if (intent is NavigationIntent.Pop) {
-                val backPressInterceptorRegistration = primaryNavStack
-                    .entries
-                    .asReversed()
-                    .firstNotNullOfOrNull { navEntry ->
-                        val backPressInterceptors =
-                            navEntry.activeBackPressInterceptorsStateFlow.value
-                        backPressInterceptors.values.firstOrNull()
-                    }
-                if (backPressInterceptorRegistration != null) {
-                    backPressInterceptorRegistration.block()
+                if (primaryNavStack.interceptBackPress()) {
                     return@NavigationController null
                 }
             }
@@ -257,13 +244,24 @@ fun NavigationRouter(
         val localBackStack = navStack.value
         val globalBackStack = LocalNavigationNodeLogicalStack.current.addAll(localBackStack)
         val backHandler = LocalNavigationBackHandler.current
+        // An outgoing router (exit animation of this or a parent node) must not
+        // receive Back, so it stays registered only while it is the live content.
+        val finishing = LocalNavigationNodeFinishing.current
 
         DisposableEffect(
             controller,
             globalBackStack,
             backHandler,
+            finishing,
         ) {
-            val registration = backHandler.register(controller, globalBackStack)
+            if (finishing) {
+                return@DisposableEffect onDispose { }
+            }
+            val registration = backHandler.register(
+                controller = controller,
+                backStack = globalBackStack,
+                canPop = navPile::canPop,
+            )
             onDispose {
                 registration()
             }
@@ -276,6 +274,25 @@ fun NavigationRouter(
             content(localBackStack)
         }
     }
+}
+
+internal fun NavigationPile.canPop(): Boolean {
+    val stack = value.lastOrNull()?.value.orEmpty()
+    val entry = stack.lastOrNull()
+        ?.takeUnless { it.isDestroyed }
+        ?: return false
+    return entry.activeBackPressInterceptorsStateFlow.value.isNotEmpty() ||
+        stack.size > 1 || value.size > 1
+}
+
+internal fun NavigationBackStack.interceptBackPress(): Boolean {
+    // Only the top route gets to intercept Back. In a split layout, a search
+    // or selection in the underlying list must not take Back from the detail pane.
+    val interceptor = entries.lastOrNull()
+        ?.activeBackPressInterceptorsStateFlow?.value?.values?.firstOrNull()
+        ?: return false
+    interceptor.block()
+    return true
 }
 
 private fun tryToRestore(

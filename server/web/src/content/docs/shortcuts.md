@@ -20,7 +20,7 @@ looking at.
 
 | Shortcut           | macOS           | Description                                                                                                |
 | :----------------- | :-------------- | :--------------------------------------------------------------------------------------------------------- |
-| `Esc`              | `Esc`           | Clear current search field                                                                                 |
+| `Esc`              | `Esc`           | Close a popup, clear the search field, or go back                                                        |
 | `Ctrl` `Alt` `F`   | `⌘` `⌥` `F`     | Focus current search field                                                                                 |
 | `Ctrl` `N`         | `⌘` `N`         | Create a new item                                                                                          |
 | `Ctrl` `C`         | `⌘` `C`         | *Item view*: copy the username or primary field. *Send view*: copy public URL. *Generator*: copy the value |

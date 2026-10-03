@@ -89,6 +89,7 @@ fun NavigationNode(
 
     val logicalStack = LocalNavigationNodeLogicalStack.current
     val visualStack = LocalNavigationNodeVisualStack.current
+    val parentFinishing = LocalNavigationNodeFinishing.current
 
     Box(
         modifier = modifier,
@@ -179,6 +180,7 @@ fun NavigationNode(
                     CompositionLocalProvider(
                         LocalNavigationNodeLogicalStack provides renderState.logicalStack,
                         LocalNavigationNodeVisualStack provides renderState.visualStack,
+                        LocalNavigationNodeFinishing provides (parentFinishing || renderState != screenRenderState),
                     ) {
                         NavigationRoute(
                             entry = entry,
@@ -230,7 +232,7 @@ fun NavigationNode(
                     CompositionLocalProvider(
                         LocalNavigationNodeLogicalStack provides el.logicalStack,
                         LocalNavigationNodeVisualStack provides el.visualStack,
-                        LocalNavigationNodeFinishing provides !alive,
+                        LocalNavigationNodeFinishing provides (parentFinishing || !alive),
                     ) {
                         NavigationRoute(
                             entry = entry,

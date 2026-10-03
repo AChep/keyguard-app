@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsServiceHost
+import com.artemchep.keyguard.platform.LocalWindowId
 import kotlin.uuid.Uuid
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
@@ -127,8 +128,9 @@ fun NavigationRouter(
     }
 
     val keyboardShortcutsService = koinInject<KeyboardShortcutsServiceHost>()
-    DisposableEffect(navPile) {
-        val unregister = keyboardShortcutsService.register { keyEvent ->
+    val windowId = LocalWindowId.current
+    DisposableEffect(navPile, keyboardShortcutsService, windowId) {
+        val unregister = keyboardShortcutsService.register(windowId) { keyEvent ->
             navPile.value
                 .flatMap { it.value }
                 .asReversed()

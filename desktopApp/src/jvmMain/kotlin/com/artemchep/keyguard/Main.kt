@@ -721,6 +721,7 @@ private fun ApplicationScope.KeyguardMainWindow(
     content: @Composable FrameWindowScope.() -> Unit,
 ) {
     val state = stateManager.rememberWindowState()
+    val windowIdState = remember { mutableStateOf<WindowId?>(null) }
     val keyboardShortcutsService = koinInject<KeyboardShortcutsService>()
     Window(
         onCloseRequest = onCloseRequest,
@@ -729,9 +730,19 @@ private fun ApplicationScope.KeyguardMainWindow(
         visible = visible,
         title = "Keyguard",
         onKeyEvent = { event ->
-            keyboardShortcutsService.handle(event) || navigationBackHandler.handleKeyEvent(event)
+            val windowId = windowIdState.value
+            val handled = windowId != null && keyboardShortcutsService.handle(windowId, event)
+            handled || navigationBackHandler.handleKeyEvent(event)
         },
     ) {
+        val windowId = WindowId(window.windowHandle)
+        // The window-level key callback is declared before the native window is available.
+        DisposableEffect(window, windowId) {
+            windowIdState.value = windowId
+            onDispose {
+                windowIdState.value = null
+            }
+        }
         LaunchedEffect(stateManager, window) {
             stateManager.foregroundRequests.collect {
                 state.isMinimized = false
@@ -746,6 +757,7 @@ private fun ApplicationScope.KeyguardMainWindow(
             }
         }
         KeyguardWindowEssentials(
+            windowId = windowId,
             processLifecycleProvider = processLifecycleProvider,
             onMinimizeRequest = {
                 state.isMinimized = true
@@ -757,13 +769,14 @@ private fun ApplicationScope.KeyguardMainWindow(
 
 @Composable
 internal fun FrameWindowScope.KeyguardWindowEssentials(
+    windowId: WindowId,
     processLifecycleProvider: LePlatformLifecycleProvider,
     onMinimizeRequest: () -> Unit,
     content: @Composable FrameWindowScope.() -> Unit,
 ) {
     KeyguardWindowEssentialsProvider(
         window = window,
-        windowId = WindowId(window.windowHandle),
+        windowId = windowId,
         processLifecycleProvider = processLifecycleProvider,
         onMinimizeRequest = onMinimizeRequest,
     ) {

@@ -1,7 +1,8 @@
 package com.artemchep.keyguard.common.service.keyboard
 
 import androidx.compose.ui.input.key.KeyEvent
+import com.artemchep.keyguard.platform.WindowId
 
 interface KeyboardShortcutsServiceHost {
-    fun register(block: (KeyEvent) -> Boolean): () -> Unit
+    fun register(windowId: WindowId, block: (KeyEvent) -> Boolean): () -> Unit
 }

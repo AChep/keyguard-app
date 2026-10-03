@@ -96,6 +96,7 @@ import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.home.vault.component.surfaceShape
 import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.LocalWindowId
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.platform.input.IncognitoInput
@@ -129,6 +130,16 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.math.max
 import kotlin.math.roundToInt
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsService
+import org.koin.compose.koinInject
 
 const val PLACEHOLDER_EMAIL = "username@example.com"
 
@@ -1143,6 +1154,8 @@ fun PlainTextField(
     val mergedTextStyle = textStyle.merge(TextStyle(color = textColor))
     val cursorBrushColor =
         if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+    val keyboardShortcutsService = koinInject<KeyboardShortcutsService>()
+    val windowId = LocalWindowId.current
 
     IncognitoInputIf(
         enabled = incognito || keyboardOptions.isPasswordInput(),
@@ -1157,6 +1170,13 @@ fun PlainTextField(
                         Modifier
                     },
                 )
+                // The text field consumes Copy even with nothing selected,
+                // which would swallow the app's copy shortcuts.
+                .onPreviewKeyEvent { event ->
+                    value.selection.collapsed &&
+                        event.isCopyKeyDown() &&
+                        keyboardShortcutsService.handle(windowId, event)
+                }
                 .defaultMinSize(
                     minWidth = TextFieldDefaults.MinWidth,
                 )
@@ -1197,6 +1217,11 @@ private fun IncognitoInputIf(
         content()
     }
 }
+
+private fun KeyEvent.isCopyKeyDown() =
+    type == KeyEventType.KeyDown &&
+        key == Key.C &&
+        (isCtrlPressed || isMetaPressed)
 
 private fun KeyboardOptions.isPasswordInput(): Boolean =
     keyboardType == KeyboardType.Password ||

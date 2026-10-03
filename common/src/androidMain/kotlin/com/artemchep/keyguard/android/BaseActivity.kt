@@ -65,6 +65,8 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.LocalWindowId
+import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
@@ -87,6 +89,8 @@ abstract class BaseActivity : AppCompatActivity(), KeyguardKoinOwner {
     private val permissionService: PermissionServiceAndroid by lazy { koin.get() }
 
     private val keyboardShortcutsService: KeyboardShortcutsService by lazy { koin.get() }
+
+    private val windowId = WindowId.create()
 
     private val navigationBackHandler = BackHandler()
 
@@ -158,6 +162,7 @@ abstract class BaseActivity : AppCompatActivity(), KeyguardKoinOwner {
                         contentColor = contentColor,
                     ) {
                         CompositionLocalProvider(
+                            LocalWindowId provides windowId,
                             LocalSurfaceColor provides containerColorAnimatedState.value,
                         ) {
                             Navigation {
@@ -568,7 +573,7 @@ abstract class BaseActivity : AppCompatActivity(), KeyguardKoinOwner {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         val composeEvent = androidx.compose.ui.input.key.KeyEvent(event)
-        return keyboardShortcutsService.handle(composeEvent) ||
+        return keyboardShortcutsService.handle(windowId, composeEvent) ||
             navigationBackHandler.handleKeyEvent(composeEvent) ||
             super.onKeyDown(keyCode, event)
     }

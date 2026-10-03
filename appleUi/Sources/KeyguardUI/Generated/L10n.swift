@@ -5709,10 +5709,6 @@ public enum L10n {
     public static var prefItemAutomaticBackupsSetupIntro: String {
         String(localized: "pref_item_automatic_backups_setup_intro", bundle: AppLocalization.shared.bundle)
     }
-    /// pref_item_automatic_backups_setup_logic
-    public static var prefItemAutomaticBackupsSetupLogic: String {
-        String(localized: "pref_item_automatic_backups_setup_logic", bundle: AppLocalization.shared.bundle)
-    }
     /// pref_item_automatic_backups_status_error_text
     public static func prefItemAutomaticBackupsStatusErrorText(_ a1: String) -> String {
         String(format: String(localized: "pref_item_automatic_backups_status_error_text", bundle: AppLocalization.shared.bundle), a1)
@@ -5800,14 +5796,6 @@ public enum L10n {
     /// pref_item_automatic_backups_step_writing_snapshot
     public static var prefItemAutomaticBackupsStepWritingSnapshot: String {
         String(localized: "pref_item_automatic_backups_step_writing_snapshot", bundle: AppLocalization.shared.bundle)
-    }
-    /// pref_item_automatic_backups_store_folder_title
-    public static var prefItemAutomaticBackupsStoreFolderTitle: String {
-        String(localized: "pref_item_automatic_backups_store_folder_title", bundle: AppLocalization.shared.bundle)
-    }
-    /// pref_item_automatic_backups_store_webdav_title
-    public static var prefItemAutomaticBackupsStoreWebdavTitle: String {
-        String(localized: "pref_item_automatic_backups_store_webdav_title", bundle: AppLocalization.shared.bundle)
     }
     /// pref_item_automatic_backups_text
     public static var prefItemAutomaticBackupsText: String {

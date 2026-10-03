@@ -7,6 +7,24 @@
     <string name="no">Non</string>
     <!-- On click brings Keyguard app to the front -->
     <string name="show_keyguard">Afficher Keyguard</string>
+    <string name="loading">Chargement …</string>
+    <string name="select">Sélectionner</string>
+    <string name="open_action">Ouvrir</string>
+    <string name="item_not_found">Élément introuvable</string>
+    <string name="more_actions">Plus d'actions</string>
+    <string name="hide">Masquer</string>
+    <string name="actions">Actions</string>
+    <string name="open_in_keyguard_action">Ouvrir dans Keyguard</string>
+    <string name="more">Plus</string>
+    <string name="server">Serveur</string>
+    <string name="confirm">Confirmer</string>
+    <string name="change">Modifier</string>
+    <string name="website">Site internet</string>
+    <string name="phone">Téléphone</string>
+    <string name="unknown">Inconnu</string>
+    <string name="share">Partager</string>
+    <string name="attachment">Pièce jointe</string>
+    <string name="warning">Avertissement</string>
     <string name="instance_service_error_title">​Échec du service d'instance de Keyguard</string>
     <string name="instance_service_error_text">Keyguard n'a pas pu démarrer ou contacter son service d'instance. Si cela persiste après le relancement de Keyguard, incluez les détails ci-dessous dans un rapport de bogue.</string>
     <string name="instance_service_permission_text">Keyguard ne peut pas accéder en toute sécurité à ses fichiers d'instance. Vérifiez la propriété et les permissions de ses répertoires de données et d'exécution et de leurs répertoires parents.</string>
@@ -41,10 +59,13 @@
     <string name="advanced_options">Avancé</string>
     <string name="file">Fichier</string>
     <string name="choose_file">Choisir un fichier</string>
+    <string name="file_picker_selected_file_label">Fichier sélectionné</string>
     <string name="file_name_placeholder">Nom du fichier</string>
     <string name="file_status_pending_upload">Chargement en attente</string>
     <string name="file_status_auto_resume">Redémarrer automatiquement</string>
     <string name="file_status_downloading_failed">Échec du téléchargement</string>
+    <string name="file_status_download_failed_auto_resuming">Échec du téléchargement, reprise automatique</string>
+    <string name="file_status_downloaded">Téléchargé</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Vérifié</string>
     <string name="email_not_verified">Non vérifié</string>
@@ -64,16 +85,20 @@
     <string name="max_access_count">Nombre maximum d'accès</string>
     <string name="package_name">Nom du paquet</string>
     <string name="status">Statut</string>
+    <string name="status_running">En cours d'exécution</string>
+    <string name="status_failed_to_start">Échec du démarrage</string>
     <string name="ready_status_beta">Bêta</string>
     <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">En savoir plus</string>
     <string name="phone_number">Numéro de téléphone</string>
     <string name="passport_number">Numéro de passeport</string>
     <string name="license_number">Numéro de permis</string>
+    <string name="license_open_project_website_action">Ouvrir le site internet du projet</string>
     <string name="card_number">Numéro de carte</string>
     <string name="card_number_empty_label">Aucun numéro de carte</string>
     <string name="card_type">Réseau de paiement</string>
     <string name="card_cvv">Code de sécurité (CVV)</string>
+    <string name="card_cvv_short_label">CVV</string>
     <string name="card_valid_from">Valide à partir du</string>
     <string name="card_valid_to">Valide jusqu'au</string>
     <string name="card_expiry_month">Mois d'expiration de la carte</string>
@@ -95,12 +120,14 @@
     <string name="city">Ville</string>
     <string name="state">Région</string>
     <string name="info">Information</string>
+    <string name="info_dialog_empty_text">Aucune information supplémentaire</string>
     <string name="cancel">Annuler</string>
     <string name="continue_">Continuer</string>
     <string name="country">Pays</string>
     <string name="address">Adresse</string>
     <string name="postal_code">Code postal</string>
     <string name="pull_to_search">Tirer pour rechercher</string>
+    <string name="search_clear_action">Effacer la recherche</string>
     <string name="save">Enregistrer</string>
     <string name="save_to">Enregistrer sous</string>
     <string name="uri">URI</string>
@@ -130,6 +157,7 @@
     <string name="folder">Dossier</string>
     <string name="folders">Dossiers</string>
     <string name="folders_empty_label">Aucun dossier</string>
+    <string name="folders_empty_text">Organisez vos éléments en ajoutant un dossier.</string>
     <string name="tag_none">Aucun tag</string>
     <string name="tag">Tag</string>
     <string name="tags">Tags</string>
@@ -138,12 +166,16 @@
     <string name="collection">Collection</string>
     <string name="collections">Collections</string>
     <string name="collections_empty_label">Aucune collection</string>
+    <string name="collections_empty_text">Les collections partagées avec ce compte apparaissent ici.</string>
     <string name="organization_none">Mon coffre-fort</string>
+    <string name="grouping_view_items_action">Afficher les éléments</string>
     <string name="organization">Organisation</string>
     <string name="organizations">Organisations</string>
     <string name="organizations_empty_label">Aucune organisation</string>
+    <string name="organizations_empty_text">Les organisations dont vous faites partie apparaissent ici.</string>
     <string name="equivalent_domains">Domaines équivalents</string>
     <string name="equivalent_domains_empty_label">Aucun domaine équivalent</string>
+    <string name="equivalent_domains_empty_text">Les domaines que le serveur considère comme équivalents pour la correspondance apparaissent ici.</string>
     <string name="retry">Réessayer</string>
     <string name="misc">Divers</string>
     <string name="category">Catégorie</string>
@@ -235,6 +267,8 @@
     <string name="password_save">Enregistrer le mot de passe</string>
     <string name="passkey_save">Enregistrer la clé d'authentification (passkey)</string>
     <string name="passkey_available">Clé d'authentification disponible</string>
+    <string name="passkey_credential_load_failed_title">Impossible de charger la clé d'authentification (passkey)</string>
+    <string name="passkey_credential_id_label">Identifiant</string>
     <string name="twofa_available">Authentification à deux facteurs (2FA) disponible</string>
     <string name="custom">Personnalisé</string>
     <string name="grant_permission">Accorder la permission</string>
@@ -342,6 +376,7 @@
     <string name="account_action_export_vault_title">Exporter le coffre-fort</string>
     <string name="account_action_export_individual_vault_title">Exporter un coffre-fort individuel</string>
     <string name="account_action_hide_title">Masquer les éléments</string>
+    <string name="account_action_show_title">Afficher les éléments</string>
     <string name="account_action_hide_text">Masquer les éléments des écrans principaux de l'application</string>
     <string name="account_action_hide_success_on_title">Éléments masqués</string>
     <string name="account_action_hide_success_off_title">Éléments révélés</string>
@@ -362,6 +397,7 @@
     <string name="folder_delete_one_confirmation_title">Supprimer le dossier ?</string>
     <string name="folder_delete_many_confirmation_title">Supprimer les dossiers ?</string>
     <string name="folder_delete_confirmation_text">Ces élément(s) seront supprimés immédiatement. Vous ne pouvez pas annuler cette action.</string>
+    <string name="folder_add_action">Ajouter un dossier</string>
     <string name="ciphers_recently_opened">Ouvert récemment</string>
     <string name="ciphers_often_opened">Souvent consulté</string>
     <string name="ciphers_history_empty">L'historique est vide</string>
@@ -522,6 +558,7 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> lié à un champ inconnu</string>
     <string name="text_action_share_with_title">Partager avec…</string>
     <string name="text_action_send_title">Créer un send</string>
+    <string name="text_clear_action">Effacer le texte</string>
     <string name="ssh_key_action_save_unencrypted_keys_title">Enregistrer les clés non chiffrées</string>
     <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Clés enregistrées dans les téléchargements</string>
     <string name="ssh_key_action_save_public_key_title">Enregistrer la clé publique</string>
@@ -642,6 +679,9 @@
     <string name="ssh_key_import_passphrase_dialog_title">Saisir la phrase de passe de la clé SSH</string>
     <string name="ssh_key_import_passphrase_dialog_message">Cette clé <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> est chiffrée.</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> sélectionnés</string>
+    <string name="selection_clear_action">Effacer la sélection</string>
+    <string name="selection_select_all_action">Tout sélectionner</string>
+    <string name="selection_actions_title">Sélection des actions </string>
     <string name="copy">Copier</string>
     <string name="copy_value">Copier la valeur</string>
     <string name="copy_url">Copier l'URL</string>
@@ -691,7 +731,25 @@
     <string name="found_otp_code">Mot de passe unique trouvé</string>
     <string name="found_value">Valeur trouvée</string>
     <string name="autofill_unlock_keyguard">Déverrouiller Keyguard</string>
+    <string name="autofill_unlock_subtitle">Entrez votre mot de passe principal pour remplir les identifiants de connexion sélectionnés.</string>
     <string name="autofill_open_keyguard">Ouvrir Keyguard</string>
+    <!--
+        Shows up as an entry in the system credential picker when the app
+        requesting passkeys (usually a browser) is not on the privileged apps
+        list. Tapping it opens Keyguard, which offers to grant the privilege -->
+    <string name="autofill_authorize_app">Authorize this app</string>
+    <string name="autofill_no_matching_logins">Aucun identifiant de connexion correspondant</string>
+    <string name="autofill_passwords_section">Mots de passe</string>
+    <string name="autofill_verification_codes_section">Codes de vérification</string>
+    <string name="autofill_shared_storage_unavailable">Le remplissage automatique ne peut pas accéder au coffre partagé. Ouvrez Keyguard et réessayez. Si le problème persiste, contactez le support.</string>
+    <string name="autofill_setup_required">Ouvrez Keyguard et configurez ou synchronisez votre coffre-fort avant d'utiliser le remplissage automatique.</string>
+    <string name="autofill_request_failed">Cet identifiant n'est plus disponible ou n'a pas pu être lu. Ouvrez Keyguard pour vérifier votre coffre-fort, puis réessayez.</string>
+    <string name="autofill_choose_passkey">Sélectionner une clé d'authentification (passkey)</string>
+    <string name="autofill_unsupported_algorithm">Ce site ne supporte pas l'algorithme de clé d'authentification (passkey) fourni par Keyguard.</string>
+    <string name="autofill_suggested">Recommandé</string>
+    <string name="autofill_other_logins">Autres identifiants de connexion</string>
+    <string name="autofill_registration_failed">Impossible d'enregistrer cette clé d'authentification (passkey). Ouvrez Keyguard pour vérifier que vous pouvez modifier cet identifiant de connexion, puis réessayez.</string>
+    <string name="autofill_empty">Aucun identifiant n'est disponible pour cette demande. Ajouter ou synchroniser un élément dans Keyguard.</string>
     <string name="january">Janvier</string>
     <string name="february">Février</string>
     <string name="march">Mars</string>
@@ -764,6 +822,7 @@
     <string name="error_failed_open_uri">Échec de l'ouverture de l'URL</string>
     <string name="error_failed_format_placeholder">Impossible de formater l'emplacement</string>
     <string name="error_failed_open_app_for">Aucune application installée ne peut gérer cette requête</string>
+    <string name="error_failed_open_link">Impossible d'ouvrir ce lien</string>
     <string name="error_failed_unknown">Une erreur est survenue</string>
     <string name="error_failed_encrypt_biometric_key">Impossible de chiffrer la clé biométrique</string>
     <string name="biometric_error_policy_not_installed">Keyguard n'a pas pu installer la règle d'autorisation système requise pour l'authentification système.</string>
@@ -786,6 +845,7 @@
     <string name="scanqr_load_from_image">Charger à partir d'un fichier</string>
     <string name="scanqr_load_from_image_note">Charger et analyser un code QR à partir d'un fichier image.</string>
     <string name="scanqr_camera_permission_required_text">L'autorisation d'accéder à la caméra est nécessaire pour scanner les codes QR.</string>
+    <string name="scanqr_camera_unavailable_text">La fonction de numérisation par appareil photo n'est pas disponible sur cet appareil.</string>
     <string name="post_notifications_permission_banner_title">Les notifications sont désactivées</string>
     <string name="post_notifications_permission_banner_text">Autorisez les notifications pour permettre à Keyguard d'afficher les codes à usage unique lors du remplissage automatique &amp;.</string>
     <string name="local_network_permission_banner_title">Autoriser l’accès au réseau local</string>
@@ -795,6 +855,7 @@
     <string name="barcodetype_title">Code barre</string>
     <string name="barcodetype_action_show_in_barcode_title">Afficher en tant que code-barre</string>
     <string name="barcodetype_copy_otp_secret_code_note">Copiez cet authentificateur vers un autre appareil ou une autre application en scannant le QR code.</string>
+    <string name="barcode_invalid_or_unsupported_text">Ce format de code-barres n'est pas pris en charge, ou la valeur est invalide ou trop longue à afficher.</string>
     <!-- Title of the 'Date picker' dialog -->
     <string name="datepicker_title">Sélecteur de date</string>
     <!-- Title of the 'Color picker' dialog -->
@@ -837,6 +898,7 @@
     <string name="passkeys_directory_title">Clés d'accès (passkeys)</string>
     <string name="passkeys_directory_text">Liste des sites web avec la prise en charge des clés d'accès</string>
     <string name="passkeys_directory_search_placeholder">Rechercher des sites web</string>
+    <string name="passkeys_directory_setup_title">Configurer une clé d'authentification (passkey)</string>
     <!-- Title of the 'Email data breach' dialog -->
     <string name="emailleak_title">Violation de données</string>
     <string name="emailleak_note">Les données de compte endommagées peuvent fournir aux acteurs malveillants un accès à des informations personnelles et financières sensibles, pouvant entraîner un vol d'identité, une fraude financière et d'autres formes de cybercriminalité.</string>
@@ -868,6 +930,7 @@
     <string name="largetype_action_show_in_large_type_title">Afficher en grande taille</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Afficher en grande taille et verrouiller le coffre-fort</string>
     <string name="largetype_unicode_surrogate_note">Le texte contient des symboles Unicode mixtes !</string>
+    <string name="largetype_character_index_label">Caractère %1$d : %2$s</string>
     <string name="apppicker_header_title">Sélectionner l'application</string>
     <string name="apppicker_search_placeholder">Rechercher dans les applis installées</string>
     <string name="apppicker_system_app_label">Application système</string>
@@ -880,25 +943,35 @@
     <string name="destinationpicker_organization_ownership_note">Cette organisation aura une propriété de la copie. Vous n'en serez pas le propriétaire direct.</string>
     <string name="emailrelay_list_header_title">Transfert d'adresse-mail</string>
     <string name="emailrelay_list_section_title">Transferts d'adresse-mail</string>
+    <string name="emailrelay_list_add_service_hint">Ajouter un service de redirection pour générer des alias masqués.</string>
+    <string name="emailrelay_list_no_services_title">Aucun service disponible</string>
     <string name="emailrelay_delete_one_confirmation_title">Supprimer le transfert d'adresse-mail ?</string>
     <string name="emailrelay_delete_many_confirmation_title">Supprimer les transferts d'adresse-mail ?</string>
     <string name="emailrelay_integration_title">Intégration des transferts d'adresse-mails</string>
     <string name="emailrelay_empty_label">Aucun transfert d'adresse mail</string>
     <string name="emailrelay_base_env_server_url_label">URL du serveur</string>
     <string name="emailrelay_base_env_note">Spécifiez l'URL de base de votre installation autohébergée.</string>
+    <string name="emailrelay_add_action">Ajouter un outil de redirection d'e-mails</string>
+    <string name="emailrelay_edit_action">Modifier l'outil de redirection d'e-mails</string>
+    <string name="emailrelay_documentation_title">Documentation</string>
     <string name="wordlist_list_header_title">Listes de mots</string>
     <string name="wordlist_list_section_title">Listes de mots</string>
+    <string name="wordlist_list_import_hint">Importer une liste de mots à partir d'un fichier ou d'une URL pour l'utiliser dans le générateur de mots de passe.</string>
     <string name="wordlist_delete_one_confirmation_title">Supprimer la liste de mots ?</string>
     <string name="wordlist_delete_many_confirmation_title">Supprimer les listes de mots ?</string>
+    <string name="wordlist_delete_permanent_warning">%1$s sera définitivement supprimé.</string>
     <string name="wordlist_edit_wordlist_title">Modifier une liste de mots</string>
     <string name="wordlist_add_wordlist_title">Ajouter une liste de mots</string>
     <string name="wordlist_add_wordlist_via_file_title">Charger à partir d'un fichier</string>
     <string name="wordlist_add_wordlist_via_url_title">Charger à partir d'une URL</string>
     <string name="wordlist_empty_label">Aucune liste de mots</string>
     <string name="wordlist_word_search_placeholder">Rechercher des mots</string>
+    <string name="wordlist_rename_action">Renommer la liste de mots</string>
+    <string name="wordlist_words_empty_label">Cette liste de mots est vide</string>
     <string name="urloverride_header_title">Remplacement d'URL</string>
     <string name="urloverride_list_header_title">Remplacements d'URL</string>
     <string name="urloverride_list_section_title">Remplacements d'URL</string>
+    <string name="urloverride_list_empty_text">Les règles de remplacement d'URL apparaissent ici.</string>
     <string name="urloverride_regex_note">Le remplacement sera appliqué aux URL qui correspondent à l'expression régulière.</string>
     <string name="urloverride_delete_one_confirmation_title">Supprimer le remplacement d'URL ?</string>
     <string name="urloverride_delete_many_confirmation_title">Supprimer les remplacements d'URL ?</string>
@@ -911,6 +984,8 @@
     <string name="urlblock_empty_label">Aucune URI bloquée</string>
     <string name="urlblock_expose_title">Expose les données au framework de remplissage automatique avant de déverrouiller le coffre-fort</string>
     <string name="urlblock_expose_text">Si cette option est activée, l'élément est stocké en dehors du coffre-fort, ce qui permet de masquer complètement les suggestions de remplissage automatique, même si le coffre-fort est verrouillé</string>
+    <string name="urlrule_global_label">Général</string>
+    <string name="urlrule_excluded_label">Exclu</string>
     <string name="privilegedapps_header_title">Applications privilégiées</string>
     <string name="privilegedapps_list_header_title">Applications privilégiées</string>
     <string name="privilegedapps_list_section_title">Applications privilégiées</string>
@@ -928,12 +1003,24 @@
     <string name="setup_button_create_vault">Créer un coffre-fort</string>
     <string name="setup_action_erase_data_title">Effacer toutes les données de l'app</string>
     <string name="setup_action_erase_data_text">Fermer l'application et effacer toutes les données locales de l'app</string>
+    <string name="setup_erase_vault_confirmation_text">Cela supprime définitivement le coffre-fort local de cet appareil. Cela ne peut pas être annulé.</string>
     <string name="unlock_header_text">Le coffre est verrouillé. Entrez le mot de passe de l'application pour continuer.</string>
     <string name="unlock_button_unlock">Déverrouiller</string>
     <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_title">Déverrouiller un coffre-fort</string>
     <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_text">Utiliser l'authentification biométrique pour déverrouiller le coffre-fort.</string>
+    <string name="unlock_vault_title">Déverrouiller votre coffre-fort</string>
+    <string name="unlock_biometric_touch_id_title">Déverrouiller avec Touch ID</string>
+    <string name="unlock_yubikey_title">Déverrouiller avec YubiKey</string>
+    <string name="confirm_biometric_touch_id_title">Confirmer avec Touch ID</string>
+    <string name="confirm_yubikey_title">Confirmer avec YubiKey</string>
+    <string name="unlock_biometric_title">Déverrouiller par biométrie</string>
+    <string name="unlock_biometric_face_id_title">Déverrouiller avec Face ID</string>
+    <string name="confirm_biometric_face_id_title">Confirmer avec Face ID</string>
+    <string name="confirm_biometric_title">Confirmer par biométrie</string>
+    <string name="unlock_biometric_auth_failed">Échec de l’authentification biométrique</string>
+    <string name="unlock_biometric_key_unavailable">Le déverrouillage biométrique n'est pas disponible. Déverrouillez avec le mot de passe du coffre-fort et réactivez le déverrouillage biométrique dans les paramètres.</string>
     <string name="userverification_header_text">Vérification de l'utilisateur requise. Entrez le mot de passe de l'application pour continuer.</string>
     <string name="userverification_button_go">Vérifier</string>
     <string name="syncstatus_header_title">Statut de la synchronisation</string>
@@ -955,6 +1042,15 @@
     <string name="additem_markdown_render_preview">Aperçu du rendu</string>
     <string name="additem_auth_reprompt_title">Ré-invite automatique</string>
     <string name="additem_auth_reprompt_text">Demandez à vous authentifier à nouveau lorsque vous affichez ou remplissez automatiquement un procédé de chiffrement</string>
+    <string name="additem_type_secure_note_title">Note sécurisée</string>
+    <string name="additem_login_totp_label">Mot de passe à usage unique (TOTP)</string>
+    <string name="additem_login_uri_label">Site internet (URI)</string>
+    <string name="additem_key_replace_title">Remplacer la clé</string>
+    <string name="additem_ssh_key_generate_title">Générer une clé SSH …</string>
+    <string name="additem_gpg_key_generate_title">Générer une clé GPG …</string>
+    <string name="additem_key_use_title">Utiliser une clé</string>
+    <string name="additem_key_generator_back_title">Retour</string>
+    <string name="additem_key_import_title">Importer une clé</string>
     <string name="addsend_header_new_title">Nouvel envoi</string>
     <string name="addsend_header_edit_title">Modifier l'envoi</string>
     <string name="addsend_text_hide_by_default_title">Lors de l'accès à cet élément, masque le texte par défaut</string>
@@ -1012,11 +1108,18 @@
     <string name="addaccount_mutual_tls_expires_on_label">Expire le</string>
     <string name="addaccount_mutual_tls_status_imported">Importé</string>
     <string name="addaccount_mutual_tls_status_failed">Échec de l'importation</string>
+    <string name="addaccount_login_intro_text">Entrez vos identifiants de compte Bitwarden pour l'ajouter à ce coffre-fort.</string>
+    <string name="addaccount_login_captcha_client_secret_note">Ce compte est protégé par un CAPTCHA. Veuillez saisir votre clé secrète de client API personnelle pour continuer.</string>
     <string name="addaccount2fa_header_title">Vérification</string>
     <string name="addaccount2fa_unsupported_note">Cette méthode d'authentification n'est pas encore prise en charge.</string>
     <string name="addaccount2fa_otp_note">Saisissez le code de vérification depuis votre application d'authentification.</string>
     <string name="addaccount2fa_email_note">Entrez le code de vérification qui a été envoyé à <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Entrez le code d'authentification YubiKey manuellement. Placez le curseur sur le champ ci-dessous et déclenchez la YubiKey.</string>
+    <string name="addaccount2fa_method_label">Méthode d'authentification</string>
+    <string name="addaccount2fa_yubikey_otp_note">Insérez votre YubiKey et touchez-la, ou collez son mot de passe unique.</string>
+    <string name="addaccount2fa_method_unsupported_macos_text">%1$s n'est pas encore pris en charge sur macOS.</string>
+    <string name="addaccount2fa_method_other_title">Cette méthode d'authentification</string>
+    <string name="addaccount2fa_method_web_vault_note">Ouvrez le coffre web pour terminer la connexion avec cette méthode d'authentification à deux facteurs, puis retournez à l'application.</string>
     <string name="addkeepass_header_title">Ajouter un compte KeePass</string>
     <string name="addkeepass_header_body">Enregistrez tous vos mots de passe dans un seul fichier KDBX hautement crypté stocké directement sur votre appareil. Vous avez un contrôle total sur vos données. Stockez-les sur votre ordinateur, une clé USB ou synchronisez-les vous-même à l'aide d'un service tel que Syncthing, Google Drive ou Dropbox.</string>
     <string name="addkeepass_use_at_your_own_risk_beta_text">L'implémentation de KeePass est en version bêta et n'est pas encore entièrement compatible avec les clients KeePass standard. Utilisez-la à vos propres risques. Veuillez vous assurer que vous disposez d'une sauvegarde vérifiée de votre base de données avant de continuer.</string>
@@ -1035,6 +1138,14 @@
     <string name="yubikey_unlock_error_unsupported_text">Cette YubiKey ou ce type de connexion ne prend pas en charge le déverrouillage par défi-réponse.</string>
     <string name="yubikey_unlock_error_failed_title">Échec de l'utilisation de la YubiKey</string>
     <string name="yubikey_unlock_error_failed_text">Réessayez avec la YubiKey ou déverrouillez le coffre-fort avec votre mot de passe.</string>
+    <string name="yubikey_slot_picker_title">Quel emplacement YubiKey souhaitez-vous utiliser ?</string>
+    <string name="yubikey_slot_1_label">Emplacement 1</string>
+    <string name="yubikey_slot_2_label">Emplacement 2</string>
+    <string name="yubikey_slot_picker_note">La plupart des clés utilisent l'emplacement 2 pour la réponse au défi. Un emplacement vide sera configuré pour vous.</string>
+    <string name="yubikey_slot_configured_warning">L'emplacement %1$d est déjà configuré</string>
+    <string name="yubikey_slot_use_existing_action">Utiliser la configuration existante</string>
+    <string name="yubikey_slot_overwrite_action">Écraser l'emplacement</string>
+    <string name="yubikey_slot_overwrite_warning">Utilisez le secret défi-réponse actuel de l'emplacement, ou remplacez-le par un nouveau. Le remplacement efface définitivement le contenu précédent de l'emplacement (par exemple, un identifiant OTP existant).</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">L'utilisation de WebAuthn FIDO2 nécessite l'utilisation de la version du coffre Web de Bitwarden <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> ou supérieure. Sur les anciennes versions, le résultat d'authentification sera incorrectement transmis à l'application officielle Bitwarden.</string>
     <string name="elevatedaccess_header_title">Confirmer l'accès</string>
     <string name="elevatedaccess_header_text">Ces données sont protégées, pour continuer, veuillez entrer le mot de passe de votre application.</string>
@@ -1091,10 +1202,16 @@
     <string name="customfilters_delete_many_confirmation_title">Effacer le filtre ?</string>
     <string name="customfilters_edit_filter_title">Modifier le filtre personnalisé</string>
     <string name="customfilters_add_filter_title">Ajouter un filtre personnalisé</string>
+    <string name="customfilters_empty_hint">Enregistrez un ensemble de filtres comme un filtre personnalisé pour le réappliquer en un seul appui.</string>
     <string name="filter_header_title">Filtre</string>
     <string name="filter_empty_label">Aucun filtre disponible</string>
+    <string name="filter_clear_action">Effacer les filtres</string>
+    <string name="filter_list_title">Filtres</string>
+    <string name="filter_expand_named_action">Développer %1$s</string>
+    <string name="filter_collapse_named_action">Réduire %1$s</string>
     <string name="ssh_agent_filters_header_title">Filtres de l'agent SSH</string>
     <string name="ssh_agent_filters_note_save_to_apply">Les modifications seront appliquées après avoir cliqué sur Enregistrer.</string>
+    <string name="ssh_agent_filters_locked_text">Déverrouillez le coffre-fort pour choisir les clés SSH que l'agent met à disposition.</string>
     <string name="ssh_agent_history_header_title">Historique de l'agent SSH</string>
     <string name="ssh_agent_history_request_list_keys">Lister les clés</string>
     <string name="ssh_agent_history_request_sign_data">Signer ces données</string>
@@ -1109,8 +1226,10 @@
     <string name="ssh_agent_history_clear_history_title">Effacer l'historique</string>
     <string name="ssh_agent_history_clear_history_confirmation_title">Effacer l'historique de l'agent SSH ?</string>
     <string name="ssh_agent_history_clear_history_confirmation_text">Ceci supprimera tout l'historique d'utilisation de l'agent SSH.</string>
+    <string name="ssh_agent_history_empty_text">Les clés fournies et les signatures demandées par SSH/Git apparaissent ici.</string>
     <string name="ssh_agent_setup_header_title">Configuration du client SSH</string>
     <string name="ssh_agent_setup_intro">Configurez un client SSH pour vous connecter à l'agent SSH de Keyguard afin de lui permettre d'effectuer l'authentification ou la signature avec vos clés approuvées sans exposer de matériel de clé privée.</string>
+    <string name="ssh_agent_setup_intro_text">Authentifiez vos clients Git et SSH avec les clés SSH stockées dans votre coffre-fort.</string>
     <string name="ssh_agent_setup_step_1_title">1. Activer l'agent SSH dans Keyguard</string>
     <string name="ssh_agent_setup_step_1_text">Ouvrez les paramètres de sécurité et activez l'agent SSH.</string>
     <string name="ssh_agent_setup_step_2_title">2. Configurer votre client SSH</string>
@@ -1137,9 +1256,27 @@
     <string name="ssh_agent_setup_android_how_does_it_work_title">Comment ça marche ?</string>
     <string name="ssh_agent_setup_android_how_does_it_work_1">L'agent SSH reçoit les requêtes des outils SSH, puis les transmet à Keyguard au lieu de gérer l'opération sensible lui-même.</string>
     <string name="ssh_agent_setup_android_how_does_it_work_2">La communication se fait en deux étapes: tout d'abord l'agent demande à l'application de démarrer une session, puis les deux parties se connectent via un canal TCP local et échangent des messages chiffrés. L'agent SSH sert de relais, tandis que Keyguard effectue l'opération réelle.</string>
+    <string name="ssh_agent_setup_client_socket_note">Connectez-vous à cet agent à l'aide de votre client SSH :</string>
+    <string name="ssh_agent_setup_environment_variable_title">Variable d'environnement</string>
+    <string name="ssh_agent_setup_ssh_config_title">Configuration SSH</string>
+    <string name="ssh_agent_setup_enable_step_text">Activez l'agent SSH dans Paramètres ▸ Développeur. Keyguard fournit alors vos clés à ce port :</string>
+    <string name="ssh_agent_setup_shell_profile_hint">Ajoutez ce qui suit à votre fichier de configuration du terminal (par exemple, ~/.zshrc) :</string>
+    <string name="ssh_agent_setup_ssh_config_hint">Ou bien, configurez SSH pour qu'il utilise l'agent de chaque hôte :</string>
+    <string name="ssh_agent_setup_test_connection_hint">Lister les clés fournies, puis essayer une connexion SSH :</string>
     <string name="ssh_agent_request_approval_sign_title">Demande de signature SSH</string>
     <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> souhaite utiliser la clé SSH suivante pour signer les données :</string>
     <string name="ssh_agent_request_approval_sign_message_unknown_app">Une application souhaite utiliser la clé SSH suivante pour signer les données :</string>
+    <string name="ssh_agent_approval_sign_text">Une application demande de signer avec une de vos clés SSH.</string>
+    <string name="ssh_agent_approval_approve_hint">Signer la requête SSH avec cette clé</string>
+    <string name="agent_binary_unavailable_text">Le binaire de l'agent n'est pas fourni dans cette version</string>
+    <string name="agent_approvals_header_title">Autorisations</string>
+    <string name="agent_keys_header_title">Clés</string>
+    <string name="agent_approval_untitled_key">Clé sans titre</string>
+    <string name="agent_approval_requested_by_label">Demandé par</string>
+    <string name="agent_approval_path_label">Chemin</string>
+    <string name="agent_history_empty_label">Aucune activité</string>
+    <string name="agent_approval_time_left_label">Temps restant pour décider</string>
+    <string name="agent_approval_expires_in_text">Expire dans %1$s</string>
     <string name="ssh_client_request">Requête du client SSH</string>
     <string name="connected_crypto_apps_title">Applications connectées</string>
     <string name="connected_crypto_apps_summary">Examinez ou révoquez les applications enregistrées pour un accès GPG et/ou SSH.</string>
@@ -1156,7 +1293,7 @@
     <string name="connected_crypto_apps_unknown">Inconnues</string>
     <string name="ipc_approval_title">Demande d'application externe</string>
     <string name="ipc_approval_auth_reason">Approuver une demande cryptographique externe</string>
-    <string name="ipc_approval_unavailable">Cette demande d'approbation a expiré ou n'est plus disponible.</string>
+    <string name="ipc_approval_unavailable">Cette demande d'autorisation a expiré ou n'est plus disponible.</string>
     <string name="ipc_approval_message"><xliff:g id="app" example="Termux">%1$s</xliff:g> veut <xliff:g id="request" example="use GPG to encrypt a message">%2$s</xliff:g>.</string>
     <string name="ipc_approval_operation">utiliser <xliff:g id="protocol" example="GPG">%1$s</xliff:g> pour <xliff:g id="operation" example="encrypt a message">%2$s</xliff:g></string>
     <string name="ipc_approval_operation_with_registration">se connecter avec Keyguard et <xliff:g id="request" example="use GPG to encrypt a message">%1$s</xliff:g></string>
@@ -1202,6 +1339,8 @@
     <string name="ipc_operation_ssh_other">exécuter une opération non reconnue</string>
     <string name="sort_header_title">Trier par</string>
     <string name="sort_empty_label">Aucun tri disponible</string>
+    <string name="sort_default_order_title">Ordre par défaut</string>
+    <string name="sort_action">Trier</string>
     <string name="sortby_title_title">Titre</string>
     <string name="sortby_title_normal_mode">Alphabétiquement</string>
     <string name="sortby_title_reverse_mode">Ordre anti-alphabétique</string>
@@ -1237,6 +1376,12 @@
     <string name="vault_main_search_placeholder">Rechercher dans le coffre</string>
     <string name="vault_main_new_item_button">Nouvel élément</string>
     <string name="vault_main_no_suggested_items">Il n'y a aucun élément suggéré disponible pour ce contexte</string>
+    <string name="vault_main_create_item_action">Créer un nouvel élément</string>
+    <string name="vault_main_empty_title">Votre coffre-fort est vide</string>
+    <string name="vault_main_empty_add_account_text">Ajouter un compte Bitwarden pour commencer.</string>
+    <string name="quick_search_no_matches_title">Aucune correspondance.</string>
+    <string name="quick_search_empty_hint">Tapez pour trouver un identifiant de connexion.</string>
+    <string name="quick_search_select_result_hint">Sélectionnez un résultat pour voir ses détails.</string>
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Code de sécurité (CVV)</string>
     <string name="vault_view_saved_to_label">Enregistré dans <xliff:g id="email" example="username@example.com">%1$s</xliff:g> à <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
@@ -1258,12 +1403,32 @@
     <string name="vault_view_email_action">Adresse e-mail</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
     <string name="vault_view_navigate_action">Itinéraire</string>
+    <string name="vault_view_open_in_browser_action">Ouvrir dans le navigateur</string>
+    <string name="vault_status_no_vault_title">Pas encore de coffre-fort</string>
+    <string name="vault_setup_open_keyguard_hint">Ouvrez Keyguard pour créer votre coffre-fort.</string>
+    <string name="vault_recents_title">Récents</string>
+    <string name="vault_recents_description">Éléments récemment et souvent ouverts</string>
+    <string name="vault_view_no_item_selected_title">Aucun élément sélectionné</string>
+    <string name="vault_view_select_item_hint">Sélectionnez un élément du coffre-fort pour voir ses détails.</string>
+    <string name="vault_recents_empty_title">Rien ici pour le moment</string>
+    <string name="vault_recents_empty_text">Les éléments que vous ouvrez apparaissent ici.</string>
+    <string name="vault_recents_locked_text">Déverrouillez votre coffre-fort pour voir les éléments récents.</string>
+    <string name="vault_recents_reveal_action">Afficher dans le coffre-fort</string>
+    <string name="vault_loading_text">Chargement du coffre …</string>
+    <string name="vault_duplicates_empty_text">Les éléments similaires dans votre coffre-fort apparaissent ici.</string>
+    <string name="vault_item_sync_failed_text">La synchronisation de cet élément a échoué</string>
     <string name="send_main_header_title">Envoyer</string>
     <string name="send_main_search_placeholder">Rechercher dans les envois</string>
     <string name="send_main_new_item_button">Nouvel élément</string>
     <string name="send_main_drop_file_to_create">Déposer un fichier pour créer un envoi</string>
+    <string name="send_main_empty_title">Aucun envoi</string>
+    <string name="send_main_empty_add_account_text">Ajouter un compte Bitwarden pour partager du texte et des fichiers chiffrés de manière sécurisée.</string>
     <string name="send_email_is_required_to_access_label">Seuls les destinataires ayant validé leur e-mail peuvent accéder à ce partage</string>
     <string name="send_password_is_required_to_access_label">Un mot de passe est requis pour accéder à ce partage</string>
+    <string name="send_view_no_selection_title">Aucun envoi sélectionné</string>
+    <string name="send_view_no_selection_text">Sélectionnez un envoi pour voir ses détails.</string>
+    <string name="send_view_not_found_title">Envoi introuvable</string>
+    <string name="send_action_copy_link_title">Copier le lien</string>
     <string name="generator_header_title">Générateur</string>
     <string name="generator_header_username_title">Générateur de nom d'utilisateur</string>
     <string name="generator_header_password_title">Générateur de mots de passe</string>
@@ -1312,6 +1477,11 @@
     <string name="generator_gpg_key_email_title">E-mail</string>
     <string name="generator_gpg_key_modern_note">Crée une clé OpenPGP avec des clés de signature/certification Ed25519 et une sous-clé de chiffrement X25519.</string>
     <string name="generator_gpg_key_rsa_note">Créer une clé OpenPGP avec une clé de certification RSA et des sous-clés RSA distinctes pour la signature et le chiffrement.</string>
+    <string name="gpg_key_version_title">Version du certificat</string>
+    <string name="gpg_key_version_v4">v4</string>
+    <string name="gpg_key_version_v6">v6</string>
+    <string name="gpg_key_version_v4_note">Compatible avec GnuPG et les clients OpenPGP plus anciens.</string>
+    <string name="gpg_key_version_v6_note">Utilise la RFC 9580. Nécessite un client qui prend en charge les certificats v6.</string>
     <string name="generator_gpg_key_modern_text">Format de clé OpenPGP moderne</string>
     <string name="generator_key_length_title">Longueur</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>bits</string>
@@ -1325,18 +1495,24 @@
     <string name="generator_create_item_with_gpg_key_title">Créer une nouvelle clé GPG</string>
     <string name="generator_password_history_title">Historique des mots de passe</string>
     <string name="generator_show_tips_title">Afficher les conseils</string>
+    <string name="generator_tools_header_title">Outils</string>
+    <string name="generator_suggestions_title">Suggestions</string>
     <string name="generatorhistory_header_title">Historique du générateur</string>
     <string name="generatorhistory_clear_history_title">Effacer l'historique</string>
     <string name="generatorhistory_clear_history_confirmation_title">Effacer l'historique du générateur?</string>
     <string name="generatorhistory_clear_history_confirmation_text">Cela supprimera tous les éléments de l'historique.</string>
     <string name="generatorhistory_delete_one_confirmation_title">Supprimer l'élément de l'historique ?</string>
     <string name="generatorhistory_delete_many_confirmation_title">Supprimer les éléments de l'historique ?</string>
+    <string name="generatorhistory_empty_label">Aucun historique</string>
+    <string name="generatorhistory_empty_text">Les valeurs que vous générez apparaissent ici.</string>
     <string name="passwordhistory_header_title">Historique des mots de passe</string>
     <string name="passwordhistory_clear_history_title">Effacer l'historique</string>
     <string name="passwordhistory_clear_history_confirmation_title">Effacer l'historique des mots de passe ?</string>
     <string name="passwordhistory_clear_history_confirmation_text">Cela supprimera tous les mots de passe de l'historique.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Supprimer le mot de passe de l'historique ?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Supprimer les mots de passe de l'historique ?</string>
+    <string name="passwordhistory_empty_title">Aucun historique de mot de passe</string>
+    <string name="passwordhistory_empty_text">Les mots de passe précédents pour cet élément apparaissent ici.</string>
     <string name="block_autofill_header_title">Bloquer le remplissage automatique</string>
     <string name="watchtower_header_title">Watchtower</string>
     <string name="watchtower_section_password_strength_label">Robustesse du mot de passe</string>
@@ -1382,7 +1558,14 @@
     <string name="watchtower_item_compromised_accounts_text">Vérifier les violations de données par un nom d'utilisateur ou une adresse e-mail.</string>
     <string name="watchtower_notification_new_alerts_title">Nouvelles alertes de la Watchtower</string>
     <string name="watchtower_alerts_header_title">Nouvelles alertes de watchtower</string>
+    <string name="watchtower_alerts_new_title">Nouvelles alertes</string>
+    <string name="watchtower_alerts_empty_title">Aucune nouvelle alerte</string>
+    <string name="watchtower_alerts_empty_text">Les alertes de sécurité à propos des éléments de votre coffre apparaissent ici.</string>
+    <string name="watchtower_alerts_unread_label">Non lus</string>
     <string name="watchtower_mark_all_as_read_title">Tout marquer comme lu</string>
+    <string name="watchtower_hibp_attribution_text">Propulsé par [haveibeenpwned.com](https://haveibeenpwned.com/)</string>
+    <string name="watchtower_2fa_directory_attribution_text">Propulsé par [2fa.directory](https://2fa.directory/)</string>
+    <string name="watchtower_passkeys_directory_attribution_text">Propulsé par [passkeys.directory](https://passkeys.directory/)</string>
     <string name="notification_vault_backup_title">Sauvegarde du coffre-fort</string>
     <string name="notification_vault_backup_step_preparing">Préparation de la sauvegarde</string>
     <string name="notification_vault_backup_step_opening_repository">Ouverture du dépôt de sauvegarde</string>
@@ -1402,6 +1585,7 @@
     <string name="changepassword_disclaimer_local_note">Le mot de passe de l'application ne sera jamais stocké sur l'appareil ni envoyé sur le réseau. Il est utilisé pour générer une clé secrète qui est utilisée pour chiffrer les données locales.</string>
     <string name="changepassword_disclaimer_abuse_note">Sauf si vous soupçonnez un accès non autorisé ou si vous découvrez un logiciel malveillant sur l'appareil, il n'est pas nécessaire de changer le mot de passe si c'est un mot de passe fort et unique.</string>
     <string name="changepassword_password_changed_successfully">Mot de passe modifié avec succès</string>
+    <string name="changepassword_master_password_title">Modifier le mot de passe principal</string>
     <string name="exportaccount_header_title">Exporter les éléments</string>
     <string name="exportaccount_password_label">Archiver le mot de passe</string>
     <string name="exportaccount_format_note">Exporter le coffre-fort sous la forme d'une archive ZIP chiffrée.</string>
@@ -1457,11 +1641,32 @@
     <string name="contactus_thanks_note">Nous apprécions le temps que vous passez à nous envoyer un message. Votre message nous parvient directement et nous l’utilisons pour résoudre les problèmes, améliorer le produit et résoudre les problèmes. Bien que nous ne répondions peut-être pas à chaque rapport, nous étudions et travaillons à améliorer la &amp; pour résoudre les problèmes aussi vite que possible.</string>
     <string name="account_main_header_title">Comptes</string>
     <string name="account_main_add_account_title">Ajouter un compte</string>
+    <string name="account_not_found_title">Compte introuvable</string>
+    <string name="account_actions_title">Actions du compte</string>
     <string name="team_header_title">L'équipe derrière l'application</string>
     <string name="team_artem_whoami_text">Je suis un ingénieur de logiciels d'Ukraine. Je suis spécialisé dans la conception et le développement d'applications.</string>
     <string name="team_follow_me_section">Suivez-moi</string>
     <string name="settingssearch_header_title">Recherche</string>
     <string name="settingssearch_header_subtitle">Paramètres</string>
+    <string name="settingssearch_startup_keywords">démarrage automatique de la connexion</string>
+    <string name="settingssearch_biometric_keywords">empreintes biométriques, reconnaissance faciale, Touch ID, Face ID</string>
+    <string name="settingssearch_lock_keywords">délai d'expiration, verrouillage automatique, inactivité</string>
+    <string name="settingssearch_clipboard_keywords">copier, coller, presse-papiers, vider, effacer</string>
+    <string name="settingssearch_language_keywords">langue, traduction, paramètres régionaux</string>
+    <string name="settingssearch_theme_keywords">thème, apparence, clair, foncé, système</string>
+    <string name="settingssearch_navigation_keywords">onglets, barre latérale, ordre de navigation, visibilité</string>
+    <string name="settingssearch_autofill_keywords">remplissage automatique des mots de passe, clés d'accès, remplissage</string>
+    <string name="settingssearch_backup_keywords">sauvegarde, restauration, dossier de destination WebDAV, chiffrement mot de passe, pièces jointes, conservation des instantanés</string>
+    <string name="settingssearch_breach_keywords">faille, fuite, mots de passe compromis</string>
+    <string name="settingssearch_autofill_index_status_title">remplissage automatique, suggestions, état</string>
+    <string name="settingssearch_ssh_socket_title">Port SSH</string>
+    <string name="settingssearch_ssh_socket_keywords">SSH_AUTH_SOCK : chemin d'accès au port, environnement, client</string>
+    <string name="settingssearch_membership_status_title">Statut Premium</string>
+    <string name="settingssearch_membership_inactive_text">Aucun abonnement actif</string>
+    <string name="settingssearch_backup_location_keywords">dossier de destination, serveur WebDAV</string>
+    <string name="settingssearch_backup_password_keywords">mot de passe de chiffrement configuré</string>
+    <string name="settingssearch_build_ref_keywords">révision, modification, source, compilation, référence</string>
+    <string name="settingssearch_license_keywords">licence, droit de licence, jeton</string>
     <string name="settingssearch_search_placeholder">Recherche dans les paramètres</string>
     <string name="settings_appearance_header_title">Apparence</string>
     <string name="settings_autofill_header_title">Remplissage automatique</string>
@@ -1479,7 +1684,31 @@
     <string name="settings_watchtower_header_title">Watchtower</string>
     <string name="settings_automatic_backups_header_title">Sauvegardes</string>
     <string name="settings_navigation_items_header_title">Éléments de navigation</string>
+    <string name="settings_navigation_header_title">Navigation</string>
     <string name="settings_open_source_licenses_header_title">Licences Open Source</string>
+    <string name="settings_no_selection_title">Aucun paramètre sélectionné</string>
+    <string name="settings_no_selection_text">Sélectionnez un paramètre pour le configurer.</string>
+    <string name="settings_general_header_title">Général</string>
+    <string name="settings_startup_header_title">Démarrage</string>
+    <string name="settings_menu_bar_header_title">Barre de menu</string>
+    <string name="settings_clipboard_header_title">Presse-papier</string>
+    <string name="settings_privacy_header_title">Confidentialité</string>
+    <string name="settings_diagnostics_header_title">Diagnostiques</string>
+    <string name="settings_icons_header_title">Icônes</string>
+    <string name="settings_experience_header_title">Expérience</string>
+    <string name="settings_team_header_title">Équipe</string>
+    <string name="settings_localization_header_title">Traduction</string>
+    <string name="licenses_empty_label">Aucune licence open-source</string>
+    <string name="menu_bar_status_unlocked">Déverrouillé</string>
+    <string name="menu_bar_status_locked">Verrouillé</string>
+    <string name="menu_bar_status_set_up">Configurer</string>
+    <string name="menu_bar_unlock_vault_hint">Ouvrez Keyguard pour déverrouiller votre coffre-fort.</string>
+    <string name="menu_bar_search_hint">Tapez pour trouver un identifiant de connexion, puis copiez son mot de passe.</string>
+    <string name="menu_bar_search_no_matches_text">Aucune correspondance pour "%s".</string>
+    <string name="menu_bar_generate_password_hint">Générer un mot de passe fort et le copier</string>
+    <string name="menu_bar_lock_action">Verrouiller</string>
+    <string name="menu_bar_lock_vault_hint">Verrouiller le coffre-fort immédiatement</string>
+    <string name="menu_bar_open_main_window_action">Ouvrir la fenêtre principale</string>
     <string name="pref_section_premium_title">Premium</string>
     <string name="pref_section_options_title">Options</string>
     <string name="pref_item_accounts_title">Comptes</string>
@@ -1500,8 +1729,11 @@
     <string name="pref_item_notifications_text">Alertes</string>
     <string name="pref_item_appearance_title">Apparence</string>
     <string name="pref_item_appearance_text">Langue, thème et animations</string>
+    <string name="pref_item_appearance_restart_note">Prend effet après le redémarrage de Keyguard.</string>
     <string name="pref_item_dev_title">Développement</string>
     <string name="pref_item_dev_text">Paramètres de test pour le développement</string>
+    <string name="pref_item_debug_premium_title">Forcer le statut premium</string>
+    <string name="pref_item_debug_premium_text">Active les fonctionnalités premium dans les versions de test.</string>
     <string name="pref_item_other_title">Autre</string>
     <string name="pref_item_other_text">Sites web de la communauté, infos de l'application</string>
     <string name="pref_section_automatic_backups_setup_title">Configuration</string>
@@ -1551,7 +1783,6 @@
     <string name="pref_item_automatic_backups_unsupported_text">Les sauvegardes automatiques sont disponibles sur Android et sur ordinateur.</string>
     <string name="pref_item_automatic_backups_enable_button">Activer les sauvegardes</string>
     <string name="pref_item_automatic_backups_setup_intro">Les sauvegardes enregistrent les instantanés du coffre-fort à l'emplacement que vous choisissez. Keyguard les crée en cas de modification du coffre, et, à tout moment, vous pouvez déclencher un instantané manuellement.</string>
-    <string name="pref_item_automatic_backups_setup_logic">Le dépôt de sauvegarde stocke les métadonnées, les instantanés et les fichiers joints optionnels sous forme d'archives ZIP séparées. Spécifiez le mot de passe de sauvegarde pour chiffrer les archives en utilisant le chiffrement AES-256.</string>
     <string name="pref_item_automatic_backups_details_321_title">Règle de sauvegarde 3-2-1</string>
     <string name="pref_item_automatic_backups_details_321_text">Conservez au moins trois copies des données de votre coffre-fort : votre coffre-fort actif et deux sauvegardes. Stockez ces copies dans au moins deux lieux ou types de stockage indépendants et gardez une copie hors de cet appareil ou hors site. Un dossier synchronisé est utile, mais ne devrait pas être votre seule sauvegarde parce que les suppressions, la corruption et les modifications indésirables peuvent également se synchroniser.</string>
     <string name="pref_item_automatic_backups_details_321_three">Coffre-fort actif + deux sauvegardes</string>
@@ -1564,23 +1795,27 @@
     <string name="pref_item_automatic_backups_details_sync_title">Synchronisation dans le cloud</string>
     <string name="pref_item_automatic_backups_details_sync_text">Synchronisez l'intégralité du dossier de sauvegarde. Utilisez le même mot de passe de sauvegarde sur chaque appareil qui lit les archives chiffrées.</string>
     <string name="pref_item_automatic_backups_location_title">Emplacement de sauvegarde</string>
-    <string name="pref_item_automatic_backups_store_folder_title">Dossier</string>
-    <string name="pref_item_automatic_backups_store_webdav_title">WebDAV </string>
     <string name="pref_item_automatic_backups_password_title">Mot de passe de sauvegarde</string>
     <string name="pref_item_automatic_backups_password_message">Ce mot de passe chiffre le dépôt de sauvegarde. Si plusieurs instances d'applications partagent le dépôt de sauvegarde, elles doivent utiliser le même mot de passe.</string>
     <string name="pref_item_automatic_backups_password_not_set">Mot de passe non défini ; les fichiers de sauvegarde ne sont pas chiffrés.</string>
     <string name="pref_item_automatic_backups_password_set">Mot de passe défini, les fichiers de sauvegarde sont chiffrés.</string>
     <string name="pref_item_automatic_backups_password_set_summary">Mot de passe défini</string>
+    <string name="pref_item_automatic_backups_password_optional_label">Mot de passe de chiffrement (facultatif)</string>
     <string name="pref_item_automatic_backups_include_attachments_title">Inclure les pièces jointes</string>
     <string name="pref_item_automatic_backups_include_attachments_enabled_summary">Inclus lorsque disponible</string>
     <string name="pref_item_automatic_backups_include_attachments_disabled_summary">Non inclus</string>
     <string name="pref_item_automatic_backups_retention_title">Garder les instantanés</string>
     <string name="pref_item_automatic_backups_retention_never_clear_value">Ne jamais effacer</string>
     <string name="pref_item_automatic_backups_retention_value">%1$d instantanés</string>
+    <string name="pref_item_automatic_backups_retention_keep_all">Garder tous les instantanés</string>
+    <string name="pref_item_automatic_backups_retention_label">Conservation</string>
+    <string name="pref_item_automatic_backups_retention_prune_note">Les instantanés plus anciens dépassant cette durée sont supprimés. La valeur zéro permet de tout conserver.</string>
     <string name="pref_item_automatic_backups_disable_title">Désactiver les sauvegardes automatiques</string>
     <string name="pref_item_automatic_backups_disable_message">Cela ne désactive que les futures sauvegardes automatiques. Cela supprime de Keyguard le dossier local, le mot de passe et le choix des pièces jointes. Le dépôt de sauvegarde et les fichiers existants dans ce dossier ne sont pas supprimés.</string>
+    <string name="pref_item_automatic_backups_disable_action">Désactiver …</string>
     <string name="pref_item_nav_items_title">Éléments de navigation</string>
     <string name="pref_item_nav_label_title">Afficher les libellés sur les boutons de navigation</string>
+    <string name="pref_item_nav_label_short_title">Afficher les étiquettes de navigation</string>
     <string name="navigation_items_add_item_title">Ajouter un élément</string>
     <string name="navigation_items_reset_confirmation_title">Réinitialiser les éléments de navigation ?</string>
     <string name="navigation_items_reset_confirmation_text">Cela restaurera l'ordre et la visibilité de navigation par défaut. Les filtres personnalisés ne sont pas supprimés, mais leurs éléments de navigation seront retirés.</string>
@@ -1591,10 +1826,6 @@
     <string name="navigation_items_predefined_route_text">Route prédéfinie</string>
     <string name="pref_item_app_version_title">Version de l'appli</string>
     <string name="pref_item_app_build_date_title">Date de compilation de l'application</string>
-    <!--
-        The short ref name of the branch or tag that triggered the workflow run.
-        This value matches the branch or tag name shown on GitHub.
-        -->
     <string name="pref_item_app_build_ref_title">Réf de construction d'applications</string>
     <string name="pref_item_app_changelog_title">Journal des modifications de l'application</string>
     <string name="pref_item_app_team_title">L'équipe derrière l'application</string>
@@ -1618,8 +1849,10 @@
     <string name="pref_item_color_scheme_title">Thème</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Utiliser le thème noir contrasté</string>
     <string name="pref_item_color_scheme_expressive_title">Utiliser le thème expressif</string>
+    <string name="pref_item_color_scheme_selection_title">Palette de couleurs</string>
     <string name="pref_item_open_links_in_external_browser_title">Ouvrir les liens dans un autre navigateur</string>
     <string name="pref_item_close_to_tray_title">Fermer dans la barre d'état système</string>
+    <string name="pref_item_close_to_menu_bar_title">À côté de la barre de menus</string>
     <string name="pref_item_minimize_on_copy_title">Minimiser lors de la copie</string>
     <string name="pref_item_check_pwned_passwords_title">Chercher les mots de passe pwned</string>
     <string name="pref_item_check_pwned_services_title">Vérifier les violations de données</string>
@@ -1631,6 +1864,12 @@
     <string name="pref_item_hibp_api_token_status_verified">Vérifié</string>
     <string name="pref_item_hibp_api_token_status_rejected">Rejeté</string>
     <string name="pref_item_hibp_api_token_status_failed">Impossible de vérifier</string>
+    <string name="pref_item_hibp_header_title">Have I Been Pwned</string>
+    <string name="pref_item_hibp_api_token_note">Utilisez votre propre clé API pour des limites de taux plus élevées.</string>
+    <string name="pref_item_hibp_api_token_check_failed">Échec de la vérification</string>
+    <string name="pref_item_hibp_api_token_placeholder">Clé API à 32 caractères</string>
+    <string name="pref_item_hibp_api_token_input_note">Collez une clé d'API personnelle pour augmenter la limite de taux de vérification. Laissez vide pour la supprimer.</string>
+    <string name="pref_item_hibp_api_token_validation_error">La clé doit être de 32 caractères hexadécimaux.</string>
     <string name="pref_item_check_inactive_2fa_title">Vérifier les authentifications à deux facteurs inactives</string>
     <string name="pref_item_check_inactive_passkeys_title">Vérifier les clés d'accès inactifs</string>
     <string name="pref_item_conceal_fields_title">Champs de masquage</string>
@@ -1646,6 +1885,7 @@
     <string name="pref_item_contact_us_title">Contactez-nous</string>
     <string name="pref_item_experimental_title">Expérimental</string>
     <string name="pref_item_change_app_password_title">Modifier le mot de passe de l'application</string>
+    <string name="pref_item_change_master_password_action">Modifier le mot de passe principal …</string>
     <string name="pref_item_require_app_password_title">Mot de passe de l'application requis</string>
     <string name="pref_item_require_app_password_note">En plus de vos paramètres de sécurité habituels, le mot de passe de votre application sera requis après ce temps ou lorsque les paramètres de la biométrie seront modifiés</string>
     <string name="pref_item_require_app_password_immediately_text">Immédiatement</string>
@@ -1682,6 +1922,7 @@
     <string name="pref_item_permissions_title">Permissions</string>
     <string name="pref_item_features_overview_title">Aperçu des fonctionnalités</string>
     <string name="pref_item_url_override_title">Remplacements d'URL</string>
+    <string name="pref_item_webdav_transactions_title">Prefer WebDAV transactions</string>
     <string name="pref_item_agent_approval_scope_title">Portée d'approbation</string>
     <string name="pref_item_agent_approval_scope_connection">Par connexion</string>
     <string name="pref_item_agent_approval_scope_process">Par processus</string>
@@ -1714,12 +1955,15 @@
     <string name="pref_item_ssh_agent_display_key_names_note">Une copie non chiffrée du titre de l'élément sera stockée localement.</string>
     <string name="pref_item_ssh_agent_approval_window_always_ask">Demander à chaque fois</string>
     <string name="pref_item_ssh_agent_approval_window_until_lock">Jusqu'au verrouillage du coffre-fort</string>
+    <string name="pref_item_ssh_agent_approval_remember_note">Une signature validée est mémorisée pendant cette durée pour chaque clé et chaque application, ce qui évite de devoir la demander à chaque fois.</string>
     <string name="pref_item_ssh_agent_setup_title">Configuration du client SSH</string>
     <string name="pref_item_ssh_agent_filters_title">Filtres de l'agent SSH</string>
     <string name="pref_item_ssh_agent_filters_text">Choisissez quelles clés SSH sont accessibles à l'agent SSH</string>
     <string name="pref_item_ssh_agent_filters_summary_all">Toutes les clés sont accessibles</string>
     <string name="pref_item_ssh_agent_filters_summary_active">Filtres actifs</string>
     <string name="pref_item_ssh_agent_history_title">Journal des requêtes</string>
+    <string name="pref_item_ssh_agent_enable_title">Activer l'agent SSH</string>
+    <string name="pref_item_ssh_agent_description">Keyguard transmet les clés SSH de votre coffre-fort à ssh/git. Chaque signature nécessite votre validation.</string>
     <string name="pref_item_license_key_title">Associer un jeton de droits existant</string>
     <string name="pref_item_license_key_field_label">Jeton de droits</string>
     <string name="pref_item_license_key_message_redeemed">Jeton de droits associé avec succès</string>
@@ -1729,6 +1973,21 @@
     <string name="pref_item_license_key_status_revoked">Révoqué</string>
     <string name="pref_item_license_key_status_expired">Expiré</string>
     <string name="pref_item_license_key_status_available">Disponible</string>
+    <string name="pref_item_license_key_removed_text">Le jeton de droits associé a été supprimé.</string>
+    <string name="pref_item_license_key_refreshed_text">Le statut de jeton de droits a été actualisé.</string>
+    <string name="pref_item_license_key_unlock_note">Déverrouillez votre coffre pour lier ou copier un jeton de droits.</string>
+    <string name="pref_item_license_key_link_action">Associer un jeton de droits</string>
+    <string name="pref_item_license_key_remove_action">Supprimer le jeton lié</string>
+    <string name="pref_item_license_key_refresh_action">Actualiser le statut du jeton</string>
+    <string name="pref_item_license_key_show_token_action">Montrer le jeton</string>
+    <string name="pref_item_license_key_hide_token_action">Masquer le jeton</string>
+    <string name="pref_item_license_key_copy_token_action">Copier le jeton</string>
+    <string name="pref_item_license_key_linked_token_title">Jeton de droits associé</string>
+    <string name="pref_item_license_key_purchase_token_title">Acheter un jeton de droits</string>
+    <string name="pref_item_license_key_token_status_text">Statut : %1$s</string>
+    <string name="pref_item_license_key_status_grace">Période de grâce</string>
+    <string name="pref_item_license_key_status_pending">En attente</string>
+    <string name="pref_item_license_key_status_refunded">Remboursé</string>
     <string name="pref_item_license_sync_title">Obtenir un jeton de droits</string>
     <string name="pref_item_license_sync_text">Vérifie votre achat actif dans la boutique et génère un jeton de droits lié à cet achat. Utilisez le jeton pour transférer l'achat vers vos autres appareils.</string>
     <string name="pref_item_license_sync_requested">Le jeton de droits a été demandé</string>
@@ -1748,10 +2007,13 @@
     <string name="pref_item_yubikey_unlock_confirm_title">Configurer l'emplacement YubiKey ?</string>
     <string name="pref_item_yubikey_unlock_confirm_message_empty">Configurer l'emplacement <xliff:g id="slot_number" example="1">%1$s</xliff:g> pour le déverrouillage du coffre-fort ? La configuration nécessite une connexion USB.</string>
     <string name="pref_item_yubikey_unlock_confirm_message_configured">L'emplacement <xliff:g id="slot_number" example="1">%1$s</xliff:g> est déjà configuré. La reconfiguration nécessite une connexion USB et écrase la configuration actuelle de l'emplacement.</string>
+    <string name="pref_item_yubikey_unlock_note">Déverrouillez le coffre en touchant une YubiKey configurée pour la réponse au défi HMAC-SHA1. Keyguard peut configurer un emplacement vide pour vous, ou utiliser un emplacement que vous avez configuré avec le Gestionnaire YubiKey.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
     <string name="pref_item_biometric_unlock_confirm_title">Déverrouillage biométrique</string>
+    <string name="pref_item_biometric_unlock_timeout_title">Demander le mot de passe principal après</string>
+    <string name="pref_item_biometric_unlock_description">Déverrouillez le coffre avec des données biométriques au lieu de taper le mot de passe principal. L'activer nécessite une authentification biométrique.</string>
     <string name="pref_item_keep_screen_on_title">Garder l'écran allumé lors de la visualisation des éléments</string>
     <string name="pref_item_autofill_service_title">Service de remplissage automatique</string>
     <string name="pref_item_autofill_service_text">Utilisez le framework de saisie automatique d'Android pour vous accompagner à remplir les informations de connexion dans les autres applications de votre appareil</string>
@@ -1759,6 +2021,15 @@
     <string name="pref_item_autofill_service_browser_autofill_v2_title">Services de saisie automatique tiers du navigateur</string>
     <string name="pref_item_autofill_service_browser_autofill_v2_text">Activer le remplissage automatique par des tiers dans chacun des navigateurs répertoriés pour permettre à Keyguard d'y remplir les identifiants.</string>
     <string name="pref_item_autofill_service_browser_autofill_settings_error">Impossible d'ouvrir les paramètres de saisie automatique du navigateur</string>
+    <string name="pref_item_autofill_service_enable_action">Activer le remplissage automatique</string>
+    <string name="pref_item_autofill_service_enabled_text">Keyguard est configuré comme service de remplissage automatique.</string>
+    <string name="pref_item_autofill_service_disabled_text">Configuer Keyguard comme service de saisie des mots de passe, clé d'authentification (passkey) et codes de vérification dans les autres applications.</string>
+    <string name="pref_item_autofill_service_updating_text">Mise à jour des suggestions de remplissage automatique …</string>
+    <string name="pref_item_autofill_service_current_text">Les suggestions de remplissage automatique sont à jour.</string>
+    <string name="pref_item_autofill_service_index_failed_text">Impossible de mettre à jour les suggestions de remplissage automatique. Déverrouillez Keyguard et réessayez.</string>
+    <string name="pref_item_autofill_service_locked_text">Déverrouiller Keyguard pour mettre à jour les suggestions de remplissage automatique.</string>
+    <string name="pref_item_autofill_service_refresh_action">Actualiser les suggestions</string>
+    <string name="pref_item_autofill_service_open_settings_action">Ouvrir les paramètres de remplissage automatique</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copier automatiquement le mot de passe unique</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Lors de la saisie des informations de connexion, copiez automatiquement les mots de passe uniques</string>
     <string name="pref_item_autofill_default_match_detection_title">Détection de correspondance par défaut</string>
@@ -1794,10 +2065,31 @@
     <string name="pref_item_premium_membership_section_products_title">Produits</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Impossible de charger une liste d'abonnements</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Impossible de charger la liste de produits</string>
+    <string name="pref_item_premium_membership_active_title">Vous disposez de Keyguard Premium</string>
+    <string name="pref_item_premium_membership_benefit_create_edit_items">Créer et éditer les éléments de votre coffre-fort</string>
+    <string name="pref_item_premium_membership_benefit_multiple_accounts">Utilisez plusieurs comptes</string>
+    <string name="pref_item_premium_membership_benefit_support_development">Soutenez le développement indépendant</string>
+    <string name="pref_item_premium_membership_footer">Un abonnement ou un achat unique déverrouille l'expérience complète. L'abonnement à vie correspond à un paiement unique.</string>
+    <string name="pref_item_premium_membership_direct_note">Cette version inclut toutes les fonctionnalités premium.</string>
     <string name="pref_item_premium_status_active">Actif</string>
     <string name="pref_item_premium_status_free_trial_n">Essai gratuit de <xliff:g id="period" example="1 month">%1$s</xliff:g></string>
     <string name="pref_item_premium_status_will_not_renew">Ne sera renouvelé</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Gérer sur le Play Store</string>
+    <string name="premium_purchase_one_time_title">Achat unique</string>
+    <string name="premium_purchase_restore_action">Restaurer les achats</string>
+    <string name="premium_purchase_manage_subscription_action">Gérer l'abonnement</string>
+    <string name="premium_purchase_restore_note">Vous avez déjà acheté ce produit sur un autre appareil ? La fonction « Restaurer » vous permet de récupérer vos achats ici.</string>
+    <string name="premium_purchase_product_unavailable_text">Certains achats ne sont pas disponibles. Réessayez plus tard.</string>
+    <string name="premium_purchase_unverified_text">L'achat n'a pas pu être vérifié. Essayez de restaurer les achats.</string>
+    <string name="premium_purchase_failed_text">L'action n'a pas pu être terminée. Veuillez réessayer.</string>
+    <string name="premium_purchase_success_text">Keyguard Premium est actif.</string>
+    <string name="premium_purchase_pending_text">Votre achat est en attente de validation. L'abonnement Premium sera activé une fois la validation effectuée.</string>
+    <string name="premium_purchase_restore_empty_text">Aucun achat actif n'a été trouvé pour ce compte Apple.</string>
+    <string name="premium_purchase_restore_success_text">Vos achats ont été restaurés.</string>
+    <string name="premium_purchase_manage_failed_text">La gestion de l'abonnement n'a pas pu être ouverte. Réessayez plus tard.</string>
+    <string name="premium_purchase_storekit_renewal_note">Les abonnements se renouvellent automatiquement à moins qu'ils ne soient annulés dans les paramètres de votre compte Apple. Si vous êtes éligible, votre période d'essai gratuite sera convertie au tarif d'abonnement quand elle se terminera.</string>
+    <string name="premium_purchase_price_period">%1$s / %2$s</string>
+    <string name="premium_purchase_terms_title">Conditions générales d'utilisation</string>
     <string name="pref_item_permission_post_notifications_title">Publier des notifications</string>
     <string name="pref_item_permission_post_notifications_text">Permet de publier des notifications de téléchargement</string>
     <string name="pref_item_permission_write_external_storage_title">Écrire sur le stockage externe</string>
@@ -1828,6 +2120,7 @@
     <string name="pref_item_gpg_agent_filters_summary_all">Toutes les clés sont accessibles</string>
     <string name="pref_item_gpg_agent_filters_summary_active">Filtres actifs</string>
     <string name="pref_item_gpg_agent_history_title">Journal des requêtes</string>
+    <string name="pref_item_gpg_agent_approvals_note">Les autorisations sont mémorisées pour la durée et le champ d'application sélectionnés. La signature et le déchiffrement nécessitent des autorisations distinctes. Le verrouillage du coffre-fort efface les autorisations mémorisées.</string>
     <string name="pref_item_gpg_keyserver_search_title">Recherche sur le serveur de clés GPG</string>
     <string name="pref_item_gpg_keyserver_search_text">Trouvez des clés GPG publiques par e-mail, empreinte, ID de clé ou nom</string>
     <string name="pref_item_gpg_keyserver_url_title">Serveur de clés</string>
@@ -1889,10 +2182,13 @@
     <string name="datasafety_local_downloads_section">Téléchargements</string>
     <string name="datasafety_local_settings_section">Paramètres utilisateur</string>
     <string name="datasafety_local_settings_note">Les paramètres de l'utilisateur sont chiffrés à l'aide d'une clé spécifique à l'appareil.</string>
+    <string name="datasafety_local_settings_no_app_encryption_note">Les paramètres de l'utilisateur sont stockés localement sans chiffrement au niveau de l'application.</string>
     <string name="datasafety_local_vault_section">Coffre-fort</string>
     <string name="datasafety_local_encryption_algorithm_intro">Le coffre est chiffré à l'aide d'une clé, dérivée du mot de passe de l'application en utilisant les étapes suivantes :</string>
     <string name="datasafety_local_encryption_algorithm_outro">Le Salt et le Hash sont ensuite stockés localement sur un appareil, pour générer plus tard une clé principale pour déverrouiller le coffre.</string>
     <string name="datasafety_local_unlocking_vault">Déverrouiller un coffre-fort signifie stocker une clé correcte dans la mémoire vive d'un appareil, en obtenant une capacité de lire et de modifier le coffre chiffré.</string>
+    <string name="datasafety_local_stored_on_device_text">Les données locales comprennent les téléchargements, les paramètres de l'utilisateur et le coffre stocké sur cet appareil.</string>
+    <string name="datasafety_local_kdf_versions_note">La dérivation de clé (KDF) utilise Argon2id pour la version 1 et PBKDF2 pour l'ancienne version 0.</string>
     <string name="datasafety_remote_section">Données à distance</string>
     <string name="datasafety_remote_text">Les données distantes sont stockées sur les serveurs Bitwarden avec un chiffrement zéro connaissance.</string>
     <string name="webdav_settings_header_title">Configuration du serveur WebDAV</string>
@@ -1922,6 +2218,8 @@
     <string name="logs_stop_recording_fab_title">Arrêter l'enregistrement</string>
     <string name="logs_export_button">Exporter</string>
     <string name="logs_export_success">Exportation terminée</string>
+    <string name="logs_empty_title">Aucun journal</string>
+    <string name="logs_empty_note">La journalisation en mémoire peut être désactivée.</string>
     <string name="gpg_client_request">Requête du client GPG</string>
     <string name="gpg_agent_request_approval_sign_title">Demande de signature GPG</string>
     <string name="gpg_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> souhaite utiliser la clé GPG suivante pour signer les données :</string>
@@ -1943,6 +2241,7 @@
     <string name="gpg_agent_setup_step_5_title">5. Signer les commits Git</string>
     <string name="gpg_agent_setup_step_5_text">Utilisez le même GNUPGHOME lorsque Git signe des commits. Gardez la configuration locale à un seul dépôt, ou remplacez --local par --global.</string>
     <string name="gpg_agent_setup_windows_native_gnupg_note">Windows nécessite une installation native de GnuPG. Le GPG fourni avec Git pour Windows n'est pas compatible avec cette configuration.</string>
+    <string name="gpg_agent_setup_macos_step_2_text">Exécutez ces commandes dans le terminal pendant que Keyguard est en cours d'exécution. Elles préparent le répertoire ~/.keyguard/gnupg et associent votre installation de GnuPG à Keyguard. Définissez ensuite la variable GNUPGHOME dans le même terminal avant d'importer des clés ou de signer des fichiers.</string>
     <string name="gpg_agent_filters_header_title">Filtres de l'agent GPG</string>
     <string name="gpg_agent_filters_note_save_to_apply">Les modifications seront appliquées après avoir cliqué sur Enregistrer.</string>
     <string name="gpg_agent_history_header_title">Historique de l'agent GPG</string>
@@ -1963,7 +2262,24 @@
     <string name="gpg_tools_public_key_invalid">Coller des certificats publics avec armure valides. Une entrée non prise en charge ou incomplète ne peut pas être ajoutée.</string>
     <string name="gpg_tools_public_key_private">Coller uniquement les certificats publics. Les clés privées ne peuvent pas être ajoutées ici.</string>
     <string name="gpg_tools_public_key_not_encryptable">Chaque destinataire doit avoir une clé de chiffrement actuellement utilisable.</string>
+    <string name="gpg_tools_export_failed">Impossible d'enregistrer le résultat. Veuillez essayer un autre emplacement.</string>
+    <string name="gpg_tools_importing">Importation du fichier …</string>
+    <string name="gpg_tools_exporting">Enregistrement du fichier …</string>
+    <string name="gpg_tools_saved">Fichier enregistré</string>
+    <string name="gpg_tools_check_public_key">Vérifier la clé publique</string>
+    <string name="gpg_tools_additional_public_keys">Clés publiques supplémentaires</string>
+    <string name="gpg_tools_ready_to_save">Prêt à enregistrer</string>
     <string name="gpg_tools_header_title">Outils GPG</string>
+    <string name="gpg_tools_message_label">Message</string>
+    <string name="gpg_tools_signature_required">Saisissez une signature pour valider</string>
+    <string name="gpg_tools_sign_with">Signer avec</string>
+    <string name="gpg_tools_choose_recipients">Choisir les destinataires</string>
+    <string name="gpg_tools_add_recipients">Ajouter des destinataires …</string>
+    <string name="gpg_tools_choose_signing_key">Choisir une clé de signature</string>
+    <string name="gpg_tools_format_label">Format de signature</string>
+    <string name="gpg_tools_search_keys">Rechercher des noms ou des empreintes digitales</string>
+    <string name="gpg_tools_no_matching_keys">Aucune clé correspondante</string>
+    <string name="gpg_tools_selection_done">Fait</string>
     <string name="gpg_tools_scope_text">Texte</string>
     <string name="gpg_tools_scope_file">Fichier</string>
     <string name="gpg_tools_operation_encrypt_text">Chiffrez du texte ou des fichiers pour les destinataires sélectionnés</string>
@@ -2053,4 +2369,62 @@
     <string name="cipher_link_unavailable_title">Élément indisponible</string>
     <string name="cipher_link_picker_title">Sélectionner un élément lié</string>
     <string name="cipher_link_picker_action">Lien vers un élément</string>
+    <string name="pref_item_automatic_backups_initialization_error">Les sauvegardes automatiques n'ont pas pu démarrer. Veuillez réessayer en rechargeant les paramètres de sauvegarde.</string>
+    <string name="pref_item_automatic_backups_folder_access_help">Si l'accès au dossier est perdu, sélectionnez à nouveau le dossier pour rétablir les droits d'accès.</string>
+    <string name="pref_item_automatic_backups_webdav_keep_password">Laissez le mot de passe vide pour conserver le mot de passe enregistré.</string>
+    <string name="pref_item_launch_at_login_title">Lancer Keyguard à la connexion</string>
+    <string name="pref_item_launch_at_login_approval_note">Une autorisation est requise dans Paramètres du système ▸ Éléments de démarrage.</string>
+    <string name="pref_item_launch_at_login_unavailable_text">La fonction « Lancer à la connexion » n'est pas disponible dans cette version.</string>
+    <string name="pref_item_menu_bar_only_title">Afficher uniquement dans la barre de menu</string>
+    <string name="pref_item_menu_bar_only_text">Masque l'icône Dock et la fenêtre principale ; Keyguard reste disponible à partir de l'icône de la barre de menus.</string>
+    <string name="pref_item_vault_lock_timeout_never_title">Garder le coffre-fort déverrouillé</string>
+    <string name="pref_item_vault_lock_timeout_title">Verrouillage automatique après</string>
+    <string name="pref_item_render_markdown_title">Rendu Markdown</string>
+    <string name="pref_item_automatic_backups_unavailable_title">Sauvegardes indisponibles</string>
+    <string name="pref_item_automatic_backups_enabled_title">Les sauvegardes automatiques sont activées</string>
+    <string name="pref_item_automatic_backups_pending_changes_text">Des modifications ont été apportées depuis la dernière sauvegarde.</string>
+    <string name="pref_item_automatic_backups_change_configuration_action">Modifier la configuration</string>
+    <string name="pref_item_automatic_backups_local_folder_title">Dossier local</string>
+    <string name="pref_item_automatic_backups_webdav_server_title">Serveur WebDAV</string>
+    <string name="pref_item_automatic_backups_not_configured">Pas configuré</string>
+    <string name="pref_item_automatic_backups_choose_folder_action">Choisir un dossier …</string>
+    <string name="pref_item_automatic_backups_save_verify_action">Enregistrer et vérifier</string>
+    <string name="pref_item_automatic_backups_wizard_title">Configurer les sauvegardes</string>
+    <string name="pref_item_automatic_backups_wizard_destination_title">Choisissez une destination</string>
+    <string name="pref_item_automatic_backups_wizard_destination_detail">Enregistrer les sauvegardes dans un dossier ou un serveur WebDAV.</string>
+    <string name="pref_item_automatic_backups_wizard_protection_title">Protégez vos sauvegardes</string>
+    <string name="pref_item_automatic_backups_wizard_protection_detail">Ajoutez un mot de passe pour chiffrer vos fichiers de sauvegarde. Gardez-le quelque part en sécurité ; vous en aurez besoin pour les restaurer.</string>
+    <string name="pref_item_automatic_backups_wizard_contents_title">Choisir ce qu'il faut garder</string>
+    <string name="pref_item_automatic_backups_wizard_contents_detail">Inclure les pièces jointes et choisir le nombre de instantanés à conserver.</string>
+    <string name="pref_item_automatic_backups_wizard_review_title">Vérifiez votre configuration</string>
+    <string name="pref_item_automatic_backups_wizard_review_detail">Keyguard vérifiera que la destination peut lire et écrire des fichiers avant d'enregistrer cette configuration.</string>
+    <string name="pref_item_automatic_backups_wizard_step_label">Étape %1$d sur %2$d</string>
+    <string name="pref_item_automatic_backups_wizard_folder_detail">Sélectionnez un dossier sur cet appareil ou sur un service de stockage connecté.</string>
+    <string name="pref_item_automatic_backups_wizard_webdav_detail">Enregistrez des sauvegardes sur votre propre serveur WebDAV.</string>
+    <string name="pref_item_automatic_backups_wizard_invalid_url_error">Entrez une URL HTTP ou HTTPS complète sans identifiants intégrés ou fragment.</string>
+    <string name="pref_item_automatic_backups_wizard_replace_password_action">Changer le mot de passe de sauvegarde</string>
+    <string name="pref_item_automatic_backups_wizard_confirm_password_label">Confirmer le mot de passe de sauvegarde</string>
+    <string name="pref_item_automatic_backups_wizard_password_mismatch_error">Les mots de passe ne correspondent pas.</string>
+    <string name="pref_item_automatic_backups_wizard_verifying_status">Vérification de la destination …</string>
+    <string name="pref_item_automatic_backups_wizard_discard_title">Supprimer la configuration de sauvegarde ?</string>
+    <string name="pref_item_automatic_backups_wizard_discard_message">Vos modifications ne seront pas enregistrées. La configuration actuelle de la sauvegarde restera inchangée.</string>
+    <string name="pref_item_automatic_backups_wizard_discard_action">Supprimer les modifications</string>
+    <string name="pref_item_automatic_backups_wizard_ready_title">Garder une sauvegarde de votre coffre-fort</string>
+    <string name="pref_item_automatic_backups_wizard_ready_detail">Choisissez où enregistrer vos instantanés, les protéger avec un mot de passe et décider quoi garder.</string>
+    <string name="yubikey_error_title">Échec de l'utilisation de la YubiKey</string>
+    <string name="yubikey_error_no_device">Connectez une YubiKey avec son interface OTP activée et réessayez.</string>
+    <string name="yubikey_error_multiple_devices">Connectez seulement la YubiKey que vous voulez utiliser, puis réessayez.</string>
+    <string name="yubikey_error_busy">Une autre opération utilise la YubiKey. Attendez qu'elle se termine et réessayez.</string>
+    <string name="fido2_unlock_title">Clé de sécurité (FIDO2)</string>
+    <string name="fido2_unlock_description">Déverrouiller avec une clé de sécurité USB qui prend en charge PRF. Le mot de passe de votre application reste disponible pour la récupération.</string>
+    <string name="fido2_touch_prompt">Connectez votre clé de sécurité et touchez-la quand elle clignote.</string>
+    <string name="fido2_pin_prompt">Saisissez le code PIN de votre clé de sécurité.</string>
+    <string name="fido2_pin_label">Code PIN de la clé de sécurité</string>
+    <string name="fido2_error_title">Impossible d'utiliser la clé de sécurité</string>
+    <string name="fido2_error_unsupported">Cette clé ou plateforme ne supporte pas FIDO2 PRF avec la vérification de l'utilisateur.</string>
+    <string name="fido2_error_pin_not_set">Définissez un code PIN FIDO2 à l'aide de l'application du fabricant de la clé, puis réessayez.</string>
+    <string name="fido2_error_pin_blocked">La clé a bloqué la vérification du code PIN. Reconnectez-la et utilisez son application de gestion pour vérifier son statut. Vous pouvez toujours déverrouiller Keyguard avec le mot de passe de votre application.</string>
+    <string name="fido2_error_invalid_pin">Code PIN incorrect. Vérifiez le code PIN avant de réessayer. Les échecs répétés peuvent bloquer la clé.</string>
+    <string name="fido2_error_timeout">La clé de sécurité n'a pas répondu à temps. Reconnectez-la et réessayez.</string>
+    <string name="fido2_error_retry">Réessayez d'utiliser votre clé de sécurité enregistrée ou déverrouillez votre compte à l'aide de votre mot de passe d'application.</string>
 </resources>

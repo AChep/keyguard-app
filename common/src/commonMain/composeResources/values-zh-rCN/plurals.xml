@@ -6,6 +6,9 @@
     <plurals name="passwordleak_occurrences_count_plural">
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 事件</item>
     </plurals>
+    <plurals name="reused_password_items_count_plural">
+        <item quantity="other">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+    </plurals>
     <plurals name="word_count_plural">
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 单词</item>
     </plurals>
@@ -107,5 +110,9 @@
     </plurals>
     <plurals name="gpg_keyserver_upload_verify_requested_plural">
         <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+    </plurals>
+    <!-- Automatic backups -->
+    <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
+        <item quantity="other">Keep %1$d snapshots</item>
     </plurals>
 </resources>

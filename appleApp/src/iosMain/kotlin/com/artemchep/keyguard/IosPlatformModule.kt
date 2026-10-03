@@ -238,7 +238,7 @@ internal class IosPlatformModule {
         }
         single<CheckWebDavConnection> {
             CheckWebDavConnectionImpl(
-                httpClient = get(),
+                clientFactory = get(),
             )
         }
         single<LogRepositoryKotlin> {

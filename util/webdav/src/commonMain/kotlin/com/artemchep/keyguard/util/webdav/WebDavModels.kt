@@ -11,8 +11,18 @@ data class WebDavClientConfig(
 )
 
 enum class WebDavWriteStrategy {
+    /** Upload to a temporary sibling and MOVE it into place; fail if the server lacks MOVE. */
     RequireAtomic,
+
+    /** Prefer the atomic swap, but fall back to a direct PUT when the server reports MOVE as unsupported. */
     AllowLossy,
+
+    /**
+     * A single conditional PUT (If-Match / If-None-Match: *) to the destination,
+     * with no temporary sibling and no MOVE. For servers that reject MOVE
+     * instead of reporting it as unsupported.
+     */
+    DirectPut,
 }
 
 sealed interface WebDavAuthorization {

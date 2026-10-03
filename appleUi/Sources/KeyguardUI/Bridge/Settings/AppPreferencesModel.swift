@@ -80,6 +80,8 @@ final class AppPreferencesModel: SnapshotObserving {
 
     func setUseExternalBrowser(_ value: Bool) { core.setUseExternalBrowser(value: value) }
 
+    func setWebDavTransactions(_ value: Bool) { core.setWebDavTransactions(value: value) }
+
     func setKeepScreenOn(_ value: Bool) { core.setKeepScreenOn(value: value) }
 
     func setMinimizeOnCopy(_ value: Bool) { core.setMinimizeOnCopy(value: value) }

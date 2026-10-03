@@ -131,12 +131,12 @@ class GlobalModuleJvm {
         }
         single<CheckWebDavConnection> {
             CheckWebDavConnectionImpl(
-                httpClient = get(),
+                clientFactory = get(),
             )
         }
         single<ListWebDavDirectory> {
             ListWebDavDirectoryImpl(
-                httpClient = get(),
+                clientFactory = get(),
             )
         }
         single<TestBackupLocation> {

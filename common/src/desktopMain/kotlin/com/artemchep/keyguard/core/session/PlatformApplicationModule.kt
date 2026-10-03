@@ -112,7 +112,6 @@ import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
 import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
 import com.artemchep.keyguard.util.io.resolve
 import com.artemchep.keyguard.util.traverse
-import io.ktor.client.HttpClient
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -268,7 +267,7 @@ class PlatformApplicationModule {
             SelectableBackupObjectStoreFactory(
                 localFactory = get(qualifier = named(BackupLocalObjectStoreFactoryTag)),
                 webDavFactory = WebDavBackupObjectStoreFactory(
-                    httpClient = get<HttpClient>(),
+                    webDavClientFactory = get(),
                 ),
             )
         }

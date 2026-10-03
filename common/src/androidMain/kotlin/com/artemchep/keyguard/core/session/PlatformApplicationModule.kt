@@ -104,7 +104,6 @@ import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
 import db_key_value.datastore.encrypted.SecureStorageCoordinator
 import db_key_value.shared_prefs.SharedPrefsKeyValueStore
 import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
-import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.qualifier.named
@@ -148,7 +147,7 @@ class PlatformApplicationModule {
             SelectableBackupObjectStoreFactory(
                 localFactory = get(qualifier = named(BackupLocalObjectStoreFactoryTag)),
                 webDavFactory = WebDavBackupObjectStoreFactory(
-                    httpClient = get<HttpClient>(),
+                    webDavClientFactory = get(),
                 ),
             )
         }

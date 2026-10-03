@@ -17,7 +17,6 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
 import com.artemchep.keyguard.common.usecase.BackupSettings
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.DownloadAttachment
@@ -38,7 +37,6 @@ import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenReposito
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadGarbageCollector
 import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadGarbageCollectorImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ExportLogsImpl
-import io.ktor.client.HttpClient
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.scoped
@@ -66,9 +64,7 @@ internal class VaultTransfersModule {
                         base64Service = get<Base64Service>(),
                         storageFactory = DefaultKeePassAttachmentStorageFactory(
                             fileService = get<FileService>(),
-                            webDavClientFactory = KtorWebDavClientFactory(
-                                httpClient = get<HttpClient>(),
-                            ),
+                            webDavClientFactory = get(),
                         ),
                         stagingSpoolFactory = get<StagingSpoolFactory>(),
                     ),

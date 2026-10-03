@@ -458,6 +458,10 @@ enum class SettingsSearchTarget(
     URL_RULES(
         SettingsDestination.ABOUT.id,
         Res.string.pref_item_url_override_title,
+    ),
+    WEBDAV_TRANSACTIONS(
+        SettingsDestination.ABOUT.id,
+        Res.string.pref_item_webdav_transactions_title,
     );
 
     internal enum class Availability {

@@ -3,7 +3,6 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.WebDavLocation
-import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.service.webdav.parseWebDavKeePassFileUrl
 import com.artemchep.keyguard.common.service.webdav.toWebDavAuthorization
@@ -12,19 +11,12 @@ import com.artemchep.keyguard.util.io.readByteArrayAndClose
 import com.artemchep.keyguard.util.webdav.WebDavClient
 import com.artemchep.keyguard.util.webdav.WebDavClientConfig
 import com.artemchep.keyguard.util.webdav.WebDavWriteMode
-import io.ktor.client.HttpClient
 import kotlin.random.Random
 import kotlin.time.Clock
 
-class CheckWebDavConnectionImpl internal constructor(
+class CheckWebDavConnectionImpl(
     private val clientFactory: WebDavClientFactory,
 ) : CheckWebDavConnection {
-    constructor(
-        httpClient: HttpClient,
-    ) : this(
-        clientFactory = KtorWebDavClientFactory(httpClient),
-    )
-
     override fun invoke(
         location: WebDavLocation,
     ): IO<Unit> = ioEffect {
@@ -49,7 +41,7 @@ class CheckWebDavConnectionImpl internal constructor(
         }
     }
 
-    private fun createClient(
+    private suspend fun createClient(
         baseUrl: String,
         location: WebDavLocation,
     ): WebDavClient = clientFactory.create(

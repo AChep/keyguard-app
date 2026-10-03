@@ -135,6 +135,8 @@ data class AppPreferencesSnapshot(
     val keepScreenOn: Boolean = false,
     /** Opens ordinary web links with the system instead of the in-app browser. */
     val useExternalBrowser: Boolean = false,
+    /** True when WebDAV writes go through a temporary upload followed by MOVE. */
+    val webDavTransactions: Boolean = true,
 ) {
     companion object {
         val empty = AppPreferencesSnapshot()

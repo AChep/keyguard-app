@@ -137,6 +137,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAf
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAfterTimeoutProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultPersistProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingWebDavTransactionsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingWebsiteIconsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingWriteAccessProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingFido2UnlockProvider
@@ -225,6 +226,7 @@ object Setting {
     const val LOGS = "logs"
     const val FEATURES_OVERVIEW = "features_overview"
     const val URL_OVERRIDE = "url_override"
+    const val WEBDAV_TRANSACTIONS = "webdav_transactions"
     const val CONNECTED_APPS = "connected_apps"
     const val SSH_SETTINGS = "ssh_settings"
     const val SSH_AGENT = "ssh_agent"
@@ -357,6 +359,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.LOGS to ::settingLogsProvider,
     Setting.FEATURES_OVERVIEW to ::settingFeaturesOverviewProvider,
     Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
+    Setting.WEBDAV_TRANSACTIONS to ::settingWebDavTransactionsProvider,
     Setting.CONNECTED_APPS to ::settingConnectedAppsProvider,
     Setting.SSH_SETTINGS to ::settingSshSettingsProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,

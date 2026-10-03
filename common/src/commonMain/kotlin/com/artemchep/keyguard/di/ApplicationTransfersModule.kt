@@ -16,6 +16,8 @@ import com.artemchep.keyguard.common.service.download.DownloadTaskImpl
 import com.artemchep.keyguard.common.service.export.JsonExportService
 import com.artemchep.keyguard.common.service.export.impl.JsonExportServiceImpl
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
+import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.usecase.GpgKeyExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
@@ -48,6 +50,8 @@ internal class ApplicationTransfersModule {
         }
 
         single<DownloadAttachmentSourceLoaderImpl>() bind DownloadAttachmentSourceLoader::class
+
+        single<KtorWebDavClientFactory>() bind WebDavClientFactory::class
 
         single<SshKeyPkcs8Exporter> {
             NativeSshKeyPkcs8Exporter

@@ -717,6 +717,10 @@ public enum L10n {
     public static var autofillAndSaveUri: String {
         String(localized: "autofill_and_save_uri", bundle: AppLocalization.shared.bundle)
     }
+    /// autofill_authorize_app
+    public static var autofillAuthorizeApp: String {
+        String(localized: "autofill_authorize_app", bundle: AppLocalization.shared.bundle)
+    }
     /// autofill_choose_passkey
     public static var autofillChoosePasskey: String {
         String(localized: "autofill_choose_passkey", bundle: AppLocalization.shared.bundle)
@@ -6848,6 +6852,10 @@ public enum L10n {
     /// pref_item_watchtower_title
     public static var prefItemWatchtowerTitle: String {
         String(localized: "pref_item_watchtower_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// pref_item_webdav_transactions_title
+    public static var prefItemWebdavTransactionsTitle: String {
+        String(localized: "pref_item_webdav_transactions_title", bundle: AppLocalization.shared.bundle)
     }
     /// pref_item_windows_hello_unlock_title
     public static var prefItemWindowsHelloUnlockTitle: String {

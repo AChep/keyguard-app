@@ -1,9 +1,9 @@
 package com.artemchep.keyguard.common.service.backup
 
+import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.service.webdav.isFileResource
 import com.artemchep.keyguard.common.service.webdav.takeFileResourceOrNull
 import com.artemchep.keyguard.common.service.webdav.webDavAuthorizationOf
-import com.artemchep.keyguard.util.webdav.KtorWebDavClient
 import com.artemchep.keyguard.util.webdav.WebDavAuthorization
 import com.artemchep.keyguard.util.webdav.WebDavByteRange
 import com.artemchep.keyguard.util.webdav.WebDavClient
@@ -12,7 +12,6 @@ import com.artemchep.keyguard.util.webdav.WebDavException
 import com.artemchep.keyguard.util.webdav.WebDavResource
 import com.artemchep.keyguard.util.webdav.WebDavWriteMode
 import com.artemchep.keyguard.util.webdav.WebDavWriteStrategy
-import io.ktor.client.HttpClient
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
 import kotlinx.io.Sink
@@ -238,7 +237,7 @@ class WebDavBackupObjectStore(
 }
 
 class WebDavBackupObjectStoreFactory(
-    private val httpClient: HttpClient,
+    private val webDavClientFactory: WebDavClientFactory,
     private val authorization: WebDavAuthorization? = null,
     private val userAgent: String? = null,
 ) : BackupObjectStoreFactory {
@@ -251,9 +250,8 @@ class WebDavBackupObjectStoreFactory(
         val repositoryPath = requireNotNull(webDavStore.url) {
             "Backup WebDAV repository URL is not configured."
         }
-        val client = KtorWebDavClient(
-            httpClient = httpClient,
-            config = WebDavClientConfig(
+        val client = webDavClientFactory.create(
+            WebDavClientConfig(
                 baseUrl = repositoryPath,
                 authorization = authorization ?: webDavAuthorizationOf(
                     username = webDavStore.username,

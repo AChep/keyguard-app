@@ -1300,6 +1300,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setMarkdown(value: Boolean) = appearanceController.setMarkdown(value)
     fun setNavLabel(value: Boolean) = appearanceController.setNavLabel(value)
     fun setUseExternalBrowser(value: Boolean) = appearanceController.setUseExternalBrowser(value)
+    fun setWebDavTransactions(value: Boolean) = appearanceController.setWebDavTransactions(value)
     fun setKeepScreenOn(value: Boolean) = appearanceController.setKeepScreenOn(value)
     fun setMinimizeOnCopy(value: Boolean) = appearanceController.setMinimizeOnCopy(value)
     fun setCloseToTray(value: Boolean) = appearanceController.setCloseToTray(value)

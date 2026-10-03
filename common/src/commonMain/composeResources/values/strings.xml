@@ -2031,6 +2031,7 @@
     <string name="pref_item_permissions_title">Permissions</string>
     <string name="pref_item_features_overview_title">Features overview</string>
     <string name="pref_item_url_override_title">URL overrides</string>
+    <string name="pref_item_webdav_transactions_title">Prefer WebDAV transactions</string>
     <string name="pref_item_agent_approval_scope_title">Approval scope</string>
     <string name="pref_item_agent_approval_scope_connection">Per connection</string>
     <string name="pref_item_agent_approval_scope_process">Per process</string>

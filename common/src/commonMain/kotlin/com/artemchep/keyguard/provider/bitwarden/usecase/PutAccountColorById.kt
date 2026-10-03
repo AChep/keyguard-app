@@ -14,7 +14,7 @@ import com.artemchep.keyguard.common.service.keepass.openKeePassDatabase
 import com.artemchep.keyguard.common.service.keepass.saveKeePassDatabase
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
+import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.usecase.PutAccountColorById
 import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
@@ -125,12 +125,8 @@ internal class PutKeePassAccountColorByIdImpl(
     private val profileRepository: BitwardenProfileRepository,
     private val base64Service: Base64Service,
     private val fileService: FileService,
-    httpClient: HttpClient,
+    private val webDavClientFactory: WebDavClientFactory,
 ) : PutKeePassAccountColorById {
-    private val webDavClientFactory = KtorWebDavClientFactory(
-        httpClient = httpClient,
-    )
-
     override operator fun invoke(
         color: Color,
         token: KeePassToken,

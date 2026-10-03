@@ -2,22 +2,14 @@ package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.service.webdav.toWebDavAuthorization
 import com.artemchep.keyguard.common.usecase.ListWebDavDirectory
 import com.artemchep.keyguard.util.webdav.WebDavClientConfig
-import io.ktor.client.HttpClient
 
-class ListWebDavDirectoryImpl internal constructor(
+class ListWebDavDirectoryImpl(
     private val clientFactory: WebDavClientFactory,
 ) : ListWebDavDirectory {
-    constructor(
-        httpClient: HttpClient,
-    ) : this(
-        clientFactory = KtorWebDavClientFactory(httpClient),
-    )
-
     override fun invoke(
         request: ListWebDavDirectory.Request,
     ): IO<List<ListWebDavDirectory.Child>> = ioEffect {

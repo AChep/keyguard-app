@@ -101,6 +101,8 @@ interface SettingsReadRepository {
 
     fun getMarkdown(): Flow<Boolean>
 
+    fun getWebDavTransactions(): Flow<Boolean>
+
     fun getSshAgent(): Flow<Boolean>
 
     fun getSshAgentApprovalWindow(): Flow<Duration>

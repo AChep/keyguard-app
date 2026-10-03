@@ -10,7 +10,6 @@ import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreF
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.vault.SessionReadRepository
 import com.artemchep.keyguard.di.resolve
-import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.first
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -30,7 +29,7 @@ internal class AppleBackupModule {
             SelectableBackupObjectStoreFactory(
                 localFactory = get(qualifier = named(BackupLocalObjectStoreFactoryTag)),
                 webDavFactory = WebDavBackupObjectStoreFactory(
-                    httpClient = get<HttpClient>(),
+                    webDavClientFactory = get(),
                 ),
             )
         }

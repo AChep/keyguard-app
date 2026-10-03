@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavKeePassFileUrl
 import com.artemchep.keyguard.common.service.webdav.takeFileResourceOrNull
 import com.artemchep.keyguard.util.webdav.WebDavAuthorization
+import com.artemchep.keyguard.util.webdav.WebDavClient
 import com.artemchep.keyguard.util.webdav.WebDavClientConfig
 import com.artemchep.keyguard.util.webdav.WebDavException
 import com.artemchep.keyguard.util.webdav.WebDavResource
@@ -19,48 +20,40 @@ import kotlinx.io.Source
 internal class KeePassDatabaseStorageWebDav(
     private val location: WebDavKeePassFileUrl,
     authorization: WebDavAuthorization?,
-    webDavClientFactory: WebDavClientFactory,
+    private val webDavClientFactory: WebDavClientFactory,
 ) : KeePassDatabaseStorage {
     override val decodeReadAttempts: Int = 2
 
     override fun isRetryableReadFailure(e: Exception): Boolean =
         e is WebDavException && e.isRetryableRead
 
-    private val client = webDavClientFactory.create(
-        WebDavClientConfig(
-            baseUrl = location.baseUrl,
-            authorization = authorization,
-            noCache = true,
-            writeStrategy = WebDavWriteStrategy.AllowLossy,
-        ),
+    private val clientConfig = WebDavClientConfig(
+        baseUrl = location.baseUrl,
+        authorization = authorization,
+        noCache = true,
+        writeStrategy = WebDavWriteStrategy.AllowLossy,
     )
-    private var opened = false
+    private var client: WebDavClient? = null
 
     override suspend fun exists(): Boolean = stat() != null
 
-    override suspend fun stat(): KeePassDatabaseMetadata? {
-        ensureOpen()
-        return client.stat(location.path)
-            ?.takeFileResourceOrNull()
-            ?.toKeePassDatabaseMetadata()
-    }
+    override suspend fun stat(): KeePassDatabaseMetadata? = client()
+        .stat(location.path)
+        ?.takeFileResourceOrNull()
+        ?.toKeePassDatabaseMetadata()
 
-    override suspend fun read(): Source {
-        ensureOpen()
-        return client.read(location.path)
-    }
+    override suspend fun read(): Source = client().read(location.path)
 
     override suspend fun publish(
         mode: KeePassDatabaseWriteMode,
         staged: StagedDatabase,
         expected: KeePassDatabaseMetadata?,
     ): KeePassDatabaseMetadata? {
-        ensureOpen()
         // Prefer verified temp upload followed by MOVE. Some KeePass WebDAV
         // servers do not implement MOVE, so this client may fall back to a
         // direct PUT; the staged database is replayable for that second upload.
         return try {
-            client.write(
+            client().write(
                 path = location.path,
                 mode = when (mode) {
                     KeePassDatabaseWriteMode.Create -> WebDavWriteMode.Create
@@ -86,11 +79,12 @@ internal class KeePassDatabaseStorageWebDav(
         }
     }
 
-    private suspend fun ensureOpen() {
-        if (!opened) {
-            client.open()
-            opened = true
-        }
+    private suspend fun client(): WebDavClient {
+        client?.let { return it }
+        val created = webDavClientFactory.create(clientConfig)
+        created.open()
+        client = created
+        return created
     }
 }
 

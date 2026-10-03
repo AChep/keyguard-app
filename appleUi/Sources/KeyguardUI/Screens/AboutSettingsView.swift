@@ -4,6 +4,7 @@ import KeyguardShared
 struct AboutSettingsView: View {
     @Environment(SessionFactory.self) private var sessions
     @Environment(AppInformationModel.self) private var appInformationModel
+    @Environment(AppPreferencesModel.self) private var preferencesModel
     let item: SettingsItemSnapshot
 
     private enum Dialog: String, Identifiable {
@@ -80,6 +81,15 @@ struct AboutSettingsView: View {
                     Label(L10n.prefItemUrlOverrideTitle, systemImage: "arrow.triangle.branch")
                 }
                 .settingsSearchTarget(.urlRules)
+                Toggle(
+                    L10n.prefItemWebdavTransactionsTitle,
+                    isOn: Binding(
+                        get: { preferencesModel.appPreferences.webDavTransactions },
+                        set: { preferencesModel.setWebDavTransactions($0) }
+                    )
+                )
+                .disabled(!preferencesModel.appPreferences.loaded)
+                .settingsSearchTarget(.webdavTransactions)
             }
             Section {
                 LabeledContent(L10n.prefItemAppVersionTitle, value: appInformationModel.appVersion)

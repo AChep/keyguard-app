@@ -26,6 +26,7 @@ import com.artemchep.keyguard.common.usecase.GetThemeExpressive
 import com.artemchep.keyguard.common.usecase.GetThemeUseAmoledDark
 import com.artemchep.keyguard.common.usecase.GetThemeVariants
 import com.artemchep.keyguard.common.usecase.GetUseExternalBrowser
+import com.artemchep.keyguard.common.usecase.GetWebDavTransactions
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.PutAllowTwoPanelLayoutInLandscape
 import com.artemchep.keyguard.common.usecase.PutAllowTwoPanelLayoutInPortrait
@@ -42,6 +43,7 @@ import com.artemchep.keyguard.common.usecase.PutTheme
 import com.artemchep.keyguard.common.usecase.PutThemeExpressive
 import com.artemchep.keyguard.common.usecase.PutThemeUseAmoledDark
 import com.artemchep.keyguard.common.usecase.PutUseExternalBrowser
+import com.artemchep.keyguard.common.usecase.PutWebDavTransactions
 import com.artemchep.keyguard.copy.CopyEventsSource
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.apple.core.CoreContext
@@ -81,6 +83,8 @@ internal class AppearanceController(
     private val putNavLabel: PutNavLabel by lazy { ctx.koin.get() }
     private val getUseExternalBrowser: GetUseExternalBrowser by lazy { ctx.koin.get() }
     private val putUseExternalBrowser: PutUseExternalBrowser by lazy { ctx.koin.get() }
+    private val getWebDavTransactions: GetWebDavTransactions by lazy { ctx.koin.get() }
+    private val putWebDavTransactions: PutWebDavTransactions by lazy { ctx.koin.get() }
     private val getKeepScreenOn: GetKeepScreenOn by lazy { ctx.koin.get() }
     private val putKeepScreenOn: PutKeepScreenOn by lazy { ctx.koin.get() }
     private val getMinimizeOnCopy: GetMinimizeOnCopy by lazy { ctx.koin.get() }
@@ -223,6 +227,7 @@ internal class AppearanceController(
     fun setMarkdown(value: Boolean) { putMarkdown(value).launchIn(ctx.scope) }
     fun setNavLabel(value: Boolean) { putNavLabel(value).launchIn(ctx.scope) }
     fun setUseExternalBrowser(value: Boolean) { putUseExternalBrowser(value).launchIn(ctx.scope) }
+    fun setWebDavTransactions(value: Boolean) { putWebDavTransactions(value).launchIn(ctx.scope) }
     fun setKeepScreenOn(value: Boolean) { putKeepScreenOn(value).launchIn(ctx.scope) }
     fun setMinimizeOnCopy(value: Boolean) { putMinimizeOnCopy(value).launchIn(ctx.scope) }
     fun setCloseToTray(value: Boolean) { putCloseToTray(value).launchIn(ctx.scope) }
@@ -288,6 +293,8 @@ internal class AppearanceController(
                 preferences.copy(keepScreenOn = keepScreenOn)
             }.combine(getUseExternalBrowser()) { preferences, useExternalBrowser ->
                 preferences.copy(useExternalBrowser = useExternalBrowser)
+            }.combine(getWebDavTransactions()) { preferences, webDavTransactions ->
+                preferences.copy(webDavTransactions = webDavTransactions)
             }.collect { onChange(it) }
         }
         return KeyguardCancellable(job)

@@ -255,7 +255,7 @@ internal class MacosPlatformModule {
         }
         single<CheckWebDavConnection> {
             CheckWebDavConnectionImpl(
-                httpClient = get(),
+                clientFactory = get(),
             )
         }
         single<LogRepositoryKotlin> {

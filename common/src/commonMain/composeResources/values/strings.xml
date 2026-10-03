@@ -755,6 +755,11 @@
     <string name="autofill_unlock_keyguard">Unlock Keyguard</string>
     <string name="autofill_unlock_subtitle">Enter your master password to fill the selected login.</string>
     <string name="autofill_open_keyguard">Open Keyguard</string>
+    <!--
+        Shows up as an entry in the system credential picker when the app
+        requesting passkeys (usually a browser) is not on the privileged apps
+        list. Tapping it opens Keyguard, which offers to grant the privilege -->
+    <string name="autofill_authorize_app">Authorize this app</string>
     <string name="autofill_no_matching_logins">No matching logins</string>
     <string name="autofill_passwords_section">Passwords</string>
     <string name="autofill_verification_codes_section">Verification codes</string>

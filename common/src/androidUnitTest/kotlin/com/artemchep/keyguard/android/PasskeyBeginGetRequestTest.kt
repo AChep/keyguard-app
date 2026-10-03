@@ -2,6 +2,7 @@ package com.artemchep.keyguard.android
 
 import androidx.credentials.exceptions.domerrors.NotAllowedError
 import androidx.credentials.exceptions.publickeycredential.GetPublicKeyCredentialDomException
+import com.artemchep.keyguard.common.exception.credential.CallingAppNotPrivilegedException
 import com.artemchep.keyguard.common.service.passkey.toPasskeyTargetCredentials
 import com.artemchep.keyguard.util.webauthn.PasskeyBase64
 import com.artemchep.keyguard.util.webauthn.PasskeyCredentialId
@@ -73,6 +74,33 @@ class PasskeyBeginGetRequestTest {
         )
 
         assertNull(result.toPasskeyTargetCredentials())
+    }
+
+    @Test
+    fun `begin get origin resolution returns the resolved origin`() {
+        val origin = resolveCredentialProviderBeginGetOriginOrNull {
+            "https://login.example.com"
+        }
+
+        assertEquals("https://login.example.com", origin)
+    }
+
+    @Test
+    fun `begin get origin resolution hides entries when origin can not be resolved`() {
+        val origin = resolveCredentialProviderBeginGetOriginOrNull {
+            throw IllegalStateException("Request origin has an unknown scheme.")
+        }
+
+        assertNull(origin)
+    }
+
+    @Test
+    fun `begin get origin resolution propagates a non-privileged calling app`() {
+        assertFailsWith<CallingAppNotPrivilegedException> {
+            resolveCredentialProviderBeginGetOriginOrNull {
+                throw CallingAppNotPrivilegedException()
+            }
+        }
     }
 
     private fun requestJson(

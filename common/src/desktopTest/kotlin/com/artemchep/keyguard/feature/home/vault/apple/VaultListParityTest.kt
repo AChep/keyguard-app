@@ -593,11 +593,10 @@ class VaultListParityTest {
                 it.source.type == DSecret.Type.Card && it.source.reprompt
             }
 
-            // Named cells: login / card / reprompt-card.
+            // Named cells: login / card.
             for ((cell, item) in listOf(
                 "main-actions-login" to login,
                 "main-actions-card" to card,
-                "main-actions-reprompt-card" to repromptCard,
             )) {
                 val expected = expectedCopyActions(item.source)
                 assertTrue(expected.isNotEmpty(), "[$cell] the shared builder offers actions")
@@ -612,8 +611,8 @@ class VaultListParityTest {
                 }
             }
 
-            // Conceal gating: the plain card leaks its number into the
-            // action subtitle, the reprompt-protected card must not.
+            // The plain card exposes its number in the action subtitle;
+            // the re-prompt card must not offer secret copy actions.
             val cardDescriptors = apple.source.rowActions(card.id)
             val cardNumber = card.source.card?.number.orEmpty()
             assertTrue(cardNumber.isNotEmpty(), "fixture card has a number")
@@ -622,14 +621,16 @@ class VaultListParityTest {
                 cardDescriptors.first { it.id == "vaultList.item.copyCardNumber" }.subtitle,
                 "[main-actions-card] visible card number subtitle",
             )
-            val repromptDescriptors = apple.source.rowActions(repromptCard.id)
-            repromptDescriptors.forEach { descriptor ->
-                assertEquals(
-                    "",
-                    descriptor.subtitle,
-                    "[main-actions-reprompt-card] concealed subtitle of '${descriptor.id}'",
-                )
-            }
+            assertEquals(
+                emptyList(),
+                expectedCopyActions(repromptCard.source),
+                "[main-actions-reprompt-card] the shared builder omits secret copy actions",
+            )
+            assertEquals(
+                emptyList(),
+                apple.source.rowActions(repromptCard.id),
+                "[main-actions-reprompt-card] Apple omits secret copy actions",
+            )
         }
     }
 

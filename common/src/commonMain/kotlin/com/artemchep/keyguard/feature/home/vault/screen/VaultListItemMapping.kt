@@ -165,10 +165,12 @@ internal fun DSecret.buildVaultItemCopyActions(
             title = Res.string.copy_username.wrap(),
             value = login?.username,
         ),
+        // The list cannot ask to confirm access, so do not
+        // offer to copy secrets protected by the re-prompt.
         copy.FlatItemAction(
             id = "vaultList.item.copyPassword",
             title = Res.string.copy_password.wrap(),
-            value = login?.password,
+            value = login?.password.takeUnless { reprompt },
             hidden = concealFields,
         ),
         login?.totp?.run {
@@ -206,13 +208,13 @@ internal fun DSecret.buildVaultItemCopyActions(
         copy.FlatItemAction(
             id = "vaultList.item.copyCardNumber",
             title = Res.string.copy_card_number.wrap(),
-            value = card?.number,
+            value = card?.number.takeUnless { reprompt },
             hidden = concealFields,
         ),
         copy.FlatItemAction(
             id = "vaultList.item.copyCvv",
             title = Res.string.copy_cvv_code.wrap(),
-            value = card?.code,
+            value = card?.code.takeUnless { reprompt },
             hidden = concealFields,
         ),
     )

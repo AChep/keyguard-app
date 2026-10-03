@@ -61,8 +61,8 @@ database's native tags, while Bitwarden items use a
 ## Per-item protection
 
 Sensitive items can demand an extra step: enable the **authentication
-re-prompt** on an item and Keyguard asks you to authenticate again whenever
-the item is viewed or autofilled.
+re-prompt** on an item and Keyguard asks you to authenticate again before it
+reveals, copies or autofills the item's secrets.
 
 ## Password history
 

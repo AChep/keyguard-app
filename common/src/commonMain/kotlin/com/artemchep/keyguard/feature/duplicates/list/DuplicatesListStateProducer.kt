@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.model.isWatchtowerEligible
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
+import com.artemchep.keyguard.common.usecase.CipherMerge
 import com.artemchep.keyguard.common.usecase.CipherToolbox
 import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.GetCanWrite
@@ -36,7 +37,7 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
-import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
+import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessVerify
 import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
@@ -91,6 +92,7 @@ private data class ConfigMapper(
     val concealFields: Boolean,
     val appIcons: Boolean,
     val websiteIcons: Boolean,
+    val canWrite: Boolean,
 )
 
 private data class SelectionData(
@@ -234,11 +236,13 @@ suspend fun RememberStateFlowScope.duplicatesListStateProducer(
         getConcealFields(),
         getAppIcons(),
         getWebsiteIcons(),
-    ) { concealFields, appIcons, websiteIcons ->
+        getCanWrite(),
+    ) { concealFields, appIcons, websiteIcons, canWrite ->
         ConfigMapper(
             concealFields = concealFields,
             appIcons = appIcons,
             websiteIcons = websiteIcons,
+            canWrite = canWrite,
         )
     }.distinctUntilChanged()
 
@@ -371,29 +375,25 @@ suspend fun RememberStateFlowScope.duplicatesListStateProducer(
                             id = group.id,
                         )
                     }
+                    val mergeButton = createMergeButtonOrNull(
+                        group = group,
+                        ciphers = groupedItems
+                            .map { it.source },
+                        cipherMerge = cipherToolbox.cipherMerge,
+                        canWrite = cfg.canWrite,
+                    )
+                    // The merge button closes the group.
+                    val shapeMask = if (mergeButton != null) ShapeState.START else ShapeState.ALL
                     allItems += groupedItems
                         .mapIndexed { index, item ->
                             val shapeState = getShapeState(
                                 list = groupedItems,
                                 index = index,
                                 predicate = { _, _ -> true },
-                            ) and ShapeState.START
+                            ) and shapeMask
                             item.withShape(shapeState)
                         }
-                    allItems += VaultItem2.Button(
-                        id = "merge." + group.id,
-                        title = translate(Res.string.ciphers_action_merge_title),
-                        shapeState = ShapeState.END,
-                        leading = icon(Icons.Outlined.Merge, Icons.Outlined.Add),
-                        onClick = {
-                            val ciphers = groupedItems
-                                .map { it.source }
-                            cipherMergeInto(
-                                cipherMerge = cipherToolbox.cipherMerge,
-                                ciphers = ciphers,
-                            )
-                        },
-                    )
+                    allItems += listOfNotNull(mergeButton)
                     allItems
                 }
         }
@@ -431,6 +431,40 @@ suspend fun RememberStateFlowScope.duplicatesListStateProducer(
             )
             Loadable.Ok(state)
         }
+}
+
+private suspend fun RememberStateFlowScope.createMergeButtonOrNull(
+    group: DSecretDuplicateGroup,
+    ciphers: List<DSecret>,
+    cipherMerge: CipherMerge,
+    canWrite: Boolean,
+): VaultItem2.Button? {
+    if (!canWrite) {
+        return null
+    }
+
+    val verify = createElevatedAccessVerify(
+        required = ciphers.any { it.reprompt },
+    )
+    return VaultItem2.Button(
+        id = "merge." + group.id,
+        title = translate(Res.string.ciphers_action_merge_title),
+        shapeState = ShapeState.END,
+        leading = icon(Icons.Outlined.Merge, Icons.Outlined.Add),
+        onClick = {
+            val block = {
+                cipherMergeInto(
+                    cipherMerge = cipherMerge,
+                    ciphers = ciphers,
+                )
+            }
+            if (verify != null) {
+                verify(block)
+            } else {
+                block()
+            }
+        },
+    )
 }
 
 fun RememberStateFlowScope.createCipherSelectionFlow(
@@ -510,17 +544,9 @@ private fun RememberStateFlowScope.createCipherSelectionFlow(
     val canEdit = canWrite && !hasCanNotEditCiphers && !hasCanNotWriteCiphers
     val canDelete = canWrite && !hasCanNotDeleteCiphers && !hasCanNotWriteCiphers
 
-    val verify: ((() -> Unit) -> Unit)? = if (hasRepromptCiphers) {
-        // lambda
-        { block ->
-            val intent = createElevatedAccessDialogIntent {
-                block()
-            }
-            navigate(intent)
-        }
-    } else {
-        null
-    }
+    val verify = createElevatedAccessVerify(
+        required = hasRepromptCiphers,
+    )
 
     val actions = mutableListOf<FlatItemAction>()
     // If any of the ciphers can be favourite-d, then we

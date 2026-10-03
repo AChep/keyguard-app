@@ -45,11 +45,10 @@ Security key enrollment is local to each device. Keep your app password: it
 still unlocks the vault if the key is lost, reset, or unavailable. Changing the
 app password removes FIDO2 enrollment; enable it again with your key afterward.
 
-Individual items can additionally require re-authentication before they are
-viewed or autofilled — see the
-[authentication re-prompt](/docs/items/#per-item-protection). When such an
-item is opened, Keyguard shows a **Confirm access** prompt that accepts your
-app password or biometrics.
+Individual items can additionally require re-authentication before their
+secrets are revealed, copied or autofilled — see the
+[authentication re-prompt](/docs/items/#per-item-protection). Keyguard then
+asks for your app password or biometrics.
 
 ### Android
 

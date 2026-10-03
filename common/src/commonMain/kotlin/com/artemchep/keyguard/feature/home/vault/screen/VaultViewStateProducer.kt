@@ -188,7 +188,7 @@ import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
 import com.artemchep.keyguard.feature.barcodetype.createBarcodeTypeHistoryKey
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
-import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
+import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessVerify
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
@@ -941,19 +941,15 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
         reprompt: Boolean = defaultReprompt,
         block: () -> Unit,
     ) {
-        if (reprompt) {
-            // Handle the re-prompt protection
-            if (!fff.value) {
-                val intent = createElevatedAccessDialogIntent {
-                    fff.value = true
-                    block()
-                }
-                navigate(intent)
-                return
-            }
+        val verify = createElevatedAccessVerify(
+            required = reprompt,
+            granted = fff,
+        )
+        if (verify != null) {
+            verify(block)
+        } else {
+            block()
         }
-
-        block()
     }
 
     fun onLaunchEdit(
@@ -1017,22 +1013,19 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
             isCtrlPressed = true,
         ) to secretFlow
             .map { cipher ->
-                val primaryFieldPair =
-                    pairUnlessEmpty(cipher?.login?.username, CopyText.Type.USERNAME)
-                        ?: pairUnlessEmpty(cipher?.card?.number, CopyText.Type.CARD_NUMBER)
-                        ?: pairUnlessEmpty(cipher?.identity?.email, CopyText.Type.EMAIL)
-                        ?: pairUnlessEmpty(cipher?.identity?.phone, CopyText.Type.PHONE_NUMBER)
-                        ?: pairUnlessEmpty(cipher?.sshKey?.publicKey, CopyText.Type.PUBLIC_KEY)
-                        ?: pairUnlessEmpty(cipher?.getGpgAgentPublicKeyArmored(), CopyText.Type.PUBLIC_KEY)
-                        ?: pairUnlessEmpty(cipher?.notes, CopyText.Type.VALUE)
-                if (primaryFieldPair == null) {
+                if (cipher == null) {
                     return@map null
                 }
+                val primaryCopy = vaultViewPrimaryCopy(cipher)
+                    ?: return@map null
 
+                val performCopy = {
+                    copy.copy(primaryCopy.value, primaryCopy.secret, primaryCopy.type)
+                }
+                val needsRePrompt = cipher.reprompt && primaryCopy.secret
                 // lambda
-                {
-                    val (value, type) = primaryFieldPair
-                    copy.copy(value, false, type)
+                shortcut@{
+                    executeWithRePrompt(needsRePrompt, performCopy)
                 }
             },
         // Ctrl+Shift+C: Copy the secret field value
@@ -1282,22 +1275,10 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
         val content = when {
             accountOrNull == null || secretOrNull == null -> VaultViewState.Content.NotFound
             else -> {
-                val verify: ((() -> Unit) -> Unit)? = if (secretOrNull.reprompt) {
-                    // composable
-                    { block ->
-                        if (!fff.value) {
-                            val intent = createElevatedAccessDialogIntent {
-                                fff.value = true
-                                block()
-                            }
-                            navigate(intent)
-                        } else {
-                            block()
-                        }
-                    }
-                } else {
-                    null
-                }
+                val verify = createElevatedAccessVerify(
+                    required = secretOrNull.reprompt,
+                    granted = fff,
+                )
 
                 // Find ciphers that have some limitations
                 val hasCanNotWriteCiphers = collections.any { it.readOnly }
@@ -4679,6 +4660,46 @@ private fun GpgPublicSubKeyInfo.formatGpgAlgorithm(): String? {
     return values
         .joinToString(separator = " ")
         .takeIf { it.isNotBlank() }
+}
+
+internal data class VaultViewPrimaryCopy(
+    val value: String,
+    val type: CopyText.Type,
+    /**
+     * `true` if the value is a secret: it gets copied as
+     * sensitive and is protected by the re-prompt.
+     */
+    val secret: Boolean,
+)
+
+/**
+ * Picks the value that the Ctrl+C shortcut copies,
+ * or `null` if the cipher has none.
+ */
+internal fun vaultViewPrimaryCopy(
+    cipher: DSecret,
+): VaultViewPrimaryCopy? {
+    fun of(
+        value: String?,
+        type: CopyText.Type,
+        secret: Boolean = false,
+    ) = value
+        ?.takeIf { it.isNotEmpty() }
+        ?.let {
+            VaultViewPrimaryCopy(
+                value = it,
+                type = type,
+                secret = secret,
+            )
+        }
+
+    return of(cipher.login?.username, CopyText.Type.USERNAME)
+        ?: of(cipher.card?.number, CopyText.Type.CARD_NUMBER, secret = true)
+        ?: of(cipher.identity?.email, CopyText.Type.EMAIL)
+        ?: of(cipher.identity?.phone, CopyText.Type.PHONE_NUMBER)
+        ?: of(cipher.sshKey?.publicKey, CopyText.Type.PUBLIC_KEY)
+        ?: of(cipher.getGpgAgentPublicKeyArmored(), CopyText.Type.PUBLIC_KEY)
+        ?: of(cipher.notes, CopyText.Type.VALUE, secret = true)
 }
 
 @JvmName("verifyContextItemList")

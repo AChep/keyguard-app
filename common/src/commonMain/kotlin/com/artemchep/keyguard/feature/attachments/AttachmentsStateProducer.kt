@@ -42,7 +42,7 @@ import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFa
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
-import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
+import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessVerify
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
@@ -281,17 +281,9 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
                                 )
                                 removeAttachment(listOf(request))
                             }
-                            val verify: ((() -> Unit) -> Unit)? = if (cipher.reprompt) {
-                                // lambda
-                                { block ->
-                                    val intent = createElevatedAccessDialogIntent {
-                                        block()
-                                    }
-                                    navigate(intent)
-                                }
-                            } else {
-                                null
-                            }
+                            val verify = createElevatedAccessVerify(
+                                required = cipher.reprompt,
+                            )
                             flow<ItemCipher> {
                                 coroutineScope {
                                     val actualItem = createAttachmentItem(

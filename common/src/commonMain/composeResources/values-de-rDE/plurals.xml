@@ -8,6 +8,10 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Vorkommen</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Vorkommnisse</item>
     </plurals>
+    <plurals name="reused_password_items_count_plural">
+        <item quantity="one">Used by <xliff:g id="number" example="1">%1$d</xliff:g> item</item>
+        <item quantity="other">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+    </plurals>
     <plurals name="word_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Wort</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Wörter</item>
@@ -143,5 +147,10 @@
     <plurals name="gpg_keyserver_upload_verify_requested_plural">
         <item quantity="one">Verification e-mail requested for <xliff:g id="number" example="1">%1$s</xliff:g> address</item>
         <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+    </plurals>
+    <!-- Automatic backups -->
+    <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
+        <item quantity="one">Keep %1$d snapshot</item>
+        <item quantity="other">Keep %1$d snapshots</item>
     </plurals>
 </resources>

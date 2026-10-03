@@ -187,8 +187,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 6126,
-    "target": 6861,
+    "translated": 6701,
+    "target": 7517,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -2004,8 +2004,8 @@
   {
     "user": {
       "id": "17898117",
-      "username": "LeDimigit",
-      "fullName": "LeDimigit",
+      "username": "Le_crowdim",
+      "fullName": "Le_crowdim",
       "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17898117/medium/56c72032deede0f05e8aa3912d247340.png",
       "joined": "2026-09-14 11:49:18"
     },
@@ -2015,8 +2015,30 @@
         "name": "French"
       }
     ],
-    "translated": 2782,
-    "target": 3297,
+    "translated": 4800,
+    "target": 5798,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "17922929",
+      "username": "nassaf1",
+      "fullName": "Nesma Assaf (nassaf1)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17922929/medium/5cc44e3282451a428fb127e5759f2079.png",
+      "joined": "2026-10-02 09:09:25"
+    },
+    "languages": [
+      {
+        "id": "ar",
+        "name": "Arabic"
+      }
+    ],
+    "translated": 521,
+    "target": 543,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -2081,8 +2103,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 11623,
-    "target": 13132,
+    "translated": 12980,
+    "target": 14769,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

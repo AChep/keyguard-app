@@ -9,6 +9,7 @@ import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.CancellationSignal
 import android.service.autofill.*
+import android.view.autofill.AutofillId
 import android.widget.RemoteViews
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.RequiresApi
@@ -20,6 +21,7 @@ import arrow.optics.Getter
 import com.artemchep.keyguard.android.AutofillActivity
 import com.artemchep.keyguard.android.AutofillFakeAuthActivity
 import com.artemchep.keyguard.android.AutofillSaveActivity
+import com.artemchep.keyguard.android.AutofillVerifyActivity
 import com.artemchep.keyguard.android.MainActivity
 import com.artemchep.keyguard.android.PendingIntents
 import com.artemchep.keyguard.android.autofill.v2.DefaultStructureParserV2
@@ -646,7 +648,9 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
         val title = secret.name
         val text = kotlin.run {
             secret.login?.username?.also { return@run it }
-            secret.card?.number?.also { return@run it }
+            secret.card?.number
+                ?.takeUnless { secret.reprompt }
+                ?.also { return@run it }
             secret.uris.firstOrNull()
                 ?.uri
                 ?.also { return@run it }
@@ -662,14 +666,17 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
             structItems = struct.items,
             getTotpCode = getTotpCode,
         )
+        val datasetFields = DatasetBuilder.fields(
+            structItems = struct.items,
+            structData = fields,
+        )
 
-        fun createDatasetBuilder(): Dataset.Builder {
+        fun createDatasetBuilder(
+            values: Map<AutofillId, DatasetBuilder.FieldData?> = datasetFields,
+        ): Dataset.Builder {
             val builder = DatasetBuilder.create(
                 menuPresentation = views,
-                fields = DatasetBuilder.fields(
-                    structItems = struct.items,
-                    structData = fields,
-                ),
+                fields = values,
                 provideInlinePresentation = provideInlinePresentation,
             )
             builder.setId(secret.id)
@@ -700,11 +707,17 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
             // Authentication is optional; return the fillable dataset without it.
         }
 
-        return try {
-            builder.build()
-        } catch (_: Exception) {
-            null // not a single value set
-        }
+        // The re-prompt protects the values, so offer a dataset
+        // without them that fills the fields after the user verifies.
+        return AutofillVerifyActivity.buildDatasetOrNull(
+            context = this,
+            builder = builder,
+            createEmptyBuilder = {
+                createDatasetBuilder(datasetFields.mapValues { null })
+            },
+            cipherName = secret.name,
+            requiresUserVerification = secret.reprompt,
+        )
     }
 
     @RequiresApi(Build.VERSION_CODES.R)

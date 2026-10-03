@@ -84,6 +84,10 @@
             android:taskAffinity=""
             tools:node="remove" />
         <activity
+            android:name="com.artemchep.keyguard.android.AutofillVerifyActivity"
+            android:taskAffinity=""
+            tools:node="remove" />
+        <activity
             android:name="com.artemchep.keyguard.android.PasskeyCreateActivity"
             android:taskAffinity=""
             tools:ignore="NewApi"

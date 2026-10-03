@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.service.autofill.Dataset
 import android.view.View
+import android.view.autofill.AutofillId
 import android.view.autofill.AutofillManager
 import android.widget.RemoteViews
 import androidx.compose.foundation.layout.Column
@@ -37,14 +38,18 @@ import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.model.AutofillHint
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.di.KeyguardKoinOwner
 import com.artemchep.keyguard.pick
 import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.theme.Dimens
+import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
@@ -74,6 +79,12 @@ class AutofillActivity : BaseActivity(), KeyguardKoinOwner {
         koin.get()
     }
 
+    private val getVaultSession: GetVaultSession by lazy {
+        koin.get()
+    }
+
+    private val startedAt = Clock.System.now()
+
     private val args by lazy {
         intent.extras?.getParcelableCompat<Args>(KEY_ARGUMENTS)
             ?: Args(
@@ -86,12 +97,15 @@ class AutofillActivity : BaseActivity(), KeyguardKoinOwner {
         secret: DSecret,
         forceAddUri: Boolean,
         struct: AutofillStructure2,
+        requiresUserVerification: Boolean,
     ): Dataset? = withContext(Dispatchers.Default) {
         val views = RemoteViews(context.packageName, R.layout.item_autofill_entry).apply {
             setTextViewText(R.id.autofill_entry_name, secret.name)
             val username = kotlin.run {
                 secret.login?.username?.also { return@run it }
-                secret.card?.number?.also { return@run it }
+                secret.card?.number
+                    ?.takeUnless { secret.reprompt }
+                    ?.also { return@run it }
                 secret.uris.firstOrNull()
                     ?.uri
                     ?.also { return@run it }
@@ -108,14 +122,17 @@ class AutofillActivity : BaseActivity(), KeyguardKoinOwner {
             structItems = struct.items,
             getTotpCode = getTotpCode,
         )
+        val datasetFields = DatasetBuilder.fields(
+            structItems = struct.items,
+            structData = fields,
+        )
 
-        fun createDatasetBuilder(): Dataset.Builder {
+        fun createDatasetBuilder(
+            values: Map<AutofillId, DatasetBuilder.FieldData?> = datasetFields,
+        ): Dataset.Builder {
             val builder = DatasetBuilder.create(
                 menuPresentation = views,
-                fields = DatasetBuilder.fields(
-                    structItems = struct.items,
-                    structData = fields,
-                ),
+                fields = values,
                 // we are not rendering those anyway
                 provideInlinePresentation = { null },
             )
@@ -146,11 +163,17 @@ class AutofillActivity : BaseActivity(), KeyguardKoinOwner {
             // Authentication is optional; return the fillable dataset without it.
         }
 
-        try {
-            builder.build()
-        } catch (_: Exception) {
-            null // not a single value set
-        }
+        // The re-prompt protects the values, so return a dataset
+        // without them that fills the fields after the user verifies.
+        AutofillVerifyActivity.buildDatasetOrNull(
+            context = this@AutofillActivity,
+            builder = builder,
+            createEmptyBuilder = {
+                createDatasetBuilder(datasetFields.mapValues { null })
+            },
+            cipherName = secret.name,
+            requiresUserVerification = requiresUserVerification,
+        )
     }
 
     private fun autofill(
@@ -160,11 +183,20 @@ class AutofillActivity : BaseActivity(), KeyguardKoinOwner {
         val struct = args.autofillStructure2
             ?: return
         lifecycleScope.launch {
+            // Unlocking the vault from this screen
+            // already verifies the user.
+            val userVerified = kotlin.run {
+                val session = getVaultSession().first() as? MasterSession.Key
+                    ?: return@run false
+                session.createdAt > startedAt &&
+                        session.origin is MasterSession.Key.Authenticated
+            }
             val dataset = tryBuildDataset(
                 context = this@AutofillActivity,
                 secret = secret,
                 forceAddUri = forceAddUri,
                 struct = struct,
+                requiresUserVerification = secret.reprompt && !userVerified,
             )
             if (dataset != null) {
                 val intent = Intent().apply {

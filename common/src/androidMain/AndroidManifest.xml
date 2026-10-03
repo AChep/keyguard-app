@@ -224,6 +224,14 @@
             android:noHistory="true"
             android:taskAffinity=":autofill_fake_auth" />
         <activity
+            android:name="com.artemchep.keyguard.android.AutofillVerifyActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":autofill"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name="com.artemchep.keyguard.android.sshagent.SshRequestActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:excludeFromRecents="true"

@@ -1,10 +1,11 @@
 package com.artemchep.keyguard.util.foundation.crypto
 
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class HashKatTest {
-    private val crypto = PlatformCryptoPrimitives()
+    private val crypto = NativeCrypto.primitives
 
     @Test
     fun sha256EmptyInput() {

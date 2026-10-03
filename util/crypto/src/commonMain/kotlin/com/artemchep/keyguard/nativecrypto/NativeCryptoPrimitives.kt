@@ -251,7 +251,7 @@ public object NativeCryptoPrimitives {
         }
         return try {
             collectNativeStreamToExpectedSize(
-                session = NativeCrypto.openHmac(proto, streamKey),
+                session = openHmacSession(proto, streamKey),
                 input = data,
                 expectedOutputSize = expectedOutputSize,
                 operation = "hmac",
@@ -271,7 +271,7 @@ public object NativeCryptoPrimitives {
             key
         }
         return try {
-            NativeCrypto.openHmac(algorithm.toProto(), streamKey)
+            openHmacSession(algorithm.toProto(), streamKey)
                 .withExpectedFinalOutputSize(
                     operation = "hmac.stream_finish",
                     expectedSize = algorithm.outputSizeBytes(),
@@ -293,7 +293,7 @@ public object NativeCryptoPrimitives {
     public fun createDigest(
         algorithm: NativeHashAlgorithm,
     ): NativeCryptoSession =
-        NativeCrypto.openDigest(algorithm.toProto())
+        openDigestSession(algorithm.toProto())
             .withExpectedFinalOutputSize(
                 operation = "digest.stream_finish",
                 expectedSize = algorithm.outputSizeBytes(),
@@ -467,76 +467,6 @@ public object NativeCryptoPrimitives {
         }
     }
 
-    internal fun aesCbcPkcs7HmacSha256EncryptViaProtobuf(
-        encryptionKey: ByteArray,
-        macKey: ByteArray,
-        iv: ByteArray,
-        plaintext: ByteArray,
-    ): NativeAesCbcHmacSha256Result {
-        requireValidAesKey(encryptionKey)
-        require(iv.size == AES_BLOCK_BYTES) { "AES-CBC IV must be 16 bytes" }
-        val expectedCiphertextSize = aesCbcHmacEncryptedSize(plaintext.size)
-        val encodedResult = NativeCrypto.call(
-            operationName = AES_CBC_HMAC_SHA256_ENCRYPT_OPERATION,
-            operation = AesCbcPkcs7HmacSha256EncryptOperationProto(
-                AesCbcPkcs7HmacSha256EncryptRequestProto(
-                    encryptionKey = encryptionKey,
-                    macKey = macKey,
-                    iv = iv,
-                    plaintext = plaintext,
-                ),
-            ),
-        ).requireBytes(AES_CBC_HMAC_SHA256_ENCRYPT_OPERATION)
-        return try {
-            val result = decodeFusedEncryptionResult(encodedResult)
-            if (result.ciphertext.size != expectedCiphertextSize || result.mac.size != HMAC_SHA256_BYTES) {
-                result.ciphertext.fill(0)
-                result.mac.fill(0)
-                throw NativeCryptoException(
-                    operation = AES_CBC_HMAC_SHA256_ENCRYPT_OPERATION,
-                    code = NativeCryptoErrorCode.MALFORMED_RESPONSE,
-                )
-            }
-            NativeAesCbcHmacSha256Result(
-                ciphertext = result.ciphertext,
-                mac = result.mac,
-            )
-        } finally {
-            encodedResult.fill(0)
-        }
-    }
-
-    internal fun aesCbcPkcs7HmacSha256DecryptViaProtobuf(
-        encryptionKey: ByteArray,
-        macKey: ByteArray,
-        iv: ByteArray,
-        ciphertext: ByteArray,
-        expectedMac: ByteArray,
-    ): ByteArray {
-        requireValidAesKey(encryptionKey)
-        require(iv.size == AES_BLOCK_BYTES) { "AES-CBC IV must be 16 bytes" }
-        val plaintext = NativeCrypto.call(
-            operationName = AES_CBC_HMAC_SHA256_DECRYPT_OPERATION,
-            operation = AesCbcPkcs7HmacSha256DecryptOperationProto(
-                AesCbcPkcs7HmacSha256DecryptRequestProto(
-                    encryptionKey = encryptionKey,
-                    macKey = macKey,
-                    iv = iv,
-                    ciphertext = ciphertext,
-                    expectedMac = expectedMac,
-                ),
-            ),
-        ).requireBytes(AES_CBC_HMAC_SHA256_DECRYPT_OPERATION)
-        if (plaintext.size >= ciphertext.size) {
-            plaintext.fill(0)
-            throw NativeCryptoException(
-                operation = AES_CBC_HMAC_SHA256_DECRYPT_OPERATION,
-                code = NativeCryptoErrorCode.MALFORMED_RESPONSE,
-            )
-        }
-        return plaintext
-    }
-
     public fun createAesCbcPkcs7Encryptor(
         key: ByteArray,
         iv: ByteArray,
@@ -581,10 +511,15 @@ public object NativeCryptoPrimitives {
         requireValidAesKey(encryptionKey)
         require(iv.size == AES_BLOCK_BYTES) { "AES-CBC IV must be 16 bytes" }
         return NativeAesCbcPkcs7HmacSha256EncryptSessionImpl(
-            delegate = NativeCrypto.openAesCbcPkcs7HmacSha256Encrypt(
-                encryptionKey = encryptionKey,
-                macKey = macKey,
-                iv = iv,
+            delegate = NativeCrypto.openSession(
+                operationName = "aes_cbc_pkcs7_hmac_sha256_encrypt.stream_open",
+                operation = AesCbcPkcs7HmacSha256EncryptStreamOpenOperationProto(
+                    AesCbcPkcs7HmacSha256EncryptStreamOpenRequestProto(
+                        encryptionKey = encryptionKey,
+                        macKey = macKey,
+                        iv = iv,
+                    ),
+                ),
             ),
         )
     }
@@ -598,11 +533,16 @@ public object NativeCryptoPrimitives {
         requireValidAesKey(encryptionKey)
         require(iv.size == AES_BLOCK_BYTES) { "AES-CBC IV must be 16 bytes" }
         return NativeAesCbcPkcs7HmacSha256DecryptSessionImpl(
-            delegate = NativeCrypto.openAesCbcPkcs7HmacSha256Decrypt(
-                encryptionKey = encryptionKey,
-                macKey = macKey,
-                iv = iv,
-                expectedMac = expectedMac,
+            delegate = NativeCrypto.openSession(
+                operationName = "aes_cbc_pkcs7_hmac_sha256_decrypt.stream_open",
+                operation = AesCbcPkcs7HmacSha256DecryptStreamOpenOperationProto(
+                    AesCbcPkcs7HmacSha256DecryptStreamOpenRequestProto(
+                        encryptionKey = encryptionKey,
+                        macKey = macKey,
+                        iv = iv,
+                        expectedMac = expectedMac,
+                    ),
+                ),
             ),
         )
     }
@@ -736,18 +676,6 @@ public object NativeCryptoPrimitives {
         }
     }
 
-    public fun twofishCbcPkcs7Encrypt(
-        key: ByteArray,
-        iv: ByteArray,
-        data: ByteArray,
-    ): ByteArray = twofishCbcPkcs7(CipherDirectionProto.ENCRYPT, key, iv, data)
-
-    public fun twofishCbcPkcs7Decrypt(
-        key: ByteArray,
-        iv: ByteArray,
-        data: ByteArray,
-    ): ByteArray = twofishCbcPkcs7(CipherDirectionProto.DECRYPT, key, iv, data)
-
     private fun digest(
         algorithm: NativeHashAlgorithm,
         data: ByteArray,
@@ -764,7 +692,7 @@ public object NativeCryptoPrimitives {
                 .requireNativeCryptoOutputSize("digest", expectedOutputSize)
         } else {
             collectNativeStreamToExpectedSize(
-                session = NativeCrypto.openDigest(proto),
+                session = openDigestSession(proto),
                 input = data,
                 expectedOutputSize = expectedOutputSize,
                 operation = "digest",
@@ -890,14 +818,14 @@ public object NativeCryptoPrimitives {
             ).requireBytes(AES_CBC_OPERATION)
         } else if (direction == CipherDirectionProto.ENCRYPT) {
             collectNativeStreamToExpectedSize(
-                session = NativeCrypto.openAesCbcPkcs7(direction, key, iv),
+                session = openAesCbcPkcs7(direction, key, iv),
                 input = data,
                 expectedOutputSize = aesCbcEncryptedSize(data.size),
                 operation = AES_CBC_OPERATION,
             )
         } else {
             collectNativeStream(
-                session = NativeCrypto.openAesCbcPkcs7(direction, key, iv),
+                session = openAesCbcPkcs7(direction, key, iv),
                 input = data,
             )
         }
@@ -916,7 +844,16 @@ public object NativeCryptoPrimitives {
     ): NativeCryptoSession {
         requireValidAesKey(key)
         require(iv.size == AES_BLOCK_BYTES) { "AES-CBC IV must be 16 bytes" }
-        return NativeCrypto.openAesCbcPkcs7(direction, key, iv)
+        return NativeCrypto.openSession(
+            operationName = "aes_cbc_pkcs7.stream_open",
+            operation = AesCbcPkcs7StreamOpenOperationProto(
+                AesCbcPkcs7StreamOpenRequestProto(
+                    direction = direction,
+                    key = key,
+                    iv = iv,
+                ),
+            ),
+        )
     }
 
     private fun openTwofishCbcPkcs7(
@@ -926,58 +863,40 @@ public object NativeCryptoPrimitives {
     ): NativeCryptoSession {
         requireValidBlockCipherKey("Twofish", key)
         require(iv.size == AES_BLOCK_BYTES) { "Twofish-CBC IV must be 16 bytes" }
-        return NativeCrypto.openTwofishCbcPkcs7(direction, key, iv)
+        return NativeCrypto.openSession(
+            operationName = "twofish_cbc_pkcs7.stream_open",
+            operation = TwofishCbcPkcs7StreamOpenOperationProto(
+                TwofishCbcPkcs7StreamOpenRequestProto(
+                    direction = direction,
+                    key = key,
+                    iv = iv,
+                ),
+            ),
+        )
     }
+
+    private fun openHmacSession(
+        algorithm: HashAlgorithmProto,
+        key: ByteArray,
+    ): NativeCryptoSession = NativeCrypto.openSession(
+        operationName = "hmac.stream_open",
+        operation = HmacStreamOpenOperationProto(
+            HmacStreamOpenRequestProto(algorithm = algorithm, key = key),
+        ),
+    )
+
+    private fun openDigestSession(
+        algorithm: HashAlgorithmProto,
+    ): NativeCryptoSession = NativeCrypto.openSession(
+        operationName = "digest.stream_open",
+        operation = DigestStreamOpenOperationProto(
+            DigestStreamOpenRequestProto(algorithm),
+        ),
+    )
 
     private fun NativeRsaOaepHash.toProto(): RsaOaepHashProto = when (this) {
         NativeRsaOaepHash.SHA_1 -> RsaOaepHashProto.SHA1
         NativeRsaOaepHash.SHA_256 -> RsaOaepHashProto.SHA256
-    }
-
-    private fun twofishCbcPkcs7(
-        direction: CipherDirectionProto,
-        key: ByteArray,
-        iv: ByteArray,
-        data: ByteArray,
-    ): ByteArray {
-        requireValidBlockCipherKey("Twofish", key)
-        require(iv.size == AES_BLOCK_BYTES) { "Twofish-CBC IV must be 16 bytes" }
-        if (direction == CipherDirectionProto.DECRYPT) {
-            require(data.isNotEmpty() && data.size % AES_BLOCK_BYTES == 0) {
-                "Twofish-CBC ciphertext must contain complete blocks"
-            }
-        }
-        val output = if (data.size <= NATIVE_CRYPTO_INLINE_DATA_BYTES) {
-            NativeCrypto.call(
-                operationName = TWOFISH_OPERATION,
-                operation = TwofishCbcPkcs7OperationProto(
-                    TwofishCbcPkcs7RequestProto(
-                        direction = direction,
-                        key = key,
-                        iv = iv,
-                        data = data,
-                    ),
-                ),
-            ).requireBytes(TWOFISH_OPERATION)
-        } else if (direction == CipherDirectionProto.ENCRYPT) {
-            collectNativeStreamToExpectedSize(
-                session = NativeCrypto.openTwofishCbcPkcs7(direction, key, iv),
-                input = data,
-                expectedOutputSize = cbcEncryptedSize(data.size, TWOFISH_OPERATION),
-                operation = TWOFISH_OPERATION,
-            )
-        } else {
-            collectNativeStream(
-                session = NativeCrypto.openTwofishCbcPkcs7(direction, key, iv),
-                input = data,
-            )
-        }
-        return output.requireNativeCryptoCbcOutputShape(
-            operation = TWOFISH_OPERATION,
-            direction = direction,
-            inputSize = data.size,
-            blockSize = AES_BLOCK_BYTES,
-        )
     }
 
     private fun processAesEcbChunks(
@@ -1082,7 +1001,6 @@ public object NativeCryptoPrimitives {
     private const val MAX_AES_TRANSFORM_BLOCK_ROUNDS: Long = 200_000_000L
     private const val AES_CBC_OPERATION: String = "aes_cbc_pkcs7"
     private const val STREAM_CIPHER_OPERATION: String = "stream_cipher_xor_at_offset"
-    private const val TWOFISH_OPERATION: String = "twofish_cbc_pkcs7"
     private const val SSH_AGENT_TCP_CHACHA20_POLY1305_OPERATION: String =
         "ssh_agent_tcp_chacha20_poly1305"
     private const val AES_CBC_HMAC_SHA256_ENCRYPT_OPERATION: String =

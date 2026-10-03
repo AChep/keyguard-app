@@ -4,23 +4,21 @@ package keyguard.nativecrypto.v1;
 
 message NativeRequest {
   uint32 protocol_version = 1;
-  reserved 47;
-  reserved "ssh_key_export_pkcs8";
+  reserved 14, 19, 22, 31, 47, 56;
+  reserved "random_int", "random_ints", "twofish_cbc_pkcs7", "ssh_private_key_format";
+  reserved "ssh_key_export_pkcs8", "open_pgp_certificate_material_reconcile";
 
   oneof operation {
     HkdfSha256Request hkdf_sha256 = 10;
     Pbkdf2Sha256Request pbkdf2_sha256 = 11;
     Argon2Request argon2 = 12;
     RandomBytesRequest random_bytes = 13;
-    RandomIntRequest random_int = 14;
     HmacRequest hmac = 15;
     DigestRequest digest = 16;
     AesEcbNoPaddingEncryptRequest aes_ecb_no_padding_encrypt = 17;
     AesCbcPkcs7Request aes_cbc_pkcs7 = 18;
-    RandomIntsRequest random_ints = 19;
     AesEcbNoPaddingTransformRequest aes_ecb_no_padding_transform = 20;
     StreamCipherXorAtOffsetRequest stream_cipher_xor_at_offset = 21;
-    TwofishCbcPkcs7Request twofish_cbc_pkcs7 = 22;
     RsaOaepEncryptRequest rsa_oaep_encrypt = 23;
     RsaOaepDecryptRequest rsa_oaep_decrypt = 24;
     RsaPkcs8ToSpkiRequest rsa_pkcs8_to_spki = 25;
@@ -29,7 +27,6 @@ message NativeRequest {
     SshKeyParseRequest ssh_key_parse = 28;
     SshKeyDescribeRequest ssh_key_describe = 29;
     SshPrivateKeyRsaBitsRequest ssh_private_key_rsa_bits = 30;
-    SshPrivateKeyFormatRequest ssh_private_key_format = 31;
     SshAgentSignRequest ssh_agent_sign = 32;
     SshPrivateKeyImportRequest ssh_private_key_import = 33;
     OpenPgpPublicKeyParseRequest open_pgp_public_key_parse = 34;
@@ -52,7 +49,6 @@ message NativeRequest {
     SshPublicKeyDecodeRequest ssh_public_key_decode = 52;
     OpenPgpUserIdRevocationRequest open_pgp_user_id_revocation = 54;
     OpenPgpUserIdReplacementRequest open_pgp_user_id_replacement = 55;
-    OpenPgpCertificateMaterialReconcileRequest open_pgp_certificate_material_reconcile = 56;
     OpenPgpCertificateMaterialReconcileV2Request open_pgp_certificate_material_reconcile_v2 = 57;
     OpenPgpUserIdCertificationEvaluateRequest open_pgp_user_id_certification_evaluate = 58;
     OpenPgpStreamDrainRequest open_pgp_stream_drain = 59;
@@ -67,9 +63,10 @@ message OpenPgpStreamDrainRequest {
 
 message NativeStreamOpenRequest {
   uint32 protocol_version = 1;
+  reserved 10;
+  reserved "hmac_sha256";
 
   oneof operation {
-    HmacSha256StreamOpenRequest hmac_sha256 = 10;
     DigestStreamOpenRequest digest = 11;
     HmacStreamOpenRequest hmac = 12;
     AesCbcPkcs7StreamOpenRequest aes_cbc_pkcs7 = 13;
@@ -83,10 +80,6 @@ message NativeStreamOpenRequest {
     OpenPgpClearSignStreamOpenRequest open_pgp_clear_sign = 21;
     OpenPgpClearVerifyStreamOpenRequest open_pgp_clear_verify = 22;
   }
-}
-
-message HmacSha256StreamOpenRequest {
-  bytes key = 1;
 }
 
 message DigestStreamOpenRequest {
@@ -161,20 +154,6 @@ message Argon2Request {
 
 message RandomBytesRequest {
   uint32 length = 1;
-}
-
-message RandomIntRequest {
-  // False returns an arbitrary signed 32-bit value. True returns [0, bound).
-  bool bounded = 1;
-  uint32 exclusive_upper_bound = 2;
-}
-
-message RandomIntsRequest {
-  // False returns arbitrary signed 32-bit values. True returns values in [0, bound).
-  bool bounded = 1;
-  uint32 exclusive_upper_bound = 2;
-  // Batched calls are limited to 1024 values.
-  uint32 count = 3;
 }
 
 enum HashAlgorithm {
@@ -259,13 +238,6 @@ message StreamCipherXorAtOffsetRequest {
   bytes data = 5;
 }
 
-message TwofishCbcPkcs7Request {
-  CipherDirection direction = 1;
-  bytes key = 2;
-  bytes iv = 3;
-  bytes data = 4;
-}
-
 enum RsaOaepHash {
   RSA_OAEP_HASH_UNSPECIFIED = 0;
   RSA_OAEP_HASH_SHA1 = 1;
@@ -321,11 +293,6 @@ message SshKeyDescribeRequest {
 
 message SshPrivateKeyRsaBitsRequest {
   bytes private_key = 1;
-}
-
-message SshPrivateKeyFormatRequest {
-  SshKeyType type = 1;
-  bytes private_key = 2;
 }
 
 message SshAgentSignRequest {
@@ -430,11 +397,6 @@ message SshKeyDescription {
   string public_key_openssh = 2;
   string private_fingerprint = 3;
   string public_fingerprint = 4;
-}
-
-// Domain payload returned inside NativeResponse.bytes_value.
-message SshFormattedPrivateKey {
-  string value = 1;
 }
 
 // Domain payload returned inside NativeResponse.bytes_value.
@@ -1072,14 +1034,6 @@ message OpenPgpExpirationUpdateResult {
   }
 }
 
-message OpenPgpCertificateMaterialReconcileRequest {
-  string expected_primary_fingerprint = 1;
-  optional bytes existing_public_certificate = 2;
-  optional bytes incoming_public_certificate = 3;
-  optional bytes existing_secret_certificate = 4;
-  optional bytes incoming_secret_certificate = 5;
-}
-
 enum OpenPgpCertificateMaterialInputErrorReason {
   OPEN_PGP_CERTIFICATE_MATERIAL_INPUT_ERROR_REASON_UNSPECIFIED = 0;
   OPEN_PGP_CERTIFICATE_MATERIAL_INPUT_ERROR_REASON_EMPTY_CERTIFICATE = 1;
@@ -1102,16 +1056,6 @@ enum OpenPgpCertificateMaterialPairErrorReason {
   OPEN_PGP_CERTIFICATE_MATERIAL_PAIR_ERROR_REASON_CONFLICTING_SECRET_MATERIAL = 7;
 }
 
-message OpenPgpCertificateMaterialReconcileSuccess {
-  bytes public_certificate = 1;
-  optional bytes private_certificate = 2;
-  string primary_fingerprint = 3;
-  bool existing_public_contributed = 4;
-  bool incoming_public_contributed = 5;
-  bool existing_secret_contributed = 6;
-  bool incoming_secret_contributed = 7;
-}
-
 message OpenPgpCertificateMaterialReconcileError {
   OpenPgpCertificateMaterialInputErrorReason existing_public_input_error = 1;
   OpenPgpCertificateMaterialInputErrorReason incoming_public_input_error = 2;
@@ -1120,15 +1064,8 @@ message OpenPgpCertificateMaterialReconcileError {
   OpenPgpCertificateMaterialPairErrorReason pair_error = 5;
 }
 
-message OpenPgpCertificateMaterialReconcileResult {
-  oneof result {
-    OpenPgpCertificateMaterialReconcileSuccess success = 1;
-    OpenPgpCertificateMaterialReconcileError error = 2;
-  }
-}
-
 // V2 separates packet-preserving local state from ordinary transferable
-// OpenPGP objects. V1 remains wire-compatible but exposes only local state.
+// OpenPGP objects.
 message OpenPgpCertificateMaterialReconcileV2Request {
   string expected_primary_fingerprint = 1;
   optional bytes existing_public_certificate = 2;

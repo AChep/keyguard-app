@@ -199,24 +199,6 @@ public object NativeCryptoSsh {
         return bits.takeIf { it > 0 }
     }
 
-    public fun formatPrivateKey(
-        type: NativeSshKeyType,
-        privateKey: ByteArray,
-    ): String {
-        require(privateKey.isNotEmpty()) { "SSH private key must not be empty" }
-        require(privateKey.size <= MAX_KEY_BYTES) { "SSH private key is too large" }
-        val payload = NativeCrypto.call(
-            operationName = "ssh_private_key_format",
-            operation = SshPrivateKeyFormatOperationProto(
-                SshPrivateKeyFormatRequestProto(type.toProto(), privateKey),
-            ),
-        ).requireBytes("ssh_private_key_format")
-        return decodePayload<SshFormattedPrivateKeyProto>("ssh_private_key_format", payload)
-            .value
-            .takeIf(String::isNotEmpty)
-            ?: malformed("ssh_private_key_format")
-    }
-
     /**
      * Validates a stored SSH public/private key pair and emits the private key
      * as the PKCS#8 DER required by Credential Exchange Format. Legacy RSA

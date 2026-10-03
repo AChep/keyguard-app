@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import arrow.core.widen
 import com.artemchep.keyguard.common.io.launchIn
-import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFilter
@@ -425,83 +424,9 @@ private fun FilterItem.withEnabled(enabled: Boolean): FilterItem = when (this) {
     is FilterItem.Section -> this
 }
 
-private fun hasCipherListIndependentPrepare(
-    filter: DFilter.Primitive,
-): Boolean = when (filter) {
-    is DFilter.ById,
-    is DFilter.ByType,
-    is DFilter.ByPasswordValue,
-    is DFilter.ByPasswordStrength,
-    is DFilter.BySync,
-    is DFilter.ByReprompt,
-    is DFilter.ByError,
-    DFilter.ByFavorite,
-    DFilter.ByOtp,
-    DFilter.ByAttachments,
-    DFilter.ByPasskeys,
-    DFilter.ByIgnoredAlerts,
-    -> true
-
-    else -> false
-}
-
-internal fun collectFilterToggleFilters(
+internal fun applyFilterItemsEnabled(
     items: List<FilterItem>,
-): Set<DFilter.Primitive> = items
-    .asSequence()
-    .mapNotNull { item ->
-        getFilter(item) as? FilterItem.Item.Filter.Toggle
-    }
-    .flatMap { it.filters }
-    .toSet()
-
-// Test-only: counts how many times the per-chip cipher-id-set catalog was
-// (re)built, so a regression guard can assert that steady-state filter toggles
-// over an unchanged cipher universe do NOT rebuild it.
-internal var filterCipherIdSetBuildCount: Int = 0
-
-internal suspend fun buildFilterCipherIdSets(
-    filterContext: CipherFilterContext,
-    filters: Set<DFilter.Primitive>,
-    ciphers: List<DSecret>,
-): Map<DFilter.Primitive, Set<String>> {
-    filterCipherIdSetBuildCount += 1
-    return filters
-        .asSequence()
-        .filter { filter ->
-            hasCipherListIndependentPrepare(filter)
-        }
-        .associateWith { filter ->
-            val predicate = filter.prepare(filterContext, ciphers)
-            ciphers
-                .asSequence()
-                .filter(predicate)
-                .map { it.id }
-                .toSet()
-        }
-}
-
-private fun Set<String>.intersects(other: Set<String>): Boolean {
-    val (smaller, larger) = if (size <= other.size) {
-        this to other
-    } else {
-        other to this
-    }
-    return smaller.any { it in larger }
-}
-
-internal suspend fun buildFilterItemsEnabledState(
-    filterContext: CipherFilterContext,
-    items: List<FilterItem>,
-    outputCiphers: List<DSecret>,
-    filterCipherIdSets: Map<DFilter.Primitive, Set<String>>,
-    // The set of output cipher ids; defaulted for direct callers, but the
-    // flow passes it in so it is computed ONCE per output emission instead of
-    // once per (glitch-duplicated) enablement recompute.
-    outputCipherIds: Set<String> = outputCiphers
-        .asSequence()
-        .map { it.id }
-        .toSet(),
+    presence: DFilterCipherPresence,
 ): List<FilterItem> {
     val checkedSectionIds = items
         .asSequence()
@@ -530,59 +455,11 @@ internal suspend fun buildFilterItemsEnabledState(
                         ?: return@run true
                     filterItemFilter.filters
                         .any { filter ->
-                            val cipherIds = filterCipherIdSets[filter]
-                            if (cipherIds != null) {
-                                cipherIds.intersects(outputCipherIds)
-                            } else {
-                                // The predicate of a list-sensitive filter must be prepared
-                                // against the filtered result list, not the universe.
-                                val filterPredicate = filter.prepare(filterContext, outputCiphers)
-                                outputCiphers.any(filterPredicate)
-                            }
-                        }
-                }
-
-                out += item.withEnabled(enabled)
-            }
-        }
-    }
-    return out
-}
-
-internal suspend fun buildFilterItemsEnabledStateLegacy(
-    filterContext: CipherFilterContext,
-    items: List<FilterItem>,
-    outputCiphers: List<DSecret>,
-): List<FilterItem> {
-    val checkedSectionIds = items
-        .asSequence()
-        .mapNotNull { item ->
-            val checked = getChecked(item)
-            if (checked) {
-                getFilterSectionId(item)
-            } else {
-                null
-            }
-        }
-        .toSet()
-
-    val out = mutableListOf<FilterItem>()
-    items.forEach { item ->
-        when (item) {
-            is FilterItem.Section -> out += item
-            else -> {
-                val filterSectionId = getFilterSectionId(item)
-                val fastEnabled = getChecked(item) ||
-                        // If one of the items in a section is enabled, then
-                        // enable the whole section.
-                        filterSectionId in checkedSectionIds
-                val enabled = fastEnabled || kotlin.run {
-                    val filterItemFilter = getFilter(item) as? FilterItem.Item.Filter.Toggle
-                        ?: return@run true
-                    filterItemFilter.filters
-                        .any { filter ->
-                            val filterPredicate = filter.prepare(filterContext, outputCiphers)
-                            outputCiphers.any(filterPredicate)
+                            // Every primitive the filter factory puts into a chip is
+                            // indexable, so the fallback is unreachable today; a
+                            // non-indexable primitive keeps the chip enabled.
+                            filter.existsIn(presence)
+                                ?: true
                         }
                 }
 
@@ -1501,46 +1378,10 @@ suspend fun <
             out
         }
         .combine(outputPresenceFlow) { items, presence ->
-            val checkedSectionIds = items
-                .asSequence()
-                .mapNotNull { item ->
-                    val checked = getChecked(item)
-                    if (checked) {
-                        getFilterSectionId(item)
-                    } else {
-                        null
-                    }
-                }
-                .toSet()
-
-            val out = mutableListOf<FilterItem>()
-            items.forEach { item ->
-                when (item) {
-                    is FilterItem.Section -> out += item
-                    else -> {
-                        val filterSectionId = getFilterSectionId(item)
-                        val fastEnabled = getChecked(item) ||
-                                // If one of the items in a section is enabled, then
-                                // enable the whole section.
-                                filterSectionId in checkedSectionIds
-                        val enabled = fastEnabled || kotlin.run {
-                            val filterItemFilter = getFilter(item) as? FilterItem.Item.Filter.Toggle
-                                ?: return@run true
-                            filterItemFilter.filters
-                                .any { filter ->
-                                    // Every primitive this factory puts into a chip is
-                                    // indexable, so the fallback is unreachable today; a
-                                    // non-indexable primitive keeps the chip enabled.
-                                    filter.existsIn(presence)
-                                        ?: true
-                                }
-                        }
-
-                        out += item.withEnabled(enabled)
-                    }
-                }
-            }
-            out
+            applyFilterItemsEnabled(
+                items = items,
+                presence = presence,
+            )
         }
         .distinctUntilChanged()
         .combine(input.filterFlow) { a, b ->

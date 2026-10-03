@@ -798,36 +798,3 @@ fn authenticated_recipient_fingerprints(
     }
     Ok(fingerprints)
 }
-
-#[cfg(test)]
-#[derive(Default)]
-pub(super) struct SecretVec(SecretChunks);
-
-#[cfg(test)]
-impl SecretVec {
-    pub(super) fn into_zeroizing(self) -> Result<Zeroizing<Vec<u8>>, ()> {
-        self.0.into_zeroizing()
-    }
-}
-
-#[cfg(test)]
-impl Write for SecretVec {
-    fn write(&mut self, buffer: &[u8]) -> std::io::Result<usize> {
-        if buffer.is_empty() {
-            return Ok(0);
-        }
-        let mut chunk = Zeroizing::new(Vec::new());
-        chunk
-            .try_reserve_exact(buffer.len())
-            .map_err(|_| std::io::Error::other("compressed secret output allocation failed"))?;
-        chunk.extend_from_slice(buffer);
-        self.0
-            .push(chunk, usize::MAX)
-            .map_err(|()| std::io::Error::other("compressed secret output allocation failed"))?;
-        Ok(buffer.len())
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        Ok(())
-    }
-}

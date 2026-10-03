@@ -30,8 +30,6 @@ use std::{
     sync::Arc,
 };
 
-#[cfg(test)]
-use pgp::packet::Subpacket;
 use pgp::{
     composed::{Deserializable, SignedPublicKey},
     packet::{
@@ -73,21 +71,14 @@ pub(crate) use canonicalization::{
     merge_public_certificate_packet_sets, normalize_expected_fingerprint,
     parse_public_certificate_packet_set_with_budget,
 };
-#[cfg(test)]
-pub(crate) use export::export_public_certificate_preserving_framing;
 pub(crate) use export::{local_public_certificate_preserving_framing, raw_packet_is_exportable};
 pub(crate) use parsing::{
     parse_public_certificate_packet_sets_with_budget, parse_single_certificate_packet_set,
 };
 
 #[cfg(test)]
-pub(crate) use parsing::parse_public_certificate_packet_sets;
-
-#[cfg(test)]
 pub(crate) use canonicalization::{
     canonicalize_public_certificate, canonicalize_public_certificate_material,
-    merge_public_certificate_documents, merge_public_certificate_material_documents,
-    merge_public_certificate_material_documents_deterministic,
 };
 
 const MAX_MERGE_PACKETS: usize = MAX_CERTIFICATE_PACKETS;
@@ -488,11 +479,6 @@ impl AttachedPackets {
         self.packets.iter()
     }
 
-    #[cfg(test)]
-    fn is_empty(&self) -> bool {
-        self.packets.is_empty()
-    }
-
     /// Inserts or merges one packet and reports whether the retained evidence
     /// changed.
     ///
@@ -655,26 +641,6 @@ impl AttachedPackets {
     }
 }
 
-/// Returns whether the packet is a certification the issuer marked local.
-///
-/// Only the hashed area is honored: an unhashed `ExportableCertification`
-/// subpacket is attacker-modifiable, and treating it as authoritative would
-/// let an intermediary suppress certifications. RFC 9580 sections 5.2.1 and
-/// 5.2.3.19 limit this instruction to certification signature types 0x10
-/// through 0x13; Direct Key, binding, and revocation signatures are distinct
-/// types and remain exportable. If signed values conflict, the last hashed
-/// occurrence wins per RFC 9580 section 5.2.3.9.
-#[cfg(test)]
-fn is_non_exportable_signature(packet: &CanonicalPacket) -> bool {
-    if packet.tag != SIGNATURE_TAG {
-        return false;
-    }
-    let Ok(signature) = parse_signature_packet(packet) else {
-        return false;
-    };
-    signature_is_non_exportable(&signature)
-}
-
 fn signature_is_non_exportable(signature: &Signature) -> bool {
     matches!(
         signature.typ(),
@@ -753,29 +719,6 @@ fn is_exportable_direct_self_signature_parsed(
     budget.verify(|| signature.verify_key(&OpenPgpVerifier(primary)).is_ok())
 }
 
-#[cfg(test)]
-fn is_exportable_identity_self_signature(
-    packet: &CanonicalPacket,
-    identity: &CanonicalPacket,
-    primary: &PublicKey,
-    authenticated_sensitive_declarations: &BTreeSet<CanonicalPacket>,
-    budget: &mut ExportClassificationBudget,
-) -> Result<bool, CertificateMergeError> {
-    if packet.tag != SIGNATURE_TAG {
-        return Ok(false);
-    }
-    let signature = parse_signature_packet(packet)?;
-    let key = attached_packet_key_from_signature(packet, &signature)?;
-    is_exportable_identity_self_signature_parsed(
-        &key,
-        &signature,
-        identity,
-        primary,
-        authenticated_sensitive_declarations,
-        budget,
-    )
-}
-
 fn is_exportable_identity_self_signature_entry(
     key: &CanonicalPacket,
     entry: &AttachedPacketEntry,
@@ -849,29 +792,6 @@ fn is_exportable_identity_self_signature_parsed(
             )
             .is_ok()
     })
-}
-
-#[cfg(test)]
-fn is_exportable_subkey_binding_signature(
-    packet: &CanonicalPacket,
-    subkey: &PublicSubkey,
-    primary: &PublicKey,
-    authenticated_sensitive_declarations: &BTreeSet<CanonicalPacket>,
-    budget: &mut ExportClassificationBudget,
-) -> Result<bool, CertificateMergeError> {
-    if packet.tag != SIGNATURE_TAG {
-        return Ok(false);
-    }
-    let signature = parse_signature_packet(packet)?;
-    let key = attached_packet_key_from_signature(packet, &signature)?;
-    is_exportable_subkey_binding_signature_parsed(
-        &key,
-        &signature,
-        subkey,
-        primary,
-        authenticated_sensitive_declarations,
-        budget,
-    )
 }
 
 fn is_exportable_subkey_binding_signature_entry(
@@ -1258,17 +1178,6 @@ fn rebuild_signature_body_with_prefix(
         .map_err(|_| CertificateMergeError::Internal)
 }
 
-#[cfg(test)]
-fn rebuild_signature_body(
-    signature: &Signature,
-    config: pgp::packet::SignatureConfig,
-) -> Result<Vec<u8>, CertificateMergeError> {
-    let signed_hash_value = signature
-        .signed_hash_value()
-        .ok_or(CertificateMergeError::Malformed)?;
-    rebuild_signature_body_with_prefix(signature, config, signed_hash_value)
-}
-
 /// Chooses one complete wire variant of an otherwise equivalent signature.
 ///
 /// Unhashed subpackets are advisory and are not protected by the signature.
@@ -1621,14 +1530,6 @@ fn ensure_supported_key_version(body: &[u8]) -> Result<(), CertificateMergeError
         }
         Some(KeyVersion::Other(_)) | None => Err(CertificateMergeError::Malformed),
     }
-}
-
-#[cfg(test)]
-fn parse_user_id(packet: &CanonicalPacket) -> Result<pgp::packet::UserId, CertificateMergeError> {
-    parse_fixed_packet_body(Tag::UserId, packet.body.as_slice(), |header, reader| {
-        pgp::packet::UserId::try_from_reader(header, reader)
-    })
-    .map_err(CertificateMergeError::from)
 }
 
 #[cfg(test)]

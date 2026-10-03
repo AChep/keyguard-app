@@ -379,15 +379,14 @@ class NativeCryptoSmokeTest {
         var rsaSignature: ByteArray? = null
         try {
             assertEquals(1024, NativeCrypto.ssh.privateKeyRsaBits(rsa.privateKey))
-            val privateKeyPem = NativeCrypto.ssh.formatPrivateKey(rsa.type, rsa.privateKey)
-            val publicKeyOpenSsh = NativeCrypto.ssh.describe(
+            val description = NativeCrypto.ssh.describe(
                 type = rsa.type,
                 privateKey = rsa.privateKey,
                 publicKey = rsa.publicKey,
-            ).publicKeyOpenSsh
+            )
             val signed = NativeCrypto.ssh.sign(
-                privateKeyPem = privateKeyPem,
-                publicKeyOpenSsh = publicKeyOpenSsh,
+                privateKeyPem = description.privateKeyPem,
+                publicKeyOpenSsh = description.publicKeyOpenSsh,
                 data = message,
                 flags = 0x06,
             )

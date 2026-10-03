@@ -5,9 +5,9 @@ use keyguard_crypto_core::{
     protocol::{
         AesCbcPkcs7HmacSha256DecryptStreamOpenRequest,
         AesCbcPkcs7HmacSha256EncryptStreamOpenRequest, AesCbcPkcs7StreamOpenRequest,
-        CipherDirection, DigestStreamOpenRequest, HashAlgorithm, HmacSha256StreamOpenRequest,
-        HmacStreamOpenRequest, NativeResponse, NativeStreamOpenRequest,
-        TwofishCbcPkcs7StreamOpenRequest, native_response, native_stream_open_request,
+        CipherDirection, DigestStreamOpenRequest, HashAlgorithm, HmacStreamOpenRequest,
+        NativeResponse, NativeStreamOpenRequest, TwofishCbcPkcs7StreamOpenRequest, native_response,
+        native_stream_open_request,
     },
 };
 use libfuzzer_sys::fuzz_target;
@@ -40,7 +40,10 @@ fuzz_target!(|data: &[u8]| {
     }
     let mac_key = key.clone();
     let operation = match selector % 9 {
-        0 => native_stream_open_request::Operation::HmacSha256(HmacSha256StreamOpenRequest { key }),
+        0 => native_stream_open_request::Operation::Hmac(HmacStreamOpenRequest {
+            algorithm: HashAlgorithm::Sha256 as i32,
+            key,
+        }),
         1 => native_stream_open_request::Operation::Digest(DigestStreamOpenRequest {
             algorithm: algorithm as i32,
         }),

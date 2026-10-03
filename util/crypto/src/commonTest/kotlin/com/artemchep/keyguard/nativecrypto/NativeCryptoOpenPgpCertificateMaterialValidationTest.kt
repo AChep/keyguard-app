@@ -8,35 +8,10 @@ import kotlin.test.assertTrue
 
 class NativeCryptoOpenPgpCertificateMaterialValidationTest {
     @Test
-    fun certificateReconcileRejectsAmbiguousErrorCategories() {
-        val response =
-            OpenPgpCertificateMaterialReconcileResultProto(
-                OpenPgpCertificateMaterialReconcileErrorOutcomeProto(
-                    OpenPgpCertificateMaterialReconcileErrorProto(
-                        existingPublicInputError =
-                            OpenPgpCertificateMaterialInputErrorReasonProto.MALFORMED_CERTIFICATE,
-                        pairError = OpenPgpCertificateMaterialPairErrorReasonProto.COMPONENT_COLLISION,
-                    ),
-                ),
-            )
-
-        val failure =
-            assertFailsWith<NativeCryptoException> {
-                response.toPublicCertificateMaterialReconcileResult(
-                    operation = RECONCILE_OPERATION,
-                    expectedPrimaryFingerprint = FINGERPRINT,
-                    privateOutputRequired = false,
-                )
-            }
-
-        assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
-    }
-
-    @Test
     fun certificateReconcileMapsConflictingSecretMaterial() {
         val response =
-            OpenPgpCertificateMaterialReconcileResultProto(
-                OpenPgpCertificateMaterialReconcileErrorOutcomeProto(
+            OpenPgpCertificateMaterialReconcileV2ResultProto(
+                OpenPgpCertificateMaterialReconcileV2ErrorOutcomeProto(
                     OpenPgpCertificateMaterialReconcileErrorProto(
                         pairError =
                             OpenPgpCertificateMaterialPairErrorReasonProto
@@ -46,14 +21,14 @@ class NativeCryptoOpenPgpCertificateMaterialValidationTest {
             )
 
         val result =
-            response.toPublicCertificateMaterialReconcileResult(
-                operation = RECONCILE_OPERATION,
+            response.toPublicCertificateMaterialReconcileV2Result(
+                operation = RECONCILE_V2_OPERATION,
                 expectedPrimaryFingerprint = FINGERPRINT,
-                privateOutputRequired = false,
+                expectedInputPresence = listOf(true, false, false, false),
             )
         val failure =
             assertIs<NativeOpenPgpCertificateMaterialReconcileFailure.Pair>(
-                assertIs<NativeOpenPgpCertificateMaterialReconcileResult.Error>(result).failure,
+                assertIs<NativeOpenPgpCertificateMaterialReconcileV2Result.Error>(result).failure,
             )
 
         assertEquals(
@@ -65,8 +40,8 @@ class NativeCryptoOpenPgpCertificateMaterialValidationTest {
     @Test
     fun certificateReconcileMapsUnsupportedTskLayoutToExactSecretInput() {
         val response =
-            OpenPgpCertificateMaterialReconcileResultProto(
-                OpenPgpCertificateMaterialReconcileErrorOutcomeProto(
+            OpenPgpCertificateMaterialReconcileV2ResultProto(
+                OpenPgpCertificateMaterialReconcileV2ErrorOutcomeProto(
                     OpenPgpCertificateMaterialReconcileErrorProto(
                         incomingSecretInputError =
                             OpenPgpCertificateMaterialInputErrorReasonProto.UNSUPPORTED_TSK_LAYOUT,
@@ -75,52 +50,20 @@ class NativeCryptoOpenPgpCertificateMaterialValidationTest {
             )
 
         val result =
-            response.toPublicCertificateMaterialReconcileResult(
-                operation = RECONCILE_OPERATION,
+            response.toPublicCertificateMaterialReconcileV2Result(
+                operation = RECONCILE_V2_OPERATION,
                 expectedPrimaryFingerprint = FINGERPRINT,
-                privateOutputRequired = true,
+                expectedInputPresence = listOf(true, true, false, true),
             )
         val failure =
             assertIs<NativeOpenPgpCertificateMaterialReconcileFailure.InvalidInputs>(
-                assertIs<NativeOpenPgpCertificateMaterialReconcileResult.Error>(result).failure,
+                assertIs<NativeOpenPgpCertificateMaterialReconcileV2Result.Error>(result).failure,
             )
 
         assertEquals(
             NativeOpenPgpCertificateMaterialInputError.UNSUPPORTED_TSK_LAYOUT,
             failure.incomingSecret,
         )
-    }
-
-    @Test
-    fun certificateReconcileV2MapsPairAndAttributedInputErrors() {
-        val errors = listOf(
-            OpenPgpCertificateMaterialReconcileErrorProto(
-                pairError = OpenPgpCertificateMaterialPairErrorReasonProto.CONFLICTING_SECRET_MATERIAL,
-            ),
-            OpenPgpCertificateMaterialReconcileErrorProto(
-                incomingSecretInputError = OpenPgpCertificateMaterialInputErrorReasonProto.UNSUPPORTED_TSK_LAYOUT,
-            ),
-        )
-        errors.forEach { error ->
-            val v1 = OpenPgpCertificateMaterialReconcileResultProto(
-                OpenPgpCertificateMaterialReconcileErrorOutcomeProto(error),
-            ).toPublicCertificateMaterialReconcileResult(
-                operation = RECONCILE_OPERATION,
-                expectedPrimaryFingerprint = FINGERPRINT,
-                privateOutputRequired = true,
-            )
-            val v2 = OpenPgpCertificateMaterialReconcileV2ResultProto(
-                OpenPgpCertificateMaterialReconcileV2ErrorOutcomeProto(error),
-            ).toPublicCertificateMaterialReconcileV2Result(
-                operation = RECONCILE_V2_OPERATION,
-                expectedPrimaryFingerprint = FINGERPRINT,
-                expectedInputPresence = listOf(true, true, false, true),
-            )
-            assertEquals(
-                assertIs<NativeOpenPgpCertificateMaterialReconcileResult.Error>(v1).failure,
-                assertIs<NativeOpenPgpCertificateMaterialReconcileV2Result.Error>(v2).failure,
-            )
-        }
     }
 
     @Test
@@ -329,7 +272,6 @@ class NativeCryptoOpenPgpCertificateMaterialValidationTest {
     )
 
     private companion object {
-        const val RECONCILE_OPERATION = "open_pgp_certificate_material_reconcile"
         const val RECONCILE_V2_OPERATION = "open_pgp_certificate_material_reconcile_v2"
         const val FINGERPRINT = "0123456789ABCDEF0123456789ABCDEF01234567"
     }

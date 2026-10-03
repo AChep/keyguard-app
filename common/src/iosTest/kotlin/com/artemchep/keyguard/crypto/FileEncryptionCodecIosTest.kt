@@ -3,8 +3,8 @@ package com.artemchep.keyguard.crypto
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.decryptToPath
 import com.artemchep.keyguard.common.service.crypto.encryptToPath
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.util.foundation.crypto.aesCbcPkcs7Encrypt
 import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
 import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
 import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
@@ -214,7 +214,7 @@ class FileEncryptionCodecIosTest {
         val iv = ByteArray(FileEncryptionFormat.IV_LENGTH) { index ->
             (index + 1).toByte()
         }
-        val cipherText = aesCbcPkcs7Encrypt(
+        val cipherText = NativeCrypto.primitives.aesCbcPkcs7Encrypt(
             key = keys.encKey,
             iv = iv,
             data = data,

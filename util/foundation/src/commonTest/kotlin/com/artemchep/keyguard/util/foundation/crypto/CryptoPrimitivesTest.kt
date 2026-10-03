@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.util.foundation.crypto
 
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
+import com.artemchep.keyguard.nativecrypto.NativeHashAlgorithm
 import com.artemchep.keyguard.util.foundation.constantTimeEquals
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -8,7 +10,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class CryptoPrimitivesTest {
-    private val crypto = PlatformCryptoPrimitives()
+    private val crypto = NativeCrypto.primitives
 
     @Test
     fun pbkdf2Sha256MatchesKnownVector() {
@@ -88,9 +90,10 @@ class CryptoPrimitivesTest {
     fun hmacSha256StateMatchesOneShot() {
         val key = "secret".encodeToByteArray()
         val data = "authenticated-data".encodeToByteArray()
-        val expected = crypto.hmacSha256(
+        val expected = crypto.hmac(
             key = key,
             data = data,
+            algorithm = NativeHashAlgorithm.SHA_256,
         )
 
         val state = createHmacSha256(key)

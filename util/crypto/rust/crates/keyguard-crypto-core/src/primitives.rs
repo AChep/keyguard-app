@@ -4,7 +4,7 @@ use aes::{Aes128, Aes192, Aes256};
 use argon2::{Algorithm, Version};
 use chacha20::ChaCha20;
 use salsa20::Salsa20;
-use std::{mem::size_of, num::NonZeroU32};
+use std::num::NonZeroU32;
 
 use aws_lc_rs::{
     aead::{Aad, CHACHA20_POLY1305, LessSafeKey, Nonce, UnboundKey},
@@ -18,8 +18,8 @@ use aws_lc_rs::{
 use aws_lc_rs::{pbkdf2 as aws_pbkdf2, rand};
 use cbc::{Decryptor, Encryptor};
 use cipher::{
-    Block, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, InnerIvInit, KeyInit, KeyIvInit,
-    StreamCipher, StreamCipherSeek,
+    Block, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyInit, KeyIvInit, StreamCipher,
+    StreamCipherSeek,
     block_padding::{NoPadding, Pkcs7},
     consts::U16,
 };
@@ -28,7 +28,6 @@ use keyguard_crypto_sensitive::{
 };
 use pkcs8::{ObjectIdentifier, PrivateKeyInfo, SubjectPublicKeyInfoRef, der::Decode};
 use thiserror::Error;
-use twofish::Twofish;
 use zeroize::{Zeroize, Zeroizing};
 
 use crate::padding::pkcs7_unpadded_block_length;
@@ -48,8 +47,6 @@ pub(crate) const MAX_PBKDF2_ITERATIONS: u32 = i32::MAX as u32;
 const MAX_ARGON2_MEMORY_KIB: u32 = 1024 * 1024;
 const MAX_ARGON2_ITERATIONS: u32 = 10_000;
 const MAX_ARGON2_PARALLELISM: u32 = 64;
-const MAX_RANDOM_INT_BATCH: u32 = 1024;
-const RANDOM_INT_CANDIDATES_PER_FILL: usize = MAX_RANDOM_INT_BATCH as usize;
 const SSH_AGENT_TCP_KEY_BYTES: usize = 32;
 const SSH_AGENT_TCP_NONCE_BYTES: usize = 12;
 const SSH_AGENT_TCP_HEADER_BYTES: usize = 18;
@@ -254,55 +251,6 @@ pub(crate) fn stream_cipher_xor_at_offset(
     Ok(data.to_vec())
 }
 
-pub(crate) fn twofish_cbc_pkcs7(
-    direction: CipherDirection,
-    key: Vec<u8>,
-    iv: Vec<u8>,
-    data: Vec<u8>,
-) -> Result<Vec<u8>, PrimitiveError> {
-    let key = Zeroizing::new(key);
-    let iv = Zeroizing::new(iv);
-    let data = Zeroizing::new(data);
-    if direction == CipherDirection::Unspecified || iv.len() != AES_BLOCK_BYTES {
-        return Err(PrimitiveError::InvalidArgument);
-    }
-    let cipher = Twofish::new_from_slice(&key).map_err(|_| PrimitiveError::InvalidArgument)?;
-    match direction {
-        CipherDirection::Encrypt => {
-            let output_length = data
-                .len()
-                .checked_div(AES_BLOCK_BYTES)
-                .and_then(|blocks| blocks.checked_add(1))
-                .and_then(|blocks| blocks.checked_mul(AES_BLOCK_BYTES))
-                .ok_or(PrimitiveError::ResourceLimit)?;
-            let mut output = Zeroizing::new(vec![0_u8; output_length]);
-            let encryptor = Encryptor::<Twofish>::inner_iv_slice_init(cipher, &iv)
-                .map_err(|_| PrimitiveError::InvalidArgument)?;
-            let encrypted = encryptor
-                .encrypt_padded_b2b_mut::<Pkcs7>(&data, &mut output)
-                .map_err(|_| PrimitiveError::CryptoFailure)?;
-            Ok(encrypted.to_vec())
-        }
-        CipherDirection::Decrypt => {
-            if data.is_empty() || !data.len().is_multiple_of(AES_BLOCK_BYTES) {
-                return Err(PrimitiveError::InvalidArgument);
-            }
-            let mut output = Zeroizing::new(vec![0_u8; data.len()]);
-            let decryptor = Decryptor::<Twofish>::inner_iv_slice_init(cipher, &iv)
-                .map_err(|_| PrimitiveError::InvalidArgument)?;
-            decryptor
-                .decrypt_padded_b2b_mut::<NoPadding>(&data, &mut output)
-                .map_err(|_| PrimitiveError::AuthenticationFailed)?;
-            let final_block = &output[output.len() - AES_BLOCK_BYTES..];
-            let final_length = pkcs7_unpadded_block_length(final_block)
-                .ok_or(PrimitiveError::AuthenticationFailed)?;
-            let plaintext_length = output.len() - AES_BLOCK_BYTES + final_length;
-            Ok(output[..plaintext_length].to_vec())
-        }
-        CipherDirection::Unspecified => Err(PrimitiveError::InvalidArgument),
-    }
-}
-
 pub(crate) fn ssh_agent_tcp_chacha20_poly1305(
     direction: CipherDirection,
     key: Vec<u8>,
@@ -477,11 +425,12 @@ pub(crate) fn random_bytes(length: u32) -> Result<Vec<u8>, PrimitiveError> {
     Ok(output)
 }
 
-pub(crate) fn random_int(bounded: bool, exclusive_upper_bound: u32) -> Result<i32, PrimitiveError> {
-    if !bounded {
+/// A zero bound returns an arbitrary signed 32-bit value.
+pub(crate) fn random_int(exclusive_upper_bound: u32) -> Result<i32, PrimitiveError> {
+    if exclusive_upper_bound == 0 {
         return Ok(i32::from_ne_bytes(random_u32()?.to_ne_bytes()));
     }
-    if exclusive_upper_bound == 0 || exclusive_upper_bound > i32::MAX as u32 {
+    if exclusive_upper_bound > i32::MAX as u32 {
         return Err(PrimitiveError::InvalidArgument);
     }
 
@@ -496,60 +445,6 @@ pub(crate) fn random_int(bounded: bool, exclusive_upper_bound: u32) -> Result<i3
             return i32::try_from(value % bound).map_err(|_| PrimitiveError::CryptoFailure);
         }
     }
-}
-
-pub(crate) fn random_ints(
-    bounded: bool,
-    exclusive_upper_bound: u32,
-    count: u32,
-) -> Result<Vec<u8>, PrimitiveError> {
-    if count > MAX_RANDOM_INT_BATCH {
-        return Err(PrimitiveError::ResourceLimit);
-    }
-    if bounded && (exclusive_upper_bound == 0 || exclusive_upper_bound > i32::MAX as u32) {
-        return Err(PrimitiveError::InvalidArgument);
-    }
-
-    let count = usize::try_from(count).map_err(|_| PrimitiveError::ResourceLimit)?;
-    let output_length = count
-        .checked_mul(size_of::<i32>())
-        .ok_or(PrimitiveError::ResourceLimit)?;
-    let mut output = Vec::with_capacity(output_length);
-    if !bounded {
-        output.resize(output_length, 0);
-        if rand::fill(&mut output).is_err() {
-            output.zeroize();
-            return Err(PrimitiveError::CryptoFailure);
-        }
-        return Ok(output);
-    }
-
-    // Rejection sampling preserves SecureRandom.nextInt(bound) semantics
-    // without modulo bias. Values are serialized as little-endian i32s.
-    let bound = u64::from(exclusive_upper_bound);
-    let range = u64::from(u32::MAX) + 1;
-    let limit = range - range % bound;
-    while output.len() < output_length {
-        let remaining_values = (output_length - output.len()) / size_of::<i32>();
-        let candidate_count = remaining_values.min(RANDOM_INT_CANDIDATES_PER_FILL);
-        let mut candidates = Zeroizing::new(vec![0_u8; candidate_count * size_of::<u32>()]);
-        if rand::fill(candidates.as_mut_slice()).is_err() {
-            output.zeroize();
-            return Err(PrimitiveError::CryptoFailure);
-        }
-        for candidate in candidates.as_slice().as_chunks::<{ size_of::<u32>() }>().0 {
-            let value = u64::from(u32::from_le_bytes(*candidate));
-            if value < limit {
-                let bounded_value =
-                    u32::try_from(value % bound).map_err(|_| PrimitiveError::CryptoFailure)?;
-                output.extend_from_slice(&bounded_value.to_le_bytes());
-                if output.len() == output_length {
-                    break;
-                }
-            }
-        }
-    }
-    Ok(output)
 }
 
 pub(crate) fn hmac(

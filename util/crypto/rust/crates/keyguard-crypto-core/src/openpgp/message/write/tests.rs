@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
 
+use super::decryption::*;
 use super::*;
 use crate::openpgp::adapter::OpenPgpSession;
 use crate::openpgp::adapter::key::wire_key_material;
@@ -18,6 +19,7 @@ use crate::openpgp::adapter::write::{
     encode_decrypt_final, encode_encrypt_final, encrypt as encrypt_request, encrypt_stream_input,
     sign as sign_request,
 };
+use crate::openpgp::policy::ValidatedCertificate;
 use crate::openpgp::{
     adapter::key::{generate as generate_key_request, import as import_key_request},
     certificate::filtered_tsk_fixture,
@@ -32,10 +34,12 @@ use crate::openpgp::{
     },
 };
 use crate::primitives::PrimitiveError;
+use flate2::write::{DeflateEncoder, ZlibEncoder};
 use pgp::composed::{
     EncryptionCaps, KeyType, MessageBuilder, SecretKeyParamsBuilder, SubkeyParamsBuilder,
 };
 use pgp::crypto::ecc_curve::ECCCurve;
+use pgp::packet::PacketHeader;
 use pgp::packet::{
     Features, KeyFlags, PubKeyInner, PublicSubkey, SecretKey, SecretSubkey, SignatureVersion,
 };
@@ -10049,4 +10053,402 @@ fn streaming_aead_releases_authenticated_chunks_but_rejects_truncated_final_tag(
         decryption.finish().expect_err("missing OCB tag must fail"),
         OpenPgpWriteError::AuthenticationFailed
     );
+}
+
+const AEAD_TAG_BYTES: usize = 16;
+
+fn recipient_allows_seipd_v2(policy: &ValidatedCertificate<'_>) -> bool {
+    policy.primary_available() && component_allows_seipd_v2(&policy.primary)
+}
+
+fn build_composed_message(
+    content: &[u8],
+    file_name: &[u8],
+    literal_time: Timestamp,
+    signature_time: Option<Timestamp>,
+    signer: Option<SecretPacketRef<'_>>,
+    intended_recipients: &[Fingerprint],
+    compression_algorithm: Option<CompressionAlgorithm>,
+) -> Result<Zeroizing<Vec<u8>>, OpenPgpWriteError> {
+    let inline_signature = signer
+        .map(|packet| {
+            let signature_time = signature_time.ok_or(OpenPgpWriteError::Internal)?;
+            create_inline_signature(packet, content, signature_time, intended_recipients)
+        })
+        .transpose()?;
+    let literal_body_len = literal_packet_body_len(content, file_name)?;
+    let literal_header = PacketHeader::new_fixed(Tag::LiteralData, literal_body_len);
+    let mut inner_len = literal_header
+        .write_len()
+        .checked_add(literal_body_len as usize)
+        .ok_or(OpenPgpWriteError::ResourceLimit)?;
+    if let Some((one_pass, signature)) = &inline_signature {
+        inner_len = inner_len
+            .checked_add(one_pass.write_len_with_header())
+            .and_then(|length| length.checked_add(signature.write_len_with_header()))
+            .ok_or(OpenPgpWriteError::ResourceLimit)?;
+    }
+    let mut inner = Zeroizing::new(Vec::new());
+    inner
+        .try_reserve_exact(inner_len)
+        .map_err(|_| OpenPgpWriteError::ResourceLimit)?;
+    let allocation = inner.as_ptr();
+    let capacity = inner.capacity();
+    if let Some((one_pass, _)) = &inline_signature {
+        one_pass
+            .to_writer_with_header(&mut FixedCapacityWriter(&mut inner))
+            .map_err(|_| OpenPgpWriteError::Internal)?;
+    }
+    write_literal_packet(
+        &mut FixedCapacityWriter(&mut inner),
+        content,
+        file_name,
+        literal_time,
+    )?;
+    if let Some((_, signature)) = inline_signature {
+        signature
+            .to_writer_with_header(&mut FixedCapacityWriter(&mut inner))
+            .map_err(|_| OpenPgpWriteError::Internal)?;
+    }
+    if inner.len() != inner_len || inner.capacity() != capacity || inner.as_ptr() != allocation {
+        return Err(OpenPgpWriteError::Internal);
+    }
+    let Some(compression_algorithm) = compression_algorithm else {
+        return Ok(inner);
+    };
+
+    let compressed = compress_composed_message(inner.as_slice(), compression_algorithm)?;
+    let body_len = compressed
+        .len()
+        .checked_add(1)
+        .and_then(|value| u32::try_from(value).ok())
+        .ok_or(OpenPgpWriteError::ResourceLimit)?;
+    let header = PacketHeader::new_fixed(Tag::CompressedData, body_len);
+    let output_len = header
+        .write_len()
+        .checked_add(usize::try_from(body_len).map_err(|_| OpenPgpWriteError::ResourceLimit)?)
+        .ok_or(OpenPgpWriteError::ResourceLimit)?;
+    let mut output = Zeroizing::new(Vec::new());
+    output
+        .try_reserve_exact(output_len)
+        .map_err(|_| OpenPgpWriteError::ResourceLimit)?;
+    let mut writer = FixedCapacityWriter(&mut output);
+    header
+        .to_writer(&mut writer)
+        .map_err(|_| OpenPgpWriteError::Internal)?;
+    writer
+        .write_all(&[u8::from(compression_algorithm)])
+        .and_then(|()| writer.write_all(&compressed))
+        .map_err(|_| OpenPgpWriteError::Internal)?;
+    if output.len() != output_len {
+        return Err(OpenPgpWriteError::Internal);
+    }
+    Ok(output)
+}
+
+fn compress_composed_message(
+    input: &[u8],
+    algorithm: CompressionAlgorithm,
+) -> Result<Zeroizing<Vec<u8>>, OpenPgpWriteError> {
+    match algorithm {
+        CompressionAlgorithm::ZIP => finish_compression(
+            DeflateEncoder::new(SecretVec::default(), Compression::default()),
+            input,
+        ),
+        CompressionAlgorithm::ZLIB => finish_compression(
+            ZlibEncoder::new(SecretVec::default(), Compression::default()),
+            input,
+        ),
+        _ => Err(OpenPgpWriteError::InvalidArgument),
+    }
+}
+
+fn finish_compression<W>(
+    mut encoder: W,
+    input: &[u8],
+) -> Result<Zeroizing<Vec<u8>>, OpenPgpWriteError>
+where
+    W: Write + CompressionWriter,
+{
+    encoder
+        .write_all(input)
+        .map_err(|_| OpenPgpWriteError::Internal)?;
+    encoder
+        .finish()
+        .map_err(|_| OpenPgpWriteError::Internal)?
+        .into_zeroizing()
+        .map_err(|_| OpenPgpWriteError::ResourceLimit)
+}
+
+trait CompressionWriter {
+    fn finish(self) -> std::io::Result<SecretVec>;
+}
+
+impl CompressionWriter for DeflateEncoder<SecretVec> {
+    fn finish(self) -> std::io::Result<SecretVec> {
+        DeflateEncoder::finish(self)
+    }
+}
+
+impl CompressionWriter for ZlibEncoder<SecretVec> {
+    fn finish(self) -> std::io::Result<SecretVec> {
+        ZlibEncoder::finish(self)
+    }
+}
+
+fn literal_packet_body_len(content: &[u8], file_name: &[u8]) -> Result<u32, OpenPgpWriteError> {
+    1_usize
+        .checked_add(1)
+        .and_then(|value| value.checked_add(file_name.len()))
+        .and_then(|value| value.checked_add(4))
+        .and_then(|value| value.checked_add(content.len()))
+        .and_then(|value| u32::try_from(value).ok())
+        .ok_or(OpenPgpWriteError::ResourceLimit)
+}
+
+fn write_literal_packet(
+    output: &mut impl Write,
+    content: &[u8],
+    file_name: &[u8],
+    literal_time: Timestamp,
+) -> Result<(), OpenPgpWriteError> {
+    let file_name_len =
+        u8::try_from(file_name.len()).map_err(|_| OpenPgpWriteError::InvalidArgument)?;
+    let body_len = literal_packet_body_len(content, file_name)?;
+    PacketHeader::new_fixed(Tag::LiteralData, body_len)
+        .to_writer(output)
+        .map_err(|_| OpenPgpWriteError::Internal)?;
+    output
+        .write_all(&[b'b', file_name_len])
+        .and_then(|()| output.write_all(file_name))
+        .and_then(|()| output.write_all(&literal_time.as_secs().to_be_bytes()))
+        .and_then(|()| output.write_all(content))
+        .map_err(|_| OpenPgpWriteError::Internal)
+}
+
+fn create_inline_signature(
+    packet: SecretPacketRef<'_>,
+    content: &[u8],
+    signature_time: Timestamp,
+    intended_recipients: &[Fingerprint],
+) -> Result<(OnePassSignature, pgp::packet::Signature), OpenPgpWriteError> {
+    if is_rsa_private_algorithm(packet.algorithm()) {
+        let adapter = AwsLcRsaSecretKey::new(packet)?;
+        create_inline_signature_with_key(&adapter, content, signature_time, intended_recipients)
+    } else {
+        match packet {
+            SecretPacketRef::Primary(key) => {
+                create_inline_signature_with_key(key, content, signature_time, intended_recipients)
+            }
+            SecretPacketRef::Subkey(key) => {
+                create_inline_signature_with_key(key, content, signature_time, intended_recipients)
+            }
+        }
+    }
+}
+
+fn create_inline_signature_with_key<K>(
+    key: &K,
+    content: &[u8],
+    signature_time: Timestamp,
+    intended_recipients: &[Fingerprint],
+) -> Result<(OnePassSignature, pgp::packet::Signature), OpenPgpWriteError>
+where
+    K: SigningKey,
+{
+    let (config, one_pass) = inline_signature_setup(key, signature_time, intended_recipients)?;
+    let signature = config
+        .sign(key, &Password::empty(), Cursor::new(content))
+        .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
+    Ok((one_pass, signature))
+}
+
+fn encrypt_composed_message(
+    plaintext: &[u8],
+    recipients: &[PublicComponent],
+    mode: ProtectionMode,
+    symmetric_algorithm: SymmetricKeyAlgorithm,
+) -> Result<Vec<u8>, OpenPgpWriteError> {
+    let mut rng = AwsLcRng;
+    let session_key = symmetric_algorithm.new_session_key(rng);
+    let mut output = Vec::new();
+    for recipient in recipients {
+        encrypt_session_key_for_recipient(
+            &mut rng,
+            &session_key,
+            recipient,
+            mode,
+            symmetric_algorithm,
+        )
+        .and_then(|packet| packet.to_writer_with_header(&mut output))
+        .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
+    }
+    match mode {
+        ProtectionMode::SeipdV1Mdc => {
+            write_seipd_v1(
+                &mut output,
+                plaintext,
+                &session_key,
+                &mut rng,
+                symmetric_algorithm,
+            )?;
+        }
+        ProtectionMode::SeipdV2Aead => {
+            write_seipd_v2(
+                &mut output,
+                plaintext,
+                &session_key,
+                &mut rng,
+                symmetric_algorithm,
+            )?;
+        }
+        ProtectionMode::GnupgOcb => {
+            write_gnupg_ocb(&mut output, plaintext, &session_key, &mut rng)?;
+        }
+    }
+    Ok(output)
+}
+
+fn write_seipd_v1(
+    output: &mut Vec<u8>,
+    plaintext: &[u8],
+    session_key: &RawSessionKey,
+    rng: &mut AwsLcRng,
+    symmetric_algorithm: SymmetricKeyAlgorithm,
+) -> Result<(), OpenPgpWriteError> {
+    let encrypted_len = symmetric_algorithm
+        .encrypted_protected_len(plaintext.len())
+        .checked_add(1)
+        .and_then(|value| u32::try_from(value).ok())
+        .ok_or(OpenPgpWriteError::ResourceLimit)?;
+    PacketHeader::new_fixed(Tag::SymEncryptedProtectedData, encrypted_len)
+        .to_writer(output)
+        .map_err(|_| OpenPgpWriteError::Internal)?;
+    output.push(1);
+    symmetric_algorithm
+        .stream_encryptor(rng, session_key.as_ref(), Cursor::new(plaintext))
+        .and_then(|mut encryptor| encryptor.read_to_end(output).map_err(Into::into))
+        .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
+    Ok(())
+}
+
+fn write_seipd_v2(
+    output: &mut Vec<u8>,
+    plaintext: &[u8],
+    session_key: &RawSessionKey,
+    rng: &mut AwsLcRng,
+    symmetric_algorithm: SymmetricKeyAlgorithm,
+) -> Result<(), OpenPgpWriteError> {
+    SymEncryptedProtectedData::encrypt_seipdv2(
+        rng,
+        symmetric_algorithm,
+        AeadAlgorithm::Ocb,
+        ChunkSize::C64KiB,
+        session_key.as_ref(),
+        plaintext,
+    )
+    .and_then(|packet| packet.to_writer_with_header(output))
+    .map_err(|_| OpenPgpWriteError::CryptoFailure)
+}
+
+fn write_gnupg_ocb(
+    output: &mut Vec<u8>,
+    plaintext: &[u8],
+    session_key: &RawSessionKey,
+    rng: &mut AwsLcRng,
+) -> Result<(), OpenPgpWriteError> {
+    let chunks = plaintext.len().div_ceil(GNUPG_AEAD_CHUNK_BYTES);
+    let body_len = 4_usize
+        .checked_add(15)
+        .and_then(|value| value.checked_add(plaintext.len()))
+        .and_then(|value| value.checked_add(chunks.checked_mul(AEAD_TAG_BYTES)?))
+        .and_then(|value| value.checked_add(AEAD_TAG_BYTES))
+        .and_then(|value| u32::try_from(value).ok())
+        .ok_or(OpenPgpWriteError::ResourceLimit)?;
+    PacketHeader::new_fixed(Tag::GnupgAeadData, body_len)
+        .to_writer(output)
+        .map_err(|_| OpenPgpWriteError::Internal)?;
+    output.extend_from_slice(&[
+        1,
+        u8::from(SymmetricKeyAlgorithm::AES256),
+        u8::from(AeadAlgorithm::Ocb),
+        GNUPG_AEAD_CHUNK_OCTET,
+    ]);
+    let mut iv = [0_u8; 15];
+    rng.try_fill_bytes(&mut iv)
+        .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
+    output.extend_from_slice(&iv);
+
+    // The patched OCB implementation erases both AES-256's expanded key and
+    // all OCB L-table state on Drop. Keep this explicit type shape auditable.
+    let cipher = Aes256Ocb::new_from_slice(session_key.as_ref())
+        .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
+    let mut index = 0_u64;
+    let mut written = 0_u64;
+    for chunk in plaintext.chunks(GNUPG_AEAD_CHUNK_BYTES) {
+        let nonce = gnupg_ocb_nonce(&iv, index);
+        let associated_data = gnupg_ocb_associated_data(index);
+        let mut encrypted = chunk.to_vec();
+        let tag = cipher
+            .encrypt_in_place_detached(
+                Nonce::<U15>::from_slice(&nonce),
+                &associated_data,
+                &mut encrypted,
+            )
+            .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
+        output.extend_from_slice(&encrypted);
+        output.extend_from_slice(&tag);
+        encrypted.zeroize();
+        written = written
+            .checked_add(chunk.len() as u64)
+            .ok_or(OpenPgpWriteError::ResourceLimit)?;
+        index = index
+            .checked_add(1)
+            .ok_or(OpenPgpWriteError::ResourceLimit)?;
+    }
+    let nonce = gnupg_ocb_nonce(&iv, index);
+    let mut final_associated_data = gnupg_ocb_associated_data(index).to_vec();
+    final_associated_data.extend_from_slice(&written.to_be_bytes());
+    let mut empty = Vec::new();
+    let final_tag = cipher
+        .encrypt_in_place_detached(
+            Nonce::<U15>::from_slice(&nonce),
+            &final_associated_data,
+            &mut empty,
+        )
+        .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
+    output.extend_from_slice(&final_tag);
+    final_associated_data.zeroize();
+    iv.zeroize();
+    Ok(())
+}
+
+#[derive(Default)]
+struct SecretVec(SecretChunks);
+
+impl SecretVec {
+    fn into_zeroizing(self) -> Result<Zeroizing<Vec<u8>>, ()> {
+        self.0.into_zeroizing()
+    }
+}
+
+impl Write for SecretVec {
+    fn write(&mut self, buffer: &[u8]) -> std::io::Result<usize> {
+        if buffer.is_empty() {
+            return Ok(0);
+        }
+        let mut chunk = Zeroizing::new(Vec::new());
+        chunk
+            .try_reserve_exact(buffer.len())
+            .map_err(|_| std::io::Error::other("compressed secret output allocation failed"))?;
+        chunk.extend_from_slice(buffer);
+        self.0
+            .push(chunk, usize::MAX)
+            .map_err(|()| std::io::Error::other("compressed secret output allocation failed"))?;
+        Ok(buffer.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
 }

@@ -2,22 +2,6 @@
 
 use super::*;
 
-/// Parses every transferable public certificate in one decoded or armored
-/// document without discarding packet bodies.
-///
-/// Independently unsupported or malformed certificate entries are skipped and
-/// counted rather than failing later recoverable entries, matching tolerant
-/// keyring import behavior.
-#[cfg(test)]
-pub(crate) fn parse_public_certificate_packet_sets(
-    stream: &RawPacketStream,
-) -> Result<ParsedCertificateDocument, CertificateMergeError> {
-    parse_public_certificate_packet_sets_with_budget(
-        stream,
-        &mut SignatureRehomingBudget::default(),
-    )
-}
-
 /// Parses a keyring while charging every certificate's placement repair to
 /// one request-global budget.
 pub(crate) fn parse_public_certificate_packet_sets_with_budget(

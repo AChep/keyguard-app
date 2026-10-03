@@ -11,6 +11,8 @@ import com.artemchep.keyguard.nativecrypto.HmacRequestProto
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeCryptoPlatform
 import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
+import com.artemchep.keyguard.nativecrypto.aesCbcPkcs7HmacSha256DecryptViaProtobuf
+import com.artemchep.keyguard.nativecrypto.aesCbcPkcs7HmacSha256EncryptViaProtobuf
 import com.artemchep.keyguard.nativecrypto.NativeErrorCodeProto
 import com.artemchep.keyguard.nativecrypto.NativeRequestProto
 import com.artemchep.keyguard.nativecrypto.NativeResponseProto

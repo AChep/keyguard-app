@@ -2,71 +2,39 @@ package com.artemchep.keyguard.util.foundation.crypto
 
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 
-private val defaultCryptoPrimitives: CryptoPrimitives by lazy {
-    PlatformCryptoPrimitives()
+const val DEFAULT_HASH_LENGTH = 32
+
+/** Loads the native crypto backend and fails closed on an incompatible runtime. */
+fun ensurePlatformCryptoReady() {
+    NativeCrypto.ensureReady()
 }
 
+/**
+ * Derives [length] bytes using HKDF with HMAC-SHA256 (RFC 5869).
+ *
+ * Note on [salt]: when [salt] is `null`, the HKDF *extract* step is skipped and
+ * [seed] is used directly as the pseudo-random key
+ * (the legacy `skipExtract` compatibility semantics).
+ */
 fun hkdfSha256(
     seed: ByteArray,
     salt: ByteArray? = null,
     info: ByteArray? = null,
     length: Int = DEFAULT_HASH_LENGTH,
-): ByteArray = defaultCryptoPrimitives.hkdfSha256(
+): ByteArray = NativeCrypto.primitives.hkdfSha256(
     seed = seed,
     salt = salt,
     info = info,
     length = length,
 )
 
-fun pbkdf2Sha256(
-    seed: ByteArray,
-    salt: ByteArray,
-    iterations: Int = 1,
-    length: Int = DEFAULT_HASH_LENGTH,
-): ByteArray = defaultCryptoPrimitives.pbkdf2Sha256(
-    seed = seed,
-    salt = salt,
-    iterations = iterations,
-    length = length,
-)
+fun randomBytes(length: Int): ByteArray = NativeCrypto.primitives.randomBytes(length)
 
-fun randomBytes(length: Int): ByteArray = defaultCryptoPrimitives.randomBytes(length)
+fun sha256(data: ByteArray): ByteArray = NativeCrypto.primitives.sha256(data)
 
-fun hmac(
-    key: ByteArray,
-    data: ByteArray,
-    algorithm: CryptoHashAlgorithm,
-): ByteArray = defaultCryptoPrimitives.hmac(
-    key = key,
-    data = data,
-    algorithm = algorithm,
-)
+fun sha512(data: ByteArray): ByteArray = NativeCrypto.primitives.sha512(data)
 
-fun hmacSha256(
-    key: ByteArray,
-    data: ByteArray,
-): ByteArray = defaultCryptoPrimitives.hmacSha256(
-    key = key,
-    data = data,
-)
-
-fun sha1(data: ByteArray): ByteArray = defaultCryptoPrimitives.sha1(data)
-
-fun sha256(data: ByteArray): ByteArray = defaultCryptoPrimitives.sha256(data)
-
-fun sha512(data: ByteArray): ByteArray = defaultCryptoPrimitives.sha512(data)
-
-fun md5(data: ByteArray): ByteArray = defaultCryptoPrimitives.md5(data)
-
-fun aesEcbNoPaddingEncrypt(
-    key: ByteArray,
-    data: ByteArray,
-): ByteArray = defaultCryptoPrimitives.aesEcbNoPaddingEncrypt(
-    key = key,
-    data = data,
-)
-
-/** Application-internal bulk AES-KDF primitive; intentionally absent from [CryptoPrimitives]. */
+/** Application-internal bulk AES-KDF primitive. */
 fun aesEcbNoPaddingTransform(
     key: ByteArray,
     data: ByteArray,
@@ -75,24 +43,4 @@ fun aesEcbNoPaddingTransform(
     key = key,
     data = data,
     rounds = rounds,
-)
-
-fun aesCbcPkcs7Encrypt(
-    key: ByteArray,
-    iv: ByteArray,
-    data: ByteArray,
-): ByteArray = defaultCryptoPrimitives.aesCbcPkcs7Encrypt(
-    key = key,
-    iv = iv,
-    data = data,
-)
-
-fun aesCbcPkcs7Decrypt(
-    key: ByteArray,
-    iv: ByteArray,
-    data: ByteArray,
-): ByteArray = defaultCryptoPrimitives.aesCbcPkcs7Decrypt(
-    key = key,
-    iv = iv,
-    data = data,
 )

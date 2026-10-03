@@ -4,7 +4,7 @@ import com.artemchep.keyguard.nativecrypto.NativeCrypto
 
 interface HmacState : HashState
 
-fun createHmac(
+internal fun createHmac(
     key: ByteArray,
     algorithm: CryptoHashAlgorithm,
 ): HmacState = NativeHashSessionState(

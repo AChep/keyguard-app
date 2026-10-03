@@ -384,22 +384,6 @@ public enum class NativeOpenPgpExpirationUpdateError {
     UNSUPPORTED_SIGNING_HASH,
 }
 
-public sealed interface NativeOpenPgpCertificateMaterialReconcileResult {
-    public class Success(
-        val publicCertificate: ByteArray,
-        val privateCertificate: ByteArray?,
-        val primaryFingerprint: String,
-        val existingPublicContributed: Boolean,
-        val incomingPublicContributed: Boolean,
-        val existingSecretContributed: Boolean,
-        val incomingSecretContributed: Boolean,
-    ) : NativeOpenPgpCertificateMaterialReconcileResult
-
-    public data class Error(
-        val failure: NativeOpenPgpCertificateMaterialReconcileFailure,
-    ) : NativeOpenPgpCertificateMaterialReconcileResult
-}
-
 public sealed interface NativeOpenPgpCertificateMaterialReconcileV2Result {
     public class Success(
         val localPublicMaterial: ByteArray,
@@ -805,10 +789,15 @@ public object NativeCryptoOpenPgp {
         referenceTimeEpochSeconds: Long? = null,
     ): NativeOpenPgpVerificationSession {
         requireReferenceTime(referenceTimeEpochSeconds)
-        val session = NativeCrypto.openPgpDetachedVerification(
-            signature = signature,
-            publicKeys = publicKeys,
-            referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+        val session = NativeCrypto.openSession(
+            operationName = "open_pgp_detached_verify.stream_open",
+            operation = OpenPgpDetachedVerifyStreamOpenOperationProto(
+                OpenPgpDetachedVerifyStreamOpenRequestProto(
+                    signature = signature,
+                    publicKeys = publicKeys,
+                    referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                ),
+            ),
         )
         return NativeOpenPgpVerificationSessionImpl(session)
     }
@@ -818,9 +807,14 @@ public object NativeCryptoOpenPgp {
         referenceTimeEpochSeconds: Long? = null,
     ): NativeOpenPgpClearVerificationSession {
         requireReferenceTime(referenceTimeEpochSeconds)
-        val session = NativeCrypto.openPgpClearVerification(
-            publicKeys = publicKeys,
-            referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+        val session = NativeCrypto.openSession(
+            operationName = "open_pgp_clear_verify.stream_open",
+            operation = OpenPgpClearVerifyStreamOpenOperationProto(
+                OpenPgpClearVerifyStreamOpenRequestProto(
+                    publicKeys = publicKeys,
+                    referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                ),
+            ),
         )
         return NativeOpenPgpClearVerificationSessionImpl(session)
     }
@@ -1248,13 +1242,18 @@ public object NativeCryptoOpenPgp {
             referenceTimeEpochSeconds = referenceTimeEpochSeconds,
         )
         return NativeOpenPgpDetachedSigningSessionImpl(
-            NativeCrypto.openPgpDetachedSigning(
-                privateKey = privateKey,
-                candidateRevocationKeys = candidateRevocationKeys,
-                preferredFingerprint = preferredFingerprint,
-                armored = armored,
-                signatureTimeEpochSeconds = signatureTimeEpochSeconds,
-                referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            NativeCrypto.openSession(
+                operationName = "open_pgp_detached_sign.stream_open",
+                operation = OpenPgpDetachedSignStreamOpenOperationProto(
+                    OpenPgpDetachedSignStreamOpenRequestProto(
+                        privateKey = privateKey,
+                        preferredFingerprint = preferredFingerprint,
+                        armored = armored,
+                        signatureTimeEpochSeconds = signatureTimeEpochSeconds,
+                        referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                        candidateRevocationKeys = candidateRevocationKeys,
+                    ),
+                ),
             ),
         )
     }
@@ -1273,12 +1272,17 @@ public object NativeCryptoOpenPgp {
             referenceTimeEpochSeconds = referenceTimeEpochSeconds,
         )
         return NativeOpenPgpClearSigningSessionImpl(
-            NativeCrypto.openPgpClearSigning(
-                privateKey = privateKey,
-                candidateRevocationKeys = candidateRevocationKeys,
-                preferredFingerprint = preferredFingerprint,
-                signatureTimeEpochSeconds = signatureTimeEpochSeconds,
-                referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            NativeCrypto.openSession(
+                operationName = "open_pgp_clear_sign.stream_open",
+                operation = OpenPgpClearSignStreamOpenOperationProto(
+                    OpenPgpClearSignStreamOpenRequestProto(
+                        privateKey = privateKey,
+                        preferredFingerprint = preferredFingerprint,
+                        signatureTimeEpochSeconds = signatureTimeEpochSeconds,
+                        referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                        candidateRevocationKeys = candidateRevocationKeys,
+                    ),
+                ),
             ),
         )
     }
@@ -1303,16 +1307,21 @@ public object NativeCryptoOpenPgp {
             referenceTimeEpochSeconds = referenceTimeEpochSeconds,
         )
         return NativeOpenPgpEncryptionSessionImpl(
-            NativeCrypto.openPgpEncryption(
-                publicKeys = publicKeys,
-                candidateRevocationKeys = candidateRevocationKeys,
-                signingPrivateKey = signingPrivateKey,
-                preferredSigningFingerprint = preferredSigningFingerprint,
-                fileName = fileName,
-                armored = armored,
-                literalTimeEpochSeconds = literalTimeEpochSeconds,
-                referenceTimeEpochSeconds = referenceTimeEpochSeconds,
-                enableCompression = enableCompression,
+            NativeCrypto.openSession(
+                operationName = "open_pgp_encrypt.stream_open",
+                operation = OpenPgpEncryptStreamOpenOperationProto(
+                    OpenPgpEncryptStreamOpenRequestProto(
+                        publicKeys = publicKeys,
+                        signingPrivateKey = signingPrivateKey,
+                        preferredSigningFingerprint = preferredSigningFingerprint,
+                        fileName = fileName,
+                        armored = armored,
+                        literalTimeEpochSeconds = literalTimeEpochSeconds,
+                        referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                        enableCompression = enableCompression,
+                        candidateRevocationKeys = candidateRevocationKeys,
+                    ),
+                ),
             ),
         )
     }
@@ -1336,12 +1345,17 @@ public object NativeCryptoOpenPgp {
             allowSignedOnly = allowSignedOnly,
         )
         return NativeOpenPgpDecryptionSessionImpl(
-            NativeCrypto.openPgpDecryption(
-                privateKeys = privateKeys,
-                verificationPublicKeys = verificationPublicKeys,
-                referenceTimeEpochSeconds = referenceTimeEpochSeconds,
-                allowSignedOnly = allowSignedOnly,
-                stagingDirectory = stagingDirectory,
+            NativeCrypto.openSession(
+                operationName = "open_pgp_decrypt.stream_open",
+                operation = OpenPgpDecryptStreamOpenOperationProto(
+                    OpenPgpDecryptStreamOpenRequestProto(
+                        privateKeys = privateKeys,
+                        verificationPublicKeys = verificationPublicKeys,
+                        referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                        allowSignedOnly = allowSignedOnly,
+                        stagingDirectory = stagingDirectory,
+                    ),
+                ),
             ),
         )
     }
@@ -1380,46 +1394,6 @@ public object NativeCryptoOpenPgp {
             payload = payload,
         )
         return result.toPublicExpirationUpdateResult("open_pgp_expiration_update")
-    }
-
-    /** Unions public evidence and secret components from two logical certificate sides. */
-    public fun reconcileCertificateMaterial(
-        expectedPrimaryFingerprint: String,
-        existingPublicCertificate: ByteArray?,
-        incomingPublicCertificate: ByteArray?,
-        existingSecretCertificate: ByteArray?,
-        incomingSecretCertificate: ByteArray?,
-    ): NativeOpenPgpCertificateMaterialReconcileResult {
-        require(expectedPrimaryFingerprint.isNotEmpty()) {
-            "Expected OpenPGP primary fingerprint must not be empty"
-        }
-        requirePreferredFingerprint(expectedPrimaryFingerprint)
-        val operation = "open_pgp_certificate_material_reconcile"
-        val payload =
-            NativeCrypto
-                .call(
-                    operationName = operation,
-                    operation =
-                        OpenPgpCertificateMaterialReconcileOperationProto(
-                            OpenPgpCertificateMaterialReconcileRequestProto(
-                                expectedPrimaryFingerprint = expectedPrimaryFingerprint,
-                                existingPublicCertificate = existingPublicCertificate,
-                                incomingPublicCertificate = incomingPublicCertificate,
-                                existingSecretCertificate = existingSecretCertificate,
-                                incomingSecretCertificate = incomingSecretCertificate,
-                            ),
-                        ),
-                ).requireBytes(operation)
-        return decodePayload<OpenPgpCertificateMaterialReconcileResultProto>(
-            operation = operation,
-            payload = payload,
-        ).toPublicCertificateMaterialReconcileResult(
-            operation = operation,
-            expectedPrimaryFingerprint = expectedPrimaryFingerprint,
-            privateOutputRequired =
-                existingSecretCertificate != null ||
-                    incomingSecretCertificate != null,
-        )
     }
 
     /**
@@ -1978,49 +1952,6 @@ private fun hasConsistentPrimaryFingerprint(
     return expectedPrimaryFingerprint.isEmpty() ||
         actualPrimaryFingerprint == expectedPrimaryFingerprint
 }
-
-@Suppress("ComplexCondition", "CyclomaticComplexMethod")
-internal fun OpenPgpCertificateMaterialReconcileResultProto.toPublicCertificateMaterialReconcileResult(
-    operation: String,
-    expectedPrimaryFingerprint: String,
-    privateOutputRequired: Boolean,
-): NativeOpenPgpCertificateMaterialReconcileResult =
-    when (val outcome = result) {
-        is OpenPgpCertificateMaterialReconcileSuccessOutcomeProto -> {
-            val value = outcome.value
-            val privateCertificate = value.privateCertificate
-            val invalid =
-                value.publicCertificate.isEmpty() ||
-                    value.primaryFingerprint != expectedPrimaryFingerprint ||
-                    privateOutputRequired != (privateCertificate != null) ||
-                    privateCertificate?.isEmpty() == true
-            if (invalid) {
-                value.publicCertificate.fill(0)
-                privateCertificate?.fill(0)
-                malformedOpenPgp(operation)
-            }
-            requireOpenPgpFingerprint(operation, value.primaryFingerprint)
-            NativeOpenPgpCertificateMaterialReconcileResult.Success(
-                publicCertificate = value.publicCertificate,
-                privateCertificate = privateCertificate,
-                primaryFingerprint = value.primaryFingerprint,
-                existingPublicContributed = value.existingPublicContributed,
-                incomingPublicContributed = value.incomingPublicContributed,
-                existingSecretContributed = value.existingSecretContributed,
-                incomingSecretContributed = value.incomingSecretContributed,
-            )
-        }
-
-        is OpenPgpCertificateMaterialReconcileErrorOutcomeProto -> {
-            NativeOpenPgpCertificateMaterialReconcileResult.Error(
-                failure = outcome.value.toPublicCertificateMaterialReconcileFailure(operation),
-            )
-        }
-
-        null -> {
-            malformedOpenPgp(operation)
-        }
-    }
 
 internal fun OpenPgpCertificateMaterialReconcileV2ResultProto
     .toPublicCertificateMaterialReconcileV2Result(

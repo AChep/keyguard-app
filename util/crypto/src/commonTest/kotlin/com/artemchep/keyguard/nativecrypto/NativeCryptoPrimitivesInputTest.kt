@@ -122,31 +122,15 @@ class NativeCryptoPrimitivesInputTest {
             )
         }
         assertFailsWith<IllegalArgumentException> {
-            NativeCryptoPrimitives.twofishCbcPkcs7Encrypt(
+            NativeCryptoPrimitives.createTwofishCbcPkcs7Encryptor(
                 key = ByteArray(15),
                 iv = ByteArray(16),
-                data = ByteArray(0),
             )
         }
         assertFailsWith<IllegalArgumentException> {
-            NativeCryptoPrimitives.twofishCbcPkcs7Encrypt(
+            NativeCryptoPrimitives.createTwofishCbcPkcs7Decryptor(
                 key = ByteArray(16),
                 iv = ByteArray(15),
-                data = ByteArray(0),
-            )
-        }
-        assertFailsWith<IllegalArgumentException> {
-            NativeCryptoPrimitives.twofishCbcPkcs7Decrypt(
-                key = ByteArray(16),
-                iv = ByteArray(16),
-                data = ByteArray(0),
-            )
-        }
-        assertFailsWith<IllegalArgumentException> {
-            NativeCryptoPrimitives.twofishCbcPkcs7Decrypt(
-                key = ByteArray(16),
-                iv = ByteArray(16),
-                data = ByteArray(15),
             )
         }
     }

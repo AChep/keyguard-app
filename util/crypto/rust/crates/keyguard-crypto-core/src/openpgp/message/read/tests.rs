@@ -36,6 +36,12 @@ use crate::openpgp::crypto::verification::{
 };
 use crate::openpgp::key::generate_rsa_certificate_for_test;
 use crate::openpgp::packet::USER_ID_TAG;
+use crate::openpgp::policy::{
+    PolicyContext, PolicySelection, authenticated_key_flags, select_newest_policy_signature,
+    select_primary_user_id, signature_expired_at,
+};
+use pgp::composed::{Deserializable, DetachedSignature};
+use std::io::{BufRead, BufReader};
 const PUBLIC_KEY: &[u8] = include_bytes!("../../../../tests/fixtures/openpgp/cv25519-public.asc");
 const SECRET_KEY: &[u8] = include_bytes!("../../../../tests/fixtures/openpgp/cv25519-secret.asc");
 const DETACHED_BODY: &[u8] = include_bytes!("../../../../tests/fixtures/openpgp/detached-body.txt");
@@ -6895,4 +6901,81 @@ fn channel_reader_preserves_arbitrary_chunk_boundaries() {
         .expect("channel reader must drain");
     worker.join().expect("sender must join");
     assert_eq!(output, b"abcdef");
+}
+
+impl DataSignatureVerificationTime {
+    fn exact(reference_time: u64) -> Self {
+        Self {
+            reference_time,
+            latest_acceptable_creation_time: reference_time,
+        }
+    }
+}
+
+fn preflight_openpgp_packets(
+    data: &[u8],
+    budget: &mut OpenPgpReadBudget,
+) -> Result<(), ParseFailure> {
+    let input = openpgp_packet_input(data, None)?;
+    preflight_packet_reader(BufReader::new(Cursor::new(input.as_slice())), budget)
+}
+
+fn preflight_packet_reader<R: BufRead>(
+    reader: R,
+    budget: &mut OpenPgpReadBudget,
+) -> Result<(), ParseFailure> {
+    let mut packets = PacketParser::new(reader);
+    while let Some(packet) = packets.next_ref() {
+        let mut body = packet.map_err(|_| ParseFailure::Malformed)?;
+        budget.charge_packets(1)?;
+        if body
+            .packet_header()
+            .packet_length()
+            .maybe_len()
+            .is_some_and(|length| length as usize > MAX_PACKET_BODY_BYTES)
+        {
+            return Err(ParseFailure::ResourceLimit);
+        }
+        let read = io::copy(
+            &mut body.by_ref().take((MAX_PACKET_BODY_BYTES + 1) as u64),
+            &mut io::sink(),
+        )
+        .map_err(|_| ParseFailure::Malformed)?;
+        if read > MAX_PACKET_BODY_BYTES as u64 {
+            return Err(ParseFailure::ResourceLimit);
+        }
+    }
+    Ok(())
+}
+
+fn decode_openpgp_packets(data: &[u8]) -> Result<Vec<u8>, ParseFailure> {
+    RawPacketStream::parse(data, MAX_PACKETS_PER_REQUEST)
+        .map(|stream| stream.bytes().to_vec())
+        .map_err(ParseFailure::from)
+}
+
+fn find_subslice(input: &[u8], needle: &[u8]) -> Option<usize> {
+    input
+        .windows(needle.len())
+        .position(|window| window == needle)
+}
+
+/// Applies the OpenPGP certificate, revocation, expiry, cross-certification,
+/// and warning policy to message signatures whose data cryptography is
+/// evaluated by the caller.
+fn evaluate_preverified_signatures(
+    signatures: &[Signature],
+    certificates: &[SignedPublicKey],
+    verification_time: DataSignatureVerificationTime,
+    authenticated_recipient: Option<&Fingerprint>,
+    verify: impl FnMut(usize, &PublicComponent) -> bool,
+) -> Result<Verification, OpenPgpReadError> {
+    let authenticated_recipients = vec![authenticated_recipient.cloned(); signatures.len()];
+    evaluate_preverified_signatures_with_recipients(
+        signatures,
+        certificates,
+        verification_time,
+        &authenticated_recipients,
+        verify,
+    )
 }

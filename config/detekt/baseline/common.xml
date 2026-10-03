@@ -229,7 +229,6 @@
     <ID>EmptyFunctionBlock:AutofillSaveActivity.kt:AutofillSaveActivity${ }</ID>
     <ID>EmptyFunctionBlock:BitwardenLoginTwofaPlatform.kt:{ }</ID>
     <ID>EmptyFunctionBlock:CipherFilterViewDialogRoute.kt:CipherFilterViewDialogRoute${ }</ID>
-    <ID>EmptyFunctionBlock:CipherInputStream2.kt:CipherInputStream2${}</ID>
     <ID>EmptyFunctionBlock:InstallImageLoadingApple.kt:{ }</ID>
     <ID>EmptyFunctionBlock:KeepScreenOnEffect.kt:{ }</ID>
     <ID>EmptyFunctionBlock:LeCrashlytics.kt:{ }</ID>
@@ -971,7 +970,6 @@
     <ID>MagicNumber:CipherDuplicatesCheck.kt:CipherDuplicatesCheckImpl$64</ID>
     <ID>MagicNumber:CipherFiltersListScreen.kt:100L</ID>
     <ID>MagicNumber:CipherHistoryOpenedRepositoryImpl.kt:CipherHistoryOpenedRepositoryImpl$100</ID>
-    <ID>MagicNumber:CipherInputStream2.kt:CipherInputStream2$0xff</ID>
     <ID>MagicNumber:CipherSyncOps.kt:CipherSyncOps$200</ID>
     <ID>MagicNumber:CipherSyncOps.kt:CipherSyncOps$299</ID>
     <ID>MagicNumber:CipherTypeEntity.kt:CipherTypeEntity.Card$3</ID>
@@ -1733,9 +1731,6 @@
     <ID>ReturnCount:CipherIncompleteCheck.kt:CipherIncompleteCheckImpl$override fun invoke: Boolean</ID>
     <ID>ReturnCount:CipherIncompleteCheck.kt:CipherIncompleteCheckImpl$private fun incompleteIdentity: Boolean</ID>
     <ID>ReturnCount:CipherIncompleteCheck.kt:CipherIncompleteCheckImpl$private fun incompleteLogin: Boolean</ID>
-    <ID>ReturnCount:CipherInputStream2.kt:CipherInputStream2$@Throws(IOException::class) override fun read: Int</ID>
-    <ID>ReturnCount:CipherInputStream2.kt:CipherInputStream2$@Throws(IOException::class) private fun nextChunk: Int</ID>
-    <ID>ReturnCount:CipherInputStreamDecoder.kt:CipherInputStreamDecoder$private fun initIfReady: Int</ID>
     <ID>ReturnCount:CipherLink.kt:CipherLink.Companion$fun parse: CipherLink?</ID>
     <ID>ReturnCount:CipherLinkFields.kt:CipherLinkFields$fun parse: ParsedField?</ID>
     <ID>ReturnCount:CipherMerge.kt:CipherMergeImpl$private fun Node&lt;out Any&gt;.merge: Any</ID>
@@ -1948,11 +1943,6 @@
     <ID>TooGenericExceptionCaught:BackupRepositoryZipImpl.kt:BackupRepositoryZipImpl$e: Exception</ID>
     <ID>TooGenericExceptionCaught:BackupRunService.kt:BackupRunService$e: Exception</ID>
     <ID>TooGenericExceptionCaught:BackupRunner.kt:BackupRunner$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:CipherInputStream2.kt:CipherInputStream2$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:CipherInputStream2.kt:CipherInputStream2$failure: Throwable</ID>
-    <ID>TooGenericExceptionCaught:CipherInputStream2.kt:CipherInputStream2$finalizationFailure: Throwable</ID>
-    <ID>TooGenericExceptionCaught:CipherInputStreamDecoder.kt:CipherInputStreamDecoder$closeFailure: Throwable</ID>
-    <ID>TooGenericExceptionCaught:CipherInputStreamDecoder.kt:CipherInputStreamDecoder$failure: Throwable</ID>
     <ID>TooGenericExceptionCaught:CipherSyncOps.kt:CipherSyncOps$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:CipherUrlBroadCheck.kt:CipherUrlBroadCheckImpl$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:CompanionAuthUtil.kt:e: Throwable</ID>
@@ -2053,8 +2043,6 @@
     <ID>TooManyFunctions:ChangePasswordScreen.kt:com.artemchep.keyguard.feature.changepassword.ChangePasswordScreen.kt</ID>
     <ID>TooManyFunctions:CipherCrypto.kt:com.artemchep.keyguard.provider.bitwarden.crypto.CipherCrypto.kt</ID>
     <ID>TooManyFunctions:CipherDuplicatesCheck.kt:CipherDuplicatesCheckImpl : CipherDuplicatesCheck</ID>
-    <ID>TooManyFunctions:CipherInputStream2.kt:CipherInputStream2 : FilterInputStream</ID>
-    <ID>TooManyFunctions:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest</ID>
     <ID>TooManyFunctions:CipherMapping.kt:com.artemchep.keyguard.provider.bitwarden.mapper.CipherMapping.kt</ID>
     <ID>TooManyFunctions:CipherSnapshotBenchmarkTest.kt:CipherSnapshotBenchmarkTest</ID>
     <ID>TooManyFunctions:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest</ID>

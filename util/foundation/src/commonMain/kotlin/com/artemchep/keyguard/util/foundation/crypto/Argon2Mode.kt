@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.util.foundation.crypto
 
+import com.artemchep.keyguard.nativecrypto.NativeArgon2Mode
+
 /**
  * The different Argon2 modes that differ regarding side-channel-and-memory-tradeoffs.
  * Please refer to the documentation of the Argon2 project for details.
@@ -23,4 +25,10 @@ enum class Argon2Mode(val identifier: Int) {
      * a reasonable trade-off between memory dependence and side-channels.
      */
     ARGON2_ID(2),
+}
+
+fun Argon2Mode.toNativeArgon2Mode(): NativeArgon2Mode = when (this) {
+    Argon2Mode.ARGON2_D -> NativeArgon2Mode.ARGON2_D
+    Argon2Mode.ARGON2_I -> NativeArgon2Mode.ARGON2_I
+    Argon2Mode.ARGON2_ID -> NativeArgon2Mode.ARGON2_ID
 }

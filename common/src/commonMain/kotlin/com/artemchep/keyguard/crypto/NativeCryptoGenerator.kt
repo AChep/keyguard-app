@@ -3,11 +3,13 @@ package com.artemchep.keyguard.crypto
 import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
-import com.artemchep.keyguard.util.foundation.crypto.PlatformCryptoPrimitives
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
+import com.artemchep.keyguard.util.foundation.crypto.toNativeArgon2Mode
+import com.artemchep.keyguard.util.foundation.crypto.toNativeHashAlgorithm
 import kotlin.uuid.Uuid
 
 class NativeCryptoGenerator : CryptoGenerator {
-    private val delegate = PlatformCryptoPrimitives()
+    private val delegate = NativeCrypto.primitives
 
     override fun hkdf(
         seed: ByteArray,
@@ -41,7 +43,7 @@ class NativeCryptoGenerator : CryptoGenerator {
         memoryKb: Int,
         parallelism: Int,
     ): ByteArray = delegate.argon2(
-        mode = mode,
+        mode = mode.toNativeArgon2Mode(),
         seed = seed,
         salt = salt,
         iterations = iterations,
@@ -58,7 +60,7 @@ class NativeCryptoGenerator : CryptoGenerator {
     ): ByteArray = delegate.hmac(
         key = key,
         data = data,
-        algorithm = algorithm,
+        algorithm = algorithm.toNativeHashAlgorithm(),
     )
 
     override fun hashSha1(data: ByteArray): ByteArray = delegate.sha1(data)

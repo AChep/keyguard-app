@@ -35,7 +35,6 @@
     <ID>TooGenericExceptionCaught:NativeCryptoSsh.kt:NativeCryptoSsh$failure: Throwable</ID>
     <ID>TooGenericExceptionCaught:NativeCryptoStreaming.kt:closeFailure: Throwable</ID>
     <ID>TooGenericExceptionCaught:NativeCryptoStreaming.kt:failure: Throwable</ID>
-    <ID>TooManyFunctions:NativeCrypto.kt:NativeCrypto</ID>
     <ID>TooManyFunctions:NativeCrypto.kt:NativeCryptoClient</ID>
     <ID>TooManyFunctions:NativeCryptoLayerBenchmarkTest.kt:NativeCryptoLayerBenchmarkTest</ID>
     <ID>TooManyFunctions:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp</ID>

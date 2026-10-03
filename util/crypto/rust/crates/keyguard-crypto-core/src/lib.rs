@@ -58,7 +58,7 @@ pub const CAPABILITY_STREAMING: u64 = 1 << 7;
 pub const CAPABILITY_KDBX_ARGON2: u64 = 1 << 8;
 /// Stateless Salsa20/ChaCha20 offset transform capability bit.
 pub const CAPABILITY_STREAM_CIPHER_XOR_AT_OFFSET: u64 = 1 << 9;
-/// Twofish-CBC-PKCS#7 one-shot and streaming capability bit.
+/// Twofish-CBC-PKCS#7 streaming capability bit.
 pub const CAPABILITY_TWOFISH_CBC_PKCS7: u64 = 1 << 10;
 /// RSA-OAEP SHA-1/SHA-256 encryption and decryption capability bit.
 pub const CAPABILITY_RSA_OAEP: u64 = 1 << 11;
@@ -100,8 +100,7 @@ pub const CAPABILITY_OPENPGP_EXTERNAL_REVOCATION_POLICY: u64 = 1 << 28;
 pub const CAPABILITY_OPENPGP_SIGNED_REVOCATION: u64 = 1 << 29;
 /// Atomic V4 textual User ID replacement with a combined certificate artifact.
 pub const CAPABILITY_OPENPGP_USER_ID_REPLACEMENT: u64 = 1 << 30;
-/// Coherent public/secret OpenPGP certificate material reconciliation.
-pub const CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE: u64 = 1 << 31;
+// Bit 31 belonged to the retired V1 certificate material reconciliation; do not reuse it.
 /// OpenPGP reconciliation with separate local and transferable material outputs.
 pub const CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2: u64 = 1 << 32;
 /// Per-User-ID certification evaluation against explicit local trust roots.
@@ -142,7 +141,6 @@ pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_OPENPGP_EXTERNAL_REVOCATION_POLICY
     | CAPABILITY_OPENPGP_SIGNED_REVOCATION
     | CAPABILITY_OPENPGP_USER_ID_REPLACEMENT
-    | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE
     | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2
     | CAPABILITY_OPENPGP_USER_ID_CERTIFICATION
     | CAPABILITY_OPENPGP_STREAM_DRAIN
@@ -211,10 +209,6 @@ pub fn stream_open(request_bytes: &[u8]) -> Vec<u8> {
     };
     let operation_name = stream_open_operation_name(&operation);
     match operation {
-        native_stream_open_request::Operation::HmacSha256(mut request) => {
-            let key = std::mem::take(&mut request.key);
-            stream_open_response(operation_name, sessions::open_hmac_sha256(key))
-        }
         native_stream_open_request::Operation::Digest(request) => {
             let algorithm = match parse_hash_algorithm(request.algorithm) {
                 Ok(algorithm) => algorithm,
@@ -411,15 +405,6 @@ fn execute_one_shot(
         native_request::Operation::RandomBytes(request) => {
             primitives::random_bytes(request.length)?
         }
-        native_request::Operation::RandomInt(request) => {
-            return primitives::random_int(request.bounded, request.exclusive_upper_bound)
-                .map(native_response::Result::Int32Value);
-        }
-        native_request::Operation::RandomInts(request) => primitives::random_ints(
-            request.bounded,
-            request.exclusive_upper_bound,
-            request.count,
-        )?,
         native_request::Operation::Hmac(mut request) => {
             let algorithm = parse_hash_algorithm(request.algorithm)?;
             let key = std::mem::take(&mut request.key);
@@ -482,13 +467,6 @@ fn execute_one_shot(
             let data = std::mem::take(&mut request.data);
             primitives::stream_cipher_xor_at_offset(algorithm, key, nonce, request.offset, data)?
         }
-        native_request::Operation::TwofishCbcPkcs7(mut request) => {
-            let direction = parse_cipher_direction(request.direction)?;
-            let key = std::mem::take(&mut request.key);
-            let iv = std::mem::take(&mut request.iv);
-            let data = std::mem::take(&mut request.data);
-            primitives::twofish_cbc_pkcs7(direction, key, iv, data)?
-        }
         native_request::Operation::RsaOaepEncrypt(mut request) => {
             let hash = parse_rsa_oaep_hash(request.hash)?;
             let public_key_spki = std::mem::take(&mut request.public_key_spki);
@@ -528,12 +506,6 @@ fn execute_one_shot(
         native_request::Operation::SshPrivateKeyRsaBits(mut request) => {
             let bits = ssh_keys::private_key_rsa_bits(std::mem::take(&mut request.private_key));
             return Ok(native_response::Result::Int32Value(bits));
-        }
-        native_request::Operation::SshPrivateKeyFormat(mut request) => {
-            ssh_keys::format_private_key(
-                parse_ssh_key_type(request.r#type)?,
-                std::mem::take(&mut request.private_key),
-            )?
         }
         native_request::Operation::SshAgentSign(mut request) => ssh_keys::sign(
             std::mem::take(&mut request.private_key_pem),
@@ -589,9 +561,6 @@ fn execute_one_shot(
         native_request::Operation::OpenPgpExpirationUpdate(request) => {
             openpgp::adapter::update_expiration(request)?
         }
-        native_request::Operation::OpenPgpCertificateMaterialReconcile(request) => {
-            openpgp::adapter::reconcile_certificate_material(request)?
-        }
         native_request::Operation::OpenPgpCertificateMaterialReconcileV2(request) => {
             openpgp::adapter::reconcile_certificate_material_v2(request)?
         }
@@ -617,8 +586,6 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::Pbkdf2Sha256(_) => "pbkdf2_sha256",
         native_request::Operation::Argon2(_) => "argon2",
         native_request::Operation::RandomBytes(_) => "random_bytes",
-        native_request::Operation::RandomInt(_) => "random_int",
-        native_request::Operation::RandomInts(_) => "random_ints",
         native_request::Operation::Hmac(_) => "hmac",
         native_request::Operation::Digest(_) => "digest",
         native_request::Operation::AesEcbNoPaddingEncrypt(_) => "aes_ecb_no_padding_encrypt",
@@ -631,7 +598,6 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         }
         native_request::Operation::AesEcbNoPaddingTransform(_) => "aes_ecb_no_padding_transform",
         native_request::Operation::StreamCipherXorAtOffset(_) => "stream_cipher_xor_at_offset",
-        native_request::Operation::TwofishCbcPkcs7(_) => "twofish_cbc_pkcs7",
         native_request::Operation::RsaOaepEncrypt(_) => "rsa_oaep_encrypt",
         native_request::Operation::RsaOaepDecrypt(_) => "rsa_oaep_decrypt",
         native_request::Operation::RsaPkcs8ToSpki(_) => "rsa_pkcs8_to_spki",
@@ -642,7 +608,6 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::SshKeyParse(_) => "ssh_key_parse",
         native_request::Operation::SshKeyDescribe(_) => "ssh_key_describe",
         native_request::Operation::SshPrivateKeyRsaBits(_) => "ssh_private_key_rsa_bits",
-        native_request::Operation::SshPrivateKeyFormat(_) => "ssh_private_key_format",
         native_request::Operation::SshAgentSign(_) => "ssh_agent_sign",
         native_request::Operation::SshPrivateKeyImport(_) => "ssh_private_key_import",
         native_request::Operation::SshKeyExportCxf(_) => "ssh_key_export_cxf",
@@ -663,9 +628,6 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::OpenPgpDecrypt(_) => "open_pgp_decrypt",
         native_request::Operation::OpenPgpStreamDrain(_) => "open_pgp_stream_drain",
         native_request::Operation::OpenPgpExpirationUpdate(_) => "open_pgp_expiration_update",
-        native_request::Operation::OpenPgpCertificateMaterialReconcile(_) => {
-            "open_pgp_certificate_material_reconcile"
-        }
         native_request::Operation::OpenPgpCertificateMaterialReconcileV2(_) => {
             "open_pgp_certificate_material_reconcile_v2"
         }
@@ -678,7 +640,6 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
 
 fn stream_open_operation_name(operation: &native_stream_open_request::Operation) -> &'static str {
     match operation {
-        native_stream_open_request::Operation::HmacSha256(_) => "hmac_sha256.stream_open",
         native_stream_open_request::Operation::Digest(_) => "digest.stream_open",
         native_stream_open_request::Operation::Hmac(_) => "hmac.stream_open",
         native_stream_open_request::Operation::AesCbcPkcs7(_) => "aes_cbc_pkcs7.stream_open",
@@ -852,18 +813,16 @@ mod tests {
         AesCbcPkcs7HmacSha256EncryptStreamOpenRequest, AesCbcPkcs7Request,
         AesCbcPkcs7StreamOpenRequest, AesEcbNoPaddingEncryptRequest,
         AesEcbNoPaddingTransformRequest, Argon2Request, DigestRequest, DigestStreamOpenRequest,
-        HkdfSha256Request, HmacRequest, HmacSha256StreamOpenRequest, HmacStreamOpenRequest,
-        NativeStreamOpenRequest, OpenPgpCertificateMaterialReconcileRequest,
-        OpenPgpCertificateMaterialReconcileSuccess, OpenPgpCertificateMaterialReconcileV2Request,
-        OpenPgpCertificateMaterialReconcileV2Success, OpenPgpDetachedVerifyStreamOpenRequest,
-        OpenPgpMetadataResolveRequest, OpenPgpPublicKeyParseRequest,
-        OpenPgpUserIdReplacementRequest, OpenPgpUserIdRevocationRequest, OpenPgpVerifyKind,
-        OpenPgpVerifyRequest, Pbkdf2Sha256Request, RandomBytesRequest, RandomIntRequest,
-        RandomIntsRequest, RsaOaepDecryptRequest, RsaOaepEncryptRequest, RsaPkcs8ToSpkiRequest,
-        SshAgentSignRequest, SshAgentTcpChaCha20Poly1305Request, SshKeyDescribeRequest,
-        SshKeyGenerateRequest, SshKeyMaterial, SshKeyParseRequest, SshKeyType,
-        SshPrivateKeyFormatRequest, SshPrivateKeyImportRequest, StreamCipherXorAtOffsetRequest,
-        TwofishCbcPkcs7Request, TwofishCbcPkcs7StreamOpenRequest,
+        HkdfSha256Request, HmacRequest, HmacStreamOpenRequest, NativeStreamOpenRequest,
+        OpenPgpCertificateMaterialReconcileV2Request, OpenPgpCertificateMaterialReconcileV2Success,
+        OpenPgpDetachedVerifyStreamOpenRequest, OpenPgpMetadataResolveRequest,
+        OpenPgpPublicKeyParseRequest, OpenPgpUserIdReplacementRequest,
+        OpenPgpUserIdRevocationRequest, OpenPgpVerifyKind, OpenPgpVerifyRequest,
+        Pbkdf2Sha256Request, RandomBytesRequest, RsaOaepDecryptRequest, RsaOaepEncryptRequest,
+        RsaPkcs8ToSpkiRequest, SshAgentSignRequest, SshAgentTcpChaCha20Poly1305Request,
+        SshKeyDescribeRequest, SshKeyGenerateRequest, SshKeyMaterial, SshKeyParseRequest,
+        SshKeyType, SshPrivateKeyImportRequest, StreamCipherXorAtOffsetRequest,
+        TwofishCbcPkcs7StreamOpenRequest,
     };
 
     fn invoke(operation: native_request::Operation) -> NativeResponse {
@@ -1036,38 +995,6 @@ mod tests {
     }
 
     #[test]
-    fn decoded_certificate_material_request_zeroizes_on_unsupported_protocol() {
-        let unsupported = NativeRequest {
-            protocol_version: PROTOCOL_VERSION + 1,
-            operation: Some(
-                native_request::Operation::OpenPgpCertificateMaterialReconcile(
-                    OpenPgpCertificateMaterialReconcileRequest {
-                        expected_primary_fingerprint: "00".repeat(20),
-                        existing_public_certificate: None,
-                        incoming_public_certificate: None,
-                        existing_secret_certificate: Some(
-                            b"unsupported-secret-certificate".to_vec(),
-                        ),
-                        incoming_secret_certificate: Some(
-                            b"second-unsupported-secret-certificate".to_vec(),
-                        ),
-                    },
-                ),
-            ),
-        }
-        .encode_to_vec();
-
-        protocol::reset_zeroized_secret_request_drops();
-        let response = NativeResponse::decode(call(&unsupported).as_slice())
-            .expect("unsupported reconciliation response must decode");
-        assert_eq!(
-            response.status.map(|status| status.code),
-            Some(NativeErrorCode::UnsupportedProtocol as i32),
-        );
-        assert_eq!(protocol::zeroized_secret_request_drops(), 1);
-    }
-
-    #[test]
     fn decoded_certificate_material_v2_request_zeroizes_on_unsupported_protocol() {
         let unsupported = NativeRequest {
             protocol_version: PROTOCOL_VERSION + 1,
@@ -1130,10 +1057,6 @@ mod tests {
                 private_key: b"invalid-enum-private-key".to_vec(),
                 public_key: b"invalid-enum-public-key".to_vec(),
             }),
-            native_request::Operation::SshPrivateKeyFormat(SshPrivateKeyFormatRequest {
-                r#type: SshKeyType::Unspecified as i32,
-                private_key: b"invalid-enum-private-key".to_vec(),
-            }),
             native_request::Operation::SshKeyParse(SshKeyParseRequest {
                 private_key_pem: "invalid parse private key".to_owned(),
                 public_key_openssh: "invalid public key".to_owned(),
@@ -1190,17 +1113,8 @@ mod tests {
         let _description = response_bytes(invoke(native_request::Operation::SshKeyDescribe(
             SshKeyDescribeRequest {
                 r#type: SshKeyType::Ed25519 as i32,
-                private_key: private_key.clone(),
-                public_key,
-            },
-        )));
-        assert_eq!(protocol::zeroized_secret_output_drops(), 1);
-
-        protocol::reset_zeroized_secret_output_drops();
-        let _formatted = response_bytes(invoke(native_request::Operation::SshPrivateKeyFormat(
-            SshPrivateKeyFormatRequest {
-                r#type: SshKeyType::Ed25519 as i32,
                 private_key,
+                public_key,
             },
         )));
         assert_eq!(protocol::zeroized_secret_output_drops(), 1);
@@ -1220,18 +1134,6 @@ mod tests {
 
     #[test]
     fn certificate_material_secret_output_zeroizes_on_drop() {
-        protocol::reset_zeroized_secret_output_drops();
-        drop(OpenPgpCertificateMaterialReconcileSuccess {
-            public_certificate: b"public certificate".to_vec(),
-            private_certificate: Some(b"private certificate".to_vec()),
-            primary_fingerprint: "00".repeat(20),
-            existing_public_contributed: false,
-            incoming_public_contributed: false,
-            existing_secret_contributed: false,
-            incoming_secret_contributed: false,
-        });
-        assert_eq!(protocol::zeroized_secret_output_drops(), 1);
-
         protocol::reset_zeroized_secret_output_drops();
         drop(OpenPgpCertificateMaterialReconcileV2Success {
             local_public_material: b"local public material".to_vec(),
@@ -1318,7 +1220,8 @@ mod tests {
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
         assert_eq!(PROTOCOL_VERSION, 2);
-        assert_eq!(CAPABILITIES, 0xfffffffff);
+        assert_eq!(CAPABILITIES, 0xf7fffffff);
+        assert_eq!(CAPABILITIES & (1 << 31), 0, "bit 31 is retired");
         assert_eq!(CAPABILITY_OPENPGP_V6_GENERATION_MUTATION, 1 << 35);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256, 1 << 20);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256_FAST_PATH, 1 << 21);
@@ -1331,7 +1234,6 @@ mod tests {
         assert_eq!(CAPABILITY_OPENPGP_EXTERNAL_REVOCATION_POLICY, 1 << 28);
         assert_eq!(CAPABILITY_OPENPGP_SIGNED_REVOCATION, 1 << 29);
         assert_eq!(CAPABILITY_OPENPGP_USER_ID_REPLACEMENT, 1 << 30);
-        assert_eq!(CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE, 1 << 31);
         assert_eq!(
             CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2,
             1 << 32
@@ -2344,16 +2246,6 @@ mod tests {
         let plaintext = decode_hex("80000000000000000000000000000000");
         let expected =
             decode_hex("73b9ff14cf2589901ff52a0d6f4b7edef10da92ef7a287d4f38319cbf7ab1570");
-        let ciphertext = response_bytes(invoke(native_request::Operation::TwofishCbcPkcs7(
-            TwofishCbcPkcs7Request {
-                direction: CipherDirection::Encrypt as i32,
-                key: key.clone(),
-                iv: iv.clone(),
-                data: plaintext.clone(),
-            },
-        )));
-        assert_eq!(ciphertext, expected);
-
         for chunk_size in [1, 7, 16, 31] {
             let encrypt_handle =
                 open_stream(native_stream_open_request::Operation::TwofishCbcPkcs7(
@@ -2389,14 +2281,15 @@ mod tests {
         let mut corrupted = expected;
         let last = corrupted.len() - 1;
         corrupted[last] = 0;
-        let response = invoke(native_request::Operation::TwofishCbcPkcs7(
-            TwofishCbcPkcs7Request {
+        let decrypt_handle = open_stream(native_stream_open_request::Operation::TwofishCbcPkcs7(
+            TwofishCbcPkcs7StreamOpenRequest {
                 direction: CipherDirection::Decrypt as i32,
                 key,
                 iv,
-                data: corrupted,
             },
         ));
+        response_bytes(update_stream(decrypt_handle, &corrupted));
+        let response = finish_stream(decrypt_handle);
         assert_eq!(
             response.status.map(|status| status.code),
             Some(NativeErrorCode::AuthenticationFailed as i32),
@@ -2769,81 +2662,18 @@ mod tests {
     #[test]
     fn bounded_random_int_stays_in_range() {
         for _ in 0..256 {
-            let response = invoke(native_request::Operation::RandomInt(RandomIntRequest {
-                bounded: true,
-                exclusive_upper_bound: 7,
-            }));
-            match response.result {
-                Some(native_response::Result::Int32Value(value)) => {
-                    assert!((0..7).contains(&value));
-                }
-                _ => panic!("expected integer response"),
-            }
+            let value = fast::random_int(7).expect("bounded random int");
+            assert!((0..7).contains(&value));
         }
-    }
-
-    #[test]
-    fn batched_random_ints_are_exact_little_endian_values() {
-        let bytes = response_bytes(invoke(native_request::Operation::RandomInts(
-            RandomIntsRequest {
-                bounded: true,
-                exclusive_upper_bound: 256,
-                count: 17,
-            },
-        )));
-        assert_eq!(bytes.len(), 17 * size_of::<i32>());
-        for encoded in bytes.as_chunks::<{ size_of::<i32>() }>().0 {
-            assert_eq!(&encoded[1..], &[0, 0, 0]);
-            let value = i32::from_le_bytes(*encoded);
-            assert!((0..256).contains(&value));
-            assert_eq!(value.to_le_bytes(), *encoded);
-        }
-    }
-
-    #[test]
-    fn batched_random_ints_preserve_bounds_and_resource_limit() {
-        let all_zero = response_bytes(invoke(native_request::Operation::RandomInts(
-            RandomIntsRequest {
-                bounded: true,
-                exclusive_upper_bound: 1,
-                count: 32,
-            },
-        )));
-        assert_eq!(all_zero, vec![0; 32 * size_of::<i32>()]);
-
-        for bound in [2, 7, i32::MAX as u32] {
-            let bytes = response_bytes(invoke(native_request::Operation::RandomInts(
-                RandomIntsRequest {
-                    bounded: true,
-                    exclusive_upper_bound: bound,
-                    count: 256,
-                },
-            )));
-            assert_eq!(bytes.len(), 256 * size_of::<i32>());
-            for encoded in bytes.as_chunks::<{ size_of::<i32>() }>().0 {
-                let value = i32::from_le_bytes(*encoded);
-                assert!(value >= 0);
-                assert!(u32::try_from(value).is_ok_and(|value| value < bound));
-            }
-        }
-
-        let oversized = invoke(native_request::Operation::RandomInts(RandomIntsRequest {
-            bounded: false,
-            exclusive_upper_bound: 0,
-            count: 1025,
-        }));
-        assert_eq!(
-            oversized.status.map(|status| status.code),
-            Some(NativeErrorCode::ResourceLimit as i32)
-        );
     }
 
     #[test]
     fn streaming_hmac_enforces_lifecycle() {
         let open = NativeStreamOpenRequest {
             protocol_version: PROTOCOL_VERSION,
-            operation: Some(native_stream_open_request::Operation::HmacSha256(
-                HmacSha256StreamOpenRequest {
+            operation: Some(native_stream_open_request::Operation::Hmac(
+                HmacStreamOpenRequest {
+                    algorithm: HashAlgorithm::Sha256 as i32,
                     key: b"key".to_vec(),
                 },
             )),
@@ -2950,7 +2780,8 @@ mod drain_protocol_tests {
             response.status.expect("invalid session").code,
             NativeErrorCode::InvalidSession as i32
         );
-        let handle = sessions::open_hmac_sha256(vec![0x11; 32]).expect("HMAC session");
+        let handle =
+            sessions::open_hmac(HashAlgorithm::Sha256, vec![0x11; 32]).expect("HMAC session");
         let response = drain(handle);
         assert_eq!(
             response.status.expect("invalid operation").code,

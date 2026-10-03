@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.util.foundation.crypto
 
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.util.foundation.constantTimeEquals
 import kotlin.random.Random
 import kotlin.test.Test
@@ -8,7 +9,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class RandomConstantTimeTest {
-    private val crypto = PlatformCryptoPrimitives()
+    private val crypto = NativeCrypto.primitives
 
     @Test
     fun randomBytes_lengthCorrect() {

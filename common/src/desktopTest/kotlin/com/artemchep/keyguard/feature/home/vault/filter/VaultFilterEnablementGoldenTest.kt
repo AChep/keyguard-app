@@ -1,21 +1,18 @@
 package com.artemchep.keyguard.feature.home.vault.filter
 
+import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DFilter
+import com.artemchep.keyguard.common.model.DFilterCipherPresence
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.testCipherFilterContext
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
-import com.artemchep.keyguard.feature.home.vault.quicksearch.createSecret
 import com.artemchep.keyguard.feature.home.vault.screen.FilterSection
-import com.artemchep.keyguard.feature.home.vault.screen.buildFilterCipherIdSets
-import com.artemchep.keyguard.feature.home.vault.screen.buildFilterItemsEnabledState
-import com.artemchep.keyguard.feature.home.vault.screen.buildFilterItemsEnabledStateLegacy
-import com.artemchep.keyguard.feature.home.vault.screen.collectFilterToggleFilters
+import com.artemchep.keyguard.feature.home.vault.screen.applyFilterItemsEnabled
 import com.artemchep.keyguard.feature.home.vault.search.benchmark.BenchmarkCorpusSize
 import com.artemchep.keyguard.feature.home.vault.search.benchmark.VaultSearchBenchmarkFixtures
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class VaultFilterEnablementGoldenTest {
@@ -152,27 +149,19 @@ class VaultFilterEnablementGoldenTest {
     )
 
     @Test
-    fun idSetEnablementMatchesLegacyEnablement() = runTest {
-        val filterCipherIdSets = buildFilterCipherIdSets(
-            filterContext = filterContext,
-            filters = collectFilterToggleFilters(baseItems),
-            ciphers = corpus,
-        )
-
+    fun presenceEnablementMatchesLegacyEnablement() = runTest {
         var enabledCount = 0
         var disabledCount = 0
         checkedCombos.forEach { (comboName, items) ->
             resultSubsets.forEach { (subsetName, subset) ->
-                val expected = buildFilterItemsEnabledStateLegacy(
+                val expected = legacyEnabledState(
                     filterContext = filterContext,
                     items = items,
                     outputCiphers = subset,
                 )
-                val actual = buildFilterItemsEnabledState(
-                    filterContext = filterContext,
+                val actual = applyFilterItemsEnabled(
                     items = items,
-                    outputCiphers = subset,
-                    filterCipherIdSets = filterCipherIdSets,
+                    presence = DFilterCipherPresence.of(subset) { it },
                 )
                 val context = "combo=$comboName subset=$subsetName"
                 assertEquals(expected.map(::digest), actual.map(::digest), context)
@@ -191,90 +180,40 @@ class VaultFilterEnablementGoldenTest {
         assertTrue(disabledCount > 0, "matrix never disabled a chip")
     }
 
-    @Test
-    fun missingIdSetsFallBackToLegacyScan() = runTest {
-        resultSubsets.forEach { (subsetName, subset) ->
-            val expected = buildFilterItemsEnabledStateLegacy(
-                filterContext = filterContext,
-                items = baseItems,
-                outputCiphers = subset,
-            )
-            val actual = buildFilterItemsEnabledState(
-                filterContext = filterContext,
-                items = baseItems,
-                outputCiphers = subset,
-                filterCipherIdSets = emptyMap(),
-            )
-            assertEquals(expected, actual, "subset=$subsetName")
+    /**
+     * Reference implementation: enables a chip when any of its filters
+     * matches at least one cipher of the result list.
+     */
+    private suspend fun legacyEnabledState(
+        filterContext: CipherFilterContext,
+        items: List<FilterItem>,
+        outputCiphers: List<DSecret>,
+    ): List<FilterItem> {
+        val checkedSectionIds = items
+            .filter(::checkedOf)
+            .mapNotNull(::filterSectionIdOf)
+            .toSet()
+        return items.map { item ->
+            if (item is FilterItem.Section) {
+                return@map item
+            }
+
+            val enabled = checkedOf(item) ||
+                    filterSectionIdOf(item) in checkedSectionIds ||
+                    kotlin.run {
+                        val filter = filterOf(item) as? FilterItem.Item.Filter.Toggle
+                            ?: return@run true
+                        filter.filters.any { primitive ->
+                            val predicate = primitive.prepare(filterContext, outputCiphers)
+                            outputCiphers.any(predicate)
+                        }
+                    }
+            if (enabled) {
+                item
+            } else {
+                item.disabled()
+            }
         }
-    }
-
-    @Test
-    fun listSensitiveFilterKeepsPerResultSemantics() = runTest {
-        val a = createSecret(
-            id = "dup-a",
-            login = DSecret.Login(password = "shared-password"),
-        )
-        val b = createSecret(
-            id = "dup-b",
-            login = DSecret.Login(password = "shared-password"),
-        )
-        val c = createSecret(
-            id = "unique-c",
-            login = DSecret.Login(password = "unique-password"),
-        )
-        val universe = listOf(a, b, c)
-
-        val items = listOf(
-            section(FilterSection.MISC.id),
-            chip(
-                sectionId = FilterSection.MISC.id,
-                filters = setOf(DFilter.ByPasswordDuplicates),
-                title = "Reused passwords",
-                filterSectionId = "${FilterSection.MISC.id}.pwd_duplicates",
-            ),
-        )
-        val filterCipherIdSets = buildFilterCipherIdSets(
-            filterContext = filterContext,
-            filters = collectFilterToggleFilters(items),
-            ciphers = universe,
-        )
-        assertFalse(DFilter.ByPasswordDuplicates in filterCipherIdSets)
-
-        mapOf(
-            "one-of-two-duplicates" to listOf(a, c),
-            "both-duplicates" to listOf(a, b),
-            "all" to universe,
-            "empty" to emptyList(),
-        ).forEach { (subsetName, subset) ->
-            val expected = buildFilterItemsEnabledStateLegacy(
-                filterContext = filterContext,
-                items = items,
-                outputCiphers = subset,
-            )
-            val actual = buildFilterItemsEnabledState(
-                filterContext = filterContext,
-                items = items,
-                outputCiphers = subset,
-                filterCipherIdSets = filterCipherIdSets,
-            )
-            assertEquals(expected, actual, "subset=$subsetName")
-        }
-
-        val enabledOnPartialSubset = buildFilterItemsEnabledState(
-            filterContext = filterContext,
-            items = items,
-            outputCiphers = listOf(a, c),
-            filterCipherIdSets = filterCipherIdSets,
-        )
-            .filterIsInstance<FilterItem.ChipItem>()
-            .single()
-            .enabled
-        assertFalse(
-            enabledOnPartialSubset,
-            "duplicates chip must stay disabled when the result list " +
-                    "holds only one of the duplicates",
-        )
     }
 
     private fun digest(item: FilterItem) = Triple(
@@ -293,6 +232,31 @@ class VaultFilterEnablementGoldenTest {
         is FilterItem.ChipItem -> item.onClick != null
         is FilterItem.ListItem -> item.onClick != null
         is FilterItem.Section -> null
+    }
+
+    private fun checkedOf(item: FilterItem): Boolean = when (item) {
+        is FilterItem.ChipItem -> item.checked
+        is FilterItem.ListItem -> item.checked
+        is FilterItem.Section -> false
+    }
+
+    private fun filterSectionIdOf(item: FilterItem): String? = when (item) {
+        is FilterItem.ChipItem -> item.filterSectionId
+        is FilterItem.ListItem -> item.filterSectionId
+        is FilterItem.Section -> null
+    }
+
+    private fun filterOf(item: FilterItem): FilterItem.Item.Filter? = when (item) {
+        is FilterItem.ChipItem -> item.filter
+        is FilterItem.ListItem -> item.filter
+        is FilterItem.Section -> null
+    }
+
+    // An expandable list item stays enabled so it can still be expanded.
+    private fun FilterItem.disabled(): FilterItem = when (this) {
+        is FilterItem.ChipItem -> copy(onClick = null, enabled = false)
+        is FilterItem.ListItem -> copy(onClick = null, enabled = expandable)
+        is FilterItem.Section -> this
     }
 
     private fun FilterItem.withCheckedByTitle(

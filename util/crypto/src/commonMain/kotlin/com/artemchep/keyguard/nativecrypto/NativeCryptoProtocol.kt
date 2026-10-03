@@ -57,20 +57,6 @@ internal data class RandomBytesOperationProto(
 ) : NativeRequestOperationProto
 
 @Serializable
-@SerialName("random_int")
-internal data class RandomIntOperationProto(
-    @ProtoNumber(14)
-    val value: RandomIntRequestProto,
-) : NativeRequestOperationProto
-
-@Serializable
-@SerialName("random_ints")
-internal data class RandomIntsOperationProto(
-    @ProtoNumber(19)
-    val value: RandomIntsRequestProto,
-) : NativeRequestOperationProto
-
-@Serializable
 @SerialName("hmac")
 internal data class HmacOperationProto(
     @ProtoNumber(15)
@@ -127,13 +113,6 @@ internal data class StreamCipherXorAtOffsetOperationProto(
 ) : NativeRequestOperationProto
 
 @Serializable
-@SerialName("twofish_cbc_pkcs7")
-internal data class TwofishCbcPkcs7OperationProto(
-    @ProtoNumber(22)
-    val value: TwofishCbcPkcs7RequestProto,
-) : NativeRequestOperationProto
-
-@Serializable
 @SerialName("rsa_oaep_encrypt")
 internal data class RsaOaepEncryptOperationProto(
     @ProtoNumber(23)
@@ -187,13 +166,6 @@ internal data class SshKeyDescribeOperationProto(
 internal data class SshPrivateKeyRsaBitsOperationProto(
     @ProtoNumber(30)
     val value: SshPrivateKeyRsaBitsRequestProto,
-) : NativeRequestOperationProto
-
-@Serializable
-@SerialName("ssh_private_key_format")
-internal data class SshPrivateKeyFormatOperationProto(
-    @ProtoNumber(31)
-    val value: SshPrivateKeyFormatRequestProto,
 ) : NativeRequestOperationProto
 
 @Serializable
@@ -295,13 +267,6 @@ internal data class OpenPgpEncryptOperationProto(
 ) : NativeRequestOperationProto
 
 @Serializable
-@SerialName("open_pgp_decrypt")
-internal data class OpenPgpDecryptOperationProto(
-    @ProtoNumber(41)
-    val value: OpenPgpDecryptRequestProto,
-) : NativeRequestOperationProto
-
-@Serializable
 @SerialName("open_pgp_expiration_update")
 internal data class OpenPgpExpirationUpdateOperationProto(
     @ProtoNumber(42)
@@ -320,13 +285,6 @@ internal data class OpenPgpUserIdRevocationOperationProto(
 internal data class OpenPgpUserIdReplacementOperationProto(
     @ProtoNumber(55)
     val value: OpenPgpUserIdReplacementRequestProto,
-) : NativeRequestOperationProto
-
-@Serializable
-@SerialName("open_pgp_certificate_material_reconcile")
-internal data class OpenPgpCertificateMaterialReconcileOperationProto(
-    @ProtoNumber(56)
-    val value: OpenPgpCertificateMaterialReconcileRequestProto,
 ) : NativeRequestOperationProto
 
 @Serializable
@@ -380,13 +338,6 @@ internal data class NativeStreamOpenRequestProto(
 
 @Serializable
 internal sealed interface NativeStreamOpenOperationProto
-
-@Serializable
-@SerialName("hmac_sha256")
-internal data class HmacSha256StreamOpenOperationProto(
-    @ProtoNumber(10)
-    val value: HmacSha256StreamOpenRequestProto,
-) : NativeStreamOpenOperationProto
 
 @Serializable
 @SerialName("digest")
@@ -471,12 +422,6 @@ internal data class OpenPgpClearVerifyStreamOpenOperationProto(
     @ProtoNumber(22)
     val value: OpenPgpClearVerifyStreamOpenRequestProto,
 ) : NativeStreamOpenOperationProto
-
-@Serializable
-internal data class HmacSha256StreamOpenRequestProto(
-    @ProtoNumber(1)
-    val key: ByteArray,
-)
 
 @Serializable
 internal data class DigestStreamOpenRequestProto(
@@ -601,24 +546,6 @@ internal data class Argon2RequestProto(
 internal data class RandomBytesRequestProto(
     @ProtoNumber(1)
     val length: Int,
-)
-
-@Serializable
-internal data class RandomIntRequestProto(
-    @ProtoNumber(1)
-    val bounded: Boolean,
-    @ProtoNumber(2)
-    val exclusiveUpperBound: Int = 0,
-)
-
-@Serializable
-internal data class RandomIntsRequestProto(
-    @ProtoNumber(1)
-    val bounded: Boolean,
-    @ProtoNumber(2)
-    val exclusiveUpperBound: Int = 0,
-    @ProtoNumber(3)
-    val count: Int,
 )
 
 @Serializable
@@ -760,18 +687,6 @@ internal data class StreamCipherXorAtOffsetRequestProto(
 )
 
 @Serializable
-internal data class TwofishCbcPkcs7RequestProto(
-    @ProtoNumber(1)
-    val direction: CipherDirectionProto,
-    @ProtoNumber(2)
-    val key: ByteArray,
-    @ProtoNumber(3)
-    val iv: ByteArray,
-    @ProtoNumber(4)
-    val data: ByteArray,
-)
-
-@Serializable
 internal enum class RsaOaepHashProto {
     @ProtoNumber(0)
     UNSPECIFIED,
@@ -864,14 +779,6 @@ internal data class SshKeyDescribeRequestProto(
 @Serializable
 internal data class SshPrivateKeyRsaBitsRequestProto(
     @ProtoNumber(1)
-    val privateKey: ByteArray,
-)
-
-@Serializable
-internal data class SshPrivateKeyFormatRequestProto(
-    @ProtoNumber(1)
-    val type: SshKeyTypeProto,
-    @ProtoNumber(2)
     val privateKey: ByteArray,
 )
 
@@ -1038,12 +945,6 @@ internal data class SshKeyDescriptionProto(
     val privateFingerprint: String = "",
     @ProtoNumber(4)
     val publicFingerprint: String = "",
-)
-
-@Serializable
-internal data class SshFormattedPrivateKeyProto(
-    @ProtoNumber(1)
-    val value: String = "",
 )
 
 @Serializable
@@ -1776,20 +1677,6 @@ internal data class OpenPgpEncryptFinalProto(
 )
 
 @Serializable
-internal data class OpenPgpDecryptRequestProto(
-    @ProtoNumber(1)
-    val content: ByteArray,
-    @ProtoNumber(2)
-    val privateKeys: List<ByteArray>,
-    @ProtoNumber(3)
-    val verificationPublicKeys: List<ByteArray>,
-    @ProtoNumber(4)
-    val referenceTimeEpochSeconds: Long? = null,
-    @ProtoNumber(5)
-    val allowSignedOnly: Boolean? = null,
-)
-
-@Serializable
 internal data class OpenPgpDecryptStreamOpenRequestProto(
     @ProtoNumber(1)
     val privateKeys: List<ByteArray>,
@@ -1828,25 +1715,6 @@ internal enum class OpenPgpDecryptionWarningProto(
             entries.firstOrNull { entry -> entry.wireValue == value }
     }
 }
-
-@Serializable
-internal data class OpenPgpDecryptResultProto(
-    @ProtoNumber(1)
-    val data: ByteArray = byteArrayOf(),
-    @ProtoNumber(2)
-    val verification: OpenPgpVerificationProto? = null,
-    @ProtoNumber(3)
-    val metadata: OpenPgpLiteralMetadataProto? = null,
-    @ProtoNumber(4)
-    val encrypted: Boolean = false,
-    @ProtoNumber(5)
-    val declaredCharset: String? = null,
-    @ProtoNumber(6)
-    val decryptionKeyFingerprint: String? = null,
-    @ProtoNumber(7)
-    @ProtoPacked
-    val warnings: List<Int> = emptyList(),
-)
 
 @Serializable
 internal data class OpenPgpDecryptFinalProto(
@@ -1981,20 +1849,6 @@ internal data class OpenPgpExpirationUpdateErrorOutcomeProto(
 ) : OpenPgpExpirationUpdateOutcomeProto
 
 @Serializable
-internal data class OpenPgpCertificateMaterialReconcileRequestProto(
-    @ProtoNumber(1)
-    val expectedPrimaryFingerprint: String,
-    @ProtoNumber(2)
-    val existingPublicCertificate: ByteArray? = null,
-    @ProtoNumber(3)
-    val incomingPublicCertificate: ByteArray? = null,
-    @ProtoNumber(4)
-    val existingSecretCertificate: ByteArray? = null,
-    @ProtoNumber(5)
-    val incomingSecretCertificate: ByteArray? = null,
-)
-
-@Serializable
 internal enum class OpenPgpCertificateMaterialInputErrorReasonProto {
     @ProtoNumber(0)
     UNSPECIFIED,
@@ -2046,24 +1900,6 @@ internal enum class OpenPgpCertificateMaterialPairErrorReasonProto {
 }
 
 @Serializable
-internal data class OpenPgpCertificateMaterialReconcileSuccessProto(
-    @ProtoNumber(1)
-    val publicCertificate: ByteArray = byteArrayOf(),
-    @ProtoNumber(2)
-    val privateCertificate: ByteArray? = null,
-    @ProtoNumber(3)
-    val primaryFingerprint: String = "",
-    @ProtoNumber(4)
-    val existingPublicContributed: Boolean = false,
-    @ProtoNumber(5)
-    val incomingPublicContributed: Boolean = false,
-    @ProtoNumber(6)
-    val existingSecretContributed: Boolean = false,
-    @ProtoNumber(7)
-    val incomingSecretContributed: Boolean = false,
-)
-
-@Serializable
 internal data class OpenPgpCertificateMaterialReconcileErrorProto(
     @ProtoNumber(1)
     val existingPublicInputError: OpenPgpCertificateMaterialInputErrorReasonProto =
@@ -2081,29 +1917,6 @@ internal data class OpenPgpCertificateMaterialReconcileErrorProto(
     val pairError: OpenPgpCertificateMaterialPairErrorReasonProto =
         OpenPgpCertificateMaterialPairErrorReasonProto.UNSPECIFIED,
 )
-
-@Serializable
-internal data class OpenPgpCertificateMaterialReconcileResultProto(
-    @ProtoOneOf
-    val result: OpenPgpCertificateMaterialReconcileOutcomeProto? = null,
-)
-
-@Serializable
-internal sealed interface OpenPgpCertificateMaterialReconcileOutcomeProto
-
-@Serializable
-@SerialName("success")
-internal data class OpenPgpCertificateMaterialReconcileSuccessOutcomeProto(
-    @ProtoNumber(1)
-    val value: OpenPgpCertificateMaterialReconcileSuccessProto,
-) : OpenPgpCertificateMaterialReconcileOutcomeProto
-
-@Serializable
-@SerialName("error")
-internal data class OpenPgpCertificateMaterialReconcileErrorOutcomeProto(
-    @ProtoNumber(2)
-    val value: OpenPgpCertificateMaterialReconcileErrorProto,
-) : OpenPgpCertificateMaterialReconcileOutcomeProto
 
 @Serializable
 internal data class OpenPgpCertificateMaterialReconcileV2RequestProto(

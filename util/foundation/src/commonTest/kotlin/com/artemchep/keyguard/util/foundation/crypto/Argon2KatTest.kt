@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.util.foundation.crypto
 
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -14,7 +15,7 @@ import kotlin.test.assertEquals
  * the suite stays fast enough to run on every build.
  */
 class Argon2KatTest {
-    private val crypto = PlatformCryptoPrimitives()
+    private val crypto = NativeCrypto.primitives
 
     private val password = "password".encodeToByteArray()
     private val salt = "somesalt".encodeToByteArray()
@@ -28,7 +29,7 @@ class Argon2KatTest {
         length: Int,
     ): String =
         crypto.argon2(
-            mode = mode,
+            mode = mode.toNativeArgon2Mode(),
             seed = seed,
             salt = salt,
             iterations = iterations,

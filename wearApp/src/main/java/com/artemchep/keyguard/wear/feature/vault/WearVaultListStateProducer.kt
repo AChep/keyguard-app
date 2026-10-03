@@ -49,7 +49,7 @@ import com.artemchep.keyguard.feature.home.vault.screen.VaultListState
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
 import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
 import com.artemchep.keyguard.feature.home.vault.screen.decorateVaultItems
-import com.artemchep.keyguard.feature.home.vault.screen.createVaultSortItemsFlow
+import com.artemchep.keyguard.feature.home.vault.screen.createVaultSortStateFlow
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultListItem
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
@@ -380,7 +380,7 @@ internal fun wearVaultListScreenState(
         .flowOn(Dispatchers.Default)
         .shareIn(this, SharingStarted.WhileSubscribed(5000L), replay = 1)
 
-    val comparatorsListFlow = createVaultSortItemsFlow(sortSink)
+    val comparatorStateFlow = createVaultSortStateFlow(sortSink)
 
     data class Rev<T>(
         val count: Int,
@@ -592,8 +592,7 @@ internal fun wearVaultListScreenState(
     combine(
         itemsNullableFlow,
         filterListFlow,
-        comparatorsListFlow
-            .combine(sortSink) { a, b -> a to b },
+        comparatorStateFlow,
         getAccounts()
             .map { it.isNotEmpty() }
             .distinctUntilChanged(),

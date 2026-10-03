@@ -22,16 +22,20 @@ import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.StringResource
 
 /**
- * Builds the list of sort options for the vault list, marking the
- * option that matches the current value of [sortSink] as checked.
- * Shared between the phone/desktop and Wear OS vault lists.
+ * Emits sort options together with the configuration that produced them,
+ * keeping checked items and clear availability consistent in every snapshot.
  */
-fun createVaultSortItemsFlow(
+fun createVaultSortStateFlow(
     sortSink: MutableStateFlow<ComparatorHolder>,
-): Flow<List<SortItem>> {
+): Flow<VaultSortState> {
     val groups = createVaultSortItemGroups(sortSink)
     return sortSink
-        .map { orderConfig -> groups.toSortItems(orderConfig) }
+        .map { orderConfig ->
+            VaultSortState(
+                items = groups.toSortItems(orderConfig),
+                config = orderConfig,
+            )
+        }
 }
 
 private class SortItemGroup(

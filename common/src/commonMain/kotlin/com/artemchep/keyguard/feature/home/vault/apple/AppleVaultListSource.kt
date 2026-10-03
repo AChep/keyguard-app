@@ -65,7 +65,7 @@ import com.artemchep.keyguard.feature.home.vault.screen.shouldConceal
 import com.artemchep.keyguard.feature.home.vault.screen.stripPreferredPrefix
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultListItem
 import com.artemchep.keyguard.feature.home.vault.screen.trimVaultItemBadges
-import com.artemchep.keyguard.feature.home.vault.screen.createVaultSortItemsFlow
+import com.artemchep.keyguard.feature.home.vault.screen.createVaultSortStateFlow
 import com.artemchep.keyguard.feature.home.vault.screen.vaultListStructureRevision
 import com.artemchep.keyguard.feature.home.vault.screen.vaultListToolbarFlow
 import com.artemchep.keyguard.feature.home.vault.screen.vaultRenameFoldersAction
@@ -695,17 +695,17 @@ suspend fun RememberStateFlowScope.createAppleVaultListSource(
 
     // Sort menu.
 
-    val comparatorsListFlow = createVaultSortItemsFlow(sortSink)
+    val comparatorStateFlow = createVaultSortStateFlow(sortSink)
         .shareIn(this, SharingStarted.WhileSubscribed(5000L), replay = 1)
 
     val sortMenuFlow = combine(
-        comparatorsListFlow,
-        sortSink,
+        comparatorStateFlow,
         queryHandle.queryPairFlow,
-    ) { items, sort, queryPair ->
-        Triple(items, sort, queryPair.second)
+    ) { comparatorState, queryPair ->
+        comparatorState to queryPair.second
     }
-        .map { (items, sort, queryTrimmed) ->
+        .map { (comparatorState, queryTrimmed) ->
+            val (items, sort) = comparatorState
             AppleVaultSortMenu(
                 items = items.map { item ->
                     when (item) {
@@ -1032,7 +1032,7 @@ suspend fun RememberStateFlowScope.createAppleVaultListSource(
 
         override fun invokeSort(id: String) {
             launchCommand {
-                val items = comparatorsListFlow.first()
+                val items = comparatorStateFlow.first().items
                 val target = items
                     .filterIsInstance<SortItem.Item>()
                     .firstOrNull { it.id == id }

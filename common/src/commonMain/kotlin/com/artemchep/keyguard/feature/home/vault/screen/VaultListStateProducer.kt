@@ -733,7 +733,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         .flowOn(Dispatchers.Default)
         .shareIn(this, SharingStarted.WhileSubscribed(5000L), replay = 1)
 
-    val comparatorsListFlow = createVaultSortItemsFlow(sortSink)
+    val comparatorStateFlow = createVaultSortStateFlow(sortSink)
 
     val queryTrimmedFlow = queryHandle.queryPairFlow
     val querySearchContextFlow = queryHandle.searchContextFlow
@@ -966,8 +966,6 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
             queryQualifierSuggestion = queryQualifierSuggestion,
         )
     }
-    val comparatorStateFlow = comparatorsListFlow
-        .combine(sortSink) { a, b -> a to b }
     val hasAccountsFlow = sessionInputs.accounts
         .map { accounts ->
             AccountAvailability(accounts.isNotEmpty())

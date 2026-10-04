@@ -388,10 +388,12 @@ jobs:
             msix_arch: x64
             native_arch: x86_64
             rust_target: x86_64-pc-windows-msvc
+            msi_artifact: app-windows
           - runner: windows-11-arm
             msix_arch: arm64
             native_arch: aarch64
             rust_target: aarch64-pc-windows-msvc
+            msi_artifact: app-windows-aarch64
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
@@ -482,13 +484,38 @@ jobs:
           :desktopApp:packageReleaseMsix
           -x :desktopApp:createReleaseDistributable
           "-Pkeyguard.nativeCargo.cargoOffline=true"
-      - name: "Build MSI"
+      - name: "Build MSI (x64)"
         if: matrix.msix_arch == 'x64'
         run: >-
           ./gradlew
           :desktopApp:packageReleaseMsi
           -x :desktopApp:createReleaseDistributable
           "-Pkeyguard.nativeCargo.cargoOffline=true"
+      - name: "Setup WiX (ARM64)"
+        if: matrix.msix_arch == 'arm64'
+        id: wix
+        uses: ./.github/actions/setup_wix
+      - name: "Test ARM64 MSI packager"
+        if: matrix.msix_arch == 'arm64'
+        shell: pwsh
+        env:
+          WIX_DIRECTORY: ${{ steps.wix.outputs.path }}
+        run: >-
+          ./scripts/test_package_windows_arm64_msi.ps1
+          -WixDirectory $env:WIX_DIRECTORY
+          -WorkingDirectory (Join-Path $env:RUNNER_TEMP 'msi-fixtures')
+      - name: "Build MSI (ARM64)"
+        if: matrix.msix_arch == 'arm64'
+        shell: pwsh
+        env:
+          MSI_VERSION: ${{ needs.generate-versions.outputs.version-semantic }}
+          WIX_DIRECTORY: ${{ steps.wix.outputs.path }}
+        run: >-
+          ./scripts/package_windows_arm64_msi.ps1
+          -AppImage desktopApp/build/compose/binaries/main-release/app/Keyguard
+          -Version $env:MSI_VERSION
+          -WixDirectory $env:WIX_DIRECTORY
+          -OutputDirectory desktopApp/build/compose/binaries/main-release/msi
       - name: "Check MSIX outputs"
         shell: pwsh
         env:
@@ -504,34 +531,22 @@ jobs:
           if ($sideload.Count -ne 1) {
             throw "Expected one ${{ matrix.msix_arch }} sideload MSIX package; found $($sideload.Count)."
           }
-      - name: "Extract final MSI"
-        if: matrix.msix_arch == 'x64'
+      - name: "Check and extract final MSI"
         shell: pwsh
-        run: |
-          $packages = @(
-            Get-ChildItem "desktopApp/build/compose/binaries/main-release/msi" `
-              -Recurse -File -Filter "*.msi"
-          )
-          if ($packages.Count -ne 1) {
-            throw "Expected one MSI package; found $($packages.Count)."
-          }
-          $target = Join-Path $env:RUNNER_TEMP "keyguard-msi"
-          New-Item -ItemType Directory -Force -Path $target | Out-Null
-          $process = Start-Process `
-            -FilePath "msiexec.exe" `
-            -ArgumentList @("/a", $packages[0].FullName, "/qn", "TARGETDIR=$target") `
-            -Wait `
-            -PassThru
-          if ($process.ExitCode -ne 0) {
-            throw "MSI administrative extraction exited $($process.ExitCode)."
-          }
+        env:
+          MSI_VERSION: ${{ needs.generate-versions.outputs.version-semantic }}
+        run: >-
+          ./scripts/verify_windows_msi.ps1
+          -Directory desktopApp/build/compose/binaries/main-release/msi
+          -Version $env:MSI_VERSION
+          -Architecture ${{ matrix.native_arch }}
+          -ExtractDirectory (Join-Path $env:RUNNER_TEMP 'keyguard-msi')
       - name: "Verify final MSI native bundle"
-        if: matrix.msix_arch == 'x64'
         shell: pwsh
         run: >-
           python scripts/verify_native_bundle.py desktop
           (Join-Path $env:RUNNER_TEMP "keyguard-msi")
-          --platform windows --arch x86_64
+          --platform windows --arch ${{ matrix.native_arch }}
       - name: "Unpack sideload MSIX"
         shell: pwsh
         run: |
@@ -578,11 +593,11 @@ jobs:
             throw "MSIX signature status is $($signature.Status)."
           }
       - name: 'Upload .msi'
-        if: matrix.msix_arch == 'x64'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: app-windows
+          name: ${{ matrix.msi_artifact }}
           path: desktopApp/build/compose/binaries/main-release/msi/*.msi
+          if-no-files-found: error
           retention-days: 1
       - name: 'Upload .msix (store)'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -599,6 +614,60 @@ jobs:
             desktopApp/build/compose/binaries/main-release/msix/*.msix
             !desktopApp/build/compose/binaries/main-release/msix/*-store.msix
           retention-days: 1
+  check-windows-msi:
+    name: "Check Windows ARM64 MSI installation"
+    runs-on: windows-11-arm
+    needs:
+      - generate-versions
+      - build-windows-app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-windows
+          path: packages/x64
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-windows-aarch64
+          path: packages/arm64
+      - uses: ./.github/actions/setup_wix
+        id: wix
+      - name: "Prepare previous-version upgrade fixture"
+        shell: pwsh
+        env:
+          MSI_VERSION: ${{ needs.generate-versions.outputs.version-semantic }}
+          WIX_DIRECTORY: ${{ steps.wix.outputs.path }}
+        run: |
+          $imageRoot = Join-Path $env:RUNNER_TEMP 'msi-upgrade-image'
+          ./scripts/verify_windows_msi.ps1 -Directory packages/arm64 -Version $env:MSI_VERSION `
+            -Architecture aarch64 -ExtractDirectory $imageRoot
+          $launchers = @(Get-ChildItem -LiteralPath $imageRoot -Filter Keyguard.exe -Recurse -File)
+          if ($launchers.Count -ne 1) { throw 'Expected one extracted ARM64 app image.' }
+          # Only the installer version differs; the payload remains the tested release image.
+          ./scripts/package_windows_arm64_msi.ps1 -AppImage $launchers[0].DirectoryName `
+            -Version 0.0.0 -WixDirectory $env:WIX_DIRECTORY -OutputDirectory packages/previous
+      - name: "Test installation, upgrades, and uninstall"
+        shell: pwsh
+        env:
+          MSI_VERSION: ${{ needs.generate-versions.outputs.version-semantic }}
+        run: >-
+          ./scripts/test_windows_msi_install.ps1
+          -X64Msi "packages/x64/Keyguard-$env:MSI_VERSION.msi"
+          -Arm64Msi "packages/arm64/Keyguard-$env:MSI_VERSION-aarch64.msi"
+          -PreviousArm64Msi packages/previous/Keyguard-0.0.0-aarch64.msi
+          -LogDirectory msi-install-logs
+      - name: "Upload installer logs"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: windows-msi-install-logs
+          path: |
+            msi-install-logs/*.log
+            ${{ runner.temp }}/msi-upgrade-image.log
+          if-no-files-found: ignore
+          retention-days: 7
   build-wearos-app:
     runs-on: ubuntu-latest
     needs:
@@ -811,6 +880,7 @@ jobs:
       - build-linux-app
       - build-macos-app
       - build-windows-app
+      - check-windows-msi
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -859,10 +929,15 @@ jobs:
         with:
           name: app-linux-appimage-aarch64
           path: artifacts
-      - name: "Download Windows app"
+      - name: "Download Windows app (MSI x64)"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: app-windows
+          path: artifacts
+      - name: "Download Windows app (MSI ARM64)"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-windows-aarch64
           path: artifacts
       # An unsigned MSIX can not be installed by the users, so it is
       # published only when the signing certificate was available.

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="Keyguard" Language="1033" Version="$(var.Version)"
+           Manufacturer="Artem Chepurnyi" UpgradeCode="846C6281-F349-4833-9E0E-AAE1C06006A0">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" Platform="arm64" />
+    <!-- Remove the previous architecture before installing files at the same paths.
+         Include the same version so x64 users can switch to the ARM64 installer. -->
+    <MajorUpgrade AllowSameVersionUpgrades="yes" Schedule="afterInstallInitialize"
+                  DowngradeErrorMessage="A newer version of Keyguard is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    <Icon Id="Keyguard.exe" SourceFile="$(var.Icon)" />
+    <Property Id="ARPPRODUCTICON" Value="Keyguard.exe" />
+    <SetProperty Id="ARPINSTALLLOCATION" Value="[INSTALLDIR]" After="CostFinalize" Sequence="execute" />
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLDIR" Name="Keyguard" />
+      </Directory>
+      <Directory Id="DesktopFolder" />
+    </Directory>
+    <Feature Id="MainFeature" Title="Keyguard" Level="1">
+      <ComponentGroupRef Id="AppImage" />
+    </Feature>
+  </Product>
+</Wix>

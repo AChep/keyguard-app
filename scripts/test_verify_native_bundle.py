@@ -218,6 +218,29 @@ class NativeBundleTest(unittest.TestCase):
                     pe_exports(machine=machine),
                 )
 
+    def test_windows_runtime_requires_matching_launcher_and_jvm(self) -> None:
+        for arch, machine, wrong in (("x86_64", 0x8664, 0xAA64), ("aarch64", 0xAA64, 0x8664)):
+            with self.subTest(arch=arch), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                launcher = root / "Keyguard.exe"
+                runtime = root / "runtime/bin/server/jvm.dll"
+                runtime.parent.mkdir(parents=True)
+                for path in (launcher, runtime):
+                    path.write_bytes(pe_exports(machine=machine))
+                verify.inspect_windows_runtime(root, arch)
+                for path in (launcher, runtime):
+                    path.write_bytes(pe_exports(machine=wrong))
+                    with self.assertRaisesRegex(verify.InspectionError, "wrong architecture"):
+                        verify.inspect_windows_runtime(root, arch)
+                    path.unlink()
+                    with self.assertRaises(verify.InspectionError):
+                        verify.inspect_windows_runtime(root, arch)
+                    path.write_bytes(pe_exports(machine=machine))
+                (root / "duplicate").mkdir()
+                (root / "duplicate/Keyguard.exe").write_bytes(pe_exports(machine=machine))
+                with self.assertRaisesRegex(verify.InspectionError, "expected one Windows launcher"):
+                    verify.inspect_windows_runtime(root, arch)
+
     def test_pe_coff_symbols_do_not_satisfy_export_contract(self) -> None:
         data = bytearray(pe_exports())
         # Add a defined external COFF symbol that is absent from the export table.

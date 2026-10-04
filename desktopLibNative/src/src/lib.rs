@@ -210,7 +210,7 @@ pub extern "C" fn unregisterNativeGlobalHotKey(id: c_int) -> bool {
 ///
 /// # Safety
 /// A non-null callback must remain callable until successful unregistration. It
-/// must not unwind, unregister itself, or wait for work on the AppKit main thread.
+/// must not unwind, unregister itself, or wait for work on a UI/notification thread.
 #[cfg_attr(not(test), no_mangle)]
 pub unsafe extern "C" fn registerNativePowerEvents(callback: PowerEventCallback) -> c_int {
     ffi::with_ffi_boundary(

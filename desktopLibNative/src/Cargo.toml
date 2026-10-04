@@ -26,10 +26,17 @@ windows = { version = "0.62.2", features = [
     "Foundation",
     "Security_Credentials_UI",
     "Win32_Foundation",
+    "Win32_Graphics_Gdi",
     "Win32_Security",
     "Win32_Security_Cryptography",
     "Win32_System_WinRT",
     "Win32_System_Threading",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Power",
+    "Win32_System_RemoteDesktop",
+    "Win32_System_Rpc",
+    "Win32_System_SystemServices",
+    "Win32_UI_WindowsAndMessaging",
 ] }
 windows-future = "0.3.2"
 

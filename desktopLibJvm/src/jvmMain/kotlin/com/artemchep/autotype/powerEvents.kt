@@ -11,6 +11,8 @@ public enum class DesktopPowerEvent {
     DisplayWake,
     SystemSleep,
     SystemWake,
+    SessionInactive,
+    SessionActive,
 }
 
 public interface DesktopPowerRegistration : AutoCloseable {
@@ -41,7 +43,7 @@ private val powerCallbacks: MutableSet<DesktopLibJna.PowerEventCallback> =
 /**
  * Receives power events synchronously on the native notification thread.
  * Callbacks must finish promptly, must not unregister themselves, and must not
- * wait for AppKit/UI work. [onError] must also return promptly.
+ * wait for UI/notification-thread work. [onError] must also return promptly.
  */
 // Any failure of the native library is reported as a Failure result, so the caller
 // never has to handle an exception from the FFI boundary.
@@ -74,6 +76,8 @@ internal fun registerDesktopPowerEvents(
                     2 -> DesktopPowerEvent.DisplayWake
                     3 -> DesktopPowerEvent.SystemSleep
                     4 -> DesktopPowerEvent.SystemWake
+                    5 -> DesktopPowerEvent.SessionInactive
+                    6 -> DesktopPowerEvent.SessionActive
                     else -> return
                 }
                 onEvent(typedEvent)
@@ -114,7 +118,7 @@ internal fun registerDesktopPowerEvents(
                 if (unregistered) return false
                 closed.set(true)
                 // The callback never takes this object's monitor. Native removal
-                // can therefore wait for AppKit without a callback/cleanup deadlock.
+                // can therefore wait for native delivery without a callback/cleanup deadlock.
                 val success = try {
                     lib.unregisterNativePowerEvents(id)
                 } catch (e: Throwable) {

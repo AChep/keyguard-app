@@ -81,8 +81,9 @@ flatpak run --command=cat com.artemchep.keyguard /app/share/polkit-1/actions/com
 The security settings control when the vault locks itself:
 
 - **Lock after a delay** — from *immediately* to *never*, after inactivity;
-- **Lock when screen turns off** (Android, macOS) — locks when the display or device
-  sleeps;
+- **Lock when screen turns off** (Android, macOS, Windows) — locks when the display or device
+  sleeps. On Windows, **Lock on screen off, sleep, or sign-out** also locks when you
+  lock Windows, sign out, switch users, or disconnect a Remote Desktop session;
 - **Persist vault key on a disk** — with this off, the vault also locks
   whenever the app is unloaded from memory.
 

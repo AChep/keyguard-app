@@ -36,6 +36,7 @@ windows = { version = "0.62.2", features = [
     "Win32_System_RemoteDesktop",
     "Win32_System_Rpc",
     "Win32_System_SystemServices",
+    "Win32_UI_Input_KeyboardAndMouse",
     "Win32_UI_WindowsAndMessaging",
 ] }
 windows-future = "0.3.2"

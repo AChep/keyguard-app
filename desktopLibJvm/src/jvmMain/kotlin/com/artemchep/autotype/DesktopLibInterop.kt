@@ -32,6 +32,9 @@ internal fun DisposableScope.autoTypeOrThrow(
     lib: DesktopLibJna,
     payload: String,
 ) {
+    require('\u0000' !in payload) {
+        "AutoType payload contains an unsupported character."
+    }
     val success = lib.autoType(
         payload = payload
             .asMemory()

@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -42,7 +41,10 @@ import org.koin.core.scope.Scope
 fun settingAutotypeTestProvider(
     koinScope: Scope,
 ): SettingComponent {
-    val supported = !isRelease && CurrentPlatform is Platform.Desktop.MacOS
+    val supported = !isRelease && (
+        CurrentPlatform is Platform.Desktop.MacOS ||
+            CurrentPlatform is Platform.Desktop.Windows
+        )
     if (!supported) {
         return flowOf(null)
     }
@@ -60,6 +62,7 @@ fun settingAutotypeTestProvider(
     SettingIi(
         platformClasses = listOf(
             Platform.Desktop.MacOS::class,
+            Platform.Desktop.Windows::class,
         ),
         search = SettingIi.Search(
             group = "ui",

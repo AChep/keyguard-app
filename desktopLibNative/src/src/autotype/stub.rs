@@ -1,3 +1,7 @@
-pub(crate) fn post_keyboard_event(_key_code: u16, _key_down: bool, _flags: u64) -> bool {
-    false
+pub(crate) fn execute(payload: &str) -> Result<(), String> {
+    if payload.is_empty() {
+        Ok(())
+    } else {
+        Err("AutoType is not supported on this platform.".to_owned())
+    }
 }

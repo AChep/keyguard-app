@@ -9,13 +9,90 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DesktopLibInteropTest {
+    @Test
+    fun `autotype forwards UTF-8 and clears the native payload on disposal`() {
+        for (payload in listOf("", "Hello, Keyguard!", "Привіт Ä 中文 😀 e\u0301\t\n")) {
+            val bytes = payload.encodeToByteArray() + byteArrayOf(0)
+            val lib = FakeDesktopLibJna()
+            val scope = DisposableScope()
+
+            try {
+                scope.autoTypeOrThrow(lib, payload)
+                assertEquals(payload, lib.autoTypeText)
+                assertContentEquals(bytes, lib.autoTypePayload!!.getByteArray(0L, bytes.size))
+            } finally {
+                scope.dispose()
+            }
+
+            assertContentEquals(ByteArray(bytes.size), lib.autoTypePayload!!.getByteArray(0L, bytes.size))
+        }
+    }
+
+    @Test
+    fun `autotype native failure is redacted and payload is cleared`() {
+        val payload = "synthetic-secret-Ä"
+        val lib = FakeDesktopLibJna().apply {
+            autoTypeResult = false
+        }
+        val scope = DisposableScope()
+
+        try {
+            val error = assertFailsWith<IllegalStateException> {
+                scope.autoTypeOrThrow(lib, payload)
+            }
+            assertEquals("Failed to auto type payload.", error.message)
+        } finally {
+            scope.dispose()
+        }
+
+        val size = payload.encodeToByteArray().size + 1
+        assertContentEquals(ByteArray(size), lib.autoTypePayload!!.getByteArray(0L, size))
+    }
+
+    @Test
+    fun `autotype payload is cleared when the native call throws`() {
+        val lib = FakeDesktopLibJna().apply {
+            autoTypeFailure = IllegalStateException("native failure")
+        }
+        val scope = DisposableScope()
+
+        try {
+            assertFailsWith<IllegalStateException> {
+                scope.autoTypeOrThrow(lib, "secret")
+            }
+        } finally {
+            scope.dispose()
+        }
+
+        assertContentEquals(ByteArray(7), lib.autoTypePayload!!.getByteArray(0L, 7))
+    }
+
+    @Test
+    fun `autotype rejects embedded NUL before calling native code`() {
+        val lib = FakeDesktopLibJna()
+        val scope = DisposableScope()
+
+        try {
+            val error = assertFailsWith<IllegalArgumentException> {
+                scope.autoTypeOrThrow(lib, "secret\u0000tail")
+            }
+            assertEquals("AutoType payload contains an unsupported character.", error.message)
+        } finally {
+            scope.dispose()
+        }
+
+        assertNull(lib.autoTypePayload)
+    }
+
     @Test
     fun `system accent color returns native color`() {
         val expected = 0xFF33_6699.toInt()
@@ -291,6 +368,10 @@ class DesktopLibInteropTest {
     }
 
     private class FakeDesktopLibJna : DesktopLibJna {
+        var autoTypeResult: Boolean = true
+        var autoTypeFailure: Throwable? = null
+        var autoTypePayload: Pointer? = null
+        var autoTypeText: String? = null
         var keychainAddPasswordResult: Boolean = true
         var keychainGetPasswordResult: Pointer? = null
         var biometricsCallback: DesktopLibJna.BiometricsVerifyCallback? = null
@@ -307,7 +388,12 @@ class DesktopLibInteropTest {
 
         override fun unregisterNativePowerEvents(id: Int): Boolean = false
 
-        override fun autoType(payload: Pointer): Boolean = true
+        override fun autoType(payload: Pointer): Boolean {
+            autoTypePayload = payload
+            autoTypeText = payload.getString(0L, "UTF-8")
+            autoTypeFailure?.let { throw it }
+            return autoTypeResult
+        }
 
         override fun getSystemAccentColor(): Int = nativeSystemAccentColor
 

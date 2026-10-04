@@ -189,7 +189,8 @@ tab or pane.
 The terminal columns describe Linux and macOS when native identity evidence is
 available. If Keyguard cannot verify the caller, including requests restricted
 by the native macOS sandbox, approval reuse falls back to **Per connection**.
-On Windows, every option currently behaves like **Per connection**.
+
+On Windows the approval-scope setting is not supported.
 
 ## Reviewing activity
 

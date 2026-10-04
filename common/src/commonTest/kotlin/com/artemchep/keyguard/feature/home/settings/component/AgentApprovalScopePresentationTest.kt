@@ -6,8 +6,6 @@ import com.artemchep.keyguard.res.pref_item_agent_approval_scope_application
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_application_and_terminal_session
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_connection
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_process
-import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_android_application_and_terminal_session_reuse
-import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_android_process_reuse
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_application_and_terminal_session_reuse
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_application_reuse
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_connection_reuse
@@ -16,10 +14,39 @@ import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_not_share
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_process_reuse
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_same_process_only
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_shared
+import com.artemchep.keyguard.res.pref_item_agent_approval_scope_windows_application_note
+import com.artemchep.keyguard.res.pref_item_agent_approval_scope_windows_application_reuse
+import com.artemchep.keyguard.res.pref_item_agent_approval_scope_windows_process_note
+import com.artemchep.keyguard.res.pref_item_agent_approval_scope_windows_process_reuse
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class AgentApprovalScopePresentationTest {
+    @Test
+    fun `Windows SSH hides terminal isolation and describes available scopes`() {
+        val presentation = agentApprovalScopePresentation(AgentApprovalScopePresentationPlatform.WindowsSsh)
+        assertEquals(
+            listOf(
+                AgentApprovalCachePolicy.Connection,
+                AgentApprovalCachePolicy.Process,
+                AgentApprovalCachePolicy.Application,
+            ),
+            presentation.rows.map { it.policy },
+        )
+        assertEquals(null, presentation.row(AgentApprovalCachePolicy.Connection).noteResource)
+        val process = presentation.row(AgentApprovalCachePolicy.Process)
+        assertEquals(Res.string.pref_item_agent_approval_scope_windows_process_reuse, process.reuseBoundaryResource)
+        assertEquals(Res.string.pref_item_agent_approval_scope_windows_process_note, process.noteResource)
+        val app = presentation.row(AgentApprovalCachePolicy.Application)
+        assertEquals(Res.string.pref_item_agent_approval_scope_windows_application_reuse, app.reuseBoundaryResource)
+        assertEquals(Res.string.pref_item_agent_approval_scope_windows_application_note, app.noteResource)
+        assertEquals(app, presentation.row(AgentApprovalCachePolicy.ApplicationAndTerminalSession))
+        assertEquals(app, presentation.row(AgentApprovalCachePolicy.Default))
+        assertEquals(listOf(app), presentation.rows.filter { it.isDefault })
+        assertEquals(Res.string.pref_item_agent_approval_scope_table_shared, app.sameTerminalResource)
+        assertEquals(Res.string.pref_item_agent_approval_scope_table_shared, app.otherTerminalResource)
+    }
+
     @Test
     fun `desktop presentation exposes terminal comparison columns`() {
         val presentation = agentApprovalScopePresentation(
@@ -56,52 +83,6 @@ class AgentApprovalScopePresentationTest {
                         Res.string.pref_item_agent_approval_scope_table_application_and_terminal_session_reuse,
                     sameTerminal = Res.string.pref_item_agent_approval_scope_table_shared,
                     otherTerminal = Res.string.pref_item_agent_approval_scope_table_not_shared,
-                ),
-            ),
-            presentation.rows,
-        )
-        assertEquals(
-            listOf(AgentApprovalCachePolicy.ApplicationAndTerminalSession),
-            presentation.rows.filter { it.isDefault }.map { it.policy },
-        )
-    }
-
-    @Test
-    fun `android presentation describes effective fallbacks`() {
-        val presentation = agentApprovalScopePresentation(
-            AgentApprovalScopePresentationPlatform.Android,
-        )
-
-        assertEquals(
-            listOf(
-                row(
-                    policy = AgentApprovalCachePolicy.Connection,
-                    title = Res.string.pref_item_agent_approval_scope_connection,
-                    reuseBoundary = Res.string.pref_item_agent_approval_scope_table_connection_reuse,
-                    sameTerminal = Res.string.pref_item_agent_approval_scope_table_current_connection_only,
-                    otherTerminal = Res.string.pref_item_agent_approval_scope_table_current_connection_only,
-                ),
-                row(
-                    policy = AgentApprovalCachePolicy.Process,
-                    title = Res.string.pref_item_agent_approval_scope_process,
-                    reuseBoundary = Res.string.pref_item_agent_approval_scope_table_android_process_reuse,
-                    sameTerminal = Res.string.pref_item_agent_approval_scope_table_current_connection_only,
-                    otherTerminal = Res.string.pref_item_agent_approval_scope_table_current_connection_only,
-                ),
-                row(
-                    policy = AgentApprovalCachePolicy.Application,
-                    title = Res.string.pref_item_agent_approval_scope_application,
-                    reuseBoundary = Res.string.pref_item_agent_approval_scope_table_application_reuse,
-                    sameTerminal = Res.string.pref_item_agent_approval_scope_table_shared,
-                    otherTerminal = Res.string.pref_item_agent_approval_scope_table_shared,
-                ),
-                row(
-                    policy = AgentApprovalCachePolicy.ApplicationAndTerminalSession,
-                    title = Res.string.pref_item_agent_approval_scope_application_and_terminal_session,
-                    reuseBoundary =
-                        Res.string.pref_item_agent_approval_scope_table_android_application_and_terminal_session_reuse,
-                    sameTerminal = Res.string.pref_item_agent_approval_scope_table_shared,
-                    otherTerminal = Res.string.pref_item_agent_approval_scope_table_shared,
                 ),
             ),
             presentation.rows,

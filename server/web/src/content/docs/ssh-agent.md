@@ -111,7 +111,7 @@ the Termux helper. Direct Android SSH Authentication API registrations and
 request approvals do not reuse these scopes.
 
 The approval window controls **how long** an approval is remembered. The
-approval scope controls **which verified callers** may reuse it during that
+approval scope controls **which callers** may reuse it during that
 window. Choose a scope in the SSH agent settings:
 
 | Scope | Who can reuse an approval? | Same terminal tab or pane | Different terminal tab or pane |
@@ -125,12 +125,18 @@ Starting a new command normally creates a new process and agent connection, so
 the connection and process scopes usually ask again even in the same terminal
 tab or pane.
 
-The terminal columns describe Linux and macOS when native identity evidence is
+The table describes Linux and macOS when native identity evidence is
 available. With the Termux helper on Android, **Per process** falls back to the
 current connection, while **Application, isolated by terminal session** falls
 back to the verified application because Android does not provide a
-terminal-session identity here. On Windows, every option currently behaves
-like **Per connection**.
+terminal-session identity here.
+
+On Windows, **Per application** is the default. The terminal-isolated scope is
+unavailable; approvals may be shared across tabs in the detected application.
+Process and application detection is best effort. Transferred pipe
+handles and caller-selected parent processes can misidentify the requester;
+these scopes do not reliably isolate malicious apps running under your
+account. Choose **Per connection** for stricter isolation.
 
 ## Reviewing activity
 

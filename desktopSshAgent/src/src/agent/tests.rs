@@ -33,7 +33,7 @@ const TEST_ED25519_PUBKEY: &str =
 
 #[cfg(windows)]
 #[test]
-fn windows_authorization_is_strictly_connection_scoped() {
+fn windows_fallback_authorization_is_connection_scoped() {
     assert_eq!(unverified_windows_caller().app_name, "Unverified caller");
     let authorization = connection_only_authorization(
         keyguard_agent_identity::ConnectionFingerprint::from_bytes([0xA5; 32]),
@@ -42,6 +42,52 @@ fn windows_authorization_is_strictly_connection_scoped() {
     assert_eq!(authorization.connection_fingerprint, vec![0xA5; 32]);
     assert!(authorization.subjects.is_empty());
     assert!(authorization.authorization_context_fingerprint.is_empty());
+}
+
+#[cfg(windows)]
+#[tokio::test]
+async fn windows_factory_supplies_process_evidence_to_the_key_provider() {
+    use ssh_agent_lib::agent::{Agent, NamedPipeListener};
+    use tokio::net::windows::named_pipe::{ClientOptions, ServerOptions};
+
+    let provider = FakeKeyProvider::new(Vec::new());
+    let mut factory = KeyguardAgentFactory::new(provider.clone());
+    let mut authorizations = Vec::new();
+    for _ in 0..2 {
+        let nonce = keyguard_agent_identity::ConnectionFingerprint::generate().unwrap();
+        let name = format!(
+            r"\\.\pipe\keyguard-factory-test-{}",
+            hex::encode(nonce.as_bytes())
+        );
+        let server = ServerOptions::new()
+            .first_pipe_instance(true)
+            .create(&name)
+            .unwrap();
+        let _client = ClientOptions::new().open(&name).unwrap();
+        server.connect().await.unwrap();
+        let mut session = <KeyguardAgentFactory<_> as Agent<NamedPipeListener>>::new_session(
+            &mut factory,
+            &server,
+        );
+        session.request_identities().await.unwrap();
+        let caller = provider.last_list_caller().unwrap();
+        assert_eq!(caller.pid, std::process::id());
+        let authorization = caller.authorization.unwrap();
+        assert_eq!(
+            authorization.subjects[0].kind,
+            CallerAuthorizationSubjectKind::Process as i32
+        );
+        assert_eq!(
+            authorization.subjects[0].evidence_source,
+            CallerAuthorizationEvidenceSource::WindowsProcessSnapshot as i32
+        );
+        authorizations.push(authorization);
+    }
+    assert_ne!(
+        authorizations[0].connection_fingerprint,
+        authorizations[1].connection_fingerprint
+    );
+    assert_eq!(authorizations[0].subjects[0], authorizations[1].subjects[0]);
 }
 
 // A second key that is intentionally invalid.

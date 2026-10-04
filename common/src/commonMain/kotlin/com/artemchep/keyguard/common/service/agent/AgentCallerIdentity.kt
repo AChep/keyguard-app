@@ -21,7 +21,7 @@ interface AgentCallerAuthorization {
     val authorizationContextFingerprint: ByteArray
 }
 
-/** One independently verified candidate that an app-side cache policy may select. */
+/** One candidate with explicit provenance that an app-side cache policy may select. */
 interface AgentCallerAuthorizationSubject {
     val kind: Int
     val evidenceSource: Int
@@ -31,9 +31,10 @@ interface AgentCallerAuthorizationSubject {
 /**
  * Chooses the widest caller subject an approval is allowed to reuse.
  *
- * [ApplicationAndTerminalSession] is the secure default: terminal and IDE
- * children are isolated to one tab/session, while non-terminal callers and
- * helpers reuse the verified owning-application subject.
+ * [ApplicationAndTerminalSession] isolates terminal and IDE children to one
+ * tab/session where supported, falling back to the owning application or a
+ * narrower subject. Windows SSH uses best-effort process/application snapshots
+ * and cannot guarantee terminal-tab isolation.
  */
 enum class AgentApprovalCachePolicy(
     val storageKey: String,
@@ -107,6 +108,8 @@ data class AgentApprovalCacheIdentity(
         LinuxTerminalSession,
         MacosApplicationAncestry,
         MacosTerminalSession,
+        WindowsProcessSnapshot,
+        WindowsApplicationSnapshot,
     }
 }
 
@@ -137,6 +140,8 @@ object AgentCallerAuthorizationSchema {
         const val LINUX_TERMINAL_SESSION = 11
         const val MACOS_APPLICATION_ANCESTRY = 12
         const val MACOS_TERMINAL_SESSION = 13
+        const val WINDOWS_PROCESS_SNAPSHOT = 14
+        const val WINDOWS_APPLICATION_SNAPSHOT = 15
     }
 }
 
@@ -173,7 +178,7 @@ fun AgentCallerIdentity?.toApprovalCacheIdentity(
             ?: return null
         val evidenceSource = wireSubject.evidenceSource.toValidatedEvidenceSource()
             ?: return null
-        if (!evidenceSource.proves(kind)) {
+        if (!evidenceSource.supports(kind)) {
             return null
         }
         if (wireSubject.fingerprint.size != AgentCallerAuthorizationSchema.FINGERPRINT_SIZE) {
@@ -270,14 +275,19 @@ private fun Int.toValidatedEvidenceSource(): AgentApprovalCacheIdentity.Evidence
             AgentApprovalCacheIdentity.EvidenceSource.MacosApplicationAncestry
         AgentCallerAuthorizationSchema.EvidenceSource.MACOS_TERMINAL_SESSION ->
             AgentApprovalCacheIdentity.EvidenceSource.MacosTerminalSession
+        AgentCallerAuthorizationSchema.EvidenceSource.WINDOWS_PROCESS_SNAPSHOT ->
+            AgentApprovalCacheIdentity.EvidenceSource.WindowsProcessSnapshot
+        AgentCallerAuthorizationSchema.EvidenceSource.WINDOWS_APPLICATION_SNAPSHOT ->
+            AgentApprovalCacheIdentity.EvidenceSource.WindowsApplicationSnapshot
         else -> null
     }
 
-private fun AgentApprovalCacheIdentity.EvidenceSource.proves(
+private fun AgentApprovalCacheIdentity.EvidenceSource.supports(
     kind: AgentApprovalCacheIdentity.CacheSubject.Kind,
 ): Boolean = when (this) {
     AgentApprovalCacheIdentity.EvidenceSource.LinuxPidfd,
     AgentApprovalCacheIdentity.EvidenceSource.MacosAuditToken,
+    AgentApprovalCacheIdentity.EvidenceSource.WindowsProcessSnapshot,
     -> kind == AgentApprovalCacheIdentity.CacheSubject.Kind.Process
     AgentApprovalCacheIdentity.EvidenceSource.LinuxLsm,
     AgentApprovalCacheIdentity.EvidenceSource.MacosCodeSigning,
@@ -285,6 +295,7 @@ private fun AgentApprovalCacheIdentity.EvidenceSource.proves(
     -> kind == AgentApprovalCacheIdentity.CacheSubject.Kind.StableApplication
     AgentApprovalCacheIdentity.EvidenceSource.LinuxApplicationAncestry,
     AgentApprovalCacheIdentity.EvidenceSource.MacosApplicationAncestry,
+    AgentApprovalCacheIdentity.EvidenceSource.WindowsApplicationSnapshot,
     -> kind == AgentApprovalCacheIdentity.CacheSubject.Kind.ApplicationInstance
     AgentApprovalCacheIdentity.EvidenceSource.LinuxTerminalSession,
     AgentApprovalCacheIdentity.EvidenceSource.MacosTerminalSession,

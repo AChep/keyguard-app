@@ -56,7 +56,8 @@ message CallerAuthorization {
   // Fresh OS-CSPRNG identity for this live public-agent connection. Always
   // required as exactly 32 bytes and used as the narrowest safe fallback.
   bytes connection_fingerprint = 6;
-  // Independently verified cache subjects. At most one subject of each kind
+  // Cache subjects with explicit provenance (including best-effort Windows
+  // snapshots). At most one subject of each kind
   // may be present; the app selects among them according to its approval
   // policy rather than trusting the agent to select a scope.
   repeated CallerAuthorizationSubject subjects = 7;
@@ -98,6 +99,9 @@ enum CallerAuthorizationEvidenceSource {
   CALLER_AUTHORIZATION_EVIDENCE_SOURCE_LINUX_TERMINAL_SESSION = 11;
   CALLER_AUTHORIZATION_EVIDENCE_SOURCE_MACOS_APPLICATION_ANCESTRY = 12;
   CALLER_AUTHORIZATION_EVIDENCE_SOURCE_MACOS_TERMINAL_SESSION = 13;
+  // Shared with SSH; the Windows GPG transport does not emit these subjects.
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_WINDOWS_PROCESS_SNAPSHOT = 14;
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_WINDOWS_APPLICATION_SNAPSHOT = 15;
 }
 
 message ListKeysRequest {

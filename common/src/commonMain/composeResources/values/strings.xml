@@ -2062,6 +2062,10 @@
     <string name="pref_item_agent_approval_scope_table_same_process_only">Same process only</string>
     <string name="pref_item_agent_approval_scope_table_shared">Shared</string>
     <string name="pref_item_agent_approval_scope_table_not_shared">Not shared</string>
+    <string name="pref_item_agent_approval_scope_windows_process_reuse">Same detected process instance</string>
+    <string name="pref_item_agent_approval_scope_windows_application_reuse">Same detected running application</string>
+    <string name="pref_item_agent_approval_scope_windows_process_note">On Windows, process detection is best effort and cannot reliably distinguish malicious apps running under your account. If detection fails, approvals apply only to the current connection. Choose Per connection for stricter isolation.</string>
+    <string name="pref_item_agent_approval_scope_windows_application_note">On Windows, application detection is best effort and cannot reliably distinguish malicious apps running under your account. Approvals last only while the detected app is running and may be shared across its tabs. If detection fails, a narrower scope is used. Choose Per connection for stricter isolation.</string>
     <string name="pref_item_ssh_agent_title">SSH agent</string>
     <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
     <string name="pref_item_ssh_agent_status_unsupported">Unsupported</string>

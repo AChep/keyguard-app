@@ -4,6 +4,14 @@ import arrow.core.Either
 import arrow.core.right
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.ListWebDavDirectory
+import com.artemchep.keyguard.feature.remotepicker.RemotePickerMode
+import com.artemchep.keyguard.feature.remotepicker.RemotePickerState
+import com.artemchep.keyguard.feature.remotepicker.isRemotePickerFileSelectable
+import com.artemchep.keyguard.feature.remotepicker.joinRemotePickerPath
+import com.artemchep.keyguard.feature.remotepicker.remotePickerBreadcrumbs
+import com.artemchep.keyguard.feature.remotepicker.remotePickerDirectoryLoadFlow
+import com.artemchep.keyguard.feature.remotepicker.remotePickerExistingNames
+import com.artemchep.keyguard.feature.remotepicker.validateRemotePickerFileName
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.awaitCancellation
@@ -25,7 +33,7 @@ class WebDavPickerStateProducerTest {
     fun `breadcrumbs remain bounded by root`() {
         val selectedPaths = mutableListOf<String>()
 
-        val breadcrumbs = webDavPickerBreadcrumbs("one/two") { path ->
+        val breadcrumbs = remotePickerBreadcrumbs("one/two") { path ->
             selectedPaths += path
         }
 
@@ -39,23 +47,23 @@ class WebDavPickerStateProducerTest {
     @Test
     fun `validates create database file names`() {
         assertEquals(
-            WebDavPickerState.FileNameError.Required,
-            validateWebDavPickerFileName(" ", emptyList()),
+            RemotePickerState.FileNameError.Required,
+            validateRemotePickerFileName(" ", emptyList()),
         )
         assertEquals(
-            WebDavPickerState.FileNameError.Invalid,
-            validateWebDavPickerFileName("folder/vault.kdbx", emptyList()),
+            RemotePickerState.FileNameError.Invalid,
+            validateRemotePickerFileName("folder/vault.kdbx", emptyList()),
         )
         assertEquals(
-            WebDavPickerState.FileNameError.ExtensionRequired,
-            validateWebDavPickerFileName("vault.txt", emptyList()),
+            RemotePickerState.FileNameError.ExtensionRequired,
+            validateRemotePickerFileName("vault.txt", emptyList()),
         )
         assertEquals(
-            WebDavPickerState.FileNameError.AlreadyExists,
-            validateWebDavPickerFileName("Vault.KDBX", listOf("vault.kdbx")),
+            RemotePickerState.FileNameError.AlreadyExists,
+            validateRemotePickerFileName("Vault.KDBX", listOf("vault.kdbx")),
         )
         assertNull(
-            validateWebDavPickerFileName("new vault.kdbx", listOf("other.kdbx")),
+            validateRemotePickerFileName("new vault.kdbx", listOf("other.kdbx")),
         )
     }
 
@@ -66,56 +74,41 @@ class WebDavPickerStateProducerTest {
             pickerItem("other.kdbx"),
         )
 
-        val existingNames = webDavPickerExistingResourceNames(items)
+        val existingNames = remotePickerExistingNames(items)
 
         assertEquals(listOf("vault.kdbx", "other.kdbx"), existingNames)
         assertEquals(
-            WebDavPickerState.FileNameError.AlreadyExists,
-            validateWebDavPickerFileName("Vault.KDBX", existingNames),
+            RemotePickerState.FileNameError.AlreadyExists,
+            validateRemotePickerFileName("Vault.KDBX", existingNames),
         )
     }
 
     @Test
     fun `joins file name to current directory`() {
-        assertEquals("vault.kdbx", joinWebDavPickerPath("", "vault.kdbx"))
+        assertEquals("vault.kdbx", joinRemotePickerPath("", "vault.kdbx"))
         assertEquals(
             "nested/vault.kdbx",
-            joinWebDavPickerPath("nested", "vault.kdbx"),
-        )
-    }
-
-    @Test
-    fun `sorts folders first and names case insensitively`() {
-        val children = listOf(
-            child("z.kdbx"),
-            child("beta", isCollection = true),
-            child("Alpha", isCollection = true),
-            child("A.kdbx"),
-        )
-
-        assertEquals(
-            listOf("Alpha", "beta", "A.kdbx", "z.kdbx"),
-            sortWebDavDirectoryChildren(children).map { it.name },
+            joinRemotePickerPath("nested", "vault.kdbx"),
         )
     }
 
     @Test
     fun `only keepass files can be opened in open mode`() {
         assertTrue(
-            isWebDavPickerFileSelectable(
-                WebDavPickerRoute.Mode.OpenKeePassDatabase,
+            isRemotePickerFileSelectable(
+                RemotePickerMode.OpenKeePassDatabase,
                 "vault.KDBX",
             ),
         )
         assertFalse(
-            isWebDavPickerFileSelectable(
-                WebDavPickerRoute.Mode.OpenKeePassDatabase,
+            isRemotePickerFileSelectable(
+                RemotePickerMode.OpenKeePassDatabase,
                 "notes.txt",
             ),
         )
         assertFalse(
-            isWebDavPickerFileSelectable(
-                WebDavPickerRoute.Mode.CreateKeePassDatabase,
+            isRemotePickerFileSelectable(
+                RemotePickerMode.CreateKeePassDatabase,
                 "vault.kdbx",
             ),
         )
@@ -129,7 +122,7 @@ class WebDavPickerStateProducerTest {
         val slowCancelled = CompletableDeferred<Unit>()
         val loads = mutableListOf<DirectoryLoad>()
         val job = launch(start = CoroutineStart.UNDISPATCHED) {
-            webDavPickerDirectoryLoadFlow(
+            remotePickerDirectoryLoadFlow(
                 pathFlow = pathFlow,
                 refreshFlow = refreshFlow,
             ) { path ->
@@ -167,7 +160,7 @@ class WebDavPickerStateProducerTest {
         val loadedPaths = mutableListOf<String>()
         val loads = mutableListOf<DirectoryLoad>()
         val job = launch(start = CoroutineStart.UNDISPATCHED) {
-            webDavPickerDirectoryLoadFlow(
+            remotePickerDirectoryLoadFlow(
                 pathFlow = pathFlow,
                 refreshFlow = refreshFlow,
             ) { path ->
@@ -203,24 +196,13 @@ private typealias DirectoryLoad =
 private fun emptyChildren(): Either<Throwable, List<ListWebDavDirectory.Child>> =
     emptyList<ListWebDavDirectory.Child>().right()
 
-private fun child(
-    name: String,
-    isCollection: Boolean = false,
-) = ListWebDavDirectory.Child(
-    path = name,
-    name = name,
-    isCollection = isCollection,
-    size = null,
-    lastModified = null,
-)
-
 private fun pickerItem(
     name: String,
     isCollection: Boolean = false,
-) = WebDavPickerState.Item(
+) = RemotePickerState.Item(
     key = name,
     name = name,
-    isCollection = isCollection,
+    isFolder = isCollection,
     size = null,
     onClick = null,
 )

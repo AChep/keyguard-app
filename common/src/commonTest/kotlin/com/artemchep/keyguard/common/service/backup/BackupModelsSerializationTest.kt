@@ -393,4 +393,38 @@ class BackupModelsSerializationTest {
         assertEquals(0L, model.lastSuccessfulBackupChangeGeneration)
         assertEquals(null, model.currentRun)
     }
+
+    @Test
+    fun `s3 store round trips sanitizes and redacts the secret`() {
+        val store = BackupStoreConfig.S3(
+            endpoint = " https://minio.lan:9000/ ",
+            region = " ",
+            bucket = " backups ",
+            prefix = "/keyguard//daily",
+            accessKeyId = " AKID ",
+            secretAccessKey = Password("top-secret"),
+            pathStyle = false,
+        )
+        val encoded = json.encodeToString<BackupStoreConfig>(store)
+        assertEquals("s3", json.parseToJsonElement(encoded).jsonObject["type"]?.jsonPrimitive?.content)
+        assertEquals(store, json.decodeFromString<BackupStoreConfig>(encoded))
+        assertFalse(store.toString().contains("top-secret"))
+
+        val sanitized = BackupConfig(store = store).sanitized().store
+        assertEquals(
+            BackupStoreConfig.S3(
+                endpoint = "https://minio.lan:9000",
+                region = null,
+                bucket = "backups",
+                prefix = "keyguard/daily/",
+                accessKeyId = "AKID",
+                secretAccessKey = Password("top-secret"),
+                pathStyle = false,
+            ),
+            sanitized,
+        )
+        assertEquals(BackupStoreKind.S3, sanitized.kind)
+        assertEquals(true, BackupConfig(enabled = true, store = sanitized).canRun())
+        assertEquals(false, BackupConfig(enabled = true, store = BackupStoreConfig.S3(bucket = "backups")).canRun())
+    }
 }

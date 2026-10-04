@@ -21,7 +21,8 @@ When adding an account, choose KeePass and either **open an existing
 database** or **create a new one**. Keyguard supports these file providers:
 
 - file system;
-- WebDAV.
+- WebDAV;
+- S3-compatible storage.
 
 New databases are created in the **KDBX 4.x** format.
 

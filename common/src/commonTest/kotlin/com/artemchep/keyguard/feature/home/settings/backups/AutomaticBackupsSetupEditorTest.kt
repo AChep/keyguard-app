@@ -131,6 +131,34 @@ class AutomaticBackupsSetupEditorTest {
     }
 
     @Test
+    fun `s3 destination is validated and a webdav result cannot replace it`() = runTest {
+        val fixture = Fixture(this)
+        fixture.editor.selectStore(BackupStoreKind.WebDav)
+        val staleWebDav = fixture.editor.destinationReceiver()
+        fixture.editor.selectStore(BackupStoreKind.S3)
+        val receive = fixture.editor.destinationReceiver()
+        staleWebDav(BackupStoreConfig.WebDav("https://example.com/backups"))
+        assertEquals(BackupStoreConfig.S3(), fixture.editor.state.value.config.store)
+        assertFalse(fixture.editor.state.value.destinationValid)
+
+        val s3 = BackupStoreConfig.S3(
+            bucket = "backups",
+            prefix = "keyguard/",
+            accessKeyId = "AKID",
+            secretAccessKey = Password("secret"),
+        )
+        receive(s3)
+        assertEquals(s3, fixture.editor.state.value.config.store)
+        assertTrue(fixture.editor.state.value.destinationValid)
+
+        fixture.editor.selectStore(BackupStoreKind.Local)
+        fixture.editor.selectStore(BackupStoreKind.S3)
+        assertEquals(s3, fixture.editor.state.value.config.store)
+        fixture.editor.destinationReceiver()(s3.copy(bucket = "Invalid_Bucket", pathStyle = false))
+        assertFalse(fixture.editor.state.value.destinationValid)
+    }
+
+    @Test
     fun `picker callbacks after discard or vault lock are ignored`() = runTest {
         val fixture = Fixture(this)
         fixture.editor.setIncludeAttachments(false)

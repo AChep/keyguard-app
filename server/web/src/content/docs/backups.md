@@ -38,6 +38,7 @@ When you enable backups you choose a location:
 | :-- | :-- | :-- |
 | **Folder** | A local folder in the file system | Point it at a synced folder (e.g. a cloud-drive folder) for off-device copies |
 | **WebDAV** | A WebDAV server | - |
+| **S3** | A bucket on an S3-compatible service | Requires server-side conditional writes |
 
 When you add a location, Keyguard runs a quick read/write check to make sure it's usable.
 

@@ -6,6 +6,9 @@ import com.artemchep.keyguard.common.service.backup.BackupSetupDraft
 import com.artemchep.keyguard.common.service.backup.BackupStoreConfig
 import com.artemchep.keyguard.common.service.backup.BackupStoreKind
 import com.artemchep.keyguard.common.service.backup.verifyAndSaveBackupSetup
+import com.artemchep.keyguard.feature.s3.S3FormInput
+import com.artemchep.keyguard.feature.s3.S3SettingsRoute
+import com.artemchep.keyguard.feature.s3.validateS3Form
 import com.artemchep.keyguard.util.webdav.isValidWebDavCollectionUrl
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -45,6 +48,7 @@ internal data class BackupSetupData(
         get() = when (val store = config.store) {
             is BackupStoreConfig.Local -> store.isConfigured
             is BackupStoreConfig.WebDav -> isValidWebDavCollectionUrl(store.url.orEmpty())
+            is BackupStoreConfig.S3 -> isValidS3BackupStore(store)
         }
 
     val canContinue: Boolean
@@ -55,6 +59,22 @@ internal data class BackupSetupData(
             BackupSetupStep.Review -> destinationValid && passwordMatches
         }
 }
+
+internal fun isValidS3BackupStore(
+    store: BackupStoreConfig.S3,
+): Boolean = validateS3Form(
+    input = S3FormInput(
+        endpoint = store.endpoint.orEmpty(),
+        region = store.region.orEmpty(),
+        bucket = store.bucket.orEmpty(),
+        path = store.prefix.orEmpty(),
+        accessKeyId = store.accessKeyId.orEmpty(),
+        secretAccessKey = "",
+        pathStyle = store.pathStyle,
+    ),
+    purpose = S3SettingsRoute.Purpose.Prefix,
+    hasSavedSecret = store.secretAccessKey != null,
+) == null
 
 /** A memory-only editor. The owner confines actions to the UI dispatcher. */
 internal class AutomaticBackupsSetupEditor(
@@ -90,11 +110,11 @@ internal class AutomaticBackupsSetupEditor(
     /** Each picker request belongs to one destination selection and one live editor. */
     fun destinationReceiver(): (BackupStoreConfig?) -> Unit {
         val revision = ++destinationRevision
-        val local = draft.config.store is BackupStoreConfig.Local
+        val kind = draft.config.store.kind
         return receive@ { store ->
             if (!editable || revision != destinationRevision) return@receive
             destinationRevision += 1
-            if (store != null && local == (store is BackupStoreConfig.Local)) {
+            if (store != null && store.kind == kind) {
                 edit { setStore(store) }
             }
         }

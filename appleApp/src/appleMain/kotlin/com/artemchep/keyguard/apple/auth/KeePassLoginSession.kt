@@ -2,6 +2,7 @@ package com.artemchep.keyguard.apple.auth
 
 import com.artemchep.keyguard.apple.core.sessionKoin
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.common.usecase.CheckS3Connection
 import com.artemchep.keyguard.common.usecase.CheckWebDavConnection
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginState
@@ -11,6 +12,11 @@ import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.s3.S3SettingsResult
+import com.artemchep.keyguard.feature.s3.S3SettingsRoute
+import com.artemchep.keyguard.feature.s3.S3SettingsState
+import com.artemchep.keyguard.feature.s3.s3SettingsStateProducer
 import com.artemchep.keyguard.feature.webdav.WebDavSettingsResult
 import com.artemchep.keyguard.feature.webdav.WebDavSettingsRoute
 import com.artemchep.keyguard.feature.webdav.WebDavSettingsState
@@ -29,6 +35,7 @@ import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -41,8 +48,9 @@ import kotlin.uuid.Uuid
 
 private const val LOCATION_LOCAL = "local"
 private const val LOCATION_WEBDAV = "webdav"
+private const val LOCATION_S3 = "s3"
 
-/** One KeePass sign-in form, including its files and WebDAV child. Main-confined. */
+/** One KeePass sign-in form, including its files and its WebDAV and S3 children. Main-confined. */
 class KeePassLoginSession internal constructor(
     private val ctx: CoreContext,
 ) {
@@ -55,24 +63,26 @@ class KeePassLoginSession internal constructor(
     private val filePickerHandlers = mutableMapOf<String, (FilePickerResult?) -> Unit>()
     private var filePickerRequestCounter = 0
 
-    /** The WebDAV settings sheet; Swift echoes [id] so a dismissed sheet never edits its replacement. */
-    private class WebDavChild(
-        val id: String,
-        val session: DetailSession<WebDavSettingsSnapshot, WebDavSettingsState>,
+    private val webDav = SettingsSheet<WebDavSettingsSnapshot, WebDavSettingsState, WebDavSettingsResult>(
+        name = "webdav_settings",
     )
 
-    private var webDav: WebDavChild? = null
+    private val s3 = SettingsSheet<S3SettingsSnapshot, S3SettingsState, S3SettingsResult>(
+        name = "s3_settings",
+    )
 
     fun observe(
         onChange: (KeePassLoginSnapshot) -> Unit,
         onClose: () -> Unit,
         onWebDavChange: (WebDavSettingsSnapshot?) -> Unit,
+        onS3Change: (S3SettingsSnapshot?) -> Unit,
     ): KeyguardCancellable = form.observe(onChange, onClose) { publish, complete ->
         val onSuccess = form.gated<Unit> {
             onWebDavChange(null)
+            onS3Change(null)
             complete()
         }
-        observeLogin(publish, onSuccess, form.gated(::handleFilePickerIntent), onWebDavChange)
+        observeLogin(publish, onSuccess, form.gated(::handleFilePickerIntent), onWebDavChange, onS3Change)
     }
 
     fun close() = form.close()
@@ -81,6 +91,7 @@ class KeePassLoginSession internal constructor(
         filePickerHandlers.clear()
         onFilePickerRequest = null
         cancelWebDavSettings()
+        cancelS3Settings()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -89,6 +100,7 @@ class KeePassLoginSession internal constructor(
         onSuccess: (Unit) -> Unit,
         onFilePickerIntent: (FilePickerIntent<*>) -> Unit,
         onWebDavChange: (WebDavSettingsSnapshot?) -> Unit,
+        onS3Change: (S3SettingsSnapshot?) -> Unit,
     ): KeyguardCancellable {
         val leContext = ctx.koin.get<LeContext>()
         return ctx.launchSessionObserver(
@@ -98,19 +110,30 @@ class KeePassLoginSession internal constructor(
             // resolves global bindings such as the WebDAV connection check.
             val addKeepassAccount = state.sessionKoin.get<AddKeePassAccount>()
             val checkWebDavConnection = state.sessionKoin.get<CheckWebDavConnection>()
+            val checkS3Connection = state.sessionKoin.get<CheckS3Connection>()
             // The WebDAV child producer must die with the session (a lock mid-
             // sheet must tear it down), so anchor it to this observer scope.
             val sessionScope = this
-            // The producer navigates to the WebDAV settings route (wrapped in a
-            // result receiver) when the user picks the WebDAV location; claim it
-            // and run the settings producer as a child instead of dropping it.
+            // The producer navigates to the WebDAV or S3 settings route (wrapped
+            // in a result receiver) when the user picks a remote location; claim
+            // it and run the settings producer as a child instead of dropping it.
             val interceptor = interceptor@{ intent: NavigationIntent ->
                 val webdav = intent.resultRouteOrNull<WebDavSettingsRoute, WebDavSettingsResult>()
+                if (webdav != null) {
+                    val (route, transmitter) = webdav
+                    ctx.scope.launch {
+                        form.runIfOpen {
+                            startWebDavSettings(sessionScope, route, transmitter, checkWebDavConnection, onWebDavChange)
+                        }
+                    }
+                    return@interceptor true
+                }
+                val s3 = intent.resultRouteOrNull<S3SettingsRoute, S3SettingsResult>()
                     ?: return@interceptor false
-                val (route, transmitter) = webdav
+                val (route, transmitter) = s3
                 ctx.scope.launch {
                     form.runIfOpen {
-                        startWebDavSettings(sessionScope, route, transmitter, checkWebDavConnection, onWebDavChange)
+                        startS3Settings(sessionScope, route, transmitter, checkS3Connection, onS3Change)
                     }
                 }
                 true
@@ -216,7 +239,6 @@ class KeePassLoginSession internal constructor(
         return KeePassLoginSnapshot(
             tabs = tabs,
             locations = locations,
-            isWebDav = input.inner.location.type == KeePassLoginState.DatabaseLocation.Type.WebDav,
             dbFile = input.inner.dbFile.file?.toFileSnapshot(),
             canClearDbFile = input.inner.dbFile.onClear != null,
             keyFile = input.inner.keyFile.file?.toFileSnapshot(),
@@ -230,6 +252,7 @@ class KeePassLoginSession internal constructor(
     private fun KeePassLoginState.DatabaseLocation.Type.toLocationKey() = when (this) {
         KeePassLoginState.DatabaseLocation.Type.Local -> LOCATION_LOCAL
         KeePassLoginState.DatabaseLocation.Type.WebDav -> LOCATION_WEBDAV
+        KeePassLoginState.DatabaseLocation.Type.S3 -> LOCATION_S3
     }
 
     private fun KeePassLoginState.FileItem.File.toFileSnapshot() = KeePassFileSnapshot(
@@ -282,56 +305,92 @@ class KeePassLoginSession internal constructor(
         handler(null)
     }
 
+    /**
+     * One remote settings sheet at a time, run as a child of the sign-in form.
+     * Swift echoes the sheet id, so a dismissed sheet never edits its replacement.
+     */
+    private inner class SettingsSheet<Snapshot : Any, State : Any, Result>(
+        private val name: String,
+    ) {
+        private var id: String? = null
+        private var session: DetailSession<Snapshot, State>? = null
+
+        fun start(
+            sessionScope: CoroutineScope,
+            transmitter: RouteResultTransmitter<Result>,
+            onChange: (Snapshot?) -> Unit,
+            produce: suspend RememberStateFlowScope.(RouteResultTransmitter<Result>) -> Flow<State>,
+            toSnapshot: (id: String, state: State) -> Snapshot,
+        ) {
+            cancel()
+            val id = Uuid.random().toString()
+            val child = DetailSession<Snapshot, State>()
+            this.id = id
+            this.session = child
+            val onSaved = child.gated<Result> { result ->
+                transmitter(result)
+                cancel()
+                onChange(null)
+            }
+            val wrappedTransmitter = object : RouteResultTransmitter<Result> {
+                override fun invoke(p1: Result) {
+                    ctx.scope.launch { onSaved(p1) }
+                }
+            }
+            child.observe(onChange) { publish ->
+                KeyguardCancellable(
+                    sessionScope.launch {
+                        ctx.koin.newHeadlessStateFlowScope(name, this)
+                            .produce(wrappedTransmitter)
+                            .throttleLatest()
+                            .map { state -> toSnapshot(id, state) to state }
+                            .collectOnMain { (snapshot, state) -> publish(snapshot, state) }
+                    },
+                )
+            }
+        }
+
+        fun withActions(sessionId: String, block: (State) -> Unit) {
+            session?.takeIf { id == sessionId }?.withActions(block)
+        }
+
+        fun cancel() {
+            session?.close()
+            session = null
+            id = null
+        }
+    }
+
     private fun startWebDavSettings(
         sessionScope: CoroutineScope,
         route: WebDavSettingsRoute,
         transmitter: RouteResultTransmitter<WebDavSettingsResult>,
         checkWebDavConnection: CheckWebDavConnection,
         onWebDavChange: (WebDavSettingsSnapshot?) -> Unit,
-    ) {
-        cancelWebDavSettings()
-        val id = Uuid.random().toString()
-        val child = DetailSession<WebDavSettingsSnapshot, WebDavSettingsState>()
-        webDav = WebDavChild(id, child)
-        val onSaved = child.gated<WebDavSettingsResult> { result ->
-            transmitter(result)
-            cancelWebDavSettings()
-            onWebDavChange(null)
-        }
-        val wrappedTransmitter = object : RouteResultTransmitter<WebDavSettingsResult> {
-            override fun invoke(p1: WebDavSettingsResult) {
-                ctx.scope.launch { onSaved(p1) }
-            }
-        }
-        child.observe(onWebDavChange) { publish ->
-            KeyguardCancellable(
-                sessionScope.launch {
-                    ctx.koin.newHeadlessStateFlowScope("webdav_settings", this)
-                        .webDavSettingsStateProducer(
-                            route = route,
-                            transmitter = wrappedTransmitter,
-                            checkWebDavConnection = checkWebDavConnection,
-                        )
-                        .throttleLatest()
-                        .map { state ->
-                            WebDavSettingsSnapshot(
-                                id = id,
-                                url = state.url.value,
-                                username = state.username.value,
-                                password = state.password.value,
-                                errorKind = state.error?.name,
-                                isTestingConnection = state.isTestingConnection,
-                            ) to state
-                        }
-                        .collectOnMain { (snapshot, state) -> publish(snapshot, state) }
-                },
+    ) = webDav.start(
+        sessionScope = sessionScope,
+        transmitter = transmitter,
+        onChange = onWebDavChange,
+        produce = { wrappedTransmitter ->
+            webDavSettingsStateProducer(
+                route = route,
+                transmitter = wrappedTransmitter,
+                checkWebDavConnection = checkWebDavConnection,
             )
-        }
+        },
+    ) { id, state ->
+        WebDavSettingsSnapshot(
+            id = id,
+            url = state.url.value,
+            username = state.username.value,
+            password = state.password.value,
+            errorKind = state.error?.name,
+            isTestingConnection = state.isTestingConnection,
+        )
     }
 
-    private fun withWebDav(sessionId: String, block: (WebDavSettingsState) -> Unit) {
-        webDav?.takeIf { it.id == sessionId }?.session?.withActions(block)
-    }
+    private fun withWebDav(sessionId: String, block: (WebDavSettingsState) -> Unit) =
+        webDav.withActions(sessionId, block)
 
     fun setWebDavField(sessionId: String, id: String, text: String) = withWebDav(sessionId) { state ->
         when (id) {
@@ -347,8 +406,61 @@ class KeePassLoginSession internal constructor(
 
     fun testWebDavConnection(sessionId: String) = withWebDav(sessionId) { it.onTestConnection() }
 
-    fun cancelWebDavSettings() {
-        webDav?.session?.close()
-        webDav = null
+    fun cancelWebDavSettings() = webDav.cancel()
+
+    private fun startS3Settings(
+        sessionScope: CoroutineScope,
+        route: S3SettingsRoute,
+        transmitter: RouteResultTransmitter<S3SettingsResult>,
+        checkS3Connection: CheckS3Connection,
+        onS3Change: (S3SettingsSnapshot?) -> Unit,
+    ) = s3.start(
+        sessionScope = sessionScope,
+        transmitter = transmitter,
+        onChange = onS3Change,
+        produce = { wrappedTransmitter ->
+            s3SettingsStateProducer(
+                route = route,
+                transmitter = wrappedTransmitter,
+                checkS3Connection = checkS3Connection,
+            )
+        },
+    ) { id, state ->
+        S3SettingsSnapshot(
+            id = id,
+            endpoint = state.endpoint.value,
+            region = state.region.value,
+            bucket = state.bucket.value,
+            key = state.path.value,
+            accessKeyId = state.accessKeyId.value,
+            secretAccessKey = state.secretAccessKey.value,
+            pathStyle = state.pathStyle.value,
+            errorKind = state.error?.name,
+            isTestingConnection = state.isTestingConnection,
+        )
     }
+
+    private fun withS3(sessionId: String, block: (S3SettingsState) -> Unit) =
+        s3.withActions(sessionId, block)
+
+    fun setS3Field(sessionId: String, id: String, text: String) = withS3(sessionId) { state ->
+        when (id) {
+            "endpoint" -> state.endpoint.value = text
+            "region" -> state.region.value = text
+            "bucket" -> state.bucket.value = text
+            "key" -> state.path.value = text
+            "accessKeyId" -> state.accessKeyId.value = text
+            "secretAccessKey" -> state.secretAccessKey.value = text
+        }
+    }
+
+    fun setS3PathStyle(sessionId: String, value: Boolean) = withS3(sessionId) { state ->
+        state.pathStyle.value = value
+    }
+
+    fun submitS3Settings(sessionId: String) = withS3(sessionId) { it.onSave() }
+
+    fun testS3Connection(sessionId: String) = withS3(sessionId) { it.onTestConnection() }
+
+    fun cancelS3Settings() = s3.cancel()
 }

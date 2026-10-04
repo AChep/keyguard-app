@@ -1,6 +1,17 @@
 import SwiftUI
 import KeyguardShared
 
+/// The S3 destination fields of the backup wizard.
+struct BackupS3Fields: Equatable {
+    var endpoint = ""
+    var region = ""
+    var bucket = ""
+    var prefix = ""
+    var accessKeyId = ""
+    var secretAccessKey = ""
+    var pathStyle = true
+}
+
 struct BackupSetupWizardContent: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -8,6 +19,7 @@ struct BackupSetupWizardContent: View {
     @State private var webDavURL: String
     @State private var webDavUsername: String
     @State private var webDavPassword = ""
+    @State private var s3: BackupS3Fields
     @State private var encryptionPassword = ""
     @State private var confirmationPassword = ""
     @State private var replacePassword = false
@@ -22,11 +34,13 @@ struct BackupSetupWizardContent: View {
 
     private enum Field: Hashable {
         case server, username, serverPassword, encryptionPassword, confirmationPassword
+        case s3Endpoint, s3Region, s3Bucket, s3Prefix, s3AccessKeyId, s3Secret
     }
 
     let s: BackupSetupSnapshot
     let setStoreKind: (String) -> Void
     let setWebDav: (String, String, String) -> Void
+    let setS3: (BackupS3Fields) -> Void
     let setPassword: (String) -> Void
     let restorePassword: () -> Void
     let setIncludeAttachments: (Bool) -> Void
@@ -34,22 +48,30 @@ struct BackupSetupWizardContent: View {
     let submit: () -> Void
     let pickLocation: () -> Void
     let isValidWebDavURL: (String) -> Bool
+    /// Returns the `S3FormError` name of the first invalid field.
+    let s3ErrorKind: (BackupS3Fields) -> String?
+    /// Whether an empty secret access key keeps the saved key of the fields' account.
+    let keepsS3Secret: (BackupS3Fields) -> Bool
 
     init(
         s: BackupSetupSnapshot,
         setStoreKind: @escaping (String) -> Void,
         setWebDav: @escaping (String, String, String) -> Void,
+        setS3: @escaping (BackupS3Fields) -> Void,
         setPassword: @escaping (String) -> Void,
         restorePassword: @escaping () -> Void,
         setIncludeAttachments: @escaping (Bool) -> Void,
         setRetention: @escaping (Int32) -> Void,
         submit: @escaping () -> Void,
         pickLocation: @escaping () -> Void,
-        isValidWebDavURL: @escaping (String) -> Bool
+        isValidWebDavURL: @escaping (String) -> Bool,
+        s3ErrorKind: @escaping (BackupS3Fields) -> String?,
+        keepsS3Secret: @escaping (BackupS3Fields) -> Bool
     ) {
         self.s = s
         self.setStoreKind = setStoreKind
         self.setWebDav = setWebDav
+        self.setS3 = setS3
         self.setPassword = setPassword
         self.restorePassword = restorePassword
         self.setIncludeAttachments = setIncludeAttachments
@@ -57,6 +79,17 @@ struct BackupSetupWizardContent: View {
         self.submit = submit
         self.pickLocation = pickLocation
         self.isValidWebDavURL = isValidWebDavURL
+        self.s3ErrorKind = s3ErrorKind
+        self.keepsS3Secret = keepsS3Secret
+        _s3 = State(
+            initialValue: BackupS3Fields(
+                endpoint: s.s3Endpoint ?? "",
+                region: s.s3Region ?? "",
+                bucket: s.s3Bucket ?? "",
+                prefix: s.s3Prefix ?? "",
+                accessKeyId: s.s3AccessKeyId ?? "",
+                pathStyle: s.s3PathStyle
+            ))
         _initialHasPassword = State(initialValue: s.hasPassword)
         _initialWebDavURL = State(initialValue: s.webDavUrl ?? "")
         _initialWebDavUsername = State(initialValue: s.webDavUsername ?? "")
@@ -87,6 +120,7 @@ struct BackupSetupWizardContent: View {
         .onChange(of: webDavURL) { _, _ in hasEdits = true }
         .onChange(of: webDavUsername) { _, _ in hasEdits = true }
         .onChange(of: webDavPassword) { _, _ in hasEdits = true }
+        .onChange(of: s3) { _, _ in hasEdits = true }
         .onChange(of: encryptionPassword) { _, _ in hasEdits = true }
         .onChange(of: confirmationPassword) { _, _ in hasEdits = true }
         .onChange(of: replacePassword) { _, _ in hasEdits = true }
@@ -161,8 +195,12 @@ struct BackupSetupWizardContent: View {
             destinationChoice(
                 kind: "webdav", title: L10n.prefItemAutomaticBackupsWebdavServerTitle,
                 detail: L10n.prefItemAutomaticBackupsWizardWebdavDetail, symbol: "network")
+            destinationChoice(
+                kind: "s3", title: L10n.prefItemAutomaticBackupsS3Title,
+                detail: L10n.prefItemAutomaticBackupsWizardS3Detail, symbol: "shippingbox")
         }
-        if s.storeKind == "webdav" {
+        switch s.storeKind {
+        case "webdav":
             Section {
                 TextField(
                     L10n.url, text: $webDavURL,
@@ -199,10 +237,12 @@ struct BackupSetupWizardContent: View {
                     Text(L10n.prefItemAutomaticBackupsWebdavKeepPassword)
                 }
             }
-        } else {
+        case "s3":
+            s3Sections
+        default:
             Section {
                 if let folder = s.localPath, !folder.isEmpty {
-                    BackupLocationLabel(isWebDav: false, location: folder)
+                    BackupLocationLabel(kind: "local", location: folder)
                 }
                 Button(L10n.prefItemAutomaticBackupsChooseFolderAction) { pickLocation() }
             } footer: {
@@ -211,9 +251,84 @@ struct BackupSetupWizardContent: View {
         }
     }
 
+    @ViewBuilder
+    private var s3Sections: some View {
+        Section {
+            s3Field(
+                L10n.s3SettingsEndpointTitle, text: $s3.endpoint, field: .s3Endpoint, next: .s3Region,
+                prompt: KeyguardUrls.shared.PLACEHOLDER_S3_ENDPOINT, url: true)
+            s3Field(
+                L10n.s3SettingsRegionTitle, text: $s3.region, field: .s3Region, next: .s3Bucket,
+                prompt: KeyguardUrls.shared.PLACEHOLDER_S3_REGION)
+            s3Field(
+                L10n.s3SettingsBucketTitle, text: $s3.bucket, field: .s3Bucket, next: .s3Prefix,
+                prompt: KeyguardUrls.shared.PLACEHOLDER_S3_BUCKET)
+            s3Field(
+                L10n.s3SettingsPrefixTitle, text: $s3.prefix, field: .s3Prefix, next: .s3AccessKeyId,
+                prompt: KeyguardUrls.shared.PLACEHOLDER_S3_PREFIX)
+        } header: {
+            Text(L10n.prefItemAutomaticBackupsS3Title)
+        } footer: {
+            Text(L10n.s3SettingsEndpointNote)
+        }
+        Section {
+            s3Field(L10n.s3SettingsAccessKeyIdTitle, text: $s3.accessKeyId, field: .s3AccessKeyId, next: .s3Secret)
+            SecureField(L10n.s3SettingsSecretAccessKeyTitle, text: $s3.secretAccessKey)
+                .focused($focusedField, equals: .s3Secret)
+                .privacySensitive()
+            Toggle(isOn: $s3.pathStyle) {
+                Text(L10n.s3SettingsPathStyleTitle)
+                Text(L10n.s3SettingsPathStyleText)
+            }
+        } footer: {
+            if !s3.bucket.isEmpty, let error = s3ErrorMessage(currentS3ErrorKind) {
+                Label(error, systemImage: "exclamationmark.circle")
+                    .foregroundStyle(.red)
+            } else if keepsSavedS3Secret {
+                Text(L10n.prefItemAutomaticBackupsS3KeepSecret)
+            } else {
+                Text(L10n.s3SettingsAuthNote)
+            }
+        }
+    }
+
+    private func s3Field(
+        _ title: String,
+        text: Binding<String>,
+        field: Field,
+        next: Field,
+        prompt: String? = nil,
+        url: Bool = false
+    ) -> some View {
+        TextField(title, text: text, prompt: prompt.map { Text(verbatim: $0) })
+            .focused($focusedField, equals: field)
+            .submitLabel(.next)
+            .onSubmit { focusedField = next }
+            #if os(iOS)
+        .keyboardType(url ? .URL : .asciiCapable)
+        .textInputAutocapitalization(.never)
+            #endif
+            .autocorrectionDisabled()
+    }
+
+    /// The saved secret is kept while the endpoint, bucket and access key are unchanged.
+    private var keepsSavedS3Secret: Bool {
+        s3.secretAccessKey.isEmpty && keepsS3Secret(s3)
+    }
+
+    private var currentS3ErrorKind: String? {
+        s3ErrorKind(s3)
+    }
+
+    private var reviewLocation: String? {
+        BackupLocationLabel.location(
+            kind: s.storeKind, localPath: s.localPath, webDavUrl: s.webDavUrl, s3Location: s.s3Location,
+            s3EndpointHost: s.s3EndpointHost)
+    }
+
     private func destinationChoice(kind: String, title: String, detail: String, symbol: String) -> some View {
         Button {
-            if s.storeKind == "webdav" { applyWebDav() }
+            applyRemoteFields()
             setStoreKind(kind)
             hasEdits = true
         } label: {
@@ -303,9 +418,7 @@ struct BackupSetupWizardContent: View {
 
     private var reviewSection: some View {
         Section {
-            BackupLocationLabel(
-                isWebDav: s.storeKind == "webdav",
-                location: s.storeKind == "webdav" ? s.webDavUrl : s.localPath)
+            BackupLocationLabel(kind: s.storeKind, location: reviewLocation)
             Label(
                 hasEncryptionPassword
                     ? L10n.prefItemAutomaticBackupsPasswordSet : L10n.prefItemAutomaticBackupsPasswordNotSet,
@@ -336,8 +449,11 @@ struct BackupSetupWizardContent: View {
     private func canAdvance(from step: BackupSetupStep) -> Bool {
         switch step {
         case .destination:
-            s.storeKind == "webdav"
-                ? isValidWebDavURL(webDavURL) : !(s.localPath ?? "").isEmpty
+            switch s.storeKind {
+            case "webdav": isValidWebDavURL(webDavURL)
+            case "s3": currentS3ErrorKind == nil
+            default: !(s.localPath ?? "").isEmpty
+            }
         case .protection:
             (initialHasPassword && !replacePassword) || encryptionPassword.isEmpty
                 || encryptionPassword == confirmationPassword
@@ -350,7 +466,7 @@ struct BackupSetupWizardContent: View {
         focusedField = nil
         switch step {
         case .destination:
-            if s.storeKind == "webdav" { applyWebDav() }
+            applyRemoteFields()
             path.append(.protection)
         case .protection:
             path.append(.contents)
@@ -368,6 +484,15 @@ struct BackupSetupWizardContent: View {
 
     private func applyWebDav() {
         setWebDav(webDavURL, webDavUsername, webDavPassword)
+    }
+
+    /// Pushes the typed fields of the selected remote destination into the native draft.
+    private func applyRemoteFields() {
+        switch s.storeKind {
+        case "webdav": applyWebDav()
+        case "s3": setS3(s3)
+        default: break
+        }
     }
 
     private func cancel() {

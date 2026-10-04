@@ -350,6 +350,7 @@
     <string name="database_location_title">Database location</string>
     <string name="database_location_local">Local file</string>
     <string name="database_location_webdav">WebDAV</string>
+    <string name="database_location_s3">S3</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
     <string name="addaccount_method_header_title">Add account</string>
@@ -833,6 +834,17 @@
     <string name="error_invalid_card_number">Invalid card number</string>
     <string name="error_webdav_url_required">WebDAV URL is required</string>
     <string name="error_webdav_file_url_required">Enter the full WebDAV URL to a file resource</string>
+    <string name="error_s3_endpoint_invalid">Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment</string>
+    <string name="error_s3_bucket_required">Bucket is required</string>
+    <string name="error_s3_bucket_invalid">Enter a valid bucket name</string>
+    <string name="error_s3_prefix_invalid">The prefix cannot contain empty, \".\", or \"..\" segments</string>
+    <string name="error_s3_key_required">Enter the object key of a database file</string>
+    <string name="error_s3_key_invalid">The object key cannot contain empty, \".\", or \"..\" segments</string>
+    <string name="error_s3_key_extension">The object key must end with %1$s</string>
+    <string name="error_s3_access_key_id_required">Access key ID is required</string>
+    <string name="error_s3_access_key_id_invalid">Enter a valid access key ID</string>
+    <string name="error_s3_secret_access_key_required">Secret access key is required</string>
+    <string name="error_s3_conditional_writes_unsupported">The S3 server ignores conditional writes</string>
     <string name="error_incorrect_password">Incorrect password</string>
     <string name="error_not_found">Not found</string>
     <string name="error_file_must_be_n_or_smaller">File must be <xliff:g id="size" example="500MB">%1$s</xliff:g> or smaller</string>
@@ -1762,14 +1774,14 @@
     <string name="settingssearch_theme_keywords">theme appearance light dark system</string>
     <string name="settingssearch_navigation_keywords">tabs sidebar navigation order visibility</string>
     <string name="settingssearch_autofill_keywords">autofill passwords passkeys fill</string>
-    <string name="settingssearch_backup_keywords">backup restore destination folder WebDAV encryption password attachments retention snapshots</string>
+    <string name="settingssearch_backup_keywords">backup restore destination folder WebDAV S3 bucket encryption password attachments retention snapshots</string>
     <string name="settingssearch_breach_keywords">breach leaked compromised passwords</string>
     <string name="settingssearch_autofill_index_status_title">AutoFill suggestions status</string>
     <string name="settingssearch_ssh_socket_title">SSH socket</string>
     <string name="settingssearch_ssh_socket_keywords">SSH_AUTH_SOCK socket path environment client</string>
     <string name="settingssearch_membership_status_title">Premium status</string>
     <string name="settingssearch_membership_inactive_text">No active membership</string>
-    <string name="settingssearch_backup_location_keywords">destination folder server WebDAV</string>
+    <string name="settingssearch_backup_location_keywords">destination folder server WebDAV S3 bucket</string>
     <string name="settingssearch_backup_password_keywords">encryption password configured</string>
     <string name="settingssearch_build_ref_keywords">revision commit source build reference</string>
     <string name="settingssearch_license_keywords">license licence entitlement token</string>
@@ -2209,7 +2221,7 @@
     <string name="pref_item_permission_camera_title">Camera</string>
     <string name="pref_item_permission_camera_text">Used to scan QR codes</string>
     <string name="pref_item_permission_local_network_title">Local network</string>
-    <string name="pref_item_permission_local_network_text">Used to connect to self-hosted Bitwarden, WebDAV, and SFTP servers on your local network</string>
+    <string name="pref_item_permission_local_network_text">Used to connect to self-hosted Bitwarden, WebDAV, S3, and SFTP servers on your local network</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Allow two panel layout in landscape mode</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">Allow two panel layout in portrait mode</string>
     <string name="pref_item_gpg_agent_title">GPG agent</string>
@@ -2326,6 +2338,21 @@
     <string name="webdav_picker_filename_invalid">The database name cannot contain path separators.</string>
     <string name="webdav_picker_filename_extension">The database name must end with %1$s.</string>
     <string name="webdav_picker_filename_exists">A file with this name already exists.</string>
+    <string name="s3_settings_header_title">S3 storage configuration</string>
+    <string name="s3_settings_endpoint_title">Endpoint URL</string>
+    <string name="s3_settings_endpoint_note">Leave empty to use Amazon S3.</string>
+    <string name="s3_settings_region_title">Region</string>
+    <string name="s3_settings_bucket_title">Bucket</string>
+    <string name="s3_settings_prefix_title">Folder prefix</string>
+    <string name="s3_settings_key_title">Object key</string>
+    <string name="s3_settings_access_key_id_title">Access key ID</string>
+    <string name="s3_settings_secret_access_key_title">Secret access key</string>
+    <string name="s3_settings_auth_note">Enter an access key for this bucket.</string>
+    <string name="s3_settings_path_style_title">Path-style URLs</string>
+    <string name="s3_settings_path_style_text">Puts the bucket in the URL path instead of the host name. Most self-hosted servers need this.</string>
+    <string name="s3_settings_test_success">S3 connection verified.</string>
+    <string name="s3_picker_header_title">Browse S3 bucket</string>
+    <string name="s3_location_summary">%1$s at %2$s</string>
 
     <!-- Title of the 'Localization contributors' screen -->
     <string name="localization_contributors_title">Localization contributors</string>
@@ -2497,6 +2524,7 @@
     <string name="pref_item_automatic_backups_initialization_error">Automatic backups could not start. Retry to reload the backup settings.</string>
     <string name="pref_item_automatic_backups_folder_access_help">If folder access is lost, choose the folder again to restore permission.</string>
     <string name="pref_item_automatic_backups_webdav_keep_password">Leave the password empty to keep the saved password.</string>
+    <string name="pref_item_automatic_backups_s3_keep_secret">Leave the secret access key empty to keep the saved key.</string>
     <string name="pref_item_launch_at_login_title">Launch Keyguard at login</string>
     <string name="pref_item_launch_at_login_approval_note">Approval needed in System Settings ▸ Login Items.</string>
     <string name="pref_item_launch_at_login_unavailable_text">Launch at login is unavailable in this build.</string>
@@ -2511,12 +2539,13 @@
     <string name="pref_item_automatic_backups_change_configuration_action">Change configuration</string>
     <string name="pref_item_automatic_backups_local_folder_title">Local folder</string>
     <string name="pref_item_automatic_backups_webdav_server_title">WebDAV server</string>
+    <string name="pref_item_automatic_backups_s3_title">S3-compatible storage</string>
     <string name="pref_item_automatic_backups_not_configured">Not configured</string>
     <string name="pref_item_automatic_backups_choose_folder_action">Choose folder…</string>
     <string name="pref_item_automatic_backups_save_verify_action">Save and verify</string>
     <string name="pref_item_automatic_backups_wizard_title">Set up backups</string>
     <string name="pref_item_automatic_backups_wizard_destination_title">Choose a destination</string>
-    <string name="pref_item_automatic_backups_wizard_destination_detail">Save backups to a folder or a WebDAV server.</string>
+    <string name="pref_item_automatic_backups_wizard_destination_detail">Save backups to a folder, a WebDAV server, or S3-compatible storage.</string>
     <string name="pref_item_automatic_backups_wizard_protection_title">Protect your backups</string>
     <string name="pref_item_automatic_backups_wizard_protection_detail">Add a password to encrypt your backup files. Keep it somewhere safe; you will need it to restore them.</string>
     <string name="pref_item_automatic_backups_wizard_contents_title">Choose what to keep</string>
@@ -2526,6 +2555,8 @@
     <string name="pref_item_automatic_backups_wizard_step_label">Step %1$d of %2$d</string>
     <string name="pref_item_automatic_backups_wizard_folder_detail">Choose a folder on this device or a connected storage provider.</string>
     <string name="pref_item_automatic_backups_wizard_webdav_detail">Save backups to your own WebDAV server.</string>
+    <string name="pref_item_automatic_backups_wizard_s3_detail">Save backups to Amazon S3, MinIO, or another S3-compatible service.</string>
+    <string name="pref_item_automatic_backups_wizard_invalid_s3_error">Check the S3 endpoint, bucket, prefix, and access key.</string>
     <string name="pref_item_automatic_backups_wizard_invalid_url_error">Enter a full HTTP or HTTPS URL without embedded credentials or a fragment.</string>
     <string name="pref_item_automatic_backups_wizard_replace_password_action">Change the backup password</string>
     <string name="pref_item_automatic_backups_wizard_confirm_password_label">Confirm backup password</string>

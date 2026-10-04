@@ -107,6 +107,7 @@ internal class VaultSyncModule {
                     db = get(),
                     pendingUploadCoordinator = get(),
                     webDavClientFactory = get(),
+                    s3ClientFactory = get(),
                     watchdog = get(),
                 )
             }

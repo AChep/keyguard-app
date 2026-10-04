@@ -493,6 +493,7 @@ internal class VaultOperationsModule {
                     fileService = get(),
                     base64Service = get(),
                     webDavClientFactory = get(),
+                    s3ClientFactory = get(),
                     db = get(),
                 )
             }

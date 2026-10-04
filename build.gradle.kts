@@ -218,6 +218,7 @@ val customRuleModules = listOf(
     ":common",
     ":integration:androidIpcTestClient",
     ":util:kdbx",
+    ":util:s3",
     ":util:webdav",
     ":wearApp",
 )

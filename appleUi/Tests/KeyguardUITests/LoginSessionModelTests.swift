@@ -135,6 +135,29 @@ final class LoginSessionModelTests: XCTestCase {
     }
 
     @MainActor
+    func testKeePassOwnsS3SheetLifecycle() async throws {
+        let source = KeePassSourceProbe()
+        let model = KeePassLoginModel(source: source)
+        model.startKeePassLoginObservation()
+        source.publishS3(s3("first"))
+        try await settle()
+        XCTAssertEqual(model.keepassS3?.id, "first")
+        model.dismissS3Settings()
+        XCTAssertEqual(source.cancelledS3, 1)
+        source.publishS3(s3("first"))
+        try await settle()
+        XCTAssertNil(model.keepassS3)
+        source.publishS3(s3("new"))
+        try await settle()
+        XCTAssertEqual(model.keepassS3?.id, "new")
+        source.complete()
+        try await settle()
+        XCTAssertNil(model.keepassS3)
+        XCTAssertTrue(model.keepassDidSucceed)
+        model.stopKeePassLoginObservation()
+    }
+
+    @MainActor
     func testCompletionRejectsCallbacksBeforeThePresentationFinishesDismissing() async throws {
         let bitwarden = BitwardenSourceProbe()
         let login = bitwarden.makeModel()
@@ -199,6 +222,12 @@ final class LoginSessionModelTests: XCTestCase {
             isTestingConnection: false)
     }
 
+    private func s3(_ id: String) -> S3SettingsSnapshot {
+        S3SettingsSnapshot(
+            id: id, endpoint: "", region: "", bucket: "vaults", key: "\(id).kdbx", accessKeyId: "AKID",
+            secretAccessKey: "draft", pathStyle: true, errorKind: nil, isTestingConnection: false)
+    }
+
     @MainActor
     private func settle() async throws { try await Task.sleep(for: .milliseconds(20)) }
 }
@@ -250,17 +279,21 @@ private final class BitwardenSourceProbe: BitwardenLoginSource {
 @MainActor
 private final class KeePassSourceProbe: KeePassLoginSource {
     var publishWebDav: (WebDavSettingsSnapshot?) -> Void = { _ in }
+    var publishS3: (S3SettingsSnapshot?) -> Void = { _ in }
+    var cancelledS3 = 0
     var publishFile: ((KeePassFilePickerRequest) -> Void)?
     var complete: () -> Void = {}
     var starts = 0
     var closes = 0
     func subscribe(
         onChange: @escaping (KeePassLoginSnapshot) -> Void, onClose: @escaping () -> Void,
-        onWebDavChange: @escaping (WebDavSettingsSnapshot?) -> Void
+        onWebDavChange: @escaping (WebDavSettingsSnapshot?) -> Void,
+        onS3Change: @escaping (S3SettingsSnapshot?) -> Void
     ) -> BridgeObservation {
         starts += 1
         complete = onClose
         publishWebDav = onWebDavChange
+        publishS3 = onS3Change
         return BridgeObservation(cancel: {})
     }
     func close() { closes += 1 }
@@ -276,6 +309,11 @@ private final class KeePassSourceProbe: KeePassLoginSource {
     func submitWebDavSettings(sessionId: String) {}
     func testWebDavConnection(sessionId: String) {}
     func cancelWebDavSettings() {}
+    func setS3Field(sessionId: String, id: String, text: String) {}
+    func setS3PathStyle(sessionId: String, value: Bool) {}
+    func submitS3Settings(sessionId: String) {}
+    func testS3Connection(sessionId: String) {}
+    func cancelS3Settings() { cancelledS3 += 1 }
     func setKeePassFilePickerRequestHandler(handler: ((KeePassFilePickerRequest) -> Void)?) { publishFile = handler }
     func resolveKeePassFilePicker(requestId: String, uri: String, name: String?, size: Int64, accessToken: String?) {}
     func cancelKeePassFilePicker(requestId: String) {}

@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.backup.BackupConfigRepository
 import com.artemchep.keyguard.common.service.backup.BackupLocalObjectStoreFactoryTag
 import com.artemchep.keyguard.common.service.backup.BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.backup.S3BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.vault.SessionReadRepository
 import com.artemchep.keyguard.di.resolve
@@ -31,6 +32,7 @@ internal class AppleBackupModule {
                 webDavFactory = WebDavBackupObjectStoreFactory(
                     webDavClientFactory = get(),
                 ),
+                s3Factory = get<S3BackupObjectStoreFactory>(),
             )
         }
     }

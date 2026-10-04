@@ -12,8 +12,6 @@ import com.artemchep.keyguard.util.webdav.WebDavException
 import com.artemchep.keyguard.util.webdav.WebDavResource
 import com.artemchep.keyguard.util.webdav.WebDavWriteMode
 import com.artemchep.keyguard.util.webdav.WebDavWriteStrategy
-import kotlinx.io.Buffer
-import kotlinx.io.RawSource
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
@@ -209,31 +207,16 @@ class WebDavBackupObjectStore(
         operation: BackupObjectStoreOperation,
         key: BackupObjectKey,
         range: BackupByteRange?,
-    ): Source {
-        val upstream = this
-        return object : RawSource {
-            override fun readAtMostTo(
-                sink: Buffer,
-                byteCount: Long,
-            ): Long = translate(
-                operation = operation,
-                key = key,
-                range = range,
-            ) {
-                upstream.readAtMostTo(sink, byteCount)
-            }
-
-            override fun close() {
-                translate(
-                    operation = operation,
-                    key = key,
-                    range = range,
-                ) {
-                    upstream.close()
-                }
-            }
-        }.buffered()
-    }
+    ): Source = object : TranslatingSource(this) {
+        override fun <T> translate(
+            block: () -> T,
+        ): T = this@WebDavBackupObjectStore.translate(
+            operation = operation,
+            key = key,
+            range = range,
+            block = block,
+        )
+    }.buffered()
 }
 
 class WebDavBackupObjectStoreFactory(

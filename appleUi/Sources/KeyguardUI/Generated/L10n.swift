@@ -1737,6 +1737,10 @@ public enum L10n {
     public static var databaseLocationLocal: String {
         String(localized: "database_location_local", bundle: AppLocalization.shared.bundle)
     }
+    /// database_location_s3
+    public static var databaseLocationS3: String {
+        String(localized: "database_location_s3", bundle: AppLocalization.shared.bundle)
+    }
     /// database_location_title
     public static var databaseLocationTitle: String {
         String(localized: "database_location_title", bundle: AppLocalization.shared.bundle)
@@ -2228,6 +2232,50 @@ public enum L10n {
     /// error_otp_key_must_not_be_empty
     public static var errorOtpKeyMustNotBeEmpty: String {
         String(localized: "error_otp_key_must_not_be_empty", bundle: AppLocalization.shared.bundle)
+    }
+    /// error_s3_access_key_id_invalid
+    public static var errorS3AccessKeyIdInvalid: String {
+        String(localized: "error_s3_access_key_id_invalid", bundle: AppLocalization.shared.bundle)
+    }
+    /// error_s3_access_key_id_required
+    public static var errorS3AccessKeyIdRequired: String {
+        String(localized: "error_s3_access_key_id_required", bundle: AppLocalization.shared.bundle)
+    }
+    /// error_s3_bucket_invalid
+    public static var errorS3BucketInvalid: String {
+        String(localized: "error_s3_bucket_invalid", bundle: AppLocalization.shared.bundle)
+    }
+    /// error_s3_bucket_required
+    public static var errorS3BucketRequired: String {
+        String(localized: "error_s3_bucket_required", bundle: AppLocalization.shared.bundle)
+    }
+    /// error_s3_conditional_writes_unsupported
+    public static var errorS3ConditionalWritesUnsupported: String {
+        String(localized: "error_s3_conditional_writes_unsupported", bundle: AppLocalization.shared.bundle)
+    }
+    /// error_s3_endpoint_invalid
+    public static var errorS3EndpointInvalid: String {
+        String(localized: "error_s3_endpoint_invalid", bundle: AppLocalization.shared.bundle)
+    }
+    /// error_s3_key_extension
+    public static func errorS3KeyExtension(_ a1: String) -> String {
+        String(format: String(localized: "error_s3_key_extension", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// error_s3_key_invalid
+    public static var errorS3KeyInvalid: String {
+        String(localized: "error_s3_key_invalid", bundle: AppLocalization.shared.bundle)
+    }
+    /// error_s3_key_required
+    public static var errorS3KeyRequired: String {
+        String(localized: "error_s3_key_required", bundle: AppLocalization.shared.bundle)
+    }
+    /// error_s3_prefix_invalid
+    public static var errorS3PrefixInvalid: String {
+        String(localized: "error_s3_prefix_invalid", bundle: AppLocalization.shared.bundle)
+    }
+    /// error_s3_secret_access_key_required
+    public static var errorS3SecretAccessKeyRequired: String {
+        String(localized: "error_s3_secret_access_key_required", bundle: AppLocalization.shared.bundle)
     }
     /// error_webdav_file_url_required
     public static var errorWebdavFileUrlRequired: String {
@@ -5701,6 +5749,14 @@ public enum L10n {
     public static var prefItemAutomaticBackupsRunNowTitle: String {
         String(localized: "pref_item_automatic_backups_run_now_title", bundle: AppLocalization.shared.bundle)
     }
+    /// pref_item_automatic_backups_s3_keep_secret
+    public static var prefItemAutomaticBackupsS3KeepSecret: String {
+        String(localized: "pref_item_automatic_backups_s3_keep_secret", bundle: AppLocalization.shared.bundle)
+    }
+    /// pref_item_automatic_backups_s3_title
+    public static var prefItemAutomaticBackupsS3Title: String {
+        String(localized: "pref_item_automatic_backups_s3_title", bundle: AppLocalization.shared.bundle)
+    }
     /// pref_item_automatic_backups_save_verify_action
     public static var prefItemAutomaticBackupsSaveVerifyAction: String {
         String(localized: "pref_item_automatic_backups_save_verify_action", bundle: AppLocalization.shared.bundle)
@@ -5873,6 +5929,10 @@ public enum L10n {
     public static var prefItemAutomaticBackupsWizardFolderDetail: String {
         String(localized: "pref_item_automatic_backups_wizard_folder_detail", bundle: AppLocalization.shared.bundle)
     }
+    /// pref_item_automatic_backups_wizard_invalid_s3_error
+    public static var prefItemAutomaticBackupsWizardInvalidS3Error: String {
+        String(localized: "pref_item_automatic_backups_wizard_invalid_s3_error", bundle: AppLocalization.shared.bundle)
+    }
     /// pref_item_automatic_backups_wizard_invalid_url_error
     public static var prefItemAutomaticBackupsWizardInvalidUrlError: String {
         String(localized: "pref_item_automatic_backups_wizard_invalid_url_error", bundle: AppLocalization.shared.bundle)
@@ -5908,6 +5968,10 @@ public enum L10n {
     /// pref_item_automatic_backups_wizard_review_title
     public static var prefItemAutomaticBackupsWizardReviewTitle: String {
         String(localized: "pref_item_automatic_backups_wizard_review_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// pref_item_automatic_backups_wizard_s3_detail
+    public static var prefItemAutomaticBackupsWizardS3Detail: String {
+        String(localized: "pref_item_automatic_backups_wizard_s3_detail", bundle: AppLocalization.shared.bundle)
     }
     /// pref_item_automatic_backups_wizard_step_label
     public static func prefItemAutomaticBackupsWizardStepLabel(_ a1: Int, _ a2: Int) -> String {
@@ -7176,6 +7240,66 @@ public enum L10n {
     /// run_action
     public static var runAction: String {
         String(localized: "run_action", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_location_summary
+    public static func s3LocationSummary(_ a1: String, _ a2: String) -> String {
+        String(format: String(localized: "s3_location_summary", bundle: AppLocalization.shared.bundle), a1, a2)
+    }
+    /// s3_picker_header_title
+    public static var s3PickerHeaderTitle: String {
+        String(localized: "s3_picker_header_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_settings_access_key_id_title
+    public static var s3SettingsAccessKeyIdTitle: String {
+        String(localized: "s3_settings_access_key_id_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_settings_auth_note
+    public static var s3SettingsAuthNote: String {
+        String(localized: "s3_settings_auth_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_settings_bucket_title
+    public static var s3SettingsBucketTitle: String {
+        String(localized: "s3_settings_bucket_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_settings_endpoint_note
+    public static var s3SettingsEndpointNote: String {
+        String(localized: "s3_settings_endpoint_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_settings_endpoint_title
+    public static var s3SettingsEndpointTitle: String {
+        String(localized: "s3_settings_endpoint_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_settings_header_title
+    public static var s3SettingsHeaderTitle: String {
+        String(localized: "s3_settings_header_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_settings_key_title
+    public static var s3SettingsKeyTitle: String {
+        String(localized: "s3_settings_key_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_settings_path_style_text
+    public static var s3SettingsPathStyleText: String {
+        String(localized: "s3_settings_path_style_text", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_settings_path_style_title
+    public static var s3SettingsPathStyleTitle: String {
+        String(localized: "s3_settings_path_style_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_settings_prefix_title
+    public static var s3SettingsPrefixTitle: String {
+        String(localized: "s3_settings_prefix_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_settings_region_title
+    public static var s3SettingsRegionTitle: String {
+        String(localized: "s3_settings_region_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_settings_secret_access_key_title
+    public static var s3SettingsSecretAccessKeyTitle: String {
+        String(localized: "s3_settings_secret_access_key_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// s3_settings_test_success
+    public static var s3SettingsTestSuccess: String {
+        String(localized: "s3_settings_test_success", bundle: AppLocalization.shared.bundle)
     }
     /// save
     public static var save: String {

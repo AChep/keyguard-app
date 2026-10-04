@@ -3,9 +3,11 @@ package com.artemchep.keyguard.feature.home.settings.backups
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.Password
+import com.artemchep.keyguard.common.model.S3Location
 import com.artemchep.keyguard.common.service.backup.BackupConfigRepository
 import com.artemchep.keyguard.common.service.backup.BackupStoreConfig
 import com.artemchep.keyguard.common.service.file.FileAccessToken
+import com.artemchep.keyguard.common.service.s3.toBackupStoreConfig
 import com.artemchep.keyguard.common.usecase.TestBackupLocation
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
@@ -15,6 +17,7 @@ import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.s3.S3SettingsRoute
 import com.artemchep.keyguard.feature.webdav.WebDavSettingsRoute
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
@@ -93,6 +96,25 @@ private suspend fun RememberStateFlowScope.automaticBackupsSetupStateProducer(
                             password = result.password?.takeIf(String::isNotEmpty)?.let(::Password),
                         ),
                     )
+                }
+                navigate(NavigationIntent.NavigateToRoute(route))
+            }
+            is BackupStoreConfig.S3 -> {
+                val route = registerRouteResultReceiver(
+                    S3SettingsRoute(
+                        S3SettingsRoute.Args(
+                            endpoint = store.endpoint.orEmpty(),
+                            region = store.region.orEmpty(),
+                            bucket = store.bucket.orEmpty(),
+                            path = store.prefix.orEmpty(),
+                            accessKeyId = store.accessKeyId.orEmpty(),
+                            secretAccessKey = store.secretAccessKey?.value.orEmpty(),
+                            pathStyle = store.pathStyle,
+                            purpose = S3SettingsRoute.Purpose.Prefix,
+                        ),
+                    ),
+                ) { result ->
+                    receive((result.location as? S3Location.Prefix)?.toBackupStoreConfig())
                 }
                 navigate(NavigationIntent.NavigateToRoute(route))
             }

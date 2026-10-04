@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.webdav
 
+import com.artemchep.keyguard.feature.remotepicker.RemotePickerMode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -134,7 +135,7 @@ class WebDavSettingsStateProducerTest {
         )
 
         assertEquals("https://example.com/dav/root/", result.rootUrl)
-        assertEquals(WebDavPickerRoute.Mode.SelectCollection, result.args.mode)
+        assertEquals(RemotePickerMode.SelectFolder, result.args.mode)
         assertEquals("alice", result.args.username)
         assertEquals("", result.args.initialPath)
     }
@@ -154,7 +155,7 @@ class WebDavSettingsStateProducerTest {
 
         assertEquals("https://example.com/dav/root/", result.rootUrl)
         assertEquals(
-            WebDavPickerRoute.Mode.CreateKeePassDatabase,
+            RemotePickerMode.CreateKeePassDatabase,
             result.args.mode,
         )
         assertEquals("vault file.kdbx", result.args.initialFileName)

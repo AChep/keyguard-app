@@ -152,7 +152,7 @@ class AutomaticBackupsSetupScreenTest {
 
     private fun assertDestinationChoices(nodes: List<SemanticsNode>) {
         val choices = nodes.filter { it.config.getOrNull(SemanticsProperties.Selected) != null }
-        assertEquals(2, choices.size)
+        assertEquals(3, choices.size)
         choices.forEach { choice ->
             assertTrue(choice.config.getOrNull(SemanticsActions.OnClick)?.action != null)
             assertTrue(!choice.config.getOrNull(SemanticsProperties.Text).isNullOrEmpty())

@@ -125,11 +125,13 @@ jobs:
               :util:kdbx:checkBouncyCastleProductionDependencies
               :util:messagepack:desktopTest
               :util:planeta:desktopTest
+              :util:s3:desktopTest
               :util:signalr:desktopTest
               :util:webauthn:checkComposeFree
               :util:webauthn:checkBouncyCastleProductionDependencies
               :util:webauthn:desktopTest
               :util:webdav:desktopTest
+              :util:xml:desktopTest
               :util:zip:desktopTest
               :util:zxcvbn:desktopTest
           - id: util-android-host
@@ -145,9 +147,11 @@ jobs:
               :util:kdbx:testAndroidHostTest
               :util:messagepack:testAndroidHostTest
               :util:planeta:testAndroidHostTest
+              :util:s3:testAndroidHostTest
               :util:signalr:testAndroidHostTest
               :util:webauthn:testAndroidHostTest
               :util:webdav:testAndroidHostTest
+              :util:xml:testAndroidHostTest
               :util:zip:testAndroidHostTest
               :util:zxcvbn:testAndroidHostTest
     steps:
@@ -267,9 +271,11 @@ jobs:
           :util:kdbx:iosSimulatorArm64Test
           :util:messagepack:iosSimulatorArm64Test
           :util:planeta:iosSimulatorArm64Test
+          :util:s3:iosSimulatorArm64Test
           :util:signalr:iosSimulatorArm64Test
           :util:webauthn:iosSimulatorArm64Test
           :util:webdav:iosSimulatorArm64Test
+          :util:xml:iosSimulatorArm64Test
           :util:zip:iosSimulatorArm64Test
           :util:zxcvbn:iosSimulatorArm64Test
       - name: "Upload test reports"
@@ -299,7 +305,7 @@ jobs:
       - name: Build Apple billing and license tests
         run: >-
           ./gradlew --max-workers=1 :appleApp:macosArm64Test :appleApp:assembleKeyguardSharedDebugXCFramework
-          :common:generateAppleStrings
+          :common:generateAppleStrings :util:s3:macosArm64Test
       - name: Generate Xcode projects
         run: |
           brew install xcodegen
@@ -315,6 +321,8 @@ jobs:
             apple-billing-tests.xcresult
             appleApp/build/test-results/**
             appleApp/build/reports/tests/**
+            util/s3/build/test-results/macosArm64Test/**
+            util/s3/build/reports/tests/macosArm64Test/**
           if-no-files-found: ignore
           retention-days: 21
 

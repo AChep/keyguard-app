@@ -17,6 +17,7 @@ enum class E2eToolchain {
     SSH,
     PYKEEPASS,
     WEBDAV,
+    VERSITYGW,
 }
 
 /** Checks the host tools only when its associated E2E suite is requested. */
@@ -105,6 +106,14 @@ abstract class VerifyE2eEnvironmentTask : DefaultTask() {
                     requirement = "Expected hacdias/webdav to be installed as 'webdav' on PATH",
                 )
                 requireWebDav5(output)
+            }
+            E2eToolchain.VERSITYGW -> {
+                val output = runner.requireRuns(
+                    command = listOf("versitygw", "--version"),
+                    timeout = Duration.ofSeconds(10),
+                    requirement = "Expected versitygw to be installed as 'versitygw' on PATH",
+                )
+                requireVersityGw1(output)
             }
         }
     }

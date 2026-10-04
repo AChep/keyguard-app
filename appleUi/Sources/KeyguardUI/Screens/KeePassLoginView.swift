@@ -38,6 +38,9 @@ struct KeePassLoginView: View {
         .sheet(isPresented: webdavPresented) {
             if let snapshot = keepassModel.keepassWebDav { WebDavSettingsSheet(sessionId: snapshot.id) }
         }
+        .sheet(isPresented: s3Presented) {
+            if let snapshot = keepassModel.keepassS3 { S3SettingsSheet(sessionId: snapshot.id) }
+        }
         #if os(iOS)
         // KeePass can itself be presented as an add-account sheet. Its document
         // pickers must be hosted here, above that sheet rather than beside it.
@@ -80,6 +83,13 @@ struct KeePassLoginView: View {
         )
     }
 
+    private var s3Presented: Binding<Bool> {
+        Binding(
+            get: { keepassModel.keepassS3 != nil },
+            set: { if !$0 { keepassModel.dismissS3Settings() } }
+        )
+    }
+
     // MARK: - Header
 
     private var header: some View {
@@ -93,7 +103,7 @@ struct KeePassLoginView: View {
         }
     }
 
-    // MARK: - Location (local / WebDAV)
+    // MARK: - Location (local / WebDAV / S3)
 
     @ViewBuilder
     private var locationPicker: some View {
@@ -105,7 +115,7 @@ struct KeePassLoginView: View {
                     ForEach(keepass.locations, id: \.key) { location in
                         Label(
                             location.title,
-                            systemImage: location.key == "webdav" ? "cloud" : "folder"
+                            systemImage: locationSymbol(location.key)
                         )
                         .tag(location.key)
                     }
@@ -116,9 +126,21 @@ struct KeePassLoginView: View {
         }
     }
 
+    private func locationSymbol(_ key: String) -> String {
+        switch key {
+        case "webdav": return "cloud"
+        case "s3": return "shippingbox"
+        default: return "folder"
+        }
+    }
+
+    private var selectedLocationKey: String {
+        keepass.locations.first(where: { $0.checked })?.key ?? "local"
+    }
+
     private var locationSelection: Binding<String> {
         Binding(
-            get: { keepass.locations.first(where: { $0.checked })?.key ?? "local" },
+            get: { selectedLocationKey },
             set: { keepassModel.selectKeePassLocation(key: $0) }
         )
     }
@@ -159,7 +181,7 @@ struct KeePassLoginView: View {
                 keepassModel.pickKeePassDbFile()
             } label: {
                 HStack {
-                    Image(systemName: keepass.isWebDav ? "cloud" : "doc")
+                    Image(systemName: selectedLocationKey == "local" ? "doc" : locationSymbol(selectedLocationKey))
                         .foregroundStyle(.secondary)
                     Text(keepass.dbFile?.name ?? L10n.chooseFile)
                         .fontDesign(.monospaced)

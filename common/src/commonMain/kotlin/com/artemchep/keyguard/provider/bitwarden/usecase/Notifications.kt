@@ -264,7 +264,7 @@ class NotificationsImpl(
             val accountScope = this
 
             // We can only subscribe to the file
-            // URIs, ignore WebDAV.
+            // URIs, ignore remote locations.
             val location = user.database.location as? FileLocation.Local
                 ?: return@launch
 

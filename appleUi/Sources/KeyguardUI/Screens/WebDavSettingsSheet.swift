@@ -87,19 +87,10 @@ struct WebDavSettingsSheet: View {
     }
 
     private var testConnectionButton: some View {
-        Button {
+        ConnectionTestButton(isTesting: webdav?.isTestingConnection == true) {
             updateFields()
             keepassModel.testWebDavConnection(sessionId: sessionId)
-        } label: {
-            if webdav?.isTestingConnection == true {
-                ProgressView()
-                    .controlSize(.small)
-            } else {
-                Text(L10n.webdavSettingsTestTitle)
-            }
         }
-        .accessibilityLabel(L10n.webdavSettingsTestTitle)
-        .disabled(webdav?.isTestingConnection == true)
     }
 
     private var errorMessage: String? {

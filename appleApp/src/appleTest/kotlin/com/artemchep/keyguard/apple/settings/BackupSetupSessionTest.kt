@@ -126,6 +126,40 @@ class BackupSetupSessionTest {
         assertEquals(1, wizard.completions)
     }
 
+    @Test
+    fun `s3 drafts cross the bridge without their secret and keep the saved key`() = runTest {
+        val saved = BackupStoreConfig.S3(
+            endpoint = "https://minio.lan:9000",
+            bucket = "backups",
+            prefix = "keyguard/",
+            accessKeyId = "AKID",
+            secretAccessKey = Password("saved-secret"),
+            pathStyle = true,
+        )
+        val wizard = editor(initial = BackupConfig(store = saved))
+        val first = wizard.frames.last()
+        assertEquals("s3", first.storeKind)
+        assertEquals("backups", first.s3Bucket)
+        assertEquals("keyguard/", first.s3Prefix)
+        assertEquals("s3://backups/keyguard/", first.s3Location)
+        assertEquals("minio.lan:9000", first.s3EndpointHost)
+        assertFalse(first.toString().contains("saved-secret"))
+        // Typed fields are compared the way they are saved.
+        assertTrue(wizard.session.keepsS3SecretAccessKey("https://minio.lan:9000/ ", " backups", "AKID "))
+        assertFalse(wizard.session.keepsS3SecretAccessKey("https://minio.lan:9000", "backups", "OTHER"))
+
+        wizard.session.setS3("https://minio.lan:9000", "", "backups", "daily", "AKID", "", false)
+        wizard.session.setLocalDirectory("file:///late", "late grant")
+        wizard.session.submit()
+        runCurrent()
+
+        val store = assertIs<BackupStoreConfig.S3>(wizard.saved.single().store)
+        assertEquals("daily/", store.prefix)
+        assertEquals(false, store.pathStyle)
+        assertEquals("saved-secret", store.secretAccessKey?.value)
+        assertEquals(1, wizard.completions)
+    }
+
     private fun TestScope.editor(
         initial: BackupConfig = BackupConfig(store = BackupStoreConfig.Local(path = "file:///backups")),
         verify: suspend (BackupConfig) -> Unit = {},

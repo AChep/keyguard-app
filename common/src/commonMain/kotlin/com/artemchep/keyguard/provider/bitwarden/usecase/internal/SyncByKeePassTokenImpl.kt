@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
+import com.artemchep.keyguard.common.service.s3.S3ClientFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.Watchdog
@@ -32,6 +33,7 @@ class SyncByKeePassTokenImpl(
     private val db: VaultDatabaseManager,
     private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val webDavClientFactory: WebDavClientFactory,
+    private val s3ClientFactory: S3ClientFactory,
     private val watchdog: Watchdog,
     private val gpgCertificateMaterialReconciler: GpgCertificateMaterialReconciler,
     private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
@@ -58,6 +60,7 @@ class SyncByKeePassTokenImpl(
                 db = db,
                 pendingUploadCoordinator = pendingUploadCoordinator,
                 webDavClientFactory = webDavClientFactory,
+                s3ClientFactory = s3ClientFactory,
             )
             coordinator.sync(user)
         }

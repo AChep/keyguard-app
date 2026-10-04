@@ -27,6 +27,9 @@ fun FileLocation.mayAccessLocalNetwork(): Boolean = when (this) {
     is FileLocation.Sftp,
     -> true
 
+    // Amazon S3 is public; a custom endpoint may be on the local network.
+    is FileLocation.S3 -> !endpoint.isNullOrBlank()
+
     is FileLocation.Dropbox,
     is FileLocation.GoogleDrive,
     is FileLocation.Local,
@@ -46,8 +49,11 @@ fun ServiceToken.syncRequiresNetwork(): Boolean = when (this) {
 // decide whether the file is accessible instead of blocking all URIs.
 fun FileLocation.syncRequiresNetwork(): Boolean = this !is FileLocation.Local
 
-fun BackupConfig.mayAccessLocalNetwork(): Boolean =
-    enabled && store is BackupStoreConfig.WebDav && store.isConfigured
+fun BackupConfig.mayAccessLocalNetwork(): Boolean = enabled && store.isConfigured && when (store) {
+    is BackupStoreConfig.Local -> false
+    is BackupStoreConfig.WebDav -> true
+    is BackupStoreConfig.S3 -> !store.endpoint.isNullOrBlank()
+}
 
 private fun BitwardenToken.Environment.hasExplicitEndpoint(): Boolean = sequenceOf(
     baseUrl,

@@ -117,12 +117,16 @@ struct AutomaticBackupsSettingsView: View {
         }
     }
 
+    private var savedLocation: String? {
+        BackupLocationLabel.location(
+            kind: s.storeKind, localPath: s.localPath, webDavUrl: s.webDavUrl, s3Location: s.s3Location,
+            s3EndpointHost: s.s3EndpointHost)
+    }
+
     private var configurationSection: some View {
         Section {
-            BackupLocationLabel(
-                isWebDav: s.storeKind == "webdav", location: s.storeKind == "webdav" ? s.webDavUrl : s.localPath
-            )
-            .settingsSearchTarget(.backupLocation)
+            BackupLocationLabel(kind: s.storeKind, location: savedLocation)
+                .settingsSearchTarget(.backupLocation)
             Label(
                 s.hasPassword ? L10n.prefItemAutomaticBackupsPasswordSet : L10n.prefItemAutomaticBackupsPasswordNotSet,
                 systemImage: s.hasPassword ? "lock.shield" : "lock.open"

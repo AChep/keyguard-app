@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.service.keepass.openKeePassDatabase
 import com.artemchep.keyguard.common.service.keepass.saveKeePassDatabase
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.service.s3.S3ClientFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.usecase.PutAccountNameById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
@@ -124,6 +125,7 @@ internal class PutKeePassAccountNameByIdImpl(
     private val base64Service: Base64Service,
     private val fileService: FileService,
     private val webDavClientFactory: WebDavClientFactory,
+    private val s3ClientFactory: S3ClientFactory,
 ) : PutKeePassAccountNameById {
     override operator fun invoke(
         accountName: String,
@@ -134,12 +136,14 @@ internal class PutKeePassAccountNameByIdImpl(
             fileService = fileService,
             token = token,
             webDavClientFactory = webDavClientFactory,
+            s3ClientFactory = s3ClientFactory,
         )
         val curDatabase = openKeePassDatabase(
             token = token,
             fileService = fileService,
             base64Service = base64Service,
             webDavClientFactory = webDavClientFactory,
+            s3ClientFactory = s3ClientFactory,
         )
         val newDatabase = curDatabase.modifyMeta {
             copy(
@@ -150,6 +154,7 @@ internal class PutKeePassAccountNameByIdImpl(
             fileService = fileService,
             token = token,
             webDavClientFactory = webDavClientFactory,
+            s3ClientFactory = s3ClientFactory,
         ).takeIf { candidate ->
             metadataBefore != null &&
                     candidate != null &&
@@ -170,6 +175,7 @@ internal class PutKeePassAccountNameByIdImpl(
             database = newDatabase,
             base64Service = base64Service,
             webDavClientFactory = webDavClientFactory,
+            s3ClientFactory = s3ClientFactory,
             expectedMetadata = metadataAfter,
         )
 

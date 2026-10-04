@@ -5,6 +5,12 @@ import com.artemchep.keyguard.common.service.backup.BackupConfig
 import com.artemchep.keyguard.common.service.backup.BackupSetupDraft
 import com.artemchep.keyguard.common.service.backup.BackupStoreConfig
 import com.artemchep.keyguard.common.service.backup.verifyAndSaveBackupSetup
+import com.artemchep.keyguard.feature.s3.S3FormError
+import com.artemchep.keyguard.feature.s3.S3FormInput
+import com.artemchep.keyguard.feature.s3.S3SettingsRoute
+import com.artemchep.keyguard.feature.s3.locationUriOrNull
+import com.artemchep.keyguard.feature.s3.s3EndpointHostOrNull
+import com.artemchep.keyguard.feature.s3.validateS3Form
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,17 +38,26 @@ internal class BackupSetupEditor(
     fun publish() {
         val config = draft?.config ?: return
         val store = config.store
+        val s3Store = store as? BackupStoreConfig.S3
         publish(
             BackupSetupSnapshot(
                 loaded = true,
                 enabled = config.enabled,
                 isTestingLocation = saving,
                 error = error,
-                storeKind = if (store is BackupStoreConfig.WebDav) "webdav" else "local",
+                storeKind = store.bridgeKind(),
                 localPath = (store as? BackupStoreConfig.Local)?.path,
                 webDavUrl = (store as? BackupStoreConfig.WebDav)?.url,
                 webDavUsername = (store as? BackupStoreConfig.WebDav)?.username,
                 hasWebDavPassword = (store as? BackupStoreConfig.WebDav)?.password != null,
+                s3Endpoint = s3Store?.endpoint,
+                s3Region = s3Store?.region,
+                s3Bucket = s3Store?.bucket,
+                s3Prefix = s3Store?.prefix,
+                s3AccessKeyId = s3Store?.accessKeyId,
+                s3PathStyle = s3Store?.pathStyle ?: true,
+                s3Location = s3Store?.locationUriOrNull(),
+                s3EndpointHost = s3Store?.let { s3EndpointHostOrNull(it.endpoint) },
                 hasPassword = config.password != null,
                 includeAttachments = config.includeAttachments,
                 retentionMaxSnapshots = config.retention.maxSnapshots,
@@ -58,6 +73,34 @@ internal class BackupSetupEditor(
     }
 
     fun restorePassword() = edit { restorePassword(initial ?: return@edit) }
+
+    fun keepsS3SecretAccessKey(
+        endpoint: String,
+        bucket: String,
+        accessKeyId: String,
+    ): Boolean = draft?.keepsS3SecretAccessKey(endpoint, bucket, accessKeyId) == true
+
+    fun s3Error(
+        endpoint: String,
+        region: String,
+        bucket: String,
+        prefix: String,
+        accessKeyId: String,
+        secretAccessKey: String,
+        pathStyle: Boolean,
+    ): S3FormError? = validateS3Form(
+        input = S3FormInput(
+            endpoint = endpoint,
+            region = region,
+            bucket = bucket,
+            path = prefix,
+            accessKeyId = accessKeyId,
+            secretAccessKey = secretAccessKey,
+            pathStyle = pathStyle,
+        ),
+        purpose = S3SettingsRoute.Purpose.Prefix,
+        hasSavedSecret = keepsS3SecretAccessKey(endpoint, bucket, accessKeyId),
+    )
 
     fun submit() {
         if (saving) return

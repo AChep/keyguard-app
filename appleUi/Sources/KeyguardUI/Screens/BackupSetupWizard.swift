@@ -34,6 +34,14 @@ struct BackupSetupWizard: View {
                     setWebDav: { url, username, password in
                         perform { $0.setWebDav(url: url, username: username, password: password) }
                     },
+                    setS3: { fields in
+                        perform {
+                            $0.setS3(
+                                endpoint: fields.endpoint, region: fields.region, bucket: fields.bucket,
+                                prefix: fields.prefix, accessKeyId: fields.accessKeyId,
+                                secretAccessKey: fields.secretAccessKey, pathStyle: fields.pathStyle)
+                        }
+                    },
                     setPassword: { text in perform { $0.setPassword(text: text) } },
                     restorePassword: { perform { $0.restorePassword() } },
                     setIncludeAttachments: { value in
@@ -42,7 +50,25 @@ struct BackupSetupWizard: View {
                     setRetention: { value in perform { $0.setRetention(maxSnapshots: value) } },
                     submit: { perform { $0.submit() } },
                     pickLocation: { pickLocation(perform) },
-                    isValidWebDavURL: isValidWebDavURL
+                    isValidWebDavURL: isValidWebDavURL,
+                    s3ErrorKind: { fields in
+                        var kind: String?
+                        perform {
+                            kind = $0.s3ErrorKind(
+                                endpoint: fields.endpoint, region: fields.region, bucket: fields.bucket,
+                                prefix: fields.prefix, accessKeyId: fields.accessKeyId,
+                                secretAccessKey: fields.secretAccessKey, pathStyle: fields.pathStyle)
+                        }
+                        return kind
+                    },
+                    keepsS3Secret: { fields in
+                        var keeps = false
+                        perform {
+                            keeps = $0.keepsS3SecretAccessKey(
+                                endpoint: fields.endpoint, bucket: fields.bucket, accessKeyId: fields.accessKeyId)
+                        }
+                        return keeps
+                    }
                 )
             } else {
                 NavigationStack {

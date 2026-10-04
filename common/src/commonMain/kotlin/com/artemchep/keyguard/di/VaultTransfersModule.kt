@@ -65,6 +65,7 @@ internal class VaultTransfersModule {
                         storageFactory = DefaultKeePassAttachmentStorageFactory(
                             fileService = get<FileService>(),
                             webDavClientFactory = get(),
+                            s3ClientFactory = get(),
                         ),
                         stagingSpoolFactory = get<StagingSpoolFactory>(),
                     ),

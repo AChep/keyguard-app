@@ -41,6 +41,23 @@ import kotlin.time.Instant
 
 class KtorWebDavClientTest {
     @Test
+    fun `stat reports malformed XML as a protocol error`() = runTest {
+        for (xml in listOf(
+            "<multistatus xmlns='DAV:'><response><href>/dav/root/object.kdbx</href>",
+            "<multistatus xmlns='DAV:'><response><href>/dav/root/a&unknown;</href></response></multistatus>",
+        )) {
+            val engine = MockEngine { respond(xml, status = MULTI_STATUS) }
+            val client = testClient(engine)
+
+            val error = assertFailsWith<WebDavException.Protocol> { client.stat("object.kdbx") }
+
+            assertEquals(WebDavOperation.Stat, error.operation)
+            assertEquals("object.kdbx", error.path)
+            assertTrue(error.cause is IllegalArgumentException)
+        }
+    }
+
+    @Test
     fun `stat encodes path segments and parses DAV properties`() = runTest {
         val engine = MockEngine { request ->
             assertEquals(HttpMethod("PROPFIND"), request.method)

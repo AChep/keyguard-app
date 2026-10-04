@@ -16,6 +16,7 @@ kotlin {
     sourceSets {
         getByName("commonMain") {
             dependencies {
+                implementation(project(":util:xml"))
                 implementation(project(":util:io"))
                 api(libs.ktor.ktor.client.core)
                 api(libs.kotlinx.coroutines.core)

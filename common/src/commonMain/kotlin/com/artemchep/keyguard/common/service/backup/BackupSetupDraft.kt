@@ -42,6 +42,52 @@ class BackupSetupDraft(initial: BackupConfig) {
         )
     }
 
+    fun setS3(
+        endpoint: String,
+        region: String,
+        bucket: String,
+        prefix: String,
+        accessKeyId: String,
+        secretAccessKey: String,
+        pathStyle: Boolean,
+    ) {
+        val store = BackupStoreConfig.S3(
+            endpoint = endpoint,
+            region = region,
+            bucket = bucket,
+            prefix = prefix,
+            accessKeyId = accessKeyId,
+            pathStyle = pathStyle,
+        ).sanitized()
+        setStore(
+            store.copy(
+                secretAccessKey = secretAccessKey.takeIf { it.isNotEmpty() }?.let(::Password)
+                    ?: keptS3SecretAccessKey(store),
+            ),
+        )
+    }
+
+    /** Whether [setS3] with an empty secret access key keeps the key of this account. */
+    fun keepsS3SecretAccessKey(
+        endpoint: String,
+        bucket: String,
+        accessKeyId: String,
+    ): Boolean {
+        val store = BackupStoreConfig.S3(
+            endpoint = endpoint,
+            bucket = bucket,
+            accessKeyId = accessKeyId,
+        ).sanitized()
+        return keptS3SecretAccessKey(store) != null
+    }
+
+    private fun keptS3SecretAccessKey(store: BackupStoreConfig.S3): Password? {
+        val previous = config.store as? BackupStoreConfig.S3
+        val saved = savedConfig.store as? BackupStoreConfig.S3
+        return previous?.secretAccessKey?.takeIf { previous.isSameS3Account(store) }
+            ?: saved?.secretAccessKey?.takeIf { saved.isSameS3Account(store) }
+    }
+
     fun setPassword(text: String) {
         config = config.copy(password = text.takeIf { it.isNotEmpty() }?.let(::Password))
     }
@@ -62,3 +108,8 @@ class BackupSetupDraft(initial: BackupConfig) {
         )
     }
 }
+
+/** Whether both stores have the account that a secret access key belongs to. */
+private fun BackupStoreConfig.S3.isSameS3Account(
+    other: BackupStoreConfig.S3,
+): Boolean = endpoint == other.endpoint && bucket == other.bucket && accessKeyId == other.accessKeyId

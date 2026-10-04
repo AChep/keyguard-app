@@ -6,10 +6,16 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DAccount
+import com.artemchep.keyguard.common.model.Password
+import com.artemchep.keyguard.common.model.S3AccessKey
+import com.artemchep.keyguard.common.model.S3Bucket
+import com.artemchep.keyguard.common.model.S3Location
 import com.artemchep.keyguard.common.model.WebDavCredentials
 import com.artemchep.keyguard.common.model.WebDavLocation
 import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.common.service.keepass.FakeKeePassWebDavClientFactory
+import com.artemchep.keyguard.common.service.s3.InMemoryS3ClientFactory
+import com.artemchep.keyguard.common.service.s3.S3ClientFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.service.keepass.prepareKeePassDatabase
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -211,6 +217,53 @@ class AddKeePassAccountImplTest {
     }
 
     @Test
+    fun `queued add stores s3 location in token`() = runTest {
+        val testScope = this
+        val db = createTestDatabase()
+        val fixture = createFixture(
+            db = db,
+            scope = testScope,
+        )
+        val s3 = S3Location.Object(
+            bucket = S3Bucket(
+                endpoint = "https://minio.lan:9000",
+                region = null,
+                name = "vaults",
+                pathStyle = true,
+            ),
+            accessKey = S3AccessKey(
+                accessKeyId = "AKID",
+                secretAccessKey = Password("secret-key"),
+            ),
+            key = "dir/vault.kdbx",
+        )
+
+        val accountId = fixture.useCase(
+            params(
+                mode = AddKeePassAccountParams.Mode.New(allowOverwrite = false),
+                dbUri = "s3://vaults/dir/vault.kdbx",
+                password = "secret",
+                s3 = s3,
+            ),
+        ).bind()
+        advanceUntilIdle()
+
+        val token = db.accountQueries
+            .getByAccountId(accountId.id)
+            .executeAsOne()
+            .data_
+        val keePassToken = assertIs<KeePassToken>(token)
+        val location = assertIs<FileLocation.S3>(keePassToken.database.location)
+        assertEquals("https://minio.lan:9000", location.endpoint)
+        assertNull(location.region)
+        assertEquals("vaults", location.bucket)
+        assertEquals("dir/vault.kdbx", location.key)
+        assertEquals("AKID", location.accessKeyId)
+        assertEquals("secret-key", location.secretAccessKey.value)
+        assertTrue(location.pathStyle)
+    }
+
+    @Test
     fun `queued add stores empty webdav password as null`() = runTest {
         val testScope = this
         val webDavClientFactory = FakeKeePassWebDavClientFactory()
@@ -341,6 +394,7 @@ class AddKeePassAccountImplTest {
         accounts: List<DAccount> = emptyList(),
         syncFailure: Throwable? = null,
         webDavClientFactory: WebDavClientFactory = FakeKeePassWebDavClientFactory(),
+        s3ClientFactory: S3ClientFactory = InMemoryS3ClientFactory(),
     ): Fixture {
         val queuedSyncs = mutableListOf<AccountId>()
         val directSyncs = mutableListOf<AccountId>()
@@ -373,6 +427,7 @@ class AddKeePassAccountImplTest {
             fileService = fileService,
             base64Service = testBase64Service,
             webDavClientFactory = webDavClientFactory,
+            s3ClientFactory = s3ClientFactory,
             db = TestVaultDatabaseManager(db),
         )
         return Fixture(
@@ -400,6 +455,7 @@ class AddKeePassAccountImplTest {
         managedByApp: Boolean = false,
         keyUri: String? = null,
         webDav: WebDavLocation.File? = null,
+        s3: S3Location.Object? = null,
         syncMode: AddKeePassAccountParams.SyncMode = AddKeePassAccountParams.SyncMode.Queued,
     ) = AddKeePassAccountParams(
         mode = mode,
@@ -407,6 +463,7 @@ class AddKeePassAccountImplTest {
         dbFileName = dbFileName,
         managedByApp = managedByApp,
         webDav = webDav,
+        s3 = s3,
         keyUri = keyUri,
         password = password,
         syncMode = syncMode,

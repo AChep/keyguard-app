@@ -32,6 +32,7 @@ import com.artemchep.keyguard.common.service.backup.BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.BackupSchedulerWorker
 import com.artemchep.keyguard.common.service.backup.LocalFolderBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.backup.S3BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
@@ -269,6 +270,7 @@ class PlatformApplicationModule {
                 webDavFactory = WebDavBackupObjectStoreFactory(
                     webDavClientFactory = get(),
                 ),
+                s3Factory = get<S3BackupObjectStoreFactory>(),
             )
         }
         single {

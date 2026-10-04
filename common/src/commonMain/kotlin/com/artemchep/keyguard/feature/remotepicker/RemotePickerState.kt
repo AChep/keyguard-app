@@ -1,10 +1,11 @@
-package com.artemchep.keyguard.feature.webdav
+package com.artemchep.keyguard.feature.remotepicker
 
 import androidx.compose.runtime.MutableState
 import arrow.core.Either
 import com.artemchep.keyguard.common.model.Loadable
 
-data class WebDavPickerState(
+/** The state of a remote storage browser, shared by the WebDAV and S3 pickers. */
+data class RemotePickerState(
     val path: String,
     val breadcrumbs: List<Breadcrumb>,
     val content: Loadable<Either<Throwable, List<Item>>>,
@@ -21,7 +22,7 @@ data class WebDavPickerState(
     data class Item(
         val key: String,
         val name: String,
-        val isCollection: Boolean,
+        val isFolder: Boolean,
         val size: Long?,
         val onClick: (() -> Unit)?,
     )

@@ -98,6 +98,16 @@ class E2ePreflightTest {
     }
 
     @Test
+    fun `accepts only the supported versitygw major version`() {
+        requireVersityGw1("Version  : 1.8.0\nBuild    : fd04bc1\nBuildTime: 2026-09-04T23:05:38Z")
+        val failure = assertThrows(GradleException::class.java) {
+            requireVersityGw1("Version  : 2.0.0")
+        }
+        assertTrue(failure.message.orEmpty().contains("v1.x"))
+        assertTrue(failure.message.orEmpty().contains("2.0.0"))
+    }
+
+    @Test
     fun `accepts only the supported WebDAV major version`() {
         requireWebDav5("hacdias webdav\nversion: 5.8.1")
         val failure = assertThrows(GradleException::class.java) {

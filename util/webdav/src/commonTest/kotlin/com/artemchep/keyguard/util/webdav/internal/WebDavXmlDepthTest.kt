@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.util.webdav.internal
 
+import com.artemchep.keyguard.util.xml.XmlName
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

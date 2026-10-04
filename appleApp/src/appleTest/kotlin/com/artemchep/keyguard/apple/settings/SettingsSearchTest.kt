@@ -121,7 +121,7 @@ class SettingsSearchTest {
         val translations = mapOf(
             Res.string.pref_item_app_version_title to "App version",
             Res.string.pref_item_automatic_backups_panel_last_sync_title to "Last backup",
-            Res.string.settingssearch_backup_location_keywords to "destination folder server WebDAV",
+            Res.string.settingssearch_backup_location_keywords to "destination folder server WebDAV S3 bucket",
             Res.string.settingssearch_backup_password_keywords to "encryption password configured",
             Res.string.settingssearch_ssh_socket_keywords to "SSH_AUTH_SOCK socket path environment client",
             Res.string.settingssearch_build_ref_keywords to "revision commit source build reference",
@@ -139,6 +139,7 @@ class SettingsSearchTest {
             "app version" to SettingsSearchTarget.APP_VERSION,
             "last backup" to SettingsSearchTarget.BACKUP_LAST_SUCCESS,
             "destination webdav" to SettingsSearchTarget.BACKUP_LOCATION,
+            "s3 bucket" to SettingsSearchTarget.BACKUP_LOCATION,
             "encryption configured" to SettingsSearchTarget.BACKUP_PASSWORD,
             "SSH_AUTH_SOCK" to SettingsSearchTarget.SSH_SOCKET,
             "revision commit" to SettingsSearchTarget.BUILD_REF,

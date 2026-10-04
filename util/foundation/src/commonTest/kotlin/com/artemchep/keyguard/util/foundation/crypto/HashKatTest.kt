@@ -101,6 +101,18 @@ class HashKatTest {
     }
 
     @Test
+    fun incrementalMd5MatchesRfc1321() {
+        val state = createMd5()
+        state.update("message ".encodeToByteArray())
+        state.update("digest".encodeToByteArray())
+
+        assertEquals(
+            "f96b697d7cb7938d525a2f31aaf161d0",
+            state.doFinal().toHex(),
+        )
+    }
+
+    @Test
     fun digestLengths() {
         val x = "abc".encodeToByteArray()
         assertEquals(20, crypto.sha1(x).size)

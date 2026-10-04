@@ -22,6 +22,7 @@ import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.FileOpen
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -317,6 +318,7 @@ fun LoginContent(
                 val icon = when (item.type) {
                     KeePassLoginState.DatabaseLocation.Type.Local -> Icons.Outlined.Folder
                     KeePassLoginState.DatabaseLocation.Type.WebDav -> Icons.Outlined.Cloud
+                    KeePassLoginState.DatabaseLocation.Type.S3 -> Icons.Outlined.Inventory2
                 }
                 Button(
                     shapes = ButtonDefaults.shapes(),
@@ -427,6 +429,7 @@ fun LoginContent(
                 val icon = when (databaseLocationState.type) {
                     KeePassLoginState.DatabaseLocation.Type.Local -> Icons.Outlined.FileOpen
                     KeePassLoginState.DatabaseLocation.Type.WebDav -> Icons.Outlined.Cloud
+                    KeePassLoginState.DatabaseLocation.Type.S3 -> Icons.Outlined.Inventory2
                 }
                 IconBox(
                     main = icon,

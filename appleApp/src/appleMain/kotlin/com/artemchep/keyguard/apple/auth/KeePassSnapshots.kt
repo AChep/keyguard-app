@@ -10,14 +10,14 @@ data class KeePassTabSnapshot(
     val checked: Boolean,
 )
 
-/** A database-location choice ("local" / "webdav") of the KeePass add-account form. */
+/** A database-location choice ("local" / "webdav" / "s3") of the KeePass add-account form. */
 data class KeePassLocationSnapshot(
     val key: String,
     val title: String,
     val checked: Boolean,
 )
 
-/** The chosen database / key file; [size] is -1 when unknown (e.g. WebDAV). */
+/** The chosen database / key file; [size] is -1 when unknown (e.g. WebDAV or S3). */
 data class KeePassFileSnapshot(
     val name: String?,
     val size: Long,
@@ -31,7 +31,6 @@ data class KeePassFileSnapshot(
 data class KeePassLoginSnapshot(
     val tabs: List<KeePassTabSnapshot>,
     val locations: List<KeePassLocationSnapshot>,
-    val isWebDav: Boolean,
     val dbFile: KeePassFileSnapshot?,
     val canClearDbFile: Boolean,
     val keyFile: KeePassFileSnapshot?,
@@ -44,7 +43,6 @@ data class KeePassLoginSnapshot(
         val empty = KeePassLoginSnapshot(
             tabs = emptyList(),
             locations = emptyList(),
-            isWebDav = false,
             dbFile = null,
             canClearDbFile = false,
             keyFile = null,
@@ -78,6 +76,24 @@ data class WebDavSettingsSnapshot(
     val url: String,
     val username: String,
     val password: String,
+    val errorKind: String?,
+    val isTestingConnection: Boolean,
+)
+
+/**
+ * [key] is the object key of the database. [errorKind] is a [com.artemchep.keyguard.feature.s3.S3FormError] name
+ * ("EndpointInvalid" / "BucketRequired" / "BucketInvalid" / "PrefixInvalid" / "KeyRequired" / "KeyInvalid" /
+ * "KeyExtensionRequired" / "AccessKeyIdRequired" / "SecretAccessKeyRequired"), or null.
+ */
+data class S3SettingsSnapshot(
+    val id: String,
+    val endpoint: String,
+    val region: String,
+    val bucket: String,
+    val key: String,
+    val accessKeyId: String,
+    val secretAccessKey: String,
+    val pathStyle: Boolean,
     val errorKind: String?,
     val isTestingConnection: Boolean,
 )

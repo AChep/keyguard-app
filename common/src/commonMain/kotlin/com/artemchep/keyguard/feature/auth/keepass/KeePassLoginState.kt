@@ -47,6 +47,7 @@ data class KeePassLoginState(
         enum class Type {
             Local,
             WebDav,
+            S3,
         }
 
         @Immutable
@@ -64,6 +65,18 @@ data class KeePassLoginState(
         val url: String,
         val username: String?,
         val password: String?,
+    ) : LeParcelable
+
+    @LeParcelize
+    @Serializable
+    data class S3(
+        val endpoint: String?,
+        val region: String?,
+        val bucket: String,
+        val key: String,
+        val accessKeyId: String,
+        val secretAccessKey: String,
+        val pathStyle: Boolean,
     ) : LeParcelable
 
     @Immutable

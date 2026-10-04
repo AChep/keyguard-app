@@ -6,6 +6,8 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.backup.BackupConfig
 import com.artemchep.keyguard.common.service.backup.BackupConfigRepository
 import com.artemchep.keyguard.common.service.backup.BackupStoreConfig
+import com.artemchep.keyguard.feature.s3.s3EndpointHostOrNull
+import com.artemchep.keyguard.feature.s3.locationUriOrNull
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.util.webdav.isValidWebDavCollectionUrl
@@ -102,10 +104,12 @@ internal class BackupsController(
         return BackupSettingsSnapshot(
             loaded = true,
             enabled = config.enabled,
-            storeKind = if (savedStore is BackupStoreConfig.WebDav) "webdav" else "local",
+            storeKind = savedStore.bridgeKind(),
             localPath = (savedStore as? BackupStoreConfig.Local)?.path,
             webDavUrl = (savedStore as? BackupStoreConfig.WebDav)?.url,
             webDavUsername = (savedStore as? BackupStoreConfig.WebDav)?.username,
+            s3Location = (savedStore as? BackupStoreConfig.S3)?.locationUriOrNull(),
+            s3EndpointHost = (savedStore as? BackupStoreConfig.S3)?.let { s3EndpointHostOrNull(it.endpoint) },
             hasPassword = config.password != null,
             includeAttachments = config.includeAttachments,
             retentionMaxSnapshots = config.retention.maxSnapshots,

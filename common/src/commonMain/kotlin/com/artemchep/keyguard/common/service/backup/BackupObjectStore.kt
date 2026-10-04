@@ -563,7 +563,7 @@ private val BACKUP_OBJECT_STORE_TEST_PREFIX = BackupObjectKeyPrefix(
 private val BACKUP_OBJECT_STORE_TEST_PAYLOAD =
     "keyguard-object-store-test\n".encodeToByteArray()
 
-private fun createBackupObjectStoreTestKey(): BackupObjectKey {
+internal fun createBackupObjectStoreTestKey(): BackupObjectKey {
     val timestamp = Clock.System.now().toEpochMilliseconds()
     val nonce = Random.nextLong().toString().replace("-", "n")
     return BackupObjectKey("$BACKUP_OBJECT_STORE_TEST_PREFIX_VALUE$timestamp-$nonce.probe")

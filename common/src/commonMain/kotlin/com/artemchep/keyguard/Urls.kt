@@ -12,3 +12,8 @@ const val URL_PRIVACY_POLICY = "https://gist.github.com/AChep/1fd4e019a4ad8f9647
 
 const val PLACEHOLDER_URL_WEBDAV_COLLECTION = "https://example.com/keyguard-backups/"
 const val PLACEHOLDER_URL_WEBDAV_KEEPASS_DATABASE = "https://example.com/keyguard.kdbx"
+const val PLACEHOLDER_URL_S3_ENDPOINT = "https://s3.us-east-1.amazonaws.com"
+const val PLACEHOLDER_S3_REGION = "us-east-1"
+const val PLACEHOLDER_S3_BUCKET = "my-bucket"
+const val PLACEHOLDER_S3_PREFIX = "keyguard-backups/"
+const val PLACEHOLDER_S3_KEEPASS_KEY = "keyguard.kdbx"

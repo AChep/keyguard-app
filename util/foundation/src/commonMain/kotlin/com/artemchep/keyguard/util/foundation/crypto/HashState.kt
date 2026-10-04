@@ -33,6 +33,8 @@ private fun createHash(
 
 fun createSha256(): HashState = createHash(CryptoHashAlgorithm.SHA_256)
 
+fun createMd5(): HashState = createHash(CryptoHashAlgorithm.MD5)
+
 internal class NativeHashSessionState(
     private val session: NativeCryptoSession,
     private val label: String,

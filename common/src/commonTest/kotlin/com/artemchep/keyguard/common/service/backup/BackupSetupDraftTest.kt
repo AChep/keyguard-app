@@ -4,7 +4,9 @@ import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.file.FileAccessToken
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class BackupSetupDraftTest {
     @Test
@@ -132,5 +134,69 @@ class BackupSetupDraftTest {
         draft.setRetention(Int.MAX_VALUE)
         assertEquals(BackupRetention(365), draft.config.retention)
         assertEquals(BackupRetention(60), saved.retention)
+    }
+
+    @Test
+    fun blankS3SecretKeepsTheSavedKeyOnlyForTheSameAccount() {
+        val saved = BackupStoreConfig.S3(
+            endpoint = "https://minio.lan:9000",
+            region = "eu-west-1",
+            bucket = "backups",
+            prefix = "keyguard/",
+            accessKeyId = "AKID",
+            secretAccessKey = Password("saved-secret"),
+            pathStyle = true,
+        )
+        val draft = BackupSetupDraft(BackupConfig(store = saved))
+        draft.setS3(" https://minio.lan:9000/ ", "eu-west-1", " backups ", "keyguard", " AKID ", "", true)
+        assertEquals(saved, draft.config.store)
+
+        draft.setS3("https://minio.lan:9000", "eu-west-1", "other", "keyguard/", "AKID", "", true)
+        assertNull((draft.config.store as BackupStoreConfig.S3).secretAccessKey)
+        draft.setS3("https://minio.lan:9000", "eu-west-1", "backups", "keyguard/", "OTHER", "", true)
+        assertNull((draft.config.store as BackupStoreConfig.S3).secretAccessKey)
+
+        draft.setS3("https://minio.lan:9000", "eu-west-1", "backups", "keyguard/", "AKID", "", true)
+        assertEquals(saved, draft.config.store)
+        draft.setS3("https://minio.lan:9000", "", "backups", "", "AKID", "new-secret", false)
+        assertEquals(
+            BackupStoreConfig.S3(
+                endpoint = "https://minio.lan:9000",
+                bucket = "backups",
+                accessKeyId = "AKID",
+                secretAccessKey = Password("new-secret"),
+                pathStyle = false,
+            ),
+            draft.config.store,
+        )
+    }
+
+    @Test
+    fun keepingTheS3SecretAgreesWithSetS3() {
+        val saved = BackupStoreConfig.S3(
+            endpoint = "https://minio.lan:9000",
+            bucket = "backups",
+            accessKeyId = "AKID",
+            secretAccessKey = Password("saved-secret"),
+        )
+        val draft = BackupSetupDraft(BackupConfig(store = saved))
+
+        assertTrue(draft.keepsS3SecretAccessKey(" https://minio.lan:9000/ ", " backups ", " AKID "))
+        assertFalse(draft.keepsS3SecretAccessKey("https://minio.lan:9000", "other", "AKID"))
+        draft.setS3("https://minio.lan:9000", "", "other", "", "AKID", "", true)
+        assertFalse(draft.keepsS3SecretAccessKey("https://minio.lan:9000", "other", "AKID"))
+        // The saved account keeps its key after a detour through another one.
+        assertTrue(draft.keepsS3SecretAccessKey("https://minio.lan:9000", "backups", "AKID"))
+    }
+
+    @Test
+    fun switchingDestinationsKeepsTheS3Draft() {
+        val draft = BackupSetupDraft(BackupConfig())
+        draft.setStoreKind(BackupStoreKind.S3)
+        draft.setS3("", "", "backups", "", "AKID", "secret", true)
+        val s3 = draft.config.store
+        draft.setStoreKind(BackupStoreKind.WebDav)
+        draft.setStoreKind(BackupStoreKind.S3)
+        assertEquals(s3, draft.config.store)
     }
 }

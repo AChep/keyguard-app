@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Attachment
@@ -62,25 +63,10 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun BackupSetupDestination(state: AutomaticBackupsSetupState) {
     val store = state.data.config.store
-    Column(
-        modifier = Modifier
-            .selectableGroup(),
-    ) {
-        BackupDestinationChoice(
-            title = stringResource(Res.string.pref_item_automatic_backups_local_folder_title),
-            icon = Icons.Outlined.Folder,
-            selected = store is BackupStoreConfig.Local,
-            shapeState = ShapeState.START,
-            onClick = { state.onStoreKindChange(BackupStoreKind.Local) },
-        )
-        BackupDestinationChoice(
-            title = stringResource(Res.string.pref_item_automatic_backups_webdav_server_title),
-            icon = Icons.Outlined.Cloud,
-            selected = store is BackupStoreConfig.WebDav,
-            shapeState = ShapeState.END,
-            onClick = { state.onStoreKindChange(BackupStoreKind.WebDav) },
-        )
-    }
+    BackupDestinationChoices(
+        store = store,
+        onStoreKindChange = state.onStoreKindChange,
+    )
     HorizontalDivider(
         modifier = Modifier
             .padding(vertical = Dimens.verticalPadding),
@@ -94,10 +80,10 @@ internal fun BackupSetupDestination(state: AutomaticBackupsSetupState) {
         },
     ) {
         val text = stringResource(
-            if (store is BackupStoreConfig.Local) {
-                Res.string.pref_item_automatic_backups_choose_folder_action
-            } else {
-                Res.string.pref_item_automatic_backups_webdav_server_title
+            when (store) {
+                is BackupStoreConfig.Local -> Res.string.pref_item_automatic_backups_choose_folder_action
+                is BackupStoreConfig.WebDav -> Res.string.pref_item_automatic_backups_webdav_server_title
+                is BackupStoreConfig.S3 -> Res.string.pref_item_automatic_backups_s3_title
             },
         )
         Text(text)
@@ -116,6 +102,47 @@ internal fun BackupSetupDestination(state: AutomaticBackupsSetupState) {
                 .padding(top = Dimens.verticalPadding),
             type = SimpleNote.Type.WARNING,
             text = stringResource(Res.string.pref_item_automatic_backups_wizard_invalid_url_error),
+        )
+    }
+    if (store is BackupStoreConfig.S3 && !store.bucket.isNullOrEmpty() && !state.data.destinationValid) {
+        FlatSimpleNote(
+            modifier = Modifier
+                .padding(top = Dimens.verticalPadding),
+            type = SimpleNote.Type.WARNING,
+            text = stringResource(Res.string.pref_item_automatic_backups_wizard_invalid_s3_error),
+        )
+    }
+}
+
+@Composable
+private fun BackupDestinationChoices(
+    store: BackupStoreConfig,
+    onStoreKindChange: (BackupStoreKind) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .selectableGroup(),
+    ) {
+        BackupDestinationChoice(
+            title = stringResource(Res.string.pref_item_automatic_backups_local_folder_title),
+            icon = Icons.Outlined.Folder,
+            selected = store is BackupStoreConfig.Local,
+            shapeState = ShapeState.START,
+            onClick = { onStoreKindChange(BackupStoreKind.Local) },
+        )
+        BackupDestinationChoice(
+            title = stringResource(Res.string.pref_item_automatic_backups_webdav_server_title),
+            icon = Icons.Outlined.Cloud,
+            selected = store is BackupStoreConfig.WebDav,
+            shapeState = ShapeState.CENTER,
+            onClick = { onStoreKindChange(BackupStoreKind.WebDav) },
+        )
+        BackupDestinationChoice(
+            title = stringResource(Res.string.pref_item_automatic_backups_s3_title),
+            icon = Icons.Outlined.Inventory2,
+            selected = store is BackupStoreConfig.S3,
+            shapeState = ShapeState.END,
+            onClick = { onStoreKindChange(BackupStoreKind.S3) },
         )
     }
 }
@@ -218,7 +245,7 @@ internal fun BackupSetupReview(state: AutomaticBackupsSetupState) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         TwoColumnRow(
-            icon = if (config.store is BackupStoreConfig.Local) Icons.Outlined.Folder else Icons.Outlined.Cloud,
+            icon = config.store.icon,
             title = stringResource(Res.string.pref_item_automatic_backups_location_title),
             value = backupLocationText(config.store),
         )

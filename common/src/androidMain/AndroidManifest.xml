@@ -222,7 +222,8 @@
             android:excludeFromRecents="true"
             android:exported="false"
             android:noHistory="true"
-            android:taskAffinity=":autofill_fake_auth" />
+            android:taskAffinity=":autofill_fake_auth"
+            android:theme="@style/Theme.Keyguard.Dialog" />
         <activity
             android:name="com.artemchep.keyguard.android.AutofillVerifyActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"

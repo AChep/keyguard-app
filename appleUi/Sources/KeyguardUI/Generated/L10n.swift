@@ -401,6 +401,26 @@ public enum L10n {
     public static var addaccountRegionUsType: String {
         String(localized: "addaccount_region_us_type", bundle: AppLocalization.shared.bundle)
     }
+    /// addaccount_server_discovery_button
+    public static var addaccountServerDiscoveryButton: String {
+        String(localized: "addaccount_server_discovery_button", bundle: AppLocalization.shared.bundle)
+    }
+    /// addaccount_server_discovery_failed
+    public static func addaccountServerDiscoveryFailed(_ a1: String) -> String {
+        String(format: String(localized: "addaccount_server_discovery_failed", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// addaccount_server_discovery_found
+    public static func addaccountServerDiscoveryFound(_ a1: String) -> String {
+        String(format: String(localized: "addaccount_server_discovery_found", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// addaccount_server_discovery_not_found
+    public static func addaccountServerDiscoveryNotFound(_ a1: String) -> String {
+        String(format: String(localized: "addaccount_server_discovery_not_found", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// addaccount_server_discovery_other_domain_warning
+    public static func addaccountServerDiscoveryOtherDomainWarning(_ a1: String) -> String {
+        String(format: String(localized: "addaccount_server_discovery_other_domain_warning", bundle: AppLocalization.shared.bundle), a1)
+    }
     /// addaccount_sign_in_button
     public static var addaccountSignInButton: String {
         String(localized: "addaccount_sign_in_button", bundle: AppLocalization.shared.bundle)

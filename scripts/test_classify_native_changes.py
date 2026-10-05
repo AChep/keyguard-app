@@ -51,6 +51,18 @@ class NativeChangeClassificationTest(unittest.TestCase):
         for flag in ("desktop", "android", "apple", "crypto"):
             self.assertFalse(result[flag], flag)
 
+    def test_dns_selects_consumers_like_webauthn(self):
+        result = classify(["util/dns/src/commonMain/kotlin/DnsTxtResolver.kt"])
+        for flag in ("desktop", "android", "apple", "apple_regressions"):
+            self.assertTrue(result[flag], flag)
+        self.assertFalse(result["crypto"])
+        self.assertFalse(result["native_quality"])
+
+        result = classify(["util/dns/src/commonTest/kotlin/DnsMessageParserTest.kt"])
+        self.assertTrue(result["apple_regressions"])
+        for flag in ("desktop", "android", "apple", "crypto"):
+            self.assertFalse(result[flag], flag)
+
     def test_yubikey_rust_selects_desktop_and_native_apple_consumers(self):
         result = classify(["util/yubikey/rust/crates/keyguard-yubikey-core/src/protocol.rs"])
         for flag in ("desktop", "desktop_regressions", "apple", "apple_regressions", "native_quality"):

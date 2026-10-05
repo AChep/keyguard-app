@@ -199,13 +199,26 @@ final class LoginSessionModelTests: XCTestCase {
         XCTAssertEqual(source.twofaCancellations, 1)
     }
 
-    private func login(_ email: String) -> LoginSnapshot {
+    @MainActor
+    func testServerDiscoveryActionRoutesToTheSource() async throws {
+        let source = BitwardenSourceProbe()
+        let model = source.makeModel()
+        model.startLoginObservation()
+        let discovery = LoginServerDiscoverySnapshot(isLoading: false, enabled: true)
+        source.publish(login("user@example.test", serverDiscovery: discovery))
+        try await settle()
+        XCTAssertEqual(model.login.serverDiscovery?.enabled, true)
+        model.discoverLoginServer()
+        XCTAssertEqual(source.actions, ["discovery.lookup"])
+    }
+
+    private func login(_ email: String, serverDiscovery: LoginServerDiscoverySnapshot? = nil) -> LoginSnapshot {
         LoginSnapshot(
             email: TextFieldSnapshot(
                 id: "email", text: email, textRevision: 0, placeholder: nil, error: nil, vlType: nil, vlText: nil,
                 editable: true),
             password: .companion.empty(id: "password"), clientSecret: nil, regions: [], showCustomEnv: false,
-            items: [], isLoading: false, canLogin: true, canRegister: true
+            items: [], isLoading: false, canLogin: true, canRegister: true, serverDiscovery: serverDiscovery
         )
     }
 
@@ -269,6 +282,7 @@ private final class BitwardenSourceProbe: BitwardenLoginSource {
     func invokeLoginAction(id: String) {}
     func clickLoginRegister() {}
     func submitLogin() {}
+    func discoverLoginServer() { actions.append("discovery.lookup") }
     func selectTwofaProvider(key: String) {}
     func toggleTwofaRememberMe(checked: Bool) {}
     func resendTwofaCode() {}

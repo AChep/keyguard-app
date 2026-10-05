@@ -92,6 +92,12 @@ final class BitwardenLoginModel: SnapshotObserving {
         source.submitLogin()
     }
 
+    /// Looks up the server published in the DNS records of the email domain; the producer
+    /// fills it in and reports the outcome as a message.
+    func discoverLoginServer() {
+        source.discoverLoginServer()
+    }
+
     /// Runs the 2FA producer for the challenge raised by the login producer. Call when
     /// the 2FA screen appears; balance with `stopTwofaObservation()`.
     func startTwofaObservation() {

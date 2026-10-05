@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginEvent
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.LoginServerDiscovery
 import com.artemchep.keyguard.feature.auth.bitwarden.LoginState
 import com.artemchep.keyguard.feature.auth.bitwarden.LoginStateItem
 import com.artemchep.keyguard.feature.auth.bitwarden.bitwardenLoginStateProducer
@@ -30,6 +31,7 @@ import com.artemchep.keyguard.apple.model.toFieldSnapshot
 import com.artemchep.keyguard.apple.throttleLatest
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.provider.bitwarden.api.builder.buildWebVaultUrl
+import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServer
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -99,6 +101,7 @@ class BitwardenLoginSession internal constructor(
             val addAccount = state.sessionKoin.get<AddAccount>()
             val cipherUnsecureUrlCheck = state.sessionKoin.get<CipherUnsecureUrlCheck>()
             val confirmationRouteFactory = ctx.koin.get<ConfirmationRouteFactory>()
+            val discoverBitwardenServer = ctx.koin.get<DiscoverBitwardenServer>()
             val producerFlow = ctx.koin.newHeadlessStateFlowScope(
                 "bitwardenlogin", this, navigationInterceptorProvider(state.sessionKoin),
             )
@@ -106,6 +109,7 @@ class BitwardenLoginSession internal constructor(
                     addAccount = addAccount,
                     cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
                     confirmationRouteFactory = confirmationRouteFactory,
+                    discoverBitwardenServer = discoverBitwardenServer,
                     args = args,
                 )
             // Single shared copy of the latest top-level state. The
@@ -276,6 +280,7 @@ class BitwardenLoginSession internal constructor(
             isLoading = login.isLoading,
             canLogin = login.onLoginClick != null,
             canRegister = login.onRegisterClick != null,
+            serverDiscovery = login.serverDiscovery?.toSnapshot(),
         )
     }
 
@@ -290,6 +295,8 @@ class BitwardenLoginSession internal constructor(
     fun clickLoginRegister() = form.withActions { it.state.onRegisterClick?.invoke() }
 
     fun submitLogin() = form.withActions { it.state.onLoginClick?.invoke() }
+
+    fun discoverLoginServer() = form.withActions { it.state.serverDiscovery?.onClick?.invoke() }
 
     fun observeTwofa(onChange: (TwofaSnapshot) -> Unit): KeyguardCancellable {
         val args = latestTwofaArgs ?: return KeyguardCancellable {}
@@ -493,3 +500,8 @@ private class LoginActions(val state: LoginState) {
     val fields = LinkedHashMap<String, (String) -> Unit>()
     val actions = LinkedHashMap<String, () -> Unit>()
 }
+
+private fun LoginServerDiscovery.toSnapshot() = LoginServerDiscoverySnapshot(
+    isLoading = isLoading,
+    enabled = onClick != null,
+)

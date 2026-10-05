@@ -20,6 +20,24 @@ struct BitwardenLoginView: View {
                 field(login.email, title: L10n.email, secure: false)
                 field(login.password, title: L10n.password, secure: true)
 
+                if let discovery = login.serverDiscovery {
+                    Button {
+                        loginModel.discoverLoginServer()
+                    } label: {
+                        HStack(spacing: 8) {
+                            if discovery.isLoading {
+                                ProgressView()
+                                    .controlSize(.small)
+                            } else {
+                                Image(systemName: "magnifyingglass")
+                            }
+                            Text(L10n.addaccountServerDiscoveryButton)
+                        }
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(!discovery.enabled)
+                }
+
                 if let clientSecret = login.clientSecret {
                     clientSecretSection(clientSecret)
                 }

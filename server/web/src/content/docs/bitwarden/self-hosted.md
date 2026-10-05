@@ -32,6 +32,20 @@ set the endpoints individually:
 
 Any endpoint you leave empty falls back to the base URL.
 
+## Server discovery
+
+Publish the server address in DNS so users at your domain can find it with
+**Auto-discover server** on the sign-in screen. Add a TXT record named
+`_bitwarden` or `_vaultwarden` under the email domain, with the HTTPS URL of
+the server as its value:
+
+```text
+_bitwarden.example.com.  IN  TXT  "https://vault.example.com"
+```
+
+Keyguard looks up the record only when the user taps the button, then fills
+in the server it finds.
+
 ## Custom HTTP headers
 
 You can add custom HTTP headers that are sent with **every request** to the

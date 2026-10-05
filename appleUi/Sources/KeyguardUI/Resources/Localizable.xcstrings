@@ -20301,6 +20301,1021 @@
         }
       }
     },
+    "addaccount_server_discovery_button" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "en-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-discover server"
+          }
+        }
+      }
+    },
+    "addaccount_server_discovery_failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "en-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to look up the server of %1$@"
+          }
+        }
+      }
+    },
+    "addaccount_server_discovery_found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "en-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server set to %1$@"
+          }
+        }
+      }
+    },
+    "addaccount_server_discovery_not_found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "en-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No server found for %1$@"
+          }
+        }
+      }
+    },
+    "addaccount_server_discovery_other_domain_warning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "en-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server is not part of %1$@. Check the address before you sign in."
+          }
+        }
+      }
+    },
     "addaccount_sign_in_button" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -125930,199 +126945,199 @@
         "af" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "en-US" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "sr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The S3 server ignores conditional writes. Keyguard needs them to avoid overwriting changes made on another device."
+            "value" : "The S3 server ignores conditional writes"
           }
         }
       }
@@ -126133,199 +127148,199 @@
         "af" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "en-US" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "sr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment."
+            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
           }
         }
       }
@@ -126336,199 +127351,199 @@
         "af" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "en-US" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "sr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key must end with %1$@."
+            "value" : "The object key must end with %1$@"
           }
         }
       }
@@ -126539,199 +127554,199 @@
         "af" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "en-US" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "sr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
           }
         }
       }
@@ -126945,199 +127960,199 @@
         "af" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "en-US" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "sr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments."
+            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
           }
         }
       }
@@ -387267,199 +388282,199 @@
         "af" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "en-GB" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "en-US" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "hu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "sr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter an access key for this bucket. Do not enter your master password."
+            "value" : "Enter an access key for this bucket."
           }
         }
       }

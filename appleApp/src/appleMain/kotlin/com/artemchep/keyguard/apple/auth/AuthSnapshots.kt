@@ -140,7 +140,16 @@ data class LoginItemSnapshot(
     val actions: List<LoginActionSnapshot>,
 )
 
-/** [clientSecret] is the CAPTCHA client secret field, or null while the server doesn't ask for one. */
+/** The action that runs [BitwardenLoginSession.discoverLoginServer]. */
+data class LoginServerDiscoverySnapshot(
+    val isLoading: Boolean,
+    val enabled: Boolean,
+)
+
+/**
+ * [clientSecret] is the CAPTCHA client secret field, or null while the server doesn't ask for one.
+ * [serverDiscovery] offers to look up the server of the email domain, or null while there is no domain.
+ */
 data class LoginSnapshot(
     val email: TextFieldSnapshot,
     val password: TextFieldSnapshot,
@@ -151,6 +160,7 @@ data class LoginSnapshot(
     val isLoading: Boolean,
     val canLogin: Boolean,
     val canRegister: Boolean,
+    val serverDiscovery: LoginServerDiscoverySnapshot?,
 ) {
     companion object {
         val empty = LoginSnapshot(
@@ -163,6 +173,7 @@ data class LoginSnapshot(
             isLoading = false,
             canLogin = false,
             canRegister = false,
+            serverDiscovery = null,
         )
     }
 }

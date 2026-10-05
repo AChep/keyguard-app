@@ -15,6 +15,7 @@ protocol BitwardenLoginSource: AnyObject {
     func invokeLoginAction(id: String)
     func clickLoginRegister()
     func submitLogin()
+    func discoverLoginServer()
     func setTwofaCode(text: String)
     func selectTwofaProvider(key: String)
     func toggleTwofaRememberMe(checked: Bool)

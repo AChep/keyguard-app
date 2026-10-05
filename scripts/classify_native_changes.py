@@ -79,7 +79,7 @@ def classify(paths, *, full=False, all_checks=False):
                     continue
             enable("io", "instance", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
             continue
-        module = re.match(r"util/(crypto|io|zxcvbn|zip|instance|webauthn|yubikey|fido2)/(.+)", path)
+        module = re.match(r"util/(crypto|dns|io|zxcvbn|zip|instance|webauthn|yubikey|fido2)/(.+)", path)
         if module:
             name, relative = module.groups()
             if name in {"yubikey", "fido2"}:
@@ -107,7 +107,7 @@ def classify(paths, *, full=False, all_checks=False):
             if test_source or rust_test:
                 if name in {"io", "instance"} and (rust_test or source_set in {"commonTest", "desktopTest", "jvmTest"}):
                     enable(name, "desktop_regressions")
-                if source_set.startswith(("macos", "apple", "native")) or (name in {"io", "instance", "webauthn"} and source_set == "commonTest"):
+                if source_set.startswith(("macos", "apple", "native")) or (name in {"dns", "io", "instance", "webauthn"} and source_set == "commonTest"):
                     enable("apple_regressions")
                 # Android host and iOS simulator suites already run in Check Tests.
                 continue

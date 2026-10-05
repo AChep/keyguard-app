@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.TravelExplore
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumnItemScope
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumnScope
+import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
@@ -48,6 +50,7 @@ import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.permission.PermissionState
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginEvent
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.LoginServerDiscovery
 import com.artemchep.keyguard.feature.auth.bitwarden.LoginState
 import com.artemchep.keyguard.feature.auth.bitwarden.LoginStateItem
 import com.artemchep.keyguard.feature.auth.bitwarden.produceBitwardenLoginScreenState
@@ -65,6 +68,7 @@ import com.artemchep.keyguard.res.addaccount_create_an_account_title
 import com.artemchep.keyguard.res.addaccount_disclaimer_bitwarden_label
 import com.artemchep.keyguard.res.addaccount_header_title
 import com.artemchep.keyguard.res.addaccount_region_section
+import com.artemchep.keyguard.res.addaccount_server_discovery_button
 import com.artemchep.keyguard.res.addaccount_sign_in_button
 import com.artemchep.keyguard.ui.BiFlatTextField
 import com.artemchep.keyguard.ui.ConcealedFlatTextField
@@ -325,6 +329,11 @@ private fun TransformingLazyColumnScope.WearBitwardenLoginContent(
         )
     }
 
+    wearBitwardenLoginServerDiscovery(
+        discovery = loginState.serverDiscovery,
+        transformationSpec = transformationSpec,
+    )
+
     val clientSecretOrNull = loginState.clientSecret
     if (clientSecretOrNull != null) {
         item("client_secret.note") {
@@ -582,6 +591,38 @@ private fun WearBitwardenLoginRegisterButton(
         )
         Text(
             text = stringResource(Res.string.addaccount_create_an_account_title),
+        )
+    }
+}
+
+/** Looks the server up when tapped; nothing is sent before that. */
+private fun TransformingLazyColumnScope.wearBitwardenLoginServerDiscovery(
+    discovery: LoginServerDiscovery?,
+    transformationSpec: TransformationSpec,
+) {
+    discovery ?: return
+    item("server_discovery") {
+        WearListAction(
+            modifier = Modifier
+                .fillMaxWidth()
+                .transformedHeight(this, transformationSpec),
+            title = stringResource(Res.string.addaccount_server_discovery_button),
+            onClick = discovery.onClick,
+            leading = {
+                if (discovery.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Outlined.TravelExplore,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            },
+            transformation = SurfaceTransformation(transformationSpec),
         )
     }
 }

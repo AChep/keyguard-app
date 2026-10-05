@@ -1160,6 +1160,13 @@
     <string name="addaccount_custom_env_icons_url_label">Icons Server URL</string>
     <string name="addaccount_custom_env_identity_url_label">Identity Server URL</string>
     <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <!-- Looks up the server published in the DNS records of the email domain and fills it in. -->
+    <string name="addaccount_server_discovery_button">Auto-discover server</string>
+    <string name="addaccount_server_discovery_found">Server set to <xliff:g id="address" example="vault.example.com">%1$s</xliff:g></string>
+    <!-- Warns that the discovered server is not part of the email domain. -->
+    <string name="addaccount_server_discovery_other_domain_warning">The server is not part of <xliff:g id="domain" example="example.com">%1$s</xliff:g>. Check the address before you sign in.</string>
+    <string name="addaccount_server_discovery_not_found">No server found for <xliff:g id="domain" example="example.com">%1$s</xliff:g></string>
+    <string name="addaccount_server_discovery_failed">Failed to look up the server of <xliff:g id="domain" example="example.com">%1$s</xliff:g></string>
     <string name="addaccount_mutual_tls_section">Mutual TLS</string>
     <string name="addaccount_mutual_tls_file_label">Client certificate</string>
     <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>

@@ -18,6 +18,7 @@ import com.artemchep.keyguard.copy.FileWatcherServiceApple
 import com.artemchep.keyguard.createIosKoinApplication
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactoryDefault
+import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServer
 import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticator
 import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
@@ -83,6 +84,7 @@ class IosKoinGraphTest {
             assertSame(VaultRouteFactoryDefault, koin.get<VaultRouteFactory>())
             assertSame(NativePasskeyCrypto, koin.get<PasskeyCrypto>())
             assertNotNull(koin.get<WebAuthnAuthenticator>())
+            assertNotNull(koin.get<DiscoverBitwardenServer>())
             assertNotNull(koin.get<Json>())
             assertNotNull(koin.get<Base32Service>())
             assertTrue(koin.get<PlatformLinkInfoExtractorRegistry>().values.isEmpty())

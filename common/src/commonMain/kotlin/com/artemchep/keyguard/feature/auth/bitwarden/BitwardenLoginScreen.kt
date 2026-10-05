@@ -372,6 +372,18 @@ fun ColumnScope.LoginContent(
             onNext = keyboardOnNext.takeUnless { passwordIsLastField },
         ),
     )
+    ExpandedIfNotEmpty(
+        valueOrNull = loginState.serverDiscovery,
+    ) { discovery ->
+        Column {
+            Spacer(Modifier.height(8.dp))
+            LoginServerDiscoveryButton(
+                modifier = Modifier
+                    .padding(horizontal = Dimens.buttonHorizontalPadding),
+                discovery = discovery,
+            )
+        }
+    }
     val clientSecretOrNull = loginState.clientSecret
     ExpandedIfNotEmpty(
         valueOrNull = clientSecretOrNull,

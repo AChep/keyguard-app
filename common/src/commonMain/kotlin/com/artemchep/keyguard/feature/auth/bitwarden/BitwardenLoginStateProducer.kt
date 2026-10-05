@@ -8,10 +8,14 @@ import androidx.compose.runtime.Composable
 import arrow.core.partially1
 import arrow.core.partially2
 import arrow.core.widen
+import com.artemchep.keyguard.Emails
 import com.artemchep.keyguard.common.exception.ApiException
+import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.effectTap
+import com.artemchep.keyguard.common.io.handleError
 import com.artemchep.keyguard.common.io.handleErrorTap
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.util.ensureUrlScheme
 import com.artemchep.keyguard.common.util.flow.EventFlow
@@ -25,6 +29,7 @@ import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_US_ASCII
 import com.artemchep.keyguard.feature.auth.common.util.ValidationUrl
+import com.artemchep.keyguard.feature.auth.common.util.extractEmailDomainOrNull
 import com.artemchep.keyguard.feature.auth.common.util.format
 import com.artemchep.keyguard.feature.auth.common.util.validateUrl
 import com.artemchep.keyguard.feature.auth.common.util.validatedEmail
@@ -44,6 +49,9 @@ import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
+import com.artemchep.keyguard.provider.bitwarden.api.builder.buildHost
+import com.artemchep.keyguard.provider.bitwarden.model.ServerDiscoveryCandidate
+import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServer
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
@@ -59,6 +67,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -148,6 +157,7 @@ fun produceBitwardenLoginScreenState(
         addAccount = get(),
         cipherUnsecureUrlCheck = get(),
         confirmationRouteFactory = get(),
+        discoverBitwardenServer = get(),
         args = args,
         screenKey = screenKey,
     )
@@ -163,6 +173,7 @@ fun produceBitwardenLoginScreenState(
     addAccount: AddAccount,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     confirmationRouteFactory: ConfirmationRouteFactory,
+    discoverBitwardenServer: DiscoverBitwardenServer,
     args: BitwardenLoginRoute.Args,
     screenKey: String = DEFAULT_SCREEN_KEY,
 ): Loadable<LoginState> = produceScreenState(
@@ -178,6 +189,7 @@ fun produceBitwardenLoginScreenState(
         addAccount = addAccount,
         cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
         confirmationRouteFactory = confirmationRouteFactory,
+        discoverBitwardenServer = discoverBitwardenServer,
         args = args,
     )
 }
@@ -187,6 +199,7 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
     addAccount: AddAccount,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     confirmationRouteFactory: ConfirmationRouteFactory,
+    discoverBitwardenServer: DiscoverBitwardenServer,
     args: BitwardenLoginRoute.Args,
 ): Flow<Loadable<LoginState>> {
     val onSuccessFlow = EventFlow<Unit>()
@@ -396,6 +409,111 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
         ),
     )
 
+    // server discovery
+
+    suspend fun applyDiscoveredServer(
+        domain: String,
+        candidate: ServerDiscoveryCandidate,
+    ) {
+        // Discovery sets either the base URL of a custom server or
+        // the region of an official one.
+        val env = candidate.env
+        val address = if (env.baseUrl.isBlank()) {
+            regionSink.value = BitwardenLoginRegion.Predefined(env.region).key
+            env.buildHost()
+        } else {
+            regionSink.value = BitwardenLoginRegion.Custom.key
+            val baseUrlField = envServerBaseUrlItem.state.flow.value.text
+            val sameBaseUrl = ensureUrlScheme(baseUrlField.text.trim())
+                .trimEnd('/')
+                .equals(env.baseUrl.trimEnd('/'), ignoreCase = true)
+            if (!sameBaseUrl) {
+                baseUrlField.onSetText?.invoke(env.baseUrl)
+                // The custom endpoints belong to the
+                // previously typed server.
+                envServerItems
+                    .filterIsInstance<LoginStateItem.Url>()
+                    .filter { it !== envServerBaseUrlItem }
+                    .forEach { item ->
+                        item.state.flow.value.text.onSetText?.invoke("")
+                    }
+            }
+            env.baseUrl
+                .removePrefix("https://")
+                .trimEnd('/')
+        }
+        // DNS answers are not authenticated, so a server outside
+        // of the email's domain needs the user's attention.
+        val warning = if (candidate.sameDomain) {
+            null
+        } else {
+            translate(Res.string.addaccount_server_discovery_other_domain_warning, domain)
+        }
+        val msg = ToastMessage(
+            title = translate(Res.string.addaccount_server_discovery_found, address),
+            text = warning,
+            type = ToastMessage.Type.SUCCESS,
+        )
+        message(msg)
+    }
+
+    val serverDiscoveryFlow: Flow<LoginServerDiscovery?> = if (args.envEditable) {
+        val isLookingUpSink = MutableStateFlow(false)
+
+        fun lookup(domain: String) {
+            val io = discoverBitwardenServer(domain)
+                .effectMap { candidates ->
+                    val candidate = candidates.firstOrNull()
+                    if (candidate != null) {
+                        applyDiscoveredServer(domain, candidate)
+                        return@effectMap
+                    }
+
+                    val msg = ToastMessage(
+                        title = translate(Res.string.addaccount_server_discovery_not_found, domain),
+                        type = ToastMessage.Type.INFO,
+                    )
+                    message(msg)
+                }
+                .handleError {
+                    val msg = ToastMessage(
+                        title = translate(Res.string.addaccount_server_discovery_failed, domain),
+                        type = ToastMessage.Type.ERROR,
+                    )
+                    message(msg)
+                }
+            // The executor keeps the form read-only while
+            // the lookup runs.
+            isLookingUpSink.value = true
+            actionExecutor.execute(io) {
+                isLookingUpSink.value = false
+            }
+        }
+
+        // Users of a public email provider can not publish
+        // a record there, so there is nothing to look up.
+        val domainFlow = emailHandle.sink
+            .map { cell ->
+                extractEmailDomainOrNull(cell.text)
+                    ?.takeUnless { it in Emails }
+            }
+            .distinctUntilChanged()
+        combine(
+            domainFlow,
+            isLookingUpSink,
+            envReadOnlyFlow,
+        ) { domain, isLoading, readOnly ->
+            domain ?: return@combine null
+            LoginServerDiscovery(
+                isLoading = isLoading,
+                onClick = { lookup(domain) }
+                    .takeUnless { readOnly },
+            )
+        }
+    } else {
+        flowOf(null)
+    }
+
     val clientSecretRequiredFlow = failedIdentityRequestFingerprintSink
         .flatMapLatest { identityOrNull ->
             // If we don't have a failed request, then do not
@@ -601,9 +719,10 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
         combine(
             envHeadersFlow,
             regionItemsFlow,
-        ) { a, b -> a to b },
+            serverDiscoveryFlow,
+        ) { a, b, c -> Triple(a, b, c) },
         actionExecutor.isExecutingFlow,
-    ) { credentials, showCustomEnv, output, (items, regionItems), taskIsExecuting ->
+    ) { credentials, showCustomEnv, output, (items, regionItems, serverDiscovery), taskIsExecuting ->
         val (validatedEmail, validatedPassword, clientSecret) = credentials
         val blockedBy = getBitwardenLoginBlockedBy(
             validatedEmail = validatedEmail,
@@ -669,6 +788,7 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
             regionItems = regionItems,
             items = envServerItems + items,
             isLoading = taskIsExecuting,
+            serverDiscovery = serverDiscovery,
             // On watches, it is barely possible to register on a web-site,
             // so we can hide the button for doing so.
             onRegisterClick = onRegister

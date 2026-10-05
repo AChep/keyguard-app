@@ -170,6 +170,7 @@ kotlin {
                 api(project(":util:zip"))
                 api(project(":util:kdbx"))
                 api(project(":util:crypto"))
+                api(project(":util:dns"))
                 api(project(":util:s3"))
                 api(project(":util:signalr"))
                 api(project(":util:webdav"))
@@ -272,6 +273,7 @@ kotlin {
             kotlin.include("com/artemchep/keyguard/provider/bitwarden/upload/**")
             kotlin.include("com/artemchep/keyguard/provider/bitwarden/usecase/AddCipherPendingUploadPreparationTest.kt")
             kotlin.include("com/artemchep/keyguard/provider/bitwarden/usecase/AddSendPendingUploadPreparationTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/usecase/DiscoverBitwardenServerImplTest.kt")
             dependencies {
                 implementation(libs.ktor.ktor.client.mock)
             }

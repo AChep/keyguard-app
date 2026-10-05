@@ -483,6 +483,7 @@ jobs:
           ./gradlew --continue --max-workers=1
           -Pkeyguard.nativeCargo.cargoOffline=true
           :util:crypto:macosArm64Test
+          :util:dns:macosArm64Test
           :util:ffi:macosArm64Test
           :util:io:macosArm64Test
           :util:instance:macosArm64Test

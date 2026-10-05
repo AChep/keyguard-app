@@ -85,6 +85,7 @@ private fun CompanionBitwardenLoginScreen(
         addAccount = companionAddAccount,
         cipherUnsecureUrlCheck = get(),
         confirmationRouteFactory = get(),
+        discoverBitwardenServer = get(),
         args = BitwardenLoginRoute.Args(),
         screenKey = "bitwardenlogin.companion",
     )

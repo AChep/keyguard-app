@@ -19,14 +19,14 @@ import kotlin.time.Duration.Companion.seconds
 
 class S3ResponseLimitTest {
     @Test
-    fun `oversized listing stops an unfinished response`() = runTest {
+    fun `oversized listing stops an unfinished response`() = runTest(timeout = 120.seconds) {
         withEndlessBody(HttpStatusCode.OK) { client ->
             assertFailsWith<S3Exception.Protocol> { client.listObjects() }
         }
     }
 
     @Test
-    fun `oversized error preserves status classification and releases the response`() = runTest {
+    fun `oversized error preserves status classification and releases the response`() = runTest(timeout = 120.seconds) {
         withEndlessBody(HttpStatusCode.ServiceUnavailable) { client ->
             assertFailsWith<S3Exception.Transient> { client.getObject("key") }
         }
@@ -51,8 +51,12 @@ class S3ResponseLimitTest {
             }
             try {
                 withS3Client(handler = { respond(channel, status) }) { client ->
-                    withTimeout(5.seconds) {
+                    // Exercise the production limits without requiring native builds
+                    // to decode the full listing within the cleanup deadline.
+                    withTimeout(60.seconds) {
                         block(client)
+                    }
+                    withTimeout(5.seconds) {
                         writer.join()
                     }
                 }

@@ -26,6 +26,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
+// Keep engine/status cases separate so each has its own result and deadline.
+@Suppress("TooManyFunctions")
 class KtorS3ClientHttpE2eTest {
     private val engines = listOf("cio", "okhttp")
 
@@ -124,7 +126,7 @@ class KtorS3ClientHttpE2eTest {
                             }
                             ready.await()
                             consumer.cancelAndJoin()
-                            disconnected.await()
+                            server.awaitCompletion(disconnected)
                             assertTrue(consumer.isCancelled)
                             assertEquals("next", client.getObject("next").use { it.readByteArray().decodeToString() })
                         }
@@ -135,29 +137,54 @@ class KtorS3ClientHttpE2eTest {
     }
 
     @Test
-    fun `oversized unfinished listing and error bodies are bounded on real engines`() = runTest {
+    fun `CIO bounds unfinished listing bodies and releases the connection`() =
+        assertOversizedResponseIsBounded("cio", 200)
+
+    @Test
+    fun `CIO bounds unfinished error bodies and releases the connection`() =
+        assertOversizedResponseIsBounded("cio", 503)
+
+    @Test
+    fun `OkHttp bounds unfinished listing bodies and releases the connection`() =
+        assertOversizedResponseIsBounded("okhttp", 200)
+
+    @Test
+    fun `OkHttp bounds unfinished error bodies and releases the connection`() =
+        assertOversizedResponseIsBounded("okhttp", 503)
+
+    @Suppress("TooGenericExceptionCaught")
+    private fun assertOversizedResponseIsBounded(engine: String, status: Int) = runTest {
         withContext(Dispatchers.IO) {
-            withTimeout(15.seconds) {
-                for (engine in engines) {
-                    for (status in listOf(200, 503)) {
-                        val disconnected = CompletableDeferred<Unit>()
-                        S3HttpFixture { _, socket ->
+            var phase = "rejecting the oversized response"
+            try {
+                withTimeout(15.seconds) {
+                    val disconnected = CompletableDeferred<Unit>()
+                    S3HttpFixture { request, socket ->
+                        if (request.target.endsWith("/next")) {
+                            socket.respond(body = "next")
+                        } else {
                             socket.writeHeaders(status)
                             socket.writeUntilDisconnected()
                             disconnected.complete(Unit)
-                        }.use { server ->
-                            withClient(engine, server) { client ->
-                                if (status == 200) {
-                                    assertFailsWith<S3Exception.Protocol> { client.listObjects() }
-                                } else {
-                                    assertFailsWith<S3Exception.Transient> { client.getObject("key") }
-                                }
-                                disconnected.await()
-                            }
-                            assertEquals(1, server.requests.size)
                         }
+                    }.use { server ->
+                        withClient(engine, server) { client ->
+                            if (status == 200) {
+                                assertFailsWith<S3Exception.Protocol> { client.listObjects() }
+                            } else {
+                                assertFailsWith<S3Exception.Transient> { client.getObject("key") }
+                            }
+                            phase = "observing EOF or reset"
+                            server.awaitCompletion(disconnected)
+                            phase = "reusing the client"
+                            assertEquals("next", client.getObject("next").use { it.readByteArray().decodeToString() })
+                        }
+                        phase = "checking requests"
+                        assertEquals(2, server.requests.size)
                     }
                 }
+            } catch (e: Throwable) {
+                throw AssertionError("$engine status=$status failed while $phase", e)
             }
         }
     }

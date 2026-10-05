@@ -6,13 +6,61 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.prepareGet
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.writeFully
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 class S3ResponseTextTest {
+    @Test
+    fun `small text limits cancel unfinished responses before leaving the response scope`() = runTest {
+        for (prefix in listOf("", "<ListBucketResult>")) {
+            val text = prefix + "x".repeat(64)
+            val channel = ByteChannel(autoFlush = true)
+            channel.writeFully(text.encodeToByteArray())
+            val http = HttpClient(MockEngine { respond(channel) }) {
+                // Observe the reader's channel directly, without Ktor's
+                // asynchronous forwarding channel for bodyAsChannel().
+                useDefaultTransformers = false
+            }
+            try {
+                http.prepareGet("https://example.com").execute { response ->
+                    assertEquals(text.take(32), response.readS3ResponseText(32))
+                    // Ktor also cancels the body when execute returns. Check that
+                    // the bounded reader itself has already released it.
+                    assertTrue(channel.isClosedForRead)
+                }
+            } finally {
+                channel.cancel(null)
+                http.close()
+            }
+        }
+    }
+
+    @Test
+    fun `caller timeout propagates and cancels an unfinished response`() = runTest {
+        val channel = ByteChannel(autoFlush = true)
+        val http = HttpClient(MockEngine { respond(channel) }) {
+            useDefaultTransformers = false
+        }
+        try {
+            http.prepareGet("https://example.com").execute { response ->
+                assertFailsWith<TimeoutCancellationException> {
+                    withTimeout(1.seconds) { response.readS3ResponseText(32) }
+                }
+                assertTrue(channel.isClosedForRead)
+            }
+        } finally {
+            channel.cancel(null)
+            http.close()
+        }
+    }
+
     @Test
     fun `UTF8 code points split across transport chunks survive decoding`() = runTest {
         // The first multi-byte code point straddles the reader's 8192-byte chunk.

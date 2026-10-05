@@ -24,8 +24,16 @@ class S3PickerStateProducerTest {
     }
 
     @Test
-    fun `files that cannot be addressed as objects are not addressable`() {
+    fun `files with repeated slashes retain their key and are addressable`() {
         val file = s3PickerEntry(child("a//vault.kdbx", name = "vault.kdbx"))
+
+        assertEquals("a//vault.kdbx", file.path)
+        assertTrue(file.isAddressable)
+    }
+
+    @Test
+    fun `files that cannot be addressed as objects are not addressable`() {
+        val file = s3PickerEntry(child("a/./vault.kdbx", name = "vault.kdbx"))
 
         assertFalse(file.isAddressable)
     }

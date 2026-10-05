@@ -64,7 +64,7 @@ class S3SettingsFormTest {
     fun `keepass keys must name a kdbx object`() {
         val purpose = S3SettingsRoute.Purpose.KeePassDatabase
         assertEquals(S3FormError.KeyRequired, validateS3Form(valid.copy(path = " / "), purpose))
-        assertEquals(S3FormError.KeyInvalid, validateS3Form(valid.copy(path = "dir/"), purpose))
+        assertEquals(S3FormError.KeyExtensionRequired, validateS3Form(valid.copy(path = "dir/"), purpose))
         assertEquals(S3FormError.KeyInvalid, validateS3Form(valid.copy(path = "a/./b.kdbx"), purpose))
         assertEquals(S3FormError.KeyExtensionRequired, validateS3Form(valid.copy(path = "vault.txt"), purpose))
 
@@ -72,6 +72,17 @@ class S3SettingsFormTest {
             buildS3Location(valid.copy(path = "/dir/Vault.KDBX"), purpose),
         )
         assertEquals("dir/Vault.KDBX", location.key)
+    }
+
+    @Test
+    fun `keepass keys preserve repeated slashes`() {
+        val purpose = S3SettingsRoute.Purpose.KeePassDatabase
+        val input = valid.copy(path = "a//vault.kdbx")
+
+        assertNull(validateS3Form(input, purpose))
+
+        val location = assertIs<S3Location.Object>(buildS3Location(input, purpose))
+        assertEquals("a//vault.kdbx", location.key)
     }
 
     @Test

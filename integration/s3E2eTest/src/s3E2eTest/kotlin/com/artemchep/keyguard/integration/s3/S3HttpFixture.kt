@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.integration.s3
 
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.selects.select
 import java.io.BufferedInputStream
 import java.io.IOException
 import java.net.InetAddress
@@ -24,6 +27,7 @@ internal class S3HttpFixture(
     }
     private val sockets = ConcurrentHashMap.newKeySet<Socket>()
     private val failures = ConcurrentLinkedQueue<Throwable>()
+    private val firstFailure = CompletableDeferred<Throwable>()
     val requests = CopyOnWriteArrayList<S3HttpRequest>()
     val endpoint = "http://127.0.0.1:${listener.localPort}"
 
@@ -51,9 +55,19 @@ internal class S3HttpFixture(
                 handle(request, socket)
             }
         } catch (e: Throwable) {
-            if (!listener.isClosed) failures += e
+            if (!listener.isClosed) {
+                failures += e
+                firstFailure.complete(e)
+            }
         } finally {
             sockets -= socket
+        }
+    }
+
+    suspend fun awaitCompletion(completion: Deferred<Unit>) {
+        select<Unit> {
+            firstFailure.onAwait { throw AssertionError("HTTP fixture failed", it) }
+            completion.onAwait { }
         }
     }
 
@@ -131,11 +145,19 @@ internal fun Socket.awaitDisconnect() {
 
 internal fun Socket.writeUntilDisconnected() {
     val chunk = ByteArray(8192) { 'x'.code.toByte() }
-    try {
+    val writeFailure = try {
         repeat(5000) { getOutputStream().write(chunk) }
         getOutputStream().flush()
+        null
+    } catch (e: IOException) {
+        e
+    }
+    // A failed write alone does not establish that the peer disconnected.
+    // Confirm EOF/reset separately, and let read timeouts fail the fixture.
+    try {
         awaitDisconnect()
-    } catch (_: IOException) {
-        // The client must stop consuming this unfinished, oversized response.
+    } catch (e: IOException) {
+        writeFailure?.let(e::addSuppressed)
+        throw e
     }
 }

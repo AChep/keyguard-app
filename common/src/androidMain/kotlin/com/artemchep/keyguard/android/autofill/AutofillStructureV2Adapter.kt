@@ -3,6 +3,9 @@ package com.artemchep.keyguard.android.autofill
 import com.artemchep.keyguard.android.autofill.v2.model.ParseResultV2
 import com.artemchep.keyguard.android.autofill.v2.model.SemanticType
 import com.artemchep.keyguard.common.model.AutofillHint
+import com.artemchep.keyguard.common.util.Browsers
+import com.artemchep.keyguard.feature.auth.common.util.REGEX_IPV4
+import okhttp3.HttpUrl
 
 internal fun ParseResultV2.toAutofillStructure2(): AutofillStructure2 {
     val fieldValuesById = structure.fields.associate { it.id to it.value }
@@ -22,16 +25,35 @@ internal fun ParseResultV2.toAutofillStructure2(): AutofillStructure2 {
         }
         .toList()
 
-    val isInSelfHostedServer = structure.webView &&
-            (structure.webDomain == "127.0.0.1" || structure.webDomain == "localhost")
+    // Embedded apps can serve their UI from a shared loopback origin. Match and
+    // save those logins by app identity, while preserving browser loopback sites.
+    val suppressWebOrigin = structure.applicationId !in Browsers &&
+            structure.webDomain?.isLoopbackHost() == true
 
     return AutofillStructure2(
         applicationId = structure.applicationId,
-        webDomain = structure.webDomain.takeUnless { isInSelfHostedServer },
-        webScheme = structure.webScheme.takeUnless { isInSelfHostedServer },
-        webView = structure.webView.takeUnless { isInSelfHostedServer },
+        webDomain = structure.webDomain.takeUnless { suppressWebOrigin },
+        webScheme = structure.webScheme.takeUnless { suppressWebOrigin },
+        webView = structure.webView,
         items = items,
     )
+}
+
+private fun String.isLoopbackHost(): Boolean {
+    // Canonicalize literal hosts (including expanded/bracketed IPv6) without DNS.
+    val host = try {
+        HttpUrl.Builder()
+            .scheme("http")
+            .host(this)
+            .build()
+            .host
+            .removeSuffix(".")
+    } catch (_: IllegalArgumentException) {
+        return false
+    }
+    return host == "localhost" ||
+            host == "::1" ||
+            (host.startsWith("127.") && REGEX_IPV4.matches(host))
 }
 
 private fun SemanticType.toAutofillHint(): AutofillHint? =

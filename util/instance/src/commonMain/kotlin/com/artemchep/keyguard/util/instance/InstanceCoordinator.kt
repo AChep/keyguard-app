@@ -3,8 +3,8 @@ package com.artemchep.keyguard.util.instance
 /**
  * Coordinates one application instance within a private local directory.
  *
- * This blocking operation belongs in process bootstrap, before starting services that use
- * shared application data. Only [InstanceResult.Primary] authorizes those services to start.
+ * These blocking operations belong in process bootstrap, before starting services that use
+ * shared application data. Only a [PrimaryInstance] authorizes those services to start.
  */
 object InstanceCoordinator {
     /** Throws [InstanceException] when ownership or acknowledged activation cannot be obtained. */
@@ -20,6 +20,22 @@ object InstanceCoordinator {
         } else {
             InstanceResult.Primary(PrimaryInstance(result))
         }
+    }
+
+    /**
+     * Acquires ownership without ever activating the current owner, for a process the OS
+     * started to serve a request: the owner may be exiting. Waits up to
+     * [InstanceConfig.timeoutMillis] and returns null if another process kept ownership.
+     * Throws [InstanceException] when ownership cannot be determined.
+     */
+    fun acquire(config: InstanceConfig): PrimaryInstance? {
+        val result = NativeInstance.acquire(
+            config.coordinationDirectory,
+            config.runtimeDirectory,
+            config.identity,
+            config.timeoutMillis,
+        ).checked()
+        return if (result == 0L) null else PrimaryInstance(result)
     }
 }
 

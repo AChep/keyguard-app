@@ -33,6 +33,17 @@ class InstanceArgumentTest {
     fun malformedUtf16IsRejectedConsistentlyAcrossBindings() {
         assertEquals(-1L, NativeInstance.acquireOrActivate("/tmp", "/tmp", "\uD800", 5_000))
         assertEquals(-1L, NativeInstance.acquireOrActivate("/tmp", "/tmp", "test", -1))
+        assertEquals(-1L, NativeInstance.acquire("/tmp", "/tmp", "\uD800", 5_000))
+        assertEquals(-1L, NativeInstance.acquire("/tmp", "/tmp", "test", -1))
+    }
+
+    @Test
+    fun invalidConfigurationWithoutActivationProducesTypedFailure() {
+        val error = assertFailsWith<InstanceException> {
+            InstanceCoordinator.acquire(InstanceConfig("", "", "test"))
+        }
+        assertEquals(InstanceFailureKind.INVALID_ARGUMENT, error.kind)
+        assertContains(assertNotNull(error.diagnostic), "operation=validate_config")
     }
 
     @Test

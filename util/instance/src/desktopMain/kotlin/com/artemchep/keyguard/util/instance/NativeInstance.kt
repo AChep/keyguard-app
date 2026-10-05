@@ -31,6 +31,21 @@ internal actual object NativeInstance {
         )
     }
 
+    actual fun acquire(
+        coordinationDirectory: String,
+        runtimeDirectory: String,
+        identity: String,
+        timeoutMillis: Long,
+    ): Long {
+        library.ensureLoaded()
+        return NativeInstanceJni.acquire(
+            coordinationDirectory,
+            runtimeDirectory,
+            identity,
+            timeoutMillis,
+        )
+    }
+
     actual fun waitEvent(handle: Long): Long {
         library.ensureLoaded()
         return NativeInstanceJni.waitEvent(handle)

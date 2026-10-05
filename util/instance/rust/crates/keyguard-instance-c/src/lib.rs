@@ -79,6 +79,32 @@ pub extern "C" fn keyguard_instance_abi_version() -> u32 {
     keyguard_instance_core::ABI_VERSION
 }
 
+/// Decodes a coordination config and passes it to `operation`.
+///
+/// # Safety
+/// Every pointer/length pair must identify readable UTF-8 bytes throughout the call.
+#[allow(clippy::too_many_arguments)]
+unsafe fn arbitrate(
+    coordination_ptr: *const u8,
+    coordination_len: usize,
+    runtime_ptr: *const u8,
+    runtime_len: usize,
+    identity_ptr: *const u8,
+    identity_len: usize,
+    timeout_ms: u64,
+    operation: fn(&str, &str, &str, u64) -> i64,
+) -> i64 {
+    contained(|| {
+        // SAFETY: The exported function forwards the caller's readable-buffer contracts.
+        let coordination = unsafe { string_from_raw(coordination_ptr, coordination_len) }?;
+        // SAFETY: The exported function forwards the caller's readable-buffer contracts.
+        let runtime = unsafe { string_from_raw(runtime_ptr, runtime_len) }?;
+        // SAFETY: The exported function forwards the caller's readable-buffer contracts.
+        let identity = unsafe { string_from_raw(identity_ptr, identity_len) }?;
+        Ok(operation(coordination, runtime, identity, timeout_ms))
+    })
+}
+
 /// Acquires ownership or activates the incumbent. Returns a positive handle, zero, or an error.
 ///
 /// # Safety
@@ -94,20 +120,50 @@ pub unsafe extern "C" fn keyguard_instance_acquire_or_activate(
     identity_len: usize,
     timeout_ms: u64,
 ) -> i64 {
-    contained(|| {
-        // SAFETY: The exported function forwards the caller's readable-buffer contracts.
-        let coordination = unsafe { string_from_raw(coordination_ptr, coordination_len) }?;
-        // SAFETY: The exported function forwards the caller's readable-buffer contracts.
-        let runtime = unsafe { string_from_raw(runtime_ptr, runtime_len) }?;
-        // SAFETY: The exported function forwards the caller's readable-buffer contracts.
-        let identity = unsafe { string_from_raw(identity_ptr, identity_len) }?;
-        Ok(bridge::acquire_or_activate(
-            coordination,
-            runtime,
-            identity,
+    // SAFETY: The caller upholds the same readable-buffer contracts.
+    unsafe {
+        arbitrate(
+            coordination_ptr,
+            coordination_len,
+            runtime_ptr,
+            runtime_len,
+            identity_ptr,
+            identity_len,
             timeout_ms,
-        ))
-    })
+            bridge::acquire_or_activate,
+        )
+    }
+}
+
+/// Acquires ownership without contacting the incumbent, waiting for it to exit. Returns a
+/// positive handle, zero if the incumbent kept ownership until the deadline, or an error.
+///
+/// # Safety
+/// Every pointer/length pair must identify readable UTF-8 bytes throughout the call.
+/// Empty strings may use null pointers. No pointer is retained after the call.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn keyguard_instance_acquire(
+    coordination_ptr: *const u8,
+    coordination_len: usize,
+    runtime_ptr: *const u8,
+    runtime_len: usize,
+    identity_ptr: *const u8,
+    identity_len: usize,
+    timeout_ms: u64,
+) -> i64 {
+    // SAFETY: The caller upholds the same readable-buffer contracts.
+    unsafe {
+        arbitrate(
+            coordination_ptr,
+            coordination_len,
+            runtime_ptr,
+            runtime_len,
+            identity_ptr,
+            identity_len,
+            timeout_ms,
+            bridge::acquire,
+        )
+    }
 }
 
 /// Waits for activation (1) or shutdown (0). Exactly one receiver is supported per handle.

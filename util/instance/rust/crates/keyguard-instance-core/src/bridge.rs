@@ -76,18 +76,31 @@ pub fn acquire_or_activate(
     contained("acquire", || {
         match crate::acquire_or_activate(coordination_dir, runtime_dir, identity, timeout_ms)? {
             Acquisition::Activated => Ok(0),
-            Acquisition::Primary(instance) => {
-                let mut registry = registry().lock().map_err(|_| Error::Internal)?;
-                let handle = registry.next;
-                if handle > i64::MAX as u64 {
-                    return Err(Error::Internal.into());
-                }
-                registry.next += 1;
-                registry.instances.insert(handle, Arc::new(instance));
-                Ok(handle as i64)
-            }
+            Acquisition::Primary(instance) => register(instance),
         }
     })
+}
+
+/// Returns a positive primary handle, zero if another process held ownership until the
+/// deadline, or a negative [`Error`] code. Never contacts the current owner.
+pub fn acquire(coordination_dir: &str, runtime_dir: &str, identity: &str, timeout_ms: u64) -> i64 {
+    contained("acquire_without_activation", || {
+        match crate::acquire(coordination_dir, runtime_dir, identity, timeout_ms)? {
+            Some(instance) => register(instance),
+            None => Ok(0),
+        }
+    })
+}
+
+fn register(instance: Instance) -> Result<i64> {
+    let mut registry = registry().lock().map_err(|_| Error::Internal)?;
+    let handle = registry.next;
+    if handle > i64::MAX as u64 {
+        return Err(Error::Internal.into());
+    }
+    registry.next += 1;
+    registry.instances.insert(handle, Arc::new(instance));
+    Ok(handle as i64)
 }
 
 /// Blocks for activation (one), shutdown (zero), or a negative [`Error`] code.

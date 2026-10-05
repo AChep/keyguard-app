@@ -24,6 +24,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class NativeInstanceTest {
@@ -39,6 +40,17 @@ class NativeInstanceTest {
         primary.close()
         assertFalse(primary.awaitActivation())
         acquire(config).close()
+    }
+
+    @Test
+    fun cInteropAcquisitionWithoutActivationWaitsForOwnership() = withFixture { config ->
+        val primary = acquire(config)
+        try {
+            assertNull(InstanceCoordinator.acquire(config.copy(timeoutMillis = 50)))
+        } finally {
+            primary.close()
+        }
+        assertNotNull(InstanceCoordinator.acquire(config)).close()
     }
 
     @Test

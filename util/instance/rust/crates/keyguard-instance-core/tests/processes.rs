@@ -186,6 +186,33 @@ fn process_crash_releases_ownership_and_replaces_stale_endpoint() {
 }
 
 #[test]
+fn acquisition_without_activation_waits_for_the_owner_to_exit() {
+    let directory = Directory::new();
+    let mut primary = Process::start(&directory, "app", 5000);
+    assert_eq!(primary.line(), "PRIMARY");
+    assert_eq!(
+        bridge::acquire(directory.path(), runtime().to_str().unwrap(), "app", 200),
+        0
+    );
+    let path = directory.path().to_owned();
+    let waiter = std::thread::spawn(move || {
+        bridge::acquire(&path, runtime().to_str().unwrap(), "app", 5000)
+    });
+    // The owner is never asked to show itself.
+    assert!(
+        primary
+            .output
+            .recv_timeout(Duration::from_millis(300))
+            .is_err()
+    );
+    primary.command("close");
+    assert!(primary.child.wait().unwrap().success());
+    let handle = waiter.join().unwrap();
+    assert!(handle > 0, "failed to acquire: {handle}");
+    assert_eq!(bridge::close(handle as u64), 0);
+}
+
+#[test]
 fn identity_and_data_directory_scope_ownership() {
     let directory = Directory::new();
     let another_directory = Directory::new();
@@ -271,6 +298,14 @@ fn invalid_config_never_enters_native_wait() {
     );
     assert_eq!(
         bridge::acquire_or_activate(directory.path(), runtime().to_str().unwrap(), "app", 0),
+        -1
+    );
+    assert_eq!(
+        bridge::acquire(directory.path(), runtime().to_str().unwrap(), "..", 5000),
+        -1
+    );
+    assert_eq!(
+        bridge::acquire(directory.path(), runtime().to_str().unwrap(), "app", 0),
         -1
     );
 }

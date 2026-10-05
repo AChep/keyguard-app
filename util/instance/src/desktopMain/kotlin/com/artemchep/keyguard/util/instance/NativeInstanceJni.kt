@@ -13,6 +13,13 @@ internal object NativeInstanceJni {
         timeoutMillis: Long,
     ): Long
 
+    external fun acquire(
+        coordinationDirectory: String,
+        runtimeDirectory: String,
+        identity: String,
+        timeoutMillis: Long,
+    ): Long
+
     external fun waitEvent(handle: Long): Long
 
     external fun stop(handle: Long): Long

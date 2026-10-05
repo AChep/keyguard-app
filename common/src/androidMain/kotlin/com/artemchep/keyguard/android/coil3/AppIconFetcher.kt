@@ -1,18 +1,11 @@
 package com.artemchep.keyguard.android.coil3
 
-import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import coil3.ImageLoader
-import coil3.asImage
 import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
-import coil3.fetch.ImageFetchResult
 import com.artemchep.keyguard.feature.favicon.AppIconUrl
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.drawable.toDrawable
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import kotlinx.coroutines.flow.first
@@ -46,16 +39,7 @@ class AppIconFetcher(
         }.getOrNull()
             ?: return null
 
-        val bitmap = createBitmap(icon.intrinsicWidth, icon.intrinsicHeight)
-        val canvas = Canvas(bitmap)
-        icon.setBounds(0, 0, icon.intrinsicWidth, icon.intrinsicHeight)
-        icon.draw(canvas)
-
-        return ImageFetchResult(
-            image = bitmap.toDrawable(options.context).asImage(),
-            isSampled = false,
-            dataSource = coil3.decode.DataSource.DISK,
-        )
+        return icon.toAppIconImage(options)
     }
 
     private suspend fun fetchGooglePlayStoreAppIcon(): FetchResult? {
@@ -123,11 +107,3 @@ private fun getApplicationIconOrThrow(
     }
     return packageManager.getApplicationIcon(packageName)
 }
-
-/**
- * Converts a [Bitmap] to a [Drawable].
- *
- * @param context The [Context] used to access resources.
- * @return The [Drawable] representation of the [Bitmap].
- */
-private fun Bitmap.toDrawable(context: Context) = toDrawable(context.resources)

@@ -101,6 +101,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.espresso.web)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.ext.junit.ktx)
+    androidTestImplementation(libs.google.zxing.core)
 }
 
 kotlin {

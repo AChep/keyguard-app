@@ -23,14 +23,12 @@ import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.feature.search.filter.model.FilterItemModel
 import com.artemchep.keyguard.ui.FlatItemAction
 import io.ktor.http.Url
-import kotlinx.coroutines.delay
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
-import kotlin.time.Duration.Companion.seconds
 
 class VaultListParityTest {
     private companion object {
@@ -776,16 +774,8 @@ class VaultListParityTest {
             apple.source.toggleFilterSection(FilterSection.TYPE.id)
 
             // The collapsed set is persisted under the SHARED disk key.
-            val sectionsSink = scope.mutablePersistedFlow<List<String>>(
-                VaultListPersistence.KEY_SECTIONS,
-            ) { emptyList() }
-            awaitPersistedStable(
+            canonical.awaitPersisted(
                 diskKey = filterDiskKey,
-                description = "the collapsed 'type' section id",
-                rewrite = {
-                    sectionsSink.value = emptyList()
-                    sectionsSink.value = listOf(FilterSection.TYPE.id)
-                },
             ) { entry ->
                 val sections = entry[VaultListPersistence.KEY_SECTIONS] as? List<*>
                 sections?.contains(FilterSection.TYPE.id) == true
@@ -954,18 +944,18 @@ class VaultListParityTest {
                     .filterIsInstance<FlatItemAction>()
                     .any { it.id == "vault.action.remember_sorting.true" }
             }
-            val rememberSink = scope.mutablePersistedFlow(
-                VaultListPersistence.KEY_SORT_PERSISTENT_ENABLED,
-            ) { false }
-            awaitPersistedStable(
+            canonical.awaitPersisted(
                 diskKey = "${VaultListPersistence.DISK}@$screenName",
-                description = "remember-sorting enabled on disk",
-                rewrite = {
-                    rememberSink.value = false
-                    rememberSink.value = true
-                },
             ) { entry ->
                 entry[VaultListPersistence.KEY_SORT_PERSISTENT_ENABLED] == true
+            }
+        }
+
+        harness.run(screenName = screenName) {
+            awaitState(description = "remember-sorting restored in a fresh session") { state ->
+                state.actions
+                    .filterIsInstance<FlatItemAction>()
+                    .any { it.id == "vault.action.remember_sorting.true" }
             }
         }
     }
@@ -1149,34 +1139,6 @@ class VaultListParityTest {
             assertNull(afterRows[removedId], "the removed row left the content map")
         }
     }
-
-    private suspend fun DualVaultListHandle.awaitPersistedStable(
-        diskKey: String,
-        description: String,
-        rewrite: () -> Unit,
-        predicate: (Map<String, Any?>) -> Boolean,
-    ) {
-        repeat(20) {
-            val ok = runCatching {
-                canonical.awaitPersisted(diskKey, timeout = 2.seconds, predicate = predicate)
-            }.isSuccess
-            if (ok) {
-                // Out-wait the (180ms-debounced) one-shot clobber window and
-                // re-check that the value survived.
-                delay(450)
-                val entry = canonical.persistence.snapshot()[diskKey].orEmpty()
-                if (predicate(entry)) {
-                    return
-                }
-            }
-            rewrite()
-        }
-        throw AssertionError(
-            "Persisted state at '$diskKey' never stabilized: $description; " +
-                    "last entry: ${canonical.persistence.snapshot()[diskKey]}",
-        )
-    }
-
 
     private suspend fun DualVaultListHandle.assertCellParity(
         case: String,

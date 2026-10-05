@@ -7,6 +7,7 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.screen.ScrollPositionState
 import com.artemchep.keyguard.feature.home.vault.screen.VaultListPersistence
 import com.artemchep.keyguard.feature.home.vault.screen.VaultListState
+import com.artemchep.keyguard.feature.navigation.state.DiskHandle
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScopeZygote
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +24,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlin.time.Duration
@@ -213,6 +216,24 @@ internal class AppleSourceHandle(
     }, predicate)
 }
 
+/**
+ * Both pipelines share persisted flows, so they must also share their disk writer.
+ * A second handle has no linked flows and can overwrite the first handle's saved state.
+ */
+private class SharedPersistenceScope(
+    private val delegate: RememberStateFlowScopeZygote,
+) : RememberStateFlowScopeZygote by delegate {
+    private val diskHandleLock = Mutex()
+    private val diskHandles = mutableMapOf<Pair<String, Boolean>, DiskHandle>()
+
+    override suspend fun loadDiskHandle(key: String, global: Boolean): DiskHandle =
+        diskHandleLock.withLock {
+            diskHandles.getOrPut(key to global) {
+                delegate.loadDiskHandle(key, global)
+            }
+        }
+}
+
 internal fun <T> VaultListTestHarness.runDual(
     args: VaultRoute.Args = VaultRoute.Args(),
     mode: AppMode = AppMode.Main,
@@ -233,7 +254,7 @@ internal fun <T> VaultListTestHarness.runDual(
             navigationController = navigation,
             showMessage = messages,
             clipboardService = clipboard,
-        )
+        ).let(::SharedPersistenceScope)
         val (canonicalFlow, appleSource) = withContext(screenScope.coroutineContext) {
             val canonicalFlow = scope.CanonicalVaultListPipeline(koinScope, args, mode)
             val appleSource = scope.createAppleVaultListSource(koinScope, args, mode)

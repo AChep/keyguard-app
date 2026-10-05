@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalInspectionMode
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.backup.BackupConfig
 import com.artemchep.keyguard.common.service.backup.BackupRunProgress
@@ -51,6 +52,7 @@ internal fun AutomaticBackupsPreview(
             ),
         ) {
             CompositionLocalProvider(
+                LocalInspectionMode provides true,
                 GlobalExpressive provides expressive,
                 LocalExpressive provides expressive,
                 LocalSurfaceColor provides scheme.surface,

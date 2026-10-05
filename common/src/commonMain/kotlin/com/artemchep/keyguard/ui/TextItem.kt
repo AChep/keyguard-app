@@ -77,6 +77,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
@@ -1154,7 +1155,8 @@ fun PlainTextField(
     val mergedTextStyle = textStyle.merge(TextStyle(color = textColor))
     val cursorBrushColor =
         if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-    val keyboardShortcutsService = koinInject<KeyboardShortcutsService>()
+    val keyboardShortcutsService =
+        if (LocalInspectionMode.current) null else koinInject<KeyboardShortcutsService>()
     val windowId = LocalWindowId.current
 
     IncognitoInputIf(
@@ -1175,7 +1177,7 @@ fun PlainTextField(
                 .onPreviewKeyEvent { event ->
                     value.selection.collapsed &&
                         event.isCopyKeyDown() &&
-                        keyboardShortcutsService.handle(windowId, event)
+                        keyboardShortcutsService?.handle(windowId, event) == true
                 }
                 .defaultMinSize(
                     minWidth = TextFieldDefaults.MinWidth,

@@ -349,8 +349,8 @@
     <string name="replace_database_file">Replace a database file</string>
     <string name="database_location_title">Database location</string>
     <string name="database_location_local">Local file</string>
-    <string name="database_location_webdav">WebDAV</string>
-    <string name="database_location_s3">S3</string>
+    <string name="database_location_webdav" translatable="false">WebDAV</string>
+    <string name="database_location_s3" translatable="false">S3</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
     <string name="addaccount_method_header_title">Add account</string>
@@ -800,7 +800,7 @@
     <string name="list_remove_confirmation_title">Remove an item?</string>
     <string name="list_add">Add more</string>
 
-    <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
+    <string name="fido2webauthn_web_title" translatable="false">FIDO2 WebAuthn</string>
     <string name="fido2webauthn_action_go_title">Authenticate WebAuthn</string>
     <string name="fido2webauthn_action_return_title">Return to app</string>
 
@@ -1211,7 +1211,7 @@
     <string name="provider_2fa_duo_organization">Duo (Organization)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web Authentication</string>
     <string name="provider_2fa_email">Email</string>
-    <string name="provider_2fa_fido_u2f">FIDO U2F</string>
+    <string name="provider_2fa_fido_u2f" translatable="false">FIDO U2F</string>
 
     <string name="yubikey_usb_title">Connect YubiKey via USB</string>
     <string name="yubikey_usb_text">Requires USB OTG support.</string>
@@ -1344,7 +1344,7 @@
     <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
     <string name="ssh_agent_setup_step_3_title">3. Verify</string>
     <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
-    <string name="ssh_agent_setup_windows_title">Windows</string>
+    <string name="ssh_agent_setup_windows_title" translatable="false">Windows</string>
     <string name="ssh_agent_setup_windows_text">Keyguard listens on a Windows named pipe. Point Windows OpenSSH at this pipe.</string>
     <string name="ssh_agent_setup_android_termux_title" translatable="false">Termux</string>
     <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
@@ -1597,8 +1597,8 @@
     <string name="generator_gpg_key_modern_note">Creates an OpenPGP key with Ed25519 signing/certification keys and an X25519 encryption subkey.</string>
     <string name="generator_gpg_key_rsa_note">Creates an OpenPGP key with an RSA certification key and separate RSA signing and encryption subkeys.</string>
     <string name="gpg_key_version_title">Certificate version</string>
-    <string name="gpg_key_version_v4">v4</string>
-    <string name="gpg_key_version_v6">v6</string>
+    <string name="gpg_key_version_v4" translatable="false">v4</string>
+    <string name="gpg_key_version_v6" translatable="false">v6</string>
     <string name="gpg_key_version_v4_note">Compatible with GnuPG and older OpenPGP clients.</string>
     <string name="gpg_key_version_v6_note">Uses RFC 9580. Requires a client that supports v6 certificates.</string>
     <string name="generator_gpg_key_modern_text">Modern OpenPGP key shape</string>
@@ -2001,7 +2001,7 @@
     <string name="pref_item_hibp_api_token_status_verified">Verified</string>
     <string name="pref_item_hibp_api_token_status_rejected">Rejected</string>
     <string name="pref_item_hibp_api_token_status_failed">Could not verify</string>
-    <string name="pref_item_hibp_header_title">Have I Been Pwned</string>
+    <string name="pref_item_hibp_header_title" translatable="false">Have I Been Pwned</string>
     <string name="pref_item_hibp_api_token_note">Use your own API key for higher rate limits.</string>
     <string name="pref_item_hibp_api_token_check_failed">Check failed</string>
     <string name="pref_item_hibp_api_token_placeholder">32-character API key</string>

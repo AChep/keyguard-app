@@ -49,6 +49,16 @@ The expected certificate identity is:
 - CV25519 subkey fingerprint `93ABCF804D85EE79D6E1DB0E77648D3E5D4E7699`
 - CV25519 subkey keygrip `85C1DE785BEE9244BAFBA73A09E6085BA7A35C8E`
 
+`secp256k1-high-s-secret.asc` is an unprotected, test-only secp256k1
+certificate shared with the GPG agent E2E suite. It was generated with rPGP
+0.20.0 and `StdRng::seed_from_u64(0x4849474853454350)`, using key and
+self-certification creation time `1700000000`. Its self-certification was
+re-signed at that fixed time, then changed to the equivalent high-S form
+`(r, n - s_low)` using k256 0.13.4. Its primary fingerprint is
+`BD172917BC68E7BE3EAF44419164C64B17AC038D`. The native verifier test asserts
+that the fixture remains high-S. This publicly known secret must never be
+used outside tests.
+
 The SHA-256 manifest below is enforced by `openpgp_fixture_manifest.rs`:
 
 ```text
@@ -62,6 +72,7 @@ f67aa51dc62c00060ae76526e9306cc7b641f5e152304958d33067154c18923c  designated-rev
 b2051b4e3f03793ae9db9769d4650aff15070866be76d0498c8633c59d4cc26f  detached-signature.asc
 f68a73328dbc77441ccc15f2d65509e46a57aa598ed7474542700ba32552a81b  mdc-public.asc
 cade1a0b5b8963632b0892e971d4dad346fccb703b20c63201d1562babed77f0  mdc-secret.asc
+144cae2bf3d8e5d752f1794914e5d05d99a7add1da4eb414d5fb21e33c97f21b  secp256k1-high-s-secret.asc
 998a9e2054e4f05c86a6e47c44f344a634cd5bdda19257675f31b89a63e7889c  v3-public.asc
 d47336c382b4b7772ab98c38f2a39d8d3a083b6a55a8956c5f709ea7af127ae7  v3-secret.asc
 ```

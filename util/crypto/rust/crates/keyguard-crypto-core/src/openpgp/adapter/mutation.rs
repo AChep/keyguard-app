@@ -18,20 +18,18 @@ use super::{
         Message as _, OpenPgpCertificateMaterialContributions,
         OpenPgpCertificateMaterialInputContribution, OpenPgpCertificateMaterialInputErrorReason,
         OpenPgpCertificateMaterialPairErrorReason, OpenPgpCertificateMaterialReconcileError,
-        OpenPgpCertificateMaterialReconcileRequest, OpenPgpCertificateMaterialReconcileResult,
-        OpenPgpCertificateMaterialReconcileSuccess, OpenPgpCertificateMaterialReconcileV2Request,
-        OpenPgpCertificateMaterialReconcileV2Result, OpenPgpCertificateMaterialReconcileV2Success,
-        OpenPgpCertificateMaterialWithheldReason, OpenPgpExpirationUpdateError,
-        OpenPgpExpirationUpdateErrorReason, OpenPgpExpirationUpdateRequest,
-        OpenPgpExpirationUpdateResult, OpenPgpExpirationUpdateSuccess,
-        OpenPgpUserIdReplacementError, OpenPgpUserIdReplacementErrorReason,
-        OpenPgpUserIdReplacementRequest, OpenPgpUserIdReplacementResult,
-        OpenPgpUserIdReplacementSuccess, OpenPgpUserIdRevocationError,
-        OpenPgpUserIdRevocationErrorReason, OpenPgpUserIdRevocationRequest,
-        OpenPgpUserIdRevocationResult, OpenPgpUserIdRevocationSuccess,
-        open_pgp_certificate_material_reconcile_result,
-        open_pgp_certificate_material_reconcile_v2_result, open_pgp_expiration_update_result,
-        open_pgp_user_id_replacement_result, open_pgp_user_id_revocation_result,
+        OpenPgpCertificateMaterialReconcileV2Request, OpenPgpCertificateMaterialReconcileV2Result,
+        OpenPgpCertificateMaterialReconcileV2Success, OpenPgpCertificateMaterialWithheldReason,
+        OpenPgpExpirationUpdateError, OpenPgpExpirationUpdateErrorReason,
+        OpenPgpExpirationUpdateRequest, OpenPgpExpirationUpdateResult,
+        OpenPgpExpirationUpdateSuccess, OpenPgpUserIdReplacementError,
+        OpenPgpUserIdReplacementErrorReason, OpenPgpUserIdReplacementRequest,
+        OpenPgpUserIdReplacementResult, OpenPgpUserIdReplacementSuccess,
+        OpenPgpUserIdRevocationError, OpenPgpUserIdRevocationErrorReason,
+        OpenPgpUserIdRevocationRequest, OpenPgpUserIdRevocationResult,
+        OpenPgpUserIdRevocationSuccess, open_pgp_certificate_material_reconcile_v2_result,
+        open_pgp_expiration_update_result, open_pgp_user_id_replacement_result,
+        open_pgp_user_id_revocation_result,
     },
 };
 
@@ -64,45 +62,6 @@ pub(crate) fn update_expiration(
                     reason: expiration_reason(error) as i32,
                 },
             )),
-        }
-        .encode_to_vec()),
-    }
-}
-
-pub(crate) fn reconcile_certificate_material(
-    mut request: OpenPgpCertificateMaterialReconcileRequest,
-) -> Result<Vec<u8>, PrimitiveError> {
-    let input = CertificateMaterialReconcileInput {
-        expected_primary_fingerprint: std::mem::take(&mut request.expected_primary_fingerprint),
-        existing_public_certificate: std::mem::take(&mut request.existing_public_certificate),
-        incoming_public_certificate: std::mem::take(&mut request.incoming_public_certificate),
-        existing_secret_certificate: std::mem::take(&mut request.existing_secret_certificate),
-        incoming_secret_certificate: std::mem::take(&mut request.incoming_secret_certificate),
-    };
-    match workflow::reconcile_certificate_material_request(input) {
-        Ok(mut success) => Ok(OpenPgpCertificateMaterialReconcileResult {
-            result: Some(
-                open_pgp_certificate_material_reconcile_result::Result::Success(
-                    OpenPgpCertificateMaterialReconcileSuccess {
-                        public_certificate: std::mem::take(&mut success.public_certificate),
-                        private_certificate: std::mem::take(&mut success.private_certificate),
-                        primary_fingerprint: std::mem::take(&mut success.primary_fingerprint),
-                        existing_public_contributed: success.existing_public_contributed,
-                        incoming_public_contributed: success.incoming_public_contributed,
-                        existing_secret_contributed: success.existing_secret_contributed,
-                        incoming_secret_contributed: success.incoming_secret_contributed,
-                    },
-                ),
-            ),
-        }
-        .encode_to_vec()),
-        Err(ReconcileError::Internal) => Err(PrimitiveError::Internal),
-        Err(error) => Ok(OpenPgpCertificateMaterialReconcileResult {
-            result: Some(
-                open_pgp_certificate_material_reconcile_result::Result::Error(reconcile_error(
-                    error,
-                )),
-            ),
         }
         .encode_to_vec()),
     }

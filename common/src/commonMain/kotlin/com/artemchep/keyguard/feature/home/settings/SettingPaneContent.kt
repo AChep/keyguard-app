@@ -138,8 +138,10 @@ import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAf
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAfterTimeoutProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultPersistProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingWebDavTransactionsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingWebsiteIconsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingWriteAccessProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingFido2UnlockProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingYubiKeyUnlockProvider
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.platform.CurrentPlatform
@@ -187,6 +189,7 @@ object Setting {
     const val PERMISSION_POST_NOTIFICATION = "permission_post_notification"
     const val BIOMETRIC = "biometric"
     const val BIOMETRIC_REQUIRE_CONFIRMATION = "biometric_require_confirmation"
+    const val FIDO2_UNLOCK = "fido2_unlock"
     const val YUBIKEY_UNLOCK = "yubikey_unlock"
     const val VAULT_PERSIST = "vault_persist"
     const val VAULT_CLEAR = "vault_clear"
@@ -224,6 +227,7 @@ object Setting {
     const val LOGS = "logs"
     const val FEATURES_OVERVIEW = "features_overview"
     const val URL_OVERRIDE = "url_override"
+    const val WEBDAV_TRANSACTIONS = "webdav_transactions"
     const val CONNECTED_APPS = "connected_apps"
     const val SSH_SETTINGS = "ssh_settings"
     const val SSH_AGENT = "ssh_agent"
@@ -319,6 +323,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.PERMISSION_WRITE_EXTERNAL_STORAGE to ::settingPermissionWriteExternalStorageProvider,
     Setting.BIOMETRIC to ::settingBiometricsProvider,
     Setting.BIOMETRIC_REQUIRE_CONFIRMATION to ::settingBiometricsRequireConfirmationProvider,
+    Setting.FIDO2_UNLOCK to ::settingFido2UnlockProvider,
     Setting.YUBIKEY_UNLOCK to ::settingYubiKeyUnlockProvider,
     Setting.VAULT_PERSIST to ::settingVaultPersistProvider,
     Setting.VAULT_CLEAR to ::settingVaultClearProvider,
@@ -356,6 +361,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.LOGS to ::settingLogsProvider,
     Setting.FEATURES_OVERVIEW to ::settingFeaturesOverviewProvider,
     Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
+    Setting.WEBDAV_TRANSACTIONS to ::settingWebDavTransactionsProvider,
     Setting.CONNECTED_APPS to ::settingConnectedAppsProvider,
     Setting.SSH_SETTINGS to ::settingSshSettingsProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,

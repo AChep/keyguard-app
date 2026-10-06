@@ -26,6 +26,12 @@ internal fun verifyPackagedInstanceService() {
             }
             try {
                 val activation = receiver.submit<Boolean> { primary.awaitActivation() }
+                // The passkey provider's acquisition reports the owner instead of activating it.
+                // A pending activation would be retained, so check before activating below.
+                InstanceCoordinator.acquire(configuration.copy(timeoutMillis = 50))?.use {
+                    error("Acquired ownership that another instance holds")
+                }
+                check(!activation.isDone)
                 check(InstanceCoordinator.acquireOrActivate(configuration) == InstanceResult.Activated)
                 check(activation.get(ACTIVATION_TIMEOUT_SECONDS, TimeUnit.SECONDS))
             } finally {

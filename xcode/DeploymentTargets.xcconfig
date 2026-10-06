@@ -1,0 +1,4 @@
+// Generated from gradle/libs.versions.toml. Do not edit.
+// Regenerate with ./gradlew generateAppleConfiguration.
+MACOSX_DEPLOYMENT_TARGET = 14.0
+IPHONEOS_DEPLOYMENT_TARGET = 18.5

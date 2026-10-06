@@ -1,3 +1,4 @@
+import com.artemchep.keyguard.buildplugins.cargo.CargoBuildTask
 import com.artemchep.keyguard.buildplugins.kotlin.sharedJvmMain
 import com.artemchep.keyguard.buildplugins.testing.registerJvmBenchmark
 import org.gradle.api.tasks.testing.Test
@@ -22,6 +23,25 @@ keyguardRust {
     )
 }
 
+// Native C dependencies otherwise inherit the active Xcode SDK's deployment version.
+tasks.named<CargoBuildTask>("cargoBuildNativeCryptoMacosArm64") {
+    environmentVariables.put(
+        "MACOSX_DEPLOYMENT_TARGET",
+        libs.versions.appleMacosDeploymentTarget,
+    )
+}
+listOf(
+    "cargoBuildNativeCryptoIosArm64",
+    "cargoBuildNativeCryptoIosSimulatorArm64",
+).forEach { taskName ->
+    tasks.named<CargoBuildTask>(taskName) {
+        environmentVariables.put(
+            "IPHONEOS_DEPLOYMENT_TARGET",
+            libs.versions.appleIosDeploymentTarget,
+        )
+    }
+}
+
 kotlin {
     android {
         namespace = "com.artemchep.keyguard.nativecrypto"
@@ -38,11 +58,8 @@ kotlin {
             }
         }
 
-        sharedJvmMain(name = "jvmCommonMain")
-        getByName("desktopMain") {
-            dependencies {
-                implementation(libs.java.jna)
-            }
+        sharedJvmMain(name = "jvmCommonMain").dependencies {
+            implementation(project(":util:ffi"))
         }
 
         getByName("iosArm64Main") {

@@ -18,8 +18,6 @@ use std::{
 };
 
 use aes::Aes256;
-#[cfg(test)]
-use flate2::write::{DeflateEncoder, ZlibEncoder};
 use flate2::{
     Compression,
     read::{DeflateEncoder as DeflateReader, ZlibEncoder as ZlibReader},
@@ -28,8 +26,6 @@ use ocb3::{
     AeadInPlace, KeyInit, Nonce, Ocb3,
     consts::{U15, U16},
 };
-#[cfg(test)]
-use pgp::packet::PacketHeader;
 use pgp::{
     armor::{self, BlockType, Headers},
     composed::{
@@ -116,8 +112,6 @@ const MAX_FILE_NAME_BYTES: usize = 4 * 1024;
 const MAX_CLEAR_SIGNED_PENDING_WHITESPACE_BYTES: usize = 64 * 1024;
 const GNUPG_AEAD_CHUNK_OCTET: u8 = 10;
 const GNUPG_AEAD_CHUNK_BYTES: usize = 1 << (GNUPG_AEAD_CHUNK_OCTET as usize + 6);
-#[cfg(test)]
-const AEAD_TAG_BYTES: usize = 16;
 const OPENPGP_PARTIAL_PACKET_BYTES: usize = 64 * 1024;
 const OPENPGP_PARTIAL_PACKET_OCTET: u8 = 0xf0;
 const MAX_OPENPGP_STREAM_WORKERS: usize = 4;
@@ -135,8 +129,6 @@ mod staging;
 mod streaming;
 
 use common::*;
-#[cfg(test)]
-use decryption::*;
 use encryption::*;
 use model::*;
 use signing::*;

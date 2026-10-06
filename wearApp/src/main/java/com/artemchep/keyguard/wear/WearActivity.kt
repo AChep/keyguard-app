@@ -12,6 +12,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.wear.compose.material3.MaterialTheme
 import com.artemchep.keyguard.android.BaseApp
 import com.artemchep.keyguard.copy.PermissionServiceAndroid
+import com.artemchep.keyguard.platform.LocalWindowId
+import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.wear.locale.WearLocalizedActivity
 import com.artemchep.keyguard.wear.ui.WearKeyguardTheme
@@ -19,6 +21,8 @@ import kotlin.getValue
 import org.koin.compose.KoinIsolatedContext
 
 class WearActivity : WearLocalizedActivity() {
+    private val windowId = WindowId.create()
+
     private val permissionService: PermissionServiceAndroid by lazy { koin.get() }
 
     override fun onResume() {
@@ -52,6 +56,7 @@ class WearActivity : WearLocalizedActivity() {
                             },
                     ) {
                         CompositionLocalProvider(
+                            LocalWindowId provides windowId,
                             LocalSurfaceColor provides containerColor,
                         ) {
                             WearNavigationHost(

@@ -50,6 +50,7 @@ struct ResolvedSocketPath {
 pub async fn serve<F>(
     ipc_client: IpcClient,
     socket_path: &Path,
+    lifecycle_lock_directory: Option<&Path>,
     parent_stdin_closed: oneshot::Receiver<()>,
     on_ready: F,
 ) -> Result<()>
@@ -62,7 +63,12 @@ where
     ensure_socket_parent_dir(bind_path)?;
 
     let uid = current_uid();
-    let lifecycle_lock = LIFECYCLE.acquire_lifecycle_lock(bind_path, uid)?;
+    let lifecycle_lock = match lifecycle_lock_directory {
+        Some(directory) => {
+            LIFECYCLE.acquire_lifecycle_lock_in_directory(bind_path, uid, directory)?
+        }
+        None => LIFECYCLE.acquire_lifecycle_lock(bind_path, uid)?,
+    };
     LIFECYCLE
         .prepare_socket_path_for_bind(bind_path, uid)
         .await?;

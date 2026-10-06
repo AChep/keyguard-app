@@ -19,8 +19,7 @@ fetched from a keyserver (`keys.openpgp.org` by default).
 
 ## Desktop (Linux, macOS & Windows)
 
-1. Enable the **GPG agent** in Keyguard's GPG settings, and make sure the
-   vault holds a GPG key the agent is allowed to use. Keyguard creates a dedicated `GNUPGHOME` directory for the integration:
+1. Enable the **GPG agent** in Keyguard's GPG settings, and make sure the vault holds a GPG key the agent is allowed to use. The integration uses a dedicated `GNUPGHOME` directory:
    - **Linux** — `$XDG_DATA_HOME/keyguard/gnupg` (or
      `~/.local/share/keyguard/gnupg` if `XDG_DATA_HOME` is unset, empty, or relative); **Flatpak** —
      `~/.var/app/com.artemchep.keyguard/data/gnupg`;
@@ -63,12 +62,13 @@ fetched from a keyserver (`keys.openpgp.org` by default).
    $env:GNUPGHOME = "$env:LOCALAPPDATA\ArtemChepurnyi\keyguard\gnupg"
    ```
 
-   Keyguard speaks the standard gpg-agent protocol on the separate endpoint
+   Keyguard supports the standard gpg-agent protocol on the separate endpoint
    reported by `gpgconf --homedir "$GNUPGHOME" --list-dirs agent-socket`.
    Because GnuPG may locate that endpoint in a per-user runtime directory,
-   Keyguard queries gpgconf to find the socket location. If `gpgconf` cannot
-   resolve an absolute endpoint or prepare the required socket directory, Keyguard
-   reports a startup error. Native Windows GnuPG resolves a marker-file
+   the native macOS setup script queries `gpgconf` and links the endpoint to
+   Keyguard. Other desktop builds query `gpgconf` at startup and report an
+   error if it cannot resolve an absolute endpoint or prepare its directory.
+   Native Windows GnuPG resolves a marker-file
    endpoint backed by a loopback connection; Keyguard publishes that endpoint
    automatically.
 3. Export the public key from the **GPG key** item and import it into this
@@ -187,8 +187,10 @@ the connection and process scopes usually ask again even in the same terminal
 tab or pane.
 
 The terminal columns describe Linux and macOS when native identity evidence is
-available. On Windows, every option currently behaves like **Per
-connection**.
+available. If Keyguard cannot verify the caller, including requests restricted
+by the native macOS sandbox, approval reuse falls back to **Per connection**.
+
+On Windows the approval-scope setting is not supported.
 
 ## Reviewing activity
 

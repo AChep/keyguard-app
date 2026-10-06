@@ -1,5 +1,9 @@
 package com.artemchep.keyguard.core.session
 
+import com.artemchep.keyguard.util.fido2.NativeFido2Client
+
+import com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability
+
 import arrow.core.partially1
 import arrow.optics.Getter
 import com.artemchep.autotype.biometricsIsSupported
@@ -28,6 +32,7 @@ import com.artemchep.keyguard.common.service.backup.BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.BackupSchedulerWorker
 import com.artemchep.keyguard.common.service.backup.LocalFolderBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.backup.S3BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
@@ -74,6 +79,7 @@ import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PutLocale
+import com.artemchep.keyguard.util.yubikey.NativeYubiKeyClient
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.usecase.impl.GetLocaleImpl
 import com.artemchep.keyguard.common.usecase.impl.PutLocaleImpl
@@ -107,7 +113,6 @@ import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
 import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
 import com.artemchep.keyguard.util.io.resolve
 import com.artemchep.keyguard.util.traverse
-import io.ktor.client.HttpClient
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -263,8 +268,9 @@ class PlatformApplicationModule {
             SelectableBackupObjectStoreFactory(
                 localFactory = get(qualifier = named(BackupLocalObjectStoreFactoryTag)),
                 webDavFactory = WebDavBackupObjectStoreFactory(
-                    httpClient = get<HttpClient>(),
+                    webDavClientFactory = get(),
                 ),
+                s3Factory = get<S3BackupObjectStoreFactory>(),
             )
         }
         single {
@@ -295,8 +301,11 @@ class PlatformApplicationModule {
                 )
             }
         }
+        single<Fido2UnlockAvailability> {
+            Fido2UnlockAvailability { NativeFido2Client().isSupported }
+        }
         single<YubiKeyUnlockAvailability> {
-            YubiKeyUnlockAvailability { false }
+            YubiKeyUnlockAvailability { NativeYubiKeyClient().isSupported }
         }
         single<GetBarcodeImage> {
             GetBarcodeImageJvm()

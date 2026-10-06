@@ -21,10 +21,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.service.backup.BackupConfig
@@ -518,4 +521,59 @@ private fun BackupRunProgressDetails.progressPercentage(): Float? {
     }
 
     return null
+}
+
+@Composable
+private fun AutomaticBackupsStatusPreview(status: BackupStatus, expanded: Boolean = false) {
+    AutomaticBackupsPreview {
+        AutomaticBackupsStatusPanel(
+            config = AutomaticBackupsPreviewData.config.copy(enabled = true),
+            status = status,
+            dateFormatter = AutomaticBackupsPreviewData.dateFormatter,
+            configExpanded = remember { mutableStateOf(expanded) },
+            statusExpanded = remember { mutableStateOf(expanded) },
+        )
+    }
+}
+
+@Preview(name = "Status — no backup", group = "Backup settings", widthDp = 390)
+@Composable
+internal fun AutomaticBackupsStatusEmptyPreview() {
+    AutomaticBackupsStatusPreview(BackupStatus())
+}
+
+@Preview(name = "Status — success", group = "Backup settings", widthDp = 390)
+@Composable
+internal fun AutomaticBackupsStatusSuccessPreview() {
+    AutomaticBackupsStatusPreview(AutomaticBackupsPreviewData.success)
+}
+
+@Preview(name = "Status — failure", group = "Backup settings", widthDp = 390)
+@Composable
+internal fun AutomaticBackupsStatusFailurePreview() {
+    AutomaticBackupsStatusPreview(AutomaticBackupsPreviewData.failure)
+}
+
+@Preview(name = "Status — skipped", group = "Backup settings", widthDp = 390)
+@Composable
+internal fun AutomaticBackupsStatusSkippedPreview() {
+    AutomaticBackupsStatusPreview(AutomaticBackupsPreviewData.skipped)
+}
+
+@Preview(name = "Status — attachment progress", group = "Backup settings", widthDp = 390)
+@Composable
+internal fun AutomaticBackupsStatusRunningPreview() {
+    AutomaticBackupsStatusPreview(AutomaticBackupsPreviewData.running)
+}
+
+@Preview(name = "Status — preparing", group = "Backup settings", widthDp = 390)
+@Composable
+internal fun AutomaticBackupsStatusPreparingPreview() {
+    AutomaticBackupsStatusPreview(AutomaticBackupsPreviewData.preparing)
+}
+
+@Preview(name = "Status — expanded details", group = "Backup settings", widthDp = 390)
+@Composable
+internal fun AutomaticBackupsStatusExpandedPreview() {
+    AutomaticBackupsStatusPreview(AutomaticBackupsPreviewData.success, expanded = true)
 }

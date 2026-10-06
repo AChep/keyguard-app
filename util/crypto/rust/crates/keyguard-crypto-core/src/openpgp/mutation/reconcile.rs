@@ -41,19 +41,13 @@ impl Drop for CertificateMaterialReconcileInput {
 }
 
 pub(crate) struct CertificateMaterialReconcileSuccess {
-    /// V1 compatibility field containing local public material.
-    pub(crate) public_certificate: Vec<u8>,
     /// Packet-preserving local public evidence for V2 persistence.
     pub(crate) local_public_material: Vec<u8>,
-    /// V1 compatibility field containing local secret material.
+    /// Local secret material.
     pub(crate) private_certificate: Option<Vec<u8>>,
     pub(crate) transferable_public_certificate: Option<Vec<u8>>,
     pub(crate) transferable_private_certificate: Option<Vec<u8>>,
     pub(crate) primary_fingerprint: String,
-    pub(crate) existing_public_contributed: bool,
-    pub(crate) incoming_public_contributed: bool,
-    pub(crate) existing_secret_contributed: bool,
-    pub(crate) incoming_secret_contributed: bool,
     pub(crate) contributions: CertificateMaterialContributions,
     pub(crate) withheld_reasons: Vec<MaterialWithheldReason>,
 }
@@ -141,18 +135,6 @@ struct SecretMaterial {
 struct ReconcileWorkBudget {
     signature_rehoming: SignatureRehomingBudget,
     export_classification: ExportClassificationBudget,
-}
-
-#[cfg(test)]
-impl ReconcileWorkBudget {
-    fn with_request_limits(signature_rehoming: usize, export_classification: usize) -> Self {
-        Self {
-            signature_rehoming: SignatureRehomingBudget::with_request_limit(signature_rehoming),
-            export_classification: ExportClassificationBudget::with_request_limit(
-                export_classification,
-            ),
-        }
-    }
 }
 
 pub(crate) fn reconcile_certificate_material_request(
@@ -246,16 +228,6 @@ fn reconcile_certificate_material(
         return Err(ReconcileError::Pair(MaterialPairError::FingerprintMismatch));
     }
     let unique_public_evidence = unique_public_evidence(&merged, public_inputs)?;
-    let existing_public_contributed = existing_side.as_ref().is_some_and(|_| {
-        incoming_side
-            .as_ref()
-            .is_none_or(|incoming| merged != *incoming)
-    });
-    let incoming_public_contributed = incoming_side.as_ref().is_some_and(|_| {
-        existing_side
-            .as_ref()
-            .is_none_or(|existing| merged != *existing)
-    });
 
     let merged = merged
         .finalize_with_export_budget(&[], &mut budget.export_classification)
@@ -267,8 +239,6 @@ fn reconcile_certificate_material(
             MaterialPairError::InvalidRebuiltOutput,
         ));
     }
-    let public_certificate = armor_key_packets(&merged.bytes, BlockType::PublicKey)
-        .map_err(map_output_material_error)?;
     let local_public_material = armor_key_packets(&merged.retained_bytes, BlockType::PublicKey)
         .map_err(map_output_material_error)?;
     let transferable_public_certificate = merged
@@ -312,16 +282,11 @@ fn reconcile_certificate_material(
         .is_some_and(|secret| secret.incoming_contributed);
 
     Ok(CertificateMaterialReconcileSuccess {
-        public_certificate,
         local_public_material,
         private_certificate,
         transferable_public_certificate,
         transferable_private_certificate,
         primary_fingerprint: merged.fingerprint,
-        existing_public_contributed,
-        incoming_public_contributed,
-        existing_secret_contributed,
-        incoming_secret_contributed,
         contributions: CertificateMaterialContributions {
             existing_public: MaterialInputContribution {
                 present: input_present[0],

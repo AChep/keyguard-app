@@ -69,6 +69,8 @@ detect_socket() {
         Darwin)
             add_candidate_socket "/tmp/keyguard-$(id -u)/ssh-agent.sock"
             add_candidate_socket "$HOME/.keyguard/ssh-agent.sock"
+            # The native (sandboxed) macOS app still binds inside its app group.
+            add_candidate_socket "$HOME/Library/Group Containers/group.com.artemchep.keyguard/ssh-agent.sock"
             ;;
         Linux)
             if [ "${container:-}" = "flatpak" ] && [ -n "${XDG_RUNTIME_DIR:-}" ]; then

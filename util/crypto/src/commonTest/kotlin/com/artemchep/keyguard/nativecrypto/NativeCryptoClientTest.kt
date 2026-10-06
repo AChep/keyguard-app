@@ -76,7 +76,6 @@ class NativeCryptoClientTest {
             NativeCryptoCapability.OPENPGP_EXTERNAL_REVOCATION_POLICY,
             NativeCryptoCapability.OPENPGP_SIGNED_REVOCATION,
             NativeCryptoCapability.OPENPGP_USER_ID_REPLACEMENT,
-            NativeCryptoCapability.OPENPGP_CERTIFICATE_MATERIAL_RECONCILE,
             NativeCryptoCapability.OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2,
             NativeCryptoCapability.OPENPGP_USER_ID_CERTIFICATION,
         ).forEach { missingCapability ->
@@ -230,7 +229,7 @@ class NativeCryptoClientTest {
         )
 
         val exception = assertFailsWith<NativeCryptoException> {
-            client.openHmacSha256(byteArrayOf(7))
+            client.openTestHmacSession()
         }
 
         assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, exception.code)
@@ -353,7 +352,7 @@ class NativeCryptoClientTest {
     @Test
     fun clearsStreamOpenRequestEnvelopeAfterSuccessAndFailure() {
         val successBridge = FakeBridge(streamOpenResponse = response(UInt64ResultProto(42L)))
-        val session = NativeCryptoClient(successBridge).openHmacSha256(byteArrayOf(7))
+        val session = NativeCryptoClient(successBridge).openTestHmacSession()
         assertTrue(assertNotNull(successBridge.lastStreamOpenRequest).all { byte -> byte == 0.toByte() })
         assertTrue(assertNotNull(successBridge.lastStreamOpenResponse).all { byte -> byte == 0.toByte() })
         session.close()
@@ -362,7 +361,7 @@ class NativeCryptoClientTest {
             streamOpenFailure = IllegalStateException("sensitive diagnostic"),
         )
         assertFailsWith<NativeCryptoException> {
-            NativeCryptoClient(failureBridge).openHmacSha256(byteArrayOf(7))
+            NativeCryptoClient(failureBridge).openTestHmacSession()
         }
         assertTrue(assertNotNull(failureBridge.lastStreamOpenRequest).all { byte -> byte == 0.toByte() })
     }
@@ -419,7 +418,7 @@ class NativeCryptoClientTest {
             streamOpenResponse = response(UInt64ResultProto(42L)),
             streamFinishResponse = response(BytesResultProto(byteArrayOf(1, 2, 3))),
         )
-        val session = NativeCryptoClient(bridge).openHmacSha256(byteArrayOf(7))
+        val session = NativeCryptoClient(bridge).openTestHmacSession()
 
         assertContentEquals(byteArrayOf(1, 2, 3), session.finish())
         assertEquals(1, bridge.streamFinishCalls)
@@ -437,7 +436,7 @@ class NativeCryptoClientTest {
     @Test
     fun closeIsIdempotent() {
         val bridge = FakeBridge(streamOpenResponse = response(UInt64ResultProto(42L)))
-        val session = NativeCryptoClient(bridge).openHmacSha256(byteArrayOf(7))
+        val session = NativeCryptoClient(bridge).openTestHmacSession()
 
         session.close()
         session.close()
@@ -460,7 +459,7 @@ class NativeCryptoClientTest {
                 response(BytesResultProto(ByteArray(0))),
             ),
         )
-        val session = NativeCryptoClient(bridge).openHmacSha256(byteArrayOf(7))
+        val session = NativeCryptoClient(bridge).openTestHmacSession()
 
         val failure = assertFailsWith<NativeCryptoException> { session.close() }
         assertEquals(NativeCryptoErrorCode.INTERNAL, failure.code)
@@ -483,7 +482,7 @@ class NativeCryptoClientTest {
                 response(BytesResultProto(ByteArray(0))),
             ),
         )
-        val session = NativeCryptoClient(bridge).openHmacSha256(byteArrayOf(7))
+        val session = NativeCryptoClient(bridge).openTestHmacSession()
 
         val failure = assertFailsWith<NativeCryptoException> { session.close() }
         assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
@@ -500,7 +499,7 @@ class NativeCryptoClientTest {
             streamFinishResponse = response(code = NativeErrorCodeProto.CRYPTO_FAILURE),
             streamCloseResponse = response(code = NativeErrorCodeProto.INVALID_SESSION),
         )
-        val session = NativeCryptoClient(bridge).openHmacSha256(byteArrayOf(7))
+        val session = NativeCryptoClient(bridge).openTestHmacSession()
 
         val exception = assertFailsWith<NativeCryptoException> { session.finish() }
 
@@ -527,7 +526,7 @@ class NativeCryptoClientTest {
         val session = NativeCryptoClient(
             bridge = bridge,
             onDiscardedOutputCleared = { output -> discardedOutput = output },
-        ).openHmacSha256(byteArrayOf(7))
+        ).openTestHmacSession()
 
         val exception = assertFailsWith<NativeCryptoException> { session.finish() }
 
@@ -547,7 +546,7 @@ class NativeCryptoClientTest {
     @Test
     fun clearsOwnedSliceAfterUpdate() {
         val bridge = FakeBridge(streamOpenResponse = response(UInt64ResultProto(42L)))
-        val session = NativeCryptoClient(bridge).openHmacSha256(byteArrayOf(7))
+        val session = NativeCryptoClient(bridge).openTestHmacSession()
 
         session.update(byteArrayOf(9, 8, 7, 6), offset = 1, length = 2)
 
@@ -558,7 +557,7 @@ class NativeCryptoClientTest {
     @Test
     fun rejectsStreamChunksLargerThan64KiB() {
         val bridge = FakeBridge(streamOpenResponse = response(UInt64ResultProto(42L)))
-        val session = NativeCryptoClient(bridge).openHmacSha256(byteArrayOf(7))
+        val session = NativeCryptoClient(bridge).openTestHmacSession()
 
         val exception = assertFailsWith<NativeCryptoException> {
             session.update(ByteArray(64 * 1024 + 1))
@@ -816,14 +815,6 @@ class NativeCryptoClientTest {
                     candidateRevocationKeys = listOf(byteArrayOf(14)),
                 ),
             ),
-            OpenPgpDecryptOperationProto(
-                OpenPgpDecryptRequestProto(
-                    content = byteArrayOf(7),
-                    privateKeys = listOf(byteArrayOf(8)),
-                    verificationPublicKeys = listOf(byteArrayOf(9)),
-                    referenceTimeEpochSeconds = 1_700_000_004L,
-                ),
-            ),
         )
         oneShotOperations.forEachIndexed { index, operation ->
             val encoded = ProtoBuf.encodeToByteArray(
@@ -939,22 +930,6 @@ class NativeCryptoClientTest {
         )
         assertContentEquals(byteArrayOf(13), encryptFinal.data)
         assertEquals(OpenPgpProtectionModeProto.SEIPD_V1_MDC, encryptFinal.protectionMode)
-        val decryptResult = roundTrip(
-            OpenPgpDecryptResultProto(
-                data = byteArrayOf(14),
-                verification = verification,
-                encrypted = true,
-                decryptionKeyFingerprint = "A".repeat(40),
-                warnings = listOf(OpenPgpDecryptionWarningProto.WEAK_RSA_KEY.wireValue),
-            ),
-        )
-        assertContentEquals(byteArrayOf(14), decryptResult.data)
-        assertEquals(OpenPgpVerificationStatusProto.VALID, decryptResult.verification?.status)
-        assertEquals("A".repeat(40), decryptResult.decryptionKeyFingerprint)
-        assertEquals(
-            listOf(OpenPgpDecryptionWarningProto.WEAK_RSA_KEY.wireValue),
-            decryptResult.warnings,
-        )
         val decryptFinal = roundTrip(
             OpenPgpDecryptFinalProto(
                 data = byteArrayOf(15),
@@ -1011,11 +986,16 @@ class NativeCryptoClientTest {
             callResponse = response(BytesResultProto(byteArrayOf(5, 6))),
             streamFinishResponse = response(BytesResultProto(byteArrayOf(7))),
         )
-        val session = NativeCryptoClient(bridge).openPgpDecryption(
-            privateKeys = listOf(byteArrayOf(1)),
-            verificationPublicKeys = emptyList(),
-            referenceTimeEpochSeconds = null,
-            allowSignedOnly = false,
+        val session = NativeCryptoClient(bridge).openSession(
+            operationName = "open_pgp_decrypt.stream_open",
+            operation = OpenPgpDecryptStreamOpenOperationProto(
+                OpenPgpDecryptStreamOpenRequestProto(
+                    privateKeys = listOf(byteArrayOf(1)),
+                    verificationPublicKeys = emptyList(),
+                    referenceTimeEpochSeconds = null,
+                    allowSignedOnly = false,
+                ),
+            ),
         )
         assertContentEquals(byteArrayOf(5, 6), session.drain())
         assertContentEquals(byteArrayOf(5, 6), session.drain())
@@ -1041,16 +1021,21 @@ class NativeCryptoClientTest {
             streamUpdateResponse = response(BytesResultProto(byteArrayOf(5, 6))),
             streamFinishResponse = response(BytesResultProto(finalPayload)),
         )
-        val session = NativeCryptoClient(bridge).openPgpEncryption(
-            publicKeys = listOf(byteArrayOf(1)),
-            candidateRevocationKeys = listOf(byteArrayOf(2)),
-            signingPrivateKey = null,
-            preferredSigningFingerprint = "",
-            fileName = "payload.bin",
-            armored = false,
-            literalTimeEpochSeconds = 0L,
-            referenceTimeEpochSeconds = 0L,
-            enableCompression = true,
+        val session = NativeCryptoClient(bridge).openSession(
+            operationName = "open_pgp_encrypt.stream_open",
+            operation = OpenPgpEncryptStreamOpenOperationProto(
+                OpenPgpEncryptStreamOpenRequestProto(
+                    publicKeys = listOf(byteArrayOf(1)),
+                    signingPrivateKey = null,
+                    preferredSigningFingerprint = "",
+                    fileName = "payload.bin",
+                    armored = false,
+                    literalTimeEpochSeconds = 0L,
+                    referenceTimeEpochSeconds = 0L,
+                    enableCompression = true,
+                    candidateRevocationKeys = listOf(byteArrayOf(2)),
+                ),
+            ),
         )
 
         val updateOutput = session.update(byteArrayOf(9, 4, 3), offset = 1, length = 2)
@@ -1103,31 +1088,6 @@ class NativeCryptoClientTest {
         assertEquals(0x01, encoded[resultTagIndex + 1].toInt())
         val decoded = ProtoBuf.decodeFromByteArray<NativeResponseProto>(encoded)
         assertEquals(-1, (decoded.result as Int32ResultProto).value)
-    }
-
-    @Test
-    fun encodesRandomIntBatchAtOneShotTag19() {
-        val request = NativeRequestProto(
-            protocolVersion = NativeCrypto.PROTOCOL_VERSION,
-            operation = RandomIntsOperationProto(
-                RandomIntsRequestProto(
-                    bounded = true,
-                    exclusiveUpperBound = 1_000,
-                    count = 256,
-                ),
-            ),
-        )
-
-        val encoded = ProtoBuf.encodeToByteArray(request)
-        val operationTagIndex = encoded.indexOf(0x9a.toByte())
-
-        assertTrue(operationTagIndex >= 0)
-        assertEquals(0x01, encoded[operationTagIndex + 1].toInt())
-        val decoded = ProtoBuf.decodeFromByteArray<NativeRequestProto>(encoded)
-        val batch = (decoded.operation as RandomIntsOperationProto).value
-        assertTrue(batch.bounded)
-        assertEquals(1_000, batch.exclusiveUpperBound)
-        assertEquals(256, batch.count)
     }
 
     @Test
@@ -1313,8 +1273,10 @@ class NativeCryptoClientTest {
 
     @Test
     fun openPgpProtocolExtensionsUseLockstepCapabilityBitsAndOperationTags() {
-        openPgpProtocolExtensions().forEachIndexed { index, (capability, operation, fieldNumber) ->
-            assertEquals(1L shl (29 + index), capability.bit)
+        openPgpProtocolExtensions().forEach { (capability, operation, fieldNumber) ->
+            // Extensions advance the capability bit and the request tag together. Bit 31 and
+            // tag 56 belonged to the retired V1 certificate material reconciliation.
+            assertEquals(1L shl (fieldNumber - 25), capability.bit)
             val encoded = ProtoBuf.encodeToByteArray(
                 NativeRequestProto(
                     protocolVersion = NativeCrypto.PROTOCOL_VERSION,
@@ -1328,7 +1290,7 @@ class NativeCryptoClientTest {
             )
         }
         assertEquals(1L shl 35, NativeCryptoCapability.OPENPGP_V6_GENERATION_MUTATION.bit)
-        assertEquals(0xF_FFFF_FFFFL, allNativeCryptoCapabilitiesMask)
+        assertEquals(0xF_7FFF_FFFFL, allNativeCryptoCapabilitiesMask)
     }
 
     private fun openPgpProtocolExtensions(): List<
@@ -1349,16 +1311,6 @@ class NativeCryptoClientTest {
                 54,
             ),
             userIdReplacementProtocolExtension(),
-            Triple(
-                NativeCryptoCapability.OPENPGP_CERTIFICATE_MATERIAL_RECONCILE,
-                OpenPgpCertificateMaterialReconcileOperationProto(
-                    OpenPgpCertificateMaterialReconcileRequestProto(
-                        expectedPrimaryFingerprint = "A".repeat(40),
-                        existingPublicCertificate = byteArrayOf(1),
-                    ),
-                ),
-                56,
-            ),
             Triple(
                 NativeCryptoCapability.OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2,
                 OpenPgpCertificateMaterialReconcileV2OperationProto(
@@ -1455,6 +1407,13 @@ class NativeCryptoClientTest {
             success.withheldReasons,
         )
     }
+
+    private fun NativeCryptoClient.openTestHmacSession(): NativeCryptoSession = openSession(
+        operationName = "hmac.stream_open",
+        operation = HmacStreamOpenOperationProto(
+            HmacStreamOpenRequestProto(HashAlgorithmProto.SHA256, byteArrayOf(7)),
+        ),
+    )
 
     private fun digestOperation(): NativeRequestOperationProto = DigestOperationProto(
         DigestRequestProto(

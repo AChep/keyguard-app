@@ -52,30 +52,6 @@ fn raw_packet_is_local_public(
     }
 }
 
-/// Filters one public certificate for ordinary export while preserving the
-/// framing of every packet that remains.
-#[cfg(test)]
-pub(crate) fn export_public_certificate_preserving_framing(
-    data: &[u8],
-) -> Result<Vec<u8>, CertificateMergeError> {
-    let mut rehoming_budget = SignatureRehomingBudget::default();
-    let (stream, certificate) =
-        parsing::parse_single_certificate_with_stream_and_budget(data, &mut rehoming_budget)?;
-    let canonical = certificate.finalize()?;
-    if !canonical.transferable {
-        return Ok(Vec::new());
-    }
-    let mut output = Vec::with_capacity(data.len());
-    for packet in stream
-        .packets()
-        .iter()
-        .filter(|packet| raw_packet_is_exportable(&canonical, &stream, packet))
-    {
-        output.extend_from_slice(stream.raw(packet));
-    }
-    Ok(output)
-}
-
 /// Builds the public projection used by local key state while preserving the
 /// framing of every retained packet.
 pub(crate) fn local_public_certificate_preserving_framing(

@@ -22,7 +22,7 @@ interface HashState : AutoCloseable {
     override fun close() = Unit
 }
 
-fun createHash(
+private fun createHash(
     algorithm: CryptoHashAlgorithm,
 ): HashState = NativeHashSessionState(
     session = NativeCrypto.primitives.createDigest(
@@ -32,6 +32,8 @@ fun createHash(
 )
 
 fun createSha256(): HashState = createHash(CryptoHashAlgorithm.SHA_256)
+
+fun createMd5(): HashState = createHash(CryptoHashAlgorithm.MD5)
 
 internal class NativeHashSessionState(
     private val session: NativeCryptoSession,
@@ -84,7 +86,7 @@ internal class NativeHashSessionState(
     }
 }
 
-internal fun CryptoHashAlgorithm.toNativeHashAlgorithm(): NativeHashAlgorithm = when (this) {
+fun CryptoHashAlgorithm.toNativeHashAlgorithm(): NativeHashAlgorithm = when (this) {
     CryptoHashAlgorithm.SHA_1 -> NativeHashAlgorithm.SHA_1
     CryptoHashAlgorithm.SHA_256 -> NativeHashAlgorithm.SHA_256
     CryptoHashAlgorithm.SHA_512 -> NativeHashAlgorithm.SHA_512

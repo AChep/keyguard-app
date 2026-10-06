@@ -220,7 +220,11 @@ fun SearchTextField(
                                     return@onKeyEvent acceptQualifierSuggestion()
                                 }
 
-                                if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyDown) {
+                                if (
+                                    keyEvent.key == Key.Escape &&
+                                    keyEvent.type == KeyEventType.KeyDown &&
+                                    fieldValue.text.isNotEmpty()
+                                ) {
                                     updateFieldValue("".toTextFieldValue())
                                     return@onKeyEvent true
                                 }

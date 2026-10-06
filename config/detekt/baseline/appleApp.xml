@@ -1,0 +1,112 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:AddItemController.kt:AddItemController$private suspend fun buildAddItemSnapshot: AddItemFormSnapshot</ID>
+    <ID>CyclomaticComplexMethod:DialogController.kt:DialogController$fun navigationInterceptor: (NavigationIntent) -&gt; Boolean</ID>
+    <ID>CyclomaticComplexMethod:GeneratorController.kt:GeneratorController$private suspend fun buildGeneratorSnapshot: GeneratorSnapshot</ID>
+    <ID>CyclomaticComplexMethod:GpgToolsSession.kt:GpgToolsSession$fun observeGpgTools: KeyguardCancellable</ID>
+    <ID>CyclomaticComplexMethod:GpgToolsSession.kt:GpgToolsSession$fun prepareGpgToolsExport</ID>
+    <ID>CyclomaticComplexMethod:ModelSnapshots.kt:internal suspend fun buildVaultItemSnapshots: List&lt;VaultItemSnapshot&gt;</ID>
+    <ID>CyclomaticComplexMethod:NavigationStackController.kt:NavigationStackController$fun interceptor: (NavigationIntent) -&gt; Boolean</ID>
+    <ID>CyclomaticComplexMethod:NavigationStackController.kt:NavigationStackController$private fun descriptorScreen: ScreenKind?</ID>
+    <ID>CyclomaticComplexMethod:NavigationStackController.kt:NavigationStackController$private fun startEntry</ID>
+    <ID>CyclomaticComplexMethod:QuickCopyController.kt:QuickCopyController$suspend fun quickCopyCipherField</ID>
+    <ID>CyclomaticComplexMethod:WatchtowerController.kt:WatchtowerController$private suspend fun buildWatchtowerSnapshot: WatchtowerSnapshot</ID>
+    <ID>LargeClass:AddItemController.kt:AddItemController</ID>
+    <ID>LargeClass:DialogController.kt:DialogController</ID>
+    <ID>LargeClass:KeyguardCore.kt:KeyguardCore</ID>
+    <ID>LargeClass:NavigationStackController.kt:NavigationStackController</ID>
+    <ID>LargeClass:WatchtowerController.kt:WatchtowerController</ID>
+    <ID>LongMethod:AddItemController.kt:AddItemController$@OptIn(ExperimentalCoroutinesApi::class) private fun observeCipherForm: KeyguardCancellable</ID>
+    <ID>LongMethod:AddItemController.kt:AddItemController$private suspend fun buildAddItemSnapshot: AddItemFormSnapshot</ID>
+    <ID>LongMethod:AppearanceController.kt:AppearanceController$fun observeAppearanceSettings: KeyguardCancellable</ID>
+    <ID>LongMethod:AuthController.kt:AuthController$fun observeUnlockOptions: KeyguardCancellable</ID>
+    <ID>LongMethod:BackupsController.kt:BackupsController$fun observeBackupSettings: KeyguardCancellable</ID>
+    <ID>LongMethod:CipherDetailController.kt:CipherDetailController$private suspend fun vaultViewStateFlow: Flow&lt;VaultViewState&gt;</ID>
+    <ID>LongMethod:CipherDetailController.kt:CipherDetailController$private suspend fun buildDetailSnapshot: VaultDetailSnapshot</ID>
+    <ID>LongMethod:CipherFiltersController.kt:CipherFiltersController$@OptIn(ExperimentalCoroutinesApi::class) suspend fun produceFilterDetailInto</ID>
+    <ID>LongMethod:DialogController.kt:DialogController$fun navigationInterceptor: (NavigationIntent) -&gt; Boolean</ID>
+    <ID>LongMethod:DialogController.kt:DialogController$private fun presentElevatedAccess</ID>
+    <ID>LongMethod:DownloadsController.kt:DownloadsController$suspend fun produceDownloadsInto</ID>
+    <ID>LongMethod:ExportController.kt:ExportController$@OptIn(ExperimentalCoroutinesApi::class) suspend fun produceExportInto</ID>
+    <ID>LongMethod:GeneratorController.kt:GeneratorController$@OptIn(ExperimentalCoroutinesApi::class) fun makeSession: GeneratorSession</ID>
+    <ID>LongMethod:GeneratorController.kt:GeneratorController$private suspend fun buildGeneratorSnapshot: GeneratorSnapshot</ID>
+    <ID>LongMethod:GpgAgentController.kt:GpgAgentController$private suspend fun start</ID>
+    <ID>LongMethod:GpgAgentRuntimeMacos.kt:MacosGpgAgentRuntime$private suspend fun runHelper: Unit</ID>
+    <ID>LongMethod:GpgAgentSandboxProbeTest.kt:GpgAgentSandboxProbeTest$@Test fun externalGnuPgThroughProvisionedSandbox</ID>
+    <ID>LongMethod:GpgToolsSession.kt:GpgToolsSession$fun observeGpgTools: KeyguardCancellable</ID>
+    <ID>LongMethod:GroupingControllers.kt:FoldersController$suspend fun produceFoldersInto</ID>
+    <ID>LongMethod:KeePassLoginSession.kt:KeePassLoginSession$@OptIn(ExperimentalCoroutinesApi::class) private fun observeLogin: KeyguardCancellable</ID>
+    <ID>LongMethod:BitwardenLoginSession.kt:BitwardenLoginSession$@OptIn(ExperimentalCoroutinesApi::class) private fun observeLogin: KeyguardCancellable</ID>
+    <ID>LongMethod:BitwardenLoginSession.kt:BitwardenLoginSession$private suspend fun buildLoginSnapshot: LoginSnapshot</ID>
+    <ID>LongMethod:BitwardenLoginSession.kt:BitwardenLoginSession$private suspend fun buildTwofaSnapshot: TwofaSnapshot</ID>
+    <ID>LongMethod:MacosAppModule.kt:actual fun DI.Builder.installAppleAppModule</ID>
+    <ID>LongMethod:ModelSnapshots.kt:internal suspend fun buildVaultItemSnapshots: List&lt;VaultItemSnapshot&gt;</ID>
+    <ID>LongMethod:NavigationStackController.kt:NavigationStackController$private fun descriptorScreen: ScreenKind?</ID>
+    <ID>LongMethod:NavigationStackController.kt:NavigationStackController$private fun startEntry</ID>
+    <ID>LongMethod:SecurityController.kt:SecurityController$fun observeSecuritySettings: KeyguardCancellable</ID>
+    <ID>LongMethod:SendListController.kt:SendListController$private suspend fun buildSendListSnapshot: SendListSnapshot</ID>
+    <ID>LongMethod:ServiceDirectoryController.kt:ServiceDirectoryController$fun observeServiceDirectory: KeyguardCancellable</ID>
+    <ID>LongMethod:WatchtowerController.kt:WatchtowerController$@OptIn(ExperimentalCoroutinesApi::class) fun makeSession: WatchtowerSession</ID>
+    <ID>LongMethod:WatchtowerController.kt:WatchtowerController$private suspend fun buildWatchtowerSnapshot: WatchtowerSnapshot</ID>
+    <ID>LoopWithTooManyJumpStatements:AuthSnapshots.kt:for</ID>
+    <ID>LoopWithTooManyJumpStatements:GpgAgentRuntimeMacos.kt:MacosGpgIpcServer$while</ID>
+    <ID>LoopWithTooManyJumpStatements:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$while</ID>
+    <ID>ReturnCount:AutofillController.kt:AutofillController$private suspend fun suggestions: List&lt;AutofillSuggestionSnapshot&gt;</ID>
+    <ID>ReturnCount:AutofillController.kt:AutofillController$suspend fun loadAutofillCredential: AutofillCredentialSnapshot?</ID>
+    <ID>ReturnCount:AutofillController.kt:AutofillController$suspend fun loadOneTimeCode: String?</ID>
+    <ID>ReturnCount:GpgAgentRuntimeMacos.kt:@OptIn(ExperimentalForeignApi::class) private suspend fun readFully: ByteArray?</ID>
+    <ID>ReturnCount:GpgAgentRuntimeMacos.kt:@OptIn(ExperimentalForeignApi::class) private suspend fun writeFully: Boolean</ID>
+    <ID>ReturnCount:GpgAgentRuntimeMacos.kt:internal suspend fun readPacket: ByteArray?</ID>
+    <ID>ReturnCount:GpgToolsSession.kt:GpgToolsSession$fun finishGpgToolsPublicKey</ID>
+    <ID>ReturnCount:GpgToolsSession.kt:GpgToolsSession$fun prepareGpgToolsExport</ID>
+    <ID>ReturnCount:PasskeyController.kt:PasskeyController$suspend fun assertPasskey: PasskeyAssertionSnapshot?</ID>
+    <ID>ReturnCount:PasskeyController.kt:PasskeyController$suspend fun createPasskey: PasskeyRegistrationSnapshot?</ID>
+    <ID>ReturnCount:QuickCopyController.kt:QuickCopyController$suspend fun quickCopyCipherField</ID>
+    <ID>ReturnCount:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$private fun readPacket: ByteArray?</ID>
+    <ID>ReturnCount:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$private suspend fun dispatch: SshAgentMessages.IpcResponse</ID>
+    <ID>ReturnCount:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$suspend fun start</ID>
+    <ID>ReturnCount:SshAgentManagerApple.kt:SshAgentManagerApple$fun start: Boolean</ID>
+    <ID>ReturnCount:SshAgentRequestProcessorApple.kt:SshAgentRequestProcessorApple$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
+    <ID>ReturnCount:SshAgentRequestProcessorApple.kt:SshAgentRequestProcessorApple$private suspend fun getSshKeysFromVault: SshVaultContext?</ID>
+    <ID>ReturnCount:SshAgentRequestProcessorApple.kt:SshAgentRequestProcessorApple$private suspend fun signWithCurrentKey: SshAgentRequestProcessor.SignDataResult</ID>
+    <ID>TooGenericExceptionCaught:AddFormSaveState.kt:AddFormSaveState$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AuthPromptHost.kt:AuthPromptHost$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BackupsController.kt:BackupsController$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:ExportExecution.kt:ExportExecution$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GpgAgentController.kt:GpgAgentController$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:GpgAgentRuntimeMacos.kt:MacosGpgAgentRuntime$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GpgAgentRuntimeMacos.kt:MacosGpgAgentRuntime$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:GpgAgentRuntimeMacos.kt:MacosGpgIpcServer$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:GpgToolsFiles.kt:GpgToolsFiles$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SecurityController.kt:SecurityController$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SshAgentRequestProcessorApple.kt:SshAgentRequestProcessorApple$e: Exception</ID>
+    <ID>TooManyFunctions:AddItemController.kt:AddItemController</ID>
+    <ID>TooManyFunctions:AppearanceController.kt:AppearanceController</ID>
+    <ID>TooManyFunctions:AppleKg2LicenseKeyDecoderTest.kt:AppleKg2LicenseKeyDecoderTest</ID>
+    <ID>TooManyFunctions:AuthController.kt:AuthController</ID>
+    <ID>TooManyFunctions:BackupsController.kt:BackupsController</ID>
+    <ID>TooManyFunctions:DialogController.kt:DialogController</ID>
+    <ID>TooManyFunctions:DuplicatesSession.kt:DuplicatesSession</ID>
+    <ID>TooManyFunctions:EmailRelayController.kt:EmailRelayController</ID>
+    <ID>TooManyFunctions:GpgAgentController.kt:GpgAgentController</ID>
+    <ID>TooManyFunctions:GpgAgentRuntimeMacos.kt:com.artemchep.keyguard.apple.gpgagent.GpgAgentRuntimeMacos.kt</ID>
+    <ID>TooManyFunctions:GpgAgentRuntimeMacosTest.kt:GpgAgentRuntimeMacosTest</ID>
+    <ID>TooManyFunctions:GpgToolsSession.kt:GpgToolsSession</ID>
+    <ID>TooManyFunctions:GpgToolsFiles.kt:GpgToolsFiles : GpgToolsOutputCoordinator</ID>
+    <ID>TooManyFunctions:KeePassLoginSession.kt:KeePassLoginSession</ID>
+    <ID>TooManyFunctions:KeyguardCore.kt:KeyguardCore</ID>
+    <ID>TooManyFunctions:BitwardenLoginSession.kt:BitwardenLoginSession</ID>
+    <ID>TooManyFunctions:NavigationStackController.kt:NavigationStackController</ID>
+    <ID>TooManyFunctions:ReadOnlyListsController.kt:ReadOnlyListsController</ID>
+    <ID>TooManyFunctions:SecurityController.kt:SecurityController</ID>
+    <ID>TooManyFunctions:SendListSession.kt:SendListSession</ID>
+    <ID>TooManyFunctions:SshAgentController.kt:SshAgentController</ID>
+    <ID>TooManyFunctions:SubscriptionsController.kt:SubscriptionsController</ID>
+    <ID>TooManyFunctions:VaultListSession.kt:VaultListSession</ID>
+    <ID>TooManyFunctions:VaultSessionSnapshots.kt:com.artemchep.keyguard.apple.vault.VaultSessionSnapshots.kt</ID>
+    <ID>TooManyFunctions:WatchtowerController.kt:WatchtowerController</ID>
+    <ID>TooManyFunctions:WordlistController.kt:WordlistController</ID>
+  </CurrentIssues>
+</SmellBaseline>

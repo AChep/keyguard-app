@@ -6,8 +6,8 @@ order: 6
 ---
 
 Keyguard can keep an automatic, versioned backup of your vault so you always
-have a recent copy to fall back on. Set it up once under **Settings → Automatic
-backups** and it runs quietly in the background from then on.
+have a recent copy to fall back on. Set it up under **Settings → Automatic
+backups**.
 
 ## What's included
 
@@ -38,6 +38,7 @@ When you enable backups you choose a location:
 | :-- | :-- | :-- |
 | **Folder** | A local folder in the file system | Point it at a synced folder (e.g. a cloud-drive folder) for off-device copies |
 | **WebDAV** | A WebDAV server | - |
+| **S3** | A bucket on an S3-compatible service | Requires server-side conditional writes |
 
 When you add a location, Keyguard runs a quick read/write check to make sure it's usable.
 

@@ -3,7 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.api.builder
 import io.ktor.client.plugins.HttpRequestRetryConfig
 import io.ktor.http.HttpStatusCode
 
-internal fun HttpRequestRetryConfig.configureBitwardenHttpRetry(
+fun HttpRequestRetryConfig.configureBitwardenHttpRetry(
     retryDelay: (suspend (Long) -> Unit)? = null,
 ) {
     maxRetries = 5

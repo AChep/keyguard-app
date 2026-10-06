@@ -51,6 +51,52 @@ class NativeChangeClassificationTest(unittest.TestCase):
         for flag in ("desktop", "android", "apple", "crypto"):
             self.assertFalse(result[flag], flag)
 
+    def test_dns_selects_consumers_like_webauthn(self):
+        result = classify(["util/dns/src/commonMain/kotlin/DnsTxtResolver.kt"])
+        for flag in ("desktop", "android", "apple", "apple_regressions"):
+            self.assertTrue(result[flag], flag)
+        self.assertFalse(result["crypto"])
+        self.assertFalse(result["native_quality"])
+
+        result = classify(["util/dns/src/commonTest/kotlin/DnsMessageParserTest.kt"])
+        self.assertTrue(result["apple_regressions"])
+        for flag in ("desktop", "android", "apple", "crypto"):
+            self.assertFalse(result[flag], flag)
+
+    def test_yubikey_rust_selects_desktop_and_native_apple_consumers(self):
+        result = classify(["util/yubikey/rust/crates/keyguard-yubikey-core/src/protocol.rs"])
+        for flag in ("desktop", "desktop_regressions", "apple", "apple_regressions", "native_quality"):
+            self.assertTrue(result[flag], flag)
+        self.assertFalse(result["android"])
+        result = classify(["util/yubikey/src/commonMain/kotlin/YubiKeyClient.kt"])
+        self.assertTrue(result["android"])
+
+    def test_fido2_selects_native_desktop_and_apple_consumers(self):
+        result = classify(["util/fido2/rust/crates/keyguard-fido2-core/src/windows.rs"])
+        for flag in ("desktop", "desktop_regressions", "apple", "apple_regressions", "native_quality"):
+            self.assertTrue(result[flag], flag)
+        self.assertFalse(result["android"])
+        self.assertTrue(classify(["util/fido2/src/commonMain/kotlin/Fido2Operation.kt"])["android"])
+
+    def test_ffi_selects_every_native_bridge_consumer(self):
+        consumers = ("io", "instance", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
+        for path in (
+            "util/ffi/rust/crates/keyguard-ffi/src/operation.rs",
+            "util/ffi/src/jvmMain/kotlin/com/artemchep/keyguard/util/ffi/JniLibrary.kt",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                for flag in consumers:
+                    self.assertTrue(result[flag], flag)
+                self.assertFalse(result["crypto"])
+                self.assertIn("windows", [host["platform"] for host in result["desktop_matrix"]["include"]])
+        self.assertTrue(classify(["util/ffi/rust/crates/keyguard-ffi/src/lib.rs"])["native_quality"])
+
+        result = classify(["util/ffi/rust/crates/keyguard-ffi/tests/redacting_hook.rs"])
+        self.assertTrue(result["native_quality"])
+        for flag in consumers:
+            self.assertFalse(result[flag], flag)
+
     def test_fuzz_only_edit_does_not_rebuild_apps(self):
         result = classify(["util/crypto/rust/fuzz/fuzz_targets/dispatch.rs"])
         self.assertTrue(result["fuzz"])
@@ -63,6 +109,7 @@ class NativeChangeClassificationTest(unittest.TestCase):
             "util/zxcvbn/rust/Cargo.lock": (True, True, True),
             "util/zip/rust/Cargo.toml": (False, False, True),
             "util/instance/rust/Cargo.lock": (True, False, False),
+            "util/ffi/rust/Cargo.toml": (True, True, True),
         }
         for path, expected in cases.items():
             with self.subTest(path=path):
@@ -172,7 +219,7 @@ class NativeChangeClassificationTest(unittest.TestCase):
             "util/io/src/desktopTest/kotlin/NativeIoTest.kt",
             "util/instance/src/commonTest/kotlin/InstanceTest.kt",
             "desktopApp/src/jvmTest/kotlin/com/artemchep/keyguard/desktop/instance/InstanceDirectoriesTest.kt",
-            "iosApp/src/iosTest/kotlin/NativeBundleSmokeTest.kt",
+            "appleApp/src/appleTest/kotlin/NativeBundleSmokeTest.kt",
             "util/io/rust/crates/keyguard-io-core/tests/atomic.rs",
             "util/crypto/rust/crates/keyguard-crypto-core/tests/properties.rs",
             "desktopLibNative/src/tests/encoding.rs",
@@ -284,9 +331,34 @@ class NativeChangeClassificationTest(unittest.TestCase):
         self.assertTrue(desktop["desktop"])
         self.assertFalse(desktop["android"])
 
-    def test_ios_ui_does_not_request_native_linking(self):
-        result = classify(["iosApp/src/iosMain/kotlin/com/artemchep/keyguard/UI.kt"])
+    def test_native_apple_app_changes_build_consumers(self):
+        for path in (
+            "appleApp/build.gradle.kts",
+            "appleApp/src/appleMain/kotlin/KeyguardCore.kt",
+            "appleUi/Sources/KeyguardUI/Screen.swift",
+            "appleAutofill/CredentialProviderViewController.swift",
+            "iosApp/iosApp/KeyguardIosApp.swift",
+            "macosApp/project.yml",
+            "xcode/keyguard-common.yml",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                self.assertTrue(result["apple"])
+                self.assertFalse(result["desktop"])
+                self.assertFalse(result["android_run"])
+
+    def test_apple_bridge_tests_select_macos_regressions(self):
+        result = classify(["appleApp/src/appleTest/kotlin/NativeBundleSmokeTest.kt"])
+        self.assertTrue(result["apple_regressions"])
+        self.assertTrue(result["desktop_run"])
         self.assertFalse(result["apple"])
+
+    def test_gpg_helper_changes_build_native_apple_consumers(self):
+        for path in ("desktopGpgAgent/src/main.rs", "commonAgent/src/lib.rs", "commonGpgAgent/src/lib.rs"):
+            with self.subTest(path=path):
+                result = classify([path])
+                self.assertTrue(result["apple"])
+                self.assertTrue(result["desktop"])
 
     def test_targeted_manual_keeps_representative_hosts(self):
         result = classify([], all_checks=True)

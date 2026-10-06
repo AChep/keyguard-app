@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.util.instance
 
+import com.artemchep.keyguard.util.ffi.JniLibrary
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -13,6 +14,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class InstanceCoordinatorTest {
@@ -66,6 +68,31 @@ class InstanceCoordinatorTest {
                 executor.shutdownNow()
             }
         }
+    }
+
+    @Test
+    fun acquisitionWithoutActivationNeverWakesTheOwner() = withFixture { _, config ->
+        val primary = acquire(config)
+        val executor = Executors.newSingleThreadExecutor { task ->
+            Thread(task, "instance-test-receiver").apply { isDaemon = true }
+        }
+        try {
+            val started = CountDownLatch(1)
+            val received = executor.submit<Boolean> {
+                started.countDown()
+                primary.awaitActivation()
+            }
+            assertTrue(started.await(2, TimeUnit.SECONDS))
+            assertNull(InstanceCoordinator.acquire(config.copy(timeoutMillis = 100)))
+            assertFalse(received.isDone)
+            primary.stop()
+            assertFalse(received.get(2, TimeUnit.SECONDS))
+        } finally {
+            primary.close()
+            executor.shutdownNow()
+        }
+        // Once the owner releases ownership, the waiting acquisition succeeds.
+        assertNotNull(InstanceCoordinator.acquire(config)).close()
     }
 
     @Test
@@ -171,6 +198,7 @@ class InstanceCoordinatorTest {
         val classpath = listOf(
             InstanceProcessFixture::class.java,
             InstanceCoordinator::class.java,
+            JniLibrary::class.java,
             Unit::class.java,
         ).map { Paths.get(it.protectionDomain.codeSource.location.toURI()).toString() }
             .distinct()

@@ -159,6 +159,9 @@ private class FakeFingerprintRepository(
     var value: Fingerprint? = initialValue
         private set
 
+    override fun update(transform: (Fingerprint?) -> Fingerprint?) = ioEffect {
+        put(transform(value)).invoke()
+    }
     override fun get(): Flow<Fingerprint?> = flowOf(value)
 
     override fun put(key: Fingerprint?): IO<Unit> = ioEffect {

@@ -3,6 +3,7 @@
 package com.artemchep.keyguard.util.instance
 
 import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_abi_version
+import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_acquire
 import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_acquire_or_activate
 import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_clear_error
 import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_close
@@ -38,21 +39,48 @@ internal actual object NativeInstance {
         runtimeDirectory: String,
         identity: String,
         timeoutMillis: Long,
+    ): Long = arbitrate(coordinationDirectory, runtimeDirectory, identity, timeoutMillis, activate = true)
+
+    actual fun acquire(
+        coordinationDirectory: String,
+        runtimeDirectory: String,
+        identity: String,
+        timeoutMillis: Long,
+    ): Long = arbitrate(coordinationDirectory, runtimeDirectory, identity, timeoutMillis, activate = false)
+
+    private fun arbitrate(
+        coordinationDirectory: String,
+        runtimeDirectory: String,
+        identity: String,
+        timeoutMillis: Long,
+        activate: Boolean,
     ): Long {
         ensureCompatibleAbi()
         if (timeoutMillis < 0L) return -1L
         return coordinationDirectory.withUtf8 { coordination, coordinationSize ->
             runtimeDirectory.withUtf8 { runtime, runtimeSize ->
                 identity.withUtf8 { identityPointer, identitySize ->
-                    keyguard_instance_acquire_or_activate(
-                        coordination,
-                        coordinationSize,
-                        runtime,
-                        runtimeSize,
-                        identityPointer,
-                        identitySize,
-                        timeoutMillis.toULong(),
-                    )
+                    if (activate) {
+                        keyguard_instance_acquire_or_activate(
+                            coordination,
+                            coordinationSize,
+                            runtime,
+                            runtimeSize,
+                            identityPointer,
+                            identitySize,
+                            timeoutMillis.toULong(),
+                        )
+                    } else {
+                        keyguard_instance_acquire(
+                            coordination,
+                            coordinationSize,
+                            runtime,
+                            runtimeSize,
+                            identityPointer,
+                            identitySize,
+                            timeoutMillis.toULong(),
+                        )
+                    }
                 }
             }
         }

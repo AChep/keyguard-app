@@ -40,8 +40,6 @@ import com.artemchep.keyguard.provider.bitwarden.entity.request.SendRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.delete
-import io.ktor.client.request.forms.MultiPartFormDataContent
-import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -822,63 +820,6 @@ private suspend fun uploadFileToTarget(
 internal fun multipartFilenameParameter(
     fileName: String,
 ): String = "filename=${fileName.escapeIfNeeded()}"
-
-private suspend fun uploadFileToTargetDirect(
-    httpClient: HttpClient,
-    env: ServerEnv,
-    token: String,
-    target: SendFileUploadTarget,
-    fileName: String,
-    filePath: String,
-    fileLength: Long,
-    route: String,
-): Unit = platformUploadFileToTargetDirect(
-    httpClient = httpClient,
-    env = env,
-    token = token,
-    target = target,
-    fileName = fileName,
-    filePath = filePath,
-    fileLength = fileLength,
-    route = route,
-)
-
-
-private suspend fun uploadFileToTargetAzure(
-    httpClient: HttpClient,
-    env: ServerEnv,
-    target: SendFileUploadTarget,
-    filePath: String,
-    fileLength: Long,
-    route: String,
-): Unit = platformUploadFileToTargetAzure(
-    httpClient = httpClient,
-    env = env,
-    target = target,
-    filePath = filePath,
-    fileLength = fileLength,
-    route = route,
-)
-
-internal expect suspend fun platformUploadFileToTargetDirect(
-    httpClient: HttpClient,
-    env: ServerEnv,
-    token: String,
-    target: SendFileUploadTarget,
-    fileName: String,
-    filePath: String,
-    fileLength: Long,
-    route: String,
-)
-
-internal expect suspend fun platformUploadFileToTargetAzure(
-    httpClient: HttpClient,
-    env: ServerEnv,
-    target: SendFileUploadTarget,
-    filePath: String,
-    fileLength: Long,
-    route: String,
-)
 
 internal suspend fun HttpResponse.bodyOrApiExceptionUnitStrict(
     expectedStatus: HttpStatusCode? = null,

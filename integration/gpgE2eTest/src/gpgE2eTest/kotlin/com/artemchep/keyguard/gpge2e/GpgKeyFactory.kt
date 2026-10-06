@@ -6,20 +6,28 @@ import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
 
 object GpgKeyFactory {
+    private const val HIGH_S_FIXTURE_PATH =
+        "util/crypto/rust/crates/keyguard-crypto-core/tests/fixtures/openpgp/secp256k1-high-s-secret.asc"
 
     data class GeneratedKeys(
         val rsa: TestGpgKey,
         val ed25519: TestGpgKey,
         val nistp256: TestGpgKey,
+        val nistp384: TestGpgKey,
+        val nistp521: TestGpgKey,
+        val secp256k1: TestGpgKey,
+        val secp256k1HighS: TestGpgKey,
     ) {
-        val all: List<TestGpgKey> get() = listOf(rsa, ed25519, nistp256)
+        val all: List<TestGpgKey> get() = listOf(
+            rsa, ed25519, nistp256, nistp384, nistp521, secp256k1, secp256k1HighS,
+        )
     }
 
     /**
-     * Generate the three key types in [serverHome].
+     * Generate imported key types covering every supported agent curve in [serverHome].
      * Leaves the server gpg-agent running; the caller is responsible for killing it.
      */
-    fun generate(serverHome: Path): GeneratedKeys {
+    fun generate(serverHome: Path, repoRoot: Path): GeneratedKeys {
         prepareHome(serverHome)
         val gpg = GpgCli(serverHome)
 
@@ -44,7 +52,58 @@ object GpgKeyFactory {
             primaryAlgo = "nistp256",
             encryptAlgo = "nistp256",
         )
-        return GeneratedKeys(rsa = rsa, ed25519 = ed25519, nistp256 = nistp256)
+        val nistp384 = generateKeyPair(
+            gpg = gpg,
+            name = "Keyguard NistP384",
+            email = "nistp384@keyguard.test.invalid",
+            primaryAlgo = "nistp384",
+            encryptAlgo = "nistp384",
+        )
+        val nistp521 = generateKeyPair(
+            gpg = gpg,
+            name = "Keyguard NistP521",
+            email = "nistp521@keyguard.test.invalid",
+            primaryAlgo = "nistp521",
+            encryptAlgo = "nistp521",
+        )
+        val secp256k1 = generateKeyPair(
+            gpg = gpg,
+            name = "Keyguard Secp256k1",
+            email = "secp256k1@keyguard.test.invalid",
+            primaryAlgo = "secp256k1",
+            // The agent supports this curve for signing, but not ECDH.
+            encryptAlgo = null,
+        )
+        return GeneratedKeys(
+            rsa = rsa,
+            ed25519 = ed25519,
+            nistp256 = nistp256,
+            nistp384 = nistp384,
+            nistp521 = nistp521,
+            secp256k1 = secp256k1,
+            secp256k1HighS = importHighSFixture(gpg, repoRoot),
+        )
+    }
+
+    private fun importHighSFixture(gpg: GpgCli, repoRoot: Path): TestGpgKey {
+        val email = "secp256k1-high-s@keyguard.test.invalid"
+        val userId = "Keyguard TEST ONLY High-S <$email>"
+        val secret = Files.readString(repoRoot.resolve(HIGH_S_FIXTURE_PATH))
+        val imported = gpg.run("--batch", "--import", stdin = secret.encodeToByteArray())
+        require(imported.isSuccess) { "Failed to import high-S fixture:\n${imported.stderr}" }
+        val fingerprint = primaryFingerprintOf(gpg, email)
+        val metadataKeys = parseMetadataKeys(gpg, fingerprint)
+        require(metadataKeys.any { it.canSign }) {
+            "Expected a signing key for $userId, got: $metadataKeys"
+        }
+        return TestGpgKey(
+            name = userId,
+            // Retain the exact fixture rather than round-tripping its secret certificate.
+            privateKeyArmored = secret,
+            publicKeyArmored = exportPublicKeyArmored(gpg, fingerprint),
+            primaryFingerprint = fingerprint,
+            metadataKeys = metadataKeys,
+        )
     }
 
     private fun prepareHome(home: Path) {
@@ -70,7 +129,7 @@ object GpgKeyFactory {
         name: String,
         email: String,
         primaryAlgo: String,
-        encryptAlgo: String,
+        encryptAlgo: String?,
     ): TestGpgKey {
         val userId = "$name <$email>"
 
@@ -86,21 +145,23 @@ object GpgKeyFactory {
 
         val primaryFingerprint = primaryFingerprintOf(gpg, email)
 
-        val addResult = gpg.run(
-            "--batch",
-            "--pinentry-mode", "loopback",
-            "--passphrase", "",
-            "--quick-add-key", primaryFingerprint, encryptAlgo, "encr", "never",
-        )
-        require(addResult.isSuccess) {
-            "Failed to add encryption subkey for $userId:\n${addResult.stderr}"
+        if (encryptAlgo != null) {
+            val addResult = gpg.run(
+                "--batch",
+                "--pinentry-mode", "loopback",
+                "--passphrase", "",
+                "--quick-add-key", primaryFingerprint, encryptAlgo, "encr", "never",
+            )
+            require(addResult.isSuccess) {
+                "Failed to add encryption subkey for $userId:\n${addResult.stderr}"
+            }
         }
 
         val metadataKeys = parseMetadataKeys(gpg, primaryFingerprint)
         require(metadataKeys.any { it.canSign }) {
             "Expected a signing key for $userId, got: $metadataKeys"
         }
-        require(metadataKeys.any { it.canDecrypt }) {
+        require(encryptAlgo == null || metadataKeys.any { it.canDecrypt }) {
             "Expected an encryption key for $userId, got: $metadataKeys"
         }
 

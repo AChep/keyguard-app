@@ -36,7 +36,7 @@ data class CallerAuthorization(
     }
 }
 
-/** One independently verified caller subject on the shared agent wire. */
+/** One caller subject with explicit evidence provenance on the shared agent wire. */
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class CallerAuthorizationSubject(

@@ -26,6 +26,22 @@ class WebAuthnCredentialMatchingTest {
     private val encodedId = PasskeyBase64.encodeToString(PasskeyCredentialId.encode(credential.credentialId))
 
     @Test
+    fun `provider byte IDs match equivalent vault ID encodings`() {
+        val allowed = WebAuthnAllowedCredentialDescriptors.fromCredentialIds(
+            listOf(PasskeyCredentialId.encode(credential.credentialId)),
+        )
+        for (id in listOf(credential.credentialId.uppercase(), encodedId)) {
+            val stored = credential.copy(credentialId = id, discoverable = false)
+            assertTrue(allowed.allows(stored))
+            assertSame(
+                stored,
+                findExcludedPasskeyCredentialOrNull(setOf(credential.credentialId), credential.rpId, listOf(stored)),
+            )
+        }
+        assertFalse(allowed.allows(credential.copy(credentialId = "%%%")))
+    }
+
+    @Test
     fun `missing and empty allow lists require discoverability`() {
         for (request in listOf("{}", """{"allowCredentials":[]}""")) {
             val allowed = parseWebAuthnAllowedCredentialDescriptors(request, Json)

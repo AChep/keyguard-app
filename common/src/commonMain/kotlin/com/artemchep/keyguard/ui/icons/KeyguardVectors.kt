@@ -34,7 +34,9 @@ internal object KeyguardVectors {
                 strokeLineJoin = StrokeJoin.Round,
             )
             addPath(
-                pathData = addPathNodes("M16 15v-3a3 3 0 0 1 6 0M14 15h6a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z"),
+                pathData = addPathNodes(
+                    "M16 15v-3a3 3 0 0 1 6 0M14 15h6a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z",
+                ),
                 fill = null,
                 stroke = SolidColor(Color.Black),
                 strokeLineWidth = 2f,
@@ -55,7 +57,10 @@ internal object KeyguardVectors {
                 strokeLineJoin = StrokeJoin.Round,
             )
             addPath(
-                pathData = addPathNodes("M15 15v-2a2 2 0 0 1 4 0v2M14 15h6a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z"),
+                pathData = addPathNodes(
+                    "M15 15v-2a2 2 0 0 1 4 0v2" +
+                        "M14 15h6a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z",
+                ),
                 fill = null,
                 stroke = SolidColor(Color.Black),
                 strokeLineWidth = 2f,
@@ -110,7 +115,10 @@ internal object KeyguardVectors {
                 strokeLineJoin = StrokeJoin.Round,
             )
             addPath(
-                pathData = addPathNodes("M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z M13 11.328a3 3 0 1 0-2 0V19h5v-2h-3v-1h2v-2h-2Z"),
+                pathData = addPathNodes(
+                    "M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z " +
+                        "M13 11.328a3 3 0 1 0-2 0V19h5v-2h-3v-1h2v-2h-2Z",
+                ),
                 fill = SolidColor(Color.Black),
             )
             addPath(
@@ -165,7 +173,9 @@ internal object KeyguardVectors {
     val GpgVerifyIdentity: ImageVector by lazy {
         icon(name = "KeyguardGpgVerifyIdentity", autoMirror = false) {
             addPath(
-                pathData = addPathNodes("M10 19H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4M3 7l9 6 9-6M14 18l2.5 2.5L22 15"),
+                pathData = addPathNodes(
+                    "M10 19H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4M3 7l9 6 9-6M14 18l2.5 2.5L22 15",
+                ),
                 fill = null,
                 stroke = SolidColor(Color.Black),
                 strokeLineWidth = 2f,
@@ -186,7 +196,10 @@ internal object KeyguardVectors {
                 strokeLineJoin = StrokeJoin.Round,
             )
             addPath(
-                pathData = addPathNodes("M8 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM12 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM16 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"),
+                pathData = addPathNodes(
+                    "M8 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM12 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" +
+                        "M16 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z",
+                ),
                 fill = SolidColor(Color.Black),
             )
             addPath(
@@ -262,7 +275,9 @@ internal object KeyguardVectors {
     val UnusableGpgKey: ImageVector by lazy {
         icon(name = "KeyguardUnusableGpgKey", autoMirror = false) {
             addPath(
-                pathData = addPathNodes("M9 3h9a2 2 0 0 1 2 2v10M4 9v10a2 2 0 0 0 2 2h9M10 5.8a3 3 0 0 1 4.2 4.2M12 12v6h3M3 3l18 18"),
+                pathData = addPathNodes(
+                    "M9 3h9a2 2 0 0 1 2 2v10M4 9v10a2 2 0 0 0 2 2h9M10 5.8a3 3 0 0 1 4.2 4.2M12 12v6h3M3 3l18 18",
+                ),
                 fill = null,
                 stroke = SolidColor(Color.Black),
                 strokeLineWidth = 2f,
@@ -275,7 +290,10 @@ internal object KeyguardVectors {
     val WeakGpgKey: ImageVector by lazy {
         icon(name = "KeyguardWeakGpgKey", autoMirror = false) {
             addPath(
-                pathData = addPathNodes("M10 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4M12 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM10 10v6h2M18 13v3"),
+                pathData = addPathNodes(
+                    "M10 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4M12 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" +
+                        "M10 10v6h2M18 13v3",
+                ),
                 fill = null,
                 stroke = SolidColor(Color.Black),
                 strokeLineWidth = 2f,

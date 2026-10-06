@@ -7,9 +7,13 @@ bindings. It uses Unix-domain sockets on macOS/Linux and named pipes on Windows.
 ## Application contract
 
 Call `InstanceCoordinator.acquireOrActivate()` before starting services that use
-shared application data. Only `InstanceResult.Primary` authorizes starting those
+shared application data. Only a `PrimaryInstance` authorizes starting those
 services. `Activated` means another process queued activation, not that its window
 received OS focus. Failures never authorize starting a second instance.
+
+A process the OS starts to serve a request calls `InstanceCoordinator.acquire()`
+instead. It never activates the owner, which may be exiting; it waits for ownership
+until the timeout and returns null if the owner kept it.
 
 The application supplies an absolute private local coordination directory, a short
 runtime directory, and a stable ASCII identity. Use the same coordination directory
@@ -44,7 +48,10 @@ User-only access does not isolate the app from malicious code running as that us
 Normal desktop startup resolves its existing data directory and arbitrates before
 initializing crypto, DI, persistence, or background workers. Activation is retained
 until the UI is ready and routed to the existing show/unminimize behavior. Finder
-and Dock reopening continue through the AWT reopen listener.
+and Dock reopening continue through the AWT reopen listener. A process Windows
+starts for a passkey request waits up to 10 seconds for ownership instead, then
+activates the instance that kept it. A retiring passkey process stops IPC before
+it exits, so a launch meanwhile waits for ownership instead of being lost.
 
 The app retains ownership through JVM termination because its background services
 outlive windows. Its shutdown hook stops IPC without releasing ownership early.

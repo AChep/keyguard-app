@@ -27,6 +27,7 @@ sealed interface VaultState {
         val unlockWithBiometric: WithBiometric?,
         val unlockWithYubiKey: WithYubiKey?,
         val lockInfo: LockInfo?,
+        val unlockWithFido2: WithFido2? = null,
     ) : VaultState {
         class WithPassword(
             val getCreateIo: (String) -> IO<Unit>,
@@ -47,6 +48,11 @@ sealed interface VaultState {
         class WithYubiKey(
             val slot: Int,
             val challenge: ByteArray,
+            val getCreateIo: (ByteArray) -> IO<Unit>,
+        )
+
+        class WithFido2(
+            val getRequest: () -> com.artemchep.keyguard.util.fido2.Fido2Operation.Derive,
             val getCreateIo: (ByteArray) -> IO<Unit>,
         )
 

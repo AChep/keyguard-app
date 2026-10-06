@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseMeta
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.service.s3.S3ClientFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta
@@ -60,6 +61,7 @@ class KeePassSyncCoordinator(
     private val db: VaultDatabaseManager,
     private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val webDavClientFactory: WebDavClientFactory? = null,
+    private val s3ClientFactory: S3ClientFactory? = null,
     private val gpgCertificateMaterialReconciler: GpgCertificateMaterialReconciler,
     private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
 ) {
@@ -131,6 +133,7 @@ class KeePassSyncCoordinator(
             fileService = fileService,
             base64Service = base64Service,
             webDavClientFactory = webDavClientFactory,
+            s3ClientFactory = s3ClientFactory,
         )
         val metadataBefore = getDatabaseMetadata(token)
         diagnostics.syncPipelineStarted()
@@ -339,6 +342,7 @@ class KeePassSyncCoordinator(
                 database = mutator.database,
                 base64Service = base64Service,
                 webDavClientFactory = webDavClientFactory,
+                s3ClientFactory = s3ClientFactory,
                 expectedMetadata = metadataAfter,
             )
         } catch (e: Throwable) {
@@ -479,6 +483,7 @@ class KeePassSyncCoordinator(
         fileService = fileService,
         token = token,
         webDavClientFactory = webDavClientFactory,
+        s3ClientFactory = s3ClientFactory,
     )
 
     private fun KeePassDatabaseMetadata.formatForLog(): String =

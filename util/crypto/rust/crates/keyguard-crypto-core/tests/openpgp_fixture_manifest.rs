@@ -56,6 +56,11 @@ fn checked_in_openpgp_fixtures_match_the_reviewed_manifest() {
             "cade1a0b5b8963632b0892e971d4dad346fccb703b20c63201d1562babed77f0",
         ),
         (
+            "secp256k1-high-s-secret.asc",
+            include_bytes!("fixtures/openpgp/secp256k1-high-s-secret.asc"),
+            "144cae2bf3d8e5d752f1794914e5d05d99a7add1da4eb414d5fb21e33c97f21b",
+        ),
+        (
             "v3-public.asc",
             include_bytes!("fixtures/openpgp/v3-public.asc"),
             "998a9e2054e4f05c86a6e47c44f344a634cd5bdda19257675f31b89a63e7889c",

@@ -11,6 +11,13 @@
 -keeppackagenames **
 -keepattributes Signature,Exceptions,InnerClasses,EnclosingMethod,SourceFile,LineNumberTable,*Annotation*,PermittedSubclasses,Record,MethodParameters
 
+# JVM enum lookup accesses values() reflectively, even when Kotlin callers
+# enumerate through entries. Keep the enum methods required by reflection.
+-keepclassmembers,allowoptimization enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
 # Kotlin serialization resolves generated serializers through companion objects
 # reflectively, named ones via getDeclaredClasses, which InnerClasses covers.
 -keepclasseswithmembers class **.*$Companion {

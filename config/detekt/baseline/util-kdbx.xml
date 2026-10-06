@@ -2,7 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>ComplexCondition:OkioInOutBuffer.kt:OkioInOutBuffer$char != '\r' &amp;&amp; char != '\n' &amp;&amp; char != '\u0085' &amp;&amp; char != '\u2028'</ID>
     <ID>ComplexCondition:OkioInOutBuffer.kt:OkioInOutBuffer$first == 0xE0 &amp;&amp; second &lt; 0xA0 || first == 0xED &amp;&amp; second &gt; 0x9F || first == 0xF0 &amp;&amp; second &lt; 0x90 || first == 0xF4 &amp;&amp; second &gt; 0x8F</ID>
     <ID>ComplexCondition:XmlStream.kt:eventType != EventType.END_ELEMENT || localName != childName || namespaceURI != childNamespace || depth != childDepth</ID>
     <ID>CyclomaticComplexMethod:BaseKdfProvider.kt:BaseKdfProvider$override fun transformKey: ByteArray</ID>
@@ -13,9 +12,7 @@
     <ID>CyclomaticComplexMethod:Group.kt:GroupFrame$fun readChild</ID>
     <ID>CyclomaticComplexMethod:Meta.kt:internal fun unmarshalMeta: Meta</ID>
     <ID>CyclomaticComplexMethod:OkioInOutBuffer.kt:OkioInOutBuffer$private fun decodeAvailableBytes</ID>
-    <ID>CyclomaticComplexMethod:Placeholders.kt:fun KeePassDatabase.resolveReference: String</ID>
     <ID>CyclomaticComplexMethod:VariantDictionary.kt:VariantDictionary$fun readFrom: Map&lt;String, VariantItem&gt;</ID>
-    <ID>ForEachOnRange:PlaceholdersSpec.kt:PlaceholdersSpec$0U..10U</ID>
     <ID>LongMethod:BinariesSpec.kt:BinariesSpec$@Test fun portedKotpassSpec</ID>
     <ID>LongMethod:DatabaseHeader.kt:DatabaseHeader.Companion$internal fun readFrom: DatabaseHeader</ID>
     <ID>LongMethod:DatabaseHeaderSpec.kt:DatabaseHeaderSpec$@Test fun portedKotpassSpec</ID>
@@ -27,22 +24,12 @@
     <ID>LongMethod:KeePassDatabaseRoundTripTest.kt:KeePassDatabaseRoundTripTest$private fun buildEdgeCaseDatabase: KeePassDatabase.Ver4x</ID>
     <ID>LongMethod:KeePassDatabaseSpec.kt:KeePassDatabaseSpec$@Test fun portedKotpassSpec</ID>
     <ID>LongMethod:Meta.kt:internal fun unmarshalMeta: Meta</ID>
-    <ID>LongMethod:PlaceholdersSpec.kt:PlaceholdersSpec$@Test fun portedKotpassSpec</ID>
     <ID>LongMethod:TimeDataSpec.kt:TimeDataSpec$@Test fun portedKotpassSpec</ID>
     <ID>LongMethod:VariantDictionary.kt:VariantDictionary$fun readFrom: Map&lt;String, VariantItem&gt;</ID>
     <ID>LoopWithTooManyJumpStatements:DatabaseHeader.kt:DatabaseHeader.Companion$while</ID>
-    <ID>MagicNumber:AesKdfSpec.kt:AesKdfSpec$32</ID>
-    <ID>MagicNumber:Argon2Spec.kt:Argon2Spec$32</ID>
     <ID>MagicNumber:Base16.kt:10</ID>
     <ID>MagicNumber:Base16.kt:4</ID>
     <ID>MagicNumber:Base64.kt:4</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$0x10U</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$0x11U</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$0x12U</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$0x13U</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$0x14U</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$1024UL</ID>
-    <ID>MagicNumber:BaseKdfProviderSpec.kt:BaseKdfProviderSpec$32UL</ID>
     <ID>MagicNumber:ByteString.kt:0xff</ID>
     <ID>MagicNumber:ByteString.kt:0xffL</ID>
     <ID>MagicNumber:ByteString.kt:16</ID>
@@ -51,9 +38,6 @@
     <ID>MagicNumber:ByteString.kt:8</ID>
     <ID>MagicNumber:ContentBlocks.kt:ContentBlocks$8</ID>
     <ID>MagicNumber:ContentBlocks.kt:ContentBlocks.Ver3BlockSink$32</ID>
-    <ID>MagicNumber:ContentBlocks.kt:ContentBlocks.Ver3BlockSource$32</ID>
-    <ID>MagicNumber:ContentBlocksCompatibilityTest.kt:ContentBlocksCompatibilityTest$16</ID>
-    <ID>MagicNumber:ContentBlocksCompatibilityTest.kt:ContentBlocksCompatibilityTest$32</ID>
     <ID>MagicNumber:Credentials.kt:Credentials.Companion$32</ID>
     <ID>MagicNumber:Credentials.kt:Credentials.Companion$4</ID>
     <ID>MagicNumber:Credentials.kt:Credentials.Companion$64</ID>
@@ -68,10 +52,6 @@
     <ID>MagicNumber:DatabaseHeader.kt:DatabaseHeader.Ver4x.Companion$32</ID>
     <ID>MagicNumber:DatabaseHeader.kt:DatabaseHeader.Ver4x.Companion$4</ID>
     <ID>MagicNumber:DatabaseInnerHeader.kt:DatabaseInnerHeader.Companion$64</ID>
-    <ID>MagicNumber:DatabaseInnerHeaderSpec.kt:DatabaseInnerHeaderSpec$42</ID>
-    <ID>MagicNumber:DecoderSecuritySpec.kt:12</ID>
-    <ID>MagicNumber:EncryptedValueSpec.kt:EncryptedValueSpec$3</ID>
-    <ID>MagicNumber:EncryptedValueSpec.kt:EncryptedValueSpec$4</ID>
     <ID>MagicNumber:EncryptionSaltGenerator.kt:EncryptionSaltGenerator.Companion$32</ID>
     <ID>MagicNumber:EncryptionSaltGenerator.kt:EncryptionSaltGenerator.Companion$44</ID>
     <ID>MagicNumber:EncryptionSaltGenerator.kt:EncryptionSaltGenerator.Salsa20$0x09</ID>
@@ -80,21 +60,8 @@
     <ID>MagicNumber:EncryptionSaltGenerator.kt:EncryptionSaltGenerator.Salsa20$0x30</ID>
     <ID>MagicNumber:EncryptionSaltGenerator.kt:EncryptionSaltGenerator.Salsa20$0x4b</ID>
     <ID>MagicNumber:EncryptionSaltGenerator.kt:EncryptionSaltGenerator.Salsa20$0x5d</ID>
-    <ID>MagicNumber:EncryptionSaltGeneratorSpec.kt:EncryptionSaltGeneratorSpec$10</ID>
-    <ID>MagicNumber:EncryptionSaltGeneratorSpec.kt:EncryptionSaltGeneratorSpec$20</ID>
-    <ID>MagicNumber:EncryptionSaltGeneratorSpec.kt:EncryptionSaltGeneratorSpec$3</ID>
     <ID>MagicNumber:Entry.kt:4</ID>
-    <ID>MagicNumber:EntrySpec.kt:EntrySpec$3</ID>
     <ID>MagicNumber:Group.kt:4</ID>
-    <ID>MagicNumber:GzipSpec.kt:GzipSpec$1024</ID>
-    <ID>MagicNumber:KdbxDecodeBenchmark.kt:KdbxDecodeBenchmark$10L</ID>
-    <ID>MagicNumber:KdbxDecodeBenchmark.kt:KdbxDecodeBenchmark$1_000_000.0</ID>
-    <ID>MagicNumber:KdbxDecodeBenchmark.kt:KdbxDecodeBenchmark$3</ID>
-    <ID>MagicNumber:KdbxDecodeBenchmark.kt:KdbxDecodeBenchmark$500</ID>
-    <ID>MagicNumber:KdbxDecodeBenchmark.kt:KdbxDecodeBenchmark$50L</ID>
-    <ID>MagicNumber:KdbxXmlBenchmark.kt:KdbxXmlBenchmark$1_000.0</ID>
-    <ID>MagicNumber:KdbxXmlBenchmark.kt:KdbxXmlBenchmark$4</ID>
-    <ID>MagicNumber:KdbxXmlBenchmark.kt:KdbxXmlBenchmark$500</ID>
     <ID>MagicNumber:KdfParameters.kt:KdfParameters.Argon2.Variant.Argon2d$0x03</ID>
     <ID>MagicNumber:KdfParameters.kt:KdfParameters.Argon2.Variant.Argon2d$0x0A</ID>
     <ID>MagicNumber:KdfParameters.kt:KdfParameters.Argon2.Variant.Argon2d$0x0C</ID>
@@ -127,7 +94,6 @@
     <ID>MagicNumber:KdfParameters.kt:KdfParameters.Argon2.Variant.Argon2id$0xE6</ID>
     <ID>MagicNumber:KdfParameters.kt:KdfParameters.Argon2.Variant.Argon2id$0xF0</ID>
     <ID>MagicNumber:KdfParameters.kt:KdfParameters.Argon2.Variant.Argon2id$0xFC</ID>
-    <ID>MagicNumber:KeePassDatabaseSpec.kt:KeePassDatabaseSpec$3</ID>
     <ID>MagicNumber:KeyTransform.kt:KeyTransform$8</ID>
     <ID>MagicNumber:Long.kt:0xff</ID>
     <ID>MagicNumber:Long.kt:16</ID>
@@ -143,7 +109,6 @@
     <ID>MagicNumber:Long.kt:7</ID>
     <ID>MagicNumber:Long.kt:8</ID>
     <ID>MagicNumber:Meta.kt:4</ID>
-    <ID>MagicNumber:MetaSpec.kt:MetaSpec$365U</ID>
     <ID>MagicNumber:OkioInOutBuffer.kt:OkioInOutBuffer$0x3FF</ID>
     <ID>MagicNumber:OkioInOutBuffer.kt:OkioInOutBuffer$0x80</ID>
     <ID>MagicNumber:OkioInOutBuffer.kt:OkioInOutBuffer$0x8F</ID>
@@ -159,22 +124,16 @@
     <ID>MagicNumber:OkioInOutBuffer.kt:OkioInOutBuffer$0xF4</ID>
     <ID>MagicNumber:OkioInOutBuffer.kt:OkioInOutBuffer$0xFFFF</ID>
     <ID>MagicNumber:OkioInOutBuffer.kt:OkioInOutBuffer$10</ID>
-    <ID>MagicNumber:Salsa20Spec.kt:Salsa20Spec$20</ID>
-    <ID>MagicNumber:Salsa20Spec.kt:Salsa20Spec$64</ID>
     <ID>MagicNumber:Signature.kt:Signature.Companion$4</ID>
-    <ID>MagicNumber:TeeBufferedStreamSpec.kt:TeeBufferedStreamSpec$5</ID>
-    <ID>MagicNumber:TeeBufferedStreamSpec.kt:TeeBufferedStreamSpec$6</ID>
     <ID>MagicNumber:TwofishCipher.kt:TwofishCipher$16</ID>
     <ID>MagicNumber:TwofishCipher.kt:TwofishCipher$24</ID>
     <ID>MagicNumber:TwofishCipher.kt:TwofishCipher$32</ID>
-    <ID>MagicNumber:TwofishSpec.kt:TwofishSpec$8</ID>
     <ID>MagicNumber:XmlStream.kt:BufferedSinkWriter$8_192</ID>
     <ID>MagicNumber:XmlStream.kt:XmlReadLimits$1024</ID>
     <ID>MagicNumber:XmlStream.kt:XmlReadLimits$1024L</ID>
     <ID>MagicNumber:XmlStream.kt:XmlReadLimits$512L</ID>
     <ID>MagicNumber:XmlStream.kt:XmlReadLimits$64</ID>
     <ID>MatchingDeclarationName:Entry.kt:MutableEntry</ID>
-    <ID>MatchingDeclarationName:Group.kt:MutableGroup</ID>
     <ID>MatchingDeclarationName:PlatformCrypto.kt:SecureRandom</ID>
     <ID>MatchingDeclarationName:ProtectedXmlValueCodec.kt:XmlProtectedValueMarkers</ID>
     <ID>MaxLineLength:Argon2Spec.kt:Argon2Spec$Case(NativeArgon2Mode.ARGON2_D, NativeArgon2Version.VERSION_1_0, "96a9d4e5a1734092c85e29f410a45914a5dd1f5cbf08b2670da68a0285abf32b")</ID>
@@ -183,59 +142,6 @@
     <ID>MaxLineLength:Argon2Spec.kt:Argon2Spec$Case(NativeArgon2Mode.ARGON2_I, NativeArgon2Version.VERSION_1_3, "c814d9d1dc7f37aa13f0d77f2494bda1c8de6b016dd388d29952a4c4672b6ce8")</ID>
     <ID>MaxLineLength:Argon2Spec.kt:Argon2Spec$Case(NativeArgon2Mode.ARGON2_ID, NativeArgon2Version.VERSION_1_0, "b64615f07789b66b645b67ee9ed3b377ae350b6bfcbb0fc95141ea8f322613c0")</ID>
     <ID>MaxLineLength:Argon2Spec.kt:Argon2Spec$Case(NativeArgon2Mode.ARGON2_ID, NativeArgon2Version.VERSION_1_3, "0d640df58d78766c08c037a34a8b53c9d01ef0452d75b65eb52520e96b01e659")</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9ea"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaeb"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebec"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebeced"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedee"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeef"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fa"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafb"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfc"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfd"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$input = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfe"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$key = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f30313233"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$key = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$key = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "0cf8545488d56a86817cd7ecb10f7116b7ea530a45b6ea497b6c72c997e09e3d0da8698f46bb006fc977c2cd3d1177463ac9057fdd1662c85d0c126443c10473"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "1085d78307b1c4b008c57a2e7e5b234658a0a82e4ff1e4aaac72b312fda0fe27d233bc5b10e9cc17fdc7697b540c7d95eb215a19a1a0e20e1abfa126efd568c7"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "142709d62e28fcccd0af97fad0f8465b971e82201dc51070faa0372aa43e92484be1c1e73ba10906d5d1853db6a4106e0a7bf9800d373d6dee2d46d62ef2a461"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "1d4edfffd8fd80f7e4107840fa3aa31e32598491e4af7013c197a65b7f36dd3ac4b478456111cd4309d9243510782fa31b7c4c95fa951520d020eb7e5c36e4ef"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "29fd384ed4906f2d13aa9fe7af905990938bed807f1832454a372ab412eea1f5625a1fcc9ac8343b7c67c5aba6e0b1cc4644654913692c6b39eb9187ceacd3ec"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "3a988d38d75611f3ef38b8774980b33e573b6c57bee0469ba5eed9b44f29945e7347967fba2c162e1c3be7f310f2f75ee2381e7bfd6b3f0baea8d95dfb1dafb1"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "4a3b16b12400f38e74778efc3a4caa52ec6fdf6b0180a5bfac9189e52e162c10e8911a54ab33e2b389ee1949e58edaa119e2b2b9"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "4e5c734c7dde011d83eac2b7347b373594f92d7091b9ca34cb9c6f39bdf5a8d2f134379e16d822f6522170ccf2ddd55c84b9e6c64fc927ac4cf8dfb2a17701f2"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "58aedfce6f67ddc85a28c992f1c0bd0969f041e66f1ee88020a125cbfcfebcd61709c9c4eba192c15e69f020d462486019fa8dea0cd7a42921a19d2fe546d43d"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "5dd258a3e7505bc6b9776b0df25676a1c19e2c8258c7b5f2e361423523d96299eb6827bc7c27e7bca2d2b59d717c2ebcb05e6dcaa32289d96fae9a4077ef"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "695d83bd990a1117b3d0ce06cc888027d12a054c2677fd82f0d4fbfc93575523e7991a5e35a3752e9b70ce62992e268a877744cdd435f5f130869c9a2074b338"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "74bef092fc6f1e5dba3663a3fb003b2a5ba257496536d99f62b9d73f8f9eb3ce9ff3eec709eb883655ec9eb896b9128f2afc89cf7d1ab58a72f4a3bf034d2b4a"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "771f57dd2775ccdab55921d3e8e30ccf484d61fe1c1b9c2ae819d0fb2a12fab9be70c4a7a138da84e8280435daade5bbe66af0836a154f817fb17f3397e725a3"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "8210cd2c2d3b135c2cf07fa0d1433cd771f325d075c6469d9c7f1ba0943cd4ab09808cabf4acb9ce5bb88b498929b4b847f681ad2c490d042db2aec94214b06b"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "9347bd291473e6b4e368437b8e561e065f649a6d8ada479ad09b1999a8f26b91cf6120fd3bfe014e83f23acfa4c0ad7b3712b2c3c0733270663112ccd9285cd9"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "98593452281661a53c48a9d8cd790826c1a1ce567738053d0bee4a91a3d5bd92eefdbabebe3204f2031ca5f781bda99ef5d8ae56e5b04a9e1ecd21b0eb05d3e1"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "a268c7885d9874a51c44dffed8ea53e94f78456e0b2ed99ff5a3924760813826d960a15edbedbb5de5226ba4b074e71b05c55b9756bb79e55c02754c2c7b6c8a"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "a6213743568e3b3158b9184301f3690847554c68457cb40fc9a4b8cfd8d4a118c301a07737aeda0f929c68913c5f51c80394f53bff1c3e83b2e40ca97eba9e15"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "af8e6e91fab46ce4873e1a50a8ef448cc29121f7f74deef34a71ef89cc00d9274bc6c2454bbb3230d8b2ec94c62b1dec85f3593bfa30ea6f7a44d7c09465a253"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "b32163e7c5dbb5f51fdc11d2eac875efbbcb7e7699090a7e7ff8a8d50795af5d74d9ff98543ef8cdf89ac13d0485278756e0ef00c817745661e1d59fe38e7537"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "b39614268fdd8781515e2cfebf89b4d5402bab10c226e6344e6b9ae000fb0d6c79cb2f3ec80e80eaeb1980d2f8698916bd2e9f747236655116649cd3ca23a837"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "c60897c6f828e21f16fbb5f15b323f87b6c8955eabf1d38061f707f608abdd993fac3070633e286cf8339ce295dd352df4b4b40b2f29da1dd50b3a05d079e6bb"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "cd36b3d5b4c91b90fcbba79513cfee1907d8645a162afd0cd4cf4192d4a5f4c892183a8eacdb2b6b6a9d9aa8c11ac1b261b380dbee24ca468f1bfd043c58eefe"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "d444bfa2362a96df213d070e33fa841f51334e4e76866b8139e8af3bb3398be2dfaddcbc56b9146de9f68118dc5829e74b0c28d7711907b121f9161cb92b69a9"</ID>
-    <ID>MaxLineLength:Blake2bDigestRes.kt:Blake2bDigestRes$output = "d4762cd4599876ca75b2b8fe249944dbd27ace741fdab93616cbc6e425460feb51d4e7adcc38180e7fc47c89024a7f56191adb878dfde4ead62223f5a2610efe"</ID>
     <ID>MaxLineLength:KdbxTestFixtures.kt:KdbxTestFixtures$const val GroupsAndEntries = "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"</ID>
     <ID>MaxLineLength:KdbxTestFixtures.kt:KdbxTestFixtures$const val InvalidReferences = "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"</ID>
     <ID>MaxLineLength:KdbxTestFixtures.kt:KdbxTestFixtures$const val Ver3Aes = "A9mimmf7S7UBAAMAAhAAMcHy5r9xQ1C+WAUhavxa/wMEAAEAAAAEIADLu/0cdil8QyXIjnClP88N/X++Iv5D0iVBxIYSpMbO9QcQADCzXJzWGlHuBW/2N9FLKv8FIAAiSZpBQNO2sE3/8+wicjTlY2bx6HABNawn121VMTh7xwYIAOCTBAAAAAAACgQAAgAAAAggAHpcu5YisO75ALwoBZm/ABJXIwh1qWgTS6lspaAFdHHmCSAAI+B1YGgmlY33aEYx8ooe2TJygJx5qoxJHFIMI00Iqw4ABAANCg0KWhFGB1ctkIT47LXJjXnJWnqWRD6oPAzKdisv1vo7th46nich2b7Jf204dDyXehmN15k4FSK/SZRnz1QHpdLmifzLFiw6xR9vZcShuIGtnsZfjkeKHKiLSdHdp3bpoDwCECh7A/Cc8DlDIMKVhzm08ezEj1QcWf9jLgtUwieE2R/okPPvljM7sesotf6/vHhPLpaEsvAl9es1ZyQ3aQYy3bBLZomEBDAfnz6m5y54f545duUBn+4DccmGjy5IY4YgVEKDeVLL0IZE6lmgvJbjdTqgFUwwi/kj9fTUC8BYdXrIs3VkpKFAIIN/Bi4ctceqVL2MFRV+p1ZxIenzannFL6c0RxY7lVzwjUIDTfV2zwWJ2c/xCahOWMirW85gyBUZxEgDst/mvtkcI8LKUlEwJyR5QxP7vFNBGQzOC1WJ89POVjvHzD/KYhRoJWKsSPf9rBQQSzsFaalvluPdI5oyr89zPUScoznwd0v9u/3saMo70heUaj568u/SM/eK1TussXUEg8ThueoxispiX+nqCOJLYbXw/0PLI0xFIDX5dyUF4GjggVxGVis2bnUAYI7+pcWL6OT3M+tpDG0ub2zhbrbsUvJ12ZuzlLTIH7b6ta8Atej4D1Jepsi+8i+N0MILrJ3m8pR3uQzbXPOIVmFzG3ItQC6aP4iBCTlgoZEZRX5EeYuC6Yrx8ZgFeqWsLMBrZXBG6t/PhyV3QfZPqE2xGHa8MEODPSdrBpUW8VN9zQQ6Vwe1sv+qhRDDjrtUBhTXG0YuJ2TlnVaKwHLrAFKfXw49tSZEr+/Fu6XNoGo4BU3b4jbhCszNgFHs9pDcNEAyTnflBgf0r6mSxdJ67eMMqmq2e2vgELxdAKjtQ6QCpyR9Ypb9baGJ2+SueKaxftGvMA5SGVBP3HhdQzwbjeKc5jSC/HlRi2NBwqL+qGbEeG903xpgzZP8ZRnyfH9EEmI7m8DbHlRrlOl6lvxjXr3yRbNwpAdLXSsfz/sFuNN2K/i3rI58CyiSmOg2vqtsvqHSONj2QAkozgv7zp964eh75wSJ8Uj8azvztbnhb5MtZxuw598r5fwfPZcXnwboaZMpLTNqQDs7C2/XYSVcMDbxmJy9M0mVQCMZ5Qty1joJ6SqCC1ObC93U1PZ6QM2Bp8+/hVw9LamsqdoHj6BGacN1pIQwcRu8E+tjpxKNcWK6Zs0="</ID>
@@ -627,10 +533,7 @@
     <ID>ReturnCount:Credentials.kt:Credentials.Companion$private fun parseKeyfile: ByteArray</ID>
     <ID>ReturnCount:CustomData.kt:CustomData$private fun unmarshalCustomDataItem: Pair&lt;String, CustomDataValue&gt;?</ID>
     <ID>ReturnCount:CustomIcons.kt:CustomIcons$private fun unmarshalCustomIcon: Pair&lt;Uuid, CustomIcon&gt;?</ID>
-    <ID>ReturnCount:Group.kt:fun KeePassDatabase.moveGroup: KeePassDatabase</ID>
     <ID>ReturnCount:OkioInOutBuffer.kt:OkioInOutBuffer$override fun read: Int</ID>
-    <ID>ReturnCount:Placeholders.kt:fun KeePassDatabase.resolvePlaceholder: String</ID>
-    <ID>ReturnCount:Placeholders.kt:fun KeePassDatabase.resolveReference: String</ID>
     <ID>ReturnCount:StreamingIo.kt:KotlinxSourceAdapter$override fun read: Long</ID>
     <ID>ThrowsCount:ContentBlocks.kt:ContentBlocks.Ver3BlockSource$override fun readBlock</ID>
     <ID>ThrowsCount:Credentials.kt:Credentials.Companion$private fun findXmlKeyData: ByteArray</ID>
@@ -647,11 +550,9 @@
     <ID>TooGenericExceptionCaught:BaseCiphers.kt:NativeCipherSession$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:CipherStreams.kt:CipherSink$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:CipherStreams.kt:CipherSource$error: Throwable</ID>
-    <ID>TooGenericExceptionCaught:Credentials.kt:Credentials.Companion$e: Exception</ID>
     <ID>TooGenericExceptionCaught:Decoder.kt:error: Exception</ID>
     <ID>TooGenericExceptionCaught:Decoder.kt:error: Throwable</ID>
     <ID>TooGenericExceptionCaught:DefaultXmlContentParser.kt:StreamingXmlContentParser$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:KeyTransform.kt:KeyTransform$error: Exception</ID>
     <ID>TooGenericExceptionCaught:KotpassSpec.kt:KotpassSpec$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:Matchers.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:ProtectedXmlValueCodec.kt:error: Throwable</ID>

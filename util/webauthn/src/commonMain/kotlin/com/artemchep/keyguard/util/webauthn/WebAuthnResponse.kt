@@ -38,12 +38,13 @@ internal fun credentialResponseJson(
 internal fun registrationResponseJson(
     clientData: ByteArray,
     authenticatorData: ByteArray,
+    attestationObject: ByteArray,
     publicKeyAlgorithm: Int,
     publicKey: ByteArray,
     transports: List<String>,
 ): JsonObject = buildJsonObject {
     put("clientDataJSON", clientData)
-    put("attestationObject", webAuthnNoneAttestationObject(authenticatorData))
+    put("attestationObject", attestationObject)
     put("transports", buildJsonArray { transports.forEach { add(it) } })
     put("publicKeyAlgorithm", publicKeyAlgorithm)
     put("publicKey", publicKey)

@@ -1312,7 +1312,7 @@ mod tests {
     };
 
     use super::*;
-    use crate::protocol::{SshFormattedPrivateKey, SshKeyDescription, SshKeyExportCxfResult};
+    use crate::protocol::{SshKeyDescription, SshKeyExportCxfResult};
 
     const OPENSSH_NONE: &str = include_str!(
         "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/openssh/id_ed25519"
@@ -2147,14 +2147,10 @@ mod tests {
             assert!(component.iter().any(|byte| *byte != 0));
         }
 
-        let formatted = SshFormattedPrivateKey::decode(
-            ssh_keys::format_private_key(SshKeyType::Rsa, material.private_key.clone())
-                .expect("format complete imported RSA")
-                .as_slice(),
-        )
-        .expect("formatted payload");
+        let formatted = ssh_keys::format_private_key_text(SshKeyType::Rsa, &material.private_key)
+            .expect("format complete imported RSA");
         ssh_keys::sign(
-            formatted.value.clone(),
+            formatted,
             None,
             b"complete OpenSSH RSA round trip".to_vec(),
             0x02,

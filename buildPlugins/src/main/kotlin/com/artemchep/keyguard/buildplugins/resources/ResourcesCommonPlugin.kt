@@ -16,6 +16,8 @@ class ResourcesCommonPlugin : Plugin<Project> {
             hashKotlinOutputDir.convention(ResourcesCommonExtension.defaultHashKotlinOutputDir(project))
             localeKotlinOutputDir.convention(ResourcesCommonExtension.defaultLocaleKotlinOutputDir(project))
             localeResOutputDir.convention(ResourcesCommonExtension.defaultLocaleResOutputDir(project))
+            appleStringsCatalogFile.convention(ResourcesCommonExtension.defaultAppleStringsCatalogFile(project))
+            appleStringsSwiftFile.convention(ResourcesCommonExtension.defaultAppleStringsSwiftFile(project))
         }
 
         val generateResHashesKt = tasks.register<GenerateResHashesTask>(
@@ -50,6 +52,15 @@ class ResourcesCommonPlugin : Plugin<Project> {
             packageName.set(extension.generatedPackageName)
             kotlinOutputDir.set(extension.localeKotlinOutputDir)
             resOutputDir.set(extension.localeResOutputDir)
+        }
+
+        tasks.register<GenerateAppleStringsTask>(
+            ResourcesCommonExtension.GENERATE_APPLE_STRINGS_TASK_NAME,
+        ) {
+            description = "Generates Localizable.xcstrings + L10n.swift for the native Apple UI."
+            composeResourcesDir.set(extension.composeResourcesDir)
+            catalogFile.set(extension.appleStringsCatalogFile)
+            swiftFile.set(extension.appleStringsSwiftFile)
         }
 
         pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {

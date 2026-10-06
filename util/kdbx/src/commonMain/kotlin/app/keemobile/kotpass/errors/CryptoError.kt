@@ -6,8 +6,6 @@ sealed class CryptoError(
 ) : Exception(message, cause) {
     class InvalidDataLength(override val message: String) : CryptoError()
 
-    class MaxBytesExceeded(override val message: String) : CryptoError()
-
     class AlgorithmUnavailable(
         override val message: String,
         cause: Throwable? = null,

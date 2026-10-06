@@ -1,10 +1,11 @@
 package com.artemchep.keyguard.util.foundation.crypto
 
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class HashKatTest {
-    private val crypto = PlatformCryptoPrimitives()
+    private val crypto = NativeCrypto.primitives
 
     @Test
     fun sha256EmptyInput() {
@@ -95,6 +96,18 @@ class HashKatTest {
 
         assertEquals(
             crypto.sha256(expectedInput).toHex(),
+            state.doFinal().toHex(),
+        )
+    }
+
+    @Test
+    fun incrementalMd5MatchesRfc1321() {
+        val state = createMd5()
+        state.update("message ".encodeToByteArray())
+        state.update("digest".encodeToByteArray())
+
+        assertEquals(
+            "f96b697d7cb7938d525a2f31aaf161d0",
             state.doFinal().toHex(),
         )
     }

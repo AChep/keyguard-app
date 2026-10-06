@@ -19,6 +19,7 @@ import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.error_failed_power_lock_start
 import com.artemchep.keyguard.res.lock_reason_screen_off
+import com.artemchep.keyguard.res.lock_reason_session_inactive
 import com.artemchep.keyguard.res.lock_reason_system_sleep
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
@@ -40,12 +41,13 @@ class VaultPowerLockService(
         ::registerDesktopPowerEvents,
 ) {
     suspend fun run(): Unit = coroutineScope {
-        if (platform !is Platform.Desktop.MacOS) return@coroutineScope
+        if (platform !is Platform.Desktop.MacOS && platform !is Platform.Desktop.Windows) return@coroutineScope
 
         // Resource reads and preference initialization happen before installing
         // the callback. Its lock path only reads memory and replaces the session.
         val displayReason = TextHolder.Value(getString(Res.string.lock_reason_screen_off))
         val sleepReason = TextHolder.Value(getString(Res.string.lock_reason_system_sleep))
+        val sessionReason = TextHolder.Value(getString(Res.string.lock_reason_session_inactive))
         val failureMessage = getString(Res.string.error_failed_power_lock_start)
         val enabled = getVaultLockAfterScreenOff().stateIn(this)
         val handler = VaultPowerLockHandler(
@@ -56,6 +58,7 @@ class VaultPowerLockService(
             clearVaultSession = clearVaultSession,
             displayReason = displayReason,
             sleepReason = sleepReason,
+            sessionReason = sessionReason,
             onError = ::recordPowerLockFailure,
         )
         val result = register(handler::onEvent, ::recordPowerLockFailure)
@@ -90,6 +93,7 @@ internal class VaultPowerLockHandler(
     private val clearVaultSession: ClearVaultSession,
     private val displayReason: TextHolder,
     private val sleepReason: TextHolder,
+    private val sessionReason: TextHolder,
     private val onError: (Throwable) -> Unit,
     private val timeoutMillis: Long = 1_000L,
 ) {
@@ -126,7 +130,11 @@ internal class VaultPowerLockHandler(
                     val reason = when (event) {
                         DesktopPowerEvent.DisplaySleep -> displayReason
                         DesktopPowerEvent.SystemSleep -> sleepReason
-                        DesktopPowerEvent.DisplayWake, DesktopPowerEvent.SystemWake -> {
+                        DesktopPowerEvent.SessionInactive -> sessionReason
+                        DesktopPowerEvent.DisplayWake,
+                        DesktopPowerEvent.SystemWake,
+                        DesktopPowerEvent.SessionActive,
+                        -> {
                             // Retry a failed lock only against the session it targeted.
                             val retry = pending?.takeIf { it.session.get() === session }
                             pending = null

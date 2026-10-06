@@ -1,7 +1,11 @@
 package com.artemchep.keyguard.common.service.backup
 
+import com.artemchep.keyguard.common.service.file.FileAccessToken
+
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.Password
+import com.artemchep.keyguard.common.service.s3.normalizeS3Endpoint
+import com.artemchep.keyguard.common.service.s3.normalizeS3Prefix
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 import kotlinx.serialization.SerialName
@@ -23,8 +27,15 @@ data class BackupConfig(
             store.requiresNetwork
 }
 
+enum class BackupStoreKind {
+    Local,
+    WebDav,
+    S3,
+}
+
 @Serializable
 sealed interface BackupStoreConfig {
+    val kind: BackupStoreKind
     val isConfigured: Boolean
     val requiresNetwork: Boolean
 
@@ -32,7 +43,14 @@ sealed interface BackupStoreConfig {
     @SerialName("local")
     data class Local(
         val path: String? = null,
+        val accessToken: FileAccessToken? = null,
     ) : BackupStoreConfig {
+        override fun toString(): String =
+            "Local(path=$path, accessToken=${if (accessToken == null) null else "<redacted>"})"
+
+        override val kind: BackupStoreKind
+            get() = BackupStoreKind.Local
+
         override val isConfigured: Boolean
             get() = !path.isNullOrBlank()
 
@@ -47,8 +65,36 @@ sealed interface BackupStoreConfig {
         val username: String? = null,
         val password: Password? = null,
     ) : BackupStoreConfig {
+        override val kind: BackupStoreKind
+            get() = BackupStoreKind.WebDav
+
         override val isConfigured: Boolean
             get() = !url.isNullOrBlank()
+
+        override val requiresNetwork: Boolean
+            get() = true
+    }
+
+    @Serializable
+    @SerialName("s3")
+    data class S3(
+        /** The service endpoint; null means Amazon S3. */
+        val endpoint: String? = null,
+        val region: String? = null,
+        val bucket: String? = null,
+        /** Empty or null for the bucket root, otherwise ends with `/`. */
+        val prefix: String? = null,
+        val accessKeyId: String? = null,
+        val secretAccessKey: Password? = null,
+        val pathStyle: Boolean = true,
+    ) : BackupStoreConfig {
+        override val kind: BackupStoreKind
+            get() = BackupStoreKind.S3
+
+        override val isConfigured: Boolean
+            get() = !bucket.isNullOrBlank() &&
+                    !accessKeyId.isNullOrBlank() &&
+                    secretAccessKey != null
 
         override val requiresNetwork: Boolean
             get() = true
@@ -67,6 +113,40 @@ data class BackupRetention(
         const val MAX_SNAPSHOTS_LIMIT = 365
     }
 }
+
+/** Normalizes user-entered fields before a config is persisted. */
+internal fun BackupConfig.sanitized(): BackupConfig = copy(
+    store = store.sanitized(),
+    retention = BackupRetention(
+        maxSnapshots = retention.maxSnapshots.coerceIn(
+            BackupRetention.NEVER_CLEAR_MAX_SNAPSHOTS,
+            BackupRetention.MAX_SNAPSHOTS_LIMIT,
+        ),
+    ),
+)
+
+private fun BackupStoreConfig.sanitized(): BackupStoreConfig = when (this) {
+    is BackupStoreConfig.Local -> copy(
+        path = path?.trim(),
+    )
+
+    is BackupStoreConfig.WebDav -> copy(
+        url = url?.trim(),
+        username = username?.trim()?.takeIf { it.isNotEmpty() },
+        password = password?.takeIf { it.value.isNotEmpty() },
+    )
+
+    is BackupStoreConfig.S3 -> sanitized()
+}
+
+internal fun BackupStoreConfig.S3.sanitized(): BackupStoreConfig.S3 = copy(
+    endpoint = normalizeS3Endpoint(endpoint),
+    region = region?.trim()?.takeIf { it.isNotEmpty() },
+    bucket = bucket?.trim()?.takeIf { it.isNotEmpty() },
+    prefix = normalizeS3Prefix(prefix).takeIf { it.isNotEmpty() },
+    accessKeyId = accessKeyId?.trim()?.takeIf { it.isNotEmpty() },
+    secretAccessKey = secretAccessKey?.takeIf { it.value.isNotEmpty() },
+)
 
 @Serializable
 data class BackupRepositoryMetadata(

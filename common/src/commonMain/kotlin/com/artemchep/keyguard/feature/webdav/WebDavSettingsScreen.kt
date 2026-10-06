@@ -1,29 +1,24 @@
 package com.artemchep.keyguard.feature.webdav
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Save
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.artemchep.keyguard.PLACEHOLDER_URL_WEBDAV_COLLECTION
+import com.artemchep.keyguard.PLACEHOLDER_URL_WEBDAV_KEEPASS_DATABASE
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.UsernameVariation
 import com.artemchep.keyguard.common.model.icon
@@ -41,11 +36,10 @@ import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.UrlFlatTextField
+import com.artemchep.keyguard.ui.button.connectionTestItems
 import com.artemchep.keyguard.ui.icons.IconBox
-import com.artemchep.keyguard.ui.icons.KeyguardConnectionTest
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import com.artemchep.keyguard.ui.theme.verticalPaddingHalf
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
@@ -93,15 +87,10 @@ private fun WebDavSettingsContent(
         else -> null
     }
 
-    val probeText = when {
-        purpose == WebDavSettingsRoute.Purpose.Collection ||
-                purpose == WebDavSettingsRoute.Purpose.KeePassDatabase &&
-                keePassMode == WebDavSettingsRoute.KeePassMode.Create ->
-            stringResource(Res.string.webdav_settings_test_text)
-
-        else ->
-            stringResource(Res.string.webdav_settings_test_text_read_only)
-    }
+    // Only an existing database is checked with a read; anything else
+    // is checked by writing and removing a probe.
+    val readOnlyTest = purpose == WebDavSettingsRoute.Purpose.KeePassDatabase &&
+        keePassMode == WebDavSettingsRoute.KeePassMode.Open
 
     val localNetworkPermission = rememberLocalNetworkPermission()
     val scrollBehavior = ToolbarBehavior.behavior()
@@ -151,8 +140,8 @@ private fun WebDavSettingsContent(
                 text = state.url.value,
                 error = urlError,
                 hint = when (purpose) {
-                    WebDavSettingsRoute.Purpose.Collection -> "https://example.com/keyguard-backups/"
-                    WebDavSettingsRoute.Purpose.KeePassDatabase -> "https://example.com/keyguard.kdbx"
+                    WebDavSettingsRoute.Purpose.Collection -> PLACEHOLDER_URL_WEBDAV_COLLECTION
+                    WebDavSettingsRoute.Purpose.KeePassDatabase -> PLACEHOLDER_URL_WEBDAV_KEEPASS_DATABASE
                 },
                 onChange = state.onUrlChange,
             )
@@ -236,56 +225,11 @@ private fun WebDavSettingsContent(
                 )
             }
         }
-        item("connection.header") {
-            Spacer(
-                modifier = Modifier
-                    .height(32.dp),
-            )
-        }
-        item("connection.test") {
-            val colors = ButtonDefaults.buttonColors()
-            val elevation = ButtonDefaults.buttonElevation()
-            Button(
-                modifier = Modifier
-                    .padding(horizontal = Dimens.buttonHorizontalPadding),
-                onClick = state.onTestConnection,
-                colors = colors,
-                shapes = ButtonDefaults.shapes(),
-                elevation = elevation,
-                enabled = !state.isTestingConnection,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(ButtonDefaults.IconSize),
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.KeyguardConnectionTest,
-                        contentDescription = null,
-                    )
-                }
-                Spacer(
-                    modifier = Modifier
-                        .width(ButtonDefaults.IconSpacing),
-                )
-                Text(
-                    text = stringResource(Res.string.webdav_settings_test_title),
-                )
-            }
-        }
-        item("connection.test.info") {
-            Text(
-                modifier = Modifier
-                    .padding(
-                        horizontal = Dimens.textHorizontalPadding,
-                        vertical = Dimens.verticalPaddingHalf,
-                    ),
-                text = probeText,
-                color = LocalContentColor.current
-                    .combineAlpha(MediumEmphasisAlpha),
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = 13.sp,
-            )
-        }
+        connectionTestItems(
+            onClick = state.onTestConnection,
+            enabled = !state.isTestingConnection,
+            readOnly = readOnlyTest,
+        )
         item("bottom.spacer") {
             Spacer(
                 modifier = Modifier

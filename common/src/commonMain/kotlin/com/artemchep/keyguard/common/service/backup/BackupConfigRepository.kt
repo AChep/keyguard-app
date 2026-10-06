@@ -12,6 +12,12 @@ interface BackupConfigRepository {
         config: BackupConfig,
     ): IO<Unit>
 
+    /** Refresh a device-local permission without changing backup contents or dirty state. */
+    fun refreshLocalAccess(
+        expected: BackupStoreConfig.Local,
+        updated: BackupStoreConfig.Local,
+    ): IO<Unit> = com.artemchep.keyguard.common.io.ioUnit()
+
     fun getStatus(): Flow<BackupStatus>
 
     fun setStatus(

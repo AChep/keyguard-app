@@ -63,9 +63,8 @@ the public Kotlin contract of every positive `Int` iteration count
 (1..2,147,483,647) and rejects larger protobuf-only values. The application's
 2,000,000-iteration login policy remains a caller-level policy, not a primitive
 ABI restriction. Argon2 follows the repository's 10,000-iteration, 1 GiB, and
-parallelism-64 limits, random-integer batches contain at most 1,024 values, and
-the repeated KDBX AES transform accepts at most 100,000,000 rounds and
-200,000,000 total block transforms.
+parallelism-64 limits, and the repeated KDBX AES transform accepts at most
+100,000,000 rounds and 200,000,000 total block transforms.
 
 ## Local checks
 

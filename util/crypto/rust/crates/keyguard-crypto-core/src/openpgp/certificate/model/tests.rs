@@ -6,7 +6,7 @@ use pgp::{
     },
     crypto::hash::HashAlgorithm,
     packet::UserAttribute,
-    packet::{KeyFlags, SignatureConfig},
+    packet::{KeyFlags, SignatureConfig, Subpacket},
     types::{
         Duration, Fingerprint, Mpi, Password, RevocationKey, RevocationKeyClass, SignatureBytes,
         SigningKey, Timestamp,
@@ -22,6 +22,80 @@ const SECRET_KEY: &[u8] = include_bytes!("../../../../tests/fixtures/openpgp/cv2
 const OTHER_SECRET_KEY: &[u8] = include_bytes!("../../../../tests/fixtures/openpgp/mdc-secret.asc");
 const REVOKED_PUBLIC_KEY: &[u8] =
     include_bytes!("../../../../tests/fixtures/openpgp/designated-revoked-public.asc");
+
+#[test]
+fn secp256k1_high_s_certificate_export_preserves_the_original_signature() {
+    let secret = crate::openpgp::crypto::verifier::tests::secp256k1_fixture();
+    let bytes = secret
+        .to_public_key()
+        .to_bytes()
+        .expect("serialize high-S public key");
+    let exported = export_public_certificate_preserving_framing(&bytes)
+        .expect("export authenticated high-S certificate");
+    assert_eq!(exported, bytes);
+    let certificate = parse_document(&bytes).remove(0);
+    assert_eq!(
+        certificate
+            .canonical_bytes()
+            .expect("canonical high-S certificate"),
+        bytes
+    );
+}
+
+#[test]
+fn secp256k1_high_s_subkey_binding_is_placed_rehomed_and_exported() {
+    use crate::openpgp::crypto::verifier::tests::{secp256k1_fixture, with_high_s_signing_subkey};
+    let secret = with_high_s_signing_subkey(
+        secp256k1_fixture(),
+        KeyType::ECDSA(pgp::crypto::ecc_curve::ECCCurve::Secp256k1),
+        1_700_000_000,
+    );
+    let bytes = secret
+        .to_public_key()
+        .to_bytes()
+        .expect("serialize high-S subkey certificate");
+    assert_eq!(
+        export_public_certificate_preserving_framing(&bytes)
+            .expect("export high-S subkey certificate"),
+        bytes
+    );
+    let certificate =
+        parse_single_certificate_packet_set(&bytes).expect("parse high-S subkey certificate");
+    assert!(
+        certificate
+            .subkeys_are_bound()
+            .expect("check subkey bindings")
+    );
+    let subkey = certificate.subkeys.values().next().expect("one subkey");
+    assert!(
+        subkey
+            .attached
+            .entries()
+            .all(|(_, entry)| entry.quality == SignatureVariantQuality::VerifiedByPrimary),
+        "the binding verifies where it was parsed",
+    );
+
+    // A binding in front of its subkey is placed only by verifying it.
+    let stream = RawPacketStream::parse(&bytes, MAX_MERGE_PACKETS).expect("scan certificate");
+    let (binding, rest) = stream
+        .packets()
+        .split_last()
+        .expect("trailing subkey binding");
+    assert_eq!(binding.tag(), SIGNATURE_TAG);
+    let mut displaced = stream.raw(&rest[0]).to_vec();
+    displaced.extend_from_slice(stream.raw(binding));
+    for packet in &rest[1..] {
+        displaced.extend_from_slice(stream.raw(packet));
+    }
+    assert_eq!(
+        canonicalize_public_certificate(&displaced)
+            .expect("rehome high-S subkey binding")
+            .0,
+        canonicalize_public_certificate(&bytes)
+            .expect("canonicalize high-S subkey certificate")
+            .0,
+    );
+}
 
 struct TestRawPackets<'a>(&'a [u8]);
 
@@ -5592,4 +5666,186 @@ fn non_exportable_certifications_are_retained_locally_but_never_exported() {
             .expect("canonicalize fixture")
             .0,
     );
+}
+
+impl AttachedPackets {
+    fn is_empty(&self) -> bool {
+        self.packets.is_empty()
+    }
+}
+
+/// Returns whether the packet is a certification the issuer marked local.
+///
+/// Only the hashed area is honored: an unhashed `ExportableCertification`
+/// subpacket is attacker-modifiable, and treating it as authoritative would
+/// let an intermediary suppress certifications. RFC 9580 sections 5.2.1 and
+/// 5.2.3.19 limit this instruction to certification signature types 0x10
+/// through 0x13; Direct Key, binding, and revocation signatures are distinct
+/// types and remain exportable. If signed values conflict, the last hashed
+/// occurrence wins per RFC 9580 section 5.2.3.9.
+fn is_non_exportable_signature(packet: &CanonicalPacket) -> bool {
+    if packet.tag != SIGNATURE_TAG {
+        return false;
+    }
+    let Ok(signature) = parse_signature_packet(packet) else {
+        return false;
+    };
+    signature_is_non_exportable(&signature)
+}
+
+fn is_exportable_identity_self_signature(
+    packet: &CanonicalPacket,
+    identity: &CanonicalPacket,
+    primary: &PublicKey,
+    authenticated_sensitive_declarations: &BTreeSet<CanonicalPacket>,
+    budget: &mut ExportClassificationBudget,
+) -> Result<bool, CertificateMergeError> {
+    if packet.tag != SIGNATURE_TAG {
+        return Ok(false);
+    }
+    let signature = parse_signature_packet(packet)?;
+    let key = attached_packet_key_from_signature(packet, &signature)?;
+    is_exportable_identity_self_signature_parsed(
+        &key,
+        &signature,
+        identity,
+        primary,
+        authenticated_sensitive_declarations,
+        budget,
+    )
+}
+
+fn is_exportable_subkey_binding_signature(
+    packet: &CanonicalPacket,
+    subkey: &PublicSubkey,
+    primary: &PublicKey,
+    authenticated_sensitive_declarations: &BTreeSet<CanonicalPacket>,
+    budget: &mut ExportClassificationBudget,
+) -> Result<bool, CertificateMergeError> {
+    if packet.tag != SIGNATURE_TAG {
+        return Ok(false);
+    }
+    let signature = parse_signature_packet(packet)?;
+    let key = attached_packet_key_from_signature(packet, &signature)?;
+    is_exportable_subkey_binding_signature_parsed(
+        &key,
+        &signature,
+        subkey,
+        primary,
+        authenticated_sensitive_declarations,
+        budget,
+    )
+}
+
+fn rebuild_signature_body(
+    signature: &Signature,
+    config: SignatureConfig,
+) -> Result<Vec<u8>, CertificateMergeError> {
+    let signed_hash_value = signature
+        .signed_hash_value()
+        .ok_or(CertificateMergeError::Malformed)?;
+    rebuild_signature_body_with_prefix(signature, config, signed_hash_value)
+}
+
+fn parse_user_id(packet: &CanonicalPacket) -> Result<pgp::packet::UserId, CertificateMergeError> {
+    parse_fixed_packet_body(Tag::UserId, packet.body.as_slice(), |header, reader| {
+        pgp::packet::UserId::try_from_reader(header, reader)
+    })
+    .map_err(CertificateMergeError::from)
+}
+
+/// Canonically unions public certificate documents into transferable bytes.
+fn merge_public_certificate_documents(
+    documents: &[&[u8]],
+) -> Result<(Vec<u8>, String), CertificateMergeError> {
+    let canonical = merge_public_certificate_material_documents(documents)?;
+    Ok((canonical.bytes, canonical.fingerprint))
+}
+
+/// Canonically unions public certificate documents while retaining the local
+/// evidence that ordinary transferable export must omit.
+fn merge_public_certificate_material_documents(
+    documents: &[&[u8]],
+) -> Result<CanonicalCertificate, CertificateMergeError> {
+    merge_public_certificate_material_documents_with_order(documents, false)
+}
+
+/// Canonically unions public certificate documents using an input-order-
+/// independent component order suitable for multi-replica reconciliation.
+fn merge_public_certificate_material_documents_deterministic(
+    documents: &[&[u8]],
+) -> Result<CanonicalCertificate, CertificateMergeError> {
+    merge_public_certificate_material_documents_with_order(documents, true)
+}
+
+fn merge_public_certificate_material_documents_with_order(
+    documents: &[&[u8]],
+    deterministic_component_order: bool,
+) -> Result<CanonicalCertificate, CertificateMergeError> {
+    let mut rehoming_budget = SignatureRehomingBudget::default();
+    let mut values = documents
+        .iter()
+        .map(|document| {
+            parse_public_certificate_packet_set_with_budget(document, &mut rehoming_budget)
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    if values.is_empty() {
+        return Err(CertificateMergeError::Malformed);
+    }
+    // Resource caps are enforced per document by
+    // `parse_public_certificate_packet_set_with_budget`
+    // and on the deduplicated union by `finalize`; summing per-document counts
+    // against the per-certificate caps here would reject legitimate merges of
+    // near-cap duplicates, such as a certificate reconciled with its own
+    // secret projection.
+    let mut merged = values.remove(0);
+    let fingerprint = merged.fingerprint.clone();
+    for value in values {
+        if value.fingerprint != fingerprint {
+            return Err(CertificateMergeError::ComponentCollision);
+        }
+        merged.merge(value)?;
+    }
+    if deterministic_component_order {
+        merged.sort_component_order();
+    }
+    merged.finalize()
+}
+
+/// Filters one public certificate for ordinary export while preserving the
+/// framing of every packet that remains.
+fn export_public_certificate_preserving_framing(
+    data: &[u8],
+) -> Result<Vec<u8>, CertificateMergeError> {
+    let mut rehoming_budget = SignatureRehomingBudget::default();
+    let (stream, certificate) =
+        parsing::parse_single_certificate_with_stream_and_budget(data, &mut rehoming_budget)?;
+    let canonical = certificate.finalize()?;
+    if !canonical.transferable {
+        return Ok(Vec::new());
+    }
+    let mut output = Vec::with_capacity(data.len());
+    for packet in stream
+        .packets()
+        .iter()
+        .filter(|packet| raw_packet_is_exportable(&canonical, &stream, packet))
+    {
+        output.extend_from_slice(stream.raw(packet));
+    }
+    Ok(output)
+}
+
+/// Parses every transferable public certificate in one decoded or armored
+/// document without discarding packet bodies.
+///
+/// Independently unsupported or malformed certificate entries are skipped and
+/// counted rather than failing later recoverable entries, matching tolerant
+/// keyring import behavior.
+fn parse_public_certificate_packet_sets(
+    stream: &RawPacketStream,
+) -> Result<ParsedCertificateDocument, CertificateMergeError> {
+    parse_public_certificate_packet_sets_with_budget(
+        stream,
+        &mut SignatureRehomingBudget::default(),
+    )
 }

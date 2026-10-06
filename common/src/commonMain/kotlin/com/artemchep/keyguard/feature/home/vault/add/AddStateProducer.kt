@@ -15,7 +15,6 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -205,6 +204,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
+import com.artemchep.keyguard.ui.SwitchExpressive
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
@@ -822,7 +822,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                                 text = item.text?.let(TextHolder::Value),
                                 leading = icon(Icons.Outlined.Password),
                                 trailing = {
-                                    Switch(
+                                    SwitchExpressive(
                                         checked = model.checked,
                                         onCheckedChange = model.onChange,
                                     )

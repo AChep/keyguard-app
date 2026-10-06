@@ -22,10 +22,11 @@ import kotlin.test.assertTrue
 
 class VaultPowerLockHandlerTest {
     @Test
-    fun `both sleep triggers clear the session before returning with the correct reason`() {
+    fun `sleep and inactive session triggers clear the session before returning with the correct reason`() {
         listOf(
             DesktopPowerEvent.DisplaySleep to "display off",
             DesktopPowerEvent.SystemSleep to "system sleep",
+            DesktopPowerEvent.SessionInactive to "session inactive",
         ).forEach { (event, reason) ->
             val fixture = Fixture()
             fixture.handler.onEvent(event)
@@ -46,6 +47,7 @@ class VaultPowerLockHandlerTest {
             clearVaultSession = ClearVaultSessionImpl(LeContext(), PutVaultSessionImpl(repository)),
             displayReason = TextHolder.Value("display off"),
             sleepReason = TextHolder.Value("system sleep"),
+            sessionReason = TextHolder.Value("session inactive"),
             onError = { throw AssertionError(it) },
         )
         handler.onEvent(DesktopPowerEvent.SystemSleep)
@@ -71,11 +73,13 @@ class VaultPowerLockHandlerTest {
         val fixture = Fixture()
         fixture.handler.onEvent(DesktopPowerEvent.DisplaySleep)
         fixture.handler.onEvent(DesktopPowerEvent.SystemSleep)
+        fixture.handler.onEvent(DesktopPowerEvent.SessionInactive)
         assertEquals(1, fixture.calls.size)
         val fresh = testMasterSessionKey()
         fixture.repository.put(fresh)
         fixture.handler.onEvent(DesktopPowerEvent.DisplayWake)
         fixture.handler.onEvent(DesktopPowerEvent.SystemWake)
+        fixture.handler.onEvent(DesktopPowerEvent.SessionActive)
         assertSame(fresh, fixture.session())
         assertEquals(1, fixture.calls.size)
     }
@@ -105,6 +109,7 @@ class VaultPowerLockHandlerTest {
         fixture.fail = false
         fixture.handler.onEvent(DesktopPowerEvent.DisplayWake)
         fixture.handler.onEvent(DesktopPowerEvent.SystemWake)
+        fixture.handler.onEvent(DesktopPowerEvent.SessionActive)
         assertSame(fresh, fixture.session())
         assertEquals(1, fixture.calls.size)
     }
@@ -124,15 +129,20 @@ class VaultPowerLockHandlerTest {
     }
 
     @Test
-    fun `a suspended lock attempt times out and can be retried on wake`() {
-        val fixture = Fixture(timeoutMillis = 30)
-        fixture.suspendLock = true
-        fixture.handler.onEvent(DesktopPowerEvent.SystemSleep)
-        assertEquals(1, fixture.errors.size)
-        fixture.suspendLock = false
-        fixture.handler.onEvent(DesktopPowerEvent.SystemWake)
-        assertIs<MasterSession.Empty>(fixture.session())
-        assertEquals(2, fixture.calls.size)
+    fun `a suspended lock attempt times out and can be retried on wake or reconnect`() {
+        listOf(
+            DesktopPowerEvent.SystemSleep to DesktopPowerEvent.SystemWake,
+            DesktopPowerEvent.SessionInactive to DesktopPowerEvent.SessionActive,
+        ).forEach { (lock, retry) ->
+            val fixture = Fixture(timeoutMillis = 30)
+            fixture.suspendLock = true
+            fixture.handler.onEvent(lock)
+            assertEquals(1, fixture.errors.size)
+            fixture.suspendLock = false
+            fixture.handler.onEvent(retry)
+            assertIs<MasterSession.Empty>(fixture.session())
+            assertEquals(2, fixture.calls.size)
+        }
     }
 
     @Test
@@ -141,6 +151,37 @@ class VaultPowerLockHandlerTest {
         fixture.handler.stop()
         DesktopPowerEvent.entries.forEach(fixture.handler::onEvent)
         assertTrue(fixture.calls.isEmpty())
+    }
+
+    @Test
+    fun `session activation retries a failed session lock only for the original vault session`() {
+        val fixture = Fixture()
+        fixture.fail = true
+        fixture.handler.onEvent(DesktopPowerEvent.SessionInactive)
+        assertEquals(1, fixture.errors.size)
+        fixture.fail = false
+        fixture.handler.onEvent(DesktopPowerEvent.SessionActive)
+        assertIs<MasterSession.Empty>(fixture.session())
+        assertEquals(2, fixture.calls.size)
+        assertEquals(fixture.calls[0], fixture.calls[1])
+        val fresh = testMasterSessionKey()
+        fixture.repository.put(fresh)
+        fixture.handler.onEvent(DesktopPowerEvent.SessionActive)
+        assertSame(fresh, fixture.session())
+        assertEquals(2, fixture.calls.size)
+    }
+
+    @Test
+    fun `session activation cannot lock a replacement session after a failed session lock`() {
+        val fixture = Fixture()
+        fixture.fail = true
+        fixture.handler.onEvent(DesktopPowerEvent.SessionInactive)
+        val fresh = testMasterSessionKey()
+        fixture.repository.put(fresh)
+        fixture.fail = false
+        fixture.handler.onEvent(DesktopPowerEvent.SessionActive)
+        assertSame(fresh, fixture.session())
+        assertEquals(1, fixture.calls.size)
     }
 
     private class Fixture(timeoutMillis: Long = 1_000L) {
@@ -163,6 +204,7 @@ class VaultPowerLockHandlerTest {
             },
             displayReason = TextHolder.Value("display off"),
             sleepReason = TextHolder.Value("system sleep"),
+            sessionReason = TextHolder.Value("session inactive"),
             onError = { errors += it },
             timeoutMillis = timeoutMillis,
         )

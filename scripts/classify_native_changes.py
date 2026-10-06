@@ -70,9 +70,23 @@ def classify(paths, *, full=False, all_checks=False):
         if path.startswith(".github/native-crypto-"):
             enable("crypto", "desktop", "android", "apple")
             continue
-        module = re.match(r"util/(crypto|io|zxcvbn|zip|instance|webauthn)/(.+)", path)
+        # Every native bridge consumes util/ffi: the Rust crate by path, the
+        # JNI loader and handle runner as a Kotlin dependency.
+        if path.startswith("util/ffi/"):
+            if path.startswith("util/ffi/rust/"):
+                enable("native_quality")
+                if is_rust_test_path(path):
+                    continue
+            enable("io", "instance", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
+            continue
+        module = re.match(r"util/(crypto|dns|io|zxcvbn|zip|instance|webauthn|yubikey|fido2)/(.+)", path)
         if module:
             name, relative = module.groups()
+            if name in {"yubikey", "fido2"}:
+                enable("desktop", "desktop_regressions", "apple", "apple_regressions", "native_quality")
+                if not relative.startswith("rust/"):
+                    enable("android")
+                continue
             # The Windows instance backend consumes IO's native filesystem core.
             if name == "io" and relative.startswith("rust/"):
                 enable("instance", "desktop_regressions")
@@ -93,7 +107,7 @@ def classify(paths, *, full=False, all_checks=False):
             if test_source or rust_test:
                 if name in {"io", "instance"} and (rust_test or source_set in {"commonTest", "desktopTest", "jvmTest"}):
                     enable(name, "desktop_regressions")
-                if source_set.startswith(("macos", "apple", "native")) or (name in {"io", "instance", "webauthn"} and source_set == "commonTest"):
+                if source_set.startswith(("macos", "apple", "native")) or (name in {"dns", "io", "instance", "webauthn"} and source_set == "commonTest"):
                     enable("apple_regressions")
                 # Android host and iOS simulator suites already run in Check Tests.
                 continue
@@ -142,12 +156,16 @@ def classify(paths, *, full=False, all_checks=False):
                 # Agent tests are owned by Check SSH Agent / Check GPG Agent.
                 continue
             enable("desktop", "desktop_native")
+            if path.startswith(("desktopGpgAgent/", "commonAgent/", "commonGpgAgent/")):
+                enable("apple")
         if re.match(r"androidApp/src/androidTest/.+/(nativebundle|io|crypto)/", path):
             enable("android_runtime")
             if "/test/io/" in path:
                 enable("io")
             continue
         if re.match(r"[^/]+/src/[^/]*Test/", path):
+            if re.match(r"appleApp/src/(apple|macos|common)[^/]*Test/", path):
+                enable("apple_regressions")
             if path.startswith("desktopApp/") and "/instance/" in path:
                 enable("instance", "desktop_regressions")
             if path.startswith("common/") and ("PrivateTemporaryStorage" in path or "KeePassDatabaseWindowsSpillTest" in path):
@@ -177,7 +195,10 @@ def classify(paths, *, full=False, all_checks=False):
             enable("io", "android_runtime", "desktop_regressions")
         if path.startswith("common/src/") and "/nativebundle/" in path:
             enable("desktop", "android", "apple")
-        if path in {"iosApp/build.gradle.kts", "common/build.gradle.kts"} or path.startswith("iosApp/src/nativeInterop/"):
+        if (
+            path == "common/build.gradle.kts"
+            or path.startswith(("appleApp/", "appleUi/", "appleAutofill/", "iosApp/", "macosApp/", "xcode/"))
+        ):
             enable("apple")
         if path == ".github/workflows/new_tag_release.yaml":
             enable("desktop", "android")

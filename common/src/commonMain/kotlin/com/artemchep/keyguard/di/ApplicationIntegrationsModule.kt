@@ -73,8 +73,12 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUnsecureUrlCheckI
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlBroadCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlDuplicateCheckImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServer
+import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServerImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfaImpl
+import com.artemchep.keyguard.util.dns.DnsTxtResolver
+import com.artemchep.keyguard.util.dns.createDnsTxtResolver
 import com.artemchep.keyguard.util.io.artifact.sweepTemporaryArtifacts
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -96,7 +100,32 @@ internal class ApplicationIntegrationsModule {
             )
         }
 
-        single<UnlockUseCaseImpl>() bind UnlockUseCase::class
+        single {
+            UnlockUseCaseImpl(
+                sessionFactory = get(),
+                vaultDatabaseSessionAccess = get(),
+                biometricStatusUseCase = get(),
+                biometricKeyRepository = get(),
+                getVaultSession = get(),
+                putVaultSession = get(),
+                disableBiometric = get(),
+                logRepository = get(),
+                keyReadWriteRepository = get(),
+                sessionMetadataReadWriteRepository = get(),
+                getBiometricRequireConfirmation = get(),
+                getBiometricRemainingDuration = get(),
+                biometricKeyEncryptUseCase = get(),
+                decryptBiometricKeyUseCase = get(),
+                authConfirmMasterKeyUseCase = get(),
+                authGenerateMasterKeyUseCase = get(),
+                cryptoGenerator = get(),
+                cipherEncryptor = get(),
+                yubiKeyUnlockAvailability = get(),
+                fido2UnlockAvailability = get(),
+                fido2UnlockService = get(),
+                base64Service = get(),
+            )
+        } bind UnlockUseCase::class
 
         single<SearchGpgPublicKeyImpl>() bind SearchGpgPublicKey::class
 
@@ -214,6 +243,10 @@ internal class ApplicationIntegrationsModule {
         single<PrivilegedAppsServiceImpl>() bind PrivilegedAppsService::class
 
         single<TldServiceImpl>() bind TldService::class
+
+        single<DnsTxtResolver> { createDnsTxtResolver() }
+
+        single<DiscoverBitwardenServerImpl>() bind DiscoverBitwardenServer::class
 
         single<LinkInfoPlatformExtractor>()
 

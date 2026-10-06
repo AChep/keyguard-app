@@ -623,7 +623,7 @@ class SyncV2CipherUploadIntegrationTest {
     fun `production CipherSyncOps uploads pending attachment and clears staged file`() = runTest {
         withTempUploadFile("production cipher bytes") { file, pendingUpload ->
             val server = UploadTestServer()
-            val database = createUploadTestDatabase()
+            val database = createUploadTestDatabase().apply { insertUploadTestAccount() }
             val cryptoGenerator = CryptoGeneratorJvm()
             val base64Service = Base64ServiceJvm()
             val crypto = createUploadTestCrypto(
@@ -2734,6 +2734,7 @@ class SyncV2CipherUploadIntegrationTest {
             cipherEncryptor = cipherEncryptor,
             base64Service = base64Service,
         )
+        database.accountQueries.insert(accountId = user.id, data = user)
         server.profile = profile
 
         val locals = listOf(
@@ -2861,6 +2862,7 @@ class SyncV2CipherUploadIntegrationTest {
             cipherEncryptor = cipherEncryptor,
             base64Service = base64Service,
         )
+        database.accountQueries.insert(accountId = user.id, data = user)
         server.profile = profile
 
         val local =
@@ -3241,7 +3243,7 @@ private fun createProductionCipherOpsFixture(
     server: UploadTestServer,
     coordinator: UploadTestPendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
 ): ProductionCipherOpsFixture {
-    val database = createUploadTestDatabase()
+    val database = createUploadTestDatabase().apply { insertUploadTestAccount() }
     val cryptoGenerator = CryptoGeneratorJvm()
     val base64Service = Base64ServiceJvm()
     val crypto = createUploadTestCrypto(

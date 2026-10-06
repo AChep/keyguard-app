@@ -84,11 +84,13 @@ impl ConnectionPrincipal {
     }
 }
 
-/// Canonical fingerprint of a verified process or application subject.
+/// Canonical fingerprint of a platform process or application subject.
 ///
 /// This type is deliberately distinct from [`ConnectionPrincipal`]. A stable
 /// subject may be reused across connections only at the exact scope established
-/// by its canonical platform recipe.
+/// by its canonical platform recipe. The wire evidence source identifies the
+/// strength of attribution; Windows snapshots are explicitly best effort and
+/// must not be wrapped in [`VerifiedSubject`].
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SubjectFingerprint([u8; PRINCIPAL_FINGERPRINT_LEN]);
 

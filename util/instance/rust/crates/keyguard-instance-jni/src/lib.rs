@@ -103,6 +103,24 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJ
     keyguard_instance_core::ABI_VERSION as jint
 }
 
+/// Decodes a coordination config and passes it to `operation`.
+fn arbitrate(
+    environment: &mut JNIEnv<'_>,
+    coordination: &JString<'_>,
+    runtime: &JString<'_>,
+    identity: &JString<'_>,
+    timeout_ms: jlong,
+    operation: fn(&str, &str, &str, u64) -> i64,
+) -> i64 {
+    contained(|| {
+        let timeout_ms = unsigned(timeout_ms)?;
+        let coordination = java_string(environment, coordination)?;
+        let runtime = java_string(environment, runtime)?;
+        let identity = java_string(environment, identity)?;
+        Ok(operation(&coordination, &runtime, &identity, timeout_ms))
+    })
+}
+
 /// Acquires ownership or delivers an acknowledged activation request.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJni_acquireOrActivate(
@@ -113,18 +131,34 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJ
     identity: JString<'_>,
     timeout_ms: jlong,
 ) -> jlong {
-    contained(|| {
-        let timeout_ms = unsigned(timeout_ms)?;
-        let coordination = java_string(&mut environment, &coordination)?;
-        let runtime = java_string(&mut environment, &runtime)?;
-        let identity = java_string(&mut environment, &identity)?;
-        Ok(bridge::acquire_or_activate(
-            &coordination,
-            &runtime,
-            &identity,
-            timeout_ms,
-        ))
-    })
+    arbitrate(
+        &mut environment,
+        &coordination,
+        &runtime,
+        &identity,
+        timeout_ms,
+        bridge::acquire_or_activate,
+    )
+}
+
+/// Acquires ownership without activating the current owner, waiting for it to exit.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJni_acquire(
+    mut environment: JNIEnv<'_>,
+    _object: JObject<'_>,
+    coordination: JString<'_>,
+    runtime: JString<'_>,
+    identity: JString<'_>,
+    timeout_ms: jlong,
+) -> jlong {
+    arbitrate(
+        &mut environment,
+        &coordination,
+        &runtime,
+        &identity,
+        timeout_ms,
+        bridge::acquire,
+    )
 }
 
 /// Waits for activation or shutdown without holding a JNI string or array borrow.

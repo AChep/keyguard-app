@@ -3,12 +3,8 @@
 package app.keemobile.kotpass.database
 
 import app.keemobile.kotpass.constants.GroupOverride
-import app.keemobile.kotpass.cryptography.KeyTransform
-import app.keemobile.kotpass.cryptography.format.BaseKdfProvider
-import app.keemobile.kotpass.cryptography.format.KdfProvider
 import app.keemobile.kotpass.database.header.DatabaseHeader
 import app.keemobile.kotpass.database.header.DatabaseInnerHeader
-import app.keemobile.kotpass.extensions.clear
 import app.keemobile.kotpass.models.DatabaseContent
 import app.keemobile.kotpass.models.DatabaseElement
 import app.keemobile.kotpass.models.Entry
@@ -16,7 +12,6 @@ import app.keemobile.kotpass.models.Group
 import app.keemobile.kotpass.models.Meta
 import app.keemobile.kotpass.cryptography.SecureRandom
 import kotlin.uuid.Uuid
-import kotlin.time.measureTime
 
 /**
  * Main class which describes Keepass database.
@@ -129,21 +124,6 @@ fun KeePassDatabase.getGroup(
 }
 
 /**
- * Retrieves a single [Group] which matches a given [predicate].
- */
-fun KeePassDatabase.getGroupBy(
-    predicate: Group.() -> Boolean
-): Group? {
-    return if (predicate(content.group)) {
-        content.group
-    } else {
-        content.group
-            .findChildGroup(null, predicate)
-            ?.let { (_, group) -> group }
-    }
-}
-
-/**
  * Retrieves a single [Entry] which matches a given [predicate].
  *
  * @return Found [Entry] paired with it’s parent [Group] or null.
@@ -183,19 +163,6 @@ fun KeePassDatabase.getEntryBy(
 }
 
 /**
- * Searches for single [Entry] which matches a given [predicate] while
- * respecting [GroupOverride] and ignoring items in Recycle Bin.
- */
-fun KeePassDatabase.findEntryBy(
-    predicate: Entry.() -> Boolean
-): Entry? {
-    return content
-        .group
-        .findChildEntry(true, content.meta.recycleBinUuid, predicate)
-        ?.let { (_, entry) -> entry }
-}
-
-/**
  * Retrieves entries which match a given [predicate].
  *
  * @return [List] of found [Entry] items paired with corresponding parent [Group].
@@ -221,15 +188,3 @@ fun KeePassDatabase.findEntries(
         .group
         .findChildEntries(true, content.meta.recycleBinUuid, predicate)
 }
-
-/**
- * Measures KDF transform rounds performance based on
- * [header][KeePassDatabase.header] parameters.
- */
-fun KeePassDatabase.measureKeyTransformMillis(
-    kdfProvider: KdfProvider = BaseKdfProvider
-): Long = measureTime {
-    KeyTransform
-        .transformedKey(kdfProvider, header, credentials)
-        .clear()
-}.inWholeMilliseconds

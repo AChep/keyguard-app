@@ -11,8 +11,6 @@ pub mod reader;
 pub mod registry;
 pub mod writer;
 
-use std::sync::Once;
-
 pub use error::{
     BRIDGE_ERROR_ARCHIVE, BRIDGE_ERROR_BUFFER_TOO_SMALL, BRIDGE_ERROR_INTERNAL,
     BRIDGE_ERROR_INVALID_ARGUMENT, BRIDGE_ERROR_INVALID_HANDLE, BRIDGE_ERROR_INVALID_STATE,
@@ -33,16 +31,6 @@ pub const MAX_ENTRY_NAME_BYTES: usize = 4096;
 
 /// Largest accepted destination path, in UTF-8 bytes.
 pub const MAX_PATH_BYTES: usize = 4096;
-
-static PANIC_HOOK: Once = Once::new();
-
-/// Installs a process-wide panic hook that prints nothing.
-///
-/// The default hook prints the payload before `catch_unwind` runs, and a
-/// payload may carry a path or a fragment of vault data.
-pub fn install_redacting_panic_hook() {
-    PANIC_HOOK.call_once(|| std::panic::set_hook(Box::new(|_| {})));
-}
 
 /// Creates or truncates an archive at `path` and returns its handle.
 ///

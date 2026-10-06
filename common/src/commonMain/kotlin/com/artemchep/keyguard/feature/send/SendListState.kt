@@ -31,6 +31,8 @@ data class SendListState(
     val primaryActions: ImmutableList<ContextItem> = persistentListOf(),
     val actions: List<FlatItemAction> = emptyList(),
     val onFileDrop: ((FilePickerResult) -> Unit)? = null,
+    /** Whether an account can create a File send, regardless of the selection. */
+    val canCreateFileSend: Boolean = false,
     val content: Content = Content.Skeleton,
     val sideEffects: SideEffects = SideEffects(),
 ) {

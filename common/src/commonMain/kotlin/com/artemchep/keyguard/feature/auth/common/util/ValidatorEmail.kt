@@ -34,6 +34,21 @@ fun validateEmail(email: String?): ValidationEmail {
 }
 
 /**
+ * Returns the lowercase domain of a valid email address, or `null` when the
+ * address is invalid or its domain is not a host name.
+ */
+fun extractEmailDomainOrNull(email: String): String? {
+    val trimmed = email.trim()
+    if (validateEmail(trimmed) != ValidationEmail.OK) {
+        return null
+    }
+    val domain = trimmed
+        .substringAfterLast('@')
+        .lowercase()
+    return domain.takeIf { REGEX_DOMAIN.matches(it) && !REGEX_IPV4.matches(it) }
+}
+
+/**
  * @return human-readable variant of [validateEmail] result, or `null` if
  * there's no validation error.
  */

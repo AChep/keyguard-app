@@ -1,9 +1,9 @@
 package com.artemchep.keyguard.common.service.backup
 
+import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.service.webdav.isFileResource
 import com.artemchep.keyguard.common.service.webdav.takeFileResourceOrNull
 import com.artemchep.keyguard.common.service.webdav.webDavAuthorizationOf
-import com.artemchep.keyguard.util.webdav.KtorWebDavClient
 import com.artemchep.keyguard.util.webdav.WebDavAuthorization
 import com.artemchep.keyguard.util.webdav.WebDavByteRange
 import com.artemchep.keyguard.util.webdav.WebDavClient
@@ -12,9 +12,6 @@ import com.artemchep.keyguard.util.webdav.WebDavException
 import com.artemchep.keyguard.util.webdav.WebDavResource
 import com.artemchep.keyguard.util.webdav.WebDavWriteMode
 import com.artemchep.keyguard.util.webdav.WebDavWriteStrategy
-import io.ktor.client.HttpClient
-import kotlinx.io.Buffer
-import kotlinx.io.RawSource
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
@@ -210,35 +207,20 @@ class WebDavBackupObjectStore(
         operation: BackupObjectStoreOperation,
         key: BackupObjectKey,
         range: BackupByteRange?,
-    ): Source {
-        val upstream = this
-        return object : RawSource {
-            override fun readAtMostTo(
-                sink: Buffer,
-                byteCount: Long,
-            ): Long = translate(
-                operation = operation,
-                key = key,
-                range = range,
-            ) {
-                upstream.readAtMostTo(sink, byteCount)
-            }
-
-            override fun close() {
-                translate(
-                    operation = operation,
-                    key = key,
-                    range = range,
-                ) {
-                    upstream.close()
-                }
-            }
-        }.buffered()
-    }
+    ): Source = object : TranslatingSource(this) {
+        override fun <T> translate(
+            block: () -> T,
+        ): T = this@WebDavBackupObjectStore.translate(
+            operation = operation,
+            key = key,
+            range = range,
+            block = block,
+        )
+    }.buffered()
 }
 
 class WebDavBackupObjectStoreFactory(
-    private val httpClient: HttpClient,
+    private val webDavClientFactory: WebDavClientFactory,
     private val authorization: WebDavAuthorization? = null,
     private val userAgent: String? = null,
 ) : BackupObjectStoreFactory {
@@ -251,9 +233,8 @@ class WebDavBackupObjectStoreFactory(
         val repositoryPath = requireNotNull(webDavStore.url) {
             "Backup WebDAV repository URL is not configured."
         }
-        val client = KtorWebDavClient(
-            httpClient = httpClient,
-            config = WebDavClientConfig(
+        val client = webDavClientFactory.create(
+            WebDavClientConfig(
                 baseUrl = repositoryPath,
                 authorization = authorization ?: webDavAuthorizationOf(
                     username = webDavStore.username,

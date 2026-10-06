@@ -263,6 +263,18 @@ private class TestVaultSearchIndex(
         return compilePlan?.copy(rawQuery = query)
     }
 
+    override suspend fun match(
+        plan: CompiledQueryPlan?,
+        candidates: List<com.artemchep.keyguard.feature.home.vault.model.VaultItem2.Item>,
+    ): List<VaultSearchMatch> = candidates.map { item ->
+        VaultSearchMatch(
+            item = item,
+            score = 0.0,
+            titleTerms = emptySet(),
+            context = null,
+        )
+    }
+
     override suspend fun evaluate(
         plan: CompiledQueryPlan?,
         candidates: List<com.artemchep.keyguard.feature.home.vault.model.VaultItem2.Item>,

@@ -13,6 +13,7 @@ license-file = "../../../LICENSE"
 repository = "https://github.com/AChep/keyguard-app"
 
 [workspace.dependencies]
+keyguard-ffi = { path = "../../ffi/rust/crates/keyguard-ffi" }
 self_cell = "=1.3.0"
 sha2 = "=0.11.0"
 zeroize = "=1.9.0"

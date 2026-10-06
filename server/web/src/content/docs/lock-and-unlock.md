@@ -1,6 +1,6 @@
 ---
 title: Locking & unlocking
-description: The app password vs. your account password, biometric and YubiKey unlock, auto-lock settings, and what to do if you forget a password.
+description: The app password vs. your account password, biometric and security key unlock, auto-lock settings, and what to do if you forget a password.
 category: get-started
 order: 2
 ---
@@ -25,18 +25,36 @@ it any time via **Change app password** without touching your accounts.
 Besides typing the app password, you can unlock with:
 
 - **Biometrics** (Android, macOS, Windows) — enable it during setup or later in the
-  security settings;
+  security settings. See [Android](#android) below;
 - **System authentication** (Linux) — the desktop's polkit dialog, which accepts a
   fingerprint or your login password. See [Linux](#linux) below;
-- **YubiKey** (Android) — unlock with a YubiKey over **USB** or **NFC**,
-  using HMAC-SHA1 challenge-response. Keyguard provisions a key slot when
-  you set it up.
+- **YubiKey** (Android, macOS, Windows, Linux) — unlock over **USB**, or
+  **NFC** on Android, using HMAC-SHA1 challenge-response. Keyguard provisions
+  a key slot when you set it up. Connect one YubiKey at a time. Linux needs
+  permission to access the key’s HID device; the Flatpak build does not support
+  YubiKey vault unlock;
+- **Security key (FIDO2)** (Android USB, macOS, Windows, Linux) — enable it in
+  security settings with a key that supports **PRF / hmac-secret** and user
+  verification. Set a FIDO2 PIN using the key manufacturer’s app first, unless
+  your key has built-in biometric verification. Setup and unlock require your
+  key and its PIN or biometric verification. Windows requires WebAuthn PRF
+  support (Windows 11 22H2 or newer); Linux needs permission to access the key’s
+  HID device. The Flatpak build does not support this option.
 
-Individual items can additionally require re-authentication before they are
-viewed or autofilled — see the
-[authentication re-prompt](/docs/items/#per-item-protection). When such an
-item is opened, Keyguard shows a **Confirm access** prompt that accepts your
-app password or biometrics.
+Security key enrollment is local to each device. Keep your app password: it
+still unlocks the vault if the key is lost, reset, or unavailable. Changing the
+app password removes FIDO2 enrollment; enable it again with your key afterward.
+
+Individual items can additionally require re-authentication before their
+secrets are revealed, copied or autofilled — see the
+[authentication re-prompt](/docs/items/#per-item-protection). Keyguard then
+asks for your app password or biometrics.
+
+### Android
+
+Keyguard supports only strong biometrics, such as most fingerprint sensors.
+Weak biometrics do not protect encryption keys, so using them would make your vault less secure. 
+If your phone has only weak biometrics set up, Keyguard hides the biometric unlock option.
 
 ### Linux
 
@@ -63,8 +81,9 @@ flatpak run --command=cat com.artemchep.keyguard /app/share/polkit-1/actions/com
 The security settings control when the vault locks itself:
 
 - **Lock after a delay** — from *immediately* to *never*, after inactivity;
-- **Lock when screen turns off** (Android, macOS) — locks when the display or device
-  sleeps;
+- **Lock when screen turns off** (Android, macOS, Windows) — locks when the display or device
+  sleeps. On Windows, **Lock on screen off, sleep, or sign-out** also locks when you
+  lock Windows, sign out, switch users, or disconnect a Remote Desktop session;
 - **Persist vault key on a disk** — with this off, the vault also locks
   whenever the app is unloaded from memory.
 

@@ -5,11 +5,16 @@ import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlSchema
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
+import co.touchlab.sqliter.DatabaseConfiguration
+import co.touchlab.sqliter.NO_VERSION_CHECK
+import co.touchlab.sqliter.createDatabaseManager
+import co.touchlab.sqliter.withConnection
 import com.artemchep.keyguard.common.NotificationsWorker
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioUnit
+import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.DatabaseSqlHelper
@@ -18,17 +23,17 @@ import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManagerImpl
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatchEvent
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
-import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.export.ExportManager
-import com.artemchep.keyguard.common.service.export.model.ExportRequest
-import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
+import com.artemchep.keyguard.common.service.export.impl.ExportManagerBase
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.impl.GetSuggestionsImpl
 import com.artemchep.keyguard.common.util.toHex
+import com.artemchep.keyguard.copy.FileWatcherServiceApple
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.di.VaultSessionScope
+import com.artemchep.keyguard.platform.AppleSessionMode
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.appleKeyguardDataDirectory
 import com.artemchep.keyguard.provider.bitwarden.usecase.NotificationsImpl
@@ -42,29 +47,55 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.io.buffered
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
+import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
 class PlatformVaultModule {
     val module = module {
         scope<VaultSessionScope> {
+            // The AutoFill extension never syncs: its graph is disposable and must not
+            // start network work on behalf of a credential request.
             scoped<QueueSyncAll> {
-                QueueSyncAllImpl(
-                    syncAll = get(),
-                )
+                if (isAutofillSession()) {
+                    AppleNoOpQueueSyncAll
+                } else {
+                    QueueSyncAllImpl(
+                        syncAll = get(),
+                    )
+                }
             }
             scoped<QueueSyncById> {
-                QueueSyncByIdImpl(
-                    syncById = get(),
-                )
+                if (isAutofillSession()) {
+                    AppleNoOpQueueSyncById
+                } else {
+                    QueueSyncByIdImpl(
+                        syncById = get(),
+                    )
+                }
             }
             scoped<ExportManager> {
-                AppleUnsupportedExportManager
+                ExportManagerBase(
+                    windowCoroutineScope = get(),
+                    cryptoGenerator = get(),
+                    exportVaultDataService = get(),
+                    dirsService = get(),
+                    zipService = get(),
+                    dateFormatter = get(),
+                    downloadSourceLoader = get(),
+                    downloadAttachmentMetadata = get(),
+                    vaultSessionLocker = get(),
+                    onLaunch = {},
+                )
             }
             scoped<ConnectivityService> {
                 AppleAlwaysAvailableConnectivityService
             }
             scoped<FileWatcherService> {
-                AppleNoOpFileWatcherService
+                if (isAutofillSession()) {
+                    AppleNoOpFileWatcherService
+                } else {
+                    FileWatcherServiceApple()
+                }
             }
             scoped<NotificationsWorker> {
                 NotificationsImpl(
@@ -96,11 +127,6 @@ class PlatformVaultModule {
                     sqlManager = sqlManager,
                 )
             }
-            // Real suggestion matching (the impl now lives in commonMain): matches the
-            // requested service identifiers to login ciphers via CipherUrlCheck + equivalent
-            // domains. Drives the iOS AutoFill manual picker (and the macOS picker). The
-            // Android-specific link extractors it would resolve are simply absent here
-            // leaving the web/host matching path.
             scoped<GetSuggestions<Any?>> {
                 GetSuggestionsImpl(
                     getAutofillDefaultMatchDetection = get(),
@@ -125,39 +151,75 @@ class DatabaseSqlManagerInFileApple<Database>(
     ): IO<DatabaseSqlHelper<Database>> = ioEffect {
         SystemFileSystem.createDirectories(directory.toKotlinxIoPath())
 
-        fun openDriver(): SqlDriver {
-            val rawKey = masterKey.sqlCipherRawKey()
-            return NativeSqliteDriver(
-                schema = databaseSchema,
-                name = fileName,
-                onConfiguration = { configuration ->
-                    configuration.copy(
-                        extendedConfig = configuration.extendedConfig.copy(
-                            basePath = directory.value,
-                            foreignKeyConstraints = true,
-                        ),
-                        lifecycleConfig = configuration.lifecycleConfig.copy(
-                            onCreateConnection = { connection ->
-                                connection.rawExecSql("PRAGMA key = \"$rawKey\";")
-                                configuration.lifecycleConfig.onCreateConnection(connection)
-                            },
-                        ),
-                    )
-                },
-                callbacks = callbacks,
+        fun DatabaseConfiguration.withVaultKey(key: MasterKey): DatabaseConfiguration {
+            val rawKey = key.sqlCipherRawKey()
+            return copy(
+                extendedConfig = extendedConfig.copy(
+                    basePath = directory.value,
+                    foreignKeyConstraints = true,
+                ),
+                lifecycleConfig = lifecycleConfig.copy(
+                    onCreateConnection = { connection ->
+                        try {
+                            connection.rawExecSql("PRAGMA key = \"$rawKey\";")
+                            // PRAGMA key alone does not check whether the key can
+                            // decrypt the database. Force a read on this connection.
+                            connection.rawExecSql("SELECT count(*) FROM sqlite_master;")
+                            lifecycleConfig.onCreateConnection(connection)
+                        } catch (e: Throwable) {
+                            // SQLiter does not close connections when this callback fails.
+                            connection.close()
+                            throw e
+                        }
+                    },
+                ),
             )
         }
 
-        val driver = try {
-            openDriver()
+        fun openDriver(key: MasterKey): SqlDriver = NativeSqliteDriver(
+            schema = databaseSchema,
+            name = fileName,
+            onConfiguration = { it.withVaultKey(key) },
+            callbacks = callbacks,
+        )
+
+        // Bypasses SQLDelight's pools: its PRAGMA query pool is read-only,
+        // and its execute() rejects SQLCipher's status row.
+        fun openWritableDatabase(key: MasterKey) = createDatabaseManager(
+            DatabaseConfiguration(
+                name = fileName,
+                version = NO_VERSION_CHECK,
+                create = {},
+            ).withVaultKey(key),
+        )
+
+        val initialDriver = try {
+            openDriver(masterKey)
         } catch (e: Throwable) {
             if (isPlaintextSqliteDatabaseFile()) {
                 deleteDatabaseFiles()
-                openDriver()
+                openDriver(masterKey)
             } else {
                 throw e
             }
         }
+        val driver = RekeyableAppleSqlDriver(
+            initialDriver = initialDriver,
+            initialKey = masterKey,
+            openDriver = ::openDriver,
+            rekeyDatabase = { oldKey, newKey ->
+                openWritableDatabase(oldKey).withConnection { connection ->
+                    connection.rawExecSql("PRAGMA rekey = \"${newKey.sqlCipherRawKey()}\";")
+                }
+                // SQLCipher can report success even when rekey fails (e.g. SQLITE_BUSY).
+                // Opening a fresh connection verifies the new key before the wrapper
+                // adopts it and the caller persists the new credentials.
+                openWritableDatabase(newKey).withConnection { }
+            },
+            openTransactionConnection = { key ->
+                openWritableDatabase(key).createMultiThreadedConnection()
+            },
+        )
         try {
             driver.touchDatabase()
             ensureEncryptedDatabaseFile()
@@ -229,19 +291,13 @@ class DatabaseSqlManagerInFileApple<Database>(
     }
 
     private class Helper<Database>(
-        override val driver: SqlDriver,
+        override val driver: RekeyableAppleSqlDriver,
         override val database: Database,
     ) : DatabaseSqlHelper<Database> {
         override fun changePassword(
             newMasterKey: MasterKey,
         ): IO<Unit> = ioEffect {
-            val key = newMasterKey.sqlCipherRawKey()
-            driver.execute(
-                identifier = null,
-                sql = "PRAGMA rekey = \"$key\";",
-                parameters = 0,
-                binders = null,
-            ).await()
+            driver.rekey(newMasterKey)
         }
     }
 }
@@ -275,19 +331,13 @@ private object AppleNoOpFileWatcherService : FileWatcherService {
     ): Flow<FileWatchEvent> = emptyFlow()
 }
 
-private object AppleUnsupportedExportManager : ExportManager {
-    override fun getProgressFlowByExportId(
-        exportId: String,
-    ): Flow<Flow<DownloadProgress>?> = flowOf(null)
-
-    override fun cancel(exportId: String) {
-    }
-
-    override suspend fun queue(
-        request: ExportRequest,
-    ): ExportManager.QueueResult {
-        throw unsupported()
-    }
+private object AppleNoOpQueueSyncAll : QueueSyncAll {
+    override fun invoke() = ioUnit()
 }
 
-private fun unsupported() = UnsupportedOperationException("Export is not supported on iOS yet.")
+private object AppleNoOpQueueSyncById : QueueSyncById {
+    override fun invoke(accountId: AccountId) = ioUnit()
+}
+
+private fun Scope.isAutofillSession(): Boolean =
+    getOrNull<AppleSessionMode>() == AppleSessionMode.AUTOFILL

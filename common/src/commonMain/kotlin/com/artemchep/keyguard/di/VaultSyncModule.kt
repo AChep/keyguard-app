@@ -6,7 +6,6 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySyncer
 import com.artemchep.keyguard.common.service.gpgagent.impl.GpgPublicKeySyncerImpl
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentPublicKeySyncerImpl
-import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
 import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.SyncAll
 import com.artemchep.keyguard.common.usecase.SyncById
@@ -107,9 +106,8 @@ internal class VaultSyncModule {
                     json = get(),
                     db = get(),
                     pendingUploadCoordinator = get(),
-                    webDavClientFactory = KtorWebDavClientFactory(
-                        httpClient = get(),
-                    ),
+                    webDavClientFactory = get(),
+                    s3ClientFactory = get(),
                     watchdog = get(),
                 )
             }

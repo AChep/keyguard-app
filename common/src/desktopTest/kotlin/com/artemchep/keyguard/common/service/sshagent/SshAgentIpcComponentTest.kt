@@ -2,20 +2,24 @@ package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.SshAgentFilter
+import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
+import com.artemchep.keyguard.common.service.agent.cleanupAgentIpcEndpoint
+import com.artemchep.keyguard.common.service.agent.createAgentIpcEndpoint
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import java.io.FileNotFoundException
 import java.io.IOException
+import java.io.RandomAccessFile
 import java.net.StandardProtocolFamily
 import java.net.UnixDomainSocketAddress
 import java.nio.ByteBuffer
+import java.nio.channels.ByteChannel
 import java.nio.channels.SocketChannel
-import java.nio.file.Files
-import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -31,9 +35,9 @@ import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
 
 /**
- * Component tests for [SshAgentIpcServer] using a real Unix domain socket.
+ * Component tests for [SshAgentIpcServer] using the platform IPC transport.
  *
- * These tests start the IPC server on a temporary socket file, connect as
+ * These tests start the IPC server on a Unix socket or Windows named pipe, connect as
  * a client, and exchange actual length-prefixed protobuf messages to verify
  * the full I/O path works end-to-end.
  */
@@ -64,42 +68,10 @@ class SshAgentIpcComponentTest {
         override fun invoke(): Flow<SshAgentFilter> = flowOf(SshAgentFilter())
     }
 
-    // ================================================================
-    // Unix socket integration
-    // ================================================================
-
     @Test
-    fun `server accepts connection and authenticates over unix socket`() = runBlocking {
-        withTempSocket { socketPath ->
-            val ready = CompletableDeferred<Unit>()
-            val serverScope = CoroutineScope(Dispatchers.IO + Job())
-
-            val server = SshAgentIpcServer(
-                logRepository = logRepository,
-                getVaultSession = lockedVaultSession,
-                sessionAccess = testDomainSessionAccess(),
-                getSshAgentFilter = sshAgentFilter,
-                authToken = authToken,
-                scope = serverScope,
-                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
-            )
-
-            // Start server in background.
-            val serverJob = serverScope.launch {
-                server.start(socketPath, onReady = ready)
-            }
-
-            // Wait for server to be ready.
-            awaitServerReady(ready, "authentication test")
-
-            // Connect client.
-            val client = withContext(Dispatchers.IO) {
-                SocketChannel.open(StandardProtocolFamily.UNIX).also {
-                    it.connect(UnixDomainSocketAddress.of(socketPath))
-                }
-            }
-
-            try {
+    fun `server accepts connection and authenticates over platform IPC`() = runBlocking {
+        withTestServer { endpoint ->
+            connect(endpoint).use { client ->
                 // Send authenticate request.
                 val authRequest = SshAgentMessages.IpcRequest(
                     id = 1L,
@@ -114,44 +86,14 @@ class SshAgentIpcComponentTest {
                 assertEquals(1L, authResponse.id)
                 assertNotNull(authResponse.authenticate)
                 assertTrue(authResponse.authenticate!!.success)
-            } finally {
-                client.close()
-                server.stop()
-                serverScope.cancel()
-                awaitServerStopped(serverJob)
             }
         }
     }
 
     @Test
-    fun `server returns empty list keys when locked cache is empty over unix socket`() = runBlocking {
-        withTempSocket { socketPath ->
-            val ready = CompletableDeferred<Unit>()
-            val serverScope = CoroutineScope(Dispatchers.IO + Job())
-
-            val server = SshAgentIpcServer(
-                logRepository = logRepository,
-                getVaultSession = lockedVaultSession,
-                sessionAccess = testDomainSessionAccess(),
-                getSshAgentFilter = sshAgentFilter,
-                authToken = authToken,
-                scope = serverScope,
-                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
-            )
-
-            val serverJob = serverScope.launch {
-                server.start(socketPath, onReady = ready)
-            }
-
-            awaitServerReady(ready, "list keys test")
-
-            val client = withContext(Dispatchers.IO) {
-                SocketChannel.open(StandardProtocolFamily.UNIX).also {
-                    it.connect(UnixDomainSocketAddress.of(socketPath))
-                }
-            }
-
-            try {
+    fun `server returns empty list keys when locked cache is empty over platform IPC`() = runBlocking {
+        withTestServer { endpoint ->
+            connect(endpoint).use { client ->
                 // Authenticate first.
                 sendMessage(
                     client,
@@ -179,44 +121,14 @@ class SshAgentIpcComponentTest {
                 assertEquals(2L, listResponse.id)
                 assertNull(listResponse.error)
                 assertEquals(emptyList(), listResponse.listKeys?.keys)
-            } finally {
-                client.close()
-                server.stop()
-                serverScope.cancel()
-                awaitServerStopped(serverJob)
             }
         }
     }
 
     @Test
-    fun `server rejects bad token over unix socket`() = runBlocking {
-        withTempSocket { socketPath ->
-            val ready = CompletableDeferred<Unit>()
-            val serverScope = CoroutineScope(Dispatchers.IO + Job())
-
-            val server = SshAgentIpcServer(
-                logRepository = logRepository,
-                getVaultSession = lockedVaultSession,
-                sessionAccess = testDomainSessionAccess(),
-                getSshAgentFilter = sshAgentFilter,
-                authToken = authToken,
-                scope = serverScope,
-                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
-            )
-
-            val serverJob = serverScope.launch {
-                server.start(socketPath, onReady = ready)
-            }
-
-            awaitServerReady(ready, "bad token test")
-
-            val client = withContext(Dispatchers.IO) {
-                SocketChannel.open(StandardProtocolFamily.UNIX).also {
-                    it.connect(UnixDomainSocketAddress.of(socketPath))
-                }
-            }
-
-            try {
+    fun `server rejects bad token over platform IPC`() = runBlocking {
+        withTestServer { endpoint ->
+            connect(endpoint).use { client ->
                 // Send authenticate with wrong token.
                 val badToken = ByteArray(32) { 0xFF.toByte() }
                 sendMessage(
@@ -234,44 +146,14 @@ class SshAgentIpcComponentTest {
                 assertEquals(1L, authResponse.id)
                 assertNotNull(authResponse.authenticate)
                 assertTrue(!authResponse.authenticate!!.success)
-            } finally {
-                client.close()
-                server.stop()
-                serverScope.cancel()
-                awaitServerStopped(serverJob)
             }
         }
     }
 
     @Test
-    fun `server rejects unauthenticated request over unix socket`() = runBlocking {
-        withTempSocket { socketPath ->
-            val ready = CompletableDeferred<Unit>()
-            val serverScope = CoroutineScope(Dispatchers.IO + Job())
-
-            val server = SshAgentIpcServer(
-                logRepository = logRepository,
-                getVaultSession = lockedVaultSession,
-                sessionAccess = testDomainSessionAccess(),
-                getSshAgentFilter = sshAgentFilter,
-                authToken = authToken,
-                scope = serverScope,
-                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
-            )
-
-            val serverJob = serverScope.launch {
-                server.start(socketPath, onReady = ready)
-            }
-
-            awaitServerReady(ready, "unauthenticated request test")
-
-            val client = withContext(Dispatchers.IO) {
-                SocketChannel.open(StandardProtocolFamily.UNIX).also {
-                    it.connect(UnixDomainSocketAddress.of(socketPath))
-                }
-            }
-
-            try {
+    fun `server rejects unauthenticated request over platform IPC`() = runBlocking {
+        withTestServer { endpoint ->
+            connect(endpoint).use { client ->
                 // Send list keys without authenticating first.
                 sendMessage(
                     client,
@@ -288,44 +170,14 @@ class SshAgentIpcComponentTest {
                     SshAgentMessages.ErrorCode.NOT_AUTHENTICATED,
                     response.error!!.code,
                 )
-            } finally {
-                client.close()
-                server.stop()
-                serverScope.cancel()
-                awaitServerStopped(serverJob)
             }
         }
     }
 
     @Test
-    fun `server handles multiple sequential requests over unix socket`() = runBlocking {
-        withTempSocket { socketPath ->
-            val ready = CompletableDeferred<Unit>()
-            val serverScope = CoroutineScope(Dispatchers.IO + Job())
-
-            val server = SshAgentIpcServer(
-                logRepository = logRepository,
-                getVaultSession = lockedVaultSession,
-                sessionAccess = testDomainSessionAccess(),
-                getSshAgentFilter = sshAgentFilter,
-                authToken = authToken,
-                scope = serverScope,
-                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
-            )
-
-            val serverJob = serverScope.launch {
-                server.start(socketPath, onReady = ready)
-            }
-
-            awaitServerReady(ready, "sequential requests test")
-
-            val client = withContext(Dispatchers.IO) {
-                SocketChannel.open(StandardProtocolFamily.UNIX).also {
-                    it.connect(UnixDomainSocketAddress.of(socketPath))
-                }
-            }
-
-            try {
+    fun `server handles multiple sequential requests over platform IPC`() = runBlocking {
+        withTestServer { endpoint ->
+            connect(endpoint).use { client ->
                 // Authenticate.
                 sendMessage(
                     client,
@@ -368,45 +220,14 @@ class SshAgentIpcComponentTest {
                 val r3 = readResponseWithTimeout(client, "sign data response")
                 assertEquals(3L, r3.id)
                 assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, r3.error!!.code)
-            } finally {
-                client.close()
-                server.stop()
-                serverScope.cancel()
-                awaitServerStopped(serverJob)
             }
         }
     }
 
     @Test
     fun `server returns user denied for sign data when approval is denied`() = runBlocking {
-        withTempSocket { socketPath ->
-            val ready = CompletableDeferred<Unit>()
-            val serverScope = CoroutineScope(Dispatchers.IO + Job())
-
-            val server = SshAgentIpcServer(
-                logRepository = logRepository,
-                getVaultSession = lockedVaultSession,
-                sessionAccess = testDomainSessionAccess(),
-                getSshAgentFilter = sshAgentFilter,
-                authToken = authToken,
-                scope = serverScope,
-                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
-                onApprovalRequest = { false },
-            )
-
-            val serverJob = serverScope.launch {
-                server.start(socketPath, onReady = ready)
-            }
-
-            awaitServerReady(ready, "user denied sign data test")
-
-            val client = withContext(Dispatchers.IO) {
-                SocketChannel.open(StandardProtocolFamily.UNIX).also {
-                    it.connect(UnixDomainSocketAddress.of(socketPath))
-                }
-            }
-
-            try {
+        withTestServer(onApprovalRequest = { false }) { endpoint ->
+            connect(endpoint).use { client ->
                 // Authenticate.
                 sendMessage(
                     client,
@@ -436,52 +257,15 @@ class SshAgentIpcComponentTest {
                 val r2 = readResponseWithTimeout(client, "sign data response")
                 assertEquals(2L, r2.id)
                 assertEquals(SshAgentMessages.ErrorCode.USER_DENIED, r2.error!!.code)
-            } finally {
-                client.close()
-                server.stop()
-                serverScope.cancel()
-                awaitServerStopped(serverJob)
             }
         }
     }
 
     @Test
     fun `server rejects connection when max concurrent limit is reached`() = runBlocking {
-        withTempSocket { socketPath ->
-            val ready = CompletableDeferred<Unit>()
-            val serverScope = CoroutineScope(Dispatchers.IO + Job())
-
-            val server = SshAgentIpcServer(
-                logRepository = logRepository,
-                getVaultSession = lockedVaultSession,
-                sessionAccess = testDomainSessionAccess(),
-                getSshAgentFilter = sshAgentFilter,
-                authToken = authToken,
-                scope = serverScope,
-                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
-                maxConcurrentConnections = 1,
-            )
-
-            val serverJob = serverScope.launch {
-                server.start(socketPath, onReady = ready)
-            }
-
-            awaitServerReady(ready, "max concurrent connections test")
-
-            val firstClient = withContext(Dispatchers.IO) {
-                SocketChannel.open(StandardProtocolFamily.UNIX).also {
-                    it.connect(UnixDomainSocketAddress.of(socketPath))
-                }
-            }
-
-            val secondClient = withContext(Dispatchers.IO) {
-                SocketChannel.open(StandardProtocolFamily.UNIX).also {
-                    it.connect(UnixDomainSocketAddress.of(socketPath))
-                }
-            }
-
-            try {
-                // Keep the first connection active and occupying the single slot.
+        withTestServer(maxConcurrentConnections = 1) { endpoint ->
+            connect(endpoint).use { firstClient ->
+                // Authenticate before opening the second client so the single slot is occupied.
                 sendMessage(
                     firstClient,
                     SshAgentMessages.IpcRequest(
@@ -495,56 +279,103 @@ class SshAgentIpcComponentTest {
                 val firstAuth = readResponseWithTimeout(firstClient, "first client authenticate response")
                 assertTrue(firstAuth.authenticate?.success == true)
 
-                val secondRejected = try {
-                    withTimeout(5_000L) {
-                        withContext(Dispatchers.IO) {
-                            secondClient.configureBlocking(true)
-                            val probe = ByteBuffer.allocate(1)
-                            secondClient.read(probe) < 0
+                connect(endpoint).use { secondClient ->
+                    val secondRejected = try {
+                        withTimeout(5_000L) {
+                            runInterruptible(Dispatchers.IO) {
+                                secondClient.read(ByteBuffer.allocate(1)) < 0
+                            }
                         }
+                    } catch (_: IOException) {
+                        true
+                    } catch (e: TimeoutCancellationException) {
+                        throw AssertionError(
+                            "Timed out waiting for second connection rejection within 5000 ms",
+                            e,
+                        )
                     }
-                } catch (_: IOException) {
-                    true
-                } catch (e: TimeoutCancellationException) {
-                    throw AssertionError(
-                        "Timed out waiting for second connection rejection within 5000 ms",
-                        e,
-                    )
+                    assertTrue(secondRejected, "Second connection should be rejected when at capacity")
                 }
+            }
+        }
+    }
 
-                assertTrue(secondRejected, "Second connection should be rejected when at capacity")
-            } finally {
-                secondClient.close()
-                firstClient.close()
+    private suspend fun withTestServer(
+        maxConcurrentConnections: Int = 8,
+        onApprovalRequest: suspend (SshAgentApprovalPrompt) -> Boolean = { true },
+        block: suspend (AgentIpcEndpoint) -> Unit,
+    ) {
+        val endpoint = withContext(Dispatchers.IO) {
+            createAgentIpcEndpoint("sshagent-test")
+        }
+        val ready = CompletableDeferred<Unit>()
+        val serverScope = CoroutineScope(Dispatchers.IO + Job())
+        val server = SshAgentIpcServer(
+            logRepository = logRepository,
+            getVaultSession = lockedVaultSession,
+            sessionAccess = testDomainSessionAccess(),
+            getSshAgentFilter = sshAgentFilter,
+            authToken = authToken,
+            scope = serverScope,
+            testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
+            maxConcurrentConnections = maxConcurrentConnections,
+            onApprovalRequest = onApprovalRequest,
+        )
+        val serverJob = serverScope.async {
+            server.start(endpoint, onReady = ready)
+        }
+        serverJob.invokeOnCompletion { failure ->
+            if (failure != null) ready.completeExceptionally(failure)
+        }
+        try {
+            awaitServerReady(ready, endpoint.displayName)
+            block(endpoint)
+        } finally {
+            withContext(NonCancellable) {
                 server.stop()
                 serverScope.cancel()
-                awaitServerStopped(serverJob)
+                try {
+                    awaitServerStopped(serverJob)
+                } finally {
+                    withContext(Dispatchers.IO) {
+                        cleanupAgentIpcEndpoint(endpoint)
+                    }
+                }
             }
         }
     }
 
-    // ================================================================
-    // Helpers
-    // ================================================================
-
-    /**
-     * Creates a temporary directory and socket path, runs the block,
-     * and cleans up afterward.
-     */
-    private suspend fun withTempSocket(block: suspend (Path) -> Unit) {
-        val tempDir = withContext(Dispatchers.IO) {
-            Files.createTempDirectory("sshagent-test-")
-        }
-        val socketPath = tempDir.resolve("test-agent.sock")
-        try {
-            block(socketPath)
-        } finally {
-            withContext(Dispatchers.IO) {
-                Files.deleteIfExists(socketPath)
-                Files.deleteIfExists(tempDir)
+    private suspend fun connect(endpoint: AgentIpcEndpoint): ByteChannel =
+        withTimeout(5_000L) {
+            var channel: ByteChannel? = null
+            while (channel == null) {
+                try {
+                    channel = runInterruptible(Dispatchers.IO) { openConnection(endpoint) }
+                } catch (e: FileNotFoundException) {
+                    if (endpoint !is AgentIpcEndpoint.WindowsPipe) throw e
+                    // A connected instance stays busy until the accept loop creates the next one.
+                    delay(10L)
+                }
             }
+            channel
         }
-    }
+
+    private fun openConnection(endpoint: AgentIpcEndpoint): ByteChannel =
+        when (endpoint) {
+            is AgentIpcEndpoint.UnixSocket -> {
+                val channel = SocketChannel.open(StandardProtocolFamily.UNIX)
+                try {
+                    channel.connect(UnixDomainSocketAddress.of(endpoint.socketPath))
+                    channel
+                } catch (e: IOException) {
+                    channel.close()
+                    throw e
+                }
+            }
+
+            // Closing the FileChannel also closes its owning RandomAccessFile.
+            is AgentIpcEndpoint.WindowsPipe -> RandomAccessFile(endpoint.pipeName, "rw").channel
+        }
 
     private suspend fun awaitServerReady(
         ready: CompletableDeferred<Unit>,
@@ -563,7 +394,7 @@ class SshAgentIpcComponentTest {
     }
 
     private suspend fun readResponseWithTimeout(
-        channel: SocketChannel,
+        channel: ByteChannel,
         operation: String,
     ): SshAgentMessages.IpcResponse {
         return try {
@@ -592,13 +423,13 @@ class SshAgentIpcComponentTest {
     }
 
     /**
-     * Sends a length-prefixed protobuf IpcRequest over a SocketChannel.
+     * Sends a length-prefixed protobuf IpcRequest over the platform channel.
      */
     private suspend fun sendMessage(
-        channel: SocketChannel,
+        channel: ByteChannel,
         request: SshAgentMessages.IpcRequest,
     ) {
-        withContext(Dispatchers.IO) {
+        runInterruptible(Dispatchers.IO) {
             val bytes = protoBuf.encodeToByteArray(request)
             val buf = ByteBuffer.allocate(4 + bytes.size)
             buf.putInt(bytes.size)
@@ -611,10 +442,10 @@ class SshAgentIpcComponentTest {
     }
 
     /**
-     * Reads a length-prefixed protobuf IpcResponse from a SocketChannel.
+     * Reads a length-prefixed protobuf IpcResponse from the platform channel.
      */
-    private suspend fun readResponse(channel: SocketChannel): SshAgentMessages.IpcResponse {
-        return withContext(Dispatchers.IO) {
+    private suspend fun readResponse(channel: ByteChannel): SshAgentMessages.IpcResponse {
+        return runInterruptible(Dispatchers.IO) {
             // Read 4-byte length prefix.
             val lenBuf = ByteBuffer.allocate(4)
             while (lenBuf.hasRemaining()) {

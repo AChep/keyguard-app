@@ -25,6 +25,13 @@ class SyncNetworkRequirementTest {
         val oauth = OAuthAccount(providerAccountId = "user", refreshToken = "refresh")
         listOf(
             FileLocation.WebDav(url = "https://example.com/vault.kdbx", displayName = "vault.kdbx"),
+            FileLocation.S3(
+                bucket = "vaults",
+                key = "vault.kdbx",
+                accessKeyId = "AKID",
+                secretAccessKey = Password("secret"),
+                displayName = "vault.kdbx",
+            ),
             FileLocation.GoogleDrive(account = oauth, fileId = "file", displayName = "vault.kdbx"),
             FileLocation.OneDrive(account = oauth, driveId = "drive", itemId = "item", displayName = "vault.kdbx"),
             FileLocation.Dropbox(

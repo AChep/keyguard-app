@@ -5,10 +5,9 @@ category: get-started
 order: 4
 ---
 
-Keyguard is a commercial app and unlocking a premium funds its further development 
-and supports me (Artem Chepurnyi) directly. As of right now, only the Android builds
-distributed via Google Play store have main features locked behind a paywall, **other
-distribution channels have a build with everything unlocked**. 
+Keyguard is a commercial app and unlocking a premium funds its further development
+and supports me (Artem Chepurnyi) directly. Google Play and Apple App Store builds require premium for the features below.
+**Direct desktop downloads and other distribution channels include all features.**
 
 ## What requires premium
 
@@ -20,15 +19,14 @@ works without a purchase.
 
 ## Purchasing
 
-On Android, open **Settings → Keyguard Premium**. Two options are available
-through Google Play:
+Open **Settings → Keyguard Premium**. Google Play and the Apple App Store offer:
 
 - a **subscription** — with 3 months or 1 year periods;
 - a **lifetime** license — a single one-time purchase.
 
 A free trial may be offered for the subscription; you won't be charged
 if you cancel before the trial ends. Manage or cancel any time via **Manage
-on Play Store** in the same screen.
+on Play Store** on Android or **Manage subscription** on Apple.
 
 ## License keys
 

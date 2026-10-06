@@ -152,6 +152,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         markdown: Boolean,
     ): IO<Unit>
 
+    fun setWebDavTransactions(
+        webDavTransactions: Boolean,
+    ): IO<Unit>
+
     fun setSshAgent(
         sshAgent: Boolean,
     ): IO<Unit>

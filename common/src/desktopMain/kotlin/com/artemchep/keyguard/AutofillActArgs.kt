@@ -4,12 +4,17 @@ import com.artemchep.keyguard.common.model.AutofillTarget
 import com.artemchep.keyguard.common.model.GeneratorContext
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 
-actual class AutofillActArgs
+actual class AutofillActArgs(
+    val autofillTarget: AutofillTarget? = null,
+)
 
 actual class AutofillSaveActArgs
 
 actual val AppMode.autofillTarget: AutofillTarget?
-    get() = null
+    get() = when (this) {
+        is AppMode.Pick -> args.autofillTarget
+        else -> null
+    }
 
 actual val AppMode.generatorTarget: GeneratorContext
     get() = GeneratorContext(

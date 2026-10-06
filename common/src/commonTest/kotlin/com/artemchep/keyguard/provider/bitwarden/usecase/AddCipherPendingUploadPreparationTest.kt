@@ -477,7 +477,7 @@ private class CipherTestCryptoGenerator : com.artemchep.keyguard.common.service.
         parallelism: Int,
     ): ByteArray = byteArrayOf()
 
-    override fun seed(length: Int): ByteArray = "generated-key".toByteArray()
+    override fun seed(length: Int): ByteArray = "generated-key".encodeToByteArray()
 
     override fun hmac(
         key: ByteArray,

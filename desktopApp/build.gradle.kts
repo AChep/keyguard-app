@@ -73,6 +73,8 @@ val bundledAppResources = configurations.create("bundledAppResources") {
 dependencies {
     listOf(
         ":util:instance",
+        ":util:yubikey",
+        ":util:fido2",
         ":desktopSshAgent",
         ":desktopGpgAgent",
         ":desktopBrowserAgent",

@@ -6,9 +6,15 @@ fun requireNoExcludedPasskeyCredential(
     data: CreatePasskey,
     rpId: String,
     credentials: List<WebAuthnCredential>,
+): Unit = requireNoExcludedPasskeyCredential(decodeExcludedCredentialIds(data), rpId, credentials)
+
+internal fun requireNoExcludedPasskeyCredential(
+    excludedCredentialIds: Set<String>,
+    rpId: String,
+    credentials: List<WebAuthnCredential>,
 ) {
     val excludedCredential = findExcludedPasskeyCredentialOrNull(
-        data = data,
+        excludedCredentialIds = excludedCredentialIds,
         rpId = rpId,
         credentials = credentials,
     ) ?: return
@@ -22,8 +28,13 @@ fun findExcludedPasskeyCredentialOrNull(
     data: CreatePasskey,
     rpId: String,
     credentials: List<WebAuthnCredential>,
+): WebAuthnCredential? = findExcludedPasskeyCredentialOrNull(decodeExcludedCredentialIds(data), rpId, credentials)
+
+fun findExcludedPasskeyCredentialOrNull(
+    excludedCredentialIds: Set<String>,
+    rpId: String,
+    credentials: List<WebAuthnCredential>,
 ): WebAuthnCredential? {
-    val excludedCredentialIds = decodeExcludedCredentialIds(data)
     if (excludedCredentialIds.isEmpty()) {
         return null
     }
@@ -41,7 +52,7 @@ fun findExcludedPasskeyCredentialOrNull(
             // - https://www.w3.org/TR/webauthn-3/#sctn-createCredential
             credential.keyType == PUBLIC_KEY_CREDENTIAL_TYPE &&
                 credential.rpId == rpId &&
-                credential.credentialId in excludedCredentialIds
+                excludedCredentialIds.any { PasskeyCredentialId.matches(it, credential.credentialId) }
         }
 }
 

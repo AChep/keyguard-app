@@ -39,6 +39,8 @@ pub(crate) struct SocketGuard {
     socket_dir: Option<PathBuf>,
     startup_lock: Option<SocketStartupLock>,
     socket_identity: Option<SocketIdentity>,
+    // Keep the inode alive until Drop finishes removing the socket path.
+    listener: Option<StdUnixListener>,
     armed: bool,
 }
 
@@ -93,6 +95,7 @@ impl SocketGuard {
             socket_dir,
             startup_lock,
             socket_identity: None,
+            listener: None,
             armed: true,
         }
     }
@@ -118,6 +121,7 @@ impl SocketGuard {
             )
         })?;
         self.socket_identity = Some(SocketIdentity::from(&metadata));
+        let listener = self.listener.insert(listener);
         listener.set_nonblocking(true).with_context(|| {
             format!(
                 "Failed to mark socket {} as non-blocking",
@@ -131,6 +135,12 @@ impl SocketGuard {
         .with_context(|| {
             format!(
                 "Failed to set permissions on {}",
+                self.socket_path.display()
+            )
+        })?;
+        let listener = listener.try_clone().with_context(|| {
+            format!(
+                "Failed to duplicate Unix socket listener at {}",
                 self.socket_path.display()
             )
         })?;
@@ -386,7 +396,8 @@ mod tests {
     use std::fs::Permissions;
     use std::os::unix::fs::PermissionsExt;
     use std::sync::atomic::{AtomicU64, Ordering};
-    use std::time::{SystemTime, UNIX_EPOCH};
+    use std::sync::mpsc;
+    use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
     static NEXT_TEST_DIR_ID: AtomicU64 = AtomicU64::new(0);
 
@@ -420,6 +431,20 @@ mod tests {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.path);
         }
+    }
+
+    fn wait_until(mut condition: impl FnMut() -> bool) {
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while !condition() {
+            assert!(Instant::now() < deadline, "timed out waiting for condition");
+            std::thread::sleep(Duration::from_millis(5));
+        }
+    }
+
+    fn wait_for_stale_socket(path: &Path) {
+        // Other tests spawn processes concurrently. Between fork and exec,
+        // they can briefly retain a copy of our close-on-exec descriptors.
+        wait_until(|| matches!(probe_socket(path).unwrap(), SocketProbe::Stale));
     }
 
     #[test]
@@ -570,6 +595,7 @@ mod tests {
         let temp = TestDir::new();
         let socket_path = temp.path().join("agent.sock");
         drop(StdUnixListener::bind(&socket_path).unwrap());
+        wait_for_stale_socket(&socket_path);
 
         let outcome = SocketGuard::ensure(socket_path.clone()).unwrap();
 
@@ -578,25 +604,75 @@ mod tests {
     }
 
     #[test]
+    fn guard_keeps_socket_reachable_until_cleanup() {
+        let temp = TestDir::new();
+        let socket_path = temp.path().join("agent.sock");
+        let mut guard =
+            SocketGuard::new(Some(socket_path.clone()), 1234, "unused".to_string()).unwrap();
+        let listener = guard.bind_listener().unwrap();
+        drop(listener);
+
+        // Closing the serving handle must not leave a stale socket that
+        // another starter can replace before this guard finishes cleanup.
+        assert!(matches!(
+            SocketGuard::ensure(socket_path.clone()).unwrap(),
+            EnsureSocket::Existing(_)
+        ));
+        assert!(socket_path.exists());
+
+        drop(guard);
+        assert!(!socket_path.exists());
+        assert!(matches!(
+            SocketGuard::ensure(socket_path).unwrap(),
+            EnsureSocket::Start(_)
+        ));
+    }
+
+    #[test]
+    fn ensure_reuses_competing_starter_when_it_becomes_reachable() {
+        let temp = TestDir::new();
+        let socket_path = temp.path().join("agent.sock");
+        let mut starter = match SocketGuard::ensure(socket_path.clone()).unwrap() {
+            EnsureSocket::Start(guard) => guard,
+            EnsureSocket::Existing(_) => panic!("socket should not exist yet"),
+        };
+        let (started_tx, started_rx) = mpsc::channel();
+        let (result_tx, result_rx) = mpsc::channel();
+        let competing_path = socket_path.clone();
+        let competitor = std::thread::spawn(move || {
+            started_tx.send(()).unwrap();
+            let result = SocketGuard::ensure(competing_path);
+            let _ = result_tx.send(result);
+        });
+
+        started_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+        assert!(matches!(
+            result_rx.recv_timeout(Duration::from_millis(50)),
+            Err(mpsc::RecvTimeoutError::Timeout)
+        ));
+        let _listener = starter.bind_listener().unwrap();
+        let result = result_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+        competitor.join().unwrap();
+
+        assert!(matches!(result.unwrap(), EnsureSocket::Existing(path) if path == socket_path));
+    }
+
+    #[test]
     fn old_guard_shutdown_preserves_replacement_socket() {
         let temp = TestDir::new();
         let socket_path = temp.path().join("agent.sock");
-        let mut old_guard =
+        let mut guard =
             SocketGuard::new(Some(socket_path.clone()), 1234, "unused".to_string()).unwrap();
-        let old_listener = old_guard.bind_listener().unwrap();
-        drop(old_listener);
+        let listener = guard.bind_listener().unwrap();
+        drop(listener);
+        // A process that does not use the startup lock can still unlink and
+        // replace the socket. The guard must preserve that replacement.
+        fs::remove_file(&socket_path).unwrap();
+        let replacement = StdUnixListener::bind(&socket_path).unwrap();
+        drop(guard);
 
-        let mut replacement_guard = match SocketGuard::ensure(socket_path.clone()).unwrap() {
-            EnsureSocket::Existing(_) => panic!("stale socket should require a replacement"),
-            EnsureSocket::Start(guard) => guard,
-        };
-        let replacement_listener = replacement_guard.bind_listener().unwrap();
-
-        drop(old_guard);
-
-        assert!(socket_path.exists());
         let client = UnixStream::connect(&socket_path).unwrap();
-        let (connection, _) = replacement_listener.accept().unwrap();
+        let (connection, _) = replacement.accept().unwrap();
         drop(connection);
         drop(client);
     }
@@ -647,10 +723,18 @@ mod tests {
         assert_eq!(io::Error::last_os_error().kind(), ErrorKind::WouldBlock);
 
         drop(startup_lock);
-        // SAFETY: `competing_file` remains open and both flags are valid for flock.
-        let result =
-            unsafe { libc::flock(competing_file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) };
-        assert_eq!(result, 0);
+        // A concurrently spawned test process may briefly inherit the lock
+        // descriptor before exec closes it.
+        wait_until(|| {
+            // SAFETY: `competing_file` remains open and both flags are valid for flock.
+            let result =
+                unsafe { libc::flock(competing_file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) };
+            if result == 0 {
+                return true;
+            }
+            assert_eq!(io::Error::last_os_error().kind(), ErrorKind::WouldBlock);
+            false
+        });
     }
 
     #[test]

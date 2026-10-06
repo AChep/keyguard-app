@@ -12,6 +12,8 @@ class TestGpgAgentRequestProcessor(
 
     private val crypto = NativeGpgAgentCrypto
 
+    private val verbose = System.getProperty("keyguard.gpgE2e.verbose") == "true"
+
     // Mirrors production, where every vault GPG key's public part is a
     // candidate designated-revoker key.
     private val candidateRevocationKeys = keys
@@ -71,8 +73,10 @@ class TestGpgAgentRequestProcessor(
             )
             GpgAgentRequestProcessor.GpgAgentOperationResult.Success(response = response)
         } catch (e: Exception) {
+            val message = "sign failed: ${e.message}\n${e.stackTraceToString()}"
+            if (verbose) System.err.println("GPG E2E ${match.key.name}: $message")
             GpgAgentRequestProcessor.GpgAgentOperationResult.Failure(
-                message = "sign failed: ${e.message}\n${e.stackTraceToString()}",
+                message = message,
             )
         }
     }
@@ -91,8 +95,10 @@ class TestGpgAgentRequestProcessor(
             )
             GpgAgentRequestProcessor.GpgAgentOperationResult.Success(response = response)
         } catch (e: Exception) {
+            val message = "decrypt failed: ${e.message}\n${e.stackTraceToString()}"
+            if (verbose) System.err.println("GPG E2E ${match.key.name}: $message")
             GpgAgentRequestProcessor.GpgAgentOperationResult.Failure(
-                message = "decrypt failed: ${e.message}\n${e.stackTraceToString()}",
+                message = message,
             )
         }
     }

@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.webdav
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.feature.navigation.RouteForResult
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.remotepicker.RemotePickerMode
 
 data class WebDavPickerRoute(
     val args: Args,
@@ -11,16 +12,10 @@ data class WebDavPickerRoute(
         val rootUrl: String,
         val username: String = "",
         val password: String = "",
-        val mode: Mode,
+        val mode: RemotePickerMode,
         val initialPath: String = "",
         val initialFileName: String = "",
     )
-
-    enum class Mode {
-        SelectCollection,
-        OpenKeePassDatabase,
-        CreateKeePassDatabase,
-    }
 
     @Composable
     override fun Content(

@@ -1,0 +1,4 @@
+headers = keyguard_fido2.h
+headerFilter = keyguard_fido2.h
+staticLibraries = libkeyguard_fido2_c.a
+linkerOpts.osx = -framework IOKit -framework CoreFoundation

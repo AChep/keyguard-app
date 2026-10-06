@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.service.staging.SpoolLimits
 import com.artemchep.keyguard.common.service.staging.StagingPurpose
 import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.service.s3.S3ClientFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.util.foundation.crypto.HashState
@@ -34,12 +35,14 @@ internal fun interface KeePassAttachmentStorageFactory {
 internal class DefaultKeePassAttachmentStorageFactory(
     private val fileService: FileService,
     private val webDavClientFactory: WebDavClientFactory,
+    private val s3ClientFactory: S3ClientFactory,
 ) : KeePassAttachmentStorageFactory {
     override fun create(token: KeePassToken): KeePassDatabaseStorage =
         createKeePassDatabaseStorage(
             fileService = fileService,
             token = token,
             webDavClientFactory = webDavClientFactory,
+            s3ClientFactory = s3ClientFactory,
         )
 }
 

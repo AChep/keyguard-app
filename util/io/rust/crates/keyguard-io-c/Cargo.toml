@@ -12,6 +12,7 @@ publish = false
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
+keyguard-ffi.workspace = true
 keyguard-io-core = { path = "../keyguard-io-core" }
 
 [lints]

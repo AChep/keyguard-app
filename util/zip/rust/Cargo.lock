@@ -200,9 +200,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyguard-ffi"
+version = "0.1.0"
+dependencies = [
+ "zeroize",
+]
+
+[[package]]
 name = "keyguard-zip-c"
 version = "0.1.0"
 dependencies = [
+ "keyguard-ffi",
  "keyguard-zip-core",
  "zip",
 ]
@@ -211,6 +219,7 @@ dependencies = [
 name = "keyguard-zip-core"
 version = "0.1.0"
 dependencies = [
+ "keyguard-ffi",
  "self_cell",
  "sha2",
  "zeroize",

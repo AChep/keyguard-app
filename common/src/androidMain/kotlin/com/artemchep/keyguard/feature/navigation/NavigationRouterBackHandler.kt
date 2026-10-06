@@ -21,40 +21,41 @@ import kotlinx.coroutines.flow.onEach
 @Composable
 fun NavigationRouterBackHandler(
     onBackPressedDispatcher: OnBackPressedDispatcher,
+    handler: BackHandler = remember { BackHandler() },
     content: @Composable () -> Unit,
 ) {
-    NavigationRouterBackHandler(
-        sideEffect = { handler ->
-            val callback: OnBackPressedCallback = remember {
-                object : OnBackPressedCallback(false) {
-                    override fun handleOnBackPressed() {
-                        val targetEntry = handler.eek.value.values.maxByOrNull { it.backStack.size }
-                            ?: return@handleOnBackPressed
-                        targetEntry.controller.queue(NavigationIntent.Pop)
-                    }
-                }
+    val callback: OnBackPressedCallback = remember(handler) {
+        object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                val targetEntry = handler.eek.value.values.maxByOrNull { it.backStack.size }
+                    ?: return@handleOnBackPressed
+                targetEntry.controller.queue(NavigationIntent.Pop)
             }
+        }
+    }
 
-            DisposableEffect(onBackPressedDispatcher, callback) {
-                onBackPressedDispatcher.addCallback(callback)
-                onDispose {
-                    callback.remove()
-                }
+    DisposableEffect(onBackPressedDispatcher, callback) {
+        onBackPressedDispatcher.addCallback(callback)
+        onDispose {
+            callback.remove()
+        }
+    }
+    LaunchedEffect(callback, handler) {
+        handler.eek
+            .map { map ->
+                map.values.maxByOrNull { it.backStack.size }
+                    ?.controller
+                    ?.canPop() ?: flowOf(false)
             }
-            LaunchedEffect(callback, handler) {
-                handler.eek
-                    .map { map ->
-                        map.values.maxByOrNull { it.backStack.size }
-                            ?.controller
-                            ?.canPop() ?: flowOf(false)
-                    }
-                    .flatMapLatest { it }
-                    .onEach {
-                        callback.isEnabled = it
-                    }
-                    .collect()
+            .flatMapLatest { it }
+            .onEach {
+                callback.isEnabled = it
             }
-        },
+            .collect()
+    }
+
+    NavigationRouterBackHandler(
+        handler = handler,
         content = content,
     )
 }

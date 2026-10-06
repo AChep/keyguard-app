@@ -47,6 +47,46 @@ fn generated_test_certificate_with_kind(
     (secret, public)
 }
 
+#[test]
+fn secp256k1_high_s_certificate_renews_and_keeps_its_back_signature() {
+    use crate::openpgp::crypto::verifier::tests::{secp256k1_fixture, with_high_s_signing_subkey};
+    fn back_signature(binding: &Signature) -> &Signature {
+        binding
+            .config()
+            .into_iter()
+            .flat_map(|config| &config.hashed_subpackets)
+            .find_map(|subpacket| match &subpacket.data {
+                SubpacketData::EmbeddedSignature(signature) => Some(signature.as_ref()),
+                _ => None,
+            })
+            .expect("embedded back signature")
+    }
+
+    let secret = with_high_s_signing_subkey(
+        secp256k1_fixture(),
+        pgp::composed::KeyType::ECDSA(pgp::crypto::ecc_curve::ECCCurve::Secp256k1),
+        1_700_000_000,
+    );
+    let public = secret.to_public_key();
+    renew_test_primary(&secret, &public);
+
+    // The private document holds only the primary secret, so renewal cannot
+    // replace a back signature that it fails to verify.
+    let subkey = &public.public_subkeys[0];
+    let renewed = update_test_component(&secret, &public, fingerprint_hex(&subkey.key), Vec::new())
+        .expect("renew high-S signing subkey");
+    let renewed = parse_single_public(&renewed.key_material.public_key_armored)
+        .expect("reparse renewed certificate");
+    let [binding] = renewed.public_subkeys[0].signatures.as_slice() else {
+        panic!("renewal must replace the only binding");
+    };
+    assert_ne!(binding, &subkey.signatures[0]);
+    assert_eq!(
+        back_signature(binding),
+        back_signature(&subkey.signatures[0])
+    );
+}
+
 #[derive(Clone, Copy)]
 enum BackSignatureDefect {
     Expired,

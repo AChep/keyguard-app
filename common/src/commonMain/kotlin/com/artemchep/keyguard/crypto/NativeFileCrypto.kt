@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
-import com.artemchep.keyguard.nativecrypto.NativeAesCbcPkcs7HmacSha256DecryptSession
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
 import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
@@ -146,33 +145,6 @@ internal object NativeFileCrypto {
                 consumeOutput(output)
             } finally {
                 output.fill(0)
-            }
-            consumed += chunkLength
-        }
-    }
-
-    inline fun updateProvisionalChunked(
-        session: NativeAesCbcPkcs7HmacSha256DecryptSession,
-        data: ByteArray,
-        offset: Int = 0,
-        length: Int = data.size - offset,
-        consumeProvisionalOutput: (ByteArray) -> Unit,
-    ) {
-        require(offset >= 0 && length >= 0 && offset <= data.size - length) {
-            "Invalid native crypto stream range"
-        }
-        var consumed = 0
-        while (consumed < length) {
-            val chunkLength = minOf(NATIVE_CRYPTO_STREAM_CHUNK_BYTES, length - consumed)
-            val provisionalPlaintext = session.updateProvisional(
-                data,
-                offset + consumed,
-                chunkLength,
-            )
-            try {
-                consumeProvisionalOutput(provisionalPlaintext)
-            } finally {
-                provisionalPlaintext.fill(0)
             }
             consumed += chunkLength
         }

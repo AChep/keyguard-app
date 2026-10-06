@@ -338,12 +338,14 @@ jobs:
       - name: "Format, lint and test native utility crates"
         shell: bash
         run: |
-          for module in io instance zip zxcvbn; do
+          for module in ffi io instance zip zxcvbn yubikey fido2; do
             manifest="util/$module/rust/Cargo.toml"
             cargo fmt --manifest-path "$manifest" --all -- --check
             cargo clippy --manifest-path "$manifest" --workspace --all-targets --all-features --locked --no-deps -- -D warnings
             cargo test --manifest-path "$manifest" --workspace --all-features --locked
           done
+          # zip consumes keyguard-ffi without its jni feature.
+          cargo clippy --manifest-path util/ffi/rust/Cargo.toml --workspace --all-targets --locked --no-deps -- -D warnings
 
   desktop-bundle:
     name: "Native desktop (${{ matrix.name }})"
@@ -442,7 +444,13 @@ jobs:
         run: >-
           ${{ matrix.gradle }} --continue --max-workers=1
           "-Pkeyguard.nativeCargo.cargoOffline=true"
-          :util:io:desktopTest :util:instance:desktopTest :desktopApp:jvmTest
+          :util:ffi:desktopTest :util:io:desktopTest :util:instance:desktopTest :desktopApp:jvmTest
+      - name: "Run security key JVM regressions"
+        if: needs.changes.outputs.desktop == 'true'
+        run: >-
+          ${{ matrix.gradle }} --max-workers=1
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+          :util:yubikey:desktopTest :util:fido2:desktopTest
       - name: "Run Windows private staging regressions"
         if: runner.os == 'Windows' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.crypto == 'true')
         run: >-
@@ -475,27 +483,118 @@ jobs:
           ./gradlew --continue --max-workers=1
           -Pkeyguard.nativeCargo.cargoOffline=true
           :util:crypto:macosArm64Test
+          :util:dns:macosArm64Test
+          :util:ffi:macosArm64Test
           :util:io:macosArm64Test
           :util:instance:macosArm64Test
+          :util:yubikey:macosArm64Test :util:fido2:macosArm64Test
           :util:webauthn:macosArm64Test
           :util:zip:macosArm64Test
           :util:zxcvbn:macosArm64Test
+          :common:macosArm64Test
+          :appleApp:macosArm64Test
       - name: "Link native consumers for device and simulator"
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
         run: >-
           ./gradlew --max-workers=1
           -Pkeyguard.nativeCargo.cargoOffline=true
-          :iosApp:linkDebugTestIosArm64
-          :iosApp:linkDebugTestIosSimulatorArm64
-          :iosApp:linkDebugFrameworkIosArm64
-          :iosApp:linkDebugFrameworkIosSimulatorArm64
+          :appleApp:linkDebugTestIosArm64
+          :appleApp:linkDebugTestIosSimulatorArm64
+          :appleApp:assembleKeyguardSharedDebugXCFramework
+          :common:generateAppleStrings
           :util:crypto:linkDebugTestMacosArm64
+      # The Gradle step above must publish the XCFramework before SwiftPM resolves
+      # its local binary target. Each scheme also builds its AutoFill extension.
+      # Keep these sequential: both scheme pre-actions republish the same framework.
+      - name: "Build native macOS app and AutoFill extension"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
+        run: >-
+          xcodebuild
+          -project macosApp/Keyguard.xcodeproj
+          -scheme Keyguard
+          -configuration Debug
+          -destination 'platform=macOS,arch=arm64'
+          -derivedDataPath build/xcode/ci-macos
+          ARCHS=arm64 ONLY_ACTIVE_ARCH=YES
+          CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=
+          build
+      - name: "Build native macOS App Store app and AutoFill extension"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
+        run: >-
+          xcodebuild
+          -project macosApp/Keyguard.xcodeproj
+          -scheme 'Keyguard App Store'
+          -configuration AppStoreDebug
+          -destination 'platform=macOS,arch=arm64'
+          -derivedDataPath build/xcode/ci-macos
+          ARCHS=arm64 ONLY_ACTIVE_ARCH=YES
+          CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=
+          build
+      - name: "Verify bundled GPG helper signatures and sandbox inheritance"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
+        run: |
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          import os
+          import plistlib
+          import subprocess
+
+          expected = {
+              "com.apple.security.app-sandbox": True,
+              "com.apple.security.inherit": True,
+          }
+          for configuration in ("Debug", "AppStoreDebug"):
+              helper = Path("build/xcode/ci-macos/Build/Products") / configuration / "Keyguard.app/Contents/Resources/keyguard-gpg-agent"
+              assert helper.is_file() and os.access(helper, os.X_OK), f"Missing executable helper: {helper}"
+              subprocess.run(["codesign", "--verify", "--strict", str(helper)], check=True)
+              signed = subprocess.run(
+                  ["codesign", "--display", "--xml", "--entitlements", "-", str(helper)],
+                  check=True, stdout=subprocess.PIPE,
+              )
+              assert plistlib.loads(signed.stdout) == expected, f"Invalid helper entitlements: {helper}"
+          PYTHON
+      - name: "Test shared Swift UI behavior"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
+        run: swift test --package-path appleUi
+      - name: "Build native iOS app and AutoFill extension"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
+        run: >-
+          xcodebuild
+          -project iosApp/iosApp.xcodeproj
+          -scheme Keyguard
+          -configuration Debug
+          -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath build/xcode/ci-ios
+          ARCHS=arm64 ONLY_ACTIVE_ARCH=YES
+          CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=
+          build
+      - name: "Verify AutoFill packaging"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
+        run: |
+          python3 -m unittest scripts/test_verify_ios_autofill.py
+          python3 xcode/scripts/verify-ios-autofill.py --unsigned --app build/xcode/ci-ios/Build/Products/Debug-iphonesimulator/Keyguard.app
+      - name: "Test iOS scene privacy"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
+        shell: bash
+        run: |
+          simulator="$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          runtimes = [devices for runtime, devices in json.load(sys.stdin)["devices"].items()
+                      if ".iOS-" in runtime and devices]
+          if not runtimes:
+              sys.exit("No available iOS simulator.")
+          print(runtimes[-1][0]["udid"])
+          ')"
+          xcodebuild -project iosApp/iosApp.xcodeproj -scheme 'Keyguard Privacy Tests' \
+            -configuration Debug -destination "platform=iOS Simulator,id=$simulator" \
+            -derivedDataPath build/xcode/ci-ios \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= test
       - name: "Run iOS native smoke on full manual checks"
         if: github.event_name == 'workflow_dispatch' && inputs.coverage == 'full' && matrix.platform == 'macos' && matrix.arch == 'aarch64'
         run: >-
           ./gradlew --max-workers=1
           -Pkeyguard.nativeCargo.cargoOffline=true
-          :iosApp:iosSimulatorArm64Test
+          :appleApp:iosSimulatorArm64Test
       - name: "Verify final Apple consumers and C archives"
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
         shell: bash
@@ -506,8 +605,8 @@ jobs:
           done < <(find util/crypto/build util/io/build util/zip/build util/zxcvbn/build -type f -name 'libkeyguard_*.a' -print0)
           test "${#archives[@]}" -ge 4
           python3 scripts/verify_native_bundle.py apple --arch aarch64 \
-            iosApp/build/bin/iosArm64/debugTest/test.kexe \
-            iosApp/build/bin/iosSimulatorArm64/debugTest/test.kexe \
+            appleApp/build/bin/iosArm64/debugTest/test.kexe \
+            appleApp/build/bin/iosSimulatorArm64/debugTest/test.kexe \
             "${archives[@]}"
           python3 scripts/verify_native_bundle.py apple --arch aarch64 --require-crypto-exports \
             util/crypto/build/bin/macosArm64/debugTest/test.kexe
@@ -532,8 +631,8 @@ jobs:
             common/build/test-results/
             desktopApp/build/reports/tests/
             desktopApp/build/test-results/
-            iosApp/build/reports/tests/
-            iosApp/build/test-results/
+            appleApp/build/reports/tests/
+            appleApp/build/test-results/
           if-no-files-found: ignore
           retention-days: 7
 

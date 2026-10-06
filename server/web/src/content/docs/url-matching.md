@@ -17,7 +17,7 @@ the URL on the item's edit screen:
 
 | Mode                   | Matches when…                                                       |
 | :--------------------- | :------------------------------------------------------------------ |
-| **Default**            | Uses the global default from *Settings → Autofill → Default URI match detection* |
+| **Default**            | Uses the global default from *Settings → Autofill → Default match detection* |
 | **Base domain**        | The top-level and second-level domain match — `app.example.com` matches `example.com` |
 | **Host**               | The hostname (and port, if specified) match exactly                  |
 | **Starts with**        | The detected URL starts with the item's URL                          |

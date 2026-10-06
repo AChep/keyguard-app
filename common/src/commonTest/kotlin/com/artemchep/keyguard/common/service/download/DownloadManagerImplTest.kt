@@ -42,6 +42,26 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class DownloadManagerImplTest {
     @Test
+    fun `fresh completion publishes the store handoff uri`() = runTest {
+        val fileStore = object : DownloadFileStore by FakeDownloadFileStore() {
+            override suspend fun completedUri(info: DownloadInfoEntity, writerUri: String?): String {
+                assertEquals("file:///cache.bin", writerUri)
+                return "file:///handoff/attachment.txt"
+            }
+        }
+        val manager = createManager(
+            fileStore = fileStore,
+            task = FakeDownloadTask {
+                flowOf(DownloadProgress.Complete("file:///cache.bin".right()))
+            },
+            scope = backgroundScope,
+        )
+        val complete = manager.queue(downloadQueueRequest()).flow
+            .filterIsInstance<DownloadProgress.Complete>().first()
+        assertEquals("file:///handoff/attachment.txt".right(), complete.result)
+    }
+
+    @Test
     fun `queue creates metadata starts direct data download and schedules background work`() = runTest {
         val repository = DownloadRepositoryInMemory()
         val fileStore = FakeDownloadFileStore()

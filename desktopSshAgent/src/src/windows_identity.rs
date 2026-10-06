@@ -1,8 +1,10 @@
 //! Windows helpers used to secure the public SSH named pipe.
 //!
-//! This module deliberately does not derive caller authorization from
-//! `GetNamedPipeClientProcessId`: that value can be spoofed through handle
-//! transfer and PID reuse. Windows caller approvals remain connection-scoped.
+//! Process-based approval reuse is explicitly best effort: the named-pipe PID
+//! identifies its original opener, not necessarily the current handle holder.
+
+mod process;
+pub(crate) use process::WindowsCallerIdentity;
 
 use std::ffi::c_void;
 use std::io;
@@ -37,7 +39,7 @@ pub(crate) fn current_process_user_sid_string() -> io::Result<String> {
 }
 
 fn owned_handle(handle: HANDLE, function: &str) -> io::Result<OwnedHandle> {
-    if handle.is_null() {
+    if handle.is_null() || handle == windows_sys::Win32::Foundation::INVALID_HANDLE_VALUE {
         return Err(last_error(function));
     }
     // SAFETY: successful Windows handle-returning APIs transfer ownership to

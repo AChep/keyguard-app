@@ -32,6 +32,20 @@ sealed interface FileLocation {
     ) : FileLocation
 
     @Serializable
+    @SerialName("s3")
+    data class S3(
+        /** The service endpoint; null means Amazon S3. */
+        val endpoint: String? = null,
+        val region: String? = null,
+        val bucket: String,
+        val key: String,
+        val accessKeyId: String,
+        val secretAccessKey: Password,
+        val pathStyle: Boolean = true,
+        override val displayName: String,
+    ) : FileLocation
+
+    @Serializable
     @SerialName("google_drive")
     data class GoogleDrive(
         val account: OAuthAccount,

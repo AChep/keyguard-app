@@ -30,9 +30,16 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class VaultPowerLockServiceTest {
     @Test
-    fun `one application registration survives preference and session changes and is disposed`() = runTest {
+    fun `macOS registration survives preference and session changes and is disposed`() =
+        verifyRegistrationLifecycle(Platform.Desktop.MacOS.Jvm)
+
+    @Test
+    fun `Windows registration survives preference and session changes and is disposed`() =
+        verifyRegistrationLifecycle(Platform.Desktop.Windows)
+
+    private fun verifyRegistrationLifecycle(platform: Platform) = runTest {
         val fixture = Fixture()
-        val job = backgroundScope.launch { fixture.service().run() }
+        val job = backgroundScope.launch { fixture.service(platform).run() }
         fixture.ready.await()
         assertEquals(1, fixture.registrations)
 
@@ -50,6 +57,12 @@ class VaultPowerLockServiceTest {
         runCurrent()
         fixture.callback!!(DesktopPowerEvent.SystemSleep)
         assertEquals(2, fixture.locks)
+        fixture.unlock()
+        fixture.callback!!(DesktopPowerEvent.SessionInactive)
+        assertEquals(3, fixture.locks)
+        fixture.unlock()
+        fixture.callback!!(DesktopPowerEvent.SessionActive)
+        assertEquals(3, fixture.locks)
         assertEquals(1, fixture.registrations)
         assertFalse(fixture.removed)
 
@@ -57,13 +70,20 @@ class VaultPowerLockServiceTest {
         assertTrue(fixture.removed)
         fixture.unlock()
         fixture.callback!!(DesktopPowerEvent.SystemSleep)
-        assertEquals(2, fixture.locks)
+        assertEquals(3, fixture.locks)
     }
 
     @Test
-    fun `registration failure shows one error and does not crash the service`() = runTest {
+    fun `macOS registration failure shows one error and does not crash the service`() =
+        verifyRegistrationFailure(Platform.Desktop.MacOS.Jvm)
+
+    @Test
+    fun `Windows registration failure shows one error and does not crash the service`() =
+        verifyRegistrationFailure(Platform.Desktop.Windows)
+
+    private fun verifyRegistrationFailure(platform: Platform) = runTest {
         val fixture = Fixture().apply { failRegistration = true }
-        val job = backgroundScope.launch { fixture.service().run() }
+        val job = backgroundScope.launch { fixture.service(platform).run() }
         fixture.messageReady.await()
         runCurrent()
         assertTrue(job.isActive)
@@ -76,9 +96,8 @@ class VaultPowerLockServiceTest {
     }
 
     @Test
-    fun `other desktop platforms do not register or show an error`() = runTest {
+    fun `Linux does not register or show an error`() = runTest {
         val fixture = Fixture()
-        fixture.service(Platform.Desktop.Windows).run()
         fixture.service(Platform.Desktop.Linux.native).run()
         assertEquals(0, fixture.registrations)
         assertTrue(fixture.messages.isEmpty())

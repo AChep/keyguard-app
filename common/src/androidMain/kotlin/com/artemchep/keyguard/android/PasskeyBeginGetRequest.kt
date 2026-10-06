@@ -21,6 +21,7 @@ import androidx.credentials.provider.PasswordCredentialEntry
 import androidx.credentials.provider.PublicKeyCredentialEntry
 import arrow.optics.Getter
 import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepository
+import com.artemchep.keyguard.common.exception.credential.CallingAppNotPrivilegedException
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.toIO
@@ -59,6 +60,13 @@ class PasskeyBeginGetRequest(
     private val credentialProviderPlatformConfig: CredentialProviderPlatformConfig,
     private val passkeyUtils: PasskeyUtils,
 ) {
+    /**
+     * Builds the credential entries for a begin-get request.
+     *
+     * @throws CallingAppNotPrivilegedException if a passkey is requested on behalf
+     * of an origin, but the calling app is not on the privileged apps list. A caller
+     * should offer a user to grant the privilege and retry the request.
+     */
     suspend fun processGetCredentialsRequest(
         cipherHistoryOpenedRepository: CipherHistoryOpenedRepository,
         getSuggestions: GetSuggestions<Any?>,
@@ -155,6 +163,10 @@ class PasskeyBeginGetRequest(
             }
     }
 
+    /**
+     * @throws CallingAppNotPrivilegedException if the calling app populates
+     * an origin, but is not on the privileged apps list.
+     */
     private suspend fun populatePasskeyData(
         cipherHistoryOpenedRepository: CipherHistoryOpenedRepository,
         callingAppInfo: CallingAppInfo?,
@@ -325,14 +337,12 @@ internal suspend fun resolveCredentialProviderBeginGetRpId(
 ): String? {
     val appInfo = callingAppInfo
         ?: return null
-    val origin = runCatching {
+    val origin = resolveCredentialProviderBeginGetOriginOrNull {
         passkeyUtils.callingAppOrigin(
             appInfo = appInfo,
             privilegedApps = privilegedApps,
         )
-    }.getOrElse {
-        return null
-    }
+    } ?: return null
     return resolveCredentialProviderBeginGetRpId(
         requestRpId = requestRpId,
         origin = origin,
@@ -340,6 +350,24 @@ internal suspend fun resolveCredentialProviderBeginGetRpId(
         passkeyUtils = passkeyUtils,
     )
 }
+
+/**
+ * Resolves the origin of a begin-get request's calling app.
+ *
+ * Returns `null` if the origin can not be resolved: the caller must not
+ * see any credential entries. Propagates [CallingAppNotPrivilegedException]
+ * so a user can be offered to add the calling app to the privileged apps
+ * and retry the request.
+ */
+internal inline fun resolveCredentialProviderBeginGetOriginOrNull(
+    block: () -> String,
+): String? = runCatching { block() }
+    .getOrElse { e ->
+        if (e is CallingAppNotPrivilegedException) {
+            throw e
+        }
+        null
+    }
 
 internal suspend fun resolveCredentialProviderBeginGetRpId(
     requestRpId: String?,

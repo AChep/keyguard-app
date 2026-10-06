@@ -105,6 +105,8 @@ internal class ApplicationAuthenticationModule {
 
         single<EnableYubiKeyUnlockImpl>() bind EnableYubiKeyUnlock::class
 
+        single<com.artemchep.keyguard.common.usecase.impl.Fido2UnlockService>()
+
         single<GenerateMasterHashUseCaseImpl>() bind GenerateMasterHashUseCase::class
 
         single<GenerateMasterKeyUseCaseImpl>() bind GenerateMasterKeyUseCase::class
@@ -149,7 +151,13 @@ internal class ApplicationAuthenticationModule {
 
         single<PutVaultLockAfterTimeoutImpl>() bind PutVaultLockAfterTimeout::class
 
-        single<GetVaultSessionImpl>() bind GetVaultSession::class
+        single {
+            GetVaultSessionImpl(
+                sessionFactory = get(),
+                sessionReadWriteRepository = get(),
+                keyReadWriteRepository = get(),
+            )
+        } bind GetVaultSession::class
 
         single<GetVaultPersistImpl>() bind GetVaultPersist::class
 

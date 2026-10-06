@@ -2237,6 +2237,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                             section {
                                 if (canWrite && hasAccounts && type.gpgKey) {
                                     this += FlatItemAction(
+                                        id = "generator.value.createItemWithGpgKey",
                                         leading = icon(Icons.Outlined.Add),
                                         title = Res.string.generator_create_item_with_gpg_key_title.wrap(),
                                         onClick = ::createGpgKeyWithKey.partially1(gpgKey),

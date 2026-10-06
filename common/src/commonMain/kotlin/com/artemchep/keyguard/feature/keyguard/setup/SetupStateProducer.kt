@@ -6,9 +6,10 @@ import arrow.core.None
 import arrow.core.Option
 import arrow.core.getOrElse
 import arrow.core.identity
-import arrow.core.partially1
 import arrow.core.some
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.Loadable
@@ -127,7 +128,6 @@ suspend fun RememberStateFlowScope.setupStateProducer(
             ),
             isLoading = taskIsExecuting,
             onCreateVault = if (canCreateVault) {
-                crashlyticsSetEnabled(crashlytics)
                 // If the biometric is checked & possible, then ask user to
                 // confirm his identity.
                 if (createVaultWithMasterPasswordAndBiometricFn != null && biometric?.checked == true) {
@@ -156,6 +156,7 @@ suspend fun RememberStateFlowScope.setupStateProducer(
                                         executor = executor,
                                         createVaultWithMasterPasswordAndBiometricFn = createVaultWithMasterPasswordAndBiometricFn,
                                         password = currentPassword.model,
+                                        crashlytics = crashlytics,
                                     )
                                 }.also {
                                     promptWrapper = it.some()
@@ -173,7 +174,7 @@ suspend fun RememberStateFlowScope.setupStateProducer(
                         screenScope.launch {
                             val currentPassword = validateMasterPassword(password)
                             if (currentPassword is Validated.Success) {
-                                createVaultByMasterPasswordFn(currentPassword.model)
+                                createVaultByMasterPasswordFn(currentPassword.model, crashlytics)
                             }
                         }
                     }
@@ -190,9 +191,9 @@ private suspend fun createPromptOrNull(
     executor: LoadingTask,
     createVaultWithMasterPasswordAndBiometricFn: CreateVaultWithBiometric,
     password: String,
+    crashlytics: Boolean,
 ): BiometricAuthPrompt? = run {
-    val createVault = createVaultWithMasterPasswordAndBiometricFn
-        .partially1(password)
+    val createVault = { createVaultWithMasterPasswordAndBiometricFn(password, crashlytics) }
     // Creating a cipher may fail with:
     // Fatal Exception:
     //     java.security.ProviderException
@@ -227,7 +228,7 @@ private suspend fun createPromptOrNull(
 private open class CreateVaultWithPassword(
     private val executor: LoadingTask,
     private val getCreateIo: (String) -> IO<Unit>,
-) : (String) -> Unit {
+) {
     // Create from vault state options
     constructor(
         executor: LoadingTask,
@@ -237,8 +238,11 @@ private open class CreateVaultWithPassword(
         getCreateIo = options.getCreateIo,
     )
 
-    override fun invoke(password: String) {
-        val io = getCreateIo(password)
+    operator fun invoke(password: String, crashlytics: Boolean) {
+        val io = ioEffect {
+            crashlyticsSetEnabled(crashlytics)
+            getCreateIo(password).bind()
+        }
         executor.execute(io, password)
     }
 }

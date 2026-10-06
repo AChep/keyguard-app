@@ -1,0 +1,7 @@
+// Shared configuration for both Apple apps and their AutoFill extensions.
+#include "Signing.xcconfig"
+#include "DeploymentTargets.xcconfig"
+#include "Version.xcconfig"
+
+// App and extension build numbers must agree. iOS overrides this in project.yml.
+CURRENT_PROJECT_VERSION = 1

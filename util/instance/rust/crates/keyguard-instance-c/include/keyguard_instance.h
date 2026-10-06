@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-/* ABI v2. Errors: -1 argument, -2 I/O, -3 timeout, -4 protocol, -5 handle,
+/* ABI v3. Errors: -1 argument, -2 I/O, -3 timeout, -4 protocol, -5 handle,
  * -6 unavailable, -7 permission, -8 internal. Strings are strict UTF-8 and
  * contain at most 65536 bytes. Pointers must remain readable throughout calls.
  * A zero-length string may use a null pointer. No function takes ownership of
@@ -33,6 +33,16 @@ void keyguard_instance_clear_error(void);
  * ownership file. Runtime storage is an existing root for private IPC directories.
  */
 int64_t keyguard_instance_acquire_or_activate(
+    const uint8_t *coordination_ptr, size_t coordination_len,
+    const uint8_t *runtime_ptr, size_t runtime_len,
+    const uint8_t *identity_ptr, size_t identity_len,
+    uint64_t timeout_ms);
+
+/* Like keyguard_instance_acquire_or_activate, but never contacts the incumbent:
+ * it waits for the incumbent to exit instead. Zero: the incumbent kept ownership
+ * until the timeout.
+ */
+int64_t keyguard_instance_acquire(
     const uint8_t *coordination_ptr, size_t coordination_len,
     const uint8_t *runtime_ptr, size_t runtime_len,
     const uint8_t *identity_ptr, size_t identity_len,

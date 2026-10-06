@@ -32,16 +32,17 @@
 
 use std::mem::size_of;
 
+use keyguard_ffi::{
+    DOMAIN_SHIFT, FAILURE_MARKER, KIND_SHIFT, OPERATION_MASK as FAILURE_OPERATION_MASK,
+    RAW_CODE_SHIFT,
+};
+
 use crate::{
     error::{FileSystemFailure, Operation, TxnError},
     sweep::{SweepReport, SweepStatus},
     txn::{CleanupState, CommitSuccess, CommitSuccessProjection, PublicationOperation},
 };
 
-const FAILURE_MARKER: u64 = 1 << 63;
-const KIND_SHIFT: u32 = 8;
-const DOMAIN_SHIFT: u32 = 16;
-const RAW_CODE_SHIFT: u32 = 24;
 const ACHIEVED_SHIFT: u32 = 4;
 const PUBLICATION_OPERATION_SHIFT: u32 = 56;
 const ACHIEVED_NOT_ESTABLISHED: u64 = 0x0f;
@@ -59,8 +60,6 @@ const FAILURE_CLEANUP_INCOMPLETE: u64 = 1 << 56;
 /// this is a live evolution risk rather than a theoretical one. The assertions
 /// below pin today's values as exact so the mask never has to act.
 const PUBLICATION_OPERATION_MASK: u64 = 0x7f;
-/// Width of the operation field at bits 0..=7 of the failure layout.
-const FAILURE_OPERATION_MASK: u64 = 0xff;
 
 const _: () = {
     assert!(
@@ -314,16 +313,12 @@ fn failure_wire_parts(failure: Option<FileSystemFailure>) -> (u32, u32, u32) {
 #[must_use]
 pub const fn pack_txn_error(error: TxnError) -> i64 {
     let (kind, domain, raw_code) = error.failure().wire_parts();
-    (FAILURE_MARKER
-        | (error.operation() as u64 & FAILURE_OPERATION_MASK)
-        | ((kind as u64) << KIND_SHIFT)
-        | ((domain as u64) << DOMAIN_SHIFT)
-        | ((raw_code as u64) << RAW_CODE_SHIFT)
-        | if error.cleanup_incomplete() {
-            FAILURE_CLEANUP_INCOMPLETE
-        } else {
-            0
-        }) as i64
+    let packed = keyguard_ffi::pack_failure(error.operation() as u8, kind, domain, raw_code);
+    if error.cleanup_incomplete() {
+        packed | FAILURE_CLEANUP_INCOMPLETE as i64
+    } else {
+        packed
+    }
 }
 
 /// Packs a commit report into the scalar representation.
@@ -477,6 +472,12 @@ mod tests {
             golden::BRIDGE_INVALID_ARGUMENT
         );
         assert_eq!(pack_bridge_panic(), golden::BRIDGE_PANIC);
+        // The shared panic boundary and raw readers return these words.
+        assert_eq!(
+            pack_bridge_invalid_argument(),
+            keyguard_ffi::BRIDGE_INVALID_ARGUMENT
+        );
+        assert_eq!(pack_bridge_panic(), keyguard_ffi::BRIDGE_PANIC);
     }
 
     #[cfg(unix)]

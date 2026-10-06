@@ -38,7 +38,7 @@ class KeePassLoginStateProducerTest {
             keyFile = keyFile,
             webDav = null,
             passwordValidated = Validated.Success("secret"),
-        ) { mode, actionDbFile, actionKeyFile, actionWebDav, password ->
+        ) { mode, actionDbFile, actionKeyFile, actionWebDav, _, password ->
             submittedMode = mode
             submittedDbFile = actionDbFile
             submittedKeyFile = actionKeyFile
@@ -75,7 +75,7 @@ class KeePassLoginStateProducerTest {
             keyFile = null,
             webDav = webDav,
             passwordValidated = Validated.Success("db-password"),
-        ) { _, _, _, actionWebDav, _ ->
+        ) { _, _, _, actionWebDav, _, _ ->
             submittedWebDav = actionWebDav
         }
 
@@ -100,6 +100,54 @@ class KeePassLoginStateProducerTest {
     }
 
     @Test
+    fun `s3 config is forwarded to action`() {
+        val s3 = KeePassLoginState.S3(
+            endpoint = "https://minio.lan:9000",
+            region = null,
+            bucket = "vaults",
+            key = "dir/vault.kdbx",
+            accessKeyId = "AKID",
+            secretAccessKey = "secret",
+            pathStyle = true,
+        )
+        var submittedS3: KeePassLoginState.S3? = null
+
+        val action = createKeePassLoginAction(
+            mode = "open",
+            dbFile = s3.toKeePassLoginFile(),
+            keyFile = null,
+            webDav = null,
+            s3 = s3,
+            passwordValidated = Validated.Success("db-password"),
+        ) { _, _, _, _, actionS3, _ ->
+            submittedS3 = actionS3
+        }
+
+        assertNotNull(action)
+        action.onClick()
+        assertEquals(s3, submittedS3)
+    }
+
+    @Test
+    fun `s3 file exposes the object name and round trips the location`() {
+        val s3 = KeePassLoginState.S3(
+            endpoint = null,
+            region = "eu-west-1",
+            bucket = "vaults",
+            key = "dir/vault.kdbx",
+            accessKeyId = "AKID",
+            secretAccessKey = "secret",
+            pathStyle = false,
+        )
+
+        val file = s3.toKeePassLoginFile()
+
+        assertEquals("s3://vaults/dir/vault.kdbx", file.uri)
+        assertEquals("vault.kdbx", file.name)
+        assertEquals(s3, s3.toS3Location().toKeePassLoginS3())
+    }
+
+    @Test
     fun `empty password with key file creates action`() {
         var submittedPassword: String? = null
 
@@ -117,7 +165,7 @@ class KeePassLoginStateProducerTest {
             ),
             webDav = null,
             passwordValidated = Validated.Success(""),
-        ) { _, _, _, _, password ->
+        ) { _, _, _, _, _, password ->
             submittedPassword = password
         }
 
@@ -141,7 +189,7 @@ class KeePassLoginStateProducerTest {
                 model = "",
                 error = "Must not be blank",
             ),
-        ) { _, _, _, _, _ ->
+        ) { _, _, _, _, _, _ ->
             error("Should not submit invalid KeePass credentials")
         }
 

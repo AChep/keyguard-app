@@ -9,6 +9,7 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+keyguard-ffi.workspace = true
 zxcvbn.workspace = true
 
 [lints]

@@ -15,6 +15,8 @@ import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.LocalWindowId
+import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.wear.locale.WearLocalizedActivity
 import com.artemchep.keyguard.wear.ui.WearKeyguardTheme
@@ -22,6 +24,8 @@ import kotlin.getValue
 import org.koin.compose.KoinIsolatedContext
 
 abstract class WearCredentialProviderActivity : WearLocalizedActivity() {
+    private val windowId = WindowId.create()
+
     val translatorScope by lazy {
         val context = LeContext(this)
         TranslatorScope.of(context)
@@ -38,6 +42,7 @@ abstract class WearCredentialProviderActivity : WearLocalizedActivity() {
                             .background(containerColor),
                     ) {
                         CompositionLocalProvider(
+                            LocalWindowId provides windowId,
                             LocalSurfaceColor provides containerColor,
                         ) {
                             WearNavigationHost(

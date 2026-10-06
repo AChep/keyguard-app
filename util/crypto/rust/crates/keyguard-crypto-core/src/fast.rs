@@ -16,8 +16,7 @@ use crate::{primitive_error_code, primitives, protocol::NativeErrorCode};
 /// `i32::MAX`, and [`NativeErrorCode::CryptoFailure`] when the operating-system
 /// random source fails.
 pub fn random_int(exclusive_upper_bound: u32) -> Result<i32, NativeErrorCode> {
-    primitives::random_int(exclusive_upper_bound != 0, exclusive_upper_bound)
-        .map_err(primitive_error_code)
+    primitives::random_int(exclusive_upper_bound).map_err(primitive_error_code)
 }
 
 /// Encrypts `plaintext` with AES-CBC-PKCS#7 and writes HMAC-SHA256 over

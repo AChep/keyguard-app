@@ -1,27 +1,10 @@
 //! Stable, project-owned failure taxonomy shared by every native bridge.
 //!
-//! The taxonomy is a subset of `util/io`'s: password estimation is a pure
-//! computation, so the only failures it can report come from the ABI bridge
-//! itself. The wire numbering is nevertheless identical so the Kotlin
-//! decoders stay interchangeable.
+//! [`FailureKind`] and [`ErrorDomain`] come from `keyguard-ffi`. Password
+//! estimation is a pure computation, so the only failures it can report come
+//! from the ABI bridge itself.
 
-/// Stable failure classification independent of any platform error code.
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum FailureKind {
-    /// An input to the operation was invalid.
-    InvalidInput = 8,
-    /// The native bridge failed internally.
-    Internal = 12,
-}
-
-/// Stable namespace of a raw native error code.
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ErrorDomain {
-    /// The raw code is defined by the Keyguard bridge.
-    Bridge = 3,
-}
+pub use keyguard_ffi::{ErrorDomain, FailureKind};
 
 /// Protocol step that produced a failure.
 ///

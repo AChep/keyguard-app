@@ -1,0 +1,149 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "0F82C57E",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "14.99",
+      "familyShareable" : true,
+      "internalID" : "6778765826",
+      "localizations" : [
+        {
+          "description" : "Support Keyguard development and unlock all features",
+          "displayName" : "Lifetime plan",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "premium_lifetime",
+      "referenceName" : "One-time purchase",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6778765247",
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "JJCH8P636V",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 811242680.89340997,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionBundleGroups" : [
+
+  ],
+  "subscriptionGroups" : [
+    {
+      "id" : "22147216",
+      "localizations" : [
+
+      ],
+      "name" : "Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "1.99",
+              "displayPrice" : "1.99",
+              "internalID" : "6778765841_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "1.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6778765841",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "Support Keyguard development and unlock all features",
+              "displayName" : "Quarterly plan",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "premium_3m",
+          "recurringSubscriptionPeriod" : "P3M",
+          "referenceName" : "Quarterly plan",
+          "subscriptionGroupID" : "22147216",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "3.99",
+              "displayPrice" : "3.99",
+              "internalID" : "6778766279_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "3.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6778766279",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "Support Keyguard development and unlock all features",
+              "displayName" : "Yearly plan",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "premium_1y",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Yearly plan",
+          "subscriptionGroupID" : "22147216",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "subscriptionSuiteGroups" : [
+
+  ],
+  "version" : {
+    "major" : 6,
+    "minor" : 3
+  }
+}

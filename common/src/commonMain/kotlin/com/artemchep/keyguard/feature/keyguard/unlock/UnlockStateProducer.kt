@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.feature.keyguard.unlock
 
+import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.feature.fido2.Fido2PromptHost
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
@@ -62,6 +65,7 @@ fun unlockScreenState(
     unlockVaultByMasterPassword: VaultState.Unlock.WithPassword,
     unlockVaultByBiometric: VaultState.Unlock.WithBiometric?,
     unlockVaultByYubiKey: VaultState.Unlock.WithYubiKey?,
+    unlockVaultByFido2: VaultState.Unlock.WithFido2? = null,
     lockInfo: VaultState.Unlock.LockInfo? = null,
 ): Loadable<UnlockState> = produceScreenState<Loadable<UnlockState>>(
     key = "unlock",
@@ -70,6 +74,7 @@ fun unlockScreenState(
         unlockVaultByMasterPassword,
         unlockVaultByBiometric,
         unlockVaultByYubiKey,
+        unlockVaultByFido2,
     ),
 ) {
     unlockStateProducer(
@@ -77,6 +82,7 @@ fun unlockScreenState(
         unlockVaultByMasterPassword = unlockVaultByMasterPassword,
         unlockVaultByBiometric = unlockVaultByBiometric,
         unlockVaultByYubiKey = unlockVaultByYubiKey,
+        unlockVaultByFido2 = unlockVaultByFido2,
         lockInfo = lockInfo,
     )
 }
@@ -86,9 +92,19 @@ suspend fun RememberStateFlowScope.unlockStateProducer(
     unlockVaultByMasterPassword: VaultState.Unlock.WithPassword,
     unlockVaultByBiometric: VaultState.Unlock.WithBiometric?,
     unlockVaultByYubiKey: VaultState.Unlock.WithYubiKey?,
+    unlockVaultByFido2: VaultState.Unlock.WithFido2? = null,
     lockInfo: VaultState.Unlock.LockInfo? = null,
 ): Flow<Loadable<UnlockState>> {
     val executor = screenExecutor()
+    val fido2Host = Fido2PromptHost()
+    val fido2Action: (() -> Unit)? = unlockVaultByFido2?.let { options ->
+        {
+            executor.execute(ioEffect {
+                val secret = fido2Host.execute(options.getRequest())
+                try { options.getCreateIo(secret).bind() } finally { secret.fill(0) }
+            })
+        }
+    }
 
     val unlockVaultByMasterPasswordFn = UnlockVaultWithPassword(
         executor = executor,
@@ -235,6 +251,7 @@ suspend fun RememberStateFlowScope.unlockStateProducer(
             } else {
                 biometricPrecomputed?.enabled
             },
+            fido2 = fido2Action?.let { action -> UnlockState.Fido2(if (taskExecuting) null else action) },
             yubiKey = if (taskExecuting) {
                 yubiKeyPrecomputed?.disabled
             } else {
@@ -243,6 +260,7 @@ suspend fun RememberStateFlowScope.unlockStateProducer(
             sideEffects = UnlockState.SideEffects(
                 showBiometricPromptFlow = biometricPromptFlow,
                 showYubiKeyPromptFlow = yubiKeyPromptFlow,
+                showFido2PromptFlow = fido2Host.events,
             ),
             isLoading = taskExecuting,
             unlockVaultByMasterPassword = if (canCreateVault) {

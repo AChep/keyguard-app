@@ -2,6 +2,7 @@ package com.artemchep.keyguard.util.webdav.internal
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -23,9 +24,11 @@ class WebDavUnicodeDecodingTest {
     }
 
     @Test
-    fun `invalid numeric entities are kept as text`() {
+    fun `invalid numeric entities are rejected`() {
         val entities = listOf("&#xD800;", "&#xDFFF;", "&#x110000;", "&#0;", "&#-1;", "&#xZZ;")
-        assertEquals(entities, parseHrefs(*entities.toTypedArray()))
+        for (entity in entities) {
+            assertFailsWith<IllegalArgumentException>(entity) { parseHrefs(entity) }
+        }
     }
 
     @Test

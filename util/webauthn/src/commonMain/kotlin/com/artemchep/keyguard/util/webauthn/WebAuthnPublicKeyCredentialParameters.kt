@@ -38,7 +38,13 @@ fun findPasskeyAlgorithmOrNull(
     data: CreatePasskey,
     supportedAlgorithms: Set<PasskeySignatureAlgorithm>,
 ): PasskeySignatureAlgorithm? {
-    val pubKeyCredParams = data.pubKeyCredParamsOrDefaults()
+    return findPasskeyAlgorithmOrNull(data.pubKeyCredParamsOrDefaults(), supportedAlgorithms)
+}
+
+private fun findPasskeyAlgorithmOrNull(
+    pubKeyCredParams: List<CreatePasskeyPubKeyCredParams>,
+    supportedAlgorithms: Set<PasskeySignatureAlgorithm>,
+): PasskeySignatureAlgorithm? {
     return pubKeyCredParams.firstNotNullOfOrNull { parameters ->
         supportedAlgorithms.firstOrNull { algorithm ->
             parameters.type == "public-key" &&
@@ -51,8 +57,14 @@ fun requirePasskeyAlgorithm(
     data: CreatePasskey,
     supportedAlgorithms: Set<PasskeySignatureAlgorithm>,
 ): PasskeySignatureAlgorithm =
+    requirePasskeyAlgorithm(data.pubKeyCredParamsOrDefaults(), supportedAlgorithms)
+
+internal fun requirePasskeyAlgorithm(
+    pubKeyCredParams: List<CreatePasskeyPubKeyCredParams>,
+    supportedAlgorithms: Set<PasskeySignatureAlgorithm>,
+): PasskeySignatureAlgorithm =
     findPasskeyAlgorithmOrNull(
-        data = data,
+        pubKeyCredParams = pubKeyCredParams,
         supportedAlgorithms = supportedAlgorithms,
     ) ?: throw WebAuthnNotSupportedException(
         // WebAuthn L3 create() throws NotSupportedError when no

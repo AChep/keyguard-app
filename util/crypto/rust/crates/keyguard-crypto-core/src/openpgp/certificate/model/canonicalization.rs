@@ -62,68 +62,6 @@ pub(crate) fn parse_public_certificate_packet_set_with_budget(
     Ok(certificate)
 }
 
-/// Canonically unions public certificate documents into transferable bytes.
-#[cfg(test)]
-pub(crate) fn merge_public_certificate_documents(
-    documents: &[&[u8]],
-) -> Result<(Vec<u8>, String), CertificateMergeError> {
-    let canonical = merge_public_certificate_material_documents(documents)?;
-    Ok((canonical.bytes, canonical.fingerprint))
-}
-
-/// Canonically unions public certificate documents while retaining the local
-/// evidence that ordinary transferable export must omit.
-#[cfg(test)]
-pub(crate) fn merge_public_certificate_material_documents(
-    documents: &[&[u8]],
-) -> Result<CanonicalCertificate, CertificateMergeError> {
-    merge_public_certificate_material_documents_with_order(documents, false)
-}
-
-/// Canonically unions public certificate documents using an input-order-
-/// independent component order suitable for multi-replica reconciliation.
-#[cfg(test)]
-pub(crate) fn merge_public_certificate_material_documents_deterministic(
-    documents: &[&[u8]],
-) -> Result<CanonicalCertificate, CertificateMergeError> {
-    merge_public_certificate_material_documents_with_order(documents, true)
-}
-
-#[cfg(test)]
-fn merge_public_certificate_material_documents_with_order(
-    documents: &[&[u8]],
-    deterministic_component_order: bool,
-) -> Result<CanonicalCertificate, CertificateMergeError> {
-    let mut rehoming_budget = SignatureRehomingBudget::default();
-    let mut values = documents
-        .iter()
-        .map(|document| {
-            parse_public_certificate_packet_set_with_budget(document, &mut rehoming_budget)
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-    if values.is_empty() {
-        return Err(CertificateMergeError::Malformed);
-    }
-    // Resource caps are enforced per document by
-    // `parse_public_certificate_packet_set_with_budget`
-    // and on the deduplicated union by `finalize`; summing per-document counts
-    // against the per-certificate caps here would reject legitimate merges of
-    // near-cap duplicates, such as a certificate reconciled with its own
-    // secret projection.
-    let mut merged = values.remove(0);
-    let fingerprint = merged.fingerprint.clone();
-    for value in values {
-        if value.fingerprint != fingerprint {
-            return Err(CertificateMergeError::ComponentCollision);
-        }
-        merged.merge(value)?;
-    }
-    if deterministic_component_order {
-        merged.sort_component_order();
-    }
-    merged.finalize()
-}
-
 pub(crate) fn normalize_expected_fingerprint(value: &str) -> Option<String> {
     let mut normalized = String::with_capacity(value.len());
     for byte in value.bytes() {
@@ -465,7 +403,11 @@ impl PublicCertificatePacketSet {
                     signature.typ() == Some(SignatureType::SubkeyBinding)
                         && signature_verification_compatible(signature, &primary)
                         && signature_ignoring_unhashed_issuer_hints(signature).is_some_and(
-                            |signature| signature.verify_subkey_binding(&primary, &subkey).is_ok(),
+                            |signature| {
+                                signature
+                                    .verify_subkey_binding(&OpenPgpVerifier(&primary), &subkey)
+                                    .is_ok()
+                            },
                         )
                 })
             });

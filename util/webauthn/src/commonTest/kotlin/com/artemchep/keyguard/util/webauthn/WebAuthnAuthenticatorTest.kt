@@ -27,6 +27,89 @@ import kotlin.test.assertTrue
 
 class WebAuthnAuthenticatorTest {
     @Test
+    fun `binary registration matches the JSON provider without requiring client data`() {
+        val fixture = Fixture()
+        val options = creationOptions()
+        val binary = fixture.authenticator.createCredential(options.toRegistrationRequest(caller.rpId), true)
+        val json = Fixture().authenticator.createCredential(options, caller, true, listOf("internal"))
+        val response = json.responseJson.webAuthnResponse()
+        assertEquals(json.credential, binary.credential)
+        assertContentEquals(response.decodeBytes("authenticatorData"), binary.authenticatorData)
+        assertContentEquals(response.decodeBytes("attestationObject"), binary.attestationObject)
+        assertContentEquals(response.decodeBytes("publicKey"), binary.publicKey)
+        assertEquals(-7, binary.publicKeyAlgorithm)
+        assertEquals(0, fixture.clientHashCalls)
+        assertTrue(fixture.crypto.generated.privateKeyPkcs8.all { it == 0.toByte() })
+    }
+
+    @Test
+    fun `binary registration rejects unsupported algorithms and excluded credentials before generation`() {
+        val fixture = Fixture()
+        val request = creationOptions().toRegistrationRequest(caller.rpId)
+        assertFailsWith<WebAuthnNotSupportedException> {
+            fixture.authenticator.createCredential(request.copy(pubKeyCredParams = emptyList()), true)
+        }
+        assertFailsWith<WebAuthnInvalidStateException> {
+            fixture.authenticator.createCredential(
+                request.copy(excludedCredentialIds = setOf(credentialId)),
+                true,
+                listOf(credential()),
+            )
+        }
+        assertEquals(0, fixture.crypto.generateCalls)
+    }
+
+    @Test
+    fun `binary assertion uses the supplied hash and returns a caller owned signature`() {
+        val fixture = Fixture()
+        val request = WebAuthnAssertionHashRequest(
+            caller.rpId,
+            ByteArray(32) { 0x33 },
+            "preferred",
+            WebAuthnAllowedCredentialDescriptors.fromCredentialIds(emptyList()),
+        )
+        val binary = fixture.authenticator.getAssertion(request, credential(counter = 7), true)
+        val json = Fixture().assertion(credential(counter = 7), request.clientDataHash).webAuthnResponse()
+        assertContentEquals(json.decodeBytes("authenticatorData"), binary.authenticatorData)
+        assertContentEquals(json.decodeBytes("signature"), binary.signature)
+        assertContentEquals(binary.authenticatorData + request.clientDataHash, fixture.crypto.signedDataCopy)
+        assertEquals(0, fixture.clientHashCalls)
+        assertTrue(fixture.crypto.signedKey.all { it == 0.toByte() })
+        assertTrue(fixture.crypto.signedData.all { it == 0.toByte() })
+        assertContentEquals(byteArrayOf(0x30, 0), binary.signature)
+    }
+
+    @Test
+    fun `binary assertion rechecks RP and allow list before signing`() {
+        val fixture = Fixture()
+        val request = WebAuthnAssertionHashRequest(
+            caller.rpId, ByteArray(32), "preferred",
+            WebAuthnAllowedCredentialDescriptors.fromCredentialIds(emptyList()),
+        )
+        val rejected = listOf(
+            credential().copy(rpId = "other.example"),
+            credential().copy(discoverable = false),
+        )
+        for (credential in rejected) {
+            assertFailsWith<WebAuthnNotAllowedException> {
+                fixture.authenticator.getAssertion(request, credential, true)
+            }
+        }
+        val explicit = request.copy(
+            allowedCredentials = WebAuthnAllowedCredentialDescriptors.fromCredentialIds(
+                listOf(PasskeyCredentialId.encode(credentialId)),
+            ),
+        )
+        assertFailsWith<WebAuthnNotAllowedException> {
+            fixture.authenticator.getAssertion(explicit, credential().copy(credentialId = "YQ"), true)
+        }
+        assertEquals(0, fixture.decodeCalls)
+        assertEquals(0, fixture.crypto.signCalls)
+        fixture.authenticator.getAssertion(explicit, credential().copy(discoverable = false), true)
+        assertEquals(1, fixture.crypto.signCalls)
+    }
+
+    @Test
     fun `registration preserves response fields and clears generated key buffers`() {
         val fixture = Fixture()
         val result = fixture.authenticator.createCredential(

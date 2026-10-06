@@ -40,7 +40,7 @@ ARTIFACT_NAME_MARKER = re.compile(
     re.IGNORECASE,
 )
 OKHTTP_JVM_JAR = re.compile(
-    r"^okhttp-jvm-5\.4\.0(?:-[0-9a-f]+)?\.jar$",
+    r"^okhttp-jvm-5\.5\.0(?:-[0-9a-f]+)?\.jar$",
     re.IGNORECASE,
 )
 OKHTTP_OPTIONAL_BC_ENTRIES = frozenset(

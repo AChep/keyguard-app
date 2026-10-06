@@ -7,8 +7,6 @@ import com.artemchep.keyguard.res.pref_item_agent_approval_scope_application
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_application_and_terminal_session
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_connection
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_process
-import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_android_application_and_terminal_session_reuse
-import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_android_process_reuse
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_application_and_terminal_session_reuse
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_application_reuse
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_connection_reuse
@@ -17,14 +15,20 @@ import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_not_share
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_process_reuse
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_same_process_only
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_shared
+import com.artemchep.keyguard.res.pref_item_agent_approval_scope_windows_application_note
+import com.artemchep.keyguard.res.pref_item_agent_approval_scope_windows_application_reuse
+import com.artemchep.keyguard.res.pref_item_agent_approval_scope_windows_process_note
+import com.artemchep.keyguard.res.pref_item_agent_approval_scope_windows_process_reuse
 import org.jetbrains.compose.resources.StringResource
 
 @Immutable
 internal data class AgentApprovalScopePresentation(
     val rows: List<AgentApprovalScopePresentationRow>,
 ) {
+    // Windows hides terminal isolation; saved/default selections reuse the application scope.
     fun row(policy: AgentApprovalCachePolicy): AgentApprovalScopePresentationRow =
-        rows.first { it.policy == policy }
+        rows.firstOrNull { it.policy == policy }
+            ?: rows.first { it.policy == AgentApprovalCachePolicy.Application }
 }
 
 @Immutable
@@ -34,20 +38,18 @@ internal data class AgentApprovalScopePresentationRow(
     val reuseBoundaryResource: StringResource,
     val sameTerminalResource: StringResource,
     val otherTerminalResource: StringResource,
-) {
-    val isDefault: Boolean
-        get() = policy == AgentApprovalCachePolicy.Default
-}
+    val noteResource: StringResource? = null,
+    val isDefault: Boolean = policy == AgentApprovalCachePolicy.Default,
+)
 
 internal enum class AgentApprovalScopePresentationPlatform {
     Native,
-    Android,
+    WindowsSsh,
 }
 
 internal fun agentApprovalScopePresentation(
     platform: AgentApprovalScopePresentationPlatform,
 ): AgentApprovalScopePresentation {
-    val isAndroid = platform == AgentApprovalScopePresentationPlatform.Android
     val rows = AgentApprovalCachePolicy.entries.map { policy ->
         when (policy) {
             AgentApprovalCachePolicy.Connection -> AgentApprovalScopePresentationRow(
@@ -58,23 +60,13 @@ internal fun agentApprovalScopePresentation(
                 otherTerminalResource = Res.string.pref_item_agent_approval_scope_table_current_connection_only,
             )
 
-            AgentApprovalCachePolicy.Process -> if (isAndroid) {
-                AgentApprovalScopePresentationRow(
-                    policy = policy,
-                    titleResource = Res.string.pref_item_agent_approval_scope_process,
-                    reuseBoundaryResource = Res.string.pref_item_agent_approval_scope_table_android_process_reuse,
-                    sameTerminalResource = Res.string.pref_item_agent_approval_scope_table_current_connection_only,
-                    otherTerminalResource = Res.string.pref_item_agent_approval_scope_table_current_connection_only,
-                )
-            } else {
-                AgentApprovalScopePresentationRow(
-                    policy = policy,
-                    titleResource = Res.string.pref_item_agent_approval_scope_process,
-                    reuseBoundaryResource = Res.string.pref_item_agent_approval_scope_table_process_reuse,
-                    sameTerminalResource = Res.string.pref_item_agent_approval_scope_table_same_process_only,
-                    otherTerminalResource = Res.string.pref_item_agent_approval_scope_table_same_process_only,
-                )
-            }
+            AgentApprovalCachePolicy.Process -> AgentApprovalScopePresentationRow(
+                policy = policy,
+                titleResource = Res.string.pref_item_agent_approval_scope_process,
+                reuseBoundaryResource = Res.string.pref_item_agent_approval_scope_table_process_reuse,
+                sameTerminalResource = Res.string.pref_item_agent_approval_scope_table_same_process_only,
+                otherTerminalResource = Res.string.pref_item_agent_approval_scope_table_same_process_only,
+            )
 
             AgentApprovalCachePolicy.Application -> AgentApprovalScopePresentationRow(
                 policy = policy,
@@ -84,28 +76,35 @@ internal fun agentApprovalScopePresentation(
                 otherTerminalResource = Res.string.pref_item_agent_approval_scope_table_shared,
             )
 
-            AgentApprovalCachePolicy.ApplicationAndTerminalSession -> if (isAndroid) {
-                AgentApprovalScopePresentationRow(
-                    policy = policy,
-                    titleResource = Res.string.pref_item_agent_approval_scope_application_and_terminal_session,
-                    reuseBoundaryResource =
-                        Res.string.pref_item_agent_approval_scope_table_android_application_and_terminal_session_reuse,
-                    sameTerminalResource = Res.string.pref_item_agent_approval_scope_table_shared,
-                    otherTerminalResource = Res.string.pref_item_agent_approval_scope_table_shared,
-                )
-            } else {
-                AgentApprovalScopePresentationRow(
-                    policy = policy,
-                    titleResource = Res.string.pref_item_agent_approval_scope_application_and_terminal_session,
-                    reuseBoundaryResource =
-                        Res.string.pref_item_agent_approval_scope_table_application_and_terminal_session_reuse,
-                    sameTerminalResource = Res.string.pref_item_agent_approval_scope_table_shared,
-                    otherTerminalResource = Res.string.pref_item_agent_approval_scope_table_not_shared,
-                )
-            }
+            AgentApprovalCachePolicy.ApplicationAndTerminalSession -> AgentApprovalScopePresentationRow(
+                policy = policy,
+                titleResource = Res.string.pref_item_agent_approval_scope_application_and_terminal_session,
+                reuseBoundaryResource =
+                    Res.string.pref_item_agent_approval_scope_table_application_and_terminal_session_reuse,
+                sameTerminalResource = Res.string.pref_item_agent_approval_scope_table_shared,
+                otherTerminalResource = Res.string.pref_item_agent_approval_scope_table_not_shared,
+            )
         }
     }
-    return AgentApprovalScopePresentation(
-        rows = rows,
-    )
+    return AgentApprovalScopePresentation(rows = rows.mapNotNull { it.forPlatform(platform) })
+}
+
+private fun AgentApprovalScopePresentationRow.forPlatform(
+    platform: AgentApprovalScopePresentationPlatform,
+): AgentApprovalScopePresentationRow? {
+    if (platform != AgentApprovalScopePresentationPlatform.WindowsSsh) return this
+
+    return when (policy) {
+        AgentApprovalCachePolicy.Connection -> this
+        AgentApprovalCachePolicy.Process -> copy(
+            reuseBoundaryResource = Res.string.pref_item_agent_approval_scope_windows_process_reuse,
+            noteResource = Res.string.pref_item_agent_approval_scope_windows_process_note,
+        )
+        AgentApprovalCachePolicy.Application -> copy(
+            reuseBoundaryResource = Res.string.pref_item_agent_approval_scope_windows_application_reuse,
+            noteResource = Res.string.pref_item_agent_approval_scope_windows_application_note,
+            isDefault = true,
+        )
+        AgentApprovalCachePolicy.ApplicationAndTerminalSession -> null
+    }
 }

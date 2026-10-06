@@ -1,4 +1,10 @@
+#[cfg(not(target_os = "windows"))]
 use crate::ffi::PowerEventCallback;
+
+#[cfg(target_os = "windows")]
+mod windows;
+#[cfg(target_os = "windows")]
+pub(crate) use windows::{register, unregister};
 
 #[cfg(target_os = "macos")]
 unsafe extern "C" {
@@ -14,7 +20,7 @@ pub(crate) fn register(callback: PowerEventCallback) -> i32 {
     unsafe { kg_register_native_power_events(callback) }
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 pub(crate) fn register(_callback: PowerEventCallback) -> i32 {
     crate::ffi::REGISTER_STATUS_UNSUPPORTED_PLATFORM
 }
@@ -26,7 +32,7 @@ pub(crate) fn unregister(id: i32) -> bool {
     unsafe { kg_unregister_native_power_events(id) }
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 pub(crate) fn unregister(_id: i32) -> bool {
     false
 }
@@ -34,7 +40,7 @@ pub(crate) fn unregister(_id: i32) -> bool {
 #[cfg(test)]
 mod tests {
     use crate::ffi::REGISTER_STATUS_INTERNAL_ERROR;
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     use crate::ffi::REGISTER_STATUS_UNSUPPORTED_PLATFORM;
 
     #[test]
@@ -46,7 +52,7 @@ mod tests {
         );
     }
 
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     #[test]
     fn unsupported_platform_does_not_register() {
         assert_eq!(super::register(None), REGISTER_STATUS_UNSUPPORTED_PLATFORM);

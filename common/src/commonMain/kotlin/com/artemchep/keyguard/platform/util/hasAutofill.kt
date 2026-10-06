@@ -2,10 +2,12 @@ package com.artemchep.keyguard.platform.util
 
 import com.artemchep.keyguard.platform.Platform
 
-fun Platform.hasAutofill(): Boolean =
-    this is Platform.Mobile.Android &&
-            !this.isChromebook &&
-            !this.isWatch
+fun Platform.hasAutofill(): Boolean = when (this) {
+    is Platform.Mobile.Android -> !isChromebook && !isWatch
+    is Platform.Mobile.Ios -> true
+    Platform.Desktop.MacOS.Native -> true
+    else -> false
+}
 
 fun Platform.hasWatch(): Boolean =
     this is Platform.Mobile.Android &&

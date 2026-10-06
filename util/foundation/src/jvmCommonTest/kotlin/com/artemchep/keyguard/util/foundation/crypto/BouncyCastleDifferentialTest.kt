@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.util.foundation.crypto
 
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
@@ -26,7 +27,7 @@ import kotlin.test.assertFails
  * BC is never selected by production code.
  */
 class BouncyCastleDifferentialTest {
-    private val native = PlatformCryptoPrimitives()
+    private val native = NativeCrypto.primitives
     private val provider = BouncyCastleProvider()
 
     @Test
@@ -62,7 +63,7 @@ class BouncyCastleDifferentialTest {
                     }
                     assertContentEquals(
                         expected,
-                        native.hmac(key, input, case.nativeAlgorithm),
+                        native.hmac(key, input, case.nativeAlgorithm.toNativeHashAlgorithm()),
                         "${case.hmacName} mismatch for key=${key.size}, input=${input.size}",
                     )
                 }
@@ -181,7 +182,7 @@ class BouncyCastleDifferentialTest {
             assertContentEquals(
                 bcArgon2(seed, salt, case),
                 native.argon2(
-                    mode = case.mode,
+                    mode = case.mode.toNativeArgon2Mode(),
                     seed = seed,
                     salt = salt,
                     iterations = case.iterations,
@@ -212,7 +213,7 @@ class BouncyCastleDifferentialTest {
             }
             assertFails {
                 native.argon2(
-                    mode = case.mode,
+                    mode = case.mode.toNativeArgon2Mode(),
                     seed = seed,
                     salt = salt,
                     iterations = case.iterations,
@@ -226,7 +227,7 @@ class BouncyCastleDifferentialTest {
         assertContentEquals(
             bcArgon2(seed, salt, case),
             native.argon2(
-                mode = case.mode,
+                mode = case.mode.toNativeArgon2Mode(),
                 seed = seed,
                 salt = salt,
                 iterations = case.iterations,
@@ -275,7 +276,7 @@ class BouncyCastleDifferentialTest {
             assertContentEquals(
                 bcArgon2(seed, salt, case),
                 native.argon2(
-                    mode = case.mode,
+                    mode = case.mode.toNativeArgon2Mode(),
                     seed = seed,
                     salt = salt,
                     iterations = case.iterations,

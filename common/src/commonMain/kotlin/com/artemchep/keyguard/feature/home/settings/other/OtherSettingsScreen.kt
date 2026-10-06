@@ -35,6 +35,7 @@ fun rememberSettingsOtherItems(
                 key = "other",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.URL_OVERRIDE),
+                    SettingPaneItem.Item(Setting.WEBDAV_TRANSACTIONS),
                 ),
             ),
             SettingPaneItem.Group(

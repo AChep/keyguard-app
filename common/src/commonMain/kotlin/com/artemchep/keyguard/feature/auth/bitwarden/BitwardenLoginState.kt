@@ -25,6 +25,8 @@ data class LoginState(
     val isLoading: Boolean = false,
     val onRegisterClick: (() -> Unit)? = null,
     val onLoginClick: (() -> Unit)? = null,
+    /** `null` while the email has no domain to look up. */
+    val serverDiscovery: LoginServerDiscovery? = null,
 ) {
     companion object;
 
@@ -37,6 +39,17 @@ data class LoginState(
         companion object
     }
 }
+
+/**
+ * Looks up the server published in the DNS records of the email's domain
+ * and fills it in. Nothing is looked up until the user asks for it.
+ */
+@Immutable
+data class LoginServerDiscovery(
+    val isLoading: Boolean = false,
+    /** `null` while the form is busy. */
+    val onClick: (() -> Unit)? = null,
+)
 
 sealed interface LoginStateItem {
     val id: String

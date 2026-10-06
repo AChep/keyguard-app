@@ -16,6 +16,7 @@ repository = "https://github.com/AChep/keyguard-app"
 [workspace.dependencies]
 getrandom = "=0.3.4"
 jni = { version = "=0.21.1", default-features = false }
+keyguard-ffi = { path = "../../ffi/rust/crates/keyguard-ffi" }
 libc = "=0.2.186"
 windows-sys = { version = "=0.61.2", features = [
     "Wdk_Foundation",

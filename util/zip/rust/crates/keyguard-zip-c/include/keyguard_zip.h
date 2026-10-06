@@ -22,7 +22,8 @@ extern "C" {
  *       bits 8..15  failure kind (keyguard_zip_failure_kind)
  *       bits 16..23 error domain (keyguard_zip_error_domain)
  *       bits 24..55 raw code: a keyguard_zip_bridge_error for the BRIDGE
- *                   domain, an errno for POSIX_ERRNO, otherwise zero
+ *                   domain, an errno for POSIX_ERRNO, a GetLastError value
+ *                   for WIN32_LAST_ERROR, otherwise zero
  *       bits 56..62 reserved as zero
  *     The reserved bits keep -1 unrepresentable as a failure. The layout is
  *     shared with keyguard_io and keyguard_zxcvbn.
@@ -74,6 +75,7 @@ enum keyguard_zip_failure_kind {
 enum keyguard_zip_error_domain {
     KEYGUARD_ZIP_ERROR_DOMAIN_NONE = 0,
     KEYGUARD_ZIP_ERROR_DOMAIN_POSIX_ERRNO = 1,
+    KEYGUARD_ZIP_ERROR_DOMAIN_WIN32_LAST_ERROR = 2,
     KEYGUARD_ZIP_ERROR_DOMAIN_BRIDGE = 3,
 };
 

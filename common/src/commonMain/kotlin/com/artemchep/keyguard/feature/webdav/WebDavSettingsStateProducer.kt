@@ -15,6 +15,7 @@ import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.remotepicker.RemotePickerMode
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.util.webdav.resolveWebDavResourceUrl
@@ -252,16 +253,16 @@ private fun validateWebDavFormInput(
 private fun webDavPickerMode(
     purpose: WebDavSettingsRoute.Purpose,
     keePassMode: WebDavSettingsRoute.KeePassMode,
-): WebDavPickerRoute.Mode = when (purpose) {
+): RemotePickerMode = when (purpose) {
     WebDavSettingsRoute.Purpose.Collection ->
-        WebDavPickerRoute.Mode.SelectCollection
+        RemotePickerMode.SelectFolder
 
     WebDavSettingsRoute.Purpose.KeePassDatabase -> when (keePassMode) {
         WebDavSettingsRoute.KeePassMode.Open ->
-            WebDavPickerRoute.Mode.OpenKeePassDatabase
+            RemotePickerMode.OpenKeePassDatabase
 
         WebDavSettingsRoute.KeePassMode.Create ->
-            WebDavPickerRoute.Mode.CreateKeePassDatabase
+            RemotePickerMode.CreateKeePassDatabase
     }
 }
 
@@ -271,7 +272,7 @@ private fun buildWebDavPickerArgsFromExistingRoot(
     username: String,
     password: String,
     purpose: WebDavSettingsRoute.Purpose,
-    pickerMode: WebDavPickerRoute.Mode,
+    pickerMode: RemotePickerMode,
 ): WebDavPickerArgsBuildResult {
     val relativePath = webDavRelativePathOrNull(
         baseUrl = rootUrl,
@@ -306,7 +307,7 @@ private fun buildWebDavPickerArgsFromEnteredUrl(
     username: String,
     password: String,
     purpose: WebDavSettingsRoute.Purpose,
-    pickerMode: WebDavPickerRoute.Mode,
+    pickerMode: RemotePickerMode,
 ): WebDavPickerArgsBuildResult {
     val parsedFileUrl = if (purpose == WebDavSettingsRoute.Purpose.KeePassDatabase) {
         parseWebDavKeePassFileUrlOrNull(url)

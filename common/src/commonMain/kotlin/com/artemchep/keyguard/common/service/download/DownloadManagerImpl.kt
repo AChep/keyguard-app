@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.download
 
+import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.right
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
@@ -9,6 +11,7 @@ import com.artemchep.keyguard.common.service.download.store.DownloadFileStore
 import com.artemchep.keyguard.common.service.keepass.isKeePassAttachmentUrl
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.common.util.catch
 import com.artemchep.keyguard.common.util.getHttpCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -235,6 +238,19 @@ class DownloadManagerImpl(
         flow: Flow<DownloadProgress>,
         scope: CoroutineScope,
     ): Flow<DownloadProgress> = flow
+        .map { progress ->
+            if (progress !is DownloadProgress.Complete) {
+                return@map progress
+            }
+            val result = progress.result.flatMap { writerUri ->
+                Either.catch {
+                    // Pick up an attachment renamed while it was downloading.
+                    val current = downloadRepository.getById(info.id).bind() ?: info
+                    downloadFileStore.completedUri(current, writerUri)
+                }
+            }
+            progress.copy(result = result)
+        }
         .onEach { progress ->
             progressById.update { state -> state + (info.id to progress) }
             progressByTag.update { state -> state + (tag to progress) }

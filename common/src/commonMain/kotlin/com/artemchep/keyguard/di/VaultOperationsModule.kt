@@ -16,7 +16,6 @@ import com.artemchep.keyguard.common.service.gpgkeyserver.impl.GpgKeyserverRefre
 import com.artemchep.keyguard.common.service.keyvalue.VaultSettingsKeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.SqlDelightVaultSettingsKeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogRepository
-import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.AddCredentialCipher
 import com.artemchep.keyguard.common.usecase.AddFolder
@@ -493,9 +492,8 @@ internal class VaultOperationsModule {
                     cryptoGenerator = get(),
                     fileService = get(),
                     base64Service = get(),
-                    webDavClientFactory = KtorWebDavClientFactory(
-                        httpClient = get(),
-                    ),
+                    webDavClientFactory = get(),
+                    s3ClientFactory = get(),
                     db = get(),
                 )
             }

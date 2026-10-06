@@ -133,20 +133,18 @@ private class DefaultVaultSearchIndex(
         return compiledPlan
     }
 
-    override suspend fun evaluate(
+    override suspend fun match(
         plan: CompiledQueryPlan?,
         candidates: List<VaultItem2.Item>,
-        highlightBackgroundColor: Color,
-        highlightContentColor: Color,
-    ): List<VaultItem2.Item> {
+    ): List<VaultSearchMatch> {
         if (plan == null) {
-            return candidates
+            return candidates.map(::passthroughMatch)
         }
         if (!plan.hasActiveClauses) {
             return if (plan.diagnostics.isNotEmpty()) {
                 emptyList()
             } else {
-                candidates
+                candidates.map(::passthroughMatch)
             }
         }
         val evaluationStart =
@@ -248,7 +246,7 @@ private class DefaultVaultSearchIndex(
                     var score = 0.0
                     var exactMatchCount = 0
                     var titleTerms: Set<String> = emptySet()
-                    var context: MatchContext? = null
+                    var context: VaultSearchMatch.Context? = null
                     plan.positiveClauses.forEach { clause ->
                         val match =
                             when (clause) {
@@ -359,15 +357,52 @@ private class DefaultVaultSearchIndex(
         }
 
         return ordered.map { evaluation ->
-            decorateItem(
+            VaultSearchMatch(
                 item = evaluation.item,
+                score = evaluation.score,
                 titleTerms = evaluation.titleTerms,
                 context = evaluation.context,
+            )
+        }
+    }
+
+    override suspend fun evaluate(
+        plan: CompiledQueryPlan?,
+        candidates: List<VaultItem2.Item>,
+        highlightBackgroundColor: Color,
+        highlightContentColor: Color,
+    ): List<VaultItem2.Item> {
+        if (plan == null) {
+            return candidates
+        }
+        if (!plan.hasActiveClauses) {
+            return if (plan.diagnostics.isNotEmpty()) {
+                emptyList()
+            } else {
+                candidates
+            }
+        }
+        return match(
+            plan = plan,
+            candidates = candidates,
+        ).map { match ->
+            decorateItem(
+                item = match.item,
+                titleTerms = match.titleTerms,
+                context = match.context,
                 highlightBackgroundColor = highlightBackgroundColor,
                 highlightContentColor = highlightContentColor,
             )
         }
     }
+
+    private fun passthroughMatch(item: VaultItem2.Item): VaultSearchMatch =
+        VaultSearchMatch(
+            item = item,
+            score = 0.0,
+            titleTerms = emptySet(),
+            context = null,
+        )
 
     private fun buildItemClauseTraces(
         document: VaultSearchDocument,
@@ -691,7 +726,7 @@ private class DefaultVaultSearchIndex(
                             queryTerms.all { term -> value.normalized.contains(term) }
                         }?.raw
                         ?.let { rawValue ->
-                            MatchContext(
+                            VaultSearchMatch.Context(
                                 field = field,
                                 snippet =
                                     snippetForField(
@@ -849,7 +884,7 @@ private class DefaultVaultSearchIndex(
                 fieldPresence = true,
                 fieldTokenCount = fieldData.totalTerms,
                 context =
-                    MatchContext(
+                    VaultSearchMatch.Context(
                         field = clause.field,
                         snippet =
                             snippetForField(
@@ -899,7 +934,7 @@ private class DefaultVaultSearchIndex(
     private fun decorateItem(
         item: VaultItem2.Item,
         titleTerms: Set<String>,
-        context: MatchContext?,
+        context: VaultSearchMatch.Context?,
         highlightBackgroundColor: Color,
         highlightContentColor: Color,
     ): VaultItem2.Item {

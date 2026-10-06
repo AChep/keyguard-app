@@ -340,6 +340,8 @@ sealed interface VaultViewItem {
          */
         val dropdown: List<ContextItem> = emptyList(),
         val overrides: List<Override> = emptyList(),
+        val colorize: Boolean = false,
+        val iconSource: VaultUriIcon? = null,
     ) : VaultViewItem, Groupable<Uri> {
         companion object;
 

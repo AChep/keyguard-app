@@ -22,7 +22,7 @@ internal class FakeKeePassWebDavClientFactory : WebDavClientFactory {
     val client = FakeKeePassWebDavClient()
     val configs = mutableListOf<WebDavClientConfig>()
 
-    override fun create(
+    override suspend fun create(
         config: WebDavClientConfig,
     ): WebDavClient {
         configs += config

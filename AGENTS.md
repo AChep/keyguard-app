@@ -17,7 +17,10 @@ Main modules for different platforms:
 - `androidApp/` native target for Android;
 - `wearApp/` native target for Wear OS;
 - `desktopApp/` JVM target for desktop platforms: Linux, Windows and macOS;
-- `iosApp/` native target for iOS (dev).
+- `iosApp/` native target for iOS;
+- `macosApp/` native target for macOS.
+
+Apple specific modules: `appleApp/` the Kotlin bridge both Apple apps run on, and the producer of `KeyguardShared.xcframework`; `appleUi/` is the shared SwiftUI layer and `appleAutofill/` the shared AutoFill extension sources; `xcode/` is the shared Xcode infrastructure.
 
 The shared-module split is incremental:
 - `standard/presentation/` contains full-app state producers without Compose dependencies;
@@ -29,6 +32,7 @@ pure producers to the existing screen lifecycle, persisted fields, navigation, a
 Apply `keyguard.compose-free` to enforce this boundary.
 
 Utility modules each implement a library we wish existed; the modules are independent and granular.
+The exception is `util/ffi/`, the shared native-bridge leaf.
 
 Integration modules implement projects that are useful for testing Keyguard. For example,
 it's a good idea to put a test implementation of Android Credential provider app that we
@@ -51,6 +55,18 @@ Before starting the work, here's a minimal list to keep in mind:
 - **Localization.** Do not hardcode strings. Do not overly avoid plurals. Use placeholders when needed.
 - **Docs.** The documentation at `server/web/` should stay up to date. Do not automatically add new sections or pages, unless specifically asked to do so. Only automatically fix the now outdated info.
 - **Delivery.** Changes in the build process usually affect CI/CD scripts.
+
+### Lint checks
+
+Run the checks relevant to the changed language:
+
+- **Kotlin:** `./gradlew detekt` for static analysis, and `./gradlew detektCustomRules` for Keyguard-specific rules;
+- **Rust:** Run `cargo fmt --all -- --check` and Clippy for the affected crate or workspace;
+- **Swift:** `xcode/scripts/lint-swift.sh` runs strict `swift format` checks; add `--fix` to format sources.
+
+Run the checks relevant to the changed platform:
+
+- **Android:** `./gradlew lint` for Android Lint.
 
 ### Localization
 

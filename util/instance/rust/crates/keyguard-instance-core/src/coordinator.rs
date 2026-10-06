@@ -248,65 +248,26 @@ pub fn acquire_or_activate(
     identity: &str,
     timeout_ms: u64,
 ) -> Result<Acquisition> {
-    validate_path(coordination_dir)?;
-    validate_path(runtime_dir)?;
-    if identity.is_empty()
-        || identity.len() > 64
-        || matches!(identity, "." | "..")
-        || !identity
-            .bytes()
-            .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'.' | b'_' | b'-'))
-        || !(1..=60_000).contains(&timeout_ms)
-    {
-        return Err(Failure::from(Error::InvalidArgument).context("validate_config"));
-    }
-    let deadline = Instant::now() + Duration::from_millis(timeout_ms);
-    let coordination_path = Path::new(coordination_dir);
-    let directory = platform::prepare_directory(coordination_path)
-        .map_err(|error| error.context("prepare_directory"))?;
-    let (lock_path, metadata) = coordination_files(coordination_path, identity);
-    let mut delay = Duration::from_millis(25);
+    let mut arbitration = Arbitration::new(coordination_dir, runtime_dir, identity, timeout_ms)?;
     let mut last_failure = None;
     loop {
-        if Instant::now() >= deadline {
+        if Instant::now() >= arbitration.deadline {
             return Err(acquisition_timeout(last_failure));
         }
-        if let Some(lease) = directory
-            .try_lock(&lock_path)
-            .map_err(|error| error.context("acquire_lock"))?
-        {
-            // Only the elected owner may clean the previously published endpoint.
-            // Broken or obsolete metadata must not prevent replacing a crashed
-            // owner's state; cleanup is best effort and never touches the lease.
-            if let Ok(record) = directory.read_private(&metadata, protocol::MAX_METADATA)
-                && let Ok((endpoint, token)) = protocol::decode_endpoint(&record)
-            {
-                let _ = platform::cleanup_endpoint(endpoint, &token);
-            }
-            let shutdown = Shutdown::default();
-            let (server, events) =
-                start_server(&directory, Path::new(runtime_dir), &metadata, &shutdown)?
-                    .ok_or(Error::Internal)?;
-            return Ok(Acquisition::Primary(Instance {
-                resources: Mutex::new(Resources {
-                    server: Some(server),
-                    lease: Some(lease),
-                    events,
-                    recovery_attempts: 0,
-                }),
-                metadata,
-                runtime: PathBuf::from(runtime_dir),
-                shutdown,
-            }));
+        if let Some(instance) = arbitration.try_own()? {
+            return Ok(Acquisition::Primary(instance));
         }
-        match directory
-            .read_private(&metadata, protocol::MAX_METADATA)
+        match arbitration
+            .directory
+            .read_private(&arbitration.metadata, protocol::MAX_METADATA)
             .map_err(|error| error.context("read_endpoint"))
         {
             Ok(record) => {
                 let (endpoint, token) = protocol::decode_endpoint(&record)
                     .map_err(|error| error.context("decode_endpoint"))?;
-                let attempt_deadline = deadline.min(Instant::now() + Duration::from_secs(1));
+                let attempt_deadline = arbitration
+                    .deadline
+                    .min(Instant::now() + Duration::from_secs(1));
                 match platform::activate(endpoint, &token, attempt_deadline)
                     .map_err(|error| error.context("activate"))
                 {
@@ -323,12 +284,125 @@ pub fn acquire_or_activate(
             }
             Err(error) => return Err(error),
         }
-        let remaining = deadline.saturating_duration_since(Instant::now());
-        if remaining.is_zero() {
+        if !arbitration.pause() {
             return Err(acquisition_timeout(last_failure));
         }
-        thread::sleep(delay.min(remaining));
-        delay = (delay * 2).min(Duration::from_millis(200));
+    }
+}
+
+/// Acquires process ownership without ever contacting the current owner, which may be
+/// exiting. Takes the same arguments as [`acquire_or_activate`].
+///
+/// Returns `None` if another process held ownership until the deadline.
+///
+/// # Errors
+/// Returns invalid arguments, permission failures, or a failure to start the listener.
+pub fn acquire(
+    coordination_dir: &str,
+    runtime_dir: &str,
+    identity: &str,
+    timeout_ms: u64,
+) -> Result<Option<Instance>> {
+    let mut arbitration = Arbitration::new(coordination_dir, runtime_dir, identity, timeout_ms)?;
+    loop {
+        if let Some(instance) = arbitration.try_own()? {
+            return Ok(Some(instance));
+        }
+        if !arbitration.pause() {
+            return Ok(None);
+        }
+    }
+}
+
+/// Validated coordination files and the deadline of one acquisition.
+struct Arbitration {
+    deadline: Instant,
+    delay: Duration,
+    directory: platform::Directory,
+    lock_path: PathBuf,
+    metadata: PathBuf,
+    runtime: PathBuf,
+}
+
+impl Arbitration {
+    fn new(
+        coordination_dir: &str,
+        runtime_dir: &str,
+        identity: &str,
+        timeout_ms: u64,
+    ) -> Result<Self> {
+        validate_path(coordination_dir)?;
+        validate_path(runtime_dir)?;
+        if identity.is_empty()
+            || identity.len() > 64
+            || matches!(identity, "." | "..")
+            || !identity
+                .bytes()
+                .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'.' | b'_' | b'-'))
+            || !(1..=60_000).contains(&timeout_ms)
+        {
+            return Err(Failure::from(Error::InvalidArgument).context("validate_config"));
+        }
+        let deadline = Instant::now() + Duration::from_millis(timeout_ms);
+        let coordination_path = Path::new(coordination_dir);
+        let directory = platform::prepare_directory(coordination_path)
+            .map_err(|error| error.context("prepare_directory"))?;
+        let (lock_path, metadata) = coordination_files(coordination_path, identity);
+        Ok(Self {
+            deadline,
+            delay: Duration::from_millis(25),
+            directory,
+            lock_path,
+            metadata,
+            runtime: PathBuf::from(runtime_dir),
+        })
+    }
+
+    /// Takes ownership and starts the listener, or returns `None` if another process owns it.
+    fn try_own(&self) -> Result<Option<Instance>> {
+        let Some(lease) = self
+            .directory
+            .try_lock(&self.lock_path)
+            .map_err(|error| error.context("acquire_lock"))?
+        else {
+            return Ok(None);
+        };
+        // Only the elected owner may clean the previously published endpoint.
+        // Broken or obsolete metadata must not prevent replacing a crashed
+        // owner's state; cleanup is best effort and never touches the lease.
+        if let Ok(record) = self
+            .directory
+            .read_private(&self.metadata, protocol::MAX_METADATA)
+            && let Ok((endpoint, token)) = protocol::decode_endpoint(&record)
+        {
+            let _ = platform::cleanup_endpoint(endpoint, &token);
+        }
+        let shutdown = Shutdown::default();
+        let (server, events) =
+            start_server(&self.directory, &self.runtime, &self.metadata, &shutdown)?
+                .ok_or(Error::Internal)?;
+        Ok(Some(Instance {
+            resources: Mutex::new(Resources {
+                server: Some(server),
+                lease: Some(lease),
+                events,
+                recovery_attempts: 0,
+            }),
+            metadata: self.metadata.clone(),
+            runtime: self.runtime.clone(),
+            shutdown,
+        }))
+    }
+
+    /// Backs off before the next attempt. Returns `false` once the deadline has passed.
+    fn pause(&mut self) -> bool {
+        let remaining = self.deadline.saturating_duration_since(Instant::now());
+        if remaining.is_zero() {
+            return false;
+        }
+        thread::sleep(self.delay.min(remaining));
+        self.delay = (self.delay * 2).min(Duration::from_millis(200));
+        true
     }
 }
 
@@ -644,6 +718,24 @@ mod tests {
             Ok(true)
         );
         assert_ne!(std::fs::read(&fixture.instance.metadata).unwrap(), record);
+        fixture.assert_owned();
+    }
+
+    #[test]
+    fn acquisition_without_activation_never_contacts_the_owner() {
+        let fixture = Fixture::new();
+        let receiver = fixture.receive_activation();
+        let started = Instant::now();
+        let outcome = acquire(
+            fixture.coordination.to_str().unwrap(),
+            fixture.runtime.to_str().unwrap(),
+            "test",
+            200,
+        )
+        .unwrap();
+        assert!(outcome.is_none());
+        assert!(started.elapsed() >= Duration::from_millis(200));
+        assert!(receiver.recv_timeout(Duration::from_millis(100)).is_err());
         fixture.assert_owned();
     }
 

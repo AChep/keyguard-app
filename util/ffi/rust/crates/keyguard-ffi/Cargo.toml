@@ -1,0 +1,19 @@
+[package]
+name = "keyguard-ffi"
+description = "FFI scaffolding shared by the Keyguard native bridges"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[features]
+jni = ["dep:jni"]
+
+[dependencies]
+jni = { workspace = true, optional = true }
+zeroize.workspace = true
+
+[lints]
+workspace = true

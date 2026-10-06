@@ -34,8 +34,8 @@ use crate::{
     MAX_CONTROL_ENVELOPE_BYTES,
     primitives::PrimitiveError,
     protocol::{
-        SshFormattedPrivateKey, SshKeyDescription, SshKeyExportCxfResult, SshKeyMaterial,
-        SshKeyType, SshPublicKeyDecodeResult, SshSignature,
+        SshKeyDescription, SshKeyExportCxfResult, SshKeyMaterial, SshKeyType,
+        SshPublicKeyDecodeResult, SshSignature,
     },
 };
 
@@ -122,18 +122,6 @@ pub(crate) fn private_key_rsa_bits(private_key: Vec<u8>) -> i32 {
         .and_then(|parts| modulus_bits(&parts.modulus))
         .and_then(|bits| i32::try_from(bits).ok())
         .unwrap_or(0)
-}
-
-pub(crate) fn format_private_key(
-    key_type: SshKeyType,
-    private_key: Vec<u8>,
-) -> Result<Vec<u8>, PrimitiveError> {
-    let private_key = Zeroizing::new(private_key);
-    bound_raw_key(&private_key)?;
-    Ok(SshFormattedPrivateKey {
-        value: format_private_key_text(key_type, &private_key)?,
-    }
-    .encode_to_vec())
 }
 
 pub(crate) fn sign(
@@ -748,7 +736,7 @@ fn positive_mpint(value: &Mpint) -> Result<Vec<u8>, PrimitiveError> {
         .ok_or(PrimitiveError::InvalidArgument)
 }
 
-fn format_private_key_text(
+pub(crate) fn format_private_key_text(
     key_type: SshKeyType,
     private_key: &[u8],
 ) -> Result<String, PrimitiveError> {

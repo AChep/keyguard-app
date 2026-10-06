@@ -16,8 +16,12 @@ import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseMetadata
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseStorage
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseStorageLocalFile
+import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseStorageS3
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseStorageWebDav
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseWriteMode
+import com.artemchep.keyguard.common.service.s3.S3ClientFactory
+import com.artemchep.keyguard.common.service.s3.toS3ClientConfig
+import com.artemchep.keyguard.common.service.s3.toS3Location
 import com.artemchep.keyguard.common.service.staging.SpoolLimits
 import com.artemchep.keyguard.common.service.staging.StagingPurpose
 import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
@@ -57,6 +61,7 @@ suspend fun openKeePassDatabase(
     fileService: FileService,
     base64Service: Base64Service,
     webDavClientFactory: WebDavClientFactory? = null,
+    s3ClientFactory: S3ClientFactory? = null,
 ): KeePassDatabase = withContext(Dispatchers.IO) {
     val keyData = token.key.keyBase64
         ?.let(base64Service::decode)
@@ -65,6 +70,7 @@ suspend fun openKeePassDatabase(
         token = token,
         keyData = keyData,
         webDavClientFactory = webDavClientFactory,
+        s3ClientFactory = s3ClientFactory,
     )
 }
 
@@ -73,6 +79,7 @@ suspend fun openKeePassDatabase(
     token: KeePassToken,
     keyData: ByteArray?,
     webDavClientFactory: WebDavClientFactory? = null,
+    s3ClientFactory: S3ClientFactory? = null,
 ): KeePassDatabase = withContext(Dispatchers.IO) {
     val credentials = createKeePassCredentials(
         passphrase = token.key.toPassphraseOrNull(),
@@ -83,6 +90,7 @@ suspend fun openKeePassDatabase(
             fileService = fileService,
             token = token,
             webDavClientFactory = webDavClientFactory,
+            s3ClientFactory = s3ClientFactory,
         ),
         credentials = credentials,
     )
@@ -92,6 +100,7 @@ suspend fun prepareKeePassDatabase(
     fileService: FileService,
     params: AddKeePassAccountParams,
     webDavClientFactory: WebDavClientFactory? = null,
+    s3ClientFactory: S3ClientFactory? = null,
 ): PreparedKeePassDatabase = withContext(Dispatchers.IO) {
     val keyData = loadKeePassKeyData(
         fileService = fileService,
@@ -106,6 +115,7 @@ suspend fun prepareKeePassDatabase(
         fileService = fileService,
         params = params,
         webDavClientFactory = webDavClientFactory,
+        s3ClientFactory = s3ClientFactory,
     )
 
     when (val mode = params.mode) {
@@ -175,6 +185,7 @@ suspend fun saveKeePassDatabase(
     database: KeePassDatabase,
     base64Service: Base64Service,
     webDavClientFactory: WebDavClientFactory? = null,
+    s3ClientFactory: S3ClientFactory? = null,
     expectedMetadata: KeePassDatabaseMetadata? = null,
 ): KeePassDatabaseMetadata? = withContext(Dispatchers.Default) {
     // Create KDBX credentials
@@ -191,6 +202,7 @@ suspend fun saveKeePassDatabase(
         fileService = fileService,
         token = token,
         webDavClientFactory = webDavClientFactory,
+        s3ClientFactory = s3ClientFactory,
     )
 
     with(storage) {
@@ -217,7 +229,7 @@ internal suspend fun stageVerifyAndPublish(
 ): KeePassDatabaseMetadata? = withContext(Dispatchers.IO) {
     // Encode into private replayable storage and immediately decode the result.
     // This catches corrupt, truncated, or credential-incompatible output before
-    // any existing local/WebDAV database is touched. Staging may perform blocking
+    // any existing local or remote database is touched. Staging may perform blocking
     // file I/O after crossing the adaptive memory threshold, so the whole
     // stage -> verify -> publish sequence runs on the IO dispatcher. The stage
     // call deliberately has no withContext of its own: a context-switch boundary
@@ -292,11 +304,13 @@ suspend fun getKeePassDatabaseMetadata(
     fileService: FileService,
     token: KeePassToken,
     webDavClientFactory: WebDavClientFactory? = null,
+    s3ClientFactory: S3ClientFactory? = null,
 ): KeePassDatabaseMetadata? = withContext(Dispatchers.IO) {
     val storage = createKeePassDatabaseStorage(
         fileService = fileService,
         token = token,
         webDavClientFactory = webDavClientFactory,
+        s3ClientFactory = s3ClientFactory,
     )
     storage.stat()
 }
@@ -407,27 +421,36 @@ private fun createKeePassDatabaseStorage(
     fileService: FileService,
     params: AddKeePassAccountParams,
     webDavClientFactory: WebDavClientFactory?,
-): KeePassDatabaseStorage =
-    if (params.webDav != null) {
-        KeePassDatabaseStorageWebDav(
-            location = parseWebDavKeePassFileUrl(params.webDav.url),
-            authorization = params.webDav.toWebDavAuthorization(),
-            webDavClientFactory = requireNotNull(webDavClientFactory) {
-                "WebDAV client factory is required for KeePass WebDAV databases."
-            },
-        )
-    } else {
-        KeePassDatabaseStorageLocalFile(
-            fileService = fileService,
-            uri = params.dbUri,
-            accessToken = params.dbAccessToken?.let(::FileAccessToken),
-        )
-    }
+    s3ClientFactory: S3ClientFactory?,
+): KeePassDatabaseStorage = when {
+    params.webDav != null -> KeePassDatabaseStorageWebDav(
+        location = parseWebDavKeePassFileUrl(params.webDav.url),
+        authorization = params.webDav.toWebDavAuthorization(),
+        webDavClientFactory = requireNotNull(webDavClientFactory) {
+            "WebDAV client factory is required for KeePass WebDAV databases."
+        },
+    )
+
+    params.s3 != null -> KeePassDatabaseStorageS3(
+        config = params.s3.toS3ClientConfig(),
+        key = params.s3.key,
+        s3ClientFactory = requireNotNull(s3ClientFactory) {
+            "S3 client factory is required for KeePass S3 databases."
+        },
+    )
+
+    else -> KeePassDatabaseStorageLocalFile(
+        fileService = fileService,
+        uri = params.dbUri,
+        accessToken = params.dbAccessToken?.let(::FileAccessToken),
+    )
+}
 
 internal fun createKeePassDatabaseStorage(
     fileService: FileService,
     token: KeePassToken,
     webDavClientFactory: WebDavClientFactory?,
+    s3ClientFactory: S3ClientFactory?,
 ): KeePassDatabaseStorage =
     when (val location = token.database.location) {
         is FileLocation.Local -> KeePassDatabaseStorageLocalFile(
@@ -444,6 +467,14 @@ internal fun createKeePassDatabaseStorage(
             ),
             webDavClientFactory = requireNotNull(webDavClientFactory) {
                 "WebDAV client factory is required for KeePass WebDAV databases."
+            },
+        )
+
+        is FileLocation.S3 -> KeePassDatabaseStorageS3(
+            config = location.toS3Location().toS3ClientConfig(),
+            key = location.key,
+            s3ClientFactory = requireNotNull(s3ClientFactory) {
+                "S3 client factory is required for KeePass S3 databases."
             },
         )
 

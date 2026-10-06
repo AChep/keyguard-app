@@ -88,16 +88,6 @@ pub(crate) use model::{
     VerificationStatus, VerificationWarning, VerifyInput, VerifyKind,
 };
 
-#[cfg(test)]
-use crate::openpgp::policy::{
-    PolicyContext, PolicySelection, authenticated_key_flags, select_newest_policy_signature,
-    select_primary_user_id, signature_expired_at,
-};
-#[cfg(test)]
-use pgp::composed::{Deserializable, DetachedSignature};
-#[cfg(test)]
-use std::io::{BufRead, BufReader};
-
 pub(crate) const METADATA_POLICY_REVISION: u32 = 2;
 const STREAM_CHANNEL_DEPTH: usize = 1;
 const VERIFY_BUFFER_BYTES: usize = 8 * 1024;
@@ -188,14 +178,6 @@ impl DataSignatureVerificationTime {
             } else {
                 reference_time
             },
-        }
-    }
-
-    #[cfg(test)]
-    fn exact(reference_time: u64) -> Self {
-        Self {
-            reference_time,
-            latest_acceptable_creation_time: reference_time,
         }
     }
 
@@ -1708,44 +1690,6 @@ fn openpgp_packet_input<'a>(
     }
 }
 
-#[cfg(test)]
-fn preflight_openpgp_packets(
-    data: &[u8],
-    budget: &mut OpenPgpReadBudget,
-) -> Result<(), ParseFailure> {
-    let input = openpgp_packet_input(data, None)?;
-    preflight_packet_reader(BufReader::new(Cursor::new(input.as_slice())), budget)
-}
-
-#[cfg(test)]
-fn preflight_packet_reader<R: BufRead>(
-    reader: R,
-    budget: &mut OpenPgpReadBudget,
-) -> Result<(), ParseFailure> {
-    let mut packets = PacketParser::new(reader);
-    while let Some(packet) = packets.next_ref() {
-        let mut body = packet.map_err(|_| ParseFailure::Malformed)?;
-        budget.charge_packets(1)?;
-        if body
-            .packet_header()
-            .packet_length()
-            .maybe_len()
-            .is_some_and(|length| length as usize > MAX_PACKET_BODY_BYTES)
-        {
-            return Err(ParseFailure::ResourceLimit);
-        }
-        let read = io::copy(
-            &mut body.by_ref().take((MAX_PACKET_BODY_BYTES + 1) as u64),
-            &mut io::sink(),
-        )
-        .map_err(|_| ParseFailure::Malformed)?;
-        if read > MAX_PACKET_BODY_BYTES as u64 {
-            return Err(ParseFailure::ResourceLimit);
-        }
-    }
-    Ok(())
-}
-
 /// Parses one document into per-certificate packet sets, pairing each with a
 /// selected original-framing public view.
 ///
@@ -1903,13 +1847,6 @@ fn map_certificate_merge_error(error: CertificateMergeError) -> OpenPgpReadError
         | CertificateMergeError::ComponentCollision => OpenPgpReadError::InvalidArgument,
         CertificateMergeError::Internal => OpenPgpReadError::Internal,
     }
-}
-
-#[cfg(test)]
-fn decode_openpgp_packets(data: &[u8]) -> Result<Vec<u8>, ParseFailure> {
-    RawPacketStream::parse(data, MAX_PACKETS_PER_REQUEST)
-        .map(|stream| stream.bytes().to_vec())
-        .map_err(ParseFailure::from)
 }
 
 fn split_secret_keyring_packets(data: &[u8]) -> Result<Vec<Vec<u8>>, ParseFailure> {
@@ -2321,13 +2258,6 @@ fn parse_detached_signature_packet(packet: &[u8]) -> Option<Signature> {
     .then_some(signature)
 }
 
-#[cfg(test)]
-fn find_subslice(input: &[u8], needle: &[u8]) -> Option<usize> {
-    input
-        .windows(needle.len())
-        .position(|window| window == needle)
-}
-
 fn prepare_verification(
     signatures: &[Signature],
     certificates: &[SignedPublicKey],
@@ -2555,27 +2485,6 @@ fn verify_prepared(
             aggregate_verification_results(results)
         }
     }
-}
-
-/// Applies the OpenPGP certificate, revocation, expiry, cross-certification,
-/// and warning policy to message signatures whose data cryptography is
-/// evaluated by the caller.
-#[cfg(test)]
-pub(super) fn evaluate_preverified_signatures(
-    signatures: &[Signature],
-    certificates: &[SignedPublicKey],
-    verification_time: DataSignatureVerificationTime,
-    authenticated_recipient: Option<&Fingerprint>,
-    verify: impl FnMut(usize, &PublicComponent) -> bool,
-) -> Result<Verification, OpenPgpReadError> {
-    let authenticated_recipients = vec![authenticated_recipient.cloned(); signatures.len()];
-    evaluate_preverified_signatures_with_recipients(
-        signatures,
-        certificates,
-        verification_time,
-        &authenticated_recipients,
-        verify,
-    )
 }
 
 /// Applies a distinct authenticated recipient identity to each signature.

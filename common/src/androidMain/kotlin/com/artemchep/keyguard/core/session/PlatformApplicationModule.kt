@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.core.session
 
+import com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability
+
 import android.app.Application
 import android.content.ClipboardManager
 import android.content.Context
@@ -18,6 +20,7 @@ import com.artemchep.keyguard.common.service.backup.AndroidTreeBackupObjectStore
 import com.artemchep.keyguard.common.service.backup.BackupLocalObjectStoreFactoryTag
 import com.artemchep.keyguard.common.service.backup.BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.backup.S3BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
@@ -102,7 +105,6 @@ import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
 import db_key_value.datastore.encrypted.SecureStorageCoordinator
 import db_key_value.shared_prefs.SharedPrefsKeyValueStore
 import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
-import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.qualifier.named
@@ -146,8 +148,9 @@ class PlatformApplicationModule {
             SelectableBackupObjectStoreFactory(
                 localFactory = get(qualifier = named(BackupLocalObjectStoreFactoryTag)),
                 webDavFactory = WebDavBackupObjectStoreFactory(
-                    httpClient = get<HttpClient>(),
+                    webDavClientFactory = get(),
                 ),
+                s3Factory = get<S3BackupObjectStoreFactory>(),
             )
         }
         single<BiometricStatusUseCase> {
@@ -155,6 +158,9 @@ class PlatformApplicationModule {
         }
         single<BiometricKeyRepository> {
             BiometricKeyRepositoryAndroid()
+        }
+        single<Fido2UnlockAvailability> {
+            Fido2UnlockAvailability { true }
         }
         single<YubiKeyUnlockAvailability> {
             YubiKeyUnlockAvailability { true }

@@ -58,6 +58,18 @@ class BackupConfigRepositoryImpl(
         }
     }
 
+    override fun refreshLocalAccess(
+        expected: BackupStoreConfig.Local,
+        updated: BackupStoreConfig.Local,
+    ): IO<Unit> = ioEffect {
+        mutex.withLock {
+            val current = config.first()
+            if (current.store == expected) {
+                config.setAndCommit(current.copy(store = updated)).bind()
+            }
+        }
+    }
+
     override fun getStatus(): Flow<BackupStatus> = combine(
         status,
         currentRun,

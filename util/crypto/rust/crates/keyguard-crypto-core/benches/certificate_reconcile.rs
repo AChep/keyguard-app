@@ -6,9 +6,9 @@ use criterion::{Criterion, criterion_group, criterion_main};
 use keyguard_crypto_core::{
     PROTOCOL_VERSION, call,
     protocol::{
-        NativeRequest, NativeResponse, OpenPgpCertificateMaterialReconcileRequest,
-        OpenPgpCertificateMaterialReconcileResult, native_request, native_response,
-        open_pgp_certificate_material_reconcile_result,
+        NativeRequest, NativeResponse, OpenPgpCertificateMaterialReconcileV2Request,
+        OpenPgpCertificateMaterialReconcileV2Result, native_request, native_response,
+        open_pgp_certificate_material_reconcile_v2_result,
     },
 };
 use pgp::{
@@ -56,8 +56,8 @@ fn reconcile_request(certificate: &SignedPublicKey, bytes: &[u8]) -> Vec<u8> {
     let request = NativeRequest {
         protocol_version: PROTOCOL_VERSION,
         operation: Some(
-            native_request::Operation::OpenPgpCertificateMaterialReconcile(
-                OpenPgpCertificateMaterialReconcileRequest {
+            native_request::Operation::OpenPgpCertificateMaterialReconcileV2(
+                OpenPgpCertificateMaterialReconcileV2Request {
                     expected_primary_fingerprint: format!(
                         "{:X}",
                         certificate.primary_key.fingerprint()
@@ -105,11 +105,11 @@ fn assert_reconcile_succeeds(request: &[u8]) {
         Some(native_response::Result::BytesValue(payload)) => payload,
         _ => panic!("benchmark reconciliation must return bytes"),
     };
-    let result = OpenPgpCertificateMaterialReconcileResult::decode(payload.as_slice())
+    let result = OpenPgpCertificateMaterialReconcileV2Result::decode(payload.as_slice())
         .expect("benchmark reconciliation result must decode");
     assert!(matches!(
         result.result,
-        Some(open_pgp_certificate_material_reconcile_result::Result::Success(_)),
+        Some(open_pgp_certificate_material_reconcile_v2_result::Result::Success(_)),
     ));
 }
 

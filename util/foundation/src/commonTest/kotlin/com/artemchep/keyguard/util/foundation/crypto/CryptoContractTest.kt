@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.util.foundation.crypto
 
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
+import com.artemchep.keyguard.nativecrypto.NativeHashAlgorithm
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
 import kotlin.test.Test
@@ -10,7 +12,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class CryptoContractTest {
-    private val crypto = PlatformCryptoPrimitives()
+    private val crypto = NativeCrypto.primitives
 
     private val key32 = ByteArray(32) { it.toByte() }
     private val iv16 = ByteArray(16) { (it + 16).toByte() }
@@ -169,6 +171,6 @@ class CryptoContractTest {
     fun hmacStateZeroLengthUpdateIsNoOp() {
         val key = "k".encodeToByteArray()
         val actual = createHmacSha256(key).also { it.update(ByteArray(0), 0, 0) }.doFinal()
-        assertContentEquals(crypto.hmacSha256(key, ByteArray(0)), actual)
+        assertContentEquals(crypto.hmac(key, ByteArray(0), NativeHashAlgorithm.SHA_256), actual)
     }
 }

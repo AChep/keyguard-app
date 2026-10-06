@@ -1,4 +1,5 @@
 import com.artemchep.keyguard.buildplugins.kotlin.configureComposeIosSwiftRuntime
+import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleTest
 import com.artemchep.keyguard.buildplugins.testing.benchmarkReport
 import com.artemchep.keyguard.buildplugins.testing.flightRecorder
 import com.artemchep.keyguard.buildplugins.testing.forwardSystemProperties
@@ -7,6 +8,8 @@ import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import com.artemchep.keyguard.buildplugins.version.createVersionInfo
 import org.gradle.api.tasks.testing.Test
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import java.time.Duration
 
 plugins {
@@ -56,6 +59,12 @@ tasks.withType<Test>().configureEach {
     timeout.set(Duration.ofMinutes(10))
 }
 
+tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest>().configureEach {
+    // Foundation file coordination requires the simulator's running system services.
+    // Standalone processes cannot coordinate access to Files-provider directories.
+    standalone.set(false)
+}
+
 kotlin {
     android {
         compileSdk = libs.versions.androidCompileSdk.get().toInt()
@@ -75,7 +84,38 @@ kotlin {
     jvm("desktop")
     iosArm64()
     iosSimulatorArm64()
-    macosArm64()
+    macosArm64 {
+        // SQLCipher is supplied by Xcode, so keep its integration tests opt-in.
+        // ./gradlew :common:macosArm64SqlCipherTest -PsqlCipherFrameworkDir=/path/containing/SQLCipher.framework
+        providers.gradleProperty("sqlCipherFrameworkDir").orNull?.let { frameworkDir ->
+            val mainCompilation = compilations.getByName("main")
+            val sqlCipherTest = compilations.create("sqlCipherTest") {
+                associateWith(mainCompilation)
+                defaultSourceSet.dependencies {
+                    implementation(kotlin("test"))
+                    implementation(libs.kotlinx.coroutines.test)
+                }
+            }
+            binaries.test("sqlCipher", listOf(NativeBuildType.DEBUG)) {
+                compilation = sqlCipherTest
+                linkerOpts("-F$frameworkDir", "-framework", "SQLCipher", "-rpath", frameworkDir)
+            }
+            val sqlCipherBinary = binaries.getTest("sqlCipher", NativeBuildType.DEBUG)
+            testRuns.create("sqlCipher") {
+                setExecutionSourceFrom(sqlCipherBinary)
+            }
+            // Both test compilations include the same common Compose resources.
+            tasks.withType<Copy>().matching { it.name == "copyTestComposeResourcesForMacosArm64" }.configureEach {
+                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
+        }
+    }
+
+    targets.withType<KotlinNativeTarget>().configureEach {
+        compilations.getByName("main").cinterops.create("backupPosix") {
+            definitionFile.set(project.file("src/nativeInterop/cinterop/backupPosix.def"))
+        }
+    }
 
     sourceSets {
         all {
@@ -130,9 +170,13 @@ kotlin {
                 api(project(":util:zip"))
                 api(project(":util:kdbx"))
                 api(project(":util:crypto"))
+                api(project(":util:dns"))
+                api(project(":util:s3"))
                 api(project(":util:signalr"))
                 api(project(":util:webdav"))
                 api(project(":util:webauthn"))
+                api(project(":util:yubikey"))
+                api(project(":util:fido2"))
                 api(project(":util:planeta"))
                 api(libs.coil3.coil.compose)
                 api(libs.coil3.coil.network.ktor3)
@@ -199,24 +243,43 @@ kotlin {
             dependsOn(macosMain)
         }
 
-        val iosTest = create("iosTest") {
+        // The shared test sources that also compile for Apple targets. The include
+        // filter applies to every source directory, so it lives on its own source set.
+        val appleCommonTest = create("appleCommonTest") {
             dependsOn(commonTest)
+            kotlin.setSrcDirs(listOf("src/commonTest/kotlin"))
+            kotlin.include("com/artemchep/keyguard/common/model/TestCipherFilterContext.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/backup/**")
+            kotlin.include("com/artemchep/keyguard/common/service/s3/InMemoryS3Client.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/directorywatcher/**")
+            kotlin.include("com/artemchep/keyguard/common/service/gpgagent/GpgAgentPacketSessionTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/licensekey/Kg2LicenseKeyDecoderTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/text/impl/Base32ServiceImplTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/serialization/ApplicationJsonTest.kt")
+            kotlin.include("com/artemchep/keyguard/feature/home/settings/SettingsCatalogTest.kt")
+            kotlin.include("com/artemchep/keyguard/feature/datasafety/DataSafetyCatalogTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/usecase/NotificationsImplTest.kt")
+            kotlin.include("com/artemchep/keyguard/feature/gpgagent/tools/GpgToolsInputErrorTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/download/TestDownloadAttachmentSourceLoader.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/vault/TestVaultSession.kt")
+            kotlin.include("com/artemchep/keyguard/common/usecase/impl/GetAppBuildDateImplTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/api/builder/ServerEnvApiAzureUploadValidationTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/api/builder/ServerEnvApiMultipartFilenameParameterTest.kt")
+            kotlin.include("com/artemchep/keyguard/feature/fileupload/FileUploadTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/entity/SendFileUploadEntityTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/sync/v2/SyncV2PipelineFixtures.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/sync/v2/SyncV2UploadReconciliationPolicyTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/sync/v2/bitwarden/ops/UploadFailureClassificationTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/upload/**")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/usecase/AddCipherPendingUploadPreparationTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/usecase/AddSendPendingUploadPreparationTest.kt")
+            kotlin.include("com/artemchep/keyguard/provider/bitwarden/usecase/DiscoverBitwardenServerImplTest.kt")
             dependencies {
                 implementation(libs.ktor.ktor.client.mock)
             }
         }
 
-        getByName("iosArm64Test") {
-            dependsOn(iosTest)
-        }
-
-        getByName("iosSimulatorArm64Test") {
-            dependsOn(iosTest)
-        }
-
-        getByName("macosArm64Test") {
-            dependsOn(commonTest)
-        }
+        sharedAppleTest(parent = appleCommonTest)
 
         getByName("androidHostTest") {
             dependsOn(jvmTest)
@@ -280,6 +343,7 @@ kotlin {
         getByName("androidMain") {
             dependsOn(jvmMain)
             dependencies {
+                implementation(libs.yubico.yubikit.fido.ui)
                 api(project(":androidLibAutofill"))
                 api(project.dependencies.platform(libs.firebase.bom.get()))
                 api(libs.firebase.analytics)
@@ -320,8 +384,6 @@ kotlin {
                 api(libs.sqlcipher.android)
                 api(libs.kotlinx.coroutines.android)
                 implementation(libs.koin.android)
-                api(libs.yubico.yubikit.android)
-                api(libs.yubico.yubikit.yubiotp)
                 api(libs.cash.sqldelight.android.driver)
                 api(libs.osipxd.security.crypto.datastore.preferences)
                 api(libs.fredporciuncula.flow.preferences)

@@ -2,15 +2,18 @@ package com.artemchep.keyguard.feature.datepicker
 
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import org.jetbrains.compose.resources.StringResource
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.combine
 import kotlin.time.Clock
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
@@ -119,6 +122,17 @@ fun getMonthTitleStringRes(month: Int): StringResource = when (month) {
 }
 
 fun getYearTitle(year: Int) = year.toString()
+
+// Manually format the date. Using the "MMMM yyyy" format
+// doesn't work correctly for some locales.
+suspend fun getMonthYearTitle(
+    date: LocalDate,
+    context: LeContext,
+): String {
+    val month = textResource(getMonthTitleStringRes(date.month.number), context)
+    val year = getYearTitle(date.year)
+    return "$month $year"
+}
 
 private fun getYear() = Clock.System.now().toLocalDateTime(TimeZone.UTC).year
 

@@ -1,0 +1,202 @@
+include:
+  - ../xcode/sqlcipher.yml
+  # Shared options / packages / scheme / base settings for both Apple apps.
+  - ../xcode/keyguard-common.yml
+
+name: iosApp
+options:
+  defaultConfig: Release
+
+# Shared marketing version and signing identity. Signing overrides live in
+# the git-ignored Signing.local.xcconfig. See that file's .example.
+configFiles:
+  Debug: ../xcode/Base.xcconfig
+  Release: ../xcode/Base.xcconfig
+
+settings:
+  base:
+    KEYGUARD_DISTRIBUTION: appStore
+    CLANG_CXX_LANGUAGE_STANDARD: gnu++20
+    GCC_C_LANGUAGE_STANDARD: gnu17
+
+schemes:
+  Keyguard Privacy Tests:
+    build:
+      targets:
+        KeyguardBillingHost: all
+        KeyguardPrivacyTests: [test]
+    test:
+      config: Debug
+      targets:
+        - name: KeyguardPrivacyTests
+          parallelizable: false
+
+targets:
+  Keyguard:
+    type: application
+    platform: iOS
+    sources:
+      - path: iosApp
+      - path: Resources/InfoPlist.xcstrings
+        buildPhase: resources
+    dependencies:
+      - package: SQLCipher
+        product: SQLCipher
+      - package: KeyguardUI
+        product: KeyguardUI
+      # Embeds the AutoFill credential-provider app extension into the app bundle.
+      - target: KeyguardAutofill
+    settings:
+      base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_ENTITLEMENTS: iosApp/Keyguard.entitlements
+        CURRENT_PROJECT_VERSION: 3
+        PRODUCT_BUNDLE_IDENTIFIER: $(KEYGUARD_BUNDLE_ID)
+        PRODUCT_NAME: Keyguard
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: iosApp/Info.plist
+        # KeyguardShared is provided by the KeyguardUI package (binaryTarget on the
+        # KeyguardShared.xcframework), so the app does not link/search it manually.
+        LD_RUNPATH_SEARCH_PATHS:
+          - "$(inherited)"
+          - "@executable_path/Frameworks"
+        SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
+        SUPPORTS_MACCATALYST: NO
+        SWIFT_EMIT_LOC_STRINGS: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+    postBuildScripts:
+      - name: Verify Apple string tables
+        basedOnDependencyAnalysis: false
+        inputFiles:
+          - "$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/KeyguardUI_KeyguardUI.bundle"
+        script: 'python3 "$SRCROOT/../xcode/scripts/verify-apple-strings.py"'
+      - name: Copy Compose resources
+        basedOnDependencyAnalysis: false
+        script: '"$SRCROOT/../xcode/scripts/copy-compose-resources.sh"'
+      - name: Verify iOS privacy resources
+        basedOnDependencyAnalysis: false
+        script: 'python3 "$SRCROOT/../xcode/scripts/verify-ios-privacy.py" --app "$TARGET_BUILD_DIR/$WRAPPER_NAME"'
+
+  # AutoFill credential-provider extension. A sandboxed app-extension linking the same
+  # KeyguardShared framework as the app; embedded in the app above. Mirrors the macOS
+  # KeyguardAutofill target (UIKit principal class on iOS).
+  KeyguardAutofill:
+    type: app-extension
+    platform: iOS
+    sources:
+      # Info.plist, entitlements and privacy manifest only; the principal class, screens
+      # and credential-request plumbing come from ../appleAutofill, shared with macOS.
+      - path: KeyguardAutofill
+      - path: Resources/InfoPlist.xcstrings
+        buildPhase: resources
+      # Shared AutoFill sources, compiled directly into the appex (it deliberately does
+      # NOT link the KeyguardUI product, which would drag in the whole screen layer).
+      - path: ../appleAutofill
+      # Reuse the Keychain Services bridge so the extension reads the same
+      # (shared-group) biometric/unlock key the app wrote. Single source of truth.
+      - path: ../appleUi/Sources/KeyguardUI/Apple/Keychain.swift
+      - path: ../appleUi/Sources/KeyguardUI/Apple/AppleBiometry.swift
+      - path: ../appleUi/Sources/KeyguardUI/Apple/Services/AutofillStoreAccess.swift
+      # Shared KotlinByteArray <-> Data helpers used by the passkey paths.
+      - path: ../appleUi/Sources/KeyguardUI/Bridge/KotlinData.swift
+      - path: ../appleUi/Sources/KeyguardUI/Resources/Localizable.xcstrings
+        buildPhase: resources
+    dependencies:
+      - package: SQLCipher
+        product: SQLCipher
+      # The Kotlin bridge only — NOT the KeyguardUI product, which would pull the
+      # screen layer in. Taking it as a package product guarantees the extension and
+      # the app link the same XCFramework, and lets Xcode pick the slice per SDK.
+      - package: KeyguardUI
+        product: KeyguardShared
+    settings:
+      base:
+        CODE_SIGN_STYLE: Automatic
+        # Inherits the app's team from Signing.xcconfig, which is what makes the
+        # shared App Group + keychain group work across the two bundles.
+        PRODUCT_BUNDLE_IDENTIFIER: $(KEYGUARD_BUNDLE_ID).autofill
+        PRODUCT_NAME: KeyguardAutofill
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: KeyguardAutofill/Info.plist
+        CODE_SIGN_ENTITLEMENTS: KeyguardAutofill/KeyguardAutofill.entitlements
+        CURRENT_PROJECT_VERSION: 3
+        SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
+        SUPPORTS_MACCATALYST: NO
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_EMIT_LOC_STRINGS: YES
+        # Reaches the app's SQLCipher in the host bundle; KeyguardShared is static and
+        # needs no rpath entry of its own.
+        LD_RUNPATH_SEARCH_PATHS:
+          - "$(inherited)"
+          - "@executable_path/Frameworks"
+          - "@executable_path/../../Frameworks"
+    postBuildScripts:
+      - name: Verify Apple string tables
+        basedOnDependencyAnalysis: false
+        script: 'python3 "$SRCROOT/../xcode/scripts/verify-apple-strings.py"'
+      # The appex is its own process with its own bundle, so without this the unlock UI
+      # throws on the first localized-string read.
+      - name: Copy Compose resources
+        basedOnDependencyAnalysis: false
+        script: '"$SRCROOT/../xcode/scripts/copy-compose-resources.sh"'
+
+  KeyguardBillingHost:
+    type: application
+    platform: iOS
+    sources:
+      - path: ../xcode/BillingTests/Host.swift
+      - path: ../xcode/Keyguard.storekit
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.artemchep.keyguard.billingtesthost.ios
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_IDENTITY: "-"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_ENTITLEMENTS: ""
+        ENABLE_HARDENED_RUNTIME: NO
+        INFOPLIST_KEY_KeyguardDistribution: appStore
+
+  KeyguardBillingTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: ../xcode/BillingTests/StoreKitBillingTests.swift
+    dependencies:
+      - target: KeyguardBillingHost
+      - package: KeyguardUI
+        product: KeyguardUI
+      - package: SQLCipher
+        product: SQLCipher
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.artemchep.keyguard.billingtests.ios
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/KeyguardBillingHost.app/KeyguardBillingHost"
+        BUNDLE_LOADER: $(TEST_HOST)
+        CODE_SIGN_IDENTITY: "-"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_ENTITLEMENTS: ""
+
+  KeyguardPrivacyTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: ../xcode/PrivacyTests
+    dependencies:
+      # Reuse the isolated SwiftUI host; it never opens a vault or starts workers.
+      - target: KeyguardBillingHost
+      - package: KeyguardUI
+        product: KeyguardUI
+      - package: SQLCipher
+        product: SQLCipher
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.artemchep.keyguard.privacytests.ios
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/KeyguardBillingHost.app/KeyguardBillingHost"
+        BUNDLE_LOADER: $(TEST_HOST)
+        CODE_SIGN_IDENTITY: "-"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_ENTITLEMENTS: ""

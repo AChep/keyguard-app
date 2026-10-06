@@ -8,8 +8,6 @@
     <ID>CyclomaticComplexMethod:KtorWebDavClientTest.kt:KtorWebDavClientTest$@Test fun `replace PUT degradation does not weaken a later create`</ID>
     <ID>CyclomaticComplexMethod:KtorWebDavClientTest.kt:KtorWebDavClientTest$@Test fun `write creates missing parents and publishes via temp upload and MOVE`</ID>
     <ID>CyclomaticComplexMethod:WebDavHttpDate.kt:internal fun parseHttpDateOrNull: Instant?</ID>
-    <ID>CyclomaticComplexMethod:WebDavXml.kt:XmlParser$fun parse: XmlNode</ID>
-    <ID>CyclomaticComplexMethod:WebDavXml.kt:XmlParser$private fun parseAttributes: Map&lt;String, String&gt;</ID>
     <ID>LargeClass:KtorWebDavClient.kt:KtorWebDavClient : WebDavClient</ID>
     <ID>LargeClass:KtorWebDavClientTest.kt:KtorWebDavClientTest</ID>
     <ID>LongMethod:KtorWebDavClient.kt:KtorWebDavClient$private fun HttpResponse.validateReadHeaders: Long?</ID>
@@ -17,7 +15,6 @@
     <ID>LongMethod:KtorWebDavClientTest.kt:KtorWebDavClientTest$@Test fun `list recursively traverses collections with depth one`</ID>
     <ID>LongMethod:KtorWebDavClientTest.kt:KtorWebDavClientTest$@Test fun `replace PUT degradation does not weaken a later create`</ID>
     <ID>LongMethod:KtorWebDavClientTest.kt:KtorWebDavClientTest$@Test fun `write creates missing parents and publishes via temp upload and MOVE`</ID>
-    <ID>LoopWithTooManyJumpStatements:WebDavXml.kt:while</ID>
     <ID>MagicNumber:KtorWebDavClient.kt:KtorWebDavClient$200</ID>
     <ID>MagicNumber:KtorWebDavClient.kt:KtorWebDavClient$299</ID>
     <ID>MagicNumber:KtorWebDavClient.kt:KtorWebDavClient$500</ID>
@@ -49,7 +46,6 @@
     <ID>ThrowsCount:KtorWebDavClient.kt:KtorWebDavClient$private fun HttpResponse.validateReadHeaders: Long?</ID>
     <ID>ThrowsCount:KtorWebDavClient.kt:KtorWebDavClient$private suspend fun HttpResponse.bodyAsWebDavSource: Source</ID>
     <ID>ThrowsCount:KtorWebDavClient.kt:KtorWebDavClient$private suspend fun readOnce: Source</ID>
-    <ID>ThrowsCount:WebDavXml.kt:XmlParser$private fun parseAttributes: Map&lt;String, String&gt;</ID>
     <ID>TooGenericExceptionCaught:KtorWebDavClient.kt:KtorWebDavClient$e: Exception</ID>
     <ID>TooGenericExceptionCaught:KtorWebDavClient.kt:KtorWebDavClient.&lt;no name provided&gt;$e: Exception</ID>
     <ID>TooManyFunctions:KtorWebDavClient.kt:KtorWebDavClient : WebDavClient</ID>

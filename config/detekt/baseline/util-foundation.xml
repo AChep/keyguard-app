@@ -19,8 +19,5 @@
     <ID>TooGenericExceptionCaught:AdaptiveSpool.kt:AdaptiveSpool$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:AdaptiveSpool.kt:AdaptiveSpool.&lt;no name provided&gt;$e: Throwable</ID>
     <ID>TooManyFunctions:BouncyCastleDifferentialTest.kt:BouncyCastleDifferentialTest</ID>
-    <ID>TooManyFunctions:CryptoFunctions.kt:com.artemchep.keyguard.util.foundation.crypto.CryptoFunctions.kt</ID>
-    <ID>TooManyFunctions:CryptoPrimitives.kt:CryptoPrimitives</ID>
-    <ID>TooManyFunctions:PlatformCryptoPrimitives.kt:PlatformCryptoPrimitives : CryptoPrimitives</ID>
   </CurrentIssues>
 </SmellBaseline>

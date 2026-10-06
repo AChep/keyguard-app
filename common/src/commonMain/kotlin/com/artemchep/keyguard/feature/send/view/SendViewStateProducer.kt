@@ -50,6 +50,7 @@ import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
+import com.artemchep.keyguard.feature.home.vault.model.VaultUriIcon
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.feature.home.vault.model.transformShapes
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
@@ -866,6 +867,7 @@ private suspend fun RememberStateFlowScope.aaaa(
     ).takeIf { websiteIcons }
     return VaultViewItem.Uri(
         id = id,
+        iconSource = VaultUriIcon.Website(FaviconUrl(serverId = accountId, url = url), websiteIcons),
         icon = {
             FaviconIcon(
                 modifier = Modifier

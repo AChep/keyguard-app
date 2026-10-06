@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatchEvent
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
+import com.artemchep.keyguard.common.service.file.FileAccessToken
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
@@ -263,13 +264,16 @@ class NotificationsImpl(
             val accountScope = this
 
             // We can only subscribe to the file
-            // URIs, ignore WebDAV.
+            // URIs, ignore remote locations.
             val location = user.database.location as? FileLocation.Local
                 ?: return@launch
 
             val reconnectBackoff = ReconnectBackoff()
             reconnectBackoff.withRunForever {
-                val dbChangedFlow = fileWatcherService.uriChangedFlow(location.uri)
+                val dbChangedFlow = fileWatcherService.uriChangedFlow(
+                    uri = location.uri,
+                    accessToken = location.accessToken?.let(::FileAccessToken),
+                )
                     .filter { it.kind != FileWatchEvent.Kind.INITIALIZED }
                     .debounce(1000L)
                 dbChangedFlow

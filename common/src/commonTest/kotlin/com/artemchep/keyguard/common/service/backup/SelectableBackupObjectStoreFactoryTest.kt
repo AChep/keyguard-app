@@ -11,9 +11,11 @@ class SelectableBackupObjectStoreFactoryTest {
     fun `routes local configs to local factory`() = runTest {
         val localFactory = RecordingBackupObjectStoreFactory()
         val webDavFactory = RecordingBackupObjectStoreFactory()
+        val s3Factory = RecordingBackupObjectStoreFactory()
         val factory = SelectableBackupObjectStoreFactory(
             localFactory = localFactory,
             webDavFactory = webDavFactory,
+            s3Factory = s3Factory,
         )
         val store = BackupStoreConfig.Local(
             path = "/tmp/keyguard-backups",
@@ -32,9 +34,11 @@ class SelectableBackupObjectStoreFactoryTest {
     fun `routes web dav configs to web dav factory`() = runTest {
         val localFactory = RecordingBackupObjectStoreFactory()
         val webDavFactory = RecordingBackupObjectStoreFactory()
+        val s3Factory = RecordingBackupObjectStoreFactory()
         val factory = SelectableBackupObjectStoreFactory(
             localFactory = localFactory,
             webDavFactory = webDavFactory,
+            s3Factory = s3Factory,
         )
         val store = BackupStoreConfig.WebDav(
             url = "https://example.com/dav/",
@@ -47,6 +51,29 @@ class SelectableBackupObjectStoreFactoryTest {
         assertEquals(webDavFactory.store.result, result)
         assertEquals(0, localFactory.store.closeCalls)
         assertEquals(1, webDavFactory.store.closeCalls)
+    }
+
+    @Test
+    fun `routes s3 configs to s3 factory`() = runTest {
+        val localFactory = RecordingBackupObjectStoreFactory()
+        val webDavFactory = RecordingBackupObjectStoreFactory()
+        val s3Factory = RecordingBackupObjectStoreFactory()
+        val factory = SelectableBackupObjectStoreFactory(
+            localFactory = localFactory,
+            webDavFactory = webDavFactory,
+            s3Factory = s3Factory,
+        )
+        val store = BackupStoreConfig.S3(
+            bucket = "backups",
+        )
+
+        val result = factory.test(store)
+
+        assertEquals(emptyList<BackupStoreConfig>(), localFactory.openedStores)
+        assertEquals(emptyList<BackupStoreConfig>(), webDavFactory.openedStores)
+        assertEquals(listOf<BackupStoreConfig>(store), s3Factory.openedStores)
+        assertEquals(s3Factory.store.result, result)
+        assertEquals(1, s3Factory.store.closeCalls)
     }
 }
 

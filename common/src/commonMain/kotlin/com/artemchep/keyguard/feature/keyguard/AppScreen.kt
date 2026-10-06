@@ -171,6 +171,7 @@ fun ManualAppScreenOnUnlock(
             unlockVaultByMasterPassword = state.unlockWithMasterPassword,
             unlockVaultByBiometric = state.unlockWithBiometric,
             unlockVaultByYubiKey = state.unlockWithYubiKey,
+            unlockVaultByFido2 = state.unlockWithFido2,
             lockInfo = state.lockInfo,
         )
     }

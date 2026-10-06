@@ -10,7 +10,7 @@ use keyguard_crypto_core::{
         OpenPgpDetachedVerifyStreamOpenRequest, OpenPgpSignKind, OpenPgpSignRequest,
         OpenPgpVerification, OpenPgpVerificationStatus, OpenPgpVerifyKind, OpenPgpVerifyRequest,
         SshAgentTcpChaCha20Poly1305Request, StreamCipherAlgorithm, StreamCipherXorAtOffsetRequest,
-        TwofishCbcPkcs7Request, TwofishCbcPkcs7StreamOpenRequest, native_request, native_response,
+        TwofishCbcPkcs7StreamOpenRequest, native_request, native_response,
         native_stream_open_request,
     },
     stream_finish, stream_open, stream_update,
@@ -481,55 +481,39 @@ proptest! {
     }
 
     #[test]
-    fn twofish_cbc_streaming_matches_one_shot_and_round_trips(
+    fn twofish_cbc_streaming_is_chunk_independent_and_round_trips(
         key in twofish_key(),
         iv in prop::collection::vec(any::<u8>(), 16),
         plaintext in prop::collection::vec(any::<u8>(), 0..8192),
         encrypt_chunk in 1_usize..1024,
         decrypt_chunk in 1_usize..1024,
     ) {
-        let one_shot_ciphertext = one_shot(native_request::Operation::TwofishCbcPkcs7(
-            TwofishCbcPkcs7Request {
-                direction: CipherDirection::Encrypt as i32,
-                key: key.clone(),
-                iv: iv.clone(),
-                data: plaintext.clone(),
-            },
-        ));
-        let streamed_ciphertext = stream(
+        let twofish = |direction: CipherDirection| {
             native_stream_open_request::Operation::TwofishCbcPkcs7(
                 TwofishCbcPkcs7StreamOpenRequest {
-                    direction: CipherDirection::Encrypt as i32,
+                    direction: direction as i32,
                     key: key.clone(),
                     iv: iv.clone(),
                 },
-            ),
+            )
+        };
+        let whole_ciphertext = stream(
+            twofish(CipherDirection::Encrypt),
+            &plaintext,
+            plaintext.len().max(1),
+        );
+        let streamed_ciphertext = stream(
+            twofish(CipherDirection::Encrypt),
             &plaintext,
             encrypt_chunk,
         );
-        prop_assert_eq!(&streamed_ciphertext, &one_shot_ciphertext);
+        prop_assert_eq!(&streamed_ciphertext, &whole_ciphertext);
 
-        let one_shot_plaintext = one_shot(native_request::Operation::TwofishCbcPkcs7(
-            TwofishCbcPkcs7Request {
-                direction: CipherDirection::Decrypt as i32,
-                key: key.clone(),
-                iv: iv.clone(),
-                data: one_shot_ciphertext.clone(),
-            },
-        ));
         let streamed_plaintext = stream(
-            native_stream_open_request::Operation::TwofishCbcPkcs7(
-                TwofishCbcPkcs7StreamOpenRequest {
-                    direction: CipherDirection::Decrypt as i32,
-                    key,
-                    iv,
-                },
-            ),
-            &one_shot_ciphertext,
+            twofish(CipherDirection::Decrypt),
+            &whole_ciphertext,
             decrypt_chunk,
         );
-
-        prop_assert_eq!(&one_shot_plaintext, &plaintext);
         prop_assert_eq!(&streamed_plaintext, &plaintext);
     }
 

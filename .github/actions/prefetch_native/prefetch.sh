@@ -12,6 +12,8 @@ case "$PREFETCH_PROFILE" in
     if [[ "$PREFETCH_PROFILE" == desktop ]]; then
       manifests+=(
         util/instance/rust/Cargo.toml
+        util/yubikey/rust/Cargo.toml
+        util/fido2/rust/Cargo.toml
         desktopLibNative/src/Cargo.toml
         desktopSshAgent/src/Cargo.toml
         desktopGpgAgent/src/Cargo.toml
@@ -19,7 +21,7 @@ case "$PREFETCH_PROFILE" in
     elif [[ "$PREFETCH_PROFILE" == android ]]; then
       manifests+=(androidSshAgent/src/Cargo.toml)
     elif [[ "$PREFETCH_PROFILE" == apple ]]; then
-      manifests+=(util/zip/rust/Cargo.toml)
+      manifests+=(util/zip/rust/Cargo.toml util/yubikey/rust/Cargo.toml util/fido2/rust/Cargo.toml)
     fi
     ;;
   "") ;;

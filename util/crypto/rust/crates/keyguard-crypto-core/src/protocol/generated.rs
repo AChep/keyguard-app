@@ -9,7 +9,7 @@ pub struct NativeRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_request::Operation",
-        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59"
+        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59"
     )]
     pub operation: ::core::option::Option<native_request::Operation>,
 }
@@ -25,8 +25,6 @@ pub mod native_request {
         Argon2(super::Argon2Request),
         #[prost(message, tag = "13")]
         RandomBytes(super::RandomBytesRequest),
-        #[prost(message, tag = "14")]
-        RandomInt(super::RandomIntRequest),
         #[prost(message, tag = "15")]
         Hmac(super::HmacRequest),
         #[prost(message, tag = "16")]
@@ -35,14 +33,10 @@ pub mod native_request {
         AesEcbNoPaddingEncrypt(super::AesEcbNoPaddingEncryptRequest),
         #[prost(message, tag = "18")]
         AesCbcPkcs7(super::AesCbcPkcs7Request),
-        #[prost(message, tag = "19")]
-        RandomInts(super::RandomIntsRequest),
         #[prost(message, tag = "20")]
         AesEcbNoPaddingTransform(super::AesEcbNoPaddingTransformRequest),
         #[prost(message, tag = "21")]
         StreamCipherXorAtOffset(super::StreamCipherXorAtOffsetRequest),
-        #[prost(message, tag = "22")]
-        TwofishCbcPkcs7(super::TwofishCbcPkcs7Request),
         #[prost(message, tag = "23")]
         RsaOaepEncrypt(super::RsaOaepEncryptRequest),
         #[prost(message, tag = "24")]
@@ -59,8 +53,6 @@ pub mod native_request {
         SshKeyDescribe(super::SshKeyDescribeRequest),
         #[prost(message, tag = "30")]
         SshPrivateKeyRsaBits(super::SshPrivateKeyRsaBitsRequest),
-        #[prost(message, tag = "31")]
-        SshPrivateKeyFormat(super::SshPrivateKeyFormatRequest),
         #[prost(message, tag = "32")]
         SshAgentSign(super::SshAgentSignRequest),
         #[prost(message, tag = "33")]
@@ -105,10 +97,6 @@ pub mod native_request {
         OpenPgpUserIdRevocation(super::OpenPgpUserIdRevocationRequest),
         #[prost(message, tag = "55")]
         OpenPgpUserIdReplacement(super::OpenPgpUserIdReplacementRequest),
-        #[prost(message, tag = "56")]
-        OpenPgpCertificateMaterialReconcile(
-            super::OpenPgpCertificateMaterialReconcileRequest,
-        ),
         #[prost(message, tag = "57")]
         OpenPgpCertificateMaterialReconcileV2(
             super::OpenPgpCertificateMaterialReconcileV2Request,
@@ -134,7 +122,7 @@ pub struct NativeStreamOpenRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_stream_open_request::Operation",
-        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22"
+        tags = "11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22"
     )]
     pub operation: ::core::option::Option<native_stream_open_request::Operation>,
 }
@@ -142,8 +130,6 @@ pub struct NativeStreamOpenRequest {
 pub mod native_stream_open_request {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Operation {
-        #[prost(message, tag = "10")]
-        HmacSha256(super::HmacSha256StreamOpenRequest),
         #[prost(message, tag = "11")]
         Digest(super::DigestStreamOpenRequest),
         #[prost(message, tag = "12")]
@@ -173,11 +159,6 @@ pub mod native_stream_open_request {
         #[prost(message, tag = "22")]
         OpenPgpClearVerify(super::OpenPgpClearVerifyStreamOpenRequest),
     }
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct HmacSha256StreamOpenRequest {
-    #[prost(bytes = "vec", tag = "1")]
-    pub key: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct DigestStreamOpenRequest {
@@ -281,25 +262,6 @@ pub struct RandomBytesRequest {
     #[prost(uint32, tag = "1")]
     pub length: u32,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct RandomIntRequest {
-    /// False returns an arbitrary signed 32-bit value. True returns [0, bound).
-    #[prost(bool, tag = "1")]
-    pub bounded: bool,
-    #[prost(uint32, tag = "2")]
-    pub exclusive_upper_bound: u32,
-}
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct RandomIntsRequest {
-    /// False returns arbitrary signed 32-bit values. True returns values in [0, bound).
-    #[prost(bool, tag = "1")]
-    pub bounded: bool,
-    #[prost(uint32, tag = "2")]
-    pub exclusive_upper_bound: u32,
-    /// Batched calls are limited to 1024 values.
-    #[prost(uint32, tag = "3")]
-    pub count: u32,
-}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct HmacRequest {
     #[prost(enumeration = "HashAlgorithm", tag = "1")]
@@ -393,17 +355,6 @@ pub struct StreamCipherXorAtOffsetRequest {
     pub data: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct TwofishCbcPkcs7Request {
-    #[prost(enumeration = "CipherDirection", tag = "1")]
-    pub direction: i32,
-    #[prost(bytes = "vec", tag = "2")]
-    pub key: ::prost::alloc::vec::Vec<u8>,
-    #[prost(bytes = "vec", tag = "3")]
-    pub iv: ::prost::alloc::vec::Vec<u8>,
-    #[prost(bytes = "vec", tag = "4")]
-    pub data: ::prost::alloc::vec::Vec<u8>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RsaOaepDecryptRequest {
     #[prost(enumeration = "RsaOaepHash", tag = "1")]
     pub hash: i32,
@@ -466,13 +417,6 @@ pub struct SshKeyDescribeRequest {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SshPrivateKeyRsaBitsRequest {
     #[prost(bytes = "vec", tag = "1")]
-    pub private_key: ::prost::alloc::vec::Vec<u8>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SshPrivateKeyFormatRequest {
-    #[prost(enumeration = "SshKeyType", tag = "1")]
-    pub r#type: i32,
-    #[prost(bytes = "vec", tag = "2")]
     pub private_key: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -595,12 +539,6 @@ pub struct SshKeyDescription {
     pub private_fingerprint: ::prost::alloc::string::String,
     #[prost(string, tag = "4")]
     pub public_fingerprint: ::prost::alloc::string::String,
-}
-/// Domain payload returned inside NativeResponse.bytes_value.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SshFormattedPrivateKey {
-    #[prost(string, tag = "1")]
-    pub value: ::prost::alloc::string::String,
 }
 /// Domain payload returned inside NativeResponse.bytes_value.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1327,44 +1265,6 @@ pub mod open_pgp_expiration_update_result {
         Error(super::OpenPgpExpirationUpdateError),
     }
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct OpenPgpCertificateMaterialReconcileRequest {
-    #[prost(string, tag = "1")]
-    pub expected_primary_fingerprint: ::prost::alloc::string::String,
-    #[prost(bytes = "vec", optional, tag = "2")]
-    pub existing_public_certificate: ::core::option::Option<
-        ::prost::alloc::vec::Vec<u8>,
-    >,
-    #[prost(bytes = "vec", optional, tag = "3")]
-    pub incoming_public_certificate: ::core::option::Option<
-        ::prost::alloc::vec::Vec<u8>,
-    >,
-    #[prost(bytes = "vec", optional, tag = "4")]
-    pub existing_secret_certificate: ::core::option::Option<
-        ::prost::alloc::vec::Vec<u8>,
-    >,
-    #[prost(bytes = "vec", optional, tag = "5")]
-    pub incoming_secret_certificate: ::core::option::Option<
-        ::prost::alloc::vec::Vec<u8>,
-    >,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct OpenPgpCertificateMaterialReconcileSuccess {
-    #[prost(bytes = "vec", tag = "1")]
-    pub public_certificate: ::prost::alloc::vec::Vec<u8>,
-    #[prost(bytes = "vec", optional, tag = "2")]
-    pub private_certificate: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
-    #[prost(string, tag = "3")]
-    pub primary_fingerprint: ::prost::alloc::string::String,
-    #[prost(bool, tag = "4")]
-    pub existing_public_contributed: bool,
-    #[prost(bool, tag = "5")]
-    pub incoming_public_contributed: bool,
-    #[prost(bool, tag = "6")]
-    pub existing_secret_contributed: bool,
-    #[prost(bool, tag = "7")]
-    pub incoming_secret_contributed: bool,
-}
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct OpenPgpCertificateMaterialReconcileError {
     #[prost(enumeration = "OpenPgpCertificateMaterialInputErrorReason", tag = "1")]
@@ -1378,28 +1278,8 @@ pub struct OpenPgpCertificateMaterialReconcileError {
     #[prost(enumeration = "OpenPgpCertificateMaterialPairErrorReason", tag = "5")]
     pub pair_error: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct OpenPgpCertificateMaterialReconcileResult {
-    #[prost(
-        oneof = "open_pgp_certificate_material_reconcile_result::Result",
-        tags = "1, 2"
-    )]
-    pub result: ::core::option::Option<
-        open_pgp_certificate_material_reconcile_result::Result,
-    >,
-}
-/// Nested message and enum types in `OpenPgpCertificateMaterialReconcileResult`.
-pub mod open_pgp_certificate_material_reconcile_result {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Result {
-        #[prost(message, tag = "1")]
-        Success(super::OpenPgpCertificateMaterialReconcileSuccess),
-        #[prost(message, tag = "2")]
-        Error(super::OpenPgpCertificateMaterialReconcileError),
-    }
-}
 /// V2 separates packet-preserving local state from ordinary transferable
-/// OpenPGP objects. V1 remains wire-compatible but exposes only local state.
+/// OpenPGP objects.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpCertificateMaterialReconcileV2Request {
     #[prost(string, tag = "1")]

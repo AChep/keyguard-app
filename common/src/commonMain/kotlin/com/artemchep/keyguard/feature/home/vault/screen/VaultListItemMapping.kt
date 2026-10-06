@@ -50,33 +50,17 @@ suspend fun DSecret.toVaultListItem(
     onClickAttachment: suspend (DSecret.Attachment) -> (() -> Unit)?,
     onClickPasskey: suspend (DSecret.Login.Fido2Credentials) -> (() -> Unit)?,
     onClickPassword: suspend (DSecret.Login) -> (() -> Unit)?,
+    actionFactory: VaultItemActionFactory = VaultItemActionFactory { _, _ -> null },
     localStateFlow: StateFlow<VaultItem2.Item.LocalState>? = null,
     localStateSource: VaultItem2.Item.LocalStateSource =
         VaultItem2.Item.LocalStateSource.PerItem(requireNotNull(localStateFlow)),
 ): VaultItem2.Item {
-    val cf = concealFields || reprompt
-    val actions = when (type) {
-        DSecret.Type.Login ->
-            createLoginActions(
-                copy = copy,
-                getTotpCode = getTotpCode,
-                concealFields = cf,
-            )
-
-        DSecret.Type.Card ->
-            createCardActions(
-                copy = copy,
-                concealFields = cf,
-            )
-
-        DSecret.Type.Identity ->
-            createIdentityActions(
-                copy = copy,
-                concealFields = cf,
-            )
-
-        else -> emptyList()
-    }
+    val cf = shouldConceal(concealFields)
+    val actions = buildVaultItemCopyActions(
+        copy = copy,
+        getTotpCode = getTotpCode,
+        concealFields = cf,
+    )
 
     val presentation = toVaultItemPresentation(
         appIcons = appIcons,
@@ -155,9 +139,112 @@ suspend fun DSecret.toVaultListItem(
         attachments = attachments.isNotEmpty(),
         title = presentation.title,
         text = presentation.text,
-        action = onClick(actions),
+        action = actionFactory.create(this, actions)
+            ?: onClick(actions),
         localStateSource = localStateSource,
     )
+}
+
+internal fun DSecret.shouldConceal(concealPref: Boolean): Boolean = concealPref || reprompt
+
+fun interface VaultItemActionFactory {
+    fun create(
+        secret: DSecret,
+        copyActions: List<FlatItemAction>,
+    ): VaultItem2.Item.Action?
+}
+
+internal fun DSecret.buildVaultItemCopyActions(
+    copy: CopyText,
+    getTotpCode: GetTotpCode,
+    concealFields: Boolean,
+): List<FlatItemAction> = when (type) {
+    DSecret.Type.Login -> listOfNotNull(
+        copy.FlatItemAction(
+            id = "vaultList.item.copyUsername",
+            title = Res.string.copy_username.wrap(),
+            value = login?.username,
+        ),
+        // The list cannot ask to confirm access, so do not
+        // offer to copy secrets protected by the re-prompt.
+        copy.FlatItemAction(
+            id = "vaultList.item.copyPassword",
+            title = Res.string.copy_password.wrap(),
+            value = login?.password.takeUnless { reprompt },
+            hidden = concealFields,
+        ),
+        login?.totp?.run {
+            FlatItemAction(
+                id = "vaultList.item.copyOtp",
+                icon = Icons.Outlined.ContentCopy,
+                title = Res.string.copy_otp_code.wrap(),
+                trailing = {
+                    Row {
+                        VaultViewTotpBadge(
+                            totpToken = login.totp.token,
+                        )
+                    }
+                },
+                onClick = {
+                    getTotpCode(token)
+                        .toIO()
+                        .effectTap { result ->
+                            val code = result.getOrNull()
+                                ?: return@effectTap
+                            copy.copy(
+                                text = code.code,
+                                hidden = false,
+                                type = CopyText.Type.OTP,
+                            )
+                        }
+                        .attempt()
+                        .launchIn(GlobalScope)
+                },
+            )
+        },
+    )
+
+    DSecret.Type.Card -> listOfNotNull(
+        copy.FlatItemAction(
+            id = "vaultList.item.copyCardNumber",
+            title = Res.string.copy_card_number.wrap(),
+            value = card?.number.takeUnless { reprompt },
+            hidden = concealFields,
+        ),
+        copy.FlatItemAction(
+            id = "vaultList.item.copyCvv",
+            title = Res.string.copy_cvv_code.wrap(),
+            value = card?.code.takeUnless { reprompt },
+            hidden = concealFields,
+        ),
+    )
+
+    DSecret.Type.Identity -> listOfNotNull(
+        copy.FlatItemAction(
+            id = "vaultList.item.copyPhone",
+            title = Res.string.copy_phone_number.wrap(),
+            value = identity?.phone,
+        ),
+        copy.FlatItemAction(
+            id = "vaultList.item.copyEmail",
+            title = Res.string.copy_email.wrap(),
+            value = identity?.email,
+        ),
+        copy.FlatItemAction(
+            id = "vaultList.item.copyPassportNumber",
+            title = Res.string.copy_passport_number.wrap(),
+            value = identity?.passportNumber,
+            hidden = concealFields,
+        ),
+        copy.FlatItemAction(
+            id = "vaultList.item.copyLicenseNumber",
+            title = Res.string.copy_license_number.wrap(),
+            value = identity?.licenseNumber,
+            hidden = concealFields,
+        ),
+    )
+
+    else -> emptyList()
 }
 
 fun DSecret.toVaultItemPresentation(
@@ -251,90 +338,3 @@ fun DSecret.toVaultItemIcon(
     }
     websiteIcon ?: appIcon ?: fallbackIcon
 }
-
-private suspend fun DSecret.createLoginActions(
-    copy: CopyText,
-    getTotpCode: GetTotpCode,
-    concealFields: Boolean,
-): List<FlatItemAction> =
-    listOfNotNull(
-        copy.FlatItemAction(
-            title = Res.string.copy_username.wrap(),
-            value = login?.username,
-        ),
-        copy.FlatItemAction(
-            title = Res.string.copy_password.wrap(),
-            value = login?.password,
-            hidden = concealFields,
-        ),
-        login?.totp?.run {
-            FlatItemAction(
-                icon = Icons.Outlined.ContentCopy,
-                title = Res.string.copy_otp_code.wrap(),
-                trailing = {
-                    Row {
-                        VaultViewTotpBadge(
-                            totpToken = login.totp.token,
-                        )
-                    }
-                },
-                onClick = {
-                    getTotpCode(token)
-                        .toIO()
-                        .effectTap { result ->
-                            val code = result.getOrNull()
-                                ?: return@effectTap
-                            copy.copy(
-                                text = code.code,
-                                hidden = false,
-                                type = CopyText.Type.OTP,
-                            )
-                        }
-                        .attempt()
-                        .launchIn(GlobalScope)
-                },
-            )
-        },
-    )
-
-private fun DSecret.createCardActions(
-    copy: CopyText,
-    concealFields: Boolean,
-): List<FlatItemAction> =
-    listOfNotNull(
-        copy.FlatItemAction(
-            title = Res.string.copy_card_number.wrap(),
-            value = card?.number,
-            hidden = concealFields,
-        ),
-        copy.FlatItemAction(
-            title = Res.string.copy_cvv_code.wrap(),
-            value = card?.code,
-            hidden = concealFields,
-        ),
-    )
-
-private fun DSecret.createIdentityActions(
-    copy: CopyText,
-    concealFields: Boolean,
-): List<FlatItemAction> =
-    listOfNotNull(
-        copy.FlatItemAction(
-            title = Res.string.copy_phone_number.wrap(),
-            value = identity?.phone,
-        ),
-        copy.FlatItemAction(
-            title = Res.string.copy_email.wrap(),
-            value = identity?.email,
-        ),
-        copy.FlatItemAction(
-            title = Res.string.copy_passport_number.wrap(),
-            value = identity?.passportNumber,
-            hidden = concealFields,
-        ),
-        copy.FlatItemAction(
-            title = Res.string.copy_license_number.wrap(),
-            value = identity?.licenseNumber,
-            hidden = concealFields,
-        ),
-    )

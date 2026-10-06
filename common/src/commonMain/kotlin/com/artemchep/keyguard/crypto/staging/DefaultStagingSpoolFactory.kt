@@ -72,6 +72,8 @@ internal class DefaultStagingSpoolFactory private constructor(
         StagingPurpose.PendingUploadPlaintext,
         StagingPurpose.OpenPgpPlaintext,
         StagingPurpose.KeePassAttachmentPlaintext,
+        // A backup without a password holds the vault in plaintext.
+        StagingPurpose.BackupObjectUpload,
         -> ByteStoreFactory {
             EncryptedTemporarySpillStorage.create(
                 storage = scratchStorageFactory(),

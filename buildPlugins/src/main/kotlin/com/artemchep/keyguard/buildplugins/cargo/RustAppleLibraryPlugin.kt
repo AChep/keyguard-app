@@ -37,6 +37,7 @@ class RustAppleLibraryPlugin : Plugin<Project> {
             nativeLibraryName = "${nativeLibraryPrefix}_c",
             rustSourceDirectory = rustSourceDirectory,
             targets = appleTargets,
+            extraSourceInputs = files(sharedFfiRustSources()),
         )
         configureAppleInterop(
             moduleName = moduleName,

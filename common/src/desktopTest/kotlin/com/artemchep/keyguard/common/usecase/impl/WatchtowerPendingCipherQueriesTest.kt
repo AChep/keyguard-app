@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.insertUploadTestAccount
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.testCipher
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,7 +14,7 @@ import kotlin.time.Instant
 class WatchtowerPendingCipherQueriesTest {
     @Test
     fun `matching report is not pending and the next cipher write increments its counter`() {
-        val db = createUploadTestDatabase()
+        val db = createUploadTestDatabase().apply { insertUploadTestAccount() }
         val original = cipher(id = "cipher-1")
         db.insertCipher(original, updatedAt = T0)
         db.report(
@@ -41,7 +42,7 @@ class WatchtowerPendingCipherQueriesTest {
 
     @Test
     fun `pending key query returns only cipher id and counter`() {
-        val db = createUploadTestDatabase()
+        val db = createUploadTestDatabase().apply { insertUploadTestAccount() }
         val original = cipher(id = "cipher-1")
         db.insertCipher(original, updatedAt = T0)
         db.report(
@@ -74,7 +75,7 @@ class WatchtowerPendingCipherQueriesTest {
 
     @Test
     fun `all pending signal uses the shared current vault snapshot`() {
-        val db = createUploadTestDatabase()
+        val db = createUploadTestDatabase().apply { insertUploadTestAccount() }
         val first = cipher(id = "cipher-1")
         val second = cipher(id = "cipher-2")
         listOf(first, second).forEach { cipher ->
@@ -119,7 +120,7 @@ class WatchtowerPendingCipherQueriesTest {
 
     @Test
     fun `stale result cannot consume a newer cipher revision`() {
-        val db = createUploadTestDatabase()
+        val db = createUploadTestDatabase().apply { insertUploadTestAccount() }
         val original = cipher(id = "cipher-1")
         db.insertCipher(original, updatedAt = T0)
         db.report(
@@ -170,7 +171,7 @@ class WatchtowerPendingCipherQueriesTest {
 
     @Test
     fun `counter increments when the incoming timestamp is unchanged or older`() {
-        val db = createUploadTestDatabase()
+        val db = createUploadTestDatabase().apply { insertUploadTestAccount() }
         val original = cipher(id = "cipher-1")
         db.insertCipher(original, updatedAt = T2)
 
@@ -193,7 +194,8 @@ class WatchtowerPendingCipherQueriesTest {
 
     @Test
     fun `cipher upsert does not overwrite or increment a different account`() {
-        val db = createUploadTestDatabase()
+        val db = createUploadTestDatabase().apply { insertUploadTestAccount() }
+        db.insertUploadTestAccount("different-account")
         val original = cipher(id = "cipher-1")
         db.insertCipher(original, updatedAt = T0)
 

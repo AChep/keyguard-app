@@ -1,0 +1,10 @@
+packages:
+  SQLCipher:
+    url: https://github.com/sqlcipher/SQLCipher.swift.git
+    from: 4.16.0
+
+settingGroups:
+  SQLCipher:
+    GCC_PREPROCESSOR_DEFINITIONS:
+      - "$(inherited)"
+      - "SQLITE_HAS_CODEC=1"

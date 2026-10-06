@@ -12,6 +12,9 @@ interface DownloadFileStore {
 
     suspend fun uri(info: DownloadInfoEntity): String
 
+    /** Resolves a successful writer result for external use; most stores expose it directly. */
+    suspend fun completedUri(info: DownloadInfoEntity, writerUri: String?): String? = writerUri
+
     suspend fun exists(info: DownloadInfoEntity): Boolean
 
     suspend fun delete(info: DownloadInfoEntity): Boolean

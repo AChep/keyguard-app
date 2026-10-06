@@ -37,6 +37,7 @@ internal const val NATIVE_ZIP_FAILURE_INTERNAL: Int = 12
 // `keyguard_zip_error_domain`
 internal const val NATIVE_ZIP_DOMAIN_NONE: Int = 0
 internal const val NATIVE_ZIP_DOMAIN_POSIX_ERRNO: Int = 1
+internal const val NATIVE_ZIP_DOMAIN_WIN32_LAST_ERROR: Int = 2
 internal const val NATIVE_ZIP_DOMAIN_BRIDGE: Int = 3
 
 // `keyguard_zip_bridge_error`, the raw code of the BRIDGE domain.
@@ -102,8 +103,9 @@ internal enum class NativeZipFailureKind {
 }
 
 /**
- * A decoded failure scalar. [rawCode] is an errno in the POSIX domain and a
- * `keyguard_zip_bridge_error` in the BRIDGE domain.
+ * A decoded failure scalar. [rawCode] is an errno in the POSIX domain, a
+ * `GetLastError` value in the WIN32 domain, or a `keyguard_zip_bridge_error`
+ * in the BRIDGE domain.
  */
 internal data class NativeZipFailure(
     val operation: Int,
@@ -214,6 +216,7 @@ private fun NativeZipFailure.kindPhrase(): String = when (kind) {
 
 private fun NativeZipFailure.codeSuffix(): String = when (domain) {
     NATIVE_ZIP_DOMAIN_POSIX_ERRNO -> " (errno $rawCode)"
+    NATIVE_ZIP_DOMAIN_WIN32_LAST_ERROR -> " (Win32 error ${rawCode.toUInt()})"
     NATIVE_ZIP_DOMAIN_BRIDGE -> " (bridge code $rawCode)"
     else -> ""
 }

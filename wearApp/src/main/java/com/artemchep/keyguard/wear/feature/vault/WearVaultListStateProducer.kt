@@ -48,8 +48,8 @@ import com.artemchep.keyguard.feature.home.vault.screen.ScrollPositionState
 import com.artemchep.keyguard.feature.home.vault.screen.VaultListState
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
 import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
-import com.artemchep.keyguard.feature.home.vault.screen.createVaultListSortDecorator
-import com.artemchep.keyguard.feature.home.vault.screen.createVaultSortItemsFlow
+import com.artemchep.keyguard.feature.home.vault.screen.decorateVaultItems
+import com.artemchep.keyguard.feature.home.vault.screen.createVaultSortStateFlow
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultListItem
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
@@ -63,7 +63,6 @@ import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRouteFactory
-import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.wear.feature.auth.WearLoginMethodRoute
 import kotlinx.collections.immutable.persistentListOf
@@ -381,7 +380,7 @@ internal fun wearVaultListScreenState(
         .flowOn(Dispatchers.Default)
         .shareIn(this, SharingStarted.WhileSubscribed(5000L), replay = 1)
 
-    val comparatorsListFlow = createVaultSortItemsFlow(sortSink)
+    val comparatorStateFlow = createVaultSortStateFlow(sortSink)
 
     data class Rev<T>(
         val count: Int,
@@ -593,8 +592,7 @@ internal fun wearVaultListScreenState(
     combine(
         itemsNullableFlow,
         filterListFlow,
-        comparatorsListFlow
-            .combine(sortSink) { a, b -> a to b },
+        comparatorStateFlow,
         getAccounts()
             .map { it.isNotEmpty() }
             .distinctUntilChanged(),
@@ -711,44 +709,13 @@ private fun createFilteredCiphersFlow(
         )
     }
     .map { state ->
-        val keys = mutableSetOf<String>()
-
-        val orderConfig = state.orderConfig
-        val decorator = createVaultListSortDecorator(
-            orderConfig = orderConfig,
-            itemCount = state.list.size,
+        val items = decorateVaultItems(
+            list = state.list,
+            preferredList = null,
+            orderConfig = state.orderConfig,
+            queryConfig = null,
             dateFormatter = dateFormatter,
         )
-
-        val sectionIds = mutableSetOf<String>()
-        val items = run {
-            val out = mutableListOf<VaultItem2>()
-            state.list.forEach { item ->
-                if (!item.favourite || orderConfig?.favourites != true) {
-                    val section = decorator.getOrNull(item)
-                    if (section != null) {
-                        // Some weird combinations of items might lead to
-                        // duplicate # being used.
-                        if (section.id !in sectionIds) {
-                            sectionIds += section.id
-                            out += section
-                        } else {
-                            val sections = sectionIds
-                                .joinToString()
-
-                            val msg =
-                                "Duplicate sections prevented @ VaultList: $sections, [${section.id}]"
-                            val exception = RuntimeException(msg)
-                            recordException(exception)
-                        }
-                    }
-                }
-                out += item
-            }
-            out
-        }.ifEmpty {
-            listOf(VaultItem2.NoItems)
-        }
         FilteredList(
             count = state.list.size,
             list = items,

@@ -4,12 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.CipherOpenedHistoryMode
+import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.CipherToolbox
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
+import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetAppIcons
@@ -36,6 +38,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.ui.tabs.CallsTabs
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -43,6 +46,12 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.koin.compose.currentKoinScope
+
+private data class ConfigMapper(
+    val concealFields: Boolean,
+    val appIcons: Boolean,
+    val websiteIcons: Boolean,
+)
 
 @Composable
 fun vaultRecentScreenState(
@@ -133,7 +142,7 @@ fun vaultRecentScreenState(
     )
 }
 
-internal suspend fun RememberStateFlowScope.vaultRecentScreenStateProducer(
+suspend fun RememberStateFlowScope.vaultRecentScreenStateProducer(
     highlightBackgroundColor: Color,
     highlightContentColor: Color,
     getAccounts: GetAccounts,
@@ -179,115 +188,19 @@ internal suspend fun RememberStateFlowScope.vaultRecentScreenStateProducer(
 
     val cipherSink = EventFlow<DSecret>()
 
-    val recentState = MutableStateFlow(
-        VaultItem2.Item.LocalState(
-            openedState = VaultItem2.Item.OpenedState(false),
-            selectableItemState = SelectableItemState(
-                selected = false,
-                selecting = false,
-                can = true,
-                onClick = null,
-                onLongClick = null,
-            ),
-        ),
-    )
-
-    data class ConfigMapper(
-        val concealFields: Boolean,
-        val appIcons: Boolean,
-        val websiteIcons: Boolean,
-    )
-
-    val ciphersRawFlow = filterHiddenProfiles(
-        getProfiles = getProfiles,
+    val recent = createRecentItemsFlow(
+        tabFlow = tabFlow,
+        copy = copy,
+        cipherSink = cipherSink,
         getCiphers = getCiphers,
-        filter = null,
+        getProfiles = getProfiles,
+        getOrganizations = getOrganizations,
+        getTotpCode = getTotpCode,
+        getConcealFields = getConcealFields,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
+        getCipherOpenedHistory = getCipherOpenedHistory,
     )
-    val configFlow = combine(
-        getConcealFields(),
-        getAppIcons(),
-        getWebsiteIcons(),
-    ) { concealFields, appIcons, websiteIcons ->
-        ConfigMapper(
-            concealFields = concealFields,
-            appIcons = appIcons,
-            websiteIcons = websiteIcons,
-        )
-    }.distinctUntilChanged()
-    val organizationsByIdFlow = getOrganizations()
-        .map { organizations ->
-            organizations
-                .associateBy { it.id }
-        }
-    val recentFLow = tabFlow
-        .flatMapLatest { tab ->
-            val mode = when (tab) {
-                CallsTabs.RECENTS -> CipherOpenedHistoryMode.Recent
-                CallsTabs.FAVORITES -> CipherOpenedHistoryMode.Popular
-            }
-            getCipherOpenedHistory(mode)
-        }
-        .map { items ->
-            items
-                .asSequence()
-                .map { it.cipherId }
-                .toSet()
-        }
-        .combine(ciphersRawFlow) { recents, ciphers ->
-            recents
-                .mapNotNull { recentId ->
-                    ciphers
-                        .firstOrNull { it.id == recentId }
-                }
-        }
-
-    val recent = combine(
-        recentFLow,
-        organizationsByIdFlow,
-        configFlow,
-    ) { secrets, organizationsById, cfg -> Triple(secrets, organizationsById, cfg) }
-        .map { (secrets, organizationsById, cfg) ->
-            val items = secrets
-                .map { secret ->
-                    secret.toVaultListItem(
-                        copy = copy,
-                        translator = this@vaultRecentScreenStateProducer,
-                        getTotpCode = getTotpCode,
-                        concealFields = cfg.concealFields,
-                        appIcons = cfg.appIcons,
-                        websiteIcons = cfg.websiteIcons,
-                        organizationsById = organizationsById,
-                        localStateFlow = recentState,
-                        onClick = { actions ->
-                            VaultItem2.Item.Action.Go(
-                                onClick = cipherSink::emit.partially1(secret),
-                            )
-                        },
-                        onClickAttachment = {
-                            null
-                        },
-                        onClickPasskey = {
-                            null
-                        },
-                        onClickPassword = {
-                            null
-                        },
-                    )
-                }
-            items
-                .mapIndexed { index, item ->
-                    val shapeState = getShapeState(
-                        list = items,
-                        index = index,
-                        predicate = { el, offset ->
-                            true
-                        },
-                    )
-                    item.copy(
-                        shapeState = shapeState,
-                    )
-                }
-        }
 
     val defaultState = VaultRecentState(
         recent = recent
@@ -301,4 +214,162 @@ internal suspend fun RememberStateFlowScope.vaultRecentScreenStateProducer(
         ),
     )
     return flowOf(Loadable.Ok(defaultState))
+}
+
+private fun RememberStateFlowScope.createRecentItemsFlow(
+    tabFlow: Flow<CallsTabs>,
+    copy: CopyText,
+    cipherSink: EventFlow<DSecret>,
+    getCiphers: GetCiphers,
+    getProfiles: GetProfiles,
+    getOrganizations: GetOrganizations,
+    getTotpCode: GetTotpCode,
+    getConcealFields: GetConcealFields,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
+    getCipherOpenedHistory: GetCipherOpenedHistory,
+): Flow<List<VaultItem2.Item>> {
+    val recentState = MutableStateFlow(
+        VaultItem2.Item.LocalState(
+            openedState = VaultItem2.Item.OpenedState(false),
+            selectableItemState = SelectableItemState(
+                selected = false,
+                selecting = false,
+                can = true,
+                onClick = null,
+                onLongClick = null,
+            ),
+        ),
+    )
+
+    val ciphersRawFlow = filterHiddenProfiles(
+        getProfiles = getProfiles,
+        getCiphers = getCiphers,
+        filter = null,
+    )
+    val configFlow = createConfigFlow(
+        getConcealFields = getConcealFields,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
+    )
+    val organizationsByIdFlow = getOrganizations()
+        .map { organizations ->
+            organizations
+                .associateBy { it.id }
+        }
+    val recentFLow = createRecentCiphersFlow(
+        tabFlow = tabFlow,
+        ciphersRawFlow = ciphersRawFlow,
+        getCipherOpenedHistory = getCipherOpenedHistory,
+    )
+
+    return combine(
+        recentFLow,
+        organizationsByIdFlow,
+        configFlow,
+    ) { secrets, organizationsById, cfg -> Triple(secrets, organizationsById, cfg) }
+        .map { (secrets, organizationsById, cfg) ->
+            createRecentItems(
+                secrets = secrets,
+                organizationsById = organizationsById,
+                cfg = cfg,
+                copy = copy,
+                getTotpCode = getTotpCode,
+                localStateFlow = recentState,
+                cipherSink = cipherSink,
+            )
+        }
+}
+
+private fun createConfigFlow(
+    getConcealFields: GetConcealFields,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
+): Flow<ConfigMapper> = combine(
+    getConcealFields(),
+    getAppIcons(),
+    getWebsiteIcons(),
+) { concealFields, appIcons, websiteIcons ->
+    ConfigMapper(
+        concealFields = concealFields,
+        appIcons = appIcons,
+        websiteIcons = websiteIcons,
+    )
+}.distinctUntilChanged()
+
+private fun createRecentCiphersFlow(
+    tabFlow: Flow<CallsTabs>,
+    ciphersRawFlow: Flow<List<DSecret>>,
+    getCipherOpenedHistory: GetCipherOpenedHistory,
+): Flow<List<DSecret>> = tabFlow
+    .flatMapLatest { tab ->
+        val mode = when (tab) {
+            CallsTabs.RECENTS -> CipherOpenedHistoryMode.Recent
+            CallsTabs.FAVORITES -> CipherOpenedHistoryMode.Popular
+        }
+        getCipherOpenedHistory(mode)
+    }
+    .map { items ->
+        items
+            .asSequence()
+            .map { it.cipherId }
+            .toSet()
+    }
+    .combine(ciphersRawFlow) { recents, ciphers ->
+        recents
+            .mapNotNull { recentId ->
+                ciphers
+                    .firstOrNull { it.id == recentId }
+            }
+    }
+
+private suspend fun RememberStateFlowScope.createRecentItems(
+    secrets: List<DSecret>,
+    organizationsById: Map<String, DOrganization>,
+    cfg: ConfigMapper,
+    copy: CopyText,
+    getTotpCode: GetTotpCode,
+    localStateFlow: StateFlow<VaultItem2.Item.LocalState>,
+    cipherSink: EventFlow<DSecret>,
+): List<VaultItem2.Item> {
+    val items = secrets
+        .map { secret ->
+            secret.toVaultListItem(
+                copy = copy,
+                translator = this@createRecentItems,
+                getTotpCode = getTotpCode,
+                concealFields = cfg.concealFields,
+                appIcons = cfg.appIcons,
+                websiteIcons = cfg.websiteIcons,
+                organizationsById = organizationsById,
+                localStateFlow = localStateFlow,
+                onClick = { actions ->
+                    VaultItem2.Item.Action.Go(
+                        onClick = cipherSink::emit.partially1(secret),
+                    )
+                },
+                onClickAttachment = {
+                    null
+                },
+                onClickPasskey = {
+                    null
+                },
+                onClickPassword = {
+                    null
+                },
+            )
+        }
+    return items
+        .mapIndexed { index, item ->
+            val shapeState = getShapeState(
+                list = items,
+                index = index,
+                predicate = { el, offset ->
+                    true
+                },
+            )
+            item.copy(
+                shapeState = shapeState,
+            )
+        }
 }

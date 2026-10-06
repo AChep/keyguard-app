@@ -47,6 +47,7 @@ fun settingVaultLockAfterScreenOffProvider(
         platformClasses = listOf(
             Platform.Mobile::class,
             Platform.Desktop.MacOS::class,
+            Platform.Desktop.Windows::class,
         ),
         search = SettingIi.Search(
             group = "lock",
@@ -55,6 +56,11 @@ fun settingVaultLockAfterScreenOffProvider(
                 "lock",
                 "screen",
                 "sleep",
+                "windows",
+                "sign-out",
+                "logout",
+                "session",
+                "disconnect",
             ),
         ),
     ) {
@@ -70,14 +76,18 @@ private fun SettingLockAfterScreenOff(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    val (icon, title, text) = if (CurrentPlatform is Platform.Desktop.MacOS) {
-        Triple(
+    val (icon, title, text) = when (CurrentPlatform) {
+        is Platform.Desktop.Windows -> Triple(
+            Icons.Outlined.DesktopAccessDisabled,
+            Res.string.pref_item_lock_vault_after_screen_off_windows_title,
+            Res.string.pref_item_lock_vault_after_screen_off_windows_text,
+        )
+        is Platform.Desktop.MacOS -> Triple(
             Icons.Outlined.DesktopAccessDisabled,
             Res.string.pref_item_lock_vault_after_screen_off_desktop_title,
             Res.string.pref_item_lock_vault_after_screen_off_desktop_text,
         )
-    } else {
-        Triple(
+        else -> Triple(
             Icons.Outlined.MobileOff,
             Res.string.pref_item_lock_vault_after_screen_off_title,
             Res.string.pref_item_lock_vault_after_screen_off_text,

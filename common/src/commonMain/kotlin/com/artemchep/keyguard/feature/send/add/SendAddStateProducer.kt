@@ -7,7 +7,6 @@ import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.AutoDelete
 import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.input.KeyboardType
 import arrow.core.flatten
@@ -97,6 +96,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
+import com.artemchep.keyguard.ui.SwitchExpressive
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.format
 import com.artemchep.keyguard.ui.icons.icon
@@ -463,7 +463,7 @@ suspend fun RememberStateFlowScope.sendAddStateProducer(
                                 title = TextHolder.Value(item.title),
                                 text = item.text?.let(TextHolder::Value),
                                 trailing = {
-                                    Switch(
+                                    SwitchExpressive(
                                         checked = model.checked,
                                         onCheckedChange = model.onChange,
                                     )

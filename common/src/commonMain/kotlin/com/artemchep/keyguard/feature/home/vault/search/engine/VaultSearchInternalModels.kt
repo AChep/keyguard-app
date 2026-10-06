@@ -68,7 +68,7 @@ internal data class ClauseMatch(
     val score: Double,
     val exactMatchCount: Int = 0,
     val titleTerms: Set<String> = emptySet(),
-    val context: MatchContext? = null,
+    val context: VaultSearchMatch.Context? = null,
     val trace: ClauseProbe? = null,
 )
 
@@ -82,13 +82,7 @@ internal data class ClauseProbe(
     val fieldPresence: Boolean? = null,
     val fieldTokenCount: Int? = null,
     val titleTerms: Set<String> = emptySet(),
-    val context: MatchContext? = null,
-)
-
-internal data class MatchContext(
-    val field: VaultTextField,
-    val snippet: String,
-    val score: Double,
+    val context: VaultSearchMatch.Context? = null,
 )
 
 internal data class EvaluatedResult(
@@ -98,6 +92,6 @@ internal data class EvaluatedResult(
     val exactMatchCount: Int,
     val order: Int,
     val titleTerms: Set<String>,
-    val context: MatchContext?,
+    val context: VaultSearchMatch.Context?,
     val negativeMatched: Boolean,
 )

@@ -35,6 +35,41 @@ use rand::{SeedableRng, rngs::StdRng};
 
 const TEST_TIME: u64 = 1_700_000_000;
 
+#[test]
+fn secp256k1_high_s_certificate_remains_eligible_for_agent_signing() {
+    let secret = crate::openpgp::crypto::verifier::tests::secp256k1_fixture();
+    let digest = [0x42; 32];
+    let response = OpenPgpAgentSignResult::decode(
+        sign_request(OpenPgpAgentSignRequest {
+            private_key: secret.to_bytes().expect("serialize high-S fixture"),
+            preferred_fingerprint: format!("{:X}", secret.primary_key.fingerprint()),
+            hash_algorithm: "sha256".to_owned(),
+            hash: digest.to_vec(),
+            candidate_revocation_keys: Vec::new(),
+        })
+        .expect("agent signing with high-S certificate")
+        .as_slice(),
+    )
+    .expect("decode signing response");
+    let Some(open_pgp_agent_sign_result::Result::Success(success)) = &response.result else {
+        panic!(
+            "expected high-S certificate signing success, got {:?}",
+            response.result
+        );
+    };
+    let components = signature_components(&success.canonical_sexp, b"ecdsa");
+    assert_eq!(components.len(), 2);
+    verify_with_packet(
+        SecretPacketRef::Primary(&secret.primary_key),
+        HashAlgorithm::Sha256,
+        &digest,
+        &SignatureBytes::Mpis(vec![
+            Mpi::from_slice(&components[0].1),
+            Mpi::from_slice(&components[1].1),
+        ]),
+    );
+}
+
 fn sign_request(request: OpenPgpAgentSignRequest) -> Result<Vec<u8>, crate::PrimitiveError> {
     crate::openpgp::adapter::agent_sign(request)
 }

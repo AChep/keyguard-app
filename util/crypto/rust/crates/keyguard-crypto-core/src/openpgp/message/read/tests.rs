@@ -36,6 +36,12 @@ use crate::openpgp::crypto::verification::{
 };
 use crate::openpgp::key::generate_rsa_certificate_for_test;
 use crate::openpgp::packet::USER_ID_TAG;
+use crate::openpgp::policy::{
+    PolicyContext, PolicySelection, authenticated_key_flags, select_newest_policy_signature,
+    select_primary_user_id, signature_expired_at,
+};
+use pgp::composed::{Deserializable, DetachedSignature};
+use std::io::{BufRead, BufReader};
 const PUBLIC_KEY: &[u8] = include_bytes!("../../../../tests/fixtures/openpgp/cv25519-public.asc");
 const SECRET_KEY: &[u8] = include_bytes!("../../../../tests/fixtures/openpgp/cv25519-secret.asc");
 const DETACHED_BODY: &[u8] = include_bytes!("../../../../tests/fixtures/openpgp/detached-body.txt");
@@ -60,6 +66,42 @@ const PRIMARY_KEYGRIP: &str = "894264A490F8D55E3E28378A7E44373782806220";
 const SUBKEY_FINGERPRINT: &str = "93ABCF804D85EE79D6E1DB0E77648D3E5D4E7699";
 const SUBKEY_KEYGRIP: &str = "85C1DE785BEE9244BAFBA73A09E6085BA7A35C8E";
 const USER_ID: &str = "Keyguard Test CV25519 <cv25519@test.invalid>";
+
+#[test]
+fn secp256k1_high_s_message_and_certificate_verify_in_one_shot_and_streaming() {
+    let _guard = verifier_worker_test_guard();
+    use crate::openpgp::crypto::verifier::tests::{high_s_signature, secp256k1_fixture};
+    let secret = secp256k1_fixture();
+    let signature = high_s_signature(&detached_signature_signed_by(
+        &secret.primary_key,
+        HashAlgorithm::Sha256,
+        (REFERENCE_TIME - 1) as u32,
+        [],
+    ));
+    let mut request = detached_request(
+        DETACHED_BODY.to_vec(),
+        vec![
+            secret
+                .to_public_key()
+                .to_bytes()
+                .expect("serialize high-S certificate"),
+        ],
+    );
+    request.signature = serialized_detached_signature(signature);
+    for verify in [verification, |request| {
+        streamed_detached_verification(&request)
+    }] {
+        let valid = verify(request.clone());
+        assert_eq!(valid.status, OpenPgpVerificationStatus::Valid as i32);
+        assert!(valid.warnings.is_empty());
+        let mut tampered = request.clone();
+        tampered.content[0] ^= 1;
+        assert_eq!(
+            verify(tampered).status,
+            OpenPgpVerificationStatus::Invalid as i32
+        );
+    }
+}
 
 static VERIFIER_WORKER_TEST_LOCK: Mutex<()> = Mutex::new(());
 
@@ -4801,6 +4843,7 @@ fn signer_revocation_scope_and_creation_time_control_verification_status() {
 
 #[test]
 fn restored_keys_preserve_historical_revocation_intervals() {
+    let _guard = verifier_worker_test_guard();
     let secret = historical_signing_certificate(RENEWAL_TEST_CREATION_TIME);
     let signing_index = signing_subkey_index(&secret);
     let signing_subkey = &secret.secret_subkeys[signing_index].key;
@@ -4963,6 +5006,7 @@ fn restored_keys_preserve_historical_revocation_intervals() {
 
 #[test]
 fn signer_expiration_preserves_math_status_with_warning_across_verification_paths() {
+    let _guard = verifier_worker_test_guard();
     const KEY_CREATION_TIME: u64 = 1_700_000_000;
     const KEY_LIFETIME: u32 = 60;
     const LIVE_SIGNATURE_TIME: u32 = 1_700_000_020;
@@ -5516,6 +5560,7 @@ fn unsupported_detached_signature_forms_do_not_hide_a_valid_peer() {
 
 #[test]
 fn malformed_detached_signatures_never_report_success_without_a_valid_peer() {
+    let _guard = verifier_worker_test_guard();
     let malformed = malformed_v6_salt_signature_packet();
     let unknown_version = fixed_openpgp_packet(SIGNATURE_TAG, &[99]);
     let mut binary = malformed;
@@ -6856,4 +6901,81 @@ fn channel_reader_preserves_arbitrary_chunk_boundaries() {
         .expect("channel reader must drain");
     worker.join().expect("sender must join");
     assert_eq!(output, b"abcdef");
+}
+
+impl DataSignatureVerificationTime {
+    fn exact(reference_time: u64) -> Self {
+        Self {
+            reference_time,
+            latest_acceptable_creation_time: reference_time,
+        }
+    }
+}
+
+fn preflight_openpgp_packets(
+    data: &[u8],
+    budget: &mut OpenPgpReadBudget,
+) -> Result<(), ParseFailure> {
+    let input = openpgp_packet_input(data, None)?;
+    preflight_packet_reader(BufReader::new(Cursor::new(input.as_slice())), budget)
+}
+
+fn preflight_packet_reader<R: BufRead>(
+    reader: R,
+    budget: &mut OpenPgpReadBudget,
+) -> Result<(), ParseFailure> {
+    let mut packets = PacketParser::new(reader);
+    while let Some(packet) = packets.next_ref() {
+        let mut body = packet.map_err(|_| ParseFailure::Malformed)?;
+        budget.charge_packets(1)?;
+        if body
+            .packet_header()
+            .packet_length()
+            .maybe_len()
+            .is_some_and(|length| length as usize > MAX_PACKET_BODY_BYTES)
+        {
+            return Err(ParseFailure::ResourceLimit);
+        }
+        let read = io::copy(
+            &mut body.by_ref().take((MAX_PACKET_BODY_BYTES + 1) as u64),
+            &mut io::sink(),
+        )
+        .map_err(|_| ParseFailure::Malformed)?;
+        if read > MAX_PACKET_BODY_BYTES as u64 {
+            return Err(ParseFailure::ResourceLimit);
+        }
+    }
+    Ok(())
+}
+
+fn decode_openpgp_packets(data: &[u8]) -> Result<Vec<u8>, ParseFailure> {
+    RawPacketStream::parse(data, MAX_PACKETS_PER_REQUEST)
+        .map(|stream| stream.bytes().to_vec())
+        .map_err(ParseFailure::from)
+}
+
+fn find_subslice(input: &[u8], needle: &[u8]) -> Option<usize> {
+    input
+        .windows(needle.len())
+        .position(|window| window == needle)
+}
+
+/// Applies the OpenPGP certificate, revocation, expiry, cross-certification,
+/// and warning policy to message signatures whose data cryptography is
+/// evaluated by the caller.
+fn evaluate_preverified_signatures(
+    signatures: &[Signature],
+    certificates: &[SignedPublicKey],
+    verification_time: DataSignatureVerificationTime,
+    authenticated_recipient: Option<&Fingerprint>,
+    verify: impl FnMut(usize, &PublicComponent) -> bool,
+) -> Result<Verification, OpenPgpReadError> {
+    let authenticated_recipients = vec![authenticated_recipient.cloned(); signatures.len()];
+    evaluate_preverified_signatures_with_recipients(
+        signatures,
+        certificates,
+        verification_time,
+        &authenticated_recipients,
+        verify,
+    )
 }

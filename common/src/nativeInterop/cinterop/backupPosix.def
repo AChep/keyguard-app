@@ -1,0 +1,8 @@
+package = com.artemchep.keyguard.backup.ffi
+---
+#include <fcntl.h>
+
+// Kotlin/Native's Darwin platform library omits the variadic openat declaration.
+static inline int keyguard_backup_openat(int parent, const char *name, int flags) {
+    return openat(parent, name, flags);
+}

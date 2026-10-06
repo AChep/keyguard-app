@@ -138,7 +138,7 @@ suspend fun RememberStateFlowScope.createFilter(
     )
 
     val filterSink = mutablePersistedFlow<FilterHolder, String>(
-        key = "ciphers.filters",
+        key = VaultListPersistence.KEY_FILTERS,
         serialize = { json, value ->
             json.encodeToString(value)
         },
@@ -247,10 +247,6 @@ internal data class FolderFilterTreeNode(
     val title: String,
     val depth: Int,
     val folderIds: Set<String>,
-    /**
-     * True when any folder merged into this display path contains ciphers and
-     * the node can be used as a folder filter target.
-     */
     val selectable: Boolean,
     val expandable: Boolean,
 ) {
@@ -273,16 +269,6 @@ internal data class FolderFilterTree(
     val useNestedUi: Boolean,
 )
 
-/**
- * Builds the folder filter tree from a flat list of [folders].
- *
- * Folder hierarchy is resolved per physical folder and account, but nodes that
- * resolve to the same display name-path are then merged into one filter node,
- * both within and across accounts (so "Personal" duplicates produce one entry).
- * A node is [selectable] when any of its merged folders holds ciphers
- * ([folderIdsWithCiphers]); a node is kept when it is selectable or has a
- * selectable descendant.
- */
 internal fun buildFolderFilterTree(
     folders: List<DFolder>,
     folderIdsWithCiphers: Set<String?>,
@@ -393,6 +379,97 @@ internal fun buildFolderFilterTree(
     )
 }
 
+private fun getFilterSectionId(item: FilterItem): String? = when (item) {
+    is FilterItem.ChipItem -> item.filterSectionId
+    is FilterItem.ListItem -> item.filterSectionId
+    is FilterItem.Section -> null
+}
+
+private fun getFilter(item: FilterItem): FilterItem.Item.Filter? = when (item) {
+    is FilterItem.ChipItem -> item.filter
+    is FilterItem.ListItem -> item.filter
+    is FilterItem.Section -> null
+}
+
+private fun getChecked(item: FilterItem): Boolean = when (item) {
+    is FilterItem.ChipItem -> item.checked
+    is FilterItem.ListItem -> item.checked
+    is FilterItem.Section -> false
+}
+
+private fun FilterItem.withEnabled(enabled: Boolean): FilterItem = when (this) {
+    is FilterItem.ChipItem -> if (enabled) {
+        this
+    } else {
+        copy(
+            onClick = null,
+            enabled = false,
+        )
+    }
+
+    is FilterItem.ListItem -> if (enabled) {
+        this
+    } else if (expandable) {
+        copy(
+            onClick = null,
+            enabled = true,
+        )
+    } else {
+        copy(
+            onClick = null,
+            enabled = false,
+        )
+    }
+
+    is FilterItem.Section -> this
+}
+
+internal fun applyFilterItemsEnabled(
+    items: List<FilterItem>,
+    presence: DFilterCipherPresence,
+): List<FilterItem> {
+    val checkedSectionIds = items
+        .asSequence()
+        .mapNotNull { item ->
+            val checked = getChecked(item)
+            if (checked) {
+                getFilterSectionId(item)
+            } else {
+                null
+            }
+        }
+        .toSet()
+
+    val out = mutableListOf<FilterItem>()
+    items.forEach { item ->
+        when (item) {
+            is FilterItem.Section -> out += item
+            else -> {
+                val filterSectionId = getFilterSectionId(item)
+                val fastEnabled = getChecked(item) ||
+                        // If one of the items in a section is enabled, then
+                        // enable the whole section.
+                        filterSectionId in checkedSectionIds
+                val enabled = fastEnabled || kotlin.run {
+                    val filterItemFilter = getFilter(item) as? FilterItem.Item.Filter.Toggle
+                        ?: return@run true
+                    filterItemFilter.filters
+                        .any { filter ->
+                            // Every primitive the filter factory puts into a chip is
+                            // indexable, so the fallback is unreachable today; a
+                            // non-indexable primitive keeps the chip enabled.
+                            filter.existsIn(presence)
+                                ?: true
+                        }
+                }
+
+                out += item.withEnabled(enabled)
+            }
+        }
+    }
+    return out
+}
+
 suspend fun <
         Output : Any,
         Account,
@@ -420,15 +497,16 @@ suspend fun <
     organizationFlow: Flow<List<Organization>>,
     input: CreateFilterResult,
     params: FilterParams = FilterParams(),
+    includeCollapsedSectionItems: Boolean = false,
 ): Flow<OurFilterResult> {
 
     val storage = kotlin.run {
-        val disk = loadDiskHandle("ciphers.filter")
+        val disk = loadDiskHandle(VaultListPersistence.DISK_FILTER)
         PersistedStorage.InDisk(disk)
     }
 
     val collapsedSectionIdsSink =
-        mutablePersistedFlow<List<String>>("ciphers.sections", storage) { emptyList() }
+        mutablePersistedFlow<List<String>>(VaultListPersistence.KEY_SECTIONS, storage) { emptyList() }
 
     fun toggleSection(sectionId: String) {
         collapsedSectionIdsSink.update {
@@ -486,54 +564,9 @@ suspend fun <
         flowOf(emptyList())
     }
 
-    fun getFilterSectionId(item: FilterItem): String? = when (item) {
-        is FilterItem.ChipItem -> item.filterSectionId
-        is FilterItem.ListItem -> item.filterSectionId
-        is FilterItem.Section -> null
-    }
-
-    fun getFilter(item: FilterItem): FilterItem.Item.Filter? = when (item) {
-        is FilterItem.ChipItem -> item.filter
-        is FilterItem.ListItem -> item.filter
-        is FilterItem.Section -> null
-    }
-
-    fun getChecked(item: FilterItem): Boolean = when (item) {
-        is FilterItem.ChipItem -> item.checked
-        is FilterItem.ListItem -> item.checked
-        is FilterItem.Section -> false
-    }
-
     fun FilterItem.Item.withChecked(checked: Boolean): FilterItem.Item = when (this) {
         is FilterItem.ChipItem -> copy(checked = checked)
         is FilterItem.ListItem -> copy(checked = checked)
-    }
-
-    fun FilterItem.withEnabled(enabled: Boolean): FilterItem = when (this) {
-        is FilterItem.ChipItem -> if (enabled) {
-            this
-        } else {
-            copy(
-                onClick = null,
-                enabled = false,
-            )
-        }
-
-        is FilterItem.ListItem -> if (enabled) {
-            this
-        } else if (expandable) {
-            copy(
-                onClick = null,
-                enabled = true,
-            )
-        } else {
-            copy(
-                onClick = null,
-                enabled = false,
-            )
-        }
-
-        is FilterItem.Section -> this
     }
 
     fun Flow<List<FilterItem.Item>>.asFilterSection(
@@ -1310,7 +1343,7 @@ suspend fun <
         )
         .filterSection(params.section.custom)
 
-    return combine(
+    val filterListFlow = combine(
         filterCustomListFlow,
         filterAccountListFlow,
         filterOrganizationListFlow,
@@ -1320,6 +1353,8 @@ suspend fun <
         filterCollectionListFlow,
         filterMiscListFlow,
     ) { a -> a.flatMap { it } }
+
+    return filterListFlow
         .combine(collapsedSectionIdsSink) { items, collapsedSectionIds ->
             var skippedSectionId: String? = null
 
@@ -1335,7 +1370,7 @@ suspend fun <
                         item
                     }
                 } else {
-                    if (item.sectionId != skippedSectionId) {
+                    if (includeCollapsedSectionItems || item.sectionId != skippedSectionId) {
                         out += item
                     }
                 }
@@ -1343,47 +1378,12 @@ suspend fun <
             out
         }
         .combine(outputPresenceFlow) { items, presence ->
-            val checkedSectionIds = items
-                .asSequence()
-                .mapNotNull { item ->
-                    val checked = getChecked(item)
-                    if (checked) {
-                        getFilterSectionId(item)
-                    } else {
-                        null
-                    }
-                }
-                .toSet()
-
-            val out = mutableListOf<FilterItem>()
-            items.forEach { item ->
-                when (item) {
-                    is FilterItem.Section -> out += item
-                    else -> {
-                        val filterSectionId = getFilterSectionId(item)
-                        val fastEnabled = getChecked(item) ||
-                                // If one of the items in a section is enabled, then
-                                // enable the whole section.
-                                filterSectionId in checkedSectionIds
-                        val enabled = fastEnabled || kotlin.run {
-                            val filterItemFilter = getFilter(item) as? FilterItem.Item.Filter.Toggle
-                                ?: return@run true
-                            filterItemFilter.filters
-                                .any { filter ->
-                                    // Every primitive this factory puts into a chip is
-                                    // indexable, so the fallback is unreachable today; a
-                                    // non-indexable primitive keeps the chip enabled.
-                                    filter.existsIn(presence)
-                                        ?: true
-                                }
-                        }
-
-                        out += item.withEnabled(enabled)
-                    }
-                }
-            }
-            out
+            applyFilterItemsEnabled(
+                items = items,
+                presence = presence,
+            )
         }
+        .distinctUntilChanged()
         .combine(input.filterFlow) { a, b ->
             OurFilterResult(
                 rev = b.id,

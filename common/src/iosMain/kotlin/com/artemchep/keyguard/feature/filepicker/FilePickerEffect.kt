@@ -2,9 +2,11 @@ package com.artemchep.keyguard.feature.filepicker
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import com.artemchep.keyguard.copy.sanitizedExportFileName
 import com.artemchep.keyguard.platform.LeUriImpl
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.toSecurityScopedBookmarkToken
+import com.artemchep.keyguard.platform.withSecurityScopedAccess
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.topPresentedViewController
 import com.artemchep.keyguard.util.io.atomic.AtomicDirectoryDestination
@@ -170,23 +172,6 @@ private class IosFilePickerController {
     }
 }
 
-internal fun String.sanitizedExportFileName(): String =
-    substringAfterLast('/')
-        .substringAfterLast('\\')
-        .map { character ->
-            when (character) {
-                ':', '\u0000' -> '_'
-                else -> character
-            }
-        }
-        .joinToString(separator = "")
-        .takeIf { fileName ->
-            fileName.isNotBlank() &&
-                fileName != "." &&
-                fileName != ".."
-        }
-        ?: "export"
-
 private val previousFilePickerStagingCleanup = lazy {
     cleanUpFilePickerStagingDirectories(
         root = LocalPath(NSTemporaryDirectory()),
@@ -266,20 +251,6 @@ private fun FilePickerIntent<*>?.shouldCreateSecurityScopedToken(): Boolean = wh
     is FilePickerIntent.OpenDocument -> persistableUriPermission
     is FilePickerIntent.OpenDirectory -> persistableUriPermission
     null -> false
-}
-
-@OptIn(ExperimentalForeignApi::class)
-private inline fun <T> NSURL.withSecurityScopedAccess(
-    block: () -> T,
-): T {
-    val didStartAccessing = startAccessingSecurityScopedResource()
-    return try {
-        block()
-    } finally {
-        if (didStartAccessing) {
-            stopAccessingSecurityScopedResource()
-        }
-    }
 }
 
 @OptIn(ExperimentalForeignApi::class)

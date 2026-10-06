@@ -63,14 +63,21 @@ MODULES = {
     "zxcvbn": NativeModule("zxcvbn", "com_artemchep_keyguard_util_zxcvbn_NativeZxcvbnJni",
                           ("abiVersion", "estimate"), ("abi_version", "estimate")),
     "instance": NativeModule("instance", "com_artemchep_keyguard_util_instance_NativeInstanceJni",
-                            ("abiVersion", "acquireOrActivate", "waitEvent", "stop", "close", "lastError"),
-                            ("abi_version", "acquire_or_activate", "wait_event", "stop", "close", "last_error", "clear_error")),
+                            ("abiVersion", "acquireOrActivate", "acquire", "waitEvent", "stop", "close", "lastError"),
+                            ("abi_version", "acquire_or_activate", "acquire", "wait_event", "stop", "close", "last_error",
+                             "clear_error")),
+    "fido2": NativeModule("fido2", "com_artemchep_keyguard_util_fido2_NativeFido2Jni",
+                         ("abiVersion", "create", "execute", "cancel", "close"),
+                         ("abi_version", "create", "execute", "cancel", "close")),
+    "yubikey": NativeModule("yubikey", "com_artemchep_keyguard_util_yubikey_NativeYubiKeyJni",
+                           ("abiVersion", "create", "execute", "cancel", "close"),
+                           ("abi_version", "create", "execute", "cancel", "close")),
     "zip": NativeModule("zip", None, (), (
         "abi_version", "writer_open", "writer_begin_entry", "writer_write", "writer_end_entry",
         "writer_finish", "writer_abort", "reader_open", "reader_next_entry", "reader_read", "reader_close",
     )),
 }
-DESKTOP_MODULES = ("crypto", "io", "zxcvbn", "instance")
+DESKTOP_MODULES = ("crypto", "io", "zxcvbn", "instance", "yubikey", "fido2")
 ANDROID_MODULES = ("crypto", "io", "zxcvbn")
 APPLE_APP_MODULES = ("crypto", "io", "zxcvbn", "zip")
 BRIDGE_EXPORTS = frozenset((
@@ -143,6 +150,8 @@ def find_resources(root: Path, target_platform: str) -> Path:
 def inspect_desktop(root: Path, target_platform: str, arch: str) -> None:
     if not root.is_dir():
         raise InspectionError(f"{root}: expected an extracted/installed package directory")
+    if target_platform == "windows":
+        inspect_windows_runtime(root, arch)
     resources = find_resources(root, target_platform)
     suffix = LIBRARY_SUFFIX[target_platform]
     libraries = [(library_filename(name, target_platform), MODULES[name].exports("jni"), MODULES[name].jni_prefix) for name in DESKTOP_MODULES]
@@ -166,6 +175,18 @@ def inspect_desktop(root: Path, target_platform: str, arch: str) -> None:
         if target_platform != "windows" and not os.access(path, os.X_OK):
             raise InspectionError(f"{path}: bundled helper is not executable")
         print(f"OK {path} (helper architecture and executable permissions)")
+
+
+def inspect_windows_runtime(root: Path, arch: str) -> None:
+    launchers = sorted(path for path in root.rglob("Keyguard.exe") if path.is_file())
+    if len(launchers) != 1:
+        raise InspectionError(f"{root}: expected one Windows launcher; found {len(launchers)}")
+    launcher = launchers[0]
+    for path in (launcher, launcher.parent / "runtime/bin/server/jvm.dll"):
+        if not path.is_file():
+            raise InspectionError(f"{root}: missing bundled runtime binary {path}")
+        require_architecture(path, path.read_bytes(), "windows", arch)
+        print(f"OK {path} (launcher/runtime architecture)")
 
 
 def inspect_android(paths: Sequence[Path], expected_abis: Sequence[str], split_package: bool = False) -> None:

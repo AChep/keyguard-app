@@ -13,17 +13,7 @@ naming:
   FunctionNaming:
     excludes: &testSourceSets
       - '**/test/**'
-      - '**/androidTest/**'
-      - '**/androidUnitTest/**'
-      - '**/androidInstrumentedTest/**'
-      - '**/commonTest/**'
-      - '**/jvmTest/**'
-      - '**/jvmCommonTest/**'
-      - '**/jsTest/**'
-      - '**/iosTest/**'
-      - '**/macosArm64Test/**'
-      - '**/desktopTest/**'
-      - '**/*E2eTest/**'
+      - '**/*Test/**'
     # Composable functions are PascalCase by Compose convention.
     ignoreAnnotated:
       - 'Composable'
@@ -44,17 +34,7 @@ style:
   MagicNumber:
     excludes:
       - '**/test/**'
-      - '**/androidTest/**'
-      - '**/androidUnitTest/**'
-      - '**/androidInstrumentedTest/**'
-      - '**/commonTest/**'
-      - '**/jvmTest/**'
-      - '**/jvmCommonTest/**'
-      - '**/jsTest/**'
-      - '**/iosTest/**'
-      - '**/macosArm64Test/**'
-      - '**/desktopTest/**'
-      - '**/*E2eTest/**'
+      - '**/*Test/**'
       - '**/*.kts'
     ignoreAnnotation: true
   UnusedPrivateFunction:

@@ -145,6 +145,33 @@ class GetLocalNetworkAccessHintTest {
     }
 
     @Test
+    fun `S3 is local-network-capable only with a custom endpoint`() {
+        fun location(endpoint: String?) = FileLocation.S3(
+            endpoint = endpoint,
+            bucket = "vaults",
+            key = "vault.kdbx",
+            accessKeyId = "AKID",
+            secretAccessKey = com.artemchep.keyguard.common.model.Password("secret"),
+            displayName = "vault.kdbx",
+        )
+        assertTrue(location("http://minio.lan:9000").mayAccessLocalNetwork())
+        assertFalse(location(null).mayAccessLocalNetwork())
+
+        fun backup(endpoint: String?) = BackupConfig(
+            enabled = true,
+            store = BackupStoreConfig.S3(
+                endpoint = endpoint,
+                bucket = "backups",
+                accessKeyId = "AKID",
+                secretAccessKey = com.artemchep.keyguard.common.model.Password("secret"),
+            ),
+        )
+        assertTrue(backup("http://minio.lan:9000").mayAccessLocalNetwork())
+        assertFalse(backup(null).mayAccessLocalNetwork())
+        assertFalse(backup("http://minio.lan:9000").copy(enabled = false).mayAccessLocalNetwork())
+    }
+
+    @Test
     fun `use case combines accounts and backup configuration distinctly`() = runTest {
         val tokens = MutableStateFlow(listOf(bitwardenToken()))
         val backupConfig = MutableStateFlow(BackupConfig())

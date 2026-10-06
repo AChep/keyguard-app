@@ -102,6 +102,7 @@ import com.artemchep.keyguard.common.usecase.GetThemeVariants
 import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetUseExternalBrowser
 import com.artemchep.keyguard.common.usecase.GetVersionLog
+import com.artemchep.keyguard.common.usecase.GetWebDavTransactions
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.GetWriteAccess
 import com.artemchep.keyguard.common.usecase.PutAllowScreenshots
@@ -151,6 +152,7 @@ import com.artemchep.keyguard.common.usecase.PutTheme
 import com.artemchep.keyguard.common.usecase.PutThemeExpressive
 import com.artemchep.keyguard.common.usecase.PutThemeUseAmoledDark
 import com.artemchep.keyguard.common.usecase.PutUseExternalBrowser
+import com.artemchep.keyguard.common.usecase.PutWebDavTransactions
 import com.artemchep.keyguard.common.usecase.PutWebsiteIcons
 import com.artemchep.keyguard.common.usecase.PutWriteAccess
 import com.artemchep.keyguard.common.usecase.impl.GetAllowScreenshotsImpl
@@ -229,6 +231,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetThemeVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetTwoFaImpl
 import com.artemchep.keyguard.common.usecase.impl.GetUseExternalBrowserImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVersionLogImpl
+import com.artemchep.keyguard.common.usecase.impl.GetWebDavTransactionsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetWebsiteIconsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetWriteAccessImpl
 import com.artemchep.keyguard.common.usecase.impl.PasswordGeneratorDiceware
@@ -279,6 +282,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutThemeExpressiveImpl
 import com.artemchep.keyguard.common.usecase.impl.PutThemeImpl
 import com.artemchep.keyguard.common.usecase.impl.PutThemeUseAmoledDarkImpl
 import com.artemchep.keyguard.common.usecase.impl.PutUserExternalBrowserImpl
+import com.artemchep.keyguard.common.usecase.impl.PutWebDavTransactionsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutWebsiteIconsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutWriteAccessImpl
 import org.koin.dsl.bind
@@ -506,6 +510,8 @@ internal class ApplicationSettingsModule {
 
         single<GetMarkdownImpl>() bind GetMarkdown::class
 
+        single<GetWebDavTransactionsImpl>() bind GetWebDavTransactions::class
+
         single<GetGravatarUrlImpl>() bind GetGravatarUrl::class
 
         single<GetGravatarImpl>() bind GetGravatar::class
@@ -545,6 +551,8 @@ internal class ApplicationSettingsModule {
         single<PutWebsiteIconsImpl>() bind PutWebsiteIcons::class
 
         single<PutMarkdownImpl>() bind PutMarkdown::class
+
+        single<PutWebDavTransactionsImpl>() bind PutWebDavTransactions::class
 
         single<PutOnboardingLastVisitInstantImpl>() bind PutOnboardingLastVisitInstant::class
 

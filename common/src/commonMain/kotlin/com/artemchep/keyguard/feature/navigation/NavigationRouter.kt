@@ -3,34 +3,37 @@ package com.artemchep.keyguard.feature.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsServiceHost
+import com.artemchep.keyguard.platform.LocalWindowId
 import kotlin.uuid.Uuid
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.koin.compose.koinInject
 
-/**
- * Owns a nested navigation pile for the current [NavigationEntry].
- *
- * A router receives intents from child content, mutates the active stack when it
- * can, and passes unhandled intents to the parent controller.
- */
 @Composable
 fun NavigationRouter(
     id: String,
     initial: Route,
+    // Opt-in cross-process back-stack restore. Only stable-id top-level (section) routers
+    // should enable it; the router [id] is the persistence key. Default off keeps every
+    // existing router's behavior unchanged.
+    persist: Boolean = false,
     content: @Composable (PersistentList<NavigationEntry>) -> Unit,
 ) {
     val store = LocalNavigationStore.current
+    // Resolved for all routers (a cheap singleton) but only used when [persist] is true.
+    val restoreRepo = koinInject<NavigationRestoreRepository>()
 
     // Find the top-level router and link the entry's lifecycle
     // to it, so if the top level gets destroyed we also get
@@ -52,6 +55,30 @@ fun NavigationRouter(
             return@getOrCreate savedStack
         }
 
+        // Cross-process restore (opt-in): rebuild the stack from persisted descriptors.
+        // All-or-nothing — if any entry cannot be reconstructed (a result route, or an
+        // unmapped descriptor), fall through to the fresh initial route below.
+        if (persist) {
+            val restoredRoutes = restoreRepo.peek(id)?.map { it.toRoute() }
+            if (!restoredRoutes.isNullOrEmpty() && restoredRoutes.all { it != null }) {
+                val entries = restoredRoutes.filterNotNull().map { route ->
+                    NavigationEntryImpl(
+                        source = "router restored (persisted)",
+                        id = generateRouteId(route),
+                        parent = parentScope,
+                        route = route,
+                    )
+                }
+                return@getOrCreate NavigationStack(
+                    id = NavigationStack.createId(
+                        prefix = navStackPrefix,
+                        suffix = NavigationStack.createIdSuffix(entries.first().route),
+                    ),
+                    entries = entries.toPersistentList(),
+                )
+            }
+        }
+
         val entry = NavigationEntryImpl(
             source = "router root",
             id = id,
@@ -65,6 +92,17 @@ fun NavigationRouter(
             ),
             entry = entry,
         )
+    }
+
+    if (persist) {
+        // Persist the active stack's restorable descriptors on every change, keyed by [id].
+        LaunchedEffect(navPile) {
+            snapshotFlow {
+                navPile.value.lastOrNull()?.value.orEmpty().map { it.route }
+            }.collect { routes ->
+                restoreRepo.save(id, routes.map { it.descriptor })
+            }
+        }
     }
 
     val navNodeParent = LocalNavigationRouterNode.current
@@ -90,8 +128,9 @@ fun NavigationRouter(
     }
 
     val keyboardShortcutsService = koinInject<KeyboardShortcutsServiceHost>()
-    DisposableEffect(navPile) {
-        val unregister = keyboardShortcutsService.register { keyEvent ->
+    val windowId = LocalWindowId.current
+    DisposableEffect(navPile, keyboardShortcutsService, windowId) {
+        val unregister = keyboardShortcutsService.register(windowId) { keyEvent ->
             navPile.value
                 .flatMap { it.value }
                 .asReversed()
@@ -110,20 +149,15 @@ fun NavigationRouter(
     }
 
     val canPop = remember(navPile) {
-        snapshotFlow { navPile.value }
-            .flatMapLatest { pile ->
-                val stack = pile.lastOrNull()
-                val entry = stack?.value?.lastOrNull()
-                if (entry != null) {
-                    return@flatMapLatest entry
-                        .activeBackPressInterceptorsStateFlow
-                        .map { interceptors ->
-                            interceptors.isNotEmpty() || stack.value.size > 1 || pile.size > 1
-                        }
-                }
-
-                flowOf(false)
+        snapshotFlow { navPile.value.map { it.value } }
+            .flatMapLatest { stacks ->
+                // Re-check whenever the top route's interceptors change.
+                stacks.lastOrNull()?.lastOrNull()
+                    ?.activeBackPressInterceptorsStateFlow
+                    ?: flowOf(null)
             }
+            .map { navPile.canPop() }
+            .distinctUntilChanged()
     }
     NavigationController(
         canPop = canPop,
@@ -137,16 +171,7 @@ fun NavigationRouter(
             // the back press interceptors first and only then adjust the
             // navigation stack.
             if (intent is NavigationIntent.Pop) {
-                val backPressInterceptorRegistration = primaryNavStack
-                    .entries
-                    .asReversed()
-                    .firstNotNullOfOrNull { navEntry ->
-                        val backPressInterceptors =
-                            navEntry.activeBackPressInterceptorsStateFlow.value
-                        backPressInterceptors.values.firstOrNull()
-                    }
-                if (backPressInterceptorRegistration != null) {
-                    backPressInterceptorRegistration.block()
+                if (primaryNavStack.interceptBackPress()) {
                     return@NavigationController null
                 }
             }
@@ -221,13 +246,24 @@ fun NavigationRouter(
         val localBackStack = navStack.value
         val globalBackStack = LocalNavigationNodeLogicalStack.current.addAll(localBackStack)
         val backHandler = LocalNavigationBackHandler.current
+        // An outgoing router (exit animation of this or a parent node) must not
+        // receive Back, so it stays registered only while it is the live content.
+        val finishing = LocalNavigationNodeFinishing.current
 
         DisposableEffect(
             controller,
             globalBackStack,
             backHandler,
+            finishing,
         ) {
-            val registration = backHandler.register(controller, globalBackStack)
+            if (finishing) {
+                return@DisposableEffect onDispose { }
+            }
+            val registration = backHandler.register(
+                controller = controller,
+                backStack = globalBackStack,
+                canPop = navPile::canPop,
+            )
             onDispose {
                 registration()
             }
@@ -240,6 +276,25 @@ fun NavigationRouter(
             content(localBackStack)
         }
     }
+}
+
+internal fun NavigationPile.canPop(): Boolean {
+    val stack = value.lastOrNull()?.value.orEmpty()
+    val entry = stack.lastOrNull()
+        ?.takeUnless { it.isDestroyed }
+        ?: return false
+    return entry.activeBackPressInterceptorsStateFlow.value.isNotEmpty() ||
+        stack.size > 1 || value.size > 1
+}
+
+internal fun NavigationBackStack.interceptBackPress(): Boolean {
+    // Only the top route gets to intercept Back. In a split layout, a search
+    // or selection in the underlying list must not take Back from the detail pane.
+    val interceptor = entries.lastOrNull()
+        ?.activeBackPressInterceptorsStateFlow?.value?.values?.firstOrNull()
+        ?: return false
+    interceptor.block()
+    return true
 }
 
 private fun tryToRestore(
@@ -277,11 +332,6 @@ private fun tryToRestore(
     return pile
 }
 
-/**
- * A group of stacks owned by one router.
- *
- * The last stack is active; switching stacks preserves inactive stack lifecycles.
- */
 class NavigationPile(
     val id: String,
     stack: NavigationStack,

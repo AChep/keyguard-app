@@ -5,6 +5,9 @@ import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.insertUploadTestAccount
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.insertLocalCipher
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenCipher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -42,7 +45,7 @@ class SshUsageHistoryRepositoryImplTest {
 
     @Test
     fun `get by cipher id filters and sorts history`() = runTest {
-        val repository = createRepository()
+        val repository = createRepository(cipherIds = listOf("cipher-a", "cipher-b"))
 
         repository.put(
             model(
@@ -106,8 +109,14 @@ class SshUsageHistoryRepositoryImplTest {
         assertEquals(2, history.mapNotNull { it.id }.toSet().size)
     }
 
-    private fun createRepository(): SshUsageHistoryRepositoryImpl {
+    private fun createRepository(cipherIds: List<String> = emptyList()): SshUsageHistoryRepositoryImpl {
         val database = createUploadTestDatabase()
+        if (cipherIds.isNotEmpty()) {
+            database.insertUploadTestAccount()
+            cipherIds.forEach { cipherId ->
+                insertLocalCipher(database, testBitwardenCipher(cipherId = cipherId))
+            }
+        }
         return SshUsageHistoryRepositoryImpl(
             databaseManager = UploadTestVaultDatabaseManager(database),
             dispatcher = UnconfinedTestDispatcher(),

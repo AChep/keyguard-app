@@ -21,12 +21,12 @@ class PowerEventsInteropTest {
         }, { throw AssertionError(it) })
         val registration = assertIs<DesktopPowerRegistrationResult.Success>(result).registration
         try {
-            (1..4).forEach { code ->
+            (1..6).forEach { code ->
                 fake.callback!!.invoke(code)
                 assertEquals(code, events.size)
             }
             fake.callback!!.invoke(0)
-            fake.callback!!.invoke(5)
+            fake.callback!!.invoke(7)
             assertEquals(DesktopPowerEvent.entries.toList(), events.toList())
             assertTrue(threads.all { it === Thread.currentThread() })
         } finally {

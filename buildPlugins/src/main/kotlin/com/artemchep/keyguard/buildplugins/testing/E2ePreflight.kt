@@ -85,6 +85,12 @@ internal fun requireWebDav5(output: String) {
     }
 }
 
+internal fun requireVersityGw1(output: String) {
+    if (!Regex("""\bVersion\s*:\s*1\.""").containsMatchIn(output)) {
+        throw GradleException("Expected versitygw v1.x on PATH, but got:\n$output")
+    }
+}
+
 fun pythonSetupMessage(python: String, requirementsFile: File): String =
     "KDBX E2E tests require the pinned Python dependencies. Create a virtualenv and run:\n" +
         "  $python -m pip install -r ${requirementsFile.absolutePath}\n" +

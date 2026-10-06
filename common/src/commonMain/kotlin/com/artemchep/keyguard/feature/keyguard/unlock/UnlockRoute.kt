@@ -13,6 +13,7 @@ class UnlockRoute(
     val unlockVaultByBiometric: VaultState.Unlock.WithBiometric?,
     val unlockVaultByYubiKey: VaultState.Unlock.WithYubiKey?,
     val lockInfo: VaultState.Unlock.LockInfo?,
+    val unlockVaultByFido2: VaultState.Unlock.WithFido2? = null,
 ) : Route {
     @Composable
     override fun Content() {
@@ -21,6 +22,7 @@ class UnlockRoute(
             unlockVaultByBiometric = unlockVaultByBiometric,
             unlockVaultByYubiKey = unlockVaultByYubiKey,
             lockInfo = lockInfo,
+            unlockVaultByFido2 = unlockVaultByFido2,
         )
     }
 }

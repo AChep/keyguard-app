@@ -11,7 +11,6 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -35,6 +34,7 @@ import com.artemchep.keyguard.feature.home.vault.component.surfaceShape
 import com.artemchep.keyguard.ui.AnimatedNewCounterBadge
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.SwitchExpressive
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -223,7 +223,7 @@ object SettingPaneComponentsDefault : SettingPaneComponents {
                 CompositionLocalProvider(
                     LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
                 ) {
-                    Switch(
+                    SwitchExpressive(
                         checked = checked,
                         enabled = onCheckedChange != null,
                         onCheckedChange = onCheckedChange,

@@ -129,6 +129,7 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.readRemaining
 import java.io.File
 import java.nio.file.Files
+import java.util.Properties
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.readByteArray
@@ -1183,7 +1184,12 @@ internal fun SendEntity.toLocalSend(localId: String) = BitwardenSend(
 internal fun createUploadTestDatabase(
     cipherDataAdapter: ColumnAdapter<BitwardenCipher, String>? = null,
 ): Database {
-    val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+    val driver = JdbcSqliteDriver(
+        url = JdbcSqliteDriver.IN_MEMORY,
+        properties = Properties().apply {
+            setProperty("foreign_keys", "true")
+        },
+    )
     Database.Schema.create(driver)
     return createUploadTestDatabase(
         driver = driver,
@@ -1251,6 +1257,21 @@ internal fun createUploadTestDatabase(
             createdAtAdapter = InstantToLongAdapter,
         ),
     )
+}
+
+internal fun Database.insertUploadTestAccount(accountId: String = ACCOUNT_ID) {
+    val account = BitwardenToken(
+        id = accountId,
+        key = BitwardenToken.Key(
+            masterKeyBase64 = "",
+            passwordKeyBase64 = "",
+            encryptionKeyBase64 = "",
+            macKeyBase64 = "",
+        ),
+        user = BitwardenToken.User(email = "user@example.com"),
+        env = BitwardenToken.Environment(),
+    )
+    accountQueries.insert(accountId = account.id, data = account)
 }
 
 internal fun parseCipherAttachmentPath(path: String): Pair<String, String> {

@@ -57,6 +57,7 @@ import com.artemchep.keyguard.di.resolveOrCancel
 import com.artemchep.keyguard.feature.loading.ReadableExceptionMessage
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.navigation.BackHandler
 import com.artemchep.keyguard.feature.navigation.LocalNavigationBackHandler
 import com.artemchep.keyguard.feature.navigation.N
 import com.artemchep.keyguard.feature.navigation.NavigationController
@@ -64,6 +65,8 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.LocalWindowId
+import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
@@ -86,6 +89,10 @@ abstract class BaseActivity : AppCompatActivity(), KeyguardKoinOwner {
     private val permissionService: PermissionServiceAndroid by lazy { koin.get() }
 
     private val keyboardShortcutsService: KeyboardShortcutsService by lazy { koin.get() }
+
+    private val windowId = WindowId.create()
+
+    private val navigationBackHandler = BackHandler()
 
     private val navTag = N.tag("BaseActivity")
 
@@ -155,6 +162,7 @@ abstract class BaseActivity : AppCompatActivity(), KeyguardKoinOwner {
                         contentColor = contentColor,
                     ) {
                         CompositionLocalProvider(
+                            LocalWindowId provides windowId,
                             LocalSurfaceColor provides containerColorAnimatedState.value,
                         ) {
                             Navigation {
@@ -181,6 +189,7 @@ abstract class BaseActivity : AppCompatActivity(), KeyguardKoinOwner {
         block: @Composable () -> Unit,
     ) = NavigationRouterBackHandler(
         onBackPressedDispatcher = onBackPressedDispatcher,
+        handler = navigationBackHandler,
     ) {
         val showMessage = koinInject<ShowMessage>()
         NavigationController(
@@ -564,6 +573,8 @@ abstract class BaseActivity : AppCompatActivity(), KeyguardKoinOwner {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         val composeEvent = androidx.compose.ui.input.key.KeyEvent(event)
-        return keyboardShortcutsService.handle(composeEvent) || super.onKeyDown(keyCode, event)
+        return keyboardShortcutsService.handle(windowId, composeEvent) ||
+            navigationBackHandler.handleKeyEvent(composeEvent) ||
+            super.onKeyDown(keyCode, event)
     }
 }

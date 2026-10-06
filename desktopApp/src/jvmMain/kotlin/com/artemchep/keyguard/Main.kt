@@ -122,6 +122,7 @@ import com.artemchep.keyguard.feature.agent.rememberAgentRequestUiState
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.keyguard.AppRoute
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
+import com.artemchep.keyguard.feature.navigation.BackHandler
 import com.artemchep.keyguard.feature.navigation.LocalNavigationBackHandler
 import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationModule
@@ -787,11 +788,13 @@ private fun ApplicationScope.KeyguardMainWindow(
     onReopenRequest: () -> Unit,
     onCloseRequest: () -> Unit,
 ) {
+    val navigationBackHandler = remember { BackHandler() }
     KeyguardMainWindow(
         processLifecycleProvider = processLifecycleProvider,
         stateManager = stateManager,
         visible = visible,
         onCloseRequest = onCloseRequest,
+        navigationBackHandler = navigationBackHandler,
     ) {
         window.toFront()
 
@@ -802,7 +805,7 @@ private fun ApplicationScope.KeyguardMainWindow(
         }
 
         KeyguardTheme {
-            KeyguardWindowScaffold {
+            KeyguardWindowScaffold(navigationBackHandler = navigationBackHandler) {
                 Content()
             }
         }
@@ -815,9 +818,11 @@ private fun ApplicationScope.KeyguardMainWindow(
     stateManager: WindowStateManager,
     visible: Boolean,
     onCloseRequest: () -> Unit,
+    navigationBackHandler: BackHandler,
     content: @Composable FrameWindowScope.() -> Unit,
 ) {
     val state = stateManager.rememberWindowState()
+    val windowIdState = remember { mutableStateOf<WindowId?>(null) }
     val keyboardShortcutsService = koinInject<KeyboardShortcutsService>()
     Window(
         onCloseRequest = onCloseRequest,
@@ -826,9 +831,19 @@ private fun ApplicationScope.KeyguardMainWindow(
         visible = visible,
         title = "Keyguard",
         onKeyEvent = { event ->
-            keyboardShortcutsService.handle(event)
+            val windowId = windowIdState.value
+            val handled = windowId != null && keyboardShortcutsService.handle(windowId, event)
+            handled || navigationBackHandler.handleKeyEvent(event)
         },
     ) {
+        val windowId = WindowId(window.windowHandle)
+        // The window-level key callback is declared before the native window is available.
+        DisposableEffect(window, windowId) {
+            windowIdState.value = windowId
+            onDispose {
+                windowIdState.value = null
+            }
+        }
         LaunchedEffect(stateManager, window) {
             stateManager.foregroundRequests.collect {
                 state.isMinimized = false
@@ -843,6 +858,7 @@ private fun ApplicationScope.KeyguardMainWindow(
             }
         }
         KeyguardWindowEssentials(
+            windowId = windowId,
             processLifecycleProvider = processLifecycleProvider,
             onMinimizeRequest = {
                 state.isMinimized = true
@@ -854,13 +870,14 @@ private fun ApplicationScope.KeyguardMainWindow(
 
 @Composable
 internal fun FrameWindowScope.KeyguardWindowEssentials(
+    windowId: WindowId,
     processLifecycleProvider: LePlatformLifecycleProvider,
     onMinimizeRequest: () -> Unit,
     content: @Composable FrameWindowScope.() -> Unit,
 ) {
     KeyguardWindowEssentialsProvider(
         window = window,
-        windowId = WindowId(window.windowHandle),
+        windowId = windowId,
         processLifecycleProvider = processLifecycleProvider,
         onMinimizeRequest = onMinimizeRequest,
     ) {
@@ -942,6 +959,7 @@ private fun KeyguardWindowEssentialsProvider(
 
 @Composable
 internal fun ApplicationScope.KeyguardWindowScaffold(
+    navigationBackHandler: BackHandler,
     content: @Composable () -> Unit,
 ) {
     val containerColor = LocalBackgroundManager.current.colorHighest
@@ -957,6 +975,7 @@ internal fun ApplicationScope.KeyguardWindowScaffold(
         ) {
             Navigation(
                 exitApplication = ::exitApplication,
+                handler = navigationBackHandler,
             ) {
                 content()
             }
@@ -1013,10 +1032,10 @@ private fun Content() {
 @Composable
 private fun Navigation(
     exitApplication: () -> Unit,
+    handler: BackHandler = remember { BackHandler() },
     block: @Composable () -> Unit,
 ) = NavigationRouterBackHandler(
-    sideEffect = { backHandler ->
-    },
+    handler = handler,
 ) {
     val showMessage = koinInject<ShowMessage>()
     val logRepository = koinInject<LogRepository>()

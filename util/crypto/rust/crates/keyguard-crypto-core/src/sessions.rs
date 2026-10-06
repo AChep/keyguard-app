@@ -110,10 +110,6 @@ struct SessionRegistry {
     free_indices: Vec<usize>,
 }
 
-pub(crate) fn open_hmac_sha256(key: Vec<u8>) -> Result<u64, SessionError> {
-    open_hmac(HashAlgorithm::Sha256, key)
-}
-
 pub(crate) fn open_hmac(algorithm: HashAlgorithm, key: Vec<u8>) -> Result<u64, SessionError> {
     let key = Zeroizing::new(key);
     let algorithm = sensitive_algorithm(algorithm)?;

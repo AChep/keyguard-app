@@ -1,10 +1,16 @@
 package com.artemchep.keyguard.nativecrypto
 
-internal expect object NativeCryptoLibraryLoader {
-    fun ensureLoaded()
-}
+import com.artemchep.keyguard.util.ffi.JniLibrary
 
 internal actual object NativeCryptoPlatform : NativeCryptoBridge {
+    private val library = JniLibrary(
+        name = "keyguard_crypto_jni",
+        pathProperty = "keyguard.nativeCrypto.libraryPath",
+        unavailable = { cause ->
+            NativeCryptoPlatformException(NativeCryptoErrorCode.LIBRARY_UNAVAILABLE, cause)
+        },
+    )
+
     actual override fun abiVersion(): Int = withLibrary { NativeCryptoJni.abiVersion() }
 
     actual override fun capabilities(): Long = withLibrary { NativeCryptoJni.capabilities() }
@@ -70,7 +76,7 @@ internal actual object NativeCryptoPlatform : NativeCryptoBridge {
     }
 
     private inline fun <T> withLibrary(block: () -> T): T {
-        NativeCryptoLibraryLoader.ensureLoaded()
+        library.ensureLoaded()
         return try {
             block()
         } catch (e: UnsatisfiedLinkError) {

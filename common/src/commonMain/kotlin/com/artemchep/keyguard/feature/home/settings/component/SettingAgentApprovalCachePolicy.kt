@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -26,11 +29,14 @@ import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_reuse_bou
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_same_terminal
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_title
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.TableRowItem
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.theme.Dimens
+import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
 import org.koin.core.scope.Scope
@@ -46,7 +52,6 @@ fun settingSshAgentApprovalCachePolicyProvider(
         Platform.Desktop.Linux::class,
         Platform.Desktop.MacOS::class,
         Platform.Desktop.Windows::class,
-        Platform.Desktop.Other::class,
     ),
 )
 
@@ -60,8 +65,6 @@ fun settingGpgAgentApprovalCachePolicyProvider(
     platformClasses = listOf(
         Platform.Desktop.Linux::class,
         Platform.Desktop.MacOS::class,
-        Platform.Desktop.Windows::class,
-        Platform.Desktop.Other::class,
     ),
 )
 
@@ -72,18 +75,21 @@ private fun settingAgentApprovalCachePolicyProvider(
     idPrefix: String,
     platformClasses: List<kotlin.reflect.KClass<out Platform>>,
 ): SettingComponent {
-    val presentationPlatform = if (CurrentPlatform is Platform.Mobile.Android) {
-        AgentApprovalScopePresentationPlatform.Android
-    } else {
-        AgentApprovalScopePresentationPlatform.Native
+    // Search consumes these providers directly, without the pane's platform filter.
+    if (platformClasses.none { it.isInstance(CurrentPlatform) }) return flowOf(null)
+
+    val presentationPlatform = when (CurrentPlatform) {
+        is Platform.Desktop.Windows -> AgentApprovalScopePresentationPlatform.WindowsSsh
+        else -> AgentApprovalScopePresentationPlatform.Native
     }
     val presentation = agentApprovalScopePresentation(presentationPlatform)
     return getPolicy.map { policy ->
+        val selectedPolicy = presentation.row(policy).policy
         val dropdown = presentation.rows.map { row ->
             FlatItemAction(
                 id = "$idPrefix.${row.policy.storageKey}",
                 title = TextHolder.Res(row.titleResource),
-                selected = row.policy == policy,
+                selected = row.policy == selectedPolicy,
                 onClick = {
                     putPolicy(row.policy).launchIn(windowCoroutineScope)
                 },
@@ -108,7 +114,7 @@ private fun settingAgentApprovalCachePolicyProvider(
             ),
         ) {
             SettingAgentApprovalCachePolicy(
-                policy = policy,
+                policy = selectedPolicy,
                 presentation = presentation,
                 dropdown = dropdown,
             )
@@ -180,5 +186,12 @@ private fun AgentApprovalScopeComparison(
             titleWeight = titleWeight,
             text = stringResource(selectedPresentation.otherTerminalResource),
         )
+        selectedPresentation.noteResource?.let { resource ->
+            Text(
+                text = stringResource(resource),
+                color = LocalContentColor.current.combineAlpha(MediumEmphasisAlpha),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
     }
 }

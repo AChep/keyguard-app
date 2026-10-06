@@ -20,6 +20,8 @@
 //! into a [`CanonicalCertificate`]. Policy evaluation happens afterwards, on
 //! the retained view in the [`CanonicalCertificate`].
 
+use crate::openpgp::crypto::verifier::OpenPgpVerifier;
+
 use std::{
     borrow::Cow,
     collections::{BTreeMap, BTreeSet},
@@ -28,8 +30,6 @@ use std::{
     sync::Arc,
 };
 
-#[cfg(test)]
-use pgp::packet::Subpacket;
 use pgp::{
     composed::{Deserializable, SignedPublicKey},
     packet::{
@@ -71,21 +71,14 @@ pub(crate) use canonicalization::{
     merge_public_certificate_packet_sets, normalize_expected_fingerprint,
     parse_public_certificate_packet_set_with_budget,
 };
-#[cfg(test)]
-pub(crate) use export::export_public_certificate_preserving_framing;
 pub(crate) use export::{local_public_certificate_preserving_framing, raw_packet_is_exportable};
 pub(crate) use parsing::{
     parse_public_certificate_packet_sets_with_budget, parse_single_certificate_packet_set,
 };
 
 #[cfg(test)]
-pub(crate) use parsing::parse_public_certificate_packet_sets;
-
-#[cfg(test)]
 pub(crate) use canonicalization::{
     canonicalize_public_certificate, canonicalize_public_certificate_material,
-    merge_public_certificate_documents, merge_public_certificate_material_documents,
-    merge_public_certificate_material_documents_deterministic,
 };
 
 const MAX_MERGE_PACKETS: usize = MAX_CERTIFICATE_PACKETS;
@@ -486,11 +479,6 @@ impl AttachedPackets {
         self.packets.iter()
     }
 
-    #[cfg(test)]
-    fn is_empty(&self) -> bool {
-        self.packets.is_empty()
-    }
-
     /// Inserts or merges one packet and reports whether the retained evidence
     /// changed.
     ///
@@ -653,26 +641,6 @@ impl AttachedPackets {
     }
 }
 
-/// Returns whether the packet is a certification the issuer marked local.
-///
-/// Only the hashed area is honored: an unhashed `ExportableCertification`
-/// subpacket is attacker-modifiable, and treating it as authoritative would
-/// let an intermediary suppress certifications. RFC 9580 sections 5.2.1 and
-/// 5.2.3.19 limit this instruction to certification signature types 0x10
-/// through 0x13; Direct Key, binding, and revocation signatures are distinct
-/// types and remain exportable. If signed values conflict, the last hashed
-/// occurrence wins per RFC 9580 section 5.2.3.9.
-#[cfg(test)]
-fn is_non_exportable_signature(packet: &CanonicalPacket) -> bool {
-    if packet.tag != SIGNATURE_TAG {
-        return false;
-    }
-    let Ok(signature) = parse_signature_packet(packet) else {
-        return false;
-    };
-    signature_is_non_exportable(&signature)
-}
-
 fn signature_is_non_exportable(signature: &Signature) -> bool {
     matches!(
         signature.typ(),
@@ -748,30 +716,7 @@ fn is_exportable_direct_self_signature_parsed(
     if !signature_matches_signer(&signature, primary) {
         return Ok(false);
     }
-    budget.verify(|| signature.verify_key(primary).is_ok())
-}
-
-#[cfg(test)]
-fn is_exportable_identity_self_signature(
-    packet: &CanonicalPacket,
-    identity: &CanonicalPacket,
-    primary: &PublicKey,
-    authenticated_sensitive_declarations: &BTreeSet<CanonicalPacket>,
-    budget: &mut ExportClassificationBudget,
-) -> Result<bool, CertificateMergeError> {
-    if packet.tag != SIGNATURE_TAG {
-        return Ok(false);
-    }
-    let signature = parse_signature_packet(packet)?;
-    let key = attached_packet_key_from_signature(packet, &signature)?;
-    is_exportable_identity_self_signature_parsed(
-        &key,
-        &signature,
-        identity,
-        primary,
-        authenticated_sensitive_declarations,
-        budget,
-    )
+    budget.verify(|| signature.verify_key(&OpenPgpVerifier(primary)).is_ok())
 }
 
 fn is_exportable_identity_self_signature_entry(
@@ -840,32 +785,13 @@ fn is_exportable_identity_self_signature_parsed(
     }
     budget.verify(|| {
         signature
-            .verify_certification(primary, tag, &RawIdentityBody(&identity.body))
+            .verify_certification(
+                &OpenPgpVerifier(primary),
+                tag,
+                &RawIdentityBody(&identity.body),
+            )
             .is_ok()
     })
-}
-
-#[cfg(test)]
-fn is_exportable_subkey_binding_signature(
-    packet: &CanonicalPacket,
-    subkey: &PublicSubkey,
-    primary: &PublicKey,
-    authenticated_sensitive_declarations: &BTreeSet<CanonicalPacket>,
-    budget: &mut ExportClassificationBudget,
-) -> Result<bool, CertificateMergeError> {
-    if packet.tag != SIGNATURE_TAG {
-        return Ok(false);
-    }
-    let signature = parse_signature_packet(packet)?;
-    let key = attached_packet_key_from_signature(packet, &signature)?;
-    is_exportable_subkey_binding_signature_parsed(
-        &key,
-        &signature,
-        subkey,
-        primary,
-        authenticated_sensitive_declarations,
-        budget,
-    )
 }
 
 fn is_exportable_subkey_binding_signature_entry(
@@ -909,7 +835,11 @@ fn is_exportable_subkey_binding_signature_parsed(
     if !signature_matches_signer(&signature, primary) {
         return Ok(false);
     }
-    if !budget.verify(|| signature.verify_subkey_binding(primary, subkey).is_ok())? {
+    if !budget.verify(|| {
+        signature
+            .verify_subkey_binding(&OpenPgpVerifier(primary), subkey)
+            .is_ok()
+    })? {
         return Ok(false);
     }
     if !subkey_binding_requires_cross_certification(&signature, subkey) {
@@ -979,7 +909,11 @@ fn has_valid_embedded_primary_key_binding(
         if !signature_matches_signer(&embedded, subkey) {
             continue;
         }
-        if budget.verify(|| embedded.verify_primary_key_binding(subkey, primary).is_ok())? {
+        if budget.verify(|| {
+            embedded
+                .verify_primary_key_binding(&OpenPgpVerifier(subkey), primary)
+                .is_ok()
+        })? {
             return Ok(true);
         }
     }
@@ -1065,7 +999,7 @@ fn verify_key_ignoring_unhashed_issuer_hints(signature: &Signature, primary: &Pu
     key_signature_verification_acceptable(primary)
         && signature_ignoring_unhashed_issuer_hints(signature).is_some_and(|candidate| {
             signature_verification_compatible(&candidate, primary)
-                && candidate.verify_key(primary).is_ok()
+                && candidate.verify_key(&OpenPgpVerifier(primary)).is_ok()
         })
 }
 
@@ -1129,8 +1063,12 @@ fn component_verifies_key_revocation(
         return Ok(false);
     }
     budget.verify(|| match candidate {
-        PublicComponent::Primary(key) => signature.verify_key_third_party(primary, key).is_ok(),
-        PublicComponent::Subkey(key) => signature.verify_key_third_party(primary, key).is_ok(),
+        PublicComponent::Primary(key) => signature
+            .verify_key_third_party(primary, &OpenPgpVerifier(key))
+            .is_ok(),
+        PublicComponent::Subkey(key) => signature
+            .verify_key_third_party(primary, &OpenPgpVerifier(key))
+            .is_ok(),
     })
 }
 
@@ -1238,17 +1176,6 @@ fn rebuild_signature_body_with_prefix(
     Signature::from_config(config, signed_hash_value, signature_bytes)
         .and_then(|signature| signature.to_bytes())
         .map_err(|_| CertificateMergeError::Internal)
-}
-
-#[cfg(test)]
-fn rebuild_signature_body(
-    signature: &Signature,
-    config: pgp::packet::SignatureConfig,
-) -> Result<Vec<u8>, CertificateMergeError> {
-    let signed_hash_value = signature
-        .signed_hash_value()
-        .ok_or(CertificateMergeError::Malformed)?;
-    rebuild_signature_body_with_prefix(signature, config, signed_hash_value)
 }
 
 /// Chooses one complete wire variant of an otherwise equivalent signature.
@@ -1603,14 +1530,6 @@ fn ensure_supported_key_version(body: &[u8]) -> Result<(), CertificateMergeError
         }
         Some(KeyVersion::Other(_)) | None => Err(CertificateMergeError::Malformed),
     }
-}
-
-#[cfg(test)]
-fn parse_user_id(packet: &CanonicalPacket) -> Result<pgp::packet::UserId, CertificateMergeError> {
-    parse_fixed_packet_body(Tag::UserId, packet.body.as_slice(), |header, reader| {
-        pgp::packet::UserId::try_from_reader(header, reader)
-    })
-    .map_err(CertificateMergeError::from)
 }
 
 #[cfg(test)]

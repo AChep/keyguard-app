@@ -198,6 +198,14 @@ class JsonKeyValueStore(
         flow = flow,
     )
 
+    /** Clears persisted preferences and updates existing preference collectors. */
+    fun clearAndCommit(): IO<Unit> = ioEffect {
+        ensureInit()
+        val empty = persistentMapOf<String, Any?>()
+        str.write(empty).bind()
+        sink.value = empty
+    }
+
     override fun getFile(): IO<LocalPath> = ioEffect {
         throw NotImplementedError()
     }

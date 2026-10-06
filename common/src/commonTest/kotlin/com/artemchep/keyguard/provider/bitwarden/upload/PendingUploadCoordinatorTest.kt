@@ -24,7 +24,7 @@ class PendingUploadCoordinatorTest {
                 attachmentId = "attachment-1",
             ),
             sourceUri = "file:///tmp/report.pdf",
-            fileKey = "cipher-key".toByteArray(),
+            fileKey = "cipher-key".encodeToByteArray(),
         )
         coordinator.stage(
             target = PendingUploadTarget.SendFile(
@@ -32,7 +32,7 @@ class PendingUploadCoordinatorTest {
                 sendId = "send-1",
             ),
             sourceUri = "file:///tmp/send.pdf",
-            fileKey = "send-key".toByteArray(),
+            fileKey = "send-key".encodeToByteArray(),
         )
 
         assertEquals(

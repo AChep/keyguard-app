@@ -87,10 +87,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyguard-ffi"
+version = "0.1.0"
+dependencies = [
+ "jni",
+ "zeroize",
+]
+
+[[package]]
 name = "keyguard-io-c"
 version = "0.1.0"
 dependencies = [
  "getrandom",
+ "keyguard-ffi",
  "keyguard-io-core",
 ]
 
@@ -99,6 +108,7 @@ name = "keyguard-io-core"
 version = "0.1.0"
 dependencies = [
  "getrandom",
+ "keyguard-ffi",
  "libc",
  "windows-sys 0.61.2",
 ]
@@ -108,6 +118,7 @@ name = "keyguard-io-jni"
 version = "0.1.0"
 dependencies = [
  "jni",
+ "keyguard-ffi",
  "keyguard-io-core",
  "zeroize",
 ]

@@ -1,0 +1,537 @@
+package com.artemchep.keyguard.apple.lists
+
+import com.artemchep.keyguard.apple.core.sessionKoin
+import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.feature.home.vault.model.VaultPasswordHistoryItem
+import com.artemchep.keyguard.feature.home.vault.screen.VaultViewPasswordHistoryState
+import com.artemchep.keyguard.feature.home.vault.screen.vaultViewPasswordHistoryScreenStateProducer
+import com.artemchep.keyguard.feature.license.LicenseState
+import com.artemchep.keyguard.feature.license.licenseStateProducer
+import com.artemchep.keyguard.feature.localizationcontributors.directory.LocalizationContributorsListState
+import com.artemchep.keyguard.feature.localizationcontributors.directory.localizationContributorsListStateProducer
+import com.artemchep.keyguard.feature.logs.LogsItem
+import com.artemchep.keyguard.feature.logs.LogsState
+import com.artemchep.keyguard.feature.logs.logsStateProducer
+import com.artemchep.keyguard.feature.sshagent.history.SshAgentHistoryItem
+import com.artemchep.keyguard.feature.sshagent.history.SshAgentHistoryState
+import com.artemchep.keyguard.feature.sshagent.history.sshAgentHistoryStateProducer
+import com.artemchep.keyguard.feature.urlblock.UrlBlockListState
+import com.artemchep.keyguard.feature.urlblock.urlBlockListStateProducer
+import com.artemchep.keyguard.feature.urloverride.UrlOverrideListState
+import com.artemchep.keyguard.feature.urloverride.urlOverrideListStateProducer
+import com.artemchep.keyguard.apple.core.CoreContext
+import com.artemchep.keyguard.apple.core.KeyguardCancellable
+import com.artemchep.keyguard.apple.core.ListSession
+import com.artemchep.keyguard.apple.core.ListSessionActions
+import com.artemchep.keyguard.apple.core.toggle
+import com.artemchep.keyguard.apple.core.collectOnMain
+import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
+import com.artemchep.keyguard.apple.dialog.DialogController
+import com.artemchep.keyguard.apple.model.buildMenuActionSnapshots
+import com.artemchep.keyguard.apple.model.buildSelectionActionSnapshots
+import com.artemchep.keyguard.platform.LeContext
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+
+internal class ReadOnlyListsController(
+    private val ctx: CoreContext,
+    private val dialogController: DialogController,
+) {
+    fun makeSshAgentHistorySession(
+        cipherId: String?,
+    ): SshAgentHistorySession = SshAgentHistorySession { publish ->
+        ctx.launchSessionObserver(
+            onLocked = {
+                publish(SshAgentHistorySnapshot.empty)
+            },
+        ) { state ->
+            val producerScope = this
+            val producerFlow = with(state.sessionKoin) {
+                ctx.koin.newHeadlessStateFlowScope("ssh_agent_history", producerScope)
+                    .sshAgentHistoryStateProducer(
+                        cipherId = cipherId,
+                        getSshUsageHistory = get(),
+                        removeSshUsageHistory = get(),
+                        getCiphers = get(),
+                        dateFormatter = get(),
+                        confirmationRouteFactory = get(),
+                        json = get(),
+                    )
+            }
+            producerFlow
+                .map { loadable -> buildSshAgentHistorySnapshot(loadable.getOrNull()) }
+                .collectOnMain { publish(it) }
+        }
+    }
+
+    private fun buildSshAgentHistorySnapshot(
+        state: SshAgentHistoryState?,
+    ): SshAgentHistorySnapshot {
+        state ?: return SshAgentHistorySnapshot.empty
+        val items = state.items.map { item ->
+            when (item) {
+                is SshAgentHistoryItem.Section -> SshAgentHistoryItemSnapshot(
+                    id = item.id,
+                    kind = SshAgentHistoryItemKind.SECTION,
+                    caller = item.text.orEmpty(),
+                    description = "",
+                    date = null,
+                    responseText = "",
+                    response = null,
+                )
+
+                is SshAgentHistoryItem.Value -> SshAgentHistoryItemSnapshot(
+                    id = item.id,
+                    kind = SshAgentHistoryItemKind.VALUE,
+                    caller = item.caller,
+                    description = item.description,
+                    date = item.formattedDate,
+                    responseText = item.responseText,
+                    response = item.response.name,
+                )
+            }
+        }
+        return SshAgentHistorySnapshot(loaded = true, subtitle = state.subtitle, items = items)
+    }
+
+    /** Threads the dialog interceptor so the producer's routes reach a renderer instead of being dropped. */
+    fun makePasswordHistorySession(
+        itemId: String,
+    ): ListSession<PasswordHistorySnapshot> = ListSession { publish ->
+        val leContext = ctx.koin.get<LeContext>()
+        ctx.launchSessionObserver(
+            onLocked = {
+                publish(PasswordHistorySnapshot.empty, ListSessionActions())
+            },
+            // Also drop retained password actions if the producer terminates unexpectedly.
+            onTeardown = { publish(PasswordHistorySnapshot.empty, ListSessionActions()) },
+        ) { state ->
+            val producerScope = this
+            val producerFlow = with(state.sessionKoin) {
+                // Pass the session DI so a password row's "Check data breaches"
+                // action (PasswordLeakRoute) resolves its session-scoped checker
+                // and presents the password-breach dialog.
+                ctx.koin.newHeadlessStateFlowScope(
+                    "vault_password_history.$itemId",
+                    producerScope,
+                    dialogController.navigationInterceptor(sessionKoin = state.sessionKoin),
+                )
+                    .vaultViewPasswordHistoryScreenStateProducer(
+                        getCanWrite = get(),
+                        getAccounts = get(),
+                        getCiphers = get(),
+                        cipherRemovePasswordHistory = get(),
+                        cipherRemovePasswordHistoryById = get(),
+                        clipboardService = get(),
+                        dateFormatter = get(),
+                        confirmationRouteFactory = get(),
+                        itemId = itemId,
+                    )
+            }
+            // Build the snapshot + handler maps off the main thread, then install
+            // the maps and deliver on the main thread together.
+            producerFlow
+                .map { historyState ->
+                    val itemHandlers = LinkedHashMap<String, () -> Unit>()
+                    val selectionHandlers = LinkedHashMap<String, () -> Unit>()
+                    val actionHandlers = LinkedHashMap<String, () -> Unit>()
+                    val snapshot = buildPasswordHistorySnapshot(
+                        state = historyState,
+                        leContext = leContext,
+                        itemHandlers = itemHandlers,
+                        selectionHandlers = selectionHandlers,
+                        actionHandlers = actionHandlers,
+                    )
+                    val content = historyState.content as? VaultViewPasswordHistoryState.Content.Cipher
+                    // Keep only selection callbacks, rather than retaining the cipher's plaintext data.
+                    val toggles = content?.items
+                        ?.filterIsInstance<VaultPasswordHistoryItem.Value>()
+                        ?.mapNotNull { item ->
+                            (item.onClick ?: item.onLongClick)?.let { item.id to it }
+                        }
+                        ?.toMap()
+                        .orEmpty()
+                    snapshot to ListSessionActions(
+                        items = itemHandlers,
+                        selection = selectionHandlers,
+                        screen = actionHandlers,
+                        toggleSelection = { id -> toggles[id]?.invoke() },
+                        clearSelection = content?.selection?.onClear,
+                    )
+                }
+                .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
+        }
+    }
+
+    private suspend fun buildPasswordHistorySnapshot(
+        state: VaultViewPasswordHistoryState,
+        leContext: LeContext,
+        itemHandlers: LinkedHashMap<String, () -> Unit>,
+        selectionHandlers: LinkedHashMap<String, () -> Unit>,
+        actionHandlers: LinkedHashMap<String, () -> Unit>,
+    ): PasswordHistorySnapshot {
+        return when (val content = state.content) {
+            is VaultViewPasswordHistoryState.Content.Cipher -> {
+                val items = content.items
+                    .filterIsInstance<VaultPasswordHistoryItem.Value>()
+                    .map { item ->
+                        val actions = buildMenuActionSnapshots(
+                            actions = item.dropdown,
+                            idPrefix = "item:${item.id}",
+                            leContext = leContext,
+                            handlers = itemHandlers,
+                        )
+                        PasswordHistoryItemSnapshot(
+                            id = item.id,
+                            value = item.value,
+                            date = item.date,
+                            monospace = item.monospace,
+                            actions = actions,
+                            selected = item.selected,
+                            selecting = item.selecting,
+                        )
+                    }
+                val selection = content.selection
+                val selectionActions = buildSelectionActionSnapshots(
+                    actions = selection?.actions,
+                    leContext = leContext,
+                    handlers = selectionHandlers,
+                )
+                val topActions = buildMenuActionSnapshots(
+                    actions = content.actions,
+                    idPrefix = "screen",
+                    leContext = leContext,
+                    handlers = actionHandlers,
+                )
+                PasswordHistorySnapshot(
+                    loaded = true,
+                    notFound = false,
+                    items = items,
+                    selectionCount = selection?.count ?: 0,
+                    selectionActions = selectionActions,
+                    actions = topActions,
+                )
+            }
+
+            is VaultViewPasswordHistoryState.Content.NotFound ->
+                PasswordHistorySnapshot(loaded = true, notFound = true, items = emptyList())
+
+            is VaultViewPasswordHistoryState.Content.Loading ->
+                PasswordHistorySnapshot.empty
+        }
+    }
+
+    fun observeLicense(
+        onChange: (LicenseListSnapshot) -> Unit,
+    ): KeyguardCancellable {
+        return ctx.launchObserver {
+            coroutineScope {
+                val producerScope = this
+                val producerFlow = with(ctx.koin) {
+                    ctx.koin.newHeadlessStateFlowScope("open_source_licenses", producerScope)
+                        .licenseStateProducer(licenseService = get())
+                }
+                producerFlow
+                    .map { loadable -> buildLicenseSnapshot(loadable.getOrNull()) }
+                    .collectOnMain { onChange(it) }
+            }
+        }
+    }
+
+    private fun buildLicenseSnapshot(
+        state: LicenseState?,
+    ): LicenseListSnapshot {
+        state ?: return LicenseListSnapshot.empty
+        val items = state.content.items.map { lib ->
+            val id = lib.groupId + ":" + lib.artifactId
+            LicenseItemSnapshot(
+                id = id,
+                name = lib.name ?: id,
+                version = lib.version,
+                license = lib.spdxLicenses.joinToString(separator = ", ") { it.name },
+                url = lib.scm?.url
+                    ?: lib.spdxLicenses.firstOrNull { it.url != null }?.url,
+            )
+        }
+        return LicenseListSnapshot(loaded = true, items = items)
+    }
+
+    fun observeLocalizationContributors(
+        onChange: (LocalizationContributorsSnapshot) -> Unit,
+    ): KeyguardCancellable {
+        return ctx.launchObserver {
+            coroutineScope {
+                val producerScope = this
+                val producerFlow = with(ctx.koin) {
+                    ctx.koin.newHeadlessStateFlowScope("localization_contributors_list", producerScope)
+                        .localizationContributorsListStateProducer(localizationContributorsService = get())
+                }
+                producerFlow
+                    .map { loadable -> buildLocalizationContributorsSnapshot(loadable.getOrNull()) }
+                    .collectOnMain { onChange(it) }
+            }
+        }
+    }
+
+    private fun buildLocalizationContributorsSnapshot(
+        state: LocalizationContributorsListState?,
+    ): LocalizationContributorsSnapshot {
+        val content = state?.content?.getOrNull()?.getOrNull()
+            ?: return LocalizationContributorsSnapshot.empty
+        val items = content.items.map { item ->
+            LocalizationContributorItemSnapshot(
+                id = item.key,
+                name = item.name.text,
+                score = item.score,
+            )
+        }
+        return LocalizationContributorsSnapshot(loaded = true, items = items)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeLogs(
+        onChange: (LogsSnapshot) -> Unit,
+    ): KeyguardCancellable {
+        // ExportLogs belongs to the unlocked session graph. Resolving it from
+        // global DI throws before the producer can publish its first snapshot.
+        return ctx.launchSessionObserver(
+            onLocked = { onChange(LogsSnapshot.empty) },
+        ) { state ->
+            val producerScope = this
+            val producerFlow = with(state.sessionKoin) {
+                ctx.koin.newHeadlessStateFlowScope("logs", producerScope)
+                    .logsStateProducer(
+                        dateFormatter = get(),
+                        clipboardService = get(),
+                        getInMemoryLogs = get(),
+                        getInMemoryLogsEnabled = get(),
+                        putInMemoryLogsEnabled = get(),
+                        permissionService = get(),
+                        exportLogs = get(),
+                    )
+            }
+            // The top-level LogsState rarely re-emits; its live entries flow
+            // through the inner contentFlow it does NOT re-emit for, so switch
+            // to that inner flow.
+            producerFlow
+                .map { it.getOrNull() }
+                .flatMapLatest { st ->
+                    if (st == null) {
+                        flowOf(LogsSnapshot.empty)
+                    } else {
+                        st.contentFlow.map { content -> buildLogsSnapshot(content) }
+                    }
+                }
+                .collectOnMain { onChange(it) }
+        }
+    }
+
+    private fun buildLogsSnapshot(
+        content: LogsState.Content,
+    ): LogsSnapshot {
+        val items = content.items.map { item ->
+            when (item) {
+                is LogsItem.Section -> LogsItemSnapshot(
+                    id = item.id,
+                    kind = LogsItemKind.SECTION,
+                    text = item.text.orEmpty(),
+                    level = null,
+                    time = null,
+                )
+
+                is LogsItem.Value -> LogsItemSnapshot(
+                    id = item.id,
+                    kind = LogsItemKind.VALUE,
+                    text = item.text.text,
+                    level = item.level.name,
+                    time = item.time,
+                )
+            }
+        }
+        return LogsSnapshot(loaded = true, items = items)
+    }
+
+    fun makeUrlBlockListSession(): ListSession<UrlRuleListSnapshot> = ListSession { publish ->
+        val leContext = ctx.koin.get<LeContext>()
+        ctx.launchSessionObserver(
+            onLocked = { publish(UrlRuleListSnapshot.empty, ListSessionActions()) },
+            onTeardown = { publish(UrlRuleListSnapshot.empty, ListSessionActions()) },
+        ) { state ->
+            coroutineScope {
+                val producerScope = this
+                val sessionKoin = state.sessionKoin
+                val producerFlow = with(sessionKoin) {
+                    ctx.koin.newHeadlessStateFlowScope(
+                        "urlblock_list",
+                        producerScope,
+                        dialogController.navigationInterceptor(sessionKoin = sessionKoin),
+                    )
+                        .urlBlockListStateProducer(
+                            confirmationRouteFactory = get(),
+                            addUrlBlock = get(),
+                            removeUrlBlockById = get(),
+                            getUrlBlocks = get(),
+                        )
+                }
+                producerFlow
+                    .map { loadable ->
+                        val content = loadable.getOrNull()?.content?.getOrNull()?.getOrNull()
+                        val itemHandlers = LinkedHashMap<String, () -> Unit>()
+                        val selectionHandlers = LinkedHashMap<String, () -> Unit>()
+                        val snapshot = buildUrlBlockSnapshot(
+                            content = content,
+                            leContext = leContext,
+                            itemHandlers = itemHandlers,
+                            selectionHandlers = selectionHandlers,
+                        )
+                        val items = content?.items.orEmpty()
+                        snapshot to ListSessionActions(
+                            items = itemHandlers,
+                            selection = selectionHandlers,
+                            toggleSelection = { id ->
+                                items.firstOrNull { it.key == id }?.selectableState?.value?.toggle()
+                            },
+                            clearSelection = content?.selection?.onClear,
+                            primary = content?.primaryAction,
+                        )
+                    }
+                    .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
+            }
+        }
+    }
+
+    private suspend fun buildUrlBlockSnapshot(
+        content: UrlBlockListState.Content?,
+        leContext: LeContext,
+        itemHandlers: LinkedHashMap<String, () -> Unit>,
+        selectionHandlers: LinkedHashMap<String, () -> Unit>,
+    ): UrlRuleListSnapshot {
+        content ?: return UrlRuleListSnapshot.empty
+        val items = content.items.map { item ->
+            val selectable = item.selectableState.value
+            val actions = buildMenuActionSnapshots(
+                actions = item.dropdown,
+                idPrefix = "item:${item.key}",
+                leContext = leContext,
+                handlers = itemHandlers,
+            )
+            UrlRuleItemSnapshot(
+                id = item.key,
+                title = item.title,
+                subtitle = item.uri.text,
+                detail = item.mode.text,
+                active = item.active,
+                actions = actions,
+                selected = selectable.selected,
+                selecting = selectable.selecting,
+            )
+        }
+        val selection = content.selection
+        val selectionActions = buildSelectionActionSnapshots(
+            actions = selection?.actions,
+            leContext = leContext,
+            handlers = selectionHandlers,
+        )
+        return UrlRuleListSnapshot(
+            loaded = true,
+            items = items,
+            hasPrimaryAction = content.primaryAction != null,
+            selectionCount = selection?.count ?: 0,
+            selectionActions = selectionActions,
+        )
+    }
+
+    fun makeUrlOverrideListSession(): ListSession<UrlRuleListSnapshot> = ListSession { publish ->
+        val leContext = ctx.koin.get<LeContext>()
+        ctx.launchSessionObserver(
+            onLocked = { publish(UrlRuleListSnapshot.empty, ListSessionActions()) },
+            onTeardown = { publish(UrlRuleListSnapshot.empty, ListSessionActions()) },
+        ) { state ->
+            coroutineScope {
+                val producerScope = this
+                val sessionKoin = state.sessionKoin
+                val producerFlow = with(sessionKoin) {
+                    ctx.koin.newHeadlessStateFlowScope(
+                        "urloverride_list",
+                        producerScope,
+                        dialogController.navigationInterceptor(sessionKoin = sessionKoin),
+                    )
+                        .urlOverrideListStateProducer(
+                            confirmationRouteFactory = get(),
+                            addUrlOverride = get(),
+                            removeUrlOverrideById = get(),
+                            getUrlOverrides = get(),
+                            executeCommand = get(),
+                        )
+                }
+                producerFlow
+                    .map { loadable ->
+                        val content = loadable.getOrNull()?.content?.getOrNull()?.getOrNull()
+                        val itemHandlers = LinkedHashMap<String, () -> Unit>()
+                        val selectionHandlers = LinkedHashMap<String, () -> Unit>()
+                        val snapshot = buildUrlOverrideSnapshot(
+                            content = content,
+                            leContext = leContext,
+                            itemHandlers = itemHandlers,
+                            selectionHandlers = selectionHandlers,
+                        )
+                        val items = content?.items.orEmpty()
+                        snapshot to ListSessionActions(
+                            items = itemHandlers,
+                            selection = selectionHandlers,
+                            toggleSelection = { id ->
+                                items.firstOrNull { it.key == id }?.selectableState?.value?.toggle()
+                            },
+                            clearSelection = content?.selection?.onClear,
+                            primary = content?.primaryAction,
+                        )
+                    }
+                    .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
+            }
+        }
+    }
+
+    private suspend fun buildUrlOverrideSnapshot(
+        content: UrlOverrideListState.Content?,
+        leContext: LeContext,
+        itemHandlers: LinkedHashMap<String, () -> Unit>,
+        selectionHandlers: LinkedHashMap<String, () -> Unit>,
+    ): UrlRuleListSnapshot {
+        content ?: return UrlRuleListSnapshot.empty
+        val items = content.items.map { item ->
+            val selectable = item.selectableState.value
+            val actions = buildMenuActionSnapshots(
+                actions = item.dropdown,
+                idPrefix = "item:${item.key}",
+                leContext = leContext,
+                handlers = itemHandlers,
+            )
+            UrlRuleItemSnapshot(
+                id = item.key,
+                title = item.title,
+                subtitle = item.regex.text,
+                detail = item.command.text,
+                active = item.active,
+                actions = actions,
+                selected = selectable.selected,
+                selecting = selectable.selecting,
+            )
+        }
+        val selection = content.selection
+        val selectionActions = buildSelectionActionSnapshots(
+            actions = selection?.actions,
+            leContext = leContext,
+            handlers = selectionHandlers,
+        )
+        return UrlRuleListSnapshot(
+            loaded = true,
+            items = items,
+            hasPrimaryAction = content.primaryAction != null,
+            selectionCount = selection?.count ?: 0,
+            selectionActions = selectionActions,
+        )
+    }
+}

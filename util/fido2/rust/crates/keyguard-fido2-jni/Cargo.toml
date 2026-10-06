@@ -1,0 +1,14 @@
+[package]
+name = "keyguard-fido2-jni"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+[lib]
+crate-type = ["cdylib"]
+[dependencies]
+keyguard-ffi = { workspace = true, features = ["jni"] }
+keyguard-fido2-core.workspace = true
+jni.workspace = true
+[lints]
+workspace = true

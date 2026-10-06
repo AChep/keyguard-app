@@ -144,7 +144,7 @@ class SyncV2SendUploadIntegrationTest {
     fun `production SendSyncOps uploads new file send and clears staged file`() = runTest {
         withTempUploadFile("production send bytes") { _, pendingUpload ->
             val server = UploadTestServer()
-            val database = createUploadTestDatabase()
+            val database = createUploadTestDatabase().apply { insertUploadTestAccount() }
             val cryptoGenerator = CryptoGeneratorJvm()
             val base64Service = Base64ServiceJvm()
             val crypto = BitwardenCrImpl(
@@ -227,7 +227,7 @@ class SyncV2SendUploadIntegrationTest {
         withTempUploadFile("production failed send bytes") { _, pendingUpload ->
             val server = UploadTestServer()
             server.nextSendFileUploadFailure = HttpStatusCode.InternalServerError
-            val database = createUploadTestDatabase()
+            val database = createUploadTestDatabase().apply { insertUploadTestAccount() }
             val cryptoGenerator = CryptoGeneratorJvm()
             val base64Service = Base64ServiceJvm()
             val crypto = createUploadTestCrypto(
@@ -466,7 +466,7 @@ class SyncV2SendUploadIntegrationTest {
     fun `production SendSyncOps remote refresh preserves pending send upload`() = runTest {
         withTempUploadFile("refreshed send bytes") { _, pendingUpload ->
             val server = UploadTestServer()
-            val database = createUploadTestDatabase()
+            val database = createUploadTestDatabase().apply { insertUploadTestAccount() }
             val cryptoGenerator = CryptoGeneratorJvm()
             val base64Service = Base64ServiceJvm()
             val crypto = createUploadTestCrypto(
@@ -551,7 +551,7 @@ class SyncV2SendUploadIntegrationTest {
     fun `production SendSyncOps remote refresh propagates upload marker cancellation`() = runTest {
         withTempUploadFile("cancelled marker send bytes") { _, pendingUpload ->
             val server = UploadTestServer()
-            val database = createUploadTestDatabase()
+            val database = createUploadTestDatabase().apply { insertUploadTestAccount() }
             val cryptoGenerator = CryptoGeneratorJvm()
             val base64Service = Base64ServiceJvm()
             val crypto = createUploadTestCrypto(
@@ -633,7 +633,7 @@ class SyncV2SendUploadIntegrationTest {
     fun `production SendSyncOps local delete removes pending staged file`() = runTest {
         withTempUploadFile("deleted send bytes") { _, pendingUpload ->
             val server = UploadTestServer()
-            val database = createUploadTestDatabase()
+            val database = createUploadTestDatabase().apply { insertUploadTestAccount() }
             val cryptoGenerator = CryptoGeneratorJvm()
             val base64Service = Base64ServiceJvm()
             val crypto = createUploadTestCrypto(
@@ -691,7 +691,7 @@ class SyncV2SendUploadIntegrationTest {
     fun `production SendSyncOps delete forever deletes remote send and local row`() = runTest {
         withTempUploadFile("deleted send bytes") { _, pendingUpload ->
             val server = UploadTestServer()
-            val database = createUploadTestDatabase()
+            val database = createUploadTestDatabase().apply { insertUploadTestAccount() }
             val cryptoGenerator = CryptoGeneratorJvm()
             val base64Service = Base64ServiceJvm()
             val crypto = createUploadTestCrypto(
@@ -771,7 +771,7 @@ class SyncV2SendUploadIntegrationTest {
         withTempUploadFile("production send bytes a") { _, pendingUploadA ->
             withTempUploadFile("production send bytes b") { _, pendingUploadB ->
                 val server = UploadTestServer()
-                val database = createUploadTestDatabase()
+                val database = createUploadTestDatabase().apply { insertUploadTestAccount() }
                 val cryptoGenerator = CryptoGeneratorJvm()
                 val base64Service = Base64ServiceJvm()
                 val crypto = BitwardenCrImpl(
@@ -924,6 +924,7 @@ class SyncV2SendUploadIntegrationTest {
                 cipherEncryptor = cipherEncryptor,
                 base64Service = base64Service,
             )
+            database.accountQueries.insert(accountId = user.id, data = user)
             server.profile = profile
             val coordinator = UploadTestPendingUploadCoordinator()
             val local =
@@ -1436,7 +1437,7 @@ private fun createProductionSendOpsFixture(
     server: UploadTestServer,
     coordinator: UploadTestPendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
 ): ProductionSendOpsFixture {
-    val database = createUploadTestDatabase()
+    val database = createUploadTestDatabase().apply { insertUploadTestAccount() }
     val cryptoGenerator = CryptoGeneratorJvm()
     val base64Service = Base64ServiceJvm()
     val crypto = createUploadTestCrypto(

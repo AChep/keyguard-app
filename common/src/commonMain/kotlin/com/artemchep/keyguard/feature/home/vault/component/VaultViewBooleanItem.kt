@@ -1,11 +1,11 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.SwitchExpressive
 
 @Composable
 fun VaultViewSwitchItem(
@@ -29,7 +29,7 @@ fun VaultViewSwitchItem(
 //            CompositionLocalProvider(
 //                LocalMinimumInteractiveComponentEnforcement provides false,
 //            ) {
-            Switch(
+            SwitchExpressive(
                 checked = item.value,
                 onCheckedChange = null,
             )

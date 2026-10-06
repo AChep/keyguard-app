@@ -25,6 +25,7 @@ class AndroidConventionsTest {
                     create("libs") {
                         version("jdk", "21")
                         version("androidCompileSdk", "37")
+                        version("androidCompileSdkMinor", "1")
                         version("androidMinSdk", "26")
                         version("androidTargetSdk", "37")
                         version("androidNdk", "27.0.12077973")
@@ -233,6 +234,7 @@ class AndroidConventionsTest {
     private fun jvmAssertions(minSdk: Int = 26): String =
         """
         check(android.compileSdk == 37)
+        check(android.compileSdkMinor == 1)
         check(android.defaultConfig.minSdk == $minSdk)
         check(android.compileOptions.sourceCompatibility.toString() == "21")
         check(android.compileOptions.targetCompatibility.toString() == "21")

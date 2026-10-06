@@ -18,7 +18,11 @@ class KotlinMultiplatformLibraryConventionPlugin : Plugin<Project> {
         val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
         extensions.configure<KotlinMultiplatformExtension> {
             (this as ExtensionAware).extensions.configure<KotlinMultiplatformAndroidLibraryTarget>("android") {
-                compileSdk = libs.findVersion("androidCompileSdk").get().requiredVersion.toInt()
+                compileSdk {
+                    version = release(libs.findVersion("androidCompileSdk").get().requiredVersion.toInt()) {
+                        minorApiLevel = libs.findVersion("androidCompileSdkMinor").get().requiredVersion.toInt()
+                    }
+                }
                 minSdk = libs.findVersion("androidMinSdk").get().requiredVersion.toInt()
                 withHostTest {}
             }

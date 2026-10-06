@@ -44,7 +44,11 @@ class AndroidTestConventionPlugin : Plugin<Project> {
 private fun Project.configureAndroidDefaults(android: CommonExtension) {
     val libs = androidCatalog()
     val jdk = libs.versionInt("jdk")
-    android.compileSdk = libs.versionInt("androidCompileSdk")
+    android.compileSdk {
+        version = release(libs.versionInt("androidCompileSdk")) {
+            minorApiLevel = libs.versionInt("androidCompileSdkMinor")
+        }
+    }
     android.defaultConfig.minSdk = libs.versionInt("androidMinSdk")
     android.compileOptions.sourceCompatibility = JavaVersion.toVersion(jdk)
     android.compileOptions.targetCompatibility = JavaVersion.toVersion(jdk)

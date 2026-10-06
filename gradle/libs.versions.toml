@@ -4,6 +4,8 @@ androidMinSdk = "26"
 # @keep
 androidCompileSdk = "37"
 # @keep
+androidCompileSdkMinor = "1"
+# @keep
 androidTargetSdk = "37"
 # @keep
 androidNdk = "27.0.12077973"
@@ -69,12 +71,12 @@ commonsCodec = "1.22.1"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 commonsLang3 = "3.20.0"
 # https://github.com/JetBrains/compose-multiplatform
-composeMultiplatform = "1.13.0-alpha01"
-composeRuntime = "1.13.0-alpha01"
-composeUi = "1.13.0-alpha01"
-composeFoundation = "1.13.0-alpha01"
-composeMaterial = "1.13.0-alpha01"
-composeMaterial3 = "1.13.0-alpha01"
+composeMultiplatform = "1.13.0-alpha02"
+composeRuntime = "1.13.0-alpha02"
+composeUi = "1.13.0-alpha02"
+composeFoundation = "1.13.0-alpha02"
+composeMaterial = "1.13.0-alpha02"
+composeMaterial3 = "1.13.0-alpha02"
 composeMaterialIconsExtended = "1.7.3"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"

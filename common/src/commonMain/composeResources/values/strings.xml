@@ -871,6 +871,12 @@
     <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
     <string name="error_failed_gpg_agent_start">Failed to start the GPG agent</string>
     <string name="error_failed_power_lock_start">Could not enable automatic vault locking. Restart Keyguard to try again.</string>
+    <string name="error_quick_search_autotype_permission">Accessibility access required</string>
+    <string name="error_quick_search_autotype_unavailable">Could not focus the destination</string>
+    <string name="error_quick_search_autotype_invalid_text">Cannot auto-type this value</string>
+    <string name="error_quick_search_autotype_failed">Auto-type failed</string>
+    <string name="error_quick_search_autotype_busy">Auto-type already running</string>
+    <string name="error_quick_search_autotype_keys_held">Release all keys and mouse buttons, then try again</string>
     <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -1487,6 +1493,8 @@
     <string name="vault_main_empty_title">Your vault is empty</string>
     <string name="vault_main_empty_add_account_text">Add a Bitwarden account to get started.</string>
 
+    <string name="quick_search_autotype">Auto-type</string>
+    <string name="quick_search_autotype_choose_field">Choose what to auto-type</string>
     <string name="quick_search_no_matches_title">No matches</string>
     <string name="quick_search_empty_hint">Type to find a login.</string>
     <string name="quick_search_select_result_hint">Select a result to see its details.</string>
@@ -2054,6 +2062,10 @@
     <string name="pref_item_features_overview_title">Features overview</string>
     <string name="pref_item_url_override_title">URL overrides</string>
     <string name="pref_item_webdav_transactions_title">Prefer WebDAV transactions</string>
+    <string name="pref_item_autotype_speed_title">Auto-type speed</string>
+    <string name="pref_item_autotype_speed_fast">Fast</string>
+    <string name="pref_item_autotype_speed_normal">Normal</string>
+    <string name="pref_item_autotype_speed_slow">Slow</string>
     <string name="pref_item_agent_approval_scope_title">Approval scope</string>
     <string name="pref_item_agent_approval_scope_connection">Per connection</string>
     <string name="pref_item_agent_approval_scope_process">Per process</string>

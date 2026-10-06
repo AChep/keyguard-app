@@ -19,7 +19,6 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.agent.AgentRequest
-import com.artemchep.keyguard.desktop.util.WindowFocusRequestEffect
 import com.artemchep.keyguard.di.VaultSessionContent
 import com.artemchep.keyguard.feature.agent.AgentRequestUiState
 import com.artemchep.keyguard.feature.keyguard.AuthScreen
@@ -29,8 +28,6 @@ import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnCreate
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnLoading
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnUnlock
 import com.artemchep.keyguard.feature.localization.TextHolder
-import com.artemchep.keyguard.platform.CurrentPlatform
-import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ic_keyguard
@@ -74,20 +71,10 @@ internal fun <T : AgentRequest> ApplicationScope.AgentRequestWindow(
         alwaysOnTop = true,
         resizable = false,
         focusRequestKey = focusRequest,
+        focusTag = focusTag,
+        focusRequestId = focusRequest?.focusRequestLogId(),
         icon = painterResource(Res.drawable.ic_keyguard),
     ) {
-        // Force the window to the foreground, even across
-        // virtual desktops / workspaces. Only do so if the
-        // actual underlying request changes.
-        WindowFocusRequestEffect(
-            window = window,
-            visible = focusRequest != null,
-            requestKey = focusRequest,
-            tag = focusTag,
-            requestId = focusRequest?.focusRequestLogId(),
-            requestApplicationForeground = CurrentPlatform !is Platform.Desktop.MacOS,
-        )
-
         KeyguardWindowEssentials(
             processLifecycleProvider = processLifecycleProvider,
             onMinimizeRequest = {},

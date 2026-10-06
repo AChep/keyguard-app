@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 
 val DropdownMinWidth = 256.dp
@@ -16,6 +17,7 @@ fun KeyguardDropdownMenu(
     modifier: Modifier = Modifier,
     expanded: Boolean,
     onDismissRequest: () -> Unit,
+    properties: PopupProperties = PopupProperties(focusable = true),
     content: @Composable DropdownScope.() -> Unit,
 ) {
     DropdownMenu(
@@ -24,6 +26,7 @@ fun KeyguardDropdownMenu(
         shape = MaterialTheme.shapes.large,
         expanded = expanded,
         onDismissRequest = onDismissRequest,
+        properties = properties,
     ) {
         val scope = DropdownScopeImpl(
             parent = this,

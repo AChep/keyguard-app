@@ -14,3 +14,10 @@ xcrun clang -fobjc-arc \
   -framework UserNotifications -o "$test_dir/power-events-test"
 
 "$test_dir/power-events-test"
+
+xcrun clang -fobjc-arc \
+  "$objc_root/tests/autotype_target_test.m" \
+  -framework ApplicationServices -framework AppKit \
+  -o "$test_dir/autotype-target-test"
+
+"$test_dir/autotype-target-test"

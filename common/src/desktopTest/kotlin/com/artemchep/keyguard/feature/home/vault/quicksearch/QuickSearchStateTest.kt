@@ -4,11 +4,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import arrow.core.Either
+import arrow.core.right
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.TotpCode
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.CopyText
+import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
@@ -17,17 +21,47 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.*
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
 
 class QuickSearchStateTest {
+    @Test
+    fun `autotype requires an installed executor and unprotected login fields`() {
+        val secret = createSecret(id = "login", login = DSecret.Login(username = "user", password = "password"))
+        assertFalse(QuickSearchActionType.Autotype in quickSearchActionTypes(secret))
+        assertTrue(
+            QuickSearchActionType.Autotype in quickSearchActionTypes(secret, autotypeAvailable = true),
+        )
+        assertFalse(QuickSearchActionType.Autotype in quickSearchActionTypes(
+            secret.copy(reprompt = true), autotypeAvailable = true,
+        ))
+        assertNull(quickSearchAutotypeLogin(secret.copy(login = DSecret.Login())))
+        assertEquals(QuickSearchActionType.CopyPrimary, defaultQuickSearchActionType(secret))
+    }
+
+    @Test
+    fun `autotype supports username only and password only logins`() {
+        val username = quickSearchAutotypeLogin(createSecret(id = "u", login = DSecret.Login(username = "user")))!!
+        assertEquals("user", username.username)
+        assertEquals("", username.password)
+        val password = quickSearchAutotypeLogin(createSecret(id = "p", login = DSecret.Login(password = "secret")))!!
+        assertEquals("", password.username)
+        assertEquals("secret", password.password)
+    }
+
     @Test
     fun `quick search content keeps explicit results`() {
         val first = createVaultItem(id = "first")
@@ -346,3 +380,20 @@ internal fun createTotp() = DSecret.Login.Totp(
 )
 
 internal val TEST_INSTANT = Instant.parse("2024-01-01T00:00:00Z")
+
+internal data object EmptyGetTotpCode : GetTotpCode {
+    override fun invoke(p1: TotpToken): Flow<Either<Throwable, TotpCode>> = emptyFlow()
+}
+
+internal fun successTotpCode(code: String): GetTotpCode = object : GetTotpCode {
+    override fun invoke(p1: TotpToken): Flow<Either<Throwable, TotpCode>> = flowOf(
+        TotpCode(
+            code = code,
+            counter = TotpCode.TimeBasedCounter(
+                timestamp = TEST_INSTANT,
+                expiration = TEST_INSTANT + 30.seconds,
+                duration = 30.seconds,
+            ),
+        ).right(),
+    )
+}

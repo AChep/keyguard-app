@@ -81,7 +81,8 @@ DESKTOP_MODULES = ("crypto", "io", "zxcvbn", "instance", "yubikey", "fido2")
 ANDROID_MODULES = ("crypto", "io", "zxcvbn")
 APPLE_APP_MODULES = ("crypto", "io", "zxcvbn", "zip")
 BRIDGE_EXPORTS = frozenset((
-    "autoType", "getSystemAccentColor", "biometricsIsSupported", "biometricsVerify",
+    "autoTypeCaptureTarget", "autoTypePermission", "autoTypeLogin",
+    "getSystemAccentColor", "biometricsIsSupported", "biometricsVerify",
     "biometricsPrepareEnrollment", "biometricsDeleteCredential", "biometricsTransformSecret",
     "keychainAddPassword",
     "keychainGetPassword", "keychainDeletePassword", "keychainContainsPassword",

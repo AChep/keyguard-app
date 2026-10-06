@@ -12,6 +12,41 @@ import kotlin.test.assertTrue
 
 class QuickSearchInteractionTest {
     @Test
+    fun `autotype chord needs the modifier and key up does not repeat it`() {
+        val action = QuickSearchAction(
+            type = QuickSearchActionType.Autotype,
+            title = "Auto-type login",
+            shortcut = quickSearchShortcut(QuickSearchActionType.Autotype),
+        )
+        val state = QuickSearchState(actions = listOf(action), defaultAction = QuickSearchActionType.CopyPrimary)
+        for (platform in listOf(Platform.Desktop.Windows, Platform.Desktop.MacOS.Jvm)) {
+            val input = QuickSearchKeyInput(
+                key = Key.T,
+                type = KeyEventType.KeyDown,
+                isCtrlPressed = platform is Platform.Desktop.Windows,
+                isMetaPressed = platform is Platform.Desktop.MacOS,
+            )
+            assertEquals(
+                QuickSearchKeyEventAction.PerformShortcutAction(QuickSearchActionType.Autotype),
+                quickSearchKeyEventAction(input, state, platform),
+            )
+            // A plain T belongs to the search query.
+            assertNull(
+                quickSearchKeyEventAction(
+                    input.copy(isCtrlPressed = false, isMetaPressed = false),
+                    state,
+                    platform,
+                ),
+            )
+            assertEquals(
+                QuickSearchKeyEventAction.PerformDefaultAction,
+                quickSearchKeyEventAction(input.copy(key = Key.Enter), state, platform),
+            )
+            assertNull(quickSearchKeyEventAction(input.copy(type = KeyEventType.KeyUp), state, platform))
+        }
+    }
+
+    @Test
     fun `shortcut action takes precedence over other key handling`() {
         val state = createQuickSearchState(
             actions = listOf(

@@ -2,10 +2,11 @@ package com.artemchep.keyguard.desktop.ui.macos
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.awt.ComposeDialog
 import androidx.compose.ui.window.DialogWindowScope
 import com.artemchep.jna.macos.macPopupOverlayManager
-import com.artemchep.keyguard.desktop.util.requestAppForeground
 import com.artemchep.keyguard.desktop.util.requestFocusWithRetry
 import com.artemchep.keyguard.platform.recordLogDebug
 import kotlinx.coroutines.delay
@@ -15,9 +16,17 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 internal fun DialogWindowScope.MacPopupOverlayEffect(
+    visible: Boolean,
     focusRequestKey: Any?,
+    tag: String,
+    requestId: Any?,
+    onFocusAcquired: () -> Unit,
 ) {
-    LaunchedEffect(window, focusRequestKey) {
+    val updatedOnFocusAcquired by rememberUpdatedState(onFocusAcquired)
+
+    LaunchedEffect(window, visible, focusRequestKey) {
+        if (!visible) return@LaunchedEffect
+
         // Wait till the native window handle becomes
         // available, skip if we failed to obtain it.
         val windowHandle = window.awaitMacPopupWindowHandle()
@@ -41,15 +50,14 @@ internal fun DialogWindowScope.MacPopupOverlayEffect(
             }
         }
 
-        val focusRequestId = windowHandle.toString(16)
-        requestAppForeground()
-        delay(50L.milliseconds)
-        window.requestFocusWithRetry(
-            tag = "MacPopupOverlay",
-            requestId = focusRequestId,
-            attempts = 5,
-            bringToFront = true,
+        // The overlay already activated the application and ordered the native
+        // window. Only acquire AWT keyboard focus here.
+        val focusAcquired = window.requestFocusWithRetry(
+            tag = tag,
+            requestId = requestId,
+            bringToFront = false,
         )
+        if (focusAcquired) updatedOnFocusAcquired()
     }
 }
 

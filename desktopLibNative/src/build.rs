@@ -1,10 +1,13 @@
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=objc/desktop_lib.m");
+    println!("cargo:rerun-if-changed=objc/autotype.m");
+    println!("cargo:rerun-if-changed=objc/main_thread.h");
 
     if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("macos") {
         cc::Build::new()
             .file("objc/desktop_lib.m")
+            .file("objc/autotype.m")
             .flag("-x")
             .flag("objective-c")
             .flag("-fobjc-arc")

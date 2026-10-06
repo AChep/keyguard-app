@@ -215,7 +215,17 @@ class GlobalHotKeyInteropTest {
 
         override fun unregisterNativePowerEvents(id: Int): Boolean = false
 
-        override fun autoType(payload: Pointer): Boolean = true
+        override fun autoTypeCaptureTarget(): Long = 0
+
+        override fun autoTypePermission(): Boolean = false
+
+        override fun autoTypeLogin(
+            target: Long,
+            username: Pointer,
+            password: Pointer,
+            delayMultiplier: Int,
+            active: DesktopLibJna.AutotypeActiveCallback,
+        ): Int = 1
 
         override fun getSystemAccentColor(): Int = 0
 

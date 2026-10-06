@@ -25,21 +25,23 @@ import com.artemchep.keyguard.KeyguardPopupScaffold
 import com.artemchep.keyguard.KeyguardWindowEssentials
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.common.service.quicksearch.QuickSearchWindowState
-import com.artemchep.keyguard.desktop.util.WindowFocusRequestEffect
+import com.artemchep.keyguard.desktop.util.awaitHidden
 import com.artemchep.keyguard.feature.home.vault.quicksearch.LocalQuickSearchActivationRevision
+import com.artemchep.keyguard.feature.home.vault.quicksearch.LocalQuickSearchAutotype
 import com.artemchep.keyguard.feature.home.vault.quicksearch.LocalQuickSearchDismiss
 import com.artemchep.keyguard.feature.home.vault.quicksearch.QuickSearchAppRoute
+import com.artemchep.keyguard.feature.home.vault.quicksearch.QuickSearchAutotypePayload
 import com.artemchep.keyguard.feature.navigation.LocalNavigationRouterNode
 import com.artemchep.keyguard.feature.navigation.LocalNavigationStore
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouterNode
 import com.artemchep.keyguard.feature.navigation.NavigationStore
-import com.artemchep.keyguard.platform.CurrentPlatform
-import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ic_keyguard
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -52,6 +54,7 @@ internal fun ApplicationScope.QuickSearchWindow(
     processLifecycleProvider: LePlatformLifecycleProvider,
     windowState: QuickSearchWindowState,
     onDismissRequest: () -> Unit,
+    onAutotype: ((QuickSearchAutotypePayload, String, suspend () -> Boolean) -> Unit)? = null,
 ) {
     val updatedOnDismissRequest by rememberUpdatedState(onDismissRequest)
     var activationRevision by remember(windowState.requestRevision) {
@@ -71,6 +74,8 @@ internal fun ApplicationScope.QuickSearchWindow(
         alwaysOnTop = true,
         resizable = false,
         focusRequestKey = windowState.requestRevision,
+        focusTag = "QuickSearchWindow",
+        onFocusAcquired = { activationRevision += 1 },
         icon = painterResource(Res.drawable.ic_keyguard),
         onKeyEvent = { event ->
             if (event.type == KeyEventType.KeyDown && event.key == Key.Escape) {
@@ -110,28 +115,29 @@ internal fun ApplicationScope.QuickSearchWindow(
             }
         }
 
-        WindowFocusRequestEffect(
-            window = window,
-            visible = windowState.visible,
-            requestKey = windowState.requestRevision,
-            tag = "QuickSearchWindow",
-            requestId = windowState.requestRevision,
-            requestApplicationForeground = CurrentPlatform !is Platform.Desktop.MacOS,
-            onFocusAcquired = {
-                activationRevision += 1
-            },
-        )
-
         KeyguardWindowEssentials(
             processLifecycleProvider = processLifecycleProvider,
             onMinimizeRequest = updatedOnDismissRequest, // close on minimize
         ) {
             KeyguardTheme {
                 KeyguardPopupScaffold {
-                    QuickSearchWindowContent(
-                        activationRevision = activationRevision,
-                        onDismissRequest = updatedOnDismissRequest,
-                    )
+                    val autotype = remember(onAutotype, window) {
+                        onAutotype?.let { perform ->
+                            { payload: QuickSearchAutotypePayload, sessionId: String ->
+                                perform(payload, sessionId) {
+                                    withContext(Dispatchers.Main) { updatedOnDismissRequest() }
+                                    // Wait for the actual OS window to hide, not just the Compose state change.
+                                    window.awaitHidden(tag = "QuickSearchWindow")
+                                }
+                            }
+                        }
+                    }
+                    CompositionLocalProvider(LocalQuickSearchAutotype provides autotype) {
+                        QuickSearchWindowContent(
+                            activationRevision = activationRevision,
+                            onDismissRequest = updatedOnDismissRequest,
+                        )
+                    }
                 }
             }
         }

@@ -39,7 +39,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAutofillPro
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillRespectAutofillOffProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillSaveRequestProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillSaveUriProvider
-import com.artemchep.keyguard.feature.home.settings.component.settingAutotypeTestProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAutotypeSpeedProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingBackupSettings
 import com.artemchep.keyguard.feature.home.settings.component.settingBiometricsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingBiometricsRequireConfirmationProvider
@@ -206,7 +206,7 @@ object Setting {
     const val REQUIRE_MASTER_PASSWORD = "require_master_password"
     const val EMIT_MESSAGE = "emit_message"
     const val EMIT_TOTP = "emit_totp"
-    const val AUTOTYPE_TEST = "autotype_test"
+    const val AUTOTYPE_SPEED = "autotype_speed"
     const val FEEDBACK_APP = "feedback_app"
     const val REDDIT = "reddit"
     const val CROWDIN = "crowdin"
@@ -339,7 +339,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.REQUIRE_MASTER_PASSWORD to ::settingRequireMasterPasswordProvider,
     Setting.EMIT_MESSAGE to ::settingEmitMessageProvider,
     Setting.EMIT_TOTP to ::settingEmitTotpProvider,
-    Setting.AUTOTYPE_TEST to ::settingAutotypeTestProvider,
+    Setting.AUTOTYPE_SPEED to ::settingAutotypeSpeedProvider,
     Setting.FEEDBACK_APP to ::settingFeedbackAppProvider,
     Setting.ABOUT_APP to ::settingAboutAppProvider,
     Setting.ABOUT_APP_BUILD_DATE to ::settingAboutAppBuildDateProvider,

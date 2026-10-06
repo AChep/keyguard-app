@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
+import com.artemchep.keyguard.common.model.AutotypeSpeed
 import com.artemchep.keyguard.common.model.GpgAgentFilter
 import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.NavAnimation
@@ -87,6 +88,7 @@ class SettingsRepositoryImpl(
         private const val KEY_APP_ICONS = "app_icons"
         private const val KEY_WEBSITE_ICONS = "website_icons"
         private const val KEY_MARKDOWN = "markdown"
+        private const val KEY_AUTOTYPE_SPEED = "autotype_speed"
         private const val KEY_WEBDAV_TRANSACTIONS = "webdav_transactions"
         private const val KEY_SSH_AGENT = "ssh_agent"
         private const val KEY_SSH_AGENT_APPROVAL_WINDOW = "ssh_agent.approval_window"
@@ -219,6 +221,13 @@ class SettingsRepositoryImpl(
 
     private val markdownPref =
         store.getBoolean(KEY_MARKDOWN, true)
+
+    private val autotypeSpeedPref = store.getObject(
+        key = KEY_AUTOTYPE_SPEED,
+        defaultValue = AutotypeSpeed.Fast,
+        serialize = AutotypeSpeed::storageKey,
+        deserialize = AutotypeSpeed::fromStorageKey,
+    )
 
     private val webDavTransactionsPref =
         store.getBoolean(KEY_WEBDAV_TRANSACTIONS, true)
@@ -565,6 +574,7 @@ class SettingsRepositoryImpl(
             websiteIconsPref,
             markdownPref,
             webDavTransactionsPref,
+            autotypeSpeedPref,
             sshAgentPref,
             sshAgentApprovalWindowPref,
             sshAgentApprovalCachePolicyPref,
@@ -820,6 +830,11 @@ class SettingsRepositoryImpl(
         .setAndCommit(webDavTransactions)
 
     override fun getWebDavTransactions() = webDavTransactionsPref
+
+    override fun setAutotypeSpeed(speed: AutotypeSpeed) = autotypeSpeedPref
+        .setAndCommit(speed)
+
+    override fun getAutotypeSpeed() = autotypeSpeedPref
 
     override fun setSshAgent(sshAgent: Boolean) = sshAgentPref
         .setAndCommit(sshAgent)

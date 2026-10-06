@@ -28,23 +28,6 @@ internal class BiometricsCallbackRetention {
 
 private val biometricsCallbackRetention = BiometricsCallbackRetention()
 
-internal fun DisposableScope.autoTypeOrThrow(
-    lib: DesktopLibJna,
-    payload: String,
-) {
-    require('\u0000' !in payload) {
-        "AutoType payload contains an unsupported character."
-    }
-    val success = lib.autoType(
-        payload = payload
-            .asMemory()
-            .let(::register),
-    )
-    check(success) {
-        "Failed to auto type payload."
-    }
-}
-
 internal fun getSystemAccentColorOrDefault(
     lib: DesktopLibJna,
 ): Int = runCatching {

@@ -17,6 +17,7 @@ private const val WINDOW_FOCUS_RETRY_DELAY_MS = 50L
 private const val WINDOW_FOCUS_RETRY_ATTEMPTS = 5
 private const val WINDOW_VISIBLE_RETRY_DELAY_MS = 10L
 private const val WINDOW_VISIBLE_RETRY_ATTEMPTS = 50
+private const val WINDOW_HIDDEN_RETRY_ATTEMPTS = 150
 
 @Composable
 internal fun WindowFocusRequestEffect(
@@ -25,19 +26,16 @@ internal fun WindowFocusRequestEffect(
     requestKey: Any?,
     tag: String,
     requestId: Any? = requestKey,
-    requestApplicationForeground: Boolean = true,
     onFocusAcquired: () -> Unit = {},
 ) {
     val updatedOnFocusAcquired by rememberUpdatedState(onFocusAcquired)
 
-    LaunchedEffect(window, visible, requestKey, requestApplicationForeground) {
+    LaunchedEffect(window, visible, requestKey) {
         if (!visible || requestKey == null) {
             return@LaunchedEffect
         }
 
-        if (requestApplicationForeground) {
-            requestAppForeground()
-        }
+        requestAppForeground()
         val windowVisible = window.awaitVisible(
             tag = tag,
             requestId = requestId,
@@ -72,6 +70,27 @@ internal suspend fun Window.awaitVisible(
 
     recordLogDebug {
         "${windowFocusLogPrefix(tag, requestId)} window did not become visible before focus timeout"
+    }
+    return false
+}
+
+/** Waits for the OS window to hide, not just for the Compose state to change. */
+internal suspend fun Window.awaitHidden(
+    tag: String,
+    requestId: Any? = null,
+    attempts: Int = WINDOW_HIDDEN_RETRY_ATTEMPTS,
+    retryDelayMs: Long = WINDOW_VISIBLE_RETRY_DELAY_MS,
+): Boolean {
+    repeat(attempts) {
+        if (!isVisibleOnEdt()) {
+            return true
+        }
+
+        delay(retryDelayMs.milliseconds)
+    }
+
+    recordLogDebug {
+        "${windowFocusLogPrefix(tag, requestId)} window did not hide before timeout"
     }
     return false
 }
@@ -139,6 +158,10 @@ private fun Window.hasKeyboardFocus(
 
 private fun Window.isReadyForFocusOnEdt(): Boolean = runOnEdt {
     isVisible && isDisplayable
+}
+
+private fun Window.isVisibleOnEdt(): Boolean = runOnEdt {
+    isVisible
 }
 
 private fun <T> runOnEdt(block: () -> T): T {

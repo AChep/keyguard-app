@@ -10,7 +10,8 @@ mod notification;
 mod power;
 
 use ffi::{
-    BiometricsResultCallback, BiometricsVerifyCallback, HotKeyPressedCallback, PowerEventCallback,
+    AutoTypeActiveCallback, BiometricsResultCallback, BiometricsVerifyCallback,
+    HotKeyPressedCallback, PowerEventCallback,
 };
 use std::ffi::c_char;
 use std::ffi::c_int;
@@ -18,19 +19,44 @@ use std::ffi::c_void;
 use std::ptr;
 
 #[cfg_attr(not(test), no_mangle)]
-/// Types the supplied payload.
+pub extern "C" fn autoTypeCaptureTarget() -> u64 {
+    ffi::with_ffi_boundary("autoTypeCaptureTarget", 0, || Ok(autotype::capture()))
+}
+
+#[cfg_attr(not(test), no_mangle)]
+/// Returns whether input may be sent. Prompts for access if the platform requires it.
+pub extern "C" fn autoTypePermission() -> bool {
+    ffi::with_ffi_boundary("autoTypePermission", false, || Ok(autotype::permission()))
+}
+
+#[cfg_attr(not(test), no_mangle)]
+/// Types login fields into a previously captured destination using a delay
+/// multiplier of 1 (Fast), 2 (Normal), or 4 (Slow). Returns a non-sensitive status code.
+/// Fields that are not valid UTF-8 are rejected as invalid text.
 ///
 /// # Safety
-///
-/// If `payload` is non-null, it must point to an immutable, readable,
-/// NUL-terminated byte sequence for the duration of this call.
-pub unsafe extern "C" fn autoType(payload: *const c_char) -> bool {
-    ffi::with_redacted_ffi_boundary("autoType", false, || {
-        // SAFETY: `autoType` requires its caller to provide a valid C string
-        // for the duration of this call.
-        let payload = unsafe { ffi::require_string(payload, "payload") }?;
-        autotype::execute(&payload)?;
-        Ok(true)
+/// Both fields must be readable, NUL-terminated strings for the entire call.
+/// The callback must remain callable for the entire synchronous operation.
+pub unsafe extern "C" fn autoTypeLogin(
+    target: u64,
+    username: *const c_char,
+    password: *const c_char,
+    delay_multiplier: c_int,
+    active: AutoTypeActiveCallback,
+) -> c_int {
+    let failed = autotype::Failure::InputFailed as c_int;
+    ffi::with_redacted_ffi_boundary("autoTypeLogin", failed, || {
+        let speed = autotype::Speed::try_from(delay_multiplier)?;
+        let active = active.ok_or("Missing AutoType lifetime callback.")?;
+        // SAFETY: The caller keeps both immutable, NUL-terminated buffers alive for this call.
+        // Borrowing them never copies credentials into memory that is not cleared.
+        let username = unsafe { ffi::require_cstr(username, "username") }?;
+        // SAFETY: Same lifetime and readability contract as username.
+        let password = unsafe { ffi::require_cstr(password, "password") }?;
+        Ok(autotype::execute(target, username, password, speed, || {
+            // SAFETY: The caller keeps the callback callable for this synchronous call.
+            unsafe { active() != 0 }
+        }))
     })
 }
 

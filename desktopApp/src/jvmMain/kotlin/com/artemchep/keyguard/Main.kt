@@ -16,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
@@ -43,7 +44,6 @@ import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.app.AppIconFetcher
 import com.artemchep.keyguard.common.service.app.AppIconKeyer
-import com.artemchep.keyguard.common.service.autotype.AutotypeService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -96,7 +96,10 @@ import com.artemchep.keyguard.desktop.instance.instanceFailureDetails
 import com.artemchep.keyguard.desktop.instance.showInstanceFailure
 import com.artemchep.keyguard.desktop.nativebundle.NATIVE_PACKAGED_SMOKE_ARGUMENT
 import com.artemchep.keyguard.desktop.nativebundle.runNativePackagedSmoke
+import com.artemchep.keyguard.desktop.services.autotype.AutotypeResult
+import com.artemchep.keyguard.desktop.services.autotype.AutotypeService
 import com.artemchep.keyguard.desktop.services.autotype.AutotypeServiceNative
+import com.artemchep.keyguard.desktop.services.autotype.QuickSearchAutotypeController
 import com.artemchep.keyguard.desktop.services.keychain.KeychainRepositoryNative
 import com.artemchep.keyguard.desktop.services.notification.NotificationRepositoryNative
 import com.artemchep.keyguard.desktop.ui.GpgRequestWindow
@@ -121,8 +124,10 @@ import com.artemchep.keyguard.feature.navigation.NavigationModule
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LocalWindowId
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.platform.lifecycle.LaunchLifecycleProviderEffect
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
@@ -168,6 +173,7 @@ import org.koin.compose.koinInject
 import org.koin.core.qualifier.named
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import org.koin.plugin.module.dsl.single
 
 fun main(args: Array<String>) {
     if (NATIVE_PACKAGED_SMOKE_ARGUMENT in args) {
@@ -214,7 +220,7 @@ private class DesktopApplicationModule {
         single { WindowStateManager(get<KeyValueStoreFactory>().get(Files.WINDOW_STATE), get()) }
         single { QuickSearchWindowManager() }
         single<KeychainRepository> { KeychainRepositoryNative() }
-        single<AutotypeService> { AutotypeServiceNative() }
+        single<AutotypeService> { AutotypeServiceNative(get()) }
         single<NotificationRepository> { NotificationRepositoryNative(get()) }
     }
 }
@@ -392,6 +398,34 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance) {
             }
 
             val quickSearchWindowManager = koinInject<QuickSearchWindowManager>()
+            val autotypeScope = rememberCoroutineScope()
+            val autotypeController = remember(quickSearchWindowManager, autotypeScope) {
+                if (CurrentPlatform is Platform.Desktop.Windows || CurrentPlatform is Platform.Desktop.MacOS) {
+                    QuickSearchAutotypeController(
+                        service = koin.get<AutotypeService>(),
+                        getVaultSession = getVaultSession,
+                        scope = autotypeScope,
+                        onFailure = { result ->
+                            val resource = when (result) {
+                                AutotypeResult.PermissionRequired -> Res.string.error_quick_search_autotype_permission
+                                AutotypeResult.Unavailable -> Res.string.error_quick_search_autotype_unavailable
+                                AutotypeResult.InvalidText -> Res.string.error_quick_search_autotype_invalid_text
+                                AutotypeResult.Busy -> Res.string.error_quick_search_autotype_busy
+                                AutotypeResult.KeysHeld -> Res.string.error_quick_search_autotype_keys_held
+                                else -> Res.string.error_quick_search_autotype_failed
+                            }
+                            quickSearchWindowManager.requestOpen()
+                            withFrameNanos { }
+                            koin.get<ShowMessage>().copy(
+                                ToastMessage(
+                                    type = ToastMessage.Type.ERROR,
+                                    title = translatorScope.translate(resource),
+                                ),
+                            )
+                        },
+                    )
+                } else null
+            }
             val quickSearchHotkeyRegistrar = remember {
                 DesktopLibGlobalHotKeyRegistrar(
                     name = "Quick search",
@@ -405,10 +439,12 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance) {
             DisposableEffect(
                 quickSearchWindowManager,
                 quickSearchHotkeyRegistrar,
+                autotypeController,
             ) {
                 val stop = QuickSearchHotkeyService(
                     windowManager = quickSearchWindowManager,
                     globalHotKeyRegistrar = quickSearchHotkeyRegistrar,
+                    beforeOpen = { autotypeController?.captureTarget() },
                 ).start()
                 onDispose(stop)
             }
@@ -624,6 +660,7 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance) {
                 processLifecycleProvider = processLifecycleProvider,
                 windowState = quickSearchWindowState.value,
                 onDismissRequest = quickSearchWindowManager::dismiss,
+                onAutotype = autotypeController?.let { it::start },
             )
 
             // Show a tray icon and allow the app to be collapsed into

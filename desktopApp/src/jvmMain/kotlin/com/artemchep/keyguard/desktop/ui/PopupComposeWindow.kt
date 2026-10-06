@@ -15,6 +15,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.rememberWindowState
 import com.artemchep.keyguard.desktop.ui.macos.MacOwnerlessPopupComposeWindow
+import com.artemchep.keyguard.desktop.util.WindowFocusRequestEffect
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LocalWindowRev
 import com.artemchep.keyguard.platform.Platform
@@ -22,6 +23,7 @@ import com.artemchep.keyguard.platform.WindowRev
 import java.awt.Dialog.ModalityType
 
 @OptIn(ExperimentalComposeUiApi::class)
+@Suppress("LongMethod") // Keep the platform dispatch and forwarded window options together.
 @Composable
 internal fun PopupComposeWindow(
     onCloseRequest: () -> Unit,
@@ -35,6 +37,9 @@ internal fun PopupComposeWindow(
     enabled: Boolean = true,
     focusable: Boolean = true,
     focusRequestKey: Any? = visible,
+    focusTag: String = title,
+    focusRequestId: Any? = focusRequestKey,
+    onFocusAcquired: () -> Unit = {},
     alwaysOnTop: Boolean = false,
     onPreviewKeyEvent: (KeyEvent) -> Boolean = { false },
     onKeyEvent: (KeyEvent) -> Boolean = { false },
@@ -52,6 +57,9 @@ internal fun PopupComposeWindow(
             enabled = enabled,
             focusable = focusable,
             focusRequestKey = focusRequestKey,
+            focusTag = focusTag,
+            focusRequestId = focusRequestId,
+            onFocusAcquired = onFocusAcquired,
             alwaysOnTop = alwaysOnTop,
             onPreviewKeyEvent = onPreviewKeyEvent,
             onKeyEvent = onKeyEvent,
@@ -90,6 +98,15 @@ internal fun PopupComposeWindow(
             )
         },
     ) {
+        WindowFocusRequestEffect(
+            window = window,
+            visible = visible && focusable,
+            requestKey = focusRequestKey,
+            tag = focusTag,
+            requestId = focusRequestId,
+            onFocusAcquired = onFocusAcquired,
+        )
+
         val windowRev = remember(focusRequestKey) {
             WindowRev.generateWindowRev()
         }

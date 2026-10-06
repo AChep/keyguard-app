@@ -42,7 +42,15 @@ internal sealed interface QuickSearchKeyEventAction {
     data object PerformDefaultAction : QuickSearchKeyEventAction
 
     data object ClearQuery : QuickSearchKeyEventAction
+
+    data object OpenAutotypeMenu : QuickSearchKeyEventAction
 }
+
+internal val quickSearchAutotypeMenuShortcut = KeyShortcut(
+    key = Key.T,
+    isCtrlPressed = true,
+    isShiftPressed = true,
+)
 
 internal fun KeyEvent.toQuickSearchKeyInput() = QuickSearchKeyInput(
     key = key,
@@ -64,17 +72,9 @@ internal fun quickSearchKeyEventAction(
 
     val selectedAction = state.selectedActionIndex
         ?.let(state.actions::getOrNull)
-    val shortcutAction = state.actions
-        .firstOrNull { action ->
-            val shortcut = action.shortcut
-                ?: return@firstOrNull false
-            input.matches(
-                shortcut = shortcut,
-                platform = platform,
-            )
-        }
+    val shortcutAction = quickSearchShortcutAction(input, state.actions, platform)
     if (shortcutAction != null) {
-        return QuickSearchKeyEventAction.PerformShortcutAction(shortcutAction.type)
+        return shortcutAction
     }
 
     return when (input.key) {
@@ -98,6 +98,66 @@ internal fun quickSearchKeyEventAction(
 
         else -> null
     }
+}
+
+private fun quickSearchShortcutAction(
+    input: QuickSearchKeyInput,
+    actions: List<QuickSearchAction>,
+    platform: Platform,
+): QuickSearchKeyEventAction? = when {
+    input.matches(quickSearchAutotypeMenuShortcut, platform) &&
+            actions.any { it.type == QuickSearchActionType.Autotype } ->
+        QuickSearchKeyEventAction.OpenAutotypeMenu
+
+    else -> actions.firstOrNull { action ->
+        action.shortcut?.let { input.matches(it, platform) } == true
+    }?.let { QuickSearchKeyEventAction.PerformShortcutAction(it.type) }
+}
+
+internal sealed interface QuickSearchAutotypeMenuKeyAction {
+    data object Dismiss : QuickSearchAutotypeMenuKeyAction
+    data class Select(val field: QuickSearchAutotypeField) : QuickSearchAutotypeMenuKeyAction
+    data class Perform(val field: QuickSearchAutotypeField) : QuickSearchAutotypeMenuKeyAction
+}
+
+internal fun quickSearchAutotypeMenuKeyAction(
+    input: QuickSearchKeyInput,
+    availableFields: List<QuickSearchAutotypeField>,
+    selectedField: QuickSearchAutotypeField,
+): QuickSearchAutotypeMenuKeyAction? = when {
+    input.type != KeyEventType.KeyDown -> null
+    input.key == Key.Escape -> QuickSearchAutotypeMenuKeyAction.Dismiss
+    input.hasShortcutModifier || input.isShiftPressed -> null
+    input.key == Key.DirectionDown -> moveAutotypeFieldSelection(availableFields, selectedField, 1)
+    input.key == Key.DirectionUp -> moveAutotypeFieldSelection(availableFields, selectedField, -1)
+    else -> autotypeFieldForKey(input.key, selectedField)
+        ?.takeIf { it in availableFields }
+        ?.let(QuickSearchAutotypeMenuKeyAction::Perform)
+}
+
+private val QuickSearchKeyInput.hasShortcutModifier: Boolean
+    get() = isAltPressed || isCtrlPressed || isMetaPressed
+
+private fun autotypeFieldForKey(
+    key: Key,
+    selectedField: QuickSearchAutotypeField,
+): QuickSearchAutotypeField? = when (key) {
+    Key.One, Key.NumPad1 -> QuickSearchAutotypeField.Username
+    Key.Two, Key.NumPad2 -> QuickSearchAutotypeField.Password
+    Key.Three, Key.NumPad3 -> QuickSearchAutotypeField.OneTimeCode
+    Key.Enter, Key.NumPadEnter -> selectedField
+    else -> null
+}
+
+private fun moveAutotypeFieldSelection(
+    availableFields: List<QuickSearchAutotypeField>,
+    selectedField: QuickSearchAutotypeField,
+    direction: Int,
+): QuickSearchAutotypeMenuKeyAction? {
+    if (availableFields.isEmpty()) return null
+    val index = availableFields.indexOf(selectedField).coerceAtLeast(0)
+    val next = (index + direction + availableFields.size) % availableFields.size
+    return QuickSearchAutotypeMenuKeyAction.Select(availableFields[next])
 }
 
 internal fun QuickSearchKeyInput.matches(

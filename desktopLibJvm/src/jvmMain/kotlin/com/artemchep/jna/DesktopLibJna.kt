@@ -76,7 +76,21 @@ public interface DesktopLibJna : Library {
         }
     }
 
-    public fun autoType(payload: Pointer): Boolean
+    public fun autoTypeCaptureTarget(): Long
+
+    public fun autoTypePermission(): Boolean
+
+    public fun autoTypeLogin(
+        target: Long,
+        username: Pointer,
+        password: Pointer,
+        delayMultiplier: Int,
+        active: AutotypeActiveCallback,
+    ): Int
+
+    public interface AutotypeActiveCallback : Callback {
+        public fun invoke(): Int
+    }
 
     // Power notifications
 

@@ -83,29 +83,6 @@ class MacPopupOverlayManagerTest {
     }
 
     @Test
-    fun `apply overlay applies window operations in order`() {
-        val operations = FakeMacPopupOverlayOperations()
-        val manager = MacPopupOverlayManager(operations)
-
-        val result = manager.applyOverlay(
-            windowHandle = 42L,
-            makeKeyWindow = true,
-        )
-
-        assertEquals(true, result)
-        assertEquals(
-            listOf(
-                "setCollectionBehavior:42",
-                "prepareWindow:42",
-                "orderFrontRegardless:42",
-                "activateApplication",
-                "makeKeyWindowIfPossible:42",
-            ),
-            operations.calls,
-        )
-    }
-
-    @Test
     fun `apply overlay and wait applies window operations in order`() = runTest {
         val operations = FakeMacPopupOverlayOperations()
         val manager = MacPopupOverlayManager(operations)
@@ -154,11 +131,11 @@ class MacPopupOverlayManagerTest {
     }
 
     @Test
-    fun `apply overlay skips make key when disabled`() {
+    fun `apply overlay skips make key when disabled`() = runTest {
         val operations = FakeMacPopupOverlayOperations()
         val manager = MacPopupOverlayManager(operations)
 
-        val result = manager.applyOverlay(
+        val result = manager.applyOverlayAndWait(
             windowHandle = 42L,
             makeKeyWindow = false,
         )

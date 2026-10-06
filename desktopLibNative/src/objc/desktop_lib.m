@@ -13,20 +13,14 @@
 #include <string.h>
 #include <math.h>
 
+#include "main_thread.h"
+
 typedef void (*kg_biometrics_callback_t)(int32_t status, const char *error);
 typedef void (*kg_hotkey_callback_t)(int32_t hotkey_id);
 typedef void (*kg_power_callback_t)(int32_t event);
 
 // Mirrors `REGISTER_STATUS_INTERNAL_ERROR` in `ffi.rs`.
 static const int32_t KGNativeInternalError = -5;
-
-static void kg_run_on_main(void (^block)(void)) {
-    if ([NSThread isMainThread]) {
-        block();
-    } else {
-        dispatch_sync(dispatch_get_main_queue(), block);
-    }
-}
 
 @interface KGPowerObserver : NSObject
 @property(nonatomic, assign) kg_power_callback_t callback;
@@ -369,18 +363,6 @@ bool kg_unregister_native_global_hotkey(int32_t hotkey_id) {
     kg_run_on_main(block);
 
     return result;
-}
-
-bool kg_post_keyboard_event(uint16_t key_code, bool key_down, uint64_t flags) {
-    CGEventRef event = CGEventCreateKeyboardEvent(NULL, (CGKeyCode)key_code, key_down);
-    if (event == NULL) {
-        return false;
-    }
-
-    CGEventSetFlags(event, (CGEventFlags)flags);
-    CGEventPost(kCGHIDEventTap, event);
-    CFRelease(event);
-    return true;
 }
 
 bool kg_biometrics_is_supported(void) {

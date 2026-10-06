@@ -1,18 +1,142 @@
-use std::sync::Mutex;
-use std::thread;
-use std::time::{Duration, Instant};
-use windows::Win32::Foundation::HWND;
+use super::Destination;
+use windows::core::Owned;
+use windows::Win32::Foundation::{FILETIME, HWND};
+use windows::Win32::System::Threading::{
+    GetProcessTimes, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION,
+};
 use windows::Win32::UI::Input::KeyboardAndMouse::{
     GetAsyncKeyState, SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP,
-    KEYEVENTF_UNICODE, VIRTUAL_KEY, VK_BACK, VK_CONTROL, VK_LWIN, VK_MENU, VK_RETURN, VK_RWIN,
-    VK_SHIFT, VK_TAB,
+    KEYEVENTF_UNICODE, VIRTUAL_KEY, VK_DBE_ALPHANUMERIC, VK_DBE_NOROMAN, VK_HANJA, VK_KANA,
+    VK_PACKET, VK_TAB,
 };
-use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
+use windows::Win32::UI::WindowsAndMessaging::{
+    GetAncestor, GetForegroundWindow, GetGUIThreadInfo, GetWindowThreadProcessId, IsWindow,
+    SetForegroundWindow, GA_ROOT, GUITHREADINFO,
+};
 
-const CHARACTER_DELAY: Duration = Duration::from_millis(20);
-const MODIFIER_POLL_INTERVAL: Duration = Duration::from_millis(10);
-const MODIFIER_TIMEOUT: Duration = Duration::from_secs(1);
-static EXECUTION_LOCK: Mutex<()> = Mutex::new(());
+pub(super) struct Target {
+    window: HWND,
+    pid: u32,
+    created: u64,
+}
+
+// SAFETY: A window handle identifies a window system-wide; it is not a pointer
+// into memory owned by the capturing thread. Every use validates the window first.
+unsafe impl Send for Target {}
+
+pub(super) fn permission() -> bool {
+    true
+}
+
+fn owner(window: HWND) -> Option<u32> {
+    // SAFETY: The handle is borrowed and the output buffer lives for the call.
+    unsafe {
+        if !IsWindow(Some(window)).as_bool() {
+            return None;
+        }
+        let mut pid = 0;
+        GetWindowThreadProcessId(window, Some(&mut pid));
+        (pid != 0).then_some(pid)
+    }
+}
+
+fn created(pid: u32) -> Option<u64> {
+    // SAFETY: Opening a process by ID has no memory-safety preconditions.
+    let process = unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid) }.ok()?;
+    // SAFETY: OpenProcess returned a uniquely owned process handle, and Owned
+    // closes it exactly once with CloseHandle.
+    let process = unsafe { Owned::new(process) };
+    let mut creation = FILETIME::default();
+    let mut exit = FILETIME::default();
+    let mut kernel = FILETIME::default();
+    let mut user = FILETIME::default();
+    // SAFETY: The handle is live and all output buffers are initialized and live for the call.
+    unsafe { GetProcessTimes(*process, &mut creation, &mut exit, &mut kernel, &mut user) }.ok()?;
+    Some((u64::from(creation.dwHighDateTime) << 32) | u64::from(creation.dwLowDateTime))
+}
+
+pub(super) fn capture() -> Option<Target> {
+    // SAFETY: No arguments; returns a borrowed window handle.
+    let window = unsafe { GetForegroundWindow() };
+    let pid = owner(window).filter(|pid| *pid != std::process::id())?;
+    let created = created(pid)?;
+    Some(Target {
+        window,
+        pid,
+        created,
+    })
+}
+
+impl Target {
+    // Input is bound to the window and its owner, never to the title: titles
+    // change on their own (unread counters, edited documents).
+    fn owned(&self) -> bool {
+        owner(self.window) == Some(self.pid)
+    }
+    // Also rejects a reused process ID. Checked once, before activation; the
+    // owner cannot exit and be replaced between two characters.
+    fn matches(&self) -> bool {
+        self.owned() && created(self.pid) == Some(self.created)
+    }
+}
+
+// Keys that never block typing.
+fn ignored(key: VIRTUAL_KEY) -> bool {
+    // Async state also reflects injected input. Only injected Unicode,
+    // including our own characters, produces VK_PACKET; no physical key does.
+    // Japanese and Korean layouts send some lock and input-mode keys without a
+    // key-up, so they can read as held indefinitely. macOS ignores Caps Lock likewise.
+    matches!(key, VK_PACKET | VK_KANA | VK_HANJA)
+        || (VK_DBE_ALPHANUMERIC.0..=VK_DBE_NOROMAN.0).contains(&key.0)
+}
+
+impl Destination for Target {
+    fn activate(&mut self) -> bool {
+        if !self.matches() {
+            return false;
+        }
+        // SAFETY: This borrowed handle was just checked. Activation may be denied
+        // or delayed even when it eventually succeeds; `focused` confirms it.
+        let _ = unsafe { SetForegroundWindow(self.window) };
+        true
+    }
+    fn focused(&mut self) -> bool {
+        if !self.owned() {
+            return false;
+        }
+        // SAFETY: Initialized GUI thread info has the required size. No pointers escape.
+        unsafe {
+            if GetForegroundWindow() != self.window {
+                return false;
+            }
+            let mut info = GUITHREADINFO {
+                cbSize: size_of::<GUITHREADINFO>() as u32,
+                ..Default::default()
+            };
+            if GetGUIThreadInfo(0, &mut info).is_err() {
+                return false;
+            }
+            // Hosted content (UWP behind ApplicationFrameHost) keeps keyboard focus
+            // on another thread, so the foreground thread may report no focus window.
+            // Reject only a focus window that belongs to a different top-level window.
+            info.hwndFocus.is_invalid() || GetAncestor(info.hwndFocus, GA_ROOT) == self.window
+        }
+    }
+    fn keys_released(&mut self) -> bool {
+        // Include the trigger key, modifiers, and mouse buttons (1, 2, 4-6).
+        // Never synthesize releases of user-held keys.
+        (1..=254)
+            .map(VIRTUAL_KEY)
+            .filter(|key| !ignored(*key))
+            .all(|key| {
+                // SAFETY: Values are valid virtual-key codes; only the current-state high bit is read.
+                unsafe { GetAsyncKeyState(i32::from(key.0)) >= 0 }
+            })
+    }
+    fn press(&mut self, character: char) -> bool {
+        send_character_with(character, send_events)
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Key {
@@ -50,163 +174,45 @@ impl KeyEvent {
     }
 }
 
-trait InputPlatform {
-    fn foreground_window(&mut self) -> HWND;
-    fn modifiers_pressed(&mut self) -> bool;
-    fn send_input(&mut self, events: &[KeyEvent]) -> usize;
-    fn elapsed(&self) -> Duration;
-    fn sleep(&mut self, duration: Duration);
+fn send_events(events: &[KeyEvent]) -> usize {
+    // Each batch contains one Unicode scalar (at most two UTF-16 units)
+    // or one control key. Keep both surrogate units in the same OS call.
+    let mut inputs = [INPUT::default(); 4];
+    for (input, event) in inputs.iter_mut().zip(events) {
+        *input = event.input();
+    }
+    // SAFETY: The slice contains initialized keyboard INPUTs, stays alive
+    // for the call, and uses the platform ABI's actual INPUT size.
+    unsafe { SendInput(&inputs[..events.len()], size_of::<INPUT>() as i32) as usize }
 }
 
-struct WindowsInput {
-    started: Instant,
-}
-
-impl InputPlatform for WindowsInput {
-    fn foreground_window(&mut self) -> HWND {
-        // SAFETY: This API takes no pointers and returns a borrowed window handle.
-        unsafe { GetForegroundWindow() }
-    }
-
-    fn modifiers_pressed(&mut self) -> bool {
-        [VK_SHIFT, VK_CONTROL, VK_MENU, VK_LWIN, VK_RWIN]
-            .into_iter()
-            .any(|key| {
-                // SAFETY: Each value is a valid virtual-key code. Only the high
-                // bit describes the current state; the low bit is not reliable.
-                unsafe { GetAsyncKeyState(i32::from(key.0)) < 0 }
-            })
-    }
-
-    fn send_input(&mut self, events: &[KeyEvent]) -> usize {
-        // Each batch contains one Unicode scalar (at most two UTF-16 units)
-        // or one control key. Keep both surrogate units in the same OS call.
-        let mut inputs = [INPUT::default(); 4];
-        for (input, event) in inputs.iter_mut().zip(events) {
-            *input = event.input();
-        }
-        // SAFETY: The slice contains initialized keyboard INPUTs, stays alive
-        // for the call, and uses the platform ABI's actual INPUT size.
-        unsafe { SendInput(&inputs[..events.len()], size_of::<INPUT>() as i32) as usize }
-    }
-
-    fn elapsed(&self) -> Duration {
-        self.started.elapsed()
-    }
-
-    fn sleep(&mut self, duration: Duration) {
-        thread::sleep(duration);
-    }
-}
-
-pub(crate) fn execute(payload: &str) -> Result<(), String> {
-    if payload.is_empty() {
-        return Ok(());
-    }
-    execute_with(
-        payload,
-        &mut WindowsInput {
-            started: Instant::now(),
-        },
-        &EXECUTION_LOCK,
-    )
-}
-
-fn execute_with(
-    payload: &str,
-    platform: &mut impl InputPlatform,
-    execution_lock: &Mutex<()>,
-) -> Result<(), String> {
-    // Validate the entire payload before sending even its first character.
-    if payload
-        .chars()
-        .any(|ch| ch.is_control() && control_key(ch).is_none())
-    {
-        return Err("Payload contains an unsupported control character.".to_owned());
-    }
-    if payload.is_empty() {
-        return Ok(());
-    }
-
-    // Never queue a second payload: its intended foreground window may have
-    // changed by the time the first call finishes. Poisoning also fails closed.
-    let _execution = execution_lock
-        .try_lock()
-        .map_err(|_| "AutoType is already running or unavailable.".to_owned())?;
-    let target = platform.foreground_window();
-    if target.is_invalid() {
-        return Err("No foreground window for AutoType.".to_owned());
-    }
-
-    let started_waiting = platform.elapsed();
-    loop {
-        ensure_target(platform, target)?;
-        if !platform.modifiers_pressed() {
-            break;
-        }
-        if platform.elapsed().saturating_sub(started_waiting) >= MODIFIER_TIMEOUT {
-            return Err("AutoType modifier keys were not released.".to_owned());
-        }
-        platform.sleep(MODIFIER_POLL_INTERVAL);
-    }
-
-    let mut characters = payload.chars().peekable();
-    while let Some(ch) = characters.next() {
-        ensure_target(platform, target)?;
-        if platform.modifiers_pressed() {
-            return Err("A modifier key interrupted AutoType.".to_owned());
-        }
-        let (events, count) = character_events(ch);
-        let events = &events[..count];
-        let accepted = platform.send_input(events);
-        if accepted != events.len() {
-            // Release accepted key-downs that have no matching accepted key-up.
-            // A supplementary character can leave both surrogate units down.
-            // Never replay text or release keys physically held by the user.
-            if accepted < events.len() {
-                let accepted_events = &events[..accepted];
-                let mut releases = [events[0]; 2];
-                let mut count = 0;
-                for event in accepted_events.iter().filter(|event| !event.key_up) {
-                    let release = KeyEvent {
-                        key_up: true,
-                        ..*event
-                    };
-                    if !accepted_events.contains(&release) {
-                        releases[count] = release;
-                        count += 1;
-                    }
-                }
-                if count != 0 {
-                    let _ = platform.send_input(&releases[..count]);
-                }
+/// Sends one character. Returns false unless every event was accepted.
+fn send_character_with(ch: char, mut send: impl FnMut(&[KeyEvent]) -> usize) -> bool {
+    let (events, count) = character_events(ch);
+    let events = &events[..count];
+    let accepted = send(events);
+    if accepted < events.len() {
+        // Release accepted key-downs that have no matching accepted key-up.
+        // A supplementary character can leave both surrogate units down.
+        // Never replay text or release keys physically held by the user.
+        let accepted_events = &events[..accepted];
+        let mut releases = [events[0]; 2];
+        let mut count = 0;
+        for event in accepted_events.iter().filter(|event| !event.key_up) {
+            let release = KeyEvent {
+                key_up: true,
+                ..*event
+            };
+            if !accepted_events.contains(&release) {
+                releases[count] = release;
+                count += 1;
             }
-            // SendInput cannot reliably distinguish UIPI blocking from other
-            // failures. Do not include payload text or key codes in the error.
-            return Err("Failed to send AutoType input.".to_owned());
         }
-        if characters.peek().is_some() {
-            platform.sleep(CHARACTER_DELAY);
+        if count != 0 {
+            let _ = send(&releases[..count]);
         }
     }
-    Ok(())
-}
-
-fn ensure_target(platform: &mut impl InputPlatform, target: HWND) -> Result<(), String> {
-    // This is a best-effort check: SendInput cannot atomically target an HWND.
-    if platform.foreground_window() != target {
-        return Err("The foreground window changed during AutoType.".to_owned());
-    }
-    Ok(())
-}
-
-fn control_key(ch: char) -> Option<VIRTUAL_KEY> {
-    match ch {
-        '\t' => Some(VK_TAB),
-        '\u{0008}' => Some(VK_BACK),
-        '\r' | '\n' => Some(VK_RETURN),
-        _ => None,
-    }
+    accepted == events.len()
 }
 
 fn character_events(ch: char) -> ([KeyEvent; 4], usize) {
@@ -214,8 +220,9 @@ fn character_events(ch: char) -> ([KeyEvent; 4], usize) {
         key: Key::Unicode(0),
         key_up: false,
     }; 4];
-    if let Some(key) = control_key(ch) {
-        events[0].key = Key::Virtual(key);
+    // Tab is the only control character: it separates the login fields.
+    if ch == '\t' {
+        events[0].key = Key::Virtual(VK_TAB);
         events[1] = KeyEvent {
             key_up: true,
             ..events[0]

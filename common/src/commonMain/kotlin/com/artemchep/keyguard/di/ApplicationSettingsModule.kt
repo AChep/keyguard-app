@@ -40,6 +40,7 @@ import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.GetAutofillRespectAutofillOff
 import com.artemchep.keyguard.common.usecase.GetAutofillSaveRequest
 import com.artemchep.keyguard.common.usecase.GetAutofillSaveUri
+import com.artemchep.keyguard.common.usecase.GetAutotypeSpeed
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedServices
@@ -111,6 +112,7 @@ import com.artemchep.keyguard.common.usecase.PutAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.PutAutofillRespectAutofillOff
 import com.artemchep.keyguard.common.usecase.PutAutofillSaveRequest
 import com.artemchep.keyguard.common.usecase.PutAutofillSaveUri
+import com.artemchep.keyguard.common.usecase.PutAutotypeSpeed
 import com.artemchep.keyguard.common.usecase.PutCheckPasskeys
 import com.artemchep.keyguard.common.usecase.PutCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.PutCheckTwoFA
@@ -165,6 +167,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillRespectAutofillOffImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillSaveRequestImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillSaveUriImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAutotypeSpeedImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCanWriteImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCheckPasskeysImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCheckPwnedServicesImpl
@@ -236,6 +239,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillRespectAutofillOffImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillSaveRequestImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillSaveUriImpl
+import com.artemchep.keyguard.common.usecase.impl.PutAutotypeSpeedImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckPasskeysImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckPwnedServicesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckTwoFAImpl
@@ -486,6 +490,8 @@ internal class ApplicationSettingsModule {
 
         single<GetWebDavTransactionsImpl>() bind GetWebDavTransactions::class
 
+        single<GetAutotypeSpeedImpl>() bind GetAutotypeSpeed::class
+
         single<GetGravatarUrlImpl>() bind GetGravatarUrl::class
 
         single<GetGravatarImpl>() bind GetGravatar::class
@@ -527,6 +533,8 @@ internal class ApplicationSettingsModule {
         single<PutMarkdownImpl>() bind PutMarkdown::class
 
         single<PutWebDavTransactionsImpl>() bind PutWebDavTransactions::class
+
+        single<PutAutotypeSpeedImpl>() bind PutAutotypeSpeed::class
 
         single<PutOnboardingLastVisitInstantImpl>() bind PutOnboardingLastVisitInstant::class
 

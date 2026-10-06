@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
+import com.artemchep.keyguard.common.model.AutotypeSpeed
 import com.artemchep.keyguard.common.model.GpgAgentFilter
 import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.NavAnimation
@@ -100,6 +101,8 @@ interface SettingsReadRepository {
     fun getWebsiteIcons(): Flow<Boolean>
 
     fun getMarkdown(): Flow<Boolean>
+
+    fun getAutotypeSpeed(): Flow<AutotypeSpeed>
 
     fun getWebDavTransactions(): Flow<Boolean>
 

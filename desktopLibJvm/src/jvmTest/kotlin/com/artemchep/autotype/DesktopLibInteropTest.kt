@@ -19,78 +19,76 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class DesktopLibInteropTest {
     @Test
-    fun `autotype forwards UTF-8 and clears the native payload on disposal`() {
-        for (payload in listOf("", "Hello, Keyguard!", "Привіт Ä 中文 😀 e\u0301\t\n")) {
-            val bytes = payload.encodeToByteArray() + byteArrayOf(0)
+    fun `login typing forwards the delay multiplier`() {
+        for (multiplier in listOf(1, 2, 4)) {
             val lib = FakeDesktopLibJna()
             val scope = DisposableScope()
-
             try {
-                scope.autoTypeOrThrow(lib, payload)
-                assertEquals(payload, lib.autoTypeText)
-                assertContentEquals(bytes, lib.autoTypePayload!!.getByteArray(0L, bytes.size))
+                scope.autoTypeLogin(lib, 42L, "user", "password", multiplier) { true }
+                assertEquals(multiplier, lib.loginDelayMultiplier)
             } finally {
                 scope.dispose()
             }
-
-            assertContentEquals(ByteArray(bytes.size), lib.autoTypePayload!!.getByteArray(0L, bytes.size))
         }
     }
 
     @Test
-    fun `autotype native failure is redacted and payload is cleared`() {
-        val payload = "synthetic-secret-Ä"
-        val lib = FakeDesktopLibJna().apply {
-            autoTypeResult = false
-        }
-        val scope = DisposableScope()
-
-        try {
-            val error = assertFailsWith<IllegalStateException> {
-                scope.autoTypeOrThrow(lib, payload)
+    fun `login typing decodes native status codes`() {
+        val cases = AutoTypeLoginStatus.entries.map { it.code to it } +
+            (-1 to AutoTypeLoginStatus.INPUT_FAILED)
+        for ((code, status) in cases) {
+            val lib = FakeDesktopLibJna().apply {
+                loginResult = code
             }
-            assertEquals("Failed to auto type payload.", error.message)
-        } finally {
-            scope.dispose()
+            val scope = DisposableScope()
+            try {
+                assertEquals(status, scope.autoTypeLogin(lib, 42L, "user", "password") { true })
+            } finally {
+                scope.dispose()
+            }
         }
-
-        val size = payload.encodeToByteArray().size + 1
-        assertContentEquals(ByteArray(size), lib.autoTypePayload!!.getByteArray(0L, size))
     }
 
     @Test
-    fun `autotype payload is cleared when the native call throws`() {
-        val lib = FakeDesktopLibJna().apply {
-            autoTypeFailure = IllegalStateException("native failure")
-        }
-        val scope = DisposableScope()
-
-        try {
-            assertFailsWith<IllegalStateException> {
-                scope.autoTypeOrThrow(lib, "secret")
+    fun `login typing preserves Unicode fields and clears both native buffers`() {
+        val username = "юзер😀"
+        val password = "密碼{ENTER}"
+        for (active in listOf(false, true)) {
+            val lib = FakeDesktopLibJna()
+            val scope = DisposableScope()
+            try {
+                assertEquals(AutoTypeLoginStatus.SUCCESS, scope.autoTypeLogin(lib, 42L, username, password) { active })
+                assertEquals(1, lib.loginDelayMultiplier)
+                assertEquals(42L, lib.loginTarget)
+                assertEquals(username, lib.loginUsername!!.getString(0L, "UTF-8"))
+                assertEquals(password, lib.loginPassword!!.getString(0L, "UTF-8"))
+                assertEquals(if (active) 1 else 0, lib.loginActive)
+            } finally {
+                scope.dispose()
             }
-        } finally {
-            scope.dispose()
+            val usernameSize = username.encodeToByteArray().size + 1
+            val passwordSize = password.encodeToByteArray().size + 1
+            assertContentEquals(ByteArray(usernameSize), lib.loginUsername!!.getByteArray(0L, usernameSize))
+            assertContentEquals(ByteArray(passwordSize), lib.loginPassword!!.getByteArray(0L, passwordSize))
         }
-
-        assertContentEquals(ByteArray(7), lib.autoTypePayload!!.getByteArray(0L, 7))
     }
 
     @Test
-    fun `autotype rejects embedded NUL before calling native code`() {
-        val lib = FakeDesktopLibJna()
-        val scope = DisposableScope()
-
-        try {
-            val error = assertFailsWith<IllegalArgumentException> {
-                scope.autoTypeOrThrow(lib, "secret\u0000tail")
+    fun `login typing rejects NUL in either field before calling native code`() {
+        for ((username, password) in listOf("u\u0000x" to "p", "u" to "p\u0000x")) {
+            val lib = FakeDesktopLibJna()
+            val scope = DisposableScope()
+            try {
+                assertEquals(
+                    AutoTypeLoginStatus.INVALID_TEXT,
+                    scope.autoTypeLogin(lib, 42L, username, password) { true },
+                )
+                assertNull(lib.loginUsername)
+                assertNull(lib.loginPassword)
+            } finally {
+                scope.dispose()
             }
-            assertEquals("AutoType payload contains an unsupported character.", error.message)
-        } finally {
-            scope.dispose()
         }
-
-        assertNull(lib.autoTypePayload)
     }
 
     @Test
@@ -368,10 +366,32 @@ class DesktopLibInteropTest {
     }
 
     private class FakeDesktopLibJna : DesktopLibJna {
-        var autoTypeResult: Boolean = true
-        var autoTypeFailure: Throwable? = null
-        var autoTypePayload: Pointer? = null
-        var autoTypeText: String? = null
+        override fun autoTypeCaptureTarget(): Long = 0
+
+        override fun autoTypePermission(): Boolean = false
+
+        override fun autoTypeLogin(
+            target: Long,
+            username: Pointer,
+            password: Pointer,
+            delayMultiplier: Int,
+            active: DesktopLibJna.AutotypeActiveCallback,
+        ): Int {
+            loginTarget = target
+            loginUsername = username
+            loginPassword = password
+            loginDelayMultiplier = delayMultiplier
+            loginActive = active.invoke()
+            return loginResult
+        }
+
+        var loginResult: Int = 0
+        var loginDelayMultiplier: Int? = null
+        var loginTarget: Long = 0
+        var loginUsername: Pointer? = null
+        var loginPassword: Pointer? = null
+        var loginActive: Int? = null
+
         var keychainAddPasswordResult: Boolean = true
         var keychainGetPasswordResult: Pointer? = null
         var biometricsCallback: DesktopLibJna.BiometricsVerifyCallback? = null
@@ -387,13 +407,6 @@ class DesktopLibInteropTest {
         override fun registerNativePowerEvents(callback: DesktopLibJna.PowerEventCallback): Int = -1
 
         override fun unregisterNativePowerEvents(id: Int): Boolean = false
-
-        override fun autoType(payload: Pointer): Boolean {
-            autoTypePayload = payload
-            autoTypeText = payload.getString(0L, "UTF-8")
-            autoTypeFailure?.let { throw it }
-            return autoTypeResult
-        }
 
         override fun getSystemAccentColor(): Int = nativeSystemAccentColor
 

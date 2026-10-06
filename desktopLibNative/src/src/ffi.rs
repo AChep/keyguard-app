@@ -7,6 +7,7 @@ pub(crate) type BiometricsResultCallback =
     Option<extern "C" fn(i32, *const u8, u64, *const c_char)>;
 pub(crate) type HotKeyPressedCallback = Option<unsafe extern "C" fn(i32)>;
 pub(crate) type PowerEventCallback = Option<unsafe extern "C" fn(i32)>;
+pub(crate) type AutoTypeActiveCallback = Option<unsafe extern "C" fn() -> c_int>;
 
 /// Registration status codes shared by every native registration export.
 /// Mirrors the JVM bridge contract and the ObjC shim.
@@ -20,17 +21,27 @@ enum FailureLogDetail {
     Redacted,
 }
 
-/// Copies a required C string into a Rust string.
+/// Borrows a required C string without copying it.
 ///
 /// # Safety
 ///
 /// If `ptr` is non-null, it must point to an immutable, readable,
 /// NUL-terminated byte sequence contained in one allocation and remain valid
-/// for the duration of this call.
-pub(crate) unsafe fn require_string(ptr: *const c_char, label: &str) -> Result<String, String> {
+/// for the returned lifetime.
+pub(crate) unsafe fn require_cstr<'a>(ptr: *const c_char, label: &str) -> Result<&'a CStr, String> {
     let ptr = require_non_null(ptr, label)?;
     // SAFETY: The caller guarantees the `CStr::from_ptr` requirements above.
-    Ok(unsafe { CStr::from_ptr(ptr) }
+    Ok(unsafe { CStr::from_ptr(ptr) })
+}
+
+/// Copies a required C string into a Rust string.
+///
+/// # Safety
+///
+/// Same as [require_cstr], for the duration of this call.
+pub(crate) unsafe fn require_string(ptr: *const c_char, label: &str) -> Result<String, String> {
+    // SAFETY: The caller upholds the `require_cstr` contract for this call.
+    Ok(unsafe { require_cstr(ptr, label) }?
         .to_string_lossy()
         .into_owned())
 }

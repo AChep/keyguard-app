@@ -85,21 +85,6 @@ public class MacPopupOverlayManager internal constructor(
         }
     }
 
-    public fun applyOverlay(
-        windowHandle: Long,
-        makeKeyWindow: Boolean = true,
-    ): Boolean? {
-        if (!operations.isMac || windowHandle == 0L) {
-            return null
-        }
-
-        return runCatching {
-            operations.runOnMainThreadAsync {
-                applyOverlayOnMainThread(windowHandle, makeKeyWindow)
-            }
-        }.getOrNull()
-    }
-
     public suspend fun applyOverlayAndWait(
         windowHandle: Long,
         makeKeyWindow: Boolean = true,

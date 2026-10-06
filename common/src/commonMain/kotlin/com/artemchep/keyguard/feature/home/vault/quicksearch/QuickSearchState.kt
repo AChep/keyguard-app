@@ -69,6 +69,7 @@ internal enum class QuickSearchActionType {
     CopySecret,
     CopyOtp,
     OpenInBrowser,
+    Autotype,
 }
 
 internal data class QuickSearchCopyValue(
@@ -157,12 +158,16 @@ internal fun moveSelectedActionIndex(
 
 internal fun quickSearchActionTypes(
     secret: DSecret,
+    autotypeAvailable: Boolean = false,
 ): List<QuickSearchActionType> = buildList {
     if (quickSearchPrimaryCopy(secret) != null) {
         add(QuickSearchActionType.CopyPrimary)
     }
     if (quickSearchSecretCopy(secret) != null) {
         add(QuickSearchActionType.CopySecret)
+    }
+    if (autotypeAvailable && quickSearchAutotypeFields(secret).isNotEmpty()) {
+        add(QuickSearchActionType.Autotype)
     }
     if (quickSearchOtpToken(secret) != null) {
         add(QuickSearchActionType.CopyOtp)
@@ -263,6 +268,11 @@ internal fun quickSearchLaunchUrl(
 internal fun quickSearchShortcut(
     actionType: QuickSearchActionType,
 ): KeyShortcut? = when (actionType) {
+    QuickSearchActionType.Autotype -> KeyShortcut(
+        key = Key.T,
+        isCtrlPressed = true,
+    )
+
     QuickSearchActionType.CopyPrimary -> KeyShortcut(
         key = Key.C,
         isCtrlPressed = true,

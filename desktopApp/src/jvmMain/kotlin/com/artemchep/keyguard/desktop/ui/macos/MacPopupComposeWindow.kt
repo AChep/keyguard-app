@@ -40,6 +40,9 @@ internal fun MacOwnerlessPopupComposeWindow(
     enabled: Boolean,
     focusable: Boolean,
     focusRequestKey: Any?,
+    focusTag: String,
+    focusRequestId: Any?,
+    onFocusAcquired: () -> Unit,
     alwaysOnTop: Boolean,
     onPreviewKeyEvent: (KeyEvent) -> Boolean,
     onKeyEvent: (KeyEvent) -> Boolean,
@@ -106,7 +109,11 @@ internal fun MacOwnerlessPopupComposeWindow(
         },
     ) {
         MacPopupOverlayEffect(
+            visible = popupVisible && focusable,
             focusRequestKey = focusRequestKey,
+            tag = focusTag,
+            requestId = focusRequestId,
+            onFocusAcquired = onFocusAcquired,
         )
 
         val windowRev = remember(focusRequestKey) {

@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
+import com.artemchep.keyguard.common.model.AutotypeSpeed
 import com.artemchep.keyguard.common.model.GpgAgentFilter
 import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.NavAnimation
@@ -150,6 +151,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setMarkdown(
         markdown: Boolean,
+    ): IO<Unit>
+
+    fun setAutotypeSpeed(
+        speed: AutotypeSpeed,
     ): IO<Unit>
 
     fun setWebDavTransactions(

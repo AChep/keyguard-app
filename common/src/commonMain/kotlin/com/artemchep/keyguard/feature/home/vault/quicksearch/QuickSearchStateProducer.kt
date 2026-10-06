@@ -58,6 +58,7 @@ import com.artemchep.keyguard.res.copy_password
 import com.artemchep.keyguard.res.copy_phone_number
 import com.artemchep.keyguard.res.copy_username
 import com.artemchep.keyguard.res.copy_value
+import com.artemchep.keyguard.res.quick_search_autotype
 import com.artemchep.keyguard.res.uri_action_launch_browser_title
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -76,6 +77,7 @@ import org.koin.compose.currentKoinScope
 @Composable
 internal fun quickSearchScreenState(): QuickSearchState = with(currentKoinScope()) {
     quickSearchScreenState(
+        autotypeAvailable = LocalQuickSearchAutotype.current != null,
         highlightBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
         highlightContentColor = MaterialTheme.colorScheme.onSurface,
         getAccounts = get(),
@@ -113,10 +115,12 @@ internal fun quickSearchScreenState(
     getWebsiteIcons: GetWebsiteIcons,
     clipboardService: ClipboardService,
     bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
+    autotypeAvailable: Boolean,
 ): QuickSearchState = produceScreenState(
     key = QUICK_SEARCH_SCREEN_STATE_KEY,
     initial = QuickSearchState(),
     args = arrayOf(
+        autotypeAvailable,
         getAccounts,
         getCiphers,
         getTotpCode,
@@ -140,6 +144,7 @@ internal fun quickSearchScreenState(
         getWebsiteIcons = getWebsiteIcons,
         clipboardService = clipboardService,
         bitwardenLoginRouteFactory = bitwardenLoginRouteFactory,
+        autotypeAvailable = autotypeAvailable,
     )
 }
 
@@ -160,6 +165,7 @@ internal suspend fun RememberStateFlowScope.quickSearchScreenStateProducer(
     getWebsiteIcons: GetWebsiteIcons,
     clipboardService: ClipboardService,
     bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
+    autotypeAvailable: Boolean = false,
 ): Flow<QuickSearchState> {
     val copy = copier()
     val queryHandle = vaultSearchQueryHandle(
@@ -380,6 +386,7 @@ internal suspend fun RememberStateFlowScope.quickSearchScreenStateProducer(
             reconciledSelectedItemId = reconciledSelectedItemId,
             selectedActionIndex = selectedActionIndex,
             results = content.results,
+            autotypeAvailable = autotypeAvailable,
         )
 
         QuickSearchState(
@@ -488,6 +495,7 @@ private suspend fun TranslatorScope.quickSearchSelectionState(
     reconciledSelectedItemId: String?,
     selectedActionIndex: Int?,
     results: List<VaultItem2.Item>,
+    autotypeAvailable: Boolean,
 ): QuickSearchSelectionState {
     val selectedItem = results.firstOrNull { it.id == reconciledSelectedItemId }
     val selectedResult = selectedItem?.let { item ->
@@ -497,7 +505,7 @@ private suspend fun TranslatorScope.quickSearchSelectionState(
         )
     }
     val actionTypes = selectedItem
-        ?.let { quickSearchActionTypes(it.source) }
+        ?.let { quickSearchActionTypes(it.source, autotypeAvailable) }
         .orEmpty()
     val reconciledSelectedActionIndex = selectedActionIndex
         ?.takeIf { reconciledSelectedItemId == selectedItemId }
@@ -543,6 +551,8 @@ private suspend fun TranslatorScope.quickSearchActionTitle(
     actionType: QuickSearchActionType,
     item: VaultItem2.Item?,
 ): String = when (actionType) {
+    QuickSearchActionType.Autotype -> translate(Res.string.quick_search_autotype)
+
     QuickSearchActionType.CopyPrimary -> quickSearchPrimaryCopy(item!!.source)?.type?.actionRes
         ?.let { translate(it) }
 

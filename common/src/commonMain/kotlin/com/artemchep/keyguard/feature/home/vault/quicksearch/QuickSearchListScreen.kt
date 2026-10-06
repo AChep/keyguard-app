@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
@@ -62,8 +63,10 @@ import androidx.compose.ui.unit.sp
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.model.TotpToken
+import com.artemchep.keyguard.common.service.autotype.AutotypeLogin
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.di.LocalVaultSessionId
 import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.PromoView
 import com.artemchep.keyguard.feature.home.vault.component.AccountListItemTextIcon
@@ -117,6 +120,15 @@ internal fun QuickSearchListScreen(
     activationRevision: Int,
     onDismissRequest: (() -> Unit)?,
 ) {
+    val autotype = LocalQuickSearchAutotype.current
+    val sessionId = LocalVaultSessionId.current
+    val requestAutotype by rememberUpdatedState(
+        if (autotype != null && sessionId != null) {
+            { payload: QuickSearchAutotypePayload -> autotype(payload, sessionId) }
+        } else {
+            null
+        },
+    )
     val state = quickSearchScreenState()
     val selectedItem = state.selectedItem?.item
     val controller by rememberUpdatedState(LocalNavigationController.current)
@@ -124,12 +136,61 @@ internal fun QuickSearchListScreen(
     val getTotpCode: GetTotpCode = remember(koinScope) { koinScope.get() }
     val scope = rememberCoroutineScope()
     val focusRequester = remember { FocusRequester2() }
+    val autotypeFields = remember(selectedItem?.source) {
+        selectedItem?.source?.let(::quickSearchAutotypeFields).orEmpty()
+    }
+    var autotypeMenuSelection by remember(selectedItem?.source, activationRevision) {
+        mutableStateOf<QuickSearchAutotypeField?>(null)
+    }
+    val openAutotypeMenu = {
+        autotypeMenuSelection = autotypeFields.firstOrNull()
+    }
+    val dismissAutotypeMenu = {
+        autotypeMenuSelection = null
+        focusRequester.requestFocus()
+    }
+    val performAutotypeField = { field: QuickSearchAutotypeField ->
+        selectedItem?.source?.let { secret ->
+            quickSearchAutotypePayload(secret, field, getTotpCode)?.let { payload ->
+                autotypeMenuSelection = null
+                requestAutotype?.invoke(payload)
+            }
+        }
+        Unit
+    }
+    val handleAutotypeMenuKeyEvent = { event: KeyEvent ->
+        val selectedField = autotypeMenuSelection
+        if (selectedField == null) {
+            false
+        } else {
+            when (val action = quickSearchAutotypeMenuKeyAction(
+                input = event.toQuickSearchKeyInput(),
+                availableFields = autotypeFields,
+                selectedField = selectedField,
+            )) {
+                QuickSearchAutotypeMenuKeyAction.Dismiss -> dismissAutotypeMenu()
+                is QuickSearchAutotypeMenuKeyAction.Select -> autotypeMenuSelection = action.field
+                is QuickSearchAutotypeMenuKeyAction.Perform -> performAutotypeField(action.field)
+                null -> Unit
+            }
+            // The menu owns input, including disabled numbers and shortcut key repeats.
+            true
+        }
+    }
+    // A one-time code is only ever typed after choosing it in the menu, so the
+    // plain action opens the menu instead. The same rule serves clicks and shortcuts.
+    val autotypeOtpOnly = autotypeFields.singleOrNull() == QuickSearchAutotypeField.OneTimeCode
     val performAction =
-        remember(selectedItem, controller, getTotpCode, scope, focusRequester) {
+        remember(selectedItem, controller, getTotpCode, scope, focusRequester, autotypeOtpOnly) {
             { actionType: QuickSearchActionType ->
                 val item = selectedItem ?: return@remember
+                if (actionType == QuickSearchActionType.Autotype && autotypeOtpOnly) {
+                    openAutotypeMenu()
+                    return@remember
+                }
                 performQuickSearchAction(
                     actionType = actionType,
+                    onAutotype = requestAutotype,
                     item = item,
                     controller = controller,
                     getTotpCode = getTotpCode,
@@ -145,11 +206,17 @@ internal fun QuickSearchListScreen(
             getTotpCode,
             scope,
             onDismissRequest,
+            autotypeOtpOnly,
         ) {
             { actionType: QuickSearchActionType ->
                 val item = selectedItem ?: return@remember
+                if (actionType == QuickSearchActionType.Autotype && autotypeOtpOnly) {
+                    openAutotypeMenu()
+                    return@remember
+                }
                 performQuickSearchAction(
                     actionType = actionType,
+                    onAutotype = requestAutotype,
                     item = item,
                     controller = controller,
                     getTotpCode = getTotpCode,
@@ -197,6 +264,7 @@ internal fun QuickSearchListScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceContainerLow)
                 .onPreviewKeyEvent { event ->
+                    if (handleAutotypeMenuKeyEvent(event)) return@onPreviewKeyEvent true
                     if (
                         isSearchFieldFocused &&
                         state.queryQualifierSuggestion != null &&
@@ -212,6 +280,7 @@ internal fun QuickSearchListScreen(
                         onPerformDefaultAction = performDefaultAction,
                         onPerformSelectedAction = performAction,
                         onPerformShortcutAction = performShortcutAction,
+                        onOpenAutotypeMenu = openAutotypeMenu,
                     )
                 },
     ) {
@@ -339,6 +408,11 @@ internal fun QuickSearchListScreen(
                     .fillMaxWidth(),
             actions = state.actions,
             onActionClick = performAction,
+            autotypeFields = autotypeFields,
+            autotypeMenuSelection = autotypeMenuSelection,
+            onOpenAutotypeMenu = openAutotypeMenu,
+            onDismissAutotypeMenu = dismissAutotypeMenu,
+            onAutotypeField = performAutotypeField,
         )
     }
 }
@@ -643,6 +717,11 @@ private fun QuickSearchActionStrip(
     modifier: Modifier = Modifier,
     actions: List<QuickSearchAction>,
     onActionClick: (QuickSearchActionType) -> Unit,
+    autotypeFields: List<QuickSearchAutotypeField>,
+    autotypeMenuSelection: QuickSearchAutotypeField?,
+    onOpenAutotypeMenu: () -> Unit,
+    onDismissAutotypeMenu: () -> Unit,
+    onAutotypeField: (QuickSearchAutotypeField) -> Unit,
 ) {
     if (actions.isEmpty()) {
         return
@@ -657,15 +736,27 @@ private fun QuickSearchActionStrip(
     ) {
         actions.forEach { action ->
             key(action.type) {
-                SmartBadge(
-                    modifier = Modifier,
-                    title = action.title,
-                    text = action.shortcut?.toText()?.text,
-                    selected = action.selected,
-                    onClick = {
-                        onActionClick(action.type)
-                    },
-                )
+                if (action.type == QuickSearchActionType.Autotype) {
+                    QuickSearchAutotypeButton(
+                        action = action,
+                        availableFields = autotypeFields,
+                        selectedField = autotypeMenuSelection,
+                        onAutotype = { onActionClick(action.type) },
+                        onOpenMenu = onOpenAutotypeMenu,
+                        onDismissMenu = onDismissAutotypeMenu,
+                        onAutotypeField = onAutotypeField,
+                    )
+                } else {
+                    SmartBadge(
+                        modifier = Modifier,
+                        title = action.title,
+                        text = action.shortcut?.toText()?.text,
+                        selected = action.selected,
+                        onClick = {
+                            onActionClick(action.type)
+                        },
+                    )
+                }
             }
         }
     }
@@ -724,12 +815,15 @@ internal fun handleQuickSearchKeyEvent(
     onPerformDefaultAction: () -> Unit,
     onPerformSelectedAction: (QuickSearchActionType) -> Unit,
     onPerformShortcutAction: (QuickSearchActionType) -> Unit,
+    onOpenAutotypeMenu: () -> Unit,
 ): Boolean =
     quickSearchKeyEventAction(
         input = input,
         state = state,
     )?.let { action ->
         when (action) {
+            QuickSearchKeyEventAction.OpenAutotypeMenu -> onOpenAutotypeMenu()
+
             is QuickSearchKeyEventAction.MoveSelection -> {
                 state.onMoveSelection(action.direction)
             }
@@ -761,6 +855,8 @@ internal fun handleQuickSearchKeyEvent(
     } ?: false
 
 internal sealed interface QuickSearchResolvedAction {
+    class Autotype(val login: AutotypeLogin) : QuickSearchResolvedAction
+
     data class Copy(
         val value: String,
         val hidden: Boolean,
@@ -783,8 +879,11 @@ internal fun performQuickSearchAction(
     getTotpCode: GetTotpCode,
     scope: kotlinx.coroutines.CoroutineScope,
     onFinished: () -> Unit,
+    onAutotype: ((QuickSearchAutotypePayload) -> Unit)? = null,
 ) {
     when (val resolvedAction = quickSearchResolvedAction(actionType, item)) {
+        is QuickSearchResolvedAction.Autotype -> onAutotype?.invoke { resolvedAction.login }
+
         is QuickSearchResolvedAction.Copy -> {
             item.copyText.copy(
                 text = resolvedAction.value,
@@ -827,6 +926,9 @@ internal fun quickSearchResolvedAction(
     item: VaultItem2.Item,
 ): QuickSearchResolvedAction? =
     when (actionType) {
+        QuickSearchActionType.Autotype -> quickSearchAutotypeLogin(item.source)
+            ?.let(QuickSearchResolvedAction::Autotype)
+
         QuickSearchActionType.CopyPrimary -> {
             quickSearchPrimaryCopy(item.source)
                 ?.let { copy ->

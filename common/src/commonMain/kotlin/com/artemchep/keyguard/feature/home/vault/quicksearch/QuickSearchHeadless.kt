@@ -141,6 +141,8 @@ class QuickSearchHeadlessController internal constructor(
 
     private fun perform(type: QuickSearchActionType, item: VaultItem2.Item) {
         when (val resolved = quickSearchResolvedAction(type, item)) {
+            is QuickSearchResolvedAction.Autotype -> Unit // No native Apple executor is installed.
+
             is QuickSearchResolvedAction.Copy ->
                 item.copyText.copy(
                     text = resolved.value,
@@ -211,6 +213,7 @@ private fun QuickSearchState.toHeadless(): QuickSearchHeadlessState = QuickSearc
 )
 
 private fun QuickSearchActionType.macShortcutText(): String = when (this) {
+    QuickSearchActionType.Autotype -> "⌘T"
     QuickSearchActionType.CopyPrimary -> "⌘C"
     QuickSearchActionType.CopySecret -> "⌘⇧C"
     QuickSearchActionType.CopyOtp -> "⌘⌥C"

@@ -10,10 +10,8 @@ import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.right
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -21,9 +19,38 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
-import kotlin.time.Duration.Companion.seconds
 
 class QuickSearchActionTest {
+    @Test
+    fun `autotype delegates without copying or refocusing the popup`() = runTest {
+        val clipboard = RecordingClipboardService()
+        val item = createVaultItem(
+            id = "login",
+            secret = createSecret(
+                id = "login",
+                login = DSecret.Login(username = "person@example.com", password = "test-password"),
+            ),
+        ).copy(copyText = createCopyText(clipboard))
+        val controller = RecordingNavigationController(this)
+        var payload: QuickSearchAutotypePayload? = null
+
+        performQuickSearchAction(
+            actionType = QuickSearchActionType.Autotype,
+            item = item,
+            controller = controller,
+            getTotpCode = EmptyGetTotpCode,
+            scope = this,
+            onFinished = { error("The native operation owns dismissal") },
+            onAutotype = { payload = it },
+        )
+
+        val login = payload?.invoke()
+        assertEquals("person@example.com", login?.username)
+        assertEquals("test-password", login?.password)
+        assertNull(clipboard.value)
+        assertEquals(emptyList(), controller.intents)
+    }
+
     @Test
     fun `copy primary copies the primary value and finishes`() = runTest {
         val clipboard = RecordingClipboardService()
@@ -179,23 +206,6 @@ class QuickSearchActionTest {
         assertEquals("https://example.com", intent.url)
         assertEquals(1, finishedCalls)
     }
-}
-
-private data object EmptyGetTotpCode : GetTotpCode {
-    override fun invoke(p1: TotpToken): Flow<Either<Throwable, TotpCode>> = emptyFlow()
-}
-
-private fun successTotpCode(code: String): GetTotpCode = object : GetTotpCode {
-    override fun invoke(p1: TotpToken): Flow<Either<Throwable, TotpCode>> = flowOf(
-        TotpCode(
-            code = code,
-            counter = TotpCode.TimeBasedCounter(
-                timestamp = TEST_INSTANT,
-                expiration = TEST_INSTANT + 30.seconds,
-                duration = 30.seconds,
-            ),
-        ).right(),
-    )
 }
 
 private class RecordingClipboardService : ClipboardService {

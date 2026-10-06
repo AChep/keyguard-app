@@ -9,10 +9,14 @@ jobs:
   # Generates variations of the changelog
   #   - changelog-raw.md: all git commits
   #   - changelog-summary.md: short summary using LLM
-  #   - changelog-full.md: long summary using LLM + raw
+  #   - changelog-full.md: full release notes using LLM + referenced issue titles
   generate-changelog:
     name: "Generate changelog"
     runs-on: ubuntu-slim
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
     steps:
       - name: "Checkout"
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -30,6 +34,8 @@ jobs:
           EOF
       - run: pip install -r .github/get_release_changelog_summary.requirements.txt
       - name: "Generate release notes"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cat << "EOF" > changelog-raw.md
           ${{ steps.changelog.outputs.changelog }}

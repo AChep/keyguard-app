@@ -42,8 +42,8 @@ private const val AGENT_OUTPUT_DRAIN_TIMEOUT_MS = 200L
  */
 abstract class AgentManager(
     protected val logRepository: LogRepository,
-    private val cryptoGenerator: CryptoGenerator,
-    private val config: Config,
+    protected val cryptoGenerator: CryptoGenerator,
+    protected val config: Config,
 ) {
     /**
      * Per-agent constants that are woven into log/error strings and the
@@ -105,6 +105,26 @@ abstract class AgentManager(
     private var serverJob: Job? = null
     private var serverScope: CoroutineScope? = null
     private var ipcEndpoint: AgentIpcEndpoint? = null
+
+    /**
+     * Additional CLI arguments appended to the spawned agent binary command.
+     * Subclasses may override this to pass agent-specific flags (for example a
+     * listen port). Defaults to empty.
+     */
+    protected open val extraCliArgs: List<String> get() = emptyList()
+
+    /**
+     * Called after the auth token and IPC socket are created, but before the
+     * agent process is spawned. Subclasses can use this to write session files
+     * that the NM host (launched by the browser) needs to connect.
+     */
+    protected open fun onBeforeStart(authToken: ByteArray, ipcSocketPath: String) {}
+
+    /**
+     * Called during shutdown, after the agent process is killed. Subclasses
+     * can use this to clean up session files.
+     */
+    protected open fun onStop() {}
 
     val defaultBinaryPath: Path? by lazy {
         findAgentBinary(config.binaryBaseName)
@@ -208,6 +228,9 @@ abstract class AgentManager(
             logRepository.post(config.tag, "${config.agentSocketLogLabel}: $it", LogLevel.INFO)
         }
 
+        // Notify subclass (e.g. to write a session file for the NM host).
+        onBeforeStart(authToken, ipcEndpoint.argument)
+
         // Start the IPC server. It binds before the helper is spawned, but its
         // accept loop remains gated on this exact Process handle.
         val expectedPeerProcess = CompletableDeferred<Process>()
@@ -271,6 +294,7 @@ abstract class AgentManager(
                 command.add(config.agentSocketArg)
                 command.add(it.toAbsolutePath().toString())
             }
+            command.addAll(extraCliArgs)
 
             // The child's stdout carries the startup readiness record and both
             // streams are retained as bounded startup diagnostics, so they are
@@ -455,6 +479,9 @@ abstract class AgentManager(
             }
         }
         ipcEndpoint = null
+
+        // Notify subclass (e.g. to clean up session files).
+        onStop()
     }
 
     private fun Process.closeStdinQuietly() {

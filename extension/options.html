@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Keyguard Autofill — Options</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="theme.js"></script>
+  </head>
+  <body>
+    <div class="app">
+      <div class="topbar">
+        <div class="brand">
+          <img class="logo" src="icons/logo.svg" alt="Keyguard" />
+          <div>
+            <div class="title">Options</div>
+            <div class="subtitle">Keyguard Autofill</div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <a class="navlink" href="debug.html">Debug logs</a>
+        <a class="navlink" href="welcome.html">About</a>
+      </div>
+
+      <div class="card">
+        <h2>Agent connection</h2>
+        <p class="hint">
+          Native Messaging is used by default on Firefox/Chrome/Edge. Force the
+          WebSocket path (Safari flow) to test pairing and HMAC from any
+          browser. Enable the browser agent in Keyguard’s settings first.
+        </p>
+        <div class="field">
+          <label for="mode">Connection mode</label>
+          <select id="mode">
+            <option value="auto">Auto (Native Messaging)</option>
+            <option value="ws">WebSocket (Safari flow)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="port">Agent WebSocket port</label>
+          <input id="port" type="number" min="1" max="65535" />
+        </div>
+        <div class="row">
+          <button class="btn primary" id="save">Save</button>
+          <button class="btn" id="test">Test connection</button>
+          <button class="btn" id="testquery">Test query</button>
+        </div>
+        <div class="status" id="status">Ready.</div>
+      </div>
+
+      <div class="card">
+        <h2>Autofill behavior</h2>
+        <div class="field">
+          <label class="checkbox">
+            <input id="autosubmit" type="checkbox" />
+            <span>Submit the form automatically after filling</span>
+          </label>
+        </div>
+        <div class="field">
+          <label for="theme">Theme</label>
+          <select id="theme">
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <p class="hint">
+          Auto-submit fills the form and presses the page’s submit button in one
+          step. Use it only on sites where that does what you expect.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Pairing (WebSocket mode)</h2>
+        <p class="hint">
+          Copy the 24-character pairing code shown in Keyguard’s browser agent
+          setting, then choose a PIN or password to protect the shared secret
+          in this profile.
+        </p>
+        <div class="field">
+          <label for="paircode">Pairing code</label>
+          <input
+            id="paircode"
+            type="text"
+            maxlength="24"
+            autocomplete="off"
+            spellcheck="false"
+            style="font-family: var(--mono); letter-spacing: 2px"
+          />
+        </div>
+        <div class="field">
+          <label for="securitymode">Protect secret with</label>
+          <select id="securitymode">
+            <option value="pin">PIN</option>
+            <option value="password">Master password</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="secret">PIN or password</label>
+          <input id="secret" type="password" autocomplete="off" />
+        </div>
+        <div class="row">
+          <button class="btn primary" id="pair">Pair</button>
+          <button class="btn" id="unlock">Unlock</button>
+          <button class="btn" id="unpair">Unpair</button>
+        </div>
+        <div class="status" id="pairstatus">Not paired.</div>
+      </div>
+
+      <div class="card">
+        <h2>Keyboard shortcut</h2>
+        <p class="hint">
+          Press <kbd style="font-family:var(--mono);background:var(--surface-2);padding:2px 6px;border-radius:4px;font-size:12px">Ctrl+Shift+Space</kbd>
+          to autofill instantly. With a single match the credentials are filled
+          directly; with multiple matches the popup opens for selection.
+        </p>
+        <p class="hint">
+          Firefox does not let extensions open the shortcut editor directly. To
+          remap it, open the Add-ons Manager (<code style="font-family:var(--mono)">about:addons</code>),
+          click <em>Settings</em> (⚙) → <em>Manage extension shortcuts</em>, and
+          find <strong>Keyguard Autofill</strong>.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Troubleshooting</h2>
+        <p class="hint">
+          Open the debug console to watch the handshake, encrypted traffic and
+          matching in real time.
+        </p>
+        <div class="row">
+          <a class="btn" href="debug.html">Open debug logs</a>
+        </div>
+      </div>
+    </div>
+    <script src="options.js"></script>
+  </body>
+</html>

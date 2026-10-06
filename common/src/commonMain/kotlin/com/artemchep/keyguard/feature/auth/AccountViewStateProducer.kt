@@ -22,7 +22,6 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -111,6 +110,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.SwitchExpressive
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -537,7 +537,7 @@ suspend fun RememberStateFlowScope.accountStateProducer(
                         )
                     },
                     trailing = {
-                        Switch(
+                        SwitchExpressive(
                             checked = hidden,
                             onCheckedChange = onCheckedChange,
                         )

@@ -30,7 +30,6 @@ import androidx.compose.material.icons.outlined.Textsms
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -262,6 +261,7 @@ import com.artemchep.keyguard.ui.ContextItemBuilder
 import com.artemchep.keyguard.ui.FingerprintPlaneta
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.SwitchExpressive
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.colorizePassword
@@ -2751,7 +2751,7 @@ private fun RememberStateFlowScope.oh(
                     id = "cipher.field.$index.toggleBoolean",
                     title = TextHolder.Res(Res.string.custom_field_toggle_boolean_value),
                     trailing = {
-                        Switch(
+                        SwitchExpressive(
                             checked = !value,
                             onCheckedChange = null,
                             enabled = canEdit,

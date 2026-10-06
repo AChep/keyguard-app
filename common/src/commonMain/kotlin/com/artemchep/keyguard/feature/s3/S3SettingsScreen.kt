@@ -11,7 +11,6 @@ import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberUpdatedState
@@ -50,6 +49,7 @@ import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
+import com.artemchep.keyguard.ui.SwitchExpressive
 import com.artemchep.keyguard.ui.UrlFlatTextField
 import com.artemchep.keyguard.ui.button.connectionTestItems
 import com.artemchep.keyguard.ui.icons.IconBox
@@ -299,7 +299,7 @@ private fun LazyListScope.s3OptionItems(
                 )
             },
             trailing = {
-                Switch(
+                SwitchExpressive(
                     checked = state.pathStyle.value,
                     onCheckedChange = null,
                 )

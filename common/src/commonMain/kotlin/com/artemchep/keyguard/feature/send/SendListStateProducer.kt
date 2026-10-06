@@ -4,7 +4,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
@@ -77,6 +76,7 @@ import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.SwitchExpressive
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.icons.icon
@@ -424,7 +424,7 @@ suspend fun RememberStateFlowScope.sendListScreenStateProducer(
                         )
                     },
                     trailing = {
-                        Switch(
+                        SwitchExpressive(
                             checked = showKeyboard,
                             onCheckedChange = showKeyboardSink::value::set,
                         )

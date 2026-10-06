@@ -12,7 +12,6 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.SortByAlpha
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Switch
 import androidx.compose.ui.graphics.Color
 import arrow.core.partially1
 import arrow.optics.Getter
@@ -67,6 +66,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.ContextItemBuilder
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.SwitchExpressive
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.SyncIcon
@@ -190,7 +190,7 @@ internal fun RememberStateFlowScope.vaultListToolbarFlow(
                     )
                 },
                 trailing = {
-                    Switch(
+                    SwitchExpressive(
                         checked = showKeyboard,
                         onCheckedChange = showKeyboardSink::value::set,
                     )
@@ -212,7 +212,7 @@ internal fun RememberStateFlowScope.vaultListToolbarFlow(
                     )
                 },
                 trailing = {
-                    Switch(
+                    SwitchExpressive(
                         checked = rememberSorting,
                         onCheckedChange = rememberSortSink::value::set,
                     )

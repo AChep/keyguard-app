@@ -1,9 +1,9 @@
 package com.artemchep.keyguard.provider.bitwarden.upload.impl
 
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.ACCOUNT_ID
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestLogRepository
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.insertUploadTestAccount
@@ -40,7 +40,7 @@ class PendingUploadGarbageCollectorImplTest {
             val collector = PendingUploadGarbageCollectorImpl(
                 db = UploadTestVaultDatabaseManager(database),
                 pendingUploadCoordinator = PendingUploadCoordinatorImpl(encryptedService),
-                logRepository = UploadTestLogRepository,
+                logRepository = LogRepositoryBridge(emptyList()),
                 now = { now },
                 gracePeriod = 24.hours,
             )
@@ -73,7 +73,7 @@ class PendingUploadGarbageCollectorImplTest {
         val collector = PendingUploadGarbageCollectorImpl(
             db = UploadTestVaultDatabaseManager(database),
             pendingUploadCoordinator = PendingUploadCoordinatorImpl(encryptedService),
-            logRepository = UploadTestLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
         )
 
         collector.purge(ACCOUNT_ID).bind()
@@ -110,7 +110,7 @@ class PendingUploadGarbageCollectorImplTest {
         val collector = PendingUploadGarbageCollectorImpl(
             db = UploadTestVaultDatabaseManager(database),
             pendingUploadCoordinator = PendingUploadCoordinatorImpl(encryptedService),
-            logRepository = UploadTestLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
         )
 
         collector.purge(ACCOUNT_ID).bind()
@@ -137,7 +137,7 @@ class PendingUploadGarbageCollectorImplTest {
         val collector = PendingUploadGarbageCollectorImpl(
             db = UploadTestVaultDatabaseManager(database),
             pendingUploadCoordinator = PendingUploadCoordinatorImpl(encryptedService),
-            logRepository = UploadTestLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
         )
 
         assertFailsWith<CancellationException> {

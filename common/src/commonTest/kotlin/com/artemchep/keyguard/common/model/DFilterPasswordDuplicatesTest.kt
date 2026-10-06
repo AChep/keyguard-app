@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.model
 
-import com.artemchep.keyguard.feature.home.vault.search.TEST_INSTANT
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
+import com.artemchep.keyguard.test.TEST_INSTANT
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals

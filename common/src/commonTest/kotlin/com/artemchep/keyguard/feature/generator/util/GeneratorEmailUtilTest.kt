@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.generator.util
 
 import com.artemchep.keyguard.common.model.DProfile
-import com.artemchep.keyguard.ui.icons.generateAccentColors
+import com.artemchep.keyguard.test.createProfile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -43,28 +43,3 @@ class GeneratorEmailUtilTest {
         assertEquals("z@example.com", profiles.findBestUserEmailOrNull())
     }
 }
-
-private fun createProfile(
-    accountId: String,
-    email: String,
-    emailVerified: Boolean?,
-) = DProfile(
-    accountId = accountId,
-    profileId = "profile-$accountId",
-    keyBase64 = "key",
-    privateKeyBase64 = "private-key",
-    accountHost = "vault.example.com",
-    email = email,
-    emailVerified = emailVerified,
-    accentColor = generateAccentColors(accountId),
-    name = "User $accountId",
-    description = "",
-    premium = null,
-    hidden = false,
-    securityStamp = null,
-    twoFactorEnabled = null,
-    masterPasswordHint = null,
-    masterPasswordHintEnabled = null,
-    unofficialServer = false,
-    serverVersion = null,
-)

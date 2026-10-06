@@ -1,7 +1,5 @@
 package com.artemchep.keyguard.di
 
-import com.artemchep.keyguard.common.model.Argon2Mode
-import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.TotpToken
@@ -32,6 +30,7 @@ import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.impl.MessageHubImpl
 import com.artemchep.keyguard.common.worker.WorkerRegistry
+import com.artemchep.keyguard.test.TestCryptoGenerator
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import kotlin.test.Test
@@ -92,7 +91,7 @@ class ApplicationModuleContractsTest {
             listOf(
                 ApplicationAuthenticationModule().module,
                 ApplicationUiModule().module,
-                module { single<CryptoGenerator> { UnusedCryptoGenerator } },
+                module { single<CryptoGenerator> { TestCryptoGenerator() } },
             ),
         )
         try {
@@ -126,7 +125,7 @@ class ApplicationModuleContractsTest {
                 module {
                     single { httpClient }
                     single<Base64Service> { Base64ServiceImpl() }
-                    single<CryptoGenerator> { UnusedCryptoGenerator }
+                    single<CryptoGenerator> { TestCryptoGenerator() }
                     single<TotpService> {
                         object : TotpService {
                             override fun generate(token: TotpToken, timestamp: Instant, offset: Int): Nothing =
@@ -166,28 +165,6 @@ class ApplicationModuleContractsTest {
             koin.close()
             httpClient.close()
         }
-    }
-
-    private object UnusedCryptoGenerator : CryptoGenerator {
-        override fun hkdf(seed: ByteArray, salt: ByteArray?, info: ByteArray?, length: Int): Nothing = unused()
-        override fun pbkdf2(seed: ByteArray, salt: ByteArray, iterations: Int, length: Int): Nothing = unused()
-        override fun argon2(
-            mode: Argon2Mode,
-            seed: ByteArray,
-            salt: ByteArray,
-            iterations: Int,
-            memoryKb: Int,
-            parallelism: Int,
-        ): Nothing = unused()
-        override fun seed(length: Int): Nothing = unused()
-        override fun hmac(key: ByteArray, data: ByteArray, algorithm: CryptoHashAlgorithm): Nothing = unused()
-        override fun hashSha1(data: ByteArray): Nothing = unused()
-        override fun hashSha256(data: ByteArray): Nothing = unused()
-        override fun hashMd5(data: ByteArray): Nothing = unused()
-        override fun uuid(): Nothing = unused()
-        override fun random(): Nothing = unused()
-        override fun random(range: IntRange): Nothing = unused()
-        private fun unused(): Nothing = error("Resolving services must not perform cryptographic operations")
     }
 
     private companion object {

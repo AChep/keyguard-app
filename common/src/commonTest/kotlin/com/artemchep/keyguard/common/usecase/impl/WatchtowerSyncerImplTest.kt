@@ -10,8 +10,8 @@ import com.artemchep.keyguard.common.usecase.CipherSnapshot
 import com.artemchep.keyguard.common.usecase.CipherSnapshotKey
 import com.artemchep.keyguard.common.usecase.GetBreachesLatestDate
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
-import com.artemchep.keyguard.feature.home.vault.search.TEST_INSTANT
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
+import com.artemchep.keyguard.test.TEST_INSTANT
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow

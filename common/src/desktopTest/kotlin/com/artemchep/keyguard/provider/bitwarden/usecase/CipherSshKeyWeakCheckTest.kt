@@ -9,8 +9,9 @@ import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.usecase.CipherSshKeyWeakCheck
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerSshKeyStrength
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
+import com.artemchep.keyguard.test.TEST_INSTANT
+import com.artemchep.keyguard.test.createSecret
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -239,34 +240,4 @@ class CipherSshKeyWeakCheckTest {
         ),
         ignoredAlerts = ignoredAlerts,
     )
-
-    private fun createSecret(
-        id: String,
-        type: DSecret.Type,
-        sshKey: DSecret.SshKey? = null,
-        ignoredAlerts: Map<DWatchtowerAlertType, Instant> = emptyMap(),
-    ): DSecret = DSecret(
-        id = id,
-        accountId = "account-id",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = TEST_INSTANT,
-        createdDate = TEST_INSTANT,
-        archivedDate = null,
-        deletedDate = null,
-        service = BitwardenService(),
-        name = id,
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
-        ignoredAlerts = ignoredAlerts,
-        type = type,
-        sshKey = sshKey,
-    )
-
-    private companion object {
-        val TEST_INSTANT: Instant = Instant.parse("2024-01-01T00:00:00Z")
-    }
 }

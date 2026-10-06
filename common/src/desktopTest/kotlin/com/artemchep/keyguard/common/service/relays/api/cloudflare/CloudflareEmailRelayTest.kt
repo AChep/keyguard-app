@@ -1,10 +1,8 @@
 package com.artemchep.keyguard.common.service.relays.api.cloudflare
 
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.model.Argon2Mode
-import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.GeneratorContext
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.test.TestCryptoGenerator
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -263,56 +261,12 @@ class CloudflareEmailRelayTest {
 
     private class FakeCryptoGenerator(
         private val values: MutableList<Int> = mutableListOf(),
-    ) : CryptoGenerator {
-        override fun hkdf(
-            seed: ByteArray,
-            salt: ByteArray?,
-            info: ByteArray?,
-            length: Int,
-        ): ByteArray = unsupported()
-
-        override fun pbkdf2(
-            seed: ByteArray,
-            salt: ByteArray,
-            iterations: Int,
-            length: Int,
-        ): ByteArray = unsupported()
-
-        override fun argon2(
-            mode: Argon2Mode,
-            seed: ByteArray,
-            salt: ByteArray,
-            iterations: Int,
-            memoryKb: Int,
-            parallelism: Int,
-        ): ByteArray = unsupported()
-
-        override fun seed(length: Int): ByteArray = unsupported()
-
-        override fun hmac(
-            key: ByteArray,
-            data: ByteArray,
-            algorithm: CryptoHashAlgorithm,
-        ): ByteArray = unsupported()
-
-        override fun hashSha1(data: ByteArray): ByteArray = unsupported()
-
-        override fun hashSha256(data: ByteArray): ByteArray = unsupported()
-
-        override fun hashMd5(data: ByteArray): ByteArray = unsupported()
-
-        override fun uuid(): String = unsupported()
-
-        override fun random(): Int = unsupported()
-
+    ) : TestCryptoGenerator() {
         override fun random(range: IntRange): Int {
             val value = values.removeAt(0)
             val size = range.last - range.first + 1
             return range.first + value.rem(size)
         }
-
-        private fun unsupported(): Nothing =
-            throw UnsupportedOperationException()
     }
 
     private companion object {

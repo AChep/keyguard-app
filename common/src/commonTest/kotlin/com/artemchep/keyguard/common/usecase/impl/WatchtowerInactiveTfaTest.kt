@@ -2,17 +2,14 @@ package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
-import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import kotlin.time.Instant
 
 class WatchtowerInactiveTfaTest {
     @Test
@@ -25,7 +22,7 @@ class WatchtowerInactiveTfaTest {
 
         val result = with(tldService) {
             WatchtowerInactiveTfa.match(
-                cipher = secret("https://login.example.com/path"),
+                cipher = domainLoginSecret("https://login.example.com/path"),
                 tfaLibrary = listOf(service),
                 equivalentDomains = EquivalentDomains(emptyMap()),
             ).toList()
@@ -50,7 +47,7 @@ class WatchtowerInactiveTfaTest {
 
         val result = with(tldService) {
             WatchtowerInactiveTfa.match(
-                cipher = secret("https://login.source.com/path"),
+                cipher = domainLoginSecret("https://login.source.com/path"),
                 tfaLibrary = listOf(direct, equivalent),
                 equivalentDomains = EquivalentDomains(
                     mapOf("source.com" to listOf("source.com", "target.com")),
@@ -72,7 +69,7 @@ class WatchtowerInactiveTfaTest {
 
         val result = with(tldService) {
             WatchtowerInactiveTfa.match(
-                cipher = secret("https://login.source.com/path"),
+                cipher = domainLoginSecret("https://login.source.com/path"),
                 tfaLibrary = listOf(equivalent),
                 equivalentDomains = EquivalentDomains(
                     mapOf("source.com" to listOf("source.com", "target.com")),
@@ -103,34 +100,6 @@ class WatchtowerInactiveTfaTest {
         domain = domain,
         domains = setOf(domain),
         tfa = tfa,
-    )
-
-    private fun secret(
-        vararg urls: String,
-    ) = DSecret(
-        id = "cipher",
-        accountId = "account",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = Instant.parse("2024-01-01T00:00:00Z"),
-        createdDate = null,
-        archivedDate = null,
-        deletedDate = null,
-        service = BitwardenService(),
-        name = "Login",
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
-        uris = urls.map { url ->
-            DSecret.Uri(
-                uri = url,
-                match = DSecret.Uri.MatchType.Domain,
-            )
-        },
-        type = DSecret.Type.Login,
-        login = DSecret.Login(),
     )
 }
 

@@ -3,8 +3,7 @@ package com.artemchep.keyguard.common.service.tld.impl
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.util.io.toSource
 import com.artemchep.keyguard.common.model.FileResource
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.text.TextService
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.Source
@@ -134,12 +133,6 @@ class TldServiceImplTest {
 
             override fun readFromFile(uri: String): Source = error("Not used in this test.")
         },
-        logRepository = object : LogRepository {
-            override suspend fun add(
-                tag: String,
-                message: String,
-                level: LogLevel,
-            ) = Unit
-        },
+        logRepository = LogRepositoryBridge(emptyList()),
     )
 }

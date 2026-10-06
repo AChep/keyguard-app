@@ -2,18 +2,14 @@ package com.artemchep.keyguard.feature.home.vault.apple
 
 import androidx.compose.ui.text.AnnotatedString
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.service.clipboard.ClipboardService
-import com.artemchep.keyguard.common.usecase.CopyText
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.KeePassIcon
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
-import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.test.createSecret
+import com.artemchep.keyguard.test.testCopyText
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.jetbrains.compose.resources.PluralStringResource
-import org.jetbrains.compose.resources.StringResource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -22,51 +18,20 @@ import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 class VaultRowCacheTest {
-    private val copyText = CopyText(
-        clipboardService = object : ClipboardService {
-            override fun setPrimaryClip(value: String, concealed: Boolean) = Unit
-
-            override fun clearPrimaryClip() = Unit
-
-            override fun hasCopyNotification(): Boolean = true
-        },
-        translator = object : TranslatorScope {
-            override suspend fun translate(res: StringResource): String = ""
-
-            override suspend fun translate(res: StringResource, vararg args: Any): String = ""
-
-            override suspend fun translate(
-                res: PluralStringResource,
-                quantity: Int,
-                vararg args: Any,
-            ): String = ""
-        },
-        onMessage = {},
-    )
+    private val copyText = testCopyText()
 
     private fun secret(
         id: String,
         name: String = "Item $id",
-    ) = DSecret(
+    ) = createSecret(
         id = id,
-        accountId = "account",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = Instant.fromEpochMilliseconds(1_000_000L),
-        createdDate = null,
-        archivedDate = null,
-        deletedDate = null,
-        service = BitwardenService(),
         name = name,
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
-        type = DSecret.Type.Login,
+        accountId = "account",
         login = DSecret.Login(
             username = "user@example.com",
         ),
+        revisionDate = Instant.fromEpochMilliseconds(1_000_000L),
+        createdDate = null,
     )
 
     private fun dummyItem(secret: DSecret) = VaultItem2.Item(

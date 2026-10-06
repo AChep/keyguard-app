@@ -2,8 +2,6 @@ package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bindBlocking
-import com.artemchep.keyguard.common.model.Argon2Mode
-import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.GeneratorContext
 import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.GetPasswordResult
@@ -11,11 +9,11 @@ import com.artemchep.keyguard.common.model.GpgKeyConfig
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.KeyParameterRawZero
 import com.artemchep.keyguard.common.model.PasswordGeneratorConfig
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.test.TestCryptoGenerator
 import com.artemchep.keyguard.test.gpgMetadata
 import com.artemchep.keyguard.common.usecase.GetPassphrase
 import com.artemchep.keyguard.common.usecase.GetPinCode
@@ -95,50 +93,11 @@ class GetPasswordImplTest {
     }
 }
 
-private class IntMinPasswordCryptoGenerator : CryptoGenerator {
+private class IntMinPasswordCryptoGenerator : TestCryptoGenerator() {
     var randomCalls: Int = 0
         private set
 
     val randomRangeCalls = mutableListOf<IntRange>()
-
-    override fun hkdf(
-        seed: ByteArray,
-        salt: ByteArray?,
-        info: ByteArray?,
-        length: Int,
-    ): ByteArray = error("unused")
-
-    override fun pbkdf2(
-        seed: ByteArray,
-        salt: ByteArray,
-        iterations: Int,
-        length: Int,
-    ): ByteArray = error("unused")
-
-    override fun argon2(
-        mode: Argon2Mode,
-        seed: ByteArray,
-        salt: ByteArray,
-        iterations: Int,
-        memoryKb: Int,
-        parallelism: Int,
-    ): ByteArray = error("unused")
-
-    override fun seed(length: Int): ByteArray = error("unused")
-
-    override fun hmac(
-        key: ByteArray,
-        data: ByteArray,
-        algorithm: CryptoHashAlgorithm,
-    ): ByteArray = error("unused")
-
-    override fun hashSha1(data: ByteArray): ByteArray = error("unused")
-
-    override fun hashSha256(data: ByteArray): ByteArray = error("unused")
-
-    override fun hashMd5(data: ByteArray): ByteArray = error("unused")
-
-    override fun uuid(): String = error("unused")
 
     override fun random(): Int {
         randomCalls += 1

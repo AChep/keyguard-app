@@ -8,8 +8,8 @@ import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
-import com.artemchep.keyguard.ui.icons.generateAccentColors
+import com.artemchep.keyguard.test.createProfile
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -45,8 +45,8 @@ class VaultListPrivacyGateTest {
 
         profilesFlow.emit(
             listOf(
-                profile(accountId = "visible-account", hidden = false),
-                profile(accountId = "hidden-account", hidden = true),
+                createProfile(accountId = "visible-account", name = "visible-account", hidden = false),
+                createProfile(accountId = "hidden-account", name = "hidden-account", hidden = true),
             ),
         )
 
@@ -88,10 +88,10 @@ class VaultListPrivacyGateTest {
             profilesFlow = profilesFlow,
         )
 
-        profilesFlow.emit(listOf(profile(accountId = "account", hidden = false)))
+        profilesFlow.emit(listOf(createProfile(accountId = "account", name = "account", hidden = false)))
         assertEquals(ciphers, output.first())
 
-        profilesFlow.emit(listOf(profile(accountId = "account", hidden = true)))
+        profilesFlow.emit(listOf(createProfile(accountId = "account", name = "account", hidden = true)))
         assertEquals(emptyList(), output.first())
     }
 
@@ -102,8 +102,8 @@ class VaultListPrivacyGateTest {
             folder(id = "hidden", accountId = "hidden-account"),
         )
         val profiles = listOf(
-            profile(accountId = "visible-account", hidden = false),
-            profile(accountId = "hidden-account", hidden = true),
+            createProfile(accountId = "visible-account", name = "visible-account", hidden = false),
+            createProfile(accountId = "hidden-account", name = "hidden-account", hidden = true),
         )
 
         val result = filterHiddenProfiles(
@@ -161,28 +161,4 @@ private fun folder(
     deleted = false,
     synced = true,
     name = id,
-)
-
-private fun profile(
-    accountId: String,
-    hidden: Boolean,
-) = DProfile(
-    accountId = accountId,
-    profileId = "profile-$accountId",
-    keyBase64 = "key",
-    privateKeyBase64 = "private-key",
-    accountHost = "vault.example.com",
-    email = "$accountId@example.com",
-    emailVerified = true,
-    accentColor = generateAccentColors(accountId),
-    name = accountId,
-    description = "",
-    premium = null,
-    hidden = hidden,
-    securityStamp = null,
-    twoFactorEnabled = null,
-    masterPasswordHint = null,
-    masterPasswordHintEnabled = null,
-    unofficialServer = false,
-    serverVersion = null,
 )

@@ -32,8 +32,7 @@ import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.service.filter.AddCipherFilter
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.service.filter.model.AddCipherFilterRequest
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.ArchiveCipherById
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
@@ -145,10 +144,6 @@ internal class InMemoryDeeplinkService : DeeplinkService {
     override fun clear(key: String) {
         sink.update { it - key }
     }
-}
-
-private object NoOpLogRepository : LogRepository {
-    override suspend fun add(tag: String, message: String, level: LogLevel) = Unit
 }
 
 private object LastTwoLabelsTldService : TldService {
@@ -348,7 +343,7 @@ private fun Module.suggestions() {
     }
     single<EquivalentDomainsBuilderFactory> {
         EquivalentDomainsBuilderFactory(
-            logRepository = NoOpLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             getEquivalentDomains = get(),
         )
     }

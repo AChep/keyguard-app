@@ -5,8 +5,7 @@ import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.model.testCipherFilterContext
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRow
 import com.artemchep.keyguard.common.usecase.GetCiphers
@@ -14,8 +13,8 @@ import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.copy.Base64ServiceJvm
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
+import com.artemchep.keyguard.test.createSecret
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.util.Base64
@@ -204,7 +203,7 @@ class SshAgentPublicKeySyncerImplTest {
         sshAgentPublicKeyRepository = repository,
         cryptoGenerator = cryptoGenerator,
         base64Service = base64Service,
-        logRepository = NoOpLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
         defaultDispatcher = defaultDispatcher,
     )
 
@@ -244,27 +243,13 @@ class SshAgentPublicKeySyncerImplTest {
         }
     }
 
-    private object NoOpLogRepository : LogRepository {
-        override fun post(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-
-        override suspend fun add(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-    }
-
     private fun createSshSecret(
         id: String,
         name: String,
         publicKey: String,
         fingerprint: String,
         deletedDate: Instant? = null,
-    ): DSecret = createSecret(
+    ): DSecret = secret(
         id = id,
         name = name,
         type = DSecret.Type.SshKey,
@@ -278,7 +263,7 @@ class SshAgentPublicKeySyncerImplTest {
 
     private fun createLoginSecret(
         id: String,
-    ): DSecret = createSecret(
+    ): DSecret = secret(
         id = id,
         name = "Login",
         type = DSecret.Type.Login,
@@ -286,29 +271,18 @@ class SshAgentPublicKeySyncerImplTest {
         sshKey = null,
     )
 
-    private fun createSecret(
+    private fun secret(
         id: String,
         name: String,
         type: DSecret.Type,
         deletedDate: Instant?,
         sshKey: DSecret.SshKey?,
-    ): DSecret = DSecret(
+    ): DSecret = createSecret(
         id = id,
-        accountId = "account",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = Instant.parse("2024-01-01T00:00:00Z"),
-        createdDate = Instant.parse("2024-01-01T00:00:00Z"),
-        archivedDate = null,
-        deletedDate = deletedDate,
-        service = BitwardenService(),
         name = name,
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
+        accountId = "account",
         type = type,
+        deletedDate = deletedDate,
         sshKey = sshKey,
     )
 

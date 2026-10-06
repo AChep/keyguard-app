@@ -1,13 +1,11 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.test.gpgMetadata
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import kotlin.time.Instant
 
 class GpgPublicKeyModelsTest {
     @Test
@@ -216,22 +214,10 @@ class GpgPublicKeyModelsTest {
         capabilities = capabilities,
     )
 
-    private fun createCipher(): DSecret = DSecret(
+    private fun createCipher(): DSecret = com.artemchep.keyguard.test.createSecret(
         id = "cipher",
-        accountId = "account",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = Instant.parse("2024-01-01T00:00:00Z"),
-        createdDate = Instant.parse("2024-01-01T00:00:00Z"),
-        archivedDate = null,
-        deletedDate = null,
-        service = BitwardenService(),
         name = "Cipher",
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
+        accountId = "account",
         type = DSecret.Type.GpgKey,
     )
 

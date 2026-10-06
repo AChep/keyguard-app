@@ -1,12 +1,10 @@
 package com.artemchep.keyguard.android
 
 import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.model.Argon2Mode
-import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.DPrivilegedApp
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
 import com.artemchep.keyguard.common.service.tld.TldService
+import com.artemchep.keyguard.test.TestCryptoGenerator
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -241,44 +239,7 @@ private object FakePrivilegedAppsService : PrivilegedAppsService {
     ): IO<String> = error("Not used in this test.")
 }
 
-private object FakeCryptoGenerator : CryptoGenerator {
-    override fun hkdf(
-        seed: ByteArray,
-        salt: ByteArray?,
-        info: ByteArray?,
-        length: Int,
-    ): ByteArray = error("Not used in this test.")
-
-    override fun pbkdf2(
-        seed: ByteArray,
-        salt: ByteArray,
-        iterations: Int,
-        length: Int,
-    ): ByteArray = error("Not used in this test.")
-
-    override fun argon2(
-        mode: Argon2Mode,
-        seed: ByteArray,
-        salt: ByteArray,
-        iterations: Int,
-        memoryKb: Int,
-        parallelism: Int,
-    ): ByteArray = error("Not used in this test.")
-
-    override fun seed(
-        length: Int,
-    ): ByteArray = error("Not used in this test.")
-
-    override fun hmac(
-        key: ByteArray,
-        data: ByteArray,
-        algorithm: CryptoHashAlgorithm,
-    ): ByteArray = error("Not used in this test.")
-
-    override fun hashSha1(
-        data: ByteArray,
-    ): ByteArray = error("Not used in this test.")
-
+private object FakeCryptoGenerator : TestCryptoGenerator() {
     override fun hashSha256(
         data: ByteArray,
     ): ByteArray = ByteArray(32)
@@ -288,12 +249,4 @@ private object FakeCryptoGenerator : CryptoGenerator {
     ): ByteArray = MessageDigest
         .getInstance("MD5")
         .digest(data)
-
-    override fun uuid(): String = error("Not used in this test.")
-
-    override fun random(): Int = error("Not used in this test.")
-
-    override fun random(
-        range: IntRange,
-    ): Int = error("Not used in this test.")
 }

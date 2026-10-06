@@ -8,7 +8,7 @@ import com.artemchep.keyguard.common.model.TotpCode
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetTotpCode
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest

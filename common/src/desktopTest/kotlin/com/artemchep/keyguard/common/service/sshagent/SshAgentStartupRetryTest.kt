@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.test.RecordingLogRepository
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -15,26 +15,6 @@ import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SshAgentStartupRetryTest {
-    private class RecordingLogRepository : LogRepository {
-        val entries = mutableListOf<Pair<LogLevel, String>>()
-
-        override fun post(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) {
-            entries += level to "[$tag] $message"
-        }
-
-        override suspend fun add(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) {
-            entries += level to "[$tag] $message"
-        }
-    }
-
     @Test
     fun `returns first successful startup result without retry`() = runTest {
         val logRepository = RecordingLogRepository()
@@ -82,7 +62,7 @@ class SshAgentStartupRetryTest {
         assertContentEquals(listOf(1, 2), attempts)
         assertEquals(1, stopCalls)
         assertEquals(1, logRepository.entries.size)
-        assertEquals(LogLevel.WARNING, logRepository.entries.single().first)
+        assertEquals(LogLevel.WARNING, logRepository.entries.single().level)
     }
 
     @Test
@@ -109,7 +89,7 @@ class SshAgentStartupRetryTest {
         assertEquals(3, stopCalls)
         assertContentEquals(
             listOf(LogLevel.WARNING, LogLevel.WARNING, LogLevel.ERROR),
-            logRepository.entries.map { it.first },
+            logRepository.entries.map { it.level },
         )
     }
 

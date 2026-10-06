@@ -1,6 +1,6 @@
 package db_key_value.datastore.encrypted
 
-import kotlin.io.path.createTempDirectory
+import com.artemchep.keyguard.test.withTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -69,8 +69,8 @@ class SecureStorageArtifactDecisionTest {
 
     @Test
     fun `keyset inspection loads preferences before checking the restored file`() {
-        val directory = createTempDirectory("secure-storage-keyset-test").toFile()
-        try {
+        withTempDirectory("secure-storage-keyset-test") { dir ->
+            val directory = dir.toFile()
             val preferencesFile = directory.resolve("keyset.xml")
             val backupFile = directory.resolve("keyset.xml.bak").apply { writeText("backup") }
             var containsCalls = 0
@@ -84,8 +84,6 @@ class SecureStorageArtifactDecisionTest {
 
             assertTrue(present)
             assertEquals(1, containsCalls)
-        } finally {
-            directory.deleteRecursively()
         }
     }
 

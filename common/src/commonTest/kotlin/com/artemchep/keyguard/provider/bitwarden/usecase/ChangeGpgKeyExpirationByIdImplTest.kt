@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.test.createSecret
 import com.artemchep.keyguard.test.gpgMetadata
 import com.artemchep.keyguard.common.usecase.ChangeGpgKeyExpirationByIdRequest
 import com.artemchep.keyguard.common.usecase.ChangeGpgKeyExpirationByIdResult
@@ -345,16 +346,11 @@ class ChangeGpgKeyExpirationByIdImplTest {
         deletedDate: Instant? = null,
         type: DSecret.Type = DSecret.Type.GpgKey,
         fields: List<DSecret.Field> = emptyList(),
-    ) = DSecret(
+    ) = createSecret(
         id = id,
+        name = "GPG key",
         accountId = "account",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = Instant.fromEpochSeconds(0),
-        createdDate = null,
-        archivedDate = null,
-        deletedDate = deletedDate,
+        type = type,
         service = if (editable) {
             BitwardenService()
         } else {
@@ -365,13 +361,10 @@ class ChangeGpgKeyExpirationByIdImplTest {
                 ),
             )
         },
-        name = "GPG key",
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
         fields = fields,
-        type = type,
+        revisionDate = Instant.fromEpochSeconds(0),
+        createdDate = null,
+        deletedDate = deletedDate,
         gpgKey = gpgKey,
     )
 

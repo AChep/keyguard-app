@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.android.credentialexchange
+package com.artemchep.keyguard.test
 
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -13,12 +13,15 @@ internal data class LogEntry(
  * A [LogRepository] that keeps what it was told, for the paths that are supposed to
  * degrade into a log line rather than a crash or a report.
  *
- * Shared by the credential-exchange transport tests: both the untrusted-request parse
- * and the account-mirror read answer a failure this way, and asserting the level is
- * how those tests tell "handled" from "silently swallowed".
+ * Both [post] and [add] record synchronously, so a test can assert the entries right
+ * after the call; asserting the level is how a test tells "handled" from "silently
+ * swallowed". Use `LogRepositoryBridge(emptyList())` when nothing needs to be recorded.
  */
 internal class RecordingLogRepository : LogRepository {
     val entries = mutableListOf<LogEntry>()
+
+    val messages: List<String>
+        get() = entries.map { it.message }
 
     override fun post(
         tag: String,

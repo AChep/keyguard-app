@@ -3,8 +3,9 @@ package com.artemchep.keyguard.common.service.backup
 import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.test.TestCryptoGenerator
+import com.artemchep.keyguard.test.createSecret
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -104,16 +105,11 @@ class BackupAttachmentFingerprintTest {
         )
     }
 
-    private fun cipher() = DSecret(
+    private fun cipher() = createSecret(
         id = "local-cipher-1",
+        name = "Cipher",
         accountId = "account-1",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = Instant.fromEpochMilliseconds(1L),
-        createdDate = null,
-        archivedDate = null,
-        deletedDate = null,
+        type = DSecret.Type.None,
         service = BitwardenService(
             remote = BitwardenService.Remote(
                 id = "remote-cipher-1",
@@ -121,12 +117,8 @@ class BackupAttachmentFingerprintTest {
                 deletedDate = null,
             ),
         ),
-        name = "Cipher",
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
-        type = DSecret.Type.None,
+        revisionDate = Instant.fromEpochMilliseconds(1L),
+        createdDate = null,
     )
 
     private fun attachment(
@@ -141,7 +133,7 @@ class BackupAttachmentFingerprintTest {
     )
 }
 
-private class StableCryptoGenerator : CryptoGenerator {
+private class StableCryptoGenerator : TestCryptoGenerator() {
     override fun hkdf(
         seed: ByteArray,
         salt: ByteArray?,

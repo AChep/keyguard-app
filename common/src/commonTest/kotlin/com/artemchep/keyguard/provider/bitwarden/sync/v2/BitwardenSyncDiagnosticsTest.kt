@@ -1,12 +1,12 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2
 
 import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.BitwardenSyncDiagnostics
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.LocalEntitySnapshot
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.ServerEntitySnapshot
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncAction
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntitySyncPlan
+import com.artemchep.keyguard.test.RecordingLogRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -15,7 +15,7 @@ import kotlin.test.assertTrue
 class BitwardenSyncDiagnosticsTest {
     @Test
     fun `diagnostics emits debug messages when enabled`() = runTest {
-        val logRepository = TestLogRepository()
+        val logRepository = RecordingLogRepository()
         val diagnostics =
             BitwardenSyncDiagnostics(
                 logRepository = logRepository,
@@ -35,7 +35,7 @@ class BitwardenSyncDiagnosticsTest {
 
     @Test
     fun `diagnostics does not emit messages when disabled`() = runTest {
-        val logRepository = TestLogRepository()
+        val logRepository = RecordingLogRepository()
         val diagnostics =
             BitwardenSyncDiagnostics(
                 logRepository = logRepository,
@@ -52,7 +52,7 @@ class BitwardenSyncDiagnosticsTest {
 
     @Test
     fun `entity plan diagnostics formats action counts centrally`() = runTest {
-        val logRepository = TestLogRepository()
+        val logRepository = RecordingLogRepository()
         val diagnostics =
             BitwardenSyncDiagnostics(
                 logRepository = logRepository,
@@ -97,7 +97,7 @@ class BitwardenSyncDiagnosticsTest {
 
     @Test
     fun `upload diagnostics include raw ids without file paths or names`() = runTest {
-        val logRepository = TestLogRepository()
+        val logRepository = RecordingLogRepository()
         val diagnostics =
             BitwardenSyncDiagnostics(
                 logRepository = logRepository,
@@ -119,7 +119,7 @@ class BitwardenSyncDiagnosticsTest {
             isCreate = true,
         )
 
-        val messages = logRepository.entries.map { it.message }
+        val messages = logRepository.messages
         assertTrue(messages.any { it.contains("cipher_local_id=cipher-local-1") })
         assertTrue(messages.any { it.contains("attachment_remote_id=attachment-remote-1") })
         assertTrue(messages.any { it.contains("send_remote_id=send-remote-1") })
@@ -127,25 +127,3 @@ class BitwardenSyncDiagnosticsTest {
         assertTrue(messages.none { it.contains("fileName") })
     }
 }
-
-internal class TestLogRepository : LogRepository {
-    val entries = mutableListOf<TestLogEntry>()
-
-    override suspend fun add(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) {
-        entries += TestLogEntry(
-            tag = tag,
-            message = message,
-            level = level,
-        )
-    }
-}
-
-internal data class TestLogEntry(
-    val tag: String,
-    val message: String,
-    val level: LogLevel,
-)

@@ -9,12 +9,13 @@ import com.artemchep.keyguard.common.model.DTag
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.home.vault.component.obscureCardNumber
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
-import com.artemchep.keyguard.feature.home.vault.search.TEST_INSTANT
+import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.search.createItem
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.DefaultVaultSearchQueryCompiler
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultTextField
 import com.artemchep.keyguard.feature.home.vault.search.query.parser.DefaultVaultSearchParser
+import com.artemchep.keyguard.test.TEST_INSTANT
+import com.artemchep.keyguard.test.createSecret
 import com.artemchep.keyguard.ui.icons.AccentColors
 import kotlinx.coroutines.test.runTest
 import java.util.Locale
@@ -69,14 +70,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("username:ali", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "username:ali",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(1, out.size)
@@ -103,14 +101,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("email:ali", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "email:ali",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(1, out.size)
@@ -138,14 +133,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("alice", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "alice",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(1, out.size)
@@ -199,11 +191,10 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("te", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "te",
                     candidates = listOf(item),
                     highlightBackgroundColor = Color.Blue,
                     highlightContentColor = Color.White,
@@ -240,14 +231,11 @@ class VaultSearchEngineTest {
                 )
             val index = builder.build(listOf(single.source, repeated.source))
 
-            val plan = index.compile("test test", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "test test",
                     candidates = listOf(single, repeated),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(
@@ -268,14 +256,11 @@ class VaultSearchEngineTest {
                 )
             val index = builder.build(listOf(item.source))
 
-            val plan = index.compile("test test", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "test test",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(listOf("single-id"), out.map { it.id })
@@ -471,14 +456,11 @@ class VaultSearchEngineTest {
                 )
             val index = builder.build(listOf(item.source))
 
-            val plan = index.compile("jose", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "jose",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(listOf("localized-title-id"), out.map { it.id })
@@ -499,14 +481,11 @@ class VaultSearchEngineTest {
                 )
             val index = builder.build(listOf(item.source))
 
-            val plan = index.compile("strasse", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "strasse",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(listOf("sharp-s-id"), out.map { it.id })
@@ -534,14 +513,11 @@ class VaultSearchEngineTest {
                 )
             val index = builder.build(listOf(folded.source, exact.source))
 
-            val plan = index.compile("josé", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "josé",
                     candidates = listOf(folded, exact),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(
@@ -566,14 +542,12 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("cret", VaultRoute.Args.SearchBy.PASSWORD)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "cret",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
+                    searchBy = VaultRoute.Args.SearchBy.PASSWORD,
                 )
 
             assertEquals(1, out.size)
@@ -597,14 +571,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("note:secret", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "note:secret",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(1, out.size)
@@ -633,14 +604,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("card-number:4111", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "card-number:4111",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(1, out.size)
@@ -678,14 +646,11 @@ class VaultSearchEngineTest {
                 "host:exämple",
                 "password:sécret",
             ).forEach { query ->
-                val plan = index.compile(query, VaultRoute.Args.SearchBy.ALL)
-                assertNotNull(plan)
                 val out =
-                    index.evaluate(
-                        plan = plan,
+                    evaluate(
+                        index = index,
+                        query = query,
                         candidates = listOf(item),
-                        highlightBackgroundColor = Color.Unspecified,
-                        highlightContentColor = Color.Unspecified,
                     )
                 assertEquals(emptyList(), out.map { it.id }, query)
             }
@@ -789,311 +754,187 @@ class VaultSearchEngineTest {
     @Test
     fun `field query matches custom text field by name`() =
         runTest {
-            val secret =
-                createSecret(
-                    id = "field-name-id",
-                    name = "Secure Login",
-                    fields =
-                        listOf(
-                            DSecret.Field(
-                                name = "api-key",
-                                value = "internal-token",
-                                type = DSecret.Field.Type.Text,
-                            ),
-                        ),
-                )
-            val item = createItem(secret, text = "old text")
-            val index = builder.build(listOf(secret))
-
-            val plan = index.compile("field:api", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
-            val out =
-                index.evaluate(
-                    plan = plan,
-                    candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                )
-
-            assertEquals(1, out.size)
-            assertEquals("old text", out.single().text)
-            assertSearchContextBadge(
-                item = out.single(),
-                field = VaultTextField.Field,
-                text = "api-key",
+            assertFieldQuery(
+                id = "field-name-id",
+                field = apiKeyField,
+                query = "field:api",
+                expectedBadgeField = VaultTextField.Field,
+                expectedBadgeText = "api-key",
             )
         }
 
     @Test
     fun `field query matches custom text field by value`() =
         runTest {
-            val secret =
-                createSecret(
-                    id = "field-value-id",
-                    name = "Secure Login",
-                    fields =
-                        listOf(
-                            DSecret.Field(
-                                name = "api-key",
-                                value = "internal-token",
-                                type = DSecret.Field.Type.Text,
-                            ),
-                        ),
-                )
-            val item = createItem(secret, text = "old text")
-            val index = builder.build(listOf(secret))
-
-            val plan = index.compile("field:token", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
-            val out =
-                index.evaluate(
-                    plan = plan,
-                    candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                )
-
-            assertEquals(1, out.size)
-            assertEquals("old text", out.single().text)
-            assertSearchContextBadge(
-                item = out.single(),
-                field = VaultTextField.Field,
-                text = "internal-token",
+            assertFieldQuery(
+                id = "field-value-id",
+                field = apiKeyField,
+                query = "field:token",
+                expectedBadgeField = VaultTextField.Field,
+                expectedBadgeText = "internal-token",
             )
         }
 
     @Test
     fun `field query masks hidden field value`() =
         runTest {
-            val secret =
-                createSecret(
-                    id = "field-hidden-id",
-                    name = "Secure Login",
-                    fields =
-                        listOf(
-                            DSecret.Field(
-                                name = "secret-key",
-                                value = "super-secret",
-                                type = DSecret.Field.Type.Hidden,
-                            ),
-                        ),
-                )
-            val item = createItem(secret, text = "old text")
-            val index = builder.build(listOf(secret))
-
-            val plan = index.compile("field:super", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
-            val out =
-                index.evaluate(
-                    plan = plan,
-                    candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                )
-
-            assertEquals(1, out.size)
-            assertEquals("old text", out.single().text)
-            assertSearchContextBadge(
-                item = out.single(),
-                field = VaultTextField.Field,
-                text = HIDDEN_FIELD_MASK,
+            assertFieldQuery(
+                id = "field-hidden-id",
+                field =
+                    DSecret.Field(
+                        name = "secret-key",
+                        value = "super-secret",
+                        type = DSecret.Field.Type.Hidden,
+                    ),
+                query = "field:super",
+                expectedBadgeField = VaultTextField.Field,
+                expectedBadgeText = HIDDEN_FIELD_MASK,
             )
         }
 
     @Test
     fun `field query matches boolean field by name`() =
         runTest {
-            val secret =
-                createSecret(
-                    id = "field-boolean-id",
-                    name = "Secure Login",
-                    fields =
-                        listOf(
-                            DSecret.Field(
-                                name = "enabled",
-                                value = "true",
-                                type = DSecret.Field.Type.Boolean,
-                            ),
-                        ),
-                )
-            val item = createItem(secret, text = "old text")
-            val index = builder.build(listOf(secret))
-
-            val plan = index.compile("field:enabled", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
-            val out =
-                index.evaluate(
-                    plan = plan,
-                    candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                )
-
-            assertEquals(1, out.size)
-            assertEquals("old text", out.single().text)
-            assertSearchContextBadge(
-                item = out.single(),
-                field = VaultTextField.Field,
-                text = "enabled",
+            assertFieldQuery(
+                id = "field-boolean-id",
+                field = enabledField,
+                query = "field:enabled",
+                expectedBadgeField = VaultTextField.Field,
+                expectedBadgeText = "enabled",
             )
         }
 
     @Test
     fun `field query matches boolean field by value`() =
         runTest {
-            val secret =
-                createSecret(
-                    id = "field-boolean-value-id",
-                    name = "Secure Login",
-                    fields =
-                        listOf(
-                            DSecret.Field(
-                                name = "enabled",
-                                value = "true",
-                                type = DSecret.Field.Type.Boolean,
-                            ),
-                        ),
-                )
-            val item = createItem(secret, text = "old text")
-            val index = builder.build(listOf(secret))
-
-            val plan = index.compile("field:true", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
-            val out =
-                index.evaluate(
-                    plan = plan,
-                    candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                )
-
-            assertEquals(1, out.size)
-            assertEquals("old text", out.single().text)
-            assertSearchContextBadge(
-                item = out.single(),
-                field = VaultTextField.Field,
-                text = "true",
+            assertFieldQuery(
+                id = "field-boolean-value-id",
+                field = enabledField,
+                query = "field:true",
+                expectedBadgeField = VaultTextField.Field,
+                expectedBadgeText = "true",
             )
         }
 
     @Test
     fun `bare query matches custom text field by name`() =
         runTest {
-            val secret =
-                createSecret(
-                    id = "bare-field-name-id",
-                    name = "Secure Login",
-                    fields =
-                        listOf(
-                            DSecret.Field(
-                                name = "api-key",
-                                value = "internal-token",
-                                type = DSecret.Field.Type.Text,
-                            ),
-                        ),
-                )
-            val item = createItem(secret, text = "old text")
-            val index = builder.build(listOf(secret))
-
-            val plan = index.compile("api", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
-            val out =
-                index.evaluate(
-                    plan = plan,
-                    candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                )
-
-            assertEquals(1, out.size)
-            assertEquals("old text", out.single().text)
-            assertSearchContextBadge(
-                item = out.single(),
-                field = VaultTextField.FieldName,
-                text = "api-key",
+            assertFieldQuery(
+                id = "bare-field-name-id",
+                field = apiKeyField,
+                query = "api",
+                expectedBadgeField = VaultTextField.FieldName,
+                expectedBadgeText = "api-key",
             )
         }
 
     @Test
     fun `bare query does not match custom text field by value`() =
         runTest {
-            val secret =
-                createSecret(
-                    id = "bare-field-value-id",
-                    name = "Secure Login",
-                    fields =
-                        listOf(
-                            DSecret.Field(
-                                name = "api-key",
-                                value = "internal-token",
-                                type = DSecret.Field.Type.Text,
-                            ),
-                        ),
-                )
-            val item = createItem(secret, text = "old text")
-            val index = builder.build(listOf(secret))
-
-            val plan = index.compile("token", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
-            val out =
-                index.evaluate(
-                    plan = plan,
-                    candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                )
-
-            assertEquals(emptyList(), out)
-        }
-
-    private suspend fun evaluateIds(
-        index: VaultSearchIndex,
-        query: String,
-        candidates: List<com.artemchep.keyguard.feature.home.vault.model.VaultItem2.Item>,
-    ): List<String> {
-        val plan = index.compile(query, VaultRoute.Args.SearchBy.ALL)
-        assertNotNull(plan)
-        val out =
-            index.evaluate(
-                plan = plan,
-                candidates = candidates,
-                highlightBackgroundColor = Color.Unspecified,
-                highlightContentColor = Color.Unspecified,
+            assertFieldQueryNoMatch(
+                id = "bare-field-value-id",
+                field = apiKeyField,
+                query = "token",
             )
-        return out.map { it.id }
-    }
+        }
 
     @Test
     fun `field query does not match linked custom field`() =
         runTest {
-            val secret =
-                createSecret(
-                    id = "field-linked-id",
-                    name = "Secure Login",
-                    fields =
-                        listOf(
-                            DSecret.Field(
-                                name = "account-link",
-                                linkedId = DSecret.Field.LinkedId.Login_Username,
-                                type = DSecret.Field.Type.Linked,
-                            ),
-                        ),
-                )
-            val item = createItem(secret, text = "old text")
-            val index = builder.build(listOf(secret))
-
-            val plan = index.compile("field:account", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
-            val out =
-                index.evaluate(
-                    plan = plan,
-                    candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                )
-
-            assertEquals(emptyList(), out)
+            assertFieldQueryNoMatch(
+                id = "field-linked-id",
+                field =
+                    DSecret.Field(
+                        name = "account-link",
+                        linkedId = DSecret.Field.LinkedId.Login_Username,
+                        type = DSecret.Field.Type.Linked,
+                    ),
+                query = "field:account",
+            )
         }
+
+    private val apiKeyField =
+        DSecret.Field(
+            name = "api-key",
+            value = "internal-token",
+            type = DSecret.Field.Type.Text,
+        )
+
+    private val enabledField =
+        DSecret.Field(
+            name = "enabled",
+            value = "true",
+            type = DSecret.Field.Type.Boolean,
+        )
+
+    private suspend fun assertFieldQuery(
+        id: String,
+        field: DSecret.Field,
+        query: String,
+        expectedBadgeField: VaultTextField,
+        expectedBadgeText: String,
+    ) {
+        val out = evaluateFieldQuery(id = id, field = field, query = query)
+        assertEquals(1, out.size)
+        assertEquals("old text", out.single().text)
+        assertSearchContextBadge(
+            item = out.single(),
+            field = expectedBadgeField,
+            text = expectedBadgeText,
+        )
+    }
+
+    private suspend fun assertFieldQueryNoMatch(
+        id: String,
+        field: DSecret.Field,
+        query: String,
+    ) {
+        assertEquals(emptyList(), evaluateFieldQuery(id = id, field = field, query = query))
+    }
+
+    private suspend fun evaluateFieldQuery(
+        id: String,
+        field: DSecret.Field,
+        query: String,
+    ): List<VaultItem2.Item> {
+        val secret =
+            createSecret(
+                id = id,
+                name = "Secure Login",
+                fields = listOf(field),
+            )
+        val item = createItem(secret, text = "old text")
+        val index = builder.build(listOf(secret))
+        return evaluate(
+            index = index,
+            query = query,
+            candidates = listOf(item),
+        )
+    }
+
+    private suspend fun evaluate(
+        index: VaultSearchIndex,
+        query: String,
+        candidates: List<VaultItem2.Item>,
+        searchBy: VaultRoute.Args.SearchBy = VaultRoute.Args.SearchBy.ALL,
+        highlightBackgroundColor: Color = Color.Unspecified,
+        highlightContentColor: Color = Color.Unspecified,
+    ): List<VaultItem2.Item> {
+        val plan = index.compile(query, searchBy)
+        assertNotNull(plan)
+        return index.evaluate(
+            plan = plan,
+            candidates = candidates,
+            highlightBackgroundColor = highlightBackgroundColor,
+            highlightContentColor = highlightContentColor,
+        )
+    }
+
+    private suspend fun evaluateIds(
+        index: VaultSearchIndex,
+        query: String,
+        candidates: List<VaultItem2.Item>,
+    ): List<String> = evaluate(index, query, candidates).map { it.id }
 
     @Test
     fun `tag query matches tag by fuzzy substring`() =
@@ -1301,14 +1142,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("beth", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "beth",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(1, out.size)
@@ -1336,14 +1174,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("555", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "555",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(1, out.size)
@@ -1372,14 +1207,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("cardholder", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "cardholder",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(1, out.size)
@@ -1408,14 +1240,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("visa", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "visa",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(emptyList(), out)
@@ -1445,14 +1274,11 @@ class VaultSearchEngineTest {
                 )
             val index = builder.build(listOf(titleSecret, attachmentSecret))
 
-            val plan = index.compile("report", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "report",
                     candidates = listOf(createItem(titleSecret), createItem(attachmentSecret)),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(
@@ -1486,14 +1312,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret)
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("attachment:report", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "attachment:report",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(1, out.size)
@@ -1528,7 +1351,7 @@ class VaultSearchEngineTest {
                                         userName = "alice",
                                         userDisplayName = "Alice Device",
                                         discoverable = true,
-                                        creationDate = com.artemchep.keyguard.feature.home.vault.search.TEST_INSTANT,
+                                        creationDate = TEST_INSTANT,
                                     ),
                                 ),
                         ),
@@ -1536,14 +1359,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val rpIdPlan = index.compile("passkey:example", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(rpIdPlan)
             val rpIdOut =
-                index.evaluate(
-                    plan = rpIdPlan,
+                evaluate(
+                    index = index,
+                    query = "passkey:example",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
             assertEquals(1, rpIdOut.size)
             assertEquals("old text", rpIdOut.single().text)
@@ -1553,14 +1373,11 @@ class VaultSearchEngineTest {
                 text = "example.com",
             )
 
-            val displayNamePlan = index.compile("passkey:device", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(displayNamePlan)
             val displayNameOut =
-                index.evaluate(
-                    plan = displayNamePlan,
+                evaluate(
+                    index = index,
+                    query = "passkey:device",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
             assertEquals(1, displayNameOut.size)
             assertEquals("old text", displayNameOut.single().text)
@@ -1578,7 +1395,6 @@ class VaultSearchEngineTest {
                 createSecret(
                     id = "ssh-qualified-id",
                     name = "SSH Vault",
-                ).copy(
                     sshKey =
                         DSecret.SshKey(
                             privateKey = "private-key-token",
@@ -1589,76 +1405,39 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val publicKeyPlan = index.compile("ssh:public", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(publicKeyPlan)
-            assertEquals(
-                listOf("ssh-qualified-id"),
-                index.evaluate(
-                    plan = publicKeyPlan,
+            val publicKeyOut =
+                evaluate(
+                    index = index,
+                    query = "ssh:public",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                ).map { it.id },
-            )
-            assertEquals(
-                "old text",
-                index.evaluate(
-                    plan = publicKeyPlan,
-                    candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                ).single().text,
-            )
+                )
+            assertEquals(listOf("ssh-qualified-id"), publicKeyOut.map { it.id })
+            assertEquals("old text", publicKeyOut.single().text)
             assertSearchContextBadge(
-                item = index.evaluate(
-                    plan = publicKeyPlan,
-                    candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                ).single(),
+                item = publicKeyOut.single(),
                 field = VaultTextField.Ssh,
                 text = "public-key-token",
             )
 
-            val fingerprintPlan = index.compile("ssh:fingerprint", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(fingerprintPlan)
-            assertEquals(
-                listOf("ssh-qualified-id"),
-                index.evaluate(
-                    plan = fingerprintPlan,
+            val fingerprintOut =
+                evaluate(
+                    index = index,
+                    query = "ssh:fingerprint",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                ).map { it.id },
-            )
-            assertEquals(
-                "old text",
-                index.evaluate(
-                    plan = fingerprintPlan,
-                    candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                ).single().text,
-            )
+                )
+            assertEquals(listOf("ssh-qualified-id"), fingerprintOut.map { it.id })
+            assertEquals("old text", fingerprintOut.single().text)
             assertSearchContextBadge(
-                item = index.evaluate(
-                    plan = fingerprintPlan,
-                    candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
-                ).single(),
+                item = fingerprintOut.single(),
                 field = VaultTextField.Ssh,
                 text = "fingerprint-token",
             )
 
-            val privateKeyPlan = index.compile("ssh:private", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(privateKeyPlan)
             val privateKeyOut =
-                index.evaluate(
-                    plan = privateKeyPlan,
+                evaluate(
+                    index = index,
+                    query = "ssh:private",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
             assertEquals(1, privateKeyOut.size)
             assertEquals("old text", privateKeyOut.single().text)
@@ -1685,14 +1464,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("brand:visa", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "brand:visa",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(emptyList(), out)
@@ -1714,14 +1490,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("card-brand:visa", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "card-brand:visa",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(1, out.size)
@@ -1757,7 +1530,7 @@ class VaultSearchEngineTest {
                                         userName = "alice",
                                         userDisplayName = "Alice Device",
                                         discoverable = true,
-                                        creationDate = com.artemchep.keyguard.feature.home.vault.search.TEST_INSTANT,
+                                        creationDate = TEST_INSTANT,
                                     ),
                                 ),
                         ),
@@ -1765,14 +1538,11 @@ class VaultSearchEngineTest {
             val item = createItem(secret, text = "old text")
             val index = builder.build(listOf(secret))
 
-            val plan = index.compile("device", VaultRoute.Args.SearchBy.ALL)
-            assertNotNull(plan)
             val out =
-                index.evaluate(
-                    plan = plan,
+                evaluate(
+                    index = index,
+                    query = "device",
                     candidates = listOf(item),
-                    highlightBackgroundColor = Color.Unspecified,
-                    highlightContentColor = Color.Unspecified,
                 )
 
             assertEquals(1, out.size)
@@ -1787,7 +1557,7 @@ class VaultSearchEngineTest {
 }
 
 private fun assertSearchContextBadge(
-    item: com.artemchep.keyguard.feature.home.vault.model.VaultItem2.Item,
+    item: VaultItem2.Item,
     field: VaultTextField,
     text: String,
 ) {

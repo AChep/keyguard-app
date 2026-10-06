@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DTag
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.usecase.CipherSnapshot
 import com.artemchep.keyguard.common.usecase.CipherSnapshotKey
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -16,7 +17,6 @@ import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
 import com.artemchep.keyguard.feature.home.vault.search.engine.DefaultSearchExecutor
 import com.artemchep.keyguard.feature.home.vault.search.engine.DefaultSearchTokenizer
 import com.artemchep.keyguard.feature.home.vault.search.engine.DefaultVaultSearchIndexBuilder
@@ -32,6 +32,7 @@ import com.artemchep.keyguard.feature.home.vault.search.query.compiler.DefaultVa
 import com.artemchep.keyguard.feature.home.vault.search.query.parser.DefaultVaultSearchParser
 import com.artemchep.keyguard.feature.home.vault.search.engine.VaultSearchTraceSink
 import com.artemchep.keyguard.feature.home.vault.search.engine.Bm25SearchScorer
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -73,7 +74,7 @@ class GetVaultSearchIndexImplTest {
         )
         val dispatcher = StandardTestDispatcher(testScheduler)
         val useCase = GetVaultSearchIndexImpl(
-            logRepository = NoOpLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             getCipherSnapshots = cipherSnapshotsUseCase(cipherSnapshotsFlow),
             getAccounts = flowUseCase(MutableStateFlow<List<DAccount>>(emptyList())),
             getFolders = flowUseCase(MutableStateFlow<List<DFolder>>(emptyList())),

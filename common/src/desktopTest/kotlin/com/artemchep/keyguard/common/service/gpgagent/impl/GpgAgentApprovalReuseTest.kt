@@ -26,8 +26,7 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor.GpgAgentOperationResult
 import com.artemchep.keyguard.common.service.gpgagent.GpgRevocationStatus
 import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.pendinghistory.RecordingPendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
 import com.artemchep.keyguard.common.service.vault.testVaultSession
@@ -36,7 +35,7 @@ import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.test.createSecret
 import com.artemchep.keyguard.test.gpgMetadata
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -439,7 +438,7 @@ class GpgAgentApprovalReuseTest {
         var onApproval: suspend () -> Boolean = { true }
         private val processor = GpgAgentRequestProcessorImpl(
             sessionAccess = testDomainSessionAccess(),
-            logRepository = NoOpLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             crypto = crypto,
             getVaultSession = vault,
             getGpgAgentApprovalWindow = object : GetGpgAgentApprovalWindow {
@@ -587,22 +586,10 @@ class GpgAgentApprovalReuseTest {
         )
     }
 
-    private fun createGpgCipher(keygrip: String) = DSecret(
+    private fun createGpgCipher(keygrip: String) = createSecret(
         id = keygrip,
-        accountId = "account",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = Instant.parse("2024-01-01T00:00:00Z"),
-        createdDate = Instant.parse("2024-01-01T00:00:00Z"),
-        archivedDate = null,
-        deletedDate = null,
-        service = BitwardenService(),
         name = "Test GPG key",
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
+        accountId = "account",
         type = DSecret.Type.GpgKey,
         gpgKey = DSecret.GpgKey(
             privateKeyArmored = "test-private-key",
@@ -659,11 +646,6 @@ class GpgAgentApprovalReuseTest {
                 ?: byteArrayOf(),
         ),
     )
-
-    private object NoOpLogRepository : LogRepository {
-        override fun post(tag: String, message: String, level: LogLevel) = Unit
-        override suspend fun add(tag: String, message: String, level: LogLevel) = Unit
-    }
 
     private companion object {
         const val KEYGRIP = "0123456789ABCDEF0123456789ABCDEF01234567"

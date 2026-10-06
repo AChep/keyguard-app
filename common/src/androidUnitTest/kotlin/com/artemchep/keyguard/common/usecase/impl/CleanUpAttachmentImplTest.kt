@@ -1,8 +1,8 @@
 package com.artemchep.keyguard.common.usecase.impl
 
+import com.artemchep.keyguard.test.withTempDirectory
 import com.artemchep.keyguard.util.io.artifact.TemporaryArtifactRole
 import com.artemchep.keyguard.util.io.artifact.temporaryArtifactName
-import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertFalse
@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
 
 class CleanUpAttachmentImplTest {
     @Test
-    fun `keeps a referenced download`() = withTemporaryDirectory { root ->
+    fun `keeps a referenced download`() = withTempDirectory("attachment-cleanup") { root ->
         val file = root.resolve("download.bin").apply {
             writeText("download")
         }
@@ -24,7 +24,7 @@ class CleanUpAttachmentImplTest {
     }
 
     @Test
-    fun `deletes an unreferenced download immediately`() = withTemporaryDirectory { root ->
+    fun `deletes an unreferenced download immediately`() = withTempDirectory("attachment-cleanup") { root ->
         val file = root.resolve("orphan.bin").apply {
             writeText("orphan")
         }
@@ -39,7 +39,7 @@ class CleanUpAttachmentImplTest {
 
     @Test
     fun `keeps a canonical staging temporary for the native sweeper`() =
-        withTemporaryDirectory { root ->
+        withTempDirectory("attachment-cleanup") { root ->
             val file = root.resolve(
                 temporaryArtifactName(
                     TemporaryArtifactRole.New,
@@ -59,7 +59,7 @@ class CleanUpAttachmentImplTest {
 
     @Test
     fun `keeps malformed and future reserved names for compatible readers`() =
-        withTemporaryDirectory { root ->
+        withTempDirectory("attachment-cleanup") { root ->
             for (name in listOf(".kg-tmp-malformed", ".kg-tmp-v99-n-future.tmp")) {
                 val file = root.resolve(name).apply {
                     writeText("reserved")
@@ -73,15 +73,4 @@ class CleanUpAttachmentImplTest {
                 assertFalse(shouldDelete, name)
             }
         }
-}
-
-private inline fun withTemporaryDirectory(
-    block: (java.nio.file.Path) -> Unit,
-) {
-    val root = createTempDirectory("attachment-cleanup")
-    try {
-        block(root)
-    } finally {
-        root.toFile().deleteRecursively()
-    }
 }

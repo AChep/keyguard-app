@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.staging.SpoolLimits
 import com.artemchep.keyguard.common.service.staging.StagingPurpose
 import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
+import com.artemchep.keyguard.test.withTempDirectory
 import com.artemchep.keyguard.util.io.InternalKeyguardIoApi
 import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
 import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
@@ -26,7 +27,6 @@ import kotlinx.io.RawSink
 import kotlinx.io.RawSource
 import kotlinx.io.buffered
 import java.nio.file.Path
-import kotlin.io.path.createTempDirectory
 import kotlin.io.path.readBytes
 import kotlin.io.path.writeBytes
 import kotlin.test.Test
@@ -82,14 +82,13 @@ class FileCryptoCancellationTest {
     fun cancellationDuringCiphertextReplayPreservesDestination() {
         // Exercise both encode publication and authenticated decode replay.
         for (encrypt in listOf(true, false)) {
-            val root = createTempDirectory("file-crypto-cancellation")
-            val target = root.resolve("output.bin")
-            val original = "previous output".encodeToByteArray()
-            target.writeBytes(original)
-            val storage = ObservedScratch()
-            val codec = NativeFileEncryptionCodec(NativeCryptoGenerator(), smallSpoolFactory(storage))
-            val input = if (encrypt) plaintext else codec.encrypt(plaintext, key)
-            try {
+            withTempDirectory("file-crypto-cancellation") { root ->
+                val target = root.resolve("output.bin")
+                val original = "previous output".encodeToByteArray()
+                target.writeBytes(original)
+                val storage = ObservedScratch()
+                val codec = NativeFileEncryptionCodec(NativeCryptoGenerator(), smallSpoolFactory(storage))
+                val input = if (encrypt) plaintext else codec.encrypt(plaintext, key)
                 assertFailsWith<CancellationException> {
                     runBlocking {
                         val owner = coroutineContext.job
@@ -120,8 +119,6 @@ class FileCryptoCancellationTest {
                 assertEquals(1, storage.delegate.closeCount)
                 assertContentEquals(original, target.readBytes())
                 assertEquals(listOf("output.bin"), root.toFile().list()!!.toList())
-            } finally {
-                root.toFile().deleteRecursively()
             }
         }
     }

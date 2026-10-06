@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.backup
 
 import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.test.RecordingLogRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -10,7 +10,7 @@ import kotlinx.coroutines.test.runTest
 class BackupDiagnosticsTest {
     @Test
     fun `diagnostics emits debug messages when enabled`() = runTest {
-        val logRepository = TestBackupLogRepository()
+        val logRepository = RecordingLogRepository()
         val diagnostics = BackupDiagnostics(
             logRepository = logRepository,
             enabled = true,
@@ -32,7 +32,7 @@ class BackupDiagnosticsTest {
 
     @Test
     fun `diagnostics does not emit messages when disabled`() = runTest {
-        val logRepository = TestBackupLogRepository()
+        val logRepository = RecordingLogRepository()
         val diagnostics = BackupDiagnostics(
             logRepository = logRepository,
             enabled = false,
@@ -48,7 +48,7 @@ class BackupDiagnosticsTest {
 
     @Test
     fun `diagnostics redacts sensitive paths and urls from errors`() = runTest {
-        val logRepository = TestBackupLogRepository()
+        val logRepository = RecordingLogRepository()
         val diagnostics = BackupDiagnostics(
             logRepository = logRepository,
             enabled = true,
@@ -72,28 +72,3 @@ class BackupDiagnosticsTest {
         assertTrue(!message.contains("file.txt"))
     }
 }
-
-internal class TestBackupLogRepository : LogRepository {
-    val entries = mutableListOf<TestBackupLogEntry>()
-
-    override suspend fun add(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) {
-        entries += TestBackupLogEntry(
-            tag = tag,
-            message = message,
-            level = level,
-        )
-    }
-}
-
-internal data class TestBackupLogEntry(
-    val tag: String,
-    val message: String,
-    val level: LogLevel,
-)
-
-internal val TestBackupLogRepository.messages: List<String>
-    get() = entries.map { it.message }

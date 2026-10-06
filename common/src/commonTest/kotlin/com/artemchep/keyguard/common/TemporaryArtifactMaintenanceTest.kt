@@ -2,12 +2,11 @@ package com.artemchep.keyguard.common
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.UpdateVersionLog
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
+import com.artemchep.keyguard.test.RecordingLogRepository
 import com.artemchep.keyguard.util.io.FileSystemFailure
 import com.artemchep.keyguard.util.io.FileSystemFailureKind
 import com.artemchep.keyguard.util.io.LocalPath
@@ -69,7 +68,7 @@ class TemporaryArtifactMaintenanceTest {
         val privatePath = "/private/secret/keyguard"
         val cachePath = LocalPath("/cache/keyguard")
         val swept = mutableListOf<LocalPath>()
-        val logs = RecordingMaintenanceLogRepository()
+        val logs = RecordingLogRepository()
         val maintenance = maintenance(
             roots = listOf(
                 TemporaryArtifactRoot("private-temporary") {
@@ -102,7 +101,7 @@ class TemporaryArtifactMaintenanceTest {
     fun `duplicate resolved roots are swept once`() = runTest {
         val directory = LocalPath("/same/root")
         var sweepCount = 0
-        val logs = RecordingMaintenanceLogRepository()
+        val logs = RecordingLogRepository()
         val maintenance = maintenance(
             roots = listOf(
                 TemporaryArtifactRoot("private-temporary") { directory },
@@ -141,7 +140,7 @@ class TemporaryArtifactMaintenanceTest {
         )
         val requestedAges = mutableListOf<Duration>()
         val delays = mutableListOf<Duration>()
-        val logs = RecordingMaintenanceLogRepository()
+        val logs = RecordingLogRepository()
         val maintenance = maintenance(
             roots = listOf(
                 TemporaryArtifactRoot("cache") { LocalPath("/cache") },
@@ -194,7 +193,7 @@ class TemporaryArtifactMaintenanceTest {
         val completedWithoutWaiting = CompletableDeferred<Unit>()
         val delayedRoot = LocalPath("/busy")
         val readyRoot = LocalPath("/ready")
-        val logs = RecordingMaintenanceLogRepository()
+        val logs = RecordingLogRepository()
         val maintenance = maintenance(
             roots = listOf(
                 TemporaryArtifactRoot("busy") { delayedRoot },
@@ -241,7 +240,7 @@ class TemporaryArtifactMaintenanceTest {
         val leakedPath = "/private/do-not-log"
         var attempts = 0
         val delays = mutableListOf<Duration>()
-        val logs = RecordingMaintenanceLogRepository()
+        val logs = RecordingLogRepository()
         val maintenance = maintenance(
             roots = listOf(
                 TemporaryArtifactRoot("private-temporary") { LocalPath(leakedPath) },
@@ -276,7 +275,7 @@ class TemporaryArtifactMaintenanceTest {
             sweeper = { _, _ ->
                 throw CancellationException("cancel maintenance")
             },
-            logs = RecordingMaintenanceLogRepository(),
+            logs = RecordingLogRepository(),
             retryDelay = {
                 delayCalls += 1
             },
@@ -302,7 +301,7 @@ class TemporaryArtifactMaintenanceTest {
                 },
             ),
             sweeper = { _, _ -> completeReport() },
-            logs = RecordingMaintenanceLogRepository(),
+            logs = RecordingLogRepository(),
         )
 
         assertFailsWith<AssertionError> {
@@ -324,7 +323,7 @@ class TemporaryArtifactMaintenanceTest {
                 attempts += 1
                 busyReport()
             },
-            logs = RecordingMaintenanceLogRepository(),
+            logs = RecordingLogRepository(),
             retryDelay = {
                 delayStarted.complete(Unit)
                 neverResume.await()
@@ -347,7 +346,7 @@ class TemporaryArtifactMaintenanceTest {
     private fun maintenance(
         roots: List<TemporaryArtifactRoot>,
         sweeper: suspend (LocalPath, Duration) -> SweepReport,
-        logs: RecordingMaintenanceLogRepository,
+        logs: RecordingLogRepository,
         retryDelay: suspend (Duration) -> Unit = {},
         retryDelays: List<Duration> = listOf(1.seconds, 2.seconds),
     ) = TemporaryArtifactMaintenanceImpl(
@@ -357,25 +356,6 @@ class TemporaryArtifactMaintenanceTest {
         retryDelay = retryDelay,
         retryDelays = retryDelays,
     )
-}
-
-private class RecordingMaintenanceLogRepository : LogRepository {
-    val entries = mutableListOf<MaintenanceLogEntry>()
-
-    val messages: List<String>
-        get() = entries.map { entry -> entry.message }
-
-    override suspend fun add(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) {
-        entries += MaintenanceLogEntry(
-            tag = tag,
-            message = message,
-            level = level,
-        )
-    }
 }
 
 private object EmptyGetVaultSession : GetVaultSession {
@@ -388,12 +368,6 @@ private object EmptyGetVaultSession : GetVaultSession {
 private object NoOpUpdateVersionLog : UpdateVersionLog {
     override fun invoke(): IO<Unit> = {}
 }
-
-private data class MaintenanceLogEntry(
-    val tag: String,
-    val message: String,
-    val level: LogLevel,
-)
 
 private fun completeReport(
     candidateNames: ULong = 0uL,

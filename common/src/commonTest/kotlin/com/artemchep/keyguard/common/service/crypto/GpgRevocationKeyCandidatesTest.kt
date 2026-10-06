@@ -2,7 +2,7 @@ package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.test.createSecret
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Instant
@@ -60,24 +60,15 @@ class GpgRevocationKeyCandidatesTest {
         type: DSecret.Type = DSecret.Type.GpgKey,
         fields: List<DSecret.Field> = emptyList(),
         gpgKey: DSecret.GpgKey? = null,
-    ) = DSecret(
+    ) = createSecret(
         id = id,
+        name = "GPG key",
         accountId = "account",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
+        type = type,
+        fields = fields,
         revisionDate = Instant.fromEpochSeconds(0),
         createdDate = null,
-        archivedDate = null,
         deletedDate = deletedDate,
-        service = BitwardenService(),
-        name = "GPG key",
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
-        fields = fields,
-        type = type,
         gpgKey = gpgKey,
     )
 }

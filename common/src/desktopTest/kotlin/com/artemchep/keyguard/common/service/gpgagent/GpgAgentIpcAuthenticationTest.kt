@@ -2,8 +2,7 @@ package com.artemchep.keyguard.common.service.gpgagent
 
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlin.test.Test
@@ -68,13 +67,7 @@ class GpgAgentIpcAuthenticationTest {
     }
 
     private fun createServer() = GpgAgentIpcServer(
-        logRepository = object : LogRepository {
-            override suspend fun add(
-                tag: String,
-                message: String,
-                level: LogLevel,
-            ) = Unit
-        },
+        logRepository = LogRepositoryBridge(emptyList()),
         authToken = authToken,
         scope = CoroutineScope(Dispatchers.Unconfined),
         requestProcessor = NoOpRequestProcessor,

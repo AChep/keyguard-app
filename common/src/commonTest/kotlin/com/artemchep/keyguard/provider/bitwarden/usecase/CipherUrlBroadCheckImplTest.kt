@@ -5,10 +5,9 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.DEquivalentDomains
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilder
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.tld.TldService
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -105,7 +104,7 @@ class CipherUrlBroadCheckImplTest {
     }
 
     private fun equivalentDomainsBuilder() = EquivalentDomainsBuilder(
-        logRepository = NoopBroadLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
         sharedAllEquivalentDomains = {
             listOf(
                 DEquivalentDomains(
@@ -122,24 +121,11 @@ class CipherUrlBroadCheckImplTest {
     private fun secret(
         id: String,
         uris: List<DSecret.Uri>,
-    ) = DSecret(
+    ) = createSecret(
         id = id,
-        accountId = "account-id",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
+        uris = uris,
         revisionDate = Instant.fromEpochMilliseconds(0),
         createdDate = Instant.fromEpochMilliseconds(0),
-        archivedDate = null,
-        deletedDate = null,
-        service = BitwardenService(),
-        name = id,
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
-        uris = uris,
-        type = DSecret.Type.Login,
     )
 }
 
@@ -169,12 +155,4 @@ private object ThrowingBroadTldService : TldService {
 
         BroadHostOnlyTldService.getDomainName(host).bind()
     }
-}
-
-private object NoopBroadLogRepository : LogRepository {
-    override suspend fun add(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) = Unit
 }

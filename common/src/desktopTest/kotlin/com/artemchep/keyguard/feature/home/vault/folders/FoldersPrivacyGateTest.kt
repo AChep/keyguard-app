@@ -6,9 +6,9 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.model.testCipherFilterContext
 import com.artemchep.keyguard.common.service.credentialexchange.cxfFolder
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactoryDefault
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.ui.icons.generateAccentColors
+import com.artemchep.keyguard.test.createProfile
+import com.artemchep.keyguard.test.createSecret
 import java.lang.reflect.Proxy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -36,8 +36,8 @@ class FoldersPrivacyGateTest {
         createSecret(id = "cipher", accountId = "visible-account", folderId = visibleUsed.id),
     )
     private val profiles = listOf(
-        profile(accountId = "visible-account", hidden = false),
-        profile(accountId = "hidden-account", hidden = true),
+        createProfile(accountId = "visible-account", name = "visible-account", hidden = false),
+        createProfile(accountId = "hidden-account", name = "hidden-account", hidden = true),
     )
 
     @Test
@@ -145,27 +145,3 @@ private inline fun <reified T> proxy(crossinline call: (String, Array<out Any?>)
     Proxy.newProxyInstance(T::class.java.classLoader, arrayOf(T::class.java)) { _, method, args ->
         call(method.name, args.orEmpty())
     } as T
-
-private fun profile(
-    accountId: String,
-    hidden: Boolean,
-) = DProfile(
-    accountId = accountId,
-    profileId = "profile-$accountId",
-    keyBase64 = "key",
-    privateKeyBase64 = "private-key",
-    accountHost = "vault.example.com",
-    email = "$accountId@example.com",
-    emailVerified = true,
-    accentColor = generateAccentColors(accountId),
-    name = accountId,
-    description = "",
-    premium = null,
-    hidden = hidden,
-    securityStamp = null,
-    twoFactorEnabled = null,
-    masterPasswordHint = null,
-    masterPasswordHintEnabled = null,
-    unofficialServer = false,
-    serverVersion = null,
-)

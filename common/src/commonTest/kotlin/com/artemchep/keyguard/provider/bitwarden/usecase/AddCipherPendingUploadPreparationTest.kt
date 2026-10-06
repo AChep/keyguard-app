@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.model.create.CreateRequest
-import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.platform.leParseUri
@@ -10,6 +9,8 @@ import com.artemchep.keyguard.provider.bitwarden.upload.StagingPendingUploadCoor
 import com.artemchep.keyguard.provider.bitwarden.upload.pendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
+import com.artemchep.keyguard.test.IdentityBase64Service
+import com.artemchep.keyguard.test.TestCryptoGenerator
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -52,7 +53,7 @@ class AddCipherPendingUploadPreparationTest {
         val newAttachment = requestAttachment.toBitwardenLocalAttachment(
             existingAttachment = existingAttachment,
             cryptoGenerator = CipherTestCryptoGenerator(),
-            base64Service = CipherTestBase64Service,
+            base64Service = IdentityBase64Service,
         )
 
         val coordinator = StagingPendingUploadCoordinator()
@@ -60,7 +61,7 @@ class AddCipherPendingUploadPreparationTest {
             request = createRequest(requestAttachment),
             old = oldCipher,
             cipher = cipher(attachments = listOf(newAttachment)),
-            base64Service = CipherTestBase64Service,
+            base64Service = IdentityBase64Service,
             pendingUploadCoordinator = coordinator,
         )
 
@@ -109,7 +110,7 @@ class AddCipherPendingUploadPreparationTest {
                     ),
                 ),
             ),
-            base64Service = CipherTestBase64Service,
+            base64Service = IdentityBase64Service,
             pendingUploadCoordinator = coordinator,
         )
 
@@ -171,7 +172,7 @@ class AddCipherPendingUploadPreparationTest {
             request = createRequest(requestAttachment),
             old = cipher(attachments = listOf(attachment)),
             cipher = cipher(attachments = listOf(attachment)),
-            base64Service = CipherTestBase64Service,
+            base64Service = IdentityBase64Service,
             pendingUploadCoordinator = coordinator,
         )
 
@@ -211,7 +212,7 @@ class AddCipherPendingUploadPreparationTest {
             request = createRequest(requestAttachment),
             old = cipher(attachments = listOf(oldAttachment)),
             cipher = cipher(attachments = listOf(renamedAttachment)),
-            base64Service = CipherTestBase64Service,
+            base64Service = IdentityBase64Service,
             pendingUploadCoordinator = coordinator,
         )
 
@@ -251,7 +252,7 @@ class AddCipherPendingUploadPreparationTest {
             request = createRequest(requestAttachment),
             old = cipher(attachments = listOf(oldAttachment)),
             cipher = cipher(attachments = listOf(replacement)),
-            base64Service = CipherTestBase64Service,
+            base64Service = IdentityBase64Service,
             pendingUploadCoordinator = coordinator,
         )
 
@@ -308,7 +309,7 @@ class AddCipherPendingUploadPreparationTest {
                 request = createRequest(requestAttachment),
                 old = cipher(attachments = listOf(oldAttachment)),
                 cipher = cipher(attachments = listOf(replacement)),
-                base64Service = CipherTestBase64Service,
+                base64Service = IdentityBase64Service,
                 pendingUploadCoordinator = coordinator,
             )
         }
@@ -359,7 +360,7 @@ class AddCipherPendingUploadPreparationTest {
                         ),
                     ),
                 ),
-                base64Service = CipherTestBase64Service,
+                base64Service = IdentityBase64Service,
                 pendingUploadCoordinator = coordinator,
             )
         }
@@ -411,7 +412,7 @@ class AddCipherPendingUploadPreparationTest {
                         ),
                     ),
                 ),
-                base64Service = CipherTestBase64Service,
+                base64Service = IdentityBase64Service,
                 pendingUploadCoordinator = coordinator,
             )
         }
@@ -447,13 +448,7 @@ private fun cipher(
 
 
 
-private object CipherTestBase64Service : Base64Service {
-    override fun encode(bytes: ByteArray): ByteArray = bytes
-
-    override fun decode(bytes: ByteArray): ByteArray = bytes
-}
-
-private class CipherTestCryptoGenerator : com.artemchep.keyguard.common.service.crypto.CryptoGenerator {
+private class CipherTestCryptoGenerator : TestCryptoGenerator() {
     override fun hkdf(
         seed: ByteArray,
         salt: ByteArray?,

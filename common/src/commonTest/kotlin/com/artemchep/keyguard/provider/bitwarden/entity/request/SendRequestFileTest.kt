@@ -1,12 +1,10 @@
 package com.artemchep.keyguard.provider.bitwarden.entity.request
 
-import com.artemchep.keyguard.common.model.Argon2Mode
-import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
-import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
+import com.artemchep.keyguard.test.IdentityBase64Service
+import com.artemchep.keyguard.test.TestCryptoGenerator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -19,7 +17,7 @@ class SendRequestFileTest {
             service = BitwardenService(),
         )
 
-        val request = with(FakeCryptoGenerator) {
+        val request = with(TestCryptoGenerator()) {
             with(IdentityBase64Service) {
                 SendRequest.of(
                     model = model,
@@ -44,7 +42,7 @@ class SendRequestFileTest {
             ),
         )
 
-        val request = with(FakeCryptoGenerator) {
+        val request = with(TestCryptoGenerator()) {
             with(IdentityBase64Service) {
                 SendRequest.of(
                     model = model,
@@ -88,54 +86,3 @@ private fun createFileSend(
 )
 
 private val TEST_INSTANT = Instant.parse("2024-01-01T00:00:00Z")
-
-private object IdentityBase64Service : Base64Service {
-    override fun encode(bytes: ByteArray): ByteArray = bytes
-
-    override fun decode(bytes: ByteArray): ByteArray = bytes
-}
-
-private object FakeCryptoGenerator : CryptoGenerator {
-    override fun hkdf(
-        seed: ByteArray,
-        salt: ByteArray?,
-        info: ByteArray?,
-        length: Int,
-    ): ByteArray = error("unused")
-
-    override fun pbkdf2(
-        seed: ByteArray,
-        salt: ByteArray,
-        iterations: Int,
-        length: Int,
-    ): ByteArray = error("unused")
-
-    override fun argon2(
-        mode: Argon2Mode,
-        seed: ByteArray,
-        salt: ByteArray,
-        iterations: Int,
-        memoryKb: Int,
-        parallelism: Int,
-    ): ByteArray = error("unused")
-
-    override fun seed(length: Int): ByteArray = error("unused")
-
-    override fun hmac(
-        key: ByteArray,
-        data: ByteArray,
-        algorithm: CryptoHashAlgorithm,
-    ): ByteArray = error("unused")
-
-    override fun hashSha1(data: ByteArray): ByteArray = error("unused")
-
-    override fun hashSha256(data: ByteArray): ByteArray = error("unused")
-
-    override fun hashMd5(data: ByteArray): ByteArray = error("unused")
-
-    override fun uuid(): String = error("unused")
-
-    override fun random(): Int = error("unused")
-
-    override fun random(range: IntRange): Int = error("unused")
-}

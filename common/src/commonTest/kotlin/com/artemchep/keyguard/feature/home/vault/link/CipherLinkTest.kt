@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.home.vault.link
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.cipherlink.CipherLink
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -290,16 +291,10 @@ class CipherLinkTest {
         links: List<DSecret.Link> = emptyList(),
         deletedDate: Instant? = null,
         username: String? = null,
-    ) = DSecret(
+    ) = createSecret(
         id = localId,
+        name = name,
         accountId = accountId,
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = NOW,
-        createdDate = NOW,
-        archivedDate = null,
-        deletedDate = deletedDate,
         service = BitwardenService(
             remote = remoteId?.let { id ->
                 BitwardenService.Remote(
@@ -309,17 +304,14 @@ class CipherLinkTest {
                 )
             },
         ),
-        name = name,
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
         fields = fields,
-        links = links,
-        type = DSecret.Type.Login,
         login = DSecret.Login(
             username = username,
         ),
+        revisionDate = NOW,
+        createdDate = NOW,
+        deletedDate = deletedDate,
+        links = links,
     )
 
     private companion object {

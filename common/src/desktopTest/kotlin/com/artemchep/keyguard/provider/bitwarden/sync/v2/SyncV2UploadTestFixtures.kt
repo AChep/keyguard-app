@@ -7,8 +7,6 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AccountTask
-import com.artemchep.keyguard.common.model.Argon2Mode
-import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
@@ -17,15 +15,12 @@ import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.backup.BackupStatus
 import com.artemchep.keyguard.common.service.database.EnumCodeToLongAdapter
 import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
 import com.artemchep.keyguard.common.service.database.ObjectToStringAdapter
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.file.FileService
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
@@ -112,6 +107,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.request.SendRequest
 import com.artemchep.keyguard.provider.bitwarden.upload.FailingPendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
+import com.artemchep.keyguard.test.TestCryptoGenerator
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
@@ -1400,14 +1396,6 @@ internal object UploadTestPasswordStrength : GetPasswordStrength {
     )
 }
 
-internal object UploadTestLogRepository : LogRepository {
-    override suspend fun add(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) = Unit
-}
-
 internal object UploadTestUnusedFileService : FileService {
     override fun exists(uri: String): Boolean = error("Not used by this test")
 
@@ -1426,49 +1414,8 @@ internal object UploadTestMarkBackupAsDirty : MarkBackupAsDirty {
     )
 }
 
-internal object UploadTestBase64Service : Base64Service {
-    override fun encode(bytes: ByteArray): ByteArray = bytes
-
-    override fun decode(bytes: ByteArray): ByteArray = bytes
-}
-
-internal object UploadTestCryptoGenerator : CryptoGenerator {
-    override fun hkdf(
-        seed: ByteArray,
-        salt: ByteArray?,
-        info: ByteArray?,
-        length: Int,
-    ): ByteArray = error("unused")
-
-    override fun pbkdf2(
-        seed: ByteArray,
-        salt: ByteArray,
-        iterations: Int,
-        length: Int,
-    ): ByteArray = error("unused")
-
-    override fun argon2(
-        mode: Argon2Mode,
-        seed: ByteArray,
-        salt: ByteArray,
-        iterations: Int,
-        memoryKb: Int,
-        parallelism: Int,
-    ): ByteArray = error("unused")
-
+internal object UploadTestCryptoGenerator : TestCryptoGenerator() {
     override fun seed(length: Int): ByteArray = "generated-key".encodeToByteArray()
-
-    override fun hmac(
-        key: ByteArray,
-        data: ByteArray,
-        algorithm: CryptoHashAlgorithm,
-    ): ByteArray = error("unused")
-
-    override fun hashSha1(data: ByteArray): ByteArray = error("unused")
-
-    override fun hashSha256(data: ByteArray): ByteArray = error("unused")
-
-    override fun hashMd5(data: ByteArray): ByteArray = error("unused")
 
     override fun uuid(): String = "generated-uuid"
 

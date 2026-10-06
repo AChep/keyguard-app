@@ -19,18 +19,16 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySnapshot
 import com.artemchep.keyguard.common.service.gpgagent.GpgRevocationStatus
 import com.artemchep.keyguard.common.service.gpgagent.isEligibleForGpgAgent
 import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgAgent
 import com.artemchep.keyguard.common.usecase.GetGpgAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.test.createSecret
 import com.artemchep.keyguard.test.gpgMetadata
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -278,7 +276,7 @@ class GpgPublicKeySyncerImplTest {
             override fun invoke(): Flow<Boolean> = displayKeyNames
         },
         gpgPublicKeyRepository = repository,
-        logRepository = NoOpLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
         gpgKeyMetadataResolver = gpgKeyMetadataResolver,
         defaultDispatcher = defaultDispatcher,
     )
@@ -388,20 +386,6 @@ class GpgPublicKeySyncerImplTest {
         )
     }
 
-    private object NoOpLogRepository : LogRepository {
-        override fun post(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-
-        override suspend fun add(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-    }
-
     private fun createGpgSecret(
         id: String,
         name: String,
@@ -410,22 +394,10 @@ class GpgPublicKeySyncerImplTest {
         fingerprint: String,
         keygrip: String,
         capabilities: Set<String> = setOf("sign", "decrypt"),
-    ): DSecret = DSecret(
+    ): DSecret = createSecret(
         id = id,
-        accountId = "account",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = Instant.parse("2024-01-01T00:00:00Z"),
-        createdDate = Instant.parse("2024-01-01T00:00:00Z"),
-        archivedDate = null,
-        deletedDate = null,
-        service = BitwardenService(),
         name = name,
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
+        accountId = "account",
         type = DSecret.Type.GpgKey,
         gpgKey = DSecret.GpgKey(
             privateKeyArmored = privateKeyArmored,

@@ -1,8 +1,8 @@
 package com.artemchep.keyguard.feature.home.vault.search.engine
 
 import androidx.compose.ui.graphics.Color
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultTextField
+import com.artemchep.keyguard.test.createSecret
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

@@ -11,13 +11,13 @@ import com.artemchep.keyguard.common.model.DTag
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
-import com.artemchep.keyguard.feature.home.vault.search.TEST_INSTANT
 import com.artemchep.keyguard.feature.home.vault.search.createItem
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
 import com.artemchep.keyguard.feature.home.vault.search.query.buildVaultSearchQualifierCatalog
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.DefaultVaultSearchQueryCompiler
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultTextField
 import com.artemchep.keyguard.feature.home.vault.search.query.parser.DefaultVaultSearchParser
+import com.artemchep.keyguard.test.TEST_INSTANT
+import com.artemchep.keyguard.test.createSecret
 import com.artemchep.keyguard.ui.icons.AccentColors
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test

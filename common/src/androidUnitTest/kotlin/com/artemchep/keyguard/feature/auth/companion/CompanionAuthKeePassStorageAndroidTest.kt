@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.feature.auth.companion
 
-import java.nio.file.Files
+import com.artemchep.keyguard.test.withTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -9,7 +9,8 @@ import kotlin.test.assertTrue
 class CompanionAuthKeePassStorageAndroidTest {
     @Test
     fun `staged keepass database is copied outside companion auth request dir`() {
-        withTempDir { filesDir ->
+        withTempDirectory("companion-keepass-storage") { dir ->
+            val filesDir = dir.toFile()
             val requestId = "123e4567-e89b-12d3-a456-426614174000"
             val requestDir = filesDir
                 .resolve("companion-auth")
@@ -34,7 +35,8 @@ class CompanionAuthKeePassStorageAndroidTest {
 
     @Test
     fun `deleting transient request artifacts leaves staged database intact`() {
-        withTempDir { filesDir ->
+        withTempDirectory("companion-keepass-storage") { dir ->
+            val filesDir = dir.toFile()
             val requestId = "123e4567-e89b-12d3-a456-426614174000"
             val requestDir = filesDir
                 .resolve("companion-auth")
@@ -60,7 +62,8 @@ class CompanionAuthKeePassStorageAndroidTest {
 
     @Test
     fun `failed import cleanup removes staged keepass database`() {
-        withTempDir { filesDir ->
+        withTempDirectory("companion-keepass-storage") { dir ->
+            val filesDir = dir.toFile()
             val requestId = "123e4567-e89b-12d3-a456-426614174000"
             val requestDir = filesDir
                 .resolve("companion-auth")
@@ -85,16 +88,5 @@ class CompanionAuthKeePassStorageAndroidTest {
             assertFalse(stagedFile.exists())
             assertFalse(companionKeePassRequestDir(filesDir, requestId).exists())
         }
-    }
-}
-
-private fun withTempDir(
-    block: (java.io.File) -> Unit,
-) {
-    val dir = Files.createTempDirectory("companion-keepass-storage").toFile()
-    try {
-        block(dir)
-    } finally {
-        dir.deleteRecursively()
     }
 }

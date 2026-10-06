@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.home.vault.search.engine
 
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
+import com.artemchep.keyguard.test.createSecret
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

@@ -8,8 +8,8 @@ import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.TotpCode
 import com.artemchep.keyguard.common.model.TotpToken
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base32Service
+import com.artemchep.keyguard.test.TestCryptoGenerator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -215,7 +215,7 @@ private class FakeBase32Service(
 private class FakeCryptoGenerator(
     private val hmacResult: ByteArray = HOTP_HASH_123456,
     private val hmacThrowable: Throwable? = null,
-) : CryptoGenerator {
+) : TestCryptoGenerator() {
     override fun hkdf(
         seed: ByteArray,
         salt: ByteArray?,

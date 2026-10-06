@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2
 
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
@@ -38,6 +39,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateRes
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.RemoteWriteOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.SyncCoordinator
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.SendSyncStrategy
+import com.artemchep.keyguard.test.IdentityBase64Service
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlin.test.Test
@@ -957,7 +959,7 @@ class SyncV2SendUploadIntegrationTest {
                     ),
             )
             val sync = SyncByBitwardenTokenV2Impl(
-                logRepository = UploadTestLogRepository,
+                logRepository = LogRepositoryBridge(emptyList()),
                 cipherEncryptor = cipherEncryptor,
                 cryptoGenerator = cryptoGenerator,
                 base64Service = base64Service,
@@ -1743,7 +1745,7 @@ private fun BitwardenSend.toEncryptedSendEntity(
 }
 
 private fun BitwardenSend.toSendRequest(): SendRequest = with(UploadTestCryptoGenerator) {
-    with(UploadTestBase64Service) {
+    with(IdentityBase64Service) {
         SendRequest.of(
             model = this@toSendRequest,
             key = "account-key".encodeToByteArray(),

@@ -1,10 +1,9 @@
 package com.artemchep.keyguard.common.model
 
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.test.createSend
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.time.Instant
 import kotlinx.coroutines.test.runTest
 
 class DSendFilterPresenceTest {
@@ -66,36 +65,3 @@ class DSendFilterPresenceTest {
         }
     }
 }
-
-private val TEST_INSTANT = Instant.parse("2024-01-01T00:00:00Z")
-
-private fun createSend(
-    id: String = "send-1",
-    accountId: String = "account-1",
-    type: DSend.Type = DSend.Type.Text,
-) = DSend(
-    id = id,
-    accountId = accountId,
-    accessId = "access-1",
-    keyBase64 = "send-key",
-    revisionDate = TEST_INSTANT,
-    createdDate = TEST_INSTANT,
-    deletedDate = null,
-    expirationDate = null,
-    service = BitwardenService(),
-    authType = DSend.AuthType.None,
-    name = "Send",
-    notes = "",
-    accessCount = 0,
-    hasPassword = false,
-    synced = true,
-    disabled = false,
-    hideEmail = false,
-    emails = emptyList(),
-    type = type,
-    text = DSend.Text(
-        text = "body",
-        hidden = false,
-    ),
-    file = null,
-)

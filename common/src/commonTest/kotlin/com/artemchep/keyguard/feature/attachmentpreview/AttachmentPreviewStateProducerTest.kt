@@ -8,20 +8,16 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewLimits
 import com.artemchep.keyguard.common.model.AttachmentPreviewPayload
 import com.artemchep.keyguard.common.model.AttachmentPreviewPolicy
 import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
-import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.download.DownloadQueueRequest
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
-import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
 import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
-import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.test.testCopyText
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import org.jetbrains.compose.resources.PluralStringResource
-import org.jetbrains.compose.resources.StringResource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -63,7 +59,7 @@ class AttachmentPreviewStateProducerTest {
         val content = decodeTextPreview(
             fileName = "notes.txt",
             bytes = "hello".encodeToByteArray(),
-            copyText = createCopyText(),
+            copyText = testCopyText(),
         )
 
         val text = assertIs<AttachmentPreviewContent.Text>(content)
@@ -77,7 +73,7 @@ class AttachmentPreviewStateProducerTest {
         val content = decodeTextPreview(
             fileName = "README.md",
             bytes = "# Hello".encodeToByteArray(),
-            copyText = createCopyText(),
+            copyText = testCopyText(),
         )
 
         val markdown = assertIs<AttachmentPreviewContent.Markdown>(content)
@@ -91,7 +87,7 @@ class AttachmentPreviewStateProducerTest {
         val content = decodeTextPreview(
             fileName = "notes.txt",
             bytes = byteArrayOf('a'.code.toByte(), 0, 'b'.code.toByte()),
-            copyText = createCopyText(),
+            copyText = testCopyText(),
         )
 
         val error = assertIs<AttachmentPreviewContent.Error>(content)
@@ -107,7 +103,7 @@ class AttachmentPreviewStateProducerTest {
                 0xBB.toByte(),
                 0xBF.toByte(),
             ) + "hello".encodeToByteArray(),
-            copyText = createCopyText(),
+            copyText = testCopyText(),
         )
 
         val text = assertIs<AttachmentPreviewContent.Text>(content)
@@ -153,7 +149,7 @@ class AttachmentPreviewStateProducerTest {
                 canPreviewAttachment = canPreviewAttachment,
                 getAttachmentPreview = getAttachmentPreview,
                 downloadManager = downloadManager,
-                copyText = createCopyText(),
+                copyText = testCopyText(),
             )
 
             val error = assertIs<AttachmentPreviewContent.Error>(state.content)
@@ -173,7 +169,7 @@ class AttachmentPreviewStateProducerTest {
             canPreviewAttachment = CanPreviewAttachmentImpl(),
             getAttachmentPreview = getAttachmentPreview,
             downloadManager = downloadManager,
-            copyText = createCopyText(),
+            copyText = testCopyText(),
         )
 
         val text = assertIs<AttachmentPreviewContent.Text>(state.content)
@@ -182,32 +178,6 @@ class AttachmentPreviewStateProducerTest {
         assertEquals(1, getAttachmentPreview.calls)
         assertEquals(123L, getAttachmentPreview.lastRequest?.encryptedSize)
     }
-
-    private fun createCopyText(): CopyText = CopyText(
-        clipboardService = object : ClipboardService {
-            override fun setPrimaryClip(
-                value: String,
-                concealed: Boolean,
-            ) = Unit
-
-            override fun clearPrimaryClip() = Unit
-
-            override fun hasCopyNotification(): Boolean = true
-        },
-        translator = object : TranslatorScope {
-            override suspend fun translate(res: StringResource): String = res.toString()
-
-            override suspend fun translate(res: StringResource, vararg args: Any): String =
-                res.toString()
-
-            override suspend fun translate(
-                res: PluralStringResource,
-                quantity: Int,
-                vararg args: Any,
-            ): String = res.toString()
-        },
-        onMessage = {},
-    )
 }
 
 private class StaticCanPreviewAttachment(

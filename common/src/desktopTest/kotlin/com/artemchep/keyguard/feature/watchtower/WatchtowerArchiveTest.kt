@@ -16,8 +16,8 @@ import com.artemchep.keyguard.common.service.credentialexchange.cxfFolder
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactoryDefault
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRouteFactoryDefault
-import com.artemchep.keyguard.feature.home.vault.search.TEST_INSTANT
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
+import com.artemchep.keyguard.test.TEST_INSTANT
+import com.artemchep.keyguard.test.createSecret
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.DiskHandle
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage

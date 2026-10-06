@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.usecase.impl.benchmark
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomains
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.tld.impl.TldServiceImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlCheckImpl
 
@@ -12,7 +13,7 @@ internal class CipherUrlCheckBenchmarkFixtures(
     private val check = CipherUrlCheckImpl(
         tldService = TldServiceImpl(
             textService = BenchmarkTldTextService,
-            logRepository = BenchmarkLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
         ),
     )
     private val equivalentDomains = EquivalentDomains(

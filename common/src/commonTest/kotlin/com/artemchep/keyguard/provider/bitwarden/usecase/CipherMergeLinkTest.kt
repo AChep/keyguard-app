@@ -1,21 +1,23 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
+import com.artemchep.keyguard.test.createSecret
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class CipherMergeLinkTest {
     @Test
     fun `merge canonicalizes and collapses links while preserving order`() {
-        val first = createSecret(id = "first").copy(
+        val first = createSecret(
+            id = "first",
             links = listOf(
                 DSecret.Link(TARGET_REMOTE_ID.uppercase()),
                 DSecret.Link(TARGET_REMOTE_ID),
                 DSecret.Link(OTHER_REMOTE_ID),
             ),
         )
-        val second = createSecret(id = "second").copy(
+        val second = createSecret(
+            id = "second",
             links = listOf(
                 DSecret.Link(OTHER_REMOTE_ID),
                 DSecret.Link(THIRD_REMOTE_ID),

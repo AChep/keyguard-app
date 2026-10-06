@@ -3,69 +3,13 @@ package com.artemchep.keyguard.feature.home.vault.search
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.DWatchtowerAlertType
-import com.artemchep.keyguard.common.model.ToastMessage
-import com.artemchep.keyguard.common.usecase.CopyText
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
-import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.test.TEST_INSTANT
+import com.artemchep.keyguard.test.testCopyText
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlin.time.Instant
-import org.jetbrains.compose.resources.PluralStringResource
-import org.jetbrains.compose.resources.StringResource
-
-internal val TEST_INSTANT: Instant = Instant.parse("2024-01-01T00:00:00Z")
-
-internal fun createSecret(
-    id: String,
-    name: String = id,
-    accountId: String = "account-id",
-    folderId: String? = null,
-    collectionIds: Set<String> = emptySet(),
-    organizationId: String? = null,
-    tags: List<String> = emptyList(),
-    type: DSecret.Type = DSecret.Type.Login,
-    favorite: Boolean = false,
-    reprompt: Boolean = false,
-    synced: Boolean = true,
-    service: BitwardenService = BitwardenService(),
-    ignoredAlerts: Map<DWatchtowerAlertType, Instant> = emptyMap(),
-    notes: String = "",
-    uris: List<DSecret.Uri> = emptyList(),
-    fields: List<DSecret.Field> = emptyList(),
-    attachments: List<DSecret.Attachment> = emptyList(),
-    login: DSecret.Login? = null,
-    card: DSecret.Card? = null,
-    identity: DSecret.Identity? = null,
-): DSecret = DSecret(
-    id = id,
-    accountId = accountId,
-    folderId = folderId,
-    organizationId = organizationId,
-    collectionIds = collectionIds,
-    revisionDate = TEST_INSTANT,
-    createdDate = TEST_INSTANT,
-    archivedDate = null,
-    deletedDate = null,
-    service = service,
-    name = name,
-    notes = notes,
-    favorite = favorite,
-    reprompt = reprompt,
-    synced = synced,
-    ignoredAlerts = ignoredAlerts,
-    tags = tags,
-    uris = uris,
-    fields = fields,
-    attachments = attachments,
-    type = type,
-    login = login,
-    card = card,
-    identity = identity,
-)
 
 internal fun createItem(
     source: DSecret,
@@ -87,7 +31,7 @@ internal fun createItem(
     folderId = source.folderId,
     icon = VaultItemIcon.TextIcon("T"),
     feature = VaultItem2.Item.Feature.None,
-    copyText = createCopyText(),
+    copyText = testCopyText(),
     token = source.login?.totp?.token,
     passwords = persistentListOf(),
     passkeys = persistentListOf(),
@@ -110,22 +54,4 @@ internal fun createItem(
             ),
         ),
     ),
-)
-
-private fun createCopyText(): CopyText = CopyText(
-    clipboardService = object : com.artemchep.keyguard.common.service.clipboard.ClipboardService {
-        override fun setPrimaryClip(value: String, concealed: Boolean) = Unit
-        override fun clearPrimaryClip() = Unit
-        override fun hasCopyNotification(): Boolean = true
-    },
-    translator = object : TranslatorScope {
-        override suspend fun translate(res: StringResource): String = res.toString()
-        override suspend fun translate(res: StringResource, vararg args: Any): String = res.toString()
-        override suspend fun translate(
-            res: PluralStringResource,
-            quantity: Int,
-            vararg args: Any,
-        ): String = res.toString()
-    },
-    onMessage = { _: ToastMessage -> },
 )

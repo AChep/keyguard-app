@@ -32,8 +32,7 @@ import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverLocalKey
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateEvaluator
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
 import com.artemchep.keyguard.common.service.similarity.impl.SimilarityServiceImpl
@@ -112,7 +111,7 @@ internal class WatchtowerBenchmarkFixtures(
 
     private val tldService: TldService = TldServiceImpl(
         textService = BenchmarkTldTextService,
-        logRepository = BenchmarkLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
     )
     private val equivalentDomains = BenchmarkEquivalentDomains()
     private val cipherUrlCheck = CipherUrlCheckImpl(tldService)
@@ -195,7 +194,7 @@ internal class WatchtowerBenchmarkFixtures(
         cryptoGenerator = NativeCryptoGenerator(),
         base64Service = Base64ServiceImpl(),
         similarityService = SimilarityServiceImpl(),
-        logRepository = BenchmarkLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
         includeDebugSummary = false,
     )
     private val filterContext = testCipherFilterContext()
@@ -507,15 +506,9 @@ private class BenchmarkEquivalentDomains {
         override fun invoke(): Flow<List<DEquivalentDomains>> = flowOf(emptyList())
     }
     val factory = com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory(
-        logRepository = BenchmarkLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
         getEquivalentDomains = get,
     )
-}
-
-internal object BenchmarkLogRepository : LogRepository {
-    override fun post(tag: String, message: String, level: LogLevel) = Unit
-
-    override suspend fun add(tag: String, message: String, level: LogLevel) = Unit
 }
 
 internal object BenchmarkTldTextService : TextService {

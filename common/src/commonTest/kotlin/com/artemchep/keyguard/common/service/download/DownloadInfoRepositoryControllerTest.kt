@@ -1,9 +1,6 @@
 package com.artemchep.keyguard.common.service.download
 
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.model.Argon2Mode
-import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -19,7 +16,7 @@ class DownloadInfoRepositoryControllerTest {
         val controller = DownloadInfoRepositoryController(
             downloadRepository = repository,
             base64Service = base64Service,
-            cryptoGenerator = FixedCryptoGenerator("download-1"),
+            cryptoGenerator = FixedUuidCryptoGenerator("download-1"),
         )
         val tag = downloadTag()
         val key = byteArrayOf(1, 2, 3)
@@ -87,7 +84,7 @@ class DownloadInfoRepositoryControllerTest {
         val controller = DownloadInfoRepositoryController(
             downloadRepository = repository,
             base64Service = Base64ServiceImpl(),
-            cryptoGenerator = FixedCryptoGenerator("download-1"),
+            cryptoGenerator = FixedUuidCryptoGenerator("download-1"),
         )
         val created = controller.getOrPutDownloadFileEntity(
             url = "https://example.com/one",
@@ -122,7 +119,7 @@ class DownloadInfoRepositoryControllerTest {
         val controller = DownloadInfoRepositoryController(
             downloadRepository = repository,
             base64Service = Base64ServiceImpl(),
-            cryptoGenerator = FixedCryptoGenerator("download-1"),
+            cryptoGenerator = FixedUuidCryptoGenerator("download-1"),
         )
         val error = DownloadInfoEntity.Error(
             code = 503,
@@ -148,56 +145,3 @@ private fun downloadTag() = DownloadInfoEntity.AttachmentDownloadTag(
     remoteCipherId = "remote-cipher",
     attachmentId = "attachment",
 )
-
-private class FixedCryptoGenerator(
-    private vararg val uuids: String,
-) : CryptoGenerator {
-    private var uuidIndex = 0
-
-    override fun uuid(): String =
-        uuids.getOrElse(uuidIndex++) { "download-$uuidIndex" }
-
-    override fun hkdf(
-        seed: ByteArray,
-        salt: ByteArray?,
-        info: ByteArray?,
-        length: Int,
-    ): ByteArray = unsupported()
-
-    override fun pbkdf2(
-        seed: ByteArray,
-        salt: ByteArray,
-        iterations: Int,
-        length: Int,
-    ): ByteArray = unsupported()
-
-    override fun argon2(
-        mode: Argon2Mode,
-        seed: ByteArray,
-        salt: ByteArray,
-        iterations: Int,
-        memoryKb: Int,
-        parallelism: Int,
-    ): ByteArray = unsupported()
-
-    override fun seed(length: Int): ByteArray = unsupported()
-
-    override fun hmac(
-        key: ByteArray,
-        data: ByteArray,
-        algorithm: CryptoHashAlgorithm,
-    ): ByteArray = unsupported()
-
-    override fun hashSha1(data: ByteArray): ByteArray = unsupported()
-
-    override fun hashSha256(data: ByteArray): ByteArray = unsupported()
-
-    override fun hashMd5(data: ByteArray): ByteArray = unsupported()
-
-    override fun random(): Int = unsupported()
-
-    override fun random(range: IntRange): Int = unsupported()
-
-    private fun unsupported(): Nothing =
-        error("Only uuid generation is expected in this test.")
-}

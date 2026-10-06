@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptionFormat
 import com.artemchep.keyguard.crypto.FileEncryptionCodecJvm
+import com.artemchep.keyguard.test.withTempDirectory
 import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
 import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
 import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
@@ -49,7 +50,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.io.path.createTempDirectory
 import kotlin.io.path.readBytes
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -112,11 +112,10 @@ class DownloadTaskJvmSuccessfulOutputTest {
 
     @Test
     fun `url loader writes local path download`() = runTest {
-        val root = createTempDirectory("download-task")
-        val output = root.resolve("payload.bin")
-        val data = "payload".encodeToByteArray()
+        withTempDirectory("download-task") { root ->
+            val output = root.resolve("payload.bin")
+            val data = "payload".encodeToByteArray()
 
-        try {
             val task = downloadTask(
                 responseBody = data,
             )
@@ -133,18 +132,15 @@ class DownloadTaskJvmSuccessfulOutputTest {
             val result = assertIs<Either.Right<String?>>(complete.result)
             assertEquals(output.toFile().toURI().toString(), result.value)
             assertContentEquals(data, output.readBytes())
-        } finally {
-            root.toFile().deleteRecursively()
         }
     }
 
     @Test
     fun `url loader writes local path download with short filename`() = runTest {
-        val root = createTempDirectory("download-task")
-        val output = root.resolve("a")
-        val data = "payload".encodeToByteArray()
+        withTempDirectory("download-task") { root ->
+            val output = root.resolve("a")
+            val data = "payload".encodeToByteArray()
 
-        try {
             val task = downloadTask(
                 responseBody = data,
             )
@@ -161,8 +157,6 @@ class DownloadTaskJvmSuccessfulOutputTest {
             val result = assertIs<Either.Right<String?>>(complete.result)
             assertEquals(output.toFile().toURI().toString(), result.value)
             assertContentEquals(data, output.readBytes())
-        } finally {
-            root.toFile().deleteRecursively()
         }
     }
 
@@ -284,10 +278,9 @@ class DownloadTaskJvmFailureAndEdgeCaseTest {
 
     @Test
     fun `url loader creates empty local path file for empty response`() = runTest {
-        val root = createTempDirectory("download-task")
-        val output = root.resolve("payload.bin")
+        withTempDirectory("download-task") { root ->
+            val output = root.resolve("payload.bin")
 
-        try {
             output.toFile().writeText("original")
             val task = downloadTask(responseBody = ByteArray(0))
 
@@ -302,19 +295,16 @@ class DownloadTaskJvmFailureAndEdgeCaseTest {
 
             assertIs<Either.Right<String?>>(complete.result)
             assertContentEquals(ByteArray(0), output.readBytes())
-        } finally {
-            root.toFile().deleteRecursively()
         }
     }
 
     @Test
     fun `byte array loader decrypts and writes local path download`() = runTest {
-        val root = createTempDirectory("download-task")
-        val output = root.resolve("nested").resolve("payload.bin")
-        val encrypted = "encrypted".encodeToByteArray()
-        val plain = "plain payload".encodeToByteArray()
+        withTempDirectory("download-task") { root ->
+            val output = root.resolve("nested").resolve("payload.bin")
+            val encrypted = "encrypted".encodeToByteArray()
+            val plain = "plain payload".encodeToByteArray()
 
-        try {
             val task = downloadTask(
                 responseBody = ByteArray(0),
                 fileEncryptionCodec = ByteArrayDecryptingFileEncryptionCodec(plain),
@@ -332,19 +322,16 @@ class DownloadTaskJvmFailureAndEdgeCaseTest {
             val result = assertIs<Either.Right<String?>>(complete.result)
             assertEquals(output.toFile().toURI().toString(), result.value)
             assertContentEquals(plain, output.readBytes())
-        } finally {
-            root.toFile().deleteRecursively()
         }
     }
 
     @Test
     fun `url loader preserves local path file after failed decrypt`() = runTest {
-        val root = createTempDirectory("download-task")
-        val output = root.resolve("payload.bin")
-        val data = "encrypted".encodeToByteArray()
-        val original = "original".encodeToByteArray()
+        withTempDirectory("download-task") { root ->
+            val output = root.resolve("payload.bin")
+            val data = "encrypted".encodeToByteArray()
+            val original = "original".encodeToByteArray()
 
-        try {
             output.toFile().writeBytes(original)
             val task = downloadTask(
                 responseBody = data,
@@ -362,18 +349,15 @@ class DownloadTaskJvmFailureAndEdgeCaseTest {
 
             assertIs<Either.Left<Throwable>>(complete.result)
             assertContentEquals(original, output.readBytes())
-        } finally {
-            root.toFile().deleteRecursively()
         }
     }
 
     @Test
     fun `url loader preserves http status failure`() = runTest {
-        val root = createTempDirectory("download-task")
-        val output = root.resolve("payload.bin")
-        val original = "original".encodeToByteArray()
+        withTempDirectory("download-task") { root ->
+            val output = root.resolve("payload.bin")
+            val original = "original".encodeToByteArray()
 
-        try {
             output.toFile().writeBytes(original)
             val task = downloadTask(
                 responseBody = "missing".encodeToByteArray(),
@@ -393,8 +377,6 @@ class DownloadTaskJvmFailureAndEdgeCaseTest {
             val error = assertIs<HttpException>(result.value)
             assertEquals(HttpStatusCode.NotFound, error.statusCode)
             assertContentEquals(original, output.readBytes())
-        } finally {
-            root.toFile().deleteRecursively()
         }
     }
 

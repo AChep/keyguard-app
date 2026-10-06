@@ -3,7 +3,7 @@ package com.artemchep.keyguard.common.service.export.impl
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -34,7 +34,6 @@ class JsonExportServiceImplTest {
                     type = DSecret.Field.Type.Text,
                 ),
             ),
-        ).copy(
             gpgKey = DSecret.GpgKey(
                 privateKeyArmored = PRIVATE_KEY_ARMORED,
                 publicKeyArmored = PUBLIC_KEY_ARMORED,
@@ -87,7 +86,6 @@ class JsonExportServiceImplTest {
         val cipher = createSecret(
             id = "cipher",
             type = DSecret.Type.GpgKey,
-        ).copy(
             gpgKey = DSecret.GpgKey(
                 privateKeyArmored = " ",
                 publicKeyArmored = PUBLIC_KEY_ARMORED,
@@ -121,7 +119,6 @@ class JsonExportServiceImplTest {
             id = "cipher",
             type = DSecret.Type.GpgKey,
             fields = listOf(reservedField),
-        ).copy(
             gpgKey = DSecret.GpgKey(
                 privateKeyArmored = " ",
                 metadata = GpgAgentKeyMetadata(),
@@ -153,7 +150,6 @@ class JsonExportServiceImplTest {
                     type = DSecret.Field.Type.Text,
                 ),
             ),
-        ).copy(
             links = listOf(
                 DSecret.Link(TARGET_REMOTE_ID.uppercase()),
                 DSecret.Link(TARGET_REMOTE_ID),

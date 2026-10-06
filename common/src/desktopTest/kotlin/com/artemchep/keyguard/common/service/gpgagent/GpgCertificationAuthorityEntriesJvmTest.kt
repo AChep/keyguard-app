@@ -3,14 +3,13 @@ package com.artemchep.keyguard.common.service.gpgagent
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.GpgKeyConfig
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
 import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
+import com.artemchep.keyguard.test.createSecret
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.time.Instant
 
 class GpgCertificationAuthorityEntriesJvmTest {
     @Test
@@ -87,22 +86,10 @@ class GpgCertificationAuthorityEntriesJvmTest {
     private fun createCipher(
         generated: GeneratedGpgKey,
         privateKeyArmored: String? = generated.privateKeyArmored,
-    ): DSecret = DSecret(
+    ): DSecret = createSecret(
         id = "cipher",
-        accountId = "account",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = Instant.parse("2024-01-01T00:00:00Z"),
-        createdDate = Instant.parse("2024-01-01T00:00:00Z"),
-        archivedDate = null,
-        deletedDate = null,
-        service = BitwardenService(),
         name = "Certification authority",
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
+        accountId = "account",
         type = DSecret.Type.GpgKey,
         gpgKey = DSecret.GpgKey(
             privateKeyArmored = privateKeyArmored,

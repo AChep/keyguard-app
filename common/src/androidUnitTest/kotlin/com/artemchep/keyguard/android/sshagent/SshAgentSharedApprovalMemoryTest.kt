@@ -9,8 +9,7 @@ import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalWindowMemory
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
@@ -22,7 +21,7 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.test.createSecret
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.math.BigInteger
@@ -164,7 +163,7 @@ class SshAgentSharedApprovalMemoryTest {
 
         fun createProcessor() = SshAgentRequestProcessorImpl(
             sessionAccess = testDomainSessionAccess(),
-            logRepository = NoOpLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             getVaultSession = vaultSession,
             getSshAgentApprovalWindow = approvalWindow,
             getSshAgentApprovalCachePolicy = approvalCachePolicy,
@@ -221,20 +220,6 @@ class SshAgentSharedApprovalMemoryTest {
         override fun invoke(): Flow<MasterSession> = flowOf(session)
     }
 
-    private object NoOpLogRepository : LogRepository {
-        override fun post(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-
-        override suspend fun add(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-    }
-
     private companion object {
         fun createUnlockedSession(
             secret: DSecret,
@@ -257,22 +242,10 @@ class SshAgentSharedApprovalMemoryTest {
         fun createSshSecret(
             publicKey: String,
             privateKey: String,
-        ): DSecret = DSecret(
+        ): DSecret = createSecret(
             id = "signer",
-            accountId = "account",
-            folderId = null,
-            organizationId = null,
-            collectionIds = emptySet(),
-            revisionDate = Instant.parse("2024-01-01T00:00:00Z"),
-            createdDate = Instant.parse("2024-01-01T00:00:00Z"),
-            archivedDate = null,
-            deletedDate = null,
-            service = BitwardenService(),
             name = "Signer",
-            notes = "",
-            favorite = false,
-            reprompt = false,
-            synced = true,
+            accountId = "account",
             type = DSecret.Type.SshKey,
             sshKey = DSecret.SshKey(
                 privateKey = privateKey,

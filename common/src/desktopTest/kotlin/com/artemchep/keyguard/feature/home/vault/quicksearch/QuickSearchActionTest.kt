@@ -3,11 +3,12 @@ package com.artemchep.keyguard.feature.home.vault.quicksearch
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.TotpCode
 import com.artemchep.keyguard.common.model.TotpToken
-import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.exception.OtpCodeGenerationException
+import com.artemchep.keyguard.feature.home.vault.apple.RecordingClipboardService
 import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.test.testCopyText
 import arrow.core.Either
 import arrow.core.left
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +20,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class QuickSearchActionTest {
     @Test
@@ -30,7 +32,7 @@ class QuickSearchActionTest {
                 id = "login",
                 login = DSecret.Login(username = "person@example.com", password = "test-password"),
             ),
-        ).copy(copyText = createCopyText(clipboard))
+        ).copy(copyText = testCopyText(clipboard))
         val controller = RecordingNavigationController(this)
         var payload: QuickSearchAutotypePayload? = null
 
@@ -47,7 +49,7 @@ class QuickSearchActionTest {
         val login = payload?.invoke()
         assertEquals("person@example.com", login?.username)
         assertEquals("test-password", login?.password)
-        assertNull(clipboard.value)
+        assertTrue(clipboard.clips.isEmpty())
         assertEquals(emptyList(), controller.intents)
     }
 
@@ -63,7 +65,7 @@ class QuickSearchActionTest {
                 ),
             ),
         ).copy(
-            copyText = createCopyText(clipboard),
+            copyText = testCopyText(clipboard),
         )
         val controller = RecordingNavigationController(this)
         var finishedCalls = 0
@@ -77,8 +79,8 @@ class QuickSearchActionTest {
             onFinished = { finishedCalls += 1 },
         )
 
-        assertEquals("person@example.com", clipboard.value)
-        assertEquals(false, clipboard.concealed)
+        assertEquals("person@example.com", clipboard.clips.last().value)
+        assertEquals(false, clipboard.clips.last().concealed)
         assertEquals(1, finishedCalls)
         assertNull(controller.intents.firstOrNull())
     }
@@ -95,7 +97,7 @@ class QuickSearchActionTest {
                 ),
             ),
         ).copy(
-            copyText = createCopyText(clipboard),
+            copyText = testCopyText(clipboard),
         )
         var finishedCalls = 0
 
@@ -108,8 +110,8 @@ class QuickSearchActionTest {
             onFinished = { finishedCalls += 1 },
         )
 
-        assertEquals("hunter2", clipboard.value)
-        assertEquals(true, clipboard.concealed)
+        assertEquals("hunter2", clipboard.clips.last().value)
+        assertEquals(true, clipboard.clips.last().concealed)
         assertEquals(1, finishedCalls)
     }
 
@@ -126,7 +128,7 @@ class QuickSearchActionTest {
                 ),
             ),
         ).copy(
-            copyText = createCopyText(clipboard),
+            copyText = testCopyText(clipboard),
         )
         var finishedCalls = 0
 
@@ -141,8 +143,8 @@ class QuickSearchActionTest {
 
         advanceUntilIdle()
 
-        assertEquals("123456", clipboard.value)
-        assertEquals(false, clipboard.concealed)
+        assertEquals("123456", clipboard.clips.last().value)
+        assertEquals(false, clipboard.clips.last().concealed)
         assertEquals(1, finishedCalls)
     }
 
@@ -158,7 +160,7 @@ class QuickSearchActionTest {
                 ),
             ),
         ).copy(
-            copyText = createCopyText(clipboard),
+            copyText = testCopyText(clipboard),
         )
         var finishedCalls = 0
 
@@ -176,7 +178,7 @@ class QuickSearchActionTest {
 
         advanceUntilIdle()
 
-        assertNull(clipboard.value)
+        assertTrue(clipboard.clips.isEmpty())
         assertEquals(0, finishedCalls)
     }
 
@@ -206,20 +208,6 @@ class QuickSearchActionTest {
         assertEquals("https://example.com", intent.url)
         assertEquals(1, finishedCalls)
     }
-}
-
-private class RecordingClipboardService : ClipboardService {
-    var value: String? = null
-    var concealed: Boolean? = null
-
-    override fun setPrimaryClip(value: String, concealed: Boolean) {
-        this.value = value
-        this.concealed = concealed
-    }
-
-    override fun clearPrimaryClip() = Unit
-
-    override fun hasCopyNotification(): Boolean = true
 }
 
 private class RecordingNavigationController(

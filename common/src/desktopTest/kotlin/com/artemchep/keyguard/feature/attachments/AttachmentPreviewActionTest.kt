@@ -3,11 +3,9 @@ package com.artemchep.keyguard.feature.attachments
 import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRouteFactoryDefault
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.test.TestTranslator
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
-import org.jetbrains.compose.resources.PluralStringResource
-import org.jetbrains.compose.resources.StringResource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -19,7 +17,7 @@ class AttachmentPreviewActionTest {
         val navigations = mutableListOf<NavigationIntent>()
 
         val actions = foo(
-            translatorScope = TestTranslatorScope,
+            translatorScope = TestTranslator,
             vaultViewRouteFactory = VaultViewRouteFactoryDefault,
             fileName = "preview.png",
             status = FooStatus.None,
@@ -45,7 +43,7 @@ class AttachmentPreviewActionTest {
         val navigations = mutableListOf<NavigationIntent>()
 
         val actions = foo(
-            translatorScope = TestTranslatorScope,
+            translatorScope = TestTranslator,
             vaultViewRouteFactory = VaultViewRouteFactoryDefault,
             fileName = "preview.txt",
             status = FooStatus.Downloaded(localUrl = "file:///tmp/preview.txt"),
@@ -72,16 +70,4 @@ class AttachmentPreviewActionTest {
     )
 
     private fun List<ContextItem>.actions() = filterIsInstance<FlatItemAction>()
-}
-
-private object TestTranslatorScope : TranslatorScope {
-    override suspend fun translate(res: StringResource): String = ""
-
-    override suspend fun translate(res: StringResource, vararg args: Any): String = ""
-
-    override suspend fun translate(
-        res: PluralStringResource,
-        quantity: Int,
-        vararg args: Any,
-    ): String = ""
 }

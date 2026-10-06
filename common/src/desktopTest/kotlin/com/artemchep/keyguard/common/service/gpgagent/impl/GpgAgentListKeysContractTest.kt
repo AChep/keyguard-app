@@ -15,16 +15,15 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepositoryEmpty
 import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
 import com.artemchep.keyguard.common.service.gpgagent.toGpgPublicKeyEntry
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
 import com.artemchep.keyguard.common.service.vault.testVaultSession
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindowNoOp
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.crypto.NativeGpgAgentCrypto
+import com.artemchep.keyguard.test.createSecret
 import com.artemchep.keyguard.test.gpgMetadata
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -143,7 +142,7 @@ class GpgAgentListKeysContractTest {
         repository: GpgPublicKeyRepository,
     ) = GpgAgentRequestProcessorImpl(
         sessionAccess = testDomainSessionAccess(),
-        logRepository = NoOpLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
         crypto = NativeGpgAgentCrypto,
         getVaultSession = FakeGetVaultSession(session),
         getGpgAgentApprovalWindow = GetGpgAgentApprovalWindowNoOp,
@@ -175,41 +174,15 @@ class GpgAgentListKeysContractTest {
         }
     }
 
-    private object NoOpLogRepository : LogRepository {
-        override fun post(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-
-        override suspend fun add(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-    }
-
     private fun createGpgCipher(
         id: String,
         name: String,
         fingerprint: String,
         keygrip: String,
-    ): DSecret = DSecret(
+    ): DSecret = createSecret(
         id = id,
-        accountId = "account",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = Instant.parse("2024-01-01T00:00:00Z"),
-        createdDate = Instant.parse("2024-01-01T00:00:00Z"),
-        archivedDate = null,
-        deletedDate = null,
-        service = BitwardenService(),
         name = name,
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
+        accountId = "account",
         type = DSecret.Type.GpgKey,
         gpgKey = DSecret.GpgKey(
             privateKeyArmored = "private-key",

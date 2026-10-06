@@ -2,10 +2,7 @@ package com.artemchep.keyguard.common.service.exposedaccount.impl
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.model.Argon2Mode
-import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.MasterKey
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
 import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccount
@@ -13,6 +10,7 @@ import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountEntry
 import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountRegistration
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.dataexposed.UrlBlock
+import com.artemchep.keyguard.test.TestCryptoGenerator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -146,54 +144,10 @@ class ExposedAccountRepositoryImplTest {
         ): IO<Unit> = {}
     }
 
-    @Suppress("TooManyFunctions")
-    private class SequentialUuidCryptoGenerator : CryptoGenerator {
+    private class SequentialUuidCryptoGenerator : TestCryptoGenerator() {
         private var nextUuid = 1
 
         override fun uuid(): String = "entry-${nextUuid++}"
-
-        override fun hkdf(
-            seed: ByteArray,
-            salt: ByteArray?,
-            info: ByteArray?,
-            length: Int,
-        ): ByteArray = unused()
-
-        override fun pbkdf2(
-            seed: ByteArray,
-            salt: ByteArray,
-            iterations: Int,
-            length: Int,
-        ): ByteArray = unused()
-
-        override fun argon2(
-            mode: Argon2Mode,
-            seed: ByteArray,
-            salt: ByteArray,
-            iterations: Int,
-            memoryKb: Int,
-            parallelism: Int,
-        ): ByteArray = unused()
-
-        override fun seed(length: Int): ByteArray = unused()
-
-        override fun hmac(
-            key: ByteArray,
-            data: ByteArray,
-            algorithm: CryptoHashAlgorithm,
-        ): ByteArray = unused()
-
-        override fun hashSha1(data: ByteArray): ByteArray = unused()
-
-        override fun hashSha256(data: ByteArray): ByteArray = unused()
-
-        override fun hashMd5(data: ByteArray): ByteArray = unused()
-
-        override fun random(): Int = unused()
-
-        override fun random(range: IntRange): Int = unused()
-
-        private fun <T> unused(): T = error("Not used in this test.")
     }
 
     private companion object {

@@ -11,8 +11,7 @@ import com.artemchep.keyguard.common.service.directorywatcher.FileWatchEvent
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.file.FileAccessToken
 import com.artemchep.keyguard.common.service.id.IdRepository
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
@@ -193,7 +192,7 @@ private class NotificationsFixture(
     val httpClient = HttpClient(MockEngine { respondOk() })
     val workerJob: Job = NotificationsImpl(
         tokenRepository = tokenRepository,
-        logRepository = NoopLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
         deviceIdUseCase = DeviceIdUseCase(NoopIdRepository),
         base64Service = Base64ServiceImpl(),
         connectivityService = NoopConnectivityService,
@@ -288,14 +287,6 @@ private class RecordingQueueSyncById : QueueSyncById {
 
 private object NoopQueueSyncAll : QueueSyncAll {
     override fun invoke(): IO<Unit> = ioUnit()
-}
-
-private object NoopLogRepository : LogRepository {
-    override suspend fun add(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) = Unit
 }
 
 private object NoopIdRepository : IdRepository {

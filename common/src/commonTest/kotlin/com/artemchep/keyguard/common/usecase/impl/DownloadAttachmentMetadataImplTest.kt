@@ -1,12 +1,11 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
-import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
-import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCr
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrCta
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.DecodeResult
+import com.artemchep.keyguard.test.testBitwardenCr
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -21,11 +20,11 @@ class DownloadAttachmentMetadataImplTest {
         val decrypted = BitwardenCipher.Attachment.decryptMetadata(
             attachment = attachment,
             cryptoCandidates = listOf(
-                PrefixBitwardenCr("item").cta(
+                prefixBitwardenCr("item").cta(
                     env = itemEnv,
                     mode = BitwardenCrCta.Mode.DECRYPT,
                 ),
-                PrefixBitwardenCr("global").cta(
+                prefixBitwardenCr("global").cta(
                     env = globalEnv,
                     mode = BitwardenCrCta.Mode.DECRYPT,
                 ),
@@ -46,11 +45,11 @@ class DownloadAttachmentMetadataImplTest {
         val decrypted = BitwardenCipher.Attachment.decryptMetadata(
             attachment = attachment,
             cryptoCandidates = listOf(
-                PrefixBitwardenCr("item").cta(
+                prefixBitwardenCr("item").cta(
                     env = itemEnv,
                     mode = BitwardenCrCta.Mode.DECRYPT,
                 ),
-                PrefixBitwardenCr("global").cta(
+                prefixBitwardenCr("global").cta(
                     env = globalEnv,
                     mode = BitwardenCrCta.Mode.DECRYPT,
                 ),
@@ -73,43 +72,22 @@ private fun attachment(
     size = 1L,
 )
 
-private class PrefixBitwardenCr(
-    private val prefix: String,
-) : BitwardenCr {
-    override val base64Service: Base64Service = DownloadAttachmentTestBase64Service
-
-    override fun decoder(
-        key: BitwardenCrKey,
-    ): (String) -> DecodeResult = { cipher ->
-        val prefix = "$prefix:"
-        check(cipher.startsWith(prefix)) {
-            "Expected cipher text to start with '$prefix'."
+private fun prefixBitwardenCr(
+    prefix: String,
+) = testBitwardenCr(
+    decoder = {
+        { cipher ->
+            val cipherPrefix = "$prefix:"
+            check(cipher.startsWith(cipherPrefix)) {
+                "Expected cipher text to start with '$cipherPrefix'."
+            }
+            DecodeResult(
+                data = cipher.removePrefix(cipherPrefix).toByteArray(),
+                type = CipherEncryptor.Type.AesCbc256_HmacSha256_B64,
+            )
         }
-        DecodeResult(
-            data = cipher.removePrefix(prefix).toByteArray(),
-            type = CipherEncryptor.Type.AesCbc256_HmacSha256_B64,
-        )
-    }
-
-    override fun encoder(
-        key: BitwardenCrKey,
-    ): (CipherEncryptor.Type, ByteArray) -> String = error("Unused in tests.")
-
-    override fun cta(
-        env: BitwardenCrCta.BitwardenCrCtaEnv,
-        mode: BitwardenCrCta.Mode,
-    ): BitwardenCrCta = BitwardenCrCta(
-        crypto = this,
-        env = env,
-        mode = mode,
-    )
-}
-
-private object DownloadAttachmentTestBase64Service : Base64Service {
-    override fun encode(bytes: ByteArray): ByteArray = bytes
-
-    override fun decode(bytes: ByteArray): ByteArray = bytes
-}
+    },
+)
 
 private val itemEnv = BitwardenCrCta.BitwardenCrCtaEnv(
     key = BitwardenCrKey.CryptoKey(),

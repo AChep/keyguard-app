@@ -3,7 +3,7 @@ package com.artemchep.keyguard.feature.home.vault.screen
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.search.createItem
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.test.Test
 import kotlin.test.assertEquals

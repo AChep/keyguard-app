@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.android.credentialexchange
 
 import com.artemchep.keyguard.common.service.logging.LogLevel
+import com.artemchep.keyguard.test.RecordingLogRepository
 import kotlinx.coroutines.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals

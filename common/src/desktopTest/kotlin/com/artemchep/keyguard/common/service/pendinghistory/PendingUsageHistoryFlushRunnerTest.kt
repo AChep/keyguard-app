@@ -4,8 +4,8 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.util.RetryPolicy
+import com.artemchep.keyguard.test.RecordingLogRepository
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -178,35 +178,5 @@ class PendingUsageHistoryFlushRunnerTest {
             shouldRetry = { true },
         ),
         defaultDispatcher = StandardTestDispatcher(testScheduler),
-    )
-}
-
-private class RecordingLogRepository : LogRepository {
-    data class Entry(
-        val message: String,
-        val level: LogLevel,
-    )
-
-    val entries = mutableListOf<Entry>()
-
-    override fun post(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) {
-        entries += Entry(
-            message = message,
-            level = level,
-        )
-    }
-
-    override suspend fun add(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) = post(
-        tag = tag,
-        message = message,
-        level = level,
     )
 }

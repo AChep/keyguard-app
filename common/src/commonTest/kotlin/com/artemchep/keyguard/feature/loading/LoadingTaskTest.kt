@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.loading
 
 import com.artemchep.keyguard.common.io.ioRaise
-import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.test.TestTranslator
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,8 +15,6 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import org.jetbrains.compose.resources.PluralStringResource
-import org.jetbrains.compose.resources.StringResource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -163,19 +161,4 @@ class LoadingTaskTest {
         },
         onFailure = onFailure,
     )
-}
-
-private object TestTranslator : TranslatorScope {
-    override suspend fun translate(res: StringResource): String = res.toString()
-
-    override suspend fun translate(
-        res: StringResource,
-        vararg args: Any,
-    ): String = res.toString()
-
-    override suspend fun translate(
-        res: PluralStringResource,
-        quantity: Int,
-        vararg args: Any,
-    ): String = res.toString()
 }

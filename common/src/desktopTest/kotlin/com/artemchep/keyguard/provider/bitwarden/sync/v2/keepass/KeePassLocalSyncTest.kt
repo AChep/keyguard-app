@@ -4,14 +4,15 @@ import app.keemobile.kotpass.constants.BasicField
 import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.common.service.keepass.openKeePassDatabase
 import com.artemchep.keyguard.common.service.keepass.prepareKeePassDatabase
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta
 import com.artemchep.keyguard.crypto.NativeGpgCertificateMaterialReconciler
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestPasswordStrength
 import com.artemchep.keyguard.provider.bitwarden.upload.FailingPendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountParams
+import com.artemchep.keyguard.test.withTempDirectory
 import kotlinx.coroutines.test.runTest
-import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -23,8 +24,8 @@ import kotlin.time.Duration.Companion.seconds
 class KeePassLocalSyncTest {
     @Test
     fun `local sync initializes the profile and publishes later edits to the kdbx file`() = runTest {
-        val directory = Files.createTempDirectory("keepass-local-sync").toFile()
-        try {
+        withTempDirectory("keepass-local-sync") { dir ->
+            val directory = dir.toFile()
             val file = directory.resolve("vault.kdbx")
             val uri = file.toURI().toString()
             val fileService = FileServiceImpl()
@@ -90,8 +91,6 @@ class KeePassLocalSyncTest {
             assertIs<BitwardenMeta.LastSyncResult.Failure>(
                 db.metaQueries.getByAccountId(token.id).executeAsOne().data_.lastSyncResult,
             )
-        } finally {
-            directory.deleteRecursively()
         }
     }
 
@@ -100,7 +99,7 @@ class KeePassLocalSyncTest {
         db: Database,
         fileService: FileServiceImpl,
     ) = KeePassSyncCoordinator(
-        logRepository = TestLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
         cryptoGenerator = testCryptoGenerator,
         base32Service = testBase32Service,
         base64Service = testBase64Service,

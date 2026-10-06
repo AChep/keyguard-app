@@ -24,6 +24,9 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.test.RecordingLogRepository
+import com.artemchep.keyguard.test.TestCryptoGenerator
+import com.artemchep.keyguard.test.createSecret
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -869,7 +872,7 @@ class BackupRunnerTest {
     fun `diagnostics records first backup without sensitive fields`() = runTest {
         val repository = MemoryBackupRepository()
         val downloadTask = CountingDownloadTask()
-        val logRepository = TestBackupLogRepository()
+        val logRepository = RecordingLogRepository()
         val runner = runner(
             repository = repository,
             downloadTask = downloadTask,
@@ -908,7 +911,7 @@ class BackupRunnerTest {
     fun `diagnostics records reused attachment blob`() = runTest {
         val repository = MemoryBackupRepository()
         val downloadTask = CountingDownloadTask()
-        val logRepository = TestBackupLogRepository()
+        val logRepository = RecordingLogRepository()
         val runner = runner(
             repository = repository,
             downloadTask = downloadTask,
@@ -1425,16 +1428,11 @@ private fun testCipher(
     remoteCipherId: String = "remote-cipher-1",
     attachmentId: String = "attachment-1",
     attachmentKeyBase64: String = "key-1",
-) = DSecret(
+) = createSecret(
     id = id,
+    name = "Cipher",
     accountId = "account-1",
-    folderId = null,
-    organizationId = null,
-    collectionIds = emptySet(),
-    revisionDate = Instant.fromEpochMilliseconds(1L),
-    createdDate = null,
-    archivedDate = null,
-    deletedDate = null,
+    type = DSecret.Type.None,
     service = BitwardenService(
         remote = BitwardenService.Remote(
             id = remoteCipherId,
@@ -1442,11 +1440,6 @@ private fun testCipher(
             deletedDate = null,
         ),
     ),
-    name = "Cipher",
-    notes = "",
-    favorite = false,
-    reprompt = false,
-    synced = true,
     attachments = listOf(
         DSecret.Attachment.Remote(
             id = attachmentId,
@@ -1457,7 +1450,8 @@ private fun testCipher(
             size = 7L,
         ),
     ),
-    type = DSecret.Type.None,
+    revisionDate = Instant.fromEpochMilliseconds(1L),
+    createdDate = null,
 )
 
 private fun legacyAttachmentFingerprint(
@@ -1502,7 +1496,7 @@ private fun StringBuilder.appendLegacyFingerprintField(
 
 private class IncrementingCryptoGenerator(
     private val randomRoll: Int = 0,
-) : CryptoGenerator {
+) : TestCryptoGenerator() {
     private var uuidIndex = 0
 
     override fun hkdf(

@@ -4,10 +4,8 @@ import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
-import com.artemchep.keyguard.common.model.Argon2Mode
-import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.platform.WindowId
+import com.artemchep.keyguard.test.TestCryptoGenerator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -85,29 +83,9 @@ class KeyboardShortcutsServiceTest {
         assertFalse(service.handle(mainWindow, copy))
     }
 
-    private class SequentialUuidCryptoGenerator : CryptoGenerator {
+    private class SequentialUuidCryptoGenerator : TestCryptoGenerator() {
         private var nextId = 0
 
         override fun uuid(): String = (++nextId).toString()
-        override fun hkdf(seed: ByteArray, salt: ByteArray?, info: ByteArray?, length: Int): Nothing = unused()
-        override fun pbkdf2(seed: ByteArray, salt: ByteArray, iterations: Int, length: Int): Nothing = unused()
-        override fun argon2(
-            mode: Argon2Mode,
-            seed: ByteArray,
-            salt: ByteArray,
-            iterations: Int,
-            memoryKb: Int,
-            parallelism: Int,
-        ): Nothing = unused()
-        override fun seed(length: Int): Nothing = unused()
-        override fun hmac(key: ByteArray, data: ByteArray, algorithm: CryptoHashAlgorithm): Nothing = unused()
-        override fun hashSha1(data: ByteArray): Nothing = unused()
-        override fun hashSha256(data: ByteArray): Nothing = unused()
-        override fun hashMd5(data: ByteArray): Nothing = unused()
-        override fun random(): Nothing = unused()
-        override fun random(range: IntRange): Nothing = unused()
-
     }
 }
-
-private fun unused(): Nothing = error("Shortcut registration only needs UUIDs")

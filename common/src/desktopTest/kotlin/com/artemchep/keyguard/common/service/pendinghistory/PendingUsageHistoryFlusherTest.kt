@@ -13,8 +13,7 @@ import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.VaultSettingsKeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.settings.impl.SettingsRepositoryImpl
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
@@ -50,7 +49,7 @@ class PendingUsageHistoryFlusherTest {
         settingsRepository = settingsRepository,
         base64Service = Base64ServiceImpl(),
         json = json,
-        logRepository = NoopLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
     )
 
     @Test
@@ -263,21 +262,3 @@ private class RecordingAddSshUsageHistory : AddSshUsageHistory {
 private class TestVaultSettingsStore(
     store: KeyValueStore,
 ) : VaultSettingsKeyValueStore, KeyValueStore by store
-
-private object NoopLogRepository : LogRepository {
-    override fun post(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) {
-        // Intentionally empty.
-    }
-
-    override suspend fun add(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) {
-        // Intentionally empty.
-    }
-}

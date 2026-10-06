@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.auth.companion
 
+import com.artemchep.keyguard.test.withTempDirectory
 import java.io.File
-import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -129,11 +129,8 @@ class CompanionAuthSecurityCleanupTest {
 private fun withCompanionAuthRoot(
     block: (File) -> Unit,
 ) {
-    val rootDir = Files.createTempDirectory("companion-auth-cleanup").toFile()
-    try {
-        block(rootDir)
-    } finally {
-        rootDir.deleteRecursively()
+    withTempDirectory("companion-auth-cleanup") { rootDir ->
+        block(rootDir.toFile())
     }
 }
 

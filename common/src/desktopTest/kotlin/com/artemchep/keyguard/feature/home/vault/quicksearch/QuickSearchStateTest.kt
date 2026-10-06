@@ -9,17 +9,14 @@ import arrow.core.right
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.TotpCode
 import com.artemchep.keyguard.common.model.TotpToken
-import com.artemchep.keyguard.common.model.ToastMessage
-import com.artemchep.keyguard.common.service.clipboard.ClipboardService
-import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetTotpCode
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
-import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.test.TEST_INSTANT
+import com.artemchep.keyguard.test.testCopyText
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,9 +30,6 @@ import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
-import org.jetbrains.compose.resources.PluralStringResource
-import org.jetbrains.compose.resources.StringResource
 
 class QuickSearchStateTest {
     @Test
@@ -285,7 +279,7 @@ internal fun createVaultItem(
     folderId = secret.folderId,
     icon = VaultItemIcon.VectorIcon(Icons.Outlined.Password),
     feature = VaultItem2.Item.Feature.None,
-    copyText = createCopyText(),
+    copyText = testCopyText(),
     token = secret.login?.totp?.token,
     passwords = persistentListOf(),
     passkeys = persistentListOf(),
@@ -310,6 +304,10 @@ internal fun createVaultItem(
     ),
 )
 
+/**
+ * A [com.artemchep.keyguard.test.createSecret] whose type-specific payload
+ * defaults to an empty one of the given [type].
+ */
 internal fun createSecret(
     id: String = "cipher",
     type: DSecret.Type = DSecret.Type.Login,
@@ -319,53 +317,17 @@ internal fun createSecret(
     sshKey: DSecret.SshKey? = if (type == DSecret.Type.SshKey) DSecret.SshKey() else null,
     notes: String = "",
     uris: List<DSecret.Uri> = emptyList(),
-): DSecret = DSecret(
+): DSecret = com.artemchep.keyguard.test.createSecret(
     id = id,
-    accountId = "account",
-    folderId = null,
-    organizationId = null,
-    collectionIds = emptySet(),
-    revisionDate = TEST_INSTANT,
-    createdDate = TEST_INSTANT,
-    archivedDate = null,
-    deletedDate = null,
-    service = BitwardenService(),
     name = "Example $id",
-    notes = notes,
-    favorite = false,
-    reprompt = false,
-    synced = true,
-    uris = uris,
+    accountId = "account",
     type = type,
+    notes = notes,
+    uris = uris,
     login = login,
     card = card,
     identity = identity,
     sshKey = sshKey,
-)
-
-internal fun createCopyText(
-    clipboardService: ClipboardService = object : ClipboardService {
-        override fun setPrimaryClip(value: String, concealed: Boolean) = Unit
-
-        override fun clearPrimaryClip() = Unit
-
-        override fun hasCopyNotification(): Boolean = true
-    },
-): CopyText = CopyText(
-    clipboardService = clipboardService,
-    translator = object : TranslatorScope {
-        override suspend fun translate(res: StringResource): String = res.toString()
-
-        override suspend fun translate(res: StringResource, vararg args: Any): String =
-            res.toString()
-
-        override suspend fun translate(
-            res: PluralStringResource,
-            quantity: Int,
-            vararg args: Any,
-        ): String = res.toString()
-    },
-    onMessage = { _: ToastMessage -> },
 )
 
 internal fun createTotp() = DSecret.Login.Totp(
@@ -378,8 +340,6 @@ internal fun createTotp() = DSecret.Login.Totp(
         period = 30L,
     ),
 )
-
-internal val TEST_INSTANT = Instant.parse("2024-01-01T00:00:00Z")
 
 internal data object EmptyGetTotpCode : GetTotpCode {
     override fun invoke(p1: TotpToken): Flow<Either<Throwable, TotpCode>> = emptyFlow()

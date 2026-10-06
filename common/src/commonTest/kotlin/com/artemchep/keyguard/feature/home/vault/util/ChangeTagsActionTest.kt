@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.feature.home.vault.util
 
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
+import com.artemchep.keyguard.test.createSecret
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

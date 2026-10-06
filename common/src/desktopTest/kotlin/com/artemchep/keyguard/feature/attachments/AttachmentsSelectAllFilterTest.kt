@@ -13,11 +13,11 @@ import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactoryDefault
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRouteFactoryDefault
-import com.artemchep.keyguard.feature.home.vault.search.TEST_INSTANT
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.navigation.state.DiskHandle
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.test.TEST_INSTANT
+import com.artemchep.keyguard.test.createSecret
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import java.lang.reflect.InvocationHandler
@@ -46,21 +46,21 @@ import kotlin.test.assertNull
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class AttachmentsSelectAllFilterTest {
-    private val cipherA = createSecret(id = "cipher-a")
-        .copy(
-            accountId = "account-a",
-            attachments = listOf(
-                attachment(id = "a1", cipherId = "cipher-a"),
-                attachment(id = "a2", cipherId = "cipher-a"),
-            ),
-        )
-    private val cipherB = createSecret(id = "cipher-b")
-        .copy(
-            accountId = "account-b",
-            attachments = listOf(
-                attachment(id = "b1", cipherId = "cipher-b"),
-            ),
-        )
+    private val cipherA = createSecret(
+        id = "cipher-a",
+        accountId = "account-a",
+        attachments = listOf(
+            attachment(id = "a1", cipherId = "cipher-a"),
+            attachment(id = "a2", cipherId = "cipher-a"),
+        ),
+    )
+    private val cipherB = createSecret(
+        id = "cipher-b",
+        accountId = "account-b",
+        attachments = listOf(
+            attachment(id = "b1", cipherId = "cipher-b"),
+        ),
+    )
     private val ciphers = listOf(cipherA, cipherB)
     private val downloads = ciphers
         .flatMap { cipher ->

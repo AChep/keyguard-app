@@ -4,12 +4,12 @@ import androidx.compose.ui.graphics.Color
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.search.createItem
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
 import com.artemchep.keyguard.feature.home.vault.search.query.VaultSearchQualifierCatalog
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.CompiledHotTextClause
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.CompiledQueryPlan
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultTextField
 import com.artemchep.keyguard.feature.home.vault.search.query.model.ParsedQuery
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest

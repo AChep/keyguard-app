@@ -24,13 +24,13 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnaps
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 import com.artemchep.keyguard.common.service.gpgagent.GpgRevocationStatus
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
+import com.artemchep.keyguard.test.createSecret
 import com.artemchep.keyguard.test.gpgMetadata
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverLocalKey
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateEvaluator
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -633,23 +633,13 @@ private fun gpgSecret(
     privateKeyArmored: String? = "private",
     fingerprint: String? = primaryFingerprint,
     metadata: GpgAgentKeyMetadata? = gpgMetadata(metadataKey()),
-) = DSecret(
+) = createSecret(
     id = cipherId,
+    name = "GPG key",
     accountId = "account",
-    folderId = null,
-    organizationId = null,
-    collectionIds = emptySet(),
+    type = DSecret.Type.GpgKey,
     revisionDate = now,
     createdDate = null,
-    archivedDate = null,
-    deletedDate = null,
-    service = BitwardenService(),
-    name = "GPG key",
-    notes = "",
-    favorite = false,
-    reprompt = false,
-    synced = true,
-    type = DSecret.Type.GpgKey,
     gpgKey = DSecret.GpgKey(
         privateKeyArmored = privateKeyArmored,
         publicKeyArmored = publicKeyArmored,

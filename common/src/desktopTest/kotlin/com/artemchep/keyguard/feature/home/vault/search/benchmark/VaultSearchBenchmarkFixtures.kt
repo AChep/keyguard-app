@@ -9,8 +9,6 @@ import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DTag
-import com.artemchep.keyguard.common.service.clipboard.ClipboardService
-import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
@@ -18,12 +16,10 @@ import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.search.engine.VaultSearchIndexMetadata
-import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.test.testCopyText
 import com.artemchep.keyguard.ui.icons.generateAccentColors
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.jetbrains.compose.resources.PluralStringResource
-import org.jetbrains.compose.resources.StringResource
 import kotlin.time.Instant
 
 private val TEST_INSTANT: Instant = Instant.parse("2024-01-01T00:00:00Z")
@@ -529,7 +525,7 @@ internal object VaultSearchBenchmarkFixtures {
         folderId = source.folderId,
         icon = VaultItemIcon.TextIcon("T"),
         feature = VaultItem2.Item.Feature.None,
-        copyText = createCopyText(),
+        copyText = testCopyText(),
         token = source.login?.totp?.token,
         passwords = persistentListOf(),
         passkeys = persistentListOf(),
@@ -552,26 +548,6 @@ internal object VaultSearchBenchmarkFixtures {
                         ),
                 ),
             )),
-    )
-
-    private fun createCopyText(): CopyText = CopyText(
-        clipboardService =
-            object : ClipboardService {
-                override fun setPrimaryClip(value: String, concealed: Boolean) = Unit
-                override fun clearPrimaryClip() = Unit
-                override fun hasCopyNotification(): Boolean = true
-            },
-        translator =
-            object : TranslatorScope {
-                override suspend fun translate(res: StringResource): String = res.toString()
-                override suspend fun translate(res: StringResource, vararg args: Any): String = res.toString()
-                override suspend fun translate(
-                    res: PluralStringResource,
-                    quantity: Int,
-                    vararg args: Any,
-                ): String = res.toString()
-            },
-        onMessage = { _: com.artemchep.keyguard.common.model.ToastMessage -> },
     )
 
     private data class AccountSpec(

@@ -8,14 +8,11 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverLocalKey
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.crypto.GPG_TEST_CV25519_PRIMARY_FINGERPRINT
 import com.artemchep.keyguard.crypto.GPG_TEST_CV25519_PUBLIC_KEY
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import kotlin.time.Instant
-
-private val instant: Instant = Instant.parse("2024-01-01T00:00:00Z")
 
 /** A secure note holding a GPG key pair, as the GPG agent stores it. */
 internal fun createGpgSecret(
@@ -23,22 +20,11 @@ internal fun createGpgSecret(
     publicKey: String = GPG_TEST_CV25519_PUBLIC_KEY,
     cipherId: String = "cipher-id",
     accountId: String = "account-id",
-) = DSecret(
+) = createSecret(
     id = cipherId,
-    accountId = accountId,
-    folderId = null,
-    organizationId = null,
-    collectionIds = emptySet(),
-    revisionDate = instant,
-    createdDate = instant,
-    archivedDate = null,
-    deletedDate = null,
-    service = BitwardenService(),
     name = "GPG key",
-    notes = "",
-    favorite = false,
-    reprompt = false,
-    synced = true,
+    accountId = accountId,
+    type = DSecret.Type.SecureNote,
     fields = listOf(
         DSecret.Field(
             name = GpgAgentFields.PUBLIC_KEY_ARMORED,
@@ -51,7 +37,6 @@ internal fun createGpgSecret(
             type = DSecret.Field.Type.Text,
         ),
     ),
-    type = DSecret.Type.SecureNote,
 )
 
 internal class FakeGpgKeyserverStateRepository(

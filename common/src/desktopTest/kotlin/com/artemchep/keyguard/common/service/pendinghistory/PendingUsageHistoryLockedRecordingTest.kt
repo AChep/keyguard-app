@@ -10,8 +10,7 @@ import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor.GpgAgentOperationResult
 import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentRequestProcessorImpl
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorImpl
@@ -150,7 +149,7 @@ class PendingUsageHistoryLockedRecordingTest {
         approve: suspend () -> Boolean,
     ) = GpgAgentRequestProcessorImpl(
         sessionAccess = testDomainSessionAccess(),
-        logRepository = NoOpLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
         crypto = NativeGpgAgentCrypto,
         getVaultSession = LockedGetVaultSession,
         getGpgAgentApprovalWindow = GetGpgAgentApprovalWindowNoOp,
@@ -167,7 +166,7 @@ class PendingUsageHistoryLockedRecordingTest {
         approve: suspend () -> Boolean,
     ) = SshAgentRequestProcessorImpl(
         sessionAccess = testDomainSessionAccess(),
-        logRepository = NoOpLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
         getVaultSession = LockedGetVaultSession,
         getSshAgentApprovalWindow = GetSshAgentApprovalWindowNoOp,
         getSshAgentFilter = object : GetSshAgentFilter {
@@ -183,23 +182,5 @@ class PendingUsageHistoryLockedRecordingTest {
         override val valueOrNull: MasterSession? = null
 
         override fun invoke(): Flow<MasterSession> = emptyFlow()
-    }
-
-    private object NoOpLogRepository : LogRepository {
-        override fun post(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) {
-            // Intentionally empty.
-        }
-
-        override suspend fun add(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) {
-            // Intentionally empty.
-        }
     }
 }

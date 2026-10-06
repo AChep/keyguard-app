@@ -8,16 +8,16 @@ import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
-import com.artemchep.keyguard.feature.home.vault.quicksearch.createCopyText
 import com.artemchep.keyguard.feature.home.vault.quicksearch.createSecret
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
-import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.copy_card_number
 import com.artemchep.keyguard.res.copy_cvv_code
 import com.artemchep.keyguard.res.copy_password
 import com.artemchep.keyguard.res.copy_username
+import com.artemchep.keyguard.test.TestTranslator
+import com.artemchep.keyguard.test.testCopyText
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,8 +26,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import org.jetbrains.compose.resources.PluralStringResource
-import org.jetbrains.compose.resources.StringResource
 
 class VaultRePromptTest {
     @Test
@@ -176,8 +174,8 @@ private suspend fun listActionTitles(
 ): List<TextHolder> {
     var actions: List<FlatItemAction> = emptyList()
     secret.toVaultListItem(
-        copy = createCopyText(),
-        translator = TestTranslatorScope,
+        copy = testCopyText(),
+        translator = TestTranslator,
         getTotpCode = TestGetTotpCode,
         appIcons = false,
         websiteIcons = false,
@@ -209,17 +207,4 @@ private object TestGetTotpCode : GetTotpCode {
     override fun invoke(
         token: TotpToken,
     ): Flow<Either<Throwable, TotpCode>> = emptyFlow()
-}
-
-private object TestTranslatorScope : TranslatorScope {
-    override suspend fun translate(res: StringResource): String = res.toString()
-
-    override suspend fun translate(res: StringResource, vararg args: Any): String =
-        res.toString()
-
-    override suspend fun translate(
-        res: PluralStringResource,
-        quantity: Int,
-        vararg args: Any,
-    ): String = res.toString()
 }

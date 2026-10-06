@@ -5,6 +5,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncAction
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncConfig
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncExecutor
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.SyncCoordinator
+import com.artemchep.keyguard.test.RecordingLogRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertIs
@@ -13,7 +14,7 @@ import kotlin.test.assertTrue
 class EntitySyncExecutorDiagnosticsV2Test {
     @Test
     fun `coordinator emits entity plan diagnostics`() = runTest {
-        val logRepository = TestLogRepository()
+        val logRepository = RecordingLogRepository()
         val diagnostics =
             SyncDiagnostics(
                 logRepository = logRepository,
@@ -42,7 +43,7 @@ class EntitySyncExecutorDiagnosticsV2Test {
 
     @Test
     fun `executor emits phase and occ skip diagnostics`() = runTest {
-        val logRepository = TestLogRepository()
+        val logRepository = RecordingLogRepository()
         val diagnostics =
             SyncDiagnostics(
                 logRepository = logRepository,
@@ -87,7 +88,7 @@ class EntitySyncExecutorDiagnosticsV2Test {
 
     @Test
     fun `executor emits bulk fallback diagnostics`() = runTest {
-        val logRepository = TestLogRepository()
+        val logRepository = RecordingLogRepository()
         val diagnostics =
             SyncDiagnostics(
                 logRepository = logRepository,
@@ -123,9 +124,6 @@ class EntitySyncExecutorDiagnosticsV2Test {
         assertTrue(logRepository.messages.any { it.contains("bulk_fallback entity=test") })
     }
 }
-
-private val TestLogRepository.messages: List<String>
-    get() = entries.map { it.message }
 
 private fun plan(
     locals: List<TestLocal>,

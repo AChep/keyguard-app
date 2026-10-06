@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.upload
 import com.artemchep.keyguard.common.model.KEEPASS_FILE_UPLOAD_MAX_BYTES
 import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
 import com.artemchep.keyguard.common.service.file.FileService
+import com.artemchep.keyguard.test.withTempDirectory
 import com.artemchep.keyguard.util.io.FileSystemFailure
 import com.artemchep.keyguard.util.io.FileSystemFailureKind
 import com.artemchep.keyguard.util.io.LocalPath
@@ -303,33 +304,34 @@ class EncryptedFilePendingUploadServiceJvmTest {
 class EncryptedFilePendingUploadReadAndSweepTest {
     @Test
     fun `read plaintext crosses the adaptive memory threshold`() = runTest {
-        val root = createTempDirectory("pending-upload-service").toRealPath()
-        val pendingRoot = root.resolve("pending")
-        val stagedFile = pendingRoot.resolve("send-1.bin")
-        val plaintext = ByteArray(2 * 1024 * 1024 + 257) { index ->
-            (index * 31 + 7).toByte()
-        }
-        stagedFile.toFile().parentFile.mkdirs()
-        stagedFile.writeBytes(plaintext)
-        val service = pendingUploadService(
-            dirProvider = singleDirProvider(pendingRoot),
-        )
-
-        try {
-            assertContentEquals(
-                plaintext,
-                service.readPlaintext(
-                    pendingUpload = PendingUploadFile(
-                        path = stagedFile.toString(),
-                        plainSize = plaintext.size.toLong(),
-                        encryptedSize = plaintext.size.toLong(),
-                    ),
-                    fileKey = "key".encodeToByteArray(),
-                ),
+        withTempDirectory("pending-upload-service") { tmp ->
+            val root = tmp.toRealPath()
+            val pendingRoot = root.resolve("pending")
+            val stagedFile = pendingRoot.resolve("send-1.bin")
+            val plaintext = ByteArray(2 * 1024 * 1024 + 257) { index ->
+                (index * 31 + 7).toByte()
+            }
+            stagedFile.toFile().parentFile.mkdirs()
+            stagedFile.writeBytes(plaintext)
+            val service = pendingUploadService(
+                dirProvider = singleDirProvider(pendingRoot),
             )
-        } finally {
-            plaintext.fill(0)
-            root.toFile().deleteRecursively()
+
+            try {
+                assertContentEquals(
+                    plaintext,
+                    service.readPlaintext(
+                        pendingUpload = PendingUploadFile(
+                            path = stagedFile.toString(),
+                            plainSize = plaintext.size.toLong(),
+                            encryptedSize = plaintext.size.toLong(),
+                        ),
+                        fileKey = "key".encodeToByteArray(),
+                    ),
+                )
+            } finally {
+                plaintext.fill(0)
+            }
         }
     }
 

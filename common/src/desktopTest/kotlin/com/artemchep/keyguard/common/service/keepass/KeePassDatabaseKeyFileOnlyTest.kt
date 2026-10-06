@@ -4,8 +4,7 @@ import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountParams
-import java.nio.file.Files
-import java.nio.file.Path
+import com.artemchep.keyguard.test.withTempDirectory
 import kotlin.io.path.writeBytes
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -19,7 +18,7 @@ class KeePassDatabaseKeyFileOnlyTest {
 
     @Test
     fun `key file only db opens without a password`() = runTest {
-        withTempDir { dir ->
+        withTempDirectory("keyguard-keepass-test") { dir ->
             val dbUri = dir.resolve("vault.kdbx").toUri().toString()
             val keyUri = dir.resolve("vault.key").apply {
                 writeBytes("key-file".encodeToByteArray())
@@ -79,7 +78,7 @@ class KeePassDatabaseKeyFileOnlyTest {
 
     @Test
     fun `empty password without key file is rejected`() = runTest {
-        withTempDir { dir ->
+        withTempDirectory("keyguard-keepass-test") { dir ->
             val dbUri = dir.resolve("vault.kdbx").toUri().toString()
             assertFailsWith<IllegalArgumentException> {
                 prepareKeePassDatabase(
@@ -107,15 +106,4 @@ class KeePassDatabaseKeyFileOnlyTest {
         keyUri = keyUri,
         password = password,
     )
-
-    private inline fun withTempDir(
-        block: (Path) -> Unit,
-    ) {
-        val dir = Files.createTempDirectory("keyguard-keepass-test")
-        try {
-            block(dir)
-        } finally {
-            dir.toFile().deleteRecursively()
-        }
-    }
 }

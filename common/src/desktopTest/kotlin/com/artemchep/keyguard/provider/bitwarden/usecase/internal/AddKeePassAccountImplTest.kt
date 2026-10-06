@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.model.WebDavCredentials
 import com.artemchep.keyguard.common.model.WebDavLocation
 import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.common.service.keepass.FakeKeePassWebDavClientFactory
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.s3.InMemoryS3ClientFactory
 import com.artemchep.keyguard.common.service.s3.S3ClientFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
@@ -26,11 +27,11 @@ import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.core.store.bitwarden.FileLocation
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.TestLogRepository
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.TestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.createTestDatabase
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBase64Service
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testCryptoGenerator
+import com.artemchep.keyguard.test.withTempDirectory
 import java.nio.file.Files
 import kotlin.io.path.writeBytes
 import kotlin.test.Test
@@ -54,7 +55,7 @@ class AddKeePassAccountImplTest {
     @Test
     fun `queued add stores local token and queues sync`() = runTest {
         val testScope = this
-        withTempDir { dir ->
+        withTempDirectory("keyguard-add-keepass-test") { dir ->
             val db = createTestDatabase()
             val dbUri = dir.resolve("vault.kdbx").toUri().toString()
             val keyData = "key-file-data".encodeToByteArray()
@@ -95,7 +96,7 @@ class AddKeePassAccountImplTest {
     @Test
     fun `open with wrong password fails before inserting account or scheduling sync`() = runTest {
         val testScope = this
-        withTempDir { dir ->
+        withTempDirectory("keyguard-add-keepass-test") { dir ->
             val dbUri = dir.resolve("vault.kdbx").toUri().toString()
             prepareKeePassDatabase(
                 fileService = fileService,
@@ -129,7 +130,7 @@ class AddKeePassAccountImplTest {
     @Test
     fun `open with missing database fails before inserting account or direct sync`() = runTest {
         val testScope = this
-        withTempDir { dir ->
+        withTempDirectory("keyguard-add-keepass-test") { dir ->
             val db = createTestDatabase()
             val fixture = createFixture(db = db, scope = testScope)
 
@@ -154,7 +155,7 @@ class AddKeePassAccountImplTest {
     @Test
     fun `missing key file fails before inserting account or scheduling sync`() = runTest {
         val testScope = this
-        withTempDir { dir ->
+        withTempDirectory("keyguard-add-keepass-test") { dir ->
             val db = createTestDatabase()
             val fixture = createFixture(db = db, scope = testScope)
 
@@ -304,7 +305,7 @@ class AddKeePassAccountImplTest {
     @Test
     fun `direct add calls and awaits syncById`() = runTest {
         val testScope = this
-        withTempDir { dir ->
+        withTempDirectory("keyguard-add-keepass-test") { dir ->
             val db = createTestDatabase()
             val fixture = createFixture(db = db, scope = testScope)
 
@@ -326,7 +327,7 @@ class AddKeePassAccountImplTest {
     @Test
     fun `direct add propagates sync failure`() = runTest {
         val testScope = this
-        withTempDir { dir ->
+        withTempDirectory("keyguard-add-keepass-test") { dir ->
             val db = createTestDatabase()
             val fixture = createFixture(
                 db = db,
@@ -355,7 +356,7 @@ class AddKeePassAccountImplTest {
     @Test
     fun `premium denial does not insert account or schedule sync`() = runTest {
         val testScope = this
-        withTempDir { dir ->
+        withTempDirectory("keyguard-add-keepass-test") { dir ->
             val db = createTestDatabase()
             val dbPath = dir.resolve("vault.kdbx")
             val fixture = createFixture(
@@ -422,7 +423,7 @@ class AddKeePassAccountImplTest {
             queueSyncById = queueSyncById,
             syncById = syncById,
             windowCoroutineScope = TestWindowCoroutineScope(scope),
-            logRepository = TestLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             cryptoGenerator = testCryptoGenerator,
             fileService = fileService,
             base64Service = testBase64Service,
@@ -492,15 +493,4 @@ class AddKeePassAccountImplTest {
         type = AccountType.KEEPASS,
         faviconServer = null,
     )
-
-    private inline fun withTempDir(
-        block: (java.nio.file.Path) -> Unit,
-    ) {
-        val dir = Files.createTempDirectory("keyguard-add-keepass-test")
-        try {
-            block(dir)
-        } finally {
-            dir.toFile().deleteRecursively()
-        }
-    }
 }

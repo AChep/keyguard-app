@@ -10,9 +10,9 @@ import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
-import com.artemchep.keyguard.feature.home.vault.search.TEST_INSTANT
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlBroadCheckImpl
+import com.artemchep.keyguard.test.TEST_INSTANT
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -40,10 +40,12 @@ class WatchtowerBroadUrisTest {
             cipherUrlBroadCheck = check,
             equivalentDomainsBuilderFactory = domains,
         )
-        val domain = createSecret("domain").copy(
+        val domain = createSecret(
+            id = "domain",
             uris = listOf(DSecret.Uri("example.com", DSecret.Uri.MatchType.Domain)),
         )
-        val host = createSecret("host").copy(
+        val host = createSecret(
+            id = "host",
             uris = listOf(DSecret.Uri("login.example.com", DSecret.Uri.MatchType.Host)),
         )
 

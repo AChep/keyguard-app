@@ -1,9 +1,9 @@
 package com.artemchep.keyguard.provider.bitwarden.crypto
 
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
-import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.test.testBitwardenCr
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Instant
@@ -57,41 +57,23 @@ private val prefixEnv = BitwardenCrCta.BitwardenCrCtaEnv(
     key = BitwardenCrKey.UserToken,
 )
 
-private val prefixEncrypt = PrefixBitwardenCr.cta(
+private val prefixBitwardenCr = testBitwardenCr(
+    decoder = {
+        { cipherText ->
+            DecodeResult(
+                data = cipherText.removePrefix("enc(").removeSuffix(")").encodeToByteArray(),
+                type = CipherEncryptor.Type.AesCbc256_HmacSha256_B64,
+            )
+        }
+    },
+    encoder = {
+        { _, data ->
+            "enc(${data.decodeToString()})"
+        }
+    },
+)
+
+private val prefixEncrypt = prefixBitwardenCr.cta(
     env = prefixEnv,
     mode = BitwardenCrCta.Mode.ENCRYPT,
 )
-
-private object PrefixBitwardenCr : BitwardenCr {
-    override val base64Service: Base64Service = PrefixBase64Service
-
-    override fun decoder(
-        key: BitwardenCrKey,
-    ): (String) -> DecodeResult = { cipherText ->
-        DecodeResult(
-            data = cipherText.removePrefix("enc(").removeSuffix(")").encodeToByteArray(),
-            type = CipherEncryptor.Type.AesCbc256_HmacSha256_B64,
-        )
-    }
-
-    override fun encoder(
-        key: BitwardenCrKey,
-    ): (CipherEncryptor.Type, ByteArray) -> String = { _, data ->
-        "enc(${data.decodeToString()})"
-    }
-
-    override fun cta(
-        env: BitwardenCrCta.BitwardenCrCtaEnv,
-        mode: BitwardenCrCta.Mode,
-    ): BitwardenCrCta = BitwardenCrCta(
-        crypto = this,
-        env = env,
-        mode = mode,
-    )
-}
-
-private object PrefixBase64Service : Base64Service {
-    override fun encode(bytes: ByteArray): ByteArray = bytes
-
-    override fun decode(bytes: ByteArray): ByteArray = bytes
-}

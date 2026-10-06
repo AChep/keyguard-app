@@ -8,8 +8,8 @@ import app.cash.sqldelight.db.SqlPreparedStatement
 import app.cash.sqldelight.db.SqlSchema
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
+import com.artemchep.keyguard.test.withTempDirectory
 import org.sqlite.mc.SQLiteMCSqlCipherConfig
-import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -241,8 +241,8 @@ private fun schema(
 }
 
 private fun withDatabase(block: (() -> SqlDriver) -> Unit) {
-    val directory = Files.createTempDirectory("keyguard-migration-test").toFile()
-    try {
+    withTempDirectory("keyguard-migration-test") { dir ->
+        val directory = dir.toFile()
         val file = directory.resolve("vault.db")
         block {
             JdbcSqliteDriver(
@@ -254,8 +254,6 @@ private fun withDatabase(block: (() -> SqlDriver) -> Unit) {
                     .apply { put("foreign_keys", "true") },
             )
         }
-    } finally {
-        directory.deleteRecursively()
     }
 }
 

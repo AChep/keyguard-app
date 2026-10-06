@@ -8,11 +8,11 @@ import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseMeta
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountParams
+import com.artemchep.keyguard.test.withTempDirectory
 import com.artemchep.keyguard.util.webdav.WebDavAuthorization
 import com.artemchep.keyguard.util.webdav.WebDavException
 import com.artemchep.keyguard.util.webdav.WebDavOperation
 import com.artemchep.keyguard.util.webdav.WebDavWriteStrategy
-import java.nio.file.Files
 import kotlin.io.path.writeBytes
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -32,7 +32,7 @@ class KeePassDatabasePreparationTest {
 
     @Test
     fun `existing db with correct password succeeds`() = runTest {
-        withTempDir { dir ->
+        withTempDirectory("keyguard-keepass-test") { dir ->
             val dbUri = dir.resolve("vault.kdbx").toUri().toString()
             prepareKeePassDatabase(
                 fileService = fileService,
@@ -59,7 +59,7 @@ class KeePassDatabasePreparationTest {
 
     @Test
     fun `existing db with wrong password fails before import`() = runTest {
-        withTempDir { dir ->
+        withTempDirectory("keyguard-keepass-test") { dir ->
             val dbUri = dir.resolve("vault.kdbx").toUri().toString()
             prepareKeePassDatabase(
                 fileService = fileService,
@@ -85,7 +85,7 @@ class KeePassDatabasePreparationTest {
 
     @Test
     fun `new db mode creates a readable database`() = runTest {
-        withTempDir { dir ->
+        withTempDirectory("keyguard-keepass-test") { dir ->
             val dbUri = dir.resolve("vault.kdbx").toUri().toString()
             prepareKeePassDatabase(
                 fileService = fileService,
@@ -118,7 +118,7 @@ class KeePassDatabasePreparationTest {
 
     @Test
     fun `new db mode refuses overwrite when target exists`() = runTest {
-        withTempDir { dir ->
+        withTempDirectory("keyguard-keepass-test") { dir ->
             val dbPath = dir.resolve("vault.kdbx")
             dbPath.writeBytes("existing".encodeToByteArray())
 
@@ -137,7 +137,7 @@ class KeePassDatabasePreparationTest {
 
     @Test
     fun `new db mode overwrites target when allowed`() = runTest {
-        withTempDir { dir ->
+        withTempDirectory("keyguard-keepass-test") { dir ->
             val dbPath = dir.resolve("vault.kdbx")
             dbPath.writeBytes("existing".encodeToByteArray())
             val dbUri = dbPath.toUri().toString()
@@ -172,7 +172,7 @@ class KeePassDatabasePreparationTest {
 
     @Test
     fun `key file flow works when key file is present`() = runTest {
-        withTempDir { dir ->
+        withTempDirectory("keyguard-keepass-test") { dir ->
             val dbUri = dir.resolve("vault.kdbx").toUri().toString()
             val keyUri = dir.resolve("vault.key").apply {
                 writeBytes("key-file".encodeToByteArray())
@@ -204,7 +204,7 @@ class KeePassDatabasePreparationTest {
 
     @Test
     fun `wrong key file fails before import`() = runTest {
-        withTempDir { dir ->
+        withTempDirectory("keyguard-keepass-test") { dir ->
             val dbUri = dir.resolve("vault.kdbx").toUri().toString()
             val keyUri = dir.resolve("vault.key").apply {
                 writeBytes("key-file".encodeToByteArray())
@@ -239,7 +239,7 @@ class KeePassDatabasePreparationTest {
 
     @Test
     fun `missing key file fails before import`() = runTest {
-        withTempDir { dir ->
+        withTempDirectory("keyguard-keepass-test") { dir ->
             val dbUri = dir.resolve("vault.kdbx").toUri().toString()
             val keyUri = dir.resolve("missing.key").toUri().toString()
 
@@ -657,15 +657,4 @@ class KeePassDatabasePreparationTest {
             password = password,
         ),
     )
-
-    private inline fun withTempDir(
-        block: (java.nio.file.Path) -> Unit,
-    ) {
-        val dir = Files.createTempDirectory("keyguard-keepass-test")
-        try {
-            block(dir)
-        } finally {
-            dir.toFile().deleteRecursively()
-        }
-    }
 }

@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.common.usecase.impl
 
-import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
@@ -9,14 +8,15 @@ import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.NavItemsConfigDefaults
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
+import com.artemchep.keyguard.test.createAccount
+import com.artemchep.keyguard.test.createProfile
+import com.artemchep.keyguard.test.createSecret
 import com.artemchep.keyguard.test.gpgMetadata
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
-import com.artemchep.keyguard.ui.icons.generateAccentColors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -584,62 +584,17 @@ private fun sendsRef() = NavItemRef.BuiltIn(NavItemsConfigDefaults.BUILT_IN_SEND
 
 private fun gpgToolsRef() = NavItemRef.BuiltIn(NavItemsConfigDefaults.BUILT_IN_GPG_TOOLS)
 
-private fun createAccount(
-    id: String,
-    type: AccountType,
-) = DAccount(
-    id = AccountId(id),
-    username = "user@example.com",
-    host = "vault.example.com",
-    webVaultUrl = "https://vault.example.com",
-    localVaultUrl = null,
-    type = type,
-    faviconServer = null,
-)
-
-private fun createProfile(
-    accountId: String,
-    hidden: Boolean,
-) = DProfile(
-    accountId = accountId,
-    profileId = "profile-$accountId",
-    keyBase64 = "key",
-    privateKeyBase64 = "private-key",
-    accountHost = "vault.example.com",
-    email = "$accountId@example.com",
-    emailVerified = true,
-    accentColor = generateAccentColors(accountId),
-    name = "User $accountId",
-    description = "",
-    premium = null,
-    hidden = hidden,
-    securityStamp = null,
-    twoFactorEnabled = null,
-    masterPasswordHint = null,
-    masterPasswordHintEnabled = null,
-    unofficialServer = false,
-    serverVersion = null,
-)
+private val EPOCH = Instant.fromEpochMilliseconds(0)
 
 private fun createGpgCipher(
     accountId: String,
-) = DSecret(
+) = createSecret(
     id = "gpg-cipher",
-    accountId = accountId,
-    folderId = null,
-    organizationId = null,
-    collectionIds = emptySet(),
-    revisionDate = Instant.fromEpochMilliseconds(0),
-    createdDate = Instant.fromEpochMilliseconds(0),
-    archivedDate = null,
-    deletedDate = null,
-    service = BitwardenService(),
     name = "GPG key",
-    notes = "",
-    favorite = false,
-    reprompt = false,
-    synced = true,
+    accountId = accountId,
     type = DSecret.Type.GpgKey,
+    revisionDate = EPOCH,
+    createdDate = EPOCH,
     gpgKey = DSecret.GpgKey(
         privateKeyArmored = "private",
         publicKeyArmored = "public",
@@ -657,10 +612,10 @@ private fun createGpgCipher(
 
 private fun createRegularCipher(
     accountId: String,
-) = createGpgCipher(accountId)
-    .copy(
-        id = "regular-cipher-$accountId",
-        name = "Login",
-        type = DSecret.Type.Login,
-        gpgKey = null,
-    )
+) = createSecret(
+    id = "regular-cipher-$accountId",
+    name = "Login",
+    accountId = accountId,
+    revisionDate = EPOCH,
+    createdDate = EPOCH,
+)

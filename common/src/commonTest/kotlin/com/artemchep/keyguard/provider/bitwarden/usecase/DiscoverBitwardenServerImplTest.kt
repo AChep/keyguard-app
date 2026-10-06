@@ -2,8 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.FileResource
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.service.tld.impl.TldServiceImpl
@@ -271,7 +270,7 @@ class DiscoverBitwardenServerImplTest {
     ) = DiscoverBitwardenServerImpl(
         dnsTxtResolver = resolver,
         tldService = createTldService(),
-        logRepository = DiscoveryTestLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
     )
 
     private fun createTldService(): TldService = TldServiceImpl(
@@ -289,16 +288,8 @@ class DiscoverBitwardenServerImplTest {
 
             override fun readFromFile(uri: String): Source = error("Not used in this test.")
         },
-        logRepository = DiscoveryTestLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
     )
-
-    private object DiscoveryTestLogRepository : LogRepository {
-        override suspend fun add(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-    }
 }
 
 private class FakeDnsTxtResolver(

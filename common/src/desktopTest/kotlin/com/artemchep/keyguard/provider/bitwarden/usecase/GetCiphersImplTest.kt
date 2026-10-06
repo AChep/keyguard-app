@@ -2,10 +2,10 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.PasswordStrength
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestLogRepository
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.insertUploadTestAccount
@@ -63,7 +63,7 @@ class GetCiphersImplTest {
         val windowScope = object : WindowCoroutineScope, CoroutineScope by backgroundScope {}
         val dispatcher = StandardTestDispatcher(testScheduler)
         val getCipherSnapshots = GetCipherSnapshotsImpl(
-            logRepository = UploadTestLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             databaseManager = UploadTestVaultDatabaseManager(db),
             getPasswordStrength = getPasswordStrength,
             windowCoroutineScope = windowScope,
@@ -136,7 +136,7 @@ class GetCiphersImplTest {
         val windowScope = object : WindowCoroutineScope, CoroutineScope by backgroundScope {}
         val dispatcher = StandardTestDispatcher(testScheduler)
         val getCipherSnapshots = GetCipherSnapshotsImpl(
-            logRepository = UploadTestLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             databaseManager = UploadTestVaultDatabaseManager(db),
             getPasswordStrength = getPasswordStrength,
             windowCoroutineScope = windowScope,

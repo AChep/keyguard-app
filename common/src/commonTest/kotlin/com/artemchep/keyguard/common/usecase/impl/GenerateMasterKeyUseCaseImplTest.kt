@@ -7,9 +7,8 @@ import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterPasswordHash
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
+import com.artemchep.keyguard.test.TestCryptoGenerator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -19,7 +18,7 @@ class GenerateMasterKeyUseCaseImplTest {
     fun `v0 master key uses PBKDF2 10000 iterations`() {
         val cryptoGenerator = RecordingCryptoGenerator()
         val useCase = GenerateMasterKeyUseCaseImpl(
-            logRepository = NoOpLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             cryptoGenerator = cryptoGenerator,
         )
 
@@ -40,7 +39,7 @@ class GenerateMasterKeyUseCaseImplTest {
     fun `master key output keeps v0 version`() {
         val cryptoGenerator = RecordingCryptoGenerator()
         val useCase = GenerateMasterKeyUseCaseImpl(
-            logRepository = NoOpLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             cryptoGenerator = cryptoGenerator,
         )
 
@@ -59,7 +58,7 @@ class GenerateMasterKeyUseCaseImplTest {
     fun `v1 master key uses Argon2 path`() {
         val cryptoGenerator = RecordingCryptoGenerator()
         val useCase = GenerateMasterKeyUseCaseImpl(
-            logRepository = NoOpLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             cryptoGenerator = cryptoGenerator,
         )
 
@@ -89,7 +88,7 @@ class GenerateMasterKeyUseCaseImplTest {
     fun `unsupported key version fails with typed exception`() {
         val cryptoGenerator = RecordingCryptoGenerator()
         val useCase = GenerateMasterKeyUseCaseImpl(
-            logRepository = NoOpLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             cryptoGenerator = cryptoGenerator,
         )
 
@@ -105,14 +104,6 @@ class GenerateMasterKeyUseCaseImplTest {
     }
 }
 
-internal object NoOpLogRepository : LogRepository {
-    override suspend fun add(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) = Unit
-}
-
 internal data class Pbkdf2Call(
     val iterations: Int,
     val length: Int,
@@ -125,7 +116,7 @@ internal data class Argon2Call(
     val parallelism: Int,
 )
 
-internal class RecordingCryptoGenerator : CryptoGenerator {
+internal class RecordingCryptoGenerator : TestCryptoGenerator() {
     val pbkdf2Calls = mutableListOf<Pbkdf2Call>()
     val argon2Calls = mutableListOf<Argon2Call>()
 

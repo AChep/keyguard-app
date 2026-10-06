@@ -2,7 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2
 
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
-import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -49,6 +49,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.SyncCoordinato
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.CipherSyncStrategy
 import com.artemchep.keyguard.provider.bitwarden.usecase.refreshRevocationCertificates
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
+import com.artemchep.keyguard.test.testBitwardenCr
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CancellationException
@@ -673,7 +674,7 @@ class SyncV2CipherUploadIntegrationTest {
                 cryptoGenerator = cryptoGenerator,
                 base64Service = base64Service,
                 getPasswordStrength = UploadTestPasswordStrength,
-                logRepository = UploadTestLogRepository,
+                logRepository = LogRepositoryBridge(emptyList()),
                 httpClient = server.client,
                 env = server.env,
                 token = server.token,
@@ -2434,11 +2435,11 @@ class SyncV2CipherUploadIntegrationTest {
         val cancellingOps = CipherSyncOps(
             accountId = ACCOUNT_ID,
             db = fixture.database,
-            crypto = CancellingDecodeBitwardenCr(fixture.crypto),
+            crypto = cancellingDecodeBitwardenCr(fixture.crypto),
             cryptoGenerator = fixture.cryptoGenerator,
             base64Service = fixture.base64Service,
             getPasswordStrength = UploadTestPasswordStrength,
-            logRepository = UploadTestLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             httpClient = server.client,
             env = server.env,
             token = server.token,
@@ -2777,7 +2778,7 @@ class SyncV2CipherUploadIntegrationTest {
                 ),
         )
         val sync = SyncByBitwardenTokenV2Impl(
-            logRepository = UploadTestLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             cipherEncryptor = cipherEncryptor,
             cryptoGenerator = cryptoGenerator,
             base64Service = base64Service,
@@ -2897,7 +2898,7 @@ class SyncV2CipherUploadIntegrationTest {
                 ),
         )
         val sync = SyncByBitwardenTokenV2Impl(
-            logRepository = UploadTestLogRepository,
+            logRepository = LogRepositoryBridge(emptyList()),
             cipherEncryptor = cipherEncryptor,
             cryptoGenerator = cryptoGenerator,
             base64Service = base64Service,
@@ -3257,7 +3258,7 @@ private fun createProductionCipherOpsFixture(
         cryptoGenerator = cryptoGenerator,
         base64Service = base64Service,
         getPasswordStrength = UploadTestPasswordStrength,
-        logRepository = UploadTestLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
         httpClient = server.client,
         env = server.env,
         token = server.token,
@@ -3280,31 +3281,19 @@ private fun createProductionCipherOpsFixture(
     )
 }
 
-private class CancellingDecodeBitwardenCr(
-    private val delegate: BitwardenCr,
-) : BitwardenCr {
-    override val base64Service: Base64Service
-        get() = delegate.base64Service
-
-    override fun decoder(key: BitwardenCrKey) =
+private fun cancellingDecodeBitwardenCr(
+    delegate: BitwardenCr,
+) = testBitwardenCr(
+    base64Service = delegate.base64Service,
+    decoder = { key ->
         if (key == BitwardenCrKey.UserToken) {
             { _: String -> throw CancellationException("cancel decrypt") }
         } else {
             delegate.decoder(key)
         }
-
-    override fun encoder(key: BitwardenCrKey) =
-        delegate.encoder(key)
-
-    override fun cta(
-        env: BitwardenCrCta.BitwardenCrCtaEnv,
-        mode: BitwardenCrCta.Mode,
-    ) = BitwardenCrCta(
-        crypto = this,
-        env = env,
-        mode = mode,
-    )
-}
+    },
+    encoder = delegate::encoder,
+)
 
 private class CipherUploadStore(
     initial: BitwardenCipher,

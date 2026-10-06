@@ -1,15 +1,12 @@
 package com.artemchep.keyguard.provider.bitwarden.entity.request
 
-import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
-import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
-import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCr
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrCta
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrKey
-import com.artemchep.keyguard.provider.bitwarden.crypto.DecodeResult
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
+import com.artemchep.keyguard.test.testBitwardenCr
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Instant
@@ -85,7 +82,7 @@ private fun createAttachment() = BitwardenCipher.Attachment.Local(
     ),
 )
 
-private fun createItemCrypto(): BitwardenCrCta = FakeBitwardenCr.cta(
+private fun createItemCrypto(): BitwardenCrCta = fakeBitwardenCr.cta(
     env = BitwardenCrCta.BitwardenCrCtaEnv(
         key = BitwardenCrKey.CryptoKey(
             symmetricCryptoKey = SymmetricCryptoKey2(
@@ -98,31 +95,10 @@ private fun createItemCrypto(): BitwardenCrCta = FakeBitwardenCr.cta(
 
 private val ATTACHMENT_TEST_INSTANT = Instant.parse("2024-01-01T00:00:00Z")
 
-private object AttachmentRequestIdentityBase64Service : Base64Service {
-    override fun encode(bytes: ByteArray): ByteArray = bytes
-
-    override fun decode(bytes: ByteArray): ByteArray = bytes
-}
-
-private object FakeBitwardenCr : BitwardenCr {
-    override val base64Service: Base64Service = AttachmentRequestIdentityBase64Service
-
-    override fun decoder(
-        key: BitwardenCrKey,
-    ): (String) -> DecodeResult = error("unused")
-
-    override fun encoder(
-        key: BitwardenCrKey,
-    ): (CipherEncryptor.Type, ByteArray) -> String = { type, data ->
-        "enc:${type.type}:${String(data)}"
-    }
-
-    override fun cta(
-        env: BitwardenCrCta.BitwardenCrCtaEnv,
-        mode: BitwardenCrCta.Mode,
-    ): BitwardenCrCta = BitwardenCrCta(
-        crypto = this,
-        env = env,
-        mode = mode,
-    )
-}
+private val fakeBitwardenCr = testBitwardenCr(
+    encoder = {
+        { type, data ->
+            "enc:${type.type}:${String(data)}"
+        }
+    },
+)

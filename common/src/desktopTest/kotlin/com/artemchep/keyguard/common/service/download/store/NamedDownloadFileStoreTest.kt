@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.download.store
 
 import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.service.download.writeBytes
+import com.artemchep.keyguard.test.withTempDirectory
 import com.artemchep.keyguard.util.io.atomic.AtomicDirectoryDestination
 import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
 import com.artemchep.keyguard.util.io.toLocalPath
@@ -17,7 +18,6 @@ import java.nio.file.attribute.AclEntryType.ALLOW
 import java.nio.file.attribute.AclFileAttributeView
 import java.nio.file.attribute.PosixFileAttributeView
 import java.nio.file.attribute.PosixFilePermission
-import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -93,11 +93,8 @@ class NamedDownloadFileStoreTest {
     }
 
     private fun withRoot(block: suspend (File) -> Unit) = runTest {
-        val root = createTempDirectory("named-download").toFile()
-        try {
-            block(root)
-        } finally {
-            root.deleteRecursively()
+        withTempDirectory("named-download") { root ->
+            block(root.toFile())
         }
     }
 

@@ -1,8 +1,7 @@
 package com.artemchep.keyguard.android.credentialexchange
 
 import com.artemchep.keyguard.common.service.credentialexchange.CredentialExchangeImportTransportResult
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import kotlinx.coroutines.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,7 +12,7 @@ class CredentialExchangeImportTransportAndroidTest {
     @Test
     fun `a missing transfer backend degrades to unavailable`() {
         val transport = CredentialExchangeImportTransportAndroid(
-            logRepository = NoopLogRepository(),
+            logRepository = LogRepositoryBridge(emptyList()),
         )
         val missingBackend = assertFailsWith<CredentialExchangeBackendUnavailableException> {
             callOptionalCredentialExchangeBackend {
@@ -34,7 +33,7 @@ class CredentialExchangeImportTransportAndroidTest {
     @Test
     fun `cancellation is rethrown rather than mapped to a failure`() {
         val transport = CredentialExchangeImportTransportAndroid(
-            logRepository = NoopLogRepository(),
+            logRepository = LogRepositoryBridge(emptyList()),
         )
 
         assertFailsWith<CancellationException> {
@@ -45,7 +44,7 @@ class CredentialExchangeImportTransportAndroidTest {
     @Test
     fun `fatal errors are rethrown rather than mapped to unavailable`() {
         val transport = CredentialExchangeImportTransportAndroid(
-            logRepository = NoopLogRepository(),
+            logRepository = LogRepositoryBridge(emptyList()),
         )
 
         assertFailsWith<AssertionError> {
@@ -56,7 +55,7 @@ class CredentialExchangeImportTransportAndroidTest {
     @Test
     fun `linkage errors outside the backend call are rethrown`() {
         val transport = CredentialExchangeImportTransportAndroid(
-            logRepository = NoopLogRepository(),
+            logRepository = LogRepositoryBridge(emptyList()),
         )
 
         assertFailsWith<NoClassDefFoundError> {
@@ -65,18 +64,4 @@ class CredentialExchangeImportTransportAndroidTest {
             )
         }
     }
-}
-
-private class NoopLogRepository : LogRepository {
-    override fun post(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) = Unit
-
-    override suspend fun add(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) = Unit
 }

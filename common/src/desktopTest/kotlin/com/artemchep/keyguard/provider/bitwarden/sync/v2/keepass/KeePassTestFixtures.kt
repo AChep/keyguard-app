@@ -10,7 +10,6 @@ import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.Meta
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
-import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
@@ -24,7 +23,6 @@ import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.ACCOUNT_ID
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestCryptoGenerator
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestLogRepository
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestPasswordStrength
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestUnusedFileService
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassCipherCodec
@@ -41,8 +39,6 @@ internal val testBase32Service: Base32Service = Base32ServiceJvm()
 internal val testBase64Service: Base64Service = Base64ServiceJvm()
 internal val testCryptoGenerator = UploadTestCryptoGenerator
 internal val testJson: Json = UploadTestServer.json
-
-internal object TestLogRepository : LogRepository by UploadTestLogRepository
 
 internal typealias TestVaultDatabaseManager = UploadTestVaultDatabaseManager
 

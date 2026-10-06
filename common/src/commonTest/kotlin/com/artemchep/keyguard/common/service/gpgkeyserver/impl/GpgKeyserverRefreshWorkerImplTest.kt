@@ -7,12 +7,14 @@ import com.artemchep.keyguard.common.model.RefreshGpgPublicKeysRequest
 import com.artemchep.keyguard.common.model.RefreshGpgPublicKeysResult
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverAutoRefresh
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverLastRefresh
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverRefreshInterval
 import com.artemchep.keyguard.common.usecase.RefreshGpgPublicKeys
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.test.RecordingLogRepository
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -145,7 +147,7 @@ class GpgKeyserverRefreshWorkerImplTest {
     @Test
     fun `failed refresh is logged and waits a full interval before retrying`() = runTest {
         var attempts = 0
-        val levels = mutableListOf<LogLevel>()
+        val logRepository = RecordingLogRepository()
         val worker = createWorker(
             autoRefresh = MutableStateFlow(true),
             interval = MutableStateFlow(interval),
@@ -158,17 +160,13 @@ class GpgKeyserverRefreshWorkerImplTest {
                 }
             },
             now = { Instant.fromEpochMilliseconds(testScheduler.currentTime) },
-            logRepository = object : LogRepository by NoOpLogRepository {
-                override fun post(tag: String, message: String, level: LogLevel) {
-                    levels += level
-                }
-            },
+            logRepository = logRepository,
         )
         worker.launch(backgroundScope)
 
         runCurrent()
         assertEquals(1, attempts)
-        assertEquals(listOf(LogLevel.WARNING), levels)
+        assertEquals(listOf(LogLevel.WARNING), logRepository.entries.map { it.level })
         advanceTimeBy(interval - 1.days)
         runCurrent()
         assertEquals(1, attempts)
@@ -184,7 +182,7 @@ class GpgKeyserverRefreshWorkerImplTest {
         ciphers: Flow<List<DSecret>>,
         refresh: RefreshGpgPublicKeys,
         now: () -> Instant,
-        logRepository: LogRepository = NoOpLogRepository,
+        logRepository: LogRepository = LogRepositoryBridge(emptyList()),
     ) = GpgKeyserverRefreshWorkerImpl(
         getGpgKeyserverAutoRefresh = object : GetGpgKeyserverAutoRefresh {
             override fun invoke(): Flow<Boolean> = autoRefresh
@@ -224,24 +222,10 @@ class GpgKeyserverRefreshWorkerImplTest {
         }
     }
 
-    private object NoOpLogRepository : LogRepository {
-        override fun post(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-
-        override suspend fun add(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-    }
-
     private fun gpgSecret(
         id: String,
         fingerprint: String = primaryFingerprint,
-    ): DSecret = createSecret(
+    ): DSecret = secret(
         id = id,
         type = DSecret.Type.GpgKey,
         gpgKey = DSecret.GpgKey(
@@ -254,33 +238,23 @@ class GpgKeyserverRefreshWorkerImplTest {
 
     private fun loginSecret(
         id: String,
-    ): DSecret = createSecret(
+    ): DSecret = secret(
         id = id,
         type = DSecret.Type.Login,
         gpgKey = null,
     )
 
-    private fun createSecret(
+    private fun secret(
         id: String,
         type: DSecret.Type,
         gpgKey: DSecret.GpgKey?,
-    ): DSecret = DSecret(
+    ): DSecret = createSecret(
         id = id,
+        name = "GPG key",
         accountId = "account",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
+        type = type,
         revisionDate = Instant.fromEpochSeconds(0),
         createdDate = null,
-        archivedDate = null,
-        deletedDate = null,
-        service = BitwardenService(),
-        name = "GPG key",
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
-        type = type,
         gpgKey = gpgKey,
     )
 

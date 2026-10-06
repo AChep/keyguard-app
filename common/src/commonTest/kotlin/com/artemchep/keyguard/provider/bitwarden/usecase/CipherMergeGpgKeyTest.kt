@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
+import com.artemchep.keyguard.test.createSecret
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -29,7 +29,7 @@ class CipherMergeGpgKeyTest {
         val inputs =
             listOf(firstKey, secondKey, thirdKey)
                 .mapIndexed { index, key ->
-                    createSecret(id = "gpg-$index").copy(gpgKey = key)
+                    createSecret(id = "gpg-$index", gpgKey = key)
                 }
 
         val merged = CipherMergeImpl()(inputs)

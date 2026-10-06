@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.backup
 
+import com.artemchep.keyguard.test.withTempDirectory
 import com.artemchep.keyguard.util.io.FileSystemFailure
 import com.artemchep.keyguard.util.io.FileSystemFailureKind
 import com.artemchep.keyguard.util.io.InternalKeyguardIoApi
@@ -156,8 +157,7 @@ class LocalFolderBackupObjectStoreTest {
     @Test
     fun `native write rejects a symbolic link below the selected backup root`() = runTest {
         if ("posix" !in FileSystems.getDefault().supportedFileAttributeViews()) return@runTest
-        val parent = createTempDirectory("backup-object-store-linked-parent")
-        try {
+        withTempDirectory("backup-object-store-linked-parent") { parent ->
             val root = Files.createDirectory(parent.resolve("root"))
             val outside = Files.createDirectory(parent.resolve("outside"))
             Files.createSymbolicLink(root.resolve("linked"), outside)
@@ -172,16 +172,13 @@ class LocalFolderBackupObjectStoreTest {
 
             assertEquals(FileSystemFailureKind.InvalidInput, error.failure.kind)
             assertFalse(Files.exists(outside.resolve("payload.bin")))
-        } finally {
-            parent.toFile().deleteRecursively()
         }
     }
 
     @OptIn(InternalKeyguardIoApi::class)
     @Test
     fun `native write remains successful when selected root is renamed after open`() = runTest {
-        val parent = createTempDirectory("backup-object-store-root-rename")
-        try {
+        withTempDirectory("backup-object-store-root-rename") { parent ->
             val root = Files.createDirectory(parent.resolve("root"))
             val renamed = parent.resolve("renamed")
             val store = LocalFolderBackupObjectStore(
@@ -205,8 +202,6 @@ class LocalFolderBackupObjectStoreTest {
             assertNotNull(info.atomicWriteReceipt)
             assertContentEquals(payload, Files.readAllBytes(renamed.resolve(key.value)))
             assertFalse(Files.exists(root))
-        } finally {
-            parent.toFile().deleteRecursively()
         }
     }
 

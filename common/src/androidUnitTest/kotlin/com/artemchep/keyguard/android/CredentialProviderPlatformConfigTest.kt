@@ -4,8 +4,7 @@ import android.os.Bundle
 import androidx.credentials.provider.BeginGetPasswordOption
 import androidx.credentials.provider.BeginGetPublicKeyCredentialOption
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
-import kotlin.time.Instant
+import com.artemchep.keyguard.test.TEST_INSTANT
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -300,30 +299,16 @@ class CredentialProviderPlatformConfigTest {
         password: String? = null,
         archived: Boolean = false,
         deleted: Boolean = false,
-    ) = DSecret(
+    ) = com.artemchep.keyguard.test.createSecret(
         id = id,
         accountId = accountId,
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = TEST_INSTANT,
-        createdDate = TEST_INSTANT,
-        archivedDate = TEST_INSTANT.takeIf { archived },
-        deletedDate = TEST_INSTANT.takeIf { deleted },
-        service = BitwardenService(),
-        name = id,
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
-        type = DSecret.Type.Login,
         login = DSecret.Login(
             username = username,
             password = password,
             fido2Credentials = credentialIds.map(::createCredential),
         ),
-        card = null,
-        identity = null,
+        archivedDate = TEST_INSTANT.takeIf { archived },
+        deletedDate = TEST_INSTANT.takeIf { deleted },
     )
 
     private fun createCredential(
@@ -343,8 +328,4 @@ class CredentialProviderPlatformConfigTest {
         discoverable = true,
         creationDate = TEST_INSTANT,
     )
-
-    private companion object {
-        private val TEST_INSTANT = Instant.parse("2024-01-01T00:00:00Z")
-    }
 }

@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountRegist
 import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountRepository
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
+import com.artemchep.keyguard.test.RecordingLogRepository
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

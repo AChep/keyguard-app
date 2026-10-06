@@ -5,8 +5,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.io.sharedSoftRef
 import com.artemchep.keyguard.common.model.FileResource
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.tld.impl.TldServiceImpl
 import com.artemchep.keyguard.res.Res
@@ -158,7 +157,7 @@ class TldServiceBenchmarkTest {
 
     private fun createService(textService: TextService) = TldServiceImpl(
         textService = textService,
-        logRepository = NoOpLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
     )
 
     private suspend fun TldServiceImpl.domainOf(host: String): String =
@@ -173,20 +172,6 @@ class TldServiceBenchmarkTest {
         }
 
         override fun readFromFile(uri: String): Source = error("Not used by this benchmark.")
-    }
-
-    private object NoOpLogRepository : LogRepository {
-        override fun post(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-
-        override suspend fun add(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
     }
 
     private companion object {

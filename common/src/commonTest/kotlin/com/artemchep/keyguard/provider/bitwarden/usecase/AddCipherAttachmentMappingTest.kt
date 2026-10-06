@@ -3,11 +3,11 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.create.CreateRequest
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
-import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.platform.leParseUri
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
+import com.artemchep.keyguard.test.IdentityBase64Service
+import com.artemchep.keyguard.test.TestCryptoGenerator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -67,13 +67,7 @@ class AddCipherAttachmentMappingTest {
     }
 }
 
-private object IdentityBase64Service : Base64Service {
-    override fun encode(bytes: ByteArray): ByteArray = bytes
-
-    override fun decode(bytes: ByteArray): ByteArray = bytes
-}
-
-private class FakeCryptoGenerator : CryptoGenerator {
+private class FakeCryptoGenerator : TestCryptoGenerator() {
     override fun hkdf(
         seed: ByteArray,
         salt: ByteArray?,

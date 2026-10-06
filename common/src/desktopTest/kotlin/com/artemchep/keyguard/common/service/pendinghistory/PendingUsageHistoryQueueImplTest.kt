@@ -7,8 +7,7 @@ import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.settings.impl.SettingsRepositoryImpl
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
@@ -61,7 +60,7 @@ class PendingUsageHistoryQueueImplTest {
         settingsRepository = settingsRepository,
         json = json,
         dispatcher = Dispatchers.Unconfined,
-        logRepository = NoopLogRepository,
+        logRepository = LogRepositoryBridge(emptyList()),
     )
 
     private suspend fun provisionPublicKey() {
@@ -175,23 +174,5 @@ class PendingUsageHistoryQueueImplTest {
         override fun changePassword(
             newMasterKey: MasterKey,
         ): IO<Unit> = {}
-    }
-
-    private object NoopLogRepository : LogRepository {
-        override fun post(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) {
-            // Intentionally empty.
-        }
-
-        override suspend fun add(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) {
-            // Intentionally empty.
-        }
     }
 }

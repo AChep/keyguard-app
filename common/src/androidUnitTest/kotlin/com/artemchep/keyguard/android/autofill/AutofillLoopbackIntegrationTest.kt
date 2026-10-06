@@ -22,10 +22,10 @@ import com.artemchep.keyguard.common.usecase.GetUrlBlocks
 import com.artemchep.keyguard.common.usecase.impl.GetSuggestionsImpl
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.of
-import com.artemchep.keyguard.feature.home.vault.search.createSecret
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.autofill
 import com.artemchep.keyguard.provider.bitwarden.usecase.autofill1
+import com.artemchep.keyguard.test.createSecret
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test

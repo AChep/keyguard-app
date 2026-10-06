@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountParams
+import com.artemchep.keyguard.test.withTempDirectory
 import kotlinx.coroutines.test.runTest
 import java.nio.file.Files
 import kotlin.random.Random
@@ -21,8 +22,7 @@ class KeePassDatabaseWindowsSpillTest {
 
     @Test
     fun largeDatabaseSpillsPublishesAndReopens() = runTest {
-        val directory = Files.createTempDirectory("keyguard-keepass-windows-spill-test-")
-        try {
+        withTempDirectory("keyguard-keepass-windows-spill-test-") { directory ->
             val databasePath = directory.resolve("vault.kdbx")
             val databaseUri = databasePath.toUri().toString()
             prepareKeePassDatabase(
@@ -80,8 +80,6 @@ class KeePassDatabaseWindowsSpillTest {
             val reopenedAttachment = reopened.binaries[attachment.hash]
             assertNotNull(reopenedAttachment)
             assertContentEquals(attachmentBytes, reopenedAttachment.getContent())
-        } finally {
-            directory.toFile().deleteRecursively()
         }
     }
 

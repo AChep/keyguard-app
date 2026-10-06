@@ -5,8 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.model.Argon2Mode
-import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundScheduler
@@ -308,7 +306,7 @@ class DownloadManagerImplTest {
                 }
             },
             // Reuse the ID deliberately, to exercise stale writer/cleanup protection.
-            cryptoGenerator = SharedDownloadManagerCryptoGenerator("download-1", "download-1"),
+            cryptoGenerator = FixedUuidCryptoGenerator("download-1", "download-1"),
         )
         manager.queue(downloadQueueRequest())
         started.await()
@@ -478,7 +476,7 @@ class DownloadManagerImplTest {
             repository = repository,
             fileStore = store,
             scope = backgroundScope,
-            cryptoGenerator = SharedDownloadManagerCryptoGenerator("download-2"),
+            cryptoGenerator = FixedUuidCryptoGenerator("download-2"),
         )
         val removal = async { manager.removeByDownloadId("download-1") }
         deleting.await()
@@ -551,7 +549,7 @@ class DownloadManagerImplTest {
             fileStore = store,
             scope = backgroundScope,
             task = FakeDownloadTask { replacementDownload.flow },
-            cryptoGenerator = SharedDownloadManagerCryptoGenerator("download-2"),
+            cryptoGenerator = FixedUuidCryptoGenerator("download-2"),
         )
         val removal = async { manager.removeByTag(downloadTag()) }
         deleting.await()
@@ -653,7 +651,7 @@ class DownloadManagerImplTest {
         },
         sourceLoader: DownloadAttachmentSourceLoader = task.asSourceLoader(),
         scope: CoroutineScope,
-        cryptoGenerator: CryptoGenerator = SharedDownloadManagerCryptoGenerator("download-1"),
+        cryptoGenerator: CryptoGenerator = FixedUuidCryptoGenerator("download-1"),
     ) = DownloadManagerImpl(
         windowCoroutineScope = TestWindowCoroutineScope(scope),
         downloadRepository = repository,
@@ -763,59 +761,6 @@ private class FakeDownloadTask(
         urlRequests += Request(key = key, writer = writer)
         return flowFactory(writer)
     }
-}
-
-private class SharedDownloadManagerCryptoGenerator(
-    private vararg val uuids: String,
-) : CryptoGenerator {
-    private var uuidIndex = 0
-
-    override fun uuid(): String =
-        uuids.getOrElse(uuidIndex++) { "download-$uuidIndex" }
-
-    override fun hkdf(
-        seed: ByteArray,
-        salt: ByteArray?,
-        info: ByteArray?,
-        length: Int,
-    ): ByteArray = unsupported()
-
-    override fun pbkdf2(
-        seed: ByteArray,
-        salt: ByteArray,
-        iterations: Int,
-        length: Int,
-    ): ByteArray = unsupported()
-
-    override fun argon2(
-        mode: Argon2Mode,
-        seed: ByteArray,
-        salt: ByteArray,
-        iterations: Int,
-        memoryKb: Int,
-        parallelism: Int,
-    ): ByteArray = unsupported()
-
-    override fun seed(length: Int): ByteArray = unsupported()
-
-    override fun hmac(
-        key: ByteArray,
-        data: ByteArray,
-        algorithm: CryptoHashAlgorithm,
-    ): ByteArray = unsupported()
-
-    override fun hashSha1(data: ByteArray): ByteArray = unsupported()
-
-    override fun hashSha256(data: ByteArray): ByteArray = unsupported()
-
-    override fun hashMd5(data: ByteArray): ByteArray = unsupported()
-
-    override fun random(): Int = unsupported()
-
-    override fun random(range: IntRange): Int = unsupported()
-
-    private fun unsupported(): Nothing =
-        error("Only uuid generation is expected in this test.")
 }
 
 private class GatedDownload {

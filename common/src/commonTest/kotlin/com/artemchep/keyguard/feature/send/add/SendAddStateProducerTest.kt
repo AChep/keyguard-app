@@ -2,12 +2,12 @@ package com.artemchep.keyguard.feature.send.add
 
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.create.CreateSendRequest
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.auth.common.TextCell
 import com.artemchep.keyguard.feature.auth.common.TextFieldHandle
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.fileupload.BITWARDEN_FILE_UPLOAD_MAX_BYTES
 import com.artemchep.keyguard.platform.leParseUri
+import com.artemchep.keyguard.test.createSend
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -273,25 +273,8 @@ class SendAddStateProducerTest {
 
 private val TEST_INSTANT = Instant.parse("2024-01-01T00:00:00Z")
 
-private fun createExistingFileSend() = DSend(
-    id = "send-1",
-    accountId = "account-1",
-    accessId = "access-1",
-    keyBase64 = "send-key",
-    revisionDate = TEST_INSTANT,
-    createdDate = TEST_INSTANT,
-    deletedDate = null,
-    expirationDate = null,
-    service = BitwardenService(),
-    authType = DSend.AuthType.None,
+private fun createExistingFileSend() = createSend(
     name = "Quarterly report",
-    notes = "",
-    accessCount = 0,
-    hasPassword = false,
-    synced = true,
-    disabled = false,
-    hideEmail = false,
-    emails = emptyList(),
     type = DSend.Type.File,
     text = null,
     file = DSend.File(

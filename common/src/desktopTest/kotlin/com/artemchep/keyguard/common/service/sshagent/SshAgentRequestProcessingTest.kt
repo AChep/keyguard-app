@@ -20,8 +20,6 @@ import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
 import com.artemchep.keyguard.common.service.agent.finishAfterBlockedAgentRead
 import com.artemchep.keyguard.common.service.agent.finishAfterBlockedApprovalCacheAccess
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.pendinghistory.RecordingPendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
@@ -32,6 +30,8 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.test.RecordingLogRepository
+import com.artemchep.keyguard.test.createSecret
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.util.Base64
@@ -68,25 +68,8 @@ import kotlinx.coroutines.test.runTest
 @OptIn(TestOnlyUnverifiedAgentIpcApi::class, ExperimentalCoroutinesApi::class)
 class SshAgentRequestProcessingTest {
     private val authToken = ByteArray(32) { it.toByte() }
-    private val loggedMessages = mutableListOf<String>()
 
-    private val logRepository = object : LogRepository {
-        override fun post(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) {
-            loggedMessages += message
-        }
-
-        override suspend fun add(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) {
-            loggedMessages += message
-        }
-    }
+    private val logRepository = RecordingLogRepository()
 
     /** A locked vault — `valueOrNull` returns null. */
     private val lockedVaultSession = object : GetVaultSession {
@@ -746,8 +729,8 @@ class SshAgentRequestProcessingTest {
         assertNull(response.signData)
         assertEquals(0, unlockPromptCount)
         assertEquals(1, approvalPromptCount)
-        assertTrue("User denied the signing request" in loggedMessages)
-        assertTrue(loggedMessages.none { it.contains("Signer") })
+        assertTrue("User denied the signing request" in logRepository.messages)
+        assertTrue(logRepository.messages.none { it.contains("Signer") })
     }
 
     @Test
@@ -2023,23 +2006,12 @@ class SshAgentRequestProcessingTest {
         fingerprint: String,
         privateKey: String = "private-key-placeholder",
         deletedDate: Instant? = null,
-    ): DSecret = DSecret(
+    ): DSecret = createSecret(
         id = name.lowercase().replace(' ', '-'),
-        accountId = "account",
-        folderId = null,
-        organizationId = null,
-        collectionIds = emptySet(),
-        revisionDate = Instant.parse("2024-01-01T00:00:00Z"),
-        createdDate = Instant.parse("2024-01-01T00:00:00Z"),
-        archivedDate = null,
-        deletedDate = deletedDate,
-        service = com.artemchep.keyguard.core.store.bitwarden.BitwardenService(),
         name = name,
-        notes = "",
-        favorite = false,
-        reprompt = false,
-        synced = true,
+        accountId = "account",
         type = DSecret.Type.SshKey,
+        deletedDate = deletedDate,
         sshKey = DSecret.SshKey(
             privateKey = privateKey,
             publicKey = publicKey,

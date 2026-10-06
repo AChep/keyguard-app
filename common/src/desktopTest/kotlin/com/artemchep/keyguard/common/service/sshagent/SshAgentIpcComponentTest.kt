@@ -7,8 +7,7 @@ import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
 import com.artemchep.keyguard.common.service.agent.cleanupAgentIpcEndpoint
 import com.artemchep.keyguard.common.service.agent.createAgentIpcEndpoint
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -49,15 +48,7 @@ class SshAgentIpcComponentTest {
     private val protoBuf = ProtoBuf
     private val authToken = ByteArray(32) { it.toByte() }
 
-    private val logRepository = object : LogRepository {
-        override suspend fun add(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) {
-            // Do nothing
-        }
-    }
+    private val logRepository = LogRepositoryBridge(emptyList())
 
     private val lockedVaultSession = object : GetVaultSession {
         override val valueOrNull: MasterSession? = null

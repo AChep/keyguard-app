@@ -6,14 +6,13 @@ import androidx.datastore.preferences.core.mutablePreferencesOf
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.platform.LocalPath
+import com.artemchep.keyguard.test.withTempDirectory
 import com.artemchep.keyguard.util.io.toLocalPath
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -21,8 +20,8 @@ class DataStoreKeyValueStoreTest {
     @Test
     fun `corruption wipe does not restore a stale backing store`() =
         runTest {
-            val directory = createTempDirectory("datastore-migration-test").toFile()
-            try {
+            withTempDirectory("datastore-migration-test") { dir ->
+                val directory = dir.toFile()
                 val dataStoreFile =
                     directory
                         .resolve("settings.preferences_pb")
@@ -86,28 +85,12 @@ class DataStoreKeyValueStoreTest {
                             emptyDataStore
                         },
                         logTag = "settings",
-                        logRepository = NoOpLogRepository,
+                        logRepository = LogRepositoryBridge(emptyList()),
                         backingStore = backingStore,
                     )
 
                 assertEquals(42, store.getInt("value", 42).first())
                 assertEquals(0, backingReads)
-            } finally {
-                directory.deleteRecursively()
             }
         }
-
-    private object NoOpLogRepository : LogRepository {
-        override fun post(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-
-        override suspend fun add(
-            tag: String,
-            message: String,
-            level: LogLevel,
-        ) = Unit
-    }
 }

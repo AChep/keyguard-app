@@ -12,6 +12,12 @@
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> випадків</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> випадків</item>
     </plurals>
+    <plurals name="reused_password_items_count_plural">
+        <item quantity="one">Використовується в <xliff:g id="number" example="1">%1$d</xliff:g> записі</item>
+        <item quantity="few">Використовується в <xliff:g id="number">%1$d</xliff:g> записах</item>
+        <item quantity="many">Використовується в <xliff:g id="number">%1$d</xliff:g> записах</item>
+        <item quantity="other">Використовується в <xliff:g id="number">%1$d</xliff:g> записах</item>
+    </plurals>
     <plurals name="word_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> слово</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> слова</item>
@@ -211,9 +217,34 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> років</item>
     </plurals>
     <plurals name="gpg_keyserver_upload_verify_requested_plural">
-        <item quantity="one">Verification e-mail requested for <xliff:g id="number" example="1">%1$s</xliff:g> address</item>
-        <item quantity="few">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
-        <item quantity="many">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
-        <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+        <item quantity="one">Запитано підтвердження електронною поштою для <xliff:g id="number" example="1">%1$s</xliff:g> адреси</item>
+        <item quantity="few">Запитано підтвердження електронною поштою для <xliff:g id="number">%1$s</xliff:g> адрес</item>
+        <item quantity="many">Запитано підтвердження електронною поштою для <xliff:g id="number">%1$s</xliff:g> адрес</item>
+        <item quantity="other">Запитано підтвердження електронною поштою для <xliff:g id="number">%1$s</xliff:g> адреси</item>
+    </plurals>
+    <!-- Automatic backups -->
+    <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
+        <item quantity="one">Зберігати %1$d знімок</item>
+        <item quantity="few">Зберігати %1$d знімки</item>
+        <item quantity="many">Зберігати %1$d знімків</item>
+        <item quantity="other">Зберігати %1$d знімків</item>
+    </plurals>
+    <plurals name="pref_item_hibp_api_token_error_plural">
+        <item quantity="one">Введіть шістнадцятковий API-токен HIBP довжиною <xliff:g id="length" example="1">%1$d</xliff:g> символ</item>
+        <item quantity="few">Введіть шістнадцятковий API-токен HIBP довжиною <xliff:g id="length" example="32">%1$d</xliff:g> символи</item>
+        <item quantity="many">Введіть шістнадцятковий API-токен HIBP довжиною <xliff:g id="length" example="32">%1$d</xliff:g> символів</item>
+        <item quantity="other">Введіть шістнадцятковий API-токен HIBP довжиною <xliff:g id="length" example="32">%1$d</xliff:g> символу</item>
+    </plurals>
+    <plurals name="ciphers_action_trash_confirmation_text_plural">
+        <item quantity="one">Записи, що перебувають у кошику понад <xliff:g id="days" example="1">%1$d</xliff:g> день, буде автоматично видалено.</item>
+        <item quantity="few">Записи, що перебувають у кошику понад <xliff:g id="days" example="30">%1$d</xliff:g> дні, буде автоматично видалено.</item>
+        <item quantity="many">Записи, що перебувають у кошику понад <xliff:g id="days" example="30">%1$d</xliff:g> днів, буде автоматично видалено.</item>
+        <item quantity="other">Записи, що перебувають у кошику понад <xliff:g id="days" example="30">%1$d</xliff:g> дня, буде автоматично видалено.</item>
+    </plurals>
+    <plurals name="agent_approval_expires_in_seconds_plural">
+        <item quantity="one">Термін дії спливе за <xliff:g id="seconds" example="1">%1$d</xliff:g> секунду</item>
+        <item quantity="few">Термін дії спливе за <xliff:g id="seconds" example="30">%1$d</xliff:g> секунди</item>
+        <item quantity="many">Термін дії спливе за <xliff:g id="seconds" example="30">%1$d</xliff:g> секунд</item>
+        <item quantity="other">Термін дії спливе за <xliff:g id="seconds" example="30">%1$d</xliff:g> секунди</item>
     </plurals>
 </resources>

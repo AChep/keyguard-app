@@ -9,7 +9,7 @@ import org.gradle.api.tasks.testing.Test
 plugins {
     id("keyguard.quality")
     id("keyguard.kotlin-multiplatform")
-    id("keyguard.rust-multiplatform-library")
+    id("keyguard.rust-desktop-library")
 }
 
 kotlin {

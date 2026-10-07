@@ -59,8 +59,6 @@ final class GpgToolsModel {
 
     @ObservationIgnored private var gpgToolsExportTasks: [String: Task<Void, Never>] = [:]
 
-    @ObservationIgnored private var gpgToolsPresentedExports: Set<String> = []
-
     @ObservationIgnored private var gpgToolsExportPreparationID: UUID?
 
     @ObservationIgnored private var gpgToolsPublicKeyValidationID = UUID()
@@ -126,11 +124,8 @@ final class GpgToolsModel {
     private func resetGpgToolsNativeState() {
         for request in Array(gpgToolsImportRequests.values) { cancelGpgToolsImport(request.id) }
         for task in gpgToolsExportTasks.values { task.cancel() }
-        releaseUnpresentedGpgToolsExports()
-        // Presented iOS exporters retain their lease until their picker completion
-        // or dismissal callback. Mac tasks release only after the IO worker returns.
+        releaseGpgToolsExportPresentations()
         pendingGpgToolsFilePicker = nil
-        pendingGpgToolsExport = nil
         if let request = pendingGpgToolsPublicKey {
             source.finishGpgToolsPublicKey(id: request.id, confirm: false)
         }
@@ -432,7 +427,8 @@ final class GpgToolsModel {
                 }
                 let pending = PendingGpgToolsExport(
                     id: export.id, artifactURL: url, name: export.name,
-                    observationId: observationId, resultId: result.id
+                    observationId: observationId, resultId: result.id,
+                    lease: GpgToolsExportLease { source.finishGpgToolsExport(id: export.id) }
                 )
                 self.gpgToolsExportRequests[pending.id] = pending
                 #if os(macOS)
@@ -442,9 +438,9 @@ final class GpgToolsModel {
                         let saved = try await GpgToolsFileSupport.exportFile(
                             pending.artifactURL, suggestedName: pending.name, excluding: originals
                         )
-                        self.completeGpgToolsExport(id: pending.id, result: .success(saved))
+                        self.completeGpgToolsExport(pending, result: .success(saved))
                     } catch {
-                        self.completeGpgToolsExport(id: pending.id, result: .failure(error))
+                        self.completeGpgToolsExport(pending, result: .failure(error))
                     }
                 }
                 #else
@@ -455,12 +451,12 @@ final class GpgToolsModel {
         }
     }
 
-    func completeGpgToolsExport(id: String, result: Result<Bool, Error>) {
-        guard let request = gpgToolsExportRequests.removeValue(forKey: id) else { return }
+    func completeGpgToolsExport(_ request: PendingGpgToolsExport, result: Result<Bool, Error>) {
+        request.lease.release()
+        let id = request.id
+        guard gpgToolsExportRequests.removeValue(forKey: id) != nil else { return }
         gpgToolsExportTasks[id] = nil
-        gpgToolsPresentedExports.remove(id)
         if pendingGpgToolsExport?.id == id { pendingGpgToolsExport = nil }
-        source.finishGpgToolsExport(id: id)
         if request.observationId == gpgToolsObservationId, gpgToolsResult?.id == request.resultId {
             switch result {
             case .success(let saved): gpgToolsExportSucceeded = saved
@@ -473,31 +469,17 @@ final class GpgToolsModel {
         refreshGpgToolsNativeBusy()
     }
 
-    func cancelGpgToolsExport(id: String) {
-        if let task = gpgToolsExportTasks[id] {
-            task.cancel()
-        } else {
-            completeGpgToolsExport(id: id, result: .success(false))
-        }
-    }
-
-    func gpgToolsExportDidPresent(id: String) {
-        guard gpgToolsExportRequests[id] != nil else { return }
-        gpgToolsPresentedExports.insert(id)
-    }
-
-    private func releaseUnpresentedGpgToolsExports() {
-        for id in Array(gpgToolsExportRequests.keys)
-        where gpgToolsExportTasks[id] == nil && !gpgToolsPresentedExports.contains(id) {
-            completeGpgToolsExport(id: id, result: .success(false))
-        }
+    private func releaseGpgToolsExportPresentations() {
+        // SwiftUI's callbacks and Transferable retain the request while an iOS
+        // export is active. Mac tasks retain it until coordinated IO returns.
+        gpgToolsExportRequests = gpgToolsExportRequests.filter { gpgToolsExportTasks[$0.key] != nil }
+        pendingGpgToolsExport = nil
     }
 
     func dismissGpgToolsResult() {
         gpgToolsExportPreparationID = nil
         for task in gpgToolsExportTasks.values { task.cancel() }
-        releaseUnpresentedGpgToolsExports()
-        pendingGpgToolsExport = nil
+        releaseGpgToolsExportPresentations()
         source.dismissGpgToolsResult()
         gpgToolsResult = nil
         gpgToolsError = nil

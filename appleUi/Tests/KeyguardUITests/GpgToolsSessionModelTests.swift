@@ -105,6 +105,144 @@ final class GpgToolsSessionModelTests: XCTestCase {
         XCTAssertEqual(source.cancellations, 1)
     }
 
+    #if os(iOS)
+    @MainActor
+    func testPickedFileStagesBeforeResolvingAndIgnoresDismissalCancellation() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let original = directory.appendingPathComponent("input.txt")
+        let destination = directory.appendingPathComponent("staged.txt")
+        let bytes = Data("GPG picker regression\n".utf8)
+        try bytes.write(to: original)
+        let source = GpgToolsSourceProbe()
+        let model = GpgToolsModel(source: source)
+        model.startGpgToolsObservation(operation: "encrypt")
+        source.files[0](GpgToolsFilePickerRequest(id: "input", destinationUri: destination.absoluteString))
+        try await settle()
+        model.completeGpgToolsFilePicker(id: "input", result: .success(original))
+        model.cancelGpgToolsFilePicker(id: "input")
+        for _ in 0..<100 where source.resolvedFiles.isEmpty { try await settle() }
+        XCTAssertEqual(source.resolvedFiles, ["input"])
+        XCTAssertEqual(source.resolvedFileDetails.first?.name, "input.txt")
+        XCTAssertEqual(source.resolvedFileDetails.first?.size, Int64(bytes.count))
+        XCTAssertEqual(try Data(contentsOf: destination), bytes)
+        XCTAssertFalse(model.gpgToolsNativeBusy)
+        XCTAssertNil(model.gpgToolsError)
+        model.close()
+    }
+
+    @MainActor
+    func testCancelledInputIgnoresLateSelection() async throws {
+        let source = GpgToolsSourceProbe()
+        let model = GpgToolsModel(source: source)
+        model.startGpgToolsObservation(operation: "encrypt")
+        source.files[0](GpgToolsFilePickerRequest(id: "input", destinationUri: "file:///tmp/unused"))
+        try await settle()
+        model.cancelGpgToolsFilePicker(id: "input")
+        model.completeGpgToolsFilePicker(id: "input", result: .success(URL(fileURLWithPath: "/tmp/late")))
+        XCTAssertEqual(source.resolvedFiles, ["input"])
+        XCTAssertNil(source.resolvedFileDetails.first?.name)
+        XCTAssertFalse(model.gpgToolsNativeBusy)
+        model.close()
+    }
+
+    @MainActor
+    func testExportCancellationFailureAndRetryReleaseEachLeaseOnce() async throws {
+        let source = GpgToolsSourceProbe()
+        let model = GpgToolsModel(source: source)
+        model.startGpgToolsObservation(operation: "sign")
+        source.results[0](result("result"))
+        try await settle()
+        model.invokeGpgToolsResultSave()
+        source.exports[0](GpgToolsExportSnapshot(id: "cancelled", uri: "file:///tmp/unused", name: "output.asc"))
+        try await settle()
+        let cancelled = try XCTUnwrap(model.pendingGpgToolsExport)
+        model.completeGpgToolsExport(cancelled, result: .success(false))
+        try await settle()
+        XCTAssertFalse(model.gpgToolsExportSucceeded)
+        XCTAssertFalse(model.gpgToolsNativeBusy)
+        XCTAssertNil(model.gpgToolsError)
+        model.invokeGpgToolsResultSave()
+        source.exports[1](GpgToolsExportSnapshot(id: "failed", uri: "file:///tmp/unused", name: "output.asc"))
+        try await settle()
+        let failed = try XCTUnwrap(model.pendingGpgToolsExport)
+        model.completeGpgToolsExport(failed, result: .failure(CocoaError(.fileWriteNoPermission)))
+        XCTAssertNotNil(model.gpgToolsError)
+        XCTAssertFalse(model.gpgToolsNativeBusy)
+        model.invokeGpgToolsResultSave()
+        source.exports[2](GpgToolsExportSnapshot(id: "saved", uri: "file:///tmp/unused", name: "output.asc"))
+        try await settle()
+        let saved = try XCTUnwrap(model.pendingGpgToolsExport)
+        model.completeGpgToolsExport(saved, result: .success(true))
+        model.completeGpgToolsExport(saved, result: .success(false))
+        await Task.detached { saved.lease.release() }.value
+        try await settle()
+        XCTAssertEqual(source.finishedExports, ["cancelled", "failed", "saved"])
+        XCTAssertTrue(model.gpgToolsExportSucceeded)
+        XCTAssertFalse(model.gpgToolsNativeBusy)
+        XCTAssertNil(model.gpgToolsError)
+        model.close()
+    }
+
+    @MainActor
+    func testActiveExportSurvivesWorkspaceCloseAndRejectsStaleCompletion() async throws {
+        let source = GpgToolsSourceProbe()
+        let model = GpgToolsModel(source: source)
+        model.startGpgToolsObservation(operation: "sign")
+        source.results[0](result("result"))
+        try await settle()
+        model.invokeGpgToolsResultSave()
+        source.exports[0](GpgToolsExportSnapshot(id: "lease", uri: "file:///tmp/unused", name: "output.asc"))
+        try await settle()
+        let nativeRequest = try XCTUnwrap(model.pendingGpgToolsExport)
+        model.close()
+        try await settle()
+        XCTAssertTrue(source.finishedExports.isEmpty)
+        model.completeGpgToolsExport(nativeRequest, result: .success(true))
+        try await settle()
+        XCTAssertEqual(source.finishedExports, ["lease"])
+        XCTAssertFalse(model.gpgToolsExportSucceeded)
+        XCTAssertNil(model.gpgToolsResult)
+    }
+
+    @MainActor
+    func testAbandonedNativeExportReleasesOnLastReference() async throws {
+        let source = GpgToolsSourceProbe()
+        let model = GpgToolsModel(source: source)
+        model.startGpgToolsObservation(operation: "sign")
+        source.results[0](result("result"))
+        try await settle()
+        model.invokeGpgToolsResultSave()
+        source.exports[0](GpgToolsExportSnapshot(id: "lease", uri: "file:///tmp/unused", name: "output.asc"))
+        try await settle()
+        var nativeFile = model.pendingGpgToolsExport.map { GpgToolsExportFile(request: $0) }
+        XCTAssertEqual(nativeFile?.suggestedFilename, "output.asc")
+        model.close()
+        try await settle()
+        XCTAssertEqual(nativeFile?.request.id, "lease")
+        XCTAssertTrue(source.finishedExports.isEmpty)
+        nativeFile = nil
+        try await settle()
+        XCTAssertEqual(source.finishedExports, ["lease"])
+    }
+
+    @MainActor
+    func testUnpresentedExportReleasesOnClose() async throws {
+        let source = GpgToolsSourceProbe()
+        let model = GpgToolsModel(source: source)
+        model.startGpgToolsObservation(operation: "sign")
+        source.results[0](result("result"))
+        try await settle()
+        model.invokeGpgToolsResultSave()
+        source.exports[0](GpgToolsExportSnapshot(id: "lease", uri: "file:///tmp/unused", name: "output.asc"))
+        try await settle()
+        model.close()
+        try await settle()
+        XCTAssertEqual(source.finishedExports, ["lease"])
+    }
+    #endif
+
     private func snapshot(_ text: String) -> GpgToolsSnapshot {
         GpgToolsSnapshot(
             loaded: true, operation: "encrypt", scope: "text", scopes: [], signMode: "cleartext", signModes: [],

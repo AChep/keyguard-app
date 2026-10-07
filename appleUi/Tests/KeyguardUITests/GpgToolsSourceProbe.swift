@@ -12,6 +12,7 @@ final class GpgToolsSourceProbe: GpgToolsSource {
     var operations: [String] = []
     var actions: [String] = []
     var resolvedFiles: [String] = []
+    var resolvedFileDetails: [(name: String?, size: Int64)] = []
     var finishedKeys: [String] = []
     var finishedExports: [String] = []
     var cancellations = 0
@@ -35,7 +36,10 @@ final class GpgToolsSourceProbe: GpgToolsSource {
 
     func stopGpgTools() { stops += 1 }
     func close() { closes += 1 }
-    func resolveGpgToolsFilePicker(id: String, name: String?, size: Int64) { resolvedFiles.append(id) }
+    func resolveGpgToolsFilePicker(id: String, name: String?, size: Int64) {
+        resolvedFiles.append(id)
+        resolvedFileDetails.append((name, size))
+    }
     func addGpgToolsPublicKey() { actions.append("addGpgToolsPublicKey") }
     func removeGpgToolsPublicKey(id: String) { actions.append("removeGpgToolsPublicKey") }
     func validateGpgToolsPublicKey(

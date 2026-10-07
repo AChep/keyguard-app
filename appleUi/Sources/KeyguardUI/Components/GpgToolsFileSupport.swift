@@ -1,10 +1,6 @@
 import Foundation
-import SwiftUI
-import UniformTypeIdentifiers
 #if os(macOS)
 import AppKit
-#else
-import UIKit
 #endif
 
 struct GpgToolsImportedFile: Sendable {
@@ -208,93 +204,3 @@ enum GpgToolsFileSupport {
         return byteCount
     }
 }
-
-#if os(iOS)
-struct GpgToolsInputPicker: UIViewControllerRepresentable {
-    let onCompletion: (Result<URL?, Error>) -> Void
-
-    func makeCoordinator() -> Coordinator { Coordinator(onCompletion: onCompletion) }
-
-    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.item], asCopy: false)
-        picker.allowsMultipleSelection = false
-        picker.delegate = context.coordinator
-        picker.presentationController?.delegate = context.coordinator
-        return picker
-    }
-
-    func updateUIViewController(_ controller: UIDocumentPickerViewController, context: Context) {
-        controller.presentationController?.delegate = context.coordinator
-    }
-
-    final class Coordinator: NSObject, UIDocumentPickerDelegate, UIAdaptivePresentationControllerDelegate {
-        private var onCompletion: ((Result<URL?, Error>) -> Void)?
-
-        init(onCompletion: @escaping (Result<URL?, Error>) -> Void) { self.onCompletion = onCompletion }
-
-        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-            guard let url = urls.first else {
-                finish(.failure(GpgToolsFileError.missingSelection))
-                return
-            }
-            finish(.success(url))
-        }
-
-        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) { finish(.success(nil)) }
-        func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
-            finish(.success(nil))
-        }
-
-        private func finish(_ result: Result<URL?, Error>) {
-            let callback = onCompletion
-            onCompletion = nil
-            callback?(result)
-        }
-    }
-}
-
-/// The source must already contain the completed output and remain alive until
-/// completion or cancellation. The picker exports a copy, never the owned file.
-struct GpgToolsExportPicker: UIViewControllerRepresentable {
-    let artifactURL: URL
-    let onCompletion: (Result<Bool, Error>) -> Void
-
-    func makeCoordinator() -> Coordinator { Coordinator(onCompletion: onCompletion) }
-
-    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-        let picker = UIDocumentPickerViewController(forExporting: [artifactURL], asCopy: true)
-        picker.delegate = context.coordinator
-        picker.presentationController?.delegate = context.coordinator
-        return picker
-    }
-
-    func updateUIViewController(_ controller: UIDocumentPickerViewController, context: Context) {
-        controller.presentationController?.delegate = context.coordinator
-    }
-
-    final class Coordinator: NSObject, UIDocumentPickerDelegate, UIAdaptivePresentationControllerDelegate {
-        private var onCompletion: ((Result<Bool, Error>) -> Void)?
-
-        init(onCompletion: @escaping (Result<Bool, Error>) -> Void) { self.onCompletion = onCompletion }
-
-        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-            if urls.isEmpty {
-                finish(.failure(GpgToolsFileError.missingSelection))
-            } else {
-                finish(.success(true))
-            }
-        }
-
-        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) { finish(.success(false)) }
-        func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
-            finish(.success(false))
-        }
-
-        private func finish(_ result: Result<Bool, Error>) {
-            let callback = onCompletion
-            onCompletion = nil
-            callback?(result)
-        }
-    }
-}
-#endif

@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import KeyguardShared
 
 struct GpgToolsView: View {
@@ -71,6 +72,9 @@ struct GpgToolsView: View {
     }
 
     var body: some View {
+        #if os(iOS)
+        let filePickerRequest = gpgToolsModel.pendingGpgToolsFilePicker
+        #endif
         NavStackContainer(scope: "gpg_tools") {
             platformContent
                 .navigationTitle(L10n.gpgToolsHeaderTitle)
@@ -107,21 +111,26 @@ struct GpgToolsView: View {
                 .onDisappear { gpgToolsModel.finishGpgToolsPublicKey(id: request.id, confirm: false) }
         }
         #if os(iOS)
-        .sheet(
-            item: Binding(
-                get: { gpgToolsModel.pendingGpgToolsFilePicker },
-                set: { value in
-                    if value == nil, let request = gpgToolsModel.pendingGpgToolsFilePicker {
-                        gpgToolsModel.cancelGpgToolsFilePicker(id: request.id)
-                    }
-                }
-            )
-        ) { request in
-            GpgToolsInputPicker { result in
-                gpgToolsModel.completeGpgToolsFilePicker(id: request.id, result: result)
+        // SwiftUI resets presentation before returning the URL. Only these
+        // callbacks may consume the request, including interactive cancellation.
+        .fileImporter(
+            isPresented: Binding(get: { filePickerRequest != nil }, set: { _ in }),
+            allowedContentTypes: [.item],
+            allowsMultipleSelection: false,
+            onCompletion: { result in
+                guard let request = filePickerRequest else { return }
+                gpgToolsModel.completeGpgToolsFilePicker(
+                    id: request.id,
+                    result: result.flatMap { urls in
+                        guard let url = urls.first else { return .failure(GpgToolsFileError.missingSelection) }
+                        return .success(url)
+                    })
+            },
+            onCancellation: {
+                guard let request = filePickerRequest else { return }
+                gpgToolsModel.cancelGpgToolsFilePicker(id: request.id)
             }
-            .onDisappear { gpgToolsModel.cancelGpgToolsFilePicker(id: request.id) }
-        }
+        )
         #endif
         .sheet(
             isPresented: Binding(
@@ -315,6 +324,7 @@ struct GpgToolsView: View {
                 }
             }
         }
+        .buttonStyle(.borderless)
     }
 
     private func editor(label: String, text: String, revision: Int32, send: @escaping (String) -> Void) -> some View {
@@ -798,6 +808,9 @@ private struct GpgToolsResultSheet: View {
     }
 
     var body: some View {
+        #if os(iOS)
+        let exportRequest = gpgToolsModel.pendingGpgToolsExport
+        #endif
         ModalSheet(title: result.title, width: 640, height: 560) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
@@ -864,22 +877,21 @@ private struct GpgToolsResultSheet: View {
         }
         .interactiveDismissDisabled(gpgToolsModel.gpgToolsNativeBusy)
         #if os(iOS)
-        .sheet(
-            item: Binding(
-                get: { gpgToolsModel.pendingGpgToolsExport },
-                set: { value in
-                    if value == nil, let request = gpgToolsModel.pendingGpgToolsExport {
-                        gpgToolsModel.cancelGpgToolsExport(id: request.id)
-                    }
-                }
-            )
-        ) { request in
-            GpgToolsExportPicker(artifactURL: request.artifactURL) { result in
-                gpgToolsModel.completeGpgToolsExport(id: request.id, result: result)
+        // The presentation binding is reset before success/cancellation arrives.
+        // Keep the captured request (and its artifact lease) until that callback.
+        .fileExporter(
+            isPresented: Binding(get: { exportRequest != nil }, set: { _ in }),
+            item: exportRequest.map { GpgToolsExportFile(request: $0) },
+            defaultFilename: exportRequest?.name,
+            onCompletion: { outcome in
+                guard let request = exportRequest else { return }
+                gpgToolsModel.completeGpgToolsExport(request, result: outcome.map { _ in true })
+            },
+            onCancellation: {
+                guard let request = exportRequest else { return }
+                gpgToolsModel.completeGpgToolsExport(request, result: .success(false))
             }
-            .onAppear { gpgToolsModel.gpgToolsExportDidPresent(id: request.id) }
-            .onDisappear { gpgToolsModel.cancelGpgToolsExport(id: request.id) }
-        }
+        )
         #endif
     }
 }

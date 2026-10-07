@@ -14,17 +14,17 @@ import com.artemchep.keyguard.util.s3.isValidS3EndpointUrl
 import com.artemchep.keyguard.util.s3.isValidS3ObjectKey
 
 /** Each error belongs to exactly one form field. */
-enum class S3FormError {
-    EndpointInvalid,
-    BucketRequired,
-    BucketInvalid,
-    PrefixInvalid,
-    KeyRequired,
-    KeyInvalid,
-    KeyExtensionRequired,
-    AccessKeyIdRequired,
-    AccessKeyIdInvalid,
-    SecretAccessKeyRequired,
+enum class S3FormError(val field: String) {
+    EndpointInvalid("endpoint"),
+    BucketRequired("bucket"),
+    BucketInvalid("bucket"),
+    PrefixInvalid("key"),
+    KeyRequired("key"),
+    KeyInvalid("key"),
+    KeyExtensionRequired("key"),
+    AccessKeyIdRequired("accessKeyId"),
+    AccessKeyIdInvalid("accessKeyId"),
+    SecretAccessKeyRequired("secretAccessKey"),
 }
 
 data class S3FormInput(
@@ -45,28 +45,43 @@ data class S3FormInput(
 fun validateS3Connection(
     input: S3FormInput,
     hasSavedSecret: Boolean = false,
-): S3FormError? {
+): S3FormError? = s3ConnectionErrors(input, hasSavedSecret).firstOrNull()
+
+internal fun s3ConnectionErrors(
+    input: S3FormInput,
+    hasSavedSecret: Boolean = false,
+): List<S3FormError> {
     val endpoint = input.endpoint.trim()
     val bucket = input.bucket.trim()
-    return when {
-        endpoint.isNotEmpty() && !isValidS3EndpointUrl(endpoint) -> S3FormError.EndpointInvalid
-        bucket.isEmpty() -> S3FormError.BucketRequired
-        !isValidS3BucketName(bucket, pathStyle = input.pathStyle) -> S3FormError.BucketInvalid
-        input.accessKeyId.isBlank() -> S3FormError.AccessKeyIdRequired
-        !isValidS3AccessKeyId(input.accessKeyId.trim()) -> S3FormError.AccessKeyIdInvalid
-        input.secretAccessKey.isEmpty() && !hasSavedSecret -> S3FormError.SecretAccessKeyRequired
-        else -> null
-    }
+    return listOfNotNull(
+        S3FormError.EndpointInvalid.takeIf { endpoint.isNotEmpty() && !isValidS3EndpointUrl(endpoint) },
+        when {
+            bucket.isEmpty() -> S3FormError.BucketRequired
+            !isValidS3BucketName(bucket, pathStyle = input.pathStyle) -> S3FormError.BucketInvalid
+            else -> null
+        },
+        when {
+            input.accessKeyId.isBlank() -> S3FormError.AccessKeyIdRequired
+            !isValidS3AccessKeyId(input.accessKeyId.trim()) -> S3FormError.AccessKeyIdInvalid
+            else -> null
+        },
+        S3FormError.SecretAccessKeyRequired.takeIf { input.secretAccessKey.isEmpty() && !hasSavedSecret },
+    )
 }
 
 fun validateS3Form(
     input: S3FormInput,
     purpose: S3SettingsRoute.Purpose,
     hasSavedSecret: Boolean = false,
-): S3FormError? {
-    validateS3Connection(input, hasSavedSecret)?.let { return it }
+): S3FormError? = s3FormErrors(input, purpose, hasSavedSecret).firstOrNull()
+
+internal fun s3FormErrors(
+    input: S3FormInput,
+    purpose: S3SettingsRoute.Purpose,
+    hasSavedSecret: Boolean = false,
+): List<S3FormError> {
     val path = normalizeS3FormPath(input.path, purpose)
-    return when (purpose) {
+    val pathError = when (purpose) {
         S3SettingsRoute.Purpose.Prefix -> S3FormError.PrefixInvalid
             .takeUnless { isValidS3Prefix(path) }
 
@@ -77,6 +92,7 @@ fun validateS3Form(
             else -> null
         }
     }
+    return s3ConnectionErrors(input, hasSavedSecret) + listOfNotNull(pathError)
 }
 
 /** Normalizes the path field: a `/`-terminated prefix, or an object key without a leading slash. */

@@ -2299,6 +2299,7 @@
     <string name="s3_settings_region_title">Region</string>
     <string name="s3_settings_bucket_title">Bucket</string>
     <string name="s3_settings_prefix_title">Folder prefix</string>
+    <string name="s3_settings_keepass_requirements">Bucket, object key, access key ID, and secret access key are required. The object key must end in .kdbx.</string>
     <string name="s3_settings_key_title">Object key</string>
     <string name="s3_settings_access_key_id_title">Access key ID</string>
     <string name="s3_settings_secret_access_key_title">Secret access key</string>

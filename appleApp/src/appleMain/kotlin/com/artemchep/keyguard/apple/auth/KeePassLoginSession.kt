@@ -437,6 +437,9 @@ class KeePassLoginSession internal constructor(
             pathStyle = state.pathStyle.value,
             errorKind = state.error?.name,
             isTestingConnection = state.isTestingConnection,
+            fieldErrors = state.validation.errors.map { S3SettingsFieldErrorSnapshot(it.field, it.name) },
+            validationRequest = state.validation.request,
+            validationField = state.validation.focusField,
         )
     }
 
@@ -444,18 +447,28 @@ class KeePassLoginSession internal constructor(
         s3.withActions(sessionId, block)
 
     fun setS3Field(sessionId: String, id: String, text: String) = withS3(sessionId) { state ->
-        when (id) {
-            "endpoint" -> state.endpoint.value = text
-            "region" -> state.region.value = text
-            "bucket" -> state.bucket.value = text
-            "key" -> state.path.value = text
-            "accessKeyId" -> state.accessKeyId.value = text
-            "secretAccessKey" -> state.secretAccessKey.value = text
+        val field = when (id) {
+            "endpoint" -> state.endpoint
+            "region" -> state.region
+            "bucket" -> state.bucket
+            "key" -> state.path
+            "accessKeyId" -> state.accessKeyId
+            "secretAccessKey" -> state.secretAccessKey
+            else -> return@withS3
+        }
+        if (field.value != text) {
+            field.value = text
+            state.onFieldEdited(id)
         }
     }
 
+    fun blurS3Field(sessionId: String, id: String) = withS3(sessionId) { it.onFieldBlurred(id) }
+
     fun setS3PathStyle(sessionId: String, value: Boolean) = withS3(sessionId) { state ->
-        state.pathStyle.value = value
+        if (state.pathStyle.value != value) {
+            state.pathStyle.value = value
+            state.onFieldEdited("bucket")
+        }
     }
 
     fun submitS3Settings(sessionId: String) = withS3(sessionId) { it.onSave() }

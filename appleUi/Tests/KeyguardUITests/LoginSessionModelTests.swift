@@ -238,7 +238,8 @@ final class LoginSessionModelTests: XCTestCase {
     private func s3(_ id: String) -> S3SettingsSnapshot {
         S3SettingsSnapshot(
             id: id, endpoint: "", region: "", bucket: "vaults", key: "\(id).kdbx", accessKeyId: "AKID",
-            secretAccessKey: "draft", pathStyle: true, errorKind: nil, isTestingConnection: false)
+            secretAccessKey: "draft", pathStyle: true, errorKind: nil, isTestingConnection: false,
+            fieldErrors: [], validationRequest: 0, validationField: nil)
     }
 
     @MainActor
@@ -291,7 +292,7 @@ private final class BitwardenSourceProbe: BitwardenLoginSource {
 }
 
 @MainActor
-private final class KeePassSourceProbe: KeePassLoginSource {
+final class KeePassSourceProbe: KeePassLoginSource {
     var publishWebDav: (WebDavSettingsSnapshot?) -> Void = { _ in }
     var publishS3: (S3SettingsSnapshot?) -> Void = { _ in }
     var cancelledS3 = 0
@@ -324,6 +325,7 @@ private final class KeePassSourceProbe: KeePassLoginSource {
     func testWebDavConnection(sessionId: String) {}
     func cancelWebDavSettings() {}
     func setS3Field(sessionId: String, id: String, text: String) {}
+    func blurS3Field(sessionId: String, id: String) {}
     func setS3PathStyle(sessionId: String, value: Bool) {}
     func submitS3Settings(sessionId: String) {}
     func testS3Connection(sessionId: String) {}

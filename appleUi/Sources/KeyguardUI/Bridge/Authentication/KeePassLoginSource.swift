@@ -22,6 +22,7 @@ protocol KeePassLoginSource: AnyObject {
     func testWebDavConnection(sessionId: String)
     func cancelWebDavSettings()
     func setS3Field(sessionId: String, id: String, text: String)
+    func blurS3Field(sessionId: String, id: String)
     func setS3PathStyle(sessionId: String, value: Bool)
     func submitS3Settings(sessionId: String)
     func testS3Connection(sessionId: String)

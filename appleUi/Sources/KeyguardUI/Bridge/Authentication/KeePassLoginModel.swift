@@ -149,6 +149,10 @@ final class KeePassLoginModel: SnapshotObserving {
         source.setS3Field(sessionId: sessionId, id: id, text: text)
     }
 
+    func blurS3Field(sessionId: String, id: String) {
+        source.blurS3Field(sessionId: sessionId, id: id)
+    }
+
     func setS3PathStyle(sessionId: String, value: Bool) {
         source.setS3PathStyle(sessionId: sessionId, value: value)
     }

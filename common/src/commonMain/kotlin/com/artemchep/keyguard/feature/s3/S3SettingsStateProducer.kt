@@ -72,7 +72,7 @@ suspend fun RememberStateFlowScope.s3SettingsStateProducer(
     checkS3Connection: CheckS3Connection,
 ): Flow<S3SettingsState> {
     val testExecutor = screenExecutor()
-    val errorSink = MutableStateFlow<S3FormError?>(null)
+    val validationSink = MutableStateFlow(S3FormValidation())
     val endpointState = mutableStateOf(route.args.endpoint)
     val regionState = mutableStateOf(route.args.region)
     val bucketState = mutableStateOf(route.args.bucket)
@@ -93,9 +93,9 @@ suspend fun RememberStateFlowScope.s3SettingsStateProducer(
 
     fun buildLocationOrReportError(): S3Location? {
         val input = input()
-        val error = validateS3Form(input, route.args.purpose)
-        errorSink.value = error
-        return if (error == null) buildS3Location(input, route.args.purpose) else null
+        val errors = s3FormErrors(input, route.args.purpose)
+        validationSink.value = validationSink.value.submit(errors)
+        return if (errors.isEmpty()) buildS3Location(input, route.args.purpose) else null
     }
 
     fun onSave() {
@@ -125,9 +125,9 @@ suspend fun RememberStateFlowScope.s3SettingsStateProducer(
 
     fun onBrowse() {
         val input = input()
-        val error = validateS3Connection(input)
-        errorSink.value = error
-        if (error != null) {
+        val errors = s3ConnectionErrors(input)
+        validationSink.value = validationSink.value.submit(errors)
+        if (errors.isNotEmpty()) {
             return
         }
         val pickerRoute = registerRouteResultReceiver(
@@ -140,7 +140,7 @@ suspend fun RememberStateFlowScope.s3SettingsStateProducer(
             ),
         ) { pickerResult ->
             pathState.value = pickerResult.key
-            errorSink.value = null
+            validationSink.value = S3FormValidation(request = validationSink.value.request)
         }
         navigate(
             NavigationIntent.NavigateToRoute(pickerRoute),
@@ -148,9 +148,9 @@ suspend fun RememberStateFlowScope.s3SettingsStateProducer(
     }
 
     return combine(
-        errorSink,
+        validationSink,
         testExecutor.isExecutingFlow,
-    ) { error, isTestingConnection ->
+    ) { validation, isTestingConnection ->
         S3SettingsState(
             endpoint = endpointState,
             region = regionState,
@@ -159,11 +159,18 @@ suspend fun RememberStateFlowScope.s3SettingsStateProducer(
             accessKeyId = accessKeyIdState,
             secretAccessKey = secretAccessKeyState,
             pathStyle = pathStyleState,
-            error = error,
+            error = validation.errors.firstOrNull(),
             isTestingConnection = isTestingConnection,
             onBrowse = ::onBrowse,
             onSave = ::onSave,
             onTestConnection = ::onTestConnection,
+            validation = validation,
+            onFieldEdited = { field ->
+                validationSink.value = validationSink.value.edit(field, s3FormErrors(input(), route.args.purpose))
+            },
+            onFieldBlurred = { field ->
+                validationSink.value = validationSink.value.blur(field, s3FormErrors(input(), route.args.purpose))
+            },
         )
     }
 }

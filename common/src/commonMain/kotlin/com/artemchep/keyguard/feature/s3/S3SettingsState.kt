@@ -15,4 +15,7 @@ data class S3SettingsState(
     val onBrowse: () -> Unit,
     val onSave: () -> Unit,
     val onTestConnection: () -> Unit,
+    val validation: S3FormValidation = S3FormValidation(),
+    val onFieldEdited: (String) -> Unit = {},
+    val onFieldBlurred: (String) -> Unit = {},
 )

@@ -96,4 +96,12 @@ data class S3SettingsSnapshot(
     val pathStyle: Boolean,
     val errorKind: String?,
     val isTestingConnection: Boolean,
+    val fieldErrors: List<S3SettingsFieldErrorSnapshot>,
+    val validationRequest: Int,
+    val validationField: String?,
+)
+
+data class S3SettingsFieldErrorSnapshot(
+    val id: String,
+    val kind: String,
 )

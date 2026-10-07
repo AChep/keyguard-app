@@ -415,11 +415,6 @@ struct SettingsSidebar: View {
         } else {
             label
                 .tag(SettingsView.accountTag(account.id))
-                #if os(iOS)
-            .onLongPressGesture {
-                toggle(account)
-            }
-                #endif
                 .contextMenu {
                     if account.toggleActionId != nil {
                         Button {

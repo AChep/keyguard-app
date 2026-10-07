@@ -73,6 +73,7 @@ import coil3.compose.SubcomposeAsyncImageContent
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.AttachmentPreviewLimits
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.feature.attachmentpreview.minimap.AttachmentPreviewCodeMinimap
 import com.artemchep.keyguard.feature.attachmentpreview.minimap.AttachmentPreviewMinimapMaxRowPitch
@@ -81,6 +82,7 @@ import com.artemchep.keyguard.feature.attachmentpreview.minimap.AttachmentPrevie
 import com.artemchep.keyguard.feature.attachmentpreview.minimap.AttachmentPreviewMinimapVisibleMinWidth
 import com.artemchep.keyguard.feature.attachmentpreview.minimap.attachmentPreviewMinimapPanelHeightPx
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountBin
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
@@ -700,7 +702,10 @@ fun AttachmentPreviewError.message(): String = when (this) {
         stringResource(Res.string.attachment_preview_error_unsupported_platform)
 
     AttachmentPreviewError.TooLarge ->
-        stringResource(Res.string.attachment_preview_error_too_large)
+        stringResource(
+            Res.string.attachment_preview_error_size_limit,
+            humanReadableByteCountBin(AttachmentPreviewLimits.MAX_ENCRYPTED_BYTES),
+        )
 
     AttachmentPreviewError.Network ->
         stringResource(Res.string.attachment_preview_error_network)

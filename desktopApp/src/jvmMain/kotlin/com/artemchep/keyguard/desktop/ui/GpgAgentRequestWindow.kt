@@ -11,8 +11,9 @@ import com.artemchep.keyguard.feature.gpgagent.GpgAgentApprovalContent
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.gpg_agent
+import com.artemchep.keyguard.res.agent_title
 import com.artemchep.keyguard.res.gpg_client_request
+import com.artemchep.keyguard.res.protocol_gpg
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -24,7 +25,7 @@ internal fun ApplicationScope.GpgRequestWindow(
     AgentRequestWindow(
         processLifecycleProvider = processLifecycleProvider,
         requestUiState = gpgAgentRequestUiState,
-        title = stringResource(Res.string.gpg_agent),
+        title = stringResource(Res.string.agent_title, stringResource(Res.string.protocol_gpg)),
         authReason = TextHolder.Res(Res.string.gpg_client_request),
         focusTag = "GpgRequestWindow",
         requestContent = { request, onHandled ->

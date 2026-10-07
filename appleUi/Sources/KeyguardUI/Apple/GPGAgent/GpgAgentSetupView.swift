@@ -13,7 +13,9 @@ struct GpgAgentSetupView: View {
                 Text(L10n.gpgAgentSetupStep1Text)
 
                 step(L10n.gpgAgentSetupStep2Title)
-                Text(L10n.gpgAgentSetupMacosStep2Text)
+                if let gpgHome = model.gpgAgentStatus.gpgHome {
+                    Text(L10n.gpgAgentSetupMacosStep2Text(gpgHome))
+                }
                 if let command = model.gpgAgentStatus.setupCommand, model.gpgAgentStatus.running {
                     GpgAgentCommandBlock(text: command)
                 } else {

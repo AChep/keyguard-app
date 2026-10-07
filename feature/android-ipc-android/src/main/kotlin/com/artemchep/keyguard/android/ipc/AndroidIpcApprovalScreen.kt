@@ -45,8 +45,7 @@ import com.artemchep.keyguard.res.ipc_approval_deny
 import com.artemchep.keyguard.res.ipc_approval_message
 import com.artemchep.keyguard.res.ipc_approval_no_keys
 import com.artemchep.keyguard.res.ipc_approval_no_keys_continue
-import com.artemchep.keyguard.res.ipc_approval_operation
-import com.artemchep.keyguard.res.ipc_approval_operation_with_registration
+import com.artemchep.keyguard.res.ipc_approval_registration_note
 import com.artemchep.keyguard.res.ipc_approval_title
 import com.artemchep.keyguard.res.ipc_approval_unavailable
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
@@ -165,22 +164,6 @@ private fun AndroidIpcApprovalActions(
 private fun AndroidIpcApprovalHeader(
     state: AndroidIpcApprovalState.Ready,
 ) {
-    val operationClause = stringResource(
-        Res.string.ipc_approval_operation,
-        stringResource(state.protocolLabel),
-        stringResource(state.operation),
-    )
-    // The registration wraps the whole clause, so that it reads as
-    // 'register with Keyguard and use GPG to ...' instead of
-    // 'use GPG to register with Keyguard and ...'.
-    val requestClause = if (state.registerApp) {
-        stringResource(
-            Res.string.ipc_approval_operation_with_registration,
-            operationClause,
-        )
-    } else {
-        operationClause
-    }
     // The app label and the package name come from the package manager,
     // so they are controlled by the calling app and must not be able to
     // rearrange the prompt.
@@ -198,7 +181,8 @@ private fun AndroidIpcApprovalHeader(
             appLabel to SpanStyle(
                 fontWeight = FontWeight.Bold,
             ),
-            requestClause to SpanStyle(),
+            stringResource(state.protocolLabel) to SpanStyle(),
+            stringResource(state.operation) to SpanStyle(),
         ),
     )
     Spacer(Modifier.height(4.dp))
@@ -212,6 +196,17 @@ private fun AndroidIpcApprovalHeader(
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
     )
+    if (state.registerApp) {
+        Spacer(Modifier.height(8.dp))
+        Text(
+            modifier = Modifier
+                .padding(horizontal = Dimens.textHorizontalPadding),
+            text = stringResource(Res.string.ipc_approval_registration_note),
+            style = MaterialTheme.typography.labelSmall,
+            color = LocalContentColor.current
+                .combineAlpha(MediumEmphasisAlpha),
+        )
+    }
 }
 
 @Composable

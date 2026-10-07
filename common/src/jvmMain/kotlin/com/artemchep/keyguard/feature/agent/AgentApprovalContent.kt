@@ -76,6 +76,8 @@ import org.koin.compose.koinInject
  * Renders the content for an agent (SSH/GPG) signing approval window.
  *
  * @param request The pending approval request.
+ * @param protocol The protocol name, such as SSH or GPG, passed to the
+ *   [title] and message resources.
  * @param title The title resource shown at the top of the dialog.
  * @param messageKnownApp The message resource used when the caller app is known.
  * @param messageUnknownApp The message resource used when the caller app is unknown.
@@ -93,6 +95,7 @@ import org.koin.compose.koinInject
 @Composable
 fun AgentApprovalContent(
     request: AgentRequest,
+    protocol: StringResource,
     title: StringResource,
     messageKnownApp: StringResource,
     messageUnknownApp: StringResource,
@@ -114,6 +117,7 @@ fun AgentApprovalContent(
         focusRequester.requestFocus()
     }
 
+    val protocolName = stringResource(protocol)
     val applicationPresentation = rememberAgentApplicationPresentation(request.caller)
     val callerInfo = remember(
         request.caller,
@@ -152,7 +156,7 @@ fun AgentApprovalContent(
         },
         title = {
             Text(
-                text = stringResource(title),
+                text = stringResource(title, protocolName),
             )
         },
         content = {
@@ -167,9 +171,13 @@ fun AgentApprovalContent(
                             who to SpanStyle(
                                 fontWeight = FontWeight.Bold,
                             ),
+                            protocolName to SpanStyle(),
                         )
                     } else {
-                        annotatedResource(messageUnknownApp)
+                        annotatedResource(
+                            messageUnknownApp,
+                            protocolName to SpanStyle(),
+                        )
                     },
                 )
                 callerInfo?.secondaryLabel?.let { details ->

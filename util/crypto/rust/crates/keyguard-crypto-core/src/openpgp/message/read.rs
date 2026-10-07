@@ -22,7 +22,7 @@
 //! stay outside this dependency path.
 
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     io::{self, Cursor, Read},
     sync::{
         atomic::{AtomicUsize, Ordering},
@@ -69,8 +69,8 @@ use crate::openpgp::{
         PublicComponent, RenewalAuthorization, RevocationStatus, SignatureIssuerMetadata,
         ValidatedCertificate, all_components, can_certify, can_encrypt, can_sign,
         certificate_components, certificate_index, component_expiration, data_signature_acceptable,
-        is_legacy_weak_hash, key_signature_verification_acceptable, reference_time,
-        revocation_key_id, signature_creation_time, signature_expired,
+        is_legacy_weak_hash, key_signature_verification_acceptable, legacy_hash_display_name,
+        reference_time, revocation_key_id, signature_creation_time, signature_expired,
         trusted_authority_certifies_identity, validate_certificate,
         validate_certificate_with_policy_time,
     },
@@ -2114,6 +2114,12 @@ fn public_key_info(
                 created_at_epoch_seconds: Some(u64::from(subkey.key.created_at().as_secs())),
                 expires_at_epoch_seconds: component_expiration(subkey),
                 authenticated: subkey.authenticated,
+                weak_self_signature_algorithms: weak_self_signature_algorithms(
+                    subkey
+                        .verified_templates
+                        .iter()
+                        .map(|template| template.template_signature()),
+                ),
             }
         })
         .collect::<Vec<_>>();
@@ -2168,7 +2174,23 @@ fn public_key_info(
         // primary a renewal repairs, `None` is the primary a renewal cannot
         // touch. Reading only `authenticated` cannot tell the two apart.
         renewal: renewal_capability(policy.authorize_primary_renewal()),
+        weak_self_signature_algorithms: weak_self_signature_algorithms(
+            policy
+                .primary_renewal_templates()
+                .map(|template| template.template_signature()),
+        ),
     })
+}
+
+fn weak_self_signature_algorithms<'a>(
+    signatures: impl Iterator<Item = &'a Signature>,
+) -> Vec<String> {
+    signatures
+        .filter_map(|signature| legacy_hash_display_name(signature.config()?.hash_alg))
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .map(str::to_owned)
+        .collect()
 }
 
 fn armor_public_key_packets(packets: &[u8], include_checksum: bool) -> Option<String> {

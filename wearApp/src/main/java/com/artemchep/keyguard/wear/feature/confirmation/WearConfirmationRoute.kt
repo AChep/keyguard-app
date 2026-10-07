@@ -45,7 +45,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.cancel
 import com.artemchep.keyguard.res.learn_more
 import com.artemchep.keyguard.res.ok
-import com.artemchep.keyguard.res.pref_item_ssh_agent_status_unsupported
+import com.artemchep.keyguard.res.pref_item_agent_status_unsupported
 import com.artemchep.keyguard.res.select_file
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -426,7 +426,7 @@ private fun WearConfirmationFileItem(
                 Text(
                     text = item.value?.name ?: stringResource(Res.string.select_file),
                 )
-                WearListLabel(text = stringResource(Res.string.pref_item_ssh_agent_status_unsupported))
+                WearListLabel(text = stringResource(Res.string.pref_item_agent_status_unsupported))
             }
         },
         trailing = {

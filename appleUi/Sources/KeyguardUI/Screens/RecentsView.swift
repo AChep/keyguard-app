@@ -111,7 +111,7 @@ struct RecentsView: View {
 
     private var lockedState: some View {
         ContentUnavailableView {
-            Label(L10n.sshAgentHistoryResponseVaultLocked, systemImage: "lock.fill")
+            Label(L10n.agentHistoryResponseVaultLocked, systemImage: "lock.fill")
         } description: {
             Text(L10n.vaultRecentsLockedText)
         }

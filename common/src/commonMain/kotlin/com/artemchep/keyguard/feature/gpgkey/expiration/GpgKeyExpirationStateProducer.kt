@@ -7,6 +7,7 @@ import com.artemchep.keyguard.feature.datedaypicker.DateDayPickerRoute
 import com.artemchep.keyguard.feature.datedaypicker.createDateDayPickerDialogIntent
 import com.artemchep.keyguard.feature.gpgkey.GpgKeyExpiryPreset
 import com.artemchep.keyguard.feature.gpgkey.titleResource
+import com.artemchep.keyguard.feature.gpgkey.translateGpgSubKeyWeakSelfSignature
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
@@ -111,7 +112,7 @@ internal suspend fun RememberStateFlowScope.gpgKeyExpirationStateProducer(
             val hint = if (subKey.authenticated) {
                 ""
             } else {
-                "\n" + translate(Res.string.gpg_key_expiry_subkey_weak_self_signature)
+                "\n" + translateGpgSubKeyWeakSelfSignature(subKey.weakSelfSignatureAlgorithms)
             }
             put(
                 subKey.fingerprint,

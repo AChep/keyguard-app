@@ -539,7 +539,10 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance) {
                             .title
                         val msg = ToastMessage(
                             type = ToastMessage.Type.ERROR,
-                            title = translatorScope.translate(Res.string.error_failed_ssh_agent_start),
+                            title = translatorScope.translate(
+                                Res.string.error_failed_agent_start,
+                                translatorScope.translate(Res.string.protocol_ssh),
+                            ),
                             text = text,
                         )
                         showMessage.copy(msg)
@@ -630,7 +633,10 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance) {
                             .title
                         val msg = ToastMessage(
                             type = ToastMessage.Type.ERROR,
-                            title = translatorScope.translate(Res.string.error_failed_gpg_agent_start),
+                            title = translatorScope.translate(
+                                Res.string.error_failed_agent_start,
+                                translatorScope.translate(Res.string.protocol_gpg),
+                            ),
                             text = text,
                         )
                         showMessage.copy(msg)

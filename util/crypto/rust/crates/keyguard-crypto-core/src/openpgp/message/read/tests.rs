@@ -6638,6 +6638,8 @@ fn parse_result_reports_weak_hash_subkeys_as_renewable_but_unauthenticated() {
     let key = &parsed.keys[0];
     assert!(key.authenticated);
 
+    assert!(key.weak_self_signature_algorithms.is_empty());
+
     let strong = key
         .subkeys
         .iter()
@@ -6645,6 +6647,7 @@ fn parse_result_reports_weak_hash_subkeys_as_renewable_but_unauthenticated() {
         .expect("strong subkey stays reported");
     assert!(strong.authenticated);
     assert!(strong.can_sign);
+    assert!(strong.weak_self_signature_algorithms.is_empty());
 
     let weak = key
         .subkeys
@@ -6655,6 +6658,7 @@ fn parse_result_reports_weak_hash_subkeys_as_renewable_but_unauthenticated() {
     assert!(!weak.can_sign);
     assert!(!weak.can_encrypt);
     assert!(!weak.revoked);
+    assert_eq!(weak.weak_self_signature_algorithms, ["SHA-1"]);
 
     // A subkey with no verified binding at all is still hidden.
     let mut orphaned = healthy;
@@ -6669,6 +6673,51 @@ fn parse_result_reports_weak_hash_subkeys_as_renewable_but_unauthenticated() {
             .iter()
             .any(|subkey| subkey.fingerprint == weak_fingerprint)
     );
+}
+
+#[test]
+fn parse_result_reports_distinct_weak_self_signature_digests() {
+    let (secret, healthy) = renewal_test_certificate("Weak Digests <weak-digests@example.test>");
+    let identity = &healthy.details.users[0].id;
+
+    for (hashes, expected) in [
+        (vec![HashAlgorithm::Sha1], vec!["SHA-1"]),
+        (vec![HashAlgorithm::Ripemd160], vec!["RIPEMD-160"]),
+        (
+            vec![
+                HashAlgorithm::Sha1,
+                HashAlgorithm::Ripemd160,
+                HashAlgorithm::Sha1,
+            ],
+            vec!["RIPEMD-160", "SHA-1"],
+        ),
+    ] {
+        let mut certificate = healthy.clone();
+        certificate.details.users[0].signatures = hashes
+            .iter()
+            .map(|hash| renewal_test_identity_certification(&secret, identity, *hash))
+            .collect();
+        certificate.public_subkeys[1].signatures = hashes
+            .iter()
+            .map(|hash| renewal_test_subkey_binding(&secret, 1, *hash))
+            .collect();
+        let parsed = match parse_result(&serialized_public_certificate(&certificate)).result {
+            Some(open_pgp_public_key_parse_result::Result::Success(success)) => success,
+            other => panic!("expected a successful parse, got {other:?}"),
+        };
+        let primary = &parsed.keys[0];
+        assert!(!primary.authenticated);
+        assert_eq!(primary.weak_self_signature_algorithms, expected);
+        let subkey = primary
+            .subkeys
+            .iter()
+            .find(|subkey| {
+                subkey.fingerprint == fingerprint_hex(&certificate.public_subkeys[1].key)
+            })
+            .expect("weak subkey remains available for renewal");
+        assert!(!subkey.authenticated);
+        assert_eq!(subkey.weak_self_signature_algorithms, expected);
+    }
 }
 
 #[test]
@@ -6689,6 +6738,7 @@ fn parse_result_reports_the_primary_renewal_tier_for_each_certificate_state() {
 
     let healthy_key = parsed_primary(&healthy);
     assert!(healthy_key.authenticated);
+    assert!(healthy_key.weak_self_signature_algorithms.is_empty());
     assert_eq!(
         healthy_key.renewal,
         OpenPgpRenewalAuthorization::Authenticated as i32,
@@ -6704,6 +6754,7 @@ fn parse_result_reports_the_primary_renewal_tier_for_each_certificate_state() {
     )];
     let weak_key = parsed_primary(&weak);
     assert!(!weak_key.authenticated);
+    assert_eq!(weak_key.weak_self_signature_algorithms, ["SHA-1"]);
     assert_eq!(
         weak_key.renewal,
         OpenPgpRenewalAuthorization::TemplateOnly as i32,
@@ -6740,6 +6791,7 @@ fn parse_result_reports_the_primary_renewal_tier_for_each_certificate_state() {
         other => panic!("expected a successful orphaned parse, got {other:?}"),
     };
     assert!(!orphaned_key.authenticated);
+    assert!(orphaned_key.weak_self_signature_algorithms.is_empty());
     assert!(orphaned_key.user_ids.is_empty());
     assert_eq!(
         decode_openpgp_packets(orphaned_key.public_key_armored.as_bytes())

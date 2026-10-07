@@ -88,7 +88,7 @@ private fun SettingSshAgentDisplayKeyNames(
         icon = Icons.Stub,
         title = {
             Text(
-                text = stringResource(Res.string.pref_item_ssh_agent_display_key_names_title),
+                text = stringResource(Res.string.pref_item_agent_display_key_names_title),
             )
         },
         text = {
@@ -101,7 +101,7 @@ private fun SettingSshAgentDisplayKeyNames(
                     color = LocalContentColor.current
                         .combineAlpha(MediumEmphasisAlpha),
                     style = MaterialTheme.typography.bodySmall,
-                    text = stringResource(Res.string.pref_item_ssh_agent_display_key_names_note),
+                    text = stringResource(Res.string.pref_item_agent_display_key_names_note),
                 )
             }
         },

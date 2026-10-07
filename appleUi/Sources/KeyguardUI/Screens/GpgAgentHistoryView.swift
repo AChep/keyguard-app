@@ -14,7 +14,7 @@ struct GpgAgentHistoryView: View {
             HStack {
                 if let subtitle = snapshot.subtitle { Text(subtitle).foregroundStyle(.secondary) }
                 Spacer()
-                Button(L10n.gpgAgentHistoryClearHistoryTitle, role: .destructive) { confirmingClear = true }
+                Button(L10n.agentHistoryClearHistoryTitle, role: .destructive) { confirmingClear = true }
                     .disabled(!snapshot.canClear)
             }
             .padding(16)
@@ -26,14 +26,14 @@ struct GpgAgentHistoryView: View {
             }
         }
         .confirmationDialog(
-            L10n.gpgAgentHistoryClearHistoryConfirmationTitle,
+            L10n.agentHistoryClearHistoryConfirmationTitle(L10n.protocolGpg),
             isPresented: $confirmingClear, titleVisibility: .visible
         ) {
-            Button(L10n.gpgAgentHistoryClearHistoryTitle, role: .destructive) {
+            Button(L10n.agentHistoryClearHistoryTitle, role: .destructive) {
                 gpgAgentModel.clearGpgAgentHistory()
             }
         } message: {
-            Text(L10n.gpgAgentHistoryClearHistoryConfirmationText)
+            Text(L10n.agentHistoryClearHistoryConfirmationText(L10n.protocolGpg))
         }
         .observing(
             start: { gpgAgentModel.startGpgAgentHistoryObservation() },
@@ -112,7 +112,7 @@ struct GpgAgentHistoryView: View {
         switch request {
         case "AGENT_SIGN_HASH": return L10n.gpgAgentHistoryRequestSignHash
         case "AGENT_DECRYPT": return L10n.gpgAgentHistoryRequestDecrypt
-        case "AGENT_LIST_KEYS": return L10n.gpgAgentHistoryRequestListKeys
+        case "AGENT_LIST_KEYS": return L10n.agentHistoryRequestListKeys
         default: return nil
         }
     }

@@ -7,12 +7,13 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentApprovalRequest
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
 import com.artemchep.keyguard.feature.agent.AgentApprovalContent
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.agent_request_approval_sign_message_known_app
+import com.artemchep.keyguard.res.agent_request_approval_sign_message_unknown_app
+import com.artemchep.keyguard.res.agent_request_approval_sign_title
 import com.artemchep.keyguard.res.gpg_agent_request_approval_decrypt_message_known_app
 import com.artemchep.keyguard.res.gpg_agent_request_approval_decrypt_message_unknown_app
 import com.artemchep.keyguard.res.gpg_agent_request_approval_decrypt_title
-import com.artemchep.keyguard.res.gpg_agent_request_approval_sign_message_known_app
-import com.artemchep.keyguard.res.gpg_agent_request_approval_sign_message_unknown_app
-import com.artemchep.keyguard.res.gpg_agent_request_approval_sign_title
+import com.artemchep.keyguard.res.protocol_gpg
 import com.artemchep.keyguard.ui.icons.KeyguardGpgKey
 import com.artemchep.keyguard.ui.icons.icon
 
@@ -22,19 +23,20 @@ fun GpgAgentApprovalContent(
     onDismiss: () -> Unit,
 ) {
     val title = when (request.operation) {
-        GpgAgentOperation.SIGN -> Res.string.gpg_agent_request_approval_sign_title
+        GpgAgentOperation.SIGN -> Res.string.agent_request_approval_sign_title
         GpgAgentOperation.DECRYPT -> Res.string.gpg_agent_request_approval_decrypt_title
     }
     val messageKnownApp = when (request.operation) {
-        GpgAgentOperation.SIGN -> Res.string.gpg_agent_request_approval_sign_message_known_app
+        GpgAgentOperation.SIGN -> Res.string.agent_request_approval_sign_message_known_app
         GpgAgentOperation.DECRYPT -> Res.string.gpg_agent_request_approval_decrypt_message_known_app
     }
     val messageUnknownApp = when (request.operation) {
-        GpgAgentOperation.SIGN -> Res.string.gpg_agent_request_approval_sign_message_unknown_app
+        GpgAgentOperation.SIGN -> Res.string.agent_request_approval_sign_message_unknown_app
         GpgAgentOperation.DECRYPT -> Res.string.gpg_agent_request_approval_decrypt_message_unknown_app
     }
     AgentApprovalContent(
         request = request,
+        protocol = Res.string.protocol_gpg,
         title = title,
         messageKnownApp = messageKnownApp,
         messageUnknownApp = messageUnknownApp,

@@ -946,7 +946,7 @@ fn replacing_secondary_does_not_recertify_explicit_primary() {
 }
 
 #[test]
-fn rejects_same_blank_and_control_character_user_ids_before_signing() {
+fn validates_user_id_content_and_utf8_byte_limit_before_signing() {
     let material = generated_material();
     let request = |new_user_id: &str| UserIdReplacementInput {
         private_key: material.private_key_armored.clone(),
@@ -968,6 +968,29 @@ fn rejects_same_blank_and_control_character_user_ids_before_signing() {
     ));
     assert!(matches!(
         replace_user_id_request(request("New\u{0000}Identity")),
+        Err(UserIdReplacementFailure::InvalidNewUserId),
+    ));
+
+    // The limit is bytes, not characters: these values contain only 512/513
+    // characters, but occupy 1024/1026 bytes after UTF-8 encoding.
+    let at_limit = "é".repeat(512);
+    assert_eq!(at_limit.len(), 1024);
+    let success = replace_user_id_request(request(&at_limit))
+        .expect("a User ID at the UTF-8 byte limit can be certified");
+    let updated = parse_single_public(&success.key_material.public_key_armored)
+        .expect("parse certificate after replacement");
+    assert!(
+        updated
+            .details
+            .users
+            .iter()
+            .any(|user| user.id.as_str() == Some(at_limit.as_str())),
+    );
+
+    let over_limit = "é".repeat(513);
+    assert_eq!(over_limit.len(), 1026);
+    assert!(matches!(
+        replace_user_id_request(request(&over_limit)),
         Err(UserIdReplacementFailure::InvalidNewUserId),
     ));
 }

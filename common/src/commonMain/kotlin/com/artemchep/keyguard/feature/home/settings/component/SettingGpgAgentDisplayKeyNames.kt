@@ -79,7 +79,7 @@ private fun SettingGpgAgentDisplayKeyNames(
         icon = Icons.Outlined.Key,
         title = {
             Text(
-                text = stringResource(Res.string.pref_item_gpg_agent_display_key_names_title),
+                text = stringResource(Res.string.pref_item_agent_display_key_names_title),
             )
         },
         text = {
@@ -92,7 +92,7 @@ private fun SettingGpgAgentDisplayKeyNames(
                     color = LocalContentColor.current
                         .combineAlpha(MediumEmphasisAlpha),
                     style = MaterialTheme.typography.bodySmall,
-                    text = stringResource(Res.string.pref_item_gpg_agent_display_key_names_note),
+                    text = stringResource(Res.string.pref_item_agent_display_key_names_note),
                 )
             }
         },

@@ -723,6 +723,12 @@ pub struct OpenPgpPublicSubKeyInfo {
     /// reissue its binding with a modern hash.
     #[prost(bool, tag = "11")]
     pub authenticated: bool,
+    /// Distinct digest names from verified renewal-only binding signatures.
+    /// Display metadata only; these signatures never authenticate the component.
+    #[prost(string, repeated, tag = "12")]
+    pub weak_self_signature_algorithms: ::prost::alloc::vec::Vec<
+        ::prost::alloc::string::String,
+    >,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpPublicKeyInfo {
@@ -777,6 +783,12 @@ pub struct OpenPgpPublicKeyInfo {
     /// only reported when it is template-renewable, so the state cannot arise.
     #[prost(enumeration = "OpenPgpRenewalAuthorization", tag = "19")]
     pub renewal: i32,
+    /// Distinct digest names from verified renewal-only direct signatures and
+    /// identity certifications. Empty when no such metadata is available.
+    #[prost(string, repeated, tag = "20")]
+    pub weak_self_signature_algorithms: ::prost::alloc::vec::Vec<
+        ::prost::alloc::string::String,
+    >,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpUserIdInfo {

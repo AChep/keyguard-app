@@ -4006,7 +4006,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
             is SshKeyImportResult.Success -> {
                 val msg = ToastMessage(
                     type = ToastMessage.Type.SUCCESS,
-                    title = translate(Res.string.ssh_key_import_success_title),
+                    title = translate(Res.string.key_import_success_title, translate(Res.string.protocol_ssh)),
                 )
                 showMessage.copy(msg)
                 // success!
@@ -4030,8 +4030,8 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
             fileName: String?,
             content: String,
         ) {
-            val passphraseTitle = translate(Res.string.ssh_key_import_passphrase_title)
-            val passphraseHint = translate(Res.string.ssh_key_import_passphrase_hint)
+            val passphraseTitle = translate(Res.string.key_import_passphrase_title)
+            val passphraseHint = translate(Res.string.key_import_passphrase_hint, translate(Res.string.protocol_ssh))
 
             val intent = createConfirmationDialogIntent(
                 confirmationRouteFactory = confirmationRouteFactory,
@@ -4042,7 +4042,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                     type = ConfirmationRoute.Args.Item.StringItem.Type.Password,
                     canBeEmpty = false,
                 ),
-                title = translate(Res.string.ssh_key_import_passphrase_dialog_title),
+                title = translate(Res.string.key_import_passphrase_hint, translate(Res.string.protocol_ssh)),
                 message = translate(
                     Res.string.ssh_key_import_passphrase_dialog_message,
                     result.formatLabel,
@@ -4075,7 +4075,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                 onSuccess = { keyPair ->
                     val msg = ToastMessage(
                         type = ToastMessage.Type.SUCCESS,
-                        title = translate(Res.string.ssh_key_import_success_title),
+                        title = translate(Res.string.key_import_success_title, translate(Res.string.protocol_ssh)),
                     )
                     showMessage.copy(msg)
                     sink.value = keyPair.toDecor()
@@ -4249,7 +4249,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
 
         suspend fun showImportConflict() {
             val msg = createGpgKeyImportToast(
-                title = translate(Res.string.gpg_key_import_failed_title),
+                title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_gpg)),
                 text = translate(Res.string.gpg_key_import_error_key_changed),
             )
             showMessage.copy(msg)
@@ -4281,7 +4281,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                     showMessage.copy(
                         ToastMessage(
                             type = ToastMessage.Type.SUCCESS,
-                            title = translate(Res.string.gpg_key_import_success_title),
+                            title = translate(Res.string.key_import_success_title, translate(Res.string.protocol_gpg)),
                         ),
                     )
                 }
@@ -4335,8 +4335,8 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                 showImportConflict()
                 return
             }
-            val passphraseTitle = translate(Res.string.gpg_key_import_passphrase_title)
-            val passphraseHint = translate(Res.string.gpg_key_import_passphrase_hint)
+            val passphraseTitle = translate(Res.string.key_import_passphrase_title)
+            val passphraseHint = translate(Res.string.key_import_passphrase_hint, translate(Res.string.protocol_gpg))
 
             val intent = createConfirmationDialogIntent(
                 confirmationRouteFactory = confirmationRouteFactory,
@@ -4347,7 +4347,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                     type = ConfirmationRoute.Args.Item.StringItem.Type.Password,
                     canBeEmpty = false,
                 ),
-                title = translate(Res.string.gpg_key_import_passphrase_dialog_title),
+                title = translate(Res.string.key_import_passphrase_hint, translate(Res.string.protocol_gpg)),
                 message = translate(
                     Res.string.gpg_key_import_passphrase_dialog_message,
                     result.formatLabel,
@@ -4880,27 +4880,27 @@ suspend fun TranslatorScope.createLocalizedGpgKeyImportErrorToast(
     reason: GpgKeyImportError,
 ): ToastMessage = when (reason) {
     GpgKeyImportError.Empty -> createGpgKeyImportToast(
-        title = translate(Res.string.gpg_key_import_failed_title),
+        title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_gpg)),
         text = translate(Res.string.gpg_key_import_error_empty),
     )
     GpgKeyImportError.UnsupportedFormat -> createGpgKeyImportToast(
-        title = translate(Res.string.gpg_key_import_failed_title),
+        title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_gpg)),
         text = translate(Res.string.gpg_key_import_error_unsupported_format),
     )
     GpgKeyImportError.UnsupportedPlatform -> createGpgKeyImportToast(
-        title = translate(Res.string.gpg_key_import_failed_title),
+        title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_gpg)),
         text = translate(Res.string.gpg_key_import_error_unsupported_platform),
     )
     GpgKeyImportError.InvalidPassphrase -> createGpgKeyImportToast(
-        title = translate(Res.string.gpg_key_import_failed_title),
-        text = translate(Res.string.gpg_key_import_error_invalid_passphrase),
+        title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_gpg)),
+        text = translate(Res.string.key_import_error_invalid_passphrase, translate(Res.string.protocol_gpg)),
     )
     GpgKeyImportError.MalformedKey -> createGpgKeyImportToast(
-        title = translate(Res.string.gpg_key_import_failed_title),
-        text = translate(Res.string.gpg_key_import_error_malformed_key),
+        title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_gpg)),
+        text = translate(Res.string.key_import_error_malformed_key, translate(Res.string.protocol_gpg)),
     )
     GpgKeyImportError.MultipleKeys -> createGpgKeyImportToast(
-        title = translate(Res.string.gpg_key_import_failed_title),
+        title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_gpg)),
         text = translate(Res.string.gpg_key_import_error_multiple_keys),
     )
 }
@@ -4908,8 +4908,8 @@ suspend fun TranslatorScope.createLocalizedGpgKeyImportErrorToast(
 private suspend fun TranslatorScope.createLocalizedGpgKeyEditorImportErrorToast(
     reason: GpgKeyEditorImportError,
 ): ToastMessage = createGpgKeyImportToast(
-    title = translate(Res.string.gpg_key_import_failed_title),
-    text = translate(gpgKeyEditorImportFailureMessage(reason)),
+    title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_gpg)),
+    text = translate(gpgKeyEditorImportFailureMessage(reason), translate(Res.string.protocol_gpg)),
 )
 
 /**
@@ -4925,7 +4925,7 @@ internal fun gpgKeyEditorImportFailureMessage(
         Res.string.gpg_key_import_error_existing_malformed
 
     GpgKeyEditorImportError.IncomingMaterialInvalid ->
-        Res.string.gpg_key_import_error_malformed_key
+        Res.string.key_import_error_malformed_key
 
     GpgKeyEditorImportError.UnsupportedMaterial ->
         Res.string.gpg_key_import_error_unsupported_format
@@ -4946,13 +4946,13 @@ internal fun gpgKeyEditorImportFailureMessage(
 }
 
 suspend fun TranslatorScope.createLocalizedGpgKeyImportReadErrorToast(): ToastMessage = createGpgKeyImportToast(
-    title = translate(Res.string.gpg_key_import_failed_title),
-    text = translate(Res.string.gpg_key_import_error_read),
+    title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_gpg)),
+    text = translate(Res.string.key_import_error_read),
 )
 
 suspend fun TranslatorScope.createLocalizedGpgKeyImportPassphraseErrorToast(): ToastMessage = createGpgKeyImportToast(
-    title = translate(Res.string.gpg_key_import_failed_title),
-    text = translate(Res.string.gpg_key_import_error_passphrase_required),
+    title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_gpg)),
+    text = translate(Res.string.key_import_error_passphrase_required, translate(Res.string.protocol_gpg)),
 )
 
 private fun createGpgKeyImportToast(
@@ -5007,31 +5007,31 @@ suspend fun TranslatorScope.createLocalizedSshKeyImportErrorToast(
     reason: SshKeyImportError,
 ): ToastMessage = when (reason) {
     SshKeyImportError.UnsupportedFormat -> createSshKeyImportToast(
-        title = translate(Res.string.ssh_key_import_failed_title),
+        title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_ssh)),
         text = translate(Res.string.ssh_key_import_error_unsupported_format),
     )
     SshKeyImportError.UnsupportedAlgorithm -> createSshKeyImportToast(
-        title = translate(Res.string.ssh_key_import_failed_title),
+        title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_ssh)),
         text = translate(Res.string.ssh_key_import_error_unsupported_algorithm),
     )
     SshKeyImportError.InvalidPassphrase -> createSshKeyImportToast(
-        title = translate(Res.string.ssh_key_import_failed_title),
-        text = translate(Res.string.ssh_key_import_error_invalid_passphrase),
+        title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_ssh)),
+        text = translate(Res.string.key_import_error_invalid_passphrase, translate(Res.string.protocol_ssh)),
     )
     SshKeyImportError.MalformedKey -> createSshKeyImportToast(
-        title = translate(Res.string.ssh_key_import_failed_title),
-        text = translate(Res.string.ssh_key_import_error_malformed_key),
+        title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_ssh)),
+        text = translate(Res.string.key_import_error_malformed_key, translate(Res.string.protocol_ssh)),
     )
 }
 
 suspend fun TranslatorScope.createLocalizedSshKeyImportReadErrorToast(): ToastMessage = createSshKeyImportToast(
-    title = translate(Res.string.ssh_key_import_failed_title),
-    text = translate(Res.string.ssh_key_import_error_read),
+    title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_ssh)),
+    text = translate(Res.string.key_import_error_read),
 )
 
 suspend fun TranslatorScope.createLocalizedSshKeyImportPassphraseErrorToast(): ToastMessage = createSshKeyImportToast(
-    title = translate(Res.string.ssh_key_import_failed_title),
-    text = translate(Res.string.ssh_key_import_error_passphrase_required),
+    title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_ssh)),
+    text = translate(Res.string.key_import_error_passphrase_required, translate(Res.string.protocol_ssh)),
 )
 
 private fun createSshKeyImportToast(

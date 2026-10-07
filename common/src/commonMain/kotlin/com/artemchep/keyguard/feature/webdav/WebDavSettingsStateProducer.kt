@@ -125,7 +125,8 @@ suspend fun RememberStateFlowScope.webDavSettingsStateProducer(
                     message(
                         ToastMessage(
                             title = translate(
-                                Res.string.webdav_settings_test_success,
+                                Res.string.remote_connection_test_success,
+                                "WebDAV",
                             ),
                             type = ToastMessage.Type.SUCCESS,
                         ),

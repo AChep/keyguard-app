@@ -1167,7 +1167,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     /** A blank [token] clears the saved one; input that fails [isValidHibpApiToken] is ignored. */
     fun setHibpApiToken(token: String) = watchtowerController.setHibpApiToken(token)
 
-    /** True for a blank [token] (clears it) or 32 hex characters, ignoring surrounding whitespace. */
+    /** True for a blank [token] (clears it) or a well-formed HIBP API token, ignoring surrounding whitespace. */
     fun isValidHibpApiToken(token: String): Boolean = watchtowerController.isValidHibpApiToken(token)
 
     // Security settings. Items the common providers hide on Apple — screen-off lock, clipboard

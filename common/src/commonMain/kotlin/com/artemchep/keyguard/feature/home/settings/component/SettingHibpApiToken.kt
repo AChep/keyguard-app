@@ -29,6 +29,8 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.hibp.HIBP_API_TOKEN_LENGTH
+import com.artemchep.keyguard.common.service.hibp.HIBP_API_TOKEN_REGEX
 import com.artemchep.keyguard.common.usecase.CheckHibpApiToken
 import com.artemchep.keyguard.common.usecase.GetHibpApiToken
 import com.artemchep.keyguard.common.usecase.PutHibpApiToken
@@ -46,7 +48,7 @@ import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.pref_item_hibp_api_token_error
+import com.artemchep.keyguard.res.pref_item_hibp_api_token_error_plural
 import com.artemchep.keyguard.res.pref_item_hibp_api_token_field_label
 import com.artemchep.keyguard.res.pref_item_hibp_api_token_status_checking
 import com.artemchep.keyguard.res.pref_item_hibp_api_token_status_failed
@@ -71,10 +73,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.core.scope.Scope
-
-private val HIBP_API_TOKEN_REGEX = Regex("^[0-9a-fA-F]{32}$")
 
 private const val HIBP_API_TOKEN_ITEM_KEY = "hibp_api_token"
 
@@ -349,7 +350,11 @@ private fun SettingHibpApiToken(
 
     val title = stringResource(Res.string.pref_item_hibp_api_token_title)
     val text = stringResource(Res.string.pref_item_hibp_api_token_text)
-    val error = stringResource(Res.string.pref_item_hibp_api_token_error)
+    val error = pluralStringResource(
+        Res.plurals.pref_item_hibp_api_token_error_plural,
+        HIBP_API_TOKEN_LENGTH,
+        HIBP_API_TOKEN_LENGTH,
+    )
 
     val fieldLabel = stringResource(Res.string.pref_item_hibp_api_token_field_label)
     LocalSettingPaneComponents.current.KgAction(

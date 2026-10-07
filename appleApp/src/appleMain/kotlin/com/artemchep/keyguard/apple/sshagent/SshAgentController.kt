@@ -299,8 +299,8 @@ internal class SshAgentController(
 
     private suspend fun sshApprovalWindowTitle(duration: Duration, context: LeContext): String =
         when (duration) {
-            Duration.ZERO -> textResource(Res.string.pref_item_ssh_agent_approval_window_always_ask, context)
-            Duration.INFINITE -> textResource(Res.string.pref_item_ssh_agent_approval_window_until_lock, context)
+            Duration.ZERO -> textResource(Res.string.pref_item_agent_approval_window_always_ask, context)
+            Duration.INFINITE -> textResource(Res.string.pref_item_agent_approval_window_until_lock, context)
             else -> duration.format(context)
         }
 

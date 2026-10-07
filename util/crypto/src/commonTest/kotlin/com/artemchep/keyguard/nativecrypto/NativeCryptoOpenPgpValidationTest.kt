@@ -891,6 +891,45 @@ class NativeCryptoOpenPgpMetadataPolicyValidationTest {
     }
 
     @Test
+    fun weakSelfSignatureAlgorithmsDecodeAndDefaultToEmptyOnOldPayloads() {
+        fun decode(algorithms: List<String>): NativeOpenPgpPublicKeyInfo {
+            val payload = ProtoBuf.encodeToByteArray(
+                OpenPgpPublicKeyParseResultProto(
+                    OpenPgpPublicKeyParseSuccessOutcomeProto(
+                        OpenPgpPublicKeyParseSuccessProto(
+                            keys = listOf(
+                                OpenPgpPublicKeyInfoProto(
+                                    fingerprint = FINGERPRINT,
+                                    keyId = KEY_ID,
+                                    algorithm = "RSA",
+                                    publicKeyArmored = "public",
+                                    weakSelfSignatureAlgorithms = algorithms,
+                                    subkeys = listOf(
+                                        OpenPgpPublicSubKeyInfoProto(
+                                            fingerprint = FINGERPRINT,
+                                            keyId = KEY_ID,
+                                            algorithm = "RSA",
+                                            weakSelfSignatureAlgorithms = algorithms,
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            )
+            val result = decodeOpenPgpPublicKeyParseResult(PARSE_OPERATION, payload)
+            return (result as NativeOpenPgpPublicKeyParseResult.Success).keys.single()
+        }
+
+        for (algorithms in listOf(emptyList(), listOf("SHA-1"), listOf("RIPEMD-160", "SHA-1"))) {
+            val key = decode(algorithms)
+            assertEquals(algorithms, key.weakSelfSignatureAlgorithms)
+            assertEquals(algorithms, key.subkeys.single().weakSelfSignatureAlgorithms)
+        }
+    }
+
+    @Test
     fun publicKeyUserIdDetailsRoundTripAndRejectMalformedIdentityIds() {
         val identityId = "v1:${"A".repeat(64)}"
         val detail = OpenPgpUserIdInfoProto(

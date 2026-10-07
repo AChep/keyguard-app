@@ -155,14 +155,14 @@ struct AutomaticBackupsSettingsView: View {
 
     private func backupStepTitle(_ step: String) -> String {
         switch step {
-        case "OpeningRepository": L10n.prefItemAutomaticBackupsStepOpeningRepository
-        case "ExportingVault": L10n.prefItemAutomaticBackupsStepExportingVault
-        case "ScanningAttachments": L10n.prefItemAutomaticBackupsStepScanningAttachments
-        case "BackingUpAttachments": L10n.prefItemAutomaticBackupsStepBackingUpAttachments
-        case "WritingIndex": L10n.prefItemAutomaticBackupsStepWritingIndex
-        case "WritingSnapshot": L10n.prefItemAutomaticBackupsStepWritingSnapshot
-        case "ApplyingRetention": L10n.prefItemAutomaticBackupsStepApplyingRetention
-        default: L10n.prefItemAutomaticBackupsStepPreparing
+        case "OpeningRepository": L10n.backupStepOpeningRepository
+        case "ExportingVault": L10n.backupStepExportingVault
+        case "ScanningAttachments": L10n.backupStepScanningAttachments
+        case "BackingUpAttachments": L10n.backupStepBackingUpAttachments
+        case "WritingIndex": L10n.backupStepWritingIndex
+        case "WritingSnapshot": L10n.backupStepWritingSnapshot
+        case "ApplyingRetention": L10n.backupStepApplyingRetention
+        default: L10n.backupStepPreparing
         }
     }
 

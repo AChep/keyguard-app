@@ -2,7 +2,7 @@ package com.artemchep.keyguard.android.ipc
 
 import android.content.Intent
 import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.ipc_operation_openpgp_other
+import com.artemchep.keyguard.res.ipc_operation_other
 import com.artemchep.keyguard.res.ipc_protocol_openpgp
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -415,7 +415,7 @@ class AndroidIpcApprovalStoreTest {
         protocol = protocol,
         protocolLabel = Res.string.ipc_protocol_openpgp,
         action = ACTION,
-        operation = Res.string.ipc_operation_openpgp_other,
+        operation = Res.string.ipc_operation_other,
         requestDigest = DIGEST,
         retryIntent = Intent(ACTION),
         allowMultiple = false,

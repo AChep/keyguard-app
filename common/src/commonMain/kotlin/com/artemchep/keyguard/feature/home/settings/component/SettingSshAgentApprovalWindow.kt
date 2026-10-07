@@ -102,12 +102,12 @@ private suspend fun getSshAgentApprovalWindowTitle(
     context: LeContext,
 ) = when (duration) {
     Duration.ZERO -> textResource(
-        Res.string.pref_item_ssh_agent_approval_window_always_ask,
+        Res.string.pref_item_agent_approval_window_always_ask,
         context,
     )
 
     Duration.INFINITE -> textResource(
-        Res.string.pref_item_ssh_agent_approval_window_until_lock,
+        Res.string.pref_item_agent_approval_window_until_lock,
         context,
     )
 
@@ -121,7 +121,7 @@ private fun SettingSshAgentApprovalWindow(
 ) {
     LocalSettingPaneComponents.current.KgPicker(
         icon = Icons.Outlined.Timer,
-        title = stringResource(Res.string.pref_item_ssh_agent_approval_window_title),
+        title = stringResource(Res.string.pref_item_agent_approval_window_title),
         text = text,
         dropdown = dropdown,
     )

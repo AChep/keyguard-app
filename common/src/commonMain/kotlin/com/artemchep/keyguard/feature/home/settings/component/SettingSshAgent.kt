@@ -91,7 +91,7 @@ private fun SettingSshAgent(
         icon = Icons.Outlined.KeyguardSshKey,
         title = {
             Text(
-                text = stringResource(Res.string.pref_item_ssh_agent_title),
+                text = stringResource(Res.string.agent_title, stringResource(Res.string.protocol_ssh)),
             )
         },
         text = {
@@ -107,11 +107,11 @@ private fun SettingSshAgent(
             }
             val statusText = stringResource(
                 when (status) {
-                    AgentStatus.Unsupported -> Res.string.pref_item_ssh_agent_status_unsupported
-                    AgentStatus.Stopped -> Res.string.pref_item_ssh_agent_status_stopped
-                    AgentStatus.Starting -> Res.string.pref_item_ssh_agent_status_starting
-                    AgentStatus.Ready -> Res.string.pref_item_ssh_agent_status_ready
-                    AgentStatus.Failed -> Res.string.pref_item_ssh_agent_status_failed
+                    AgentStatus.Unsupported -> Res.string.pref_item_agent_status_unsupported
+                    AgentStatus.Stopped -> Res.string.pref_item_agent_status_stopped
+                    AgentStatus.Starting -> Res.string.pref_item_agent_status_starting
+                    AgentStatus.Ready -> Res.string.pref_item_agent_status_ready
+                    AgentStatus.Failed -> Res.string.pref_item_agent_status_failed
                 },
             )
             Text(

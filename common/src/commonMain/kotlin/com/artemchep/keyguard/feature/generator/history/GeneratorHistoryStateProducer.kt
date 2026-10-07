@@ -298,7 +298,7 @@ suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
                                         translate(Res.string.copy_value) to CopyText.Type.VALUE
 
                                     GeneratorHistoryItem.Value.Type.GPG_KEY ->
-                                        translate(Res.string.copy_gpg_fingerprint) to CopyText.Type.FINGERPRINT
+                                        translate(Res.string.copy_fingerprint) to CopyText.Type.FINGERPRINT
 
                                     null -> translate(Res.string.copy_value) to CopyText.Type.VALUE
                                 }

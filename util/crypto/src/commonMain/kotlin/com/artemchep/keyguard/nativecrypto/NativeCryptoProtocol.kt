@@ -1161,6 +1161,8 @@ internal data class OpenPgpPublicSubKeyInfoProto(
     val expiresAtEpochSeconds: Long? = null,
     @ProtoNumber(11)
     val authenticated: Boolean = false,
+    @ProtoNumber(12)
+    val weakSelfSignatureAlgorithms: List<String> = emptyList(),
 )
 
 @Serializable
@@ -1213,6 +1215,8 @@ internal data class OpenPgpPublicKeyInfoProto(
      */
     @ProtoNumber(19)
     val renewal: Int = 0,
+    @ProtoNumber(20)
+    val weakSelfSignatureAlgorithms: List<String> = emptyList(),
 )
 
 @Serializable

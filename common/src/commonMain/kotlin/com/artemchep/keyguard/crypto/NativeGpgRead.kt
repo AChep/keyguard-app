@@ -223,6 +223,7 @@ internal fun NativeOpenPgpPublicKeyInfo.toDomain(): GpgPublicKeyInfo = GpgPublic
     subKeys = subkeys.map { it.toDomain() },
     authenticated = authenticated,
     renewal = renewal.toDomain(),
+    weakSelfSignatureAlgorithms = weakSelfSignatureAlgorithms,
     userIdDetails = userIdDetails.map { value ->
         GpgUserIdInfo(
             identityId = value.identityId,
@@ -243,6 +244,7 @@ private fun NativeOpenPgpPublicSubKeyInfo.toDomain(): GpgPublicSubKeyInfo = GpgP
     createdAt = createdAtEpochSeconds?.let(Instant::fromEpochSeconds),
     expiresAt = expiresAtEpochSeconds?.let(Instant::fromEpochSeconds),
     authenticated = authenticated,
+    weakSelfSignatureAlgorithms = weakSelfSignatureAlgorithms,
 )
 
 internal fun NativeOpenPgpVerification.toDomain(): GpgOpenPgpVerification =

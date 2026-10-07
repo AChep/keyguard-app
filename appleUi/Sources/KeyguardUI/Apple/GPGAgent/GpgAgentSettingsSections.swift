@@ -18,7 +18,7 @@ struct GpgAgentSettingsSections: View {
         Group {
             Section {
                 Toggle(
-                    L10n.prefItemGpgAgentTitle,
+                    L10n.agentTitle(L10n.protocolGpg),
                     isOn: Binding(get: { settings.enabled }, set: { model.setGpgAgentEnabled($0) })
                 )
                 .disabled(!settings.loaded || (status.state == .unsupported && !settings.enabled))
@@ -31,32 +31,32 @@ struct GpgAgentSettingsSections: View {
                 if status.state == .failed && status.enabled {
                     Button(L10n.retry) { model.retryGpgAgent() }
                 }
-                Button(L10n.prefItemGpgAgentSetupTitle) { dialog = .setup }
+                Button(L10n.agentSetupTitle(L10n.protocolGpg)) { dialog = .setup }
                     .settingsSearchTarget(.gpgSetup)
             } header: {
-                Text(L10n.gpgAgent)
+                Text(L10n.agentTitle(L10n.protocolGpg))
             } footer: {
                 Text(L10n.gpgAgentSetupIntro)
             }
             .sheet(item: $dialog) { dialog in
                 switch dialog {
                 case .setup:
-                    ModalSheet(title: L10n.gpgAgentSetupHeaderTitle) { GpgAgentSetupView() }
+                    ModalSheet(title: L10n.agentSetupTitle(L10n.protocolGpg)) { GpgAgentSetupView() }
                 case .filters:
                     AgentFiltersView(
-                        title: L10n.gpgAgentFiltersHeaderTitle,
-                        lockedText: L10n.sshAgentHistoryResponseVaultLocked,
-                        note: L10n.gpgAgentFiltersNoteSaveToApply,
+                        title: L10n.agentFiltersTitle(L10n.protocolGpg),
+                        lockedText: L10n.agentHistoryResponseVaultLocked,
+                        note: L10n.agentFiltersNoteSaveToApply,
                         makeSession: model.makeFiltersSession
                     )
                 case .history:
-                    ModalSheet(title: L10n.gpgAgentHistoryHeaderTitle) { GpgAgentHistoryView() }
+                    ModalSheet(title: L10n.agentHistoryHeaderTitle(L10n.protocolGpg)) { GpgAgentHistoryView() }
                 }
             }
 
             Section {
                 optionPicker(
-                    L10n.prefItemGpgAgentApprovalWindowTitle,
+                    L10n.prefItemAgentApprovalWindowTitle,
                     options: settings.approvalWindowOptions,
                     currentTitle: settings.approvalWindowTitle,
                     set: { model.setGpgAgentApprovalWindow(optionId: $0) }
@@ -78,7 +78,7 @@ struct GpgAgentSettingsSections: View {
 
             Section {
                 Toggle(
-                    L10n.prefItemGpgAgentDisplayKeyNamesTitle,
+                    L10n.prefItemAgentDisplayKeyNamesTitle,
                     isOn: Binding(get: { settings.displayKeyNames }, set: { model.setGpgAgentDisplayKeyNames($0) })
                 )
                 .disabled(!settings.loaded)
@@ -86,7 +86,7 @@ struct GpgAgentSettingsSections: View {
             } header: {
                 Text(L10n.agentKeysHeaderTitle)
             } footer: {
-                Text(L10n.prefItemGpgAgentDisplayKeyNamesNote)
+                Text(L10n.prefItemAgentDisplayKeyNamesNote)
             }
 
             Section {
@@ -94,11 +94,12 @@ struct GpgAgentSettingsSections: View {
                     dialog = .filters
                 } label: {
                     HStack {
-                        Label(L10n.prefItemGpgAgentFiltersTitle, systemImage: "line.3.horizontal.decrease.circle")
+                        Label(
+                            L10n.agentFiltersTitle(L10n.protocolGpg), systemImage: "line.3.horizontal.decrease.circle")
                         Spacer()
                         Text(
                             settings.filterActive
-                                ? L10n.prefItemGpgAgentFiltersSummaryActive : L10n.prefItemGpgAgentFiltersSummaryAll
+                                ? L10n.prefItemAgentFiltersSummaryActive : L10n.prefItemAgentFiltersSummaryAll
                         )
                         .font(.callout).foregroundStyle(.secondary)
                     }
@@ -107,7 +108,7 @@ struct GpgAgentSettingsSections: View {
                 Button {
                     dialog = .history
                 } label: {
-                    Label(L10n.prefItemGpgAgentHistoryTitle, systemImage: "clock.arrow.circlepath")
+                    Label(L10n.prefItemAgentHistoryTitle, systemImage: "clock.arrow.circlepath")
                 }
                 .settingsSearchTarget(.gpgHistory)
             }
@@ -119,19 +120,19 @@ struct GpgAgentSettingsSections: View {
     private var statusRow: some View {
         switch status.state {
         case .ready:
-            Label(L10n.prefItemGpgAgentStatusReady, systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+            Label(L10n.prefItemAgentStatusReady, systemImage: "checkmark.circle.fill").foregroundStyle(.green)
         case .starting:
             HStack {
                 ProgressView().controlSize(.small)
-                Text(L10n.prefItemGpgAgentStatusStarting).foregroundStyle(.secondary)
+                Text(L10n.prefItemAgentStatusStarting).foregroundStyle(.secondary)
             }
         case .failed:
-            Label(L10n.prefItemGpgAgentStatusFailed, systemImage: "exclamationmark.triangle.fill")
+            Label(L10n.prefItemAgentStatusFailed, systemImage: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
         case .unsupported:
-            Label(L10n.prefItemGpgAgentStatusUnsupported, systemImage: "xmark.circle").foregroundStyle(.secondary)
+            Label(L10n.prefItemAgentStatusUnsupported, systemImage: "xmark.circle").foregroundStyle(.secondary)
         default:
-            Label(L10n.prefItemGpgAgentStatusStopped, systemImage: "stop.circle").foregroundStyle(.secondary)
+            Label(L10n.prefItemAgentStatusStopped, systemImage: "stop.circle").foregroundStyle(.secondary)
         }
     }
 

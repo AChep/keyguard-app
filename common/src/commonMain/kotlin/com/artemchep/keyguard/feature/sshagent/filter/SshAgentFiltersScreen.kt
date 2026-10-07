@@ -61,7 +61,7 @@ private fun SshAgentFiltersScreenSkeleton() {
         topBar = {
             LargeToolbar(
                 title = {
-                    Text(stringResource(Res.string.ssh_agent_filters_header_title))
+                    Text(stringResource(Res.string.agent_filters_title, stringResource(Res.string.protocol_ssh)))
                 },
                 navigationIcon = {
                     NavigationIcon()
@@ -115,7 +115,7 @@ private fun SshAgentFiltersScreenContent(
         topBar = {
             LargeToolbar(
                 title = {
-                    Text(stringResource(Res.string.ssh_agent_filters_header_title))
+                    Text(stringResource(Res.string.agent_filters_title, stringResource(Res.string.protocol_ssh)))
                 },
                 navigationIcon = {
                     NavigationIcon()
@@ -163,7 +163,7 @@ private fun SshAgentFiltersScreenContent(
                     horizontal = Dimens.contentPadding,
                     vertical = 8.dp,
                 ),
-            text = stringResource(Res.string.ssh_agent_filters_note_save_to_apply),
+            text = stringResource(Res.string.agent_filters_note_save_to_apply),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

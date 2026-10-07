@@ -12,7 +12,7 @@ struct GpgAgentApprovalView: View {
 
     private var title: String {
         request.operation == .decrypt
-            ? L10n.gpgAgentRequestApprovalDecryptTitle : L10n.gpgAgentRequestApprovalSignTitle
+            ? L10n.gpgAgentRequestApprovalDecryptTitle : L10n.agentRequestApprovalSignTitle(L10n.protocolGpg)
     }
 
     private var message: String {
@@ -22,14 +22,14 @@ struct GpgAgentApprovalView: View {
                 : L10n.gpgAgentRequestApprovalDecryptMessageKnownApp(request.callerName)
         }
         return request.callerName.isEmpty
-            ? L10n.gpgAgentRequestApprovalSignMessageUnknownApp
-            : L10n.gpgAgentRequestApprovalSignMessageKnownApp(request.callerName)
+            ? L10n.agentRequestApprovalSignMessageUnknownApp(L10n.protocolGpg)
+            : L10n.agentRequestApprovalSignMessageKnownApp(request.callerName, L10n.protocolGpg)
     }
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { timeline in
             let remaining = max(0, Double(request.expiresAtEpochMs) / 1000 - timeline.date.timeIntervalSince1970)
-            let countdown = L10n.agentApprovalExpiresInText(L10n.secondsPlural(Int(remaining.rounded(.up))))
+            let countdown = L10n.agentApprovalExpiresInSecondsPlural(Int(remaining.rounded(.up)))
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {

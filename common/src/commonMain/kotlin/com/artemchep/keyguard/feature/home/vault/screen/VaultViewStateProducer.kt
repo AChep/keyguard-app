@@ -193,6 +193,7 @@ import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.generator.gpgkey.GpgKeyActions
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
+import com.artemchep.keyguard.feature.gpgkey.translateGpgWeakSelfSignature
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
@@ -4338,7 +4339,7 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
             items += VaultViewItem.Info(
                 id = "info.gpg.weakSelfSignature",
                 name = translate(Res.string.gpg_key_status_weak_self_signature_title),
-                message = translate(Res.string.gpg_key_status_weak_self_signature_text),
+                message = translateGpgWeakSelfSignature(parsedGpgKey?.weakSelfSignatureAlgorithms.orEmpty()),
             )
         }
 
@@ -4418,7 +4419,7 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
                 Key.C,
                 isCtrlPressed = true,
             ),
-            copyTitle = Res.string.copy_gpg_public_key.wrap(),
+            copyTitle = Res.string.copy_public_key.wrap(),
             copyType = CopyText.Type.PUBLIC_KEY,
             maxLines = 4,
             monospace = true,
@@ -4449,7 +4450,7 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
                 isShiftPressed = true,
             ),
             verify = verify.takeIf { concealFields },
-            copyTitle = Res.string.copy_gpg_unencrypted_private_key.wrap(),
+            copyTitle = Res.string.copy_unencrypted_private_key.wrap(),
             copyType = CopyText.Type.PRIVATE_KEY,
             maxLines = 4,
             monospace = true,

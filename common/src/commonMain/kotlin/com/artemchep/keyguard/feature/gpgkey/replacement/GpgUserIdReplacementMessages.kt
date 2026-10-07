@@ -3,7 +3,7 @@ package com.artemchep.keyguard.feature.gpgkey.replacement
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementError
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
-import com.artemchep.keyguard.feature.navigation.state.translate
+import com.artemchep.keyguard.nativecrypto.OPEN_PGP_MAX_USER_ID_UTF8_BYTES
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.gpg_key_expiry_unresolved_revocation_message
 import com.artemchep.keyguard.res.gpg_key_expiry_unsupported_signing_hash_message
@@ -11,7 +11,7 @@ import com.artemchep.keyguard.res.gpg_user_id_mutation_key_revoked_message
 import com.artemchep.keyguard.res.gpg_user_id_replacement_duplicate_message
 import com.artemchep.keyguard.res.gpg_user_id_replacement_failed_message
 import com.artemchep.keyguard.res.gpg_user_id_replacement_failed_title
-import com.artemchep.keyguard.res.gpg_user_id_replacement_invalid_message
+import com.artemchep.keyguard.res.gpg_user_id_replacement_invalid_message_with_limit
 import com.artemchep.keyguard.res.gpg_user_id_replacement_private_key_required
 import com.artemchep.keyguard.res.gpg_user_id_replacement_retired_message
 import com.artemchep.keyguard.res.gpg_user_id_replacement_same_identity_message
@@ -24,8 +24,16 @@ internal suspend fun TranslatorScope.createLocalizedGpgUserIdReplacementFailureT
 ): ToastMessage = ToastMessage(
     type = ToastMessage.Type.ERROR,
     title = translate(Res.string.gpg_user_id_replacement_failed_title),
-    text = translate(gpgUserIdReplacementFailureMessage(reason)),
+    text = translateGpgUserIdReplacementMessage(gpgUserIdReplacementFailureMessage(reason)),
 )
+
+internal suspend fun TranslatorScope.translateGpgUserIdReplacementMessage(
+    resource: StringResource,
+): String = if (resource == Res.string.gpg_user_id_replacement_invalid_message_with_limit) {
+    translate(resource, OPEN_PGP_MAX_USER_ID_UTF8_BYTES)
+} else {
+    translate(resource)
+}
 
 internal fun gpgUserIdReplacementFailureMessage(
     reason: GpgUserIdReplacementError?,
@@ -39,7 +47,7 @@ internal fun gpgUserIdReplacementFailureMessage(
     -> Res.string.gpg_user_id_replacement_target_missing
 
     GpgUserIdReplacementError.InvalidNewUserId ->
-        Res.string.gpg_user_id_replacement_invalid_message
+        Res.string.gpg_user_id_replacement_invalid_message_with_limit
 
     GpgUserIdReplacementError.SameIdentity ->
         Res.string.gpg_user_id_replacement_same_identity_message

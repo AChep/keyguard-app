@@ -92,6 +92,8 @@ fun PoweredByPasskeys(
     )
 }
 
+private const val PROVIDER_PLACEHOLDER = "\u0000"
+
 @Composable
 fun PoweredByLabel(
     modifier: Modifier = Modifier,
@@ -99,21 +101,23 @@ fun PoweredByLabel(
     url: String,
     fill: Boolean = false,
 ) {
+    // The provider is a button, so the text around it is
+    // rendered separately. Translations decide where it goes.
+    val text = stringResource(Res.string.powered_by_text, PROVIDER_PLACEHOLDER)
+    val prefix = text.substringBefore(PROVIDER_PLACEHOLDER).trim()
+    val suffix = text.substringAfter(PROVIDER_PLACEHOLDER, missingDelimiterValue = "").trim()
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            modifier = Modifier
-                .weight(1f, fill = fill)
-                .padding(top = 4.dp),
-            text = stringResource(Res.string.powered_by),
-            maxLines = 2,
-            style = MaterialTheme.typography.labelSmall,
-            color = LocalContentColor.current
-                .combineAlpha(DisabledEmphasisAlpha),
-        )
-        Spacer(modifier = Modifier.width(8.dp))
+        if (prefix.isNotEmpty()) {
+            PoweredByText(
+                modifier = Modifier
+                    .weight(1f, fill = fill),
+                text = prefix,
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+        }
         val navigationController by rememberUpdatedState(LocalNavigationController.current)
         val updatedUrl by rememberUpdatedState(url)
         TextButton(
@@ -130,5 +134,29 @@ fun PoweredByLabel(
                 style = MaterialTheme.typography.labelMedium,
             )
         }
+        if (suffix.isNotEmpty()) {
+            Spacer(modifier = Modifier.width(8.dp))
+            PoweredByText(
+                modifier = Modifier
+                    .weight(1f, fill = fill),
+                text = suffix,
+            )
+        }
     }
+}
+
+@Composable
+private fun PoweredByText(
+    modifier: Modifier = Modifier,
+    text: String,
+) {
+    Text(
+        modifier = modifier
+            .padding(top = 4.dp),
+        text = text,
+        maxLines = 2,
+        style = MaterialTheme.typography.labelSmall,
+        color = LocalContentColor.current
+            .combineAlpha(DisabledEmphasisAlpha),
+    )
 }

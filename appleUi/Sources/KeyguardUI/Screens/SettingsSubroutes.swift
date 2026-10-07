@@ -14,6 +14,11 @@ private func markdownText(_ string: String) -> Text {
     return Text(string)
 }
 
+/// "Powered by" attribution with the provider as a link.
+private func poweredByFooter(_ provider: String, url: String) -> Text {
+    markdownText(L10n.poweredByText("[\(provider)](\(url))"))
+}
+
 struct SettingsSubroute: View {
     let item: SettingsItemSnapshot
 
@@ -320,11 +325,11 @@ struct SecuritySettingsView: View {
             isPresented: $choosingYubiKeySlot,
             titleVisibility: .visible
         ) {
-            Button(L10n.yubikeySlot1Label) { beginYubiKeyEnroll(slot: 1) }
-            Button(L10n.yubikeySlot2Label) { beginYubiKeyEnroll(slot: 2) }
+            Button(L10n.yubikeySlotLabel(1)) { beginYubiKeyEnroll(slot: 1) }
+            Button(L10n.yubikeySlotLabel(2)) { beginYubiKeyEnroll(slot: 2) }
             Button(L10n.cancel, role: .cancel) {}
         } message: {
-            Text(L10n.yubikeySlotPickerNote)
+            Text(L10n.yubikeySlotPickerNote(SecuritySettingsModel.defaultYubiKeySlot))
         }
         .confirmationDialog(
             L10n.yubikeySlotConfiguredWarning(yubiKeyOverwriteSlot ?? 0),
@@ -425,7 +430,7 @@ struct DeveloperSettingsView: View {
             keysSection
             GpgAgentSettingsSections()
             #else
-            Section(L10n.sshAgent) {
+            Section(L10n.agentTitle(L10n.protocolSsh)) {
                 Label(L10n.agentBinaryUnavailableText, systemImage: "xmark.circle")
                     .foregroundStyle(.secondary)
             }
@@ -448,17 +453,17 @@ struct DeveloperSettingsView: View {
         .sheet(item: $dialog) { dialog in
             switch dialog {
             case .clientSetup:
-                ModalSheet(title: L10n.sshAgentSetupHeaderTitle) {
+                ModalSheet(title: L10n.agentSetupTitle(L10n.protocolSsh)) {
                     SshAgentSetupView()
                 }
             case .filters:
                 AgentFiltersView(
-                    title: L10n.sshAgentFiltersHeaderTitle,
+                    title: L10n.agentFiltersTitle(L10n.protocolSsh),
                     lockedText: L10n.sshAgentFiltersLockedText,
                     makeSession: sshAgentModel.makeFiltersSession
                 )
             case .history:
-                ModalSheet(title: L10n.sshAgentHistoryHeaderTitle) {
+                ModalSheet(title: L10n.agentHistoryHeaderTitle(L10n.protocolSsh)) {
                     SshAgentHistoryScreen(makeSession: sshAgentModel.makeHistorySession)
                 }
             }
@@ -493,10 +498,10 @@ struct DeveloperSettingsView: View {
                 }
                 .settingsSearchTarget(.sshSocket)
             }
-            Button(L10n.prefItemSshAgentSetupTitle) { dialog = .clientSetup }
+            Button(L10n.agentSetupTitle(L10n.protocolSsh)) { dialog = .clientSetup }
                 .settingsSearchTarget(.sshSetup)
         } header: {
-            Text(L10n.sshAgent)
+            Text(L10n.agentTitle(L10n.protocolSsh))
         } footer: {
             Text(L10n.prefItemSshAgentDescription)
         }
@@ -511,7 +516,7 @@ struct DeveloperSettingsView: View {
         case SshAgentRunState.starting:
             HStack(spacing: 8) {
                 ProgressView().controlSize(.small)
-                Text(L10n.prefItemSshAgentStatusStarting).foregroundStyle(.secondary)
+                Text(L10n.prefItemAgentStatusStarting).foregroundStyle(.secondary)
             }
         case SshAgentRunState.failed:
             Label(L10n.statusFailedToStart, systemImage: "exclamationmark.triangle.fill")
@@ -520,7 +525,7 @@ struct DeveloperSettingsView: View {
             Label(L10n.agentBinaryUnavailableText, systemImage: "xmark.circle")
                 .foregroundStyle(.secondary)
         default:
-            Label(L10n.prefItemSshAgentStatusStopped, systemImage: "stop.circle")
+            Label(L10n.prefItemAgentStatusStopped, systemImage: "stop.circle")
                 .foregroundStyle(.secondary)
         }
     }
@@ -529,7 +534,7 @@ struct DeveloperSettingsView: View {
     private var approvalsSection: some View {
         Section {
             durationPicker(
-                L10n.prefItemSshAgentApprovalWindowTitle,
+                L10n.prefItemAgentApprovalWindowTitle,
                 options: s.approvalWindowOptions,
                 currentTitle: s.approvalWindowTitle,
                 set: { sshAgentModel.setSshAgentApprovalWindow(optionId: $0) }
@@ -548,7 +553,7 @@ struct DeveloperSettingsView: View {
         // the native inset footnote instead of a full-width gray row.
         Section {
             Toggle(
-                L10n.prefItemSshAgentDisplayKeyNamesTitle,
+                L10n.prefItemAgentDisplayKeyNamesTitle,
                 isOn: Binding(
                     get: { s.displayKeyNames },
                     set: { sshAgentModel.setSshAgentDisplayKeyNames($0) }
@@ -558,18 +563,18 @@ struct DeveloperSettingsView: View {
         } header: {
             Text(L10n.agentKeysHeaderTitle)
         } footer: {
-            Text(L10n.prefItemSshAgentDisplayKeyNamesNote)
+            Text(L10n.prefItemAgentDisplayKeyNamesNote)
         }
         Section {
             Button {
                 dialog = .filters
             } label: {
                 HStack {
-                    Label(L10n.prefItemSshAgentFiltersTitle, systemImage: "line.3.horizontal.decrease.circle")
+                    Label(L10n.agentFiltersTitle(L10n.protocolSsh), systemImage: "line.3.horizontal.decrease.circle")
                     Spacer()
                     Text(
                         s.filterActive
-                            ? L10n.prefItemSshAgentFiltersSummaryActive : L10n.prefItemSshAgentFiltersSummaryAll
+                            ? L10n.prefItemAgentFiltersSummaryActive : L10n.prefItemAgentFiltersSummaryAll
                     )
                     .font(.callout)
                     .foregroundStyle(.secondary)
@@ -579,7 +584,7 @@ struct DeveloperSettingsView: View {
             Button {
                 dialog = .history
             } label: {
-                Label(L10n.prefItemSshAgentHistoryTitle, systemImage: "clock.arrow.circlepath")
+                Label(L10n.prefItemAgentHistoryTitle, systemImage: "clock.arrow.circlepath")
             }
             .settingsSearchTarget(.sshHistory)
         }
@@ -650,7 +655,7 @@ struct WatchtowerSettingsView: View {
             } header: {
                 Text(L10n.prefItemHibpHeaderTitle)
             } footer: {
-                markdownText(L10n.watchtowerHibpAttributionText)
+                poweredByFooter("haveibeenpwned.com", url: KeyguardUrls.shared.HAVE_I_BEEN_PWNED)
             }
             Section {
                 Toggle(
@@ -661,7 +666,7 @@ struct WatchtowerSettingsView: View {
             } header: {
                 Text(L10n.tfaDirectoryTitle)
             } footer: {
-                markdownText(L10n.watchtower2faDirectoryAttributionText)
+                poweredByFooter("2fa.directory", url: KeyguardUrls.shared.TWO_FA_DIRECTORY)
             }
             Section {
                 Toggle(
@@ -672,7 +677,7 @@ struct WatchtowerSettingsView: View {
             } header: {
                 Text(L10n.passkeysDirectoryTitle)
             } footer: {
-                markdownText(L10n.watchtowerPasskeysDirectoryAttributionText)
+                poweredByFooter("passkeys.directory", url: KeyguardUrls.shared.PASSKEYS_DIRECTORY)
             }
         }
         .navigationTitle(item.title)
@@ -681,7 +686,10 @@ struct WatchtowerSettingsView: View {
             stop: { watchtowerModel.stopWatchtowerSettingsObservation() }
         )
         .sheet(isPresented: $editingToken) {
-            HibpTokenEditor(currentToken: s.hibpApiToken ?? "") { newToken in
+            HibpTokenEditor(
+                currentToken: s.hibpApiToken ?? "",
+                isValidToken: watchtowerModel.isValidHibpApiToken
+            ) { newToken in
                 _ = watchtowerModel.setHibpApiToken(newToken)
             }
         }
@@ -756,20 +764,15 @@ struct WatchtowerSettingsView: View {
 /// An empty token clears the key.
 private struct HibpTokenEditor: View {
     let currentToken: String
+    let isValidToken: @MainActor (String) -> Bool
     let onSave: (String) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var token: String = ""
 
-    private static let pattern = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{32}$")
-
     private var trimmed: String { token.trimmingCharacters(in: .whitespacesAndNewlines) }
 
-    private var isValid: Bool {
-        if trimmed.isEmpty { return true }
-        let range = NSRange(trimmed.startIndex..., in: trimmed)
-        return Self.pattern.firstMatch(in: trimmed, range: range) != nil
-    }
+    private var isValid: Bool { isValidToken(trimmed) }
 
     var body: some View {
         ModalSheet(
@@ -783,7 +786,7 @@ private struct HibpTokenEditor: View {
         ) {
             Form {
                 Section {
-                    TextField(L10n.prefItemHibpApiTokenPlaceholder, text: $token)
+                    TextField(L10n.prefItemHibpApiTokenFieldLabel, text: $token)
                         .font(.body.monospaced())
                         #if os(iOS)
                     .textInputAutocapitalization(.never)
@@ -794,7 +797,9 @@ private struct HibpTokenEditor: View {
                         Text(L10n.prefItemHibpApiTokenInputNote)
                         if !trimmed.isEmpty && !isValid {
                             Label(
-                                L10n.prefItemHibpApiTokenValidationError, systemImage: "exclamationmark.triangle"
+                                L10n.prefItemHibpApiTokenErrorPlural(
+                                    Int(KeyguardConstants.shared.HIBP_API_TOKEN_LENGTH)),
+                                systemImage: "exclamationmark.triangle"
                             )
                             .foregroundStyle(.red)
                         }

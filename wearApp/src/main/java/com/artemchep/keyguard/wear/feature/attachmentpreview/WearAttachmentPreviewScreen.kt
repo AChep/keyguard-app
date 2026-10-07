@@ -38,7 +38,6 @@ import com.artemchep.keyguard.res.attachment_preview_error_decryption
 import com.artemchep.keyguard.res.attachment_preview_error_image_decode
 import com.artemchep.keyguard.res.attachment_preview_error_network
 import com.artemchep.keyguard.res.attachment_preview_error_text_decode
-import com.artemchep.keyguard.res.attachment_preview_error_too_large
 import com.artemchep.keyguard.res.attachment_preview_error_unsupported_file
 import com.artemchep.keyguard.res.attachment_preview_error_unsupported_platform
 import com.artemchep.keyguard.res.error_failed_unknown

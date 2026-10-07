@@ -43,6 +43,7 @@ import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.navigationNextEntryOrNull
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.agent_title
 import com.artemchep.keyguard.res.gpg_keyserver_status_title
 import com.artemchep.keyguard.res.gpg_tools_header_title
 import com.artemchep.keyguard.res.gpg_tools_operation_decrypt_text
@@ -51,7 +52,7 @@ import com.artemchep.keyguard.res.gpg_tools_operation_sign_text
 import com.artemchep.keyguard.res.gpg_tools_operation_verify_text
 import com.artemchep.keyguard.res.pref_item_gpg_keyserver_search_text
 import com.artemchep.keyguard.res.pref_item_gpg_keyserver_search_title
-import com.artemchep.keyguard.res.settings_gpg_agent_header_title
+import com.artemchep.keyguard.res.protocol_gpg
 import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
@@ -136,7 +137,10 @@ private fun GpgToolsPickerScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Settings,
-                            contentDescription = stringResource(Res.string.settings_gpg_agent_header_title),
+                            contentDescription = stringResource(
+                                Res.string.agent_title,
+                                stringResource(Res.string.protocol_gpg),
+                            ),
                         )
                     }
                 },

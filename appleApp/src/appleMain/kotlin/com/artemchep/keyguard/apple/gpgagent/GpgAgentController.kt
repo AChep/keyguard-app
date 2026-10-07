@@ -224,8 +224,11 @@ internal class GpgAgentController(
         )
     }
 
-    private suspend fun startFailureText() =
-        textResource(Res.string.error_failed_gpg_agent_start, ctx.koin.get<LeContext>())
+    private suspend fun startFailureText(): String {
+        val context = ctx.koin.get<LeContext>()
+        val protocol = textResource(Res.string.protocol_gpg, context)
+        return textResource(Res.string.error_failed_agent_start, context, protocol)
+    }
 
     fun observeGpgAgentStatus(onChange: (GpgAgentStatusSnapshot) -> Unit): KeyguardCancellable =
         ctx.launchObserver {
@@ -307,8 +310,8 @@ internal class GpgAgentController(
     }
 
     private suspend fun approvalWindowTitle(duration: Duration, context: LeContext): String = when (duration) {
-        Duration.ZERO -> textResource(Res.string.pref_item_gpg_agent_approval_window_always_ask, context)
-        Duration.INFINITE -> textResource(Res.string.pref_item_gpg_agent_approval_window_until_lock, context)
+        Duration.ZERO -> textResource(Res.string.pref_item_agent_approval_window_always_ask, context)
+        Duration.INFINITE -> textResource(Res.string.pref_item_agent_approval_window_until_lock, context)
         else -> duration.format(context)
     }
 

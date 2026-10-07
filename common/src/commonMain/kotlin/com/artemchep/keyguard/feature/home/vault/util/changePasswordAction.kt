@@ -1286,6 +1286,9 @@ fun RememberStateFlowScope.cipherUnarchiveAction(
     )
 }
 
+/** Bitwarden deletes items that have been in the Trash for longer than this. */
+private const val BITWARDEN_TRASH_AUTO_DELETE_DAYS = 30
+
 fun RememberStateFlowScope.cipherTrashAction(
     confirmationRouteFactory: ConfirmationRouteFactory,
     trashCipherById: TrashCipherById,
@@ -1307,7 +1310,11 @@ fun RememberStateFlowScope.cipherTrashAction(
                 args = ConfirmationRoute.Args(
                     icon = icon(Icons.Outlined.Delete),
                     title = translate(Res.string.ciphers_action_trash_confirmation_title.wrap()),
-                    message = translate(Res.string.ciphers_action_trash_confirmation_text.wrap()),
+                    message = translate(
+                        Res.plurals.ciphers_action_trash_confirmation_text_plural,
+                        BITWARDEN_TRASH_AUTO_DELETE_DAYS,
+                        BITWARDEN_TRASH_AUTO_DELETE_DAYS,
+                    ),
                 ),
             ) { result ->
                 if (result is ConfirmationResult.Confirm) {

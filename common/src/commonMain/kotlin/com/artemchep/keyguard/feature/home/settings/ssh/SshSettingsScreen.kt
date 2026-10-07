@@ -15,7 +15,7 @@ import org.jetbrains.compose.resources.stringResource
 fun SshSettingsScreen() {
     val items = rememberSettingsSshItems()
     SettingPaneContent(
-        title = stringResource(Res.string.settings_ssh_agent_header_title),
+        title = stringResource(Res.string.agent_title, stringResource(Res.string.protocol_ssh)),
         items = items,
     )
 }

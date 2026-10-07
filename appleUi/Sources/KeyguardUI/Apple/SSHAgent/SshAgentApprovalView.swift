@@ -73,7 +73,7 @@ struct SshAgentApprovalView: View {
     }
 
     private var countdownText: String {
-        L10n.agentApprovalExpiresInText(L10n.secondsPlural(remainingSeconds))
+        L10n.agentApprovalExpiresInSecondsPlural(remainingSeconds)
     }
 
     private var content: some View {
@@ -83,7 +83,7 @@ struct SshAgentApprovalView: View {
                     .font(.largeTitle)
                     .foregroundStyle(.tint)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(L10n.sshAgentRequestApprovalSignTitle)
+                    Text(L10n.agentRequestApprovalSignTitle(L10n.protocolSsh))
                         .font(.headline)
                     Text(L10n.sshAgentApprovalSignText)
                         .font(.callout)

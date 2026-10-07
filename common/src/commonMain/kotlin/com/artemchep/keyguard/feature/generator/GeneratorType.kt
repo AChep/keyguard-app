@@ -85,7 +85,7 @@ sealed interface GeneratorType2 {
         override val key: String = "SSH_KEY"
         override val group: String = GENERATOR_TYPE_GROUP_KEY_PAIR
         override val title: TextHolder =
-            TextHolder.Res(Res.string.key_ssh)
+            TextHolder.Res(Res.string.cipher_type_ssh_key)
         override val sshKey: Boolean = true
     }
 
@@ -93,7 +93,7 @@ sealed interface GeneratorType2 {
         override val key: String = "GPG_KEY"
         override val group: String = GENERATOR_TYPE_GROUP_KEY_PAIR
         override val title: TextHolder =
-            TextHolder.Res(Res.string.key_gpg)
+            TextHolder.Res(Res.string.cipher_type_gpg_key)
         override val gpgKey: Boolean = true
     }
 }

@@ -121,6 +121,8 @@ data class GpgPublicKeyInfo(
     val renewal: GpgRenewalAuthorization = GpgRenewalAuthorization.NONE,
     /** Policy-authenticated textual User IDs paired with their stable packet identifiers. */
     val userIdDetails: List<GpgUserIdInfo> = emptyList(),
+    /** Distinct digest names from verified renewal-only self-signatures; display metadata only. */
+    val weakSelfSignatureAlgorithms: List<String> = emptyList(),
 ) {
     /** The parser accepts only v4 and v6; a v6 fingerprint has 32 bytes. */
     val canRevokeLastIdentity: Boolean
@@ -140,6 +142,8 @@ data class GpgPublicSubKeyInfo(
     val expiresAt: Instant?,
     /** See [GpgPublicKeyInfo.authenticated]. */
     val authenticated: Boolean = true,
+    /** Distinct digest names from verified renewal-only bindings; display metadata only. */
+    val weakSelfSignatureAlgorithms: List<String> = emptyList(),
 )
 
 /**

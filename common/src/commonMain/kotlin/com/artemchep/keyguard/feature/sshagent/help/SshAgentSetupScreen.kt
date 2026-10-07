@@ -94,7 +94,7 @@ fi"""
 @Composable
 fun SshAgentSetupScreen() {
     AgentSetupScaffold(
-        title = stringResource(Res.string.ssh_agent_setup_header_title),
+        title = stringResource(Res.string.agent_setup_title, stringResource(Res.string.protocol_ssh)),
     ) {
         SshAgentSetupScreenContent()
     }

@@ -111,8 +111,14 @@ suspend fun RememberStateFlowScope.gpgAgentHistoryStateProducer(
         val intent = createConfirmationDialogIntent(
             confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
-            title = translate(Res.string.gpg_agent_history_clear_history_confirmation_title),
-            message = translate(Res.string.gpg_agent_history_clear_history_confirmation_text),
+            title = translate(
+                Res.string.agent_history_clear_history_confirmation_title,
+                translate(Res.string.protocol_gpg),
+            ),
+            message = translate(
+                Res.string.agent_history_clear_history_confirmation_text,
+                translate(Res.string.protocol_gpg),
+            ),
         ) {
             removeGpgUsageHistory()
                 .launchIn(appScope)
@@ -128,7 +134,7 @@ suspend fun RememberStateFlowScope.gpgAgentHistoryStateProducer(
                 persistentListOf(
                     FlatItemAction(
                         leading = icon(Icons.Outlined.Delete),
-                        title = Res.string.gpg_agent_history_clear_history_title.wrap(),
+                        title = Res.string.agent_history_clear_history_title.wrap(),
                         onClick = onClick {
                             onDeleteAll()
                         },
@@ -216,7 +222,7 @@ private suspend fun TranslatorScope.toItem(
         json = json,
     )
     val callerText = callerInfo?.primaryLabel
-        ?: translate(Res.string.gpg_agent_history_unknown_caller)
+        ?: translate(Res.string.agent_history_unknown_caller)
 
     val fingerprintText = event.fingerprint
         ?.takeIf { it.isNotBlank() }
@@ -224,7 +230,7 @@ private suspend fun TranslatorScope.toItem(
         cipher != null -> cipher.name
         event.request == GpgUsageHistoryRequestType.AGENT_LIST_KEYS -> null
 
-        else -> translate(Res.string.gpg_agent_history_unknown_key)
+        else -> translate(Res.string.agent_history_unknown_key)
     }
     val formattedDate = dateFormatter.formatDateTime(event.instant)
     val details = buildList {
@@ -252,7 +258,7 @@ private suspend fun TranslatorScope.toItem(
 
 private suspend fun TranslatorScope.title(request: GpgUsageHistoryRequestType): String = when (request) {
     GpgUsageHistoryRequestType.AGENT_LIST_KEYS ->
-        translate(Res.string.gpg_agent_history_request_list_keys)
+        translate(Res.string.agent_history_request_list_keys)
 
     GpgUsageHistoryRequestType.AGENT_SIGN_HASH ->
         translate(Res.string.gpg_agent_history_request_sign_hash)
@@ -266,22 +272,22 @@ private suspend fun TranslatorScope.title(request: GpgUsageHistoryRequestType): 
 
 private suspend fun TranslatorScope.title(response: GpgUsageHistoryResponseType): String = when (response) {
     GpgUsageHistoryResponseType.SUCCESS ->
-        translate(Res.string.gpg_agent_history_response_success)
+        translate(Res.string.agent_history_response_success)
 
     GpgUsageHistoryResponseType.USER_DENIED ->
-        translate(Res.string.gpg_agent_history_response_user_denied)
+        translate(Res.string.agent_history_response_user_denied)
 
     GpgUsageHistoryResponseType.KEY_NOT_FOUND ->
-        translate(Res.string.gpg_agent_history_response_key_not_found)
+        translate(Res.string.agent_history_response_key_not_found)
 
     GpgUsageHistoryResponseType.VAULT_LOCKED ->
-        translate(Res.string.gpg_agent_history_response_vault_locked)
+        translate(Res.string.agent_history_response_vault_locked)
 
     GpgUsageHistoryResponseType.UNSUPPORTED ->
         translate(Res.string.gpg_agent_history_response_unsupported)
 
     GpgUsageHistoryResponseType.FAILURE ->
-        translate(Res.string.gpg_agent_history_response_failure)
+        translate(Res.string.agent_history_response_failure)
 
     GpgUsageHistoryResponseType.UNKNOWN ->
         translate(Res.string.cipher_type_unknown)

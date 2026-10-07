@@ -154,7 +154,7 @@ struct NavStackContainer<Content: View>: View {
                     cipherId: entry.sshAgentHistoryCipherId, makeSession: sshAgentModel.makeHistorySession
                 )
                 .id(entry.instanceId)
-                .navigationTitle(L10n.sshAgentHistoryHeaderTitle)
+                .navigationTitle(L10n.agentHistoryHeaderTitle(L10n.protocolSsh))
             } else if entry.kind == ScreenEntryKind.sendDetail {
                 SendDetailScreen(
                     target: ItemDetailTarget(itemId: entry.sendId ?? "", accountId: entry.sendAccountId ?? ""),

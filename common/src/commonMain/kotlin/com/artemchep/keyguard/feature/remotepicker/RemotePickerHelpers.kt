@@ -86,4 +86,4 @@ internal fun isRemotePickerFileSelectable(
             fileName.endsWith(KEEPASS_DATABASE_EXTENSION, ignoreCase = true)
 
 internal const val DEFAULT_REMOTE_PICKER_DATABASE_NAME = "database.kdbx"
-internal const val KEEPASS_DATABASE_EXTENSION = ".kdbx"
+const val KEEPASS_DATABASE_EXTENSION = ".kdbx"

@@ -15,7 +15,8 @@ import com.artemchep.keyguard.feature.sshagent.SshAgentApprovalContent
 import com.artemchep.keyguard.feature.sshagent.SshAgentGetListContent
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.ssh_agent
+import com.artemchep.keyguard.res.agent_title
+import com.artemchep.keyguard.res.protocol_ssh
 import com.artemchep.keyguard.res.ssh_client_request
 import org.jetbrains.compose.resources.stringResource
 
@@ -28,7 +29,7 @@ internal fun ApplicationScope.SshRequestWindow(
     AgentRequestWindow(
         processLifecycleProvider = processLifecycleProvider,
         requestUiState = sshAgentRequestUiState,
-        title = stringResource(Res.string.ssh_agent),
+        title = stringResource(Res.string.agent_title, stringResource(Res.string.protocol_ssh)),
         authReason = TextHolder.Res(Res.string.ssh_client_request),
         focusTag = "SshRequestWindow",
         vaultStateEffect = { vaultState, request, onDismiss ->

@@ -209,14 +209,25 @@ fn policy_inactive_template_acceptable(signature: &Signature, reference_time: u6
 }
 
 /// Returns whether the signature uses a hash algorithm covered by Keyguard's
-/// deliberate weak-hash compatibility policy. MD5 is unconditionally
-/// unsupported even when the crypto backend can verify it; unknown and
-/// unimplemented hashes are excluded as well.
+/// deliberate weak-hash compatibility policy.
 fn legacy_hash_algorithm(signature: &Signature) -> bool {
-    matches!(
-        signature.config().map(|config| config.hash_alg),
-        Some(HashAlgorithm::Sha1 | HashAlgorithm::Ripemd160)
-    )
+    signature
+        .config()
+        .is_some_and(|config| legacy_hash_display_name(config.hash_alg).is_some())
+}
+
+/// Returns the display name of a hash algorithm covered by Keyguard's
+/// deliberate weak-hash compatibility policy, or `None` for any other hash.
+/// MD5 is unconditionally unsupported even when the crypto backend can verify
+/// it; unknown and unimplemented hashes are excluded as well.
+pub(in crate::openpgp) const fn legacy_hash_display_name(
+    hash_algorithm: HashAlgorithm,
+) -> Option<&'static str> {
+    match hash_algorithm {
+        HashAlgorithm::Sha1 => Some("SHA-1"),
+        HashAlgorithm::Ripemd160 => Some("RIPEMD-160"),
+        _ => None,
+    }
 }
 
 /// Returns whether a verified Direct Key self-signature may declare a

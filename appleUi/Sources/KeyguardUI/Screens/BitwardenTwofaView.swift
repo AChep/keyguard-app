@@ -212,7 +212,9 @@ struct BitwardenTwofaView: View {
     private var fallbackCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(
-                L10n.addaccount2faMethodUnsupportedMacosText(twofa.fallbackTitle ?? L10n.addaccount2faMethodOtherTitle)
+                L10n.addaccount2faMethodUnsupportedPlatformText(
+                    twofa.fallbackTitle ?? L10n.addaccount2faMethodOtherTitle
+                )
             )
             .font(.headline)
             Text(L10n.addaccount2faMethodWebVaultNote)

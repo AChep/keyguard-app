@@ -68,7 +68,7 @@ git config --local gpg.program "$gpgProgram""""
 @Composable
 fun GpgAgentSetupScreen() {
     AgentSetupScaffold(
-        title = stringResource(Res.string.gpg_agent_setup_header_title),
+        title = stringResource(Res.string.agent_setup_title, stringResource(Res.string.protocol_gpg)),
     ) {
         GpgAgentSetupScreenContent()
     }

@@ -30,7 +30,7 @@ import com.artemchep.keyguard.res.ipc_operation_openpgp_encrypt
 import com.artemchep.keyguard.res.ipc_operation_openpgp_get_key
 import com.artemchep.keyguard.res.ipc_operation_openpgp_get_key_ids
 import com.artemchep.keyguard.res.ipc_operation_openpgp_get_sign_key
-import com.artemchep.keyguard.res.ipc_operation_openpgp_other
+import com.artemchep.keyguard.res.ipc_operation_other
 import com.artemchep.keyguard.res.ipc_operation_openpgp_sign_and_encrypt
 import org.jetbrains.compose.resources.StringResource
 import org.openintents.openpgp.OpenPgpDecryptionResult
@@ -339,7 +339,7 @@ internal fun openPgpOperationName(action: String): StringResource = when (action
     OpenPgpApi.ACTION_GET_KEY_IDS -> Res.string.ipc_operation_openpgp_get_key_ids
     OpenPgpApi.ACTION_QUERY_AUTOCRYPT_STATUS -> Res.string.ipc_operation_openpgp_autocrypt_status
     OpenPgpApi.ACTION_GET_KEY -> Res.string.ipc_operation_openpgp_get_key
-    else -> Res.string.ipc_operation_openpgp_other
+    else -> Res.string.ipc_operation_other
 }
 
 internal fun openPgpSuccess(

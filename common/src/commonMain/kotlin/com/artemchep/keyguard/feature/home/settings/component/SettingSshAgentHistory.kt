@@ -79,7 +79,7 @@ private fun SettingSshAgentHistory(
         badge = count.toString(),
         title = {
             Text(
-                text = stringResource(Res.string.pref_item_ssh_agent_history_title),
+                text = stringResource(Res.string.pref_item_agent_history_title),
             )
         },
         trailing = {

@@ -11,7 +11,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.nativecrypto.isValidOpenPgpUserId
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.gpg_user_id_replacement_duplicate_message
-import com.artemchep.keyguard.res.gpg_user_id_replacement_invalid_message
+import com.artemchep.keyguard.res.gpg_user_id_replacement_invalid_message_with_limit
 import com.artemchep.keyguard.res.gpg_user_id_replacement_same_identity_message
 import com.artemchep.keyguard.res.gpg_user_id_replacement_value_hint
 import kotlinx.coroutines.flow.Flow
@@ -43,7 +43,7 @@ internal suspend fun RememberStateFlowScope.gpgUserIdReplacementStateProducer(
     )
     val hint = translate(Res.string.gpg_user_id_replacement_value_hint)
     val errorTexts = GpgUserIdReplacementError.entries.associateWith { error ->
-        translate(gpgUserIdReplacementErrorResource(error))
+        translateGpgUserIdReplacementMessage(gpgUserIdReplacementErrorResource(error))
     }
 
     return valueHandle.sink.map { cell ->
@@ -125,7 +125,7 @@ internal fun gpgUserIdReplacementErrorResource(
     error: GpgUserIdReplacementError,
 ): StringResource = when (error) {
     GpgUserIdReplacementError.InvalidFormat ->
-        Res.string.gpg_user_id_replacement_invalid_message
+        Res.string.gpg_user_id_replacement_invalid_message_with_limit
 
     GpgUserIdReplacementError.SameIdentity ->
         Res.string.gpg_user_id_replacement_same_identity_message

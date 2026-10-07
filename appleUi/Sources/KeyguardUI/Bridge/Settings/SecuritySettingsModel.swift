@@ -5,6 +5,9 @@ import KeyguardShared
 @MainActor
 @Observable
 final class SecuritySettingsModel: SnapshotObserving {
+    /// The challenge-response slot most YubiKeys use.
+    nonisolated static let defaultYubiKeySlot = 2
+
     private let core: KeyguardCore
 
     init(core: KeyguardCore) {
@@ -53,7 +56,9 @@ final class SecuritySettingsModel: SnapshotObserving {
 
     func setFido2Unlock(_ value: Bool) { core.setFido2Unlock(value: value) }
 
-    func setYubiKeyUnlock(_ value: Bool, slot: Int = 2, provision: Bool = false, overwrite: Bool = false) {
+    func setYubiKeyUnlock(
+        _ value: Bool, slot: Int = defaultYubiKeySlot, provision: Bool = false, overwrite: Bool = false
+    ) {
         core.setYubiKeyUnlock(value: value, slot: Int32(slot), provision: provision, overwrite: overwrite)
     }
     func inspectYubiKeySlot(_ slot: Int) async -> Bool? {

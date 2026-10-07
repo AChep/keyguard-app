@@ -182,7 +182,7 @@ final class GpgToolsModel {
         }
         guard let destination = URL(string: request.destinationUri), destination.isFileURL else {
             source.resolveGpgToolsFilePicker(id: request.id, name: nil, size: -1)
-            gpgToolsError = L10n.gpgKeyImportErrorRead
+            gpgToolsError = L10n.keyImportErrorRead
             refreshGpgToolsNativeBusy()
             return
         }
@@ -266,7 +266,7 @@ final class GpgToolsModel {
                 if let value { gpgToolsOriginalURLs.append(value.originalURL) }
             case .failure(let error):
                 if !isGpgToolsCancellation(error) {
-                    gpgToolsError = gpgToolsFileError(error, fallback: L10n.gpgKeyImportErrorRead)
+                    gpgToolsError = gpgToolsFileError(error, fallback: L10n.keyImportErrorRead)
                 }
             }
         }

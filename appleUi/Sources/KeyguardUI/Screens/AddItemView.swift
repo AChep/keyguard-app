@@ -655,13 +655,16 @@ private struct AddItemRow: View {
     @ViewBuilder
     private func keyActionButtons(isGpg: Bool) -> some View {
         Button(
-            isGpg ? L10n.additemGpgKeyGenerateTitle : L10n.additemSshKeyGenerateTitle, systemImage: "arrow.clockwise"
+            L10n.additemKeyGenerateTitle(isGpg ? L10n.protocolGpg : L10n.protocolSsh), systemImage: "arrow.clockwise"
         ) {
             addItemModel.startKeyGenerator(item: item)
         }
         .labelStyle(.titleAndIcon)
         if let importAction = item.actions.first {
-            Button(isGpg ? L10n.gpgKeyImportTitle : L10n.additemKeyImportTitle, systemImage: "square.and.arrow.down") {
+            Button(
+                isGpg ? L10n.keyImportTitle(L10n.protocolGpg) : L10n.additemKeyImportTitle,
+                systemImage: "square.and.arrow.down"
+            ) {
                 addItemModel.invokeAddAction(id: importAction.id)
             }
             .labelStyle(.titleAndIcon)

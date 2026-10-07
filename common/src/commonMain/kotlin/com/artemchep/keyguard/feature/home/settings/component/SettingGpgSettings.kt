@@ -73,7 +73,7 @@ private fun SettingGpgSettings(
         icon = Icons.Outlined.KeyguardGpgKey,
         title = {
             Text(
-                text = stringResource(Res.string.pref_item_gpg_agent_title),
+                text = stringResource(Res.string.agent_title, stringResource(Res.string.protocol_gpg)),
             )
         },
         trailing = {

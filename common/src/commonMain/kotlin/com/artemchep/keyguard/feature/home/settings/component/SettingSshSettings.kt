@@ -73,7 +73,7 @@ private fun SettingSshSettings(
         icon = Icons.Outlined.KeyguardSshKey,
         title = {
             Text(
-                text = stringResource(Res.string.pref_item_ssh_agent_title),
+                text = stringResource(Res.string.agent_title, stringResource(Res.string.protocol_ssh)),
             )
         },
         trailing = {

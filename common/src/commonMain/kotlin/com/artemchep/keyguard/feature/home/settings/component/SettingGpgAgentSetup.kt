@@ -66,7 +66,7 @@ private fun SettingGpgAgentSetup(
         trailing = {
             ChevronIcon()
         },
-        title = stringResource(Res.string.pref_item_gpg_agent_setup_title),
+        title = stringResource(Res.string.agent_setup_title, stringResource(Res.string.protocol_gpg)),
         onClick = onClick,
     )
 }

@@ -1318,8 +1318,13 @@ private fun GpgPublicKeyParseResult.withCanonicalArmorForComparison(): GpgPublic
                     keys.map { key ->
                         key.copy(
                             publicKeyArmored = key.publicKeyArmored.canonicalGpgArmorForComparison(),
+                            subKeys =
+                                key.subKeys.map { subKey ->
+                                    subKey.copy(weakSelfSignatureAlgorithms = emptyList())
+                                },
                             renewal = GpgRenewalAuthorization.NONE,
                             userIdDetails = emptyList(),
+                            weakSelfSignatureAlgorithms = emptyList(),
                         )
                     },
             )

@@ -21,10 +21,10 @@ import com.artemchep.keyguard.common.service.backup.BackupConfig
 import com.artemchep.keyguard.common.service.backup.BackupRunProgress
 import com.artemchep.keyguard.common.service.backup.BackupRunProgressDetails
 import com.artemchep.keyguard.common.service.backup.BackupRunService
-import com.artemchep.keyguard.common.service.backup.BackupStep
 import com.artemchep.keyguard.di.KeyguardKoinOwner
 import com.artemchep.keyguard.di.keyguardKoin
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
+import com.artemchep.keyguard.feature.home.settings.backups.titleRes
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import java.util.concurrent.TimeUnit
@@ -135,40 +135,17 @@ class BackupWorker(
     }
 
     private suspend fun BackupRunProgress.notificationText(): String {
-        val step = step.notificationText()
+        val step = getString(step.titleRes())
         val details = details.notificationText()
         return if (details != null) {
-            "$step - $details"
+            getString(
+                Res.string.backup_step_with_progress,
+                step,
+                details,
+            )
         } else {
             step
         }
-    }
-
-    private suspend fun BackupStep.notificationText(): String = when (this) {
-        BackupStep.Preparing -> getString(
-            Res.string.notification_vault_backup_step_preparing,
-        )
-        BackupStep.OpeningRepository -> getString(
-            Res.string.notification_vault_backup_step_opening_repository,
-        )
-        BackupStep.ExportingVault -> getString(
-            Res.string.notification_vault_backup_step_exporting_vault,
-        )
-        BackupStep.ScanningAttachments -> getString(
-            Res.string.notification_vault_backup_step_scanning_attachments,
-        )
-        BackupStep.BackingUpAttachments -> getString(
-            Res.string.notification_vault_backup_step_backing_up_attachments,
-        )
-        BackupStep.WritingIndex -> getString(
-            Res.string.notification_vault_backup_step_writing_index,
-        )
-        BackupStep.WritingSnapshot -> getString(
-            Res.string.notification_vault_backup_step_writing_snapshot,
-        )
-        BackupStep.ApplyingRetention -> getString(
-            Res.string.notification_vault_backup_step_applying_retention,
-        )
     }
 
     private suspend fun BackupRunProgressDetails.notificationText(): String? {
@@ -182,7 +159,7 @@ class BackupWorker(
                 ?.let(::humanReadableByteCountSI)
                 ?: "--"
             return getString(
-                Res.string.notification_vault_backup_progress_bytes,
+                Res.string.backup_progress_bytes,
                 downloadedText,
                 totalText,
             )
@@ -192,7 +169,7 @@ class BackupWorker(
         val items = itemsTotal
         return if (processed != null && items != null && items > 0) {
             getString(
-                Res.string.notification_vault_backup_progress_items,
+                Res.string.backup_progress_items,
                 processed,
                 items,
             )

@@ -81,7 +81,7 @@ private fun SettingGpgAgentFilters(
         icon = Icons.Outlined.KeyguardCipherFilter,
         title = {
             Text(
-                text = stringResource(Res.string.pref_item_gpg_agent_filters_title),
+                text = stringResource(Res.string.agent_filters_title, stringResource(Res.string.protocol_gpg)),
             )
         },
         text = {
@@ -89,9 +89,9 @@ private fun SettingGpgAgentFilters(
                 Text(
                     text = stringResource(
                         if (active) {
-                            Res.string.pref_item_gpg_agent_filters_summary_active
+                            Res.string.pref_item_agent_filters_summary_active
                         } else {
-                            Res.string.pref_item_gpg_agent_filters_summary_all
+                            Res.string.pref_item_agent_filters_summary_all
                         },
                     ),
                 )
@@ -103,7 +103,10 @@ private fun SettingGpgAgentFilters(
                     color = LocalContentColor.current
                         .combineAlpha(MediumEmphasisAlpha),
                     style = MaterialTheme.typography.bodySmall,
-                    text = stringResource(Res.string.pref_item_gpg_agent_filters_text),
+                    text = stringResource(
+                        Res.string.pref_item_agent_filters_text,
+                        stringResource(Res.string.protocol_gpg),
+                    ),
                 )
             }
         },

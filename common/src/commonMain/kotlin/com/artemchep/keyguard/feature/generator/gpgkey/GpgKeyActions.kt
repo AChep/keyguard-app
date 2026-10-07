@@ -33,19 +33,19 @@ object GpgKeyActions {
             section {
                 this += copyItemFactory.FlatItemAction(
                     id = "gpgKey.copyPublicKey",
-                    title = Res.string.copy_gpg_public_key.wrap(),
+                    title = Res.string.copy_public_key.wrap(),
                     value = gpgKey.publicKeyArmored,
                     type = CopyText.Type.PUBLIC_KEY,
                 )
                 this += copyItemFactory.FlatItemAction(
                     id = "gpgKey.copyFingerprint",
-                    title = Res.string.copy_gpg_fingerprint.wrap(),
+                    title = Res.string.copy_fingerprint.wrap(),
                     value = gpgKey.fingerprint,
                     type = CopyText.Type.FINGERPRINT,
                 )
                 this += copyItemFactory.FlatItemAction(
                     id = "gpgKey.copyPrivateKey",
-                    title = Res.string.copy_gpg_unencrypted_private_key.wrap(),
+                    title = Res.string.copy_unencrypted_private_key.wrap(),
                     value = gpgKey.privateKeyArmored,
                     type = CopyText.Type.PRIVATE_KEY,
                     hidden = true,
@@ -86,12 +86,12 @@ object GpgKeyActions {
         FlatItemAction(
             id = "gpgKey.savePublicKey",
             leading = icon(Icons.Outlined.Save),
-            title = Res.string.gpg_key_action_save_public_key_title.wrap(),
+            title = Res.string.key_action_save_public_key_title.wrap(),
             onClick = {
                 publicKeyExport(request)
                     .effectTap { uri ->
                         sendSuccessMessage(
-                            title = Res.string.gpg_key_action_save_public_key_saved_downloads_success_title,
+                            title = Res.string.key_action_save_public_key_saved_downloads_success_title,
                             uri = uri,
                         )
                     }
@@ -108,12 +108,12 @@ object GpgKeyActions {
         FlatItemAction(
             id = "gpgKey.savePrivateKey",
             leading = icon(Icons.Outlined.Save),
-            title = Res.string.gpg_key_action_save_unencrypted_private_key_title.wrap(),
+            title = Res.string.key_action_save_unencrypted_private_key_title.wrap(),
             onClick = {
                 privateKeyExport(request)
                     .effectTap { uri ->
                         sendSuccessMessage(
-                            title = Res.string.gpg_key_action_save_unencrypted_private_key_saved_downloads_success_title,
+                            title = Res.string.key_action_save_unencrypted_private_key_saved_downloads_success_title,
                             uri = uri,
                         )
                     }
@@ -130,12 +130,12 @@ object GpgKeyActions {
         FlatItemAction(
             id = "gpgKey.saveKeys",
             leading = icon(Icons.Outlined.Save),
-            title = Res.string.gpg_key_action_save_unencrypted_keys_title.wrap(),
+            title = Res.string.key_action_save_unencrypted_keys_title.wrap(),
             onClick = {
                 gpgKeyExport(request)
                     .effectTap { uri ->
                         sendSuccessMessage(
-                            title = Res.string.gpg_key_action_save_unencrypted_keys_saved_downloads_success_title,
+                            title = Res.string.key_action_save_unencrypted_keys_saved_downloads_success_title,
                             uri = uri,
                         )
                     }

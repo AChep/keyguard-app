@@ -30,11 +30,14 @@ fun validatePassword(
     }
 }
 
-suspend fun ValidationPassword.format(scope: TranslatorScope): String? =
+suspend fun ValidationPassword.format(
+    scope: TranslatorScope,
+    minLength: Int = ValidationPassword.Const.MIN_LENGTH,
+): String? =
     when (this) {
         ValidationPassword.ERROR_MIN_LENGTH -> scope.translate(
             res = Res.string.error_must_have_at_least_n_symbols,
-            ValidationPassword.Const.MIN_LENGTH,
+            minLength,
         )
 
         else -> null
@@ -48,7 +51,10 @@ suspend fun TranslatorScope.validatedPassword(
         password = password,
         minLength = minLength,
     )
-        .format(this)
+        .format(
+            scope = this,
+            minLength = minLength,
+        )
     return if (passwordError != null) {
         Validated.Failure(
             model = password,

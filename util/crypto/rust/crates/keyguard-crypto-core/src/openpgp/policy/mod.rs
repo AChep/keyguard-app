@@ -23,7 +23,7 @@ pub(in crate::openpgp) use crate::openpgp::{
 };
 pub(in crate::openpgp) use acceptance::{
     authentication_signature_acceptable, data_signature_acceptable, is_legacy_weak_hash,
-    signature_expired, signature_issuer_consistent,
+    legacy_hash_display_name, signature_expired, signature_issuer_consistent,
 };
 pub(in crate::openpgp) use budget::{DesignatedRevokerId, OpenPgpPolicyBudget, OpenPgpPolicyError};
 pub(in crate::openpgp) use evaluation::{

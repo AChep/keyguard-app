@@ -115,7 +115,7 @@ public struct MenuBarPopover: View {
             unlockedContent
         case .locked:
             lockedState(
-                title: L10n.sshAgentHistoryResponseVaultLocked,
+                title: L10n.agentHistoryResponseVaultLocked,
                 message: L10n.menuBarUnlockVaultHint
             )
         case .needsCreate:

@@ -40,8 +40,8 @@ internal class StaticDataController(
             appInformation = AppInformationController(ctx).loadAppInformation(),
         )
         SettingsSearchIndex(
-            entries = SettingsSearchCatalog.entries(categories, capabilities, biometricTitle) {
-                textResource(it, context)
+            entries = SettingsSearchCatalog.entries(categories, capabilities, biometricTitle) { res, args ->
+                textResource(res, context, *args.toTypedArray())
             },
             localeIdentifier = localeIdentifier,
         )

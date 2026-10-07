@@ -158,13 +158,13 @@ private fun RememberStateFlowScope.toItem(
         dropdown = buildContextItems {
             section {
                 this += copyText.FlatItemAction(
-                    title = Res.string.copy_gpg_fingerprint.wrap(),
+                    title = Res.string.copy_fingerprint.wrap(),
                     value = fingerprint.takeIf { it.isNotBlank() },
                     type = CopyText.Type.FINGERPRINT,
                 )
                 this += FlatItemAction(
                     leading = icon(Icons.Outlined.ContentCopy),
-                    title = Res.string.copy_gpg_public_key.wrap(),
+                    title = Res.string.copy_public_key.wrap(),
                     type = FlatItemAction.Type.COPY,
                     onClick = onClick {
                         copyPublicKey(

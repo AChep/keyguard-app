@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.common.service.hibp.HIBP_API_TOKEN_REGEX
 import com.artemchep.keyguard.common.usecase.CheckHibpApiToken
 import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
@@ -53,8 +54,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.compose.resources.StringResource
 import org.koin.core.scope.Scope
-
-private val HIBP_API_TOKEN_REGEX = Regex("^[0-9a-fA-F]{32}$")
 
 internal class WatchtowerController(
     private val ctx: CoreContext,

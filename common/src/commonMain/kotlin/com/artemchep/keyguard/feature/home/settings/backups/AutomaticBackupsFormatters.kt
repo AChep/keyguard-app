@@ -7,11 +7,13 @@ import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.artemchep.keyguard.common.service.backup.BackupRetention
+import com.artemchep.keyguard.common.service.backup.BackupStep
 import com.artemchep.keyguard.common.service.backup.BackupStoreConfig
 import com.artemchep.keyguard.feature.s3.locationUriOrNull
 import com.artemchep.keyguard.feature.s3.s3EndpointHostOrNull
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -24,6 +26,17 @@ internal fun retentionText(
         Res.string.pref_item_automatic_backups_retention_value,
         snapshots,
     )
+}
+
+internal fun BackupStep.titleRes(): StringResource = when (this) {
+    BackupStep.Preparing -> Res.string.backup_step_preparing
+    BackupStep.OpeningRepository -> Res.string.backup_step_opening_repository
+    BackupStep.ExportingVault -> Res.string.backup_step_exporting_vault
+    BackupStep.ScanningAttachments -> Res.string.backup_step_scanning_attachments
+    BackupStep.BackingUpAttachments -> Res.string.backup_step_backing_up_attachments
+    BackupStep.WritingIndex -> Res.string.backup_step_writing_index
+    BackupStep.WritingSnapshot -> Res.string.backup_step_writing_snapshot
+    BackupStep.ApplyingRetention -> Res.string.backup_step_applying_retention
 }
 
 @Composable

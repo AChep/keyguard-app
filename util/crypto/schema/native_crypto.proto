@@ -551,6 +551,9 @@ message OpenPgpPublicSubKeyInfo {
   // hash algorithm below policy: the subkey authorizes nothing, but renewal can
   // reissue its binding with a modern hash.
   bool authenticated = 11;
+  // Distinct digest names from verified renewal-only binding signatures.
+  // Display metadata only; these signatures never authenticate the component.
+  repeated string weak_self_signature_algorithms = 12;
 }
 
 message OpenPgpPublicKeyInfo {
@@ -584,6 +587,9 @@ message OpenPgpPublicKeyInfo {
   // key is revoked). Subkeys carry no such field: an unauthenticated subkey is
   // only reported when it is template-renewable, so the state cannot arise.
   OpenPgpRenewalAuthorization renewal = 19;
+  // Distinct digest names from verified renewal-only direct signatures and
+  // identity certifications. Empty when no such metadata is available.
+  repeated string weak_self_signature_algorithms = 20;
 }
 
 message OpenPgpUserIdInfo {

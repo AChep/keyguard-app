@@ -1009,7 +1009,11 @@ private fun buildItemsFlow(
 
     val serverVersion = profile?.serverVersion
     if (!serverVersion.isNullOrBlank()) {
-        val versionText = scope.translate(Res.string.database_version, serverVersion)
+        val versionRes = when (account?.type) {
+            AccountType.KEEPASS -> Res.string.database_version
+            AccountType.BITWARDEN, null -> Res.string.server_version
+        }
+        val versionText = scope.translate(versionRes, serverVersion)
         val versionItem = VaultViewItem.Label(
             id = "version_server",
             text = AnnotatedString(versionText),

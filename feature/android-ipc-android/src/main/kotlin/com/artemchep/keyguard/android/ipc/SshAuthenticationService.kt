@@ -25,7 +25,7 @@ import com.artemchep.keyguard.nativecrypto.NativeSshPublicKey
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ipc_operation_ssh_get_public_key
 import com.artemchep.keyguard.res.ipc_operation_ssh_get_ssh_public_key
-import com.artemchep.keyguard.res.ipc_operation_ssh_other
+import com.artemchep.keyguard.res.ipc_operation_other
 import com.artemchep.keyguard.res.ipc_operation_ssh_select_key
 import com.artemchep.keyguard.res.ipc_operation_ssh_sign
 import com.artemchep.keyguard.res.ipc_protocol_ssh
@@ -614,7 +614,7 @@ private fun operationName(action: String): StringResource = when (action) {
         Res.string.ipc_operation_ssh_get_ssh_public_key
 
     SshAuthenticationApi.ACTION_SIGN -> Res.string.ipc_operation_ssh_sign
-    else -> Res.string.ipc_operation_ssh_other
+    else -> Res.string.ipc_operation_other
 }
 
 private fun sshInteractionRequired(

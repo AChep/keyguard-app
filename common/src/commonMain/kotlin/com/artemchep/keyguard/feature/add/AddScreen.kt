@@ -904,7 +904,10 @@ private fun SshKeyField(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.FileUpload,
-                        contentDescription = stringResource(Res.string.ssh_key_import_title),
+                        contentDescription = stringResource(
+                            Res.string.key_import_title,
+                            stringResource(Res.string.protocol_ssh),
+                        ),
                     )
                 }
             },
@@ -990,7 +993,10 @@ private fun GpgKeyField(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.FileUpload,
-                            contentDescription = stringResource(Res.string.gpg_key_import_title),
+                            contentDescription = stringResource(
+                                Res.string.key_import_title,
+                                stringResource(Res.string.protocol_gpg),
+                            ),
                         )
                     }
                 },

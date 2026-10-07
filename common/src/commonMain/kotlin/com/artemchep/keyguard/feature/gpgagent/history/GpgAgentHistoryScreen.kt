@@ -151,14 +151,14 @@ private fun ToolbarTitle(
             maxLines = 2,
         )
         Text(
-            text = stringResource(Res.string.gpg_agent_history_header_title),
+            text = stringResource(Res.string.agent_history_header_title, stringResource(Res.string.protocol_gpg)),
             style = MaterialTheme.typography.titleMedium,
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
         )
     } else {
         Text(
-            text = stringResource(Res.string.gpg_agent_history_header_title),
+            text = stringResource(Res.string.agent_history_header_title, stringResource(Res.string.protocol_gpg)),
         )
     }
 }

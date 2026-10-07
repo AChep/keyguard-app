@@ -1,4 +1,5 @@
 import Foundation
+import KeyguardShared
 
 /// Maps an `S3FormError` name from the Kotlin bridge to its message.
 func s3ErrorMessage(_ kind: String?) -> String? {
@@ -16,7 +17,7 @@ func s3ErrorMessage(_ kind: String?) -> String? {
     case "KeyInvalid":
         return L10n.errorS3KeyInvalid
     case "KeyExtensionRequired":
-        return L10n.errorS3KeyExtension(".kdbx")
+        return L10n.errorS3KeyExtension(KeyguardConstants.shared.KEEPASS_DATABASE_EXTENSION)
     case "AccessKeyIdRequired":
         return L10n.errorS3AccessKeyIdRequired
     case "AccessKeyIdInvalid":

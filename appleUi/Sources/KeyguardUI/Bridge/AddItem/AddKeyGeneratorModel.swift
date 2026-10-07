@@ -49,7 +49,7 @@ final class AddKeyGeneratorModel: SnapshotObserving {
         self.apply = apply
     }
 
-    var title: String { isGpg ? L10n.generatorHeaderGpgKeyTitle : L10n.generatorHeaderSshKeyTitle }
+    var title: String { L10n.generatorHeaderKeyTitle(isGpg ? L10n.protocolGpg : L10n.protocolSsh) }
 
     var actions: GeneratorActions { actionsProvider(sessionId) }
 

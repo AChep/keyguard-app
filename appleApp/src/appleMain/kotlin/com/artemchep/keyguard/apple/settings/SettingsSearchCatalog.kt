@@ -24,11 +24,11 @@ internal object SettingsSearchCatalog {
         categories: List<SettingsItemSnapshot>,
         capabilities: SettingsSearchCapabilities,
         biometricTitle: String,
-        text: suspend (StringResource) -> String,
+        text: suspend (StringResource, List<Any>) -> String,
     ): List<SettingsSearchEntrySnapshot> {
         // The native biometric label (Touch ID / Face ID) replaces the generic one.
-        val resolve: suspend (StringResource) -> String = {
-            if (it == Res.string.unlock_biometric_title) biometricTitle else text(it)
+        val resolve: suspend (StringResource, List<Any>) -> String = { res, args ->
+            if (res == Res.string.unlock_biometric_title) biometricTitle else text(res, args)
         }
         // Notifications is a placeholder in the native apps, even when the development
         // catalog exposes it. Search only offers usable destinations.
@@ -41,7 +41,7 @@ internal object SettingsSearchCatalog {
                 SettingsItemSnapshot(
                     id = GENERAL_CATEGORY_ID,
                     kind = SettingsItemKind.ACTION,
-                    title = resolve(Res.string.settings_general_header_title),
+                    title = resolve(Res.string.settings_general_header_title, emptyList()),
                     text = null,
                 ),
             )
@@ -55,14 +55,15 @@ internal object SettingsSearchCatalog {
         val controls = SettingsSearchTarget.entries.mapNotNull { target ->
             val category = categoriesById[target.categoryId] ?: return@mapNotNull null
             if (!target.availability.supported(capabilities)) return@mapNotNull null
+            val args = listOfNotNull(target.protocol?.let { resolve(it, emptyList()) })
             SettingsSearchEntrySnapshot(
                 id = target.name,
-                title = resolve(target.title),
+                title = resolve(target.title, args),
                 categoryId = category.id,
                 target = target,
-                path = listOfNotNull(category.title, target.section?.let { resolve(it) }).joinToString(" › "),
-                description = target.description?.let { resolve(it) }.orEmpty(),
-                keywords = target.keywords.map { resolve(it) }.joinToString(" "),
+                path = listOfNotNull(category.title, target.section?.let { resolve(it, args) }).joinToString(" › "),
+                description = target.description?.let { resolve(it, args) }.orEmpty(),
+                keywords = target.keywords.map { resolve(it, emptyList()) }.joinToString(" "),
             )
         }
         return categoryEntries + controls

@@ -193,6 +193,7 @@ fn public_key_info(info: PublicKeyInfo) -> OpenPgpPublicKeyInfo {
         revocation_authority_fingerprints: info.revocation_authority_fingerprints,
         authenticated: info.authenticated,
         renewal: renewal_capability(info.renewal) as i32,
+        weak_self_signature_algorithms: info.weak_self_signature_algorithms,
     }
 }
 
@@ -209,6 +210,7 @@ fn public_subkey_info(info: PublicSubkeyInfo) -> OpenPgpPublicSubKeyInfo {
         created_at_epoch_seconds: info.created_at_epoch_seconds,
         expires_at_epoch_seconds: info.expires_at_epoch_seconds,
         authenticated: info.authenticated,
+        weak_self_signature_algorithms: info.weak_self_signature_algorithms,
     }
 }
 

@@ -33,19 +33,19 @@ object SshKeyActions {
             section {
                 this += copyItemFactory.FlatItemAction(
                     id = "sshKey.copyPublicKey",
-                    title = Res.string.copy_ssh_public_key.wrap(),
+                    title = Res.string.copy_public_key.wrap(),
                     value = keyPair.publicKey.ssh,
                     type = CopyText.Type.PUBLIC_KEY,
                 )
                 this += copyItemFactory.FlatItemAction(
                     id = "sshKey.copyFingerprint",
-                    title = Res.string.copy_ssh_fingerprint.wrap(),
+                    title = Res.string.copy_fingerprint.wrap(),
                     value = keyPair.publicKey.fingerprint,
                     type = CopyText.Type.FINGERPRINT,
                 )
                 this += copyItemFactory.FlatItemAction(
                     id = "sshKey.copyPrivateKey",
-                    title = Res.string.copy_ssh_unencrypted_private_key.wrap(),
+                    title = Res.string.copy_unencrypted_private_key.wrap(),
                     value = keyPair.privateKey.ssh,
                     type = CopyText.Type.PRIVATE_KEY,
                     hidden = true,
@@ -63,12 +63,12 @@ object SshKeyActions {
                 this += FlatItemAction(
                     id = "sshKey.saveKeyPair",
                     leading = icon(Icons.Outlined.Save),
-                    title = Res.string.ssh_key_action_save_unencrypted_keys_title.wrap(),
+                    title = Res.string.key_action_save_unencrypted_keys_title.wrap(),
                     onClick = {
                         keyPairExport(keyPair)
                             .effectTap { uri ->
                                 val title =
-                                    Res.string.ssh_key_action_save_unencrypted_keys_saved_downloads_success_title
+                                    Res.string.key_action_save_unencrypted_keys_saved_downloads_success_title
                                 sendSuccessMessage(
                                     title = title,
                                     uri = uri,
@@ -89,12 +89,12 @@ object SshKeyActions {
         FlatItemAction(
             id = "sshKey.savePublicKey",
             leading = icon(Icons.Outlined.Save),
-            title = Res.string.ssh_key_action_save_public_key_title.wrap(),
+            title = Res.string.key_action_save_public_key_title.wrap(),
             onClick = {
                 publicKeyExport(keyPair.publicKey)
                     .effectTap { uri ->
                         val title =
-                            Res.string.ssh_key_action_save_public_key_saved_downloads_success_title
+                            Res.string.key_action_save_public_key_saved_downloads_success_title
                         sendSuccessMessage(
                             title = title,
                             uri = uri,
@@ -113,12 +113,12 @@ object SshKeyActions {
         FlatItemAction(
             id = "sshKey.savePrivateKey",
             leading = icon(Icons.Outlined.Save),
-            title = Res.string.ssh_key_action_save_unencrypted_private_key_title.wrap(),
+            title = Res.string.key_action_save_unencrypted_private_key_title.wrap(),
             onClick = {
                 privateKeyExport(keyPair.privateKey)
                     .effectTap { uri ->
                         val title =
-                            Res.string.ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title
+                            Res.string.key_action_save_unencrypted_private_key_saved_downloads_success_title
                         sendSuccessMessage(
                             title = title,
                             uri = uri,

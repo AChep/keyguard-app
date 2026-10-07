@@ -43,8 +43,10 @@ final class WatchtowerModel: SnapshotObserving {
 
     func setCheckPasskeys(_ value: Bool) { core.setCheckPasskeys(value: value) }
 
+    func isValidHibpApiToken(_ token: String) -> Bool { core.isValidHibpApiToken(token: token) }
+
     func setHibpApiToken(_ token: String) -> Bool {
-        guard core.isValidHibpApiToken(token: token) else { return false }
+        guard isValidHibpApiToken(token) else { return false }
         core.setHibpApiToken(token: token)
         return true
     }

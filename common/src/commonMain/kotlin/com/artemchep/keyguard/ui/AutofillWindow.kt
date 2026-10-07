@@ -210,8 +210,8 @@ fun ColumnScope.AutofillWindow(
                 username && password -> stringResource(Res.string.generator_header_title)
                 username -> stringResource(Res.string.generator_header_username_title)
                 password -> stringResource(Res.string.generator_header_password_title)
-                sshKey -> stringResource(Res.string.generator_header_ssh_key_title)
-                gpgKey -> stringResource(Res.string.generator_header_gpg_key_title)
+                sshKey -> stringResource(Res.string.generator_header_key_title, stringResource(Res.string.protocol_ssh))
+                gpgKey -> stringResource(Res.string.generator_header_key_title, stringResource(Res.string.protocol_gpg))
                 else -> stringResource(Res.string.generator_header_title)
             }
             Text(

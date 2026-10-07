@@ -52,7 +52,7 @@ fun settingGpgAgentLocalStorageInfoProvider(): SettingComponent = kotlin.run {
             Text(
                 modifier = Modifier
                     .padding(horizontal = Dimens.textHorizontalPadding),
-                text = stringResource(Res.string.pref_item_gpg_agent_local_storage_title),
+                text = stringResource(Res.string.pref_item_agent_local_storage_title),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
             )
@@ -63,7 +63,10 @@ fun settingGpgAgentLocalStorageInfoProvider(): SettingComponent = kotlin.run {
             Text(
                 modifier = Modifier
                     .padding(horizontal = Dimens.textHorizontalPadding),
-                text = stringResource(Res.string.pref_item_gpg_agent_local_storage_text),
+                text = stringResource(
+                    Res.string.pref_item_agent_local_storage_text,
+                    stringResource(Res.string.protocol_gpg),
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = LocalContentColor.current
                     .combineAlpha(MediumEmphasisAlpha),

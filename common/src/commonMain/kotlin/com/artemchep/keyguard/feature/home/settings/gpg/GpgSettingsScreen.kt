@@ -15,7 +15,7 @@ import org.jetbrains.compose.resources.stringResource
 fun GpgSettingsScreen() {
     val items = rememberSettingsGpgItems()
     SettingPaneContent(
-        title = stringResource(Res.string.settings_gpg_agent_header_title),
+        title = stringResource(Res.string.agent_title, stringResource(Res.string.protocol_gpg)),
         items = items,
     )
 }

@@ -14,7 +14,7 @@ import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.remotepicker.RemotePickerMode
 import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.s3_settings_test_success
+import com.artemchep.keyguard.res.remote_connection_test_success
 import com.artemchep.keyguard.util.s3.isValidS3ObjectKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -115,7 +115,7 @@ suspend fun RememberStateFlowScope.s3SettingsStateProducer(
         val io = checkS3Connection(testLocation).effectTap {
             message(
                 ToastMessage(
-                    title = translate(Res.string.s3_settings_test_success),
+                    title = translate(Res.string.remote_connection_test_success, "S3"),
                     type = ToastMessage.Type.SUCCESS,
                 ),
             )

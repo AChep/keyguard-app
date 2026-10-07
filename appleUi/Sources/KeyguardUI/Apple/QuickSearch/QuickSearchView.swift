@@ -295,7 +295,7 @@ private struct QuickSearchUnlockContent: View {
                 .foregroundStyle(.tint)
 
             VStack(spacing: 6) {
-                Text(L10n.sshAgentHistoryResponseVaultLocked)
+                Text(L10n.agentHistoryResponseVaultLocked)
                     .font(.title3.weight(.semibold))
                 if let reason = authModel.unlockLockReason, !reason.isEmpty {
                     Text(reason)

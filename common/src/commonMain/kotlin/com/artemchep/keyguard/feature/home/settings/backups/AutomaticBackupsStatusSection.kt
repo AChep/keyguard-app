@@ -34,7 +34,6 @@ import com.artemchep.keyguard.common.service.backup.BackupConfig
 import com.artemchep.keyguard.common.service.backup.BackupRunProgress
 import com.artemchep.keyguard.common.service.backup.BackupRunProgressDetails
 import com.artemchep.keyguard.common.service.backup.BackupStatus
-import com.artemchep.keyguard.common.service.backup.BackupStep
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
@@ -443,31 +442,17 @@ private fun BackupProgressFooter(
 private fun backupRunProgressText(
     progress: BackupRunProgress,
 ): String {
-    val step = backupStepText(progress.step)
+    val step = stringResource(progress.step.titleRes())
     val details = backupProgressDetailsText(progress.details)
     return if (details != null) {
         stringResource(
-            Res.string.pref_item_automatic_backups_status_running_text_with_progress,
+            Res.string.backup_step_with_progress,
             step,
             details,
         )
     } else {
         step
     }
-}
-
-@Composable
-private fun backupStepText(
-    step: BackupStep,
-): String = when (step) {
-    BackupStep.Preparing -> stringResource(Res.string.pref_item_automatic_backups_step_preparing)
-    BackupStep.OpeningRepository -> stringResource(Res.string.pref_item_automatic_backups_step_opening_repository)
-    BackupStep.ExportingVault -> stringResource(Res.string.pref_item_automatic_backups_step_exporting_vault)
-    BackupStep.ScanningAttachments -> stringResource(Res.string.pref_item_automatic_backups_step_scanning_attachments)
-    BackupStep.BackingUpAttachments -> stringResource(Res.string.pref_item_automatic_backups_step_backing_up_attachments)
-    BackupStep.WritingIndex -> stringResource(Res.string.pref_item_automatic_backups_step_writing_index)
-    BackupStep.WritingSnapshot -> stringResource(Res.string.pref_item_automatic_backups_step_writing_snapshot)
-    BackupStep.ApplyingRetention -> stringResource(Res.string.pref_item_automatic_backups_step_applying_retention)
 }
 
 @Composable
@@ -484,7 +469,7 @@ private fun backupProgressDetailsText(
             ?.let(::humanReadableByteCountSI)
             ?: "--"
         return stringResource(
-            Res.string.pref_item_automatic_backups_progress_bytes,
+            Res.string.backup_progress_bytes,
             downloadedText,
             totalText,
         )
@@ -494,7 +479,7 @@ private fun backupProgressDetailsText(
     val items = details.itemsTotal
     return if (processed != null && items != null && items > 0) {
         stringResource(
-            Res.string.pref_item_automatic_backups_progress_items,
+            Res.string.backup_progress_items,
             processed,
             items,
         )

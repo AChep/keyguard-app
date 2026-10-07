@@ -445,6 +445,19 @@ impl<'a> ValidatedCertificate<'a> {
         self.certificate
     }
 
+    /// Verified renewal-only signatures over the primary and its identities.
+    /// These may describe a weak digest for display, but never authenticate it.
+    pub(in crate::openpgp) fn primary_renewal_templates(
+        &self,
+    ) -> impl Iterator<Item = PolicyInactiveTemplate<'a>> + '_ {
+        self.primary.verified_templates.iter().copied().chain(
+            self.user_ids
+                .iter()
+                .chain(&self.user_attributes)
+                .flat_map(|identity| identity.verified_templates.iter().copied()),
+        )
+    }
+
     #[cfg(test)]
     pub(in crate::openpgp) fn reference_time(&self) -> u64 {
         self.reference_time

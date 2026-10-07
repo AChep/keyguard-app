@@ -539,7 +539,7 @@ fun DSecret.Field.LinkedId.titleH() = when (this) {
     DSecret.Field.LinkedId.Card_Code -> Res.string.card_cvv
     DSecret.Field.LinkedId.Card_Brand -> Res.string.card_type
     DSecret.Field.LinkedId.Card_Number -> Res.string.card_number
-    DSecret.Field.LinkedId.Identity_Title -> Res.string.identity_first_name
+    DSecret.Field.LinkedId.Identity_Title -> Res.string.identity_title
     DSecret.Field.LinkedId.Identity_MiddleName -> Res.string.identity_middle_name
     DSecret.Field.LinkedId.Identity_Address1 -> Res.string.address1
     DSecret.Field.LinkedId.Identity_Address2 -> Res.string.address2

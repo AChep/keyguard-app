@@ -109,8 +109,14 @@ suspend fun RememberStateFlowScope.sshAgentHistoryStateProducer(
         val intent = createConfirmationDialogIntent(
             confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
-            title = translate(Res.string.ssh_agent_history_clear_history_confirmation_title),
-            message = translate(Res.string.ssh_agent_history_clear_history_confirmation_text),
+            title = translate(
+                Res.string.agent_history_clear_history_confirmation_title,
+                translate(Res.string.protocol_ssh),
+            ),
+            message = translate(
+                Res.string.agent_history_clear_history_confirmation_text,
+                translate(Res.string.protocol_ssh),
+            ),
         ) {
             removeSshUsageHistory()
                 .launchIn(appScope)
@@ -127,7 +133,7 @@ suspend fun RememberStateFlowScope.sshAgentHistoryStateProducer(
                     FlatItemAction(
                         id = "sshAgentHistory.clearHistory",
                         leading = icon(Icons.Outlined.Delete),
-                        title = Res.string.ssh_agent_history_clear_history_title.wrap(),
+                        title = Res.string.agent_history_clear_history_title.wrap(),
                         danger = true,
                         onClick = onClick {
                             onDeleteAll()
@@ -216,7 +222,7 @@ private suspend fun TranslatorScope.toItem(
         json = json,
     )
     val callerText = callerInfo?.primaryLabel
-        ?: translate(Res.string.ssh_agent_history_unknown_caller)
+        ?: translate(Res.string.agent_history_unknown_caller)
 
     val fingerprintText = event.fingerprint
         ?.takeIf { it.isNotBlank() }
@@ -226,7 +232,7 @@ private suspend fun TranslatorScope.toItem(
         cipher != null -> cipher.name
         event.request == SshUsageHistoryRequestType.AGENT_LIST_KEYS -> null
 
-        else -> translate(Res.string.ssh_agent_history_unknown_key)
+        else -> translate(Res.string.agent_history_unknown_key)
     }
     val formattedDate = dateFormatter.formatDateTime(event.instant)
     val details = buildList {
@@ -254,7 +260,7 @@ private suspend fun TranslatorScope.toItem(
 
 private suspend fun TranslatorScope.title(request: SshUsageHistoryRequestType): String = when (request) {
     SshUsageHistoryRequestType.AGENT_LIST_KEYS ->
-        translate(Res.string.ssh_agent_history_request_list_keys)
+        translate(Res.string.agent_history_request_list_keys)
 
     SshUsageHistoryRequestType.AGENT_SIGN_DATA ->
         translate(Res.string.ssh_agent_history_request_sign_data)
@@ -265,19 +271,19 @@ private suspend fun TranslatorScope.title(request: SshUsageHistoryRequestType): 
 
 private suspend fun TranslatorScope.title(response: SshUsageHistoryResponseType): String = when (response) {
     SshUsageHistoryResponseType.SUCCESS ->
-        translate(Res.string.ssh_agent_history_response_success)
+        translate(Res.string.agent_history_response_success)
 
     SshUsageHistoryResponseType.USER_DENIED ->
-        translate(Res.string.ssh_agent_history_response_user_denied)
+        translate(Res.string.agent_history_response_user_denied)
 
     SshUsageHistoryResponseType.KEY_NOT_FOUND ->
-        translate(Res.string.ssh_agent_history_response_key_not_found)
+        translate(Res.string.agent_history_response_key_not_found)
 
     SshUsageHistoryResponseType.FAILURE ->
-        translate(Res.string.ssh_agent_history_response_failure)
+        translate(Res.string.agent_history_response_failure)
 
     SshUsageHistoryResponseType.VAULT_LOCKED ->
-        translate(Res.string.ssh_agent_history_response_vault_locked)
+        translate(Res.string.agent_history_response_vault_locked)
 
     SshUsageHistoryResponseType.UNKNOWN ->
         translate(Res.string.cipher_type_unknown)

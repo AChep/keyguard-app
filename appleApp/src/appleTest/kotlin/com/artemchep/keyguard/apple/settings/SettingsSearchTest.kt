@@ -74,7 +74,7 @@ class SettingsSearchTest {
             categories = listOf(category("security"), category("notifications")),
             capabilities = SettingsSearchCapabilities(false, false, false, false),
             biometricTitle = "Biometrics",
-            text = { "Setting" },
+            text = { _, _ -> "Setting" },
         )
         assertTrue(entries.all { it.categoryId == "security" })
         assertFalse(entries.any { it.target == SettingsSearchTarget.DEBUG_PREMIUM })
@@ -168,7 +168,7 @@ class SettingsSearchTest {
             .map(::category),
         capabilities = SettingsSearchCapabilities(macOS, biometric, fido2, yubiKey, store, appInformation),
         biometricTitle = "Face ID",
-        text = text,
+        text = { res, _ -> text(res) },
     )
 
     private fun category(id: String) = SettingsItemSnapshot(id, SettingsItemKind.ACTION, id, null)

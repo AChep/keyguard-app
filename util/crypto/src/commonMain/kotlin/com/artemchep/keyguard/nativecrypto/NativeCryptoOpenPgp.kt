@@ -77,6 +77,8 @@ public data class NativeOpenPgpPublicKeyInfo(
         NativeOpenPgpRenewalAuthorization.NONE,
     /** Policy-authenticated textual User IDs paired with their stable packet identifiers. */
     val userIdDetails: List<NativeOpenPgpUserIdInfo> = emptyList(),
+    /** Distinct digest names from verified renewal-only self-signatures; display metadata only. */
+    val weakSelfSignatureAlgorithms: List<String> = emptyList(),
 )
 
 public data class NativeOpenPgpPublicSubKeyInfo(
@@ -92,6 +94,8 @@ public data class NativeOpenPgpPublicSubKeyInfo(
     val expiresAtEpochSeconds: Long?,
     /** See [NativeOpenPgpPublicKeyInfo.authenticated]. */
     val authenticated: Boolean = true,
+    /** Distinct digest names from verified renewal-only bindings; display metadata only. */
+    val weakSelfSignatureAlgorithms: List<String> = emptyList(),
 )
 
 /** Payload signature result; signing-key policy is reported separately in `warnings`. */
@@ -2765,6 +2769,7 @@ private fun OpenPgpPublicKeyInfoProto.toPublic(
         authenticated = authenticated,
         renewal = renewal.toRenewalAuthorizationOrNone(),
         userIdDetails = userIdDetails.map { value -> value.toPublic(operation) },
+        weakSelfSignatureAlgorithms = weakSelfSignatureAlgorithms,
     )
 }
 
@@ -2814,6 +2819,7 @@ private fun OpenPgpPublicSubKeyInfoProto.toPublic(
         createdAtEpochSeconds = createdAtEpochSeconds,
         expiresAtEpochSeconds = expiresAtEpochSeconds,
         authenticated = authenticated,
+        weakSelfSignatureAlgorithms = weakSelfSignatureAlgorithms,
     )
 }
 
@@ -3228,7 +3234,7 @@ private const val OPEN_PGP_MIN_FINGERPRINT_HEX_CHARS: Int = 32
 private const val OPEN_PGP_MAX_FINGERPRINT_HEX_CHARS: Int = 128
 
 /** Maximum UTF-8 size accepted by the native User ID replacement operation. */
-private const val OPEN_PGP_MAX_USER_ID_UTF8_BYTES: Int = 1_024
+const val OPEN_PGP_MAX_USER_ID_UTF8_BYTES: Int = 1_024
 
 private const val OPEN_PGP_IDENTITY_ID_PREFIX = "v1:"
 private const val OPEN_PGP_IDENTITY_ID_HEX_CHARS = 64

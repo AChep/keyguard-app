@@ -103,6 +103,7 @@ pub(crate) struct PublicKeyInfo {
     pub(crate) revocation_authority_fingerprints: Vec<String>,
     pub(crate) authenticated: bool,
     pub(crate) renewal: RenewalCapability,
+    pub(crate) weak_self_signature_algorithms: Vec<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -118,6 +119,7 @@ pub(crate) struct PublicSubkeyInfo {
     pub(crate) created_at_epoch_seconds: Option<u64>,
     pub(crate) expires_at_epoch_seconds: Option<u64>,
     pub(crate) authenticated: bool,
+    pub(crate) weak_self_signature_algorithms: Vec<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

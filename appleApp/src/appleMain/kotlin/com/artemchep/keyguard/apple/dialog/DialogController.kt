@@ -15,7 +15,9 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.toArgb
 import com.artemchep.keyguard.AppMode
+import com.artemchep.keyguard.URL_HAVE_I_BEEN_PWNED
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
+import com.artemchep.keyguard.common.model.AttachmentPreviewLimits
 import com.artemchep.keyguard.common.model.BiometricAuthPromptSimple
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.io.bind
@@ -61,6 +63,7 @@ import com.artemchep.keyguard.feature.emailleak.EmailLeakState
 import com.artemchep.keyguard.feature.emailleak.emailLeakStateProducer
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
+import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountBin
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewDialogRoute
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataViewDialogRoute
 import com.artemchep.keyguard.feature.passwordmemory.PasswordMemoryRoute
@@ -1554,7 +1557,7 @@ internal class DialogController(
     ): EmailLeakSnapshot = EmailLeakSnapshot(
         title = textResource(Res.string.emailleak_title, leContext),
         note = textResource(Res.string.emailleak_note, leContext),
-        poweredBy = textResource(Res.string.watchtower_hibp_attribution_text, leContext),
+        poweredBy = hibpAttribution(leContext),
         isLoading = true,
         breachFoundTitle = textResource(Res.string.emailleak_breach_found_title, leContext),
         breachNotFoundTitle = textResource(Res.string.emailleak_breach_not_found_title, leContext),
@@ -1586,7 +1589,7 @@ internal class DialogController(
         return EmailLeakSnapshot(
             title = textResource(Res.string.emailleak_title, leContext),
             note = textResource(Res.string.emailleak_note, leContext),
-            poweredBy = textResource(Res.string.watchtower_hibp_attribution_text, leContext),
+            poweredBy = hibpAttribution(leContext),
             isLoading = false,
             breaches = breaches?.map { it.toLeakBreachSnapshot(leContext, numberFormatter) }.orEmpty(),
             errorText = errorText,
@@ -1623,7 +1626,7 @@ internal class DialogController(
     ): PasswordLeakSnapshot = PasswordLeakSnapshot(
         title = textResource(Res.string.passwordleak_title, leContext),
         note = textResource(Res.string.passwordleak_note, leContext),
-        poweredBy = textResource(Res.string.watchtower_hibp_attribution_text, leContext),
+        poweredBy = hibpAttribution(leContext),
         isLoading = true,
         occurrencesFoundTitle = textResource(Res.string.passwordleak_occurrences_found_title, leContext),
         occurrencesFoundText = textResource(Res.string.passwordleak_occurrences_found_text, leContext),
@@ -1639,7 +1642,7 @@ internal class DialogController(
         return PasswordLeakSnapshot(
             title = textResource(Res.string.passwordleak_title, leContext),
             note = textResource(Res.string.passwordleak_note, leContext),
-            poweredBy = textResource(Res.string.watchtower_hibp_attribution_text, leContext),
+            poweredBy = hibpAttribution(leContext),
             isLoading = false,
             occurrences = occurrences,
             occurrencesText = occurrences
@@ -1670,7 +1673,7 @@ internal class DialogController(
         // header strings, so mirror that here.
         title = textResource(Res.string.emailleak_title, leContext),
         note = textResource(Res.string.emailleak_note, leContext),
-        poweredBy = textResource(Res.string.watchtower_hibp_attribution_text, leContext),
+        poweredBy = hibpAttribution(leContext),
         isLoading = true,
         breachFoundTitle = textResource(Res.string.emailleak_breach_found_title, leContext),
         breachNotFoundTitle = textResource(Res.string.emailleak_breach_not_found_title, leContext),
@@ -1684,7 +1687,7 @@ internal class DialogController(
     ): WebsiteLeakSnapshot = WebsiteLeakSnapshot(
         title = textResource(Res.string.emailleak_title, leContext),
         note = textResource(Res.string.emailleak_note, leContext),
-        poweredBy = textResource(Res.string.watchtower_hibp_attribution_text, leContext),
+        poweredBy = hibpAttribution(leContext),
         isLoading = false,
         breaches = state.content.getOrNull()?.breaches.orEmpty()
             .map { it.toLeakBreachSnapshot(leContext, numberFormatter) },
@@ -1713,6 +1716,14 @@ internal class DialogController(
         occurredAt = occurredAt?.let { textResource(Res.string.emailleak_breach_occurred_at, leContext, it) },
         reportedAt = reportedAt?.let { textResource(Res.string.emailleak_breach_reported_at, leContext, it) },
         dataClasses = dataClasses,
+    )
+
+    private suspend fun hibpAttribution(
+        leContext: LeContext,
+    ): String = textResource(
+        Res.string.powered_by_text,
+        leContext,
+        "[haveibeenpwned.com]($URL_HAVE_I_BEEN_PWNED)",
     )
 
     private suspend fun buildAttachmentPreviewSnapshot(
@@ -1763,7 +1774,11 @@ internal class DialogController(
             textResource(Res.string.attachment_preview_error_unsupported_platform, leContext)
 
         AttachmentPreviewError.TooLarge ->
-            textResource(Res.string.attachment_preview_error_too_large, leContext)
+            textResource(
+                Res.string.attachment_preview_error_size_limit,
+                leContext,
+                humanReadableByteCountBin(AttachmentPreviewLimits.MAX_ENCRYPTED_BYTES),
+            )
 
         AttachmentPreviewError.Network ->
             textResource(Res.string.attachment_preview_error_network, leContext)

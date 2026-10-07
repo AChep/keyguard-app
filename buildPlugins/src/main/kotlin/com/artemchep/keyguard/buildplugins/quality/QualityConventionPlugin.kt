@@ -10,6 +10,7 @@ import dev.detekt.gradle.extensions.DetektExtension
 import dev.detekt.gradle.extensions.FailOnSeverity
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.register
 import org.gradle.language.base.plugins.LifecycleBasePlugin
@@ -25,11 +26,7 @@ class QualityConventionPlugin : Plugin<Project> {
         dependencies.add("detektPlugins", dependencies.project(mapOf("path" to ":detektRules")))
         extensions.configure<DetektExtension> {
             toolVersion.set(libs.version("detekt"))
-            source.setFrom(
-                fileTree("src") {
-                    include("**/*.kt", "**/*.kts")
-                },
-            )
+            source.setFrom(kotlinSourceFiles("kt", "kts"))
             config.setFrom(repositoryDirectory.file("config/detekt/detekt.yml"))
             buildUponDefaultConfig.set(true)
             baseline.set(
@@ -51,7 +48,7 @@ class QualityConventionPlugin : Plugin<Project> {
                 "covered by a custom-rule Detekt task."
             markers.set(GUARDED_API_MARKERS)
             rootDirectory.set(repositoryDirectory)
-            candidateFiles.from(fileTree("src") { include("**/*.kt") })
+            candidateFiles.from(kotlinSourceFiles("kt"))
             expectsAnalysedSources.set(false)
             stamp.set(layout.buildDirectory.file("reports/detekt/custom-rules-coverage.txt"))
         }
@@ -63,3 +60,15 @@ class QualityConventionPlugin : Plugin<Project> {
         Unit
     }
 }
+
+/**
+ * The files of every source set, in `src/<source set>/kotlin` or `src/<source set>/java`. Matching
+ * those directories keeps the walk out of Rust crates in `src`, whose `target` directories can
+ * hold thousands of files.
+ */
+private fun Project.kotlinSourceFiles(vararg extensions: String): ConfigurableFileTree =
+    fileTree("src") {
+        extensions.forEach { extension ->
+            include("*/kotlin/**/*.$extension", "*/java/**/*.$extension")
+        }
+    }

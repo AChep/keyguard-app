@@ -25,7 +25,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup_gradle
       - run: pip install -r .github/update_localization_contributors.requirements.txt
-      - uses: crowdin/github-action@8f01d54f70f1713ee3f09d82c2bbb2daeac28689
+      - uses: crowdin/github-action@9c23991700c0ec5256fd41089b9d9d7d540e424e
         with:
           upload_sources: true
           # We only want to upload the sources, nothing else is

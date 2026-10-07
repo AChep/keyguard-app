@@ -83,6 +83,7 @@ jobs:
   ssh-e2e-tests:
     name: "End-to-end (${{ matrix.os }})"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:

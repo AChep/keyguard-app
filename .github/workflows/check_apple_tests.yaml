@@ -1,0 +1,157 @@
+name: "✔️ Check Apple Tests"
+
+on:
+  workflow_dispatch:
+    inputs:
+      cache-write-only:
+        description: 'Cache write only'
+        required: false
+        default: false
+        type: boolean
+  # Skip changes that only Android and desktop JVM targets compile, and
+  # changes that no test reads.
+  push:
+    branches:
+      - master
+    paths:
+      - '**'
+      - '!**/*.md'
+      - '!**/src/android*/**'
+      - '!**/src/desktop*/**'
+      - '!**/src/jvm*/**'
+      - '!.github/**'
+      - '!.vscode/**'
+      - '!androidApp/**'
+      - '!androidBenchmark/**'
+      - '!androidLibAutofill/**'
+      - '!androidSshAgent/**'
+      - '!androidTest/**'
+      - '!artwork/**'
+      - '!cla/**'
+      - '!common/src/commonMain/composeResources/files/*.json'
+      - '!config/detekt/**'
+      - '!desktopApp/**'
+      - '!desktopLibJvm/**'
+      - '!desktopLibNative/**'
+      - '!detektRules/**'
+      - '!feature/android-ipc-android/**'
+      - '!feature/qr-scanner-android/**'
+      - '!integration/**'
+      - '!listing/**'
+      - '!screenshots/**'
+      - '!scripts/**'
+      - '!server/**'
+      - '!wearApp/**'
+      - '!wiki/**'
+      - '.github/actions/setup_gradle/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_apple_tests.yaml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '**'
+      - '!**/*.md'
+      - '!**/src/android*/**'
+      - '!**/src/desktop*/**'
+      - '!**/src/jvm*/**'
+      - '!.github/**'
+      - '!.vscode/**'
+      - '!androidApp/**'
+      - '!androidBenchmark/**'
+      - '!androidLibAutofill/**'
+      - '!androidSshAgent/**'
+      - '!androidTest/**'
+      - '!artwork/**'
+      - '!cla/**'
+      - '!common/src/commonMain/composeResources/files/*.json'
+      - '!config/detekt/**'
+      - '!desktopApp/**'
+      - '!desktopLibJvm/**'
+      - '!desktopLibNative/**'
+      - '!detektRules/**'
+      - '!feature/android-ipc-android/**'
+      - '!feature/qr-scanner-android/**'
+      - '!integration/**'
+      - '!listing/**'
+      - '!screenshots/**'
+      - '!scripts/**'
+      - '!server/**'
+      - '!wearApp/**'
+      - '!wiki/**'
+      - '.github/actions/setup_gradle/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_apple_tests.yaml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-apple-localizations:
+    name: Check Compiled Apple Localizations
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Compile and verify the committed Apple catalog
+        env:
+          UNLOCALIZED_RESOURCES_FOLDER_PATH: apple-localizations
+        run: |
+          export BUILT_PRODUCTS_DIR="$RUNNER_TEMP"
+          mkdir -p "$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
+          xcrun xcstringstool compile \
+            --output-directory "$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH" \
+            appleUi/Sources/KeyguardUI/Resources/Localizable.xcstrings
+          python3 xcode/scripts/verify-apple-strings.py
+      - name: Compile the committed Info.plist catalog
+        run: |
+          mkdir -p "$RUNNER_TEMP/info-plist-localizations"
+          xcrun xcstringstool compile \
+            --output-directory "$RUNNER_TEMP/info-plist-localizations" \
+            iosApp/Resources/InfoPlist.xcstrings
+      - name: Verify iOS privacy source manifests
+        run: python3 xcode/scripts/verify-ios-privacy.py
+
+  check-apple-billing:
+    name: Check Apple Billing
+    runs-on: macos-15
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-apple-darwin,aarch64-apple-ios,aarch64-apple-ios-sim"
+      - name: Build Apple billing and license tests
+        run: >-
+          ./gradlew --max-workers=1 :appleApp:macosArm64Test :appleApp:assembleKeyguardSharedDebugXCFramework
+          :common:generateAppleStrings :util:s3:macosArm64Test
+      - name: Generate Xcode projects
+        run: |
+          brew install xcodegen
+          xcodegen generate --spec macosApp/project.yml
+      - name: Run StoreKit regression tests
+        run: xcode/scripts/test-apple-billing.sh -resultBundlePath apple-billing-tests.xcresult
+      - name: Upload Apple billing test reports
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: apple-billing-test-reports
+          path: |
+            apple-billing-tests.xcresult
+            appleApp/build/test-results/**
+            appleApp/build/reports/tests/**
+            util/s3/build/test-results/macosArm64Test/**
+            util/s3/build/reports/tests/macosArm64Test/**
+          if-no-files-found: ignore
+          retention-days: 21

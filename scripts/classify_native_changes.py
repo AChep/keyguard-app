@@ -56,6 +56,9 @@ def classify(paths, *, full=False, all_checks=False):
             continue
         if path.endswith((".md", ".txt")) and not path.startswith(".github/native-crypto-"):
             continue
+        # String catalogs hold only text; Check Apple Tests compiles them.
+        if path.endswith(".xcstrings"):
+            continue
         if (
             path in {"build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.properties", "gradlew", "gradlew.bat", "rust-toolchain.toml"}
             or path.startswith(("gradle/", "buildPlugins/"))
@@ -113,7 +116,8 @@ def classify(paths, *, full=False, all_checks=False):
                     enable(name, "desktop_regressions")
                 if source_set.startswith(("macos", "apple", "native")) or (name in {"dns", "io", "instance", "webauthn"} and source_set == "commonTest"):
                     enable("apple_regressions")
-                # Android host and iOS simulator suites already run in Check Tests.
+                # Android host suites run in Check Tests, iOS simulator suites in
+                # Check iOS Simulator Tests.
                 continue
             # These mappings follow the actual KMP source-set edges. ZIP uses
             # zip4j on JVM; instance exposes Kotlin/Native only on macOS.
@@ -174,7 +178,7 @@ def classify(paths, *, full=False, all_checks=False):
                 enable("instance", "desktop_regressions")
             if path.startswith("common/") and ("PrivateTemporaryStorage" in path or "KeePassDatabaseWindowsSpillTest" in path):
                 enable("io", "desktop_regressions")
-            # iOS consumer runtime coverage is in Check Tests.
+            # iOS consumer runtime coverage is in Check iOS Simulator Tests.
             continue
         if (
             path.startswith(("desktopApp/resources/", "desktopApp/src/jvmMain/resources/", "desktopApp/appimage/", "desktopApp/flatpak/"))

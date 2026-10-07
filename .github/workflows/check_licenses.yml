@@ -7,12 +7,14 @@ on:
       - master
     paths:
       - '**/*.gradle*'
+      - 'buildPlugins/src/main/**'
       - 'gradle/**'
   pull_request:
     branches:
       - master
     paths:
       - '**/*.gradle*'
+      - 'buildPlugins/src/main/**'
       - 'gradle/**'
 
 permissions:

@@ -1,0 +1,68 @@
+name: "✔️ Check Swift Format"
+
+on:
+  workflow_dispatch:
+  # Only Swift sources and the formatter configuration.
+  push:
+    branches:
+      - master
+    paths:
+      - '**/*.swift'
+      - '**/.swift-format-ignore'
+      - '.swift-format'
+      - '.github/workflows/check_swift_format.yml'
+      - 'xcode/scripts/lint-swift.sh'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '**/*.swift'
+      - '**/.swift-format-ignore'
+      - '.swift-format'
+      - '.github/workflows/check_swift_format.yml'
+      - 'xcode/scripts/lint-swift.sh'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-swift-format:
+    name: Check Swift Format
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Select latest stable Xcode"
+        shell: bash
+        run: |
+          version="$(
+            printf '%s\n' /Applications/Xcode_[0-9]*.app |
+              sed -En 's|.*/Xcode_([0-9]+(\.[0-9]+){0,2})\.app$|\1|p' |
+              sort -t. -k1,1nr -k2,2nr -k3,3nr |
+              head -n 1
+          )"
+
+          if [[ -z "$version" ]]; then
+            echo "No stable Xcode installation found under /Applications" >&2
+            exit 1
+          fi
+          if (( ${version%%.*} < 26 )); then
+            echo "Xcode 26 or newer is required; found $version" >&2
+            exit 1
+          fi
+
+          latest_xcode="/Applications/Xcode_$version.app"
+          export DEVELOPER_DIR="$latest_xcode/Contents/Developer"
+          printf 'DEVELOPER_DIR=%s\n' "$DEVELOPER_DIR" >> "$GITHUB_ENV"
+
+          echo "Selected Xcode $version at $latest_xcode"
+          swift format --version
+      - name: "Check Swift formatting"
+        shell: bash
+        run: xcode/scripts/lint-swift.sh

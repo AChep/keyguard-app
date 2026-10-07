@@ -1,0 +1,181 @@
+name: "✔️ Check iOS Simulator Tests"
+
+on:
+  workflow_dispatch:
+    inputs:
+      cache-write-only:
+        description: 'Cache write only'
+        required: false
+        default: false
+        type: boolean
+  # Kotlin tests only: skip Android, desktop JVM, Swift, Xcode and agent
+  # helper changes, and changes that no test reads. Check Tests already
+  # compiles the translations.
+  push:
+    branches:
+      - master
+    paths:
+      - '**'
+      - '!**/*.md'
+      - '!**/src/android*/**'
+      - '!**/src/desktop*/**'
+      - '!**/src/jvm*/**'
+      - '!.github/**'
+      - '!.vscode/**'
+      - '!androidApp/**'
+      - '!androidBenchmark/**'
+      - '!androidLibAutofill/**'
+      - '!androidSshAgent/**'
+      - '!androidTest/**'
+      - '!artwork/**'
+      - '!cla/**'
+      - '!common/src/commonMain/composeResources/files/*.json'
+      - '!common/src/commonMain/composeResources/values-*/**'
+      - '!config/detekt/**'
+      - '!desktopApp/**'
+      - '!desktopLibJvm/**'
+      - '!desktopLibNative/**'
+      - '!detektRules/**'
+      - '!feature/android-ipc-android/**'
+      - '!feature/qr-scanner-android/**'
+      - '!integration/**'
+      - '!listing/**'
+      - '!screenshots/**'
+      - '!scripts/**'
+      - '!server/**'
+      - '!wearApp/**'
+      - '!wiki/**'
+      - '!appleAutofill/**'
+      - '!appleUi/**'
+      - '!commonAgent/**'
+      - '!commonGpgAgent/**'
+      - '!commonSshAgent/**'
+      - '!desktopGpgAgent/**'
+      - '!desktopSshAgent/**'
+      - '!iosApp/**'
+      - '!macosApp/**'
+      - '!xcode/**'
+      - '.github/actions/setup_gradle/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_ios_simulator_tests.yaml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '**'
+      - '!**/*.md'
+      - '!**/src/android*/**'
+      - '!**/src/desktop*/**'
+      - '!**/src/jvm*/**'
+      - '!.github/**'
+      - '!.vscode/**'
+      - '!androidApp/**'
+      - '!androidBenchmark/**'
+      - '!androidLibAutofill/**'
+      - '!androidSshAgent/**'
+      - '!androidTest/**'
+      - '!artwork/**'
+      - '!cla/**'
+      - '!common/src/commonMain/composeResources/files/*.json'
+      - '!common/src/commonMain/composeResources/values-*/**'
+      - '!config/detekt/**'
+      - '!desktopApp/**'
+      - '!desktopLibJvm/**'
+      - '!desktopLibNative/**'
+      - '!detektRules/**'
+      - '!feature/android-ipc-android/**'
+      - '!feature/qr-scanner-android/**'
+      - '!integration/**'
+      - '!listing/**'
+      - '!screenshots/**'
+      - '!scripts/**'
+      - '!server/**'
+      - '!wearApp/**'
+      - '!wiki/**'
+      - '!appleAutofill/**'
+      - '!appleUi/**'
+      - '!commonAgent/**'
+      - '!commonGpgAgent/**'
+      - '!commonSshAgent/**'
+      - '!desktopGpgAgent/**'
+      - '!desktopSshAgent/**'
+      - '!iosApp/**'
+      - '!macosApp/**'
+      - '!xcode/**'
+      - '.github/actions/setup_gradle/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_ios_simulator_tests.yaml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-ios-simulator-tests:
+    name: Check iOS Simulator Tests
+    runs-on: macos-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-apple-ios-sim"
+      # :common runs non-standalone simulator tests, which need a booted device.
+      # Boot the device the Kotlin Gradle plugin picks by default: the first
+      # device of the last iOS runtime in `simctl list devices available`.
+      - name: "Boot iOS simulator"
+        run: |
+          device="$(xcrun simctl list devices available | awk '
+            /-- .* --/ { split($0, parts, " "); ios = parts[2] == "iOS"; next }
+            ios && match($0, /[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}/) {
+              device = substr($0, RSTART, RLENGTH)
+              ios = 0
+            }
+            END { print device }
+          ')"
+          if [ -z "$device" ]; then
+            echo "No available iOS simulator device." >&2
+            exit 1
+          fi
+          xcrun simctl bootstatus "$device" -b
+      - name: "Run iOS simulator tests"
+        run: >-
+          ./gradlew --continue
+          :common:iosSimulatorArm64Test
+          :feature:android-ipc-presentation:iosSimulatorArm64Test
+          :standard:presentation:iosSimulatorArm64Test
+          :appleApp:iosSimulatorArm64Test
+          :util:crypto:iosSimulatorArm64Test
+          :util:dns:iosSimulatorArm64Test
+          :util:ffi:iosSimulatorArm64Test
+          :util:io:iosSimulatorArm64Test
+          :util:foundation:iosSimulatorArm64Test
+          :util:kdbx:iosSimulatorArm64Test
+          :util:messagepack:iosSimulatorArm64Test
+          :util:planeta:iosSimulatorArm64Test
+          :util:s3:iosSimulatorArm64Test
+          :util:signalr:iosSimulatorArm64Test
+          :util:webauthn:iosSimulatorArm64Test
+          :util:webdav:iosSimulatorArm64Test
+          :util:xml:iosSimulatorArm64Test
+          :util:zip:iosSimulatorArm64Test
+          :util:zxcvbn:iosSimulatorArm64Test
+      - name: "Upload test reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: ios-simulator-test-reports
+          path: |
+            **/build/test-results/**
+            **/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 21

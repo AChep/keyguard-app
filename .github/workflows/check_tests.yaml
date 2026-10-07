@@ -8,12 +8,88 @@ on:
         required: false
         default: false
         type: boolean
+  # Skip changes that no Linux test reads: docs, store assets, packaging
+  # manifests, Apple-only sources, unrelated CI files and bot-updated data.
   push:
     branches:
       - master
+    paths:
+      - '**'
+      - '!**/*.md'
+      - '!**/src/apple*/**'
+      - '!**/src/ios*/**'
+      - '!**/src/macos*/**'
+      - '!**/src/nativeInterop/**'
+      - '!.github/**'
+      - '!.vscode/**'
+      - '!appleApp/**'
+      - '!appleAutofill/**'
+      - '!appleUi/**'
+      - '!artwork/**'
+      - '!cla/**'
+      - '!common/src/commonMain/composeResources/files/*.json'
+      - '!config/detekt/**'
+      - '!desktopApp/appimage/**'
+      - '!desktopApp/flatpak/**'
+      - '!desktopApp/msi/**'
+      - '!desktopApp/msix/**'
+      - '!detektRules/**'
+      - '!iosApp/**'
+      - '!listing/**'
+      - '!macosApp/**'
+      - '!screenshots/**'
+      - '!server/**'
+      - '!wiki/**'
+      - '!xcode/**'
+      - '.github/*.py'
+      - '.github/actions/build_android_licenses/**'
+      - '.github/actions/prepare_disk_space/**'
+      - '.github/actions/prepare_kvm/**'
+      - '.github/actions/setup_android_ndk/**'
+      - '.github/actions/setup_gradle/**'
+      - '.github/actions/setup_python/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_tests.yaml'
   pull_request:
     branches:
       - master
+    paths:
+      - '**'
+      - '!**/*.md'
+      - '!**/src/apple*/**'
+      - '!**/src/ios*/**'
+      - '!**/src/macos*/**'
+      - '!**/src/nativeInterop/**'
+      - '!.github/**'
+      - '!.vscode/**'
+      - '!appleApp/**'
+      - '!appleAutofill/**'
+      - '!appleUi/**'
+      - '!artwork/**'
+      - '!cla/**'
+      - '!common/src/commonMain/composeResources/files/*.json'
+      - '!config/detekt/**'
+      - '!desktopApp/appimage/**'
+      - '!desktopApp/flatpak/**'
+      - '!desktopApp/msi/**'
+      - '!desktopApp/msix/**'
+      - '!detektRules/**'
+      - '!iosApp/**'
+      - '!listing/**'
+      - '!macosApp/**'
+      - '!screenshots/**'
+      - '!server/**'
+      - '!wiki/**'
+      - '!xcode/**'
+      - '.github/*.py'
+      - '.github/actions/build_android_licenses/**'
+      - '.github/actions/prepare_disk_space/**'
+      - '.github/actions/prepare_kvm/**'
+      - '.github/actions/setup_android_ndk/**'
+      - '.github/actions/setup_gradle/**'
+      - '.github/actions/setup_python/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_tests.yaml'
 
 permissions:
   contents: read
@@ -23,26 +99,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-apple-localizations:
-    name: Check Compiled Apple Localizations
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - name: Compile and verify the committed Apple catalog
-        env:
-          UNLOCALIZED_RESOURCES_FOLDER_PATH: apple-localizations
-        run: |
-          export BUILT_PRODUCTS_DIR="$RUNNER_TEMP"
-          mkdir -p "$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
-          xcrun xcstringstool compile \
-            --output-directory "$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH" \
-            appleUi/Sources/KeyguardUI/Resources/Localizable.xcstrings
-          python3 xcode/scripts/verify-apple-strings.py
-      - name: Verify iOS privacy source manifests
-        run: python3 xcode/scripts/verify-ios-privacy.py
-
   check-build-plugins:
     name: Check Build Plugins
     runs-on: ubuntu-latest
@@ -225,108 +281,6 @@ jobs:
           path: |
             **/build/test-results/**
             **/build/reports/tests/**
-          if-no-files-found: ignore
-          retention-days: 21
-
-  check-ios-simulator-tests:
-    name: Check iOS Simulator Tests
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/setup_gradle
-        with:
-          cache-write-only: ${{ inputs.cache-write-only || false }}
-      - name: "Setup Rust toolchain"
-        uses: ./.github/actions/setup_rust
-        with:
-          targets: "aarch64-apple-ios-sim"
-      # :common runs non-standalone simulator tests, which need a booted device.
-      # Boot the device the Kotlin Gradle plugin picks by default: the first
-      # device of the last iOS runtime in `simctl list devices available`.
-      - name: "Boot iOS simulator"
-        run: |
-          device="$(xcrun simctl list devices available | awk '
-            /-- .* --/ { split($0, parts, " "); ios = parts[2] == "iOS"; next }
-            ios && match($0, /[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}/) {
-              device = substr($0, RSTART, RLENGTH)
-              ios = 0
-            }
-            END { print device }
-          ')"
-          if [ -z "$device" ]; then
-            echo "No available iOS simulator device." >&2
-            exit 1
-          fi
-          xcrun simctl bootstatus "$device" -b
-      - name: "Run iOS simulator tests"
-        run: >-
-          ./gradlew --continue
-          :common:iosSimulatorArm64Test
-          :feature:android-ipc-presentation:iosSimulatorArm64Test
-          :standard:presentation:iosSimulatorArm64Test
-          :appleApp:iosSimulatorArm64Test
-          :util:crypto:iosSimulatorArm64Test
-          :util:dns:iosSimulatorArm64Test
-          :util:ffi:iosSimulatorArm64Test
-          :util:io:iosSimulatorArm64Test
-          :util:foundation:iosSimulatorArm64Test
-          :util:kdbx:iosSimulatorArm64Test
-          :util:messagepack:iosSimulatorArm64Test
-          :util:planeta:iosSimulatorArm64Test
-          :util:s3:iosSimulatorArm64Test
-          :util:signalr:iosSimulatorArm64Test
-          :util:webauthn:iosSimulatorArm64Test
-          :util:webdav:iosSimulatorArm64Test
-          :util:xml:iosSimulatorArm64Test
-          :util:zip:iosSimulatorArm64Test
-          :util:zxcvbn:iosSimulatorArm64Test
-      - name: "Upload test reports"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        if: always()
-        with:
-          name: ios-simulator-test-reports
-          path: |
-            **/build/test-results/**
-            **/build/reports/tests/**
-          if-no-files-found: ignore
-          retention-days: 21
-
-  check-apple-billing:
-    name: Check Apple Billing
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/setup_gradle
-        with:
-          cache-write-only: ${{ inputs.cache-write-only || false }}
-      - uses: ./.github/actions/setup_rust
-        with:
-          targets: "aarch64-apple-darwin,aarch64-apple-ios,aarch64-apple-ios-sim"
-      - name: Build Apple billing and license tests
-        run: >-
-          ./gradlew --max-workers=1 :appleApp:macosArm64Test :appleApp:assembleKeyguardSharedDebugXCFramework
-          :common:generateAppleStrings :util:s3:macosArm64Test
-      - name: Generate Xcode projects
-        run: |
-          brew install xcodegen
-          xcodegen generate --spec macosApp/project.yml
-      - name: Run StoreKit regression tests
-        run: xcode/scripts/test-apple-billing.sh -resultBundlePath apple-billing-tests.xcresult
-      - name: Upload Apple billing test reports
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        if: always()
-        with:
-          name: apple-billing-test-reports
-          path: |
-            apple-billing-tests.xcresult
-            appleApp/build/test-results/**
-            appleApp/build/reports/tests/**
-            util/s3/build/test-results/macosArm64Test/**
-            util/s3/build/reports/tests/macosArm64Test/**
           if-no-files-found: ignore
           retention-days: 21
 

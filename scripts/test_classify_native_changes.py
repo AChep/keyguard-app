@@ -347,6 +347,13 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 self.assertFalse(result["desktop"])
                 self.assertFalse(result["android_run"])
 
+    def test_apple_string_catalogs_do_not_build_native_apple_consumers(self):
+        result = classify([
+            "appleUi/Sources/KeyguardUI/Resources/Localizable.xcstrings",
+            "iosApp/Resources/InfoPlist.xcstrings",
+        ])
+        self.assertFalse(any(result[flag] for flag in FLAGS))
+
     def test_apple_bridge_tests_select_macos_regressions(self):
         result = classify(["appleApp/src/appleTest/kotlin/NativeBundleSmokeTest.kt"])
         self.assertTrue(result["apple_regressions"])

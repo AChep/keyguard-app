@@ -3,7 +3,7 @@
 # against the repository `.swift-format` configuration. Kotlin has ktlint and Detekt,
 # Rust has rustfmt and Clippy; this is the equivalent gate for the Apple UI layer.
 #
-# Run by the "Check Lint" workflow, and locally before pushing Swift changes.
+# Run by the "Check Swift Format" workflow, and locally before pushing Swift changes.
 #
 #   xcode/scripts/lint-swift.sh          # report violations, non-zero on failure
 #   xcode/scripts/lint-swift.sh --fix    # rewrite the sources in place

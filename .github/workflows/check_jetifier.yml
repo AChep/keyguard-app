@@ -2,15 +2,34 @@ name: "✔️ Check Jetifier"
 
 on:
   workflow_dispatch:
+  # Jetifier usage only changes with the dependency graph.
   push:
     branches:
       - master
+    paths:
+      - '**/*.gradle*'
+      - 'buildPlugins/src/main/**'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - '.github/actions/setup_gradle/**'
+      - '.github/workflows/check_jetifier.yml'
   pull_request:
     branches:
       - master
+    paths:
+      - '**/*.gradle*'
+      - 'buildPlugins/src/main/**'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - '.github/actions/setup_gradle/**'
+      - '.github/workflows/check_jetifier.yml'
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check-jetifier:

@@ -83,16 +83,6 @@ internal fun Project.registerCargoTasks(
 
     val cargoBuild = tasks.register<CargoBuildTask>(cargoTaskName) {
         sourceDir.set(extension.sourceDir)
-        sourceFiles.from(
-            extension.sourceDir.map { directory ->
-                directory.asFileTree.matching {
-                    exclude("target/**", "**/target/**")
-                }
-            },
-            extension.extraSourceInputs.asFileTree.matching {
-                exclude("target/**", "**/target/**")
-            },
-        )
         this.cargoTargetDir.set(cargoTargetDir)
         rustTarget.set(extension.rustTarget)
         outputBinary.set(cargoOutputBinary)

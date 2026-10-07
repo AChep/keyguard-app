@@ -60,17 +60,6 @@ class AndroidSshAgentPlugin : Plugin<Project> {
             }
             val cargoBuild = tasks.register<CargoBuildTask>("cargoBuild$suffix") {
                 sourceDir.set(project.file(cargoSourceDir))
-                sourceFiles.from(
-                    project.fileTree(cargoSourceDir) {
-                        exclude("target/**")
-                    },
-                    rootProject.fileTree("commonSshAgent") {
-                        exclude("target/**")
-                    },
-                    rootProject.fileTree("commonAgent") {
-                        exclude("target/**")
-                    },
-                )
                 this.cargoTargetDir.set(cargoTargetDir)
                 rustTarget.set(targetInfo.rustTarget)
                 outputBinary.set(cargoOutputBinary)

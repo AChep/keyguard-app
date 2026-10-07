@@ -1,9 +1,7 @@
 package com.artemchep.keyguard.buildplugins.cargo
 
 import org.gradle.api.Project
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
@@ -11,7 +9,6 @@ import javax.inject.Inject
 
 abstract class CargoCommonExtension @Inject constructor(
     private val project: Project,
-    objects: ObjectFactory,
 ) {
     abstract val sourceDir: DirectoryProperty
     abstract val rustTarget: Property<String>
@@ -25,8 +22,6 @@ abstract class CargoCommonExtension @Inject constructor(
     abstract val cargoPackage: Property<String>
     abstract val cargoArguments: ListProperty<String>
     abstract val environmentVariables: MapProperty<String, String>
-
-    val extraSourceInputs: ConfigurableFileCollection = objects.fileCollection()
 
     private var registered = false
 

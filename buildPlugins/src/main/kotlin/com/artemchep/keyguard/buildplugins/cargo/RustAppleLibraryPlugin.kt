@@ -26,7 +26,6 @@ class RustAppleLibraryPlugin : Plugin<Project> {
         configureRustAppleLibraries(
             naming = naming,
             targets = appleNativeTargets(),
-            extraSourceInputs = files(sharedFfiRustSources()),
         )
         Unit
     }

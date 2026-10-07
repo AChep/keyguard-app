@@ -9,10 +9,6 @@ plugins {
 }
 
 keyguardRust {
-    extraSourceInputs.from(
-        layout.projectDirectory.dir("schema"),
-        rootProject.layout.projectDirectory.dir("thirdParty/rust"),
-    )
     androidCmakeToolchainFile.set(layout.projectDirectory.file("cmake/android.toolchain.cmake"))
     appleInterop(
         packageName = "com.artemchep.keyguard.nativecrypto.ffi",

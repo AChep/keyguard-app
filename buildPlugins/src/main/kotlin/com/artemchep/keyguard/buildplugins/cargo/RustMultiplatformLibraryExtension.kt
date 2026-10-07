@@ -1,9 +1,7 @@
 package com.artemchep.keyguard.buildplugins.cargo
 
 import org.gradle.api.Project
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.model.ObjectFactory
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
@@ -12,10 +10,7 @@ import javax.inject.Inject
 
 abstract class RustMultiplatformLibraryExtension @Inject constructor(
     private val project: Project,
-    objects: ObjectFactory,
 ) {
-    val extraSourceInputs: ConfigurableFileCollection = objects.fileCollection()
-
     abstract val androidCmakeToolchainFile: RegularFileProperty
 
     /** KGP exposes the interop package as a String, so configure its model directly. */

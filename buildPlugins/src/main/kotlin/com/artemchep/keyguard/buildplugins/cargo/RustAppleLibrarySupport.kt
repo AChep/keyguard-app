@@ -4,8 +4,6 @@ import com.artemchep.keyguard.buildplugins.libs
 import com.artemchep.keyguard.buildplugins.version
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.getByType
@@ -62,20 +60,12 @@ internal fun Project.cargoOfflineProvider(moduleTaskName: String): Provider<Bool
         .orElse(false)
 
 /**
- * The `keyguard-ffi` crate in `util/ffi/rust`, which every Rust utility library may use by path.
- */
-fun Project.sharedFfiRustSources(): FileTree = rootProject.fileTree("util/ffi/rust") {
-    exclude("target/**", "**/target/**")
-}
-
-/**
  * Builds the `keyguard-<module>-c` static libraries of [targets], wires them into the matching
  * Apple cinterops and returns the `compile<Native>AppleAll` task.
  */
 internal fun Project.configureRustAppleLibraries(
     naming: RustModuleNaming,
     targets: List<AppleNativeTarget>,
-    extraSourceInputs: FileCollection,
 ): TaskProvider<*> {
     val cargoTasks = registerAppleLibraries(
         nativeTaskName = naming.nativeTaskName,
@@ -83,7 +73,6 @@ internal fun Project.configureRustAppleLibraries(
         nativeLibraryName = "${naming.nativeLibraryPrefix}_c",
         rustSourceDirectory = naming.rustSourceDirectory,
         targets = targets,
-        extraSourceInputs = extraSourceInputs,
     )
     configureAppleInterop(
         moduleName = naming.moduleName,
@@ -107,7 +96,6 @@ private fun Project.registerAppleLibraries(
     nativeLibraryName: String,
     rustSourceDirectory: Directory,
     targets: List<AppleNativeTarget>,
-    extraSourceInputs: FileCollection,
 ): Map<String, TaskProvider<CargoBuildTask>> = targets.associate { target ->
     val suffix = target.kotlinTarget.replaceFirstChar(Char::uppercaseChar)
     val cargoTargetDirectory = layout.buildDirectory
@@ -129,12 +117,6 @@ private fun Project.registerAppleLibraries(
     val cargoBuild = tasks.register<CargoBuildTask>("cargoBuild$nativeTaskName$suffix") {
         dependsOn(verifyRustTarget)
         sourceDir.set(rustSourceDirectory)
-        sourceFiles.from(
-            fileTree(rustSourceDirectory) {
-                exclude("target/**", "**/target/**")
-            },
-            extraSourceInputs.asFileTree,
-        )
         this.cargoTargetDir.set(cargoTargetDirectory)
         rustTarget.set(target.rustTarget)
         this.cargoPackage.set(cargoPackage)

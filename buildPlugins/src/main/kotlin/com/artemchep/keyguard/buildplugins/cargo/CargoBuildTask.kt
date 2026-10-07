@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.buildplugins.cargo
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
@@ -11,29 +10,28 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 import org.gradle.process.ExecOperations
-import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
-@DisableCachingByDefault(because = "Builds external Cargo artifacts")
+/**
+ * Runs `cargo build` on every invocation. Cargo knows the exact inputs of a build, including the
+ * workspace `Cargo.lock`, the toolchain and the `rerun-if-changed` rules of build scripts, and a
+ * build without changes takes a fraction of a second. [outputBinary] still carries the task
+ * dependency to consumers.
+ */
+@UntrackedTask(because = "Cargo tracks the inputs of a build itself")
 abstract class CargoBuildTask : DefaultTask() {
     @get:Inject
     abstract val execOperations: ExecOperations
 
     @get:Internal
     abstract val sourceDir: DirectoryProperty
-
-    @get:InputFiles
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val sourceFiles: ConfigurableFileCollection
 
     @get:InputFile
     @get:Optional
@@ -64,7 +62,6 @@ abstract class CargoBuildTask : DefaultTask() {
     abstract val offline: Property<Boolean>
 
     init {
-        outputs.upToDateWhen { false }
         cargoArguments.convention(emptyList())
         environmentVariables.convention(emptyMap())
         offline.convention(

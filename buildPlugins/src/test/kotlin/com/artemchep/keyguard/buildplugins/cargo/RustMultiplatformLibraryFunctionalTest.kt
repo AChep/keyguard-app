@@ -15,7 +15,7 @@ class RustMultiplatformLibraryFunctionalTest {
     val temporaryFolder = TemporaryFolder()
 
     @Test
-    fun cryptoOverridesAndDefaultNativeInputsSurviveConventionConfiguration() {
+    fun cryptoOverridesAndDefaultNativeModelSurviveConventionConfiguration() {
         val root = temporaryFolder.newFolder()
         val sdk = File(root, "android-sdk")
         val ndk = File(sdk, "ndk/fixture")
@@ -31,7 +31,7 @@ class RustMultiplatformLibraryFunctionalTest {
         listOf("llvm-ar", "llvm-ranlib", "llvm-readelf").forEach { tool ->
             writeFile(bin, tool + executableSuffix, "fixture")
         }
-        listOf("rust/Cargo.toml", "schema/api.proto", "thirdParty/rust/fork/lib.rs", "cmake/android.toolchain.cmake")
+        listOf("rust/Cargo.toml", "cmake/android.toolchain.cmake")
             .forEach { path -> writeFile(root, path, "fixture") }
         writeFile(
             root,
@@ -69,8 +69,8 @@ class RustMultiplatformLibraryFunctionalTest {
                         listOf("Arm64V8a", "ArmeabiV7a", "X86", "X8664").forEach { suffix ->
                             val cargo = tasks.named<CargoBuildTask>("cargoBuildNative${moduleTaskName}Android" + suffix).get()
                             check(cargo.offline.get() == providers.gradleProperty("expected${moduleTaskName}Offline").get().toBoolean())
-                            check(cargo.sourceFiles.files == setOf(file("rust/Cargo.toml"))) {
-                                "Unexpected default Android source inputs for $module: " + cargo.sourceFiles.files
+                            check(cargo.sourceDir.get().asFile == file("rust")) {
+                                "Unexpected Cargo directory for $module: " + cargo.sourceDir.get()
                             }
                             val environment = cargo.environmentVariables.get()
                             val cmakeKey = AndroidCargoEnvironment.targetEnvironmentName("CMAKE_TOOLCHAIN_FILE", cargo.rustTarget.get())
@@ -93,7 +93,6 @@ class RustMultiplatformLibraryFunctionalTest {
             plugins { id("keyguard.rust-multiplatform-library") }
             // Apply overrides after the convention has registered its tasks.
             keyguardRust {
-                extraSourceInputs.from(file("schema"), file("thirdParty/rust"))
                 androidCmakeToolchainFile.set(layout.projectDirectory.file("cmake/android.toolchain.cmake"))
             }
 
@@ -107,7 +106,7 @@ class RustMultiplatformLibraryFunctionalTest {
                     check(cargoNames.size == 8)
                     cargoNames.forEach { name ->
                         val cargo = tasks.named<CargoBuildTask>(name).get()
-                        check(cargo.sourceFiles.files.containsAll(listOf(file("schema/api.proto"), file("thirdParty/rust/fork/lib.rs"))))
+                        check(cargo.sourceDir.get().asFile == file("rust"))
                         check(cargo.offline.get() == providers.gradleProperty("expectedCryptoOffline").get().toBoolean())
                         check(cargo.cargoArguments.get().contains("--locked"))
                         val packageName = if (name in appleSuffixes.map { "cargoBuildNativeCrypto" + it }) {
@@ -128,7 +127,6 @@ class RustMultiplatformLibraryFunctionalTest {
                         }
                         if ("Android" in name) {
                             val cmake = file("cmake/android.toolchain.cmake")
-                            check(cmake in cargo.sourceFiles.files)
                             val cmakeKey = AndroidCargoEnvironment.targetEnvironmentName("CMAKE_TOOLCHAIN_FILE", cargo.rustTarget.get())
                             check(cargo.environmentVariables.get()[cmakeKey] == cmake.absolutePath)
                             check(cargo.environmentVariables.get()["KEYGUARD_ANDROID_API_LEVEL"] == "26")

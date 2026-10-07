@@ -50,31 +50,8 @@ class CargoCommonPluginTest {
         assertTrue(bundledArtifact.buildDependencies.getDependencies(null).contains(compile))
     }
 
-    @Test
-    fun `tracks added source roots while excluding cargo output trees`() {
-        val project = createProject()
-        val extension = project.extensions.getByType<CargoCommonExtension>()
-        extension.cargoBinaryName.set("fixture.bin")
-        val cargo = extension.register("compileFixture").build.get()
-
-        val source = writeFile(project.projectDir, "src/lib.rs")
-        val nestedSource = writeFile(project.projectDir, "src/crates/core/lib.rs")
-        writeFile(project.projectDir, "src/target/debug/generated.rs")
-        writeFile(project.projectDir, "src/crates/core/target/debug/generated.rs")
-        val schema = writeFile(project.projectDir, "schema/api.proto")
-        writeFile(project.projectDir, "schema/target/generated.rs")
-        extension.extraSourceInputs.from(File(project.projectDir, "schema"))
-
-        assertEquals(setOf(source, nestedSource, schema), cargo.sourceFiles.files)
-    }
-
     private fun createProject(): Project = ProjectBuilder.builder()
         .withProjectDir(temporaryFolder.newFolder())
         .build()
         .also { project -> project.pluginManager.apply(CargoCommonPlugin::class.java) }
-
-    private fun writeFile(root: File, path: String): File = File(root, path).apply {
-        parentFile.mkdirs()
-        writeText(path)
-    }
 }

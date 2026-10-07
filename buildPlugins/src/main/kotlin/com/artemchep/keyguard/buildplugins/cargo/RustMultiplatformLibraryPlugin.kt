@@ -32,7 +32,6 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
         pluginManager.apply("keyguard.cargo-common")
 
         val extension = extensions.create<RustMultiplatformLibraryExtension>("keyguardRust", project)
-        extension.extraSourceInputs.from(sharedFfiRustSources())
         val naming = RustModuleNaming(this)
         val moduleTaskName = naming.moduleTaskName
         val nativeTaskName = naming.nativeTaskName
@@ -47,7 +46,6 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
 
         val cargoExtension = extensions.getByType<CargoCommonExtension>().apply {
             sourceDir.set(rustSourceDirectory)
-            extraSourceInputs.from(extension.extraSourceInputs)
             cargoPackage.set("$cargoPackagePrefix-jni")
             cargoArguments.add("--locked")
             cargoBinaryName.set(desktopLibraryFileName)
@@ -99,7 +97,6 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
         val compileAppleAll = configureRustAppleLibraries(
             naming = naming,
             targets = appleTargets,
-            extraSourceInputs = extension.extraSourceInputs,
         )
         tasks.register("$desktopCompileTaskName${hostPlatform.name}") {
             group = "build"
@@ -177,13 +174,6 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
             ) {
                 dependsOn(verifyRustTarget)
                 sourceDir.set(rustSourceDirectory)
-                sourceFiles.from(
-                    fileTree(rustSourceDirectory) {
-                        exclude("target/**", "**/target/**")
-                    },
-                    extension.extraSourceInputs.asFileTree,
-                    extension.androidCmakeToolchainFile.map { listOf(it) }.orElse(emptyList()),
-                )
                 this.cargoTargetDir.set(cargoTargetDirectory)
                 rustTarget.set(target.rustTarget)
                 this.cargoPackage.set(cargoPackage)

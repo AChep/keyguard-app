@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.buildplugins.cargo
 
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.UntrackedTask
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -8,6 +9,12 @@ import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 class CargoBuildTaskTest {
+    @Test
+    fun `leaves rebuild decisions to cargo`() {
+        // Gradle must not skip the task: only Cargo sees the lockfile, toolchain and build scripts.
+        assertNotNull(CargoBuildTask::class.java.getAnnotation(UntrackedTask::class.java))
+    }
+
     @Test
     fun `offline defaults to false and is a task input`() {
         val task = createTask().apply {

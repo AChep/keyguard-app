@@ -44,6 +44,11 @@ gradlePlugin {
             id = "keyguard.kotlin-multiplatform-library"
             implementationClass = "com.artemchep.keyguard.buildplugins.kotlin.KotlinMultiplatformLibraryConventionPlugin"
         }
+        register("applicationRoot") {
+            id = "keyguard.application-root"
+            implementationClass =
+                "com.artemchep.keyguard.buildplugins.application.ApplicationRootConventionPlugin"
+        }
         register("androidApplication") {
             id = "keyguard.android-application"
             implementationClass = "com.artemchep.keyguard.buildplugins.android.AndroidApplicationConventionPlugin"
@@ -63,10 +68,6 @@ gradlePlugin {
         register("qualityConvention") {
             id = "keyguard.quality"
             implementationClass = "com.artemchep.keyguard.buildplugins.quality.QualityConventionPlugin"
-        }
-        register("licensePolicy") {
-            id = "keyguard.license-policy"
-            implementationClass = "com.artemchep.keyguard.buildplugins.quality.LicensePolicyPlugin"
         }
         register("cryptoDependencyCheck") {
             id = "keyguard.crypto-dependency-check"
@@ -101,16 +102,16 @@ gradlePlugin {
         }
         register("nativeCryptoConsumer") {
             id = "keyguard.native-crypto-consumer"
-            implementationClass = "com.artemchep.keyguard.buildplugins.nativecrypto.NativeCryptoConsumerPlugin"
+            implementationClass = "com.artemchep.keyguard.buildplugins.cargo.NativeCryptoConsumerPlugin"
         }
         register("nativeIoConsumer") {
             id = "keyguard.native-io-consumer"
-            implementationClass = "com.artemchep.keyguard.buildplugins.nativeio.NativeIoConsumerPlugin"
+            implementationClass = "com.artemchep.keyguard.buildplugins.cargo.NativeIoConsumerPlugin"
         }
         register("nativeZxcvbnConsumer") {
             id = "keyguard.native-zxcvbn-consumer"
             implementationClass =
-                "com.artemchep.keyguard.buildplugins.nativezxcvbn.NativeZxcvbnConsumerPlugin"
+                "com.artemchep.keyguard.buildplugins.cargo.NativeZxcvbnConsumerPlugin"
         }
         register("cryptoDependencyPolicy") {
             id = "keyguard.crypto-dependency-policy"

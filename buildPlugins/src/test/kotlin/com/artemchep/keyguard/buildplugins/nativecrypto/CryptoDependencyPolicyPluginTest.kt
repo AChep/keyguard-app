@@ -68,7 +68,7 @@ class CryptoDependencyPolicyPluginTest {
         root.resolve("settings.gradle").writeText(
             """
             rootProject.name = 'crypto-policy-test'
-            include ':util:foundation', ':util:kdbx', ':common', ':androidApp', ':wearApp', ':desktopApp'
+            include ':util:foundation', ':util:kdbx', ':util:webauthn', ':common', ':androidApp', ':wearApp', ':desktopApp'
             dependencyResolutionManagement {
                 repositories { maven { url = uri('repo') } }
             }
@@ -147,6 +147,7 @@ class CryptoDependencyPolicyPluginTest {
         val owners = listOf(
             ":util:foundation",
             ":util:kdbx",
+            ":util:webauthn",
             ":common",
             ":androidApp",
             ":wearApp",

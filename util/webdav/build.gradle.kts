@@ -1,5 +1,4 @@
 plugins {
-    id("keyguard.quality")
     id("keyguard.kotlin-multiplatform-library")
     id("keyguard.detekt-custom-rules")
 }
@@ -9,9 +8,7 @@ detektCustomRules {
 }
 
 kotlin {
-    android {
-        namespace = "com.artemchep.keyguard.util.webdav"
-    }
+    compilerOptions.optIn.add("kotlin.io.encoding.ExperimentalEncodingApi")
 
     sourceSets {
         getByName("commonMain") {
@@ -28,11 +25,6 @@ kotlin {
                 implementation(libs.ktor.ktor.client.mock)
                 implementation(libs.kotlinx.coroutines.test)
             }
-        }
-        all {
-            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
-            languageSettings.optIn("kotlin.io.encoding.ExperimentalEncodingApi")
-            languageSettings.optIn("kotlin.time.ExperimentalTime")
         }
     }
 }

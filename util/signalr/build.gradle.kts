@@ -5,10 +5,6 @@ plugins {
 }
 
 kotlin {
-    android {
-        namespace = "com.artemchep.keyguard.util.signalr"
-    }
-
     sourceSets {
         getByName("commonMain") {
             dependencies {

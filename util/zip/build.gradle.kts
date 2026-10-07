@@ -9,10 +9,6 @@ plugins {
 }
 
 kotlin {
-    android {
-        namespace = "com.artemchep.keyguard.util.zip"
-    }
-
     sourceSets {
         getByName("commonMain") {
             dependencies {
@@ -35,11 +31,6 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
         }
         sharedIosTest()
-
-        all {
-            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
-            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
-        }
     }
 }
 

@@ -5,10 +5,6 @@ plugins {
 }
 
 kotlin {
-    android {
-        namespace = "com.artemchep.keyguard.standard.presentation"
-    }
-
     sourceSets {
         getByName("commonMain") {
             dependencies {

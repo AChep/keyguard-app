@@ -2,7 +2,6 @@ import com.artemchep.keyguard.buildplugins.android.enableCoreLibraryDesugaring
 
 plugins {
     id("keyguard.quality")
-    alias(libs.plugins.android.application)
     id("keyguard.android-application")
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)

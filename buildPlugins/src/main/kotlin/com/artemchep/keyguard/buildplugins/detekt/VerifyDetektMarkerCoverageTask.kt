@@ -46,9 +46,8 @@ abstract class VerifyDetektMarkerCoverageTask : DefaultTask() {
     abstract val allowedPathPrefixes: SetProperty<String>
 
     /**
-     * Whether [analysedFiles] is expected to be non-empty. True for a module that registers a
-     * compilation, false for the repository-wide ownership check, which decides purely from
-     * [allowedPathPrefixes].
+     * Whether [analysedFiles] is expected to be non-empty. True for a module that runs the custom
+     * rules, false for any other module, where every file mentioning a marker fails the check.
      */
     @get:Input
     abstract val expectsAnalysedSources: Property<Boolean>
@@ -73,9 +72,7 @@ abstract class VerifyDetektMarkerCoverageTask : DefaultTask() {
         val root = rootDirectory.get().asFile.canonicalFile.toPath()
         val exempt = allowedPathPrefixes.get()
 
-        // Files that mention a marker and that this task is responsible for. Exemptions are
-        // applied first, because the root-level ownership check deliberately registers no
-        // analysed sources and instead exempts the modules that check themselves.
+        // Files that mention a marker and that this task is responsible for.
         val markerFiles = candidateFiles.files
             .asSequence()
             .map { it.canonicalFile }

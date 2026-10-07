@@ -5,9 +5,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.TestExecutable
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
-    id("keyguard.quality")
-    id("keyguard.license-policy")
-    id("keyguard.koin")
+    id("keyguard.application-root")
     id("keyguard.kotlin-multiplatform")
     // Resolves the reified `encodeToString` / `serializer<T>()` calls at compile time
     // instead of through the runtime serializer lookup.
@@ -17,12 +15,10 @@ plugins {
     alias(libs.plugins.kotlin.plugin.compose)
 }
 
-// Application roots always revalidate the assembled dependency graph. On Kotlin/Native the
-// compiler plugin cannot read definitions from other modules' klibs and reports false
-// KOIN-D002 errors for every common binding (koin-compiler-plugin issues #105, #106), so
-// this root relies on IosKoinGraphTest until upstream fixes cross-module hints for Native.
+// On Kotlin/Native the compiler plugin cannot read definitions from other modules' klibs and
+// reports false KOIN-D002 errors for every common binding (koin-compiler-plugin issues #105,
+// #106), so this root relies on IosKoinGraphTest until upstream fixes cross-module hints for Native.
 koinCompiler {
-    strictSafety.set(true)
     compileSafety.set(false)
 }
 
@@ -43,7 +39,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(libs.koin.core)
                 implementation(project(":common"))
@@ -59,7 +55,7 @@ kotlin {
 
         // Runtime tests for the Apple bridge; `iosTest` holds the graph tests
         // for the iOS application root.
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(libs.kotlinx.coroutines.test)
             }

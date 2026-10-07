@@ -1,16 +1,11 @@
 package com.artemchep.keyguard.buildplugins.nativecrypto
 
-import org.gradle.api.DefaultTask
+import com.artemchep.keyguard.buildplugins.policy.isJvmClasspathName
+import com.artemchep.keyguard.buildplugins.policy.registerDependencyPolicy
+import com.artemchep.keyguard.buildplugins.policy.walkDependencyGraph
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedComponentResult
-import org.gradle.api.artifacts.result.ResolvedDependencyResult
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.TaskAction
-import org.gradle.work.DisableCachingByDefault
 
 private const val CHECK_TASK_NAME = "checkBouncyCastleProductionDependencies"
 
@@ -24,6 +19,7 @@ private val forbiddenSshGroups = setOf(
 private val policyProjectPaths = listOf(
     ":util:foundation",
     ":util:kdbx",
+    ":util:webauthn",
     ":common",
     ":androidApp",
     ":wearApp",
@@ -54,66 +50,25 @@ class CryptoDependencyPolicyPlugin : Plugin<Project> {
 class CryptoDependencyCheckPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
         val projectPath = path
-        val projectCheck = tasks.register(
-            CHECK_TASK_NAME,
-            CheckCryptoDependencyPolicyTask::class.java,
-        ) {
-            group = "verification"
-            description =
-                "Rejects Bouncy Castle, SSHJ, and ASN.1 artifacts from production classpaths."
-            this.projectPath.set(projectPath)
-        }
-        configurations.configureEach {
-            val configurationName = name
-            if (!isJvmClasspathName(configurationName)) return@configureEach
-
-            val isProduction = !configurationName.contains("test", ignoreCase = true)
-            val configurationViolations = incoming.resolutionResult.rootComponent.map { rootComponent ->
+        registerDependencyPolicy(
+            taskName = CHECK_TASK_NAME,
+            checksConfiguration = { configuration -> isJvmClasspathName(configuration.name) },
+            findViolations = { configurationName, root ->
                 collectViolations(
-                    rootComponent = rootComponent,
+                    rootComponent = root,
                     projectPath = projectPath,
                     configurationName = configurationName,
-                    isProduction = isProduction,
+                    isProduction = !configurationName.contains("test", ignoreCase = true),
                 )
-            }
-            projectCheck.configure {
-                checkedConfigurationNames.add(configurationName)
-                violations.addAll(configurationViolations)
-            }
+            },
+        ) {
+            description =
+                "Rejects Bouncy Castle, SSHJ, and ASN.1 artifacts from production classpaths."
+            policyName.set("Crypto dependency policy")
+            checkedClasspaths.set("compile/runtime classpaths in $projectPath")
+            failureHeader.set("Retired crypto dependencies escaped test-only configurations:")
         }
-    }
-}
-
-@DisableCachingByDefault(because = "Resolves production dependency graphs and has no outputs")
-abstract class CheckCryptoDependencyPolicyTask : DefaultTask() {
-    @get:Input
-    abstract val projectPath: Property<String>
-
-    @get:Input
-    abstract val checkedConfigurationNames: ListProperty<String>
-
-    @get:Input
-    abstract val violations: ListProperty<String>
-
-    init {
-        checkedConfigurationNames.convention(emptyList())
-        violations.convention(emptyList())
-    }
-
-    @TaskAction
-    fun checkDependencies() {
-        val violations = violations.get()
-            .distinct()
-            .sorted()
-
-        check(violations.isEmpty()) {
-            "Retired crypto dependencies escaped test-only configurations:\n" +
-                violations.joinToString("\n")
-        }
-        logger.lifecycle(
-            "Crypto dependency policy checked ${checkedConfigurationNames.get().size} " +
-                "compile/runtime classpaths in ${projectPath.get()}.",
-        )
+        Unit
     }
 }
 
@@ -122,35 +77,16 @@ private fun collectViolations(
     projectPath: String,
     configurationName: String,
     isProduction: Boolean,
-): List<String> {
-    val visited = mutableSetOf<ComponentIdentifier>()
-    val pending = ArrayDeque<ResolvedComponentResult>()
-    val violations = mutableListOf<String>()
-    pending.add(rootComponent)
-
-    while (pending.isNotEmpty()) {
-        val component = pending.removeFirst()
-        if (!visited.add(component.id)) continue
-
+): List<String> = buildList {
+    walkDependencyGraph(rootComponent, onResolved = { component, _ ->
         component.moduleVersion
             ?.takeIf { module ->
                 isForbiddenSshDependency(module.group, module.name) ||
                     isProduction && isBouncyCastleDependency(module.group)
             }
-            ?.let { module ->
-                violations += "$projectPath:$configurationName -> $module"
-            }
-        component.dependencies
-            .filterIsInstance<ResolvedDependencyResult>()
-            .forEach { dependency -> pending.add(dependency.selected) }
-    }
-
-    return violations
+            ?.let { module -> add("$projectPath:$configurationName -> $module") }
+    })
 }
-
-private fun isJvmClasspathName(name: String): Boolean =
-    name.endsWith("CompileClasspath") ||
-        name.endsWith("RuntimeClasspath")
 
 internal fun isBouncyCastleDependency(group: String): Boolean =
     group == BOUNCY_CASTLE_GROUP

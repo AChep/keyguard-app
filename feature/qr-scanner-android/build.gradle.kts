@@ -1,6 +1,5 @@
 plugins {
     id("keyguard.quality")
-    alias(libs.plugins.android.library)
     id("keyguard.android-library")
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)

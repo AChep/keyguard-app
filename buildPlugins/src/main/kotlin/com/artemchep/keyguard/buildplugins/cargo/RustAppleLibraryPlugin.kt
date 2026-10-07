@@ -18,37 +18,15 @@ class RustAppleLibraryPlugin : Plugin<Project> {
         pluginManager.apply("base")
 
         val naming = RustModuleNaming(this)
-        val moduleName = naming.moduleName
-        val moduleTaskName = naming.moduleTaskName
-        val nativeTaskName = naming.nativeTaskName
-        val cargoPackagePrefix = naming.cargoPackagePrefix
-        val nativeLibraryPrefix = naming.nativeLibraryPrefix
-        val rustSourceDirectory = naming.rustSourceDirectory
-        val cargoOffline = cargoOfflineProvider(moduleTaskName)
-
+        val cargoOffline = cargoOfflineProvider(naming.moduleTaskName)
         tasks.withType<CargoBuildTask>().configureEach {
             offline.set(cargoOffline)
         }
 
-        val appleTargets = appleNativeTargets()
-        val appleCargoTasks = registerAppleLibraries(
-            nativeTaskName = nativeTaskName,
-            cargoPackage = "$cargoPackagePrefix-c",
-            nativeLibraryName = "${nativeLibraryPrefix}_c",
-            rustSourceDirectory = rustSourceDirectory,
-            targets = appleTargets,
+        configureRustAppleLibraries(
+            naming = naming,
+            targets = appleNativeTargets(),
             extraSourceInputs = files(sharedFfiRustSources()),
-        )
-        configureAppleInterop(
-            moduleName = moduleName,
-            moduleTaskName = moduleTaskName,
-            rustSourceDirectory = rustSourceDirectory,
-            targets = appleTargets,
-            cargoTasks = appleCargoTasks,
-        )
-        registerAppleAggregateTasks(
-            nativeTaskName = nativeTaskName,
-            cargoTasks = appleCargoTasks,
         )
         Unit
     }

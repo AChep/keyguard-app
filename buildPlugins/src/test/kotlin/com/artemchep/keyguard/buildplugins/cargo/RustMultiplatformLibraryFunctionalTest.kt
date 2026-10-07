@@ -44,6 +44,8 @@ class RustMultiplatformLibraryFunctionalTest {
                     create("libs") {
                         version("androidMinSdk", "26")
                         version("androidNdk", "fixture")
+                        version("appleMacosDeploymentTarget", "13.0")
+                        version("appleIosDeploymentTarget", "16.0")
                     }
                 }
             }
@@ -114,6 +116,16 @@ class RustMultiplatformLibraryFunctionalTest {
                             "keyguard-crypto-jni"
                         }
                         check(cargo.cargoPackage.get() == packageName)
+                        val deploymentTargets = cargo.environmentVariables.get()
+                            .filterKeys { it.endsWith("_DEPLOYMENT_TARGET") }
+                        val expectedDeploymentTargets = when {
+                            name.endsWith("MacosArm64") -> mapOf("MACOSX_DEPLOYMENT_TARGET" to "13.0")
+                            name.contains("Ios") -> mapOf("IPHONEOS_DEPLOYMENT_TARGET" to "16.0")
+                            else -> emptyMap()
+                        }
+                        check(deploymentTargets == expectedDeploymentTargets) {
+                            "Unexpected deployment targets for " + name + ": " + deploymentTargets
+                        }
                         if ("Android" in name) {
                             val cmake = file("cmake/android.toolchain.cmake")
                             check(cmake in cargo.sourceFiles.files)
@@ -173,6 +185,8 @@ class RustMultiplatformLibraryFunctionalTest {
                 versionCatalogs {
                     create("libs") {
                         version("jdk", "${JavaVersion.current().majorVersion}")
+                        version("appleMacosDeploymentTarget", "13.0")
+                        version("appleIosDeploymentTarget", "16.0")
                     }
                 }
             }

@@ -10,10 +10,6 @@ plugins {
 }
 
 kotlin {
-    android {
-        namespace = "com.artemchep.keyguard.util.webauthn"
-    }
-
     sourceSets {
         getByName("commonMain").dependencies {
             implementation(project(":util:crypto"))
@@ -28,10 +24,5 @@ kotlin {
             implementation(libs.icu4j)
         }
         sharedAppleMain()
-
-        all {
-            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
-            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
-        }
     }
 }

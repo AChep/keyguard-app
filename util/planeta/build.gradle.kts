@@ -8,10 +8,6 @@ plugins {
 }
 
 kotlin {
-    android {
-        namespace = "com.artemchep.keyguard.util.planeta"
-    }
-
     sourceSets {
         getByName("commonMain") {
             dependencies {

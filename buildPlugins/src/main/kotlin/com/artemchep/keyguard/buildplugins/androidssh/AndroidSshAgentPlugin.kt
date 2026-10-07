@@ -2,24 +2,24 @@ package com.artemchep.keyguard.buildplugins.androidssh
 
 import com.artemchep.keyguard.buildplugins.cargo.CargoBuildTask
 import com.artemchep.keyguard.buildplugins.cargo.SignAndCopyBinaryTask
+import com.artemchep.keyguard.buildplugins.libs
+import com.artemchep.keyguard.buildplugins.version
+import com.artemchep.keyguard.buildplugins.versionInt
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
 
 class AndroidSshAgentPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
         pluginManager.apply("base")
 
-        val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
         val cargoSourceDir = "src"
         val cargoBinaryName = AndroidSshAgentTermuxPackaging.PACKAGE_NAME
         val termuxTargets = AndroidSshAgentTermuxPackaging.supportedTargets
-        val androidMinSdk = libs.findVersion("androidMinSdk").get().requiredVersion.toInt()
-        val androidNdk = libs.findVersion("androidNdk").get().requiredVersion
-        val appMarketingVersion = libs.findVersion("appVersionName").get().requiredVersion
+        val androidMinSdk = libs.versionInt("androidMinSdk")
+        val androidNdk = libs.version("androidNdk")
+        val appMarketingVersion = libs.version("appVersionName")
         val termuxPackageVersion = AndroidSshAgentTermuxPackaging.resolvePackageVersion(
             marketingVersion = appMarketingVersion,
         )

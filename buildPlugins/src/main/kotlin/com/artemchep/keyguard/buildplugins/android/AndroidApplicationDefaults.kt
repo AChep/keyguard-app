@@ -3,15 +3,24 @@ package com.artemchep.keyguard.buildplugins.android
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.CommonExtension
 import com.android.build.api.dsl.SigningConfig
+import com.artemchep.keyguard.buildplugins.library
+import com.artemchep.keyguard.buildplugins.libs
+import com.artemchep.keyguard.buildplugins.version
+import com.artemchep.keyguard.buildplugins.version.keyguardVersionInfo
 import org.gradle.api.Project
 import java.io.File
 import java.util.Properties
 
 /** Shared production defaults for the phone and Wear vault applications. */
 fun ApplicationExtension.configureKeyguardApplication(project: Project) {
-    ndkVersion = project.androidCatalog().findVersion("androidNdk").get().requiredVersion
+    ndkVersion = project.libs.version("androidNdk")
+    // Both apps ship under the same package, so a Wear install pairs with the phone app.
+    namespace = "com.artemchep.keyguard"
+    val versionInfo = project.keyguardVersionInfo()
     defaultConfig {
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        applicationId = "com.artemchep.keyguard"
+        versionCode = versionInfo.logicalVersion
+        versionName = versionInfo.marketingVersion
         // Clear the app's state between orchestrated test invocations.
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
         vectorDrawables.useSupportLibrary = true
@@ -20,7 +29,7 @@ fun ApplicationExtension.configureKeyguardApplication(project: Project) {
     testOptions.execution = "ANDROIDX_TEST_ORCHESTRATOR"
     project.dependencies.add(
         "androidTestUtil",
-        project.androidCatalog().findLibrary("androidx-test-orchestrator").get(),
+        project.libs.library("androidx-test-orchestrator"),
     )
     bundle.language.enableSplit = false
     buildFeatures.buildConfig = true
@@ -46,7 +55,7 @@ fun CommonExtension.enableCoreLibraryDesugaring(project: Project) {
     compileOptions.isCoreLibraryDesugaringEnabled = true
     project.dependencies.add(
         "coreLibraryDesugaring",
-        project.androidCatalog().findLibrary("android-desugarjdklibs").get(),
+        project.libs.library("android-desugarjdklibs"),
     )
 }
 

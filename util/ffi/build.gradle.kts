@@ -11,7 +11,6 @@ plugins {
 // path. This project builds no native library, so no keyguard.rust-* plugin.
 
 kotlin {
-    android { namespace = "com.artemchep.keyguard.util.ffi" }
     sourceSets {
         commonMain.dependencies { implementation(libs.kotlinx.coroutines.core) }
         commonTest.dependencies { implementation(libs.kotlinx.coroutines.test) }

@@ -38,7 +38,6 @@ class JvmBenchmarkTest {
             tasks.register<Test>("desktopTest") {
                 testClassesDirs = sourceSets.test.get().output.classesDirs
                 classpath = sourceSets.test.get().runtimeClasspath
-                filter { excludeTestsMatching("example.BenchmarkTest") }
             }
             registerJvmBenchmark("fixtureBenchmark", "Runs the fixture benchmark", "example.BenchmarkTest") {
                 forwardSystemProperties(listOf("keyguard.fixture.iterations"))

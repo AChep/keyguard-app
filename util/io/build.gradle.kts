@@ -6,13 +6,10 @@ plugins {
     id("keyguard.quality")
     id("keyguard.kotlin-multiplatform-library")
     id("keyguard.rust-multiplatform-library")
-    id("keyguard.native-io-consumer")
 }
 
 kotlin {
     android {
-        namespace = "com.artemchep.keyguard.util.io"
-
         packaging {
             jniLibs.useLegacyPackaging = false
         }
@@ -35,10 +32,5 @@ kotlin {
         }
         sharedAppleMain()
         sharedIosTest()
-
-        all {
-            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
-            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
-        }
     }
 }

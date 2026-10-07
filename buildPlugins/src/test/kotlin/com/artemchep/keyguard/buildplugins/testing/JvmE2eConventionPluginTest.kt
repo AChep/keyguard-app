@@ -79,6 +79,8 @@ class JvmE2eConventionPluginTest {
 
         val first = runner("sampleE2eTest").build()
         assertEquals(TaskOutcome.SUCCESS, first.task(":sampleE2eTest")?.outcome)
+        // The fixture declares no host toolchain, so there is nothing to verify.
+        assertEquals(TaskOutcome.SKIPPED, first.task(":verifyE2eEnvironment")?.outcome)
         val report = File(
             temporaryFolder.root,
             "build/test-results/sampleE2eTest/TEST-example.NamedSuiteTest.xml",

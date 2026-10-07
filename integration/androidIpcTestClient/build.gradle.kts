@@ -1,6 +1,4 @@
 plugins {
-    id("keyguard.quality")
-    alias(libs.plugins.android.application)
     id("keyguard.android-application")
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)
@@ -19,7 +17,6 @@ android {
         versionCode = 1
         versionName = "1"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // The output-pipe expiry test sleeps out the provider's 60 second pipe
         // lifetime, which is longer than the rest of the suite put together.
         // Opt back in with

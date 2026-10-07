@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.buildplugins.androidssh
 
+import com.artemchep.keyguard.buildplugins.cargo.HostPlatform
+import com.artemchep.keyguard.buildplugins.cargo.binaryName
+import com.artemchep.keyguard.buildplugins.cargo.detectHostPlatform
 import org.gradle.api.GradleException
 import java.io.File
 import java.util.Properties
@@ -231,8 +234,7 @@ object AndroidCargoEnvironment {
             localPropertiesFile = localPropertiesFile,
             ndkVersion = ndkVersion,
         )
-        val executableName = if (isWindowsHost()) "llvm-readelf.exe" else "llvm-readelf"
-        val executable = File(toolchain.toolchainBinDir, executableName)
+        val executable = File(toolchain.toolchainBinDir, llvmToolExecutableName("llvm-readelf"))
         if (!executable.isFile) {
             throw GradleException(
                 "Android NDK llvm-readelf is missing: ${executable.absolutePath}",
@@ -249,24 +251,11 @@ object AndroidCargoEnvironment {
             ?.let(::File)
     }
 
-    private fun hostToolchainDirectoryCandidates(): List<String> {
-        val osName = System.getProperty("os.name")
-        val osArch = System.getProperty("os.arch")
-        return when {
-            osName.startsWith("Mac", ignoreCase = true) ||
-                osName.startsWith("Darwin", ignoreCase = true) -> if (
-                osArch.equals("aarch64", ignoreCase = true) ||
-                osArch.equals("arm64", ignoreCase = true)
-            ) {
-                listOf("darwin-arm64", "darwin-x86_64")
-            } else {
-                listOf("darwin-x86_64", "darwin-arm64")
-            }
-
-            osName.startsWith("Linux", ignoreCase = true) -> listOf("linux-x86_64")
-            osName.startsWith("Windows", ignoreCase = true) -> listOf("windows-x86_64")
-            else -> throw GradleException("Unsupported host platform for Android NDK validation: $osName")
-        }
+    private fun hostToolchainDirectoryCandidates(): List<String> = when (detectHostPlatform()) {
+        HostPlatform.MacosArm64 -> listOf("darwin-arm64", "darwin-x86_64")
+        HostPlatform.MacosX64 -> listOf("darwin-x86_64", "darwin-arm64")
+        HostPlatform.LinuxX64, HostPlatform.LinuxArm64 -> listOf("linux-x86_64")
+        HostPlatform.WindowsX64, HostPlatform.WindowsArm64 -> listOf("windows-x86_64")
     }
 
     private fun androidCompilerExecutableName(
@@ -290,8 +279,7 @@ object AndroidCargoEnvironment {
     }
 
     private fun llvmToolExecutableName(name: String): String =
-        if (isWindowsHost()) "$name.exe" else name
+        detectHostPlatform().binaryName(name)
 
-    private fun isWindowsHost(): Boolean =
-        System.getProperty("os.name").startsWith("Windows", ignoreCase = true)
+    private fun isWindowsHost(): Boolean = detectHostPlatform().isWindows
 }

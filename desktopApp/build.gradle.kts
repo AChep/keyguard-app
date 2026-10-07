@@ -1,6 +1,10 @@
+import com.artemchep.keyguard.buildplugins.cargo.bundledAppResourcesFrom
+import com.artemchep.keyguard.buildplugins.cargo.detectHostPlatform
+import com.artemchep.keyguard.buildplugins.cargo.isLinux
+import com.artemchep.keyguard.buildplugins.cargo.msixArchitecture
+import com.artemchep.keyguard.buildplugins.cargo.tarballSuffix
 import groovy.xml.XmlUtil
 import org.apache.tools.ant.filters.ReplaceTokens
-import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.Sync
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -10,23 +14,19 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 
 plugins {
-    id("keyguard.license-policy")
+    id("keyguard.application-root")
     id("keyguard.crypto-dependency-check")
-    id("keyguard.quality")
-    id("keyguard.koin")
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)
-    alias(libs.plugins.kotlin.multiplatform)
-}
-
-// Application roots always revalidate the assembled dependency graph.
-koinCompiler {
-    strictSafety.set(true)
+    id("keyguard.kotlin-multiplatform")
 }
 
 kotlin {
-    jvm {
+    // The convention picks the JDK version; the desktop app also needs JetBrains Runtime.
+    jvmToolchain {
+        vendor.set(JvmVendorSpec.JETBRAINS)
     }
+    jvm()
     sourceSets {
         getByName("jvmMain") {
             dependencies {
@@ -50,7 +50,6 @@ kotlin {
         }
         getByName("jvmTest") {
             dependencies {
-                implementation(kotlin("test"))
                 implementation(libs.kotlinx.coroutines.test)
             }
         }
@@ -59,40 +58,25 @@ kotlin {
 
 val appId = "com.artemchep.keyguard"
 
+val hostPlatform = detectHostPlatform()
+
 val executableAppResourceNames = setOf(
     "keyguard-ssh-agent",
     "keyguard-gpg-agent",
     "keyguard-lib",
 )
 
-val bundledAppResources = configurations.create("bundledAppResources") {
-    isCanBeConsumed = false
-    isCanBeResolved = true
-}
-
-dependencies {
-    listOf(
-        ":util:instance",
-        ":util:yubikey",
-        ":util:fido2",
-        ":desktopSshAgent",
-        ":desktopGpgAgent",
-        ":desktopLibNative",
-        ":util:crypto",
-        ":util:io",
-        ":util:zxcvbn",
-    ).forEach { producer ->
-        add(
-            bundledAppResources.name,
-            project(
-                mapOf(
-                    "path" to producer,
-                    "configuration" to "bundledAppResourcesElements",
-                ),
-            ),
-        )
-    }
-}
+val bundledAppResources = bundledAppResourcesFrom(
+    ":util:instance",
+    ":util:yubikey",
+    ":util:fido2",
+    ":desktopSshAgent",
+    ":desktopGpgAgent",
+    ":desktopLibNative",
+    ":util:crypto",
+    ":util:io",
+    ":util:zxcvbn",
+)
 
 val jdkVersion = libs.versions.jdk.get().toInt()
 val jbrLauncher = extensions.getByType<JavaToolchainService>().launcherFor {
@@ -187,7 +171,7 @@ compose.desktop {
             // We want to explicitly include the jdk crypto module,
             // so if the JDK is missing that we are going to get an error
             // instead of silently building the app and failing in runtime.
-            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            if (hostPlatform.isWindows) {
                 jvmArgs("--add-modules=jdk.crypto.mscapi")
             }
 
@@ -206,7 +190,7 @@ compose.desktop {
                 // have the app image distribution format enabled.
                 // See:
                 // https://github.com/JetBrains/compose-multiplatform/issues/3814
-                TargetFormat.AppImage.takeUnless { Os.isFamily(Os.FAMILY_MAC) },
+                TargetFormat.AppImage.takeUnless { hostPlatform.isMacOs },
             ).toTypedArray()
             targetFormats(*formats)
 
@@ -265,17 +249,14 @@ tasks.named { it == "prepareAppResources" }.configureEach {
     dependsOn(prepareBundledAppResources)
 }
 
-val isMac = Os.isFamily(Os.FAMILY_MAC)
-val isLinux = Os.isName("linux")
-
-if (isMac || isLinux) {
+if (!hostPlatform.isWindows) {
     tasks.withType<AbstractJPackageTask>().configureEach {
         if (targetFormat != TargetFormat.AppImage) {
             return@configureEach
         }
 
         fun appResourcesDirectory() = destinationDir.get().asFile
-            .resolve(packageName.get() + if (isMac) ".app/Contents/app/resources" else "/lib/app/resources")
+            .resolve(packageName.get() + if (hostPlatform.isMacOs) ".app/Contents/app/resources" else "/lib/app/resources")
 
         // Compose's app-resource copy does not preserve POSIX executable bits.
         // Repair the app image before verification or downstream packaging.
@@ -298,7 +279,7 @@ if (isMac || isLinux) {
     }
 }
 
-if (isLinux) {
+if (hostPlatform.isLinux) {
     // Package the repaired image instead of copying app resources again.
     // Wiring the image task's output as input also adds the task dependency.
     // Compose registers desktop packaging tasks after project evaluation, so
@@ -316,24 +297,10 @@ if (isLinux) {
     }
 }
 
-kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(jdkVersion))
-        vendor.set(JvmVendorSpec.JETBRAINS)
-    }
-}
-
 fun Tar.installPackageDistributable(
     dependency: String,
 ) {
     val appVersion = libs.versions.appVersionName.get()
-    val osName = System.getProperty("os.name")
-        .lowercase()
-        .replace(" ", "")
-    val osArch = when (val prop = System.getProperty("os.arch")) {
-        "amd64" -> "x86_64"
-        else -> prop
-    }
 
     from(tasks.named(dependency)) {
         // Keep the launcher and helper binaries executable inside the tarball even if
@@ -351,38 +318,33 @@ fun Tar.installPackageDistributable(
 
     // Pack additional platform-specific files. For example for
     // Linux we want to include the Flatpak files.
-    when (osName) {
-        "linux" -> {
-            val flatpakSources = project.file("flatpak")
-            from(flatpakSources) {
-                include("com.artemchep.keyguard.desktop")
-                into("Keyguard/share/applications")
-            }
-            from(flatpakSources) {
-                include("com.artemchep.keyguard.metainfo.xml")
-                into("Keyguard/share/metainfo")
-            }
-            // polkit policy of the system authentication unlock. polkitd
-            // only reads the host's /usr/share, the copy here is what the
-            // documented install command reads.
-            from(rootProject.file("desktopLibNative/src/src/biometrics/linux")) {
-                include("com.artemchep.keyguard.policy")
-                into("Keyguard/share/polkit-1/actions")
-            }
-            from(flatpakSources) {
-                include("icon.svg")
-                // Rename happens on the fly during the copy
-                rename { "com.artemchep.keyguard.svg" }
-                into("Keyguard/share/icons/hicolor/scalable/apps")
-            }
+    if (hostPlatform.isLinux) {
+        val flatpakSources = project.file("flatpak")
+        from(flatpakSources) {
+            include("com.artemchep.keyguard.desktop")
+            into("Keyguard/share/applications")
         }
-        else -> {
-            // Do nothing
+        from(flatpakSources) {
+            include("com.artemchep.keyguard.metainfo.xml")
+            into("Keyguard/share/metainfo")
+        }
+        // polkit policy of the system authentication unlock. polkitd
+        // only reads the host's /usr/share, the copy here is what the
+        // documented install command reads.
+        from(rootProject.file("desktopLibNative/src/src/biometrics/linux")) {
+            include("com.artemchep.keyguard.policy")
+            into("Keyguard/share/polkit-1/actions")
+        }
+        from(flatpakSources) {
+            include("icon.svg")
+            // Rename happens on the fly during the copy
+            rename { "com.artemchep.keyguard.svg" }
+            into("Keyguard/share/icons/hicolor/scalable/apps")
         }
     }
 
     archiveBaseName = "Keyguard"
-    archiveClassifier = "$appVersion-$osName-$osArch"
+    archiveClassifier = "$appVersion-${hostPlatform.tarballSuffix}"
     compression = Compression.GZIP
     archiveExtension = "tar.gz"
 }
@@ -398,13 +360,9 @@ tasks.register<Tar>("packageReleaseDistributable") {
 // MSIX packaging (Windows only). jpackage can not produce MSIX, so we pack
 // the app image together with the manifest and the tile assets from the
 // 'msix' directory using the Windows SDK tools. See msix/README.md.
-if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+if (hostPlatform.isWindows) {
     val appVersion = libs.versions.appVersionName.get()
-    val msixArchitecture = when (val osArch = System.getProperty("os.arch").lowercase()) {
-        "amd64", "x86_64", "x64" -> "x64"
-        "aarch64", "arm64" -> "arm64"
-        else -> error("Unsupported Windows MSIX architecture: $osArch")
-    }
+    val msixArchitecture = hostPlatform.msixArchitecture
 
     fun msixProperty(name: String): String? = (findProperty(name) as String?)
         ?.takeIf { it.isNotBlank() }

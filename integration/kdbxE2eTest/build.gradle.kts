@@ -1,7 +1,6 @@
 import com.artemchep.keyguard.buildplugins.testing.E2eToolchain
 import com.artemchep.keyguard.buildplugins.testing.VerifyE2eEnvironmentTask
 import com.artemchep.keyguard.buildplugins.testing.pythonSetupMessage
-import org.gradle.api.tasks.testing.Test
 
 plugins {
     id("keyguard.quality")
@@ -9,9 +8,13 @@ plugins {
     id("keyguard.native-crypto-consumer")
 }
 
+keyguardE2e {
+    toolchain = E2eToolchain.PYKEEPASS
+}
+
 dependencies {
-    "kdbxE2eTestImplementation"(project(":util:kdbx"))
-    "kdbxE2eTestImplementation"(libs.kotlinx.serialization.json)
+    kdbxE2eTestImplementation(project(":util:kdbx"))
+    kdbxE2eTestImplementation(libs.kotlinx.serialization.json)
 }
 
 val kdbxPython = providers.gradleProperty("kdbxE2ePython").orElse("python3")
@@ -20,8 +23,7 @@ val requirements = layout.projectDirectory.file("requirements.txt")
 val seedDirectory = rootProject.layout.projectDirectory.dir("util/kdbx/src/jvmCommonTest/resources")
 val artifactsDirectory = layout.buildDirectory.dir("kdbxE2eTest/artifacts")
 
-val verifyE2eEnvironment = tasks.register<VerifyE2eEnvironmentTask>("verifyE2eEnvironment") {
-    toolchain.set(E2eToolchain.PYKEEPASS)
+tasks.named<VerifyE2eEnvironmentTask>("verifyE2eEnvironment") {
     pythonExecutable.set(kdbxPython)
     pythonDriver.set(kdbxDriver)
     val requirementsFile = requirements.asFile
@@ -30,9 +32,6 @@ val verifyE2eEnvironment = tasks.register<VerifyE2eEnvironmentTask>("verifyE2eEn
 
 tasks.named<Test>("kdbxE2eTest") {
     description = "Runs KDBX interoperability tests against pykeepass."
-    dependsOn(verifyE2eEnvironment)
-
-    systemProperty("keyguard.repoRoot", rootDir.absolutePath)
     systemProperty("keyguard.kdbxE2e.python", kdbxPython.get())
     systemProperty("keyguard.kdbxE2e.driver", kdbxDriver.asFile.absolutePath)
     systemProperty("keyguard.kdbxE2e.seedDir", seedDirectory.asFile.absolutePath)

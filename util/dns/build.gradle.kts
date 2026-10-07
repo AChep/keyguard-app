@@ -8,10 +8,6 @@ plugins {
 }
 
 kotlin {
-    android {
-        namespace = "com.artemchep.keyguard.util.dns"
-    }
-
     sourceSets {
         getByName("commonMain").dependencies {
             api(libs.kotlinx.coroutines.core)
@@ -24,9 +20,5 @@ kotlin {
         }
         sharedAppleMain()
         sharedAppleTest()
-
-        all {
-            languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
-        }
     }
 }

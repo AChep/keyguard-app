@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
 package com.artemchep.keyguard.util.dns
 
 import com.artemchep.keyguard.util.dns.internal.DnsMessageParser
@@ -5,6 +7,7 @@ import com.artemchep.keyguard.util.dns.internal.RR_TYPE_TXT
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.asStableRef
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.readBytes

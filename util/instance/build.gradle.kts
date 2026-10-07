@@ -1,10 +1,9 @@
 import com.artemchep.keyguard.buildplugins.cargo.CargoBuildTask
+import com.artemchep.keyguard.buildplugins.cargo.NativeLibraryPathArgumentProvider
 import com.artemchep.keyguard.buildplugins.cargo.RustMultiplatformLibraryExtension
 import com.artemchep.keyguard.buildplugins.cargo.binaryName
 import com.artemchep.keyguard.buildplugins.cargo.detectHostPlatform
-import com.artemchep.keyguard.buildplugins.cargo.dynamicLibraryName
 import com.artemchep.keyguard.buildplugins.cargo.sharedFfiRustSources
-import org.gradle.api.tasks.testing.Test
 
 plugins {
     id("keyguard.quality")
@@ -29,10 +28,6 @@ extensions.configure<RustMultiplatformLibraryExtension> {
 }
 
 val hostPlatform = detectHostPlatform()
-val desktopLibrary = layout.buildDirectory.file(
-    "cargo-target/${hostPlatform.rustTarget}/release/" +
-        hostPlatform.dynamicLibraryName("keyguard_instance_jni"),
-)
 val nativeFixture = tasks.register<CargoBuildTask>("cargoBuildNativeInstanceFixture") {
     dependsOn("verifyNativeInstanceDesktopRustTarget")
     // Share compatible Cargo artifacts, serializing writers when both tasks are requested.
@@ -56,11 +51,10 @@ tasks.named { it == "compileNativeInstanceDesktop" }.configureEach {
     mustRunAfter(nativeFixture)
 }
 tasks.withType<Test>().configureEach {
-    dependsOn("compileNativeInstanceDesktop")
-    dependsOn(nativeFixture)
-    inputs.file(desktopLibrary).withPropertyName("nativeInstanceDesktopLibrary")
-    inputs.file(nativeFixture.flatMap { it.outputBinary }).withPropertyName("nativeInstanceFixture")
-    systemProperty("keyguard.nativeInstance.libraryPath", desktopLibrary.get().asFile.absolutePath)
-    systemProperty("keyguard.nativeInstance.fixturePath", nativeFixture.get().outputBinary.get().asFile.absolutePath)
-    jvmArgs("-Xcheck:jni")
+    jvmArgumentProviders.add(
+        NativeLibraryPathArgumentProvider(
+            "keyguard.nativeInstance.fixturePath",
+            files(nativeFixture.flatMap { it.outputBinary }),
+        ),
+    )
 }

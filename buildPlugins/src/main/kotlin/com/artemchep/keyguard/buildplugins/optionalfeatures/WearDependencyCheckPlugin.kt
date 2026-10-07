@@ -2,14 +2,15 @@ package com.artemchep.keyguard.buildplugins.optionalfeatures
 
 import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
+import com.artemchep.keyguard.buildplugins.policy.checkWith
+import com.artemchep.keyguard.buildplugins.policy.isJvmClasspathName
+import com.artemchep.keyguard.buildplugins.policy.registerDependencyPolicy
+import com.artemchep.keyguard.buildplugins.policy.walkDependencyGraph
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedComponentResult
-import org.gradle.api.artifacts.result.ResolvedDependencyResult
-import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -29,12 +30,21 @@ import javax.xml.parsers.DocumentBuilderFactory
 class WearDependencyCheckPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
         val projectPath = path
-        val dependencyCheck = tasks.register(
-            "checkOptionalFeatureDependencies",
-            CheckWearDependenciesTask::class.java,
+        val dependencyCheck = registerDependencyPolicy(
+            taskName = "checkOptionalFeatureDependencies",
+            checksConfiguration = { configuration ->
+                isJvmClasspathName(configuration.name) &&
+                    !configuration.name.contains("test", ignoreCase = true)
+            },
+            findViolations = { configurationName, root ->
+                collectWearDependencyViolations(root, "$projectPath:$configurationName")
+            },
         ) {
-            group = "verification"
             description = "Checks that phone-only optional feature dependencies stay outside the Wear app."
+            policyName.set("Wear optional feature policy")
+            checkedClasspaths.set("production compile/runtime classpaths")
+            failureHeader.set("Wear optional feature dependency check failed:")
+            nothingCheckedMessage.set("No Wear production compile/runtime classpaths were checked.")
         }
         val manifestCheck = tasks.register(
             "checkOptionalFeatureManifests",
@@ -62,55 +72,7 @@ class WearDependencyCheckPlugin : Plugin<Project> {
             }
         }
 
-        configurations.configureEach {
-            val configurationName = name
-            val isClasspath = configurationName.endsWith("CompileClasspath") ||
-                configurationName.endsWith("RuntimeClasspath")
-            if (!isClasspath || configurationName.contains("test", ignoreCase = true)) {
-                return@configureEach
-            }
-
-            val problems = incoming.resolutionResult.rootComponent.map { root ->
-                collectWearDependencyViolations(root, "$projectPath:$configurationName")
-            }
-            dependencyCheck.configure {
-                configurationNames.add(configurationName)
-                violations.addAll(problems)
-            }
-        }
-
-        tasks.matching { it.name == "check" }.configureEach {
-            dependsOn(dependencyCheck, manifestCheck)
-        }
-    }
-}
-
-@DisableCachingByDefault(because = "Verifies resolved dependency graphs and has no outputs")
-abstract class CheckWearDependenciesTask : DefaultTask() {
-    @get:Input
-    abstract val configurationNames: ListProperty<String>
-
-    @get:Input
-    abstract val violations: ListProperty<String>
-
-    init {
-        configurationNames.convention(emptyList())
-        violations.convention(emptyList())
-    }
-
-    @TaskAction
-    fun checkDependencies() {
-        check(configurationNames.get().isNotEmpty()) {
-            "No Wear production compile/runtime classpaths were checked."
-        }
-        val problems = violations.get().distinct().sorted()
-        check(problems.isEmpty()) {
-            "Wear optional feature dependency check failed:\n" + problems.joinToString("\n")
-        }
-        logger.lifecycle(
-            "Wear optional feature policy checked ${configurationNames.get().size} " +
-                "production compile/runtime classpaths.",
-        )
+        checkWith(dependencyCheck, manifestCheck)
     }
 }
 
@@ -156,38 +118,29 @@ abstract class CheckWearManifestComponentsTask : DefaultTask() {
 private fun collectWearDependencyViolations(
     root: ResolvedComponentResult,
     configuration: String,
-): List<String> {
-    val visited = mutableSetOf<ComponentIdentifier>()
-    val pending = ArrayDeque<ResolvedComponentResult>()
-    val violations = mutableListOf<String>()
-    pending.add(root)
-    while (pending.isNotEmpty()) {
-        val component = pending.removeFirst()
-        if (!visited.add(component.id)) continue
-
-        val projectPath = (component.id as? ProjectComponentIdentifier)?.projectPath
-        if (projectPath in forbiddenWearProjectPaths) {
-            violations += "$configuration -> project $projectPath"
-        }
-        component.moduleVersion?.let { module ->
-            if (
-                module.group == "androidx.camera" ||
-                module.group == "com.google.mlkit" ||
-                module.group == "com.google.android.gms" && module.name.startsWith("play-services-mlkit-") ||
-                module.group == openKeychainGroup && module.name in forbiddenOpenKeychainArtifacts
-            ) {
-                violations += "$configuration -> $module"
+): List<String> = buildList {
+    walkDependencyGraph(
+        root = root,
+        onResolved = { component, _ ->
+            val projectPath = (component.id as? ProjectComponentIdentifier)?.projectPath
+            if (projectPath in forbiddenWearProjectPaths) {
+                add("$configuration -> project $projectPath")
             }
-        }
-        component.dependencies.forEach { dependency ->
-            when (dependency) {
-                is ResolvedDependencyResult -> pending.add(dependency.selected)
-                is UnresolvedDependencyResult ->
-                    violations += "$configuration -> unresolved ${dependency.attempted.displayName}"
+            component.moduleVersion?.let { module ->
+                if (
+                    module.group == "androidx.camera" ||
+                    module.group == "com.google.mlkit" ||
+                    module.group == "com.google.android.gms" && module.name.startsWith("play-services-mlkit-") ||
+                    module.group == openKeychainGroup && module.name in forbiddenOpenKeychainArtifacts
+                ) {
+                    add("$configuration -> $module")
+                }
             }
-        }
-    }
-    return violations
+        },
+        onUnresolved = { dependency, _ ->
+            add("$configuration -> unresolved ${dependency.attempted.displayName}")
+        },
+    )
 }
 
 internal fun findForbiddenWearManifestComponents(manifest: File): List<String> {

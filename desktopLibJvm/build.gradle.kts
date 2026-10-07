@@ -1,6 +1,6 @@
 plugins {
     id("keyguard.quality")
-    alias(libs.plugins.kotlin.multiplatform)
+    id("keyguard.kotlin-multiplatform")
 }
 
 // The library itself doesn't bundle the actual native binaries
@@ -9,8 +9,7 @@ plugins {
 kotlin {
     explicitApi()
 
-    jvm {
-    }
+    jvm()
 
     sourceSets {
         getByName("jvmMain") {
@@ -23,13 +22,8 @@ kotlin {
         }
         getByName("jvmTest") {
             dependencies {
-                implementation(kotlin("test"))
                 implementation(libs.kotlinx.coroutines.test)
             }
         }
     }
-}
-
-kotlin {
-    jvmToolchain(libs.versions.jdk.get().toInt())
 }

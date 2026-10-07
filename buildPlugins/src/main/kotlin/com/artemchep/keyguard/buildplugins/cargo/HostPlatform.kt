@@ -65,6 +65,28 @@ fun detectHostPlatform(
     }
 }
 
+val HostPlatform.isLinux: Boolean
+    get() = !isMacOs && !isWindows
+
+/** The `<os>-<arch>` suffix of the desktop tarball. Release jobs match `*-linux-<arch>.tar.gz`. */
+val HostPlatform.tarballSuffix: String
+    get() = when (this) {
+        HostPlatform.LinuxX64 -> "linux-x86_64"
+        HostPlatform.LinuxArm64 -> "linux-aarch64"
+        HostPlatform.MacosX64 -> "macosx-x86_64"
+        HostPlatform.MacosArm64 -> "macosx-aarch64"
+        HostPlatform.WindowsX64 -> "windows-x86_64"
+        HostPlatform.WindowsArm64 -> "windows-aarch64"
+    }
+
+/** The MSIX `ProcessorArchitecture` of a Windows host. */
+val HostPlatform.msixArchitecture: String
+    get() = when (this) {
+        HostPlatform.WindowsX64 -> "x64"
+        HostPlatform.WindowsArm64 -> "arm64"
+        else -> error("MSIX packages are only built on Windows, not on $this")
+    }
+
 fun HostPlatform.binaryName(base: String): String =
     if (isWindows) "$base.exe" else base
 

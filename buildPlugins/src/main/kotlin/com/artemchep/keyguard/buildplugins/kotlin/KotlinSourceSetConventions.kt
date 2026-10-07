@@ -44,6 +44,22 @@ fun NamedDomainObjectContainer<KotlinSourceSet>.sharedAppleMain(
     getByName("macosArm64Main").dependsOn(macosMain)
 }
 
+/**
+ * Shares the client of a desktop Rust library between the desktop JVM and Apple targets, which
+ * both call the native code through `:util:ffi`. Call it after [sharedAppleMain].
+ */
+fun NamedDomainObjectContainer<KotlinSourceSet>.sharedNativeClient() {
+    val main = create("nativeClientMain") {
+        dependsOn(getByName("commonMain"))
+        dependencies { implementation(project(":util:ffi")) }
+    }
+    getByName("desktopMain").dependsOn(main)
+    getByName("appleMain").dependsOn(main)
+    val test = create("nativeClientTest") { dependsOn(getByName("commonTest")) }
+    getByName("desktopTest").dependsOn(test)
+    getByName("macosArm64Test").dependsOn(test)
+}
+
 /** Test counterpart of [sharedAppleMain]: `appleTest` is shared by the iOS and macOS tests. */
 fun NamedDomainObjectContainer<KotlinSourceSet>.sharedAppleTest(
     parent: KotlinSourceSet = getByName("commonTest"),

@@ -1,22 +1,24 @@
+import com.android.build.api.dsl.KotlinMultiplatformAndroidHostTestCompilation
 import com.artemchep.keyguard.buildplugins.kotlin.configureComposeIosSwiftRuntime
+import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleMain
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleTest
+import com.artemchep.keyguard.buildplugins.kotlin.sharedJvmMain
+import com.artemchep.keyguard.buildplugins.kotlin.sharedJvmTest
 import com.artemchep.keyguard.buildplugins.testing.benchmarkReport
 import com.artemchep.keyguard.buildplugins.testing.flightRecorder
 import com.artemchep.keyguard.buildplugins.testing.forwardSystemProperties
 import com.artemchep.keyguard.buildplugins.testing.registerJvmBenchmark
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
-import com.artemchep.keyguard.buildplugins.version.createVersionInfo
+import com.artemchep.keyguard.buildplugins.version.keyguardVersionInfo
 import org.gradle.api.tasks.testing.Test
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import java.time.Duration
 
 plugins {
-    id("keyguard.quality")
     id("keyguard.koin")
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.kmp.library)
+    id("keyguard.kotlin-multiplatform-library")
     alias(libs.plugins.kotlin.plugin.parcelize)
     alias(libs.plugins.kotlin.plugin.serialization)
     alias(libs.plugins.ksp)
@@ -50,10 +52,7 @@ detektCustomRules {
 // Obtain the build configuration
 //
 
-val versionInfo = createVersionInfo(
-    marketingVersion = libs.versions.appVersionName.get(),
-    logicalVersion = libs.versions.appVersionCode.get().toInt(),
-)
+val versionInfo = keyguardVersionInfo()
 
 tasks.withType<Test>().configureEach {
     timeout.set(Duration.ofMinutes(10))
@@ -67,27 +66,17 @@ tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimu
 
 kotlin {
     android {
-        compileSdk {
-            version = release(libs.versions.androidCompileSdk.get().toInt()) {
-                minorApiLevel = libs.versions.androidCompileSdkMinor.get().toInt()
-            }
-        }
-        minSdk = libs.versions.androidMinSdk.get().toInt()
-        namespace = "com.artemchep.keyguard.common"
-
         compilerOptions {
             enableCoreLibraryDesugaring = true
         }
 
         androidResources.enable = true
 
-        withHostTest {
+        // The convention enables the host tests; these also need the Android resources.
+        compilations.withType<KotlinMultiplatformAndroidHostTestCompilation>().configureEach {
             isIncludeAndroidResources = true
         }
     }
-    jvm("desktop")
-    iosArm64()
-    iosSimulatorArm64()
     macosArm64 {
         // SQLCipher is supplied by Xcode, so keep its integration tests opt-in.
         // ./gradlew :common:macosArm64SqlCipherTest -PsqlCipherFrameworkDir=/path/containing/SQLCipher.framework
@@ -121,21 +110,16 @@ kotlin {
         }
     }
 
-    sourceSets {
-        all {
-            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
-            languageSettings.optIn("kotlin.time.ExperimentalTime")
-            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
-            languageSettings.optIn("androidx.compose.animation.ExperimentalAnimationApi")
-            languageSettings.optIn("androidx.compose.material.ExperimentalMaterialApi")
-            languageSettings.optIn("androidx.compose.foundation.ExperimentalFoundationApi")
-            languageSettings.optIn("androidx.compose.foundation.layout.ExperimentalLayoutApi")
-            languageSettings.optIn("androidx.compose.material3.ExperimentalMaterial3Api")
-        }
-    }
+    compilerOptions.optIn.addAll(
+        "androidx.compose.animation.ExperimentalAnimationApi",
+        "androidx.compose.material.ExperimentalMaterialApi",
+        "androidx.compose.foundation.ExperimentalFoundationApi",
+        "androidx.compose.foundation.layout.ExperimentalLayoutApi",
+        "androidx.compose.material3.ExperimentalMaterial3Api",
+    )
 
     sourceSets {
-        val commonMain = getByName("commonMain") {
+        getByName("commonMain") {
             dependencies {
                 implementation(project(":standard:presentation"))
                 implementation(libs.jetbrains.compose.runtime)
@@ -199,13 +183,11 @@ kotlin {
         val commonTest = getByName("commonTest") {
             kotlin.setSrcDirs(emptyList<String>())
             dependencies {
-                implementation(kotlin("test"))
                 implementation(libs.kotlinx.coroutines.test)
             }
         }
 
-        val jvmTest = create("jvmTest") {
-            dependsOn(commonTest)
+        sharedJvmTest(name = "jvmTest").apply {
             kotlin.srcDir("src/commonTest/kotlin")
             dependencies {
                 implementation(libs.bouncycastle.bcpkix)
@@ -215,36 +197,14 @@ kotlin {
             }
         }
 
-        val appleMain = create("appleMain") {
-            dependsOn(commonMain)
-            dependencies {
-                api(libs.ionspin.bignum)
-                api(libs.cash.sqldelight.native.driver)
-                api(libs.ktor.ktor.client.darwin)
-            }
+        sharedAppleMain()
+        getByName("appleMain").dependencies {
+            api(libs.ionspin.bignum)
+            api(libs.cash.sqldelight.native.driver)
+            api(libs.ktor.ktor.client.darwin)
         }
-
-        val iosMain = create("iosMain") {
-            dependsOn(appleMain)
-            dependencies {
-                api(libs.html.text)
-            }
-        }
-
-        getByName("iosArm64Main") {
-            dependsOn(iosMain)
-        }
-
-        getByName("iosSimulatorArm64Main") {
-            dependsOn(iosMain)
-        }
-
-        val macosMain = create("macosMain") {
-            dependsOn(appleMain)
-        }
-
-        getByName("macosArm64Main") {
-            dependsOn(macosMain)
+        getByName("iosMain").dependencies {
+            api(libs.html.text)
         }
 
         // The shared test sources that also compile for Apple targets. The include
@@ -291,12 +251,10 @@ kotlin {
         sharedAppleTest(parent = appleCommonTest)
 
         getByName("androidHostTest") {
-            dependsOn(jvmTest)
             kotlin.srcDir("src/androidUnitTest/kotlin")
         }
 
         getByName("desktopTest") {
-            dependsOn(jvmTest)
             dependencies {
                 // The backup tests inspect the archives the repository wrote
                 // with zip4j's own reader, independently of `util/zip`.
@@ -304,30 +262,23 @@ kotlin {
             }
         }
 
-        // Share jvm code between different JVM platforms, see:
-        // https://youtrack.jetbrains.com/issue/KT-28194
-        // for a proper implementation.
-        val jvmMain = create("jvmMain") {
-            dependsOn(commonMain)
-            dependencies {
-                api(libs.html.text)
-                implementation(libs.kdrag0n.colorkt)
-                implementation(libs.kyant0.m3color)
-                implementation(libs.commons.codec)
-                implementation(libs.halilibo.richtext.ui.material3)
-                implementation(libs.halilibo.richtext.commonmark)
-                implementation(libs.halilibo.richtext.markdown)
-                implementation(libs.mm2d.touchicon)
-                implementation(libs.google.zxing.core)
-                implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
-                implementation(libs.squareup.okhttp)
-                implementation(libs.squareup.logging.interceptor)
-                api(libs.ktor.ktor.client.okhttp)
-            }
+        sharedJvmMain().dependencies {
+            api(libs.html.text)
+            implementation(libs.kdrag0n.colorkt)
+            implementation(libs.kyant0.m3color)
+            implementation(libs.commons.codec)
+            implementation(libs.halilibo.richtext.ui.material3)
+            implementation(libs.halilibo.richtext.commonmark)
+            implementation(libs.halilibo.richtext.markdown)
+            implementation(libs.mm2d.touchicon)
+            implementation(libs.google.zxing.core)
+            implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
+            implementation(libs.squareup.okhttp)
+            implementation(libs.squareup.logging.interceptor)
+            api(libs.ktor.ktor.client.okhttp)
         }
 
         getByName("desktopMain") {
-            dependsOn(jvmMain)
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlinx.coroutines.swing)
@@ -350,7 +301,6 @@ kotlin {
             }
         }
         getByName("androidMain") {
-            dependsOn(jvmMain)
             dependencies {
                 implementation(libs.yubico.yubikit.fido.ui)
                 api(project(":androidLibAutofill"))
@@ -411,10 +361,6 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
-kotlin {
-    jvmToolchain(libs.versions.jdk.get().toInt())
-}
-
 // Generate KSP code for the common code:
 // https://github.com/google/ksp/issues/567
 val compileKotlinRegex = "^compile.*(Android|Kotlin).*".toRegex()
@@ -434,18 +380,6 @@ kotlin.compilerOptions.freeCompilerArgs.addAll(
 )
 kotlin.sourceSets.commonMain {
     kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
-}
-
-val desktopTestTask = tasks.named<Test>("desktopTest")
-
-desktopTestTask.configure {
-    filter {
-        excludeTestsMatching("com.artemchep.keyguard.feature.home.vault.search.benchmark.*")
-        excludeTestsMatching("com.artemchep.keyguard.crypto.benchmark.*")
-        excludeTestsMatching("com.artemchep.keyguard.provider.bitwarden.usecase.benchmark.*")
-        excludeTestsMatching("com.artemchep.keyguard.common.service.tld.impl.benchmark.*")
-        excludeTestsMatching("com.artemchep.keyguard.common.usecase.impl.benchmark.*")
-    }
 }
 
 val vaultSearchBenchmarkProperties = listOf(

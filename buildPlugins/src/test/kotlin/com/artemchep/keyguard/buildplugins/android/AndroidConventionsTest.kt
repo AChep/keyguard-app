@@ -29,6 +29,8 @@ class AndroidConventionsTest {
                         version("androidMinSdk", "26")
                         version("androidTargetSdk", "37")
                         version("androidNdk", "27.0.12077973")
+                        version("appVersionName", "1.0.0")
+                        version("appVersionCode", "1")
                         library("android-desugarjdklibs", "com.android.tools", "desugar_jdk_libs").version("2.1.5")
                         library("androidx-test-orchestrator", "androidx.test", "orchestrator").version("1.6.1")
                     }
@@ -75,7 +77,6 @@ class AndroidConventionsTest {
         import com.artemchep.keyguard.buildplugins.android.configureKeyguardApplication
 
         plugins {
-            id("com.android.application")
             id("keyguard.android-application")
         }
         android {
@@ -147,7 +148,6 @@ class AndroidConventionsTest {
         import com.artemchep.keyguard.buildplugins.android.accountManagementFlavors
         plugins {
             id("keyguard.android-library")
-            id("com.android.library")
         }
         android {
             namespace = "test.library"
@@ -174,7 +174,6 @@ class AndroidConventionsTest {
         return """
         import com.artemchep.keyguard.buildplugins.android.accountManagementFlavors
         plugins {
-            id("com.android.test")
             id("keyguard.android-test")
         }
         android {
@@ -201,7 +200,6 @@ class AndroidConventionsTest {
         return """
         import com.artemchep.keyguard.buildplugins.android.enableCoreLibraryDesugaring
         plugins {
-            id("com.android.application")
             id("keyguard.android-application")
         }
         check(!android.compileOptions.isCoreLibraryDesugaringEnabled)
@@ -236,6 +234,7 @@ class AndroidConventionsTest {
         check(android.compileSdk == 37)
         check(android.compileSdkMinor == 1)
         check(android.defaultConfig.minSdk == $minSdk)
+        check(android.defaultConfig.testInstrumentationRunner == "androidx.test.runner.AndroidJUnitRunner")
         check(android.compileOptions.sourceCompatibility.toString() == "21")
         check(android.compileOptions.targetCompatibility.toString() == "21")
         check(kotlin.compilerOptions.jvmTarget.get().target == "21")

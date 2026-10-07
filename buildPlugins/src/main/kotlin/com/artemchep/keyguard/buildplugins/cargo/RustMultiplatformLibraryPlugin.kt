@@ -2,10 +2,13 @@ package com.artemchep.keyguard.buildplugins.cargo
 
 import com.android.build.api.variant.KotlinMultiplatformAndroidComponentsExtension
 import com.artemchep.keyguard.buildplugins.androidssh.AndroidCargoEnvironment
+import com.artemchep.keyguard.buildplugins.libs
+import com.artemchep.keyguard.buildplugins.version
+import com.artemchep.keyguard.buildplugins.versionInt
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
@@ -31,7 +34,6 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
         val extension = extensions.create<RustMultiplatformLibraryExtension>("keyguardRust", project)
         extension.extraSourceInputs.from(sharedFfiRustSources())
         val naming = RustModuleNaming(this)
-        val moduleName = naming.moduleName
         val moduleTaskName = naming.moduleTaskName
         val nativeTaskName = naming.nativeTaskName
         val cargoPackagePrefix = naming.cargoPackagePrefix
@@ -93,26 +95,11 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
         }
 
         val appleTargets = appleNativeTargets()
-            .filter { target -> mobileTargets || target.kotlinTarget.startsWith("macos") }
-        val appleCargoTasks = registerAppleLibraries(
-            nativeTaskName = nativeTaskName,
-            cargoPackage = "$cargoPackagePrefix-c",
-            nativeLibraryName = "${nativeLibraryPrefix}_c",
-            rustSourceDirectory = rustSourceDirectory,
+            .filter { target -> mobileTargets || target.isMacos }
+        val compileAppleAll = configureRustAppleLibraries(
+            naming = naming,
             targets = appleTargets,
             extraSourceInputs = extension.extraSourceInputs,
-        )
-        configureAppleInterop(
-            moduleName = moduleName,
-            moduleTaskName = moduleTaskName,
-            rustSourceDirectory = rustSourceDirectory,
-            targets = appleTargets,
-            cargoTasks = appleCargoTasks,
-        )
-
-        val compileAppleAll = registerAppleAggregateTasks(
-            nativeTaskName = nativeTaskName,
-            cargoTasks = appleCargoTasks,
         )
         tasks.register("$desktopCompileTaskName${hostPlatform.name}") {
             group = "build"
@@ -128,6 +115,16 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
         tasks.named("assemble") {
             dependsOn(desktopTasks.compile)
         }
+        // The module's own JVM tests load the library it builds. Without Android and iOS builds,
+        // only the desktop tests can load it.
+        configureNativeLibraryTests(
+            producerPath = path,
+            testTaskName = if (mobileTargets) null else "desktopTest",
+        )
+        // Fail on JNI misuse in the module's own tests. Benchmarks run without the extra checks.
+        tasks.withType<Test>().named { it == "desktopTest" }.configureEach {
+            jvmArgs("-Xcheck:jni")
+        }
         Unit
     }
 
@@ -139,9 +136,8 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
         targets: List<AndroidNativeTarget>,
         extension: RustMultiplatformLibraryExtension,
     ): List<TaskProvider<PrepareNativeLibraryTask>> {
-        val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
-        val androidMinSdk = libs.findVersion("androidMinSdk").get().requiredVersion.toInt()
-        val androidNdk = libs.findVersion("androidNdk").get().requiredVersion
+        val androidMinSdk = libs.versionInt("androidMinSdk")
+        val androidNdk = libs.version("androidNdk")
 
         return targets.map { target ->
             val suffix = target.androidAbi.toTaskSuffix()

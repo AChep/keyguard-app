@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.buildplugins.version
 
+import com.artemchep.keyguard.buildplugins.libs
+import com.artemchep.keyguard.buildplugins.version
+import com.artemchep.keyguard.buildplugins.versionInt
 import org.gradle.api.Project
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -10,6 +13,12 @@ data class VersionInfo(
     val logicalVersion: Int,
     val buildDate: String,
     val buildRef: String,
+)
+
+/** The version of this Keyguard build: the catalog's app version plus the release properties. */
+fun Project.keyguardVersionInfo(): VersionInfo = createVersionInfo(
+    marketingVersion = libs.version("appVersionName"),
+    logicalVersion = libs.versionInt("appVersionCode"),
 )
 
 fun Project.createVersionInfo(

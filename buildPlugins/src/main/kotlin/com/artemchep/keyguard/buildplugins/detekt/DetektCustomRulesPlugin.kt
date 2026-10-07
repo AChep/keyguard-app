@@ -1,10 +1,11 @@
 package com.artemchep.keyguard.buildplugins.detekt
 
+import com.artemchep.keyguard.buildplugins.policy.checkWith
+import com.artemchep.keyguard.buildplugins.quality.QualityConventionPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.register
-import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.kotlin.dsl.named
 
 /**
  * Runs this repository's custom Detekt rules (the `keyguard` rule set from `:detektRules`)
@@ -26,46 +27,22 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
  */
 class DetektCustomRulesPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
-        // The rules jar is what carries the `keyguard` rule set into the Detekt run.
-        dependencies.add(
-            DETEKT_PLUGINS_CONFIGURATION,
-            dependencies.project(mapOf("path" to RULES_PROJECT_PATH)),
-        )
+        // Brings Detekt, the rules jar with the `keyguard` rule set, the aggregate task and the
+        // coverage task.
+        pluginManager.apply(QualityConventionPlugin::class.java)
 
         val analysedSources = objects.fileCollection()
         val coverageExemptions = objects.setProperty(String::class.java)
-
-        val coverage = tasks.register<VerifyDetektMarkerCoverageTask>(COVERAGE_TASK_NAME) {
-            group = LifecycleBasePlugin.VERIFICATION_GROUP
-            description = "Fails if a guarded API is used in ${target.path} without being " +
-                "covered by a custom-rule Detekt task."
-            markers.set(GUARDED_API_MARKERS)
-            rootDirectory.set(target.rootProject.layout.projectDirectory)
-            candidateFiles.from(
-                target.fileTree(target.layout.projectDirectory.dir("src")) {
-                    include("**/*.kt")
-                },
-            )
+        // This module runs the rules, so its guarded call sites must be among what they analyse.
+        tasks.named<VerifyDetektMarkerCoverageTask>(COVERAGE_TASK_NAME) {
             analysedFiles.from(analysedSources)
             allowedPathPrefixes.set(coverageExemptions)
             expectsAnalysedSources.set(true)
-            stamp.set(
-                target.layout.buildDirectory.file("reports/detekt/custom-rules-coverage.txt"),
-            )
-        }
-
-        val aggregate = tasks.register(AGGREGATE_TASK_NAME) {
-            group = LifecycleBasePlugin.VERIFICATION_GROUP
-            description = "Runs the custom keyguard Detekt rules for ${target.path}."
-            dependsOn(coverage)
         }
 
         // So that a plain `check` on this module also runs the custom rules.
-        plugins.withType(LifecycleBasePlugin::class.java) {
-            tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME) {
-                dependsOn(aggregate)
-            }
-        }
+        val aggregate = tasks.named(AGGREGATE_TASK_NAME)
+        checkWith(aggregate)
 
         extensions.create<DetektCustomRulesExtension>(
             EXTENSION_NAME,
@@ -80,8 +57,8 @@ class DetektCustomRulesPlugin : Plugin<Project> {
     companion object {
         /**
          * Text whose presence marks a file as using an API guarded by a custom rule. The rules
-         * themselves are repository-wide, so the same list feeds every module's coverage check
-         * and the root ownership check.
+         * themselves are repository-wide, so the same list feeds the coverage check of every
+         * module.
          */
         val GUARDED_API_MARKERS: Set<String> = setOf(
             // MutablePersistedFlowTypeSafety, MutablePersistedFlowDuplicateKey
@@ -97,7 +74,5 @@ class DetektCustomRulesPlugin : Plugin<Project> {
         internal const val TASK_PREFIX = "detektCustomRules"
 
         private const val EXTENSION_NAME = "detektCustomRules"
-        private const val DETEKT_PLUGINS_CONFIGURATION = "detektPlugins"
-        private const val RULES_PROJECT_PATH = ":detektRules"
     }
 }

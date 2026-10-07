@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.buildplugins.cargo
 
+import com.artemchep.keyguard.buildplugins.libs
+import com.artemchep.keyguard.buildplugins.version
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
@@ -34,7 +36,9 @@ internal class RustModuleNaming(project: Project) {
 internal data class AppleNativeTarget(
     val kotlinTarget: String,
     val rustTarget: String,
-)
+) {
+    val isMacos: Boolean get() = kotlinTarget.startsWith("macos")
+}
 
 internal fun appleNativeTargets(): List<AppleNativeTarget> = listOf(
     AppleNativeTarget("iosArm64", "aarch64-apple-ios"),
@@ -65,15 +69,45 @@ fun Project.sharedFfiRustSources(): FileTree = rootProject.fileTree("util/ffi/ru
 }
 
 /**
+ * Builds the `keyguard-<module>-c` static libraries of [targets], wires them into the matching
+ * Apple cinterops and returns the `compile<Native>AppleAll` task.
+ */
+internal fun Project.configureRustAppleLibraries(
+    naming: RustModuleNaming,
+    targets: List<AppleNativeTarget>,
+    extraSourceInputs: FileCollection,
+): TaskProvider<*> {
+    val cargoTasks = registerAppleLibraries(
+        nativeTaskName = naming.nativeTaskName,
+        cargoPackage = "${naming.cargoPackagePrefix}-c",
+        nativeLibraryName = "${naming.nativeLibraryPrefix}_c",
+        rustSourceDirectory = naming.rustSourceDirectory,
+        targets = targets,
+        extraSourceInputs = extraSourceInputs,
+    )
+    configureAppleInterop(
+        moduleName = naming.moduleName,
+        moduleTaskName = naming.moduleTaskName,
+        rustSourceDirectory = naming.rustSourceDirectory,
+        targets = targets,
+        cargoTasks = cargoTasks,
+    )
+    return registerAppleAggregateTasks(
+        nativeTaskName = naming.nativeTaskName,
+        cargoTasks = cargoTasks,
+    )
+}
+
+/**
  * Registers the Cargo build tasks that produce the static libraries for the Apple targets.
  */
-internal fun Project.registerAppleLibraries(
+private fun Project.registerAppleLibraries(
     nativeTaskName: String,
     cargoPackage: String,
     nativeLibraryName: String,
     rustSourceDirectory: Directory,
     targets: List<AppleNativeTarget>,
-    extraSourceInputs: FileCollection = files(),
+    extraSourceInputs: FileCollection,
 ): Map<String, TaskProvider<CargoBuildTask>> = targets.associate { target ->
     val suffix = target.kotlinTarget.replaceFirstChar(Char::uppercaseChar)
     val cargoTargetDirectory = layout.buildDirectory
@@ -105,6 +139,12 @@ internal fun Project.registerAppleLibraries(
         rustTarget.set(target.rustTarget)
         this.cargoPackage.set(cargoPackage)
         cargoArguments.add("--locked")
+        // Native C dependencies otherwise inherit the active Xcode SDK's deployment version.
+        if (target.isMacos) {
+            environmentVariables.put("MACOSX_DEPLOYMENT_TARGET", libs.version("appleMacosDeploymentTarget"))
+        } else {
+            environmentVariables.put("IPHONEOS_DEPLOYMENT_TARGET", libs.version("appleIosDeploymentTarget"))
+        }
         outputBinary.set(cargoOutputBinary)
     }
     target.kotlinTarget to cargoBuild
@@ -113,7 +153,7 @@ internal fun Project.registerAppleLibraries(
 /**
  * Wires the cinterop of every Apple target to the matching Cargo build task.
  */
-internal fun Project.configureAppleInterop(
+private fun Project.configureAppleInterop(
     moduleName: String,
     moduleTaskName: String,
     rustSourceDirectory: Directory,
@@ -166,7 +206,7 @@ internal fun Project.configureAppleInterop(
  * Registers the aggregate `compile<Native><Target>` tasks and the `compile<Native>AppleAll` task
  * that builds every supported Apple target.
  */
-internal fun Project.registerAppleAggregateTasks(
+private fun Project.registerAppleAggregateTasks(
     nativeTaskName: String,
     cargoTasks: Map<String, TaskProvider<CargoBuildTask>>,
 ): TaskProvider<*> {

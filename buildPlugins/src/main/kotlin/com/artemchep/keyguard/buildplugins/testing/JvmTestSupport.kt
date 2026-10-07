@@ -25,7 +25,10 @@ fun Test.verboseTestLogging(includeSkipped: Boolean = true) {
     }
 }
 
-/** Benchmarks stay opt-in and reuse compiled tests without running the ordinary test task. */
+/**
+ * Benchmarks stay opt-in and reuse compiled tests without running the ordinary test task, which
+ * skips the classes matching [testPattern].
+ */
 fun Project.registerJvmBenchmark(
     name: String,
     description: String,
@@ -36,6 +39,9 @@ fun Project.registerJvmBenchmark(
 ): TaskProvider<Test> {
     val sourceTest = tasks.named<Test>("desktopTest")
     val sourceClasses = tasks.named("desktopTestClasses")
+    sourceTest.configure {
+        filter.excludeTestsMatching(testPattern)
+    }
     return tasks.register<Test>(name) {
         group = "verification"
         this.description = description

@@ -2,11 +2,9 @@ import com.artemchep.keyguard.buildplugins.testing.registerJvmBenchmark
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleMain
 import com.artemchep.keyguard.buildplugins.kotlin.sharedJvmMain
 import com.artemchep.keyguard.buildplugins.kotlin.sharedJvmTest
-import org.gradle.api.tasks.testing.Test
 
 plugins {
     id("keyguard.crypto-dependency-check")
-    id("keyguard.quality")
     id("keyguard.kotlin-multiplatform-library")
     id("keyguard.native-crypto-consumer")
     id("keyguard.detekt-custom-rules")
@@ -19,10 +17,6 @@ detektCustomRules {
 }
 
 kotlin {
-    android {
-        namespace = "com.artemchep.keyguard.util.kdbx"
-    }
-
     sourceSets {
         getByName("commonMain") {
             dependencies {
@@ -39,20 +33,6 @@ kotlin {
         }
         sharedJvmMain(name = "jvmCommonMain")
         sharedAppleMain(includeAppleMain = false)
-
-        all {
-            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
-            languageSettings.optIn("kotlin.time.ExperimentalTime")
-        }
-    }
-}
-
-val desktopTestTask = tasks.named<Test>("desktopTest")
-
-desktopTestTask.configure {
-    filter {
-        excludeTestsMatching("app.keemobile.kotpass.xml.benchmark.*")
-        excludeTestsMatching("app.keemobile.kotpass.database.benchmark.*")
     }
 }
 

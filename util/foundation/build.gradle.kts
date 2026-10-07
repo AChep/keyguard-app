@@ -10,10 +10,6 @@ plugins {
 }
 
 kotlin {
-    android {
-        namespace = "com.artemchep.keyguard.util.foundation"
-    }
-
     sourceSets {
         getByName("commonMain") {
             dependencies {
@@ -27,10 +23,5 @@ kotlin {
         }
         sharedJvmMain(name = "jvmCommonMain")
         sharedAppleMain()
-
-        all {
-            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
-            languageSettings.optIn("kotlin.time.ExperimentalTime")
-        }
     }
 }

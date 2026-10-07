@@ -10,6 +10,8 @@ struct NavStackContainer<Content: View>: View {
     /// The section/tab scope this container renders ("vault", "watchtower", …). Each
     /// section observes its own stack, so drill-down survives section/tab switches.
     let scope: String
+    /// An enclosing scaffold can keep observation alive across detail pushes.
+    var observesScope = true
     var rootList: NavigationListKind? = nil
     var rootVaultList: VaultListSessionModel? = nil
     @ViewBuilder var content: () -> Content
@@ -41,6 +43,7 @@ struct NavStackContainer<Content: View>: View {
             platformBody
         }
         .observing(
+            enabled: observesScope,
             start: { navigationModel.startNavScopeObservation(scope) },
             stop: { navigationModel.stopNavScopeObservation(scope) }
         )

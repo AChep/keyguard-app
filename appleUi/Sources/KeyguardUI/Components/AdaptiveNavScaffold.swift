@@ -8,23 +8,32 @@ struct AdaptiveNavScaffold<CompactRoot: View, Sidebar: View, Detail: View>: View
     @ViewBuilder var sidebar: () -> Sidebar
     @ViewBuilder var detail: () -> Detail
 
+    @Environment(NavigationModel.self) private var navigationModel
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     var body: some View {
-        if horizontalSizeClass == .compact {
-            NavStackContainer(scope: scope) {
-                compact()
-            }
-        } else {
-            NavigationSplitView {
-                sidebar()
-            } detail: {
-                NavStackContainer(scope: scope) {
-                    detail()
+        Group {
+            if horizontalSizeClass == .compact {
+                NavStackContainer(scope: scope, observesScope: false) {
+                    compact()
                 }
+            } else {
+                NavigationSplitView {
+                    sidebar()
+                } detail: {
+                    NavStackContainer(scope: scope, observesScope: false) {
+                        detail()
+                    }
+                }
+                .navigationSplitViewStyle(.balanced)
             }
-            .navigationSplitViewStyle(.balanced)
         }
+        // An iPad detail stack disappears during a push. Its scaffold must retain
+        // observation so that transition cannot clear the navigation path.
+        .observing(
+            start: { navigationModel.startNavScopeObservation(scope) },
+            stop: { navigationModel.stopNavScopeObservation(scope) }
+        )
     }
 }
 #endif

@@ -837,6 +837,7 @@
     <string name="error_failed_use_passkey">Failed to authorize a request</string>
     <string name="error_failed_use_password">Failed to authorize a request</string>
     <string name="error_failed_open_uri">Failed to open a URI</string>
+    <string name="error_failed_open_file">Could not open this file</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
     <string name="error_failed_open_app_for">No installed app can handle this request</string>
     <string name="error_failed_open_link">Could not open this link</string>

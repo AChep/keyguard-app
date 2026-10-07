@@ -495,11 +495,19 @@ struct DetailRow: View {
             }
             .modifier(DetailAttachmentAccessibility(item: item, invoke: invoke))
         } accessories: {
+            #if os(iOS)
+            if let action = item.actions.first(where: { $0.id == "\(item.id):attachment.openWith" }) {
+                DetailIconButton(title: action.title, systemImage: "arrow.up.forward.app") {
+                    invoke(action.id)
+                }
+            }
+            #else
             if let urlString = item.launchUrl {
                 DetailIconButton(title: L10n.openAction, systemImage: "arrow.up.forward.app") {
                     openLocalFile(urlString)
                 }
             }
+            #endif
             DetailActionMenu(actions: item.actions, invoke: invoke)
         }
     }
@@ -629,19 +637,17 @@ struct DetailRow: View {
     }
 
     // Downloaded attachments hand back a local path or file URL.
+    #if os(macOS)
     private func openLocalFile(_ raw: String) {
         let url: URL? =
             raw.hasPrefix("/")
             ? URL(fileURLWithPath: raw)
             : URL(string: raw)
         if let url {
-            #if os(macOS)
             NSWorkspace.shared.open(url)
-            #else
-            UIApplication.shared.open(url)
-            #endif
         }
     }
+    #endif
 }
 
 private extension View {

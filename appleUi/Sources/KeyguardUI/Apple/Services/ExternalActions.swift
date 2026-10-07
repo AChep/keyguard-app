@@ -7,10 +7,15 @@ import UniformTypeIdentifiers
 final class ExternalActions {
     private let core: KeyguardCore
     private let links: LinkOpeningCoordinator
+    private let files: FileOpeningCoordinator
 
-    init(core: KeyguardCore, links: LinkOpeningCoordinator) {
+    init(core: KeyguardCore, links: LinkOpeningCoordinator, notifications: NotificationsModel) {
         self.core = core
         self.links = links
+        self.files = FileOpeningCoordinator(
+            present: { Self.presentShareItems([$0]) },
+            showFailure: { notifications.showFileOpeningError() }
+        )
     }
 
     private var started = false
@@ -26,11 +31,11 @@ final class ExternalActions {
         core.setShareHandler { text in
             ExternalActions.presentShareSheet(text)
         }
-        core.setPreviewFileHandler { uri in
+        core.setPreviewFileHandler { [weak self] uri in
             Task { @MainActor in
+                #if os(macOS)
                 let url = uri.hasPrefix("/") ? URL(fileURLWithPath: uri) : URL(string: uri)
                 guard let url, url.isFileURL else { return }
-                #if os(macOS)
                 let panel = NSOpenPanel()
                 panel.title = L10n.fileActionOpenWithTitle
                 panel.allowedContentTypes = [.application]
@@ -48,15 +53,13 @@ final class ExternalActions {
                     completionHandler: nil
                 )
                 #else
-                ExternalActions.presentShareItems([url])
+                self?.files.open(uri)
                 #endif
             }
         }
-        core.setShareFileHandler { uri in
+        core.setShareFileHandler { [weak self] uri in
             Task { @MainActor in
-                let url = uri.hasPrefix("/") ? URL(fileURLWithPath: uri) : URL(string: uri)
-                guard let url, url.isFileURL else { return }
-                ExternalActions.presentShareItems([url])
+                self?.files.open(uri)
             }
         }
         core.setRevealFileHandler { uriString in
@@ -111,10 +114,11 @@ final class ExternalActions {
         }
     }
 
-    static func presentShareItems(_ items: [Any]) {
+    @discardableResult
+    static func presentShareItems(_ items: [Any]) -> Bool {
         #if os(macOS)
         let picker = NSSharingServicePicker(items: items)
-        guard let view = NSApp.keyWindow?.contentView else { return }
+        guard let view = NSApp.keyWindow?.contentView else { return false }
         picker.show(
             relativeTo: .zero,
             of: view,
@@ -127,13 +131,17 @@ final class ExternalActions {
                 .compactMap({ $0 as? UIWindowScene })
                 .first(where: { $0.activationState == .foregroundActive }),
             let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController
-        else { return }
+        else { return false }
         // Walk to the top-most presented controller so the sheet attaches above
         // any open modal (the Send detail / edit sheet).
         var presenter = root
         while let presented = presenter.presentedViewController {
             presenter = presented
         }
+        guard presenter.viewIfLoaded?.window != nil,
+            !presenter.isBeingPresented, !presenter.isBeingDismissed,
+            !(presenter is UIActivityViewController)
+        else { return false }
         // iPad requires a popover anchor; center it over the presenter's view.
         if let popover = activity.popoverPresentationController {
             popover.sourceView = presenter.view
@@ -147,5 +155,6 @@ final class ExternalActions {
         }
         presenter.present(activity, animated: true)
         #endif
+        return true
     }
 }

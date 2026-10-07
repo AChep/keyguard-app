@@ -119,7 +119,7 @@ public final class AppViewModel {
         self.navigationSettings = navigationSettings
         let backups = BackupSettingsModel(core: core)
         self.backups = backups
-        let external = ExternalActions(core: core, links: links)
+        let external = ExternalActions(core: core, links: links, notifications: notifications)
         self.external = external
     }
 

@@ -104,6 +104,10 @@ final class NotificationsModel: SnapshotObserving {
         showError(title: L10n.errorFailedOpenLink, text: nil)
     }
 
+    func showFileOpeningError() {
+        showError(title: L10n.errorFailedOpenFile, text: nil)
+    }
+
     private func showError(title: String, text: String?) {
         showToast(
             MessageSnapshot(

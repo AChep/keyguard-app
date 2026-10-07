@@ -10,6 +10,7 @@ struct ListDetailNavigationView<Sidebar: View, SidebarDestination: View, DetailD
     @ViewBuilder var sidebarDestination: (Int64) -> SidebarDestination
     @ViewBuilder var detailDestination: (Int64) -> DetailDestination
 
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
     @State private var compactColumn: NavigationSplitViewColumn = .sidebar
 
@@ -23,7 +24,21 @@ struct ListDetailNavigationView<Sidebar: View, SidebarDestination: View, DetailD
             NavigationStack(path: detailPath) {
                 Group {
                     if let id = projection.detailRoot {
-                        detailDestination(id).id(id)
+                        detailDestination(id)
+                            .id(id)
+                            .navigationBarBackButtonHidden(horizontalSizeClass == .compact)
+                            .toolbar {
+                                if horizontalSizeClass == .compact {
+                                    ToolbarItem(placement: .topBarLeading) {
+                                        Button(action: clearDetail) {
+                                            Label(
+                                                projection.kind == .send ? L10n.homeSendLabel : L10n.homeVaultLabel,
+                                                systemImage: "chevron.backward")
+                                        }
+                                        .accessibilityIdentifier("listDetailBackToList")
+                                    }
+                                }
+                            }
                     } else {
                         ListNoSelectionView(kind: projection.kind ?? .vault)
                     }
@@ -32,21 +47,17 @@ struct ListDetailNavigationView<Sidebar: View, SidebarDestination: View, DetailD
             }
         }
         .navigationSplitViewStyle(.automatic)
-        .onChange(of: projection, initial: true) { _, value in
-            compactColumn = value.detailRoot == nil ? .sidebar : .detail
+        .onChange(of: projection.detailRoot, initial: true) { _, detailRoot in
+            compactColumn = detailRoot == nil ? .sidebar : .detail
         }
     }
 
-    /// SwiftUI writes this binding when Back leaves the collapsed detail column.
-    /// Resizing changes neither the preferred column nor the canonical path.
+    /// Column changes are presentation state, not requests to discard a route.
+    /// Nested Back is handled by detailPath; the root Back button clears selection.
     private var preferredCompactColumn: Binding<NavigationSplitViewColumn> {
         Binding(
             get: { compactColumn },
-            set: { column in
-                let returningToList = compactColumn == .detail && column == .sidebar
-                compactColumn = column
-                if returningToList && projection.detailRoot != nil { clearDetail() }
-            })
+            set: { compactColumn = $0 })
     }
 
     private var sidebarPath: Binding<[Int64]> {

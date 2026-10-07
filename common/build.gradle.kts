@@ -34,6 +34,15 @@ plugins {
     id("keyguard.crypto-dependency-check")
 }
 
+// The Koin plugin finds application roots by scanning sources for its entry-point names,
+// and BaseApp's `koinApplication` property matches. Strict safety would then recompile
+// this whole module on every build. This module builds no Koin graph; the application
+// modules validate the full graph instead.
+koinCompiler {
+    strictSafety = false
+    strictSafetyForceOff = true
+}
+
 // `android`/`main` covers commonMain plus androidMain; `desktop`/`main` covers commonMain plus
 // desktopMain. Together they make every JVM-reachable source set checkable.
 //

@@ -17,6 +17,10 @@
         "name": "Arabic"
       },
       {
+        "id": "bn",
+        "name": "Bengali"
+      },
+      {
         "id": "ca",
         "name": "Catalan"
       },
@@ -55,6 +59,14 @@
       {
         "id": "de",
         "name": "German"
+      },
+      {
+        "id": "el",
+        "name": "Greek"
+      },
+      {
+        "id": "he",
+        "name": "Hebrew"
       },
       {
         "id": "hu",
@@ -121,8 +133,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 71161,
-    "target": 76062,
+    "translated": 103022,
+    "target": 112845,
     "approved": 1050,
     "voted": 0,
     "positiveVotes": 90,
@@ -187,8 +199,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 6126,
-    "target": 6861,
+    "translated": 6701,
+    "target": 7517,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -2004,8 +2016,8 @@
   {
     "user": {
       "id": "17898117",
-      "username": "LeDimigit",
-      "fullName": "LeDimigit",
+      "username": "Le_crowdim",
+      "fullName": "Le_crowdim",
       "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17898117/medium/56c72032deede0f05e8aa3912d247340.png",
       "joined": "2026-09-14 11:49:18"
     },
@@ -2015,8 +2027,30 @@
         "name": "French"
       }
     ],
-    "translated": 2782,
-    "target": 3297,
+    "translated": 5202,
+    "target": 6315,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "17922929",
+      "username": "nassaf1",
+      "fullName": "Nesma Assaf (nassaf1)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17922929/medium/5cc44e3282451a428fb127e5759f2079.png",
+      "joined": "2026-10-02 09:09:25"
+    },
+    "languages": [
+      {
+        "id": "ar",
+        "name": "Arabic"
+      }
+    ],
+    "translated": 881,
+    "target": 917,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -2081,8 +2115,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 11623,
-    "target": 13132,
+    "translated": 14000,
+    "target": 15996,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

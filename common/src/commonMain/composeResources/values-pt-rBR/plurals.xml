@@ -8,6 +8,10 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> ocorrência</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> ocorrências</item>
     </plurals>
+    <plurals name="reused_password_items_count_plural">
+        <item quantity="one">Used by <xliff:g id="number" example="1">%1$d</xliff:g> item</item>
+        <item quantity="other">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+    </plurals>
     <plurals name="word_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> palavra</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> palavras</item>
@@ -143,5 +147,22 @@
     <plurals name="gpg_keyserver_upload_verify_requested_plural">
         <item quantity="one">E-mail de verificação solicitado para o endereço <xliff:g id="number" example="1">%1$s</xliff:g></item>
         <item quantity="other">E-mails de verificação solicitados para os endereços <xliff:g id="number">%1$s</xliff:g></item>
+    </plurals>
+    <!-- Automatic backups -->
+    <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
+        <item quantity="one">Manter %1$d snapshot</item>
+        <item quantity="other">Manter %1$d snapshots</item>
+    </plurals>
+    <plurals name="pref_item_hibp_api_token_error_plural">
+        <item quantity="one">Insira um token hexadecimal da API HIBP com <xliff:g id="length" example="1">%1$d</xliff:g> caractere</item>
+        <item quantity="other">Insira um token hexadecimal da API HIBP com <xliff:g id="length" example="32">%1$d</xliff:g> caracteres</item>
+    </plurals>
+    <plurals name="ciphers_action_trash_confirmation_text_plural">
+        <item quantity="one">Os itens que estiverem na Lixeira há mais de <xliff:g id="days" example="1">%1$d</xliff:g> dia serão excluídos automaticamente.</item>
+        <item quantity="other">Os itens que estiverem na Lixeira há mais de <xliff:g id="days" example="30">%1$d</xliff:g> dias serão excluídos automaticamente.</item>
+    </plurals>
+    <plurals name="agent_approval_expires_in_seconds_plural">
+        <item quantity="one">Expira em <xliff:g id="seconds" example="1">%1$d</xliff:g> segundo</item>
+        <item quantity="other">Expira em <xliff:g id="seconds" example="30">%1$d</xliff:g> segundos</item>
     </plurals>
 </resources>

@@ -7,6 +7,24 @@
     <string name="no">No</string>
     <!-- On click brings Keyguard app to the front -->
     <string name="show_keyguard">Mostra Keyguard</string>
+    <string name="loading">Loading…</string>
+    <string name="select">Select</string>
+    <string name="open_action">Open</string>
+    <string name="item_not_found">Item not found</string>
+    <string name="more_actions">More actions</string>
+    <string name="hide">Hide</string>
+    <string name="actions">Actions</string>
+    <string name="open_in_keyguard_action">Open in Keyguard</string>
+    <string name="more">More</string>
+    <string name="server">Server</string>
+    <string name="confirm">Confirm</string>
+    <string name="change">Change</string>
+    <string name="website">Website</string>
+    <string name="phone">Phone</string>
+    <string name="unknown">Unknown</string>
+    <string name="share">Share</string>
+    <string name="attachment">Attachment</string>
+    <string name="warning">Warning</string>
     <string name="instance_service_error_title">Keyguard instance service failed</string>
     <string name="instance_service_error_text">Keyguard could not start or contact its instance service. If this continues after restarting Keyguard, include the details below in a bug report.</string>
     <string name="instance_service_permission_text">Keyguard cannot safely access its instance files. Check ownership and permissions of its data and runtime directories and their parent directories.</string>
@@ -41,10 +59,13 @@
     <string name="advanced_options">Advanced</string>
     <string name="file">File</string>
     <string name="choose_file">Choose file</string>
+    <string name="file_picker_selected_file_label">Selected file</string>
     <string name="file_name_placeholder">File name</string>
     <string name="file_status_pending_upload">Pending upload</string>
     <string name="file_status_auto_resume">Auto-resumes</string>
     <string name="file_status_downloading_failed">Downloading failed</string>
+    <string name="file_status_download_failed_auto_resuming">Download failed, auto-resuming</string>
+    <string name="file_status_downloaded">Downloaded</string>
     <string name="email">Correu electrònic</string>
     <string name="email_verified">Verificat</string>
     <string name="email_not_verified">No verificat</string>
@@ -64,16 +85,20 @@
     <string name="max_access_count">Recompte màxim d'accessos</string>
     <string name="package_name">Package name</string>
     <string name="status">Status</string>
+    <string name="status_running">Running</string>
+    <string name="status_failed_to_start">Failed to start</string>
     <string name="ready_status_beta">Beta</string>
     <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">Més informació</string>
     <string name="phone_number">Número de telèfon</string>
     <string name="passport_number">Número de passaport</string>
     <string name="license_number">Número de llicència</string>
+    <string name="license_open_project_website_action">Open project website</string>
     <string name="card_number">Número de Targeta</string>
     <string name="card_number_empty_label">Cap número de targeta</string>
     <string name="card_type">Marca</string>
     <string name="card_cvv">CVV</string>
+    <string name="card_cvv_short_label">CVV</string>
     <string name="card_valid_from">Vàlida des de</string>
     <string name="card_valid_to">Vàlida fins a</string>
     <string name="card_expiry_month">Mes de venciment de la targeta</string>
@@ -95,12 +120,14 @@
     <string name="city">Ciutat</string>
     <string name="state">Província</string>
     <string name="info">Info</string>
+    <string name="info_dialog_empty_text">No additional information</string>
     <string name="cancel">Cancel·lar</string>
     <string name="continue_">Continuar</string>
     <string name="country">País</string>
     <string name="address">Adreça</string>
     <string name="postal_code">Codi postal</string>
     <string name="pull_to_search">Estira per a cercar</string>
+    <string name="search_clear_action">Clear search</string>
     <string name="save">Desa</string>
     <string name="save_to">Desa a</string>
     <string name="uri">URI</string>
@@ -130,6 +157,7 @@
     <string name="folder">Carpeta</string>
     <string name="folders">Carpetes</string>
     <string name="folders_empty_label">Cap carpeta</string>
+    <string name="folders_empty_text">Organize your items by adding a folder.</string>
     <string name="tag_none">No tag</string>
     <string name="tag">Tag</string>
     <string name="tags">Tags</string>
@@ -138,12 +166,16 @@
     <string name="collection">Col·lecció</string>
     <string name="collections">Col·leccions</string>
     <string name="collections_empty_label">Cap col·lecció</string>
+    <string name="collections_empty_text">Collections shared with this account appear here.</string>
     <string name="organization_none">Caixa forta</string>
+    <string name="grouping_view_items_action">View items</string>
     <string name="organization">Organització</string>
     <string name="organizations">Organitzacions</string>
     <string name="organizations_empty_label">Cap organització</string>
+    <string name="organizations_empty_text">Organizations you belong to appear here.</string>
     <string name="equivalent_domains">Dominis equivalents</string>
     <string name="equivalent_domains_empty_label">Cap domini equivalent</string>
+    <string name="equivalent_domains_empty_text">Domains the server treats as equivalent for matching appear here.</string>
     <string name="retry">Retry</string>
     <string name="misc">Miscel·lània</string>
     <string name="category">Categoria</string>
@@ -172,9 +204,8 @@
     <string name="address1">Línia 1 de l'adreça</string>
     <string name="address2">Línia 2 de l'adreça</string>
     <string name="address3">Línia 3 de l'adreça</string>
-    <string name="ssh_agent">SSH agent</string>
+    <string name="agent_title">Agent <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="ssh_client">SSH client</string>
-    <string name="gpg_agent">GPG agent</string>
     <string name="rename">Reanomenar</string>
     <string name="deletion_date">Data d'eliminació</string>
     <string name="deletion_date_custom">Personalitzat</string>
@@ -235,6 +266,8 @@
     <string name="password_save">Save password</string>
     <string name="passkey_save">Guarda la passkey</string>
     <string name="passkey_available">Passkey disponible</string>
+    <string name="passkey_credential_load_failed_title">Couldn't load passkey</string>
+    <string name="passkey_credential_id_label">Credential ID</string>
     <string name="twofa_available">Autenticació de dos factors disponible</string>
     <string name="custom">Personalitzat</string>
     <string name="grant_permission">Donar permís</string>
@@ -242,7 +275,7 @@
     <string name="follow_system_settings">Segueix el sistema</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Aviat</string>
-    <string name="powered_by">Impulsat per</string>
+    <string name="powered_by_text">Amb la tecnologia de <xliff:g id="provider" example="haveibeenpwned.com">%1$s</xliff:g></string>
     <string name="verification_code">Codi de verificació</string>
     <string name="resend_verification_code">Reenvia el codi de verificació</string>
     <string name="requested_verification_email">Sol·licita un correu de verificació</string>
@@ -292,9 +325,7 @@
     <string name="expires">Expires</string>
     <string name="capabilities">Capabilities</string>
     <string name="subkeys">Subkeys</string>
-    <string name="key_ssh">Clau SSH</string>
     <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
-    <string name="key_gpg">GPG Key</string>
     <string name="key_gpg_value_placeholder">Looks empty in here. Generate a GPG key to get started!</string>
     <string name="fingerprint_phrase">Frase d'empremta digital</string>
     <string name="fingerprint_phrase_help_title">Què és una empremta?</string>
@@ -313,7 +344,6 @@
     <string name="replace_database_file">Replace a database file</string>
     <string name="database_location_title">Database location</string>
     <string name="database_location_local">Local file</string>
-    <string name="database_location_webdav">WebDAV</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
     <string name="addaccount_method_header_title">Add account</string>
@@ -342,6 +372,7 @@
     <string name="account_action_export_vault_title">Exportar caixa forta</string>
     <string name="account_action_export_individual_vault_title">Exporta una caixa forta individual</string>
     <string name="account_action_hide_title">Amaga els elements</string>
+    <string name="account_action_show_title">Show items</string>
     <string name="account_action_hide_text">Amaga els elements de les pantalles principals de l'app</string>
     <string name="account_action_hide_success_on_title">Items were hidden</string>
     <string name="account_action_hide_success_off_title">Items were revealed</string>
@@ -362,6 +393,7 @@
     <string name="folder_delete_one_confirmation_title">Eliminar carpeta?</string>
     <string name="folder_delete_many_confirmation_title">Eliminar carpetes?</string>
     <string name="folder_delete_confirmation_text">Aquest element/s seran eliminats immediatament. No pots desfer aquesta acció.</string>
+    <string name="folder_add_action">Add folder</string>
     <string name="ciphers_recently_opened">Oberts recentment</string>
     <string name="ciphers_often_opened">Oberts a sovint</string>
     <string name="ciphers_history_empty">Sense historial encara</string>
@@ -402,7 +434,6 @@
     <string name="ciphers_action_unarchive_confirmation_title">Restore from archive?</string>
     <string name="ciphers_action_trash_title">Paperera</string>
     <string name="ciphers_action_trash_confirmation_title">Moure a la paperera?</string>
-    <string name="ciphers_action_trash_confirmation_text">Els elements que porten més de 30 dies a la paperera se suprimiran automàticament.</string>
     <string name="ciphers_action_restore_title">Restaura</string>
     <string name="ciphers_action_restore_confirmation_title">Recuperar de la paperera?</string>
     <string name="ciphers_action_delete_title">Elimina per sempre</string>
@@ -444,7 +475,7 @@
     <string name="file_action_reveal_title">Revel·lar</string>
     <string name="attachment_preview_error_unsupported_file">This file type cannot be previewed.</string>
     <string name="attachment_preview_error_unsupported_platform">Attachment preview is not supported on this platform.</string>
-    <string name="attachment_preview_error_too_large">This attachment is larger than the 8 MB preview limit.</string>
+    <string name="attachment_preview_error_size_limit">Aquest fitxer adjunt supera el límit de <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> per a la vista prèvia.</string>
     <string name="attachment_preview_error_network">Failed to download the attachment preview.</string>
     <string name="attachment_preview_error_decryption">Failed to decrypt the attachment preview.</string>
     <string name="attachment_preview_error_text_decode">This text file cannot be previewed.</string>
@@ -522,41 +553,33 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a un camp desconegut</string>
     <string name="text_action_share_with_title">Comparteix amb…</string>
     <string name="text_action_send_title">Crea un enviament</string>
-    <string name="ssh_key_action_save_unencrypted_keys_title">Desa claus no encriptades</string>
-    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Claus desades a baixades</string>
-    <string name="ssh_key_action_save_public_key_title">Desa la clau pública</string>
-    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Clau pública desada a baixades</string>
-    <string name="ssh_key_action_save_unencrypted_private_key_title">Desa la clau privada no encriptada</string>
-    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Clau privada no encriptada desada a les baixades</string>
+    <string name="text_clear_action">Clear text</string>
+    <string name="key_action_save_unencrypted_keys_title">Desa les claus sense xifrar</string>
+    <string name="key_action_save_unencrypted_keys_saved_downloads_success_title">Claus desades a Baixades</string>
+    <string name="key_action_save_public_key_title">Desa la clau pública</string>
+    <string name="key_action_save_public_key_saved_downloads_success_title">Clau pública desada a Baixades</string>
+    <string name="key_action_save_unencrypted_private_key_title">Desa la clau privada sense xifrar</string>
+    <string name="key_action_save_unencrypted_private_key_saved_downloads_success_title">Clau privada sense xifrar desada a Baixades</string>
     <string name="ssh_key_action_add_key_title">Afegeix claus</string>
     <string name="ssh_key_action_replace_key_title">Reemplaçar claus</string>
-    <string name="gpg_key_action_save_unencrypted_keys_title">Save unencrypted keys</string>
-    <string name="gpg_key_action_save_unencrypted_keys_saved_downloads_success_title">GPG keys saved to Downloads</string>
-    <string name="gpg_key_action_save_public_key_title">Save public key</string>
-    <string name="gpg_key_action_save_public_key_saved_downloads_success_title">GPG public key saved to Downloads</string>
-    <string name="gpg_key_action_save_unencrypted_private_key_title">Save unencrypted private key</string>
-    <string name="gpg_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted GPG private key saved to Downloads</string>
-    <string name="gpg_key_import_title">Import GPG key</string>
+    <string name="key_import_title">Importa la clau <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="gpg_key_import_drop_here">Drop a file to import a GPG public or private key</string>
-    <string name="gpg_key_import_failed_title">Failed to import GPG key</string>
-    <string name="gpg_key_import_success_title">Imported GPG key</string>
+    <string name="key_import_failed_title">No s'ha pogut importar la clau <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
+    <string name="key_import_success_title">Clau <xliff:g id="protocol" example="SSH">%1$s</xliff:g> importada</string>
     <string name="gpg_key_import_error_empty">The GPG key file is empty.</string>
     <string name="gpg_key_import_error_unsupported_format">Unsupported GPG key format.</string>
     <string name="gpg_key_import_error_unsupported_platform">GPG key import is not supported on this platform.</string>
-    <string name="gpg_key_import_error_invalid_passphrase">The GPG key passphrase is invalid.</string>
-    <string name="gpg_key_import_error_malformed_key">The GPG key file is malformed.</string>
+    <string name="key_import_error_invalid_passphrase">La frase de contrasenya de la clau <xliff:g id="protocol" example="SSH">%1$s</xliff:g> no és vàlida.</string>
+    <string name="key_import_error_malformed_key">El fitxer de la clau <xliff:g id="protocol" example="SSH">%1$s</xliff:g> està mal format.</string>
     <string name="gpg_key_import_error_multiple_keys">The file contains more than one GPG key. Export and import the keys one at a time.</string>
-    <string name="gpg_key_import_error_read">Unable to read the selected file.</string>
-    <string name="gpg_key_import_error_passphrase_required">A passphrase is required to unlock this GPG key.</string>
+    <string name="key_import_error_passphrase_required">Cal una frase de contrasenya per desbloquejar aquesta clau <xliff:g id="protocol" example="SSH">%1$s</xliff:g>.</string>
     <string name="gpg_key_import_error_key_changed">The GPG key changed while the import was in progress. Try importing it again.</string>
     <string name="gpg_key_import_error_mismatched_key">The imported key does not match the GPG key in this item.</string>
     <string name="gpg_key_import_error_existing_malformed">The GPG key stored in this item is malformed and cannot be merged.</string>
     <string name="gpg_key_import_error_secret_conflict">The imported secret key material conflicts with the secret key stored in this item.</string>
     <string name="gpg_key_import_error_resource_limit">The GPG key is too large or complex to import.</string>
     <string name="gpg_key_import_error_reconcile">The GPG key could not be safely merged.</string>
-    <string name="gpg_key_import_passphrase_title">Passphrase</string>
-    <string name="gpg_key_import_passphrase_hint">Enter GPG key passphrase</string>
-    <string name="gpg_key_import_passphrase_dialog_title">Enter GPG key passphrase</string>
+    <string name="key_import_passphrase_hint">Introdueix la frase de contrasenya de la clau <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="gpg_key_import_passphrase_dialog_message">This <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g> private key is encrypted. Keyguard will store it without the key passphrase after import.</string>
     <string name="gpg_key_expiry_title">Expiry</string>
     <string name="gpg_key_expiry_never">Never</string>
@@ -570,7 +593,8 @@
     <string name="gpg_key_expiry_primary">Primary key</string>
     <string name="gpg_key_expiry_subkey">Subkey <xliff:g id="key_id" example="0A1B2C3D">%1$s</xliff:g></string>
     <string name="gpg_key_expiry_subkey_capabilities">Capabilities: <xliff:g id="capabilities" example="sign, encrypt">%1$s</xliff:g>. Current expiry: <xliff:g id="expiry" example="Jan 1, 2030">%2$s</xliff:g></string>
-    <string name="gpg_key_expiry_subkey_weak_self_signature">Signed with a weak algorithm (SHA-1). Renewing re-signs it with a modern one.</string>
+    <string name="gpg_key_expiry_subkey_weak_self_signature_generic">Signada amb un algorisme feble. En renovar-la, se signarà de nou amb un algorisme modern.</string>
+    <string name="gpg_key_expiry_subkey_weak_self_signature_algorithms">Signada amb algorismes febles (<xliff:g id="algorithms" example="SHA-1, RIPEMD-160">%1$s</xliff:g>). En renovar-la, se signarà de nou amb un algorisme modern.</string>
     <string name="gpg_key_expiry_capability_sign">sign</string>
     <string name="gpg_key_expiry_capability_encrypt">encrypt</string>
     <string name="gpg_key_expiry_preset_one_year">One year</string>
@@ -604,7 +628,7 @@
     <string name="gpg_user_id_replacement_value_label">User ID</string>
     <string name="gpg_user_id_replacement_value_hint">Name &lt;email@example.com&gt;</string>
     <string name="gpg_user_id_replacement_value_confirm">Replace</string>
-    <string name="gpg_user_id_replacement_invalid_message">Enter a non-empty User ID of at most 1024 UTF-8 bytes without control characters.</string>
+    <string name="gpg_user_id_replacement_invalid_message_with_limit">Introdueix un identificador d'usuari no buit de com a màxim <xliff:g id="byte_limit" example="1024">%1$d</xliff:g> bytes UTF-8 i sense caràcters de control.</string>
     <string name="gpg_user_id_replacement_same_identity_message">Enter a User ID different from the selected identity.</string>
     <string name="gpg_user_id_replacement_duplicate_message">That User ID is already active on this key.</string>
     <string name="gpg_user_id_replacement_title">Replace User ID</string>
@@ -627,21 +651,16 @@
     <string name="gpg_user_id_revocation_private_key_required">Import the private key to revoke one of its User IDs.</string>
     <string name="gpg_user_id_revocation_unavailable">GPG User-ID revocation is not supported on this platform.</string>
     <string name="gpg_user_id_mutation_key_revoked_message">A revoked GPG key cannot be changed.</string>
-    <string name="ssh_key_import_title">Import SSH key</string>
     <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
-    <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
-    <string name="ssh_key_import_success_title">Imported SSH key</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
     <string name="ssh_key_import_error_unsupported_algorithm">Only RSA and Ed25519 SSH keys are supported.</string>
-    <string name="ssh_key_import_error_invalid_passphrase">The SSH key passphrase is invalid.</string>
-    <string name="ssh_key_import_error_malformed_key">The SSH key file is malformed.</string>
-    <string name="ssh_key_import_error_read">Unable to read the selected file.</string>
-    <string name="ssh_key_import_error_passphrase_required">A passphrase is required to unlock this SSH key.</string>
-    <string name="ssh_key_import_passphrase_title">Passphrase</string>
-    <string name="ssh_key_import_passphrase_hint">Enter SSH key passphrase</string>
-    <string name="ssh_key_import_passphrase_dialog_title">Enter SSH key passphrase</string>
+    <string name="key_import_error_read">No es pot llegir el fitxer seleccionat.</string>
+    <string name="key_import_passphrase_title">Frase de contrasenya</string>
     <string name="ssh_key_import_passphrase_dialog_message">This <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> key is encrypted.</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> seleccionats</string>
+    <string name="selection_clear_action">Clear selection</string>
+    <string name="selection_select_all_action">Select all</string>
+    <string name="selection_actions_title">Selection actions</string>
     <string name="copy">Copia</string>
     <string name="copy_value">Copia el valor</string>
     <string name="copy_url">Copia l'URL</string>
@@ -662,12 +681,9 @@
     <string name="copy_cvv_code">Còpia el codi CVV</string>
     <string name="copy_otp_code">Copia la contrasenya d'un sol ús</string>
     <string name="copy_otp_secret_code">Copia la clau secreta</string>
-    <string name="copy_ssh_unencrypted_private_key">Copia la clau privada no encriptada</string>
-    <string name="copy_ssh_public_key">Copia la clau pública</string>
-    <string name="copy_ssh_fingerprint">Copia l'empremta digital</string>
-    <string name="copy_gpg_unencrypted_private_key">Copy unencrypted private key</string>
-    <string name="copy_gpg_public_key">Copy public key</string>
-    <string name="copy_gpg_fingerprint">Copy fingerprint</string>
+    <string name="copy_unencrypted_private_key">Copia la clau privada sense xifrar</string>
+    <string name="copy_public_key">Copia la clau pública</string>
+    <string name="copy_fingerprint">Copia l'empremta digital</string>
     <string name="copied_value">S'ha copiat un valor</string>
     <string name="copied_url">S'ha copiat una URL</string>
     <string name="copied_uri">S'ha copiat una URI</string>
@@ -691,7 +707,25 @@
     <string name="found_otp_code">Found a one-time password</string>
     <string name="found_value">Found a value</string>
     <string name="autofill_unlock_keyguard">Desbloqueja Keyguard</string>
+    <string name="autofill_unlock_subtitle">Enter your master password to fill the selected login.</string>
     <string name="autofill_open_keyguard">Obre Keyguard</string>
+    <!--
+        Shows up as an entry in the system credential picker when the app
+        requesting passkeys (usually a browser) is not on the privileged apps
+        list. Tapping it opens Keyguard, which offers to grant the privilege -->
+    <string name="autofill_authorize_app">Authorize this app</string>
+    <string name="autofill_no_matching_logins">No matching logins</string>
+    <string name="autofill_passwords_section">Passwords</string>
+    <string name="autofill_verification_codes_section">Verification codes</string>
+    <string name="autofill_shared_storage_unavailable">AutoFill cannot access the shared vault. Open Keyguard and try again. If the problem continues, contact support.</string>
+    <string name="autofill_setup_required">Open Keyguard and set up or sync your vault before using AutoFill.</string>
+    <string name="autofill_request_failed">This credential is no longer available or could not be read. Open Keyguard to check your vault, then try again.</string>
+    <string name="autofill_choose_passkey">Choose a passkey</string>
+    <string name="autofill_unsupported_algorithm">This site does not support the passkey algorithm provided by Keyguard.</string>
+    <string name="autofill_suggested">Suggested</string>
+    <string name="autofill_other_logins">Other logins</string>
+    <string name="autofill_registration_failed">Could not save this passkey. Open Keyguard to check that you can edit this login, then try again.</string>
+    <string name="autofill_empty">No credentials are available for this request. Add or sync an item in Keyguard.</string>
     <string name="january">Gener</string>
     <string name="february">Febrer</string>
     <string name="march">Març</string>
@@ -715,7 +749,6 @@
     <string name="list_remove">Elimina</string>
     <string name="list_remove_confirmation_title">Eliminar element?</string>
     <string name="list_add">Afegeix més</string>
-    <string name="fido2webauthn_web_title">WebAuthn FIDO2</string>
     <string name="fido2webauthn_action_go_title">Autenticar WebAuthn</string>
     <string name="fido2webauthn_action_return_title">Torna a l'app</string>
     <string name="expiry_tips_item_line1">Aquest element expira el <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
@@ -747,11 +780,20 @@
     <string name="error_invalid_card_number">Número de targeta no vàlid</string>
     <string name="error_webdav_url_required">WebDAV URL is required</string>
     <string name="error_webdav_file_url_required">Enter the full WebDAV URL to a file resource</string>
+    <string name="error_s3_endpoint_invalid">Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment</string>
+    <string name="error_s3_bucket_required">Bucket is required</string>
+    <string name="error_s3_bucket_invalid">Enter a valid bucket name</string>
+    <string name="error_s3_prefix_invalid">The prefix cannot contain empty, ".", or ".." segments</string>
+    <string name="error_s3_key_required">Enter the object key of a database file</string>
+    <string name="error_s3_key_invalid">The object key cannot contain empty, ".", or ".." segments</string>
+    <string name="error_s3_key_extension">La clau de l'objecte ha d'acabar amb <xliff:g id="extension" example=".kdbx">%1$s</xliff:g></string>
+    <string name="error_s3_access_key_id_required">Access key ID is required</string>
+    <string name="error_s3_access_key_id_invalid">Enter a valid access key ID</string>
+    <string name="error_s3_secret_access_key_required">Secret access key is required</string>
+    <string name="error_s3_conditional_writes_unsupported">The S3 server ignores conditional writes</string>
     <string name="error_incorrect_password">Contrasenya incorrecta</string>
     <string name="error_not_found">Not found</string>
     <string name="error_file_must_be_n_or_smaller">File must be <xliff:g id="size" example="500MB">%1$s</xliff:g> or smaller</string>
-    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
-    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">La clau secreta de la contrasenya d'un sol ús no pot estar buida</string>
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
@@ -762,16 +804,23 @@
     <string name="error_failed_use_passkey">No s'ha pogut autoritzar la petició</string>
     <string name="error_failed_use_password">Failed to authorize a request</string>
     <string name="error_failed_open_uri">No s'ha pogut obrir una URI</string>
+    <string name="error_failed_open_file">Could not open this file</string>
     <string name="error_failed_format_placeholder">No s'ha pogut formatar el marcador</string>
     <string name="error_failed_open_app_for">Cap aplicació instal·lada pot gestionar aquesta sol·licitud</string>
+    <string name="error_failed_open_link">Could not open this link</string>
     <string name="error_failed_unknown">Alguna cosa ha anat malament</string>
     <string name="error_failed_encrypt_biometric_key">No s'ha pogut encriptar la clau biomètrica</string>
     <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
     <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">No s'ha pogut desencriptar la clau biomètrica</string>
-    <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
-    <string name="error_failed_gpg_agent_start">Failed to start the GPG agent</string>
-    <string name="error_failed_power_lock_start">Could not enable locking when the screen turns off or the device sleeps. Restart Keyguard to try again.</string>
+    <string name="error_failed_agent_start">No s'ha pogut iniciar l'agent <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
+    <string name="error_failed_power_lock_start">Could not enable automatic vault locking. Restart Keyguard to try again.</string>
+    <string name="error_quick_search_autotype_permission">Accessibility access required</string>
+    <string name="error_quick_search_autotype_unavailable">Could not focus the destination</string>
+    <string name="error_quick_search_autotype_invalid_text">Cannot auto-type this value</string>
+    <string name="error_quick_search_autotype_failed">Auto-type failed</string>
+    <string name="error_quick_search_autotype_busy">Auto-type already running</string>
+    <string name="error_quick_search_autotype_keys_held">Release all keys and mouse buttons, then try again</string>
     <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -786,6 +835,7 @@
     <string name="scanqr_load_from_image">Load from a file</string>
     <string name="scanqr_load_from_image_note">Carrega i processa un codi QR des d'un fitxer d'imatge.</string>
     <string name="scanqr_camera_permission_required_text">Cal tenir accés a la càmera per a escanejar codis QR.</string>
+    <string name="scanqr_camera_unavailable_text">Camera scanning is unavailable on this device.</string>
     <string name="post_notifications_permission_banner_title">Les notificacions estan desactivades</string>
     <string name="post_notifications_permission_banner_text">Dona permís a Keyguard per a mostrar notificacions i així poder mostrar contrasenyes d'un sol ús en emplenar automàticament.</string>
     <string name="local_network_permission_banner_title">Allow local network access</string>
@@ -795,6 +845,7 @@
     <string name="barcodetype_title">Codi de barres</string>
     <string name="barcodetype_action_show_in_barcode_title">Mostra com a codi de barres</string>
     <string name="barcodetype_copy_otp_secret_code_note">Copia aquest autenticador a un altre dispositiu escanejant el codi QR.</string>
+    <string name="barcode_invalid_or_unsupported_text">This barcode format is unsupported, or the value is invalid or too long to display.</string>
     <!-- Title of the 'Date picker' dialog -->
     <string name="datepicker_title">Selecció de data</string>
     <!-- Title of the 'Color picker' dialog -->
@@ -837,6 +888,7 @@
     <string name="passkeys_directory_title">Passkeys</string>
     <string name="passkeys_directory_text">Llista de llocs web amb suport per a passkeys</string>
     <string name="passkeys_directory_search_placeholder">Cerca llocs web</string>
+    <string name="passkeys_directory_setup_title">Set up a passkey</string>
     <!-- Title of the 'Email data breach' dialog -->
     <string name="emailleak_title">Filtració de dades</string>
     <string name="emailleak_note">Dades de comptes filtrades poden proporcionar les teves dades personals i financeres a criminals, el qual pot dur a suplantació d'identitat, frau financer i altres formes de ciber-crims.</string>
@@ -868,6 +920,7 @@
     <string name="largetype_action_show_in_large_type_title">Mostra en Lletra Gran</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Mostra en Lletra Gran i bloqueja la caixa forta</string>
     <string name="largetype_unicode_surrogate_note">El text conté símbols Unicode compostos!</string>
+    <string name="largetype_character_index_label">Character %1$d: %2$s</string>
     <string name="apppicker_header_title">Selector d'apps</string>
     <string name="apppicker_search_placeholder">Cerca aplicacions instal·lades</string>
     <string name="apppicker_system_app_label">Aplicació del sistema</string>
@@ -880,25 +933,35 @@
     <string name="destinationpicker_organization_ownership_note">Aquesta organització serà propietària de la còpia. No seràs el propietari directe.</string>
     <string name="emailrelay_list_header_title">Redireccionadors d'Email</string>
     <string name="emailrelay_list_section_title">Redireccionadors d'Email</string>
+    <string name="emailrelay_list_add_service_hint">Add a forwarding service to generate masked email aliases.</string>
+    <string name="emailrelay_list_no_services_title">No services available</string>
     <string name="emailrelay_delete_one_confirmation_title">Eliminar el redireccionador d'email?</string>
     <string name="emailrelay_delete_many_confirmation_title">Eliminar els redireccionadors d'email?</string>
     <string name="emailrelay_integration_title">Integració amb redireccionador d'email</string>
     <string name="emailrelay_empty_label">Cap redireccionador d'email</string>
     <string name="emailrelay_base_env_server_url_label">URL del servidor</string>
     <string name="emailrelay_base_env_note">Especifiqueu l'URL base de la vostra instal·lació allotjada a un entorn propi.</string>
+    <string name="emailrelay_add_action">Add email forwarder</string>
+    <string name="emailrelay_edit_action">Edit email forwarder</string>
+    <string name="emailrelay_documentation_title">Documentation</string>
     <string name="wordlist_list_header_title">Llistes de paraules</string>
     <string name="wordlist_list_section_title">Llistes de paraules</string>
+    <string name="wordlist_list_import_hint">Import a wordlist from a file or URL to use it in the passphrase generator.</string>
     <string name="wordlist_delete_one_confirmation_title">Eliminar la llista de paraules?</string>
     <string name="wordlist_delete_many_confirmation_title">Eliminar les llistes de paraules?</string>
+    <string name="wordlist_delete_permanent_warning">%1$s will be permanently removed.</string>
     <string name="wordlist_edit_wordlist_title">Edita una llista de paraules</string>
     <string name="wordlist_add_wordlist_title">Afegeix una llista de paraules</string>
     <string name="wordlist_add_wordlist_via_file_title">Carrega des d'un fitxer</string>
     <string name="wordlist_add_wordlist_via_url_title">Carrega des d'una URL</string>
     <string name="wordlist_empty_label">Cap llista de paraules</string>
     <string name="wordlist_word_search_placeholder">Cerca paraules</string>
+    <string name="wordlist_rename_action">Rename wordlist</string>
+    <string name="wordlist_words_empty_label">This wordlist is empty</string>
     <string name="urloverride_header_title">Sobreescriptura d'URL</string>
     <string name="urloverride_list_header_title">Sobreescriptures d'URL</string>
     <string name="urloverride_list_section_title">Sobreescriptures d'URL</string>
+    <string name="urloverride_list_empty_text">URL override rules appear here.</string>
     <string name="urloverride_regex_note">Aquesta sobreescriptura serà aplicada a tots els URL que encaixin amb l'expressió regular.</string>
     <string name="urloverride_delete_one_confirmation_title">Eliminar la sobreescriptura d'URL?</string>
     <string name="urloverride_delete_many_confirmation_title">Eliminar les sobreescriptures d'URL?</string>
@@ -911,6 +974,8 @@
     <string name="urlblock_empty_label">No blocked URIs</string>
     <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
     <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
+    <string name="urlrule_global_label">Global</string>
+    <string name="urlrule_excluded_label">Excluded</string>
     <string name="privilegedapps_header_title">Privileged apps</string>
     <string name="privilegedapps_list_header_title">Privileged apps</string>
     <string name="privilegedapps_list_section_title">Privileged apps</string>
@@ -928,12 +993,24 @@
     <string name="setup_button_create_vault">Crea una caixa forta</string>
     <string name="setup_action_erase_data_title">Elimina les dades de l'app</string>
     <string name="setup_action_erase_data_text">Tanca l'app i elimina totes les dades locals</string>
+    <string name="setup_erase_vault_confirmation_text">This permanently deletes the local vault on this device. This cannot be undone.</string>
     <string name="unlock_header_text">La caixa forta està bloquejada. Introdueix la teva contrasenya per a continuar.</string>
     <string name="unlock_button_unlock">Desbloqueja</string>
     <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_title">Desbloqueja una caixa forta</string>
     <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_text">Fes servir una autenticació biomètrica per a desbloquejar la caixa forta.</string>
+    <string name="unlock_vault_title">Unlock your vault</string>
+    <string name="unlock_biometric_touch_id_title">Unlock with Touch ID</string>
+    <string name="unlock_yubikey_title">Unlock with YubiKey</string>
+    <string name="confirm_biometric_touch_id_title">Confirm with Touch ID</string>
+    <string name="confirm_yubikey_title">Confirm with YubiKey</string>
+    <string name="unlock_biometric_title">Unlock with biometrics</string>
+    <string name="unlock_biometric_face_id_title">Unlock with Face ID</string>
+    <string name="confirm_biometric_face_id_title">Confirm with Face ID</string>
+    <string name="confirm_biometric_title">Confirm with biometrics</string>
+    <string name="unlock_biometric_auth_failed">Biometric authentication failed</string>
+    <string name="unlock_biometric_key_unavailable">Biometric unlock is unavailable. Unlock with your vault password and enable biometric unlock again in Settings.</string>
     <string name="userverification_header_text">Cal verificar l'usuari. Introdueix la teua contrasenya d'app per a continuar.</string>
     <string name="userverification_button_go">Verificar</string>
     <string name="syncstatus_header_title">Estat de la sincronització</string>
@@ -955,6 +1032,14 @@
     <string name="additem_markdown_render_preview">Renderitzar previsualització</string>
     <string name="additem_auth_reprompt_title">Torna a autenticar</string>
     <string name="additem_auth_reprompt_text">Demana autenticar-se altre vegada quan visualitzes o emplenes automàticament</string>
+    <string name="additem_type_secure_note_title">Secure note</string>
+    <string name="additem_login_totp_label">One-time password (TOTP)</string>
+    <string name="additem_login_uri_label">Website (URI)</string>
+    <string name="additem_key_replace_title">Replace key</string>
+    <string name="additem_key_generate_title">Genera una clau <xliff:g id="protocol" example="SSH">%1$s</xliff:g>…</string>
+    <string name="additem_key_use_title">Use Key</string>
+    <string name="additem_key_generator_back_title">Back</string>
+    <string name="additem_key_import_title">Import key</string>
     <string name="addsend_header_new_title">Nou element</string>
     <string name="addsend_header_edit_title">Editar element</string>
     <string name="addsend_text_hide_by_default_title">Quan accediu a l'element, amaga el text per defecte</string>
@@ -998,6 +1083,13 @@
     <string name="addaccount_custom_env_icons_url_label">URL del servidor d'icones</string>
     <string name="addaccount_custom_env_identity_url_label">URL del servidor d'identitat</string>
     <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <!-- Looks up the server published in the DNS records of the email domain and fills it in. -->
+    <string name="addaccount_server_discovery_button">Auto-discover server</string>
+    <string name="addaccount_server_discovery_found">Server set to <xliff:g id="address" example="vault.example.com">%1$s</xliff:g></string>
+    <!-- Warns that the discovered server is not part of the email domain. -->
+    <string name="addaccount_server_discovery_other_domain_warning">The server is not part of <xliff:g id="domain" example="example.com">%1$s</xliff:g>. Check the address before you sign in.</string>
+    <string name="addaccount_server_discovery_not_found">No server found for <xliff:g id="domain" example="example.com">%1$s</xliff:g></string>
+    <string name="addaccount_server_discovery_failed">Failed to look up the server of <xliff:g id="domain" example="example.com">%1$s</xliff:g></string>
     <string name="addaccount_mutual_tls_section">Mutual TLS</string>
     <string name="addaccount_mutual_tls_file_label">Client certificate</string>
     <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
@@ -1012,11 +1104,18 @@
     <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
     <string name="addaccount_mutual_tls_status_imported">Imported</string>
     <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
+    <string name="addaccount_login_intro_text">Enter your Bitwarden account credentials to add it to this vault.</string>
+    <string name="addaccount_login_captcha_client_secret_note">This account is protected by a CAPTCHA. Provide your personal API client secret to continue.</string>
     <string name="addaccount2fa_header_title">Verificació</string>
     <string name="addaccount2fa_unsupported_note">Aquest mètode d'autenticació encara no està suportat.</string>
     <string name="addaccount2fa_otp_note">Introduïu el codi de verificació de l'aplicació autenticadora.</string>
     <string name="addaccount2fa_email_note">Introdueix el codi de verificació que s'ha enviat a <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Introdueix el codi de YubiKey manualment. Col·loca el cursor al camp inferior i activa la YubiKey.</string>
+    <string name="addaccount2fa_method_label">Method</string>
+    <string name="addaccount2fa_yubikey_otp_note">Insert your YubiKey and touch it, or paste its one-time password below.</string>
+    <string name="addaccount2fa_method_unsupported_platform_text"><xliff:g id="method" example="Duo">%1$s</xliff:g> encara no és compatible amb aquesta plataforma.</string>
+    <string name="addaccount2fa_method_other_title">This method</string>
+    <string name="addaccount2fa_method_web_vault_note">Open the web vault to finish signing in with this two-factor method, then return to the app.</string>
     <string name="addkeepass_header_title">Add KeePass account</string>
     <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
     <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
@@ -1024,7 +1123,6 @@
     <string name="provider_2fa_duo_organization">Duo (Organització)</string>
     <string name="provider_2fa_fido2_webauthn">Autenticació Web FIDO2</string>
     <string name="provider_2fa_email">Correu electrònic</string>
-    <string name="provider_2fa_fido_u2f">FIDO U2F</string>
     <string name="yubikey_usb_title">Connecta una YubiKey per USB</string>
     <string name="yubikey_usb_text">Requereix suport d'USB OTG.</string>
     <string name="yubikey_usb_touch_the_gold_sensor_note">Toca el sensor daurat de la teva YubiKey.</string>
@@ -1035,6 +1133,13 @@
     <string name="yubikey_unlock_error_unsupported_text">This YubiKey or connection type does not support challenge-response unlock.</string>
     <string name="yubikey_unlock_error_failed_title">Failed to use YubiKey</string>
     <string name="yubikey_unlock_error_failed_text">Try the YubiKey again or unlock the vault with your password.</string>
+    <string name="yubikey_slot_picker_title">Which YubiKey slot do you want to use?</string>
+    <string name="yubikey_slot_label">Ranura <xliff:g id="slot" example="2">%1$d</xliff:g></string>
+    <string name="yubikey_slot_picker_note">La majoria de les claus fan servir la ranura <xliff:g id="slot" example="2">%1$d</xliff:g> per a l'autenticació desafiament-resposta. Se't configurarà una ranura buida.</string>
+    <string name="yubikey_slot_configured_warning">Slot %1$d already has a configuration</string>
+    <string name="yubikey_slot_use_existing_action">Use the existing configuration</string>
+    <string name="yubikey_slot_overwrite_action">Overwrite the slot</string>
+    <string name="yubikey_slot_overwrite_warning">Use the slot's current challenge-response secret, or overwrite it with a new one. Overwriting permanently erases whatever the slot held (e.g. an existing OTP credential).</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Fer servir WebAuthn FIDO2 necessita una versió de Bitwarden web igual o major a <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g>. En versions més antigues no s'interpreta correctament el resultat de l'autenticació i se't redirigirà a l'aplicació oficial de Bitwarden.</string>
     <string name="elevatedaccess_header_title">Confirmeu l'accés</string>
     <string name="elevatedaccess_header_text">Aquestes dades estan protegides, per a continuar introdueix la teva contrasenya.</string>
@@ -1052,6 +1157,7 @@
     <string name="lock_reason_inactivity">S'ha bloquejat per inactivitat</string>
     <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_system_sleep">Locked because the device went to sleep</string>
+    <string name="lock_reason_session_inactive">Locked because the operating system became inactive</string>
     <string name="lock_reason_manually">Locked manually</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">Arxiu</string>
@@ -1091,26 +1197,34 @@
     <string name="customfilters_delete_many_confirmation_title">Eliminar els filtres?</string>
     <string name="customfilters_edit_filter_title">Edita un filtre personalitzat</string>
     <string name="customfilters_add_filter_title">Afegeix un filtre personalitzat</string>
+    <string name="customfilters_empty_hint">Save a set of filters as a custom filter to reapply it with one tap.</string>
     <string name="filter_header_title">Filtra</string>
     <string name="filter_empty_label">No hi ha filtres disponibles</string>
-    <string name="ssh_agent_filters_header_title">SSH agent filters</string>
-    <string name="ssh_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
-    <string name="ssh_agent_history_header_title">SSH agent history</string>
-    <string name="ssh_agent_history_request_list_keys">List keys</string>
+    <string name="filter_clear_action">Clear filters</string>
+    <string name="filter_list_title">Filters</string>
+    <string name="filter_expand_named_action">Expand %1$s</string>
+    <string name="filter_collapse_named_action">Collapse %1$s</string>
+    <string name="agent_filters_title">Filtres de l'agent <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
+    <string name="agent_filters_note_save_to_apply">Els canvis s'aplicaran quan premis Desa.</string>
+    <string name="ssh_agent_filters_locked_text">Unlock the vault to choose which SSH keys the agent serves.</string>
+    <string name="agent_history_header_title">Historial de l'agent <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
+    <string name="agent_history_request_list_keys">Llista les claus</string>
     <string name="ssh_agent_history_request_sign_data">Sign data</string>
-    <string name="ssh_agent_history_response_success">Success</string>
-    <string name="ssh_agent_history_response_user_denied">Denied</string>
-    <string name="ssh_agent_history_response_key_not_found">Key not found</string>
-    <string name="ssh_agent_history_response_failure">Failed</string>
-    <string name="ssh_agent_history_response_vault_locked">Vault locked</string>
-    <string name="ssh_agent_history_unknown_caller">Unknown caller</string>
-    <string name="ssh_agent_history_unknown_key">Unknown key</string>
+    <string name="agent_history_response_success">Correcte</string>
+    <string name="agent_history_response_user_denied">Denegat</string>
+    <string name="agent_history_response_key_not_found">No s'ha trobat la clau</string>
+    <string name="agent_history_response_failure">Ha fallat</string>
+    <string name="agent_history_response_vault_locked">Caixa forta bloquejada</string>
+    <string name="agent_history_unknown_caller">Sol·licitant desconegut</string>
+    <string name="agent_history_unknown_key">Clau desconeguda</string>
     <string name="ssh_agent_history_all_accessible_keys">All accessible keys</string>
-    <string name="ssh_agent_history_clear_history_title">Clear history</string>
-    <string name="ssh_agent_history_clear_history_confirmation_title">Clear SSH agent history?</string>
-    <string name="ssh_agent_history_clear_history_confirmation_text">This will remove all SSH agent usage history.</string>
-    <string name="ssh_agent_setup_header_title">SSH client setup</string>
+    <string name="agent_history_clear_history_title">Esborra l'historial</string>
+    <string name="agent_history_clear_history_confirmation_title">Vols esborrar l'historial de l'agent <xliff:g id="protocol" example="SSH">%1$s</xliff:g>?</string>
+    <string name="agent_history_clear_history_confirmation_text">S'eliminarà tot l'historial d'ús de l'agent <xliff:g id="protocol" example="SSH">%1$s</xliff:g>.</string>
+    <string name="ssh_agent_history_empty_text">Keys served and signatures requested by ssh/git appear here.</string>
+    <string name="agent_setup_title">Configuració del client <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
+    <string name="ssh_agent_setup_intro_text">Authenticate your Git and SSH clients with the SSH keys stored in your vault.</string>
     <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
     <string name="ssh_agent_setup_step_1_text">Open Developer settings and enable SSH agent.</string>
     <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
@@ -1122,7 +1236,6 @@
     <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
     <string name="ssh_agent_setup_step_3_title">3. Verify</string>
     <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
-    <string name="ssh_agent_setup_windows_title">Windows</string>
     <string name="ssh_agent_setup_windows_text">Keyguard listens on a Windows named pipe. Point Windows OpenSSH at this pipe.</string>
     <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
     <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
@@ -1137,9 +1250,26 @@
     <string name="ssh_agent_setup_android_how_does_it_work_title">How does it work</string>
     <string name="ssh_agent_setup_android_how_does_it_work_1">The SSH agent receives requests from SSH tools, then forwards them to the Keyguard app instead of handling the sensitive operation itself.</string>
     <string name="ssh_agent_setup_android_how_does_it_work_2">The communication is done in two steps: first the agent signals the app to start a session, then both sides connect over a local TCP channel and exchange encrypted messages. The SSH agent acts as a relay, while the Keyguard app performs the actual operations.</string>
-    <string name="ssh_agent_request_approval_sign_title">SSH Signing Request</string>
-    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following SSH key to sign data:</string>
-    <string name="ssh_agent_request_approval_sign_message_unknown_app">An application wants to use the following SSH key to sign data:</string>
+    <string name="ssh_agent_setup_client_socket_note">Point your SSH client at this agent:</string>
+    <string name="ssh_agent_setup_environment_variable_title">Environment variable</string>
+    <string name="ssh_agent_setup_ssh_config_title">SSH config</string>
+    <string name="ssh_agent_setup_enable_step_text">Turn on the SSH agent in Settings ▸ Developer. Keyguard then serves your keys on this socket:</string>
+    <string name="ssh_agent_setup_shell_profile_hint">Add to your shell profile (e.g. ~/.zshrc):</string>
+    <string name="ssh_agent_setup_ssh_config_hint">Or point ssh at the agent for every host:</string>
+    <string name="ssh_agent_setup_test_connection_hint">List the served keys, then try an SSH connection:</string>
+    <string name="agent_request_approval_sign_title">Sol·licitud de signatura <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
+    <string name="agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> vol fer servir la clau <xliff:g id="protocol" example="SSH">%2$s</xliff:g> següent per a signar dades:</string>
+    <string name="agent_request_approval_sign_message_unknown_app">Una aplicació vol fer servir la clau <xliff:g id="protocol" example="SSH">%1$s</xliff:g> següent per a signar dades:</string>
+    <string name="ssh_agent_approval_sign_text">An app is asking to sign with one of your SSH keys.</string>
+    <string name="ssh_agent_approval_approve_hint">Signs the SSH request with this key</string>
+    <string name="agent_binary_unavailable_text">Agent binary is not bundled in this build</string>
+    <string name="agent_approvals_header_title">Approvals</string>
+    <string name="agent_keys_header_title">Keys</string>
+    <string name="agent_approval_untitled_key">Untitled key</string>
+    <string name="agent_approval_requested_by_label">Requested by</string>
+    <string name="agent_approval_path_label">Path</string>
+    <string name="agent_history_empty_label">No activity</string>
+    <string name="agent_approval_time_left_label">Time left to decide</string>
     <string name="ssh_client_request">SSH client request</string>
     <string name="connected_crypto_apps_title">Connected apps</string>
     <string name="connected_crypto_apps_summary">Review or revoke apps registered for GPG and/or SSH access.</string>
@@ -1157,51 +1287,50 @@
     <string name="ipc_approval_title">External app request</string>
     <string name="ipc_approval_auth_reason">Approve an external cryptographic request</string>
     <string name="ipc_approval_unavailable">This approval request expired or is no longer available.</string>
-    <string name="ipc_approval_message"><xliff:g id="app" example="Termux">%1$s</xliff:g> wants to <xliff:g id="request" example="use GPG to encrypt a message">%2$s</xliff:g>.</string>
-    <string name="ipc_approval_operation">use <xliff:g id="protocol" example="GPG">%1$s</xliff:g> to <xliff:g id="operation" example="encrypt a message">%2$s</xliff:g></string>
-    <string name="ipc_approval_operation_with_registration">register with Keyguard and <xliff:g id="request" example="use GPG to encrypt a message">%1$s</xliff:g></string>
+    <string name="ipc_approval_message"><xliff:g id="app" example="Termux">%1$s</xliff:g> vol fer servir el servei «<xliff:g id="protocol" example="GPG agent">%2$s</xliff:g>» per <xliff:g id="operation" example="encrypt a message">%3$s</xliff:g>.</string>
+    <string name="ipc_approval_registration_note">Aquesta és la primera sol·licitud de l'aplicació. Si l'aproves, quedarà registrada a Keyguard.</string>
     <string name="ipc_approval_no_keys">No eligible keys are available.</string>
     <string name="ipc_approval_no_keys_continue">No eligible keys are available. You can continue to check whether the signer is missing.</string>
     <string name="ipc_approval_deny">Deny</string>
     <string name="ipc_approval_approve">Approve</string>
     <string name="ipc_protocol_openpgp">GPG agent</string>
     <string name="ipc_protocol_ssh">SSH agent</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_check_permission">confirm it has access</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_clear_sign">sign a message</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_detached_sign">create a detached signature</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_encrypt">encrypt a message</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_sign_and_encrypt">sign and encrypt a message</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_decrypt_verify">decrypt or verify a message</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_decrypt_metadata">read a message's metadata</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_get_sign_key">choose a signing key</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_get_key_ids">look up recipient keys</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_autocrypt_status">check which recipients it can encrypt to</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_get_key">export a public key</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
-    <string name="ipc_operation_openpgp_other">run an unrecognized operation</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_ssh_select_key">choose a key</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_ssh_get_public_key">read a public key</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_ssh_get_ssh_public_key">read a public key in OpenSSH format</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_ssh_sign">sign an authentication challenge</string>
-    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
-    <string name="ipc_operation_ssh_other">run an unrecognized operation</string>
+    <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
+    <string name="ipc_operation_other">fer una operació no reconeguda</string>
     <string name="sort_header_title">Ordena per</string>
     <string name="sort_empty_label">No es pot ordenar</string>
+    <string name="sort_default_order_title">Default order</string>
+    <string name="sort_action">Sort</string>
     <string name="sortby_title_title">Títol</string>
     <string name="sortby_title_normal_mode">Alfabèticament</string>
     <string name="sortby_title_reverse_mode">Al contrari d'alfabèticament</string>
@@ -1237,6 +1366,14 @@
     <string name="vault_main_search_placeholder">Cerca a la caixa forta</string>
     <string name="vault_main_new_item_button">Nou element</string>
     <string name="vault_main_no_suggested_items">No hi ha cap element sugerit disponible per a aquest context</string>
+    <string name="vault_main_create_item_action">Create a new item</string>
+    <string name="vault_main_empty_title">Your vault is empty</string>
+    <string name="vault_main_empty_add_account_text">Afegeix un compte per començar.</string>
+    <string name="quick_search_autotype">Auto-type</string>
+    <string name="quick_search_autotype_choose_field">Choose what to auto-type</string>
+    <string name="quick_search_no_matches_title">No matches</string>
+    <string name="quick_search_empty_hint">Type to find a login.</string>
+    <string name="quick_search_select_result_hint">Select a result to see its details.</string>
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Codi de seguretat</string>
     <string name="vault_view_saved_to_label">Desat a <xliff:g id="email" example="username@example.com">%1$s</xliff:g> a <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
@@ -1258,17 +1395,36 @@
     <string name="vault_view_email_action">Email</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
     <string name="vault_view_navigate_action">Direccions</string>
+    <string name="vault_view_open_in_browser_action">Open in browser</string>
+    <string name="vault_status_no_vault_title">No vault yet</string>
+    <string name="vault_setup_open_keyguard_hint">Open Keyguard to create your vault.</string>
+    <string name="vault_recents_title">Recents</string>
+    <string name="vault_recents_description">Recently and often opened items</string>
+    <string name="vault_view_no_item_selected_title">No item selected</string>
+    <string name="vault_view_select_item_hint">Select a vault item to see its details.</string>
+    <string name="vault_recents_empty_title">Nothing here yet</string>
+    <string name="vault_recents_empty_text">Items you open show up here.</string>
+    <string name="vault_recents_locked_text">Unlock your vault to see recent items.</string>
+    <string name="vault_recents_reveal_action">Reveal in vault</string>
+    <string name="vault_loading_text">Loading vault…</string>
+    <string name="vault_duplicates_empty_text">Similar items in your vault appear here.</string>
+    <string name="vault_item_sync_failed_text">This item failed to sync</string>
     <string name="send_main_header_title">Enviaments</string>
     <string name="send_main_search_placeholder">Cerca enviaments</string>
     <string name="send_main_new_item_button">Nou element</string>
     <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
+    <string name="send_main_empty_title">No Sends</string>
+    <string name="send_main_empty_add_account_text">Add a Bitwarden account to securely share encrypted text and files.</string>
     <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
     <string name="send_password_is_required_to_access_label">Una contrasenya és necessària per accedir aquesta compartició</string>
+    <string name="send_view_no_selection_title">No Send selected</string>
+    <string name="send_view_no_selection_text">Select a Send to see its details.</string>
+    <string name="send_view_not_found_title">Send not found</string>
+    <string name="send_action_copy_link_title">Copy link</string>
     <string name="generator_header_title">Generador</string>
     <string name="generator_header_username_title">Generador de nom d'usuari</string>
     <string name="generator_header_password_title">Generador de contrasenya</string>
-    <string name="generator_header_ssh_key_title">Generador de clau SSH</string>
-    <string name="generator_header_gpg_key_title">GPG Key generator</string>
+    <string name="generator_header_key_title">Generador de claus <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="generator_generate_button">Genera</string>
     <string name="generator_regenerate_button">Regenerar</string>
     <!-- 'Use' generated password as a password -->
@@ -1312,6 +1468,9 @@
     <string name="generator_gpg_key_email_title">Email</string>
     <string name="generator_gpg_key_modern_note">Creates an OpenPGP key with Ed25519 signing/certification keys and an X25519 encryption subkey.</string>
     <string name="generator_gpg_key_rsa_note">Creates an OpenPGP key with an RSA certification key and separate RSA signing and encryption subkeys.</string>
+    <string name="gpg_key_version_title">Certificate version</string>
+    <string name="gpg_key_version_v4_note">Compatible with GnuPG and older OpenPGP clients.</string>
+    <string name="gpg_key_version_v6_note">Uses RFC 9580. Requires a client that supports v6 certificates.</string>
     <string name="generator_gpg_key_modern_text">Modern OpenPGP key shape</string>
     <string name="generator_key_length_title">Longitud</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
@@ -1325,18 +1484,24 @@
     <string name="generator_create_item_with_gpg_key_title">Create new GPG Key item</string>
     <string name="generator_password_history_title">Historial de contrasenyes</string>
     <string name="generator_show_tips_title">Mostra consells</string>
+    <string name="generator_tools_header_title">Tools</string>
+    <string name="generator_suggestions_title">Suggestions</string>
     <string name="generatorhistory_header_title">Historial del generador</string>
     <string name="generatorhistory_clear_history_title">Neteja l'historial</string>
     <string name="generatorhistory_clear_history_confirmation_title">Netejar l'historial del generador?</string>
     <string name="generatorhistory_clear_history_confirmation_text">Açò eliminarà tots els elements de l'historial.</string>
     <string name="generatorhistory_delete_one_confirmation_title">Eliminar l'element de l'historial?</string>
     <string name="generatorhistory_delete_many_confirmation_title">Eliminar els elements de l'historial?</string>
+    <string name="generatorhistory_empty_label">No history</string>
+    <string name="generatorhistory_empty_text">Values you generate appear here.</string>
     <string name="passwordhistory_header_title">Historial de contrasenyes</string>
     <string name="passwordhistory_clear_history_title">Buida l'historial</string>
     <string name="passwordhistory_clear_history_confirmation_title">Buidar l'historial de contrasenyes?</string>
     <string name="passwordhistory_clear_history_confirmation_text">Açò eliminarà totes les contrasenyes de l'historial.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Eliminar la contrasenya de l'historial?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Eliminar les contrasenyes de l'historial?</string>
+    <string name="passwordhistory_empty_title">No password history</string>
+    <string name="passwordhistory_empty_text">Previous passwords for this item appear here.</string>
     <string name="block_autofill_header_title">Block autofill</string>
     <string name="watchtower_header_title">Torre de Vigilància</string>
     <string name="watchtower_section_password_strength_label">Seguretat de la contrasenya</string>
@@ -1382,18 +1547,12 @@
     <string name="watchtower_item_compromised_accounts_text">Comprova filtracions de dades per nom d'usuari o direcció de correu electrònic.</string>
     <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
     <string name="watchtower_alerts_header_title">Noves alertes de watchtower</string>
+    <string name="watchtower_alerts_new_title">New alerts</string>
+    <string name="watchtower_alerts_empty_title">No new alerts</string>
+    <string name="watchtower_alerts_empty_text">Security alerts about your vault items appear here.</string>
+    <string name="watchtower_alerts_unread_label">Unread</string>
     <string name="watchtower_mark_all_as_read_title">Marca tot com a llegit</string>
     <string name="notification_vault_backup_title">Backing up vault</string>
-    <string name="notification_vault_backup_step_preparing">Preparing backup</string>
-    <string name="notification_vault_backup_step_opening_repository">Opening backup repository</string>
-    <string name="notification_vault_backup_step_exporting_vault">Exporting vault data</string>
-    <string name="notification_vault_backup_step_scanning_attachments">Scanning attachments</string>
-    <string name="notification_vault_backup_step_backing_up_attachments">Backing up attachments</string>
-    <string name="notification_vault_backup_step_writing_index">Writing backup index</string>
-    <string name="notification_vault_backup_step_writing_snapshot">Writing snapshot</string>
-    <string name="notification_vault_backup_step_applying_retention">Applying retention</string>
-    <string name="notification_vault_backup_progress_bytes">%1$s / %2$s</string>
-    <string name="notification_vault_backup_progress_items">%1$d / %2$d</string>
     <string name="changepassword_header_title">Canvia la contrasenya de l'aplicació</string>
     <string name="changepassword_change_password_button">Canvia la contrasenya</string>
     <string name="changepassword_biometric_auth_checkbox">Autenticació biomètrica</string>
@@ -1402,6 +1561,7 @@
     <string name="changepassword_disclaimer_local_note">La contrasenya d'aplicació mai es desa al dispositiu ni s'envia a través de la xarxa. Es fa servir per a generar un secret que s'utilitza per a encriptar les dades locals.</string>
     <string name="changepassword_disclaimer_abuse_note">A no ser que sospites d'un accés no autoritzat, o descobreixis programari maliciós al teu dispositiu, no hi ha cap necessitat de canviar la contrasenya si és una forta i única.</string>
     <string name="changepassword_password_changed_successfully">La contrasenya s'ha canviat correctament</string>
+    <string name="changepassword_master_password_title">Change master password</string>
     <string name="exportaccount_header_title">Exportar elements</string>
     <string name="exportaccount_password_label">Arxivar contrasenya</string>
     <string name="exportaccount_format_note">Exporta la caixa forta com un arxiu ZIP comprimit.</string>
@@ -1457,11 +1617,32 @@
     <string name="contactus_thanks_note">Apreciem el temps que has dedicat escrivint-nos un missatge. El teu missatge va directament a nosaltres, i el fem servir per a solucionar problemes i millorar el producte. Encara que no contestem a tots els missatges, els llegim tots i solucionem els problemes tan prompte com podem.</string>
     <string name="account_main_header_title">Comptes</string>
     <string name="account_main_add_account_title">Afegeix un compte</string>
+    <string name="account_not_found_title">Account not found</string>
+    <string name="account_actions_title">Account actions</string>
     <string name="team_header_title">L'equip darrere de l'aplicació</string>
     <string name="team_artem_whoami_text">Soc un enginyer de software ucraïnès. M'especialitzo en disseny i desenvolupament d'aplicacions.</string>
     <string name="team_follow_me_section">Segueix-me</string>
     <string name="settingssearch_header_title">Cerca</string>
     <string name="settingssearch_header_subtitle">Configuració</string>
+    <string name="settingssearch_startup_keywords">startup automatically start login</string>
+    <string name="settingssearch_biometric_keywords">biometrics fingerprint face recognition Touch ID Face ID</string>
+    <string name="settingssearch_lock_keywords">timeout automatic lock inactivity</string>
+    <string name="settingssearch_clipboard_keywords">copy paste clipboard clear erase</string>
+    <string name="settingssearch_language_keywords">language translation locale</string>
+    <string name="settingssearch_theme_keywords">theme appearance light dark system</string>
+    <string name="settingssearch_navigation_keywords">tabs sidebar navigation order visibility</string>
+    <string name="settingssearch_autofill_keywords">autofill passwords passkeys fill</string>
+    <string name="settingssearch_backup_keywords">backup restore destination folder WebDAV S3 bucket encryption password attachments retention snapshots</string>
+    <string name="settingssearch_breach_keywords">breach leaked compromised passwords</string>
+    <string name="settingssearch_autofill_index_status_title">AutoFill suggestions status</string>
+    <string name="settingssearch_ssh_socket_title">SSH socket</string>
+    <string name="settingssearch_ssh_socket_keywords">SSH_AUTH_SOCK socket path environment client</string>
+    <string name="settingssearch_membership_status_title">Premium status</string>
+    <string name="settingssearch_membership_inactive_text">No active membership</string>
+    <string name="settingssearch_backup_location_keywords">destination folder server WebDAV S3 bucket</string>
+    <string name="settingssearch_backup_password_keywords">encryption password configured</string>
+    <string name="settingssearch_build_ref_keywords">revision commit source build reference</string>
+    <string name="settingssearch_license_keywords">license licence entitlement token</string>
     <string name="settingssearch_search_placeholder">Configuració de cerca</string>
     <string name="settings_appearance_header_title">Aparença</string>
     <string name="settings_autofill_header_title">Emplenament automàtic</string>
@@ -1474,12 +1655,34 @@
     <string name="settings_security_header_title">Seguretat</string>
     <string name="settings_subscriptions_header_title">Keyguard Prèmium</string>
     <string name="settings_developer_header_title">Developer</string>
-    <string name="settings_ssh_agent_header_title">SSH agent</string>
-    <string name="settings_gpg_agent_header_title">GPG agent</string>
     <string name="settings_watchtower_header_title">Torre de Vigilància</string>
     <string name="settings_automatic_backups_header_title">Backups</string>
     <string name="settings_navigation_items_header_title">Navigation items</string>
+    <string name="settings_navigation_header_title">Navigation</string>
     <string name="settings_open_source_licenses_header_title">Llicències de programari lliure</string>
+    <string name="settings_no_selection_title">No setting selected</string>
+    <string name="settings_no_selection_text">Select a setting to configure it.</string>
+    <string name="settings_general_header_title">General</string>
+    <string name="settings_startup_header_title">Startup</string>
+    <string name="settings_menu_bar_header_title">Menu bar</string>
+    <string name="settings_clipboard_header_title">Clipboard</string>
+    <string name="settings_privacy_header_title">Privacy</string>
+    <string name="settings_diagnostics_header_title">Diagnostics</string>
+    <string name="settings_icons_header_title">Icons</string>
+    <string name="settings_experience_header_title">Experience</string>
+    <string name="settings_team_header_title">Team</string>
+    <string name="settings_localization_header_title">Localization</string>
+    <string name="licenses_empty_label">No open-source licenses</string>
+    <string name="menu_bar_status_unlocked">Unlocked</string>
+    <string name="menu_bar_status_locked">Locked</string>
+    <string name="menu_bar_status_set_up">Set up</string>
+    <string name="menu_bar_unlock_vault_hint">Open Keyguard to unlock your vault.</string>
+    <string name="menu_bar_search_hint">Type to find a login, then copy its password.</string>
+    <string name="menu_bar_search_no_matches_text">Nothing matches "%s".</string>
+    <string name="menu_bar_generate_password_hint">Generate a strong password and copy it</string>
+    <string name="menu_bar_lock_action">Lock</string>
+    <string name="menu_bar_lock_vault_hint">Lock the vault now</string>
+    <string name="menu_bar_open_main_window_action">Open the main window</string>
     <string name="pref_section_premium_title">Premium</string>
     <string name="pref_section_options_title">Options</string>
     <string name="pref_item_accounts_title">Comptes</string>
@@ -1500,25 +1703,28 @@
     <string name="pref_item_notifications_text">Alertes</string>
     <string name="pref_item_appearance_title">Aparença</string>
     <string name="pref_item_appearance_text">Idioma, tema i animacions</string>
+    <string name="pref_item_appearance_restart_note">Takes effect after Keyguard is restarted.</string>
     <string name="pref_item_dev_title">Desenvolupament</string>
     <string name="pref_item_dev_text">Configuració de prova per al desenvolupament</string>
+    <string name="pref_item_debug_premium_title">Force premium status</string>
+    <string name="pref_item_debug_premium_text">Enables premium features in test builds.</string>
     <string name="pref_item_other_title">Altres</string>
     <string name="pref_item_other_text">Llocs web de la comunitat, informació de l'app</string>
     <string name="pref_section_automatic_backups_setup_title">Setup</string>
     <string name="pref_section_automatic_backups_automation_title">Automation</string>
     <string name="pref_section_automatic_backups_management_title">Management</string>
     <string name="pref_item_automatic_backups_status_running_title">Backup running</string>
-    <string name="pref_item_automatic_backups_status_running_text_with_progress">%1$s. %2$s.</string>
-    <string name="pref_item_automatic_backups_step_preparing">Preparing backup</string>
-    <string name="pref_item_automatic_backups_step_opening_repository">Opening backup repository</string>
-    <string name="pref_item_automatic_backups_step_exporting_vault">Exporting vault data</string>
-    <string name="pref_item_automatic_backups_step_scanning_attachments">Scanning attachments</string>
-    <string name="pref_item_automatic_backups_step_backing_up_attachments">Backing up attachments</string>
-    <string name="pref_item_automatic_backups_step_writing_index">Writing backup index</string>
-    <string name="pref_item_automatic_backups_step_writing_snapshot">Writing snapshot</string>
-    <string name="pref_item_automatic_backups_step_applying_retention">Applying retention</string>
-    <string name="pref_item_automatic_backups_progress_bytes">%1$s / %2$s</string>
-    <string name="pref_item_automatic_backups_progress_items">%1$d / %2$d</string>
+    <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> - <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
+    <string name="backup_step_preparing">S'està preparant la còpia de seguretat</string>
+    <string name="backup_step_opening_repository">S'està obrint el repositori de còpies de seguretat</string>
+    <string name="backup_step_exporting_vault">S'estan exportant les dades de la caixa forta</string>
+    <string name="backup_step_scanning_attachments">S'estan cercant els adjunts</string>
+    <string name="backup_step_backing_up_attachments">S'estan fent còpies de seguretat dels adjunts</string>
+    <string name="backup_step_writing_index">S'està escrivint l'índex de la còpia de seguretat</string>
+    <string name="backup_step_writing_snapshot">S'està escrivint la instantània</string>
+    <string name="backup_step_applying_retention">S'està aplicant la política de retenció</string>
+    <string name="backup_progress_bytes"><xliff:g id="current" example="3 MB">%1$s</xliff:g> / <xliff:g id="total" example="10 MB">%2$s</xliff:g></string>
+    <string name="backup_progress_items"><xliff:g id="current" example="3">%1$d</xliff:g> / <xliff:g id="total" example="10">%2$d</xliff:g></string>
     <string name="pref_item_automatic_backups_status_success_title">Last backup completed</string>
     <string name="pref_item_automatic_backups_status_success_text">Finished %1$s. Exported %2$d items, %3$d attachments, %4$d new blobs, %5$d reused blobs.</string>
     <string name="pref_item_automatic_backups_status_finished_text">Finished %1$s.</string>
@@ -1548,10 +1754,9 @@
     <string name="pref_item_automatic_backups_panel_pending_changes_label">Pending changes</string>
     <string name="pref_item_automatic_backups_run_now_title">Run backup now</string>
     <string name="pref_item_automatic_backups_unsupported_title">Unsupported platform</string>
-    <string name="pref_item_automatic_backups_unsupported_text">Automatic backups are available on Android and desktop.</string>
+    <string name="pref_item_automatic_backups_unsupported_text">Automatic backups are available on Android, desktop, macOS, and iOS.</string>
     <string name="pref_item_automatic_backups_enable_button">Enable backups</string>
     <string name="pref_item_automatic_backups_setup_intro">Backups save vault snapshots to a location you choose. Keyguard creates them on vault changes, and you can trigger a snapshot manually anytime.</string>
-    <string name="pref_item_automatic_backups_setup_logic">The backup repository stores metadata, snapshots, and optional attachment files as separate ZIP archives. Specify the backup password to encrypt the archives using AES-256 encryption.</string>
     <string name="pref_item_automatic_backups_details_321_title">3-2-1 backup rule</string>
     <string name="pref_item_automatic_backups_details_321_text">Keep at least three copies of your vault data: your active vault and two backups. Store those copies in at least two independent places or storage types, and keep one copy off this device or off-site. A synced folder is useful, but it should not be your only backup because deletions, corruption, and unwanted changes can sync too.</string>
     <string name="pref_item_automatic_backups_details_321_three">Active vault plus two backups</string>
@@ -1564,23 +1769,27 @@
     <string name="pref_item_automatic_backups_details_sync_title">Cloud sync</string>
     <string name="pref_item_automatic_backups_details_sync_text">Sync the whole backup folder. Use the same backup password on every device that reads encrypted archives.</string>
     <string name="pref_item_automatic_backups_location_title">Backup location</string>
-    <string name="pref_item_automatic_backups_store_folder_title">Folder</string>
-    <string name="pref_item_automatic_backups_store_webdav_title">WebDAV</string>
     <string name="pref_item_automatic_backups_password_title">Backup password</string>
     <string name="pref_item_automatic_backups_password_message">This password encrypts the backup repository. If multiple app instances share the backup repository they must use the same password.</string>
     <string name="pref_item_automatic_backups_password_not_set">Password not set; backup files are not encrypted</string>
     <string name="pref_item_automatic_backups_password_set">Password is set; backup files are encrypted</string>
     <string name="pref_item_automatic_backups_password_set_summary">Password set</string>
+    <string name="pref_item_automatic_backups_password_optional_label">Encryption password (optional)</string>
     <string name="pref_item_automatic_backups_include_attachments_title">Include attachments</string>
     <string name="pref_item_automatic_backups_include_attachments_enabled_summary">Included when available</string>
     <string name="pref_item_automatic_backups_include_attachments_disabled_summary">Not included</string>
     <string name="pref_item_automatic_backups_retention_title">Keep snapshots</string>
     <string name="pref_item_automatic_backups_retention_never_clear_value">Never clear</string>
     <string name="pref_item_automatic_backups_retention_value">%1$d snapshots</string>
+    <string name="pref_item_automatic_backups_retention_keep_all">Keep all snapshots</string>
+    <string name="pref_item_automatic_backups_retention_label">Retention</string>
+    <string name="pref_item_automatic_backups_retention_prune_note">Older snapshots beyond this count are pruned. Zero keeps everything.</string>
     <string name="pref_item_automatic_backups_disable_title">Turn off automatic backups</string>
     <string name="pref_item_automatic_backups_disable_message">This only turns off future automatic backups. It clears the local folder, password, and attachment choice from Keyguard. The existing backup repository and files in that folder are not deleted.</string>
+    <string name="pref_item_automatic_backups_disable_action">Disable…</string>
     <string name="pref_item_nav_items_title">Navigation items</string>
     <string name="pref_item_nav_label_title">Mostra etiquetes als botons de navegació</string>
+    <string name="pref_item_nav_label_short_title">Show navigation labels</string>
     <string name="navigation_items_add_item_title">Add item</string>
     <string name="navigation_items_reset_confirmation_title">Reset navigation items?</string>
     <string name="navigation_items_reset_confirmation_text">This will restore the default navigation order and visibility. Custom filters are not deleted, but their navigation items will be removed.</string>
@@ -1591,10 +1800,6 @@
     <string name="navigation_items_predefined_route_text">Predefined route</string>
     <string name="pref_item_app_version_title">Versió de l'app</string>
     <string name="pref_item_app_build_date_title">Data de compilació de l'app</string>
-    <!--
-        The short ref name of the branch or tag that triggered the workflow run.
-        This value matches the branch or tag name shown on GitHub.
-        -->
     <string name="pref_item_app_build_ref_title">Ref. de comp. de l'app</string>
     <string name="pref_item_app_changelog_title">Llista de canvis</string>
     <string name="pref_item_app_team_title">L'equip darrere de l'aplicació</string>
@@ -1618,19 +1823,23 @@
     <string name="pref_item_color_scheme_title">Tema</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Fes servir el tema negre contrastrant</string>
     <string name="pref_item_color_scheme_expressive_title">Use expressive theme</string>
+    <string name="pref_item_color_scheme_selection_title">Color scheme</string>
     <string name="pref_item_open_links_in_external_browser_title">Obre els enllaços a un navegador extern</string>
     <string name="pref_item_close_to_tray_title">Tanca a la safata</string>
+    <string name="pref_item_close_to_menu_bar_title">Close to the menu bar</string>
     <string name="pref_item_minimize_on_copy_title">Minimize on copy</string>
     <string name="pref_item_check_pwned_passwords_title">Comprova contrasenyes filtrades</string>
     <string name="pref_item_check_pwned_services_title">Comprova filtracions de dades</string>
     <string name="pref_item_hibp_api_token_title">Have I Been Pwned API token</string>
     <string name="pref_item_hibp_api_token_text">Use HIBP directly instead of Bitwarden's premium proxy. Useful for local-only vaults.</string>
     <string name="pref_item_hibp_api_token_field_label">API token</string>
-    <string name="pref_item_hibp_api_token_error">Enter a 32-character hexadecimal HIBP API token</string>
     <string name="pref_item_hibp_api_token_status_checking">Checking...</string>
     <string name="pref_item_hibp_api_token_status_verified">Verified</string>
     <string name="pref_item_hibp_api_token_status_rejected">Rejected</string>
     <string name="pref_item_hibp_api_token_status_failed">Could not verify</string>
+    <string name="pref_item_hibp_api_token_note">Use your own API key for higher rate limits.</string>
+    <string name="pref_item_hibp_api_token_check_failed">Check failed</string>
+    <string name="pref_item_hibp_api_token_input_note">Paste a personal API key to raise the breach-check rate limit. Leave empty to remove it.</string>
     <string name="pref_item_check_inactive_2fa_title">Comprova autenticacions en dues passes inactives</string>
     <string name="pref_item_check_inactive_passkeys_title">Comprova passkeys inactives</string>
     <string name="pref_item_conceal_fields_title">Amaga camps</string>
@@ -1646,6 +1855,7 @@
     <string name="pref_item_contact_us_title">Contacta'ns</string>
     <string name="pref_item_experimental_title">Experimental</string>
     <string name="pref_item_change_app_password_title">Canvia la contrasenya de l'app</string>
+    <string name="pref_item_change_master_password_action">Change master password…</string>
     <string name="pref_item_require_app_password_title">Requereix la contrasenya d'app</string>
     <string name="pref_item_require_app_password_note">A més de la teva configuració de seguretat habitual, la teva contrasenya de l'app serà requerida després d'aquest temps, o quan es canviï la configuració de biometria</string>
     <string name="pref_item_require_app_password_immediately_text">Immediatament</string>
@@ -1672,6 +1882,8 @@
     <string name="pref_item_lock_vault_after_screen_off_text">Bloqueja la caixa forta uns segons després d'apagar la pantalla</string>
     <string name="pref_item_lock_vault_after_screen_off_desktop_title">Lock when screen turns off or device sleeps</string>
     <string name="pref_item_lock_vault_after_screen_off_desktop_text">Lock the vault when the display turns off or the device goes to sleep</string>
+    <string name="pref_item_lock_vault_after_screen_off_windows_title">Lock on screen off, sleep, or sign-out</string>
+    <string name="pref_item_lock_vault_after_screen_off_windows_text">Also lock when Windows is locked, you switch users, or a Remote Desktop session disconnects.</string>
     <string name="pref_item_lock_vault_after_delay_title">Bloqueja després d'un temps</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Immediatament</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Mai</string>
@@ -1682,6 +1894,11 @@
     <string name="pref_item_permissions_title">Permisos</string>
     <string name="pref_item_features_overview_title">Visió general de funcions</string>
     <string name="pref_item_url_override_title">Sobreescriptures d'URL</string>
+    <string name="pref_item_webdav_transactions_title">Prefer WebDAV transactions</string>
+    <string name="pref_item_autotype_speed_title">Auto-type speed</string>
+    <string name="pref_item_autotype_speed_fast">Fast</string>
+    <string name="pref_item_autotype_speed_normal">Normal</string>
+    <string name="pref_item_autotype_speed_slow">Slow</string>
     <string name="pref_item_agent_approval_scope_title">Approval scope</string>
     <string name="pref_item_agent_approval_scope_connection">Per connection</string>
     <string name="pref_item_agent_approval_scope_process">Per process</string>
@@ -1700,26 +1917,30 @@
     <string name="pref_item_agent_approval_scope_table_same_process_only">Same process only</string>
     <string name="pref_item_agent_approval_scope_table_shared">Shared</string>
     <string name="pref_item_agent_approval_scope_table_not_shared">Not shared</string>
-    <string name="pref_item_ssh_agent_title">SSH agent</string>
+    <string name="pref_item_agent_approval_scope_windows_process_reuse">Same detected process instance</string>
+    <string name="pref_item_agent_approval_scope_windows_application_reuse">Same detected running application</string>
+    <string name="pref_item_agent_approval_scope_windows_process_note">On Windows, process detection is best effort and cannot reliably distinguish malicious apps running under your account. If detection fails, approvals apply only to the current connection. Choose Per connection for stricter isolation.</string>
+    <string name="pref_item_agent_approval_scope_windows_application_note">On Windows, application detection is best effort and cannot reliably distinguish malicious apps running under your account. Approvals last only while the detected app is running and may be shared across its tabs. If detection fails, a narrower scope is used. Choose Per connection for stricter isolation.</string>
     <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
-    <string name="pref_item_ssh_agent_status_unsupported">Unsupported</string>
-    <string name="pref_item_ssh_agent_status_stopped">Stopped</string>
-    <string name="pref_item_ssh_agent_status_starting">Starting</string>
-    <string name="pref_item_ssh_agent_status_ready">Ready</string>
-    <string name="pref_item_ssh_agent_status_failed">Failed</string>
-    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
-    <string name="pref_item_ssh_agent_local_storage_title">Local storage</string>
-    <string name="pref_item_ssh_agent_local_storage_text">When the SSH agent is on, Keyguard keeps unencrypted copy of the public keys on disk so clients can list keys while the vault is locked. Private keys are never exposed; key names are stored only if you enable the corresponding option.</string>
-    <string name="pref_item_ssh_agent_display_key_names_title">Display key names before vault is unlocked</string>
-    <string name="pref_item_ssh_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
-    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
-    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
-    <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
-    <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
-    <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
-    <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
-    <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
-    <string name="pref_item_ssh_agent_history_title">Request log</string>
+    <string name="pref_item_agent_status_unsupported">No compatible</string>
+    <string name="pref_item_agent_status_stopped">Aturat</string>
+    <string name="pref_item_agent_status_starting">S'està iniciant</string>
+    <string name="pref_item_agent_status_ready">A punt</string>
+    <string name="pref_item_agent_status_failed">Error</string>
+    <string name="pref_item_agent_approval_window_title">Recorda les aprovacions de claus</string>
+    <string name="pref_item_agent_local_storage_title">Emmagatzematge local</string>
+    <string name="pref_item_agent_local_storage_text">Quan l'agent <xliff:g id="protocol" example="SSH">%1$s</xliff:g> està activat, Keyguard desa una còpia no xifrada de les claus públiques al disc perquè els clients les puguin consultar mentre la caixa forta està bloquejada. Les claus privades no s'exposen mai; els noms de les claus només es desen si actives l'opció corresponent.</string>
+    <string name="pref_item_agent_display_key_names_title">Mostra els noms de les claus abans de desbloquejar la caixa forta</string>
+    <string name="pref_item_agent_display_key_names_note">Es desarà localment una còpia no xifrada del títol de l'element</string>
+    <string name="pref_item_agent_approval_window_always_ask">Pregunta-ho cada vegada</string>
+    <string name="pref_item_agent_approval_window_until_lock">Fins que es bloquegi la caixa forta</string>
+    <string name="pref_item_ssh_agent_approval_remember_note">An approved signature is remembered for this long per key and application, instead of asking every time.</string>
+    <string name="pref_item_agent_filters_text">Tria quines claus <xliff:g id="protocol" example="SSH">%1$s</xliff:g> són accessibles a l'agent %1$s</string>
+    <string name="pref_item_agent_filters_summary_all">Totes les claus són accessibles</string>
+    <string name="pref_item_agent_filters_summary_active">Filtres actius</string>
+    <string name="pref_item_agent_history_title">Registre de sol·licituds</string>
+    <string name="pref_item_ssh_agent_enable_title">Enable SSH agent</string>
+    <string name="pref_item_ssh_agent_description">Keyguard serves your vault's SSH keys to ssh/git. Each signature requires your approval.</string>
     <string name="pref_item_license_key_title">Link existing entitlement token</string>
     <string name="pref_item_license_key_field_label">Entitlement token</string>
     <string name="pref_item_license_key_message_redeemed">Entitlement token linked successfully</string>
@@ -1729,6 +1950,21 @@
     <string name="pref_item_license_key_status_revoked">Revoked</string>
     <string name="pref_item_license_key_status_expired">Expired</string>
     <string name="pref_item_license_key_status_available">Available</string>
+    <string name="pref_item_license_key_removed_text">The linked entitlement token was removed.</string>
+    <string name="pref_item_license_key_refreshed_text">The entitlement token status was refreshed.</string>
+    <string name="pref_item_license_key_unlock_note">Unlock your vault to link or copy an entitlement token.</string>
+    <string name="pref_item_license_key_link_action">Link entitlement token</string>
+    <string name="pref_item_license_key_remove_action">Remove linked token</string>
+    <string name="pref_item_license_key_refresh_action">Refresh token status</string>
+    <string name="pref_item_license_key_show_token_action">Show token</string>
+    <string name="pref_item_license_key_hide_token_action">Hide token</string>
+    <string name="pref_item_license_key_copy_token_action">Copy token</string>
+    <string name="pref_item_license_key_linked_token_title">Linked entitlement token</string>
+    <string name="pref_item_license_key_purchase_token_title">Purchase entitlement token</string>
+    <string name="pref_item_license_key_token_status_text">Status: %1$s</string>
+    <string name="pref_item_license_key_status_grace">Grace period</string>
+    <string name="pref_item_license_key_status_pending">Pending</string>
+    <string name="pref_item_license_key_status_refunded">Refunded</string>
     <string name="pref_item_license_sync_title">Obtain entitlement token</string>
     <string name="pref_item_license_sync_text">Verifies your active store purchase and generates an entitlement token bound to the purchase. Use the token to transfer the purchase to your other devices.</string>
     <string name="pref_item_license_sync_requested">Entitlement token was requested</string>
@@ -1748,10 +1984,13 @@
     <string name="pref_item_yubikey_unlock_confirm_title">Provision YubiKey slot?</string>
     <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock?</string>
     <string name="pref_item_yubikey_unlock_confirm_message_configured">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> is already configured. Re-provisioning overwrites the current slot configuration.</string>
+    <string name="pref_item_yubikey_unlock_note">Unlock the vault by touching a YubiKey configured for HMAC-SHA1 challenge-response. Keyguard can configure an empty slot for you, or use one you set up with YubiKey Manager.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
     <string name="pref_item_biometric_unlock_confirm_title">Desbloqueig biomètric</string>
+    <string name="pref_item_biometric_unlock_timeout_title">Require master password after</string>
+    <string name="pref_item_biometric_unlock_description">Unlock the vault with biometrics instead of typing the master password. Turning this on requires biometric authentication.</string>
     <string name="pref_item_keep_screen_on_title">Mantè encesa la pantalla mentre es visualitzen els elements</string>
     <string name="pref_item_autofill_service_title">Servei d'emplenament automàtic</string>
     <string name="pref_item_autofill_service_text">Fes servir el servei d'emplenament automàtic d'Android per ajudar-te emplenant informació d'inici de sessió a altres apps del dispositiu</string>
@@ -1759,6 +1998,15 @@
     <string name="pref_item_autofill_service_browser_autofill_v2_title">Browser third-party autofill services</string>
     <string name="pref_item_autofill_service_browser_autofill_v2_text">Enable third-party autofill in each of the listed browsers to let Keyguard fill logins there.</string>
     <string name="pref_item_autofill_service_browser_autofill_settings_error">Failed to open browser autofill settings</string>
+    <string name="pref_item_autofill_service_enable_action">Enable AutoFill</string>
+    <string name="pref_item_autofill_service_enabled_text">Keyguard is enabled for AutoFill.</string>
+    <string name="pref_item_autofill_service_disabled_text">Enable Keyguard to fill passwords, passkeys and verification codes in other apps.</string>
+    <string name="pref_item_autofill_service_updating_text">Updating AutoFill suggestions…</string>
+    <string name="pref_item_autofill_service_current_text">AutoFill suggestions are up to date.</string>
+    <string name="pref_item_autofill_service_index_failed_text">Could not update AutoFill suggestions. Unlock Keyguard and try again.</string>
+    <string name="pref_item_autofill_service_locked_text">Unlock Keyguard to update AutoFill suggestions.</string>
+    <string name="pref_item_autofill_service_refresh_action">Refresh suggestions</string>
+    <string name="pref_item_autofill_service_open_settings_action">Open AutoFill settings</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copia contrasenyes d'un sol ús automàticament</string>
     <string name="pref_item_autofill_auto_copy_otp_text">En emplenar informació d'inici de sessió, còpia automàticament les contrasenyes d'un sol ús</string>
     <string name="pref_item_autofill_default_match_detection_title">Detecció d'URI per defecte</string>
@@ -1794,10 +2042,31 @@
     <string name="pref_item_premium_membership_section_products_title">Productes</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">No s'han pogut carregar les subscripcions</string>
     <string name="pref_item_premium_membership_failed_to_load_products">No s'han pogut carregar els productes</string>
+    <string name="pref_item_premium_membership_active_title">You have Keyguard Premium</string>
+    <string name="pref_item_premium_membership_benefit_create_edit_items">Create and edit your vault items</string>
+    <string name="pref_item_premium_membership_benefit_multiple_accounts">Use multiple accounts</string>
+    <string name="pref_item_premium_membership_benefit_support_development">Support independent development</string>
+    <string name="pref_item_premium_membership_footer">A subscription or a one-time purchase unlocks the full experience. Lifetime is a single payment.</string>
+    <string name="pref_item_premium_membership_direct_note">This build includes all premium features.</string>
     <string name="pref_item_premium_status_active">Actiu</string>
     <string name="pref_item_premium_status_free_trial_n">Prova gratuïta de <xliff:g id="period" example="1 month">%1$s</xliff:g></string>
     <string name="pref_item_premium_status_will_not_renew">No es renovarà</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Administra al Play Store</string>
+    <string name="premium_purchase_one_time_title">One-time purchase</string>
+    <string name="premium_purchase_restore_action">Restore purchases</string>
+    <string name="premium_purchase_manage_subscription_action">Manage subscription</string>
+    <string name="premium_purchase_restore_note">Already purchased on another device? Restore brings your purchases here.</string>
+    <string name="premium_purchase_product_unavailable_text">Some purchases are unavailable. Try again later.</string>
+    <string name="premium_purchase_unverified_text">The purchase could not be verified. Try restoring purchases.</string>
+    <string name="premium_purchase_failed_text">The action could not be completed. Please try again.</string>
+    <string name="premium_purchase_success_text">Keyguard Premium is active.</string>
+    <string name="premium_purchase_pending_text">Your purchase is awaiting approval. Premium will activate after approval.</string>
+    <string name="premium_purchase_restore_empty_text">No active purchases were found for this Apple Account.</string>
+    <string name="premium_purchase_restore_success_text">Your purchases have been restored.</string>
+    <string name="premium_purchase_manage_failed_text">Subscription management could not be opened. Try again later.</string>
+    <string name="premium_purchase_storekit_renewal_note">Subscriptions renew automatically unless cancelled in your Apple Account settings. If eligible, your free trial converts to the displayed subscription price when it ends.</string>
+    <string name="premium_purchase_price_period">%1$s / %2$s</string>
+    <string name="premium_purchase_terms_title">Terms of use</string>
     <string name="pref_item_permission_post_notifications_title">Penja notificacions</string>
     <string name="pref_item_permission_post_notifications_text">Es fa servir per a penjar notificacions de descàrregues</string>
     <string name="pref_item_permission_write_external_storage_title">Escriure a l'emmagatzematge extern</string>
@@ -1806,28 +2075,10 @@
     <string name="pref_item_permission_camera_title">Càmera</string>
     <string name="pref_item_permission_camera_text">Es fa servir per a escanejar codis QR</string>
     <string name="pref_item_permission_local_network_title">Local network</string>
-    <string name="pref_item_permission_local_network_text">Used to connect to self-hosted Bitwarden, WebDAV, and SFTP servers on your local network</string>
+    <string name="pref_item_permission_local_network_text">Used to connect to self-hosted Bitwarden, WebDAV, S3, and SFTP servers on your local network</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Permet la distribució en dos panells en el mode apaïsat</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">Permet la distribució en dos panells en el mode de retrat</string>
-    <string name="pref_item_gpg_agent_title">GPG agent</string>
-    <string name="pref_item_gpg_agent_setup_title">GPG client setup</string>
-    <string name="pref_item_gpg_agent_status_ready">Ready</string>
-    <string name="pref_item_gpg_agent_status_starting">Starting</string>
-    <string name="pref_item_gpg_agent_status_stopped">Stopped</string>
-    <string name="pref_item_gpg_agent_status_failed">Failed</string>
-    <string name="pref_item_gpg_agent_status_unsupported">Unsupported</string>
-    <string name="pref_item_gpg_agent_approval_window_title">Remember key approvals</string>
-    <string name="pref_item_gpg_agent_approval_window_always_ask">Ask every time</string>
-    <string name="pref_item_gpg_agent_approval_window_until_lock">Until vault locks</string>
-    <string name="pref_item_gpg_agent_display_key_names_title">Display key names before vault is unlocked</string>
-    <string name="pref_item_gpg_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
-    <string name="pref_item_gpg_agent_local_storage_title">Local storage</string>
-    <string name="pref_item_gpg_agent_local_storage_text">When the GPG agent is on, Keyguard keeps an unencrypted copy of the public keys on disk so clients can list keys while the vault is locked. Private keys are never exposed; key names are stored only if you enable the corresponding option.</string>
-    <string name="pref_item_gpg_agent_filters_title">GPG agent filters</string>
-    <string name="pref_item_gpg_agent_filters_text">Choose which GPG keys are accessible to the GPG agent</string>
-    <string name="pref_item_gpg_agent_filters_summary_all">All keys accessible</string>
-    <string name="pref_item_gpg_agent_filters_summary_active">Filters active</string>
-    <string name="pref_item_gpg_agent_history_title">Request log</string>
+    <string name="pref_item_gpg_agent_approvals_note">Approvals are remembered for the selected duration and scope. Signing and decryption require separate approvals. Locking the vault clears remembered approvals.</string>
     <string name="pref_item_gpg_keyserver_search_title">GPG keyserver search</string>
     <string name="pref_item_gpg_keyserver_search_text">Find public GPG keys by e-mail, fingerprint, key ID, or name</string>
     <string name="pref_item_gpg_keyserver_url_title">Keyserver</string>
@@ -1889,10 +2140,13 @@
     <string name="datasafety_local_downloads_section">Descàrregues</string>
     <string name="datasafety_local_settings_section">Configuració de l'usuari</string>
     <string name="datasafety_local_settings_note">La configuració d'usuari s'encripta amb una clau única del dispositiu.</string>
+    <string name="datasafety_local_settings_no_app_encryption_note">User settings are stored locally without app-level encryption.</string>
     <string name="datasafety_local_vault_section">Configuració de l'usuari</string>
     <string name="datasafety_local_encryption_algorithm_intro">La caixa forta s'encripta amb una clau, derivada de la contrasenya de l'app seguint aquestes passes:</string>
     <string name="datasafety_local_encryption_algorithm_outro">La sal i el hash es guarden localment al dispositiu, per a fer-se servir més tard per a generar una clau mestra i desbloquejar la caixa forta.</string>
     <string name="datasafety_local_unlocking_vault">Desbloquejar una caixa forta vol dir desar una clau correcta a la RAM del dispositiu, guanyant l'habilitat de llegir i modificar la caixa forta encriptada.</string>
+    <string name="datasafety_local_stored_on_device_text">Local data includes downloads, user settings, and the vault stored on this device.</string>
+    <string name="datasafety_local_kdf_versions_note">Key derivation (KDF) uses Argon2id for version 1 and PBKDF2 for legacy version 0.</string>
     <string name="datasafety_remote_section">Dades remotes</string>
     <string name="datasafety_remote_text">Les dades es desen remotament als servidors de Bitwarden amb encriptació de zero-coneixement.</string>
     <string name="webdav_settings_header_title">WebDAV server configuration</string>
@@ -1901,7 +2155,7 @@
     <string name="webdav_settings_test_title">Test connection</string>
     <string name="webdav_settings_test_text">Writes and removes a small probe file to verify server access.</string>
     <string name="webdav_settings_test_text_read_only">Reads the resource to verify server access.</string>
-    <string name="webdav_settings_test_success">WebDAV connection verified.</string>
+    <string name="remote_connection_test_success">S'ha verificat la connexió <xliff:g id="protocol" example="WebDAV">%1$s</xliff:g>.</string>
     <string name="webdav_settings_password_requires_username_error">Enter a username before setting a WebDAV password.</string>
     <string name="webdav_settings_browse_title">Browse</string>
     <string name="webdav_picker_header_title">Browse WebDAV</string>
@@ -1913,6 +2167,21 @@
     <string name="webdav_picker_filename_invalid">The database name cannot contain path separators.</string>
     <string name="webdav_picker_filename_extension">The database name must end with %1$s.</string>
     <string name="webdav_picker_filename_exists">A file with this name already exists.</string>
+    <string name="s3_settings_header_title">S3 storage configuration</string>
+    <string name="s3_settings_endpoint_title">Endpoint URL</string>
+    <string name="s3_settings_endpoint_note">Leave empty to use Amazon S3.</string>
+    <string name="s3_settings_region_title">Region</string>
+    <string name="s3_settings_bucket_title">Bucket</string>
+    <string name="s3_settings_prefix_title">Folder prefix</string>
+    <string name="s3_settings_keepass_requirements">Bucket, object key, access key ID, and secret access key are required. The object key must end in .kdbx.</string>
+    <string name="s3_settings_key_title">Object key</string>
+    <string name="s3_settings_access_key_id_title">Access key ID</string>
+    <string name="s3_settings_secret_access_key_title">Secret access key</string>
+    <string name="s3_settings_auth_note">Enter an access key for this bucket.</string>
+    <string name="s3_settings_path_style_title">Path-style URLs</string>
+    <string name="s3_settings_path_style_text">Puts the bucket in the URL path instead of the host name. Most self-hosted servers need this.</string>
+    <string name="s3_picker_header_title">Browse S3 bucket</string>
+    <string name="s3_location_summary">%1$s at %2$s</string>
     <!-- Title of the 'Localization contributors' screen -->
     <string name="localization_contributors_title">Contribuïdors a les traduccions</string>
     <string name="localization_contributors_search_placeholder">Cercar contribuïdor</string>
@@ -1922,14 +2191,12 @@
     <string name="logs_stop_recording_fab_title">Atura la gravació</string>
     <string name="logs_export_button">Exportar</string>
     <string name="logs_export_success">S'ha completat l'exportació</string>
+    <string name="logs_empty_title">No logs</string>
+    <string name="logs_empty_note">In-memory logging may be disabled.</string>
     <string name="gpg_client_request">GPG client request</string>
-    <string name="gpg_agent_request_approval_sign_title">GPG Signing Request</string>
-    <string name="gpg_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following GPG key to sign data:</string>
-    <string name="gpg_agent_request_approval_sign_message_unknown_app">An application wants to use the following GPG key to sign data:</string>
     <string name="gpg_agent_request_approval_decrypt_title">GPG Decryption Request</string>
     <string name="gpg_agent_request_approval_decrypt_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following GPG key to decrypt data:</string>
     <string name="gpg_agent_request_approval_decrypt_message_unknown_app">An application wants to use the following GPG key to decrypt data:</string>
-    <string name="gpg_agent_setup_header_title">GPG client setup</string>
     <string name="gpg_agent_setup_intro">Set up GnuPG to use Keyguard's GPG agent for signing and decryption without exposing private key material.</string>
     <string name="gpg_agent_setup_unsupported_text">The GPG agent is only available in the desktop version of Keyguard.</string>
     <string name="gpg_agent_setup_step_1_title">1. Enable GPG agent in Keyguard</string>
@@ -1943,15 +2210,14 @@
     <string name="gpg_agent_setup_step_5_title">5. Sign Git commits</string>
     <string name="gpg_agent_setup_step_5_text">Use the same GNUPGHOME when Git signs commits. Keep the config local to one repository, or change --local to --global.</string>
     <string name="gpg_agent_setup_windows_native_gnupg_note">Windows requires a native GnuPG installation. The GPG bundled with Git for Windows is not compatible with this setup.</string>
-    <string name="gpg_agent_filters_header_title">GPG agent filters</string>
-    <string name="gpg_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
-    <string name="gpg_agent_history_header_title">GPG agent history</string>
+    <string name="gpg_agent_setup_macos_step_2_text">Executa aquestes ordres al Terminal mentre Keyguard estigui en funcionament. Prepararan <xliff:g id="path" example="~/.keyguard/gnupg">%1$s</xliff:g> i connectaran el GnuPG instal·lat amb Keyguard. Després, defineix GNUPGHOME al mateix intèrpret d'ordres abans d'importar claus o signar.</string>
     <string name="gpg_keys_capability_sign">Sign</string>
     <string name="gpg_key_status">GPG key status</string>
     <string name="gpg_key_status_revoked_text">This GPG key has been revoked and should not be used.</string>
     <string name="gpg_key_status_expired_text">This GPG key has expired and should not be used.</string>
     <string name="gpg_key_status_weak_self_signature_title">Weak self-signature</string>
-    <string name="gpg_key_status_weak_self_signature_text">This key's self-signatures use a weak algorithm (SHA-1). Renew the key to re-sign it with a modern one.</string>
+    <string name="gpg_key_status_weak_self_signature_generic_text">Les autosignatures d'aquesta clau fan servir un algorisme feble. Renova la clau per tornar-la a signar amb un de modern.</string>
+    <string name="gpg_key_status_weak_self_signature_algorithms_text">Les autosignatures d'aquesta clau fan servir algorismes febles (<xliff:g id="algorithms" example="SHA-1, RIPEMD-160">%1$s</xliff:g>). Renova la clau per tornar-la a signar amb un algorisme modern.</string>
     <string name="gpg_key_status_unauthenticated_self_signature_title">No acceptable self-signature</string>
     <string name="gpg_key_status_unauthenticated_self_signature_text">This key cannot be renewed because its self-signature is missing, invalid, or rejected by security policy.</string>
     <string name="gpg_key_user_ids">User IDs</string>
@@ -1963,7 +2229,24 @@
     <string name="gpg_tools_public_key_invalid">Paste valid armored public certificates. Unsupported or incomplete input cannot be added.</string>
     <string name="gpg_tools_public_key_private">Paste public certificates only. Private keys cannot be added here.</string>
     <string name="gpg_tools_public_key_not_encryptable">Every recipient must have a currently usable encryption key.</string>
+    <string name="gpg_tools_export_failed">Could not save the result. Try another location.</string>
+    <string name="gpg_tools_importing">Importing file…</string>
+    <string name="gpg_tools_exporting">Saving file…</string>
+    <string name="gpg_tools_saved">File saved</string>
+    <string name="gpg_tools_check_public_key">Check public key</string>
+    <string name="gpg_tools_additional_public_keys">Additional public keys</string>
+    <string name="gpg_tools_ready_to_save">Ready to save</string>
     <string name="gpg_tools_header_title">GPG tools</string>
+    <string name="gpg_tools_message_label">Message</string>
+    <string name="gpg_tools_signature_required">Enter a signature to verify</string>
+    <string name="gpg_tools_sign_with">Sign with</string>
+    <string name="gpg_tools_choose_recipients">Choose recipients</string>
+    <string name="gpg_tools_add_recipients">Add recipients…</string>
+    <string name="gpg_tools_choose_signing_key">Choose a signing key</string>
+    <string name="gpg_tools_format_label">Signature format</string>
+    <string name="gpg_tools_search_keys">Search names or fingerprints</string>
+    <string name="gpg_tools_no_matching_keys">No matching keys</string>
+    <string name="gpg_tools_selection_done">Done</string>
     <string name="gpg_tools_scope_text">Text</string>
     <string name="gpg_tools_scope_file">File</string>
     <string name="gpg_tools_operation_encrypt_text">Encrypt text or files for selected recipients</string>
@@ -2034,23 +2317,74 @@
     <string name="gpg_keyserver_status_title">GPG keyserver</string>
     <string name="gpg_keyserver_status_not_checked">Not checked</string>
     <string name="gpg_keyserver_status_checked_at">Checked <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="gpg_agent_history_request_list_keys">List keys</string>
     <string name="gpg_agent_history_request_sign_hash">Sign hash</string>
     <string name="gpg_agent_history_request_decrypt">Decrypt</string>
-    <string name="gpg_agent_history_response_success">Success</string>
-    <string name="gpg_agent_history_response_user_denied">Denied</string>
-    <string name="gpg_agent_history_response_key_not_found">Key not found</string>
-    <string name="gpg_agent_history_response_vault_locked">Vault locked</string>
     <string name="gpg_agent_history_response_unsupported">Unsupported</string>
-    <string name="gpg_agent_history_response_failure">Failed</string>
-    <string name="gpg_agent_history_unknown_caller">Unknown caller</string>
-    <string name="gpg_agent_history_unknown_key">Unknown key</string>
-    <string name="gpg_agent_history_clear_history_title">Clear history</string>
-    <string name="gpg_agent_history_clear_history_confirmation_title">Clear GPG agent history?</string>
-    <string name="gpg_agent_history_clear_history_confirmation_text">This will remove all GPG agent usage history.</string>
     <string name="cipher_links_outgoing_title">Linked items</string>
     <string name="cipher_links_incoming_title">Referenced by</string>
     <string name="cipher_link_unavailable_title">Item unavailable</string>
     <string name="cipher_link_picker_title">Select linked item</string>
     <string name="cipher_link_picker_action">Link to an item</string>
+    <string name="pref_item_automatic_backups_initialization_error">Automatic backups could not start. Retry to reload the backup settings.</string>
+    <string name="pref_item_automatic_backups_folder_access_help">If folder access is lost, choose the folder again to restore permission.</string>
+    <string name="pref_item_automatic_backups_webdav_keep_password">Leave the password empty to keep the saved password.</string>
+    <string name="pref_item_automatic_backups_s3_keep_secret">Leave the secret access key empty to keep the saved key.</string>
+    <string name="pref_item_launch_at_login_title">Launch Keyguard at login</string>
+    <string name="pref_item_launch_at_login_approval_note">Approval needed in System Settings ▸ Login Items.</string>
+    <string name="pref_item_launch_at_login_unavailable_text">Launch at login is unavailable in this build.</string>
+    <string name="pref_item_menu_bar_only_title">Show only in the menu bar</string>
+    <string name="pref_item_menu_bar_only_text">Hides the Dock icon and the main window; Keyguard stays available from the menu-bar icon.</string>
+    <string name="pref_item_vault_lock_timeout_never_title">Keep the vault unlocked</string>
+    <string name="pref_item_vault_lock_timeout_title">Auto-lock after</string>
+    <string name="pref_item_render_markdown_title">Render Markdown</string>
+    <string name="pref_item_automatic_backups_unavailable_title">Backups unavailable</string>
+    <string name="pref_item_automatic_backups_enabled_title">Automatic backups are on</string>
+    <string name="pref_item_automatic_backups_pending_changes_text">There are changes since the last backup.</string>
+    <string name="pref_item_automatic_backups_change_configuration_action">Change configuration</string>
+    <string name="pref_item_automatic_backups_local_folder_title">Local folder</string>
+    <string name="pref_item_automatic_backups_webdav_server_title">WebDAV server</string>
+    <string name="pref_item_automatic_backups_s3_title">S3-compatible storage</string>
+    <string name="pref_item_automatic_backups_not_configured">Not configured</string>
+    <string name="pref_item_automatic_backups_choose_folder_action">Choose folder…</string>
+    <string name="pref_item_automatic_backups_save_verify_action">Save and verify</string>
+    <string name="pref_item_automatic_backups_wizard_title">Set up backups</string>
+    <string name="pref_item_automatic_backups_wizard_destination_title">Choose a destination</string>
+    <string name="pref_item_automatic_backups_wizard_destination_detail">Save backups to a folder, a WebDAV server, or S3-compatible storage.</string>
+    <string name="pref_item_automatic_backups_wizard_protection_title">Protect your backups</string>
+    <string name="pref_item_automatic_backups_wizard_protection_detail">Add a password to encrypt your backup files. Keep it somewhere safe; you will need it to restore them.</string>
+    <string name="pref_item_automatic_backups_wizard_contents_title">Choose what to keep</string>
+    <string name="pref_item_automatic_backups_wizard_contents_detail">Include attachments and choose how many snapshots to retain.</string>
+    <string name="pref_item_automatic_backups_wizard_review_title">Review your setup</string>
+    <string name="pref_item_automatic_backups_wizard_review_detail">Keyguard will check that the destination can read and write files before saving this configuration.</string>
+    <string name="pref_item_automatic_backups_wizard_step_label">Step %1$d of %2$d</string>
+    <string name="pref_item_automatic_backups_wizard_folder_detail">Choose a folder on this device or a connected storage provider.</string>
+    <string name="pref_item_automatic_backups_wizard_webdav_detail">Save backups to your own WebDAV server.</string>
+    <string name="pref_item_automatic_backups_wizard_s3_detail">Save backups to Amazon S3, MinIO, or another S3-compatible service.</string>
+    <string name="pref_item_automatic_backups_wizard_invalid_s3_error">Check the S3 endpoint, bucket, prefix, and access key.</string>
+    <string name="pref_item_automatic_backups_wizard_invalid_url_error">Enter a full HTTP or HTTPS URL without embedded credentials or a fragment.</string>
+    <string name="pref_item_automatic_backups_wizard_replace_password_action">Change the backup password</string>
+    <string name="pref_item_automatic_backups_wizard_confirm_password_label">Confirm backup password</string>
+    <string name="pref_item_automatic_backups_wizard_password_mismatch_error">The passwords do not match.</string>
+    <string name="pref_item_automatic_backups_wizard_verifying_status">Verifying destination…</string>
+    <string name="pref_item_automatic_backups_wizard_discard_title">Discard backup setup?</string>
+    <string name="pref_item_automatic_backups_wizard_discard_message">Your changes will not be saved. The current backup configuration will stay unchanged.</string>
+    <string name="pref_item_automatic_backups_wizard_discard_action">Discard changes</string>
+    <string name="pref_item_automatic_backups_wizard_ready_title">Keep a backup of your vault</string>
+    <string name="pref_item_automatic_backups_wizard_ready_detail">Choose where to save your snapshots, protect them with a password, and decide what to keep.</string>
+    <string name="yubikey_error_title">Failed to use YubiKey</string>
+    <string name="yubikey_error_no_device">Connect a YubiKey with its OTP interface enabled and try again.</string>
+    <string name="yubikey_error_multiple_devices">Connect only the YubiKey you want to use, then try again.</string>
+    <string name="yubikey_error_busy">Another operation is using the YubiKey. Wait for it to finish and try again.</string>
+    <string name="fido2_unlock_title">Security key (FIDO2)</string>
+    <string name="fido2_unlock_description">Unlock with a USB security key that supports PRF. Your app password remains available for recovery.</string>
+    <string name="fido2_touch_prompt">Connect your security key and touch it when it flashes.</string>
+    <string name="fido2_pin_prompt">Enter the PIN for your security key.</string>
+    <string name="fido2_pin_label">Security key PIN</string>
+    <string name="fido2_error_title">Could not use the security key</string>
+    <string name="fido2_error_unsupported">This key or platform does not support FIDO2 PRF with user verification.</string>
+    <string name="fido2_error_pin_not_set">Set a FIDO2 PIN using the key manufacturer’s app, then try again.</string>
+    <string name="fido2_error_pin_blocked">The key blocked PIN verification. Reconnect it and use its management app to check its status. You can still unlock Keyguard with your app password.</string>
+    <string name="fido2_error_invalid_pin">Incorrect PIN. Check the PIN before trying again; repeated failures can block the key.</string>
+    <string name="fido2_error_timeout">The security key did not respond in time. Reconnect it and try again.</string>
+    <string name="fido2_error_retry">Try your enrolled security key again, or unlock with your app password.</string>
 </resources>

@@ -11,6 +11,11 @@ plugins {
     id("keyguard.rust-desktop-library")
 }
 
+// Keep the Rust runtime in separate objects when linking several static Rust libraries.
+tasks.withType<CargoBuildTask>().configureEach {
+    environmentVariables.put("CARGO_PROFILE_RELEASE_LTO", "false")
+}
+
 // hidapi's C sources must not inherit the active Xcode SDK's deployment version.
 tasks.named<CargoBuildTask>("cargoBuildNativeYubikeyMacosArm64") {
     environmentVariables.put("MACOSX_DEPLOYMENT_TARGET", libs.versions.appleMacosDeploymentTarget)

@@ -83,7 +83,11 @@ class SshAgentEndToEndTest {
 
         private fun buildAndLocateBinary(repoRoot: Path): Path {
             val agentDir = repoRoot.resolve("desktopSshAgent").resolve("src")
-            val build = ProcessBuilder("cargo", "build", "--release")
+            val targetDir = repoRoot.resolve("target")
+            val build = ProcessBuilder(
+                "cargo", "build", "--release",
+                "--target-dir", targetDir.toString(),
+            )
                 .directory(agentDir.toFile())
                 .redirectOutput(ProcessBuilder.Redirect.INHERIT)
                 .redirectError(ProcessBuilder.Redirect.INHERIT)
@@ -91,8 +95,7 @@ class SshAgentEndToEndTest {
             require(build.waitFor() == 0) {
                 "cargo build --release failed for $agentDir"
             }
-            val binary = agentDir
-                .resolve("target")
+            val binary = targetDir
                 .resolve("release")
                 .resolve(executableName("keyguard-ssh-agent"))
             require(Files.isExecutable(binary)) {

@@ -106,10 +106,10 @@ class NativeChangeClassificationTest(unittest.TestCase):
 
     def test_native_dependencies_are_not_silently_omitted(self):
         cases = {
-            "util/zxcvbn/rust/Cargo.lock": (True, True, True),
-            "util/zip/rust/Cargo.toml": (False, False, True),
-            "util/instance/rust/Cargo.lock": (True, False, False),
-            "util/ffi/rust/Cargo.toml": (True, True, True),
+            "util/zxcvbn/rust/crates/keyguard-zxcvbn-core/Cargo.toml": (True, True, True),
+            "util/zip/rust/crates/keyguard-zip-core/Cargo.toml": (False, False, True),
+            "util/instance/rust/crates/keyguard-instance-core/Cargo.toml": (True, False, False),
+            "util/ffi/rust/crates/keyguard-ffi/Cargo.toml": (True, True, True),
         }
         for path, expected in cases.items():
             with self.subTest(path=path):
@@ -249,7 +249,7 @@ class NativeChangeClassificationTest(unittest.TestCase):
         for path in (
             "util/io/rust/crates/keyguard-io-core/src/windows_file.rs",
             "util/io/rust/crates/keyguard-io-core/src/windows_nt.rs",
-            "util/io/rust/Cargo.toml",
+            "util/io/rust/crates/keyguard-io-core/Cargo.toml",
         ):
             with self.subTest(path=path):
                 result = classify([path])
@@ -368,7 +368,7 @@ class NativeChangeClassificationTest(unittest.TestCase):
         self.assertFalse(result["wear"])
 
     def test_apple_only_changes_share_just_the_arm64_macos_host(self):
-        result = classify(["util/zip/rust/Cargo.toml"])
+        result = classify(["util/zip/rust/crates/keyguard-zip-core/Cargo.toml"])
         self.assertTrue(result["desktop_run"])
         self.assertFalse(result["desktop"])
         self.assertEqual([(row["platform"], row["arch"]) for row in result["desktop_matrix"]["include"]], [("macos", "aarch64")])
@@ -378,6 +378,13 @@ class NativeChangeClassificationTest(unittest.TestCase):
             with self.subTest(path=path):
                 result = classify([path])
                 self.assertTrue(all(result[flag] for flag in FLAGS if flag != "wear"))
+
+    def test_root_cargo_workspace_requests_all_but_native_crypto_checks(self):
+        for path in ("Cargo.toml", "Cargo.lock"):
+            with self.subTest(path=path):
+                result = classify([path])
+                for flag in FLAGS:
+                    self.assertEqual(result[flag], flag not in {"crypto", "fuzz", "wear"}, flag)
 
     def test_security_policy_records_keep_validation(self):
         result = classify(["docs/security/native-crypto-exceptions.md"])
@@ -396,7 +403,7 @@ class NativeChangeClassificationTest(unittest.TestCase):
             output = Path(directory) / "output"
             subprocess.run([
                 sys.executable, str(Path(__file__).with_name("classify_native_changes.py")),
-                "--github-output", str(output), "util/io/rust/Cargo.toml",
+                "--github-output", str(output), "util/io/rust/crates/keyguard-io-core/Cargo.toml",
             ], check=True, stdout=subprocess.PIPE)
             values = {key: json.loads(value) for key, value in (line.split("=", 1) for line in output.read_text().splitlines())}
             self.assertTrue(values["io"])

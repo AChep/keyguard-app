@@ -10,9 +10,9 @@ use crate::unix_caller_identity::process_details_from_pid;
 use crate::unix_caller_identity::{
     caller_from_unix_stream as shared_caller_from_unix_stream, UnixCallerIdentity,
 };
-use crate::{
-    AuthorizationContextFingerprint, ConnectionFingerprint, VerifiedSubject, VerifiedSubjectKind,
-};
+#[cfg(target_os = "macos")]
+use crate::VerifiedSubjectKind;
+use crate::{AuthorizationContextFingerprint, ConnectionFingerprint, VerifiedSubject};
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::os::fd::AsRawFd;
 use tokio::net::UnixStream;
@@ -194,6 +194,9 @@ fn authorization_from_unix_stream(
             linux_guard: Some(guard),
         };
     }
+
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    let _ = (stream, shared_identity);
 
     CollectedAuthorization {
         authorization: Some(platform_authorization(connection, Vec::new())),

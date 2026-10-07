@@ -1,3 +1,4 @@
+import com.artemchep.keyguard.buildplugins.cargo.CargoBuildTask
 import com.artemchep.keyguard.buildplugins.cargo.configureNativeLibraryTests
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleMain
 import com.artemchep.keyguard.buildplugins.kotlin.sharedJvmMain
@@ -7,6 +8,11 @@ plugins {
     id("keyguard.kotlin-multiplatform-library")
     id("keyguard.compose-free")
     id("keyguard.rust-desktop-library")
+}
+
+// Keep the Rust runtime in separate objects when linking several static Rust libraries.
+tasks.withType<CargoBuildTask>().configureEach {
+    environmentVariables.put("CARGO_PROFILE_RELEASE_LTO", "false")
 }
 
 kotlin {

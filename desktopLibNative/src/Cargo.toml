@@ -1,11 +1,11 @@
 [package]
 name = "keyguard-lib"
-version = "0.1.0"
+version.workspace = true
 edition = "2021"
-rust-version = "1.94.0"
+rust-version.workspace = true
 description = "Native desktop helper library for Keyguard"
-license-file = "../../LICENSE"
-repository = "https://github.com/AChep/keyguard-app"
+license-file.workspace = true
+repository.workspace = true
 publish = false
 
 [lib]
@@ -13,16 +13,16 @@ name = "keyguard"
 crate-type = ["cdylib"]
 
 [dependencies]
-libc = "0.2"
-zeroize = "=1.9.0"
+libc.workspace = true
+zeroize.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
-serde = { version = "1", features = ["derive"] }
-zbus = { version = "5", default-features = false, features = ["async-io", "blocking-api"] }
+serde = { workspace = true, features = ["derive"] }
+zbus = { workspace = true, features = ["async-io", "blocking-api"] }
 
 [target.'cfg(windows)'.dependencies]
-subtle = "2.6"
-windows = { version = "0.62.2", features = [
+subtle.workspace = true
+windows = { workspace = true, features = [
     "Foundation",
     "Security_Credentials_UI",
     "Win32_Foundation",
@@ -39,15 +39,10 @@ windows = { version = "0.62.2", features = [
     "Win32_UI_Input_KeyboardAndMouse",
     "Win32_UI_WindowsAndMessaging",
 ] }
-windows-future = "0.3.2"
+windows-future.workspace = true
 
 [build-dependencies]
-cc = "1"
+cc.workspace = true
 
 [lints.clippy]
 undocumented_unsafe_blocks = "deny"
-
-[profile.release]
-strip = true
-lto = true
-codegen-units = 1

@@ -65,10 +65,12 @@ point also exercises isolated instance IPC and never opens the user's instance l
 
 ## Validation
 
+Run from the repository root:
+
 ```sh
-cargo fmt --manifest-path util/instance/rust/Cargo.toml --all -- --check
-cargo test --manifest-path util/instance/rust/Cargo.toml --workspace --locked
-cargo clippy --manifest-path util/instance/rust/Cargo.toml --workspace --all-targets --locked --no-deps -- -D warnings
+cargo fmt -p keyguard-instance-c -p keyguard-instance-core -p keyguard-instance-jni -- --check
+cargo test -p keyguard-instance-c -p keyguard-instance-core -p keyguard-instance-jni --all-features --locked
+cargo clippy -p keyguard-instance-c -p keyguard-instance-core -p keyguard-instance-jni --all-targets --all-features --locked --no-deps -- -D warnings
 ./gradlew :util:instance:desktopTest
 ./gradlew :util:instance:macosArm64Test
 ./gradlew :desktopApp:jvmTest

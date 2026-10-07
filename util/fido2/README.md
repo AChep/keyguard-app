@@ -22,12 +22,12 @@ key. Only public credential metadata, salts, and ciphertext are persisted.
 Linux builds need `libudev-dev` (or the distribution's equivalent); runtime users
 need permission to access the key's hidraw device. CI installs the build package.
 
-Run automated checks:
+Run automated checks from the repository root:
 
 ```sh
-cargo fmt --manifest-path util/fido2/rust/Cargo.toml --all -- --check
-cargo clippy --manifest-path util/fido2/rust/Cargo.toml --workspace --all-targets --locked -- -D warnings
-cargo test --manifest-path util/fido2/rust/Cargo.toml --workspace --locked
+cargo fmt -p keyguard-fido2-c -p keyguard-fido2-core -p keyguard-fido2-jni -- --check
+cargo clippy -p keyguard-fido2-c -p keyguard-fido2-core -p keyguard-fido2-jni --all-targets --all-features --locked --no-deps -- -D warnings
+cargo test -p keyguard-fido2-c -p keyguard-fido2-core -p keyguard-fido2-jni --all-features --locked
 ./gradlew :util:fido2:checkComposeFree :util:fido2:desktopTest :util:fido2:macosArm64Test :util:fido2:testAndroidHostTest
 ./gradlew :common:desktopTest --tests '*Fido2*'
 ```

@@ -479,13 +479,16 @@ fn executable_metadata_from_fd(
     let stat = unsafe { stat.assume_init() };
     let size = u64::try_from(stat.st_size)
         .map_err(|_| LinuxIdentityError::InvalidMetadata("peer executable size"))?;
+    // `st_nlink` is u64 on x86_64 but u32 on aarch64.
+    #[allow(clippy::useless_conversion)]
+    let link_count = u64::from(stat.st_nlink);
     let metadata = LinuxExecutableMetadata {
         device: stat.st_dev,
         inode: stat.st_ino,
         mode: stat.st_mode,
         uid: stat.st_uid,
         gid: stat.st_gid,
-        link_count: u64::from(stat.st_nlink),
+        link_count,
         size,
         mtime_seconds: stat.st_mtime,
         mtime_nanoseconds: stat.st_mtime_nsec,

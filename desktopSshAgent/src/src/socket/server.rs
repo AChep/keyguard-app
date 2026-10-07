@@ -580,9 +580,12 @@ mod tests {
             max_connections_for_soft_limit(32),
             16 / AGENT_FDS_PER_CONNECTION,
         );
+        // The descriptors per connection differ per platform, so this is not a constant.
+        #[allow(clippy::unnecessary_min_or_max)]
+        let tight_cap = (2 / AGENT_FDS_PER_CONNECTION).max(1);
         assert_eq!(
             max_connections_for_soft_limit(NON_AGENT_FD_RESERVE + 2),
-            (2 / AGENT_FDS_PER_CONNECTION).max(1),
+            tight_cap,
         );
         assert_eq!(max_connections_for_soft_limit(16), 1);
         assert_eq!(max_connections_for_soft_limit(0), 1);

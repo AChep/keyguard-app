@@ -10,7 +10,11 @@ keyguard-ffi.workspace = true
 zeroize.workspace = true
 
 [target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))'.dependencies]
-hidapi = { version = "=2.6.7", default-features = false, features = ["linux-native-basic-udev", "windows-native"] }
+hidapi = { workspace = true, features = ["linux-native-basic-udev", "windows-native"] }
 
-[lints]
-workspace = true
+# Narrower than the workspace lints, which also require documentation.
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

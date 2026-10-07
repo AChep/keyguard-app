@@ -9,5 +9,9 @@ crate-type = ["staticlib"]
 [dependencies]
 keyguard-ffi.workspace = true
 keyguard-fido2-core.workspace = true
-[lints]
-workspace = true
+# Narrower than the workspace lints, which also require documentation.
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

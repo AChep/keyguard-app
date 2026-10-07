@@ -12,10 +12,14 @@ publish = false
 keyguard-ffi.workspace = true
 self_cell.workspace = true
 zeroize.workspace = true
-zip.workspace = true
+zip = { workspace = true, features = [
+    "aes-crypto",
+    "deflate-flate2-zlib-rs",
+] }
 
 [dev-dependencies]
-sha2.workspace = true
+# A newer major than the workspace's sha2.
+sha2 = "0.11.0"
 
 [lints]
 workspace = true

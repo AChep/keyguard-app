@@ -28,24 +28,18 @@ class PrefetchNativeTest(unittest.TestCase):
             return result, trace.read_text().splitlines() if trace.exists() else []
 
     def test_profiles_fetch_all_shipped_native_graphs_locked(self):
-        shared = {f"util/{module}/rust/Cargo.toml" for module in ("crypto", "io", "zxcvbn")}
-        expected = {
-            "desktop": shared | {"util/instance/rust/Cargo.toml", "util/yubikey/rust/Cargo.toml", "util/fido2/rust/Cargo.toml", "desktopLibNative/src/Cargo.toml",
-                                 "desktopSshAgent/src/Cargo.toml", "desktopGpgAgent/src/Cargo.toml"},
-            "android": shared | {"androidSshAgent/src/Cargo.toml"},
-            "apple": shared | {"util/zip/rust/Cargo.toml", "util/yubikey/rust/Cargo.toml", "util/fido2/rust/Cargo.toml"},
-        }
-        for profile, manifests in expected.items():
+        manifests = {"Cargo.toml", "util/crypto/rust/Cargo.toml"}
+        for profile in ("desktop", "android", "apple"):
             with self.subTest(profile=profile):
                 result, calls = self.run_prefetch(profile)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(set(calls), {f"fetch --manifest-path {path} --locked" for path in manifests})
 
     def test_explicit_manifests_extend_profile_without_duplicate_fetches(self):
-        result, calls = self.run_prefetch("desktop", "util/io/rust/Cargo.toml\r\nutil/zip/rust/Cargo.toml\n")
+        result, calls = self.run_prefetch("desktop", "Cargo.toml\r\nthirdParty/rust/Cargo.toml\n")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(calls.count("fetch --manifest-path util/io/rust/Cargo.toml --locked"), 1)
-        self.assertIn("fetch --manifest-path util/zip/rust/Cargo.toml --locked", calls)
+        self.assertEqual(calls.count("fetch --manifest-path Cargo.toml --locked"), 1)
+        self.assertIn("fetch --manifest-path thirdParty/rust/Cargo.toml --locked", calls)
 
     def test_missing_manifest_fails_before_any_fetch(self):
         result, calls = self.run_prefetch("desktop", "missing/Cargo.toml")

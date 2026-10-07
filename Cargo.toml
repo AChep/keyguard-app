@@ -1,0 +1,119 @@
+[workspace]
+resolver = "2"
+members = [
+    "androidSshAgent/src",
+    "commonAgent",
+    "commonGpgAgent",
+    "commonSshAgent",
+    "desktopGpgAgent/src",
+    "desktopLibNative/src",
+    "desktopSshAgent/src",
+    "util/ffi/rust/crates/*",
+    "util/fido2/rust/crates/*",
+    "util/instance/rust/crates/*",
+    "util/io/rust/crates/*",
+    "util/yubikey/rust/crates/*",
+    "util/zip/rust/crates/*",
+    "util/zxcvbn/rust/crates/*",
+]
+# Separate workspaces with their own lockfiles: the reviewed native crypto graph
+# and the neutral test workspace of the reviewed third-party forks.
+exclude = [
+    "thirdParty/rust",
+    "util/crypto",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94.0"
+license-file = "LICENSE"
+repository = "https://github.com/AChep/keyguard-app"
+
+# The versions of every external dependency. Declare features where a crate
+# uses the dependency, so one crate's features do not leak into the others.
+[workspace.dependencies]
+common-gpg-agent-rust = { path = "commonGpgAgent" }
+common-ssh-agent-rust = { path = "commonSshAgent" }
+keyguard-agent-identity = { path = "commonAgent" }
+keyguard-ffi = { path = "util/ffi/rust/crates/keyguard-ffi" }
+keyguard-fido2-core = { path = "util/fido2/rust/crates/keyguard-fido2-core" }
+keyguard-yubikey-core = { path = "util/yubikey/rust/crates/keyguard-yubikey-core" }
+
+anyhow = "1"
+async-trait = "0.1"
+authenticator = { version = "0.5.0", default-features = false }
+base64 = "0.22.1"
+bytes = "1"
+cc = "1"
+chacha20poly1305 = "0.10"
+clap = "4"
+dirs = "6"
+futures = "0.3"
+getrandom = "0.3.4"
+hex = "0.4"
+hidapi = { version = "2.6.7", default-features = false }
+hkdf = "0.12"
+jni = { version = "0.21.1", default-features = false }
+libc = "0.2.186"
+prost = "0.13"
+prost-build = "0.13"
+rand = "0.8"
+self_cell = "1.3.0"
+serde = "1"
+sha2 = "0.10.9"
+signature = "2"
+ssh-agent-lib = "0.5"
+# Exact: these must match the reviewed forks in [patch.crates-io].
+ssh-encoding = "=0.2.0"
+ssh-key = "=0.6.7"
+subtle = "2.6"
+tempfile = "3"
+thiserror = "2"
+tokio = "1"
+tokio-stream = "0.1"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+windows = "0.62.2"
+windows-future = "0.3.2"
+windows-sys = "0.61.2"
+zbus = { version = "5", default-features = false }
+zeroize = "1.9.0"
+zip = { version = "8.6.0", default-features = false }
+zxcvbn = { version = "3.1.1", default-features = false }
+
+[workspace.lints.rust]
+missing_docs = "warn"
+unsafe_op_in_unsafe_fn = "deny"
+unused_lifetimes = "deny"
+unused_qualifications = "warn"
+
+[workspace.lints.clippy]
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "warn", priority = -1 }
+complexity = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
+undocumented_unsafe_blocks = "deny"
+
+[patch.crates-io]
+# crates.io ssh-encoding 0.2.0
+# (checksum eb9242b9ef4108a78e8cd1a2c98e193ef372437f8c22be363075233321dd4a15):
+# backport the nested-length bounds check until the graph moves to ssh-encoding 0.3+.
+ssh-encoding = { path = "thirdParty/rust/ssh-encoding-0.2.0-keyguard" }
+# crates.io ssh-key 0.6.7
+# (checksum 3b86f5297f0f04d08cabaa0f6bff7cb6aec4d9c3b49d87990d63da9d9156a8c3):
+# backport bounded opaque-key decoding from current RustCrypto SSH.
+ssh-key = { path = "thirdParty/rust/ssh-key-0.6.7-keyguard" }
+
+# util/fido2 and util/yubikey disable LTO through CARGO_PROFILE_RELEASE_LTO in
+# their Gradle builds: several static Rust libraries end up in one Apple binary.
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "unwind"
+strip = true
+
+[profile.dev.package."*"]
+opt-level = 2

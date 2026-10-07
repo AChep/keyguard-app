@@ -64,6 +64,10 @@ def classify(paths, *, full=False, all_checks=False):
         ):
             enable(*(flag for flag in FLAGS if flag != "wear"))
             continue
+        # The root Cargo workspace holds every native graph except native crypto.
+        if path in {"Cargo.toml", "Cargo.lock"}:
+            enable(*(flag for flag in FLAGS if flag not in {"crypto", "fuzz", "wear"}))
+            continue
         if path.startswith("scripts/") and ("native" in path or "bouncycastle" in path):
             enable("desktop", "android", "apple")
             continue

@@ -1,28 +1,29 @@
 [package]
 name = "keyguard-agent-identity"
-version = "0.1.0"
+version.workspace = true
 edition = "2021"
-rust-version = "1.94.0"
+rust-version.workspace = true
 description = "Shared, protocol-neutral caller identity primitives for Keyguard agents"
-license-file = "../LICENSE"
-repository = "https://github.com/AChep/keyguard-app"
+license-file.workspace = true
+repository.workspace = true
 publish = false
 
 [dependencies]
+# A newer major than the workspace's getrandom.
 getrandom = "0.4"
-sha2 = "0.10"
-thiserror = "2"
+sha2.workspace = true
+thiserror.workspace = true
 
 [target.'cfg(unix)'.dependencies]
-anyhow = "1"
-hex = "0.4"
-libc = "0.2"
-tokio = { version = "1", features = ["macros", "net", "rt", "signal", "sync", "time"] }
-tracing = "0.1"
+anyhow.workspace = true
+hex.workspace = true
+libc.workspace = true
+tokio = { workspace = true, features = ["macros", "net", "rt", "signal", "sync", "time"] }
+tracing.workspace = true
 
 [dev-dependencies]
-tempfile = "3"
-tokio = { version = "1", features = ["macros", "net", "rt", "test-util", "time"] }
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "net", "rt", "test-util", "time"] }
 
 [lints.clippy]
 undocumented_unsafe_blocks = "deny"

@@ -217,12 +217,14 @@ fn read_assuan_socket_redirect(socket_path: &Path) -> Result<Option<PathBuf>> {
         );
     }
 
-    parse_assuan_redirection(&contents).map(Some).with_context(|| {
-        format!(
-            "malformed Assuan socket redirect at {}",
-            socket_path.display()
-        )
-    })
+    parse_assuan_redirection(&contents)
+        .map(Some)
+        .with_context(|| {
+            format!(
+                "malformed Assuan socket redirect at {}",
+                socket_path.display()
+            )
+        })
 }
 
 fn parse_assuan_redirection(contents: &[u8]) -> Result<PathBuf> {
@@ -583,9 +585,8 @@ mod tests {
         let contents = assuan_redirect_contents(&bind_path);
         fs::write(&public_path, &contents).expect("write redirect");
 
-        let resolved =
-            resolve_assuan_socket_path_with(&public_path, test_current_dir(tmp.path()))
-                .expect("resolve redirect");
+        let resolved = resolve_assuan_socket_path_with(&public_path, test_current_dir(tmp.path()))
+            .expect("resolve redirect");
 
         assert_eq!(resolved.bind_path, bind_path);
         assert!(resolved.redirected);
@@ -636,9 +637,8 @@ mod tests {
         fs::write(&second_redirect, assuan_redirect_contents(&final_socket))
             .expect("write second redirect");
 
-        let resolved =
-            resolve_assuan_socket_path_with(&public_path, test_current_dir(tmp.path()))
-                .expect("resolve first redirect");
+        let resolved = resolve_assuan_socket_path_with(&public_path, test_current_dir(tmp.path()))
+            .expect("resolve first redirect");
 
         assert_eq!(resolved.bind_path, second_redirect);
         assert_ne!(resolved.bind_path, final_socket);
@@ -648,17 +648,15 @@ mod tests {
     fn missing_path_and_existing_socket_are_not_treated_as_redirects() {
         let tmp = tempdir().expect("tempdir");
         let missing_path = tmp.path().join("missing.sock");
-        let missing =
-            resolve_assuan_socket_path_with(&missing_path, test_current_dir(tmp.path()))
-                .expect("resolve missing socket");
+        let missing = resolve_assuan_socket_path_with(&missing_path, test_current_dir(tmp.path()))
+            .expect("resolve missing socket");
         assert_eq!(missing.bind_path, missing_path);
         assert!(!missing.redirected);
 
         let socket_path = tmp.path().join("existing.sock");
         let _listener = StdUnixListener::bind(&socket_path).expect("bind existing socket");
-        let socket =
-            resolve_assuan_socket_path_with(&socket_path, test_current_dir(tmp.path()))
-                .expect("resolve existing socket");
+        let socket = resolve_assuan_socket_path_with(&socket_path, test_current_dir(tmp.path()))
+            .expect("resolve existing socket");
         assert_eq!(socket.bind_path, socket_path);
         assert!(!socket.redirected);
     }
@@ -683,9 +681,8 @@ mod tests {
             let public_path = tmp.path().join(format!("S.gpg-agent-{index}"));
             fs::write(&public_path, contents).expect("write malformed redirect");
 
-            let error =
-                resolve_assuan_socket_path_with(&public_path, test_current_dir(tmp.path()))
-                    .expect_err("malformed redirect must fail");
+            let error = resolve_assuan_socket_path_with(&public_path, test_current_dir(tmp.path()))
+                .expect_err("malformed redirect must fail");
 
             assert!(
                 format!("{error:#}").contains("malformed Assuan socket redirect"),
@@ -708,9 +705,8 @@ mod tests {
         assert_eq!(contents.len(), ASSUAN_REDIRECTION_MAX_BYTES + 1);
         fs::write(&public_path, &contents).expect("write oversized redirect");
 
-        let error =
-            resolve_assuan_socket_path_with(&public_path, test_current_dir(tmp.path()))
-                .expect_err("oversized redirect must fail");
+        let error = resolve_assuan_socket_path_with(&public_path, test_current_dir(tmp.path()))
+            .expect_err("oversized redirect must fail");
 
         assert!(format!("{error:#}").contains("too large"));
         assert_eq!(fs::read(&public_path).expect("read redirect"), contents);
@@ -727,9 +723,8 @@ mod tests {
         let identity = LIFECYCLE
             .owned_socket_identity(&bind_path, current_uid())
             .expect("socket identity");
-        let resolved =
-            resolve_assuan_socket_path_with(&public_path, test_current_dir(tmp.path()))
-                .expect("resolve redirect");
+        let resolved = resolve_assuan_socket_path_with(&public_path, test_current_dir(tmp.path()))
+            .expect("resolve redirect");
 
         LIFECYCLE.cleanup_socket_file(&resolved.bind_path, identity, current_uid());
 
@@ -748,9 +743,8 @@ mod tests {
         let bind_path = tmp.path().join("S.gpg-agent.real");
         let redirect_contents = assuan_redirect_contents(&bind_path);
         fs::write(&public_path, &redirect_contents).expect("write redirect");
-        let resolved =
-            resolve_assuan_socket_path_with(&public_path, test_current_dir(tmp.path()))
-                .expect("resolve redirect");
+        let resolved = resolve_assuan_socket_path_with(&public_path, test_current_dir(tmp.path()))
+            .expect("resolve redirect");
 
         let actual_lock_path = lifecycle_lock_path(&resolved.bind_path, current_uid())
             .expect("derive actual socket lock path");

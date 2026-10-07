@@ -10,5 +10,9 @@ crate-type = ["cdylib"]
 keyguard-ffi = { workspace = true, features = ["jni"] }
 keyguard-yubikey-core.workspace = true
 jni.workspace = true
-[lints]
-workspace = true
+# Narrower than the workspace lints, which also require documentation.
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

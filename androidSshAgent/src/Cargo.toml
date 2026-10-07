@@ -1,11 +1,11 @@
 [package]
 name = "keyguard-android-ssh-agent"
-version = "0.1.0"
+version.workspace = true
 edition = "2021"
-rust-version = "1.94.0"
+rust-version.workspace = true
 description = "Standalone Android SSH agent bridge for Keyguard"
-license-file = "../../LICENSE"
-repository = "https://github.com/AChep/keyguard-app"
+license-file.workspace = true
+repository.workspace = true
 publish = false
 
 [[bin]]
@@ -13,24 +13,19 @@ name = "keyguard-android-ssh-agent"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = "1"
-base64 = "0.22"
-chacha20poly1305 = "0.10"
-clap = { version = "4", features = ["derive"] }
-common-ssh-agent-rust = { path = "../../commonSshAgent" }
-keyguard-agent-identity = { path = "../../commonAgent" }
-hkdf = "0.12"
-libc = "0.2"
-prost = "0.13"
-rand = "0.8"
-sha2 = "0.10"
-tokio = { version = "1", features = ["io-util", "macros", "net", "process", "rt-multi-thread", "signal", "sync", "time"] }
-zeroize = "1"
+anyhow.workspace = true
+base64.workspace = true
+chacha20poly1305.workspace = true
+clap = { workspace = true, features = ["derive"] }
+common-ssh-agent-rust.workspace = true
+keyguard-agent-identity.workspace = true
+hkdf.workspace = true
+libc.workspace = true
+prost.workspace = true
+rand.workspace = true
+sha2.workspace = true
+tokio = { workspace = true, features = ["io-util", "macros", "net", "process", "rt-multi-thread", "signal", "sync", "time"] }
+zeroize.workspace = true
 
 [lints.clippy]
 undocumented_unsafe_blocks = "deny"
-
-[profile.release]
-strip = true
-lto = true
-codegen-units = 1

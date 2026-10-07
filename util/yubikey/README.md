@@ -36,10 +36,12 @@ The HID protocol follows the [Yubico OTP protocol](https://developers.yubico.com
 
 ## Validation
 
+Run from the repository root:
+
 ```sh
-cargo fmt --manifest-path util/yubikey/rust/Cargo.toml --all -- --check
-cargo clippy --manifest-path util/yubikey/rust/Cargo.toml --workspace --all-targets --locked -- -D warnings
-cargo test --manifest-path util/yubikey/rust/Cargo.toml --workspace --locked
+cargo fmt -p keyguard-yubikey-c -p keyguard-yubikey-core -p keyguard-yubikey-jni -- --check
+cargo clippy -p keyguard-yubikey-c -p keyguard-yubikey-core -p keyguard-yubikey-jni --all-targets --all-features --locked --no-deps -- -D warnings
+cargo test -p keyguard-yubikey-c -p keyguard-yubikey-core -p keyguard-yubikey-jni --all-features --locked
 ./gradlew :util:yubikey:checkComposeFree :util:yubikey:desktopTest :util:yubikey:macosArm64Test :util:yubikey:testAndroidHostTest
 ```
 

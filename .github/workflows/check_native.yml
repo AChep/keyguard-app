@@ -338,14 +338,18 @@ jobs:
       - name: "Format, lint and test native utility crates"
         shell: bash
         run: |
+          # One module at a time, so features never unify across modules.
           for module in ffi io instance zip zxcvbn yubikey fido2; do
-            manifest="util/$module/rust/Cargo.toml"
-            cargo fmt --manifest-path "$manifest" --all -- --check
-            cargo clippy --manifest-path "$manifest" --workspace --all-targets --all-features --locked --no-deps -- -D warnings
-            cargo test --manifest-path "$manifest" --workspace --all-features --locked
+            packages=()
+            for crate in util/"$module"/rust/crates/*/; do
+              packages+=(-p "$(basename "$crate")")
+            done
+            cargo fmt "${packages[@]}" -- --check
+            cargo clippy "${packages[@]}" --all-targets --all-features --locked --no-deps -- -D warnings
+            cargo test "${packages[@]}" --all-features --locked
           done
           # zip consumes keyguard-ffi without its jni feature.
-          cargo clippy --manifest-path util/ffi/rust/Cargo.toml --workspace --all-targets --locked --no-deps -- -D warnings
+          cargo clippy -p keyguard-ffi --all-targets --locked --no-deps -- -D warnings
 
   desktop-bundle:
     name: "Native desktop (${{ matrix.name }})"
@@ -434,10 +438,10 @@ jobs:
           CHECK_INSTANCE: ${{ needs.changes.outputs.instance }}
         run: |
           if [[ "$CHECK_IO" == true ]]; then
-            cargo test --manifest-path util/io/rust/Cargo.toml --workspace --all-features --locked --offline
+            cargo test -p keyguard-io-c -p keyguard-io-core -p keyguard-io-jni --all-features --locked --offline
           fi
           if [[ "$CHECK_INSTANCE" == true ]]; then
-            cargo test --manifest-path util/instance/rust/Cargo.toml --workspace --locked --offline
+            cargo test -p keyguard-instance-c -p keyguard-instance-core -p keyguard-instance-jni --locked --offline
           fi
       - name: "Run OS-specific IO and instance JVM regressions"
         if: runner.os != 'Linux' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.instance == 'true')

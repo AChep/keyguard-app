@@ -20,7 +20,15 @@ libc.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 keyguard-io-core = { path = "../../../../io/rust/crates/keyguard-io-core" }
-windows-sys.workspace = true
+windows-sys = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+    "Win32_System_Pipes",
+    "Win32_System_Threading",
+] }
 
 [target.'cfg(windows)'.dev-dependencies]
 windows-sys = { workspace = true, features = ["Win32_System_Ioctl", "Win32_System_SystemServices"] }

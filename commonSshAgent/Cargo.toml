@@ -1,18 +1,18 @@
 [package]
 name = "common-ssh-agent-rust"
-version = "0.1.0"
+version.workspace = true
 edition = "2021"
-rust-version = "1.94.0"
+rust-version.workspace = true
 description = "Shared Rust utilities for Keyguard SSH agent binaries"
-license-file = "../LICENSE"
-repository = "https://github.com/AChep/keyguard-app"
+license-file.workspace = true
+repository.workspace = true
 publish = false
 
 [dependencies]
-prost = "0.13"
+prost.workspace = true
 
 [build-dependencies]
-prost-build = "0.13"
+prost-build.workspace = true
 
 [lints.clippy]
 undocumented_unsafe_blocks = "deny"

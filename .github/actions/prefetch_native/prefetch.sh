@@ -4,25 +4,11 @@ set -euo pipefail
 manifests=()
 case "$PREFETCH_PROFILE" in
   desktop|android|apple)
+    # The root workspace and native crypto hold every shipped native graph.
     manifests+=(
+      Cargo.toml
       util/crypto/rust/Cargo.toml
-      util/io/rust/Cargo.toml
-      util/zxcvbn/rust/Cargo.toml
     )
-    if [[ "$PREFETCH_PROFILE" == desktop ]]; then
-      manifests+=(
-        util/instance/rust/Cargo.toml
-        util/yubikey/rust/Cargo.toml
-        util/fido2/rust/Cargo.toml
-        desktopLibNative/src/Cargo.toml
-        desktopSshAgent/src/Cargo.toml
-        desktopGpgAgent/src/Cargo.toml
-      )
-    elif [[ "$PREFETCH_PROFILE" == android ]]; then
-      manifests+=(androidSshAgent/src/Cargo.toml)
-    elif [[ "$PREFETCH_PROFILE" == apple ]]; then
-      manifests+=(util/zip/rust/Cargo.toml util/yubikey/rust/Cargo.toml util/fido2/rust/Cargo.toml)
-    fi
     ;;
   "") ;;
   *)

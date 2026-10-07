@@ -1,11 +1,11 @@
 [package]
 name = "keyguard-gpg-agent"
-version = "0.1.0"
+version.workspace = true
 edition = "2021"
-rust-version = "1.94.0"
+rust-version.workspace = true
 description = "GPG agent for Keyguard password manager"
-license-file = "../../LICENSE"
-repository = "https://github.com/AChep/keyguard-app"
+license-file.workspace = true
+repository.workspace = true
 publish = false
 
 [[bin]]
@@ -13,37 +13,33 @@ name = "keyguard-gpg-agent"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = "1"
-bytes = "1"
-clap = { version = "4", features = ["derive"] }
-common-gpg-agent-rust = { path = "../../commonGpgAgent" }
-keyguard-agent-identity = { path = "../../commonAgent" }
-hex = "0.4"
-prost = "0.13"
-tokio = { version = "1", features = ["full"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-dirs = "6"
+anyhow.workspace = true
+bytes.workspace = true
+clap = { workspace = true, features = ["derive"] }
+common-gpg-agent-rust.workspace = true
+keyguard-agent-identity.workspace = true
+hex.workspace = true
+prost.workspace = true
+tokio = { workspace = true, features = ["full"] }
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+dirs.workspace = true
 
 [target.'cfg(unix)'.dependencies]
-libc = "0.2"
+libc.workspace = true
 
 [target.'cfg(windows)'.dependencies]
+# An older major than the workspace's getrandom.
 getrandom = "0.2"
-windows-sys = { version = "0.61", features = [
+windows-sys = { workspace = true, features = [
     "Win32_Foundation",
     "Win32_Security",
     "Win32_System_Threading",
 ] }
 
 [dev-dependencies]
-tempfile = "3"
-tokio = { version = "1", features = ["test-util", "io-util", "macros", "rt"] }
+tempfile.workspace = true
+tokio = { workspace = true, features = ["test-util", "io-util", "macros", "rt"] }
 
 [lints.clippy]
 undocumented_unsafe_blocks = "deny"
-
-[profile.release]
-strip = true
-lto = true
-codegen-units = 1

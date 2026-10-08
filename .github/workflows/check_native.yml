@@ -510,7 +510,8 @@ jobs:
           :util:crypto:linkDebugTestMacosArm64
       # The Gradle step above must publish the XCFramework before SwiftPM resolves
       # its local binary target. Each scheme also builds its AutoFill extension.
-      # Keep these sequential: both scheme pre-actions republish the same framework.
+      # Keep these sequential: every scheme pre-action republishes the framework with
+      # only its own SDK's slice, so `swift test` must run right after the macOS builds.
       - name: "Build native macOS app and AutoFill extension"
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
         run: >-

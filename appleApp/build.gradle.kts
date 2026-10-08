@@ -1,8 +1,11 @@
 import com.artemchep.keyguard.buildplugins.kotlin.configureComposeIosSwiftRuntime
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleMain
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleTest
+import org.jetbrains.kotlin.gradle.plugin.mpp.Framework
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.TestExecutable
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkTask
 
 plugins {
     id("keyguard.application-root")
@@ -69,40 +72,73 @@ configureComposeIosSwiftRuntime()
 val keyguardSharedSwiftPackageDir =
     layout.buildDirectory.dir("XCFrameworks/swiftpm/KeyguardShared.xcframework")
 
-// xcode/scripts/build-shared-framework.sh picks the Debug or Release task from
-// Xcode's $CONFIGURATION, so each sync publishes its own configuration.
-listOf("Debug", "Release").forEach { config ->
-    val assembleTaskName = "assembleKeyguardShared${config}XCFramework"
-    val syncSourceXcframework =
-        layout.buildDirectory.dir("XCFrameworks/${config.lowercase()}/KeyguardShared.xcframework")
-    val syncSwiftPackageXCFramework = tasks.register<Exec>(
-        "syncKeyguardShared${config}XCFrameworkForSwiftPackage",
+/** Copies [xcframework] to the stable SwiftPM binary target path after [assembleTaskName]. */
+fun publishToSwiftPackage(
+    assembleTaskName: String,
+    xcframework: Provider<Directory>,
+) {
+    val source = xcframework.get().asFile
+    val destination = keyguardSharedSwiftPackageDir.get().asFile
+    val syncTask = tasks.register<Exec>(
+        assembleTaskName.replaceFirst("assemble", "sync") + "ForSwiftPackage",
     ) {
         group = "build"
-        description = "Copies the $config KeyguardShared XCFramework to the stable SwiftPM binary target path."
+        description = "Copies the result of $assembleTaskName to the stable SwiftPM binary target path."
         dependsOn(assembleTaskName)
         // Up-to-date while the framework is unchanged. Gradle's Sync would not
         // preserve the framework symlinks, hence ditto.
-        inputs.dir(syncSourceXcframework)
-        outputs.dir(keyguardSharedSwiftPackageDir)
-        commandLine(
-            "/usr/bin/ditto",
-            syncSourceXcframework.get().asFile.absolutePath,
-            keyguardSharedSwiftPackageDir.get().asFile.absolutePath,
-        )
+        inputs.dir(source)
+        outputs.dir(destination)
+        commandLine("/usr/bin/ditto", source.absolutePath, destination.absolutePath)
         doFirst {
-            val dest = keyguardSharedSwiftPackageDir.get().asFile
-            dest.deleteRecursively()
-            dest.parentFile.mkdirs()
+            destination.deleteRecursively()
+            destination.parentFile.mkdirs()
         }
     }
+    tasks.named(assembleTaskName) {
+        finalizedBy(syncTask)
+    }
+}
 
+// Every slice: CI's link check and the tests that run outside an app build.
+listOf("Debug", "Release").forEach { config ->
+    val assembleTaskName = "assembleKeyguardShared${config}XCFramework"
     tasks.named(assembleTaskName) {
         dependsOn(
             ":common:iosArm64AggregateResources",
             ":common:iosSimulatorArm64AggregateResources",
             ":common:macosArm64AggregateResources",
         )
-        finalizedBy(syncSwiftPackageXCFramework)
+    }
+    publishToSwiftPackage(
+        assembleTaskName = assembleTaskName,
+        xcframework = layout.buildDirectory.dir("XCFrameworks/${config.lowercase()}/KeyguardShared.xcframework"),
+    )
+}
+
+// One slice: Xcode builds a single SDK, so xcode/scripts/build-shared-framework.sh
+// picks the task from $SDK_NAME and $CONFIGURATION.
+kotlin.targets.withType<KotlinNativeTarget>().configureEach {
+    val target = this
+    val slice = target.name.replaceFirstChar(Char::uppercaseChar)
+    binaries.withType<Framework>().configureEach {
+        val framework = this
+        val config = framework.buildType.getName().replaceFirstChar(Char::uppercaseChar)
+        val outputDir = layout.buildDirectory.dir("XCFrameworks/${target.name}")
+        val assembleTaskName = "assembleKeyguardShared$slice${config}XCFramework"
+        tasks.register<XCFrameworkTask>(assembleTaskName) {
+            group = "build"
+            description = "Assembles the $config KeyguardShared XCFramework with only the ${target.name} slice."
+            baseName = provider { framework.baseName }
+            buildType = framework.buildType
+            from(framework)
+            this.outputDir = outputDir.get().asFile
+            // xcode/scripts/copy-compose-resources.sh copies this slice's resources.
+            dependsOn(":common:${target.name}AggregateResources")
+        }
+        publishToSwiftPackage(
+            assembleTaskName = assembleTaskName,
+            xcframework = outputDir.map { it.dir("${config.lowercase()}/KeyguardShared.xcframework") },
+        )
     }
 }

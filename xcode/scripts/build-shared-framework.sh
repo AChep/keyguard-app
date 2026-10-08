@@ -1,7 +1,8 @@
 #!/bin/sh
-# Assembles the KeyguardShared.xcframework (all three Apple slices) from the :appleApp
-# Kotlin module and publishes it to the stable SwiftPM path consumed by
-# appleUi/Package.swift's binaryTarget.
+# Assembles the KeyguardShared.xcframework from the :appleApp Kotlin module and
+# publishes it to the stable SwiftPM path consumed by appleUi/Package.swift's
+# binaryTarget. Xcode builds one SDK at a time, so the framework only carries the
+# slice for $SDK_NAME; switching the destination publishes that SDK's slice instead.
 #
 # :appleApp is the ONLY producer of this framework — the app directories carry no
 # Kotlin of their own. The assemble task is finalized by a sync task that ditto's the
@@ -54,13 +55,14 @@ if [ -z "${ORG_GRADLE_PROJECT_versionRef+x}" ]; then
     ORG_GRADLE_PROJECT_versionRef="$(git rev-parse --short HEAD 2>/dev/null || true)"
     export ORG_GRADLE_PROJECT_versionRef
 fi
-# Match the license report to the app being built, including native dependencies.
+# Build the framework slice and the license report for the app being built,
+# including native dependencies.
 case "$SDK_NAME" in
-  iphonesimulator*) LICENSE_TARGET="IosSimulatorArm64" ;;
-  iphoneos*)        LICENSE_TARGET="IosArm64" ;;
-  macosx*)          LICENSE_TARGET="MacosArm64" ;;
+  iphonesimulator*) SLICE="IosSimulatorArm64" ;;
+  iphoneos*)        SLICE="IosArm64" ;;
+  macosx*)          SLICE="MacosArm64" ;;
   *)
-    echo "error: unsupported SDK_NAME '$SDK_NAME' for Apple license report"
+    echo "error: unsupported SDK_NAME '$SDK_NAME' for KeyguardShared"
     exit 1
     ;;
 esac
@@ -70,16 +72,16 @@ case "$CONFIGURATION" in
 esac
 if [ "$FRAMEWORK_BUILD" = Release ]; then
   # Kotlin/Native release linking exceeds the default Gradle heap. Serializing the
-  # work also prevents the Apple slice linkers from competing for that memory.
+  # work also keeps the compilers and the linker from competing for that memory.
   ./gradlew --no-daemon \
     "-Dorg.gradle.jvmargs=-Xmx16384m -Dfile.encoding=UTF-8" \
     --max-workers=1 \
     -Pbuildkonfig.flavor="$KONFIG_FLAVOR" \
-    ":appleApp:licensee$LICENSE_TARGET" \
-    ":appleApp:assembleKeyguardShared${FRAMEWORK_BUILD}XCFramework"
+    ":appleApp:licensee$SLICE" \
+    ":appleApp:assembleKeyguardShared${SLICE}${FRAMEWORK_BUILD}XCFramework"
 else
   ./gradlew \
     -Pbuildkonfig.flavor="$KONFIG_FLAVOR" \
-    ":appleApp:licensee$LICENSE_TARGET" \
-    ":appleApp:assembleKeyguardShared${FRAMEWORK_BUILD}XCFramework"
+    ":appleApp:licensee$SLICE" \
+    ":appleApp:assembleKeyguardShared${SLICE}${FRAMEWORK_BUILD}XCFramework"
 fi

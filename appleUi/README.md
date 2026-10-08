@@ -18,6 +18,8 @@ Swift Package Manager can find it:
 Open `iosApp/iosApp.xcodeproj` or `macosApp/Keyguard.xcodeproj` in Xcode. Select the
 `Keyguard` scheme and your device or simulator, then build and run. The scheme's
 build steps rebuild the shared framework and generate the strings.
+They build only the slice for the selected destination. After an iOS build, run the
+command above again before `swift test --package-path appleUi`.
 
 The projects are generated with XcodeGen. After changing either app's `project.yml`
 or the shared specifications in `xcode/`, regenerate both:

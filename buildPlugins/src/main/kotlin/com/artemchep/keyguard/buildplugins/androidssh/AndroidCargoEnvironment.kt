@@ -34,43 +34,28 @@ object AndroidCargoEnvironment {
         val ranlib: File,
     )
 
+    /**
+     * Resolves the SDK in the same order as AGP, so Cargo links against the NDK of the SDK
+     * that Gradle builds with: `sdk.dir` in local.properties wins over the environment.
+     */
     fun resolveAndroidSdkRoot(
         rootDir: File,
         localPropertiesFile: File?,
+        environment: (String) -> String? = System::getenv,
     ): SdkResolution {
         val effectiveLocalPropertiesFile = localPropertiesFile ?: File(rootDir, "local.properties")
-        val localPropertiesPath = effectiveLocalPropertiesFile.absolutePath
-
-        val fromAndroidSdkRoot = System.getenv("ANDROID_SDK_ROOT")
-            ?.takeIf(String::isNotBlank)
-            ?.let(::File)
-            ?.takeIf(File::isDirectory)
-        if (fromAndroidSdkRoot != null) {
-            return SdkResolution(
-                sdkRoot = fromAndroidSdkRoot,
-                localPropertiesPath = localPropertiesPath,
-            )
-        }
-
-        val fromAndroidHome = System.getenv("ANDROID_HOME")
-            ?.takeIf(String::isNotBlank)
-            ?.let(::File)
-            ?.takeIf(File::isDirectory)
-        if (fromAndroidHome != null) {
-            return SdkResolution(
-                sdkRoot = fromAndroidHome,
-                localPropertiesPath = localPropertiesPath,
-            )
-        }
-
-        val fromLocalProperties = effectiveLocalPropertiesFile
-            .takeIf(File::isFile)
-            ?.let(::readSdkDirFromLocalProperties)
-            ?.takeIf(File::isDirectory)
-
+        val sdkRoot = sequenceOf(
+            effectiveLocalPropertiesFile.takeIf(File::isFile)?.let(::readSdkDirFromLocalProperties),
+            environment("ANDROID_HOME"),
+            environment("ANDROID_SDK_ROOT"),
+        )
+            .filterNotNull()
+            .filter(String::isNotBlank)
+            .map { path -> File(path).takeIf(File::isAbsolute) ?: File(rootDir, path) }
+            .firstOrNull(File::isDirectory)
         return SdkResolution(
-            sdkRoot = fromLocalProperties,
-            localPropertiesPath = localPropertiesPath,
+            sdkRoot = sdkRoot,
+            localPropertiesPath = effectiveLocalPropertiesFile.absolutePath,
         )
     }
 
@@ -101,10 +86,10 @@ object AndroidCargoEnvironment {
             buildString {
                 appendLine("Android SDK root could not be resolved.")
                 appendLine("Checked, in order:")
-                appendLine("  ANDROID_SDK_ROOT")
-                appendLine("  ANDROID_HOME")
                 appendLine("  ${sdkResolution.localPropertiesPath} (sdk.dir)")
-                append("Set ANDROID_SDK_ROOT or ensure local.properties contains sdk.dir.")
+                appendLine("  ANDROID_HOME")
+                appendLine("  ANDROID_SDK_ROOT")
+                append("Set sdk.dir in local.properties or the ANDROID_HOME environment variable.")
             },
         )
 
@@ -243,12 +228,10 @@ object AndroidCargoEnvironment {
         return executable
     }
 
-    private fun readSdkDirFromLocalProperties(file: File): File? {
+    private fun readSdkDirFromLocalProperties(file: File): String? {
         val properties = Properties()
         file.inputStream().use(properties::load)
         return properties.getProperty("sdk.dir")
-            ?.takeIf(String::isNotBlank)
-            ?.let(::File)
     }
 
     private fun hostToolchainDirectoryCandidates(): List<String> = when (detectHostPlatform()) {

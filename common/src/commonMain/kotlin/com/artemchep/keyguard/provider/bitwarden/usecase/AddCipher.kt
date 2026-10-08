@@ -691,6 +691,7 @@ private suspend fun BitwardenCipher.Companion.of(
         notes = request.note?.takeIf { it.isNotEmpty() },
         customIcon = customIcon,
         favorite = favourite,
+        ignoredAlerts = old?.ignoredAlerts.orEmpty(),
         fields = fields,
         links = links,
         tags = tags,

@@ -530,6 +530,7 @@ suspend fun RememberStateFlowScope.accountStateProducer(
                     .partially1(profileOrNull.profileId)
                 this += FlatItemAction(
                     id = "account.hideProfile",
+                    selected = hidden,
                     leading = {
                         Icon(
                             Icons.Outlined.VisibilityOff,

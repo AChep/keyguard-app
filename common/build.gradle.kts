@@ -289,7 +289,6 @@ kotlin {
 
         getByName("desktopMain") {
             dependencies {
-                implementation(compose.desktop.currentOs)
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.google.zxing.javase)
                 implementation(libs.harawata.appdirs)

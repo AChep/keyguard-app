@@ -9,7 +9,7 @@ final class ScenePrivacyCover: NSObject {
     private var isCovering = false
     private var coveredWindows: [CoveredWindow] = []
 
-    private struct CoveredWindow {
+    private struct CoveredWindow: Sendable {
         weak var window: UIWindow?
         let cover: UIView
         let accessibilityElementsHidden: Bool
@@ -75,11 +75,15 @@ final class ScenePrivacyCover: NSObject {
 
     @objc private func uncoverScene() {
         isCovering = false
-        for covered in coveredWindows {
+        Self.uncover(coveredWindows)
+        coveredWindows.removeAll()
+    }
+
+    private static func uncover(_ windows: [CoveredWindow]) {
+        for covered in windows {
             covered.window?.accessibilityElementsHidden = covered.accessibilityElementsHidden
             covered.cover.removeFromSuperview()
         }
-        coveredWindows.removeAll()
     }
 
     @objc func stop() {
@@ -88,6 +92,17 @@ final class ScenePrivacyCover: NSObject {
         scene = nil
     }
 
-    isolated deinit { stop() }
+    deinit {
+        let windows = coveredWindows
+        notifications.removeObserver(self)
+        guard !windows.isEmpty else { return }
+        // Isolated deinit crashes in older Swift runtimes when UIKit releases
+        // the view outside a task. Transfer only the cleanup state to MainActor.
+        if Thread.isMainThread {
+            MainActor.assumeIsolated { Self.uncover(windows) }
+        } else {
+            Task { @MainActor in Self.uncover(windows) }
+        }
+    }
 }
 #endif

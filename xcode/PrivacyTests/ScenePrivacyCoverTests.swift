@@ -311,6 +311,21 @@ final class ScenePrivacyCoverTests: XCTestCase {
         XCTAssertNil(privacyCover(in: window))
     }
 
+    func testDeallocationRestoresCoveredWindowsWithoutExplicitStop() throws {
+        probe.privacyCover.stop()
+        var cover: ScenePrivacyCover? = ScenePrivacyCover(notifications: notifications)
+        cover?.attach(to: scene)
+        post(UIScene.willDeactivateNotification)
+        try assertCovered(window)
+
+        cover = nil
+
+        XCTAssertNil(privacyCover(in: window))
+        XCTAssertFalse(window.accessibilityElementsHidden)
+        post(UIScene.didEnterBackgroundNotification)
+        XCTAssertNil(privacyCover(in: window))
+    }
+
     private func makeWindow() -> UIWindow {
         let window = UIWindow(windowScene: scene)
         window.overrideUserInterfaceStyle = .light

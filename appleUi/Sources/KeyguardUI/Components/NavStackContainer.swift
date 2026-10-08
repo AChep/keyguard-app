@@ -12,13 +12,15 @@ struct NavStackContainer<Content: View>: View {
     let scope: String
     /// An enclosing scaffold can keep observation alive across detail pushes.
     var observesScope = true
+    /// Disable when this stack already occupies a split view's detail column.
+    var allowsPanels = true
     var rootList: NavigationListKind? = nil
     var rootVaultList: VaultListSessionModel? = nil
     @ViewBuilder var content: () -> Content
 
     @State private var listSessions = NavigationListSessions()
 
-    private var usesPanels: Bool { ListDetailNavigation.usesPanels }
+    private var usesPanels: Bool { allowsPanels && ListDetailNavigation.usesPanels }
 
     private var projection: ListDetailNavigation {
         ListDetailNavigation(

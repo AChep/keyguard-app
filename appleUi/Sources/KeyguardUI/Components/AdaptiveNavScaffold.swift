@@ -21,7 +21,7 @@ struct AdaptiveNavScaffold<CompactRoot: View, Sidebar: View, Detail: View>: View
                 NavigationSplitView {
                     sidebar()
                 } detail: {
-                    NavStackContainer(scope: scope, observesScope: false) {
+                    NavStackContainer(scope: scope, observesScope: false, allowsPanels: false) {
                         detail()
                     }
                 }

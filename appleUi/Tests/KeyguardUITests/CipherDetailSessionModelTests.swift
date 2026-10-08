@@ -133,7 +133,7 @@ final class CipherDetailSessionModelTests: XCTestCase {
 
     private func snapshot(_ id: String) -> VaultDetailSnapshot {
         VaultDetailSnapshot(
-            title: id, typeIcon: "Login", favorite: false, isLoading: false, notFound: false,
+            title: id, typeIcon: "Login", favorite: false, canToggleFavorite: true, isLoading: false, notFound: false,
             cipherId: id, items: [], iconUrl: nil, iconPlaceholder: nil, editActionId: nil, actions: [])
     }
 

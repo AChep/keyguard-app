@@ -426,6 +426,7 @@ internal class CipherDetailController(
                     title = data.name,
                     typeIcon = data.type.name,
                     favorite = data.favorite,
+                    canToggleFavorite = content.onFavourite != null,
                     isLoading = false,
                     notFound = false,
                     cipherId = data.id,

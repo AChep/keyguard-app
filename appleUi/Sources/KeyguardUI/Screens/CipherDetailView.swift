@@ -74,6 +74,7 @@ struct CipherDetailView: View {
                 systemImage: detail.favorite ? "star.fill" : "star",
                 action: toggleFavorite
             )
+            .disabled(!detail.canToggleFavorite)
             .help(favoriteTitle)
             .accessibilityAddTraits(detail.favorite ? .isSelected : [])
         }

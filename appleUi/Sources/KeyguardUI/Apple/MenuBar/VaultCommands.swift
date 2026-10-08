@@ -13,10 +13,9 @@ import KeyguardShared
 /// `keyguardAppConfiguration` confirms it before calling `invokeUnlockAction`; a
 /// `Commands` structure cannot host a `.confirmationDialog` itself.
 public struct VaultCommands: Commands {
-    public init() {
-        let app = AppViewModel.shared
-        authModel = app.auth
-        accountsModel = app.accounts
+    public init(model: AppViewModel) {
+        authModel = model.auth
+        accountsModel = model.accounts
     }
 
     // `VaultSessionModel` is `@Observable`, so reading its `status` / `unlockActions`

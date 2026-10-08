@@ -29,7 +29,7 @@ class SshAgentManagerApple(
             get() = findBundledBinary() != null
 
         val defaultSshAuthSockPath: String
-            get() = (appleAppGroupContainerPath() ?: NSTemporaryDirectory()).trimEnd('/') + "/ssh-agent.sock"
+            get() = appleAppGroupContainerPath().trimEnd('/') + "/ssh-agent.sock"
 
         private fun findBundledBinary(): String? {
             val bundle = NSBundle.mainBundle

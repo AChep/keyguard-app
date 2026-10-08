@@ -1,5 +1,6 @@
 import Foundation
 import Darwin
+import KeyguardShared
 
 /// Shared by the app and appex. Locks are released by the OS if a process exits.
 /// The app prepares snapshots outside the lock. Extension mutations and their
@@ -9,21 +10,23 @@ final class AutofillStoreAccess {
     enum Failure: Error { case sharedStorageUnavailable, busy }
 
     static var sharedDirectory: URL? {
-        guard let group = Bundle.main.object(forInfoDictionaryKey: "KeyguardAppGroupIdentifier") as? String,
-            !group.isEmpty, !group.hasPrefix("$")
-        else { return nil }
-        return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group)?
+        guard let path = KeyguardStorage.shared.sharedContainerPath() else { return nil }
+        return URL(filePath: path, directoryHint: .isDirectory)
             .appending(path: "Keyguard", directoryHint: .isDirectory)
     }
 
-    private let directory: URL?
+    private let resolveDirectory: @MainActor () -> URL?
 
-    init(directory: URL? = AutofillStoreAccess.sharedDirectory) {
-        self.directory = directory
+    init(resolveDirectory: @escaping @MainActor () -> URL? = { AutofillStoreAccess.sharedDirectory }) {
+        self.resolveDirectory = resolveDirectory
+    }
+
+    convenience init(directory: URL?) {
+        self.init(resolveDirectory: { directory })
     }
 
     func revision() throws -> String {
-        guard let directory else { throw Failure.sharedStorageUnavailable }
+        guard let directory = resolveDirectory() else { throw Failure.sharedStorageUnavailable }
         let url = directory.appending(path: "autofill-index-revision")
         do { return try String(contentsOf: url, encoding: .utf8) } catch let error as CocoaError
             where error.code == .fileReadNoSuchFile
@@ -31,13 +34,13 @@ final class AutofillStoreAccess {
     }
 
     func markChanged() throws {
-        guard let directory else { throw Failure.sharedStorageUnavailable }
+        guard let directory = resolveDirectory() else { throw Failure.sharedStorageUnavailable }
         try UUID().uuidString.write(
             to: directory.appending(path: "autofill-index-revision"), atomically: true, encoding: .utf8)
     }
 
     func withLock<T>(_ operation: @MainActor () async throws -> T) async throws -> T {
-        guard let directory else { throw Failure.sharedStorageUnavailable }
+        guard let directory = resolveDirectory() else { throw Failure.sharedStorageUnavailable }
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let path = directory.appending(path: "autofill-index.lock").path
         let descriptor = open(path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)

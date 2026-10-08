@@ -95,4 +95,18 @@ final class AutofillStoreAccessTests: XCTestCase {
             .Failure.sharedStorageUnavailable
         {}
     }
+
+    func testUnavailableContainerIsResolvedAgainAfterRecovery() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        var availableDirectory: URL?
+        let sut = AutofillStoreAccess(resolveDirectory: { availableDirectory })
+        do { try await sut.withLock { XCTFail("Storage is not available yet") }; XCTFail() } catch AutofillStoreAccess
+            .Failure.sharedStorageUnavailable
+        {}
+
+        availableDirectory = directory
+        try await sut.withLock { try sut.markChanged() }
+        XCTAssertFalse(try sut.revision().isEmpty)
+    }
 }

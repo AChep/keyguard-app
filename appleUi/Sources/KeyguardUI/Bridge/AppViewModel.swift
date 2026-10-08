@@ -10,11 +10,11 @@ import UIKit
 @MainActor
 @Observable
 public final class AppViewModel {
-    public static let shared: AppViewModel = {
+    static func create() -> AppViewModel {
         let app = AppViewModel(core: KeyguardCore())
         app.start()
         return app
-    }()
+    }
 
     public typealias Status = VaultStatus
 

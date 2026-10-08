@@ -10,9 +10,8 @@
 //
 // The bundle id and the App Group are globally unique in Apple's registry, so
 // overriding KEYGUARD_DEVELOPMENT_TEAM alone will not get you the shared
-// container. Override all three to get a fully functional build, or override
-// none and accept the Application Support fallback (no AutoFill) — see
-// `appleUi/README.md`.
+// container. Override all three with identifiers registered to your account.
+// App Group storage is required in every build — see `appleUi/README.md`.
 
 KEYGUARD_DEVELOPMENT_TEAM = JJCH8P636V
 KEYGUARD_BUNDLE_ID = com.artemchep.keyguard

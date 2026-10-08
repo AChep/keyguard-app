@@ -3,11 +3,11 @@ import KeyguardUI
 
 @main
 struct KeyguardIosApp: App {
-    @State private var model = AppViewModel.shared
+    @State private var startup = AppStartup.shared
     @Environment(\.scenePhase) private var scenePhase
 
     private var preferredColorScheme: ColorScheme? {
-        switch model.appPreferences.theme {
+        switch startup.model?.appPreferences.theme {
         case "dark": .dark
         case "light": .light
         default: nil
@@ -16,10 +16,12 @@ struct KeyguardIosApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootContainer {
-                KeyguardRootiOS()
+            AppStartupView(startup: startup) { model in
+                RootContainer {
+                    KeyguardRootiOS()
+                }
+                .keyguardAppConfiguration(model: model, scenePhase: scenePhase)
             }
-            .keyguardAppConfiguration(model: model, scenePhase: scenePhase)
             .preferredColorScheme(preferredColorScheme)
         }
     }

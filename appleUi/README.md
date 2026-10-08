@@ -36,7 +36,11 @@ To sign with your own Apple account, copy the
 `xcode/Signing.local.xcconfig`. Replace all three values: the development team,
 bundle ID, and App Group ID. Use identifiers registered to your account.
 The local file is ignored by Git; the example has setup details.
-AutoFill needs a working App Group to share the app's vault.
+App Group storage is required in every build. Missing configuration or unavailable storage
+stops startup with a retryable error; the app never switches vaults automatically.
+
+The app and AutoFill use the same container, resolved with Apple's
+[`containerURL(forSecurityApplicationGroupIdentifier:)`](https://developer.apple.com/documentation/foundation/filemanager/containerurl(forsecurityapplicationgroupidentifier:)).
 
 ## Formatting
 

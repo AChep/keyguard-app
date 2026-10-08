@@ -2522,4 +2522,8 @@
     <string name="fido2_error_invalid_pin">Incorrect PIN. Check the PIN before trying again; repeated failures can block the key.</string>
     <string name="fido2_error_timeout">The security key did not respond in time. Reconnect it and try again.</string>
     <string name="fido2_error_retry">Try your enrolled security key again, or unlock with your app password.</string>
+    <string name="storage_error_title">Storage unavailable</string>
+    <string name="storage_missing_configuration">This build is missing its shared storage configuration. Install a correctly configured build to continue.</string>
+    <string name="storage_unavailable">Keyguard cannot access its storage container. Try again. If the problem persists, check the app’s signing and App Group configuration.</string>
+    <string name="storage_unwritable">Keyguard cannot write to its storage container. Check available space and storage access, then try again.</string>
 </resources>

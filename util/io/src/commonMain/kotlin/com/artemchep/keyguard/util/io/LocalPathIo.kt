@@ -32,6 +32,9 @@ fun LocalPath.readText(): String =
             source.readString()
         }
 
+/** Returns null only when the file is missing; other read failures are propagated. */
+expect fun LocalPath.readTextIfExists(): String?
+
 /**
  * Atomically replaces the file content with [data].
  *

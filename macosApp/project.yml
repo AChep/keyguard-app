@@ -89,7 +89,7 @@ targets:
         PRODUCT_NAME: Keyguard
         # App Group (shared vault + agent sockets) + shared keychain group (AutoFill).
         # Requires a real DEVELOPMENT_TEAM + provisioning to actually be granted; the
-        # data-dir resolver falls back to App Support when it isn't.
+        # app stops before opening a vault when shared storage is unavailable.
         CODE_SIGN_ENTITLEMENTS: macosApp/Keyguard.entitlements
         REGISTER_APP_GROUPS: YES
         GENERATE_INFOPLIST_FILE: YES

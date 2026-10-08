@@ -6,7 +6,6 @@ import com.artemchep.keyguard.common.io.dispatchOn
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.handleError
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
@@ -19,7 +18,9 @@ import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.util.io.atomic.AtomicDirectoryPermissions
 import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
 import com.artemchep.keyguard.util.io.atomic.AtomicFilePermissions
+import com.artemchep.keyguard.util.io.atomic.AtomicFileWriteException
 import com.artemchep.keyguard.util.io.atomic.AtomicPublicationPolicy
+import com.artemchep.keyguard.util.io.atomic.AtomicPublicationState
 import com.artemchep.keyguard.util.io.atomic.AtomicWriteOptions
 import com.artemchep.keyguard.util.io.atomic.ExistingParentLinkPolicy
 import com.artemchep.keyguard.util.io.atomic.ParentDirectoryPolicy
@@ -27,12 +28,13 @@ import com.artemchep.keyguard.util.io.atomic.ReplacementAccessPolicy
 import com.artemchep.keyguard.util.io.atomic.SyncLevel
 import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
 import com.artemchep.keyguard.util.io.atomic.writeFileAtomically
-import com.artemchep.keyguard.util.io.readText
+import com.artemchep.keyguard.util.io.readTextIfExists
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,9 +42,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -62,10 +64,12 @@ class FileJsonKeyValueStoreStore(
     private val json: Json,
 ) : JsonKeyValueStoreStore {
     override fun read(): IO<PersistentMap<String, Any?>> = fileIo
-        .effectMap { destination -> destination.path.readText() }
-        .map { text ->
-            val el = json.decodeFromString<JsonObject>(text)
-            el.toMap().toPersistentMap()
+        .effectMap { destination ->
+            // A cancelled first write may leave no file to reconcile. Absence is
+            // an empty store; unreadable or malformed existing files still fail.
+            destination.path.readTextIfExists()
+                ?.let { json.decodeFromString<JsonObject>(it).toMap().toPersistentMap() }
+                ?: persistentMapOf<String, Any?>()
         }
         .dispatchOn(Dispatchers.IO)
 
@@ -151,25 +155,56 @@ class JsonKeyValueStore(
     }
 
     private var init = false
+    private var needsReload = false
 
-    private suspend fun ensureInit(): PersistentMap<String, Any?> {
+    private suspend fun ensureInit(): PersistentMap<String, Any?> = mutex.withLock {
+        initializeLocked()
+        sink.value
+    }
+
+    private suspend fun initializeLocked() {
         // Initialize the sink with data from the external
         // database.
         if (!init) {
-            mutex.withLock {
-                if (!init) {
-                    val data = str.read()
-                        .handleError {
-                            persistentMapOf<String, Any?>()
-                        }
-                        .bind()
-                    sink.value = data
-                }
-                init = true
-            }
+            sink.value = str.read()
+                .handleError { persistentMapOf<String, Any?>() }
+                .bind()
+            init = true
         }
+        if (needsReload) {
+            // Do not overwrite a possibly published commit using stale memory.
+            sink.value = str.read().bind()
+            needsReload = false
+        }
+    }
 
-        return sink.value
+    // The backend may throw any failure, including cancellation after publication.
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun update(transform: (PersistentMap<String, Any?>) -> PersistentMap<String, Any?>) {
+        mutex.withLock {
+            initializeLocked()
+            val value = transform(sink.value)
+            try {
+                str.write(value).bind()
+            } catch (error: Throwable) {
+                // A failed flush/cleanup or cancellation can follow publication.
+                // Reconcile with disk, but never turn the failed commit into success.
+                val notPublished = error is AtomicFileWriteException &&
+                    error.publicationState == AtomicPublicationState.NotPublished
+                if (!notPublished) {
+                    withContext(NonCancellable) {
+                        try {
+                            sink.value = str.read().bind()
+                        } catch (readError: Throwable) {
+                            needsReload = true
+                            error.addSuppressed(readError)
+                        }
+                    }
+                }
+                throw error
+            }
+            sink.value = value
+        }
     }
 
     private inline fun <reified T : Any> getFlowPrefs(
@@ -189,21 +224,13 @@ class JsonKeyValueStore(
         key = key,
         clazz = clazz,
         default = defaultValue,
-        update = {
-            ensureInit()
-
-            val newValue = sink.updateAndGet(it)
-            str.write(newValue).bind()
-        },
+        update = ::update,
         flow = flow,
     )
 
     /** Clears persisted preferences and updates existing preference collectors. */
     fun clearAndCommit(): IO<Unit> = ioEffect {
-        ensureInit()
-        val empty = persistentMapOf<String, Any?>()
-        str.write(empty).bind()
-        sink.value = empty
+        update { persistentMapOf() }
     }
 
     override fun getFile(): IO<LocalPath> = ioEffect {

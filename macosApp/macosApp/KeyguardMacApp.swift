@@ -3,6 +3,7 @@ import AppKit
 import KeyguardUI
 
 /// Owns process-wide AppKit surfaces that live outside the SwiftUI scene graph.
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var quickSearch: QuickSearchController?
     private var sshApproval: SshAgentApprovalController?
@@ -13,7 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// process to stay alive, independently of the normal window-close preference.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         let menuBarOnly = UserDefaults.standard.bool(forKey: DockIconMode.menuBarOnlyKey)
-        let closeToTray = AppViewModel.shared.appPreferences.closeToTray
+        let closeToTray = AppStartup.shared.model?.appPreferences.closeToTray ?? false
         return !menuBarOnly && !closeToTray
     }
 
@@ -25,17 +26,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             memoryCapacity: 32 * 1024 * 1024,
             diskCapacity: 256 * 1024 * 1024
         )
+    }
 
-        quickSearch = QuickSearchController(model: .shared)
-        sshApproval = SshAgentApprovalController(model: .shared)
-        gpgApproval = GpgAgentApprovalController(model: .shared)
+    func startControllers(model: AppViewModel) {
+        guard quickSearch == nil else { return }
+        quickSearch = QuickSearchController(model: model)
+        sshApproval = SshAgentApprovalController(model: model)
+        gpgApproval = GpgAgentApprovalController(model: model)
     }
 }
 
 @main
 struct KeyguardMacApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @State private var model = AppViewModel.shared
+    @State private var startup = AppStartup.shared
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage(DockIconMode.menuBarOnlyKey) private var menuBarOnly = false
 
@@ -43,20 +47,23 @@ struct KeyguardMacApp: App {
         // The main window carries a stable id so the menu-bar popover can raise
         // it via `openWindow(id: "main")`.
         WindowGroup(id: "main") {
-            ContentView()
-                .keyguardAppConfiguration(model: model, scenePhase: scenePhase)
-                .frame(minWidth: 460, minHeight: 560)
-                .onAppear { DockIconMode.applyInitialMode(menuBarOnly: menuBarOnly) }
-                .onChange(of: menuBarOnly) { _, newValue in
-                    DockIconMode.apply(menuBarOnly: newValue)
-                }
+            AppStartupView(startup: startup) { model in
+                ContentView()
+                    .keyguardAppConfiguration(model: model, scenePhase: scenePhase)
+                    .onAppear { appDelegate.startControllers(model: model) }
+            }
+            .frame(minWidth: 460, minHeight: 560)
+            .onAppear { DockIconMode.applyInitialMode(menuBarOnly: menuBarOnly) }
+            .onChange(of: menuBarOnly) { _, newValue in
+                DockIconMode.apply(menuBarOnly: newValue)
+            }
         }
         .windowResizability(.contentSize)
         // Standard titlebar so each screen's `navigationTitle` shows in the unified
         // titlebar/toolbar.
         .windowStyle(.titleBar)
         .commands {
-            VaultCommands()
+            if let model = startup.model { VaultCommands(model: model) }
             ToolbarCommands()
         }
 
@@ -64,9 +71,12 @@ struct KeyguardMacApp: App {
         // the one `KeyguardCore` / DI graph) with the main window — a second view
         // model would spin up a second session.
         MenuBarExtra("Keyguard", systemImage: "lock.shield") {
-            MenuBarPopover()
-                .keyguardEnvironment(model: model)
-                .tint(model.accentColor)
+            AppStartupView(startup: startup) { model in
+                MenuBarPopover()
+                    .keyguardEnvironment(model: model)
+                    .tint(model.accentColor)
+                    .onAppear { appDelegate.startControllers(model: model) }
+            }
         }
         .menuBarExtraStyle(.window)
     }

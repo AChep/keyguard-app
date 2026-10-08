@@ -9,6 +9,9 @@ import com.artemchep.keyguard.util.io.atomic.ReplacementAccessPolicy
 import com.artemchep.keyguard.util.io.atomic.SyncLevel
 import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
 import java.io.FileNotFoundException
+import java.nio.file.AccessDeniedException
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
 import kotlin.io.path.createTempDirectory
 import kotlinx.io.buffered
 import kotlinx.io.readByteArray
@@ -20,6 +23,24 @@ import kotlin.test.assertFailsWith
 // Backticked test names describe behavior more clearly than production-style identifiers.
 @Suppress("FunctionNaming")
 class LocalPathIoTest {
+    @Test
+    fun `readTextIfExists propagates permission errors`() {
+        val root = createTempDirectory("local-path-io-unreadable")
+        val file = root.resolve("preferences.json")
+        try {
+            if (!Files.getFileStore(root).supportsFileAttributeView("posix")) return
+            Files.write(file, "saved".toByteArray())
+            Files.setPosixFilePermissions(file, emptySet())
+            try {
+                assertFailsWith<AccessDeniedException> { file.toLocalPath().readTextIfExists() }
+            } finally {
+                Files.setPosixFilePermissions(file, setOf(PosixFilePermission.OWNER_READ))
+            }
+        } finally {
+            root.toFile().deleteRecursively()
+        }
+    }
+
     @Test
     fun `writeText and readText round trip utf8 text`() {
         val root = createTempDirectory("local-path-io-text")

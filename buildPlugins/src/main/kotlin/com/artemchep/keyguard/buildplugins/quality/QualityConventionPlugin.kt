@@ -19,7 +19,7 @@ class QualityConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
         pluginManager.apply(KtlintConventionPlugin::class.java)
         pluginManager.apply("dev.detekt")
-        val repositoryDirectory = rootProject.layout.projectDirectory
+        val repositoryDirectory = layout.settingsDirectory
 
         // Typed custom-rule tasks remain separately opt-in; the shared task needs
         // the rule set on its plugin classpath to recognize its configuration keys.

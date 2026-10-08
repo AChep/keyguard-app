@@ -35,7 +35,7 @@ class AndroidSshAgentPlugin : Plugin<Project> {
         fun androidLinkerExecutableFor(rustTarget: String) = layout.file(
             providers.provider {
                 AndroidCargoEnvironment.resolveLinkerExecutable(
-                    rootDir = rootProject.projectDir,
+                    rootDir = rootDir,
                     localPropertiesFile = null,
                     rustTarget = rustTarget,
                     androidApiLevel = androidMinSdk,

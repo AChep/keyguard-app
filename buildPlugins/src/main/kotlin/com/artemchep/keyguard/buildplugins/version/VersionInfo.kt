@@ -5,6 +5,8 @@ import com.artemchep.keyguard.buildplugins.version
 import com.artemchep.keyguard.buildplugins.versionInt
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.provider.ValueSource
+import org.gradle.api.provider.ValueSourceParameters
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -30,9 +32,9 @@ fun Project.createVersionInfo(
         .orNull
         .orEmpty()
     val buildDate = providers.gradleProperty("versionDate")
-        .orNull
-        ?.let { LocalDate.parse(it, DateTimeFormatter.BASIC_ISO_DATE) }
-        ?: LocalDate.now(ZoneOffset.UTC)
+        .orElse(providers.of(TodayValueSource::class.java) {})
+        .map { LocalDate.parse(it, DateTimeFormatter.BASIC_ISO_DATE) }
+        .get()
     val codeVersion = kotlin.run {
         val providedVersionCode = providers.gradleProperty("versionCode")
             .orNull
@@ -56,3 +58,11 @@ internal fun parseVersionCode(value: String): Int =
         ?: throw GradleException(
             "Gradle property 'versionCode' must be a positive integer, but was '$value'.",
         )
+
+/**
+ * Today's UTC date. The configuration cache re-checks a value source each time it reuses an
+ * entry, so a cached configuration from yesterday can not keep yesterday's date.
+ */
+abstract class TodayValueSource : ValueSource<String, ValueSourceParameters.None> {
+    override fun obtain(): String = LocalDate.now(ZoneOffset.UTC).format(DateTimeFormatter.BASIC_ISO_DATE)
+}

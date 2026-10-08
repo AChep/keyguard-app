@@ -12,6 +12,7 @@ import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
+import org.jetbrains.compose.desktop.application.tasks.AbstractNotarizationTask
 
 plugins {
     id("keyguard.application-root")
@@ -129,6 +130,14 @@ val prepareBundledAppResources = tasks.register<Sync>("prepareBundledAppResource
     into(bundledAppResourcesDir)
 }
 
+// Read lazily, so the configuration cache never stores the credentials.
+val notarizationAppleId = providers.gradleProperty("notarization_apple_id")
+    .orElse("stub_apple_id")
+val notarizationPassword = providers.gradleProperty("notarization_password")
+    .orElse("stub_password")
+val notarizationAscProvider = providers.gradleProperty("notarization_asc_provider")
+    .orElse("stub_asc_provider")
+
 compose.desktop {
     application {
         mainClass = "com.artemchep.keyguard.MainKt"
@@ -212,16 +221,6 @@ compose.desktop {
                     }
                 }
                 notarization {
-                    val notarizationAppleId = findProperty("notarization_apple_id") as String?
-                        ?: "stub_apple_id"
-                    val notarizationPassword = findProperty("notarization_password") as String?
-                        ?: "stub_password"
-                    val notarizationAscProvider =
-                        findProperty("notarization_asc_provider") as String?
-                            ?: "stub_asc_provider"
-                    println("Notarization Apple Id ${notarizationAppleId.take(2)}****")
-                    println("Notarization Password ${notarizationPassword.take(2)}****")
-                    println("Notarization ASC Provider ${notarizationAscProvider.take(2)}****")
                     appleID.set(notarizationAppleId)
                     teamID.set(notarizationAscProvider)
                     password.set(notarizationPassword)
@@ -249,25 +248,42 @@ tasks.named { it == "prepareAppResources" }.configureEach {
     dependsOn(prepareBundledAppResources)
 }
 
+tasks.withType<AbstractNotarizationTask>().configureEach {
+    // The deprecated ascProvider property of Compose's notarization settings
+    // throws when the configuration cache serializes it.
+    notCompatibleWithConfigurationCache("Compose notarization settings can not be serialized")
+    // Task actions capture locals only: the configuration cache cannot store the script.
+    val appleId = notarizationAppleId
+    val password = notarizationPassword
+    val ascProvider = notarizationAscProvider
+    doFirst {
+        println("Notarization Apple Id ${appleId.get().take(2)}****")
+        println("Notarization Password ${password.get().take(2)}****")
+        println("Notarization ASC Provider ${ascProvider.get().take(2)}****")
+    }
+}
+
 if (!hostPlatform.isWindows) {
+    // Task actions capture locals only: the configuration cache cannot store the script.
+    val executableNames = executableAppResourceNames
+    val appResourcesPath = if (hostPlatform.isMacOs) ".app/Contents/app/resources" else "/lib/app/resources"
     tasks.withType<AbstractJPackageTask>().configureEach {
         if (targetFormat != TargetFormat.AppImage) {
             return@configureEach
         }
 
-        fun appResourcesDirectory() = destinationDir.get().asFile
-            .resolve(packageName.get() + if (hostPlatform.isMacOs) ".app/Contents/app/resources" else "/lib/app/resources")
+        val appResourcesDirectory = destinationDir.zip(packageName) { dir, name -> dir.dir(name + appResourcesPath) }
 
         // Compose's app-resource copy does not preserve POSIX executable bits.
         // Repair the app image before verification or downstream packaging.
         outputs.upToDateWhen {
-            executableAppResourceNames.all { name ->
-                appResourcesDirectory().resolve(name).canExecute()
+            executableNames.all { name ->
+                appResourcesDirectory.get().asFile.resolve(name).canExecute()
             }
         }
         doLast {
-            executableAppResourceNames.forEach { name ->
-                val executable = appResourcesDirectory().resolve(name)
+            executableNames.forEach { name ->
+                val executable = appResourcesDirectory.get().asFile.resolve(name)
                 check(executable.isFile) {
                     "Bundled executable is missing: $executable"
                 }
@@ -283,6 +299,7 @@ fun Tar.installPackageDistributable(
     dependency: String,
 ) {
     val appVersion = libs.versions.appVersionName.get()
+    val executableNames = executableAppResourceNames
 
     from(tasks.named(dependency)) {
         // Keep the launcher and helper binaries executable inside the tarball even if
@@ -291,7 +308,7 @@ fun Tar.installPackageDistributable(
             if (
                 name == "Keyguard" ||
                 name == "jspawnhelper" || // https://github.com/AChep/keyguard-app/issues/640#issuecomment-4111835953
-                name in executableAppResourceNames
+                name in executableNames
             ) {
                 permissions { unix("755") }
             }
@@ -313,7 +330,7 @@ fun Tar.installPackageDistributable(
         // polkit policy of the system authentication unlock. polkitd
         // only reads the host's /usr/share, the copy here is what the
         // documented install command reads.
-        from(rootProject.file("desktopLibNative/src/src/biometrics/linux")) {
+        from(layout.settingsDirectory.dir("desktopLibNative/src/src/biometrics/linux")) {
             include("com.artemchep.keyguard.policy")
             into("Keyguard/share/polkit-1/actions")
         }
@@ -349,9 +366,13 @@ if (hostPlatform.isWindows) {
     fun msixProperty(name: String): String? = (findProperty(name) as String?)
         ?.takeIf { it.isNotBlank() }
 
+    // Task actions call windowsSdkTool, so it must not capture the script:
+    // the configuration cache can not store it.
+    val msixSdkBinDir = msixProperty("msix_sdk_bin_dir")
+
     // Finds a Windows SDK tool, preferring the highest installed SDK version.
     fun windowsSdkTool(name: String): File {
-        msixProperty("msix_sdk_bin_dir")?.let { return File(it, name) }
+        msixSdkBinDir?.let { return File(it, name) }
         // The ARM64 SDK tools are not present in every SDK installation. The
         // x64 tools can still pack and sign ARM64 packages under emulation.
         val toolArchitectures = listOf(msixArchitecture, "x64").distinct()
@@ -416,6 +437,7 @@ if (hostPlatform.isWindows) {
 
         val packageTasks = msixFlavors.map { flavor ->
             val flavorName = flavor.id.replaceFirstChar { it.uppercase() }
+            val isConfigured = flavor.isConfigured
             val stagingDir = binariesDir.map { it.dir("msix-staging/${flavor.id}") }
             val prepareTask = tasks.register<Sync>("prepare${buildType}Msix$flavorName") {
                 val manifestTokens = mapOf(
@@ -427,7 +449,7 @@ if (hostPlatform.isWindows) {
                 ).mapValues { (_, value) -> XmlUtil.escapeXml(value) }
                 inputs.property("manifestTokens", manifestTokens)
                 dependsOn("create${buildType}Distributable")
-                onlyIf { flavor.isConfigured }
+                onlyIf { isConfigured }
                 filteringCharset = "UTF-8"
                 from(appImageDir)
                 from(project.file("msix/Assets")) {
@@ -444,7 +466,7 @@ if (hostPlatform.isWindows) {
                 group = "compose desktop"
                 description = "Packs the ${flavor.id} MSIX package."
                 dependsOn(prepareTask)
-                onlyIf { flavor.isConfigured }
+                onlyIf { isConfigured }
                 val output = outputDir.map { it.file(flavor.fileName) }
                 inputs.dir(stagingDir)
                 outputs.file(output)
@@ -462,7 +484,8 @@ if (hostPlatform.isWindows) {
             }
         }
 
-        val sideloadFlavor = msixFlavors.first { it.id == "sideload" }
+        val sideloadFileName = msixFlavors.first { it.id == "sideload" }.fileName
+        val pfxPassword = providers.gradleProperty("msix_sideload_pfx_password")
         val signTask = tasks.register<Exec>("sign${buildType}Msix") {
             group = "compose desktop"
             description = "Signs the sideload MSIX package, if a certificate is configured."
@@ -483,10 +506,10 @@ if (hostPlatform.isWindows) {
                     "/tr", "http://timestamp.digicert.com",
                     "/f", pfxPath!!,
                 )
-                providers.gradleProperty("msix_sideload_pfx_password").orNull
+                pfxPassword.orNull
                     ?.takeIf { it.isNotEmpty() }
                     ?.let { args += listOf("/p", it) }
-                args += outputDir.get().file(sideloadFlavor.fileName).asFile.absolutePath
+                args += outputDir.get().file(sideloadFileName).asFile.absolutePath
                 commandLine(args)
             }
         }

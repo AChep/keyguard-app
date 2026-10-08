@@ -8,6 +8,7 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
@@ -29,6 +30,9 @@ import javax.inject.Inject
 abstract class CargoBuildTask : DefaultTask() {
     @get:Inject
     abstract val execOperations: ExecOperations
+
+    @get:Inject
+    abstract val providers: ProviderFactory
 
     @get:Internal
     abstract val sourceDir: DirectoryProperty
@@ -65,7 +69,7 @@ abstract class CargoBuildTask : DefaultTask() {
         cargoArguments.convention(emptyList())
         environmentVariables.convention(emptyMap())
         offline.convention(
-            project.providers.gradleProperty("keyguard.nativeCargo.cargoOffline")
+            providers.gradleProperty("keyguard.nativeCargo.cargoOffline")
                 .map(String::toBooleanStrict)
                 .orElse(false),
         )

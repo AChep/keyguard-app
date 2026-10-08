@@ -133,18 +133,14 @@ abstract class DetektCustomRulesExtension @Inject constructor(
         }
         // Detekt's standalone analysis cannot load all compiler plugins used by the full KMP
         // compilation. Analyse only files that can contain guarded calls and resolve everything
-        // else from the successfully compiled output on the analysis classpath.
-        val guardedSources = project.objects.fileCollection().from(
-            project.provider {
-                sources.asFileTree.files.filter { file ->
-                    file.isFile &&
-                        file.extension == "kt" &&
-                        file.readText().let { text ->
-                            GUARDED_API_MARKERS.any { containsDetektApiMarker(text, it) }
-                        }
+        // else from the successfully compiled output on the analysis classpath. The selection
+        // stays lazy so that the configuration cache does not freeze it.
+        val guardedSources = sources.asFileTree.filter { file ->
+            file.extension == "kt" &&
+                file.readText().let { text ->
+                    GUARDED_API_MARKERS.any { containsDetektApiMarker(text, it) }
                 }
-            },
-        )
+        }
         analysedSources.from(guardedSources)
 
         val task = project.tasks.register<Detekt>("$TASK_PREFIX$suffix") {
@@ -182,7 +178,7 @@ abstract class DetektCustomRulesExtension @Inject constructor(
 
             // Rules that only matter on Android are switched off for desktop JVM
             // compilations through a second config file, which Detekt layers over the first.
-            val configDir = project.rootProject.layout.projectDirectory.dir("config/detekt")
+            val configDir = project.layout.settingsDirectory.dir("config/detekt")
             config.setFrom(
                 compilation.map { c ->
                     listOfNotNull(

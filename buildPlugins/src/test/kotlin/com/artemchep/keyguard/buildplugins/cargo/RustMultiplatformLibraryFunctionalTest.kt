@@ -161,7 +161,14 @@ class RustMultiplatformLibraryFunctionalTest {
             "-PexpectedZxcvbnOffline=true",
             "--no-configuration-cache",
         )
-            .withEnvironment(System.getenv() + ("ANDROID_SDK_ROOT" to sdk.absolutePath))
+            // Override both SDK variables: ANDROID_HOME wins over ANDROID_SDK_ROOT, and the
+            // inherited environment may point either one at a real SDK.
+            .withEnvironment(
+                System.getenv() + mapOf(
+                    "ANDROID_HOME" to sdk.absolutePath,
+                    "ANDROID_SDK_ROOT" to sdk.absolutePath,
+                ),
+            )
             .build()
         assertEquals(TaskOutcome.SUCCESS, result.task(":verifyNativeModel")?.outcome)
         assertEquals(TaskOutcome.SUCCESS, result.task(":io:verifyDefaultNativeModel")?.outcome)

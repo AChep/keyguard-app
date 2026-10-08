@@ -156,7 +156,7 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
             }
             val androidBuildTools = providers.provider {
                 AndroidCargoEnvironment.resolveTargetBuildTools(
-                    rootDir = rootProject.projectDir,
+                    rootDir = rootDir,
                     localPropertiesFile = null,
                     rustTarget = target.rustTarget,
                     androidApiLevel = androidMinSdk,
@@ -225,7 +225,7 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
                     layout.file(
                         providers.provider {
                             AndroidCargoEnvironment.resolveReadElfExecutable(
-                                rootDir = rootProject.projectDir,
+                                rootDir = rootDir,
                                 localPropertiesFile = null,
                                 ndkVersion = androidNdk,
                             )

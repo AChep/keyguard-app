@@ -3,6 +3,7 @@ package com.artemchep.keyguard.buildplugins.testing
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
@@ -11,6 +12,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 import java.time.Duration
+import javax.inject.Inject
 
 enum class E2eToolchain {
     GPG,
@@ -23,6 +25,9 @@ enum class E2eToolchain {
 /** Checks the host tools only when its associated E2E suite is requested. */
 @DisableCachingByDefault(because = "Checks external tools installed on the current host")
 abstract class VerifyE2eEnvironmentTask : DefaultTask() {
+    @get:Inject
+    abstract val providers: ProviderFactory
+
     @get:Input
     abstract val toolchain: Property<E2eToolchain>
 
@@ -55,14 +60,14 @@ abstract class VerifyE2eEnvironmentTask : DefaultTask() {
         group = "verification"
         description = "Checks the external tools required by this E2E suite."
         gpgBinDirectory.convention(
-            project.providers.systemProperty("keyguard.gpg.binDir")
-                .orElse(project.providers.environmentVariable("KEYGUARD_GPG_BIN_DIR")),
+            providers.systemProperty("keyguard.gpg.binDir")
+                .orElse(providers.environmentVariable("KEYGUARD_GPG_BIN_DIR")),
         )
         pythonExecutable.convention("python3")
-        searchPath.convention(project.providers.environmentVariable("PATH").orElse(""))
-        pathExtensions.convention(project.providers.environmentVariable("PATHEXT").orElse(".COM;.EXE;.BAT;.CMD"))
+        searchPath.convention(providers.environmentVariable("PATH").orElse(""))
+        pathExtensions.convention(providers.environmentVariable("PATHEXT").orElse(".COM;.EXE;.BAT;.CMD"))
         windows.convention(
-            project.providers.systemProperty("os.name").map {
+            providers.systemProperty("os.name").map {
                 it.startsWith("Windows", ignoreCase = true)
             },
         )

@@ -69,10 +69,10 @@ abstract class ResourcesCommonExtension {
             project.layout.buildDirectory.dir(DEFAULT_LOCALE_RES_OUTPUT_PATH)
 
         fun defaultAppleStringsCatalogFile(project: Project): RegularFile =
-            project.rootProject.layout.projectDirectory.file(DEFAULT_APPLE_STRINGS_CATALOG_PATH)
+            project.layout.settingsDirectory.file(DEFAULT_APPLE_STRINGS_CATALOG_PATH)
 
         fun defaultAppleStringsSwiftFile(project: Project): RegularFile =
-            project.rootProject.layout.projectDirectory.file(DEFAULT_APPLE_STRINGS_SWIFT_PATH)
+            project.layout.settingsDirectory.file(DEFAULT_APPLE_STRINGS_SWIFT_PATH)
     }
 
     init {

@@ -20,7 +20,7 @@ dependencies {
 val kdbxPython = providers.gradleProperty("kdbxE2ePython").orElse("python3")
 val kdbxDriver = layout.projectDirectory.file("python/kdbx_e2e.py")
 val requirements = layout.projectDirectory.file("requirements.txt")
-val seedDirectory = rootProject.layout.projectDirectory.dir("util/kdbx/src/jvmCommonTest/resources")
+val seedDirectory = layout.settingsDirectory.dir("util/kdbx/src/jvmCommonTest/resources")
 val artifactsDirectory = layout.buildDirectory.dir("kdbxE2eTest/artifacts")
 
 tasks.named<VerifyE2eEnvironmentTask>("verifyE2eEnvironment") {

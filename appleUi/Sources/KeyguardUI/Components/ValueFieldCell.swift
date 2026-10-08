@@ -38,6 +38,8 @@ struct ValueFieldCell: View {
                         image.resizable().scaledToFill()
                     } placeholder: {
                         Image(systemName: "person.crop.circle")
+                            .resizable()
+                            .scaledToFit()
                             .foregroundStyle(.secondary)
                     }
                     .frame(width: 20, height: 20)

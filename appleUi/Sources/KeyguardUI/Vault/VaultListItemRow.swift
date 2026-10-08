@@ -54,7 +54,7 @@ enum VaultRowInline {
                     .accessibilityLabel(L10n.select)
                     .accessibilityAddTraits(selected ? [.isSelected] : [])
             }
-            icon(row, colorScheme: colorScheme)
+            VaultRowIcon(row: row, colorScheme: colorScheme)
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .top, spacing: 8) {
                     VStack(alignment: .leading, spacing: 2) {
@@ -135,50 +135,6 @@ enum VaultRowInline {
 
     private static func highlightedTitle(_ row: VaultRow, decoration: VaultRowDecoration?) -> AttributedString {
         highlightedText(row.title, utf16Ranges: decoration?.titleRanges ?? [])
-    }
-
-    // MARK: - Leading icon
-
-    @ViewBuilder
-    private static func icon(_ row: VaultRow, colorScheme: ColorScheme) -> some View {
-        FaviconView(
-            url: row.iconUrl,
-            placeholder: row.iconInitials,
-            fallbackSymbol: row.typeSymbol ?? "key",
-            size: 30,
-            accent: vaultAccentColor(
-                colorScheme == .dark ? row.accentDarkArgb : row.accentLightArgb
-            )
-        )
-        .overlay(alignment: .bottomTrailing) { iconBadges(row) }
-    }
-
-    @ViewBuilder
-    private static func iconBadges(_ row: VaultRow) -> some View {
-        // Each status glyph carries an SF Symbol *and* a VoiceOver label, so
-        // the meaning is not conveyed by icon/colour alone.
-        let glyphs: [(name: String, label: String)] = {
-            var g: [(String, String)] = []
-            if row.flags.contains(.favourite) { g.append(("star.fill", L10n.homeFavoritesLabel)) }
-            if row.flags.contains(.reprompt) { g.append(("lock.fill", L10n.filterAuthRepromptItems)) }
-            if row.flags.contains(.attachments) { g.append(("paperclip", L10n.attachments)) }
-            return g
-        }()
-        if !glyphs.isEmpty {
-            HStack(spacing: 1) {
-                ForEach(glyphs, id: \.name) { glyph in
-                    Image(systemName: glyph.name)
-                        .font(.caption2.weight(.bold))
-                        .imageScale(.small)
-                        .foregroundStyle(glyph.name == "star.fill" ? Color.yellow : Color.secondary)
-                        .accessibilityLabel(glyph.label)
-                }
-            }
-            .padding(2)
-            .background(.background, in: Capsule())
-            .overlay(Capsule().strokeBorder(.quaternary, lineWidth: 0.5))
-            .offset(x: 3, y: 3)
-        }
     }
 
     // MARK: - Badges

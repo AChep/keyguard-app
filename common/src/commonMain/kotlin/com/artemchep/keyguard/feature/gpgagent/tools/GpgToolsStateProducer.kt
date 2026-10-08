@@ -404,15 +404,6 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
         return key.toPrivateKey()
     }
 
-    fun List<ResolvedGpgKey>.resolveDecryptKeys(): List<GpgOpenPgpPrivateKey> {
-        val keys = filter { it.canDecrypt }
-            .map { it.toPrivateKey() }
-        if (keys.isEmpty()) {
-            throw IllegalStateException("No decryption-capable private key is available.")
-        }
-        return keys
-    }
-
     fun List<ResolvedGpgKey>.resolveVerificationPublicKeys(
         customPublicKeys: List<GpgToolsState.CustomPublicKeyItem>,
     ): List<GpgOpenPgpPublicKey> =
@@ -947,14 +938,13 @@ private data class GpgToolsForm(
     val busy: Boolean,
 )
 
-private data class ResolvedGpgKey(
+internal data class ResolvedGpgKey(
     val id: String,
     val title: String,
     val privateKeyArmored: String?,
     val publicKeyArmored: String?,
     val fingerprint: String?,
     val authorizedKeys: List<GpgAgentKeyMetadataKey>,
-    val routableKeys: List<GpgAgentKeyMetadataKey>,
 ) {
     private val hasPrivateKey: Boolean
         get() = privateKeyArmored?.isNotBlank() == true
@@ -963,7 +953,10 @@ private data class ResolvedGpgKey(
         get() = hasPrivateKey && authorizedKeys.any(GpgAgentKeyMetadataKey::canSign)
 
     val canDecrypt: Boolean
-        get() = hasPrivateKey && routableKeys.any(GpgAgentKeyMetadataKey::canDecrypt)
+        // Message decryption matches recipients against the private key packets.
+        // Agent capabilities are narrower (for example, no native X25519), and
+        // current authorization must not prevent decrypting historical messages.
+        get() = hasPrivateKey
 
     fun toPrivateKey() = GpgOpenPgpPrivateKey(
         armored = privateKeyArmored
@@ -1007,7 +1000,16 @@ private fun List<ResolvedGpgKey>.resolveSelection(
     )
 }
 
-private fun GpgAgentSecret.toResolvedGpgKey(): ResolvedGpgKey {
+internal fun List<ResolvedGpgKey>.resolveDecryptKeys(): List<GpgOpenPgpPrivateKey> {
+    val keys = filter { it.canDecrypt }
+        .map { it.toPrivateKey() }
+    if (keys.isEmpty()) {
+        throw IllegalStateException("No decryption-capable private key is available.")
+    }
+    return keys
+}
+
+internal fun GpgAgentSecret.toResolvedGpgKey(): ResolvedGpgKey {
     val authorizedKeys = authorizedAgentKeys
     val routableKeys = metadata.routableAgentKeys
         .filter { it.isUsableAgentKey }
@@ -1026,7 +1028,6 @@ private fun GpgAgentSecret.toResolvedGpgKey(): ResolvedGpgKey {
         publicKeyArmored = publicKeyArmored,
         fingerprint = fingerprint,
         authorizedKeys = authorizedKeys,
-        routableKeys = routableKeys,
     )
 }
 

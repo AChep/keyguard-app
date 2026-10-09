@@ -26,6 +26,8 @@ import kotlinx.coroutines.job
 import kotlinx.io.Sink
 import net.harawata.appdirs.AppDirs
 import net.harawata.appdirs.AppDirsFactory
+import net.harawata.appdirs.impl.ShellFolderResolver
+import net.harawata.appdirs.impl.WindowsAppDirs
 
 // Exports might hold secrets, so other local users must not read them.
 private val EXPORT_ATOMIC_WRITE_OPTIONS = AtomicWriteOptions(
@@ -49,7 +51,13 @@ class DataDirectory : DirsService {
         internal const val APP_AUTHOR = "ArtemChepurnyi"
 
         private val appDirs: AppDirs by lazy {
-            AppDirsFactory.getInstance()
+            when (CurrentPlatform) {
+                Platform.Desktop.Windows -> WindowsAppDirs(
+                    WindowsDownloadsFolderResolver(ShellFolderResolver()),
+                )
+
+                else -> AppDirsFactory.getInstance()
+            }
         }
     }
 

@@ -21,6 +21,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -39,6 +40,7 @@ class AnonAddyEmailRelay(
             "addy_io_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
         private const val KEY_DOMAIN = "domain"
         private const val HINT_DOMAIN = "anonaddy.me"
+        private const val KEY_RECIPIENT_ID = "recipientId"
         private const val KEY_BASE_URL = "base_url"
         private const val HINT_BASE_URL = ENDPOINT_BASE_URL
     }
@@ -64,6 +66,11 @@ class AnonAddyEmailRelay(
             hint = TextHolder.Value(HINT_DOMAIN),
             canBeEmpty = false,
         ),
+        KEY_RECIPIENT_ID to EmailRelaySchema(
+            title = TextHolder.Res(Res.string.emailrelay_addyio_recipient_id_label),
+            description = TextHolder.Res(Res.string.emailrelay_addyio_recipient_id_note),
+            canBeEmpty = true,
+        ),
         KEY_BASE_URL to EmailRelaySchema(
             title = TextHolder.Res(Res.string.emailrelay_base_env_server_url_label),
             hint = TextHolder.Value(HINT_BASE_URL),
@@ -82,6 +89,10 @@ class AnonAddyEmailRelay(
         val domain = requireNotNull(config[KEY_DOMAIN]) {
             "Domain is required for creating an email alias."
         }
+        val recipientIds = config[KEY_RECIPIENT_ID]
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { listOf(it) }
         val apiUrl = kotlin.run {
             val baseUrl = config[KEY_BASE_URL]
                 ?.trim()
@@ -89,7 +100,7 @@ class AnonAddyEmailRelay(
                 ?: ENDPOINT_BASE_URL
             baseUrl.ensureSuffix("/") + ENDPOINT_PATH
         }
-        // https://app.anonaddy.com/docs/#aliases-POSTapi-v1-aliases
+        // https://app.addy.io/docs/#aliases-POSTapi-v1-aliases
         val response = httpClient
             .post(apiUrl) {
                 header("Authorization", "Bearer $apiKey")
@@ -97,6 +108,7 @@ class AnonAddyEmailRelay(
                 val body = AnonAddyRequest(
                     domain = domain,
                     description = context.host,
+                    recipientIds = recipientIds,
                 )
                 contentType(ContentType.Application.Json)
                 setBody(body)
@@ -126,5 +138,7 @@ class AnonAddyEmailRelay(
     private data class AnonAddyRequest(
         val domain: String,
         val description: String?,
+        @SerialName("recipient_ids")
+        val recipientIds: List<String>? = null,
     )
 }

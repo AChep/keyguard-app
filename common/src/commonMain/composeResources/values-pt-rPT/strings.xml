@@ -804,7 +804,7 @@
     <string name="error_failed_use_passkey">Falha ao autorizar um pedido</string>
     <string name="error_failed_use_password">Não foi possível autorizar um pedido</string>
     <string name="error_failed_open_uri">Falha ao abrir URI</string>
-    <string name="error_failed_open_file">Could not open this file</string>
+    <string name="error_failed_open_file">Não foi possível abrir o ficheiro</string>
     <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
     <string name="error_failed_open_app_for">Nenhuma aplicação instalado pode realizar esta requisição</string>
     <string name="error_failed_open_link">Não foi possível abrir esta ligação</string>
@@ -942,6 +942,8 @@
     <string name="emailrelay_empty_label">Sem encaminhamentos de e-mail</string>
     <string name="emailrelay_base_env_server_url_label">Endereço do servidor</string>
     <string name="emailrelay_base_env_note">Especifique o URL de raíz da sua instalação auto-hospedada.</string>
+    <string name="emailrelay_addyio_recipient_id_label">ID do destinatário (opcional)</string>
+    <string name="emailrelay_addyio_recipient_id_note">ID de um destinatário verificado do addy.io. Deixe em branco para utilizar o destinatário predefinido.</string>
     <string name="emailrelay_add_action">Adicionar encaminhador de e-mail</string>
     <string name="emailrelay_edit_action">Editar encaminhador de e-mail</string>
     <string name="emailrelay_documentation_title">Documentação</string>
@@ -2174,7 +2176,7 @@
     <string name="s3_settings_region_title">Região</string>
     <string name="s3_settings_bucket_title">Bucket</string>
     <string name="s3_settings_prefix_title">Prefixo da pasta</string>
-    <string name="s3_settings_keepass_requirements">Bucket, object key, access key ID, and secret access key are required. The object key must end in .kdbx.</string>
+    <string name="s3_settings_keepass_requirements">São necessários o bucket, a chave do objeto, o ID da chave de acesso e a chave de acesso secreta. A chave do objeto deve terminar com a extensão . kdbx.</string>
     <string name="s3_settings_key_title">Chave do objeto</string>
     <string name="s3_settings_access_key_id_title">ID da chave de acesso</string>
     <string name="s3_settings_secret_access_key_title">Chave de acesso secreta</string>
@@ -2381,6 +2383,9 @@
     <string name="fido2_touch_prompt">Ligue a sua chave de segurança e toque nela quando piscar.</string>
     <string name="fido2_pin_prompt">Introduza o PIN da sua chave de segurança.</string>
     <string name="fido2_pin_label">PIN de segurança</string>
+    <string name="fido2_authenticate_action">Use security key</string>
+    <string name="fido2_browser_action">Use browser</string>
+    <string name="fido2_prompt_title">Security key</string>
     <string name="fido2_error_title">Não foi possível utilizar a chave de segurança</string>
     <string name="fido2_error_unsupported">Esta chave ou plataforma não suporta FIDO2 PRF com verificação de utilizador.</string>
     <string name="fido2_error_pin_not_set">Defina um PIN FIDO2 utilizando a aplicação do fabricante da chave e tente novamente.</string>
@@ -2388,4 +2393,8 @@
     <string name="fido2_error_invalid_pin">PIN incorreto. Verifique o PIN antes de tentar novamente; erros repetidos podem bloquear a chave.</string>
     <string name="fido2_error_timeout">A chave de segurança não respondeu a tempo. Volte a ligá-la e tente novamente.</string>
     <string name="fido2_error_retry">Tente novamente a chave de segurança registada ou desbloqueie com a palavra-passe da aplicação.</string>
+    <string name="storage_error_title">Armazenamento indisponível</string>
+    <string name="storage_missing_configuration">Esta versão não tem a configuração de armazenamento partilhado. Instale uma versão configurada corretamente para continuar.</string>
+    <string name="storage_unavailable">O Keyguard não consegue aceder ao seu contentor de armazenamento. Tente novamente. Se o problema persistir, verifique a assinatura da aplicação e a configuração do Grupo de Aplicações.</string>
+    <string name="storage_unwritable">O Keyguard não consegue escrever no seu contentor de armazenamento. Verifique o espaço disponível e o acesso ao armazenamento e tente novamente.</string>
 </resources>

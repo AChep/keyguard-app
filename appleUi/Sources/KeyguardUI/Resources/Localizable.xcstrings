@@ -20313,7 +20313,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Auto-discover server"
+            "value" : "اكتشاف خادم تلقائي"
           }
         },
         "bn" : {
@@ -31798,7 +31798,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Agent binary is not bundled in this build"
+            "value" : "لم يتم تضمين مِلَفّ الوكيل الثنائي في هذا الإصدار"
           }
         },
         "bn" : {
@@ -53722,7 +53722,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Change master password"
+            "value" : "تغيير كلمة المرور الرئيسية"
           }
         },
         "bn" : {
@@ -105051,7 +105051,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save a set of filters as a custom filter to reapply it with one tap."
+            "value" : "احفظ مجموعة من عوامل التصفية كعامل تصفية مخصص لإعادة تطبيقه بنقرة واحدة."
           }
         },
         "bn" : {
@@ -119603,7 +119603,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recipient ID (optional)"
+            "value" : "ID do destinatário (opcional)"
           }
         },
         "ro" : {
@@ -119806,7 +119806,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ID of a verified addy.io recipient. Leave blank to use the default recipient."
+            "value" : "ID de um destinatário verificado do addy.io. Deixe em branco para utilizar o destinatário predefinido."
           }
         },
         "ro" : {
@@ -127388,7 +127388,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Could not open this file"
+            "value" : "لا يمكن فتح هذا المِلَفّ"
           }
         },
         "bn" : {
@@ -127520,7 +127520,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Could not open this file"
+            "value" : "Não foi possível abrir o ficheiro"
           }
         },
         "ro" : {
@@ -134087,7 +134087,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a valid access key ID"
+            "value" : "أدخل معرف مفتاح وصول صالح"
           }
         },
         "bn" : {
@@ -134290,7 +134290,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Access key ID is required"
+            "value" : "رَقَم تعريف مفتاح الوصول مطلوب"
           }
         },
         "bn" : {
@@ -134493,7 +134493,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a valid bucket name"
+            "value" : "أدخل اسم حاوية صالح"
           }
         },
         "bn" : {
@@ -134696,7 +134696,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bucket is required"
+            "value" : "الحاوية مطلوبة"
           }
         },
         "bn" : {
@@ -135102,7 +135102,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment"
+            "value" : "أدخِل عنوان URL كاملًا لـ HTTP أو HTTPS دون بيانات اعتماد أو استعلام أو جزء"
           }
         },
         "bn" : {
@@ -135508,7 +135508,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The object key cannot contain empty, \".\", or \"..\" segments"
+            "value" : "لا يمكن أن يحتوي مفتاح الكائن على أجزاء فارغة أو \".\" أو \"..\""
           }
         },
         "bn" : {
@@ -135711,7 +135711,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enter the object key of a database file"
+            "value" : "أدخل مفتاح الكائن لملف قاعدة البيانات"
           }
         },
         "bn" : {
@@ -135914,7 +135914,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The prefix cannot contain empty, \".\", or \"..\" segments"
+            "value" : "لا يمكن أن تحتوي البداية على أجزاء فارغة أو \".\" أو \"..\""
           }
         },
         "bn" : {
@@ -136117,7 +136117,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Secret access key is required"
+            "value" : "مطلوب التقييم"
           }
         },
         "bn" : {
@@ -183416,7 +183416,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Values you generate appear here."
+            "value" : "القيم التي تولدها تظهر هنا."
           }
         },
         "bn" : {
@@ -387493,7 +387493,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bucket, object key, access key ID, and secret access key are required. The object key must end in .kdbx."
+            "value" : "São necessários o bucket, a chave do objeto, o ID da chave de acesso e a chave de acesso secreta. A chave do objeto deve terminar com a extensão . kdbx."
           }
         },
         "ro" : {
@@ -406548,7 +406548,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select a setting to configure it."
+            "value" : "حدد الإعداد لتكوينه."
           }
         },
         "bn" : {
@@ -411217,7 +411217,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "language translation locale"
+            "value" : "لغة التَّرْجَمَة المحلية"
           }
         },
         "bn" : {
@@ -411420,7 +411420,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "license licence entitlement token"
+            "value" : "الرمز المميز لاستحقاق ترخيص الترخيص"
           }
         },
         "bn" : {
@@ -413044,7 +413044,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "startup automatically start login"
+            "value" : "بَدْء التشغيل تلقائياً بدء تسجيل الدخول"
           }
         },
         "bn" : {
@@ -434230,7 +434230,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Signs the SSH request with this key"
+            "value" : "يوقع على طلب SSH بهذا المفتاح"
           }
         },
         "bn" : {
@@ -434433,7 +434433,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "An app is asking to sign with one of your SSH keys."
+            "value" : "يطلب تطبيق تسجيل الدخول باستخدام أحد مفاتيح SSH الخاصة بك."
           }
         },
         "bn" : {
@@ -434636,7 +434636,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unlock the vault to choose which SSH keys the agent serves."
+            "value" : "افتح الخزنة لاختيار مفاتيح SSH التي يقدمها الوكيل."
           }
         },
         "bn" : {
@@ -438290,7 +438290,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Point your SSH client at this agent:"
+            "value" : "وجّه عميل SSH الخاص بك إلى هذا الوكيل:"
           }
         },
         "bn" : {
@@ -438493,7 +438493,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Turn on the SSH agent in Settings ▸ Developer. Keyguard then serves your keys on this socket:"
+            "value" : "تشغيل وكيل SSH في الإعدادات ▸ المطور:"
           }
         },
         "bn" : {
@@ -440523,7 +440523,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Or point ssh at the agent for every host:"
+            "value" : "أو توجيه SSH إلى الوكيل لكل مضيف:"
           }
         },
         "bn" : {
@@ -440726,7 +440726,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "SSH config"
+            "value" : "تكوين SSH"
           }
         },
         "bn" : {
@@ -442147,7 +442147,7 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "List the served keys, then try an SSH connection:"
+            "value" : "اذكر المفاتيح المقدمة، ثم جرّب الاتصال ب SSH:"
           }
         },
         "bn" : {
@@ -445730,7 +445730,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Storage unavailable"
+            "value" : "Armazenamento indisponível"
           }
         },
         "ro" : {
@@ -445933,7 +445933,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This build is missing its shared storage configuration. Install a correctly configured build to continue."
+            "value" : "Esta versão não tem a configuração de armazenamento partilhado. Instale uma versão configurada corretamente para continuar."
           }
         },
         "ro" : {
@@ -446136,7 +446136,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keyguard cannot access its storage container. Try again. If the problem persists, check the app’s signing and App Group configuration."
+            "value" : "O Keyguard não consegue aceder ao seu contentor de armazenamento. Tente novamente. Se o problema persistir, verifique a assinatura da aplicação e a configuração do Grupo de Aplicações."
           }
         },
         "ro" : {
@@ -446339,7 +446339,7 @@
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keyguard cannot write to its storage container. Check available space and storage access, then try again."
+            "value" : "O Keyguard não consegue escrever no seu contentor de armazenamento. Verifique o espaço disponível e o acesso ao armazenamento e tente novamente."
           }
         },
         "ro" : {

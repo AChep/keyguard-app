@@ -130,6 +130,36 @@ EXTRA_APPS = [
             ]
         }
     },
+    # Via (Chinese version)
+    # https://github.com/tuyafeng/Via
+    # Certificate verified from https://res.viayoo.com/v1/via-release-cn.apk (7.3.3)
+    {
+        "type": "android",
+        "info": {
+            "package_name": "mark.via",
+            "signatures": [
+                {
+                    "build": "release",
+                    "cert_fingerprint_sha256": "3D:F7:F8:9D:3B:8D:13:15:F0:57:10:C9:14:FC:CB:CF:3A:4E:24:98:0A:FD:DC:CB:8D:CE:BD:E9:08:36:A3:90"
+                }
+            ]
+        }
+    },
+    # Via (Global version)
+    # https://github.com/tuyafeng/Via
+    # Certificate verified from https://res.viayoo.com/v1/via-release.apk (7.3.3)
+    {
+        "type": "android",
+        "info": {
+            "package_name": "mark.via.gp",
+            "signatures": [
+                {
+                    "build": "release",
+                    "cert_fingerprint_sha256": "3D:F7:F8:9D:3B:8D:13:15:F0:57:10:C9:14:FC:CB:CF:3A:4E:24:98:0A:FD:DC:CB:8D:CE:BD:E9:08:36:A3:90"
+                }
+            ]
+        }
+    },
 ]
 
 response = requests.get(

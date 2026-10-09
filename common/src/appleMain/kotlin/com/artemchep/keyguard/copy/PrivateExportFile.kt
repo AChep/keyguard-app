@@ -46,23 +46,6 @@ internal suspend fun <T> withPrivateExportFile(
     }
 }
 
-internal fun String.sanitizedExportFileName(): String =
-    substringAfterLast('/')
-        .substringAfterLast('\\')
-        .map { character ->
-            when (character) {
-                ':', '\u0000' -> '_'
-                else -> character
-            }
-        }
-        .joinToString(separator = "")
-        .takeIf { fileName ->
-            fileName.isNotBlank() &&
-                fileName != "." &&
-                fileName != ".."
-        }
-        ?: "export"
-
 /** Exported vault data must not become readable by other local users. */
 @OptIn(ExperimentalForeignApi::class)
 private fun createPrivateExportFile(directory: String, file: String) {

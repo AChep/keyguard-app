@@ -10,6 +10,11 @@ import com.artemchep.keyguard.util.io.artifact.sweepTemporaryArtifacts
 import com.artemchep.keyguard.util.io.artifact.temporaryArtifactName
 import com.artemchep.keyguard.util.io.bridge.ensureNativeIoAvailable
 import com.artemchep.keyguard.util.io.toLocalPath
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.job
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import kotlinx.io.writeString
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -549,6 +554,31 @@ class AtomicRetainedDirectoryTest {
             assertEquals(
                 "first write",
                 root.resolve("missing-one/missing-two/дані.bin").readText(),
+            )
+        }
+    }
+
+    @Test
+    fun retainedDestinationSuspendingWriteCreatesMissingDescendants() = runBlocking {
+        withTempDirectory { root ->
+            val destination = AtomicFileDestination(
+                root = root.toLocalPath(),
+                relativePath = AtomicRelativePath.parse("missing/payload.bin"),
+            )
+
+            val job = currentCoroutineContext().job
+            writeFileAtomicallySuspending(
+                destination = destination,
+                options = retainedDirectoryOptions(),
+                checkCancellation = job::ensureActive,
+            ) { sink ->
+                yield()
+                sink.writeString("suspending write")
+            }
+
+            assertEquals(
+                "suspending write",
+                root.resolve("missing/payload.bin").readText(),
             )
         }
     }

@@ -44,17 +44,43 @@ fun <T> writeFileAtomically(
     options: AtomicWriteOptions,
     checkCancellation: () -> Unit = {},
     write: (Sink) -> T,
-): AtomicWriteResult<T> {
+): AtomicWriteResult<T> =
+    destination.useTransaction(options) { transaction ->
+        transaction.writeAndCommit(checkCancellation = checkCancellation, write = write)
+    }
+
+/**
+ * Suspending counterpart of [writeFileAtomically] for an
+ * [AtomicFileDestination].
+ *
+ * [checkCancellation] has no default, so the caller has to pass a check
+ * of its own job, for example `currentCoroutineContext().job::ensureActive`.
+ * Otherwise a cancellation after [write] returns still publishes the file.
+ */
+@OptIn(InternalKeyguardIoApi::class)
+suspend fun <T> writeFileAtomicallySuspending(
+    destination: AtomicFileDestination,
+    options: AtomicWriteOptions,
+    checkCancellation: () -> Unit,
+    write: suspend (Sink) -> T,
+): AtomicWriteResult<T> =
+    destination.useTransaction(options) { transaction ->
+        transaction.writeAndCommitSuspending(checkCancellation = checkCancellation, write = write)
+    }
+
+@OptIn(InternalKeyguardIoApi::class)
+private inline fun <R> AtomicFileDestination.useTransaction(
+    options: AtomicWriteOptions,
+    block: (AtomicFileTransaction) -> R,
+): R {
     require(options.existingParentLinks == ExistingParentLinkPolicy.Reject) {
         "AtomicFileDestination requires ExistingParentLinkPolicy.Reject"
     }
-    return openAtomicDirectory(destination.root).use { directory ->
+    return openAtomicDirectory(root).use { directory ->
         directory.openAtomicFileTransaction(
-            relativeDestination = destination.relativePath,
+            relativeDestination = relativePath,
             options = options,
-        ).use { transaction ->
-            transaction.writeAndCommit(checkCancellation = checkCancellation, write = write)
-        }
+        ).use(block)
     }
 }
 

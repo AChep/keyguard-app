@@ -27,12 +27,27 @@ use std::{
 };
 use zeroize::Zeroize;
 
+#[cfg(test)]
+mod assertion_tests;
+
 pub(crate) fn execute(request: &Request, canceled: &AtomicBool) -> Result<Vec<u8>, Error> {
     let mut service = AuthenticatorService::new().map_err(map_error)?;
     service.add_u2f_usb_hid_platform_transports();
+    execute_with_service(request, canceled, &mut service)
+}
+
+fn execute_with_service(
+    request: &Request,
+    canceled: &AtomicBool,
+    service: &mut AuthenticatorService,
+) -> Result<Vec<u8>, Error> {
     let (status_tx, status_rx) = channel();
     let (result_tx, result_rx) = channel();
-    let timeout = TIMEOUT.as_millis() as u64;
+    let timeout = request
+        .assertion
+        .as_ref()
+        .map_or(TIMEOUT, |a| a.timeout)
+        .as_millis() as u64;
     let origin = format!("https://{RP_ID}");
     let challenge = Sha256::digest(request.challenge).into();
     let start = match request.operation {
@@ -72,6 +87,64 @@ pub(crate) fn execute(request: &Request, canceled: &AtomicBool) -> Result<Vec<u8
                     .ok_or(Error::Protocol)
             }),
         ),
+        Operation::Assert => {
+            let assertion = request
+                .assertion
+                .as_ref()
+                .ok_or(Error::InvalidArgument)?
+                .clone();
+            let args = SignArgs {
+                client_data_hash: Sha256::digest(&assertion.client_data).into(),
+                origin: assertion.origin.clone(),
+                relying_party_id: assertion.rp_id.clone(),
+                allow_list: assertion
+                    .credentials
+                    .iter()
+                    .map(|(id, _)| PublicKeyCredentialDescriptor {
+                        id: id.clone(),
+                        transports: vec![Transport::USB],
+                    })
+                    .collect(),
+                user_verification_req: match assertion.verification {
+                    0 => UserVerificationRequirement::Discouraged,
+                    1 => UserVerificationRequirement::Preferred,
+                    _ => UserVerificationRequirement::Required,
+                },
+                user_presence_req: true,
+                extensions: AuthenticationExtensionsClientInputs {
+                    app_id: assertion.app_id.clone(),
+                    ..Default::default()
+                },
+                pin: None,
+                // This flag forces CTAP1 even on FIDO2 keys. Device initialization
+                // already negotiates CTAP1 for keys without CTAP2 support.
+                use_ctap1_fallback: false,
+            };
+            service.sign(
+                timeout,
+                args,
+                status_tx,
+                callback(result_tx, move |result: authenticator::SignResult| {
+                    let credential = result
+                        .assertion
+                        .credentials
+                        .as_ref()
+                        .map(|c| c.id.as_slice())
+                        .ok_or(Error::Protocol)?;
+                    assertion.encode_result(
+                        credential,
+                        &result.assertion.auth_data.to_vec(),
+                        &result.assertion.signature,
+                        result
+                            .assertion
+                            .user
+                            .as_ref()
+                            .map_or(&[], |u| u.id.as_slice()),
+                        result.extensions.app_id.unwrap_or(false),
+                    )
+                }),
+            )
+        }
         Operation::Derive { credential } => {
             let credential = credential.to_vec();
             service.sign(
@@ -169,7 +242,7 @@ fn wait(
         if canceled.load(Ordering::Acquire) {
             return Err(Error::Canceled);
         }
-        if start.elapsed() >= TIMEOUT {
+        if start.elapsed() >= request.assertion.as_ref().map_or(TIMEOUT, |a| a.timeout) {
             return Err(Error::Timeout);
         }
         while let Ok(update) = status.try_recv() {
@@ -199,9 +272,15 @@ fn wait(
                 StatusUpdate::PinUvError(
                     StatusPinUv::PinIsTooShort | StatusPinUv::PinIsTooLong(_),
                 ) => return Err(Error::InvalidPin),
-                StatusUpdate::SelectResultNotice(sender, _) => {
-                    let _ = sender.send(None);
-                    return Err(Error::Protocol);
+                StatusUpdate::SelectResultNotice(sender, users) => {
+                    if request.assertion.is_some() && !users.is_empty() {
+                        // All allowed credentials authenticate the same account. The returned
+                        // credential ID is checked against that allow list before leaving the bridge.
+                        let _ = sender.send(Some(0));
+                    } else {
+                        let _ = sender.send(None);
+                        return Err(Error::Protocol);
+                    }
                 }
                 _ => {}
             }

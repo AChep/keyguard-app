@@ -574,6 +574,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         val dialogs = newFormDialogController()
         return BitwardenLoginSession(
             ctx = context,
+            fido2PromptHost = fido2PromptHost,
             args = loginRequests.args(requestId),
             dialogs = com.artemchep.keyguard.apple.dialog.FormDialogsSession(dialogs),
             onDispose = { loginRequests.remove(requestId) },

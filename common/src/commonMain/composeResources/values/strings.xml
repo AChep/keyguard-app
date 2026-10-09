@@ -2517,6 +2517,9 @@
     <string name="fido2_touch_prompt">Connect your security key and touch it when it flashes.</string>
     <string name="fido2_pin_prompt">Enter the PIN for your security key.</string>
     <string name="fido2_pin_label">Security key PIN</string>
+    <string name="fido2_authenticate_action">Use security key</string>
+    <string name="fido2_browser_action">Use browser</string>
+    <string name="fido2_prompt_title">Security key</string>
     <string name="fido2_error_title">Could not use the security key</string>
     <string name="fido2_error_unsupported">This key or platform does not support FIDO2 PRF with user verification.</string>
     <string name="fido2_error_pin_not_set">Set a FIDO2 PIN using the key manufacturer’s app, then try again.</string>

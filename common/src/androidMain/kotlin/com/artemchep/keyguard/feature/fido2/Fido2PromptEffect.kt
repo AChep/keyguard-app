@@ -21,8 +21,13 @@ actual fun Fido2PromptEffect(flow: Flow<Fido2Prompt>) {
         }
     DisposableEffect(flow) { onDispose { pending?.cancel() } }
     CollectedEffect(flow) { prompt ->
-        pending?.cancel()
-        pending = prompt
-        launcher.launch(prompt.operation)
+        // Activity results do not carry the prompt identity. Keep ownership until
+        // the old activity returns, even if its coroutine has already cancelled.
+        if (pending != null) {
+            prompt.cancel()
+        } else {
+            pending = prompt
+            launcher.launch(prompt.operation)
+        }
     }
 }

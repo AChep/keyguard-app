@@ -152,6 +152,11 @@ def classify(paths, *, full=False, all_checks=False):
                 if name == "io":
                     enable("desktop_regressions")
             continue
+        if path.startswith("thirdParty/rust/authenticator-0.5.0-keyguard/"):
+            enable("desktop", "desktop_regressions", "apple", "apple_regressions", "native_quality")
+            continue
+        if path in {"thirdParty/rust/Cargo.toml", "thirdParty/rust/Cargo.lock"}:
+            enable("native_quality")
         if path.startswith("thirdParty/rust/"):
             if is_rust_test_path(path):
                 enable("crypto")

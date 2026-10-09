@@ -171,6 +171,7 @@ class Fido2UnlockServiceTest {
             service
                 .enroll { operation ->
                     when (operation) {
+                        is Fido2Operation.Assert -> error("Vault unlock must not request an account assertion")
                         is Fido2Operation.Register -> byteArrayOf(1, 2, 3)
                         is Fido2Operation.Derive -> secret
                     }

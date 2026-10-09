@@ -9,11 +9,13 @@ mod ctap;
 #[cfg(target_os = "windows")]
 mod windows;
 
+mod assertion;
+
 use keyguard_ffi::{OperationLimits, OperationRegistry, OperationStatus, respond};
 use sha2::{Digest, Sha256};
 use std::time::Duration;
 
-pub const ABI_VERSION: u32 = 1;
+pub const ABI_VERSION: u32 = 2;
 pub(crate) const INPUT_LENGTH: usize = 32;
 pub(crate) const SECRET_LENGTH: usize = 32;
 pub(crate) const MAX_CREDENTIAL: usize = 1024;
@@ -21,8 +23,8 @@ const MAX_PIN: usize = 63;
 const CHALLENGE_OFFSET: usize = 4;
 const INPUT_OFFSET: usize = CHALLENGE_OFFSET + INPUT_LENGTH;
 pub const HEADER_LENGTH: usize = INPUT_OFFSET + INPUT_LENGTH;
-pub const MAX_REQUEST: usize = HEADER_LENGTH + MAX_CREDENTIAL + MAX_PIN;
-pub const MAX_RESPONSE: usize = 1 + MAX_CREDENTIAL;
+pub const MAX_REQUEST: usize = 131072;
+pub const MAX_RESPONSE: usize = 131072;
 pub(crate) const RP_ID: &str = "keyguard.dev";
 pub(crate) const TIMEOUT: Duration = Duration::from_secs(60);
 pub(crate) const POLL_INTERVAL: Duration = Duration::from_millis(100);
@@ -58,7 +60,7 @@ impl OperationStatus for Error {
 
 /// Request and response bounds of the C and JNI adapters.
 pub const LIMITS: OperationLimits = OperationLimits {
-    min_request: HEADER_LENGTH,
+    min_request: 1,
     max_request: MAX_REQUEST,
     max_response: MAX_RESPONSE,
 };
@@ -103,11 +105,13 @@ fn run(id: u64, bytes: &[u8]) -> Result<Vec<u8>, Error> {
 pub(crate) enum Operation<'a> {
     Register,
     Derive { credential: &'a [u8] },
+    Assert,
 }
 
 /// Borrows the caller's request buffer, which the caller clears after execute.
 pub(crate) struct Request<'a> {
     operation: Operation<'a>,
+    assertion: Option<assertion::AssertionRequest>,
     challenge: [u8; INPUT_LENGTH],
     /// The user ID when registering, or the PRF salt when deriving.
     input: [u8; INPUT_LENGTH],
@@ -117,6 +121,9 @@ pub(crate) struct Request<'a> {
 
 impl<'a> Request<'a> {
     fn parse(bytes: &'a [u8]) -> Result<Self, Error> {
+        if bytes.first() == Some(&3) {
+            return assertion::parse(&bytes[1..]);
+        }
         if !(HEADER_LENGTH..=MAX_REQUEST).contains(&bytes.len()) {
             return Err(Error::InvalidArgument);
         }
@@ -137,6 +144,7 @@ impl<'a> Request<'a> {
         }
         Ok(Self {
             operation,
+            assertion: None,
             challenge: bytes[CHALLENGE_OFFSET..INPUT_OFFSET]
                 .try_into()
                 .map_err(|_| Error::InvalidArgument)?,

@@ -70,7 +70,7 @@ private fun NativeFido2Dialog(prompt: Fido2Prompt) {
     }
     AlertDialog(
         onDismissRequest = prompt::cancel,
-        title = { Text(stringResource(Res.string.fido2_unlock_title)) },
+        title = { Text(stringResource(Res.string.fido2_prompt_title)) },
         text = { Fido2PromptContent(requestPin, invalidPin, pin) { pin = it } },
         confirmButton = {
             if (requestPin)

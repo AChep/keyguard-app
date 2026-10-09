@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -66,9 +67,11 @@ actual fun ColumnScope.LoginOtpScreenContentFido2WebAuthnWebView(
 
                 private fun overrideRequest(uri: Uri): Boolean {
                     val shouldBeHandled = run {
-                        val uriString = uri.toString()
-                        updatedCallbackUrls
-                            .any { callbackUrl -> uriString.startsWith(callbackUrl) }
+                        updatedCallbackUrls.any { callbackUrl ->
+                            val expected = Uri.parse(callbackUrl)
+                            uri.scheme == expected.scheme && uri.authority == expected.authority &&
+                                uri.path.orEmpty() == expected.path.orEmpty()
+                        }
                     }
                     if (shouldBeHandled) run {
                         val callback = updatedOnComplete
@@ -77,6 +80,7 @@ actual fun ColumnScope.LoginOtpScreenContentFido2WebAuthnWebView(
                         if (data != null) {
                             val result = data.right()
                             callback(result)
+                            return@run
                         }
 
                         val error = uri.getQueryParameter("error")
@@ -100,13 +104,15 @@ actual fun ColumnScope.LoginOtpScreenContentFido2WebAuthnBrowser(
     val updatedOnClick by rememberUpdatedState(state.onBrowser)
     Button(
         modifier = Modifier
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = Dimens.buttonHorizontalPadding),
+        colors = ButtonDefaults.filledTonalButtonColors(),
+        elevation = ButtonDefaults.filledTonalButtonElevation(),
         enabled = updatedOnClick != null,
         onClick = {
             updatedOnClick?.invoke()
         },
     ) {
-        Text(stringResource(Res.string.fido2webauthn_action_go_title))
+        Text(stringResource(Res.string.fido2_browser_action))
     }
     ExpandedIfNotEmpty(state.error) { error ->
         Column {

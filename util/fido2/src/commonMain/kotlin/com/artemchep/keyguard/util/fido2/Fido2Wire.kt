@@ -1,4 +1,4 @@
-@file:Suppress("MagicNumber") // Bounded binary ABI, version 1.
+@file:Suppress("MagicNumber") // Bounded binary ABI, version 2.
 
 package com.artemchep.keyguard.util.fido2
 
@@ -10,10 +10,12 @@ internal fun encodeFido2Request(operation: Fido2Operation, pin: String?): ByteAr
     val pinBytes = normalizeFido2Pin(pin.orEmpty()).encodeToByteArray()
     try {
         require(pinBytes.size <= FIDO2_MAX_PIN_LENGTH && pinBytes.none { it == 0.toByte() })
+        if (operation is Fido2Operation.Assert) return encodeAssertionRequest(operation.request, pinBytes)
         val (opcode, input, credential) =
             when (operation) {
                 is Fido2Operation.Register -> Triple(1, operation.userId, byteArrayOf())
                 is Fido2Operation.Derive -> Triple(2, operation.salt, operation.credentialId)
+                is Fido2Operation.Assert -> error("Assertion was encoded above")
             }
         return ByteArray(HEADER_LENGTH + credential.size + pinBytes.size).apply {
             this[0] = opcode.toByte()
@@ -38,8 +40,9 @@ internal fun decodeFido2Response(operation: Fido2Operation, bytes: ByteArray): B
         )
     val valid =
         when (operation) {
-            is Fido2Operation.Register -> bytes.size in 2..FIDO2_MAX_RESPONSE
+            is Fido2Operation.Register -> bytes.size in 2..(FIDO2_MAX_CREDENTIAL_LENGTH + 1)
             is Fido2Operation.Derive -> bytes.size == FIDO2_SECRET_LENGTH + 1
+            is Fido2Operation.Assert -> bytes.size in 2..FIDO2_MAX_RESPONSE
         }
     if (!valid) throw Fido2Exception(Fido2Failure.PROTOCOL)
     return bytes.copyOfRange(1, bytes.size)

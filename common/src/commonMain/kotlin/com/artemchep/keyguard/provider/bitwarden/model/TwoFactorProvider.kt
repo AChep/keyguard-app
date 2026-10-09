@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.model
 
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.supportsFido2Assertions
 import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -47,7 +48,8 @@ data class TwoFactorProvider(
                 name = Res.string.provider_2fa_fido2_webauthn,
                 priority = 50,
                 supported = CurrentPlatform
-                    .let { it is Platform.Mobile && !it.hasWatch() },
+                    .let { it is Platform.Mobile && !it.hasWatch() ||
+                        supportsFido2Assertions(it) },
             ),
             TwoFactorProviderType.Email to TwoFactorProvider(
                 type = TwoFactorProviderType.Email,

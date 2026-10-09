@@ -1,33 +1,33 @@
-# FIDO2 vault unlock client
+# FIDO2 security-key client
 
-This Compose-free module registers a security-key credential and evaluates the
-WebAuthn PRF extension. Linux/macOS use Mozilla's `authenticator` CTAP2 client;
-Windows uses its WebAuthn broker (API version 6 or newer), including the system
-PIN prompt. Android uses YubiKit's FIDO client in `common`, with generic FIDO USB
-device discovery. iOS and Flatpak are not supported.
+This Compose-free Kotlin Multiplatform module registers security-key credentials,
+evaluates WebAuthn PRF for vault unlock, and produces assertions for account
+authentication.
 
-The RP ID is `keyguard.dev`. Every operation requires user verification
-and presence. CTAP1 fallback is disabled. PRF inputs use WebAuthn domain separation
-on every backend, including CTAP 2.0 `hmac-secret` keys. Windows requires a
-discoverable credential to enable PRF; other backends discourage resident keys.
+Callers validate assertion RP IDs and AppIDs against their trusted server origin,
+manage vault storage, and clear returned secrets after use.
 
-The bounded JNI/C ABI accepts one registration or derivation request per call.
-Cancellation handles are opaque IDs, not pointers. PIN retries require a new
-user submission; native errors expose status codes without device responses.
-Kotlin callers own returned secrets and erase them after use. The module knows
-nothing about vault storage: `Fido2UnlockService` derives an HKDF-SHA256 wrapping
-key and uses the existing authenticated AES cipher to protect the local master
-key. Only public credential metadata, salts, and ciphertext are persisted.
+Linux/macOS negotiate CTAP2 or legacy U2F according to the key's capabilities.
+The reviewed `authenticator` fork in `thirdParty/rust/` recovers credential IDs
+omitted by CTAP2.0 keys after allow-list filtering. Vault unlock requires user
+verification and PRF; legacy U2F is only usable for compatible account assertions.
 
-Linux builds need `libudev-dev` (or the distribution's equivalent); runtime users
-need permission to access the key's hidraw device. CI installs the build package.
+Linux builds need `libudev-dev` (or the distribution's equivalent). Runtime users
+need permission to access the key's hidraw device.
 
-Run automated checks from the repository root:
+## Tests
+
+Run from the repository root:
 
 ```sh
-cargo fmt -p keyguard-fido2-c -p keyguard-fido2-core -p keyguard-fido2-jni -- --check
-cargo clippy -p keyguard-fido2-c -p keyguard-fido2-core -p keyguard-fido2-jni --all-targets --all-features --locked --no-deps -- -D warnings
 cargo test -p keyguard-fido2-c -p keyguard-fido2-core -p keyguard-fido2-jni --all-features --locked
-./gradlew :util:fido2:checkComposeFree :util:fido2:desktopTest :util:fido2:macosArm64Test :util:fido2:testAndroidHostTest
+cargo test --manifest-path thirdParty/rust/Cargo.toml -p authenticator --no-default-features --features crypto_rust --lib --locked
+./gradlew :util:fido2:desktopTest :util:fido2:testAndroidHostTest
 ./gradlew :common:desktopTest --tests '*Fido2*'
+```
+
+On macOS, also run the native tests:
+
+```sh
+./gradlew :util:fido2:macosArm64Test
 ```

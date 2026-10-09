@@ -4,8 +4,11 @@ import androidx.compose.runtime.Immutable
 import arrow.core.Either
 import arrow.optics.optics
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.fido2.Fido2Prompt
 import com.artemchep.keyguard.feature.yubikey.OnYubiKeyListener
 import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProviderType
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 @Immutable
 @optics
@@ -121,7 +124,11 @@ sealed class BitwardenLoginTwofaState {
         val rememberMe: RememberMe = RememberMe(),
         val onBrowser: (() -> Unit)?,
         val onComplete: ((Either<Throwable, String>) -> Unit)?,
-    ) : BitwardenLoginTwofaState() {
+        val nativeAvailable: Boolean = false,
+        val isLoading: Boolean = false,
+        val prompts: Flow<Fido2Prompt> = emptyFlow(),
+        override val primaryAction: PrimaryAction? = null,
+    ) : BitwardenLoginTwofaState(), HasPrimaryAction {
         companion object
 
         @Immutable

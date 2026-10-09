@@ -51,8 +51,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import org.koin.compose.currentKoinScope
 
 @Composable
@@ -239,11 +237,9 @@ suspend fun RememberStateFlowScope.bitwardenLoginTwofaStateProducer(
 
                     TwoFactorProviderType.Fido2WebAuthn ->
                         createStateFlowForFido2WebAuthn(
-                            cryptoGenerator = cryptoGenerator,
                             base64Service = base64Service,
                             deeplinkService = deeplinkService,
                             json = json,
-                            actionExecutor = actionExecutor,
                             addAccount = addAccount,
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.Fido2WebAuthn,
@@ -717,127 +713,6 @@ private fun RememberStateFlowScope.createStateFlowForDuo(
             authUrl = authUrl.toString(),
             error = null,
             rememberMe = rememberMe,
-            onComplete = ::onComplete
-                .takeIf { canLogin },
-        )
-    }
-}
-
-private suspend fun RememberStateFlowScope.createStateFlowForFido2WebAuthn(
-    cryptoGenerator: CryptoGenerator,
-    base64Service: Base64Service,
-    deeplinkService: DeeplinkService,
-    json: Json,
-    actionExecutor: LoadingTask,
-    addAccount: AddAccount,
-    args: BitwardenLoginTwofaRoute.Args,
-    provider: TwoFactorProviderArgument.Fido2WebAuthn,
-    transmitter: RouteResultTransmitter<Unit>,
-    defaultRememberMe: Boolean,
-): Flow<BitwardenLoginTwofaState> {
-    val errorSink = mutablePersistedFlow("fido2webauthn.error") { "" }
-
-    val callbackUrl = "keyguard://webauthn-callback"
-    val callbackUrls = setOf(
-        callbackUrl,
-        // Bitwarden hardcoded a callback URL internally, so we have to
-        // check for that schema too, to support older installations.
-        // https://github.com/bitwarden/clients/pull/6469
-        "bitwarden://webauthn-callback",
-    )
-    val authUrl = run {
-        val url = args.env.buildWebVaultUrl()
-        val data = buildJsonObject {
-            val responseData = provider.json
-                ?.let { json.encodeToString(it) }
-            if (responseData != null) {
-                put("data", responseData)
-            }
-            put("callbackUri", callbackUrl)
-            put("headerText", translate(Res.string.fido2webauthn_web_title))
-            put("btnText", translate(Res.string.fido2webauthn_action_go_title))
-            put("btnReturnText", translate(Res.string.fido2webauthn_action_return_title))
-        }
-            .let { json.encodeToString(it) }
-            .let { base64Service.encodeToString(it) }
-        URLBuilder(Url(url)).apply {
-            appendPathSegments("webauthn-mobile-connector.html")
-            parameters.apply {
-                append("data", data)
-                append("parent", callbackUrl)
-                append("v", "2")
-            }
-        }.build()
-    }
-
-    val rememberMeSink = mutablePersistedFlow("remember_me") { defaultRememberMe }
-
-    fun onComplete(
-        result: Either<Throwable, String>,
-    ) {
-        result.fold(
-            ifLeft = { e ->
-                val text = e.message
-                val msg = ToastMessage(
-                    type = ToastMessage.Type.ERROR,
-                    title = text.orEmpty(),
-                )
-                message(msg)
-            },
-            ifRight = { token ->
-                val io = addAccount(
-                    args.accountId,
-                    args.env,
-                    ServerTwoFactorToken(
-                        token = token,
-                        provider = TwoFactorProviderType.Fido2WebAuthn,
-                        remember = rememberMeSink.value,
-                    ),
-                    args.clientSecret,
-                    args.email,
-                    args.password,
-                ).effectTap {
-                    transmitter(Unit)
-                }
-                actionExecutor.execute(io)
-            },
-        )
-    }
-
-    fun onBrowser(
-    ) {
-        val intent = NavigationIntent.NavigateToBrowser(authUrl.toString())
-        navigate(intent)
-    }
-
-    return combine(
-        deeplinkService
-            .getFlow("webauthn-callback")
-            .onEach { data ->
-                if (data != null) {
-                    val result = data.right()
-                    onComplete(result)
-                }
-            },
-        errorSink
-            .map { error -> error.takeIf { it.isNotBlank() } },
-        actionExecutor.isExecutingFlow,
-        rememberMeSink
-            .map { checked ->
-                BitwardenLoginTwofaState.Fido2WebAuthn.RememberMe(
-                    checked = checked,
-                    onChange = rememberMeSink::value::set,
-                )
-            },
-    ) { _, error, isLoading, rememberMe ->
-        val canLogin = !isLoading
-        BitwardenLoginTwofaState.Fido2WebAuthn(
-            authUrl = authUrl.toString(),
-            callbackUrls = callbackUrls,
-            error = error,
-            rememberMe = rememberMe,
-            onBrowser = ::onBrowser
-                .takeIf { canLogin },
             onComplete = ::onComplete
                 .takeIf { canLogin },
         )

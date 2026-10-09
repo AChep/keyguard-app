@@ -4,12 +4,21 @@ import com.artemchep.keyguard.util.ffi.runNativeOperation
 
 /** Native USB client for desktop; device handles exist only during an operation. */
 class NativeFido2Client {
+    suspend fun getAssertion(request: Fido2AssertionRequest, pin: String?): Fido2AssertionResult {
+        val bytes = execute(Fido2Operation.Assert(request), pin)
+        return try {
+            decodeFido2AssertionResult(bytes)
+        } finally {
+            bytes.fill(0)
+        }
+    }
+
     val isSupported: Boolean
         get() = NativeFido2.isSupported
 
     /**
-     * Returns a credential ID for registration, or a 32-byte PRF result for derivation. The caller
-     * owns the result and must clear secret bytes after use.
+     * Returns a credential ID, a 32-byte PRF result, or an encoded assertion for the requested
+     * operation. The caller owns the result and must clear secret bytes after use.
      */
     suspend fun execute(operation: Fido2Operation, pin: String?): ByteArray {
         if (!isSupported) throw Fido2Exception(Fido2Failure.UNSUPPORTED)

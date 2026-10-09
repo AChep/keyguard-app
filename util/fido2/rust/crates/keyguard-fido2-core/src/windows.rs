@@ -15,8 +15,9 @@ use windows_sys::{
 use zeroize::Zeroize;
 
 pub(crate) fn execute(request: &Request, canceled: &AtomicBool) -> Result<Vec<u8>, Error> {
+    let minimum_api = if request.assertion.is_some() { 3 } else { 6 };
     // SAFETY: This version query takes no pointers and does not access a device.
-    if unsafe { WebAuthNGetApiVersionNumber() } < 6 {
+    if unsafe { WebAuthNGetApiVersionNumber() } < minimum_api {
         return Err(Error::Unsupported);
     }
     let mut cancellation = GUID::default();
@@ -53,24 +54,113 @@ pub(crate) fn execute(request: &Request, canceled: &AtomicBool) -> Result<Vec<u8
 fn perform(request: &Request, cancellation: &mut GUID) -> Result<Vec<u8>, Error> {
     let kind = match request.operation {
         Operation::Register => "webauthn.create",
-        Operation::Derive { .. } => "webauthn.get",
+        Operation::Derive { .. } | Operation::Assert => "webauthn.get",
     };
     let mut json = format!(
         "{{\"type\":\"{kind}\",\"challenge\":\"{}\",\"origin\":\"https://{RP_ID}\"}}",
         URL_SAFE_NO_PAD.encode(request.challenge)
     )
     .into_bytes();
+    if let Some(assertion) = &request.assertion {
+        json = assertion.client_data.clone();
+    }
     let client_data = WEBAUTHN_CLIENT_DATA {
         dwVersion: 1,
         cbClientDataJSON: json.len() as u32,
         pbClientDataJSON: json.as_mut_ptr(),
         pwszHashAlgId: WEBAUTHN_HASH_ALGORITHM_SHA_256,
     };
-    let rp: Vec<u16> = RP_ID.encode_utf16().chain(Some(0)).collect();
+    let rp_id = request
+        .assertion
+        .as_ref()
+        .map_or(RP_ID, |a| a.rp_id.as_str());
+    let rp: Vec<u16> = rp_id.encode_utf16().chain(Some(0)).collect();
     // SAFETY: Windows returns a borrowed foreground window handle; WebAuthn accepts it as its parent.
     let window = unsafe { GetForegroundWindow() };
     let timeout = TIMEOUT.as_millis() as u32;
     match request.operation {
+        Operation::Assert => {
+            let assertion = request.assertion.as_ref().ok_or(Error::InvalidArgument)?;
+            let mut ids: Vec<Vec<u8>> = assertion
+                .credentials
+                .iter()
+                .map(|(id, _)| id.clone())
+                .collect();
+            let mut items: Vec<WEBAUTHN_CREDENTIAL_EX> = ids
+                .iter_mut()
+                .zip(&assertion.credentials)
+                .map(|(id, (_, transports))| WEBAUTHN_CREDENTIAL_EX {
+                    dwVersion: 1,
+                    cbId: id.len() as u32,
+                    pbId: id.as_mut_ptr(),
+                    pwszCredentialType: WEBAUTHN_CREDENTIAL_TYPE_PUBLIC_KEY,
+                    dwTransports: *transports,
+                })
+                .collect();
+            let mut pointers: Vec<_> = items.iter_mut().map(|c| c as *mut _).collect();
+            let mut credentials = WEBAUTHN_CREDENTIAL_LIST {
+                cCredentials: pointers.len() as u32,
+                ppCredentials: pointers.as_mut_ptr(),
+            };
+            let app_id: Option<Vec<u16>> = assertion
+                .app_id
+                .as_ref()
+                .map(|id| id.encode_utf16().chain(Some(0)).collect());
+            let mut app_id_used = 0;
+            let options = WEBAUTHN_AUTHENTICATOR_GET_ASSERTION_OPTIONS {
+                dwVersion: 4,
+                dwTimeoutMilliseconds: assertion.timeout.as_millis() as u32,
+                dwAuthenticatorAttachment: WEBAUTHN_AUTHENTICATOR_ATTACHMENT_CROSS_PLATFORM,
+                dwUserVerificationRequirement: match assertion.verification {
+                    0 => WEBAUTHN_USER_VERIFICATION_REQUIREMENT_DISCOURAGED,
+                    1 => WEBAUTHN_USER_VERIFICATION_REQUIREMENT_PREFERRED,
+                    _ => WEBAUTHN_USER_VERIFICATION_REQUIREMENT_REQUIRED,
+                },
+                pCancellationId: cancellation,
+                pAllowCredentialList: &mut credentials,
+                pwszU2fAppId: app_id.as_ref().map_or(ptr::null(), |id| id.as_ptr()),
+                pbU2fAppId: &mut app_id_used,
+                ..Default::default()
+            };
+            let mut output = ptr::null_mut();
+            // SAFETY: All pointers refer to storage alive through the synchronous call.
+            check(unsafe {
+                WebAuthNAuthenticatorGetAssertion(
+                    window,
+                    rp.as_ptr(),
+                    &client_data,
+                    &options,
+                    &mut output,
+                )
+            })?;
+            let output = Assertion(output);
+            // SAFETY: The guard owns the successful WebAuthn allocation and its buffers.
+            let data = unsafe { output.0.as_ref() }.ok_or(Error::Protocol)?;
+            // SAFETY: The guard keeps each length-checked buffer alive until encoding finishes.
+            unsafe {
+                assertion.encode_result(
+                    borrow_buffer(
+                        data.Credential.pbId,
+                        data.Credential.cbId,
+                        1,
+                        MAX_CREDENTIAL,
+                    )?,
+                    borrow_buffer(
+                        data.pbAuthenticatorData,
+                        data.cbAuthenticatorData,
+                        37,
+                        65536,
+                    )?,
+                    borrow_buffer(data.pbSignature, data.cbSignature, 1, 4096)?,
+                    if data.cbUserId == 0 {
+                        &[]
+                    } else {
+                        borrow_buffer(data.pbUserId, data.cbUserId, 1, 64)?
+                    },
+                    app_id_used != 0,
+                )
+            }
+        }
         Operation::Register => {
             let relying_party = WEBAUTHN_RP_ENTITY_INFORMATION {
                 dwVersion: 1,

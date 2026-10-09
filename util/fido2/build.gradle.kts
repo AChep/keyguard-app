@@ -17,7 +17,10 @@ tasks.withType<CargoBuildTask>().configureEach {
 
 kotlin {
     sourceSets {
-        commonMain.dependencies { api(libs.kotlinx.coroutines.core) }
+        commonMain.dependencies {
+            api(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
+        }
         sharedJvmMain()
         sharedAppleMain()
         sharedNativeClient()

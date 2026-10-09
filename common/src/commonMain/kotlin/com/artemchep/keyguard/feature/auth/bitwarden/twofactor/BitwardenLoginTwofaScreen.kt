@@ -182,9 +182,10 @@ fun LoginTwofaScreenContent(
         },
         overlay = {
             val isLoading by state.loadingState.collectAsState()
+            val isFido2Loading = (state.state as? BitwardenLoginTwofaState.Fido2WebAuthn)?.isLoading == true
             DefaultProgressBar(
                 modifier = Modifier,
-                visible = isLoading,
+                visible = isLoading || isFido2Loading,
             )
         },
     ) {
@@ -203,7 +204,7 @@ fun LoginTwofaScreenContent(
                 is BitwardenLoginTwofaState.YubiKey -> LoginOtpScreenContentYubiKey(scope, s)
                 is BitwardenLoginTwofaState.Email -> LoginOtpScreenContentEmail(scope, s)
                 is BitwardenLoginTwofaState.EmailNewDevice -> LoginOtpScreenContentEmailNewDevice(scope, s)
-                is BitwardenLoginTwofaState.Fido2WebAuthn -> LoginOtpScreenContentFido2WebAuthnBrowser(
+                is BitwardenLoginTwofaState.Fido2WebAuthn -> LoginOtpScreenContentFido2WebAuthn(
                     scope,
                     s,
                 )

@@ -186,8 +186,8 @@ data class TwofaProviderSnapshot(
 )
 
 /**
- * [FALLBACK] covers providers that need a WebView or browser callback the Apple apps don't support (Duo,
- * FIDO2 WebAuthn, unknown providers) and offers to finish in the web vault.
+ * [FALLBACK] covers providers that need a WebView or browser callback the Apple apps don't support
+ * (Duo, FIDO2 on iOS, unknown providers) and offers to finish in the web vault.
  */
 enum class TwofaKind {
     SKELETON,
@@ -195,6 +195,7 @@ enum class TwofaKind {
     EMAIL,
     EMAIL_NEW_DEVICE,
     YUBIKEY,
+    FIDO2,
     FALLBACK,
 }
 

@@ -16,7 +16,7 @@ verification screen.
 | Email                   | ✓       | ✓       | Code sent to your email, resendable |
 | New-device verification | ✓       | ✓       | Email code on first login from a new device |
 | YubiKey                 | ✓       | ✓       | Android: USB/NFC tap; desktop: enter the OTP manually |
-| FIDO2 WebAuthn          | ✓       | —       | Browser-based flow                 |
+| FIDO2 WebAuthn          | ✓       | ✓       | Security key; browser option on Android |
 | Duo / organization Duo  | ✓       | —       | In-app web view                    |
 | FIDO U2F (legacy)       | —       | —       | _Superseded by FIDO2 WebAuthn_       |
 | Log in with SSO         | —       | —       | Not supported                      |
@@ -46,9 +46,15 @@ time.
 
 ### FIDO2 WebAuthn
 
-Keyguard sends the challenge to your **web browser**, where you use your
-security key or platform authenticator on a page served by your web vault.
-Once verified, the browser sends you straight back to the app. Mobile only.
+Choose **Use security key** to authenticate directly in Keyguard on Android,
+Windows, macOS, or Linux. Desktop connects over USB; Android also supports NFC.
+This does not require the key to support PRF or be enrolled for local vault unlock.
+Native key access is unavailable in Flatpak.
+
+On Android, **Use browser** opens your web vault's connector and returns the
+result to Keyguard. Keep this option for browser-managed passkeys and legacy
+U2F credentials. If Android asks which app should handle the return link,
+choose Keyguard.
 
 ### Duo
 

@@ -97,6 +97,20 @@ class NativeChangeClassificationTest(unittest.TestCase):
         for flag in consumers:
             self.assertFalse(result[flag], flag)
 
+    def test_authenticator_fork_runs_fido2_consumers_and_fork_tests(self):
+        for path in (
+            "thirdParty/rust/authenticator-0.5.0-keyguard/src/ctap2/commands/get_assertion.rs",
+            "thirdParty/rust/authenticator-0.5.0-keyguard/src/ctap2/commands/get_assertion/keyguard_tests.rs",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                for flag in ("desktop", "desktop_regressions", "apple", "apple_regressions", "native_quality"):
+                    self.assertTrue(result[flag], flag)
+                for flag in ("crypto", "android", "fuzz"):
+                    self.assertFalse(result[flag], flag)
+        for path in ("thirdParty/rust/Cargo.toml", "thirdParty/rust/Cargo.lock"):
+            self.assertTrue(classify([path])["native_quality"])
+
     def test_fuzz_only_edit_does_not_rebuild_apps(self):
         result = classify(["util/crypto/rust/fuzz/fuzz_targets/dispatch.rs"])
         self.assertTrue(result["fuzz"])

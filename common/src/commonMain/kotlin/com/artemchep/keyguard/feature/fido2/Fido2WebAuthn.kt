@@ -5,15 +5,19 @@ package com.artemchep.keyguard.feature.fido2
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.util.fido2.FIDO2_MAX_CREDENTIAL_LENGTH
 import com.artemchep.keyguard.util.fido2.FIDO2_RP_ID
+import com.artemchep.keyguard.util.fido2.Fido2AssertionResult
 import com.artemchep.keyguard.util.fido2.Fido2Exception
 import com.artemchep.keyguard.util.fido2.Fido2Failure
 import com.artemchep.keyguard.util.fido2.Fido2Operation
+import com.artemchep.keyguard.util.fido2.encode
+import com.artemchep.keyguard.util.fido2.webAuthnJson
 import kotlin.io.encoding.Base64
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -23,10 +27,11 @@ import kotlinx.serialization.json.putJsonObject
 private val encoding = Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT_OPTIONAL)
 
 internal fun Fido2Operation.webAuthnRequest(): String =
-    buildJsonObject {
+    if (this is Fido2Operation.Assert) request.webAuthnJson() else buildJsonObject {
             put("challenge", encoding.encode(challenge))
             put("timeout", 60_000)
             when (val operation = this@webAuthnRequest) {
+                is Fido2Operation.Assert -> error("Assertion was encoded above")
                 is Fido2Operation.Register -> {
                     putJsonObject("rp") {
                         put("id", FIDO2_RP_ID)
@@ -76,10 +81,22 @@ internal fun Fido2Operation.webAuthnResponse(response: String): ByteArray {
     val root = Json.parseToJsonElement(response).jsonObject
     val credentialId = encoding.decode(root.getValue("rawId").jsonPrimitive.content)
     require(credentialId.size in 1..FIDO2_MAX_CREDENTIAL_LENGTH)
+    if (this is Fido2Operation.Assert) {
+        val data = root.getValue("response").jsonObject
+        return Fido2AssertionResult(
+            credentialId = credentialId,
+            authenticatorData = encoding.decode(data.getValue("authenticatorData").jsonPrimitive.content),
+            signature = encoding.decode(data.getValue("signature").jsonPrimitive.content),
+            userHandle = data["userHandle"]?.jsonPrimitive?.contentOrNull?.let(encoding::decode),
+            appIdUsed = root["clientExtensionResults"]?.jsonObject?.get("appid")?.jsonPrimitive?.booleanOrNull == true,
+            clientDataJson = encoding.decode(data.getValue("clientDataJSON").jsonPrimitive.content),
+        ).encode()
+    }
     val prf =
         root["clientExtensionResults"]?.jsonObject?.get("prf")?.jsonObject
             ?: throw Fido2Exception(Fido2Failure.UNSUPPORTED)
     return when (this) {
+        is Fido2Operation.Assert -> error("Assertion was decoded above")
         is Fido2Operation.Register -> {
             if (prf["enabled"]?.jsonPrimitive?.booleanOrNull != true)
                 throw Fido2Exception(Fido2Failure.UNSUPPORTED)

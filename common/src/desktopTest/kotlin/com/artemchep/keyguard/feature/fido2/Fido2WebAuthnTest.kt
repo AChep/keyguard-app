@@ -2,14 +2,19 @@ package com.artemchep.keyguard.feature.fido2
 
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.util.fido2.FIDO2_RP_ID
+import com.artemchep.keyguard.util.fido2.Fido2AllowedCredential
+import com.artemchep.keyguard.util.fido2.Fido2AssertionRequest
 import com.artemchep.keyguard.util.fido2.Fido2Exception
 import com.artemchep.keyguard.util.fido2.Fido2Operation
+import com.artemchep.keyguard.util.fido2.Fido2UserVerification
+import com.artemchep.keyguard.util.fido2.decodeFido2AssertionResult
 import kotlin.io.encoding.Base64
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
@@ -21,6 +26,33 @@ class Fido2WebAuthnTest {
     private val base64 = Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT_OPTIONAL)
     private val operation =
         Fido2Operation.Derive(byteArrayOf(1, 2), ByteArray(32), ByteArray(32) { 9 })
+
+    @Test
+    fun accountAssertionsPreserveAndroidClientDataWithoutPrf() {
+        val request = Fido2AssertionRequest(
+            rpId = "vault.example.com",
+            origin = "https://vault.example.com",
+            challenge = ByteArray(32) { 7 },
+            credentials = listOf(Fido2AllowedCredential(byteArrayOf(1, 2))),
+            userVerification = Fido2UserVerification.DISCOURAGED,
+        )
+        val assertion = Fido2Operation.Assert(request)
+        val options = Json.parseToJsonElement(assertion.webAuthnRequest()).jsonObject
+        assertEquals("vault.example.com", options.getValue("rpId").jsonPrimitive.content)
+        assertEquals("discouraged", options.getValue("userVerification").jsonPrimitive.content)
+        assertNull(options["extensions"])
+        val androidResponse = buildJsonObject {
+            put("rawId", base64.encode(byteArrayOf(1, 2)))
+            putJsonObject("response") {
+                put("authenticatorData", base64.encode(ByteArray(37)))
+                put("signature", base64.encode(byteArrayOf(3)))
+                put("clientDataJSON", base64.encode(request.clientDataJson))
+            }
+        }.toString()
+        val result = decodeFido2AssertionResult(assertion.webAuthnResponse(androidResponse))
+        assertContentEquals(request.clientDataJson, result.clientDataJson)
+        assertContentEquals(byteArrayOf(3), result.signature)
+    }
 
     @Test
     fun requiresVerifiedUserAndMatchingCredentialAndRp() {

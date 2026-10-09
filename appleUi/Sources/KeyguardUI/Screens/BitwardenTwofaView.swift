@@ -69,6 +69,13 @@ struct BitwardenTwofaView: View {
                 .padding(.vertical, 24)
         } else if twofa.kind == TwofaKind.fallback {
             fallbackCard
+        } else if twofa.kind == TwofaKind.fido2 {
+            VStack(alignment: .leading, spacing: 12) {
+                if twofa.rememberMeEnabled {
+                    Toggle(L10n.rememberMe, isOn: rememberMeBinding)
+                }
+                continueButton
+            }
         } else if twofa.kind == TwofaKind.yubikey {
             yubiKeyForm
         } else {
@@ -206,7 +213,7 @@ struct BitwardenTwofaView: View {
         loginModel.submitTwofaYubiKey(token: yubiKeyCode)
     }
 
-    // MARK: - Fallback (Duo / FIDO2-WebAuthn)
+    // MARK: - Fallback (Duo / FIDO2 on iOS)
 
     @ViewBuilder
     private var fallbackCard: some View {

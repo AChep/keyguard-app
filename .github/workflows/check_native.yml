@@ -133,7 +133,7 @@ jobs:
         run: |
           cargo fmt --all -- --check
           cargo clippy \
-            --workspace --exclude ssh-key \
+            --workspace --exclude ssh-key --exclude authenticator \
             --all-targets --all-features --locked -- -D warnings
           # Preserve ssh-key 0.6.7's upstream API shape while denying any new
           # warning outside these known style-only lints.
@@ -145,7 +145,7 @@ jobs:
             -A clippy::derivable_impls \
             -A clippy::useless_conversion
           cargo test \
-            --workspace --exclude ssh-key --all-features --locked
+            --workspace --exclude ssh-key --exclude authenticator --all-features --locked
           cargo test \
             --package ssh-key --no-default-features \
             --features keyguard-decryption,std --lib --locked
@@ -350,6 +350,15 @@ jobs:
           done
           # zip consumes keyguard-ffi without its jni feature.
           cargo clippy -p keyguard-ffi --all-targets --locked --no-deps -- -D warnings
+      - name: "Test reviewed authenticator fork"
+        working-directory: thirdParty/rust
+        run: |
+          # The upstream crypto backends are mutually exclusive.
+          cargo fmt -p authenticator -- --check
+          # Retain upstream style warnings while failing correctness/suspicious lints.
+          cargo clippy -p authenticator --no-default-features --features crypto_rust --lib --tests --locked -- \
+            -D clippy::correctness -D clippy::suspicious -A clippy::manual_unwrap_or_default
+          cargo test -p authenticator --no-default-features --features crypto_rust --lib --locked
 
   desktop-bundle:
     name: "Native desktop (${{ matrix.name }})"
@@ -456,6 +465,10 @@ jobs:
           ${{ matrix.gradle }} --max-workers=1
           "-Pkeyguard.nativeCargo.cargoOffline=true"
           :util:yubikey:desktopTest :util:fido2:desktopTest
+      - name: "Run authenticator protocol regressions"
+        if: runner.os != 'Windows' && needs.changes.outputs.desktop == 'true'
+        working-directory: thirdParty/rust
+        run: cargo test -p authenticator --no-default-features --features crypto_rust --lib --locked --offline
       - name: "Run Windows private staging regressions"
         if: runner.os == 'Windows' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.crypto == 'true')
         run: >-

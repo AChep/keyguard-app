@@ -12,6 +12,7 @@ import com.artemchep.keyguard.util.fido2.FIDO2_RP_ID
 import com.artemchep.keyguard.util.fido2.Fido2Exception
 import com.artemchep.keyguard.util.fido2.Fido2Failure
 import com.artemchep.keyguard.util.fido2.Fido2Operation
+import com.artemchep.keyguard.util.fido2.parseFido2AssertionRequest
 import com.yubico.yubikit.fido.android.ui.FidoClient
 import com.yubico.yubikit.fido.android.ui.Origin
 import com.yubico.yubikit.fido.android.ui.WebAuthnClientException
@@ -36,13 +37,13 @@ class Fido2Activity : ComponentActivity() {
         lifecycleScope.launch {
             try {
                 val operation = intent.operation()
-                val origin = Origin("https://$FIDO2_RP_ID")
+                val origin = Origin((operation as? Fido2Operation.Assert)?.request?.origin ?: "https://$FIDO2_RP_ID")
                 val request = operation.webAuthnRequest()
                 val response =
                     when (operation) {
                         is Fido2Operation.Register ->
                             client.makeCredential(origin, request, null, "Keyguard")
-                        is Fido2Operation.Derive ->
+                        is Fido2Operation.Derive, is Fido2Operation.Assert ->
                             client.getAssertion(origin, request, null, "Keyguard")
                     }.getOrThrow()
                 val bytes = operation.webAuthnResponse(response)
@@ -71,6 +72,10 @@ internal class Fido2ActivityContract : ActivityResultContract<Fido2Operation, Re
         Intent(context, Fido2Activity::class.java).apply {
             putExtra("challenge", input.challenge)
             when (input) {
+                is Fido2Operation.Assert -> {
+                    putExtra("assertion", input.webAuthnRequest())
+                    putExtra("origin", input.request.origin)
+                }
                 is Fido2Operation.Register -> putExtra("user", input.userId)
                 is Fido2Operation.Derive -> {
                     putExtra("credential", input.credentialId)
@@ -91,6 +96,9 @@ internal class Fido2ActivityContract : ActivityResultContract<Fido2Operation, Re
 }
 
 private fun Intent.operation(): Fido2Operation {
+    getStringExtra("assertion")?.let { options ->
+        return Fido2Operation.Assert(parseFido2AssertionRequest(options, requireNotNull(getStringExtra("origin"))))
+    }
     val challenge = requireNotNull(getByteArrayExtra("challenge"))
     val user = getByteArrayExtra("user")
     return if (user != null) Fido2Operation.Register(user, challenge)

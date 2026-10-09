@@ -9,7 +9,7 @@ struct Fido2PromptView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(L10n.fido2UnlockTitle).font(.headline)
+            Text(L10n.fido2PromptTitle).font(.headline)
             Text(needsPin ? L10n.fido2PinPrompt : L10n.fido2TouchPrompt)
             if needsPin {
                 SecureField(L10n.fido2PinLabel, text: $pin)

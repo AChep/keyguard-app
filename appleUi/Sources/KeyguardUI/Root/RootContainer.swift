@@ -54,7 +54,11 @@ public struct RootContainer<Main: View>: View {
         .environment(\.locale, AppLocalization.shared.locale)
         .animation(reduceMotion ? nil : .default, value: authModel.status)
         .animation(reduceMotion ? nil : .default, value: authModel.hasOnboarded)
-        .modifier(Fido2PromptModifier(isEnabled: !quickSearchModel.quickSearchVisible))
+        .modifier(
+            Fido2PromptModifier(
+                isEnabled: !quickSearchModel.quickSearchVisible && navigationModel.addAccountRequest == nil
+            )
+        )
         .sheet(isPresented: $onboardingPresented) { OnboardingView() }
         // App-level dialogs share one item-based route so SwiftUI only ever sees
         // one modal for this concern. `RootAppSheetRoute.preferred` owns priority.
@@ -96,6 +100,7 @@ public struct RootContainer<Main: View>: View {
         ) { request in
             NavigationStack {
                 AddAccountDestination(kind: request.kind, requestId: request.requestId, presentation: accountLogin)
+                    .modifier(Fido2PromptModifier())
             }
             .appToastOverlay()
         }

@@ -2085,6 +2085,14 @@ public enum L10n {
     public static var emailrelayAddAction: String {
         String(localized: "emailrelay_add_action", bundle: AppLocalization.shared.bundle)
     }
+    /// emailrelay_addyio_recipient_id_label
+    public static var emailrelayAddyioRecipientIdLabel: String {
+        String(localized: "emailrelay_addyio_recipient_id_label", bundle: AppLocalization.shared.bundle)
+    }
+    /// emailrelay_addyio_recipient_id_note
+    public static var emailrelayAddyioRecipientIdNote: String {
+        String(localized: "emailrelay_addyio_recipient_id_note", bundle: AppLocalization.shared.bundle)
+    }
     /// emailrelay_base_env_note
     public static var emailrelayBaseEnvNote: String {
         String(localized: "emailrelay_base_env_note", bundle: AppLocalization.shared.bundle)
@@ -2673,6 +2681,14 @@ public enum L10n {
     public static var february: String {
         String(localized: "february", bundle: AppLocalization.shared.bundle)
     }
+    /// fido2_authenticate_action
+    public static var fido2AuthenticateAction: String {
+        String(localized: "fido2_authenticate_action", bundle: AppLocalization.shared.bundle)
+    }
+    /// fido2_browser_action
+    public static var fido2BrowserAction: String {
+        String(localized: "fido2_browser_action", bundle: AppLocalization.shared.bundle)
+    }
     /// fido2_error_invalid_pin
     public static var fido2ErrorInvalidPin: String {
         String(localized: "fido2_error_invalid_pin", bundle: AppLocalization.shared.bundle)
@@ -2708,6 +2724,10 @@ public enum L10n {
     /// fido2_pin_prompt
     public static var fido2PinPrompt: String {
         String(localized: "fido2_pin_prompt", bundle: AppLocalization.shared.bundle)
+    }
+    /// fido2_prompt_title
+    public static var fido2PromptTitle: String {
+        String(localized: "fido2_prompt_title", bundle: AppLocalization.shared.bundle)
     }
     /// fido2_touch_prompt
     public static var fido2TouchPrompt: String {
@@ -8080,6 +8100,22 @@ public enum L10n {
     /// status_running
     public static var statusRunning: String {
         String(localized: "status_running", bundle: AppLocalization.shared.bundle)
+    }
+    /// storage_error_title
+    public static var storageErrorTitle: String {
+        String(localized: "storage_error_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// storage_missing_configuration
+    public static var storageMissingConfiguration: String {
+        String(localized: "storage_missing_configuration", bundle: AppLocalization.shared.bundle)
+    }
+    /// storage_unavailable
+    public static var storageUnavailable: String {
+        String(localized: "storage_unavailable", bundle: AppLocalization.shared.bundle)
+    }
+    /// storage_unwritable
+    public static var storageUnwritable: String {
+        String(localized: "storage_unwritable", bundle: AppLocalization.shared.bundle)
     }
     /// subkeys
     public static var subkeys: String {

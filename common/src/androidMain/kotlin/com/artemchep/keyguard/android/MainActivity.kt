@@ -66,12 +66,13 @@ class MainActivity : BaseActivity() {
 
         val dta = intent.data
         if (dta != null) {
-            val url = dta.toString()
             when {
-                url.startsWith("bitwarden://webauthn-callback") ||
-                        url.startsWith("keyguard://webauthn-callback") -> {
+                dta.scheme in setOf("bitwarden", "keyguard") &&
+                    dta.host == "webauthn-callback" && dta.path.isNullOrEmpty() &&
+                    dta.userInfo == null && dta.port == -1 -> {
                     val data = dta.getQueryParameter("data")
                     deeplinkService.put("webauthn-callback", data)
+                    deeplinkService.put("webauthn-error", dta.getQueryParameter("error"))
                 }
             }
         }

@@ -38,8 +38,10 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -53,6 +55,7 @@ import org.koin.core.scope.Scope
 /** A login and its 2FA challenge belong to one presentation. Main-confined. */
 class BitwardenLoginSession internal constructor(
     private val ctx: CoreContext,
+    private val fido2PromptHost: Fido2PromptController,
     private var args: BitwardenLoginRoute.Args?,
     val dialogs: com.artemchep.keyguard.apple.dialog.FormDialogsSession,
     private val onDispose: () -> Unit,
@@ -358,6 +361,14 @@ class BitwardenLoginSession internal constructor(
             launch {
                 producerFlow.collect { twofa -> latest.value = twofa }
             }
+            launch {
+                latest.filterNotNull()
+                    .map { it.state as? BitwardenLoginTwofaState.Fido2WebAuthn }
+                    .map { it?.prompts ?: emptyFlow() }
+                    .distinctUntilChanged()
+                    .flatMapLatest { it }
+                    .collectLatest { prompt -> fido2PromptHost.handle(prompt) }
+            }
             // loadingState is a separate inner StateFlow the top-level
             // state does not re-emit for; combine it so the submit
             // spinner's on/off pushes a fresh snapshot.
@@ -445,7 +456,14 @@ class BitwardenLoginSession internal constructor(
 
             is BitwardenLoginTwofaState.Unsupported -> fallback()
             is BitwardenLoginTwofaState.Duo -> fallback()
-            is BitwardenLoginTwofaState.Fido2WebAuthn -> fallback()
+            is BitwardenLoginTwofaState.Fido2WebAuthn -> if (s.nativeAvailable) base.copy(
+                kind = TwofaKind.FIDO2,
+                rememberMe = s.rememberMe.checked,
+                rememberMeEnabled = s.rememberMe.onChange != null,
+                primaryActionText = s.primaryAction?.text,
+                canSubmit = s.primaryAction?.onClick != null,
+                isLoading = s.isLoading,
+            ) else fallback()
         }
     }
 
@@ -472,6 +490,7 @@ class BitwardenLoginSession internal constructor(
             is BitwardenLoginTwofaState.Authenticator -> s.rememberMe.onChange
             is BitwardenLoginTwofaState.Email -> s.rememberMe.onChange
             is BitwardenLoginTwofaState.YubiKey -> s.rememberMe.onChange
+            is BitwardenLoginTwofaState.Fido2WebAuthn -> s.rememberMe.onChange
             else -> null
         }
         onChange?.invoke(checked)

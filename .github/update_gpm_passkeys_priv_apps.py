@@ -160,6 +160,20 @@ EXTRA_APPS = [
             ]
         }
     },
+    # Ecosia
+    # https://play.google.com/store/apps/details?id=com.ecosia.android
+    {
+        "type": "android",
+        "info": {
+            "package_name": "com.ecosia.android",
+            "signatures": [
+                {
+                    "build": "release",
+                    "cert_fingerprint_sha256": "F5:22:D5:DF:0A:B5:92:16:8B:DE:E6:15:14:13:FD:98:02:27:22:F7:F2:F8:5E:FE:72:B8:1E:28:DD:EC:76:5C"
+                }
+            ]
+        }
+    },
 ]
 
 response = requests.get(

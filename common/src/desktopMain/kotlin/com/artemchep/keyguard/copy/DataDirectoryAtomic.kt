@@ -10,66 +10,78 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 /**
- * App data is created below AppDirs' existing platform-data parent.
+ * App data is created below AppDirs' platform-data directory.
  */
 internal fun DataDirectory.atomicDataDirectory(): AtomicDirectoryDestination =
-    atomicAppDirectory(Path.of(dataBlocking()))
+    atomicAppDirectory(dataPlatformBlocking())
 
 /**
- * Preserves AppDirs' download location while retaining its existing parent.
+ * Downloads are created below AppDirs' platform-downloads directory.
  */
-internal fun DataDirectory.atomicDownloadsDirectory(): AtomicDirectoryDestination {
-    return atomicAppDirectory(Path.of(downloadsBlocking()))
+internal fun DataDirectory.atomicDownloadsDirectory(): AtomicDirectoryDestination =
+    atomicAppDirectory(downloadsPlatformBlocking())
+
+private fun DataDirectory.atomicAppDirectory(
+    platformDirectory: String,
+): AtomicDirectoryDestination = atomicAppDirectory(
+    platformDirectory = Path.of(platformDirectory),
+    appDirectory = Path.of(appDirectory(platformDirectory)),
+    creatableRoot = creatableRoot(),
+)
+
+/**
+ * A Flatpak sandbox discards what it does not expose, so there a missing
+ * platform directory must not be created.
+ */
+private fun creatableRoot(): Path? {
+    val platform = CurrentPlatform
+    if (platform is Platform.Desktop.Linux && platform.isFlatpak) {
+        return null
+    }
+    return Path.of(System.getProperty("user.home"))
 }
 
-private fun atomicAppDirectory(
+/**
+ * Trusts the platform-owned directory, which may be a link, and rejects links
+ * in the app-owned components below it.
+ *
+ * A missing platform directory is created only inside [creatableRoot].
+ * Elsewhere it might be on a drive that is not mounted.
+ */
+internal fun atomicAppDirectory(
+    platformDirectory: Path,
     appDirectory: Path,
+    creatableRoot: Path?,
 ): AtomicDirectoryDestination {
+    val platform = platformDirectory
+        .toAbsolutePath()
+        .normalize()
     val directory = appDirectory
         .toAbsolutePath()
         .normalize()
-    val platformOwnedSuffixCount = when (CurrentPlatform) {
-        Platform.Desktop.Windows -> 2
-        else -> 1
+    require(directory.startsWith(platform) && directory != platform) {
+        "App directory must be below its platform directory"
     }
-    var root = directory
-    repeat(platformOwnedSuffixCount) {
-        root = requireNotNull(root.parent) {
-            "App directory has no platform trust root"
-        }
+    // A fresh profile might lack the platform directory, for example
+    // the user's Downloads folder. Trust its nearest existing ancestor
+    // instead, so the write creates the missing components.
+    val root = requireNotNull(
+        generateSequence(platform) { it.parent }
+            .firstOrNull { Files.isDirectory(it) },
+    ) {
+        "Platform directory has no existing ancestor"
     }
-    return atomicDirectoryUnderExistingRoot(
-        root = root,
-        directory = directory,
-    )
-}
-
-internal fun atomicDirectoryUnderExistingRoot(
-    root: Path,
-    directory: Path,
-): AtomicDirectoryDestination {
-    val normalizedRoot = root
-        .toAbsolutePath()
-        .normalize()
-    require(Files.isDirectory(normalizedRoot)) {
-        "Atomic trust root must be an existing directory"
+    val creatable = creatableRoot != null && root.startsWith(creatableRoot)
+    require(root == platform || creatable) {
+        "Platform directory $platform does not exist"
     }
-    val normalizedDirectory = directory
-        .toAbsolutePath()
-        .normalize()
-    require(normalizedDirectory.startsWith(normalizedRoot)) {
-        "Atomic destination directory must be beneath its trust root"
-    }
-    val components = normalizedRoot
-        .relativize(normalizedDirectory)
+    val components = root
+        .relativize(directory)
         .map { component ->
             AtomicPathComponent.parse(component.toString())
         }
-    require(components.isNotEmpty()) {
-        "Atomic destination directory must be below its trust root"
-    }
     return AtomicDirectoryDestination(
-        root = LocalPath(normalizedRoot.toString()),
+        root = LocalPath(root.toString()),
         relativePath = AtomicRelativePath.fromComponents(
             first = components.first(),
             *components.drop(1).toTypedArray(),

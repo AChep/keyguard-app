@@ -9,7 +9,7 @@ finish-args:
   - --share=ipc
   - --socket=x11
   - --device=dri
-  - --filesystem=xdg-download
+  - --filesystem=xdg-download:create
   - --filesystem=xdg-run/gnupg:create
   - --talk-name=org.kde.StatusNotifierWatcher
   - --system-talk-name=org.freedesktop.PolicyKit1

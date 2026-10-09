@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.download.store
 import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.copy.DataDirectory
 import kotlinx.coroutines.test.runTest
+import net.harawata.appdirs.AppDirsFactory
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,7 +17,9 @@ class DownloadFileStoreDesktopTest {
     @Test
     fun uriPreservesTheExistingAppDirsDownloadLocation() = runTest {
         val info = downloadInfo(name = "дані_日本語.bin")
-        val expected = File(dataDirectory.downloadsBlocking())
+        val downloadsDirectory = AppDirsFactory.getInstance()
+            .getUserDownloadsDir(DataDirectory.APP_NAME, null, DataDirectory.APP_AUTHOR)
+        val expected = File(downloadsDirectory)
             .resolve(info.name)
             .toURI()
             .toString()

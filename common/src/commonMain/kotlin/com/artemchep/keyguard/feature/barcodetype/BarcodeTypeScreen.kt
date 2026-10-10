@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.feature.barcodetype
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -9,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.QrCode
@@ -23,8 +23,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,12 +38,12 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.GetBarcodeImage
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.DialogContentScope
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.KeepScreenOnEffect
-import com.artemchep.keyguard.ui.animation.animateContentHeight
 import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.icons.icon
 import org.jetbrains.compose.resources.stringResource
@@ -73,78 +73,7 @@ private fun BarcodeTypeContent(
             Text(stringResource(Res.string.barcodetype_title))
         },
         content = {
-            Column {
-                val dropdown = loadableState.getOrNull()?.format?.options.orEmpty()
-                FlatDropdown(
-                    content = {
-                        FlatItemTextContent(
-                            title = {
-                                val selectedTitle =
-                                    loadableState.getOrNull()?.format?.format.orEmpty()
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(
-                                        text = selectedTitle,
-                                        style = MaterialTheme.typography.titleMedium,
-                                    )
-                                    Spacer(
-                                        modifier = Modifier
-                                            .width(8.dp),
-                                    )
-                                    DropdownIcon()
-                                }
-                            },
-                        )
-                    },
-                    dropdown = dropdown,
-                )
-                Spacer(
-                    modifier = Modifier
-                        .height(8.dp),
-                )
-
-                val imageRequest = loadableState.getOrNull()?.request
-                val imageAspectRatio = imageRequest?.format?.aspectRatio() ?: 1f
-                BoxWithConstraints(
-                    modifier = Modifier
-                        .padding(horizontal = 8.dp)
-                        .clip(MaterialTheme.shapes.medium)
-                        .fillMaxWidth(),
-                ) {
-                    val density = LocalDensity.current
-                    val imageWidth = maxWidth.value.times(density.density).toInt()
-                    val imageHeight = imageWidth
-                        .div(imageAspectRatio)
-                        .toInt()
-                    BarcodeImage(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .animateContentHeight(),
-                        imageModel = {
-                            imageRequest
-                                ?.copy(
-                                    size = BarcodeImageRequest.Size(
-                                        width = imageWidth,
-                                        height = imageHeight,
-                                    ),
-                                )
-                        },
-                    )
-                }
-
-                if (args.text != null) {
-                    Spacer(
-                        modifier = Modifier
-                            .height(16.dp),
-                    )
-                    Text(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp),
-                        text = args.text,
-                    )
-                }
-            }
+            BarcodeTypeBody(args, loadableState)
         },
         actions = {
             val updatedOnClose by rememberUpdatedState(loadableState.getOrNull()?.onClose)
@@ -157,6 +86,87 @@ private fun BarcodeTypeContent(
                 Text(stringResource(Res.string.close))
             }
         },
+    )
+}
+
+@Composable
+internal fun DialogContentScope.BarcodeTypeBody(
+    args: BarcodeTypeRoute.Args,
+    loadableState: Loadable<BarcodeTypeState>,
+) {
+    val imagePadding = 8.dp
+    val imageMaxHeight = (viewportMaxHeight - imagePadding * 2).coerceAtLeast(0.dp)
+    Column {
+        BarcodeTypeDropdown(loadableState.getOrNull()?.format)
+        Spacer(
+            modifier = Modifier
+                .height(8.dp),
+        )
+
+        val imageRequest = loadableState.getOrNull()?.request
+        val imageAspectRatio = imageRequest?.format?.aspectRatio() ?: 1f
+        BoxWithConstraints(
+            modifier = Modifier
+                .padding(imagePadding)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+        ) {
+            val density = LocalDensity.current
+            val imageWidth = minOf(maxWidth, imageMaxHeight * imageAspectRatio)
+            val imageHeight = imageWidth / imageAspectRatio
+            BarcodeImage(
+                modifier = Modifier
+                    .size(imageWidth, imageHeight),
+                imageModel = {
+                    imageRequest
+                        ?.copy(
+                            size = BarcodeImageRequest.Size(
+                                width = with(density) { imageWidth.roundToPx() },
+                                height = with(density) { imageHeight.roundToPx() },
+                            ),
+                        )
+                },
+            )
+        }
+
+        if (args.text != null) {
+            Spacer(
+                modifier = Modifier
+                    .height(16.dp),
+            )
+            Text(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp),
+                text = args.text,
+            )
+        }
+    }
+}
+
+@Composable
+private fun BarcodeTypeDropdown(format: BarcodeTypeState.Format?) {
+    FlatDropdown(
+        content = {
+            FlatItemTextContent(
+                title = {
+                    val selectedTitle = format?.format.orEmpty()
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = selectedTitle,
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Spacer(
+                            modifier = Modifier
+                                .width(8.dp),
+                        )
+                        DropdownIcon()
+                    }
+                },
+            )
+        },
+        dropdown = format?.options.orEmpty(),
     )
 }
 
@@ -206,6 +216,7 @@ fun BarcodeImage(
                 Image(
                     bitmap = img,
                     contentDescription = null,
+                    contentScale = ContentScale.Fit,
                 )
             },
         )

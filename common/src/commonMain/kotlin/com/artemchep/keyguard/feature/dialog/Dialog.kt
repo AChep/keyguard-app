@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.dialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -24,11 +25,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.LocalNavigationNodeFinishing
@@ -42,12 +45,18 @@ import com.artemchep.keyguard.ui.util.HorizontalDivider
 // See:
 // https://m3.material.io/components/dialogs/specs#9a8c226b-19fa-4d6b-894e-e7d5ca9203e8
 
+private class DialogContentScopeImpl(
+    parent: BoxScope,
+    override val viewportMaxWidth: Dp,
+    override val viewportMaxHeight: Dp,
+) : DialogContentScope, BoxScope by parent
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun Dialog(
     icon: (@Composable () -> Unit)? = null,
     title: (@Composable ColumnScope.() -> Unit)?,
-    content: (@Composable BoxScope.() -> Unit)?,
+    content: (@Composable DialogContentScope.() -> Unit)?,
     contentScrollable: Boolean = true,
     actions: @Composable FlowRowScope.() -> Unit,
 ) {
@@ -74,7 +83,7 @@ fun Dialog(
 fun DialogContent(
     icon: (@Composable () -> Unit)? = null,
     title: (@Composable ColumnScope.() -> Unit)?,
-    content: (@Composable BoxScope.() -> Unit)?,
+    content: (@Composable DialogContentScope.() -> Unit)?,
     contentScrollable: Boolean = true,
     fill: Boolean = false,
     actions: @Composable FlowRowScope.() -> Unit,
@@ -150,7 +159,12 @@ fun DialogContent(
                 }
             }
             if (content != null) {
-                Box {
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .padding(bottom = 16.dp),
+                ) {
+                    val viewportMaxWidth = maxWidth
+                    val viewportMaxHeight = maxHeight
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -172,10 +186,17 @@ fun DialogContent(
                             ),
                         contentAlignment = Alignment.TopStart,
                     ) {
+                        val contentScope = remember(this, viewportMaxWidth, viewportMaxHeight) {
+                            DialogContentScopeImpl(
+                                parent = this,
+                                viewportMaxWidth = viewportMaxWidth,
+                                viewportMaxHeight = viewportMaxHeight,
+                            )
+                        }
                         CompositionLocalProvider(
                             LocalTextStyle provides MaterialTheme.typography.bodyMedium,
                         ) {
-                            content()
+                            content(contentScope)
                         }
                     }
                     androidx.compose.animation.AnimatedVisibility(
@@ -195,10 +216,6 @@ fun DialogContent(
                         HorizontalDivider(transparency = false)
                     }
                 }
-                Spacer(
-                    modifier = Modifier
-                        .height(16.dp),
-                )
             }
         }
         FlowRow(

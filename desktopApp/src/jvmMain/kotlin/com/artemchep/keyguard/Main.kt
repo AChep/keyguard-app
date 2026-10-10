@@ -96,6 +96,7 @@ import com.artemchep.keyguard.desktop.instance.instanceFailureDetails
 import com.artemchep.keyguard.desktop.instance.showInstanceFailure
 import com.artemchep.keyguard.desktop.nativebundle.NATIVE_PACKAGED_SMOKE_ARGUMENT
 import com.artemchep.keyguard.desktop.nativebundle.runNativePackagedSmoke
+import com.artemchep.keyguard.desktop.navigation.DesktopNavigationBackHandler
 import com.artemchep.keyguard.desktop.services.autotype.AutotypeResult
 import com.artemchep.keyguard.desktop.services.autotype.AutotypeService
 import com.artemchep.keyguard.desktop.services.autotype.AutotypeServiceNative
@@ -736,7 +737,6 @@ private fun ApplicationScope.KeyguardMainWindow(
         stateManager = stateManager,
         visible = visible,
         onCloseRequest = onCloseRequest,
-        navigationBackHandler = navigationBackHandler,
     ) {
         window.toFront()
 
@@ -760,7 +760,6 @@ private fun ApplicationScope.KeyguardMainWindow(
     stateManager: WindowStateManager,
     visible: Boolean,
     onCloseRequest: () -> Unit,
-    navigationBackHandler: BackHandler,
     content: @Composable FrameWindowScope.() -> Unit,
 ) {
     val state = stateManager.rememberWindowState()
@@ -774,8 +773,7 @@ private fun ApplicationScope.KeyguardMainWindow(
         title = "Keyguard",
         onKeyEvent = { event ->
             val windowId = windowIdState.value
-            val handled = windowId != null && keyboardShortcutsService.handle(windowId, event)
-            handled || navigationBackHandler.handleKeyEvent(event)
+            windowId != null && keyboardShortcutsService.handle(windowId, event)
         },
     ) {
         val windowId = WindowId(window.windowHandle)
@@ -904,6 +902,7 @@ internal fun ApplicationScope.KeyguardWindowScaffold(
     navigationBackHandler: BackHandler,
     content: @Composable () -> Unit,
 ) {
+    DesktopNavigationBackHandler(navigationBackHandler)
     val containerColor = LocalBackgroundManager.current.colorHighest
     val containerColorAnimatedState = animateColorAsState(containerColor)
     val contentColor = contentColorFor(containerColor)

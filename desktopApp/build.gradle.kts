@@ -31,6 +31,7 @@ kotlin {
     sourceSets {
         getByName("jvmMain") {
             dependencies {
+                implementation(libs.androidx.navigationevent.compose)
                 implementation(libs.koin.core)
                 implementation(libs.koin.compose)
                 implementation(libs.jetbrains.compose.runtime)

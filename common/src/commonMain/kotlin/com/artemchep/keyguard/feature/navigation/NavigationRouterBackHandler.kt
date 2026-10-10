@@ -79,7 +79,11 @@ class BackHandler(
         if (!isEscape || hasModifier) {
             return false
         }
+        return handleBack()
+    }
 
+    /** Handles Back only when a live router can consume it locally. */
+    fun handleBack(): Boolean {
         // Read the live local stacks, not an asynchronously collected canPop flow:
         // another Escape may arrive before recomposition after the last route closes.
         val target = eek.value.values

@@ -42,6 +42,7 @@ androidxCredentials = "1.6.0"
 androidxCredentialsProviderEvents = "1.0.0-beta01"
 androidxDatastore = "1.2.1"
 androidxLifecycle = "2.11.0"
+androidxNavigationEvent = "1.1.1"
 androidxProfileInstaller = "1.4.1"
 androidxRoom = "2.8.5"
 androidxSecurityCryptoKtx = "1.1.0"
@@ -234,6 +235,7 @@ androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-lived
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
+androidx-navigationevent-compose = { module = "androidx.navigationevent:navigationevent-compose", version.ref = "androidxNavigationEvent" }
 androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "androidxProfileInstaller" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidxRoom" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "androidxRoom" }

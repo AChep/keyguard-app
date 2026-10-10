@@ -16,6 +16,10 @@ inputs:
     description: 'Cache Write Only'
     required: true
     default: 'false'
+  gradle-properties:
+    description: 'Job-specific Gradle properties'
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -35,3 +39,9 @@ runs:
         JAVA_HOME: ${{ steps.setup-java.outputs.path }}
       with:
         cache-write-only: ${{ inputs.cache-write-only }}
+    - name: "Configure CI Gradle properties"
+      if: ${{ inputs.gradle-properties != '' }}
+      shell: bash
+      env:
+        CI_GRADLE_PROPERTIES: ${{ inputs.gradle-properties }}
+      run: bash "$GITHUB_ACTION_PATH/setup_gradle_properties.sh"

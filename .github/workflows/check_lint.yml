@@ -96,6 +96,9 @@ jobs:
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
+          # Keep the Kotlin daemon heap consistent across all lint invocations.
+          gradle-properties: |
+            kotlin.daemon.jvmargs=-Xmx6g
       - name: "Prepare env"
         run: |
           echo ${VARS_GOOGLE_SERVICES} | base64 -d | zcat >> androidApp/google-services.json

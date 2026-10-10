@@ -28,6 +28,7 @@ fun KeyguardDropdownMenu(
         onDismissRequest = onDismissRequest,
         properties = properties,
     ) {
+        AccessibilityDataProtectionEffect()
         val scope = DropdownScopeImpl(
             parent = this,
             onDismissRequest = onDismissRequest,

@@ -38,6 +38,7 @@ actual fun LeMOdelBottomSheet(
                 onDismissRequest = onDismissRequest,
                 sheetState = bottomSheetState,
                 content = {
+                    AccessibilityDataProtectionEffect()
                     // Because the modal bottom sheet component provides its
                     // own background color we have to hardcode the surface
                     // elevation to provide consistent styling for the items.

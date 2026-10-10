@@ -70,6 +70,7 @@ import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.ui.AccessibilityDataProtectionEffect
 import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
@@ -143,6 +144,7 @@ abstract class BaseActivity : AppCompatActivity(), KeyguardKoinOwner {
             .launchIn(lifecycleScope)
 
         setContent {
+            AccessibilityDataProtectionEffect()
             KoinIsolatedContext((application as BaseApp).koinApplication) {
                 KeyguardTheme {
                     val containerColor = activityContainerColor()

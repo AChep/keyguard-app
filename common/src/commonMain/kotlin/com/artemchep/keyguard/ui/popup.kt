@@ -190,6 +190,7 @@ private fun BasicPopup(
             focusable = true,
         ),
     ) {
+        AccessibilityDataProtectionEffect()
         val scrimColor = MaterialTheme.colorScheme.scrim
             .copy(alpha = 0.32f)
         Box(
@@ -210,6 +211,7 @@ private fun BasicPopup(
             focusable = true,
         ),
     ) {
+        AccessibilityDataProtectionEffect()
         val scale by transition.animateFloat(
             transitionSpec = {
                 if (false isTransitioningTo true) {

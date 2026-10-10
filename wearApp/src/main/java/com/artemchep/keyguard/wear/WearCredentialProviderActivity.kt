@@ -17,6 +17,7 @@ import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LocalWindowId
 import com.artemchep.keyguard.platform.WindowId
+import com.artemchep.keyguard.ui.AccessibilityDataProtectionEffect
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.wear.locale.WearLocalizedActivity
 import com.artemchep.keyguard.wear.ui.WearKeyguardTheme
@@ -34,6 +35,7 @@ abstract class WearCredentialProviderActivity : WearLocalizedActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            AccessibilityDataProtectionEffect()
             KoinIsolatedContext((application as BaseApp).koinApplication) {
                 WearKeyguardTheme {
                     val containerColor = MaterialTheme.colorScheme.background

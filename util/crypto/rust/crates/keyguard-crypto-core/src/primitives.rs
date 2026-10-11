@@ -306,9 +306,17 @@ pub(crate) fn chacha20_poly1305_in_place(
     let nonce =
         Nonce::try_assume_unique_for_key(nonce).map_err(|_| PrimitiveError::InvalidArgument)?;
     match direction {
-        CipherDirection::Encrypt => cipher
-            .seal_in_place_append_tag(nonce, Aad::from(associated_data), payload)
-            .map_err(|_| PrimitiveError::CryptoFailure)?,
+        CipherDirection::Encrypt => {
+            // Encrypt the fixed slice first: appending the tag may reallocate,
+            // which must only leave ciphertext in the retired allocation.
+            let tag = cipher
+                .seal_in_place_separate_tag(nonce, Aad::from(associated_data), payload)
+                .map_err(|_| PrimitiveError::CryptoFailure)?;
+            payload
+                .try_reserve_exact(tag.as_ref().len())
+                .map_err(|_| PrimitiveError::ResourceLimit)?;
+            payload.extend_from_slice(tag.as_ref());
+        }
         CipherDirection::Decrypt => {
             let plaintext = cipher
                 .open_in_place(nonce, Aad::from(associated_data), payload)
@@ -535,12 +543,7 @@ pub(crate) fn aes_cbc_pkcs7(
         return Err(PrimitiveError::InvalidArgument);
     }
     match direction {
-        CipherDirection::Encrypt => match key.len() {
-            16 => cbc_encrypt::<Aes128>(&key, &iv, &mut data),
-            24 => cbc_encrypt::<Aes192>(&key, &iv, &mut data),
-            32 => cbc_encrypt::<Aes256>(&key, &iv, &mut data),
-            _ => Err(PrimitiveError::InvalidArgument),
-        },
+        CipherDirection::Encrypt => cbc_encrypt(&key, &iv, data),
         CipherDirection::Decrypt => match key.len() {
             16 => cbc_decrypt::<Aes128>(&key, &iv, &mut data),
             24 => cbc_decrypt::<Aes192>(&key, &iv, &mut data),
@@ -561,7 +564,7 @@ pub(crate) fn aes_cbc_pkcs7_hmac_sha256_encrypt(
     let mac_key = Zeroizing::new(mac_key);
     let iv = Zeroizing::new(iv);
     let plaintext = Zeroizing::new(plaintext);
-    let padded_length = aes_cbc_pkcs7_hmac_sha256_ciphertext_length(plaintext.len())?;
+    let padded_length = aes_cbc_pkcs7_ciphertext_length(plaintext.len())?;
     let mut ciphertext = vec![0_u8; padded_length];
     let mut mac = vec![0_u8; HMAC_SHA256_BYTES];
     if let Err(error) = aes_cbc_pkcs7_hmac_sha256_encrypt_into(
@@ -603,7 +606,7 @@ pub(crate) fn aes_cbc_pkcs7_hmac_sha256_decrypt(
     Ok(plaintext[..plaintext_length].to_vec())
 }
 
-pub(crate) fn aes_cbc_pkcs7_hmac_sha256_ciphertext_length(
+pub(crate) fn aes_cbc_pkcs7_ciphertext_length(
     plaintext_length: usize,
 ) -> Result<usize, PrimitiveError> {
     let padded_length = plaintext_length
@@ -624,7 +627,7 @@ pub(crate) fn aes_cbc_pkcs7_hmac_sha256_encrypt_into(
     ciphertext_out: &mut [u8],
     mac_out: &mut [u8],
 ) -> Result<usize, PrimitiveError> {
-    let padded_length = aes_cbc_pkcs7_hmac_sha256_ciphertext_length(plaintext.len())?;
+    let padded_length = aes_cbc_pkcs7_ciphertext_length(plaintext.len())?;
     if !matches!(encryption_key.len(), 16 | 24 | 32)
         || iv.len() != AES_BLOCK_BYTES
         || ciphertext_out.len() != padded_length
@@ -635,12 +638,7 @@ pub(crate) fn aes_cbc_pkcs7_hmac_sha256_encrypt_into(
 
     ciphertext_out[..plaintext.len()].copy_from_slice(plaintext);
     ciphertext_out[plaintext.len()..].fill(0);
-    match encryption_key.len() {
-        16 => cbc_encrypt_into::<Aes128>(encryption_key, iv, plaintext.len(), ciphertext_out),
-        24 => cbc_encrypt_into::<Aes192>(encryption_key, iv, plaintext.len(), ciphertext_out),
-        32 => cbc_encrypt_into::<Aes256>(encryption_key, iv, plaintext.len(), ciphertext_out),
-        _ => return Err(PrimitiveError::InvalidArgument),
-    }?;
+    aes_cbc_pkcs7_encrypt_in_place(encryption_key, iv, plaintext.len(), ciphertext_out)?;
     hmac_sha256_iv_ciphertext_into(mac_key, iv, ciphertext_out, mac_out)?;
     Ok(padded_length)
 }
@@ -773,6 +771,21 @@ where
     Ok(())
 }
 
+/// PKCS#7-pads `buffer[..message_length]` and AES-CBC encrypts it in place.
+fn aes_cbc_pkcs7_encrypt_in_place(
+    key: &[u8],
+    iv: &[u8],
+    message_length: usize,
+    buffer: &mut [u8],
+) -> Result<usize, PrimitiveError> {
+    match key.len() {
+        16 => cbc_encrypt_into::<Aes128>(key, iv, message_length, buffer),
+        24 => cbc_encrypt_into::<Aes192>(key, iv, message_length, buffer),
+        32 => cbc_encrypt_into::<Aes256>(key, iv, message_length, buffer),
+        _ => Err(PrimitiveError::InvalidArgument),
+    }
+}
+
 fn cbc_encrypt_into<C>(
     key: &[u8],
     iv: &[u8],
@@ -808,22 +821,26 @@ where
     Ok(output.len() - AES_BLOCK_BYTES + final_length)
 }
 
-fn cbc_encrypt<C>(key: &[u8], iv: &[u8], data: &mut Vec<u8>) -> Result<Vec<u8>, PrimitiveError>
-where
-    C: BlockEncrypt + KeyInit + cipher::BlockCipher + cipher::BlockSizeUser<BlockSize = U16>,
-{
-    let cipher =
-        Encryptor::<C>::new_from_slices(key, iv).map_err(|_| PrimitiveError::InvalidArgument)?;
+fn cbc_encrypt(
+    key: &[u8],
+    iv: &[u8],
+    mut data: Zeroizing<Vec<u8>>,
+) -> Result<Vec<u8>, PrimitiveError> {
     let message_length = data.len();
-    let padded_length = message_length
-        .checked_add(AES_BLOCK_BYTES)
-        .map(|length| length / AES_BLOCK_BYTES * AES_BLOCK_BYTES)
-        .ok_or(PrimitiveError::ResourceLimit)?;
+    let padded_length = aes_cbc_pkcs7_ciphertext_length(message_length)?;
+    // Growing the plaintext buffer could free an unwiped copy, so pad in place
+    // only when the padding already fits.
+    if data.capacity() < padded_length {
+        let mut output = Zeroizing::new(Vec::new());
+        output
+            .try_reserve_exact(padded_length)
+            .map_err(|_| PrimitiveError::ResourceLimit)?;
+        output.extend_from_slice(&data);
+        data = output;
+    }
     data.resize(padded_length, 0);
-    cipher
-        .encrypt_padded_mut::<Pkcs7>(data, message_length)
-        .map(<[u8]>::to_vec)
-        .map_err(|_| PrimitiveError::CryptoFailure)
+    aes_cbc_pkcs7_encrypt_in_place(key, iv, message_length, &mut data)?;
+    Ok(std::mem::take(&mut *data))
 }
 
 fn cbc_decrypt<C>(key: &[u8], iv: &[u8], data: &mut [u8]) -> Result<Vec<u8>, PrimitiveError>
@@ -838,4 +855,65 @@ where
     }
     let plaintext_length = cbc_decrypt_into::<C>(key, iv, data)?;
     Ok(data[..plaintext_length].to_vec())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn secret_buffer_cbc_encryption_never_grows_the_plaintext() {
+        let encrypt = |key_length, plaintext| {
+            aes_cbc_pkcs7(
+                CipherDirection::Encrypt,
+                vec![0x11; key_length],
+                vec![0x22; 16],
+                plaintext,
+            )
+            .expect("CBC encryption")
+        };
+        for key_length in [16, 24, 32] {
+            for length in [0, 1, 15, 16, 17, 31, 32, 33, 127] {
+                let padded_length = aes_cbc_pkcs7_ciphertext_length(length).expect("padded length");
+
+                // A full plaintext allocation is copied once into a planned buffer.
+                let ciphertext = encrypt(key_length, vec![0x5a; length]);
+                assert_eq!(ciphertext.len(), padded_length);
+
+                // Spare capacity is padded and encrypted in the caller's allocation.
+                let mut plaintext = Vec::with_capacity(padded_length);
+                plaintext.resize(length, 0x5a);
+                let allocation = plaintext.as_ptr();
+                let in_place = encrypt(key_length, plaintext);
+                assert_eq!(in_place.as_ptr(), allocation);
+                assert_eq!(in_place, ciphertext);
+
+                assert_eq!(
+                    aes_cbc_pkcs7(
+                        CipherDirection::Decrypt,
+                        vec![0x11; key_length],
+                        vec![0x22; 16],
+                        ciphertext,
+                    )
+                    .expect("CBC decryption"),
+                    vec![0x5a; length],
+                );
+            }
+        }
+    }
+
+    /// Sealing must encrypt the caller's allocation before the tag is appended:
+    /// `seal_in_place_append_tag` grows the buffer first, so a reallocation
+    /// frees an unwiped plaintext copy. Reading a freed block needs the unsafe
+    /// code this crate forbids, so pin the call to the source text instead.
+    #[test]
+    fn secret_buffer_chacha20_poly1305_seals_before_appending_the_tag() {
+        let body = include_str!("primitives.rs")
+            .split("pub(crate) fn chacha20_poly1305_in_place(")
+            .nth(1)
+            .and_then(|source| source.split("\n}\n").next())
+            .expect("chacha20_poly1305_in_place body");
+        assert!(body.contains(".seal_in_place_separate_tag("));
+        assert!(!body.contains("seal_in_place_append_tag"));
+    }
 }

@@ -264,9 +264,8 @@ mod tests {
     #[test]
     fn fast_fused_length_is_not_limited_by_the_protobuf_envelope() {
         let plaintext_length = MAX_CONTROL_ENVELOPE_BYTES + 1;
-        let padded_length =
-            primitives::aes_cbc_pkcs7_hmac_sha256_ciphertext_length(plaintext_length)
-                .expect("raw data-plane length must not use the protobuf envelope bound");
+        let padded_length = primitives::aes_cbc_pkcs7_ciphertext_length(plaintext_length)
+            .expect("raw data-plane length must not use the protobuf envelope bound");
         assert_eq!(padded_length, plaintext_length.div_ceil(16) * 16);
     }
 

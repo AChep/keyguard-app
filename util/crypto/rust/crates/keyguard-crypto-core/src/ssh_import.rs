@@ -168,35 +168,30 @@ fn decode_openssh_armor(content: &str) -> Result<Zeroizing<Vec<u8>>, ImportError
     const BEGIN: &str = "-----BEGIN OPENSSH PRIVATE KEY-----";
     const END: &str = "-----END OPENSSH PRIVATE KEY-----";
 
-    let mut lines = content.lines();
-    if lines.next().map(str::trim) != Some(BEGIN) {
+    let mut lines = content.lines().map(str::trim);
+    if lines.next() != Some(BEGIN) {
         return Err(ImportError::UnsupportedFormat);
     }
-    let mut encoded = Zeroizing::new(String::new());
+    let mut encoded_length = 0_usize;
     let mut footer_seen = false;
-    for line in lines {
-        let line = line.trim();
+    for line in lines.clone() {
         if line == END {
             footer_seen = true;
             break;
         }
-        if line.is_empty() {
-            continue;
+        if line.starts_with("-----") {
+            return Err(ImportError::MalformedKey);
         }
-        if line.starts_with("-----")
-            || encoded.len().saturating_add(line.len()) > MAX_DECODED_KEY_BYTES * 2
-        {
-            return Err(if line.starts_with("-----") {
-                ImportError::MalformedKey
-            } else {
-                ImportError::ResourceLimit
-            });
+        encoded_length = encoded_length.saturating_add(line.len());
+        if encoded_length > MAX_DECODED_KEY_BYTES * 2 {
+            return Err(ImportError::ResourceLimit);
         }
-        encoded.push_str(line);
     }
     if !footer_seen {
         return Err(ImportError::MalformedKey);
     }
+    let encoded = ssh_keys::join_secret_lines(lines.take_while(|line| *line != END))
+        .map_err(map_primitive_error)?;
     decode_bounded_base64_secret(&encoded)
 }
 
@@ -497,12 +492,25 @@ impl<'a> PemDocument<'a> {
             .filter(|value| !value.is_empty())
             .ok_or(ImportError::UnsupportedFormat)?;
         let end = format!("-----END {label}-----");
+        let mut lines = lines.map(str::trim);
         let mut headers = HashMap::new();
-        let mut encoded = Zeroizing::new(String::new());
+        // Headers run until the first blank or non-header line.
+        while let Some((name, value)) = lines
+            .clone()
+            .next()
+            .filter(|line| *line != end)
+            .and_then(|line| line.split_once(':'))
+        {
+            let name = name.trim();
+            let value = value.trim();
+            if name.is_empty() || headers.insert(name, value).is_some() {
+                return Err(ImportError::MalformedKey);
+            }
+            lines.next();
+        }
+        let mut encoded_length = 0_usize;
         let mut footer_seen = false;
-        let mut body_started = false;
-        for line in lines {
-            let line = line.trim();
+        for line in lines.clone() {
             if line == end {
                 footer_seen = true;
                 // SSHJ's StandardPEMKeyReader consumes the first matching
@@ -510,32 +518,16 @@ impl<'a> PemDocument<'a> {
                 // key blocks unread.
                 break;
             }
-            if !body_started {
-                if line.is_empty() {
-                    body_started = true;
-                    continue;
-                }
-                if let Some((name, value)) = line.split_once(':') {
-                    let name = name.trim();
-                    let value = value.trim();
-                    if name.is_empty() || headers.insert(name, value).is_some() {
-                        return Err(ImportError::MalformedKey);
-                    }
-                    continue;
-                }
-                body_started = true;
-            }
-            if line.is_empty() {
-                continue;
-            }
-            if encoded.len().saturating_add(line.len()) > MAX_DECODED_KEY_BYTES * 2 {
+            encoded_length = encoded_length.saturating_add(line.len());
+            if encoded_length > MAX_DECODED_KEY_BYTES * 2 {
                 return Err(ImportError::ResourceLimit);
             }
-            encoded.push_str(line);
         }
-        if !footer_seen || encoded.is_empty() {
+        if !footer_seen || encoded_length == 0 {
             return Err(ImportError::MalformedKey);
         }
+        let encoded = ssh_keys::join_secret_lines(lines.take_while(|line| *line != end))
+            .map_err(map_primitive_error)?;
         let body = decode_bounded_base64_secret(&encoded)?;
         Ok(Self {
             label,
@@ -869,7 +861,7 @@ impl<'a> PuttyDocument<'a> {
             .ok_or(ImportError::UnsupportedFormat)?;
         let mut headers = HashMap::new();
         let mut public_base64 = String::new();
-        let mut private_base64 = Zeroizing::new(String::new());
+        let mut private_lines: &[&str] = &[];
         let mut index = 1;
         while index < lines.len() {
             let raw_line = lines[index];
@@ -900,23 +892,27 @@ impl<'a> PuttyDocument<'a> {
                 if index.checked_add(count).is_none_or(|end| end > lines.len()) {
                     return Err(ImportError::MalformedKey);
                 }
-                let output = if name == "Public-Lines" {
-                    &mut public_base64
+                let payload = &lines[index..index + count];
+                let payload_length = payload
+                    .iter()
+                    .map(|line| line.trim().len())
+                    .fold(0_usize, usize::saturating_add);
+                if payload_length > MAX_DECODED_KEY_BYTES * 2 {
+                    return Err(ImportError::ResourceLimit);
+                }
+                if name == "Public-Lines" {
+                    public_base64 = payload.iter().map(|line| line.trim()).collect();
                 } else {
-                    &mut *private_base64
-                };
-                for raw_payload_line in &lines[index..index + count] {
-                    let payload_line = raw_payload_line.trim();
-                    if output.len().saturating_add(payload_line.len()) > MAX_DECODED_KEY_BYTES * 2 {
-                        return Err(ImportError::ResourceLimit);
-                    }
-                    output.push_str(payload_line);
+                    private_lines = payload;
                 }
                 index += count;
             }
         }
         let encryption = *headers.get("Encryption").ok_or(ImportError::MalformedKey)?;
         let comment = headers.get("Comment").copied().unwrap_or("");
+        let private_base64 =
+            ssh_keys::join_secret_lines(private_lines.iter().map(|line| line.trim()))
+                .map_err(map_primitive_error)?;
         if public_base64.is_empty() || private_base64.is_empty() {
             return Err(ImportError::MalformedKey);
         }
@@ -1313,6 +1309,42 @@ mod tests {
 
     use super::*;
     use crate::protocol::{SshKeyDescription, SshKeyExportCxfResult};
+
+    #[test]
+    fn secret_buffer_import_collectors_accept_narrow_lines() {
+        let private_key = vec![0x5a; 4096];
+        let encoded = Base64::encode_string(&private_key);
+        for width in [1, 2, 64, 70, 76, encoded.len()] {
+            let mut body = String::new();
+            for line in encoded.as_bytes().chunks(width) {
+                body.push_str(std::str::from_utf8(line).expect("base64 ASCII"));
+                body.push('\n');
+            }
+            let openssh = format!(
+                "-----BEGIN OPENSSH PRIVATE KEY-----\n{body}-----END OPENSSH PRIVATE KEY-----\n"
+            );
+            assert_eq!(
+                *decode_openssh_armor(&openssh).expect("OpenSSH armor"),
+                private_key,
+            );
+            let pem = format!("-----BEGIN PRIVATE KEY-----\n{body}-----END PRIVATE KEY-----\n");
+            assert_eq!(
+                *PemDocument::parse(&pem).expect("PEM document").body,
+                private_key,
+            );
+            let count = encoded.len().div_ceil(width);
+            let putty = format!(
+                "PuTTY-User-Key-File-2: ssh-rsa\nEncryption: none\nPublic-Lines: 1\nAAAA\nPrivate-Lines: {count}\n{body}"
+            );
+            assert_eq!(
+                *PuttyDocument::parse(&putty)
+                    .expect("PuTTY document")
+                    .decode_private()
+                    .expect("PuTTY private body"),
+                private_key,
+            );
+        }
+    }
 
     const OPENSSH_NONE: &str = include_str!(
         "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/openssh/id_ed25519"

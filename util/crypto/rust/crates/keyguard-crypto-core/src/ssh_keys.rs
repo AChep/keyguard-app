@@ -755,23 +755,73 @@ pub(crate) fn format_private_key_text(
         SshKeyType::Unspecified => return Err(PrimitiveError::InvalidArgument),
     };
     let encoded = Zeroizing::new(Base64::encode_string(private_key));
-    let mut output = String::with_capacity(encoded.len() + 96);
-    output.push_str("-----BEGIN ");
-    output.push_str(label);
-    output.push_str("-----\n");
+    // Include every line break and both boundaries before writing secret text.
+    let output_length = encoded
+        .len()
+        .checked_add(encoded.len().div_ceil(width))
+        .and_then(|length| length.checked_add(label.len() * 2 + 32))
+        .filter(|length| *length <= MAX_CONTROL_ENVELOPE_BYTES)
+        .ok_or(PrimitiveError::ResourceLimit)?;
+    let mut output = FixedCapacityText::with_length(output_length)?;
+    output.push_str("-----BEGIN ")?;
+    output.push_str(label)?;
+    output.push_str("-----\n")?;
     for line in encoded.as_bytes().chunks(width) {
         let line = std::str::from_utf8(line).map_err(|_| PrimitiveError::CryptoFailure)?;
-        output.push_str(line);
-        output.push('\n');
+        output.push_str(line)?;
+        output.push_str("\n")?;
     }
-    output.push_str("-----END ");
-    output.push_str(label);
-    output.push_str("-----\n");
-    if output.len() > MAX_CONTROL_ENVELOPE_BYTES {
-        output.zeroize();
-        return Err(PrimitiveError::ResourceLimit);
+    output.push_str("-----END ")?;
+    output.push_str(label)?;
+    output.push_str("-----\n")?;
+    let mut output = output.finish()?;
+    Ok(std::mem::take(&mut *output))
+}
+
+/// Secret text that never outgrows its planned allocation, so no reallocation
+/// can leave an unwiped copy behind.
+struct FixedCapacityText {
+    text: Zeroizing<String>,
+    length: usize,
+}
+
+impl FixedCapacityText {
+    fn with_length(length: usize) -> Result<Self, PrimitiveError> {
+        let mut text = Zeroizing::new(String::new());
+        text.try_reserve_exact(length)
+            .map_err(|_| PrimitiveError::ResourceLimit)?;
+        Ok(Self { text, length })
     }
-    Ok(output)
+
+    fn push_str(&mut self, value: &str) -> Result<(), PrimitiveError> {
+        if value.len() > self.length.saturating_sub(self.text.len()) {
+            return Err(PrimitiveError::Internal);
+        }
+        self.text.push_str(value);
+        Ok(())
+    }
+
+    fn finish(self) -> Result<Zeroizing<String>, PrimitiveError> {
+        if self.text.len() != self.length {
+            return Err(PrimitiveError::Internal);
+        }
+        Ok(self.text)
+    }
+}
+
+/// Joins secret text lines into one exactly sized allocation.
+pub(crate) fn join_secret_lines<'a>(
+    lines: impl Iterator<Item = &'a str> + Clone,
+) -> Result<Zeroizing<String>, PrimitiveError> {
+    let length = lines
+        .clone()
+        .try_fold(0_usize, |length, line| length.checked_add(line.len()))
+        .ok_or(PrimitiveError::ResourceLimit)?;
+    let mut text = FixedCapacityText::with_length(length)?;
+    for line in lines {
+        text.push_str(line)?;
+    }
+    text.finish()
 }
 
 fn format_public_key_text(
@@ -792,19 +842,24 @@ fn fingerprint(value: &[u8]) -> String {
 }
 
 fn decode_private_pem(value: &str) -> Result<Zeroizing<Vec<u8>>, PrimitiveError> {
-    let mut encoded = Zeroizing::new(String::new());
-    for line in value.lines() {
-        let line = line.trim();
-        if line.is_empty() || is_private_key_boundary(line) {
-            continue;
-        }
-        encoded.push_str(line);
-    }
+    let encoded = join_secret_lines(
+        value
+            .lines()
+            .map(str::trim)
+            .filter(|line| !line.is_empty() && !is_private_key_boundary(line)),
+    )?;
     if encoded.is_empty() || encoded.len() > MAX_KEY_BYTES.saturating_mul(2) {
         return Err(PrimitiveError::InvalidArgument);
     }
-    let decoded =
-        Zeroizing::new(Base64::decode_vec(&encoded).map_err(|_| PrimitiveError::InvalidArgument)?);
+    // Own the destination before decoding: malformed Base64 can leave a
+    // partially decoded private key behind even when the decoder returns Err.
+    // The encoded-size check above bounds this allocation; padding only reduces
+    // the decoded length below three bytes per four encoded characters.
+    let mut decoded = Zeroizing::new(vec![0_u8; encoded.len() / 4 * 3]);
+    let length = Base64::decode(encoded.as_bytes(), &mut decoded)
+        .map_err(|_| PrimitiveError::InvalidArgument)?
+        .len();
+    decoded.truncate(length);
     if decoded.is_empty() || decoded.len() > MAX_KEY_BYTES {
         return Err(PrimitiveError::ResourceLimit);
     }
@@ -934,6 +989,74 @@ mod tests {
     use pkcs8::der::asn1::UintRef;
 
     use super::*;
+
+    #[test]
+    fn secret_buffer_private_key_formatting_includes_all_line_breaks() {
+        let private_key = vec![0x5a; 4096];
+        for key_type in [SshKeyType::Rsa, SshKeyType::Ed25519] {
+            let pem = format_private_key_text(key_type, &private_key).expect("private PEM");
+            let decoded = decode_private_pem(&pem).expect("decoded private PEM");
+            assert_eq!(*decoded, private_key);
+            assert!(pem.ends_with("-----\n"));
+        }
+    }
+
+    #[test]
+    fn secret_buffer_text_fails_closed_instead_of_growing() {
+        let mut text = FixedCapacityText::with_length(4).expect("planned text");
+        let allocation = text.text.as_ptr();
+        text.push_str("abc").expect("planned line");
+        assert_eq!(text.push_str("de").err(), Some(PrimitiveError::Internal));
+        assert_eq!(text.text.as_str(), "abc");
+        assert_eq!(text.text.as_ptr(), allocation);
+        assert_eq!(text.finish().err(), Some(PrimitiveError::Internal));
+
+        let joined = join_secret_lines(["ab", "", "cde"].into_iter()).expect("joined lines");
+        assert_eq!(joined.as_str(), "abcde");
+    }
+
+    #[test]
+    fn secret_buffer_private_pem_preserves_base64_padding_and_limits() {
+        for (encoded, expected) in [("Wg==", "Z"), ("Wlo=", "ZZ"), ("Wlpa", "ZZZ")] {
+            assert_eq!(
+                decode_private_pem(encoded)
+                    .expect("padded Base64")
+                    .as_slice(),
+                expected.as_bytes(),
+            );
+        }
+        // Invalid input after a valid prefix can fail after writing key bytes.
+        for encoded in ["WlpaWlp!", "WlpaWg=", "WlpaWg===", "WlpaWg=A", "WlpaWh=="] {
+            assert_eq!(
+                decode_private_pem(encoded).err(),
+                Some(PrimitiveError::InvalidArgument),
+            );
+        }
+        let private_key = vec![0x5a; MAX_KEY_BYTES];
+        assert_eq!(
+            *decode_private_pem(&Base64::encode_string(&private_key)).expect("maximum key"),
+            private_key,
+        );
+        assert_eq!(
+            decode_private_pem(&Base64::encode_string(&vec![0x5a; MAX_KEY_BYTES + 1])).err(),
+            Some(PrimitiveError::ResourceLimit),
+        );
+    }
+
+    #[test]
+    fn secret_buffer_private_pem_accepts_narrow_lines() {
+        let private_key = vec![0x5a; 4096];
+        let encoded = Base64::encode_string(&private_key);
+        for width in [1, 2, 64, 70, 76, encoded.len()] {
+            let mut pem = String::from("-----BEGIN PRIVATE KEY-----\n");
+            for line in encoded.as_bytes().chunks(width) {
+                pem.push_str(std::str::from_utf8(line).expect("base64 ASCII"));
+                pem.push('\n');
+            }
+            pem.push_str("-----END PRIVATE KEY-----\n");
+            assert_eq!(*decode_private_pem(&pem).expect("private PEM"), private_key);
+        }
+    }
 
     #[test]
     fn generated_ed25519_round_trips_formats_and_signs() {

@@ -7,6 +7,7 @@ final class GpgToolsSourceProbe: GpgToolsSource {
     var results: [(GpgToolsResultSnapshot) -> Void] = []
     var files: [(GpgToolsFilePickerRequest?) -> Void] = []
     var keys: [(GpgToolsPublicKeyRequest?) -> Void] = []
+    var keyPickers: [(GpgToolsKeyPickerSnapshot?) -> Void] = []
     var exports: [(GpgToolsExportSnapshot?) -> Void] = []
     var validations: [(GpgToolsPublicKeyValidationSnapshot) -> Void] = []
     var operations: [String] = []
@@ -14,6 +15,7 @@ final class GpgToolsSourceProbe: GpgToolsSource {
     var resolvedFiles: [String] = []
     var resolvedFileDetails: [(name: String?, size: Int64)] = []
     var finishedKeys: [String] = []
+    var finishedKeyPickers: [(id: String, confirm: Bool)] = []
     var finishedExports: [String] = []
     var cancellations = 0
     var stops = 0
@@ -24,13 +26,15 @@ final class GpgToolsSourceProbe: GpgToolsSource {
         onChange: @escaping (GpgToolsSnapshot) -> Void,
         onResult: @escaping (GpgToolsResultSnapshot) -> Void,
         onFilePicker: @escaping (GpgToolsFilePickerRequest?) -> Void,
-        onPublicKey: @escaping (GpgToolsPublicKeyRequest?) -> Void
+        onPublicKey: @escaping (GpgToolsPublicKeyRequest?) -> Void,
+        onKeyPicker: @escaping (GpgToolsKeyPickerSnapshot?) -> Void
     ) -> BridgeObservation {
         operations.append(operation)
         changes.append(onChange)
         results.append(onResult)
         files.append(onFilePicker)
         keys.append(onPublicKey)
+        keyPickers.append(onKeyPicker)
         return BridgeObservation { [weak self] in self?.cancellations += 1 }
     }
 
@@ -60,6 +64,12 @@ final class GpgToolsSourceProbe: GpgToolsSource {
     func selectGpgToolsPrivateKey(id: String) { actions.append("selectGpgToolsPrivateKey") }
     func selectGpgToolsEncryptSigningKey(id: String?) { actions.append("selectGpgToolsEncryptSigningKey") }
     func toggleGpgToolsRecipient(id: String) { actions.append("toggleGpgToolsRecipient") }
+    func chooseGpgToolsRecipients() { actions.append("chooseGpgToolsRecipients") }
+    func chooseGpgToolsSigningKey() { actions.append("chooseGpgToolsSigningKey") }
+    func setGpgToolsKeyPickerQuery(id: String, text: String) { actions.append("keyPickerQuery:" + text) }
+    func toggleGpgToolsKeyPickerKey(id: String, keyId: String) { actions.append("keyPickerToggle:" + keyId) }
+    func selectGpgToolsKeyPickerNone(id: String) { actions.append("keyPickerNone") }
+    func finishGpgToolsKeyPicker(id: String, confirm: Bool) { finishedKeyPickers.append((id, confirm)) }
     func selectGpgToolsInputFile() { actions.append("selectGpgToolsInputFile") }
     func clearGpgToolsInputFile() { actions.append("clearGpgToolsInputFile") }
     func selectGpgToolsSignatureFile() { actions.append("selectGpgToolsSignatureFile") }

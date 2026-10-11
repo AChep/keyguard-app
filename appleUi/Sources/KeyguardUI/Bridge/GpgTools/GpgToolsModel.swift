@@ -33,6 +33,9 @@ final class GpgToolsModel {
 
     private(set) var pendingGpgToolsPublicKey: PendingGpgToolsPublicKey?
 
+    /// The shared key picker; `nil` while it is closed.
+    private(set) var gpgToolsKeyPicker: GpgToolsKeyPickerSnapshot?
+
     private(set) var gpgToolsNativeBusy = false
 
     private(set) var gpgToolsImporting = false
@@ -64,6 +67,9 @@ final class GpgToolsModel {
     @ObservationIgnored private var gpgToolsPublicKeyValidationID = UUID()
 
     @ObservationIgnored private var gpgToolsOriginalURLs: [URL] = []
+
+    /// Snapshots already queued for a finished picker must not reopen it.
+    @ObservationIgnored private var finishedGpgToolsKeyPickerId: String?
 
     func startGpgToolsObservation(operation: String) {
         guard !closed else { return }
@@ -106,6 +112,13 @@ final class GpgToolsModel {
                     self.invalidateGpgToolsPublicKeyValidation()
                     self.pendingGpgToolsPublicKey = request.map { PendingGpgToolsPublicKey(id: $0.id, text: $0.text) }
                 }
+            },
+            onKeyPicker: { [weak self] picker in
+                Task { @MainActor [weak self] in
+                    guard let self, self.gpgToolsObservationId == observationId else { return }
+                    if let picker, picker.id == self.finishedGpgToolsKeyPickerId { return }
+                    self.gpgToolsKeyPicker = picker
+                }
             }
         )
     }
@@ -131,6 +144,7 @@ final class GpgToolsModel {
         }
         pendingGpgToolsPublicKey = nil
         invalidateGpgToolsPublicKeyValidation()
+        gpgToolsKeyPicker = nil
         gpgToolsExportPreparationID = nil
         gpgToolsAwaitingFileRequest = false
         gpgToolsOriginalURLs = []
@@ -316,6 +330,39 @@ final class GpgToolsModel {
     func toggleGpgToolsRecipient(_ id: String) {
         guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
         source.toggleGpgToolsRecipient(id: id)
+    }
+
+    func chooseGpgToolsRecipients() {
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.chooseGpgToolsRecipients()
+    }
+
+    func chooseGpgToolsSigningKey() {
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        source.chooseGpgToolsSigningKey()
+    }
+
+    func setGpgToolsKeyPickerQuery(id: String, text: String) {
+        guard gpgToolsKeyPicker?.id == id else { return }
+        source.setGpgToolsKeyPickerQuery(id: id, text: text)
+    }
+
+    func toggleGpgToolsKeyPickerKey(id: String, keyId: String) {
+        guard gpgToolsKeyPicker?.id == id else { return }
+        source.toggleGpgToolsKeyPickerKey(id: id, keyId: keyId)
+    }
+
+    func selectGpgToolsKeyPickerNone(id: String) {
+        guard gpgToolsKeyPicker?.id == id else { return }
+        source.selectGpgToolsKeyPickerNone(id: id)
+    }
+
+    /// Closes the picker at once; Done commits only when the shared picker allows it.
+    func finishGpgToolsKeyPicker(id: String, confirm: Bool) {
+        guard let picker = gpgToolsKeyPicker, picker.id == id, !confirm || picker.canConfirm else { return }
+        finishedGpgToolsKeyPickerId = id
+        gpgToolsKeyPicker = nil
+        source.finishGpgToolsKeyPicker(id: id, confirm: confirm)
     }
 
     /// Runs the configured GPG operation; the outcome arrives on the result channel.

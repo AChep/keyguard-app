@@ -50,6 +50,8 @@ data class GpgToolsState(
     val onSignModeChange: (GpgToolsSignMode) -> Unit,
     val onVerifyModeChange: (GpgToolsVerifyMode) -> Unit,
     val onArmorChange: (Boolean) -> Unit,
+    val onChooseRecipients: () -> Unit,
+    val onChooseSigningKey: () -> Unit,
     val onSelectPrivateKey: (String) -> Unit,
     val onSelectEncryptSigningKey: (String?) -> Unit,
     val onToggleRecipient: (String) -> Unit,

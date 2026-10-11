@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -18,15 +17,16 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -58,11 +58,12 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.choose_file
 import com.artemchep.keyguard.res.contactus_english_note
 import com.artemchep.keyguard.res.contactus_thanks_note
+import com.artemchep.keyguard.res.gpg_tools_add_recipients
 import com.artemchep.keyguard.res.gpg_tools_armor_label
+import com.artemchep.keyguard.res.gpg_tools_choose_signing_key
 import com.artemchep.keyguard.res.gpg_tools_clear_file
 import com.artemchep.keyguard.res.gpg_tools_decrypt_keys_note
 import com.artemchep.keyguard.res.gpg_tools_encrypted_text_label
-import com.artemchep.keyguard.res.gpg_tools_no_gpg_keys
 import com.artemchep.keyguard.res.gpg_tools_pasted_public_key_label
 import com.artemchep.keyguard.res.gpg_tools_public_key_add
 import com.artemchep.keyguard.res.gpg_tools_select_input_file
@@ -79,12 +80,12 @@ import com.artemchep.keyguard.res.remove
 import com.artemchep.keyguard.res.run_action
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.FabState
-import com.artemchep.keyguard.ui.FlatSimpleNote
+import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
-import com.artemchep.keyguard.ui.SimpleNote
+import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.skeleton.SkeletonSection
 import com.artemchep.keyguard.ui.tabs.SegmentedButtonGroup
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -314,51 +315,34 @@ private fun LazyListScope.populateGpgToolsKeySection(
                     text = stringResource(Res.string.gpg_tools_select_recipients),
                 )
             }
-            val publicKeys = state.storedKeys.filter { it.publicKeyAvailable }
+            val recipients = state.storedKeys.filter { it.id in state.selectedRecipientIds }
             itemsIndexed(
-                items = publicKeys,
+                items = recipients,
                 key = { _, item -> item.id },
             ) { index, key ->
                 GpgRecipientRow(
                     keyItem = key,
-                    shapeState = getShapeState(publicKeys, index) { _, _ -> true },
-                    selected = key.id in state.selectedRecipientIds,
-                    onToggle = {
+                    shapeState = getShapeState(recipients, index) { _, _ -> true },
+                    enabled = !state.busy,
+                    onChoose = state.onChooseRecipients,
+                    onRemove = {
                         state.onToggleRecipient(key.id)
                     },
+                )
+            }
+            item("recipient_add") {
+                GpgAddKeyButton(
+                    title = stringResource(Res.string.gpg_tools_add_recipients),
+                    enabled = !state.busy,
+                    onClick = state.onChooseRecipients,
                 )
             }
             populateCustomPublicKeySection(
                 state = state,
                 addButtonKey = "custom_public_key_add_encrypt",
-                leadingSpacer = publicKeys.isNotEmpty() && state.customPublicKeys.isNotEmpty(),
+                leadingSpacer = state.customPublicKeys.isNotEmpty(),
             )
-            item("encrypt_signing_section") {
-                Section(
-                    text = stringResource(Res.string.gpg_tools_sign_encrypted_message),
-                )
-            }
-            item("encrypt_no_sign") {
-                GpgOptionalSigningNoneRow(
-                    selected = state.selectedEncryptSigningKeyId == null,
-                    onSelect = {
-                        state.onSelectEncryptSigningKey(null)
-                    },
-                )
-            }
-            val signingKeys = state.storedKeys.filter { it.canSign }
-            items(
-                items = signingKeys,
-                key = { "encrypt_sign_${it.id}" },
-            ) { key ->
-                GpgPrivateKeyRow(
-                    keyItem = key,
-                    selected = state.selectedEncryptSigningKeyId == key.id,
-                    onSelect = {
-                        state.onSelectEncryptSigningKey(key.id)
-                    },
-                )
-            }
+            populateSigningKeySection(state)
         }
 
         GpgToolsOperation.VERIFY -> {
@@ -459,32 +443,23 @@ private fun VerifyNote() {
 private fun LazyListScope.populateSigningKeySection(
     state: GpgToolsState,
 ) {
+    val optional = state.operation == GpgToolsOperation.ENCRYPT
+    val selectedId = if (optional) state.selectedEncryptSigningKeyId else state.selectedPrivateKeyId
     item("signing_key_section") {
         Section(
-            text = stringResource(Res.string.gpg_tools_select_signing_key),
+            text = stringResource(
+                if (optional) Res.string.gpg_tools_sign_encrypted_message
+                else Res.string.gpg_tools_select_signing_key,
+            ),
         )
     }
-    val signingKeys = state.storedKeys.filter { it.canSign }
-    if (signingKeys.isEmpty()) {
-        item("no_signing_keys") {
-            FlatSimpleNote(
-                type = SimpleNote.Type.WARNING,
-                text = stringResource(Res.string.gpg_tools_no_gpg_keys),
-            )
-        }
-    } else {
-        items(
-            items = signingKeys,
-            key = { it.id },
-        ) { key ->
-            GpgPrivateKeyRow(
-                keyItem = key,
-                selected = state.selectedPrivateKeyId == key.id,
-                onSelect = {
-                    state.onSelectPrivateKey(key.id)
-                },
-            )
-        }
+    item("signing_key") {
+        GpgSigningKeyRow(
+            keyItem = state.storedKeys.firstOrNull { it.id == selectedId },
+            optional = optional,
+            enabled = !state.busy,
+            onChoose = state.onChooseSigningKey,
+        )
     }
 }
 
@@ -514,7 +489,8 @@ private fun LazyListScope.populateCustomPublicKeySection(
         )
     }
     item(addButtonKey) {
-        GpgAddPublicKeyButton(
+        GpgAddKeyButton(
+            title = stringResource(Res.string.gpg_tools_public_key_add),
             onClick = state.onAddPublicKey,
         )
     }
@@ -579,100 +555,87 @@ private fun GpgCheckboxRow(
 }
 
 @Composable
-private fun GpgPrivateKeyRow(
-    keyItem: GpgToolsState.KeyItem,
-    selected: Boolean,
-    onSelect: () -> Unit,
+private fun GpgSigningKeyRow(
+    keyItem: GpgToolsState.KeyItem?,
+    optional: Boolean,
+    enabled: Boolean,
+    onChoose: () -> Unit,
 ) {
     FlatItemLayoutExpressive(
         leading = {
-            RadioButton(
-                selected = selected,
-                onClick = onSelect,
-            )
+            Icon(imageVector = Icons.Outlined.Key, contentDescription = null)
         },
         content = {
-            Text(
-                text = keyItem.title,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (!keyItem.description.isNullOrBlank()) {
-                Text(
-                    text = keyItem.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LocalContentColor.current
-                        .combineAlpha(MediumEmphasisAlpha),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+            if (keyItem != null) {
+                GpgToolsKeyIdentity(key = keyItem)
+            } else {
+                FlatItemTextContent(
+                    title = {
+                        Text(
+                            stringResource(
+                                if (optional) Res.string.gpg_tools_sign_none
+                                else Res.string.gpg_tools_choose_signing_key,
+                            ),
+                        )
+                    },
                 )
             }
         },
-        onClick = onSelect,
+        trailing = { ChevronIcon() },
+        onClick = onChoose.takeIf { enabled },
     )
 }
 
 @Composable
-private fun GpgOptionalSigningNoneRow(
-    selected: Boolean,
-    onSelect: () -> Unit,
+private fun GpgAddKeyButton(
+    title: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
 ) {
-    FlatItemLayoutExpressive(
-        leading = {
-            RadioButton(
-                selected = selected,
-                onClick = onSelect,
-            )
-        },
-        content = {
-            Text(
-                text = stringResource(Res.string.gpg_tools_sign_none),
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        },
-        onClick = onSelect,
-    )
+    Button(
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = Dimens.buttonHorizontalPadding),
+        enabled = enabled,
+        onClick = onClick,
+        colors = ButtonDefaults.filledTonalButtonColors(),
+        elevation = ButtonDefaults.filledTonalButtonElevation(),
+    ) {
+        Icon(
+            modifier = Modifier.size(ButtonDefaults.IconSize),
+            imageVector = Icons.Outlined.Add,
+            contentDescription = null,
+        )
+        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Text(title)
+    }
 }
 
 @Composable
 private fun GpgRecipientRow(
     keyItem: GpgToolsState.KeyItem,
-    shapeState: Int = ShapeState.ALL,
-    selected: Boolean,
-    onToggle: () -> Unit,
+    shapeState: Int,
+    enabled: Boolean,
+    onChoose: () -> Unit,
+    onRemove: () -> Unit,
 ) {
     FlatItemLayoutExpressive(
         shapeState = shapeState,
         leading = {
-            Checkbox(
-                checked = selected,
-                onCheckedChange = {
-                    onToggle()
-                },
-            )
+            Icon(imageVector = Icons.Outlined.Key, contentDescription = null)
         },
         content = {
-            Text(
-                text = keyItem.title,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (!keyItem.description.isNullOrBlank()) {
-                Text(
-                    text = keyItem.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LocalContentColor.current
-                        .combineAlpha(MediumEmphasisAlpha),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+            GpgToolsKeyIdentity(key = keyItem)
+        },
+        trailing = {
+            IconButton(enabled = enabled, onClick = onRemove) {
+                Icon(
+                    imageVector = Icons.Outlined.RemoveCircleOutline,
+                    contentDescription = stringResource(Res.string.remove) + ": " + keyItem.title,
                 )
             }
         },
-        onClick = onToggle,
+        onClick = onChoose.takeIf { enabled },
     )
 }
 
@@ -724,34 +687,6 @@ private fun GpgFileRefRow(
         },
         onClick = onSelect,
     )
-}
-
-@Composable
-private fun GpgAddPublicKeyButton(
-    onClick: () -> Unit,
-) {
-    Button(
-        modifier = Modifier
-            .padding(top = 8.dp)
-            .padding(horizontal = Dimens.buttonHorizontalPadding),
-        onClick = onClick,
-        colors = ButtonDefaults.filledTonalButtonColors(),
-        elevation = ButtonDefaults.filledTonalButtonElevation(),
-    ) {
-        Icon(
-            modifier = Modifier
-                .size(ButtonDefaults.IconSize),
-            imageVector = Icons.Outlined.Add,
-            contentDescription = null,
-        )
-        Spacer(
-            modifier = Modifier
-                .width(ButtonDefaults.IconSpacing),
-        )
-        Text(
-            text = stringResource(Res.string.gpg_tools_public_key_add),
-        )
-    }
 }
 
 @Composable

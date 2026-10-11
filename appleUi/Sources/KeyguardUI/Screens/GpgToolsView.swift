@@ -6,12 +6,6 @@ struct GpgToolsView: View {
     @Environment(GpgToolsModel.self) private var gpgToolsModel
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Binding var operation: String
-    @State private var keySelection: KeySelection?
-
-    private enum KeySelection: String, Identifiable {
-        case recipients, signing
-        var id: String { rawValue }
-    }
 
     private static var operations: [(key: String, title: String)] {
         [
@@ -90,11 +84,20 @@ struct GpgToolsView: View {
             stop: { gpgToolsModel.stopGpgToolsObservation() }
         )
         .onChange(of: operation) { _, value in
-            keySelection = nil
             gpgToolsModel.startGpgToolsObservation(operation: value)
         }
-        .sheet(item: $keySelection) { selection in
-            keyChooser(selection)
+        .sheet(
+            item: Binding(
+                get: { gpgToolsModel.gpgToolsKeyPicker.map(GpgToolsKeyPickerPresentation.init) },
+                set: { value in
+                    if value == nil, let picker = gpgToolsModel.gpgToolsKeyPicker {
+                        gpgToolsModel.finishGpgToolsKeyPicker(id: picker.id, confirm: false)
+                    }
+                }
+            )
+        ) { presentation in
+            // Keep the last snapshot on screen while the sheet animates out.
+            GpgToolsKeyPickerSheet(picker: gpgToolsModel.gpgToolsKeyPicker ?? presentation.picker)
         }
         .sheet(
             item: Binding(
@@ -225,10 +228,10 @@ struct GpgToolsView: View {
                                 value: selectedRecipients.isEmpty
                                     ? L10n.gpgToolsChooseRecipients
                                     : L10n.selectionNSelected(selectedRecipients.count)
-                            ) { keySelection = .recipients }
+                            ) { gpgToolsModel.chooseGpgToolsRecipients() }
                         }
                         chooserRow(title: L10n.gpgToolsSignWith, value: signingSummary) {
-                            keySelection = .signing
+                            gpgToolsModel.chooseGpgToolsSigningKey()
                         }
                     }
                 } else {
@@ -386,7 +389,7 @@ struct GpgToolsView: View {
                 HStack {
                     Text(L10n.gpgToolsSelectRecipients).font(.headline)
                     Spacer()
-                    Button(L10n.gpgToolsAddRecipients) { keySelection = .recipients }
+                    Button(L10n.gpgToolsAddRecipients) { gpgToolsModel.chooseGpgToolsRecipients() }
                 }
                 if !selectedRecipients.isEmpty {
                     ScrollView {
@@ -434,7 +437,9 @@ struct GpgToolsView: View {
                         .textSelection(.enabled)
                 }
             } else {
-                chooserRow(title: L10n.gpgToolsSignWith, value: signingSummary) { keySelection = .signing }
+                chooserRow(title: L10n.gpgToolsSignWith, value: signingSummary) {
+                    gpgToolsModel.chooseGpgToolsSigningKey()
+                }
             }
         } else {
             automaticKeysNote
@@ -516,27 +521,6 @@ struct GpgToolsView: View {
             Button(actionTitle) { gpgToolsModel.runGpgTools() }
                 .buttonStyle(.borderedProminent)
                 .disabled(busy || !gpgTools.loaded || !gpgTools.canRun || requirement != nil)
-        }
-    }
-
-    private func keyChooser(_ selection: KeySelection) -> some View {
-        let recipients = selection == .recipients
-        return GpgToolsKeyChooser(
-            title: recipients ? L10n.gpgToolsSelectRecipients : L10n.gpgToolsSelectSigningKey,
-            keys: recipients ? recipientKeys : signingKeys,
-            multiple: recipients,
-            allowsNone: !recipients && operation == "encrypt",
-            selectedIds: recipients ? Set(gpgTools.selectedRecipientIds) : Set([signingKeyId].compactMap { $0 })
-        ) { ids in
-            if recipients {
-                let available = Set(recipientKeys.map(\.id))
-                let desired = ids.intersection(available)
-                for id in Set(gpgTools.selectedRecipientIds).symmetricDifference(desired) {
-                    gpgToolsModel.toggleGpgToolsRecipient(id)
-                }
-            } else {
-                selectSigningKey(ids.first)
-            }
         }
     }
 
@@ -646,65 +630,43 @@ private struct GpgToolsKeyIdentity: View {
     }
 }
 
-/// Edits a local selection; only Done commits it to the shared producer.
-private struct GpgToolsKeyChooser: View {
-    @Environment(\.dismiss) private var dismiss
-    let title: String
-    let keys: [GpgToolsKeySnapshot]
-    let multiple: Bool
-    let allowsNone: Bool
-    let commit: (Set<String>) -> Void
-    @State private var selectedIds: Set<String>
+private struct GpgToolsKeyPickerPresentation: Identifiable {
+    let picker: GpgToolsKeyPickerSnapshot
+    var id: String { picker.id }
+}
+
+/// Renders the shared key picker; search, the staged selection and Done live in its producer.
+private struct GpgToolsKeyPickerSheet: View {
+    @Environment(GpgToolsModel.self) private var gpgToolsModel
+    let picker: GpgToolsKeyPickerSnapshot
     @State private var search = ""
 
-    init(
-        title: String, keys: [GpgToolsKeySnapshot], multiple: Bool, allowsNone: Bool,
-        selectedIds: Set<String>, commit: @escaping (Set<String>) -> Void
-    ) {
-        self.title = title
-        self.keys = keys
-        self.multiple = multiple
-        self.allowsNone = allowsNone
-        self.commit = commit
-        _selectedIds = State(initialValue: selectedIds)
-    }
-
-    private var filteredKeys: [GpgToolsKeySnapshot] {
-        let query = search.trimmingCharacters(in: .whitespacesAndNewlines)
-        return keys.filter {
-            query.isEmpty || $0.title.localizedStandardContains(query)
-                || ($0.description_ ?? "").replacingOccurrences(of: " ", with: "")
-                    .localizedStandardContains(query.replacingOccurrences(of: " ", with: ""))
-        }
-    }
-
     var body: some View {
-        ModalSheet(title: title, dismissLabel: L10n.cancel) {
+        ModalSheet(
+            title: picker.multiple ? L10n.gpgToolsSelectRecipients : L10n.gpgToolsSelectSigningKey,
+            dismissLabel: L10n.cancel
+        ) {
             VStack(spacing: 0) {
                 #if os(macOS)
                 NativeListSearchField(text: $search, prompt: L10n.gpgToolsSearchKeys).padding(12)
                 #endif
                 List {
-                    if allowsNone {
-                        selectionRow(selected: selectedIds.isEmpty) {
-                            selectedIds.removeAll()
+                    if picker.showNone {
+                        selectionRow(selected: picker.noneSelected) {
+                            gpgToolsModel.selectGpgToolsKeyPickerNone(id: picker.id)
                         } label: {
                             Text(L10n.gpgToolsSignNone)
                         }
                     }
-                    ForEach(filteredKeys, id: \.id) { key in
-                        selectionRow(selected: selectedIds.contains(key.id)) {
-                            if multiple {
-                                if !selectedIds.insert(key.id).inserted { selectedIds.remove(key.id) }
-                            } else {
-                                selectedIds = [key.id]
-                            }
+                    ForEach(picker.items, id: \.key.id) { item in
+                        selectionRow(selected: item.selected) {
+                            gpgToolsModel.toggleGpgToolsKeyPickerKey(id: picker.id, keyId: item.key.id)
                         } label: {
-                            GpgToolsKeyIdentity(key: key)
+                            GpgToolsKeyIdentity(key: item.key)
                         }
                     }
-                    if filteredKeys.isEmpty {
-                        Text(keys.isEmpty ? L10n.gpgToolsNoGpgKeys : L10n.gpgToolsNoMatchingKeys)
+                    if picker.items.isEmpty {
+                        Text(picker.hasKeys ? L10n.gpgToolsNoMatchingKeys : L10n.gpgToolsNoGpgKeys)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -712,13 +674,15 @@ private struct GpgToolsKeyChooser: View {
                 .listSearchable(text: $search, prompt: Text(L10n.gpgToolsSearchKeys))
                 #endif
             }
+            .bridgedText($search, remote: picker.query, remoteRevision: picker.queryRevision) { text in
+                gpgToolsModel.setGpgToolsKeyPickerQuery(id: picker.id, text: text)
+            }
         } actions: {
             Button(L10n.gpgToolsSelectionDone) {
-                commit(selectedIds.intersection(Set(keys.map(\.id))))
-                dismiss()
+                gpgToolsModel.finishGpgToolsKeyPicker(id: picker.id, confirm: true)
             }
             .keyboardShortcut(.defaultAction)
-            .disabled(!multiple && !allowsNone && !keys.contains { selectedIds.contains($0.id) })
+            .disabled(!picker.canConfirm)
         }
     }
 
@@ -728,7 +692,7 @@ private struct GpgToolsKeyChooser: View {
         @ViewBuilder label: () -> Content
     ) -> some View {
         #if os(macOS)
-        if multiple {
+        if picker.multiple {
             Toggle(isOn: Binding(get: { selected }, set: { _ in action() }), label: label)
                 .toggleStyle(.checkbox)
         } else {

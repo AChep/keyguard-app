@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.apple.gpgtools
 
 import com.artemchep.keyguard.apple.core.CoreContext
+import com.artemchep.keyguard.apple.core.completeOnPop
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.core.sessionKoin
@@ -19,6 +20,9 @@ import com.artemchep.keyguard.feature.gpgagent.tools.GpgToolsState
 import com.artemchep.keyguard.feature.gpgagent.tools.GpgToolsVerifyMode
 import com.artemchep.keyguard.feature.gpgagent.tools.gpgToolsStateProducer
 import com.artemchep.keyguard.feature.gpgagent.tools.validateGpgToolsPublicKeys
+import com.artemchep.keyguard.feature.gpgagent.tools.keypicker.GpgToolsKeyPickerRoute
+import com.artemchep.keyguard.feature.gpgagent.tools.keypicker.GpgToolsKeyPickerState
+import com.artemchep.keyguard.feature.gpgagent.tools.keypicker.gpgToolsKeyPickerStateProducer
 import com.artemchep.keyguard.feature.gpgagent.tools.publickey.GpgToolsPublicKeyResult
 import com.artemchep.keyguard.feature.gpgagent.tools.publickey.GpgToolsPublicKeyRoute
 import com.artemchep.keyguard.feature.gpgagent.tools.result.GpgToolsResultRoute
@@ -40,6 +44,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
@@ -62,6 +67,7 @@ class GpgToolsSession internal constructor(private val ctx: CoreContext) {
         val onResult: (GpgToolsResultSnapshot) -> Unit,
         val onFilePicker: (GpgToolsFilePickerRequest?) -> Unit,
         val onPublicKey: (GpgToolsPublicKeyRequest?) -> Unit,
+        val onKeyPicker: (GpgToolsKeyPickerSnapshot?) -> Unit,
     ) {
         var scope: CoroutineScope? = null
         var result: GpgToolsResultRoute.Args? = null
@@ -69,6 +75,7 @@ class GpgToolsSession internal constructor(private val ctx: CoreContext) {
         var preparedFileId: String? = null
         var exportPreparing = false
         var keyRequest: PublicKeyRequest? = null
+        var keyPicker: KeyPicker? = null
         val parsed = mutableMapOf<String, List<GpgPublicKeyInfo>>()
     }
     private class PublicKeyRequest(
@@ -77,6 +84,10 @@ class GpgToolsSession internal constructor(private val ctx: CoreContext) {
         var validated: List<GpgPublicKeyInfo>? = null,
         var revision: Int = 0,
     )
+    private class KeyPicker(val id: String) {
+        var job: Job? = null
+        var state: GpgToolsKeyPickerState? = null
+    }
     private class ImportRequest(
         val owner: Operation,
         val file: GpgToolsFiles.File,
@@ -112,6 +123,8 @@ class GpgToolsSession internal constructor(private val ctx: CoreContext) {
         owner?.keyRequest?.transmitter?.invoke(GpgToolsPublicKeyResult.Deny)
         owner?.keyRequest = null
         owner?.onPublicKey?.invoke(null)
+        owner?.keyPicker = null
+        owner?.onKeyPicker?.invoke(null)
         owner?.onFilePicker?.invoke(null)
         owner?.scope?.cancel()
         // Active crypto/import/export leases defer deletion until the real IO finishes.
@@ -124,6 +137,7 @@ class GpgToolsSession internal constructor(private val ctx: CoreContext) {
         onResult: (GpgToolsResultSnapshot) -> Unit,
         onFilePicker: (GpgToolsFilePickerRequest?) -> Unit,
         onPublicKey: (GpgToolsPublicKeyRequest?) -> Unit,
+        onKeyPicker: (GpgToolsKeyPickerSnapshot?) -> Unit,
     ): KeyguardCancellable {
         check(!closed) { "A closed GPG tools session cannot be observed" }
         stopGpgTools()
@@ -144,6 +158,7 @@ class GpgToolsSession internal constructor(private val ctx: CoreContext) {
                 onResult,
                 onFilePicker,
                 onPublicKey,
+                onKeyPicker,
             )
             try {
                 coroutineScope {
@@ -186,6 +201,15 @@ class GpgToolsSession internal constructor(private val ctx: CoreContext) {
                                         owner.keyRequest = request
                                         onPublicKey(GpgToolsPublicKeyRequest(request.id, publicKeyRoute.args.publicKey))
                                     }
+                                }
+                                true
+                            }
+                            route is RouteResultReceiver<*> && route.innerRoute is GpgToolsKeyPickerRoute -> {
+                                val keyPickerRoute = route.innerRoute as GpgToolsKeyPickerRoute
+                                @Suppress("UNCHECKED_CAST")
+                                val transmitter = route.resultTransmitter as RouteResultTransmitter<Set<String>>
+                                ctx.scope.launch {
+                                    if (active === owner) presentKeyPicker(owner, keyPickerRoute.args, transmitter)
                                 }
                                 true
                             }
@@ -310,14 +334,7 @@ class GpgToolsSession internal constructor(private val ctx: CoreContext) {
                 state.scope == GpgToolsScope.TEXT && state.verifyMode == GpgToolsVerifyMode.DETACHED,
             signatureText = state.detachedSignatureText.text,
             signatureTextRevision = state.detachedSignatureText.textRevision,
-            storedKeys = state.storedKeys.map { GpgToolsKeySnapshot(
-                it.id,
-                it.title,
-                it.description,
-                it.canSign,
-                it.canDecrypt,
-                it.publicKeyAvailable,
-            ) },
+            storedKeys = state.storedKeys.map { it.toSnapshot() },
             selectedPrivateKeyId = state.selectedPrivateKeyId,
             selectedEncryptSigningKeyId = state.selectedEncryptSigningKeyId,
             selectedRecipientIds = state.selectedRecipientIds.toList(),
@@ -366,6 +383,69 @@ class GpgToolsSession internal constructor(private val ctx: CoreContext) {
             publicKeys = request.validated!!.map { it.publicKeyArmored },
         ) else GpgToolsPublicKeyResult.Deny)
         owner.onPublicKey(null)
+    }
+
+    /** Runs the shared picker headlessly; it pops itself after delivering a confirmed selection. */
+    private fun presentKeyPicker(
+        owner: Operation,
+        args: GpgToolsKeyPickerRoute.Args,
+        transmitter: RouteResultTransmitter<Set<String>>,
+    ) {
+        owner.keyPicker?.job?.cancel()
+        val picker = KeyPicker(Uuid.random().toString())
+        owner.keyPicker = picker
+        picker.job = owner.scope?.launch(Dispatchers.Default) {
+            val interceptor = completeOnPop(ctx.scope) { closeKeyPicker(owner, picker) }
+            ctx.koin.newHeadlessStateFlowScope("gpg_tools_key_picker", this, interceptor)
+                .gpgToolsKeyPickerStateProducer(args, transmitter)
+                .collect { state ->
+                    val snapshot = GpgToolsKeyPickerSnapshot(
+                        id = picker.id,
+                        multiple = args.mode == GpgToolsKeyPickerRoute.Mode.Recipients,
+                        query = state.query.text,
+                        queryRevision = state.query.textRevision,
+                        items = state.items.map { GpgToolsKeyPickerItemSnapshot(it.key.toSnapshot(), it.selected) },
+                        showNone = state.onSelectNone != null,
+                        noneSelected = state.noneSelected,
+                        hasKeys = args.keys.isNotEmpty(),
+                        canConfirm = state.onConfirm != null,
+                    )
+                    ctx.publishOnMain {
+                        if (owner.keyPicker !== picker) return@publishOnMain
+                        picker.state = state
+                        owner.onKeyPicker(snapshot)
+                    }
+                }
+        }
+    }
+
+    private fun closeKeyPicker(owner: Operation, picker: KeyPicker) {
+        if (owner.keyPicker !== picker) return
+        owner.keyPicker = null
+        picker.job?.cancel()
+        owner.onKeyPicker(null)
+    }
+
+    private fun keyPickerState(id: String) = active?.keyPicker?.takeIf { it.id == id }?.state
+
+    fun chooseGpgToolsRecipients() { current?.takeUnless { it.busy }?.onChooseRecipients?.invoke() }
+    fun chooseGpgToolsSigningKey() { current?.takeUnless { it.busy }?.onChooseSigningKey?.invoke() }
+    fun setGpgToolsKeyPickerQuery(id: String, text: String) { keyPickerState(id)?.query?.onChange?.invoke(text) }
+    fun toggleGpgToolsKeyPickerKey(id: String, keyId: String) {
+        keyPickerState(id)?.items?.firstOrNull { it.key.id == keyId }?.onSelect?.invoke()
+    }
+    fun selectGpgToolsKeyPickerNone(id: String) { keyPickerState(id)?.onSelectNone?.invoke() }
+
+    fun finishGpgToolsKeyPicker(id: String, confirm: Boolean) {
+        val owner = active ?: return
+        val picker = owner.keyPicker?.takeIf { it.id == id } ?: return
+        val state = picker.state
+        if (confirm) {
+            state?.onConfirm?.invoke()
+        } else {
+            // A picker that has not emitted yet has no deny callback to pop it.
+            state?.onDeny?.invoke() ?: closeKeyPicker(owner, picker)
+        }
     }
 
     fun prepareGpgToolsExport(resultId: String, onResult: (GpgToolsExportSnapshot?) -> Unit) {
@@ -464,6 +544,15 @@ class GpgToolsSession internal constructor(private val ctx: CoreContext) {
     fun clearGpgToolsSignatureFile() { current?.takeUnless { it.busy }?.onClearSignatureFile?.invoke() }
     fun runGpgTools() { current?.onRun?.invoke() }
     fun invokeGpgToolsResultCopy() { active?.result?.output?.onCopy?.invoke() }
+
+    private fun GpgToolsState.KeyItem.toSnapshot() = GpgToolsKeySnapshot(
+        id,
+        title,
+        description,
+        canSign,
+        canDecrypt,
+        publicKeyAvailable,
+    )
 
     private suspend fun GpgPublicKeyInfo.toPublicKeySnapshot(
         id: String,

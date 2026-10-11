@@ -8,7 +8,8 @@ protocol GpgToolsSource: AnyObject {
         onChange: @escaping (GpgToolsSnapshot) -> Void,
         onResult: @escaping (GpgToolsResultSnapshot) -> Void,
         onFilePicker: @escaping (GpgToolsFilePickerRequest?) -> Void,
-        onPublicKey: @escaping (GpgToolsPublicKeyRequest?) -> Void
+        onPublicKey: @escaping (GpgToolsPublicKeyRequest?) -> Void,
+        onKeyPicker: @escaping (GpgToolsKeyPickerSnapshot?) -> Void
     ) -> BridgeObservation
     func stopGpgTools()
     func close()
@@ -30,6 +31,12 @@ protocol GpgToolsSource: AnyObject {
     func selectGpgToolsPrivateKey(id: String)
     func selectGpgToolsEncryptSigningKey(id: String?)
     func toggleGpgToolsRecipient(id: String)
+    func chooseGpgToolsRecipients()
+    func chooseGpgToolsSigningKey()
+    func setGpgToolsKeyPickerQuery(id: String, text: String)
+    func toggleGpgToolsKeyPickerKey(id: String, keyId: String)
+    func selectGpgToolsKeyPickerNone(id: String)
+    func finishGpgToolsKeyPicker(id: String, confirm: Bool)
     func selectGpgToolsInputFile()
     func clearGpgToolsInputFile()
     func selectGpgToolsSignatureFile()
@@ -44,11 +51,12 @@ extension GpgToolsSession: GpgToolsSource {
         onChange: @escaping (GpgToolsSnapshot) -> Void,
         onResult: @escaping (GpgToolsResultSnapshot) -> Void,
         onFilePicker: @escaping (GpgToolsFilePickerRequest?) -> Void,
-        onPublicKey: @escaping (GpgToolsPublicKeyRequest?) -> Void
+        onPublicKey: @escaping (GpgToolsPublicKeyRequest?) -> Void,
+        onKeyPicker: @escaping (GpgToolsKeyPickerSnapshot?) -> Void
     ) -> BridgeObservation {
         BridgeObservation(
             observeGpgTools(
                 operation: operation, onChange: onChange, onResult: onResult,
-                onFilePicker: onFilePicker, onPublicKey: onPublicKey))
+                onFilePicker: onFilePicker, onPublicKey: onPublicKey, onKeyPicker: onKeyPicker))
     }
 }

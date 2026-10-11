@@ -78,16 +78,43 @@ final class GpgToolsSessionModelTests: XCTestCase {
         model.startGpgToolsObservation(operation: "encrypt")
         source.results[0](result("result"))
         source.keys[0](GpgToolsPublicKeyRequest(id: "key", text: "key"))
+        source.keyPickers[0](keyPicker("picker", canConfirm: true))
         try await settle()
         source.changes[0](.companion.empty)
         try await settle()
         XCTAssertNil(model.gpgToolsResult)
         XCTAssertNil(model.pendingGpgToolsPublicKey)
+        XCTAssertNil(model.gpgToolsKeyPicker)
         XCTAssertEqual(source.finishedKeys, ["key"])
         model.close()
         model.close()
         XCTAssertEqual(source.closes, 1)
         XCTAssertEqual(source.cancellations, 1)
+    }
+
+    @MainActor
+    func testFinishedKeyPickerStaysClosedAndDoneWaitsForTheProducer() async throws {
+        let source = GpgToolsSourceProbe()
+        let model = GpgToolsModel(source: source)
+        model.startGpgToolsObservation(operation: "sign")
+        source.keyPickers[0](keyPicker("a", canConfirm: false))
+        try await settle()
+        model.finishGpgToolsKeyPicker(id: "a", confirm: true)
+        XCTAssertEqual(model.gpgToolsKeyPicker?.id, "a")
+        XCTAssertTrue(source.finishedKeyPickers.isEmpty)
+        model.finishGpgToolsKeyPicker(id: "a", confirm: false)
+        XCTAssertNil(model.gpgToolsKeyPicker)
+        // A snapshot queued before the producer closed must not reopen the sheet.
+        source.keyPickers[0](keyPicker("a", canConfirm: true))
+        try await settle()
+        XCTAssertNil(model.gpgToolsKeyPicker)
+        source.keyPickers[0](keyPicker("b", canConfirm: true))
+        try await settle()
+        model.finishGpgToolsKeyPicker(id: "b", confirm: true)
+        XCTAssertNil(model.gpgToolsKeyPicker)
+        XCTAssertEqual(source.finishedKeyPickers.map(\.id), ["a", "b"])
+        XCTAssertEqual(source.finishedKeyPickers.map(\.confirm), [false, true])
+        model.close()
     }
 
     @MainActor
@@ -251,6 +278,12 @@ final class GpgToolsSessionModelTests: XCTestCase {
             signatureText: "", signatureTextRevision: 0, storedKeys: [], selectedPrivateKeyId: nil,
             selectedEncryptSigningKeyId: nil, selectedRecipientIds: [], busy: false, canRun: true,
             inputFile: nil, signatureFile: nil, customPublicKeys: [])
+    }
+
+    private func keyPicker(_ id: String, canConfirm: Bool) -> GpgToolsKeyPickerSnapshot {
+        GpgToolsKeyPickerSnapshot(
+            id: id, multiple: false, query: "", queryRevision: 0, items: [], showNone: false,
+            noneSelected: false, hasKeys: true, canConfirm: canConfirm)
     }
 
     private func result(_ id: String) -> GpgToolsResultSnapshot {

@@ -76,6 +76,31 @@ data class GpgToolsKeySnapshot(
     val publicKeyAvailable: Boolean,
 )
 
+/**
+ * The shared key picker; it owns search, the staged selection and when Done is allowed.
+ * [id] scopes native callbacks to one presentation.
+ */
+data class GpgToolsKeyPickerSnapshot(
+    val id: String,
+    /** Recipients pick any number of keys; signing pickers pick one. */
+    val multiple: Boolean,
+    /** [queryRevision] bumps only on a programmatic write, so the Swift buffer adopts the text only then. */
+    val query: String,
+    val queryRevision: Int,
+    val items: List<GpgToolsKeyPickerItemSnapshot>,
+    /** Optional signing offers a "Don't sign" row. */
+    val showNone: Boolean,
+    val noneSelected: Boolean,
+    /** False when no stored key qualifies, as opposed to a search without matches. */
+    val hasKeys: Boolean,
+    val canConfirm: Boolean,
+)
+
+data class GpgToolsKeyPickerItemSnapshot(
+    val key: GpgToolsKeySnapshot,
+    val selected: Boolean,
+)
+
 /** [kind] is one of ok | error | warning. */
 data class GpgToolsNoteSnapshot(
     val text: String,

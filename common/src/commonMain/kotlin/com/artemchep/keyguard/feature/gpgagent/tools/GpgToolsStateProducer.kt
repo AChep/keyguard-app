@@ -43,10 +43,12 @@ import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.gpgagent.gpgKeyDescription
+import com.artemchep.keyguard.feature.gpgagent.tools.keypicker.GpgToolsKeyPickerRoute
 import com.artemchep.keyguard.feature.gpgagent.tools.publickey.GpgToolsPublicKeyRoute
 import com.artemchep.keyguard.feature.gpgagent.tools.publickey.createGpgToolsPublicKeyDialogIntent
 import com.artemchep.keyguard.feature.gpgagent.tools.result.GpgToolsResultRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
@@ -684,6 +686,33 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
         .distinctUntilChanged()
         .shareInScreenScope()
 
+    fun chooseKeys(
+        mode: GpgToolsKeyPickerRoute.Mode,
+        keys: List<GpgToolsState.KeyItem>,
+        selectedIds: Set<String>,
+    ) {
+        if (busySink.value) return
+        val route = registerRouteResultReceiver(
+            route = GpgToolsKeyPickerRoute(
+                args = GpgToolsKeyPickerRoute.Args(
+                    keys = keys,
+                    selectedIds = selectedIds,
+                    mode = mode,
+                ),
+            ),
+        ) { ids ->
+            // resolveSelection() drops ids that a vault update made unusable
+            // while the picker was open.
+            when (mode) {
+                GpgToolsKeyPickerRoute.Mode.Recipients -> selectedRecipientIdsSink.value = ids
+                GpgToolsKeyPickerRoute.Mode.Signing -> selectedPrivateKeyIdSink.value = ids.singleOrNull()
+                GpgToolsKeyPickerRoute.Mode.OptionalSigning ->
+                    selectedEncryptSigningKeyIdSink.value = ids.singleOrNull()
+            }
+        }
+        navigate(NavigationIntent.NavigateToRoute(route))
+    }
+
     val controlsFlow = combine(
         scopeFlow,
         signModeFlow,
@@ -830,6 +859,24 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
                 if (showArmor) {
                     armorSink.value = it
                 }
+            },
+            onChooseRecipients = {
+                chooseKeys(
+                    mode = GpgToolsKeyPickerRoute.Mode.Recipients,
+                    keys = keyItems.filter { it.publicKeyAvailable },
+                    selectedIds = selection.selectedRecipientIds,
+                )
+            },
+            onChooseSigningKey = {
+                val optional = operation == GpgToolsOperation.ENCRYPT
+                chooseKeys(
+                    mode = if (optional) GpgToolsKeyPickerRoute.Mode.OptionalSigning
+                    else GpgToolsKeyPickerRoute.Mode.Signing,
+                    keys = keyItems.filter { it.canSign },
+                    selectedIds = setOfNotNull(
+                        if (optional) selection.selectedEncryptSigningKeyId else selection.selectedPrivateKeyId,
+                    ),
+                )
             },
             onSelectPrivateKey = {
                 selectedPrivateKeyIdSink.value = it

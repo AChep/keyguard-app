@@ -57,6 +57,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -331,7 +332,7 @@ data class ToastMessageRenderDrawable(
         set(value) {
             field = value
             // notify the observer
-            if (!value) onDisposed
+            if (value) onDisposed()
         }
 
     fun dispose() {
@@ -348,13 +349,14 @@ data class ToastMessageRenderDrawable(
             content()
         }
 
-        val shouldBeDisposed = !isDisposed &&
-                // both current and target state are equal to 'false'
-                !(visibleState.targetState || visibleState.currentState) &&
-                // the transition is complete
-                !visibleState.isIdle
-        LaunchedEffect(shouldBeDisposed) {
-            if (shouldBeDisposed) isDisposed = true
+        // Observe the transition outside of the composition, so
+        // its state changes do not recompose this function.
+        LaunchedEffect(visibleState) {
+            snapshotFlow {
+                // the exit transition is complete
+                visibleState.isIdle && !visibleState.currentState
+            }.first { it }
+            isDisposed = true
         }
     }
 }

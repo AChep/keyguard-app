@@ -8,7 +8,7 @@ use std::{
     collections::BTreeMap,
     ptr, slice,
     sync::{
-        Arc, Mutex, MutexGuard,
+        Arc, Mutex, MutexGuard, TryLockError,
         atomic::{AtomicBool, AtomicU64, Ordering},
     },
 };
@@ -112,6 +112,7 @@ impl OperationRegistry {
     }
 
     /// Claims the device for the operation `id`.
+    /// Recovers the serialization gate after an earlier operation panicked.
     ///
     /// # Errors
     ///
@@ -130,7 +131,13 @@ impl OperationRegistry {
         if canceled.load(Ordering::Acquire) {
             return Err(E::CANCELED);
         }
-        let device = self.device.try_lock().map_err(|_| E::BUSY)?;
+        let device = match self.device.try_lock() {
+            Ok(device) => device,
+            // This mutex only serializes access; it holds no backend state
+            // that could have been left inconsistent by the failed operation.
+            Err(TryLockError::Poisoned(error)) => error.into_inner(),
+            Err(TryLockError::WouldBlock) => return Err(E::BUSY),
+        };
         Ok(OperationGuard {
             canceled,
             _device: device,
@@ -301,6 +308,24 @@ mod tests {
         assert!(guard.canceled().load(Ordering::Acquire));
         drop(guard);
         assert_eq!(begin(&registry, second), Ok(()));
+    }
+
+    #[test]
+    fn a_contained_panic_does_not_leave_later_operations_busy() {
+        let registry = OperationRegistry::new();
+        let first = registry.create();
+        let second = registry.create();
+        let result = contained(PanicHook::Keep, || {
+            let _operation = registry.begin::<Status>(first).unwrap();
+            panic!("backend failed while holding the device");
+        });
+        assert!(result.is_err());
+        assert!(registry.device.is_poisoned());
+
+        let guard = registry.begin::<Status>(second).unwrap();
+        assert_eq!(begin(&registry, first), Err(Status::Busy));
+        drop(guard);
+        assert_eq!(begin(&registry, first), Ok(()));
     }
 
     #[test]

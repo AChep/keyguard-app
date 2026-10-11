@@ -20,14 +20,14 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.TopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Velocity
-import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarColors
 import kotlin.math.abs
 
@@ -46,8 +46,12 @@ fun CustomToolbar(
     // ensures that the colors will adjust whether the app bar behavior is pinned or scrolled.
     // This may potentially animate or interpolate a transition between the container-color and the
     // container's scrolled-color according to the app bar's scroll state.
-    val colorTransitionFraction = scrollBehavior?.state?.overlappedFraction ?: 0f
-    val fraction = if (colorTransitionFraction > 0.01f) 1f else 0f
+    val fraction by remember(scrollBehavior) {
+        derivedStateOf {
+            val colorTransitionFraction = scrollBehavior?.state?.overlappedFraction ?: 0f
+            if (colorTransitionFraction > 0.01f) 1f else 0f
+        }
+    }
     val appBarContainerColor by animateColorAsState(
         targetValue = lerp(
             containerColor,
@@ -79,15 +83,7 @@ fun CustomToolbar(
 
     // Compose a Surface with a TopAppBarLayout content.
     // The surface's background color is animated as specified above.
-    // The height of the app bar is determined by subtracting the bar's height offset from the
-    // app bar's defined constant height value (i.e. the ContainerHeight token).
     Surface(modifier = modifier.then(appBarDragModifier), color = appBarContainerColor) {
-        val height = LocalDensity.current.run {
-            64.dp.toPx() + (
-                    scrollBehavior?.state?.heightOffset
-                        ?: 0f
-                    )
-        }
         Box(
             modifier = Modifier
                 .windowInsetsPadding(windowInsets)

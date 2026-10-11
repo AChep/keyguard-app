@@ -27,7 +27,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -197,7 +196,12 @@ fun InternalColumnScrollbar(
 
     BoxWithConstraints(
         Modifier
-            .alpha(alpha)
+            .graphicsLayer {
+                this.alpha = alpha
+                // Same as Modifier.alpha(...): hides the
+                // thumb when it slides out of the bounds.
+                clip = true
+            }
             .fillMaxWidth()
             .padding(contentPadding),
     ) {

@@ -27,6 +27,21 @@ fun animateFloatStateOneWayAsState(
     typeConverter = Float.VectorConverter,
 )
 
+/**
+ * Same as [androidx.compose.animation.core.animateFloatAsState], but
+ * reads the target value outside of the composition.
+ */
+@Composable
+fun animateFloatStateAsState(
+    targetValue: State<Float>,
+) = animateValueStateOneWayAsState(
+    targetValue = targetValue,
+    // Always animate, in both directions.
+    emptyConverter = { true },
+    typeConverter = Float.VectorConverter,
+    visibilityThreshold = 0.01f,
+)
+
 @Composable
 fun <T, V : AnimationVector> animateValueStateOneWayAsState(
     targetValue: State<T>,

@@ -27,20 +27,21 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
+import com.artemchep.keyguard.ui.animation.animateFloatStateAsState
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.coroutines.launch
 import kotlin.math.floor
+import kotlin.math.roundToInt
 
 /**
  * Scrollbar for LazyColumn
@@ -166,11 +167,12 @@ fun InternalLazyColumnScrollbar(
         }
     }
 
-    val normalizedThumbSize by remember {
+    val normalizedThumbSizeState = remember {
         derivedStateOf {
             normalizedThumbSizeReal.coerceAtLeast(thumbMinHeight)
         }
     }
+    val normalizedThumbSize by normalizedThumbSizeState
 
     fun offsetCorrection(top: Float): Float {
         val topRealMax = (1f - normalizedThumbSizeReal).coerceIn(0f, 1f)
@@ -254,7 +256,12 @@ fun InternalLazyColumnScrollbar(
 
     BoxWithConstraints(
         Modifier
-            .alpha(alpha)
+            .graphicsLayer {
+                this.alpha = alpha
+                // Same as Modifier.alpha(...): hides the
+                // thumb when it slides out of the bounds.
+                clip = true
+            }
             .fillMaxWidth()
             .padding(contentPadding),
     ) {
@@ -263,10 +270,10 @@ fun InternalLazyColumnScrollbar(
                 Modifier
                     .align(if (rightSide) Alignment.TopEnd else Alignment.TopStart)
                     .fillMaxHeight()
-                    .graphicsLayer(
-                        translationX = with(LocalDensity.current) { (if (rightSide) displacement.dp else -displacement.dp).toPx() },
-                        translationY = constraints.maxHeight.toFloat() * normalizedOffsetPosition,
-                    ),
+                    .graphicsLayer {
+                        translationX = (if (rightSide) displacement.dp else -displacement.dp).toPx()
+                        translationY = constraints.maxHeight.toFloat() * normalizedOffsetPosition
+                    },
             ) {
                 indicatorContent(
                     firstVisibleItemIndex.value,
@@ -327,19 +334,43 @@ fun InternalLazyColumnScrollbar(
                         isSelected = false
                     },
                 )
-                .graphicsLayer(translationX = with(LocalDensity.current) { (if (rightSide) displacement.dp else -displacement.dp).toPx() }),
+                .graphicsLayer {
+                    translationX = (if (rightSide) displacement.dp else -displacement.dp).toPx()
+                },
         ) {
-            val animatedThumbSize by animateFloatAsState(normalizedThumbSize)
+            val animatedThumbSizeState = animateFloatStateAsState(normalizedThumbSizeState)
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .graphicsLayer(translationY = constraints.maxHeight.toFloat() * normalizedOffsetPosition)
+                    .graphicsLayer {
+                        translationY = constraints.maxHeight.toFloat() * normalizedOffsetPosition
+                    }
                     .padding(horizontal = padding)
                     .width(thickness)
                     .clip(thumbShape)
                     .background(if (isSelected) thumbSelectedColor else thumbColor)
-                    .fillMaxHeight(animatedThumbSize),
+                    .fillMaxHeight { animatedThumbSizeState.value },
             )
         }
+    }
+}
+
+/**
+ * Same as [fillMaxHeight], but reads the fraction
+ * in the layout phase.
+ */
+private fun Modifier.fillMaxHeight(
+    fraction: () -> Float,
+) = layout { measurable, constraints ->
+    val placeable = if (constraints.hasBoundedHeight) {
+        val height = (constraints.maxHeight * fraction())
+            .roundToInt()
+            .coerceIn(constraints.minHeight, constraints.maxHeight)
+        measurable.measure(constraints.copy(minHeight = height, maxHeight = height))
+    } else {
+        measurable.measure(constraints)
+    }
+    layout(placeable.width, placeable.height) {
+        placeable.placeRelative(0, 0)
     }
 }

@@ -3,7 +3,6 @@ package com.artemchep.keyguard.feature.home.vault.component
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
@@ -27,7 +26,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -35,8 +33,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
@@ -44,17 +42,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.CopyText
-import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.ui.AhContainer
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -63,11 +57,12 @@ import com.artemchep.keyguard.ui.shortcut.ShortcutTooltip
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
+import com.artemchep.keyguard.ui.totp.TOTP_CODE_GROUP_SIZE
 import com.artemchep.keyguard.ui.totp.TotpCodeState
-import com.artemchep.keyguard.ui.totp.totpCodeFlow
+import com.artemchep.keyguard.ui.totp.TotpRemainderBadge
+import com.artemchep.keyguard.ui.totp.produceTotpCode
 import kotlinx.collections.immutable.PersistentList
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -153,7 +148,7 @@ fun RowScope.VaultViewTotpBadge(
         totpToken = totpToken,
     )
 
-    VaultViewTotpRemainderBadge(
+    TotpRemainderBadge(
         state = state,
     )
 }
@@ -167,10 +162,22 @@ fun VaultViewTotpBadge2(
     showTimeout: Boolean = true,
     offset: Int = 0,
 ) {
-    val state by produceTotpCode(
+    val state = produceTotpCode(
         totpToken = totpToken,
         offset = offset,
     )
+    // The state ticks every second, but the code changes once
+    // per period. Only the remainder badge reads every tick.
+    val isError by remember(state) {
+        derivedStateOf {
+            state.value is TotpCodeState.Error
+        }
+    }
+    val codes by remember(state) {
+        derivedStateOf {
+            (state.value as? TotpCodeState.Success)?.codes
+        }
+    }
 
     val tintColor = MaterialTheme.colorScheme
         .surfaceColorAtElevationSemi(1.dp)
@@ -178,8 +185,8 @@ fun VaultViewTotpBadge2(
         modifier = modifier
             .clip(MaterialTheme.shapes.small)
             .background(tintColor)
-            .clickable(enabled = state is TotpCodeState.Success) {
-                val code = (state as? TotpCodeState.Success)
+            .clickable(enabled = codes != null) {
+                val code = (state.value as? TotpCodeState.Success)
                     ?.codeRaw ?: return@clickable
                 copyText.copy(
                     text = code,
@@ -198,7 +205,7 @@ fun VaultViewTotpBadge2(
     ) {
         // Draw an explicit error state. This should only happen if the
         // TOTP token is invalid.
-        if (state is TotpCodeState.Error) {
+        if (isError) {
             Icon(
                 imageVector = Icons.Outlined.ErrorOutline,
                 contentDescription = null,
@@ -216,8 +223,7 @@ fun VaultViewTotpBadge2(
 
         VaultViewTotpCodeContent(
             totp = totpToken,
-            codes = (state as? TotpCodeState.Success?)
-                ?.codes,
+            codes = codes,
         )
         ExpandedIfNotEmptyForRow(
             Unit.takeIf { showTimeout },
@@ -227,8 +233,8 @@ fun VaultViewTotpBadge2(
                     modifier = Modifier
                         .width(Dimens.buttonIconPadding),
                 )
-                VaultViewTotpRemainderBadge(
-                    state = state,
+                TotpRemainderBadge(
+                    state = state.value,
                 )
             }
         }
@@ -252,7 +258,7 @@ private fun RowScope.VaultViewTotpCodeContent(
         .combineAlpha(DisabledEmphasisAlpha)
     if (codes == null) {
         repeat(totp.digits) { index ->
-            if (index != 0 && index.rem(3) == 0) {
+            if (index != 0 && index.rem(TOTP_CODE_GROUP_SIZE) == 0) {
                 Spacer(
                     modifier = Modifier
                         .padding(
@@ -326,102 +332,4 @@ private fun RowScope.VaultViewTotpCodeContent(
             }
         }
     }
-}
-
-//
-// Remainder
-//
-
-@Composable
-private fun VaultViewTotpRemainderBadge(
-    state: TotpCodeState?,
-) {
-    ExpandedIfNotEmptyForRow(
-        valueOrNull = state,
-    ) {
-        VaultViewTotpRemainderBadgeLayout(
-            state = it,
-        )
-    }
-}
-
-@Composable
-private fun VaultViewTotpRemainderBadgeLayout(
-    state: TotpCodeState,
-) {
-    val score = when (state) {
-        is TotpCodeState.Loading -> null
-        is TotpCodeState.Error -> null
-
-        is TotpCodeState.Success -> when (val counter = state.counter) {
-            is TotpCodeState.Success.TimeBasedCounter -> counter.progress.coerceIn(
-                0f,
-                1f,
-            )
-
-            is TotpCodeState.Success.IncrementBasedCounter -> null
-        }
-    }
-    AhContainer(
-        score = score
-            ?: 1f,
-    ) {
-        val time = (state as? TotpCodeState.Success)?.counter?.text.orEmpty()
-        VaultViewTotpRemainderBadgeContent(
-            progress = it.takeIf { score != null },
-            text = time,
-        )
-    }
-}
-
-@Composable
-private fun RowScope.VaultViewTotpRemainderBadgeContent(
-    progress: Float?,
-    text: String,
-) {
-    val circularProgressModifier = Modifier.size(16.dp)
-    when (progress) {
-        null -> {
-            // Do nothing.
-        }
-
-        else -> {
-            CircularProgressIndicator(
-                modifier = circularProgressModifier,
-                progress = { progress },
-                trackColor = Color.Transparent,
-                color = LocalContentColor.current,
-            )
-            Spacer(Modifier.width(4.dp))
-        }
-    }
-    Spacer(Modifier.width(4.dp))
-    Text(
-        modifier = Modifier
-            .animateContentSize(),
-        text = text,
-        fontFamily = monoFontFamily,
-        fontWeight = FontWeight.Bold,
-        style = MaterialTheme.typography.labelMedium,
-    )
-    Spacer(Modifier.width(4.dp))
-}
-
-//
-// State
-//
-
-@Composable
-private fun produceTotpCode(
-    totpToken: TotpToken,
-    offset: Int = 0,
-): State<TotpCodeState?> {
-    val getTotpCode = koinInject<GetTotpCodeWithOffset>()
-    return remember(totpToken, offset) {
-        totpCodeFlow(
-            getTotpCode = getTotpCode,
-            totpToken = totpToken,
-            offset = offset,
-        )
-    }.collectAsState(initial = TotpCodeState.Loading)
 }

@@ -8,11 +8,16 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 import kotlin.time.Instant
 
+/**
+ * The number of digits in each group of a formatted code.
+ */
+const val TOTP_CODE_GROUP_SIZE = 3
+
 fun TotpCode.formatCode(): AnnotatedString = buildAnnotatedString {
     code
         .windowed(
-            size = 3,
-            step = 3,
+            size = TOTP_CODE_GROUP_SIZE,
+            step = TOTP_CODE_GROUP_SIZE,
             partialWindows = true,
         )
         .forEachIndexed { index, text ->
@@ -25,8 +30,8 @@ fun TotpCode.formatCode(): AnnotatedString = buildAnnotatedString {
 
 fun TotpCode.formatCode2(): PersistentList<PersistentList<String>> = code
     .windowed(
-        size = 3,
-        step = 3,
+        size = TOTP_CODE_GROUP_SIZE,
+        step = TOTP_CODE_GROUP_SIZE,
         partialWindows = true,
     )
     .map {
@@ -38,8 +43,8 @@ fun TotpCode.formatCode2(): PersistentList<PersistentList<String>> = code
 fun TotpCode.formatCodeStr(): String = buildString {
     code
         .windowed(
-            size = 3,
-            step = 3,
+            size = TOTP_CODE_GROUP_SIZE,
+            step = TOTP_CODE_GROUP_SIZE,
             partialWindows = true,
         )
         .forEachIndexed { index, text ->

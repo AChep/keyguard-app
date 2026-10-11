@@ -49,7 +49,7 @@ sealed interface TotpCodeState {
  * stays current: for a time-based token it re-emits on every whole-second
  * boundary so the countdown ticks, for a counter-based (HOTP) token it emits a
  * single value. The flow does not emit [TotpCodeState.Loading] itself — callers
- * provide that as the initial value (Compose via `collectAsState(initial = …)`).
+ * provide that as the initial value (Compose via [produceTotpCode]).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 fun totpCodeFlow(

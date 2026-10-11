@@ -19,7 +19,6 @@
     <ID>LongMethod:VaultViewCardItem.kt:@Composable fun WearVaultViewCardItem</ID>
     <ID>LongMethod:VaultViewErrorItem.kt:@Composable fun WearVaultViewErrorItem</ID>
     <ID>LongMethod:VaultViewInfoItem.kt:@Composable fun WearVaultViewInfoItem</ID>
-    <ID>LongMethod:VaultViewTotpItemBadgeState.kt:@Composable private fun RowScope.VaultViewTotpCodeDigits</ID>
     <ID>LongMethod:VaultViewValueItem.kt:@Composable fun WearVaultViewValueItem</ID>
     <ID>LongMethod:WearAccountViewScreen.kt:@Composable fun WearVaultViewHeader</ID>
     <ID>LongMethod:WearAccountViewScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ) @Composable fun AccountViewScaffold</ID>
@@ -53,7 +52,6 @@
     <ID>LongMethod:WearVaultListStateProducer.kt:@Composable internal fun wearVaultListScreenState: WearVaultListState</ID>
     <ID>LongMethod:WearVaultListStateProducer.kt:private fun createFilteredCiphersFlow</ID>
     <ID>MagicNumber:VaultViewErrorItem.kt:0.1f</ID>
-    <ID>MagicNumber:VaultViewTotpItemBadgeState.kt:3</ID>
     <ID>MagicNumber:WearAccountViewScreen.kt:0.22f</ID>
     <ID>MagicNumber:WearAccountViewScreen.kt:0.34f</ID>
     <ID>MagicNumber:WearCredentialProviderUi.kt:80L</ID>
@@ -103,7 +101,6 @@
     <ID>UnusedParameter:VaultViewQuickBadgesItem.kt:transformation: SurfaceTransformation? = null</ID>
     <ID>UnusedParameter:VaultViewReusedPasswordItem.kt:item: VaultViewItem.ReusedPassword</ID>
     <ID>UnusedParameter:VaultViewSpacerItem.kt:transformation: SurfaceTransformation? = null</ID>
-    <ID>UnusedParameter:VaultViewTotpItemBadgeState.kt:copyText: CopyText</ID>
     <ID>UnusedParameter:WearDataSafetyScreen.kt:secondary: Boolean</ID>
     <ID>UnusedParameter:WearListItems.kt:dropdown: List&lt;ContextItem&gt;</ID>
     <ID>UnusedParameter:WearListItems.kt:trailing: @Composable (RowScope.() -&gt; Unit)?</ID>

@@ -9,6 +9,7 @@ import com.artemchep.keyguard.crypto.armored
 import com.artemchep.keyguard.crypto.extractPrivateKeyEmptyPassphrase
 import com.artemchep.keyguard.crypto.fingerprintHex
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
+import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
 import com.artemchep.keyguard.nativecrypto.NativeCryptoOpenPgp
 import com.artemchep.keyguard.util.io.toSource
 import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
@@ -33,6 +34,7 @@ import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder
+import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentVerifierBuilderProvider
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator
 import java.io.ByteArrayInputStream
@@ -450,6 +452,61 @@ class GpgOpenPgpServiceJvmTest {
 
         assertEquals(GpgOpenPgpVerificationStatus.VALID, verification.status)
         assertTrue(GpgOpenPgpVerificationWarning.WEAK_DIGEST !in verification.warnings)
+    }
+
+    @Test
+    fun `signed-only ECDSA digest policy failure discards staged plaintext`() {
+        val secretRing = PGPSecretKeyRingCollection(
+            PGPUtil.getDecoderStream(ByteArrayInputStream(GpgTestKeyFixtures.ECDSA.encodeToByteArray())),
+            JcaKeyFingerprintCalculator(),
+        ).keyRings.next()
+        val signer = secretRing.secretKey
+        val publicKey = GpgOpenPgpPublicKey(publicKeyArmoredOf(GpgTestKeyFixtures.ECDSA))
+        val content = ByteArray(140_000) { (it % 251).toByte() }
+
+        for (hashAlgorithm in listOf(HashAlgorithmTags.SHA224, HashAlgorithmTags.SHA256)) {
+            val generator = PGPSignatureGenerator(
+                JcaPGPContentSignerBuilder(signer.publicKey.algorithm, hashAlgorithm)
+                    .setProvider(BouncyCastleProvider.PROVIDER_NAME),
+                signer.publicKey,
+            )
+            generator.init(PGPSignature.BINARY_DOCUMENT, signer.extractPrivateKeyEmptyPassphrase())
+            val message = ByteArrayOutputStream()
+            generator.generateOnePassVersion(false).encode(message)
+            PGPLiteralDataGenerator().open(
+                message,
+                PGPLiteralData.BINARY,
+                "digest-policy.bin",
+                content.size.toLong(),
+                Date(),
+            ).use { literal -> literal.write(content) }
+            generator.update(content)
+            val signature = generator.generate()
+            signature.encode(message)
+            signature.init(
+                JcaPGPContentVerifierBuilderProvider().setProvider(BouncyCastleProvider.PROVIDER_NAME),
+                signer.publicKey,
+            )
+            signature.update(content)
+            assertTrue(signature.verify(), "fixture must be mathematically valid")
+
+            val output = Buffer()
+            val request = GpgOpenPgpReadFileRequest(
+                input = message.toByteArray().toSource(),
+                output = output,
+                publicKeys = listOf(publicKey),
+                allowSignedOnly = true,
+            )
+            if (hashAlgorithm == HashAlgorithmTags.SHA224) {
+                val failure = assertFailsWith<NativeCryptoException> { service.decryptFile(request) }
+                assertEquals(NativeCryptoErrorCode.INVALID_ARGUMENT, failure.code)
+                assertContentEquals(byteArrayOf(), output.readByteArray())
+            } else {
+                val result = service.decryptFile(request)
+                assertEquals(GpgOpenPgpVerificationStatus.VALID, result.verification?.status)
+                assertContentEquals(content, output.readByteArray())
+            }
+        }
     }
 
     /** Produces an armored detached signature over [text] bound to [hashAlgorithm]. */

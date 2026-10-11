@@ -54,8 +54,9 @@ use crate::openpgp::{
         raw_packet_is_exportable,
     },
     crypto::{
-        algorithm_name, keygrip, leading_mpi_bits, secret::SecretChunks,
-        verification::signature_verification_compatible,
+        algorithm_name, keygrip, leading_mpi_bits,
+        secret::SecretChunks,
+        verification::{signature_matches_signer, signature_verification_compatible},
     },
     format::{fingerprint_hex, hex_upper, normalize_fingerprint},
     packet::{
@@ -2560,7 +2561,11 @@ fn evaluate_preverified_signatures_with_context(
                     .iter()
                     .filter(|signer| !signer.policy_conflict)
                 {
-                    if verify(candidate.signature_index, &signer.component) {
+                    // Inline callbacks perform the public-key operation only;
+                    // apply the same signer compatibility gate as verify_digest.
+                    if signature_matches_signer(&candidate.signature, &signer.component)
+                        && verify(candidate.signature_index, &signer.component)
+                    {
                         results[candidate.signature_index] =
                             candidate.result(signer, VerificationStatus::Valid);
                         break;

@@ -50,6 +50,8 @@ use pgp::types::{
 };
 use prost::Message as _;
 
+mod inline_compatibility;
+
 const TEST_TIME: u64 = 1_700_000_000;
 pub(super) static STREAM_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 type EncryptedMessageArmorCase = (&'static str, Vec<u8>, Vec<u8>, OpenPgpProtectionMode, bool);

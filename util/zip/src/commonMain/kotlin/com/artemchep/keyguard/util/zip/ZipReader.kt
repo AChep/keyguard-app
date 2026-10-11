@@ -14,6 +14,7 @@ interface ZipReader : AutoCloseable {
 /**
  * Opens [source] as an archive, taking ownership of it. An empty or null
  * [password] means "no password".
+ * A nonempty password requires every entry read to use authenticated AES encryption.
  *
  * @throws ZipException when the archive cannot be opened.
  */

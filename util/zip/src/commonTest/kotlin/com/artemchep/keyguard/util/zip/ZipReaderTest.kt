@@ -22,6 +22,25 @@ private const val TEMP_FILE_PREFIX = "keyguard-zip-read-"
 
 class ZipReaderTest {
     @Test
+    fun rejectsPlainEntriesWhenAPasswordIsSupplied() = runTest {
+        val archive = archive(null, listOf(textEntry("index.json", "{}")))
+        ZipReader(archive.source(), PASSWORD).use { reader ->
+            repeat(2) {
+                assertFailsWith<ZipEncryptionRequiredException> { reader.nextEntry() }
+            }
+        }
+    }
+
+    @Test
+    fun readsPlainEntriesWithAnEmptyPassword() = runTest {
+        val archive = archive(null, listOf(textEntry("index.json", "{}")))
+        ZipReader(archive.source(), "").use { reader ->
+            assertEquals("{}", reader.nextEntry()?.source?.readString())
+            assertNull(reader.nextEntry())
+        }
+    }
+
+    @Test
     fun readsBackAPlainArchive() = runTest {
         assertRoundTrip(password = null)
     }

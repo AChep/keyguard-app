@@ -8,6 +8,7 @@ import com.artemchep.keyguard.util.io.atomic.SyncLevel
 import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
 import com.artemchep.keyguard.util.io.toLocalPath
 import com.artemchep.keyguard.util.zip.createZipService
+import com.artemchep.keyguard.util.zip.ZipEncryptionRequiredException
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
@@ -319,7 +320,7 @@ class BackupRepositoryZipTest : BackupRepositoryZipTestBase() {
             repoIdProvider = { "repo-1" },
         )
 
-        val error = assertFailsWith<IllegalStateException> {
+        assertFailsWith<ZipEncryptionRequiredException> {
             repository.getOrCreateMetadata(
                 store = store,
                 password = Password("backup-password"),
@@ -327,9 +328,86 @@ class BackupRepositoryZipTest : BackupRepositoryZipTestBase() {
                 repoIdProvider = { "repo-2" },
             )
         }
+    }
+}
+
+@Suppress("FunctionNaming")
+class BackupRepositoryZipEncryptionTest : BackupRepositoryZipTestBase() {
+    @Test
+    fun `encrypted repository rejects a forged plaintext newest index`() = runTest {
+        for (hasAuthenticatedIndex in listOf(false, true)) {
+            val root = createTempDirectory("keyguard-backup-forged-index").toLocalPath()
+            val store = LocalFolderBackupObjectStore(root)
+            val password = Password("backup-password")
+            if (hasAuthenticatedIndex) {
+                repository.writeIndex(store, password, index("authentic", 1L, Instant.fromEpochMilliseconds(1L)))
+            }
+            repository.writeIndex(store, null, index("forged", 2L, Instant.fromEpochMilliseconds(2L)))
+
+            assertFailsWith<ZipEncryptionRequiredException> {
+                repository.readIndexes(store, password)
+            }
+        }
+    }
+
+    @Test
+    fun `encrypted repository can fall back to an authenticated index after corruption`() = runTest {
+        val root = createTempDirectory("keyguard-backup-authenticated-fallback").toLocalPath()
+        val store = LocalFolderBackupObjectStore(root)
+        val password = Password("backup-password")
+        val authenticated = index("authentic", 1L, Instant.fromEpochMilliseconds(1L))
+        repository.writeIndex(store, password, authenticated)
+        File(root.value).resolve("indexes/00000000000000000002-corrupt.zip")
+            .writeBytes("not-a-zip".encodeToByteArray())
+
+        assertEquals(listOf(authenticated), repository.readIndexes(store, password))
+    }
+
+    @Test
+    fun `encrypted repository must not reset when no index authenticates`() = runTest {
+        val root = createTempDirectory("keyguard-backup-no-authenticated-index").toLocalPath()
+        val store = LocalFolderBackupObjectStore(root)
+        val password = Password("backup-password")
+        assertEquals(emptyList(), repository.readIndexes(store, password))
+        repository.writeIndex(store, password, index("authentic", 1L, Instant.fromEpochMilliseconds(1L)))
+
+        assertFailsWith<IllegalStateException> {
+            repository.readIndexes(store, Password("wrong-password"))
+        }
+        File(root.value).resolve("indexes/00000000000000000001-authentic.zip")
+            .writeBytes("not-a-zip".encodeToByteArray())
+        assertFailsWith<IllegalStateException> {
+            repository.readIndexes(store, password)
+        }
+    }
+
+    @Test
+    fun `encrypted metadata claims do not authenticate a plaintext repo zip`() = runTest {
+        val root = createTempDirectory("keyguard-backup-forged-metadata").toLocalPath()
+        writeRepoMetadata(
+            File(root.value),
+            BackupRepositoryMetadata(repoId = "forged", createdAt = Instant.fromEpochMilliseconds(1L)),
+        )
+        assertFailsWith<ZipEncryptionRequiredException> {
+            repository.getOrCreateMetadata(
+                store = LocalFolderBackupObjectStore(root),
+                password = Password("backup-password"),
+                nowProvider = { Instant.fromEpochMilliseconds(2L) },
+                repoIdProvider = { "new" },
+            )
+        }
+    }
+
+    @Test
+    fun `plaintext blob does not validate with an object password`() = runTest {
+        val root = createTempDirectory("keyguard-backup-plain-blob").toLocalPath()
+        val store = LocalFolderBackupObjectStore(root)
+        val path = "blobs/forged.zip"
+        repository.writeBlob(store, null, path) { sink -> sink.write("forged".encodeToByteArray()) }
+
         assertEquals(
-            "Backup repository password mode cannot be changed after creation.",
-            error.message,
+            BackupBlobValidationResult.Invalid,
+            repository.validateBlob(store, Password("object-password"), path),
         )
     }
 }

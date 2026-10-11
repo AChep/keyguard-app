@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.util.zip.bridge
 
 import com.artemchep.keyguard.util.zip.ZipException
+import com.artemchep.keyguard.util.zip.ZipEncryptionRequiredException
 
 internal const val NATIVE_ZIP_ABI_VERSION: Int = 1
 
@@ -51,6 +52,7 @@ internal const val NATIVE_ZIP_BRIDGE_CODE_ARCHIVE: Int = 7
 internal const val NATIVE_ZIP_BRIDGE_CODE_WRONG_PASSWORD: Int = 8
 internal const val NATIVE_ZIP_BRIDGE_CODE_UNSUPPORTED_ENTRY: Int = 9
 internal const val NATIVE_ZIP_BRIDGE_CODE_BUFFER_TOO_SMALL: Int = 10
+internal const val NATIVE_ZIP_BRIDGE_CODE_ENCRYPTION_REQUIRED: Int = 11
 
 /**
  * Returned by `keyguard_zip_reader_next_entry` past the last entry. `-1` sets
@@ -136,8 +138,15 @@ internal fun decodeNativeZipFailure(packedResult: Long): NativeZipFailure {
  * The message names only the operation and the reason; paths, entry names and
  * passwords never appear in it.
  */
-internal fun nativeZipFailureException(packedResult: Long): ZipException =
-    ZipException(nativeZipFailureMessage(decodeNativeZipFailure(packedResult)))
+internal fun nativeZipFailureException(packedResult: Long): ZipException {
+    val failure = decodeNativeZipFailure(packedResult)
+    if (failure.domain == NATIVE_ZIP_DOMAIN_BRIDGE &&
+        failure.rawCode == NATIVE_ZIP_BRIDGE_CODE_ENCRYPTION_REQUIRED
+    ) {
+        return ZipEncryptionRequiredException()
+    }
+    return ZipException(nativeZipFailureMessage(failure))
+}
 
 private fun nativeZipFailureMessage(failure: NativeZipFailure): String {
     val bridgeMessage = failure.bridgeMessageOrNull()

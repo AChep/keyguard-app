@@ -28,7 +28,11 @@ use std::{
 
 use self_cell::self_cell;
 use zeroize::Zeroizing;
-use zip::{ZipArchive, read::ZipFile, result::ZipError};
+use zip::{
+    ZipArchive,
+    read::{HasZipMetadata, ZipFile},
+    result::ZipError,
+};
 
 use crate::{
     MAX_ENTRY_NAME_BYTES,
@@ -68,8 +72,8 @@ pub struct ArchiveReader {
 }
 
 impl ArchiveReader {
-    /// Opens the existing archive at `path`. `password` decrypts every encrypted
-    /// entry; plain entries still read normally.
+    /// Opens the existing archive at `path`. A nonempty `password` requires
+    /// every entry read to use authenticated AES encryption.
     ///
     /// # Errors
     ///
@@ -82,7 +86,9 @@ impl ArchiveReader {
         Ok(Self {
             len: archive.len(),
             state: State::Idle(archive),
-            password: password.map(|password| Zeroizing::new(password.to_owned())),
+            password: password
+                .filter(|password| !password.is_empty())
+                .map(|password| Zeroizing::new(password.to_owned())),
             next_index: 0,
         })
     }
@@ -94,7 +100,8 @@ impl ArchiveReader {
     /// # Errors
     ///
     /// Returns [`BridgeError::NameTooLong`], [`BridgeError::BufferTooSmall`],
-    /// [`BridgeError::WrongPassword`], [`BridgeError::UnsupportedEntry`], or a
+    /// [`BridgeError::WrongPassword`], [`BridgeError::EncryptionRequired`],
+    /// [`BridgeError::UnsupportedEntry`], or a
     /// packed [`Operation::NextEntry`] failure. No failure advances the reader,
     /// so a call can be retried with a bigger buffer.
     pub fn next_entry(&mut self, name_buf: &mut [u8]) -> Result<Option<usize>, i64> {
@@ -123,6 +130,16 @@ impl ArchiveReader {
             // so the entry built here is the only reference to the archive
             // until the cell is dropped or unwrapped. See the module docs.
             let archive = unsafe { &mut *archive.get() };
+            if password.is_some() {
+                // Inspect the same metadata used by the decryptor before it can
+                // discard the password for plaintext or accept legacy ZipCrypto.
+                let entry = archive
+                    .by_index_raw(index)
+                    .map_err(|error| open_entry_failure(&error))?;
+                if !entry.encrypted() || entry.get_metadata().aes_mode.is_none() {
+                    return Err(pack_bridge_error(BridgeError::EncryptionRequired));
+                }
+            }
             let entry = match password {
                 Some(password) => archive.by_index_decrypt(index, password.as_bytes()),
                 None => archive.by_index(index),
@@ -225,7 +242,9 @@ fn open_entry_failure(error: &ZipError) -> i64 {
 
 #[cfg(test)]
 mod tests {
-    use std::{fs, path::PathBuf};
+    use std::{fs, io::Write, path::PathBuf};
+
+    use zip::{AesMode, ZipWriter, unstable::write::FileOptionsExt, write::SimpleFileOptions};
 
     use super::*;
     use crate::{error::pack_failure, writer::ArchiveWriter};
@@ -411,15 +430,77 @@ mod tests {
     }
 
     #[test]
-    fn a_password_on_a_plain_archive_is_ignored() {
+    fn a_password_on_a_plain_archive_requires_encryption() {
         let temp = TempArchive::new("spurious-password");
         temp.write(None, &[("hello.txt", b"hello world")]);
 
         let mut reader = temp.read(Some("unused"));
+        assert_encryption_rejected(&mut reader);
+    }
+
+    fn assert_encryption_rejected(reader: &mut ArchiveReader) {
+        for _ in 0..2 {
+            assert_eq!(
+                reader.next_entry(&mut [0_u8; 64]),
+                Err(pack_bridge_error(BridgeError::EncryptionRequired))
+            );
+            assert_eq!(
+                reader.read(&mut [0_u8; 8]),
+                Err(pack_bridge_error(BridgeError::InvalidState))
+            );
+        }
+    }
+
+    #[test]
+    fn an_empty_password_keeps_plain_archives_readable() {
+        let temp = TempArchive::new("empty-password");
+        temp.write(None, &[("hello.txt", b"hello world")]);
         assert_eq!(
-            drain(&mut reader),
+            drain(&mut temp.read(Some(""))),
             vec![("hello.txt".to_owned(), b"hello world".to_vec())]
         );
+    }
+
+    #[test]
+    fn a_password_rejects_zipcrypto_even_with_the_correct_password() {
+        let temp = TempArchive::new("zipcrypto");
+        let mut writer = ZipWriter::new(File::create(&temp.path).expect("create"));
+        let options = SimpleFileOptions::default()
+            .with_deprecated_encryption(b"password")
+            .expect("ZipCrypto options");
+        writer.start_file("index.json", options).expect("entry");
+        writer.write_all(b"{}").expect("write");
+        writer.finish().expect("finish");
+        assert_encryption_rejected(&mut temp.read(Some("password")));
+    }
+
+    #[test]
+    fn mixed_archives_cannot_skip_an_unencrypted_entry() {
+        for encrypted_first in [false, true] {
+            let temp = TempArchive::new("mixed");
+            let mut writer = ZipWriter::new(File::create(&temp.path).expect("create"));
+            for (index, encrypted) in [encrypted_first, !encrypted_first].into_iter().enumerate() {
+                let options = SimpleFileOptions::default();
+                let options = if encrypted {
+                    options.with_aes_encryption(AesMode::Aes256, "password")
+                } else {
+                    options
+                };
+                writer
+                    .start_file(format!("{index}.json"), options)
+                    .expect("entry");
+                writer.write_all(b"{}").expect("write");
+            }
+            writer.finish().expect("finish");
+            let mut reader = temp.read(Some("password"));
+            if encrypted_first {
+                assert_eq!(reader.next_entry(&mut [0_u8; 64]), Ok(Some(6)));
+                let mut bytes = [0_u8; 8];
+                assert_eq!(reader.read(&mut bytes), Ok(2));
+                assert_eq!(reader.read(&mut bytes), Ok(0));
+            }
+            assert_encryption_rejected(&mut reader);
+        }
     }
 
     #[test]

@@ -27,6 +27,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.test.RecordingLogRepository
 import com.artemchep.keyguard.test.TestCryptoGenerator
 import com.artemchep.keyguard.test.createSecret
+import com.artemchep.keyguard.util.zip.ZipEncryptionRequiredException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -46,6 +47,23 @@ import kotlinx.io.Sink
 import kotlinx.io.readByteArray
 
 class BackupRunnerTest {
+    @Test
+    fun `index encryption rejection stops backup before writes or retention`() = runTest {
+        val repository = MemoryBackupRepository().apply {
+            failReadIndexes = ZipEncryptionRequiredException()
+        }
+        val downloadTask = CountingDownloadTask()
+
+        assertFailsWith<ZipEncryptionRequiredException> {
+            runner(repository, downloadTask).run(config())
+        }
+
+        assertEquals(0, downloadTask.calls)
+        assertEquals(emptyList(), repository.operations)
+        assertEquals(emptyList(), repository.deletedSnapshots)
+        assertEquals(emptyList(), repository.deletedBlobs)
+    }
+
     @Test
     fun `attachment decryption failure is classified`() = runTest {
         val cause = RuntimeException(

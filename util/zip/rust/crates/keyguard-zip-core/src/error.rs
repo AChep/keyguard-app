@@ -40,6 +40,8 @@ pub const BRIDGE_ERROR_WRONG_PASSWORD: u32 = 8;
 pub const BRIDGE_ERROR_UNSUPPORTED_ENTRY: u32 = 9;
 /// Raw code of [`BridgeError::BufferTooSmall`].
 pub const BRIDGE_ERROR_BUFFER_TOO_SMALL: u32 = 10;
+/// Raw code of [`BridgeError::EncryptionRequired`].
+pub const BRIDGE_ERROR_ENCRYPTION_REQUIRED: u32 = 11;
 
 /// Protocol step that produced a failure, so Kotlin can name it in a message
 /// without the native layer disclosing any path or content.
@@ -105,6 +107,8 @@ pub enum BridgeError {
     UnsupportedEntry,
     /// The caller's output buffer is too small.
     BufferTooSmall,
+    /// A password was supplied, but the entry does not use authenticated AES.
+    EncryptionRequired,
 }
 
 impl BridgeError {
@@ -122,6 +126,9 @@ impl BridgeError {
             Self::WrongPassword => (FailureKind::InvalidInput, BRIDGE_ERROR_WRONG_PASSWORD),
             Self::UnsupportedEntry => (FailureKind::Unsupported, BRIDGE_ERROR_UNSUPPORTED_ENTRY),
             Self::BufferTooSmall => (FailureKind::InvalidInput, BRIDGE_ERROR_BUFFER_TOO_SMALL),
+            Self::EncryptionRequired => {
+                (FailureKind::InvalidInput, BRIDGE_ERROR_ENCRYPTION_REQUIRED)
+            }
         };
         (Operation::Bridge, kind, ErrorDomain::Bridge, raw_code)
     }
@@ -220,6 +227,7 @@ mod tests {
         pub const BRIDGE_WRONG_PASSWORD: i64 = 0x8000_0000_0803_0800_u64 as i64;
         pub const BRIDGE_UNSUPPORTED_ENTRY: i64 = 0x8000_0000_0903_0A00_u64 as i64;
         pub const BRIDGE_BUFFER_TOO_SMALL: i64 = 0x8000_0000_0A03_0800_u64 as i64;
+        pub const BRIDGE_ENCRYPTION_REQUIRED: i64 = 0x8000_0000_0B03_0800_u64 as i64;
         pub const NEXT_ENTRY_ARCHIVE: i64 = 0x8000_0000_0703_0B08_u64 as i64;
         pub const READ_ARCHIVE: i64 = 0x8000_0000_0703_0809_u64 as i64;
         #[cfg(unix)]
@@ -234,6 +242,10 @@ mod tests {
 
     #[test]
     fn packed_bridge_failures_match_the_golden_vectors() {
+        assert_eq!(
+            pack_bridge_error(BridgeError::EncryptionRequired),
+            golden::BRIDGE_ENCRYPTION_REQUIRED
+        );
         assert_eq!(
             pack_bridge_error(BridgeError::InvalidArgument),
             golden::BRIDGE_INVALID_ARGUMENT

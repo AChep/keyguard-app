@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.util.retryWithPolicy
 import com.artemchep.keyguard.util.io.toSource
 import com.artemchep.keyguard.util.zip.ZipConfig
 import com.artemchep.keyguard.util.zip.ZipEntry
+import com.artemchep.keyguard.util.zip.ZipEncryptionRequiredException
 import com.artemchep.keyguard.util.zip.ZipReader
 import com.artemchep.keyguard.util.zip.ZipReaderEntry
 import com.artemchep.keyguard.util.zip.ZipService
@@ -133,6 +134,9 @@ class BackupRepositoryZipImpl(
             if (indexes.isNotEmpty()) {
                 return indexes
             }
+        }
+        check(password.isNullOrEmpty() || keysByGeneration.isEmpty()) {
+            "No authenticated backup index could be read."
         }
         return emptyList()
     }
@@ -400,6 +404,10 @@ class BackupRepositoryZipImpl(
             password = password,
             entryName = entryName,
         )
+    } catch (e: ZipEncryptionRequiredException) {
+        // An encryption downgrade must stop the backup before it can publish a
+        // replacement catalog or apply retention using unauthenticated data.
+        throw e
     } catch (_: BackupObjectStoreException.NotFound) {
         null
     } catch (e: BackupObjectStoreException) {

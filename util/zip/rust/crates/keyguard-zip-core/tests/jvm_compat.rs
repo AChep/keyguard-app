@@ -184,7 +184,10 @@ fn the_reader_rejects_a_wrong_or_missing_password_on_the_jvm_archive() {
 }
 
 #[test]
-fn a_password_is_ignored_on_the_plain_jvm_archive() {
+fn a_password_requires_encryption_on_the_plain_jvm_archive() {
     let mut reader = reader("plain.zip", PLAIN_SHA256, Some(PASSWORD_TEXT));
-    assert_eq!(drain(&mut reader), expected_entries());
+    assert_eq!(
+        reader.next_entry(&mut [0_u8; 512]),
+        Err(pack_bridge_error(BridgeError::EncryptionRequired))
+    );
 }

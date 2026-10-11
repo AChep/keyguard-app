@@ -104,6 +104,8 @@ enum keyguard_zip_bridge_error {
     KEYGUARD_ZIP_BRIDGE_UNSUPPORTED_ENTRY = 9,
     /* The entry name does not fit the caller's buffer. */
     KEYGUARD_ZIP_BRIDGE_BUFFER_TOO_SMALL = 10,
+    /* A password was supplied, but the entry does not use authenticated AES. */
+    KEYGUARD_ZIP_BRIDGE_ENCRYPTION_REQUIRED = 11,
 };
 
 enum {

@@ -1,11 +1,13 @@
 package com.artemchep.keyguard.util.zip.bridge
 
 import com.artemchep.keyguard.util.zip.ZipException
+import com.artemchep.keyguard.util.zip.ZipEncryptionRequiredException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.assertIs
 
 /**
  * Golden wire vectors mirrored by the Rust `keyguard-zip-core` error tests;
@@ -22,11 +24,20 @@ private object GoldenVectors {
     val BRIDGE_WRONG_PASSWORD: Long = "8000000008030800".toULong(16).toLong()
     val BRIDGE_UNSUPPORTED_ENTRY: Long = "8000000009030A00".toULong(16).toLong()
     val BRIDGE_BUFFER_TOO_SMALL: Long = "800000000A030800".toULong(16).toLong()
+    val BRIDGE_ENCRYPTION_REQUIRED: Long = "800000000B030800".toULong(16).toLong()
     val READER_OPEN_NOT_FOUND: Long = "8000000002010307".toULong(16).toLong()
     val READ_ARCHIVE: Long = "8000000007030809".toULong(16).toLong()
 }
 
 class NativeZipWireTest {
+    @Test
+    fun encryptionPolicyFailureRetainsItsTypeAcrossTheBridge() {
+        assertEquals(11, NATIVE_ZIP_BRIDGE_CODE_ENCRYPTION_REQUIRED)
+        assertIs<ZipEncryptionRequiredException>(
+            nativeZipFailureException(GoldenVectors.BRIDGE_ENCRYPTION_REQUIRED),
+        )
+    }
+
     @Test
     fun nativeAbiVersionIsOne() {
         assertEquals(1, NATIVE_ZIP_ABI_VERSION)

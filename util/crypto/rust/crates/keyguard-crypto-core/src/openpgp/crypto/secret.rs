@@ -357,8 +357,8 @@ pub(crate) fn is_rsa_private_algorithm(algorithm: PublicKeyAlgorithm) -> bool {
     )
 }
 
-/// Extracts the n/e/d component set shared by message operations and the
-/// gpg-agent, zeroizing and discarding the OpenPGP CRT components.
+/// Extracts n/e/d/p/q for the AWS-LC boundary shared by message operations,
+/// certificate mutations, and the gpg-agent, without recovering known factors.
 pub(in crate::openpgp) fn rsa_private_components(
     public: &PublicParams,
     private: &PlainSecretParams,
@@ -377,19 +377,19 @@ pub(in crate::openpgp) fn rsa_private_components(
     let modulus = public_mpis.remove(0);
     let public_exponent = public_mpis.remove(0);
     let (private_exponent, prime_p, prime_q, coefficient) = private.to_bytes();
-    let private_exponent = Zeroizing::new(private_exponent);
-    let _prime_p = Zeroizing::new(prime_p);
-    let _prime_q = Zeroizing::new(prime_q);
     let _coefficient = Zeroizing::new(coefficient);
 
     // OpenPGP's `u` is p^-1 mod q while AWS-LC's CRT coefficient is
-    // q^-1 mod p. Supplying n/e/d lets the sensitive boundary recover and
-    // validate the correctly oriented CRT set.
-    Ok(RsaPrivateComponents::new(
+    // q^-1 mod p. Neither coefficient is needed for the non-CRT operation:
+    // transfer d/p/q directly to zeroizing owners and validate them in AWS-LC.
+    // rPGP still prepares secret integers in its parser and `to_bytes`; this
+    // avoids adding a second Rust big-integer preparation/recovery step here.
+    Ok(RsaPrivateComponents::new_with_primes(
         modulus,
         public_exponent,
-        private_exponent.to_vec(),
-        None,
+        private_exponent,
+        prime_p,
+        prime_q,
     ))
 }
 

@@ -162,12 +162,22 @@ impl Drop for RsaCrtComponents {
 ///
 /// The CRT set may be omitted for legacy imported `n/e/d` keys. In that case
 /// it is reconstructed in bounded arithmetic and then validated by AWS-LC
-/// before any private operation.
+/// before any private operation. Keys with known factors should instead use
+/// [`Self::new_with_primes`] to avoid recovery and CRT derivation.
 pub struct RsaPrivateComponents {
     modulus: Vec<u8>,
     public_exponent: Vec<u8>,
     private_exponent: Vec<u8>,
-    crt: Option<RsaCrtComponents>,
+    material: RsaPrivateMaterial,
+}
+
+enum RsaPrivateMaterial {
+    Recover,
+    Primes {
+        prime_p: Zeroizing<Vec<u8>>,
+        prime_q: Zeroizing<Vec<u8>>,
+    },
+    Crt(RsaCrtComponents),
 }
 
 impl RsaPrivateComponents {
@@ -183,7 +193,33 @@ impl RsaPrivateComponents {
             modulus,
             public_exponent,
             private_exponent,
-            crt,
+            material: crt.map_or(RsaPrivateMaterial::Recover, RsaPrivateMaterial::Crt),
+        }
+    }
+
+    /// Takes ownership of `n/e/d/p/q` for private operations without CRT.
+    ///
+    /// AWS-LC validates the supplied factors and exponent and performs blinded
+    /// non-CRT exponentiation. Neither factor recovery nor Rust big-integer
+    /// arithmetic is needed. Factor order is immaterial: OpenPGP's `p^-1 mod q`
+    /// and PKCS#1's `q^-1 mod p` coefficients are not used by this path.
+    /// These operation-only components cannot be exported as PKCS#1 DER.
+    #[must_use]
+    pub fn new_with_primes(
+        modulus: Vec<u8>,
+        public_exponent: Vec<u8>,
+        private_exponent: Vec<u8>,
+        prime_p: Vec<u8>,
+        prime_q: Vec<u8>,
+    ) -> Self {
+        Self {
+            modulus,
+            public_exponent,
+            private_exponent,
+            material: RsaPrivateMaterial::Primes {
+                prime_p: Zeroizing::new(prime_p),
+                prime_q: Zeroizing::new(prime_q),
+            },
         }
     }
 
@@ -196,25 +232,26 @@ impl RsaPrivateComponents {
         let public_exponent = positive_bytes(&self.public_exponent, MAX_PUBLIC_EXPONENT_BYTES)?;
         let private_exponent = positive_bytes(&self.private_exponent, MAX_RSA_MODULUS_BYTES)?;
 
-        let crt = self
-            .crt
-            .as_ref()
-            .map(|crt| {
-                Ok(ValidatedCrt {
-                    prime_p: positive_bytes(&crt.prime_p, MAX_RSA_MODULUS_BYTES)?,
-                    prime_q: positive_bytes(&crt.prime_q, MAX_RSA_MODULUS_BYTES)?,
-                    exponent_p: positive_bytes(&crt.exponent_p, MAX_RSA_MODULUS_BYTES)?,
-                    exponent_q: positive_bytes(&crt.exponent_q, MAX_RSA_MODULUS_BYTES)?,
-                    coefficient: positive_bytes(&crt.coefficient, MAX_RSA_MODULUS_BYTES)?,
-                })
-            })
-            .transpose()?;
+        let material = match &self.material {
+            RsaPrivateMaterial::Recover => ValidatedMaterial::Recover,
+            RsaPrivateMaterial::Primes { prime_p, prime_q } => ValidatedMaterial::Primes {
+                prime_p: positive_bytes(prime_p, MAX_RSA_MODULUS_BYTES)?,
+                prime_q: positive_bytes(prime_q, MAX_RSA_MODULUS_BYTES)?,
+            },
+            RsaPrivateMaterial::Crt(crt) => ValidatedMaterial::Crt(ValidatedCrt {
+                prime_p: positive_bytes(&crt.prime_p, MAX_RSA_MODULUS_BYTES)?,
+                prime_q: positive_bytes(&crt.prime_q, MAX_RSA_MODULUS_BYTES)?,
+                exponent_p: positive_bytes(&crt.exponent_p, MAX_RSA_MODULUS_BYTES)?,
+                exponent_q: positive_bytes(&crt.exponent_q, MAX_RSA_MODULUS_BYTES)?,
+                coefficient: positive_bytes(&crt.coefficient, MAX_RSA_MODULUS_BYTES)?,
+            }),
+        };
 
         Ok(ValidatedComponents {
             modulus,
             public_exponent,
             private_exponent,
-            crt,
+            material,
         })
     }
 }
@@ -224,7 +261,7 @@ impl Drop for RsaPrivateComponents {
         self.modulus.zeroize();
         self.public_exponent.zeroize();
         self.private_exponent.zeroize();
-        // `RsaCrtComponents::drop` erases the optional CRT fields.
+        // The material's owners erase supplied factors and CRT fields.
     }
 }
 
@@ -256,7 +293,7 @@ pub fn complete_rsa_pkcs1_der(
 ) -> Result<Zeroizing<Vec<u8>>, SensitiveRsaError> {
     aws_lc::init();
     let validated = components.validated()?;
-    if validated.crt.is_some() {
+    if !matches!(validated.material, ValidatedMaterial::Recover) {
         return Err(SensitiveRsaError::InvalidKey);
     }
     let prime_p = positive_bytes(&primes.prime_p, MAX_RSA_MODULUS_BYTES)?;
@@ -279,6 +316,8 @@ pub fn complete_rsa_pkcs1_der(
 /// are reconstructed with the same bounded arithmetic used by private
 /// operations. Complete records are admitted through the provided-CRT path.
 /// AWS-LC validates the resulting key before it is serialized.
+/// Operation-only inputs from [`RsaPrivateComponents::new_with_primes`] are
+/// rejected; they deliberately do not contain the CRT values required by DER.
 ///
 /// # Errors
 ///
@@ -291,17 +330,18 @@ pub fn complete_rsa_pkcs1_der_from_components(
 ) -> Result<Zeroizing<Vec<u8>>, SensitiveRsaError> {
     aws_lc::init();
     let validated = components.validated()?;
-    let key = match validated.crt {
-        Some(crt) => build_key_from_provided_crt(validated, crt)?,
-        None => build_key_with_recovered_crt(validated)?,
+    let key = match validated.material {
+        ValidatedMaterial::Crt(crt) => build_key_from_provided_crt(validated, crt)?,
+        ValidatedMaterial::Recover => build_key_with_recovered_crt(validated)?,
+        ValidatedMaterial::Primes { .. } => return Err(SensitiveRsaError::InvalidKey),
     };
     key.to_pkcs1_der()
 }
 
 /// Signs a message using RSA PKCS#1 v1.5 and the selected SSH hash.
 ///
-/// Complete CRT inputs are used directly. Missing CRT inputs are reconstructed
-/// from `n/e/d`, then the complete key is admitted only if AWS-LC validates it.
+/// Supplied factors or complete CRT inputs are used directly. Only legacy
+/// `n/e/d` inputs require factor recovery. AWS-LC validates every key.
 pub fn sign_rsa_pkcs1_v1_5(
     components: &RsaPrivateComponents,
     hash: RsaSignatureHash,
@@ -309,10 +349,7 @@ pub fn sign_rsa_pkcs1_v1_5(
 ) -> Result<Vec<u8>, SensitiveRsaError> {
     aws_lc::init();
     let validated = components.validated()?;
-    let mut key = match validated.crt {
-        Some(crt) => build_key_from_provided_crt(validated, crt)?,
-        None => build_key_with_recovered_crt(validated)?,
-    };
+    let mut key = build_private_key(validated)?;
 
     let digest_algorithm = hash.digest();
     let mut digest = Zeroizing::new([0_u8; 64]);
@@ -342,10 +379,7 @@ pub fn sign_rsa_pkcs1_v1_5_digest(
 ) -> Result<Vec<u8>, SensitiveRsaError> {
     aws_lc::init();
     let validated = components.validated()?;
-    let mut key = match validated.crt {
-        Some(crt) => build_key_from_provided_crt(validated, crt)?,
-        None => build_key_with_recovered_crt(validated)?,
-    };
+    let mut key = build_private_key(validated)?;
 
     key.sign_digest(hash, digest)
 }
@@ -362,10 +396,7 @@ pub fn decrypt_rsa_pkcs1_v1_5(
 ) -> Result<Zeroizing<Vec<u8>>, SensitiveRsaError> {
     aws_lc::init();
     let validated = components.validated()?;
-    let mut key = match validated.crt {
-        Some(crt) => build_key_from_provided_crt(validated, crt)?,
-        None => build_key_with_recovered_crt(validated)?,
-    };
+    let mut key = build_private_key(validated)?;
 
     key.decrypt_pkcs1(ciphertext)
 }
@@ -384,10 +415,7 @@ pub fn decrypt_rsa_raw(
 ) -> Result<Zeroizing<Vec<u8>>, SensitiveRsaError> {
     aws_lc::init();
     let validated = components.validated()?;
-    let mut key = match validated.crt {
-        Some(crt) => build_key_from_provided_crt(validated, crt)?,
-        None => build_key_with_recovered_crt(validated)?,
-    };
+    let mut key = build_private_key(validated)?;
 
     key.decrypt_raw(ciphertext)
 }
@@ -406,7 +434,17 @@ struct ValidatedComponents<'a> {
     modulus: &'a [u8],
     public_exponent: &'a [u8],
     private_exponent: &'a [u8],
-    crt: Option<ValidatedCrt<'a>>,
+    material: ValidatedMaterial<'a>,
+}
+
+#[derive(Clone, Copy)]
+enum ValidatedMaterial<'a> {
+    Recover,
+    Primes {
+        prime_p: &'a [u8],
+        prime_q: &'a [u8],
+    },
+    Crt(ValidatedCrt<'a>),
 }
 
 fn positive_bytes(input: &[u8], maximum: usize) -> Result<&[u8], SensitiveRsaError> {
@@ -422,6 +460,16 @@ fn positive_bytes(input: &[u8], maximum: usize) -> Result<&[u8], SensitiveRsaErr
         Err(SensitiveRsaError::InvalidKey)
     } else {
         Ok(value)
+    }
+}
+
+fn build_private_key(components: ValidatedComponents<'_>) -> Result<RsaKey, SensitiveRsaError> {
+    match components.material {
+        ValidatedMaterial::Recover => build_key_with_recovered_crt(components),
+        ValidatedMaterial::Primes { prime_p, prime_q } => {
+            RsaKey::from_prime_factors(components, prime_p, prime_q)
+        }
+        ValidatedMaterial::Crt(crt) => build_key_from_provided_crt(components, crt),
     }
 }
 
@@ -716,6 +764,68 @@ impl Drop for BigNum {
 struct RsaKey(NonNull<aws_lc::RSA>);
 
 impl RsaKey {
+    fn from_prime_factors(
+        components: ValidatedComponents<'_>,
+        prime_p: &[u8],
+        prime_q: &[u8],
+    ) -> Result<Self, SensitiveRsaError> {
+        let modulus = BigNum::from_bytes(components.modulus)?;
+        let public_exponent = BigNum::from_bytes(components.public_exponent)?;
+        let private_exponent = BigNum::from_bytes(components.private_exponent)?;
+        let prime_p = BigNum::from_bytes(prime_p)?;
+        let prime_q = BigNum::from_bytes(prime_q)?;
+
+        // Preserve the scalar bounds of the legacy recovery path. RSA_check_key
+        // validates the factor/exponent relationships but does not enforce these
+        // application-specific limits on n and d.
+        // SAFETY: all pointers borrow live, uniquely owned BIGNUMs.
+        let valid_bounds = unsafe {
+            (1_024..=8_192).contains(&aws_lc::BN_num_bits(modulus.as_ptr()))
+                && aws_lc::BN_cmp_word(private_exponent.as_ptr(), 1) > 0
+                && aws_lc::BN_cmp(private_exponent.as_ptr(), modulus.as_ptr()) < 0
+        };
+        if !valid_bounds {
+            return Err(SensitiveRsaError::InvalidKey);
+        }
+
+        // SAFETY: RSA_new returns a new allocation, owned immediately by `key`.
+        let raw = unsafe { aws_lc::RSA_new() };
+        let key = Self(NonNull::new(raw).ok_or(SensitiveRsaError::AllocationFailure)?);
+        // SAFETY: the unused RSA object and all three BIGNUMs are live and
+        // uniquely owned. The setter takes ownership only on success.
+        let result = unsafe {
+            aws_lc::RSA_set0_key(
+                key.as_ptr(),
+                modulus.as_ptr(),
+                public_exponent.as_ptr(),
+                private_exponent.as_ptr(),
+            )
+        };
+        if result != 1 {
+            return Err(SensitiveRsaError::InvalidKey);
+        }
+        // The RSA owner now clears/frees these values, including on later errors.
+        std::mem::forget((modulus, public_exponent, private_exponent));
+
+        // SAFETY: key has not performed any operation. The live factors are
+        // uniquely owned here until this setter successfully takes ownership.
+        let result =
+            unsafe { aws_lc::RSA_set0_factors(key.as_ptr(), prime_p.as_ptr(), prime_q.as_ptr()) };
+        if result != 1 {
+            return Err(SensitiveRsaError::InvalidKey);
+        }
+        std::mem::forget((prime_p, prime_q));
+
+        // SAFETY: key owns n/e/d/p/q. AWS-LC validates p*q=n and e*d=1 modulo
+        // both p-1 and q-1 even without CRT parameters. Bare n/e/d admission
+        // would skip these checks. Leaving CRT absent selects AWS-LC's blinded
+        // constant-time non-CRT private operation, with fault verification.
+        if unsafe { aws_lc::RSA_check_key(key.as_ptr()) } != 1 {
+            return Err(SensitiveRsaError::InvalidKey);
+        }
+        Ok(key)
+    }
+
     fn generate(bits: i32) -> Result<Self, SensitiveRsaError> {
         // SAFETY: `RSA_new` takes no arguments and returns a uniquely owned
         // allocation when non-null.
@@ -1075,7 +1185,7 @@ mod tests {
         assert_eq!(completed.modulus, components.modulus);
         assert_eq!(completed.public_exponent, components.public_exponent);
         assert_eq!(completed.private_exponent, components.private_exponent);
-        assert!(completed.crt.is_some());
+        assert!(matches!(completed.material, RsaPrivateMaterial::Crt(_)));
     }
 
     #[test]
@@ -1097,6 +1207,183 @@ mod tests {
             sign_rsa_pkcs1_v1_5_digest(&components, RsaSignatureHash::Sha256, &digest[..])
                 .expect("prehashed RSA signing must succeed");
         assert_eq!(signature, decode_hex(PARITY_SHA256_SIGNATURE_HEX));
+    }
+
+    #[test]
+    fn supplied_prime_factors_support_every_operation_in_either_order_without_crt() {
+        let der = generate_rsa_pkcs1_der(1_024).expect("RSA generation must succeed");
+        let key = parse_pkcs1_der(&der);
+        let complete = components_from_key(&key);
+        let plaintext = b"\x09keyguard openpgp session key";
+        let ciphertext = encrypt_pkcs1(&key, plaintext);
+        let mut raw_plaintext = vec![0; 128];
+        raw_plaintext[120..].copy_from_slice(b"raw rsa!");
+        let raw_ciphertext = encrypt_raw(&key, &raw_plaintext);
+
+        for reverse in [false, true] {
+            let components = prime_components_from_key(&key, reverse);
+            for hash in [
+                RsaSignatureHash::Sha1,
+                RsaSignatureHash::Sha224,
+                RsaSignatureHash::Sha256,
+                RsaSignatureHash::Sha384,
+                RsaSignatureHash::Sha512,
+            ] {
+                let expected = sign_rsa_pkcs1_v1_5(&complete, hash, PARITY_MESSAGE)
+                    .expect("CRT signing succeeds");
+                let signature = sign_rsa_pkcs1_v1_5(&components, hash, PARITY_MESSAGE)
+                    .expect("supplied factors sign");
+                assert_eq!(signature, expected);
+                assert!(verify(&key, hash, PARITY_MESSAGE, &signature));
+
+                let mut digest = vec![0; hash.digest().output_size()];
+                let mut context = DigestContext::new(hash.digest()).expect("digest initializes");
+                context.update(PARITY_MESSAGE).expect("digest updates");
+                context
+                    .finalize_into(&mut digest)
+                    .expect("digest finalizes");
+                assert_eq!(
+                    sign_rsa_pkcs1_v1_5_digest(&components, hash, &digest)
+                        .expect("supplied factors sign digest"),
+                    expected,
+                );
+
+                // Check the actual native representation, including after the
+                // first operation lazily initializes the AWS-LC private key.
+                let mut native = build_private_key(components.validated().expect("valid input"))
+                    .expect("supplied factors build");
+                assert_no_crt(&native);
+                assert_eq!(
+                    native.sign_digest(hash, &digest).expect("native signs"),
+                    expected
+                );
+                assert_no_crt(&native);
+            }
+            assert_eq!(
+                &*decrypt_rsa_pkcs1_v1_5(&components, &ciphertext).expect("PKCS#1 decrypts"),
+                plaintext,
+            );
+            assert_eq!(
+                &*decrypt_rsa_raw(&components, &raw_ciphertext).expect("raw decrypts"),
+                &raw_plaintext,
+            );
+            assert_eq!(
+                decrypt_rsa_pkcs1_v1_5(&components, &[0; 128]),
+                Err(SensitiveRsaError::BackendFailure),
+            );
+        }
+    }
+
+    #[test]
+    fn invalid_supplied_factors_never_fall_back_to_recovery() {
+        let der = generate_rsa_pkcs1_der(1_024).expect("RSA generation must succeed");
+        let key = parse_pkcs1_der(&der);
+        // The original n/e/d remain valid in every case, so discarding the
+        // invalid factor and recovering a new one would incorrectly succeed.
+        for reverse in [false, true] {
+            for invalid_prime in [vec![], vec![0], vec![1], vec![3], vec![1; 1_026]] {
+                let mut components = prime_components_from_key(&key, reverse);
+                let RsaPrivateMaterial::Primes { prime_p, .. } = &mut components.material else {
+                    panic!("factor fixture");
+                };
+                *prime_p = Zeroizing::new(invalid_prime);
+                assert_all_private_operations_reject(&components);
+            }
+            let mut components = prime_components_from_key(&key, reverse);
+            let RsaPrivateMaterial::Primes { prime_q, .. } = &mut components.material else {
+                panic!("factor fixture");
+            };
+            prime_q[0] ^= 1;
+            assert_all_private_operations_reject(&components);
+        }
+    }
+
+    #[test]
+    fn supplied_prime_factors_preserve_private_exponent_bounds_and_consistency() {
+        let der = generate_rsa_pkcs1_der(1_024).expect("RSA generation must succeed");
+        let key = parse_pkcs1_der(&der);
+        let mut components = prime_components_from_key(&key, false);
+        // Corruption is rejected even though all public and factor inputs match.
+        components.private_exponent[0] ^= 1;
+        assert_all_private_operations_reject(&components);
+        for exponent in [vec![], vec![0], vec![1], components.modulus.clone()] {
+            components.private_exponent.zeroize();
+            components.private_exponent = exponent;
+            assert_all_private_operations_reject(&components);
+        }
+    }
+
+    #[test]
+    fn supplied_prime_factors_are_not_silently_completed_for_der() {
+        let der = generate_rsa_pkcs1_der(1_024).expect("RSA generation must succeed");
+        let key = parse_pkcs1_der(&der);
+        let components = prime_components_from_key(&key, false);
+        let complete = components_from_key(&key);
+        let RsaPrivateMaterial::Crt(crt) = &complete.material else {
+            panic!("generated key has CRT");
+        };
+        let primes = RsaPrimeComponents::new(
+            crt.prime_p.clone(),
+            crt.prime_q.clone(),
+            crt.coefficient.clone(),
+        );
+        assert_eq!(
+            complete_rsa_pkcs1_der_from_components(&components),
+            Err(SensitiveRsaError::InvalidKey),
+        );
+        assert_eq!(
+            complete_rsa_pkcs1_der(&components, &primes),
+            Err(SensitiveRsaError::InvalidKey),
+        );
+    }
+
+    fn assert_all_private_operations_reject(components: &RsaPrivateComponents) {
+        assert_eq!(
+            sign_rsa_pkcs1_v1_5(components, RsaSignatureHash::Sha256, PARITY_MESSAGE),
+            Err(SensitiveRsaError::InvalidKey),
+        );
+        assert_eq!(
+            sign_rsa_pkcs1_v1_5_digest(components, RsaSignatureHash::Sha256, &[0; 32]),
+            Err(SensitiveRsaError::InvalidKey),
+        );
+        assert_eq!(
+            decrypt_rsa_pkcs1_v1_5(components, &[1]),
+            Err(SensitiveRsaError::InvalidKey),
+        );
+        assert_eq!(
+            decrypt_rsa_raw(components, &[1]),
+            Err(SensitiveRsaError::InvalidKey),
+        );
+    }
+
+    fn assert_no_crt(key: &RsaKey) {
+        // SAFETY: all getters borrow fields from a live private key.
+        let crt = unsafe {
+            [
+                aws_lc::RSA_get0_dmp1(key.as_ptr()),
+                aws_lc::RSA_get0_dmq1(key.as_ptr()),
+                aws_lc::RSA_get0_iqmp(key.as_ptr()),
+            ]
+        };
+        assert!(crt.iter().all(|value| value.is_null()));
+    }
+
+    fn prime_components_from_key(key: &RsaKey, reverse: bool) -> RsaPrivateComponents {
+        // SAFETY: all getters borrow fields from a live complete private key.
+        let values = unsafe {
+            [
+                aws_lc::RSA_get0_n(key.as_ptr()),
+                aws_lc::RSA_get0_e(key.as_ptr()),
+                aws_lc::RSA_get0_d(key.as_ptr()),
+                aws_lc::RSA_get0_p(key.as_ptr()),
+                aws_lc::RSA_get0_q(key.as_ptr()),
+            ]
+        };
+        let [n, e, d, mut p, mut q] = values.map(bn_to_bytes);
+        if reverse {
+            std::mem::swap(&mut p, &mut q);
+        }
+        RsaPrivateComponents::new_with_primes(n, e, d, p, q)
     }
 
     #[test]
@@ -1194,7 +1481,9 @@ mod tests {
         let der = generate_rsa_pkcs1_der(1_024).expect("RSA generation must succeed");
         let key = parse_pkcs1_der(&der);
         let mut components = components_from_key(&key);
-        let crt = components.crt.as_mut().expect("generated key has CRT");
+        let RsaPrivateMaterial::Crt(crt) = &mut components.material else {
+            panic!("generated key has CRT");
+        };
         crt.coefficient[0] ^= 1;
         assert_eq!(
             sign_rsa_pkcs1_v1_5(&components, RsaSignatureHash::Sha256, b"message"),

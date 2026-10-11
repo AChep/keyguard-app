@@ -5,7 +5,7 @@ all-features = true
 version = 2
 yanked = "deny"
 ignore = [
-    { id = "RUSTSEC-2023-0071", reason = "rPGP RSA is dependency-reachable, but its private RSA backend stays disabled and private operations use the reviewed AWS-LC boundary" },
+    { id = "RUSTSEC-2023-0071", reason = "Private RSA exponentiation uses AWS-LC with supplied OpenPGP factors; rPGP/RustCrypto secret-integer parsing and preparation remain reachable (see native-crypto-exceptions.toml)" },
 ]
 
 [licenses]

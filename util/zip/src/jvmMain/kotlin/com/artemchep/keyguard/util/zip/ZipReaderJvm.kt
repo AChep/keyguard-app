@@ -15,14 +15,15 @@ actual fun ZipReader(
     password: String?,
 ): ZipReader = ZipReaderJvm(
     source = source,
-    password = password,
+    // An empty password means "no password".
+    password = password?.takeIf { it.isNotEmpty() },
 )
 
 private class ZipReaderJvm(
     source: Source,
     password: String?,
 ) : ZipReader {
-    private val requireEncryption = !password.isNullOrEmpty()
+    private val requireEncryption = password != null
     private var encryptionRejected = false
 
     private val zipStream = createZipStream(
@@ -71,9 +72,7 @@ private fun createZipStream(
     inputStream: InputStream,
     password: String?,
 ): ZipInputStream {
-    val chars = password
-        ?.takeIf { it.isNotEmpty() }
-        ?.toCharArray()
+    val chars = password?.toCharArray()
     return if (chars != null) {
         ZipInputStream(inputStream, chars)
     } else {

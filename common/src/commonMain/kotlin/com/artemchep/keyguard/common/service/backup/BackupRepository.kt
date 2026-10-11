@@ -15,6 +15,9 @@ interface BackupRepository {
     /**
      * Returns the newest generation that has at least one readable index.
      * Multiple readable indexes in that generation are returned for merge.
+     *
+     * With a [password], throws instead of falling back when an index is not
+     * AES-encrypted, or when indexes exist but none of them can be read.
      */
     suspend fun readIndexes(
         store: BackupObjectStore,

@@ -33,12 +33,36 @@ runs:
       with:
         distribution: ${{ inputs.java-distribution }}
         java-version: ${{ inputs.java-version }}
+    - name: "Setup Gradle daemon JDK (Windows ARM64)"
+      if: ${{ runner.os == 'Windows' && runner.arch == 'ARM64' }}
+      id: setup-daemon-java
+      uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
+      with:
+        distribution: microsoft
+        java-version: '21.0.1'
+        architecture: aarch64
     - name: "Setup Gradle"
       uses: gradle/actions/setup-gradle@f29f5a9d7b09a7c6b29859002d29d24e1674c884
       env:
-        JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+        JAVA_HOME: ${{ steps.setup-daemon-java.outputs.path || steps.setup-java.outputs.path }}
       with:
         cache-write-only: ${{ inputs.cache-write-only }}
+    - name: "Configure Gradle daemon JDK (Windows ARM64)"
+      if: ${{ runner.os == 'Windows' && runner.arch == 'ARM64' }}
+      shell: bash
+      env:
+        GRADLE_DAEMON_JAVA_HOME: ${{ steps.setup-daemon-java.outputs.path }}
+        GRADLE_TOOLCHAIN_JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+      run: |
+        # Daemon criteria override org.gradle.java.home; remove them only in this CI checkout.
+        rm -- gradle/gradle-daemon-jvm.properties
+        # Java properties treat backslashes as escapes. Keep JBR available for app packaging.
+        daemon_java_home="${GRADLE_DAEMON_JAVA_HOME//\\//}"
+        toolchain_java_home="${GRADLE_TOOLCHAIN_JAVA_HOME//\\//}"
+        printf -v CI_GRADLE_PROPERTIES 'org.gradle.java.home=%s\norg.gradle.java.installations.paths=%s' \
+          "$daemon_java_home" "$toolchain_java_home"
+        export CI_GRADLE_PROPERTIES
+        bash "$GITHUB_ACTION_PATH/setup_gradle_properties.sh"
     - name: "Configure CI Gradle properties"
       if: ${{ inputs.gradle-properties != '' }}
       shell: bash

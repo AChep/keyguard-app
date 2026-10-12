@@ -187,6 +187,28 @@
   },
   {
     "user": {
+      "id": "12491732",
+      "username": "gerrydoro",
+      "fullName": "Gerardo Doro (gerrydoro)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/12491732/medium/c6c02d0ad84db4bae5970a6a251e8053_default.png",
+      "joined": "2026-10-10 12:16:25"
+    },
+    "languages": [
+      {
+        "id": "it",
+        "name": "Italian"
+      }
+    ],
+    "translated": 99,
+    "target": 119,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "12607851",
       "username": "Havokdan",
       "fullName": "Daniel Neves (Havokdan)",
@@ -981,13 +1003,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 7117,
-    "target": 6663,
-    "approved": 7348,
+    "translated": 14545,
+    "target": 13185,
+    "approved": 14747,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 7082
+    "winning": 14518
   },
   {
     "user": {
@@ -1347,7 +1369,7 @@
     "voted": 1,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 233
+    "winning": 202
   },
   {
     "user": {
@@ -2049,8 +2071,8 @@
         "name": "Arabic"
       }
     ],
-    "translated": 881,
-    "target": 917,
+    "translated": 1070,
+    "target": 1087,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -2115,8 +2137,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 14000,
-    "target": 15996,
+    "translated": 14094,
+    "target": 16119,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

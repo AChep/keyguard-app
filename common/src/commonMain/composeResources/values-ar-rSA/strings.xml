@@ -780,16 +780,16 @@
     <string name="error_invalid_card_number">رقم البطاقة غير صالح</string>
     <string name="error_webdav_url_required">عنوان WebDAV مطلوب</string>
     <string name="error_webdav_file_url_required">أدخل عنوان WebDAV الكامل لمورد ملف</string>
-    <string name="error_s3_endpoint_invalid">Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment</string>
-    <string name="error_s3_bucket_required">Bucket is required</string>
-    <string name="error_s3_bucket_invalid">Enter a valid bucket name</string>
-    <string name="error_s3_prefix_invalid">The prefix cannot contain empty, ".", or ".." segments</string>
-    <string name="error_s3_key_required">Enter the object key of a database file</string>
-    <string name="error_s3_key_invalid">The object key cannot contain empty, ".", or ".." segments</string>
+    <string name="error_s3_endpoint_invalid">أدخِل عنوان URL كاملًا لـ HTTP أو HTTPS دون بيانات اعتماد أو استعلام أو جزء</string>
+    <string name="error_s3_bucket_required">الحاوية مطلوبة</string>
+    <string name="error_s3_bucket_invalid">أدخل اسم حاوية صالح</string>
+    <string name="error_s3_prefix_invalid">لا يمكن أن تحتوي البداية على أجزاء فارغة أو "." أو ".."</string>
+    <string name="error_s3_key_required">أدخل مفتاح الكائن لملف قاعدة البيانات</string>
+    <string name="error_s3_key_invalid">لا يمكن أن يحتوي مفتاح الكائن على أجزاء فارغة أو "." أو ".."</string>
     <string name="error_s3_key_extension">يجب أن ينتهي مفتاح الكائن بالامتداد <xliff:g id="extension" example=".kdbx">%1$s</xliff:g></string>
-    <string name="error_s3_access_key_id_required">Access key ID is required</string>
-    <string name="error_s3_access_key_id_invalid">Enter a valid access key ID</string>
-    <string name="error_s3_secret_access_key_required">Secret access key is required</string>
+    <string name="error_s3_access_key_id_required">رَقَم تعريف مفتاح الوصول مطلوب</string>
+    <string name="error_s3_access_key_id_invalid">أدخل معرف مفتاح وصول صالح</string>
+    <string name="error_s3_secret_access_key_required">مطلوب التقييم</string>
     <string name="error_s3_conditional_writes_unsupported">The S3 server ignores conditional writes</string>
     <string name="error_incorrect_password">كلمة مرور غير صحيحة</string>
     <string name="error_not_found">غير موجود</string>
@@ -804,7 +804,7 @@
     <string name="error_failed_use_passkey">فشل في اعتماد الطلب</string>
     <string name="error_failed_use_password">فشلت مصادقة الطلب</string>
     <string name="error_failed_open_uri">فشل في فتح URI</string>
-    <string name="error_failed_open_file">Could not open this file</string>
+    <string name="error_failed_open_file">لا يمكن فتح هذا المِلَفّ</string>
     <string name="error_failed_format_placeholder">فشل تنسيق العنصر النائب</string>
     <string name="error_failed_open_app_for">لا يوجد تطبيق مثبت يمكنه التعامل مع هذا الطلب</string>
     <string name="error_failed_open_link">تعذر فتح هذا الرابط</string>
@@ -941,6 +941,8 @@
     <string name="emailrelay_empty_label">لا يوجد وكلاء البريد الإلكتروني</string>
     <string name="emailrelay_base_env_server_url_label">عنوان URL للخادم</string>
     <string name="emailrelay_base_env_note">حدد عنوان URL الأساسي للتثبيت المستضاف ذاتيًا.</string>
+    <string name="emailrelay_addyio_recipient_id_label">Recipient ID (optional)</string>
+    <string name="emailrelay_addyio_recipient_id_note">ID of a verified addy.io recipient. Leave blank to use the default recipient.</string>
     <string name="emailrelay_add_action">إضافة  البريد الإلكتروني</string>
     <string name="emailrelay_edit_action">تعديل البريد الإلكتروني</string>
     <string name="emailrelay_documentation_title">إرشادات الاستخدام</string>
@@ -1084,7 +1086,7 @@
     <string name="addaccount_custom_env_identity_url_label">عنوان URL لخادم الهوية</string>
     <string name="addaccount_custom_env_notifications_url_label">عنوان خادم الإشعارات</string>
     <!-- Looks up the server published in the DNS records of the email domain and fills it in. -->
-    <string name="addaccount_server_discovery_button">Auto-discover server</string>
+    <string name="addaccount_server_discovery_button">اكتشاف خادم تلقائي</string>
     <string name="addaccount_server_discovery_found">Server set to <xliff:g id="address" example="vault.example.com">%1$s</xliff:g></string>
     <!-- Warns that the discovered server is not part of the email domain. -->
     <string name="addaccount_server_discovery_other_domain_warning">The server is not part of <xliff:g id="domain" example="example.com">%1$s</xliff:g>. Check the address before you sign in.</string>
@@ -1197,7 +1199,7 @@
     <string name="customfilters_delete_many_confirmation_title">هل تريد حذف المرشحات؟</string>
     <string name="customfilters_edit_filter_title">تحرير مرشح مخصص</string>
     <string name="customfilters_add_filter_title">أضف مرشحًا مخصصًا</string>
-    <string name="customfilters_empty_hint">Save a set of filters as a custom filter to reapply it with one tap.</string>
+    <string name="customfilters_empty_hint">احفظ مجموعة من عوامل التصفية كعامل تصفية مخصص لإعادة تطبيقه بنقرة واحدة.</string>
     <string name="filter_header_title">فلتر</string>
     <string name="filter_empty_label">لا توجد مرشحات متاحة</string>
     <string name="filter_clear_action">مسح التصفية</string>
@@ -1206,7 +1208,7 @@
     <string name="filter_collapse_named_action">تصفيف %1$s</string>
     <string name="agent_filters_title">عوامل تصفية وكيل <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="agent_filters_note_save_to_apply">تُطبَّق التغييرات بعد الضغط على حفظ.</string>
-    <string name="ssh_agent_filters_locked_text">Unlock the vault to choose which SSH keys the agent serves.</string>
+    <string name="ssh_agent_filters_locked_text">افتح الخزنة لاختيار مفاتيح SSH التي يقدمها الوكيل.</string>
     <string name="agent_history_header_title">سجل وكيل <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="agent_history_request_list_keys">عرض المفاتيح</string>
     <string name="ssh_agent_history_request_sign_data">توقيع البيانات</string>
@@ -1250,19 +1252,19 @@
     <string name="ssh_agent_setup_android_how_does_it_work_title">كيف يعمل</string>
     <string name="ssh_agent_setup_android_how_does_it_work_1">يتلقى وكيل SSH الطلبات من أدوات SSH، ثم يمرّرها إلى تطبيق Keyguard بدلاً من تنفيذ العملية الحساسة بنفسه.</string>
     <string name="ssh_agent_setup_android_how_does_it_work_2">تتم الاتصالات على خطوتين: أولاً يشير الوكيل إلى التطبيق لبدء جلسة، ثم يتصل الطرفان عبر قناة TCP محلية ويتبادلان رسائل مشفّرة. يعمل وكيل SSH كمرحّل، بينما ينفّذ تطبيق Keyguard العمليات الفعلية.</string>
-    <string name="ssh_agent_setup_client_socket_note">Point your SSH client at this agent:</string>
+    <string name="ssh_agent_setup_client_socket_note">وجّه عميل SSH الخاص بك إلى هذا الوكيل:</string>
     <string name="ssh_agent_setup_environment_variable_title">متغيرات بيئة التطبيق</string>
-    <string name="ssh_agent_setup_ssh_config_title">SSH config</string>
-    <string name="ssh_agent_setup_enable_step_text">Turn on the SSH agent in Settings ▸ Developer. Keyguard then serves your keys on this socket:</string>
+    <string name="ssh_agent_setup_ssh_config_title">تكوين SSH</string>
+    <string name="ssh_agent_setup_enable_step_text">تشغيل وكيل SSH في الإعدادات ▸ المطور:</string>
     <string name="ssh_agent_setup_shell_profile_hint">أضف إلى صفحتك الشخصية(على سبيل المثال~/.zshrc):</string>
-    <string name="ssh_agent_setup_ssh_config_hint">Or point ssh at the agent for every host:</string>
-    <string name="ssh_agent_setup_test_connection_hint">List the served keys, then try an SSH connection:</string>
+    <string name="ssh_agent_setup_ssh_config_hint">أو توجيه SSH إلى الوكيل لكل مضيف:</string>
+    <string name="ssh_agent_setup_test_connection_hint">اذكر المفاتيح المقدمة، ثم جرّب الاتصال ب SSH:</string>
     <string name="agent_request_approval_sign_title">طلب توقيع <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="agent_request_approval_sign_message_known_app">يريد <xliff:g id="who" example="Keyguard">%1$s</xliff:g> استخدام مفتاح <xliff:g id="protocol" example="SSH">%2$s</xliff:g> التالي لتوقيع البيانات:</string>
     <string name="agent_request_approval_sign_message_unknown_app">يريد تطبيق ما استخدام مفتاح <xliff:g id="protocol" example="SSH">%1$s</xliff:g> التالي لتوقيع البيانات:</string>
-    <string name="ssh_agent_approval_sign_text">An app is asking to sign with one of your SSH keys.</string>
-    <string name="ssh_agent_approval_approve_hint">Signs the SSH request with this key</string>
-    <string name="agent_binary_unavailable_text">Agent binary is not bundled in this build</string>
+    <string name="ssh_agent_approval_sign_text">يطلب تطبيق تسجيل الدخول باستخدام أحد مفاتيح SSH الخاصة بك.</string>
+    <string name="ssh_agent_approval_approve_hint">يوقع على طلب SSH بهذا المفتاح</string>
+    <string name="agent_binary_unavailable_text">لم يتم تضمين مِلَفّ الوكيل الثنائي في هذا الإصدار</string>
     <string name="agent_approvals_header_title">ما تم الموافقة عليه</string>
     <string name="agent_keys_header_title">مفاتيح</string>
     <string name="agent_approval_untitled_key">مفتاح دون عنوان</string>
@@ -1493,7 +1495,7 @@
     <string name="generatorhistory_delete_one_confirmation_title">هل تريد حذف العنصر من السجل؟</string>
     <string name="generatorhistory_delete_many_confirmation_title">هل تريد حذف العناصر من السجل؟</string>
     <string name="generatorhistory_empty_label">لا يوجد سجل</string>
-    <string name="generatorhistory_empty_text">Values you generate appear here.</string>
+    <string name="generatorhistory_empty_text">القيم التي تولدها تظهر هنا.</string>
     <string name="passwordhistory_header_title">تاريخ كلمة المرور</string>
     <string name="passwordhistory_clear_history_title">مسح التاريخ</string>
     <string name="passwordhistory_clear_history_confirmation_title">هل تريد مسح سجل كلمة المرور؟</string>
@@ -1561,7 +1563,7 @@
     <string name="changepassword_disclaimer_local_note">لا يتم تخزين كلمة مرور التطبيق مطلقًا على الجهاز ولا يتم إرسالها عبر الشبكة. يتم استخدامه لإنشاء مفتاح سري يستخدم لتشفير البيانات المحلية.</string>
     <string name="changepassword_disclaimer_abuse_note">ما لم تكن تشك في الوصول غير المصرح به أو تكتشف برامج ضارة على الجهاز، فليست هناك حاجة لتغيير كلمة المرور إذا كانت كلمة مرور قوية وفريدة من نوعها.</string>
     <string name="changepassword_password_changed_successfully">تم تغيير كلمة المرور بنجاح</string>
-    <string name="changepassword_master_password_title">Change master password</string>
+    <string name="changepassword_master_password_title">تغيير كلمة المرور الرئيسية</string>
     <string name="exportaccount_header_title">تصدير العناصر</string>
     <string name="exportaccount_password_label">كلمة مرور الأرشيف</string>
     <string name="exportaccount_format_note">تصدير القبو كأرشيف ZIP مشفر.</string>
@@ -1624,11 +1626,11 @@
     <string name="team_follow_me_section">اتبعني</string>
     <string name="settingssearch_header_title">يبحث</string>
     <string name="settingssearch_header_subtitle">إعدادات</string>
-    <string name="settingssearch_startup_keywords">startup automatically start login</string>
+    <string name="settingssearch_startup_keywords">بَدْء التشغيل تلقائياً بدء تسجيل الدخول</string>
     <string name="settingssearch_biometric_keywords">biometrics fingerprint face recognition Touch ID Face ID</string>
     <string name="settingssearch_lock_keywords">timeout automatic lock inactivity</string>
     <string name="settingssearch_clipboard_keywords">copy paste clipboard clear erase</string>
-    <string name="settingssearch_language_keywords">language translation locale</string>
+    <string name="settingssearch_language_keywords">لغة التَّرْجَمَة المحلية</string>
     <string name="settingssearch_theme_keywords">theme appearance light dark system</string>
     <string name="settingssearch_navigation_keywords">tabs sidebar navigation order visibility</string>
     <string name="settingssearch_autofill_keywords">autofill passwords passkeys fill</string>
@@ -1642,7 +1644,7 @@
     <string name="settingssearch_backup_location_keywords">destination folder server WebDAV S3 bucket</string>
     <string name="settingssearch_backup_password_keywords">تم تكوين كلمة مرور مشفرة</string>
     <string name="settingssearch_build_ref_keywords">revision commit source build reference</string>
-    <string name="settingssearch_license_keywords">license licence entitlement token</string>
+    <string name="settingssearch_license_keywords">الرمز المميز لاستحقاق ترخيص الترخيص</string>
     <string name="settingssearch_search_placeholder">إعدادات البحث</string>
     <string name="settings_appearance_header_title">مظهر</string>
     <string name="settings_autofill_header_title">الملء التلقائي</string>
@@ -1661,7 +1663,7 @@
     <string name="settings_navigation_header_title">شريط التنقل</string>
     <string name="settings_open_source_licenses_header_title">تراخيص مفتوحة المصدر</string>
     <string name="settings_no_selection_title">لا توجد إعدادات محددة.</string>
-    <string name="settings_no_selection_text">Select a setting to configure it.</string>
+    <string name="settings_no_selection_text">حدد الإعداد لتكوينه.</string>
     <string name="settings_general_header_title">عام</string>
     <string name="settings_startup_header_title">بَدْء التشغيل</string>
     <string name="settings_menu_bar_header_title">شريط القوائم</string>
@@ -2380,6 +2382,9 @@
     <string name="fido2_touch_prompt">Connect your security key and touch it when it flashes.</string>
     <string name="fido2_pin_prompt">Enter the PIN for your security key.</string>
     <string name="fido2_pin_label">Security key PIN</string>
+    <string name="fido2_authenticate_action">Use security key</string>
+    <string name="fido2_browser_action">Use browser</string>
+    <string name="fido2_prompt_title">Security key</string>
     <string name="fido2_error_title">Could not use the security key</string>
     <string name="fido2_error_unsupported">This key or platform does not support FIDO2 PRF with user verification.</string>
     <string name="fido2_error_pin_not_set">Set a FIDO2 PIN using the key manufacturer’s app, then try again.</string>
@@ -2387,4 +2392,8 @@
     <string name="fido2_error_invalid_pin">Incorrect PIN. Check the PIN before trying again; repeated failures can block the key.</string>
     <string name="fido2_error_timeout">The security key did not respond in time. Reconnect it and try again.</string>
     <string name="fido2_error_retry">Try your enrolled security key again, or unlock with your app password.</string>
+    <string name="storage_error_title">Storage unavailable</string>
+    <string name="storage_missing_configuration">This build is missing its shared storage configuration. Install a correctly configured build to continue.</string>
+    <string name="storage_unavailable">Keyguard cannot access its storage container. Try again. If the problem persists, check the app’s signing and App Group configuration.</string>
+    <string name="storage_unwritable">Keyguard cannot write to its storage container. Check available space and storage access, then try again.</string>
 </resources>

@@ -175,7 +175,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "QR kodlarını taramak için kullanılır"
+            "value": "QR kodları taramak için kullanılır"
           }
         },
         "uk": {
@@ -378,7 +378,7 @@
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kasanın kilidini açmak için biyometrik kimlik doğrulama kullanın."
+            "value": "Kasanın kilidini açmak için parmak izinizi veya yüzünüzü doğrulayın."
           }
         },
         "uk": {

@@ -14,6 +14,9 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.concurrent.thread
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -143,21 +146,47 @@ internal fun Socket.awaitDisconnect() {
     }
 }
 
+@Suppress("TooGenericExceptionCaught")
 internal fun Socket.writeUntilDisconnected() {
-    val chunk = ByteArray(8192) { 'x'.code.toByte() }
-    val writeFailure = try {
-        repeat(5000) { getOutputStream().write(chunk) }
-        getOutputStream().flush()
-        null
-    } catch (e: IOException) {
-        e
+    val bytesWritten = AtomicLong()
+    val writeFailure = AtomicReference<Throwable?>()
+    val writer = thread(name = "s3-http-body-writer", isDaemon = true) {
+        try {
+            val chunk = ByteArray(8192) { 'x'.code.toByte() }
+            repeat(5000) {
+                getOutputStream().write(chunk)
+                bytesWritten.addAndGet(chunk.size.toLong())
+            }
+            getOutputStream().flush()
+        } catch (e: Throwable) {
+            writeFailure.set(e)
+        }
     }
-    // A failed write alone does not establish that the peer disconnected.
-    // Confirm EOF/reset separately, and let read timeouts fail the fixture.
-    try {
+    val disconnectFailure = try {
+        // Observe the peer independently: SO_TIMEOUT only bounds reads, so a
+        // blocked writer must not prevent us from detecting EOF/reset.
+        // A failed write alone still does not acknowledge a disconnect.
         awaitDisconnect()
-    } catch (e: IOException) {
-        writeFailure?.let(e::addSuppressed)
-        throw e
+        null
+    } catch (e: Throwable) {
+        e.addSuppressed(AssertionError(
+            "bytesWritten=${bytesWritten.get()}, writerState=${writer.state}\n" +
+                writer.stackTrace.joinToString("\n"),
+        ))
+        e
+    } finally {
+        // Only close locally after observing the peer, or after observation
+        // has failed. This also unblocks the writer before joining it.
+        close()
+        writer.join(5000)
     }
+    assertTrue(!writer.isAlive, "HTTP body writer did not stop")
+    writeFailure.get()?.let { failure ->
+        if (disconnectFailure != null) {
+            disconnectFailure.addSuppressed(failure)
+        } else if (failure !is IOException) {
+            throw AssertionError("HTTP body writer failed", failure)
+        }
+    }
+    disconnectFailure?.let { throw it }
 }

@@ -11,10 +11,15 @@ import java.io.OutputStream
 import java.net.Socket
 import java.net.SocketTimeoutException
 import java.net.URI
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
 class S3HttpFixtureTest {
@@ -35,7 +40,39 @@ class S3HttpFixtureTest {
         val error = assertFailsWith<SocketTimeoutException> { socket.writeUntilDisconnected() }
 
         assertSame(readTimeout, error)
-        assertEquals(listOf(writeFailure), error.suppressedExceptions)
+        assertTrue(writeFailure in error.suppressedExceptions)
+    }
+
+    @Test
+    fun `EOF is observed while the response writer is blocked`() {
+        val writing = CountDownLatch(1)
+        val closed = CountDownLatch(1)
+        val writerTimedOut = AtomicBoolean()
+        val socket = object : Socket() {
+            override fun getOutputStream() = object : OutputStream() {
+                override fun write(value: Int) {
+                    writing.countDown()
+                    writerTimedOut.set(!closed.await(5, TimeUnit.SECONDS))
+                    throw IOException("Writer released")
+                }
+            }
+
+            override fun getInputStream() = object : InputStream() {
+                override fun read(): Int {
+                    assertTrue(writing.await(5, TimeUnit.SECONDS), "Writer did not start")
+                    return -1
+                }
+            }
+
+            override fun close() {
+                closed.countDown()
+            }
+        }
+
+        socket.writeUntilDisconnected()
+
+        assertFalse(writerTimedOut.get(), "Writer blocked the EOF observer")
+        assertEquals(0L, closed.count, "Writer was not released after EOF")
     }
 
     @Test

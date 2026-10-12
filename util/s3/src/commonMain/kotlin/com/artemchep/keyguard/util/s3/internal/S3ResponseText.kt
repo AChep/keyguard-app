@@ -3,6 +3,7 @@ package com.artemchep.keyguard.util.s3.internal
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.utils.io.readAvailable
+import kotlinx.coroutines.CancellationException
 import kotlinx.io.Buffer
 import kotlinx.io.EOFException
 import kotlinx.io.readCodePointValue
@@ -38,7 +39,12 @@ internal suspend fun HttpResponse.readS3ResponseText(maxChars: Int): String {
         }
         return text.toString().take(maxChars)
     } finally {
-        channel.cancel(null)
+        // bodyAsChannel() may forward the raw body through another channel.
+        // A clean cancellation does not propagate through that forwarder, so
+        // abandoning an unfinished response needs an explicit cause.
+        if (!channel.isClosedForRead) {
+            channel.cancel(CancellationException("Stopped reading bounded S3 response"))
+        }
     }
 }
 

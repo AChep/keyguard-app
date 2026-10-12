@@ -23,9 +23,12 @@ on:
       - 'gradlew.bat'
       - 'integration/s3E2eTest/**'
       - 'settings.gradle'
+      - 'thirdParty/rust/**'
       - 'util/crypto/**'
+      - 'util/ffi/**'
       - 'util/foundation/**'
       - 'util/s3/**'
+      - 'util/xml/**'
   pull_request:
     branches:
       - master
@@ -41,9 +44,12 @@ on:
       - 'gradlew.bat'
       - 'integration/s3E2eTest/**'
       - 'settings.gradle'
+      - 'thirdParty/rust/**'
       - 'util/crypto/**'
+      - 'util/ffi/**'
       - 'util/foundation/**'
       - 'util/s3/**'
+      - 'util/xml/**'
 
 permissions:
   contents: read

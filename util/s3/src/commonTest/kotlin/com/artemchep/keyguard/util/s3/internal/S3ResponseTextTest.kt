@@ -13,27 +13,26 @@ import kotlinx.coroutines.withTimeout
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
 class S3ResponseTextTest {
     @Test
     fun `small text limits cancel unfinished responses before leaving the response scope`() = runTest {
-        for (prefix in listOf("", "<ListBucketResult>")) {
-            val text = prefix + "x".repeat(64)
+        for (defaultTransformers in listOf(true, false)) {
+            val text = "<ListBucketResult>" + "x".repeat(64)
             val channel = ByteChannel(autoFlush = true)
             channel.writeFully(text.encodeToByteArray())
             val http = HttpClient(MockEngine { respond(channel) }) {
-                // Observe the reader's channel directly, without Ktor's
-                // asynchronous forwarding channel for bodyAsChannel().
-                useDefaultTransformers = false
+                useDefaultTransformers = defaultTransformers
             }
             try {
                 http.prepareGet("https://example.com").execute { response ->
                     assertEquals(text.take(32), response.readS3ResponseText(32))
                     // Ktor also cancels the body when execute returns. Check that
                     // the bounded reader itself has already released it.
-                    assertTrue(channel.isClosedForRead)
+                    assertTrue(channel.isClosedForRead, "defaultTransformers=$defaultTransformers")
                 }
             } finally {
                 channel.cancel(null)
@@ -44,19 +43,55 @@ class S3ResponseTextTest {
 
     @Test
     fun `caller timeout propagates and cancels an unfinished response`() = runTest {
-        val channel = ByteChannel(autoFlush = true)
-        val http = HttpClient(MockEngine { respond(channel) }) {
-            useDefaultTransformers = false
+        for (defaultTransformers in listOf(true, false)) {
+            val channel = ByteChannel(autoFlush = true)
+            val http = HttpClient(MockEngine { respond(channel) }) {
+                useDefaultTransformers = defaultTransformers
+            }
+            try {
+                http.prepareGet("https://example.com").execute { response ->
+                    assertFailsWith<TimeoutCancellationException> {
+                        withTimeout(1.seconds) { response.readS3ResponseText(32) }
+                    }
+                    assertTrue(channel.isClosedForRead, "defaultTransformers=$defaultTransformers")
+                }
+            } finally {
+                channel.cancel(null)
+                http.close()
+            }
         }
+    }
+
+    @Test
+    fun `invalid UTF8 cancels an unfinished transformed response`() = runTest {
+        val channel = ByteChannel(autoFlush = true)
+        channel.writeFully(byteArrayOf(0xFF.toByte(), 1, 2, 3))
+        val http = HttpClient(MockEngine { respond(channel) })
         try {
             http.prepareGet("https://example.com").execute { response ->
-                assertFailsWith<TimeoutCancellationException> {
-                    withTimeout(1.seconds) { response.readS3ResponseText(32) }
+                assertFailsWith<IllegalArgumentException> {
+                    response.readS3ResponseText(32)
                 }
                 assertTrue(channel.isClosedForRead)
             }
         } finally {
             channel.cancel(null)
+            http.close()
+        }
+    }
+
+    @Test
+    fun `complete transformed responses finish without a cancellation cause`() = runTest {
+        val channel = ByteChannel(autoFlush = true)
+        channel.writeFully("finite".encodeToByteArray())
+        channel.close()
+        val http = HttpClient(MockEngine { respond(channel) })
+        try {
+            http.prepareGet("https://example.com").execute { response ->
+                assertEquals("finite", response.readS3ResponseText(32))
+                assertNull(channel.closedCause)
+            }
+        } finally {
             http.close()
         }
     }

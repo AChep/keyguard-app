@@ -170,9 +170,11 @@ class KtorS3ClientHttpE2eTest {
                     }.use { server ->
                         withClient(engine, server) { client ->
                             if (status == 200) {
-                                assertFailsWith<S3Exception.Protocol> { client.listObjects() }
+                                val error = assertFailsWith<S3Exception.Protocol> { client.listObjects() }
+                                assertEquals("Listing response is too large.", error.cause?.message)
                             } else {
-                                assertFailsWith<S3Exception.Transient> { client.getObject("key") }
+                                val error = assertFailsWith<S3Exception.Transient> { client.getObject("key") }
+                                assertEquals(status, error.statusCode)
                             }
                             phase = "observing EOF or reset"
                             server.awaitCompletion(disconnected)

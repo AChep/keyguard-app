@@ -36,10 +36,15 @@ cp "$repo_dir/desktopApp/flatpak/$app_id.yml" "$manifest"
 mkdir -p "$work_dir/app-$arch"
 tar -xzf "$tarball" -C "$work_dir/app-$arch" --strip-components=1
 runtime_version=$(python3 "$repo_dir/.github/get_flatpak_runtime_version.py" "$manifest")
+builder_ref="org.flatpak.Builder/$arch/stable"
 flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+# Ubuntu 22.04's builder expects appstream-compose, which SDK 25.08 no longer ships.
 flatpak install --user --assumeyes --noninteractive flathub \
-  "org.freedesktop.Platform/$arch/$runtime_version" "org.freedesktop.Sdk/$arch/$runtime_version"
-flatpak-builder --user --force-clean --arch="$arch" \
+  "$builder_ref" "org.freedesktop.Platform/$arch/$runtime_version" "org.freedesktop.Sdk/$arch/$runtime_version"
+flatpak info --user --show-commit "$builder_ref"
+dbus-run-session -- flatpak run --user "$builder_ref" --version
+# The sandboxed builder needs a session bus to invoke Flatpak on the host.
+dbus-run-session -- flatpak run --user "$builder_ref" --user --force-clean --arch="$arch" \
   --state-dir="$work_dir/state" --repo="$work_dir/repo" "$work_dir/target" "$manifest"
 
 filename="Keyguard-$version-$arch.flatpak"

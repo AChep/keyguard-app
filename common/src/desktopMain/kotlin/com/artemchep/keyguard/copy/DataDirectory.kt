@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.util.isAotTrainingRun
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.util.io.atomic.AtomicDirectoryPermissions
 import com.artemchep.keyguard.util.io.atomic.AtomicFilePermissions
@@ -18,6 +19,7 @@ import com.artemchep.keyguard.util.io.atomic.SyncLevel
 import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
 import com.artemchep.keyguard.util.io.atomic.writeFileAtomicallySuspending
 import com.artemchep.keyguard.util.io.toFileUriString
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -59,6 +61,16 @@ class DataDirectory : DirsService {
                 else -> AppDirsFactory.getInstance()
             }
         }
+
+        // The AppCDS training run starts the packaged app at build time. It
+        // must not touch the user's profile, or activate a running instance.
+        private val aotTrainingRunDirectory: String? by lazy {
+            if (isAotTrainingRun) {
+                Files.createTempDirectory("keyguard-aot").toString()
+            } else {
+                null
+            }
+        }
     }
 
     fun data(): IO<String> = ioEffect(Dispatchers.IO) {
@@ -70,7 +82,8 @@ class DataDirectory : DirsService {
     /**
      * The platform directory that contains [dataBlocking].
      */
-    internal fun dataPlatformBlocking(): String = appDirs.getUserDataDir(null, null, null)
+    internal fun dataPlatformBlocking(): String = aotTrainingRunDirectory
+        ?: appDirs.getUserDataDir(null, null, null)
 
     fun config(): IO<String> = ioEffect(Dispatchers.IO) {
         appDirs.getUserConfigDir(APP_NAME, null, APP_AUTHOR, true)
@@ -78,7 +91,9 @@ class DataDirectory : DirsService {
 
     fun cache(): IO<String> = ioEffect(Dispatchers.IO) { cacheBlocking() }
 
-    fun cacheBlocking(): String = appDirs.getUserCacheDir(APP_NAME, null, APP_AUTHOR)
+    fun cacheBlocking(): String = aotTrainingRunDirectory
+        ?.let { Path.of(it, "cache").toString() }
+        ?: appDirs.getUserCacheDir(APP_NAME, null, APP_AUTHOR)
 
     fun downloadsBlocking(): String = appDirectory(downloadsPlatformBlocking())
 

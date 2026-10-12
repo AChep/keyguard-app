@@ -10,6 +10,7 @@ import org.gradle.api.tasks.Sync
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.jvm.toolchain.JvmVendorSpec
+import org.jetbrains.compose.desktop.application.dsl.AotMode
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 import org.jetbrains.compose.desktop.application.tasks.AbstractNotarizationTask
@@ -130,6 +131,8 @@ val prepareBundledAppResources = tasks.register<Sync>("prepareBundledAppResource
     into(bundledAppResourcesDir)
 }
 
+val macCertIdentity = findProperty("cert_identity") as String?
+
 // Read lazily, so the configuration cache never stores the credentials.
 val notarizationAppleId = providers.gradleProperty("notarization_apple_id")
     .orElse("stub_apple_id")
@@ -189,6 +192,10 @@ compose.desktop {
                 "-XX:-CreateCoredumpOnCrash",
                 "-XX:-HeapDumpOnOutOfMemoryError",
             )
+            // The AppCDS archive records the build machine's paths. The
+            // installed app still uses it, but would print a warning for
+            // each jar on every launch.
+            jvmArgs("-Xlog:cds*=off")
 
             includeAllModules = true
             val formats = listOfNotNull(
@@ -209,7 +216,7 @@ compose.desktop {
             macOS {
                 bundleID = appId
                 signing {
-                    val certIdentity = findProperty("cert_identity") as String?
+                    val certIdentity = macCertIdentity
                     if (certIdentity != null) {
                         println("Signing identity ${certIdentity.take(2)}****")
                         sign.set(true)
@@ -239,6 +246,14 @@ compose.desktop {
                         project.file("proguard-rules.pro"),
                     )
                 }
+                // Archive the classes loaded at startup, so the app starts
+                // faster. On Windows the JetBrains Runtime 21 loses most of
+                // the gain when the app is installed elsewhere, see JBR-9098.
+                if (!hostPlatform.isWindows) {
+                    aot {
+                        mode = AotMode.AppCdsPrebuild
+                    }
+                }
             }
         }
     }
@@ -260,6 +275,34 @@ tasks.withType<AbstractNotarizationTask>().configureEach {
         println("Notarization Apple Id ${appleId.get().take(2)}****")
         println("Notarization Password ${password.get().take(2)}****")
         println("Notarization ASC Provider ${ascProvider.get().take(2)}****")
+    }
+}
+
+// The AppCDS training run writes app.jsa into the app bundle after Compose
+// has signed it, and jpackage packs a signed bundle as is. Sign it again.
+if (hostPlatform.isMacOs && macCertIdentity != null) {
+    // Task actions capture locals only: the configuration cache cannot store the script.
+    val identity = macCertIdentity
+    val entitlementsPath = project.file("default.entitlements").absolutePath
+    val appBundle = layout.buildDirectory.dir("compose/binaries/main-release/app/Keyguard.app")
+    tasks.named { it == "createReleaseAotArchive" }.configureEach {
+        doLast {
+            val process = ProcessBuilder(
+                "codesign",
+                "--force",
+                "--timestamp",
+                "--options", "runtime",
+                "--entitlements", entitlementsPath,
+                "--sign", identity,
+                appBundle.get().asFile.absolutePath,
+            )
+                .redirectErrorStream(true)
+                .start()
+            val output = process.inputStream.bufferedReader().readText()
+            check(process.waitFor() == 0) {
+                "Could not sign the app bundle:\n$output"
+            }
+        }
     }
 }
 

@@ -115,6 +115,25 @@ class BouncyCastlePolicyTest(unittest.TestCase):
 
         self.assertEqual([], scan_artifact(package))
 
+    def test_cds_archive_allows_only_okhttp_manifest_imports(self) -> None:
+        package = self.repository / "package"
+        package.mkdir()
+        manifest = (
+            b"Import-Package: org.bouncycastle.jsse;resolution:=opti\r\n onal,"
+            b"org.bouncycastle.jsse.provider;resolution:=optional"
+        )
+        (package / "app.jsa").write_bytes(b"\0" + manifest + b"\0")
+
+        self.assertEqual([], scan_artifact(package))
+
+        (package / "app.jsa").write_bytes(
+            b"\0" + manifest + b"\0org/bouncycastle/jce/provider/BouncyCastleProvider\0",
+        )
+
+        findings = scan_artifact(package)
+
+        self.assertEqual(["app.jsa (org/bouncycastle)"], findings)
+
     def test_okhttp_exception_still_rejects_real_shaded_and_registered_bc(self) -> None:
         package = self.repository / "okhttp-jvm-5.5.0-deadbeef.jar"
         with zipfile.ZipFile(package, "w", compression=zipfile.ZIP_DEFLATED) as archive:

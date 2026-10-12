@@ -134,6 +134,7 @@ import com.artemchep.keyguard.platform.lifecycle.LaunchLifecycleProviderEffect
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.platform.lifecycle.onState
+import com.artemchep.keyguard.platform.util.isAotTrainingRun
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.LocalComposeWindow
@@ -149,12 +150,14 @@ import dev.nucleusframework.composenativetray.tray.api.Tray
 import java.util.Locale
 import kotlin.system.exitProcess
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
@@ -362,6 +365,14 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance) {
 
     val windowStateManager by lazy { koin.get<WindowStateManager>() }
     application(exitProcessOnExit = true) {
+        if (isAotTrainingRun) {
+            LaunchedEffect(Unit) {
+                // Let the first screen compose, so the
+                // AppCDS archive includes its classes.
+                delay(10.seconds)
+                exitApplication()
+            }
+        }
         KoinIsolatedContext(koinApplication) {
             val isWindowOpenState = remember {
                 mutableStateOf(true)

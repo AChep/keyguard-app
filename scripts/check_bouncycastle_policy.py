@@ -50,6 +50,13 @@ OKHTTP_OPTIONAL_BC_ENTRIES = frozenset(
         "okhttp3/internal/platform/BouncyCastlePlatform.class",
     }
 )
+# A CDS archive (app.jsa) keeps a copy of each jar's manifest. OkHttp's
+# OSGi manifest imports the BC JSSE packages as optional, which the OkHttp
+# jar itself is allowed to carry.
+CDS_ARCHIVE_ALLOWED_BC_STRINGS = (
+    b"org.bouncycastle.jsse.provider;resolution:=",
+    b"org.bouncycastle.jsse;resolution:=",
+)
 OKHTTP_ANDROID_BC_REFERENCE_OWNERS = frozenset(
     {
         b"Lokhttp3/internal/platform/android/BouncyCastleSocketAdapter;",
@@ -124,8 +131,27 @@ def _artifact_content_marker(
     # from identifying which component owns an optional provider reference.
     if zipfile.is_zipfile(path):
         return None
+    if path.suffix == ".jsa":
+        return _cds_archive_content_marker(path, content_markers)
     with path.open("rb") as stream:
         return _stream_content_marker(stream, content_markers)
+
+
+def _cds_archive_content_marker(
+    path: Path,
+    content_markers: Sequence[bytes],
+) -> bytes | None:
+    """Scan a CDS archive, allowing the copied OkHttp manifest imports."""
+
+    # Read whole, so an allowed string is never split between two chunks.
+    # The archives are tens of megabytes.
+    data = path.read_bytes().lower()
+    for allowed in CDS_ARCHIVE_ALLOWED_BC_STRINGS:
+        data = data.replace(allowed, b"")
+    return next(
+        (item for item in content_markers if item.lower() in data),
+        None,
+    )
 
 
 def _stream_content_marker(

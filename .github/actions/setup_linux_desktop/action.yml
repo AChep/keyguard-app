@@ -9,3 +9,7 @@ runs:
         sudo apt-get update
         sudo apt-get install -y libx11-dev
         dpkg-query --show --showformat='${Version}\n' libx11-dev
+    # Release packaging runs the app once to record its AppCDS archive.
+    - name: "Install virtual display"
+      shell: bash
+      run: sudo apt-get install -y xvfb xauth

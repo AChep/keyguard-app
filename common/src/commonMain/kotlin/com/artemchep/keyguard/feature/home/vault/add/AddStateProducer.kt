@@ -721,7 +721,13 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
 
                 DSecret.Type.Card -> flowOf(cardHolder.items)
                 DSecret.Type.Identity -> flowOf(identityHolder.items)
-                DSecret.Type.SecureNote -> flowOf(noteHolder.items)
+                DSecret.Type.SecureNote -> accountTypeFlow.map { accountType ->
+                    if (accountType == AccountType.KEEPASS) {
+                        noteHolder.items + loginHolder.username + loginHolder.password
+                    } else {
+                        noteHolder.items
+                    }
+                }
 
                 DSecret.Type.GpgKey -> flowOf(noteHolder.items + gpgKeyHolder.items)
 
@@ -1111,13 +1117,24 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
     }
         .flatMapLatest { populatorFlows ->
             val typePopulator =
-                typeFlow
-                    .map { type ->
-                        val f = fun(r: CreateRequest): CreateRequest {
-                            return r.copy(type = type)
-                        }
-                        f
+                combine(typeFlow, accountTypeFlow) { type, accountType ->
+                    val f = fun(r: CreateRequest): CreateRequest {
+                        val promoteKeePassNote = accountType == AccountType.KEEPASS &&
+                            type == DSecret.Type.SecureNote &&
+                            (
+                                !r.login.username.isNullOrEmpty() ||
+                                    !r.login.password.isNullOrEmpty()
+                                )
+                        return r.copy(
+                            type = if (promoteKeePassNote) {
+                                DSecret.Type.Login
+                            } else {
+                                type
+                            },
+                        )
                     }
+                    f
+                }
             val favouritePopulator =
                 favouriteSink
                     .map { favourite ->

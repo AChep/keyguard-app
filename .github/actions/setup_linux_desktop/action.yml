@@ -10,6 +10,7 @@ runs:
         sudo apt-get install -y libx11-dev
         dpkg-query --show --showformat='${Version}\n' libx11-dev
     # Release packaging runs the app once to record its AppCDS archive.
-    - name: "Install virtual display"
+    # Skiko also requires libEGL.so.1, which Xvfb does not provide.
+    - name: "Install desktop runtime dependencies"
       shell: bash
-      run: sudo apt-get install -y xvfb xauth
+      run: sudo apt-get install -y xvfb xauth libegl1

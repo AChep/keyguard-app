@@ -3,7 +3,7 @@ version = 1
 [[exceptions]]
 advisory = "RUSTSEC-2023-0071"
 owner = "Keyguard"
-expires = "2026-10-13"
+expires = "2027-01-01"
 tracking-issue = "https://github.com/RustCrypto/RSA/issues/626"
 scope = "OpenPGP read/write, mutation, and agent operations through the AWS-LC private-RSA boundary"
 rationale = "Private RSA exponentiation uses AWS-LC; OpenPGP supplies its existing factors without Keyguard factor recovery. rPGP/RustCrypto still parse and prepare secret integers, including variable-time arithmetic and incompletely erased intermediates; this exception does not establish constant-time preparation or complete memory erasure."

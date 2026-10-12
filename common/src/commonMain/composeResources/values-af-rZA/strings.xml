@@ -941,6 +941,8 @@
     <string name="emailrelay_empty_label">Geen e-posaangeërs nie</string>
     <string name="emailrelay_base_env_server_url_label">Bediener URL</string>
     <string name="emailrelay_base_env_note">Spesifiseer die basis URL van jou selfbeheerde stelsel.</string>
+    <string name="emailrelay_addyio_recipient_id_label">Recipient ID (optional)</string>
+    <string name="emailrelay_addyio_recipient_id_note">ID of a verified addy.io recipient. Leave blank to use the default recipient.</string>
     <string name="emailrelay_add_action">Add email forwarder</string>
     <string name="emailrelay_edit_action">Edit email forwarder</string>
     <string name="emailrelay_documentation_title">Documentation</string>
@@ -2380,6 +2382,9 @@
     <string name="fido2_touch_prompt">Connect your security key and touch it when it flashes.</string>
     <string name="fido2_pin_prompt">Enter the PIN for your security key.</string>
     <string name="fido2_pin_label">Security key PIN</string>
+    <string name="fido2_authenticate_action">Use security key</string>
+    <string name="fido2_browser_action">Use browser</string>
+    <string name="fido2_prompt_title">Security key</string>
     <string name="fido2_error_title">Could not use the security key</string>
     <string name="fido2_error_unsupported">This key or platform does not support FIDO2 PRF with user verification.</string>
     <string name="fido2_error_pin_not_set">Set a FIDO2 PIN using the key manufacturer’s app, then try again.</string>
@@ -2387,4 +2392,8 @@
     <string name="fido2_error_invalid_pin">Incorrect PIN. Check the PIN before trying again; repeated failures can block the key.</string>
     <string name="fido2_error_timeout">The security key did not respond in time. Reconnect it and try again.</string>
     <string name="fido2_error_retry">Try your enrolled security key again, or unlock with your app password.</string>
+    <string name="storage_error_title">Storage unavailable</string>
+    <string name="storage_missing_configuration">This build is missing its shared storage configuration. Install a correctly configured build to continue.</string>
+    <string name="storage_unavailable">Keyguard cannot access its storage container. Try again. If the problem persists, check the app’s signing and App Group configuration.</string>
+    <string name="storage_unwritable">Keyguard cannot write to its storage container. Check available space and storage access, then try again.</string>
 </resources>

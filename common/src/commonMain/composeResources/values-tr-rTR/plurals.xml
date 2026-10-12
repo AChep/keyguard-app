@@ -5,12 +5,12 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hesap</item>
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> olay</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> olay</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> sızıntı kaydı</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> sızıntı kaydı</item>
     </plurals>
     <plurals name="reused_password_items_count_plural">
-        <item quantity="one">Used by <xliff:g id="number" example="1">%1$d</xliff:g> item</item>
-        <item quantity="other">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> ögede kullanılıyor</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> ögede kullanılıyor</item>
     </plurals>
     <plurals name="word_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> kelime</item>
@@ -53,8 +53,8 @@
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> geçiş anahtarı</item>
     </plurals>
     <plurals name="skipped_otp_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> tek kullanımlık parola</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> tek kullanımlık parola</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> tek kullanımlık şifre</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> tek kullanımlık şifre</item>
     </plurals>
     <plurals name="skipped_ssh_keys_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH anahtarı</item>
@@ -65,12 +65,12 @@
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> GPG anahtarı</item>
     </plurals>
     <plurals name="skipped_attachments_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> ek</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> ek</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> dosya eki</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> dosya eki</item>
     </plurals>
     <plurals name="skipped_password_history_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> kaydedilmiş eski parola</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> kaydedilmiş eski parola</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> eski parola kaydı</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> eski parola kaydı</item>
     </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> arşivlenmiş öge</item>
@@ -85,24 +85,24 @@
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> hesap</item>
     </plurals>
     <plurals name="credential_exchange_import_review_accounts_note">
-        <item quantity="one">Alınan veriler <xliff:g id="number" example="1">%1$d</xliff:g> hesap içeriyor; bu hesabın tüm ögeleri bu hesaba içe aktarılır.</item>
-        <item quantity="other">Alınan veriler <xliff:g id="number">%1$d</xliff:g> hesap içeriyor; bu hesapların tüm ögeleri bu hesaba içe aktarılır.</item>
+        <item quantity="one">Gelen veride <xliff:g id="number" example="1">%1$d</xliff:g> hesap bulundu; içindeki tüm kayıtlar bu hesaba aktarılacak.</item>
+        <item quantity="other">Gelen veride <xliff:g id="number">%1$d</xliff:g> hesap bulundu; bu hesaplardaki tüm kayıtlar bu hesaba aktarılacak.</item>
     </plurals>
     <plurals name="credential_exchange_import_review_folders_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> klasör</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> klasör</item>
     </plurals>
     <plurals name="credential_exchange_import_review_logins_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> oturum açma bilgisi</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> oturum açma bilgisi</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> giriş bilgisi</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> giriş bilgisi</item>
     </plurals>
     <plurals name="credential_exchange_import_review_passkeys_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> geçiş anahtarı</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> geçiş anahtarı</item>
     </plurals>
     <plurals name="credential_exchange_import_review_otp_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> tek kullanımlık parola</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> tek kullanımlık parola</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> tek kullanımlık şifre</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> tek kullanımlık şifre</item>
     </plurals>
     <plurals name="credential_exchange_import_review_cards_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> kart</item>
@@ -125,8 +125,8 @@
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> desteklenmeyen kimlik bilgisi</item>
     </plurals>
     <plurals name="skipped_duplicate_credentials_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> kopya kimlik bilgisi</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> kopya kimlik bilgisi</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> yinelenen kimlik bilgisi</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> yinelenen kimlik bilgisi</item>
     </plurals>
     <plurals name="skipped_folders_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> klasör</item>
@@ -137,32 +137,32 @@
         <item quantity="other">ve <xliff:g id="number">%1$d</xliff:g> tane daha</item>
     </plurals>
     <plurals name="credential_exchange_import_success_text">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> öge hesaba eklendi.</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> öge hesaba eklendi.</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> öge hesaba başarıyla eklendi.</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> öge hesaba başarıyla eklendi.</item>
     </plurals>
     <plurals name="years_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> yıl</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> yıl</item>
     </plurals>
     <plurals name="gpg_keyserver_upload_verify_requested_plural">
-        <item quantity="one">Verification e-mail requested for <xliff:g id="number" example="1">%1$s</xliff:g> address</item>
-        <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> adres için doğrulama e-postası istendi</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> adres için doğrulama e-postası istendi</item>
     </plurals>
     <!-- Automatic backups -->
     <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
-        <item quantity="one">Keep %1$d snapshot</item>
-        <item quantity="other">Keep %1$d snapshots</item>
+        <item quantity="one">%1$d anlık görüntüyü sakla</item>
+        <item quantity="other">%1$d anlık görüntüyü sakla</item>
     </plurals>
     <plurals name="pref_item_hibp_api_token_error_plural">
-        <item quantity="one"><xliff:g id="length" example="1">%1$d</xliff:g> karakter uzunluğunda onaltılık bir HIBP API anahtarı girin</item>
-        <item quantity="other"><xliff:g id="length" example="32">%1$d</xliff:g> karakter uzunluğunda onaltılık bir HIBP API anahtarı girin</item>
+        <item quantity="one"><xliff:g id="length" example="1">%1$d</xliff:g> karakter uzunluğunda onaltılık (hex) HIBP API anahtarı girin</item>
+        <item quantity="other"><xliff:g id="length" example="32">%1$d</xliff:g> karakter uzunluğunda onaltılık (hex) HIBP API anahtarı girin</item>
     </plurals>
     <plurals name="ciphers_action_trash_confirmation_text_plural">
-        <item quantity="one">Çöp Kutusunda <xliff:g id="days" example="1">%1$d</xliff:g> günden uzun süredir bulunan ögeler otomatik olarak silinir.</item>
-        <item quantity="other">Çöp Kutusunda <xliff:g id="days" example="30">%1$d</xliff:g> günden uzun süredir bulunan ögeler otomatik olarak silinir.</item>
+        <item quantity="one">Çöp Kutusunda <xliff:g id="days" example="1">%1$d</xliff:g> günden uzun süre kalan ögeler otomatik olarak silinecektir.</item>
+        <item quantity="other">Çöp Kutusunda <xliff:g id="days" example="30">%1$d</xliff:g> günden uzun süre kalan ögeler otomatik olarak silinecektir.</item>
     </plurals>
     <plurals name="agent_approval_expires_in_seconds_plural">
-        <item quantity="one"><xliff:g id="seconds" example="1">%1$d</xliff:g> saniye sonra sona erecek</item>
-        <item quantity="other"><xliff:g id="seconds" example="30">%1$d</xliff:g> saniye sonra sona erecek</item>
+        <item quantity="one"><xliff:g id="seconds" example="1">%1$d</xliff:g> saniye içinde geçerliliğini yitirecek</item>
+        <item quantity="other"><xliff:g id="seconds" example="30">%1$d</xliff:g> saniye içinde geçerliliğini yitirecek</item>
     </plurals>
 </resources>

@@ -1,31 +1,23 @@
 package com.artemchep.keyguard.android.companion
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import com.artemchep.keyguard.android.CompanionAuthActivity
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AccountId
-import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
-import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginEvent
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginScreen
 import com.artemchep.keyguard.feature.auth.bitwarden.LoginContentSkeleton
-import com.artemchep.keyguard.feature.auth.bitwarden.LoginScaffold
 import com.artemchep.keyguard.feature.auth.bitwarden.produceBitwardenLoginScreenState
-import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRoute
-import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.LoginTwofaScreenContent
-import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.produceLoginTwofaScreenState
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
 import com.artemchep.keyguard.feature.auth.companion.CompanionBitwardenEnvironment
 import com.artemchep.keyguard.feature.auth.companion.CompanionBitwardenPayload
-import com.artemchep.keyguard.feature.navigation.LocalNavigationController
-import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteForResult
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
-import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerTwoFactorToken
 import com.artemchep.keyguard.provider.bitwarden.api.login
@@ -49,22 +41,6 @@ internal data class CompanionBitwardenLoginRoute(
     }
 }
 
-internal data class CompanionBitwardenLoginTwofaRoute(
-    val request: CompanionAuthActivity.Request,
-    val args: BitwardenLoginTwofaRoute.Args,
-) : RouteForResult<Unit> {
-    @Composable
-    override fun Content(
-        transmitter: RouteResultTransmitter<Unit>,
-    ) {
-        CompanionBitwardenTwofaScreen(
-            request = request,
-            args = args,
-            transmitter = transmitter,
-        )
-    }
-}
-
 @Composable
 private fun CompanionBitwardenLoginScreen(
     request: CompanionAuthActivity.Request,
@@ -83,78 +59,28 @@ private fun CompanionBitwardenLoginScreen(
     }
     val state = produceBitwardenLoginScreenState(
         addAccount = companionAddAccount,
+        requestEmailTfa = get(),
+        // The companion account is sent to the watch,
+        // while SSO saves the account on this device.
+        isSsoAvailable = false,
         cipherUnsecureUrlCheck = get(),
         confirmationRouteFactory = get(),
         discoverBitwardenServer = get(),
         args = BitwardenLoginRoute.Args(),
         screenKey = "bitwardenlogin.companion",
     )
-    when (state) {
-        Loadable.Loading -> {
+    state.fold(
+        ifLoading = {
             LoginContentSkeleton()
-        }
-
-        is Loadable.Ok -> {
-            val controller = LocalNavigationController.current
-            LaunchedEffect(state.value) {
-                state.value.effects.onSuccessFlow.collect {
-                    transmitter(Unit)
-                }
-            }
-            LaunchedEffect(state.value) {
-                state.value.effects.onErrorFlow.collect { error ->
-                    when (error) {
-                        is BitwardenLoginEvent.Error.OtpRequired -> {
-                            val route = registerRouteResultReceiver(
-                                CompanionBitwardenLoginTwofaRoute(
-                                    request = request,
-                                    args = error.args,
-                                ),
-                            ) {
-                                controller.queue(NavigationIntent.Pop)
-                                transmitter(Unit)
-                            }
-                            controller.queue(NavigationIntent.NavigateToRoute(route))
-                        }
-                    }
-                }
-            }
-            LoginScaffold(
-                loginState = state.value,
+        },
+        ifOk = { okState ->
+            // The 2FA continuation completes
+            // the login with the companion account.
+            BitwardenLoginScreen(
+                transmitter = transmitter,
+                state = okState,
             )
-        }
-    }
-}
-
-@Composable
-private fun CompanionBitwardenTwofaScreen(
-    request: CompanionAuthActivity.Request,
-    args: BitwardenLoginTwofaRoute.Args,
-    transmitter: RouteResultTransmitter<Unit>,
-) = with(currentKoinScope()) {
-    val companionAddAccount = remember(request) {
-        CompanionBitwardenAddAccount(
-            request = request,
-            companionAuthBridge = get(),
-            cryptoGenerator = get(),
-            base64Service = get(),
-            deviceIdUseCase = get(),
-            httpClient = get(),
-            json = get(),
-        )
-    }
-    val state = produceLoginTwofaScreenState(
-        cryptoGenerator = get(),
-        base64Service = get(),
-        deeplinkService = get(),
-        json = get(),
-        addAccount = companionAddAccount,
-        requestEmailTfa = get(),
-        args = args,
-        transmitter = transmitter,
-    )
-    LoginTwofaScreenContent(
-        state = state,
+        },
     )
 }
 

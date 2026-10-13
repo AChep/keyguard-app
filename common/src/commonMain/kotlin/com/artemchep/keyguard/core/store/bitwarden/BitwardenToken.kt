@@ -32,7 +32,14 @@ data class BitwardenToken(
     val user: User,
     /** Information about the Bitwarden server */
     val env: Environment,
+    val sso: Sso? = null,
 ) : ServiceToken {
+    @Serializable
+    data class Sso(
+        val userId: String,
+        val organizationIdentifier: String? = null,
+    )
+
     fun formatUser() = "<" +
             "id=$id, " +
             "email=${user.email}" +

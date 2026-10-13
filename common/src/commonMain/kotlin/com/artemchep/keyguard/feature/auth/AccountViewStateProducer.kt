@@ -67,6 +67,7 @@ import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
+import com.artemchep.keyguard.feature.auth.bitwarden.sso.BitwardenSsoRoute
 import com.artemchep.keyguard.feature.colorpicker.ColorPickerRoute
 import com.artemchep.keyguard.feature.colorpicker.createColorPickerDialogIntent
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
@@ -286,9 +287,21 @@ suspend fun RememberStateFlowScope.accountStateProducer(
         accountId: AccountId,
         email: String,
         env: ServerEnv,
+        sso: BitwardenToken.Sso?,
     ) {
-        val route = registerRouteResultReceiver(
-            route = bitwardenLoginRouteFactory.create(
+        // Without a browser, an SSO account logs in
+        // again with its master password.
+        val loginRoute = if (sso != null && CurrentPlatform.hasBrowser()) {
+            BitwardenSsoRoute(
+                args = BitwardenSsoRoute.Args(
+                    accountId = accountId.id,
+                    env = env,
+                    email = email,
+                    organizationIdentifier = sso.organizationIdentifier,
+                ),
+            )
+        } else {
+            bitwardenLoginRouteFactory.create(
                 args = BitwardenLoginRoute.Args(
                     accountId = accountId.id,
                     email = email,
@@ -296,7 +309,10 @@ suspend fun RememberStateFlowScope.accountStateProducer(
                     env = env,
                     envEditable = false,
                 ),
-            ),
+            )
+        }
+        val route = registerRouteResultReceiver(
+            route = loginRoute,
         ) {
             navigate(NavigationIntent.Pop)
         }
@@ -453,7 +469,8 @@ suspend fun RememberStateFlowScope.accountStateProducer(
                             onClick = ::doReLogin
                                 .partially1(accountId)
                                 .partially1(email)
-                                .partially1(env),
+                                .partially1(env)
+                                .partially1(t.sso),
                         )
                     },
                 )

@@ -147,15 +147,19 @@ class BitwardenFido2FlowTest {
                 }
                 io
             }
+            val env = ServerEnv(baseUrl = "https://vault.example.com")
+            val continuation = BitwardenPasswordLoginContinuation(
+                addAccount = account, requestEmailTfa = proxy { _, _ -> error("Email is not used in this test") },
+                accountId = null, env = env, clientSecret = null,
+                email = "user@example.com", password = "password",
+            )
             val flow = screen.createStateFlowForFido2WebAuthn(
                 base64Service = proxy { _, _ -> error("Browser is not used in this test") },
                 deeplinkService = DeeplinkServiceImpl(),
                 json = Json,
-                addAccount = account,
                 args = BitwardenLoginTwofaRoute.Args(
-                    providers = listOf(provider("AQ")), clientSecret = null,
-                    email = "user@example.com", password = "password",
-                    env = ServerEnv(baseUrl = "https://vault.example.com"),
+                    providers = listOf(provider("AQ")), email = "user@example.com",
+                    env = env, continuation = continuation,
                 ),
                 provider = provider("AQ"),
                 transmitter = object : RouteResultTransmitter<Unit> {

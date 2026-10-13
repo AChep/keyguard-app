@@ -575,7 +575,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         return BitwardenLoginSession(
             ctx = context,
             fido2PromptHost = fido2PromptHost,
-            args = loginRequests.args(requestId),
+            request = loginRequests.request(requestId),
             dialogs = com.artemchep.keyguard.apple.dialog.FormDialogsSession(dialogs),
             onDispose = { loginRequests.remove(requestId) },
         ).apply {
@@ -954,7 +954,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     init {
         if (context.runtime == KeyguardRuntime.APP) {
             dialogController.openUrl = navigationStackController::openUrl
-            navigationStackController.bitwardenLoginArgsHandler = loginRequests::put
+            navigationStackController.bitwardenLoginRequestHandler = loginRequests::put
             // Late-bind the producers' interceptor to the stack so their full-screen
             // routes push instead of being dropped. Done here to break the
             // controller <-> stack reference cycle.

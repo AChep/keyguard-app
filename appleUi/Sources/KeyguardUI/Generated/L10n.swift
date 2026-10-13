@@ -8085,6 +8085,54 @@ public enum L10n {
     public static var ssn: String {
         String(localized: "ssn", bundle: AppLocalization.shared.bundle)
     }
+    /// sso_browser_note
+    public static var ssoBrowserNote: String {
+        String(localized: "sso_browser_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// sso_browser_success
+    public static var ssoBrowserSuccess: String {
+        String(localized: "sso_browser_success", bundle: AppLocalization.shared.bundle)
+    }
+    /// sso_error_account
+    public static var ssoErrorAccount: String {
+        String(localized: "sso_error_account", bundle: AppLocalization.shared.bundle)
+    }
+    /// sso_error_authentication
+    public static var ssoErrorAuthentication: String {
+        String(localized: "sso_error_authentication", bundle: AppLocalization.shared.bundle)
+    }
+    /// sso_error_callback
+    public static var ssoErrorCallback: String {
+        String(localized: "sso_error_callback", bundle: AppLocalization.shared.bundle)
+    }
+    /// sso_error_key_connector
+    public static var ssoErrorKeyConnector: String {
+        String(localized: "sso_error_key_connector", bundle: AppLocalization.shared.bundle)
+    }
+    /// sso_error_password
+    public static var ssoErrorPassword: String {
+        String(localized: "sso_error_password", bundle: AppLocalization.shared.bundle)
+    }
+    /// sso_error_ports
+    public static var ssoErrorPorts: String {
+        String(localized: "sso_error_ports", bundle: AppLocalization.shared.bundle)
+    }
+    /// sso_error_unsupported
+    public static var ssoErrorUnsupported: String {
+        String(localized: "sso_error_unsupported", bundle: AppLocalization.shared.bundle)
+    }
+    /// sso_login
+    public static var ssoLogin: String {
+        String(localized: "sso_login", bundle: AppLocalization.shared.bundle)
+    }
+    /// sso_unlock
+    public static var ssoUnlock: String {
+        String(localized: "sso_unlock", bundle: AppLocalization.shared.bundle)
+    }
+    /// sso_unlock_note
+    public static var ssoUnlockNote: String {
+        String(localized: "sso_unlock_note", bundle: AppLocalization.shared.bundle)
+    }
     /// state
     public static var state: String {
         String(localized: "state", bundle: AppLocalization.shared.bundle)

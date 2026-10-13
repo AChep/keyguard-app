@@ -33,7 +33,18 @@ final class BitwardenLoginModel: SnapshotObserving {
 
     private(set) var twofaDidSucceed = false
 
+    private(set) var sso: SsoLoginSnapshot = SsoLoginSnapshot.companion.empty
+
+    /// Flips to `true` when the sign-in form opens SSO, pushing the SSO
+    /// screen on top of the login screen.
+    var ssoActive = false
+
+    /// `true` when the presentation starts with the SSO screen instead of the sign-in form.
+    var startsWithSso: Bool { source.startsWithSso }
+
     @ObservationIgnored private var loginSubscription: BridgeObservation?
+
+    @ObservationIgnored private var ssoSubscription: BridgeObservation?
 
     @ObservationIgnored private var twofaSubscription: BridgeObservation?
 
@@ -45,7 +56,9 @@ final class BitwardenLoginModel: SnapshotObserving {
             source.subscribeLogin(
                 onChange: { snapshot in deliver { $0.login = snapshot } },
                 onClose: { deliver { $0.complete() } },
-                onTwofaRequired: { deliver { $0.twofaActive = true } }
+                onTwofaRequired: { deliver { $0.twofaActive = true } },
+                onTwofaFinished: { deliver { $0.twofaDidSucceed = true } },
+                onSsoRequired: { deliver { $0.ssoActive = true } }
             )
         }
     }
@@ -53,6 +66,7 @@ final class BitwardenLoginModel: SnapshotObserving {
     /// Ending both subscriptions drops every callback still queued behind the completion.
     private func complete() {
         stopObservation(\.twofaSubscription)
+        stopObservation(\.ssoSubscription)
         stopObservation(\.loginSubscription)
         lifetime.cancel()
         loginDidSucceed = true
@@ -62,6 +76,7 @@ final class BitwardenLoginModel: SnapshotObserving {
 
     func stopLoginObservation() {
         stopTwofaObservation()
+        stopSsoObservation()
         dialogs?.stopFormDialogs()
         lifetime.cancel()
         stopObservation(\.loginSubscription)
@@ -86,6 +101,41 @@ final class BitwardenLoginModel: SnapshotObserving {
     /// Opens the Bitwarden registration page.
     func clickLoginRegister() {
         source.clickLoginRegister()
+    }
+
+    /// Opens SSO for the entered email and server; the session then reports `ssoActive`.
+    func startSso() {
+        source.startSso()
+    }
+
+    /// Runs the SSO step. Call when the SSO screen appears; it keeps running under the
+    /// 2FA screen, so balance it with `stopSsoObservation()` once the SSO screen is gone.
+    func startSsoObservation() {
+        guard !lifetime.isCancelled else { return }
+        startObservation(\.ssoSubscription, into: \.sso, subscribe: source.subscribeSso)
+    }
+
+    func stopSsoObservation() {
+        source.stopSso()
+        stopObservation(\.ssoSubscription)
+        sso = SsoLoginSnapshot.companion.empty
+        ssoActive = false
+    }
+
+    func setSsoField(id: String, text: String) {
+        source.setSsoField(id: id, text: text)
+    }
+
+    func unlockSso() {
+        source.unlockSso()
+    }
+
+    func retrySso() {
+        source.retrySso()
+    }
+
+    func completeSso(browserId: String, callback: String?, failed: Bool) {
+        source.completeSso(browserId: browserId, callback: callback, failed: failed)
     }
 
     func submitLogin() {

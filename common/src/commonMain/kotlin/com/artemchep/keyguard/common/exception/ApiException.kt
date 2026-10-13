@@ -28,6 +28,8 @@ class ApiException(
 
         data class TwoFaRequired(
             val providers: List<TwoFactorProviderArgument>,
+            val ssoEmailSessionToken: String? = null,
+            val email: String? = null,
         ) : Type
     }
 }

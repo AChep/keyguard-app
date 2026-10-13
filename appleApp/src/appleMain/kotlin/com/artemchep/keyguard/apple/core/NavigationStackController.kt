@@ -25,7 +25,9 @@ import kotlinx.coroutines.flow.map
 import com.artemchep.keyguard.common.model.DCipherFilter
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DFilter
+import com.artemchep.keyguard.apple.auth.LoginRequest
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.sso.BitwardenSsoRoute
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
 import com.artemchep.keyguard.feature.export.ExportState
 import com.artemchep.keyguard.feature.feedback.FeedbackState
@@ -532,10 +534,10 @@ internal class NavigationStackController(
     }
 
     /**
-     * Receives a [BitwardenLoginRoute]'s args right before [addAccountHandler] presents the login sheet,
-     * so a re-login keeps the account's email and server.
+     * Receives a Bitwarden login request right before [addAccountHandler] presents the login sheet,
+     * so a re-login keeps the account's email and server, and an SSO account starts with SSO.
      */
-    var bitwardenLoginArgsHandler: ((BitwardenLoginRoute.Args) -> String)? = null
+    internal var bitwardenLoginRequestHandler: ((LoginRequest) -> String)? = null
 
     private var revealFileHandler: ((String) -> Unit)? = null
 
@@ -978,8 +980,8 @@ internal class NavigationStackController(
                     ?.takeIf { addAccountHandler != null }
                 if (addAccount != null) {
                     onMain {
-                        val requestId = addAccount.bitwardenArgs?.let { args ->
-                            bitwardenLoginArgsHandler?.invoke(args)
+                        val requestId = addAccount.bitwarden?.let { request ->
+                            bitwardenLoginRequestHandler?.invoke(request)
                         }
                         addAccountHandler?.invoke(addAccount.type.name, requestId)
                     }
@@ -1051,7 +1053,7 @@ internal class NavigationStackController(
 
     private class AddAccountRequest(
         val type: AccountType,
-        val bitwardenArgs: BitwardenLoginRoute.Args? = null,
+        val bitwarden: LoginRequest? = null,
     )
 
     /**
@@ -1065,7 +1067,8 @@ internal class NavigationStackController(
         val inner = (route as? RouteResultReceiver<*>)?.innerRoute ?: route
         return when (inner) {
             is KeePassLoginRoute -> AddAccountRequest(AccountType.KEEPASS)
-            is BitwardenLoginRoute -> AddAccountRequest(AccountType.BITWARDEN, inner.args)
+            is BitwardenLoginRoute -> AddAccountRequest(AccountType.BITWARDEN, LoginRequest.Form(inner.args))
+            is BitwardenSsoRoute -> AddAccountRequest(AccountType.BITWARDEN, LoginRequest.Sso(inner.args))
             else -> null
         }
     }

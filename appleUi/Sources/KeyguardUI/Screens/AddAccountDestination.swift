@@ -9,7 +9,12 @@ struct AddAccountDestination: View {
     var body: some View {
         Group {
             switch presentation.model {
-            case .bitwarden(let model): BitwardenLoginView().environment(model)
+            case .bitwarden(let model):
+                if model.startsWithSso {
+                    BitwardenSsoView().environment(model)
+                } else {
+                    BitwardenLoginView().environment(model)
+                }
             case .keepass(let model): KeePassLoginView().environment(model)
             case nil: LoadingIndicator()
             }

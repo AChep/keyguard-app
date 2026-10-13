@@ -25,8 +25,6 @@ import com.artemchep.keyguard.provider.bitwarden.api.builder.buildWebVaultUrl
 import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProvider
 import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProviderArgument
 import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProviderType
-import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
-import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import io.ktor.http.URLBuilder
@@ -50,6 +48,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.job
 import kotlinx.serialization.json.Json
 import org.koin.compose.currentKoinScope
 
@@ -64,8 +63,6 @@ fun produceLoginTwofaScreenState(
         base64Service = get(),
         deeplinkService = get(),
         json = get(),
-        addAccount = get(),
-        requestEmailTfa = get(),
         args = args,
         transmitter = transmitter,
         defaultRememberMe = defaultRememberMe,
@@ -78,8 +75,6 @@ fun produceLoginTwofaScreenState(
     base64Service: Base64Service,
     deeplinkService: DeeplinkService,
     json: Json,
-    addAccount: AddAccount,
-    requestEmailTfa: RequestEmailTfa,
     args: BitwardenLoginTwofaRoute.Args,
     transmitter: RouteResultTransmitter<Unit>,
     defaultRememberMe: Boolean = false,
@@ -90,8 +85,6 @@ fun produceLoginTwofaScreenState(
         state = BitwardenLoginTwofaState.Skeleton,
     ),
     args = arrayOf(
-        addAccount,
-        requestEmailTfa,
         args,
         transmitter,
     ),
@@ -101,8 +94,6 @@ fun produceLoginTwofaScreenState(
         base64Service = base64Service,
         deeplinkService = deeplinkService,
         json = json,
-        addAccount = addAccount,
-        requestEmailTfa = requestEmailTfa,
         args = args,
         transmitter = transmitter,
         defaultRememberMe = defaultRememberMe,
@@ -114,12 +105,13 @@ suspend fun RememberStateFlowScope.bitwardenLoginTwofaStateProducer(
     base64Service: Base64Service,
     deeplinkService: DeeplinkService,
     json: Json,
-    addAccount: AddAccount,
-    requestEmailTfa: RequestEmailTfa,
     args: BitwardenLoginTwofaRoute.Args,
     transmitter: RouteResultTransmitter<Unit>,
     defaultRememberMe: Boolean = false,
 ): Flow<TwoFactorState> {
+    screenScope.coroutineContext.job.invokeOnCompletion {
+        args.continuation.onDismiss()
+    }
     val actionExecutor = screenExecutor()
 
     val providersComparator = compareBy<TwoFactorProvider>(
@@ -175,7 +167,6 @@ suspend fun RememberStateFlowScope.bitwardenLoginTwofaStateProducer(
                     TwoFactorProviderType.Authenticator ->
                         createStateFlowForAuthenticator(
                             actionExecutor = actionExecutor,
-                            addAccount = addAccount,
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.Authenticator,
                             transmitter = transmitter,
@@ -185,7 +176,6 @@ suspend fun RememberStateFlowScope.bitwardenLoginTwofaStateProducer(
                     TwoFactorProviderType.YubiKey ->
                         createStateFlowForYubiKey(
                             actionExecutor = actionExecutor,
-                            addAccount = addAccount,
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.YubiKey,
                             transmitter = transmitter,
@@ -196,8 +186,6 @@ suspend fun RememberStateFlowScope.bitwardenLoginTwofaStateProducer(
                         createStateFlowForEmail(
                             cryptoGenerator = cryptoGenerator,
                             actionExecutor = actionExecutor,
-                            addAccount = addAccount,
-                            requestEmailTfa = requestEmailTfa,
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.Email,
                             transmitter = transmitter,
@@ -208,8 +196,6 @@ suspend fun RememberStateFlowScope.bitwardenLoginTwofaStateProducer(
                         createStateFlowForEmailNewDevice(
                             cryptoGenerator = cryptoGenerator,
                             actionExecutor = actionExecutor,
-                            addAccount = addAccount,
-                            requestEmailTfa = requestEmailTfa,
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.EmailNewDevice,
                             transmitter = transmitter,
@@ -218,7 +204,6 @@ suspend fun RememberStateFlowScope.bitwardenLoginTwofaStateProducer(
                     TwoFactorProviderType.Duo ->
                         createStateFlowForDuo(
                             actionExecutor = actionExecutor,
-                            addAccount = addAccount,
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.Duo,
                             transmitter = transmitter,
@@ -228,7 +213,6 @@ suspend fun RememberStateFlowScope.bitwardenLoginTwofaStateProducer(
                     TwoFactorProviderType.OrganizationDuo ->
                         createStateFlowForOrganizationDuo(
                             actionExecutor = actionExecutor,
-                            addAccount = addAccount,
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.OrganizationDuo,
                             transmitter = transmitter,
@@ -240,7 +224,6 @@ suspend fun RememberStateFlowScope.bitwardenLoginTwofaStateProducer(
                             base64Service = base64Service,
                             deeplinkService = deeplinkService,
                             json = json,
-                            addAccount = addAccount,
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.Fido2WebAuthn,
                             transmitter = transmitter,
@@ -302,7 +285,6 @@ private fun RememberStateFlowScope.createStateFlowForUnsupported(
 
 private fun RememberStateFlowScope.createStateFlowForAuthenticator(
     actionExecutor: LoadingTask,
-    addAccount: AddAccount,
     args: BitwardenLoginTwofaRoute.Args,
     provider: TwoFactorProviderArgument.Authenticator,
     transmitter: RouteResultTransmitter<Unit>,
@@ -338,17 +320,12 @@ private fun RememberStateFlowScope.createStateFlowForAuthenticator(
             onClick = if (canLogin) {
                 // lambda
                 {
-                    val io = addAccount(
-                        args.accountId,
-                        args.env,
+                    val io = args.continuation.authenticate(
                         ServerTwoFactorToken(
                             token = codeValidated.model,
                             provider = TwoFactorProviderType.Authenticator,
                             remember = rememberMe.checked,
                         ),
-                        args.clientSecret,
-                        args.email,
-                        args.password,
                     ).effectTap {
                         transmitter(Unit)
                     }
@@ -372,7 +349,6 @@ private fun RememberStateFlowScope.createStateFlowForAuthenticator(
 
 private fun RememberStateFlowScope.createStateFlowForYubiKey(
     actionExecutor: LoadingTask,
-    addAccount: AddAccount,
     args: BitwardenLoginTwofaRoute.Args,
     provider: TwoFactorProviderArgument.YubiKey,
     transmitter: RouteResultTransmitter<Unit>,
@@ -384,17 +360,12 @@ private fun RememberStateFlowScope.createStateFlowForYubiKey(
         token: String,
         remember: Boolean,
     ) {
-        val io = addAccount(
-            args.accountId,
-            args.env,
+        val io = args.continuation.authenticate(
             ServerTwoFactorToken(
                 token = token,
                 provider = TwoFactorProviderType.YubiKey,
                 remember = remember,
             ),
-            args.clientSecret,
-            args.email,
-            args.password,
         ).effectTap {
             transmitter(Unit)
         }
@@ -441,8 +412,6 @@ private fun RememberStateFlowScope.createStateFlowForYubiKey(
 private fun RememberStateFlowScope.createStateFlowForEmail(
     cryptoGenerator: CryptoGenerator,
     actionExecutor: LoadingTask,
-    addAccount: AddAccount,
-    requestEmailTfa: RequestEmailTfa,
     args: BitwardenLoginTwofaRoute.Args,
     provider: TwoFactorProviderArgument.Email,
     transmitter: RouteResultTransmitter<Unit>,
@@ -458,11 +427,7 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
     val onResendFlow = createResendFlow(
         cryptoGenerator = cryptoGenerator,
         prefix = "email.send_email",
-        io = requestEmailTfa(
-            args.env,
-            args.email,
-            args.password,
-        ).effectTap {
+        io = args.continuation.resendEmail().effectTap {
             val model = ToastMessage(
                 title = translate(Res.string.requested_verification_email),
             )
@@ -494,17 +459,12 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
             onClick = if (canLogin) {
                 // lambda
                 {
-                    val io = addAccount(
-                        args.accountId,
-                        args.env,
+                    val io = args.continuation.authenticate(
                         ServerTwoFactorToken(
                             token = codeValidated.model,
                             provider = TwoFactorProviderType.Email,
                             remember = rememberMe.checked,
                         ),
-                        args.clientSecret,
-                        args.email,
-                        args.password,
                     ).effectTap {
                         transmitter(Unit)
                     }
@@ -531,8 +491,6 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
 private fun RememberStateFlowScope.createStateFlowForEmailNewDevice(
     cryptoGenerator: CryptoGenerator,
     actionExecutor: LoadingTask,
-    addAccount: AddAccount,
-    requestEmailTfa: RequestEmailTfa,
     args: BitwardenLoginTwofaRoute.Args,
     provider: TwoFactorProviderArgument.EmailNewDevice,
     transmitter: RouteResultTransmitter<Unit>,
@@ -545,11 +503,7 @@ private fun RememberStateFlowScope.createStateFlowForEmailNewDevice(
     val onResendFlow = createResendFlow(
         cryptoGenerator = cryptoGenerator,
         prefix = "email_new_device.send_email",
-        io = requestEmailTfa(
-            args.env,
-            args.email,
-            args.password,
-        ).effectTap {
+        io = args.continuation.resendEmail().effectTap {
             val model = ToastMessage(
                 title = translate(Res.string.requested_verification_email),
             )
@@ -574,17 +528,12 @@ private fun RememberStateFlowScope.createStateFlowForEmailNewDevice(
             onClick = if (canLogin) {
                 // lambda
                 {
-                    val io = addAccount(
-                        args.accountId,
-                        args.env,
+                    val io = args.continuation.authenticate(
                         ServerTwoFactorToken(
                             token = codeValidated.model,
                             provider = TwoFactorProviderType.EmailNewDevice,
                             remember = false,
                         ),
-                        args.clientSecret,
-                        args.email,
-                        args.password,
                     ).effectTap {
                         transmitter(Unit)
                     }
@@ -609,14 +558,12 @@ private fun RememberStateFlowScope.createStateFlowForEmailNewDevice(
 
 private fun RememberStateFlowScope.createStateFlowForDuo(
     actionExecutor: LoadingTask,
-    addAccount: AddAccount,
     args: BitwardenLoginTwofaRoute.Args,
     provider: TwoFactorProviderArgument.Duo,
     transmitter: RouteResultTransmitter<Unit>,
     defaultRememberMe: Boolean,
 ): Flow<BitwardenLoginTwofaState> = createStateFlowForDuo(
     actionExecutor = actionExecutor,
-    addAccount = addAccount,
     args = args,
     providerHost = provider.host,
     providerSignature = provider.signature,
@@ -627,14 +574,12 @@ private fun RememberStateFlowScope.createStateFlowForDuo(
 
 private fun RememberStateFlowScope.createStateFlowForOrganizationDuo(
     actionExecutor: LoadingTask,
-    addAccount: AddAccount,
     args: BitwardenLoginTwofaRoute.Args,
     provider: TwoFactorProviderArgument.OrganizationDuo,
     transmitter: RouteResultTransmitter<Unit>,
     defaultRememberMe: Boolean,
 ): Flow<BitwardenLoginTwofaState> = createStateFlowForDuo(
     actionExecutor = actionExecutor,
-    addAccount = addAccount,
     args = args,
     providerHost = provider.host,
     providerSignature = provider.signature,
@@ -645,7 +590,6 @@ private fun RememberStateFlowScope.createStateFlowForOrganizationDuo(
 
 private fun RememberStateFlowScope.createStateFlowForDuo(
     actionExecutor: LoadingTask,
-    addAccount: AddAccount,
     args: BitwardenLoginTwofaRoute.Args,
     providerHost: String?,
     providerSignature: String?,
@@ -679,17 +623,12 @@ private fun RememberStateFlowScope.createStateFlowForDuo(
                 message(msg)
             },
             ifRight = { token ->
-                val io = addAccount(
-                    args.accountId,
-                    args.env,
+                val io = args.continuation.authenticate(
                     ServerTwoFactorToken(
                         token = token,
                         provider = providerType,
                         remember = rememberMeSink.value,
                     ),
-                    args.clientSecret,
-                    args.email,
-                    args.password,
                 ).effectTap {
                     transmitter(Unit)
                 }

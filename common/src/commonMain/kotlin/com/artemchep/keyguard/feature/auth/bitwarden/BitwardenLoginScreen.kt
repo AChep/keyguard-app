@@ -25,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -48,11 +49,13 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.getShapeState
+import com.artemchep.keyguard.feature.auth.bitwarden.sso.BitwardenSsoRoute
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRouteFactory
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.RouteForResult
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.permissions.LocalNetworkPermissionNote
@@ -79,6 +82,7 @@ import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.UrlFlatTextField
 import com.artemchep.keyguard.ui.icons.IconBox
+import com.artemchep.keyguard.ui.icons.KeyguardOrganization
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
@@ -126,21 +130,29 @@ fun BitwardenLoginScreen(
         // the caller can now decide what to do.
         transmitter.invoke(Unit)
     }
+    // The login continues on the route, which
+    // finishes the login once it succeeds.
+    fun navigateToLoginStep(route: RouteForResult<Unit>) {
+        val receiver = registerRouteResultReceiver(
+            route = route,
+        ) {
+            controller.queue(NavigationIntent.Pop)
+            transmitter.invoke(Unit)
+        }
+        val intent = NavigationIntent.NavigateToRoute(receiver)
+        controller.queue(intent)
+    }
     CollectedEffect(state.effects.onErrorFlow) { error ->
         when (error) {
             // Navigate to the OTP screen with current
             // credentials and environment.
             is BitwardenLoginEvent.Error.OtpRequired -> {
-                val route = registerRouteResultReceiver(
-                    route = bitwardenLoginTwofaRouteFactory.create(error.args),
-                ) {
-                    controller.queue(NavigationIntent.Pop)
-                    transmitter.invoke(Unit)
-                }
-                val intent = NavigationIntent.NavigateToRoute(route)
-                controller.queue(intent)
+                navigateToLoginStep(bitwardenLoginTwofaRouteFactory.create(error.args))
             }
         }
+    }
+    CollectedEffect(state.effects.onSsoFlow) { args ->
+        navigateToLoginStep(BitwardenSsoRoute(args))
     }
 
     LoginScaffold(
@@ -372,6 +384,30 @@ fun ColumnScope.LoginContent(
             onNext = keyboardOnNext.takeUnless { passwordIsLastField },
         ),
     )
+    if (loginState.isSsoAvailable) {
+        val updatedOnSsoClick by rememberUpdatedState(loginState.onSsoClick)
+        Spacer(Modifier.height(8.dp))
+        TextButton(
+            modifier = Modifier
+                .padding(horizontal = Dimens.buttonHorizontalPadding),
+            enabled = loginState.onSsoClick != null,
+            onClick = {
+                updatedOnSsoClick?.invoke()
+            },
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.KeyguardOrganization,
+                contentDescription = null,
+            )
+            Spacer(
+                modifier = Modifier
+                    .width(Dimens.buttonIconPadding),
+            )
+            Text(
+                text = stringResource(Res.string.sso_login),
+            )
+        }
+    }
     ExpandedIfNotEmpty(
         valueOrNull = loginState.serverDiscovery,
     ) { discovery ->

@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
+import com.artemchep.keyguard.feature.auth.bitwarden.sso.BitwardenSsoRoute
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.navigation.state.DiskHandle
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
@@ -263,6 +264,34 @@ class BitwardenLoginServerDiscoveryTest {
     }
 }
 
+/** SSO opens with the email and server of the login form. */
+class BitwardenLoginSsoTest {
+    @Test
+    fun `opens SSO with the email and the server found`() = runTest {
+        val harness = Harness(this, mapOf(DOMAIN to listOf(custom(SERVER_URL))), isSsoAvailable = true)
+        val states = harness.states()
+        runCurrent()
+        assertTrue(states.login().isSsoAvailable)
+        assertNull(states.login().onSsoClick, "SSO needs an email")
+        states.login().typeEmail(EMAIL)
+        runCurrent()
+        states.login().discover()
+        advanceTimeBy(1.seconds)
+        runCurrent()
+
+        val opened = mutableListOf<BitwardenSsoRoute.Args>()
+        backgroundScope.launch { states.login().effects.onSsoFlow.collect { opened += it } }
+        runCurrent()
+        assertNotNull(states.login().onSsoClick, "SSO can be opened").invoke()
+        runCurrent()
+
+        val args = opened.single()
+        assertEquals(EMAIL, args.email)
+        assertEquals(SERVER_URL, args.env.baseUrl)
+        assertNull(args.accountId)
+    }
+}
+
 private fun custom(
     url: String,
     sameDomain: Boolean = true,
@@ -306,6 +335,7 @@ private class Harness(
     private val args: BitwardenLoginRoute.Args = BitwardenLoginRoute.Args(),
     private val lookupDelayMs: Long = 0L,
     private val failures: Set<String> = emptySet(),
+    private val isSsoAvailable: Boolean = false,
 ) {
     val queries = mutableListOf<String>()
     val messages = mutableListOf<ToastMessage>()
@@ -333,6 +363,8 @@ private class Harness(
     suspend fun states(): StateFlow<Loadable<LoginState>?> = testScreenScope()
         .bitwardenLoginStateProducer(
             addAccount = unused(),
+            requestEmailTfa = unused(),
+            isSsoAvailable = isSsoAvailable,
             cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
             confirmationRouteFactory = unused(),
             discoverBitwardenServer = discoverBitwardenServer,

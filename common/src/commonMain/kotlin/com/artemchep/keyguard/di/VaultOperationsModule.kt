@@ -214,10 +214,13 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.BitwardenSsoService
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountUseCase
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SaveBitwardenAccount
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SaveBitwardenAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyFolderById
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyProfileById
@@ -479,6 +482,8 @@ internal class VaultOperationsModule {
                 )
             } bind GetMetas::class
 
+            scoped<SaveBitwardenAccountImpl>() bind SaveBitwardenAccount::class
+            scoped<BitwardenSsoService>()
             scoped<AddAccountImpl>() bind AddAccount::class
 
             scoped<AddKeePassAccount> {

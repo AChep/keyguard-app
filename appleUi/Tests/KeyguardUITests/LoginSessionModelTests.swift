@@ -212,13 +212,74 @@ final class LoginSessionModelTests: XCTestCase {
         XCTAssertEqual(source.actions, ["discovery.lookup"])
     }
 
-    private func login(_ email: String, serverDiscovery: LoginServerDiscoverySnapshot? = nil) -> LoginSnapshot {
+    @MainActor
+    func testSsoStepRunsUntilPoppedAndItsTwofaReturnsToUnlock() async throws {
+        let source = BitwardenSourceProbe()
+        let model = source.makeModel()
+        model.startLoginObservation()
+        model.startSso()
+        source.requireSso()
+        try await settle()
+        XCTAssertTrue(model.ssoActive)
+        model.startSsoObservation()
+        model.startSsoObservation()
+        source.publishSso(ssoUnlock())
+        source.requireTwofa()
+        try await settle()
+        XCTAssertEqual(source.ssoStarts, 1)
+        XCTAssertTrue(model.twofaActive)
+        // The SSO step reports its own 2FA success; the login stays open for the vault unlock.
+        source.finishTwofa()
+        try await settle()
+        XCTAssertTrue(model.twofaDidSucceed)
+        XCTAssertFalse(model.loginDidSucceed)
+        XCTAssertNotNil(model.sso.password)
+        model.setSsoField(id: "sso.password", text: "secret")
+        model.unlockSso()
+        model.retrySso()
+        model.stopSsoObservation()
+        XCTAssertFalse(model.ssoActive)
+        XCTAssertNil(model.sso.password)
+        XCTAssertEqual(source.ssoCancellations, 1)
+        XCTAssertEqual(source.ssoStops, 1)
+        XCTAssertEqual(source.actions, ["sso.start", "sso.password:secret", "sso.unlock", "sso.retry"])
+        model.stopLoginObservation()
+    }
+
+    @MainActor
+    func testSsoRootCompletesThePresentation() async throws {
+        let source = BitwardenSourceProbe()
+        source.startsWithSso = true
+        let model = source.makeModel()
+        XCTAssertTrue(model.startsWithSso)
+        model.startLoginObservation()
+        model.startSsoObservation()
+        source.publishSso(ssoUnlock())
+        try await settle()
+        XCTAssertFalse(model.ssoActive)
+        source.complete()
+        try await settle()
+        XCTAssertTrue(model.loginDidSucceed)
+        XCTAssertEqual(source.ssoCancellations, 1)
+        model.stopLoginObservation()
+    }
+
+    private func ssoUnlock() -> SsoLoginSnapshot {
+        SsoLoginSnapshot(
+            browserId: nil, browserUrl: nil, password: .companion.empty(id: "sso.password"),
+            isLoading: false, canUnlock: false, canRetry: false)
+    }
+
+    private func login(
+        _ email: String, serverDiscovery: LoginServerDiscoverySnapshot? = nil
+    ) -> LoginSnapshot {
         LoginSnapshot(
             email: TextFieldSnapshot(
                 id: "email", text: email, textRevision: 0, placeholder: nil, error: nil, vlType: nil, vlText: nil,
                 editable: true),
             password: .companion.empty(id: "password"), clientSecret: nil, regions: [], showCustomEnv: false,
-            items: [], isLoading: false, canLogin: true, canRegister: true, serverDiscovery: serverDiscovery
+            items: [], isLoading: false, canLogin: true, canRegister: true, serverDiscovery: serverDiscovery,
+            canSso: true
         )
     }
 
@@ -250,26 +311,42 @@ final class LoginSessionModelTests: XCTestCase {
 private final class BitwardenSourceProbe: BitwardenLoginSource {
     var publish: (LoginSnapshot) -> Void = { _ in }
     var publishTwofa: (TwofaSnapshot) -> Void = { _ in }
+    var publishSso: (SsoLoginSnapshot) -> Void = { _ in }
     var complete: () -> Void = {}
     var requireTwofa: () -> Void = {}
+    var finishTwofa: () -> Void = {}
+    var requireSso: () -> Void = {}
+    var startsWithSso = false
     var loginStarts = 0
     var twofaStarts = 0
+    var ssoStarts = 0
     var loginCancellations = 0
     var twofaCancellations = 0
+    var ssoCancellations = 0
+    var ssoStops = 0
     var closes = 0
     var actions: [String] = []
 
     func makeModel() -> BitwardenLoginModel { BitwardenLoginModel(source: self, openExternalURL: { _ in }) }
     func subscribeLogin(
         onChange: @escaping (LoginSnapshot) -> Void, onClose: @escaping () -> Void,
-        onTwofaRequired: @escaping () -> Void
+        onTwofaRequired: @escaping () -> Void, onTwofaFinished: @escaping () -> Void,
+        onSsoRequired: @escaping () -> Void
     ) -> BridgeObservation {
         loginStarts += 1
         publish = onChange
         complete = onClose
         requireTwofa = onTwofaRequired
+        finishTwofa = onTwofaFinished
+        requireSso = onSsoRequired
         return BridgeObservation(cancel: { [weak self] in self?.loginCancellations += 1 })
     }
+    func subscribeSso(onChange: @escaping (SsoLoginSnapshot) -> Void) -> BridgeObservation {
+        ssoStarts += 1
+        publishSso = onChange
+        return BridgeObservation(cancel: { [weak self] in self?.ssoCancellations += 1 })
+    }
+    func stopSso() { ssoStops += 1 }
     func subscribeTwofa(onChange: @escaping (TwofaSnapshot) -> Void) -> BridgeObservation {
         twofaStarts += 1
         publishTwofa = onChange
@@ -282,6 +359,11 @@ private final class BitwardenSourceProbe: BitwardenLoginSource {
     func selectLoginRegion(key: String) {}
     func invokeLoginAction(id: String) {}
     func clickLoginRegister() {}
+    func startSso() { actions.append("sso.start") }
+    func setSsoField(id: String, text: String) { actions.append("\(id):\(text)") }
+    func unlockSso() { actions.append("sso.unlock") }
+    func retrySso() { actions.append("sso.retry") }
+    func completeSso(browserId: String, callback: String?, failed: Bool) {}
     func submitLogin() {}
     func discoverLoginServer() { actions.append("discovery.lookup") }
     func selectTwofaProvider(key: String) {}

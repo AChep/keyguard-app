@@ -22,6 +22,8 @@ import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.common.util.newChildScope
+import com.artemchep.keyguard.feature.auth.bitwarden.sso.BitwardenSsoRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenPasswordLoginContinuation
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRoute
 import com.artemchep.keyguard.feature.auth.common.TextCell
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
@@ -46,6 +48,7 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeSerializable
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
+import com.artemchep.keyguard.platform.util.hasBrowser
 import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
@@ -53,6 +56,7 @@ import com.artemchep.keyguard.provider.bitwarden.api.builder.buildHost
 import com.artemchep.keyguard.provider.bitwarden.model.ServerDiscoveryCandidate
 import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServer
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -134,7 +138,7 @@ internal enum class BitwardenLoginBlockedBy {
 
 internal fun getBitwardenLoginBlockedBy(
     validatedEmail: Validated<String>,
-    validatedPassword: Validated<String>,
+    validatedPassword: Validated<String>?,
     validatedClientSecret: Validated<String>?,
     showCustomEnv: Boolean,
     outputError: Boolean,
@@ -155,6 +159,8 @@ fun produceBitwardenLoginScreenState(
 ): Loadable<LoginState> = with(currentKoinScope()) {
     produceBitwardenLoginScreenState(
         addAccount = get(),
+        requestEmailTfa = get(),
+        isSsoAvailable = true,
         cipherUnsecureUrlCheck = get(),
         confirmationRouteFactory = get(),
         discoverBitwardenServer = get(),
@@ -171,6 +177,8 @@ private inline val defaultPassword get() = ""
 @Composable
 fun produceBitwardenLoginScreenState(
     addAccount: AddAccount,
+    requestEmailTfa: RequestEmailTfa,
+    isSsoAvailable: Boolean,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     confirmationRouteFactory: ConfirmationRouteFactory,
     discoverBitwardenServer: DiscoverBitwardenServer,
@@ -181,12 +189,15 @@ fun produceBitwardenLoginScreenState(
     key = screenKey,
     args = arrayOf(
         addAccount,
+        requestEmailTfa,
         args,
         screenKey,
     ),
 ) {
     bitwardenLoginStateProducer(
         addAccount = addAccount,
+        requestEmailTfa = requestEmailTfa,
+        isSsoAvailable = isSsoAvailable,
         cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
         confirmationRouteFactory = confirmationRouteFactory,
         discoverBitwardenServer = discoverBitwardenServer,
@@ -197,6 +208,9 @@ fun produceBitwardenLoginScreenState(
 @OptIn(ExperimentalCoroutinesApi::class)
 suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
     addAccount: AddAccount,
+    requestEmailTfa: RequestEmailTfa,
+    /** `false` when this flow cannot add an account with SSO. */
+    isSsoAvailable: Boolean,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     confirmationRouteFactory: ConfirmationRouteFactory,
     discoverBitwardenServer: DiscoverBitwardenServer,
@@ -204,8 +218,11 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
 ): Flow<Loadable<LoginState>> {
     val onSuccessFlow = EventFlow<Unit>()
     val onErrorFlow = EventFlow<BitwardenLoginEvent.Error>()
+    val onSsoFlow = EventFlow<BitwardenSsoRoute.Args>()
 
     val actionExecutor = screenExecutor()
+    // SSO signs in with a web-site.
+    val ssoAvailable = isSsoAvailable && CurrentPlatform.hasBrowser()
 
     // email
 
@@ -668,34 +685,6 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
                 }
                 listOf(flowOf(transform))
             },
-        clientCredentialFlow
-            .map { credentials ->
-                val transform = fun(oldState: CreateRequest): CreateRequest {
-                    var state = oldState
-
-                    // Email
-                    run {
-                        val error = credentials.email is Validated.Failure
-                        if (error) return state.copy(error = true)
-                        state = state.copy(username = credentials.email.model)
-                    }
-                    // Password
-                    run {
-                        val error = credentials.password is Validated.Failure
-                        if (error) return state.copy(error = true)
-                        state = state.copy(password = credentials.password.model)
-                    }
-                    // Client secret
-                    run {
-                        val error = credentials.clientSecret is Validated.Failure
-                        if (error) return state.copy(error = true)
-                        state = state.copy(clientSecret = credentials.clientSecret?.model)
-                    }
-
-                    return state
-                }
-                listOf(flowOf(transform))
-            },
     ) { arr ->
         arr.toList().flatten()
     }
@@ -776,10 +765,51 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
                     .takeUnless { !args.clientSecretEditable || taskIsExecuting },
             )
         }
+        fun buildEnv() = if (args.envEditable) {
+            when (val r = output.region) {
+                is BitwardenLoginRegion.Predefined -> {
+                    ServerEnv(
+                        region = r.region,
+                    )
+                }
+
+                is BitwardenLoginRegion.Custom -> {
+                    ServerEnv(
+                        baseUrl = output.baseUrl.orEmpty().let(::ensureUrlScheme),
+                        webVaultUrl = output.webVaultUrl.orEmpty()
+                            .let(::ensureUrlScheme),
+                        apiUrl = output.apiUrl.orEmpty().let(::ensureUrlScheme),
+                        identityUrl = output.identityUrl.orEmpty()
+                            .let(::ensureUrlScheme),
+                        iconsUrl = output.iconsUrl.orEmpty().let(::ensureUrlScheme),
+                        headers = output.headers,
+                    )
+                }
+
+                null -> {
+                    ServerEnv(
+                        region = ServerEnv.Region.default,
+                    )
+                }
+            }
+        } else {
+            args.env
+        }
+        // SSO signs in without the password
+        // or the client secret.
+        val canSso = ssoAvailable && getBitwardenLoginBlockedBy(
+            validatedEmail = validatedEmail,
+            validatedPassword = null,
+            validatedClientSecret = null,
+            showCustomEnv = showCustomEnv,
+            outputError = output.error,
+            taskIsExecuting = taskIsExecuting,
+        ) == null
         LoginState(
             effects = LoginState.SideEffect(
                 onSuccessFlow = onSuccessFlow,
                 onErrorFlow = onErrorFlow,
+                onSsoFlow = onSsoFlow,
             ),
             email = emailField,
             password = passwordField,
@@ -789,42 +819,26 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
             items = envServerItems + items,
             isLoading = taskIsExecuting,
             serverDiscovery = serverDiscovery,
+            isSsoAvailable = ssoAvailable,
+            onSsoClick = if (canSso) {
+                {
+                    val ssoArgs = BitwardenSsoRoute.Args(
+                        accountId = args.accountId,
+                        env = buildEnv(),
+                        email = validatedEmail.model,
+                    )
+                    onSsoFlow.emit(ssoArgs)
+                }
+            } else {
+                null
+            },
             // On watches, it is barely possible to register on a web-site,
             // so we can hide the button for doing so.
             onRegisterClick = onRegister
                 .takeIf { !CurrentPlatform.hasWatch() },
             onLoginClick = if (canLogin) {
                 {
-                    val env = if (args.envEditable) {
-                        when (val r = output.region) {
-                            is BitwardenLoginRegion.Predefined -> {
-                                ServerEnv(
-                                    region = r.region,
-                                )
-                            }
-
-                            is BitwardenLoginRegion.Custom -> {
-                                ServerEnv(
-                                    baseUrl = output.baseUrl.orEmpty().let(::ensureUrlScheme),
-                                    webVaultUrl = output.webVaultUrl.orEmpty()
-                                        .let(::ensureUrlScheme),
-                                    apiUrl = output.apiUrl.orEmpty().let(::ensureUrlScheme),
-                                    identityUrl = output.identityUrl.orEmpty()
-                                        .let(::ensureUrlScheme),
-                                    iconsUrl = output.iconsUrl.orEmpty().let(::ensureUrlScheme),
-                                    headers = output.headers,
-                                )
-                            }
-
-                            null -> {
-                                ServerEnv(
-                                    region = ServerEnv.Region.default,
-                                )
-                            }
-                        }
-                    } else {
-                        args.env
-                    }
+                    val env = buildEnv()
                     val io = addAccount(
                         args.accountId, // account id
                         env, // environment
@@ -838,13 +852,20 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
                             if (e !is ApiException) return@handleErrorTap
                             when (val t = e.type) {
                                 is ApiException.Type.TwoFaRequired -> {
-                                    val otpRequiredArgs = BitwardenLoginTwofaRoute.Args(
+                                    val continuation = BitwardenPasswordLoginContinuation(
+                                        addAccount = addAccount,
+                                        requestEmailTfa = requestEmailTfa,
                                         accountId = args.accountId,
-                                        providers = t.providers,
+                                        env = env,
                                         clientSecret = clientSecret?.model,
                                         email = validatedEmail.model,
                                         password = validatedPassword.model,
+                                    )
+                                    val otpRequiredArgs = BitwardenLoginTwofaRoute.Args(
+                                        providers = t.providers,
+                                        email = validatedEmail.model,
                                         env = env,
+                                        continuation = continuation,
                                     )
                                     val event = BitwardenLoginEvent.Error.OtpRequired(otpRequiredArgs)
                                     onErrorFlow.emit(event)

@@ -6,7 +6,9 @@ order: 3
 ---
 
 If your Bitwarden account has two-step login enabled, Keyguard asks for the
-second factor right after your email and master password. When your account
+second factor after password or SSO authentication. SSO then asks for your
+master password to decrypt the vault, unless your organization uses Key
+Connector. When your account
 has several methods configured, you can switch between them on the
 verification screen.
 
@@ -19,7 +21,7 @@ verification screen.
 | FIDO2 WebAuthn          | ✓       | ✓       | Security key; browser option on Android |
 | Duo / organization Duo  | ✓       | —       | In-app web view                    |
 | FIDO U2F (legacy)       | —       | —       | _Superseded by FIDO2 WebAuthn_       |
-| Log in with SSO         | —       | —       | Not supported                      |
+| Log in with SSO         | ✓       | ✓       | Requires a master password or Key Connector to decrypt the vault |
 | Log in with a device    | —       | —       | Not supported                      |
 | Log in with a passkey   | —       | —       | Not supported                      |
 

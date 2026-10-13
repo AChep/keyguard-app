@@ -161,6 +161,7 @@ data class LoginSnapshot(
     val canLogin: Boolean,
     val canRegister: Boolean,
     val serverDiscovery: LoginServerDiscoverySnapshot?,
+    val canSso: Boolean = false,
 ) {
     companion object {
         val empty = LoginSnapshot(
@@ -231,6 +232,30 @@ data class TwofaSnapshot(
             primaryActionText = null,
             canSubmit = false,
             isLoading = false,
+        )
+    }
+}
+
+/**
+ * The SSO step. Browser URLs and callbacks are delivered only to this live presentation;
+ * [password] stays null until the browser sign-in succeeds.
+ */
+data class SsoLoginSnapshot(
+    val browserId: String?,
+    val browserUrl: String?,
+    val password: TextFieldSnapshot?,
+    val isLoading: Boolean,
+    val canUnlock: Boolean,
+    val canRetry: Boolean,
+) {
+    companion object {
+        val empty = SsoLoginSnapshot(
+            browserId = null,
+            browserUrl = null,
+            password = null,
+            isLoading = true,
+            canUnlock = false,
+            canRetry = false,
         )
     }
 }

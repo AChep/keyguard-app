@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.auth.bitwarden
 
 import androidx.compose.runtime.Immutable
 import arrow.optics.optics
+import com.artemchep.keyguard.feature.auth.bitwarden.sso.BitwardenSsoRoute
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -25,6 +26,9 @@ data class LoginState(
     val isLoading: Boolean = false,
     val onRegisterClick: (() -> Unit)? = null,
     val onLoginClick: (() -> Unit)? = null,
+    /** `false` when this login flow cannot offer SSO, e.g. on watches. */
+    val isSsoAvailable: Boolean = false,
+    val onSsoClick: (() -> Unit)? = null,
     /** `null` while the email has no domain to look up. */
     val serverDiscovery: LoginServerDiscovery? = null,
 ) {
@@ -35,6 +39,8 @@ data class LoginState(
     data class SideEffect(
         val onSuccessFlow: Flow<Unit> = emptyFlow(),
         val onErrorFlow: Flow<BitwardenLoginEvent.Error> = emptyFlow(),
+        /** Opens the SSO sign-in for the entered email and server. */
+        val onSsoFlow: Flow<BitwardenSsoRoute.Args> = emptyFlow(),
     ) {
         companion object
     }
@@ -143,10 +149,6 @@ data class LocalStateItem<T>(
 
 data class CreateRequest(
     val error: Boolean = false,
-    // general
-    val username: String? = null,
-    val password: String? = null,
-    val clientSecret: String? = null,
     val region: BitwardenLoginRegion? = null,
     // base environment
     val baseUrl: String? = null,

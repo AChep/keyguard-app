@@ -16,10 +16,19 @@ data class ConnectTokenResponse(
     @SerialName("KdfIterations")
     val kdfIterationsCount: Int? = null,
 
-//    @SerialName("Key")
-//    val key: String,
-//    @SerialName("PrivateKey")
-//    val privateKey: String,
+    @JsonNames("key")
+    @SerialName("Key")
+    val key: String? = null,
+    @JsonNames("forcePasswordReset")
+    @SerialName("ForcePasswordReset")
+    val forcePasswordReset: Boolean = false,
+    @JsonNames("userDecryptionOptions")
+    @SerialName("UserDecryptionOptions")
+    val userDecryptionOptions: SsoDecryptionOptions? = null,
+    /** Older servers report the Key Connector only here. */
+    @JsonNames("keyConnectorUrl")
+    @SerialName("KeyConnectorUrl")
+    val keyConnectorUrl: String? = null,
 
     @SerialName("access_token")
     val accessToken: String,

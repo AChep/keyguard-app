@@ -13,7 +13,12 @@ import com.artemchep.keyguard.feature.auth.bitwarden.LoginServerDiscovery
 import com.artemchep.keyguard.feature.auth.bitwarden.LoginState
 import com.artemchep.keyguard.feature.auth.bitwarden.LoginStateItem
 import com.artemchep.keyguard.feature.auth.bitwarden.bitwardenLoginStateProducer
+import com.artemchep.keyguard.feature.auth.bitwarden.sso.BitwardenSsoRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.sso.BitwardenSsoState
+import com.artemchep.keyguard.feature.auth.bitwarden.sso.SsoRequest
+import com.artemchep.keyguard.feature.auth.bitwarden.sso.bitwardenSsoStateProducer
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRouteFactory
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaState
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.TwoFactorState
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.bitwardenLoginTwofaStateProducer
@@ -25,6 +30,7 @@ import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
+import com.artemchep.keyguard.apple.core.resultRouteOrNull
 import com.artemchep.keyguard.apple.model.ActionKeyAllocator
 import com.artemchep.keyguard.apple.model.invokeAction
 import com.artemchep.keyguard.apple.model.toFieldSnapshot
@@ -33,9 +39,11 @@ import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.provider.bitwarden.api.builder.buildWebVaultUrl
 import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServer
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.BitwardenSsoService
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -52,56 +60,93 @@ import com.artemchep.keyguard.apple.core.DetailSession
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import org.koin.core.scope.Scope
 
-/** A login and its 2FA challenge belong to one presentation. Main-confined. */
+/**
+ * A login, its SSO step, and its 2FA challenge belong to one presentation. The presentation
+ * starts with the sign-in form, or with the SSO step for an SSO account's re-login. Main-confined.
+ */
 class BitwardenLoginSession internal constructor(
     private val ctx: CoreContext,
     private val fido2PromptHost: Fido2PromptController,
-    private var args: BitwardenLoginRoute.Args?,
+    private var request: LoginRequest?,
     val dialogs: com.artemchep.keyguard.apple.dialog.FormDialogsSession,
     private val onDispose: () -> Unit,
 ) {
+    /** A 2FA challenge and what its success means to the step that raised it. */
+    private class PendingTwofa(
+        val args: BitwardenLoginTwofaRoute.Args,
+        val onSuccess: () -> Unit,
+    )
+
     private val form = DetailSession<LoginSnapshot, LoginActions>(onDispose = ::dispose)
+    private var sso: DetailSession<SsoLoginSnapshot, SsoActions>? = null
+    private var latestSsoArgs: BitwardenSsoRoute.Args? = (request as? LoginRequest.Sso)?.args
     private var twofa: DetailSession<TwofaSnapshot, TwoFactorState?>? = null
-    private var latestTwofaArgs: BitwardenLoginTwofaRoute.Args? = null
+    private var latestTwofa: PendingTwofa? = null
     private var complete: (() -> Unit)? = null
+    private var onTwofaRequired: (() -> Unit)? = null
+    private var onTwofaFinished: (() -> Unit)? = null
     internal var navigationInterceptorProvider: (Scope) -> ((NavigationIntent) -> Boolean) = { { false } }
 
+    /** `true` when the presentation starts with the SSO step instead of the sign-in form. */
+    val startsWithSso: Boolean = request is LoginRequest.Sso
+
+    /**
+     * Observes the presentation. [onTwofaFinished] reports a 2FA challenge
+     * that succeeded without finishing the login, e.g. one raised by SSO.
+     */
     fun observe(
         onChange: (LoginSnapshot) -> Unit,
         onClose: () -> Unit,
         onTwofaRequired: () -> Unit,
+        onTwofaFinished: () -> Unit,
+        onSsoRequired: () -> Unit,
     ): KeyguardCancellable = form.observe(onChange, onClose) { publish, finish ->
         complete = finish
+        this.onTwofaRequired = onTwofaRequired
+        this.onTwofaFinished = onTwofaFinished
         val onOtpRequired = form.gated<BitwardenLoginTwofaRoute.Args> { twofaArgs ->
-            stopTwofa()
-            latestTwofaArgs = twofaArgs
-            onTwofaRequired()
+            startTwofa(twofaArgs) { complete?.invoke() }
         }
-        observeLogin(publish, finish, onOtpRequired)
+        val onSso = form.gated<BitwardenSsoRoute.Args> { ssoArgs ->
+            stopSso()
+            latestSsoArgs = ssoArgs
+            onSsoRequired()
+        }
+        when (val request = request) {
+            // The SSO step is the root: only a vault lock closes it early.
+            is LoginRequest.Sso -> ctx.launchSessionObserver(onLocked = finish) { awaitCancellation() }
+            is LoginRequest.Form -> observeLogin(request.args, publish, finish, onOtpRequired, onSso)
+            null -> KeyguardCancellable {}
+        }
     }
 
     fun close() = form.close()
 
     private fun dispose() {
-        args = null
+        request = null
+        stopSso()
         stopTwofa()
         complete = null
+        onTwofaRequired = null
+        onTwofaFinished = null
         dialogs.close()
         onDispose()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeLogin(
+        args: BitwardenLoginRoute.Args,
         publish: (LoginSnapshot, LoginActions) -> Unit,
         onSuccess: () -> Unit,
         onOtpRequired: (BitwardenLoginTwofaRoute.Args) -> Unit,
+        onSsoRequired: (BitwardenSsoRoute.Args) -> Unit,
     ): KeyguardCancellable {
         val leContext = ctx.koin.get<LeContext>()
-        val args = args ?: BitwardenLoginRoute.Args()
         return ctx.launchSessionObserver(onLocked = onSuccess) { state ->
             // AddAccount is session-scoped; the session scope also
             // resolves global bindings such as the url check.
             val addAccount = state.sessionKoin.get<AddAccount>()
+            val requestEmailTfa = state.sessionKoin.get<RequestEmailTfa>()
             val cipherUnsecureUrlCheck = state.sessionKoin.get<CipherUnsecureUrlCheck>()
             val confirmationRouteFactory = ctx.koin.get<ConfirmationRouteFactory>()
             val discoverBitwardenServer = ctx.koin.get<DiscoverBitwardenServer>()
@@ -110,6 +155,8 @@ class BitwardenLoginSession internal constructor(
             )
                 .bitwardenLoginStateProducer(
                     addAccount = addAccount,
+                    requestEmailTfa = requestEmailTfa,
+                    isSsoAvailable = true,
                     cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
                     confirmationRouteFactory = confirmationRouteFactory,
                     discoverBitwardenServer = discoverBitwardenServer,
@@ -125,17 +172,16 @@ class BitwardenLoginSession internal constructor(
 
             // One-shot side effects, mirroring the Compose screen's
             // CollectedEffect handlers.
+            val effects = latest.filterNotNull()
+                .map { it.effects }
+                .distinctUntilChanged()
             launch {
-                latest.filterNotNull()
-                    .map { it.effects }
-                    .distinctUntilChanged()
+                effects
                     .flatMapLatest { it.onSuccessFlow }
                     .collectOnMain { onSuccess() }
             }
             launch {
-                latest.filterNotNull()
-                    .map { it.effects }
-                    .distinctUntilChanged()
+                effects
                     .flatMapLatest { it.onErrorFlow }
                     .collect { error ->
                         // The shared model surfaces a 2FA challenge as
@@ -147,6 +193,11 @@ class BitwardenLoginSession internal constructor(
                             }
                         }
                     }
+            }
+            launch {
+                effects
+                    .flatMapLatest { it.onSsoFlow }
+                    .collect { ssoArgs -> ctx.publishOnMain { onSsoRequired(ssoArgs) } }
             }
 
             // Snapshot stream. The dynamic Url/HttpHeader items carry
@@ -284,6 +335,7 @@ class BitwardenLoginSession internal constructor(
             canLogin = login.onLoginClick != null,
             canRegister = login.onRegisterClick != null,
             serverDiscovery = login.serverDiscovery?.toSnapshot(),
+            canSso = login.onSsoClick != null,
         )
     }
 
@@ -297,24 +349,148 @@ class BitwardenLoginSession internal constructor(
 
     fun clickLoginRegister() = form.withActions { it.state.onRegisterClick?.invoke() }
 
+    fun startSso() = form.withActions { it.state.onSsoClick?.invoke() }
+
     fun submitLogin() = form.withActions { it.state.onLoginClick?.invoke() }
 
     fun discoverLoginServer() = form.withActions { it.state.serverDiscovery?.onClick?.invoke() }
 
+    // SSO
+
+    /** Runs the SSO step requested by the sign-in form, or the root one. */
+    fun observeSso(onChange: (SsoLoginSnapshot) -> Unit): KeyguardCancellable {
+        val args = latestSsoArgs ?: return KeyguardCancellable {}
+        sso?.close()
+        val child = DetailSession<SsoLoginSnapshot, SsoActions>()
+        sso = child
+        return child.observe(onChange) { publish ->
+            observeSsoSource(
+                args,
+                child,
+                publish,
+                onSuccess = child.gated<Unit> { complete?.invoke() },
+            )
+        }
+    }
+
+    fun stopSso() {
+        sso?.close()
+        sso = null
+        if (!startsWithSso) latestSsoArgs = null
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun observeSsoSource(
+        args: BitwardenSsoRoute.Args,
+        child: DetailSession<SsoLoginSnapshot, SsoActions>,
+        publish: (SsoLoginSnapshot, SsoActions) -> Unit,
+        onSuccess: (Unit) -> Unit,
+    ): KeyguardCancellable = ctx.launchSessionObserver(
+        onLocked = { publish(SsoLoginSnapshot.empty, SsoActions(BitwardenSsoState())) },
+    ) { state ->
+        val service = state.sessionKoin.get<BitwardenSsoService>()
+        val twofaRouteFactory = ctx.koin.get<BitwardenLoginTwofaRouteFactory>()
+        val fallback = navigationInterceptorProvider(state.sessionKoin)
+        // The producer opens 2FA as a route; claim it and run the
+        // 2FA producer as a child step of this presentation instead.
+        // Its result receiver only pops the 2FA route, so it is not called.
+        val interceptor = interceptor@{ intent: NavigationIntent ->
+            val (route, _) = intent.resultRouteOrNull<BitwardenLoginTwofaRoute, Unit>()
+                ?: return@interceptor fallback(intent)
+            ctx.scope.launch {
+                child.runIfOpen {
+                    startTwofa(route.args) {
+                        stopTwofa()
+                        onTwofaFinished?.invoke()
+                    }
+                }
+            }
+            true
+        }
+        ctx.koin.newHeadlessStateFlowScope("bitwardensso", this, interceptor)
+            .bitwardenSsoStateProducer(
+                service = service,
+                twofaRouteFactory = twofaRouteFactory,
+                args = args,
+                transmitter = mainTransmitter(onSuccess),
+            )
+            .throttleLatest()
+            .map { ssoState ->
+                val actions = SsoActions(ssoState)
+                buildSsoSnapshot(ssoState, actions.fields) to actions
+            }
+            .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
+    }
+
+    private fun buildSsoSnapshot(
+        sso: BitwardenSsoState,
+        fieldHandlers: LinkedHashMap<String, (String) -> Unit>,
+    ) = SsoLoginSnapshot(
+        browserId = sso.browser?.request?.state,
+        browserUrl = sso.browser?.request?.browserUrl(SsoRequest.NATIVE_CALLBACK),
+        password = sso.password?.toFieldSnapshot(fieldHandlers),
+        isLoading = sso.isLoading,
+        canUnlock = sso.onUnlock != null,
+        canRetry = sso.onRetry != null,
+    )
+
+    fun setSsoField(id: String, text: String) {
+        sso?.withActions { it.fields[id]?.invoke(text) }
+    }
+
+    fun unlockSso() {
+        sso?.withActions { it.state.onUnlock?.invoke() }
+    }
+
+    fun retrySso() {
+        sso?.withActions { it.state.onRetry?.invoke() }
+    }
+
+    fun completeSso(browserId: String, callback: String?, failed: Boolean) {
+        sso?.withActions {
+            it.state.browser
+                ?.takeIf { prompt -> prompt.request.state == browserId }
+                ?.finish(callback, failed)
+        }
+    }
+
+    /**
+     * A shared producer reports success by invoking its [RouteResultTransmitter]
+     * from the background pipeline; hop to the main scope like every other
+     * Swift-facing callback.
+     */
+    private fun mainTransmitter(onSuccess: (Unit) -> Unit) = object : RouteResultTransmitter<Unit> {
+        override fun invoke(p1: Unit) {
+            ctx.scope.launch { onSuccess(Unit) }
+        }
+    }
+
+    // 2FA
+
+    private fun startTwofa(args: BitwardenLoginTwofaRoute.Args, onSuccess: () -> Unit) {
+        stopTwofa()
+        latestTwofa = PendingTwofa(args, onSuccess)
+        onTwofaRequired?.invoke()
+    }
+
     fun observeTwofa(onChange: (TwofaSnapshot) -> Unit): KeyguardCancellable {
-        val args = latestTwofaArgs ?: return KeyguardCancellable {}
+        val pending = latestTwofa ?: return KeyguardCancellable {}
         twofa?.close()
         val child = DetailSession<TwofaSnapshot, TwoFactorState?>()
         twofa = child
         return child.observe(onChange) { publish ->
-            observeTwofaSource(args, publish, onSuccess = child.gated<Unit> { complete?.invoke() })
+            observeTwofaSource(
+                pending.args,
+                publish,
+                onSuccess = child.gated<Unit> { pending.onSuccess() },
+            )
         }
     }
 
     fun stopTwofa() {
         twofa?.close()
         twofa = null
-        latestTwofaArgs = null
+        latestTwofa = null
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -327,21 +503,10 @@ class BitwardenLoginSession internal constructor(
         return ctx.launchSessionObserver(
             onLocked = { publish(TwofaSnapshot.empty, null) },
         ) { state ->
-            val addAccount = state.sessionKoin.get<AddAccount>()
-            val requestEmailTfa = state.sessionKoin.get<RequestEmailTfa>()
             val cryptoGenerator = ctx.koin.get<CryptoGenerator>()
             val base64Service = ctx.koin.get<Base64Service>()
             val deeplinkService = ctx.koin.get<DeeplinkService>()
             val json = ctx.koin.get<Json>()
-            // The shared 2FA producer reports success by invoking its
-            // RouteResultTransmitter; bridge that to onSuccess(). The
-            // producer fires it from the background pipeline — hop to
-            // the main scope like every other Swift-facing callback.
-            val transmitter = object : RouteResultTransmitter<Unit> {
-                override fun invoke(p1: Unit) {
-                    ctx.scope.launch { onSuccess(Unit) }
-                }
-            }
             val producerFlow = ctx.koin.newHeadlessStateFlowScope(
                 "bitwardentwofa", this, navigationInterceptorProvider(state.sessionKoin),
             )
@@ -350,10 +515,8 @@ class BitwardenLoginSession internal constructor(
                     base64Service = base64Service,
                     deeplinkService = deeplinkService,
                     json = json,
-                    addAccount = addAccount,
-                    requestEmailTfa = requestEmailTfa,
                     args = args,
-                    transmitter = transmitter,
+                    transmitter = mainTransmitter(onSuccess),
                     defaultRememberMe = false,
                 )
             // The producer is cold, so collect it once into a shared StateFlow.
@@ -518,6 +681,11 @@ class BitwardenLoginSession internal constructor(
 private class LoginActions(val state: LoginState) {
     val fields = LinkedHashMap<String, (String) -> Unit>()
     val actions = LinkedHashMap<String, () -> Unit>()
+}
+
+/** The SSO step's callbacks, published atomically with the snapshot built from the same [state]. */
+private class SsoActions(val state: BitwardenSsoState) {
+    val fields = LinkedHashMap<String, (String) -> Unit>()
 }
 
 private fun LoginServerDiscovery.toSnapshot() = LoginServerDiscoverySnapshot(

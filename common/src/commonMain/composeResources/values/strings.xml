@@ -2531,4 +2531,16 @@
     <string name="storage_missing_configuration">This build is missing its shared storage configuration. Install a correctly configured build to continue.</string>
     <string name="storage_unavailable">Keyguard cannot access its storage container. Try again. If the problem persists, check the app’s signing and App Group configuration.</string>
     <string name="storage_unwritable">Keyguard cannot write to its storage container. Check available space and storage access, then try again.</string>
+    <string name="sso_login">Log in with SSO</string>
+    <string name="sso_unlock">Continue</string>
+    <string name="sso_unlock_note">Enter your Bitwarden master password to decrypt your account.</string>
+    <string name="sso_browser_note">Complete sign-in in your browser, then return to Keyguard.</string>
+    <string name="sso_browser_success">You can close this page and return to Keyguard.</string>
+    <string name="sso_error_callback">The SSO response does not match this sign-in attempt. Try again.</string>
+    <string name="sso_error_authentication">SSO sign-in could not be completed. Try again.</string>
+    <string name="sso_error_unsupported">This account needs a decryption method or account setup that Keyguard does not support. Open the web vault to continue.</string>
+    <string name="sso_error_password">Wrong master password for this Bitwarden account. Try again.</string>
+    <string name="sso_error_key_connector">Could not get the decryption key from Key Connector. Try again.</string>
+    <string name="sso_error_account">SSO returned a different account. Sign in with the email and server selected in Keyguard.</string>
+    <string name="sso_error_ports">The local SSO callback ports are busy. Close other sign-in attempts and try again.</string>
 </resources>

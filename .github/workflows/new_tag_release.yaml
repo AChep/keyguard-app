@@ -203,14 +203,6 @@ jobs:
         run: |
           echo "" >> gradle.properties
           echo "cert_identity=${{ secrets.CERT_IDENTITY }}" >> gradle.properties
-      - name: "Setup notarization config"
-        run: |
-          {
-            echo ""
-            echo "notarization_apple_id=${{ secrets.NOTARIZATION_APPLE_ID }}"
-            echo "notarization_password=${{ secrets.NOTARIZATION_PASSWD }}"
-            echo "notarization_asc_provider=${{ secrets.NOTARIZATION_ASC_PROVIDER }}"
-          } >> gradle.properties
       - name: "Build release app image"
         run: >-
           ./gradlew
@@ -221,11 +213,10 @@ jobs:
         run: |
           codesign --verify --strict --verbose=2 \
             desktopApp/build/compose/binaries/main-release/app/Keyguard.app
-      - name: "Build and notarize DMG"
+      - name: "Build DMG"
         run: >-
           ./gradlew
           :desktopApp:packageReleaseDmg
-          :desktopApp:notarizeReleaseDmg
           -x :desktopApp:createReleaseDistributable
           -Pkeyguard.nativeCargo.cargoOffline=true
       - name: "Verify final DMG native bundle"
@@ -256,7 +247,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
-          name: logs-mac-${{ matrix.arch }}
+          name: logs-mac-${{ matrix.arch }}-build-${{ github.run_attempt }}
           path: desktopApp/build/compose/logs/**/*.txt
           retention-days: 30
       - name: "Upload binaries"
@@ -264,16 +255,62 @@ jobs:
         with:
           name: binaries-mac-${{ matrix.arch }}
           path: desktopApp/build/compose/binaries/main-release/**
+          overwrite: true
           retention-days: 1
       - name: "Add a suffix to the artifacts"
         run: |
           cd desktopApp/build/compose/binaries/main-release/dmg
           for f in * ; do mv -- "$f" "$(echo "$f" | sed -nE 's/^(.*)(\..*)$/\1-${{ matrix.arch }}\2/p')" ; done
-      - name: "Upload .dmg"
+      - name: "Upload DMG for notarization"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: notarization-input-mac-${{ matrix.arch }}
+          path: desktopApp/build/compose/binaries/main-release/dmg/*.dmg
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 1
+  notarize-macos-app:
+    runs-on: macos-15
+    needs:
+      - build-macos-app
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [apple, intel]
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Download signed DMG"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: notarization-input-mac-${{ matrix.arch }}
+          path: artifacts
+      - name: "Notarize and staple DMG"
+        shell: bash
+        env:
+          NOTARIZATION_APPLE_ID: ${{ secrets.NOTARIZATION_APPLE_ID }}
+          NOTARIZATION_PASSWD: ${{ secrets.NOTARIZATION_PASSWD }}
+          NOTARIZATION_ASC_PROVIDER: ${{ secrets.NOTARIZATION_ASC_PROVIDER }}
+        run: bash .github/notarize_macos_dmg.sh artifacts notarization-logs
+      - name: "Upload notarization logs"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: logs-mac-${{ matrix.arch }}-notarization-${{ github.run_attempt }}
+          path: notarization-logs/
+          retention-days: 30
+      - name: "Upload notarized DMG"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-mac-${{ matrix.arch }}
-          path: desktopApp/build/compose/binaries/main-release/dmg/*.dmg
+          path: artifacts/*.dmg
+          if-no-files-found: error
+          overwrite: true
           retention-days: 1
   build-linux-app:
     runs-on: ${{ matrix.runner }}
@@ -885,7 +922,7 @@ jobs:
       - build-android-app
       - build-android-ssh-agent
       - build-linux-app
-      - build-macos-app
+      - notarize-macos-app
       - build-windows-app
       - check-windows-msi
     env:

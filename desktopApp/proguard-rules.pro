@@ -119,6 +119,11 @@
 -keep class com.artemchep.keyguard.common.model.DFilter { *; }
 -keep class com.artemchep.keyguard.common.model.DFilter$** { *; }
 
+# ProGuard 7.8 drops App from VaultUriIcon's permitted subclasses while
+# retaining the interface, so loading it crashes the vault item details screen.
+-keep class com.artemchep.keyguard.feature.home.vault.model.VaultUriIcon { *; }
+-keep class com.artemchep.keyguard.feature.home.vault.model.VaultUriIcon$** { *; }
+
 # ProGuard 7.8 can produce invalid return bytecode when optimizing Compose's
 # generated Desktop paragraph factory. Keep shrinking enabled for the class,
 # but preserve its method bodies.

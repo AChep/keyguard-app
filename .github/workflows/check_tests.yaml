@@ -173,6 +173,8 @@ jobs:
               :util:ffi:desktopTest
               :util:io:desktopTest
               :util:instance:desktopTest
+              :util:windows-passkeys:checkComposeFree
+              :util:windows-passkeys:desktopTest
               :util:fido2:checkComposeFree
               :util:fido2:desktopTest
               :util:yubikey:checkComposeFree

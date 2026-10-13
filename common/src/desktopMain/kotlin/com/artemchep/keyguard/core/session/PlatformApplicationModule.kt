@@ -63,6 +63,8 @@ import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.PlatformLogSinkRegistry
 import com.artemchep.keyguard.common.service.logging.kotlin.LogRepositoryKotlin
+import com.artemchep.keyguard.common.service.passkey.WindowsPasskeyModule
+import com.artemchep.keyguard.common.service.passkey.WindowsPasskeyService
 import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.review.ReviewService
@@ -74,6 +76,7 @@ import com.artemchep.keyguard.common.service.text.impl.TextServiceImpl
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.CleanUpAttachment
 import com.artemchep.keyguard.common.usecase.ClearData
+import com.artemchep.keyguard.common.usecase.ClearDataHookRegistry
 import com.artemchep.keyguard.common.usecase.GetBarcodeImage
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
@@ -186,12 +189,14 @@ class SubscriptionServiceAndroid : SubscriptionService {
 class ClearDataAndroid(
     private val logRepository: LogRepository,
     private val dataDirectory: DataDirectory,
+    private val hooks: ClearDataHookRegistry,
 ) : ClearData {
     companion object {
         private const val TAG = "ClearData"
     }
 
     override fun invoke(): IO<Unit> = ioEffect {
+        hooks.values.forEach { it.beforeClearData() }
         val ios = listOf(
             dataDirectory.data().flatMap(::delete.partially1("data")),
             dataDirectory.cache().flatMap(::delete.partially1("cache")),
@@ -251,9 +256,18 @@ class CacheDirProviderJvm(
 class PlatformApplicationModule {
     val module = module {
         includes(GlobalModuleJvm().module)
+        includes(WindowsPasskeyModule().module)
         single { PlatformLinkInfoExtractorRegistry(emptyList()) }
         single { PlatformLogSinkRegistry(listOf(get<LogRepositoryKotlin>())) }
         single { WorkerRegistry(listOf(get<BackupSchedulerWorker>())) }
+        single {
+            ClearDataHookRegistry(
+                when (CurrentPlatform) {
+                    is Platform.Desktop.Windows -> listOf(get<WindowsPasskeyService>())
+                    else -> emptyList()
+                },
+            )
+        }
 
         factory<LeContext> {
             LeContext()
@@ -417,6 +431,7 @@ class PlatformApplicationModule {
             ClearDataAndroid(
                 logRepository = get(),
                 dataDirectory = get(),
+                hooks = get(),
             )
         }
         single<KeyValueStoreFactory> { DesktopKeyValueStoreFactory(get(), get()) }

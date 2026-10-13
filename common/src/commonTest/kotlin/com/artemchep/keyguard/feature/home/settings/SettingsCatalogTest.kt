@@ -2,6 +2,8 @@ package com.artemchep.keyguard.feature.home.settings
 
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.passkeys
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -43,6 +45,18 @@ class SettingsCatalogTest {
         assertFalse("debug" in releaseIds)
         val debugIds = ids(false)
         assertTrue(debugIds.containsAll(listOf("autofill", "automatic_backups", "debug", "notifications")))
+    }
+
+    @Test
+    fun `release Windows offers autofill settings for its passkey provider`() {
+        val items = settingsCatalog(
+            config = FlavorConfig(isFreeAsBeer = true),
+            platform = Platform.Desktop.Windows,
+            release = true,
+        )
+        val autofill = items.filterIsInstance<SettingsCatalogItem.Action>()
+            .single { it.destination == SettingsDestination.AUTOFILL }
+        assertEquals(Res.string.passkeys, autofill.text)
     }
 
     @Test

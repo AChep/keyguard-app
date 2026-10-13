@@ -91,6 +91,11 @@ gradlePlugin {
             implementationClass =
                 "com.artemchep.keyguard.buildplugins.cargo.RustDesktopLibraryPlugin"
         }
+        register("rustJniLibrary") {
+            id = "keyguard.rust-jni-library"
+            implementationClass =
+                "com.artemchep.keyguard.buildplugins.cargo.RustJniLibraryPlugin"
+        }
         register("rustAppleLibrary") {
             id = "keyguard.rust-apple-library"
             implementationClass =

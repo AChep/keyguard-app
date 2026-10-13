@@ -855,6 +855,7 @@
     <string name="error_quick_search_autotype_busy">Auto-type already running</string>
     <string name="error_quick_search_autotype_keys_held">Release all keys and mouse buttons, then try again</string>
     <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <string name="error_credential_not_stored">This item cannot store the credential.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
@@ -2543,4 +2544,14 @@
     <string name="sso_error_key_connector">Could not get the decryption key from Key Connector. Try again.</string>
     <string name="sso_error_account">SSO returned a different account. Sign in with the email and server selected in Keyguard.</string>
     <string name="sso_error_ports">The local SSO callback ports are busy. Close other sign-in attempts and try again.</string>
+    <string name="passkey_provider_consent">Your system will store the websites and account names of your passkeys so it can suggest them while Keyguard is locked. Private keys stay in your encrypted vault.</string>
+    <string name="passkey_provider_unsupported">Update your operating system to use Keyguard as a passkey provider.</string>
+    <string name="passkey_provider_unpackaged">Install Keyguard from the Microsoft Store or an MSIX package to use passkeys.</string>
+    <string name="passkey_provider_unregistered">Register Keyguard to save and use passkeys in apps and browsers.</string>
+    <string name="passkey_provider_disabled">Registered. Enable Keyguard in your system's passkey settings.</string>
+    <string name="passkey_provider_enabled">Keyguard can save and use passkeys.</string>
+    <string name="passkey_provider_error">Could not complete the passkey request</string>
+    <string name="passkey_provider_unavailable">The passkey provider is unavailable. Restart Keyguard and try again.</string>
+    <string name="passkey_provider_cache_error">Passkey suggestions could not be updated. Keyguard will retry while your vault is unlocked.</string>
+    <string name="passkey_provider_open_settings">Open passkey settings</string>
 </resources>

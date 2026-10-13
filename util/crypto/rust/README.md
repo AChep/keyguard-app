@@ -72,7 +72,7 @@ Install `protoc`, then verify that the checked-in Rust protocol still matches
 the wire schema before running the workspace checks:
 
 ```sh
-cargo run --manifest-path ../tools/native-crypto-protocol/Cargo.toml --locked -- check
+python3 ../../../scripts/native_protocol.py check crypto
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --locked --no-deps -- -D warnings
 cargo test --workspace --all-targets --locked
@@ -86,7 +86,7 @@ After changing `../schema/native_crypto.proto`, regenerate the Rust protocol
 with:
 
 ```sh
-cargo run --manifest-path ../tools/native-crypto-protocol/Cargo.toml --locked -- generate
+python3 ../../../scripts/native_protocol.py generate crypto
 ```
 
 Run the bounded fuzz targets with `cargo fuzz run dispatch`,

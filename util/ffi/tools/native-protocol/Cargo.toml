@@ -1,5 +1,5 @@
 [package]
-name = "native-crypto-protocol"
+name = "native-protocol"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.94.0"
@@ -10,7 +10,7 @@ publish = false
 [workspace]
 
 [dependencies]
-# Keep code generation aligned with the runtime used by the crypto workspace.
+# Keep code generation aligned with the runtime of the crypto and root workspaces.
 prost-build = "=0.13.5"
 
 [lints.rust]

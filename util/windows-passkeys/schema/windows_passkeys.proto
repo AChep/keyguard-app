@@ -1,0 +1,179 @@
+syntax = "proto3";
+
+// The bridge between Keyguard and its Windows passkey provider. It carries public
+// metadata and signatures only, never vault keys.
+//
+// Rust types are generated from this file. Kotlin mirrors it in
+// WindowsPasskeyProtocol.kt. Both test suites check the shared encodings in fixtures/.
+//
+// Add fields and variants under new numbers. Reserve a removed number; never reuse it.
+// Bump ABI_VERSION in lib.rs and WindowsPasskeys.kt only for an incompatible change.
+
+package keyguard.windowspasskeys.v1;
+
+message Empty {}
+
+// Kotlin to Rust, one per call.
+message Command {
+  oneof command {
+    Empty status = 1;
+    Empty register = 2;
+    Empty unregister = 3;
+    // Empties the OS index.
+    Empty clear = 4;
+    Empty stop = 5;
+    // Stops serving unless Windows still waits on a request; replies whether it stopped.
+    Empty retire = 6;
+    // Understood without a provider, on every platform.
+    Empty limits = 7;
+    NextCommand next = 8;
+    SetLockedCommand set_locked = 9;
+    CompleteCommand complete = 10;
+    VerifyCommand verify = 11;
+    SyncCommand sync = 12;
+    // Serves Windows' requests until stop or retire; serving already is no change. Only
+    // this command starts serving, and it can start again after a failure or a stop.
+    Empty start = 13;
+  }
+}
+
+// Long-polls for the next event.
+message NextCommand {
+  // The request the host already knows.
+  optional uint64 active = 1;
+  // Without one, waits as long as the bridge allows.
+  optional uint64 timeout_ms = 2;
+}
+
+message SetLockedCommand {
+  bool locked = 1;
+}
+
+message CompleteCommand {
+  uint64 id = 1;
+  Response response = 2;
+  // Why a request without a response ended. Unspecified: Keyguard abandoned it.
+  Failure failure = 3;
+}
+
+// Verifies the user for the request, which Windows requires before it receives a response.
+message VerifyCommand {
+  uint64 id = 1;
+  // A sign-extended window handle.
+  int64 window = 2;
+  string username = 3;
+  string hint = 4;
+  // The user unlocked the vault during this request, which verified them: no Windows Hello.
+  bool unlocked = 5;
+}
+
+message SyncCommand {
+  repeated Identity identities = 1;
+}
+
+// Rust to Kotlin, exactly one outcome per command.
+message Reply {
+  oneof outcome {
+    // A failure HRESULT, or a negative bridge code. Never zero.
+    sint32 error = 1;
+    // Success without a value.
+    Empty done = 2;
+    Status status = 3;
+    Event event = 4;
+    Limits limits = 5;
+    bool retired = 6;
+  }
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_UNSUPPORTED = 1;
+  STATUS_UNPACKAGED = 2;
+  STATUS_UNAVAILABLE = 3;
+  STATUS_UNREGISTERED = 4;
+  STATUS_DISABLED = 5;
+  STATUS_ENABLED = 6;
+}
+
+enum UserVerification {
+  USER_VERIFICATION_UNSPECIFIED = 0;
+  USER_VERIFICATION_REQUIRED = 1;
+  USER_VERIFICATION_PREFERRED = 2;
+  USER_VERIFICATION_DISCOURAGED = 3;
+}
+
+// Why a request ends without a response. Windows reports it to the site.
+enum Failure {
+  FAILURE_UNSPECIFIED = 0;
+  FAILURE_DISMISSED = 1;
+  // The vault holds a passkey that the site excludes.
+  FAILURE_EXCLUDED = 2;
+  // The vault holds none of the passkeys that the site asked for.
+  FAILURE_NOT_FOUND = 3;
+}
+
+// What the long poll woke for.
+message Event {
+  // The request Windows waits on, until the host passes its ID back as known.
+  Request request = 1;
+  optional uint64 active_id = 2;
+  bool closed = 3;
+  // Windows reports status changes, which then end the wait.
+  bool watching = 4;
+}
+
+message Request {
+  uint64 id = 1;
+  bool create = 2;
+  // A sign-extended window handle.
+  int64 window = 3;
+  string rp_id = 4;
+  bytes client_data_hash = 5;
+  UserVerification user_verification = 6;
+  // The allowed credentials of a sign-in, or the excluded ones of a registration.
+  repeated Descriptor credentials = 7;
+  // Registration only.
+  User user = 8;
+  optional string rp_name = 9;
+  repeated int32 algorithms = 10;
+  bool discoverable = 11;
+  // The time left before Windows stops waiting, as of the delivery.
+  uint64 expires_in_ms = 12;
+}
+
+message Descriptor {
+  bytes id = 1;
+  string type = 2;
+}
+
+message User {
+  bytes id = 1;
+  string name = 2;
+  string display_name = 3;
+}
+
+message Response {
+  bytes authenticator_data = 1;
+  // Sign-in only.
+  optional bytes credential_id = 2;
+  optional bytes signature = 3;
+  optional bytes user_handle = 4;
+}
+
+// Windows retains these while the vault is locked.
+message Identity {
+  bytes credential_id = 1;
+  string rp_id = 2;
+  string rp_name = 3;
+  bytes user_id = 4;
+  string user_name = 5;
+  string user_display_name = 6;
+}
+
+// What the bridge accepts in an Identity. Kotlin checks entries against them before a sync.
+message Limits {
+  uint32 credential_id_bytes = 1;
+  uint32 user_id_bytes = 2;
+  // UTF-8 bytes of any text.
+  uint32 text_bytes = 3;
+}

@@ -47,8 +47,27 @@ internal class DesktopInstance private constructor(
     }
 
     companion object {
+        /** Long enough for an exiting instance, such as a retired passkey process, to terminate. */
+        private const val OWNER_EXIT_TIMEOUT_MILLIS = 10_000L
+
         /** Null means another instance accepted activation. No vault services are started. */
-        fun acquire(): DesktopInstance? {
+        fun acquire(): DesktopInstance? = arbitrate { configuration ->
+            when (val result = InstanceCoordinator.acquireOrActivate(configuration)) {
+                is InstanceResult.Primary -> result.instance
+                InstanceResult.Activated -> null
+            }
+        }
+
+        /**
+         * For a process the OS started to serve a request. Activating a running instance would
+         * show its window and leave the request unanswered, so this waits for that instance to
+         * exit instead. Null means it kept running.
+         */
+        fun acquireWithoutActivation(): DesktopInstance? = arbitrate { configuration ->
+            InstanceCoordinator.acquire(configuration.copy(timeoutMillis = OWNER_EXIT_TIMEOUT_MILLIS))
+        }
+
+        private inline fun arbitrate(takeOwnership: (InstanceConfig) -> PrimaryInstance?): DesktopInstance? {
             val identity = if (isRelease) "keyguard" else "keyguard-dev"
             val dataDirectory = Path.of(DataDirectory().dataBlocking()).toAbsolutePath()
             val configuration = InstanceConfig(
@@ -56,10 +75,7 @@ internal class DesktopInstance private constructor(
                 runtimeDirectory = instanceRuntimeDirectory().toString(),
                 identity = identity,
             )
-            val primary = when (val result = InstanceCoordinator.acquireOrActivate(configuration)) {
-                is InstanceResult.Primary -> result.instance
-                InstanceResult.Activated -> return null
-            }
+            val primary = takeOwnership(configuration) ?: return null
             return try {
                 DesktopInstance(primary)
             } catch (e: Exception) {

@@ -149,8 +149,8 @@ internal class PasskeyController(
         )
         // A failed save returns null; a cancelled request stays cancelled.
         val stored = runCatchingNonFatal { di.get<AddCredentialCipher>()(request).bind() }
-            .getOrDefault(false)
-        if (!stored) return null
+            .getOrNull()
+        if (stored != AddCredentialCipher.Result.Stored) return null
 
         return PasskeyRegistrationSnapshot(
             credentialId = result.credentialId,

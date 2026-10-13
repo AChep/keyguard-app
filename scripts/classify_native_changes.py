@@ -71,11 +71,18 @@ def classify(paths, *, full=False, all_checks=False):
         if path in {"Cargo.toml", "Cargo.lock"}:
             enable(*(flag for flag in FLAGS if flag not in {"crypto", "fuzz", "wear"}))
             continue
+        if path == "scripts/native_protocol.py":
+            enable("crypto", "native_quality")
+            continue
         if path.startswith("scripts/") and ("native" in path or "bouncycastle" in path):
             enable("desktop", "android", "apple")
             continue
         if path.startswith(".github/native-crypto-"):
             enable("crypto", "desktop", "android", "apple")
+            continue
+        # The protocol generator ships in no bridge; the protocol drift checks run it.
+        if path.startswith("util/ffi/tools/"):
+            enable("crypto", "native_quality")
             continue
         # Every native bridge consumes util/ffi: the Rust crate by path, the
         # JNI loader and handle runner as a Kotlin dependency.
@@ -86,7 +93,7 @@ def classify(paths, *, full=False, all_checks=False):
                     continue
             enable("io", "instance", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
             continue
-        module = re.match(r"util/(crypto|dns|io|zxcvbn|zip|instance|webauthn|yubikey|fido2)/(.+)", path)
+        module = re.match(r"util/(crypto|dns|io|zxcvbn|zip|instance|webauthn|yubikey|fido2|windows-passkeys)/(.+)", path)
         if module:
             name, relative = module.groups()
             if name in {"yubikey", "fido2"}:
@@ -101,6 +108,19 @@ def classify(paths, *, full=False, all_checks=False):
             source_set = source_match.group(1) if source_match else ""
             test_source = source_set.endswith("Test")
             rust_test = relative.startswith("rust/") and is_rust_test_path(relative)
+            if name == "windows-passkeys":
+                # Keep Windows coverage for test-only changes without building app packages.
+                enable("desktop_regressions")
+                if relative.startswith("abi/"):
+                    # The pinned headers, probe and integration runner are test infrastructure.
+                    enable("native_quality")
+                    continue
+                # The schema drives the generated Rust and the fixture tests of both sides.
+                if relative.startswith(("rust/", "schema/")):
+                    enable("native_quality")
+                if not (test_source or rust_test or relative.startswith("schema/fixtures/")):
+                    enable("desktop")
+                continue
             if name == "crypto":
                 if relative.startswith("rust/fuzz/"):
                     enable("fuzz")

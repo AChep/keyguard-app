@@ -20,6 +20,8 @@ private const val NAV_TAG = "Navigation"
 internal fun handleNavigationIntent(
     exitApplication: () -> Unit,
     intent: NavigationIntent,
+    // A request window closes itself, but an explicit exit (e.g. after erasing data) must quit.
+    popRoot: () -> Unit,
     showMessage: ShowMessage,
     translatorScope: TranslatorScope,
     logRepository: LogRepository,
@@ -42,7 +44,7 @@ internal fun handleNavigationIntent(
         is NavigationIntent.Pop -> {
             val msg = "Called Activity.finish() manually. We should have stopped " +
                     "intercepting back button presses."
-            exitApplication()
+            popRoot()
         }
         // Exit.
         is NavigationIntent.Exit -> {

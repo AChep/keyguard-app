@@ -60,6 +60,7 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRouteFactory
+import com.artemchep.keyguard.feature.passkeys.passkeyPickAction
 import com.artemchep.keyguard.leof
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -821,18 +822,7 @@ internal fun RememberStateFlowScope.buildVaultBadgeTapActions(
     },
     onClickPasskey = { credential ->
         if (mode is AppMode.PickPasskey) {
-            val matches = passkeyTargetCheck(credential, mode.target)
-                .attempt()
-                .bind()
-                .isRight { it }
-            if (matches) {
-                // lambda
-                {
-                    mode.onComplete(credential)
-                }
-            } else {
-                null
-            }
+            passkeyPickAction(mode, secret, credential, passkeyTargetCheck)
         } else {
             // lambda
             {

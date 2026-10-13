@@ -19,7 +19,7 @@ from typing import Iterable
 SMOKE_ARGUMENT = "--native-packaged-smoke"
 SUCCESS_PREFIX = "native packaged smoke passed:"
 REQUIRED_MARKERS = (
-    "crypto=PASS", "io=PASS", "zxcvbn=PASS", "instance=PASS",
+    "crypto=PASS", "io=PASS", "zxcvbn=PASS", "instance=PASS", "windowsPasskeys=PASS",
     "desktopBridge=PASS", "sshHelper=PASS", "gpgHelper=PASS", "koin=PASS", "tls=PASS",
 )
 RESULT_PATH_ENV = "KEYGUARD_NATIVE_SMOKE_RESULT_PATH"

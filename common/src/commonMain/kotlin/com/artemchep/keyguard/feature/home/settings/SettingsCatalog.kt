@@ -8,6 +8,7 @@ import com.artemchep.keyguard.platform.util.hasSubscription
 import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.passkeys
 import com.artemchep.keyguard.res.pref_item_appearance_text
 import com.artemchep.keyguard.res.pref_item_appearance_title
 import com.artemchep.keyguard.res.pref_item_autofill_text
@@ -93,7 +94,8 @@ fun settingsCatalog(
     SettingsCatalogItem.Action(
         destination = SettingsDestination.AUTOFILL,
         title = Res.string.pref_item_autofill_title,
-        text = Res.string.pref_item_autofill_text,
+        // Windows has only the passkey provider.
+        text = if (platform is Platform.Desktop.Windows) Res.string.passkeys else Res.string.pref_item_autofill_text,
     ).takeIf { includeAutofill },
     SettingsCatalogItem.Action(
         destination = SettingsDestination.SECURITY,

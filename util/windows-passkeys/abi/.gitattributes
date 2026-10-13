@@ -1,0 +1,2 @@
+# Preserve upstream bytes so checksum verification also works with core.autocrlf.
+headers/* -text

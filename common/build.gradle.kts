@@ -289,6 +289,7 @@ kotlin {
 
         getByName("desktopMain") {
             dependencies {
+                api(project(":util:windows-passkeys"))
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.google.zxing.javase)
                 implementation(libs.harawata.appdirs)

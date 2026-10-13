@@ -56,6 +56,7 @@ import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.notification.NotificationRepository
+import com.artemchep.keyguard.common.service.passkey.WindowsPasskeyService
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.quicksearch.DesktopLibGlobalHotKeyRegistrar
 import com.artemchep.keyguard.common.service.quicksearch.QuickSearchHotkeyService
@@ -92,6 +93,8 @@ import com.artemchep.keyguard.core.session.PlatformApplicationModule
 import com.artemchep.keyguard.core.session.usecase.PlatformVaultModule
 import com.artemchep.keyguard.desktop.WindowStateManager
 import com.artemchep.keyguard.desktop.instance.DesktopInstance
+import com.artemchep.keyguard.desktop.passkey.WINDOWS_PASSKEY_PROVIDER_ARGUMENT
+import com.artemchep.keyguard.desktop.passkey.WindowsPasskeyActivationExitEffect
 import com.artemchep.keyguard.desktop.instance.instanceFailureDetails
 import com.artemchep.keyguard.desktop.instance.showInstanceFailure
 import com.artemchep.keyguard.desktop.nativebundle.NATIVE_PACKAGED_SMOKE_ARGUMENT
@@ -106,6 +109,7 @@ import com.artemchep.keyguard.desktop.services.notification.NotificationReposito
 import com.artemchep.keyguard.desktop.ui.GpgRequestWindow
 import com.artemchep.keyguard.desktop.ui.QuickSearchWindow
 import com.artemchep.keyguard.desktop.ui.SshRequestWindow
+import com.artemchep.keyguard.desktop.ui.WindowsPasskeyRequestHost
 import com.artemchep.keyguard.desktop.util.AppReopenedListenerEffect
 import com.artemchep.keyguard.desktop.util.awaitVisible
 import com.artemchep.keyguard.desktop.util.handleNavigationIntent
@@ -146,6 +150,7 @@ import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.util.foundation.crypto.ensurePlatformCryptoReady
+import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeys
 import dev.nucleusframework.composenativetray.tray.api.Tray
 import java.util.Locale
 import kotlin.system.exitProcess
@@ -184,15 +189,28 @@ fun main(args: Array<String>) {
         runNativePackagedSmoke()
         return
     }
+    val passkeyActivation = WINDOWS_PASSKEY_PROVIDER_ARGUMENT in args
     val instance = try {
-        DesktopInstance.acquire()
+        if (passkeyActivation) {
+            // An owner that kept running cannot answer Windows; show it instead of failing silently.
+            DesktopInstance.acquireWithoutActivation() ?: DesktopInstance.acquire()
+        } else {
+            DesktopInstance.acquire()
+        }
     } catch (e: Exception) {
         showInstanceFailure(e)
         exitProcess(1)
     }
         ?: return
     try {
-        runKeyguardApplication(instance)
+        // COM registration must precede vault initialization, including a headless OS activation,
+        // and any other use of COM: the first native call sets the process's COM security.
+        // A failed start is retried once the passkey service runs.
+        runCatching { WindowsPasskeys.start() }
+        Runtime.getRuntime().addShutdownHook(
+            Thread({ runCatching { WindowsPasskeys.stop() } }, "Keyguard passkey shutdown"),
+        )
+        runKeyguardApplication(instance, passkeyActivation = passkeyActivation)
     } finally {
         // Compose exits the JVM directly. Do not release ownership while GlobalScope workers
         // can still access shared state; the OS reclaims the locks at process termination.
@@ -230,7 +248,7 @@ private class DesktopApplicationModule {
 }
 
 @OptIn(ExperimentalTime::class)
-private fun runKeyguardApplication(desktopInstance: DesktopInstance) {
+private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActivation: Boolean) {
     ensurePlatformCryptoReady()
 
     // Allow the app to use system default proxies:
@@ -239,6 +257,8 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance) {
 
     val koinApplication = createDesktopKoinApplication()
     val koin = koinApplication.koin
+    val windowsPasskeys = koin.get<WindowsPasskeyService>()
+    windowsPasskeys.start()
 
     // Construct the image loader singleton to match what
     // we have set in the application's DI.
@@ -335,7 +355,16 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance) {
     }
 
     // timeout
-    val vaultSessionLocker: VaultSessionLocker by lazy { koin.get() }
+    val vaultSessionLocker: VaultSessionLocker = koin.get()
+    if (passkeyActivation) {
+        // A persisted session can be restored by COM activation without any resumed window.
+        // A normal launch arms the timer once its main window is released, so a slow cold
+        // start cannot trip an immediate timeout before that window appears.
+        GlobalScope.launch {
+            getVaultSession().first()
+            vaultSessionLocker.start()
+        }
+    }
     processLifecycleProvider.lifecycleStateFlow
         .onState(minActiveState = LeLifecycleState.RESUMED) {
             vaultSessionLocker.keepAlive()
@@ -377,9 +406,19 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance) {
             val isWindowOpenState = remember {
                 mutableStateOf(true)
             }
+            // A COM activation only needs the request window. Creating the hidden main
+            // window also composes its unlock screen and can queue another Hello prompt.
+            val isMainWindowCreatedState = remember {
+                mutableStateOf(!passkeyActivation)
+            }
+            WindowsPasskeyRequestHost(
+                service = windowsPasskeys,
+                processLifecycleProvider = processLifecycleProvider,
+            )
             val onWindowOpen = remember(isWindowOpenState) {
                 // lambda
                 {
+                    isMainWindowCreatedState.value = true
                     isWindowOpenState.value = true
                     // If the window is minimized then clicking
                     // the tray should also bring the window back
@@ -716,20 +755,33 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance) {
             } else {
                 isWindowOpenState.value = true
             }
-            KeyguardMainWindow(
-                processLifecycleProvider = processLifecycleProvider,
-                stateManager = windowStateManager,
-                visible = isWindowOpenState.value,
-                onReopenRequest = onWindowOpen,
-                onCloseRequest = {
-                    val shouldCloseToTray = getCloseToTrayState.value
-                    if (shouldCloseToTray) {
-                        isWindowOpenState.value = false
-                    } else {
-                        exitApplication()
-                    }
-                },
-            )
+            if (passkeyActivation) {
+                // Without a window or the tray, nothing would ever end this process.
+                WindowsPasskeyActivationExitEffect(
+                    service = windowsPasskeys,
+                    getVaultSession = getVaultSession,
+                    inTray = getCloseToTrayState.value,
+                    onRetired = desktopInstance::stop,
+                )
+            }
+            // Once opened, retain the main window when closing to the tray so its
+            // navigation state survives subsequent passkey requests and reopenings.
+            if (isMainWindowCreatedState.value) {
+                KeyguardMainWindow(
+                    processLifecycleProvider = processLifecycleProvider,
+                    stateManager = windowStateManager,
+                    visible = isWindowOpenState.value,
+                    onReopenRequest = onWindowOpen,
+                    onCloseRequest = {
+                        val shouldCloseToTray = getCloseToTrayState.value
+                        if (shouldCloseToTray) {
+                            isWindowOpenState.value = false
+                        } else {
+                            exitApplication()
+                        }
+                    },
+                )
+            }
         }
     }
 }
@@ -911,6 +963,7 @@ private fun KeyguardWindowEssentialsProvider(
 @Composable
 internal fun ApplicationScope.KeyguardWindowScaffold(
     navigationBackHandler: BackHandler,
+    onRootPop: () -> Unit = ::exitApplication,
     content: @Composable () -> Unit,
 ) {
     DesktopNavigationBackHandler(navigationBackHandler)
@@ -927,6 +980,7 @@ internal fun ApplicationScope.KeyguardWindowScaffold(
         ) {
             Navigation(
                 exitApplication = ::exitApplication,
+                popRoot = onRootPop,
                 handler = navigationBackHandler,
             ) {
                 content()
@@ -984,6 +1038,7 @@ private fun Content() {
 @Composable
 private fun Navigation(
     exitApplication: () -> Unit,
+    popRoot: () -> Unit = exitApplication,
     handler: BackHandler = remember { BackHandler() },
     block: @Composable () -> Unit,
 ) = NavigationRouterBackHandler(
@@ -1002,6 +1057,7 @@ private fun Navigation(
             handleNavigationIntent(
                 exitApplication = exitApplication,
                 intent = intent,
+                popRoot = popRoot,
                 showMessage = showMessage,
                 translatorScope = translatorScope,
                 logRepository = logRepository,

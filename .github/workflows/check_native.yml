@@ -111,14 +111,15 @@ jobs:
       - name: "Check native crypto protocol drift"
         run: |
           cargo fmt \
-            --manifest-path util/crypto/tools/native-crypto-protocol/Cargo.toml \
+            --manifest-path util/ffi/tools/native-protocol/Cargo.toml \
             --all -- --check
           cargo clippy \
-            --manifest-path util/crypto/tools/native-crypto-protocol/Cargo.toml \
+            --manifest-path util/ffi/tools/native-protocol/Cargo.toml \
             --all-targets --locked -- -D warnings
-          cargo run \
-            --manifest-path util/crypto/tools/native-crypto-protocol/Cargo.toml \
-            --locked -- check
+          cargo test \
+            --manifest-path util/ffi/tools/native-protocol/Cargo.toml \
+            --locked
+          python3 scripts/native_protocol.py check crypto
       - name: "Check formatting"
         working-directory: util/crypto/rust
         run: cargo fmt --all -- --check
@@ -335,11 +336,15 @@ jobs:
       - uses: ./.github/actions/setup_rust
         with:
           cache-key: native-quality
+      - uses: ./.github/actions/setup_protobuf
+      - name: "Check native utility protocol drift"
+        run: >-
+          python3 scripts/native_protocol.py check windows-passkeys
       - name: "Format, lint and test native utility crates"
         shell: bash
         run: |
           # One module at a time, so features never unify across modules.
-          for module in ffi io instance zip zxcvbn yubikey fido2; do
+          for module in ffi io instance zip zxcvbn yubikey fido2 windows-passkeys; do
             packages=()
             for crate in util/"$module"/rust/crates/*/; do
               packages+=(-p "$(basename "$crate")")
@@ -465,10 +470,22 @@ jobs:
           ${{ matrix.gradle }} --max-workers=1
           "-Pkeyguard.nativeCargo.cargoOffline=true"
           :util:yubikey:desktopTest :util:fido2:desktopTest
+      - name: "Run Windows passkey JVM regressions"
+        if: needs.changes.outputs.desktop == 'true' || needs.changes.outputs.desktop_regressions == 'true'
+        run: >-
+          ${{ matrix.gradle }} --max-workers=1
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+          :util:windows-passkeys:desktopTest
       - name: "Run authenticator protocol regressions"
         if: runner.os != 'Windows' && needs.changes.outputs.desktop == 'true'
         working-directory: thirdParty/rust
         run: cargo test -p authenticator --no-default-features --features crypto_rust --lib --locked --offline
+      - name: "Check Windows passkey provider"
+        if: runner.os == 'Windows' && needs.changes.outputs.native_quality == 'true' && (needs.changes.outputs.desktop == 'true' || needs.changes.outputs.desktop_regressions == 'true')
+        shell: bash
+        run: |
+          cargo test -p keyguard-windows-passkeys-core -p keyguard-windows-passkeys-jni --locked --offline
+          cargo clippy -p keyguard-windows-passkeys-core -p keyguard-windows-passkeys-jni --all-targets --locked --offline -- -D warnings
       - name: "Run Windows private staging regressions"
         if: runner.os == 'Windows' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.crypto == 'true')
         run: >-
@@ -779,10 +796,56 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  windows-passkey-abi:
+    name: "Windows passkey ABI (${{ matrix.name }})"
+    needs: changes
+    if: needs.changes.outputs.native_quality == 'true' && (needs.changes.outputs.desktop == 'true' || needs.changes.outputs.desktop_regressions == 'true')
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: x64 Server
+            os: windows-2025
+            architecture: x64
+            target: x86_64-pc-windows-msvc
+            integration: false
+          - name: ARM64 client
+            os: windows-11-arm
+            architecture: arm64
+            target: aarch64-pc-windows-msvc
+            integration: true
+          # Exercise the x64 DLL and Rust ABI on a client OS as well as native ARM64.
+          - name: x64 client (emulated)
+            os: windows-11-arm
+            architecture: x64
+            target: x86_64-pc-windows-msvc
+            integration: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_rust
+        with:
+          targets: ${{ matrix.target }}
+          cache-key: windows-passkey-abi
+      - name: "Verify pinned Microsoft headers and ABI declarations"
+        shell: pwsh
+        run: ./util/windows-passkeys/abi/check.ps1 -Architecture ${{ matrix.architecture }}
+      - name: "Run provider logic without requiring plugin exports"
+        run: cargo test -p keyguard-windows-passkeys-core -p keyguard-windows-passkeys-jni --target ${{ matrix.target }} --locked
+      - name: "Lint provider and ABI assertions"
+        run: cargo clippy -p keyguard-windows-passkeys-core -p keyguard-windows-passkeys-jni --target ${{ matrix.target }} --all-targets --locked --offline -- -D warnings
+      - name: "Require Windows client plugin integration"
+        if: matrix.integration
+        shell: pwsh
+        run: ./util/windows-passkeys/abi/test-integration.ps1 -Target ${{ matrix.target }}
+
   native-checks:
     name: "Native checks"
     if: always()
-    needs: [changes, crypto-quality, native-quality, rust-fuzz, desktop-bundle, android-bundle, wear-runtime, fixed-host-performance]
+    needs: [changes, crypto-quality, native-quality, rust-fuzz, desktop-bundle, android-bundle, wear-runtime, fixed-host-performance, windows-passkey-abi]
     runs-on: ubuntu-24.04
     steps:
       - name: "Require every selected check to succeed"
@@ -804,6 +867,9 @@ jobs:
           for job, flag in flags.items():
               if selected.get(flag) == "true" and results[job]["result"] != "success":
                   failures[job] = results[job]["result"]
+          if selected.get("native_quality") == "true" and any(selected.get(flag) == "true" for flag in ("desktop", "desktop_regressions")):
+              if results["windows-passkey-abi"]["result"] != "success":
+                  failures["windows-passkey-abi"] = results["windows-passkey-abi"]["result"]
           if os.environ["READINESS_REQUESTED"] == "true" and results["fixed-host-performance"]["result"] != "success":
               failures["fixed-host-performance"] = results["fixed-host-performance"]["result"]
           if results["changes"]["result"] != "success" or failures:

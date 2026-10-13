@@ -1,9 +1,9 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
+import com.artemchep.keyguard.common.exception.credential.CredentialNotStoredException
 import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.io.flatten
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequest
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasskeyData
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasswordData
@@ -34,11 +34,16 @@ class AddCredentialCipherImpl(
 
     override fun invoke(
         request: AddCredentialCipherRequest,
-    ): IO<Boolean> = ioEffect {
+    ): IO<AddCredentialCipher.Result> = ioEffect {
         val createdAt = Clock.System.now()
-        modifyCipherById(
+        var targetFound = false
+        val changedCipherIds = modifyCipherById(
             setOf(request.cipherId),
         ) { model ->
+            if (model.data_.type != BitwardenCipher.Type.Login || model.data_.login == null) {
+                throw CredentialNotStoredException()
+            }
+            targetFound = true
             when (val data = request.data) {
                 is AddCredentialCipherRequestPasskeyData -> {
                     addPasskeyCredential(
@@ -55,14 +60,14 @@ class AddCredentialCipherImpl(
                     )
                 }
             }
+        }.bind()
+        when {
+            request.cipherId in changedCipherIds -> AddCredentialCipher.Result.Stored
+            targetFound && request.data is AddCredentialCipherRequestPasswordData ->
+                AddCredentialCipher.Result.Unchanged
+            else -> throw CredentialNotStoredException()
         }
-            // Report that we have actually modified the
-            // ciphers.
-            .map { changedCipherIds ->
-                request.cipherId in changedCipherIds
-            }
     }
-        .flatten()
 
     private suspend fun addPasskeyCredential(
         cipher: Cipher,

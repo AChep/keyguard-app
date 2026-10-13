@@ -78,6 +78,78 @@ class NativeChangeClassificationTest(unittest.TestCase):
         self.assertFalse(result["android"])
         self.assertTrue(classify(["util/fido2/src/commonMain/kotlin/Fido2Operation.kt"])["android"])
 
+    def test_windows_passkey_rust_selects_desktop_consumers_and_quality(self):
+        for path in (
+            "util/windows-passkeys/rust/crates/keyguard-windows-passkeys-core/src/windows/com.rs",
+            "util/windows-passkeys/rust/crates/keyguard-windows-passkeys-jni/Cargo.toml",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                enabled = {flag for flag in FLAGS if result[flag]}
+                self.assertEqual(enabled, {"desktop", "desktop_regressions", "native_quality"})
+                self.assertEqual([row["platform"] for row in result["desktop_matrix"]["include"]], ["linux", "macos", "windows"])
+
+    def test_windows_passkey_kotlin_and_build_changes_skip_rust_quality(self):
+        for path in (
+            "util/windows-passkeys/src/commonMain/kotlin/WindowsPasskeyRequest.kt",
+            "util/windows-passkeys/src/desktopMain/kotlin/WindowsPasskeys.kt",
+            "util/windows-passkeys/build.gradle.kts",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                enabled = {flag for flag in FLAGS if result[flag]}
+                self.assertEqual(enabled, {"desktop", "desktop_regressions"})
+
+    def test_windows_passkey_kotlin_tests_keep_windows_coverage_without_packaging(self):
+        for source_set in ("commonTest", "desktopTest"):
+            with self.subTest(source_set=source_set):
+                result = classify([f"util/windows-passkeys/src/{source_set}/kotlin/WindowsPasskeysTest.kt"])
+                enabled = {flag for flag in FLAGS if result[flag]}
+                self.assertEqual(enabled, {"desktop_regressions"})
+                self.assertTrue(result["desktop_run"])
+                self.assertEqual([row["platform"] for row in result["desktop_matrix"]["include"]], ["macos", "windows"])
+
+    def test_windows_passkey_rust_tests_keep_platform_quality_without_packaging(self):
+        for relative in ("src/windows/tests.rs", "src/requests_tests.rs", "tests/compatibility.rs"):
+            with self.subTest(relative=relative):
+                result = classify([f"util/windows-passkeys/rust/crates/keyguard-windows-passkeys-core/{relative}"])
+                enabled = {flag for flag in FLAGS if result[flag]}
+                self.assertEqual(enabled, {"desktop_regressions", "native_quality"})
+                self.assertEqual([row["platform"] for row in result["desktop_matrix"]["include"]], ["macos", "windows"])
+
+    def test_windows_passkey_docs_skip_native_checks(self):
+        result = classify(["util/windows-passkeys/README.md"])
+        self.assertFalse(any(result[flag] for flag in FLAGS))
+
+    def test_windows_passkey_abi_changes_require_windows_quality(self):
+        for relative in (".gitattributes", "headers/webauthn.h", "headers.sha256", "probe.cpp", "iid.cpp", "check.ps1", "test-integration.ps1"):
+            with self.subTest(relative=relative):
+                result = classify([f"util/windows-passkeys/abi/{relative}"])
+                enabled = {flag for flag in FLAGS if result[flag]}
+                self.assertEqual(enabled, {"desktop_regressions", "native_quality"})
+                self.assertTrue(result["desktop_run"])
+
+    def test_windows_passkey_schema_selects_drift_and_fixture_checks(self):
+        result = classify(["util/windows-passkeys/schema/windows_passkeys.proto"])
+        enabled = {flag for flag in FLAGS if result[flag]}
+        self.assertEqual(enabled, {"desktop", "desktop_regressions", "native_quality"})
+
+        # The shared fixtures are test data.
+        result = classify(["util/windows-passkeys/schema/fixtures/commands.pbhex"])
+        enabled = {flag for flag in FLAGS if result[flag]}
+        self.assertEqual(enabled, {"desktop_regressions", "native_quality"})
+
+    def test_protocol_generator_selects_only_the_drift_checks(self):
+        for path in (
+            "scripts/native_protocol.py",
+            "util/ffi/tools/native-protocol/src/main.rs",
+            "util/ffi/tools/native-protocol/Cargo.lock",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                enabled = {flag for flag in FLAGS if result[flag]}
+                self.assertEqual(enabled, {"crypto", "native_quality"})
+
     def test_ffi_selects_every_native_bridge_consumer(self):
         consumers = ("io", "instance", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
         for path in (

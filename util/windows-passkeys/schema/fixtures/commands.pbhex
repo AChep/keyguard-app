@@ -1,0 +1,24 @@
+# Command encodings that Kotlin sends and Rust receives, one `<name> <hex>` per line.
+# Each decodes to the message its name stands for, and that message encodes back to it.
+# Both test suites check this file: protocol/fixtures.rs and WindowsPasskeyProtocolTest.kt.
+status 0a00
+register 1200
+unregister 1a00
+clear 2200
+start 6a00
+stop 2a00
+retire 3200
+limits 3a00
+next_unbounded 4200
+next_known 4206080710b0ea01
+next_zero 420408001000
+set_locked 4a020801
+set_unlocked 4a00
+complete_abandoned 52020801
+complete_not_found 520408011803
+complete_assertion 52130802120f0a03aaaaaa120201021a0103220104
+complete_registration 5209080312050a03aaaaaa
+verify 5a21080110feffffffffffffffff011a05616c696365220b6578616d706c652e636f6d
+verify_unlocked 5a23080110feffffffffffffffff011a05616c696365220b6578616d706c652e636f6d2801
+sync 622c0a2a0a0101120b6578616d706c652e636f6d1a074578616d706c652201022a05616c6963653205416c696365
+sync_empty 6200

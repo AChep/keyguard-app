@@ -4,6 +4,7 @@ import com.artemchep.keyguard.buildplugins.cargo.isLinux
 import com.artemchep.keyguard.buildplugins.cargo.msixArchitecture
 import com.artemchep.keyguard.buildplugins.cargo.tarballSuffix
 import groovy.xml.XmlUtil
+import java.util.UUID
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.Sync
@@ -47,6 +48,7 @@ kotlin {
                 implementation(libs.squareup.okhttp)
                 implementation(project(":util:crypto"))
                 implementation(project(":util:instance"))
+                implementation(project(":util:windows-passkeys"))
                 implementation(project(":common"))
             }
         }
@@ -69,15 +71,19 @@ val executableAppResourceNames = setOf(
 )
 
 val bundledAppResources = bundledAppResourcesFrom(
-    ":util:instance",
-    ":util:yubikey",
-    ":util:fido2",
-    ":desktopSshAgent",
-    ":desktopGpgAgent",
-    ":desktopLibNative",
-    ":util:crypto",
-    ":util:io",
-    ":util:zxcvbn",
+    *listOfNotNull(
+        ":util:instance",
+        // The passkey provider exists only on Windows; elsewhere the library is never loaded.
+        ":util:windows-passkeys".takeIf { hostPlatform.isWindows },
+        ":util:yubikey",
+        ":util:fido2",
+        ":desktopSshAgent",
+        ":desktopGpgAgent",
+        ":desktopLibNative",
+        ":util:crypto",
+        ":util:io",
+        ":util:zxcvbn",
+    ).toTypedArray(),
 )
 
 val jdkVersion = libs.versions.jdk.get().toInt()
@@ -481,6 +487,10 @@ if (hostPlatform.isWindows) {
         val packageTasks = msixFlavors.map { flavor ->
             val flavorName = flavor.id.replaceFirstChar { it.uppercase() }
             val isConfigured = flavor.isConfigured
+            // Stable across updates/architectures, distinct for independently installable identities.
+            val passkeyClsid = UUID.nameUUIDFromBytes(
+                "keyguard-passkeys:${flavor.identityName}:${flavor.publisher}".toByteArray(Charsets.UTF_8),
+            ).toString()
             val stagingDir = binariesDir.map { it.dir("msix-staging/${flavor.id}") }
             val prepareTask = tasks.register<Sync>("prepare${buildType}Msix$flavorName") {
                 val manifestTokens = mapOf(
@@ -489,6 +499,7 @@ if (hostPlatform.isWindows) {
                     "PUBLISHER_DISPLAY_NAME" to msixPublisherDisplayName,
                     "PROCESSOR_ARCHITECTURE" to msixArchitecture,
                     "VERSION" to msixVersion,
+                    "PASSKEY_CLSID" to passkeyClsid,
                 ).mapValues { (_, value) -> XmlUtil.escapeXml(value) }
                 inputs.property("manifestTokens", manifestTokens)
                 dependsOn("create${buildType}Distributable")
@@ -502,6 +513,9 @@ if (hostPlatform.isWindows) {
                     filter<ReplaceTokens>(
                         "tokens" to manifestTokens,
                     )
+                }
+                from(project.file("msix/keyguard-passkeys.json")) {
+                    filter<ReplaceTokens>("tokens" to mapOf("PASSKEY_CLSID" to passkeyClsid))
                 }
                 into(stagingDir)
             }

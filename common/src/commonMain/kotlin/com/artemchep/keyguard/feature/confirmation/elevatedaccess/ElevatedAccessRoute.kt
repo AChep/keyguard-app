@@ -59,3 +59,8 @@ fun RememberStateFlowScope.createElevatedAccessVerify(
         }
     }
 }
+
+/** Runs the [block] through this gate, or directly if there is none. */
+fun ((() -> Unit) -> Unit)?.runVerified(block: () -> Unit) {
+    if (this != null) this(block) else block()
+}

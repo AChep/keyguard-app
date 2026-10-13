@@ -1,0 +1,23 @@
+# Reply encodings that Rust sends and Kotlin receives, one `<name> <hex>` per line.
+# Each decodes to the message its name stands for, and that message encodes back to it.
+# Both test suites check this file: protocol/fixtures.rs and WindowsPasskeyProtocolTest.kt.
+error_invalid 0801
+error_unsupported 0803
+error_unpackaged 0805
+error_cancelled 08f1ecc7ff0f
+error_dismissed 0893ffb7ff0f
+done 1200
+status_unsupported 1801
+status_unpackaged 1802
+status_unavailable 1803
+status_unregistered 1804
+status_disabled 1805
+status_enabled 1806
+retired 3001
+not_retired 3000
+limits 2a0808ff071040188020
+event_idle 2200
+event_active 220410012001
+event_closed 22021801
+event_sign_in 22680a62080118feffffffffffffffff01220b6578616d706c652e636f6d2a20070707070707070707070707070707070707070707070707070707070707070730013a1e0a1011111111111111111111111111111111120a7075626c69632d6b657960b0db0610012001
+event_registration 22760a7208021001182a220b6578616d706c652e636f6d2a200707070707070707070707070707070707070707070707070707070707070707300242140a04757365721205616c6963651a05416c6963654a074578616d706c655214f9ffffffffffffffff01fffdffffffffffffff01580160b0db061002

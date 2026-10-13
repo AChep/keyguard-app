@@ -130,6 +130,7 @@ your devices and are protected by your [backups](/docs/backups/).
   and browsers can create and use passkeys through it. See the
   [autofill & passkeys guide](/docs/autofill/) for setup.
 - On **Wear OS**, you can sign in with passkeys already in your vault.
+- On **Windows 11**, the Microsoft Store and MSIX builds support Windows native passkey integration.
 - You can **view** a passkey's details and **export** it to a file. On Android,
   passkeys can also move to or from another app through
   [credential exchange](/docs/credential-exchange/).

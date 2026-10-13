@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.util.webauthn.PasskeyCredentialId
 import com.artemchep.keyguard.util.webauthn.WebAuthnAllowedCredentialDescriptors
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -32,8 +33,8 @@ class AutofillMetadataTest {
     )
     private fun passkey(id: String?) = BitwardenCipher.Login.Fido2Credentials(
         credentialId = id, keyType = "public-key", keyAlgorithm = "ECDSA", keyCurve = "P-256",
-        keyValue = "", rpId = "example.test", rpName = null, counter = "0",
-        discoverable = "true", creationDate = now,
+        keyValue = "AQID", rpId = "example.test", rpName = null, counter = "0",
+        userHandle = "dXNlcg", discoverable = "true", creationDate = now,
     )
 
     @Test
@@ -95,12 +96,16 @@ class AutofillMetadataTest {
     }
 
     @Test
-    fun deletedAndHiddenAccountsCannotResolveOrPublishCredentials() {
+    fun deletedArchivedAndHiddenAccountsCannotResolveOrPublishCredentials() {
         val cipher = cipher(BitwardenCipher.Login(uris = listOf(uri), password = "password"))
         assertTrue(cipher.isAutofillEligible(emptySet()))
         assertFalse(cipher.copy(deletedDate = now).isAutofillEligible(emptySet()))
         assertFalse(cipher.copy(service = cipher.service.copy(deleted = true)).isAutofillEligible(emptySet()))
         assertFalse(cipher.isAutofillEligible(setOf("account")))
+        val archived = cipher.copy(archivedDate = now)
+        assertFalse(archived.isAutofillEligible(emptySet()))
+        // Still stored: an archived passkey excludes another one for the same account.
+        assertTrue(archived.isAutofillEligible(emptySet(), includeArchived = true))
     }
 
     @Test
@@ -155,28 +160,39 @@ class AutofillMetadataTest {
 
     @Test
     fun malformedPasskeyCannotBlockValidPasswordAndPasskeyIndexing() {
+        val id = "59e2144e-f203-48dd-8aa1-65986c24d87d"
+        // Keys the authenticator cannot sign with.
+        val unsignable = listOf(passkey(id).copy(keyValue = ""), passkey(id).copy(keyCurve = "P-384"))
         val cipher = cipher(BitwardenCipher.Login(uris = listOf(uri), password = "password", fido2Credentials = listOf(
             passkey(null), passkey("not-a-uuid").copy(userHandle = "%%%"),
-            passkey("59e2144e-f203-48dd-8aa1-65986c24d87d"),
-        )))
+            // A padded user handle carries the same bytes as the canonical one.
+            passkey(id).copy(userHandle = "dXNlcg=="),
+        ) + unsignable))
         val snapshot = listOf(cipher).toAutofillIndex(excludeInheritedUris = false)
         assertEquals(1, snapshot.passwords.size)
-        assertEquals(1, snapshot.passkeys.size)
-        assertEquals(2, snapshot.skippedPasskeys)
+        assertContentEquals("user".encodeToByteArray(), snapshot.passkeys.single().userHandle)
+        assertEquals(4, snapshot.skippedPasskeys)
+        // Nor are they suggested when a site asks for them.
+        val allowed = WebAuthnAllowedCredentialDescriptors.fromCredentialIds(listOf(PasskeyCredentialId.encode(id)))
+        val onlyUnsignable = cipher(BitwardenCipher.Login(uris = listOf(uri), fido2Credentials = unsignable))
+        val suggested = listOf(onlyUnsignable).toPasskeyIdentities(rpId = "example.test", allowedCredentials = allowed)
+        assertTrue(suggested.isEmpty())
     }
 
     @Test
-    fun passkeyPickerRequiresDiscoverabilityUnlessCredentialIsExplicitlyAllowed() {
+    fun passkeyPickerRequiresDiscoverabilityAndAUserHandleUnlessCredentialIsExplicitlyAllowed() {
         val id = "59e2144e-f203-48dd-8aa1-65986c24d87d"
-        val cipher = cipher(BitwardenCipher.Login(uris = listOf(uri), fido2Credentials = listOf(
-            passkey(id).copy(discoverable = "false"),
-        )))
-        val ciphers = listOf(cipher)
-        assertTrue(ciphers.toPasskeyIdentities().isEmpty())
         val allowed = WebAuthnAllowedCredentialDescriptors.fromCredentialIds(listOf(PasskeyCredentialId.encode(id)))
-        assertEquals(1, ciphers.toPasskeyIdentities(rpId = "example.test", allowedCredentials = allowed).size)
-        assertTrue(ciphers.toPasskeyIdentities(rpId = "other.test", allowedCredentials = allowed).isEmpty())
         val unrelated = WebAuthnAllowedCredentialDescriptors.fromCredentialIds(listOf(byteArrayOf(1)))
-        assertTrue(ciphers.toPasskeyIdentities(rpId = "example.test", allowedCredentials = unrelated).isEmpty())
+        // Without an allow list, the relying party identifies the account by the user handle.
+        for (stored in listOf(passkey(id).copy(discoverable = "false"), passkey(id).copy(userHandle = null))) {
+            val ciphers = listOf(cipher(BitwardenCipher.Login(uris = listOf(uri), fido2Credentials = listOf(stored))))
+            assertTrue(ciphers.toPasskeyIdentities().isEmpty())
+            // An allow list already identifies the account.
+            val identity = ciphers.toPasskeyIdentities(rpId = "example.test", allowedCredentials = allowed).single()
+            assertEquals(stored.userHandle == null, identity.userHandle.isEmpty())
+            assertTrue(ciphers.toPasskeyIdentities(rpId = "other.test", allowedCredentials = allowed).isEmpty())
+            assertTrue(ciphers.toPasskeyIdentities(rpId = "example.test", allowedCredentials = unrelated).isEmpty())
+        }
     }
 }

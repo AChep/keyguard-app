@@ -10,10 +10,13 @@ data class WebAuthnCredentialCreationResult(
     val publicKey: ByteArray,
 )
 
-/** Binary assertion response. The signature buffer belongs to the caller. */
+/**
+ * Binary assertion response. The signature buffer belongs to the caller. Without a
+ * readable stored [userHandle], it is `null` and must be omitted.
+ */
 data class WebAuthnAssertionResult(
     val credentialId: ByteArray,
     val authenticatorData: ByteArray,
     val signature: ByteArray,
-    val userHandle: String?,
+    val userHandle: ByteArray?,
 )

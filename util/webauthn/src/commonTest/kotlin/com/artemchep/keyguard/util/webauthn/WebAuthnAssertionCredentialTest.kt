@@ -278,7 +278,7 @@ class WebAuthnAssertionCredentialTest {
         rpId = rpId,
         rpName = null,
         counter = 0,
-        userHandle = "user-handle",
+        userHandle = "dXNlcg",
         userName = "user-name",
         userDisplayName = "User Name",
         discoverable = discoverable,

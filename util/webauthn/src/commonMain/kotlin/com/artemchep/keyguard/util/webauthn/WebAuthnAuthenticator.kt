@@ -143,7 +143,8 @@ class WebAuthnAuthenticator(
         requireCredentialRpIdMatchesRequest(credential, request.rpId)
         requireCredentialAllowed(credential, request.allowedCredentials)
 
-        val credentialIdBytes = PasskeyCredentialId.encode(credential.credentialId)
+        val credentialIdBytes = PasskeyCredentialId.encodeOrNull(credential.credentialId)
+            ?: throw WebAuthnEncodingException("The stored passkey credential ID is malformed.")
 
         // Modern Bitwarden seems to use 0 for passkeys without a signature
         // counter. Non-zero counters are legacy; we preserve them but
@@ -166,7 +167,8 @@ class WebAuthnAuthenticator(
             credentialId = credentialIdBytes,
             authenticatorData = authData,
             signature = signAssertion(credential, authData, request.clientDataHash),
-            userHandle = credential.userHandle,
+            // Readable whenever there is no allow list: requireCredentialAllowed checked it.
+            userHandle = credential.userHandleBytes(),
         )
     }
 
@@ -211,23 +213,28 @@ class WebAuthnAuthenticator(
         }
     }
 
-    /**
-     * Rejects a stored credential this provider cannot produce an assertion
-     * for: only an ES256 key — `public-key` / `ECDSA` / `P-256` — is signable
-     * here, and the encoded key is length-capped before it reaches the Base64
-     * decoder so a malformed vault entry cannot turn into an unbounded decode.
-     */
     private fun requireSignableStoredKey(
         credential: WebAuthnCredential,
     ) {
-        val isEs256 = credential.keyType == "public-key" &&
-            credential.keyAlgorithm == "ECDSA" &&
-            credential.keyCurve == "P-256"
-        if (!isEs256 || credential.keyValue.length > MAX_ENCODED_PASSKEY_KEY_CHARS) {
+        if (!credential.isSignableStoredKey()) {
             throw storedPasskeyKeyEncodingError()
         }
     }
 }
+
+/**
+ * Whether this provider can produce an assertion for a stored credential:
+ * only an ES256 key — `public-key` / `ECDSA` / `P-256` — is signable here,
+ * and the encoded key is length-capped before it reaches the Base64 decoder
+ * so a malformed vault entry cannot turn into an unbounded decode. A blank
+ * key never decodes.
+ */
+fun WebAuthnCredential.isSignableStoredKey(): Boolean =
+    keyType == "public-key" &&
+        keyAlgorithm == "ECDSA" &&
+        keyCurve == "P-256" &&
+        keyValue.isNotBlank() &&
+        keyValue.length <= MAX_ENCODED_PASSKEY_KEY_CHARS
 
 private fun storedPasskeyKeyEncodingError() = WebAuthnEncodingException(
     message = "The stored passkey key is malformed or unsupported.",

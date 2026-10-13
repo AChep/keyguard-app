@@ -217,16 +217,37 @@ class WebAuthnAuthenticatorTest {
     }
 
     @Test
-    fun `web callers omit android package and empty user handles`() {
-        for (userHandle in listOf(null, "")) {
+    fun `web callers omit android package and unreadable user handles`() {
+        // An allow list already identifies the account, so the user handle is optional.
+        val allowed = WebAuthnAllowedCredentialDescriptors.fromCredentialIds(
+            listOf(PasskeyCredentialId.encode(credentialId)),
+        )
+        for (userHandle in listOf(null, "", "%%%")) {
             val fixture = Fixture()
             val response = fixture.assertion(
                 credential().copy(userHandle = userHandle),
                 context = caller.copy(androidPackageName = null),
+                allowed = allowed,
             ).webAuthnResponse()
             val clientData = Json.parseToJsonElement(response.decodeBytes("clientDataJSON").decodeToString()).jsonObject
             assertFalse("androidPackageName" in clientData)
             assertFalse("userHandle" in response)
+        }
+    }
+
+    @Test
+    fun `user handles are sent canonically and required without an allow list`() {
+        for (stored in listOf("dXNlcg==", "dXNlcg")) {
+            val response = Fixture().assertion(credential().copy(userHandle = stored)).webAuthnResponse()
+            assertEquals("dXNlcg", response.getValue("userHandle").jsonPrimitive.content)
+        }
+        // Refused before signing: the relying party could not identify the account.
+        for (userHandle in listOf(null, "", "%%%")) {
+            val fixture = Fixture()
+            assertFailsWith<WebAuthnNotAllowedException> {
+                fixture.assertion(credential().copy(userHandle = userHandle))
+            }
+            assertEquals(0, fixture.crypto.signCalls)
         }
     }
 
@@ -268,6 +289,35 @@ class WebAuthnAuthenticatorTest {
             fixture.crypto.throwSigning = throws
             assertFailsWith<IllegalStateException> { fixture.assertion() }
             fixture.assertCleared()
+        }
+    }
+
+    @Test
+    fun `canAnswer agrees with every check before the key is read`() {
+        val explicit = WebAuthnAllowedCredentialDescriptors.fromCredentialIds(
+            listOf(PasskeyCredentialId.encode(credentialId)),
+        )
+        val credentials = listOf(
+            credential(),
+            credential().copy(credentialId = credentialId.uppercase()),
+            credential().copy(rpId = "other.example"),
+            credential().copy(discoverable = false),
+            credential().copy(userHandle = null),
+            credential().copy(keyCurve = "P-384"),
+            credential().copy(keyValue = ""),
+            credential().copy(keyValue = "x".repeat(5_465)),
+            credential().copy(credentialId = "%%%"),
+            credential().copy(credentialId = ""),
+        )
+        for (allowed in listOf(WebAuthnAllowedCredentialDescriptors.NONE, explicit)) {
+            for (credential in credentials) {
+                val fixture = Fixture()
+                val signed = runCatching { fixture.assertion(credential, allowed = allowed) }
+                    .onFailure { assertTrue(it is WebAuthnNotAllowedException || it is WebAuthnEncodingException) }
+                    .isSuccess
+                assertEquals(signed, credential.canAnswer(caller.rpId, allowed), "$credential, $allowed")
+                if (!signed) assertEquals(0, fixture.decodeCalls)
+            }
         }
     }
 
@@ -314,11 +364,12 @@ class WebAuthnAuthenticatorTest {
             credential: WebAuthnCredential = credential(),
             clientHash: ByteArray? = null,
             context: WebAuthnCallerContext = caller,
+            allowed: WebAuthnAllowedCredentialDescriptors = WebAuthnAllowedCredentialDescriptors(false, emptyList()),
         ) = authenticator.getAssertion(
             WebAuthnAssertionRequest(
                 byteArrayOf(0x61),
                 "preferred",
-                WebAuthnAllowedCredentialDescriptors(false, emptyList()),
+                allowed,
             ),
             context,
             credential,

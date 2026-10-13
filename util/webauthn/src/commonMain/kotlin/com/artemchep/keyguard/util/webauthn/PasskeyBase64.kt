@@ -25,4 +25,19 @@ object PasskeyBase64 {
     } catch (_: IllegalArgumentException) {
         null
     }
+
+    /**
+     * A stored user handle in either Base64 alphabet, with or without padding. `null` if it
+     * is unreadable, empty, or longer than the 64 bytes WebAuthn allows.
+     */
+    fun decodeUserHandleOrNull(data: String): ByteArray? = data
+        .takeIf { it.length <= MAX_ENCODED_USER_HANDLE_CHARS }
+        ?.let(::decodeStoredKeyOrNull)
+        ?.takeIf { it.size in 1..MAX_USER_HANDLE_BYTES }
 }
+
+/** https://www.w3.org/TR/webauthn-3/#dom-publickeycredentialuserentity-id */
+private const val MAX_USER_HANDLE_BYTES = 64
+
+/** Padded Base64 of [MAX_USER_HANDLE_BYTES]. */
+private const val MAX_ENCODED_USER_HANDLE_CHARS = 88

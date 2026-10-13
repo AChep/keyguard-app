@@ -32,7 +32,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.LinkInfoPlatform
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
-import com.artemchep.keyguard.common.service.passkey.toPasskeyTargetCredentials
+import com.artemchep.keyguard.common.service.passkey.availablePasskeys
 import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.GetAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.GetSuggestions
@@ -192,84 +192,64 @@ class PasskeyBeginGetRequest(
             requestJson = option.requestJson,
             json = json,
         )
-        val target = kotlin.run {
-            PasskeyTarget(
-                // WebAuthn descriptor matching is based on both descriptor ID
-                // and type. Unknown descriptor types are ignored in the shared
-                // parser; if every supplied descriptor has an unknown type, the
-                // parser raises NotAllowedError instead of using discoverable
-                // credential fallback.
-                // Spec: https://www.w3.org/TR/webauthn-3/#dictdef-publickeycredentialdescriptor
-                allowedCredentials = allowCredentialDescriptors
-                    .toPasskeyTargetCredentials(),
-                rpId = rpId,
-            )
-        }
+        // WebAuthn descriptor matching is based on both descriptor ID
+        // and type. Unknown descriptor types are ignored in the shared
+        // parser; if every supplied descriptor has an unknown type, the
+        // parser raises NotAllowedError instead of using discoverable
+        // credential fallback.
+        // Spec: https://www.w3.org/TR/webauthn-3/#dictdef-publickeycredentialdescriptor
+        val target = PasskeyTarget(
+            rpId = rpId,
+            allowed = allowCredentialDescriptors,
+        )
         return ciphers
-            .flatMap { cipher ->
-                if (
-                    cipher.archived ||
-                    cipher.deleted
-                ) {
-                    return@flatMap emptyList()
+            .availablePasskeys()
+            .mapNotNull { (cipher, credential) ->
+                // Lists exactly the passkeys the authenticator can then sign with.
+                val valid = passkeyTargetCheck(
+                    credential,
+                    target,
+                ).attempt().bind().isRight { it }
+                if (!valid) {
+                    return@mapNotNull null
                 }
 
-                val credentials = cipher.login?.fido2Credentials.orEmpty()
-                credentials
-                    .mapNotNull { credential ->
-                        val valid = passkeyTargetCheck(
-                            credential,
-                            target,
-                        ).attempt().bind().isRight { it }
-                        if (!valid) {
-                            return@mapNotNull null
-                        }
-                        // At this moment we support a small set of credentials,
-                        // for example we only support one algorithm + curve pair.
-                        val supported = credential.keyAlgorithm == "ECDSA" &&
-                            credential.keyCurve == "P-256" &&
-                            credential.keyType == "public-key"
-                        if (!supported) {
-                            return@mapNotNull null
-                        }
+                // Load last used time, this time might be used to sort the items
+                // on the system user interface.
+                val lastUsedTime = getCredentialLastUsedTimeOrNull(
+                    cipherHistoryOpenedRepository = cipherHistoryOpenedRepository,
+                    cipherId = cipher.id,
+                    credentialId = credential.credentialId,
+                )
+                val requiresUserVerification = cipher.reprompt ||
+                    requestOptions.userVerification == GetPasskey.UserVerification.PREFERRED ||
+                    requestOptions.userVerification == GetPasskey.UserVerification.REQUIRED
 
-                        // Load last used time, this time might be used to sort the items
-                        // on the system user interface.
-                        val lastUsedTime = getCredentialLastUsedTimeOrNull(
-                            cipherHistoryOpenedRepository = cipherHistoryOpenedRepository,
+                val username = credential.userDisplayName
+                    // Normally the username should never be empty,
+                    // be i've seen coinbase do that.
+                    ?: "Unknown username"
+                PublicKeyCredentialEntry.Builder(
+                    context = context,
+                    username = username,
+                    pendingIntent = createGetPasskeyPendingIntent(
+                        args = PasskeyProviderGetActivityArgs(
+                            accountId = cipher.accountId,
                             cipherId = cipher.id,
-                            credentialId = credential.credentialId,
-                        )
-                        val requiresUserVerification = cipher.reprompt ||
-                            requestOptions.userVerification == GetPasskey.UserVerification.PREFERRED ||
-                            requestOptions.userVerification == GetPasskey.UserVerification.REQUIRED
-
-                        val username = credential.userDisplayName
-                            // Normally the username should never be empty,
-                            // be i've seen coinbase do that.
-                            ?: "Unknown username"
-                        PublicKeyCredentialEntry.Builder(
-                            context = context,
-                            username = username,
-                            pendingIntent = createGetPasskeyPendingIntent(
-                                args = PasskeyProviderGetActivityArgs(
-                                    accountId = cipher.accountId,
-                                    cipherId = cipher.id,
-                                    credId = credential.credentialId,
-                                    cipherName = cipher.name,
-                                    credRpId = credential.rpId,
-                                    credUserDisplayName = username,
-                                    requiresUserVerification = requiresUserVerification,
-                                    userVerified = userVerified,
-                                ),
-                            ),
-                            beginGetPublicKeyCredentialOption = option,
-                        )
-                            .setLastUsedTime(lastUsedTime?.toJavaInstant())
-                            .setAutoSelectAllowed(lastUsedTime != null)
-                            .setDisplayName(cipher.name)
-                            .build()
-                    }
+                            credId = credential.credentialId,
+                            cipherName = cipher.name,
+                            credRpId = credential.rpId,
+                            credUserDisplayName = username,
+                            requiresUserVerification = requiresUserVerification,
+                            userVerified = userVerified,
+                        ),
+                    ),
+                    beginGetPublicKeyCredentialOption = option,
+                )
+                    .setLastUsedTime(lastUsedTime?.toJavaInstant())
+                    .setAutoSelectAllowed(lastUsedTime != null)
+                    .setDisplayName(cipher.name)
+                    .build()
             }
     }
 

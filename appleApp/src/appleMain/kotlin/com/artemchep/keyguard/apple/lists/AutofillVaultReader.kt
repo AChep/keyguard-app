@@ -22,7 +22,10 @@ internal class AutofillVaultReader(private val di: Scope) {
         }
     }
 
-    suspend fun read(cipherId: String? = null): List<BitwardenCipher> {
+    suspend fun read(
+        cipherId: String? = null,
+        includeArchived: Boolean = false,
+    ): List<BitwardenCipher> {
         val db = di.get<VaultDatabaseManager>().get().bind()
         return withContext(di.get<CoroutineDispatcher>(qualifier = named<DatabaseDispatcher>())) {
             db.transactionWithResult {
@@ -36,12 +39,16 @@ internal class AutofillVaultReader(private val di: Scope) {
                     listOfNotNull(db.cipherQueries.getByCipherId(cipherId).executeAsOneOrNull())
                 }
                 rows.map { it.data_ }.filter {
-                    it.isAutofillEligible(hiddenAccounts)
+                    it.isAutofillEligible(hiddenAccounts, includeArchived)
                 }
             }
         }
     }
 }
 
-internal fun BitwardenCipher.isAutofillEligible(hiddenAccounts: Set<String>): Boolean =
-    !service.deleted && deletedDate == null && accountId !in hiddenAccounts
+/** Like the other platforms, autofill never offers archived items, but they are still stored. */
+internal fun BitwardenCipher.isAutofillEligible(
+    hiddenAccounts: Set<String>,
+    includeArchived: Boolean = false,
+): Boolean = !service.deleted && deletedDate == null && accountId !in hiddenAccounts &&
+    (includeArchived || archivedDate == null)

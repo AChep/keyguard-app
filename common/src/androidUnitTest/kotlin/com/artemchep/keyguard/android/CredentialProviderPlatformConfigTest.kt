@@ -86,6 +86,36 @@ class CredentialProviderPlatformConfigTest {
     }
 
     @Test
+    fun `find credential ignores an item archived or deleted since its entry was listed`() {
+        val args = PasskeyProviderGetActivityArgs(
+            accountId = "account-1",
+            cipherId = "cipher-1",
+            credId = "credential-1",
+            cipherName = "Cipher",
+            credRpId = "example.com",
+            credUserDisplayName = "alice@example.com",
+            requiresUserVerification = false,
+            userVerified = false,
+        )
+        for ((archived, deleted) in listOf(true to false, false to true)) {
+            val credential = findCredentialOrNull(
+                ciphers = listOf(
+                    createSecret(
+                        id = "cipher-1",
+                        accountId = "account-1",
+                        credentialIds = listOf("credential-1"),
+                        archived = archived,
+                        deleted = deleted,
+                    ),
+                ),
+                args = args,
+            )
+
+            assertNull(credential)
+        }
+    }
+
+    @Test
     fun `find password cipher returns matching login with password`() {
         val args = PasswordProviderGetActivityArgs(
             accountId = "account-1",

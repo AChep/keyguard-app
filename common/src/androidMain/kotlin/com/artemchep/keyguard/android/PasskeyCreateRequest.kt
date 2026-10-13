@@ -18,7 +18,7 @@ import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasskeyData
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasswordData
 import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.service.passkey.availablePasskeyCredentials
+import com.artemchep.keyguard.common.service.passkey.storedPasskeyCredentials
 import com.artemchep.keyguard.common.service.passkey.toAddCredentialCipherRequest
 import com.artemchep.keyguard.common.service.passkey.toWebAuthnCredential
 import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticator
@@ -158,7 +158,7 @@ class PasskeyCreateRequest(
                 context = WebAuthnCallerContext(request.origin, request.rpId, request.packageName),
                 userVerified = userVerified,
                 transports = if (request.rpId == "google.com") listOf("internal", "usb") else listOf("internal"),
-                credentials = ciphers.availablePasskeyCredentials().map { it.toWebAuthnCredential() },
+                credentials = ciphers.storedPasskeyCredentials().map { it.toWebAuthnCredential() },
             )
         }
         return CreatePublicKeyCredentialResponse(result.responseJson) to

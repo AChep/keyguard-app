@@ -14,6 +14,13 @@ data class WebAuthnPublicKeyCredentialDescriptor(
         credential: WebAuthnCredential,
     ): Boolean = type == credential.keyType &&
         PasskeyCredentialId.matches(credentialId, credential.credentialId)
+
+    /** [credentialId] is the wire form of the stored ID, parsed once by the caller. */
+    fun matches(
+        type: String,
+        credentialId: ByteArray,
+    ): Boolean = this.type == type &&
+        this.credentialId == PasskeyCredentialId.decode(credentialId)
 }
 
 data class WebAuthnAllowedCredentialDescriptors(
@@ -21,6 +28,15 @@ data class WebAuthnAllowedCredentialDescriptors(
     val descriptors: List<WebAuthnPublicKeyCredentialDescriptor>,
 ) {
     companion object {
+        /**
+         * A request without `allowCredentials`: only a discoverable credential with a
+         * readable user handle answers it, see [WebAuthnCredential.isUsableWithoutAllowList].
+         */
+        val NONE = WebAuthnAllowedCredentialDescriptors(
+            isAllowCredentialsSupplied = false,
+            descriptors = emptyList(),
+        )
+
         /** Provider APIs such as AuthenticationServices already decode descriptor IDs. */
         fun fromCredentialIds(credentialIds: List<ByteArray>) = WebAuthnAllowedCredentialDescriptors(
             isAllowCredentialsSupplied = credentialIds.isNotEmpty(),
@@ -37,10 +53,23 @@ data class WebAuthnAllowedCredentialDescriptors(
         credential: WebAuthnCredential,
     ): Boolean {
         if (!isAllowCredentialsSupplied) {
-            return credential.discoverable
+            return credential.isUsableWithoutAllowList()
         }
         return descriptors.any { descriptor ->
             descriptor.matches(credential)
+        }
+    }
+
+    /** The same check with the credential's [wire] identifiers already parsed. */
+    fun allows(
+        credential: WebAuthnCredential,
+        wire: WebAuthnCredentialWire,
+    ): Boolean {
+        if (!isAllowCredentialsSupplied) {
+            return credential.discoverable && wire.userHandle != null
+        }
+        return descriptors.any { descriptor ->
+            descriptor.matches(credential.keyType, wire.credentialId)
         }
     }
 }

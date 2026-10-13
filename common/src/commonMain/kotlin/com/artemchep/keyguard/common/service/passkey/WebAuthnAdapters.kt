@@ -2,8 +2,6 @@ package com.artemchep.keyguard.common.service.passkey
 
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasskeyData
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.usecase.PasskeyTarget
-import com.artemchep.keyguard.util.webauthn.WebAuthnAllowedCredentialDescriptors
 import com.artemchep.keyguard.util.webauthn.WebAuthnCredential
 
 internal val KEYGUARD_PASSKEY_AAGUID = byteArrayOf(
@@ -55,15 +53,19 @@ fun WebAuthnCredential.toAddCredentialCipherRequest() = AddCredentialCipherReque
     discoverable = discoverable,
 )
 
-internal fun List<DSecret>.availablePasskeyCredentials(): List<DSecret.Login.Fido2Credentials> =
+/** The passkeys of items that are neither archived nor in the trash, each with its item. */
+internal fun List<DSecret>.availablePasskeys(): List<Pair<DSecret, DSecret.Login.Fido2Credentials>> =
     asSequence()
         .filter { !it.archived && !it.deleted }
-        .flatMap { it.login?.fido2Credentials.orEmpty() }
+        .flatMap { cipher -> cipher.login?.fido2Credentials.orEmpty().map { cipher to it } }
         .toList()
 
-internal fun WebAuthnAllowedCredentialDescriptors.toPasskeyTargetCredentials(): List<PasskeyTarget.AllowedCredential>? =
-    if (isAllowCredentialsSupplied) {
-        descriptors.map { PasskeyTarget.AllowedCredential(credentialId = it.credentialId, type = it.type) }
-    } else {
-        null
-    }
+/**
+ * The passkeys a registration's `excludeCredentials` can name: an archived item still
+ * stores its passkeys, so they still exclude another one for the account; the trash does not.
+ */
+internal fun List<DSecret>.storedPasskeyCredentials(): List<DSecret.Login.Fido2Credentials> =
+    asSequence()
+        .filter { !it.deleted }
+        .flatMap { it.login?.fido2Credentials.orEmpty() }
+        .toList()

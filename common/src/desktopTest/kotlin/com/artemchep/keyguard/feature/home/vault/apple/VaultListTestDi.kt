@@ -66,7 +66,6 @@ import com.artemchep.keyguard.common.usecase.GetVaultSearchIndex
 import com.artemchep.keyguard.common.usecase.GetVaultSearchQualifierCatalog
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
-import com.artemchep.keyguard.common.usecase.PasskeyTarget
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
 import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
@@ -78,6 +77,7 @@ import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.usecase.UnarchiveCipherById
 import com.artemchep.keyguard.common.usecase.impl.GetSuggestionsImpl
+import com.artemchep.keyguard.common.usecase.impl.PasskeyTargetCheckImpl
 import com.artemchep.keyguard.di.VaultSessionScope
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactoryDefault
@@ -388,16 +388,8 @@ private fun Module.leafUseCases() {
             }
         }
     }
-    single<PasskeyTargetCheck> {
-        object : PasskeyTargetCheck {
-            override fun invoke(
-                credential: DSecret.Login.Fido2Credentials,
-                target: PasskeyTarget,
-            ): IO<Boolean> = {
-                target.rpId == null || credential.rpId == target.rpId
-            }
-        }
-    }
+    // The production check: it is pure, so the picker is tested with real semantics.
+    single<PasskeyTargetCheck> { PasskeyTargetCheckImpl() }
     single<DateFormatter> {
         object : DateFormatter {
             override fun formatDateTimeMachine(instant: Instant): String = instant.toString()

@@ -8,15 +8,29 @@ import kotlin.time.Instant
 
 class WebAuthnAdaptersTest {
     @Test
-    fun `credential sources exclude archived and deleted ciphers`() {
+    fun `available passkeys exclude archived and deleted ciphers`() {
         val credential = credential("credential-id", "example.com")
+        val visible = cipher(credential)
         val available = listOf(
             cipher(credential, archived = true),
             cipher(credential, deleted = true),
+            visible,
+        ).availablePasskeys()
+        assertEquals(listOf(visible to credential), available)
+        assertEquals(credential.credentialId, available.single().second.toWebAuthnCredential().credentialId)
+    }
+
+    // Like Apple's exclusion check: an archived passkey is still stored, the trash is not.
+    @Test
+    fun `stored passkeys keep archived ciphers and exclude deleted ones`() {
+        val credential = credential("credential-id", "example.com")
+        val archived = credential("archived-id", "example.com")
+        val stored = listOf(
+            cipher(archived, archived = true),
+            cipher(credential, deleted = true),
             cipher(credential),
-        ).availablePasskeyCredentials()
-        assertEquals(listOf(credential), available)
-        assertEquals(credential.credentialId, available.single().toWebAuthnCredential().credentialId)
+        ).storedPasskeyCredentials()
+        assertEquals(listOf(archived, credential), stored)
     }
 
     @Test

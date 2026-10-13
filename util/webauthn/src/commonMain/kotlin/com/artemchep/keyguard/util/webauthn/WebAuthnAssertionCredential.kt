@@ -37,8 +37,9 @@ internal fun requireCredentialAllowed(
     credential: WebAuthnCredential,
     allowCredentials: WebAuthnAllowedCredentialDescriptors,
 ) {
-    // WebAuthn Level 3 authenticatorGetAssertion uses discoverable credentials
-    // when no allowCredentialDescriptorList is supplied. If a list is supplied,
+    // WebAuthn Level 3 authenticatorGetAssertion uses discoverable credentials,
+    // which carry a user handle, when no allowCredentialDescriptorList is
+    // supplied. If a list is supplied,
     // candidate credentials must match descriptor id and type; unknown types are
     // ignored by the shared parser, and an all-unknown list remains disallowed.
     // Spec:
@@ -51,7 +52,7 @@ internal fun requireCredentialAllowed(
     val reason = if (allowCredentials.isAllowCredentialsSupplied) {
         "is not allowed by request allowCredentials."
     } else {
-        "is not discoverable and the request did not supply allowCredentials."
+        "is not discoverable with a readable user handle, and the request did not supply allowCredentials."
     }
     throw WebAuthnNotAllowedException("Credential '${credential.credentialId}' $reason")
 }

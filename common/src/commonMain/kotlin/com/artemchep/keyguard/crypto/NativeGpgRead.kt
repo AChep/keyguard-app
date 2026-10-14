@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgUserIdInfo
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
@@ -41,8 +42,14 @@ object NativeGpgPublicKeyParser : GpgPublicKeyParser {
         if (armored.isBlank()) {
             return GpgPublicKeyParseResult.Error(GpgPublicKeyParseError.Empty)
         }
-        val keyData = armored.encodeToByteArray()
-        return try {
+        return armored.encodeToByteArray().useAndClear { parse(it) }
+    }
+
+    /** Parses borrowed binary or armored bytes without changing the caller's buffer. */
+    internal fun parse(
+        keyData: ByteArray,
+    ): GpgPublicKeyParseResult =
+        try {
             when (val result = NativeCrypto.openPgp.parsePublicKeys(keyData)) {
                 is NativeOpenPgpPublicKeyParseResult.Success ->
                     GpgPublicKeyParseResult.Success(
@@ -66,10 +73,7 @@ object NativeGpgPublicKeyParser : GpgPublicKeyParser {
                 throw failure
             }
             GpgPublicKeyParseResult.Error(GpgPublicKeyParseError.Malformed)
-        } finally {
-            keyData.fill(0)
         }
-    }
 }
 
 object NativeGpgKeyMetadataResolver : GpgKeyMetadataResolver {

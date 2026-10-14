@@ -9,7 +9,8 @@ interface GpgKeyImportService {
 }
 
 data class GpgKeyImportRequest(
-    val content: String,
+    /** Borrowed key bytes, preserved by the importer so a passphrase retry can reuse them. */
+    val content: ByteArray,
     val fileName: String? = null,
     val passphrase: String? = null,
 )

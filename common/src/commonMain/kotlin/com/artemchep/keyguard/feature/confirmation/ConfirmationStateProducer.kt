@@ -21,8 +21,10 @@ import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.job
 import org.jetbrains.compose.resources.StringResource
 import org.koin.compose.currentKoinScope
 
@@ -67,6 +69,11 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
     args: ConfirmationRoute.Args,
     transmitter: RouteResultTransmitter<ConfirmationResult>,
 ): Flow<ConfirmationState> {
+    val resultHandler = ConfirmationResultHandler(transmitter)
+    screenScope.coroutineContext.job.invokeOnCompletion {
+        resultHandler.complete(ConfirmationResult.Deny)
+    }
+
     fun createItemKey(key: String) = "item.$key"
 
     val filePickerIntentSink = EventFlow<FilePickerIntent<*>>()
@@ -217,24 +224,42 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
                 sideEffects = sideEffects,
                 items = Loadable.Ok(items),
                 onDeny = {
-                    navigatePopSelf()
-                    transmitter(ConfirmationResult.Deny)
+                    resultHandler.complete(ConfirmationResult.Deny) {
+                        navigatePopSelf()
+                    }
                 },
                 onConfirm = if (valid) {
                     // lambda
                     {
-                        navigatePopSelf()
-
                         val data = items
                             .associate { it.key to it.value }
                         val result = ConfirmationResult.Confirm(data)
-                        transmitter(result)
+                        resultHandler.complete(result) {
+                            navigatePopSelf()
+                        }
                     }
                 } else {
                     null
                 },
             )
         }
+}
+
+/** Claims the result before navigation can dispose the dialog and report a dismissal. */
+internal class ConfirmationResultHandler(
+    private val transmitter: RouteResultTransmitter<ConfirmationResult>,
+) {
+    private val completed = atomic(false)
+
+    fun complete(
+        result: ConfirmationResult,
+        beforeTransmit: () -> Unit = {},
+    ) {
+        if (completed.compareAndSet(expect = false, update = true)) {
+            beforeTransmit()
+            transmitter(result)
+        }
+    }
 }
 
 private suspend fun RememberStateFlowScope.confirmationStringItem(

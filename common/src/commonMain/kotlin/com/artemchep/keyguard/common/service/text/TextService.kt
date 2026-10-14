@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.text
 
 import com.artemchep.keyguard.common.model.FileResource
+import com.artemchep.keyguard.util.io.readByteArrayAndClose
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -27,6 +28,22 @@ suspend fun TextService.readFromFileAsText(
     uri: String,
 ) = withContext(Dispatchers.IO) {
     readFromFile(uri).useReadAsText()
+}
+
+/** Reads the file into a caller-owned buffer; the caller clears it after use. */
+suspend fun TextService.readFromFileAsBytes(
+    uri: String,
+): ByteArray {
+    var bytes: ByteArray? = null
+    try {
+        return withContext(Dispatchers.IO) {
+            readFromFile(uri).readByteArrayAndClose()
+                .also { bytes = it }
+        }.also { bytes = null }
+    } finally {
+        // Cancellation can drop a result the IO dispatcher already read.
+        bytes?.fill(0)
+    }
 }
 
 private fun Source.useReadAsText() = use {

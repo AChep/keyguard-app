@@ -7,11 +7,21 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.platform.leParseUri
+import com.artemchep.keyguard.provider.bitwarden.upload.assertKeyCleared
 import com.artemchep.keyguard.test.generatedGpgKey
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
@@ -115,117 +125,63 @@ class AddStateProducerGpgKeyImportTest {
     }
 
     @Test
-    fun `successful gpg key file import returns imported key`() = kotlinx.coroutines.test.runTest {
-        val info = FilePickerResult(
-            uri = leParseUri("content://gpg/key"),
-            name = "key.asc",
-            size = 1024L,
-        )
+    fun `binary gpg key file import preserves every byte and returns imported key`() = kotlinx.coroutines.test.runTest {
         val expectedKey = generatedGpgKey()
         var importedKey: GeneratedGpgKey? = null
+        val content = binaryKeyBytes()
 
-        handleGpgKeyFileImport(
-            info = info,
-            readText = { uri ->
+        importBinaryFile(
+            content = content,
+            readBytes = { uri ->
                 assertEquals("content://gpg/key", uri)
-                "gpg-key-content"
+                content
             },
             importGpgKey = { request ->
-                assertEquals(
-                    GpgKeyImportRequest(
-                        content = "gpg-key-content",
-                        fileName = "key.asc",
-                        passphrase = null,
-                    ),
-                    request,
-                )
+                assertContentEquals(binaryKeyBytes(), request.content)
+                assertEquals("private.gpg", request.fileName)
+                assertEquals(null, request.passphrase)
                 GpgKeyImportResult.Success(expectedKey)
             },
             onSuccess = { key ->
                 importedKey = key
             },
-            onNeedsPassphrase = { _, _, _ ->
-                fail("Passphrase path should not be used for a successful import.")
-            },
-            onImportError = { _ ->
-                fail("Import error path should not be used for a successful import.")
-            },
-            onReadError = {
-                fail("Read error path should not be used for a successful import.")
-            },
         )
 
         assertEquals(expectedKey, importedKey)
+        assertKeyCleared(content)
     }
 
     @Test
     fun `encrypted gpg key file import triggers passphrase flow`() = kotlinx.coroutines.test.runTest {
-        val info = FilePickerResult(
-            uri = leParseUri("content://gpg/key"),
-            name = "private.asc",
-            size = 1024L,
-        )
-        var passphraseRequest: Triple<GpgKeyImportResult.NeedsPassphrase, String?, String>? = null
+        val content = binaryKeyBytes()
+        var passphraseRequest: Triple<GpgKeyImportResult.NeedsPassphrase, String?, ByteArray>? = null
 
-        handleGpgKeyFileImport(
-            info = info,
-            readText = {
-                "encrypted-gpg-key-content"
-            },
-            importGpgKey = {
-                GpgKeyImportResult.NeedsPassphrase("OpenPGP")
-            },
-            onSuccess = {
-                fail("Success path should not be used for an encrypted key without a passphrase.")
-            },
+        importBinaryFile(
+            content = content,
             onNeedsPassphrase = { result, fileName, content ->
-                passphraseRequest = Triple(result, fileName, content)
-            },
-            onImportError = { _ ->
-                fail("Import error path should not be used for the passphrase flow.")
-            },
-            onReadError = {
-                fail("Read error path should not be used for the passphrase flow.")
+                passphraseRequest = Triple(result, fileName, content.copyOf())
             },
         )
 
-        assertEquals(
-            Triple(
-                GpgKeyImportResult.NeedsPassphrase("OpenPGP"),
-                "private.asc",
-                "encrypted-gpg-key-content",
-            ),
-            passphraseRequest,
-        )
+        assertEquals(GpgKeyImportResult.NeedsPassphrase("OpenPGP"), passphraseRequest?.first)
+        assertEquals("private.gpg", passphraseRequest?.second)
+        assertContentEquals(binaryKeyBytes(), passphraseRequest?.third)
+        assertKeyCleared(content)
     }
 
     @Test
     fun `gpg key file import reports read failures before importing`() = kotlinx.coroutines.test.runTest {
-        val info = FilePickerResult(
-            uri = leParseUri("content://gpg/key"),
-            name = "key.asc",
-            size = 1024L,
-        )
         var importCalled = false
         var readErrorShown = false
 
-        handleGpgKeyFileImport(
-            info = info,
-            readText = {
+        importBinaryFile(
+            content = binaryKeyBytes(),
+            readBytes = {
                 error("boom")
             },
             importGpgKey = {
                 importCalled = true
                 GpgKeyImportResult.NeedsPassphrase("OpenPGP")
-            },
-            onSuccess = {
-                fail("Success path should not be used when reading the file fails.")
-            },
-            onNeedsPassphrase = { _, _, _ ->
-                fail("Passphrase path should not be used when reading the file fails.")
-            },
-            onImportError = { _ ->
-                fail("Import error path should not be used when reading the file fails.")
             },
             onReadError = {
                 readErrorShown = true
@@ -235,4 +191,98 @@ class AddStateProducerGpgKeyImportTest {
         assertFalse(importCalled)
         assertTrue(readErrorShown)
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `binary content survives the passphrase wait`() = kotlinx.coroutines.test.runTest {
+        val content = binaryKeyBytes()
+        val passphrase = CompletableDeferred<String>()
+        val job = launch {
+            importBinaryFile(
+                content = content,
+                onNeedsPassphrase = { _, _, bytes ->
+                    val supplied = passphrase.await()
+                    assertEquals("passphrase", supplied)
+                    assertContentEquals(binaryKeyBytes(), bytes)
+                },
+            )
+        }
+
+        runCurrent()
+        assertContentEquals(binaryKeyBytes(), content)
+        passphrase.complete("passphrase")
+        job.join()
+        assertKeyCleared(content)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `cancelling a pending passphrase import erases binary content`() = kotlinx.coroutines.test.runTest {
+        val content = binaryKeyBytes()
+        val job = launch {
+            importBinaryFile(
+                content = content,
+                onNeedsPassphrase = { _, _, _ -> awaitCancellation() },
+            )
+        }
+
+        runCurrent()
+        assertContentEquals(binaryKeyBytes(), content)
+        job.cancelAndJoin()
+        assertKeyCleared(content)
+    }
+
+    @Test
+    fun `import failures erase binary content`() = kotlinx.coroutines.test.runTest {
+        val content = binaryKeyBytes()
+        assertFailsWith<IllegalStateException> {
+            importBinaryFile(
+                content = content,
+                importGpgKey = { error("import failed") },
+            )
+        }
+        assertKeyCleared(content)
+    }
+
+    @Test
+    fun `read cancellation is propagated without reporting a read error`() = kotlinx.coroutines.test.runTest {
+        assertFailsWith<CancellationException> {
+            importBinaryFile(
+                content = binaryKeyBytes(),
+                readBytes = { throw CancellationException("screen closed") },
+            )
+        }
+    }
 }
+
+// Invalid UTF-8, an embedded zero, and trailing whitespace-valued bytes must all survive.
+private fun binaryKeyBytes() = byteArrayOf(0x98.toByte(), 0xff.toByte(), 0x00, 0xc3.toByte(), 0x28, 0x20, 0x0a)
+
+private suspend fun importBinaryFile(
+    content: ByteArray,
+    readBytes: suspend (String) -> ByteArray = { content },
+    importGpgKey: suspend (GpgKeyImportRequest) -> GpgKeyImportResult = {
+        GpgKeyImportResult.NeedsPassphrase("OpenPGP")
+    },
+    onSuccess: suspend (GeneratedGpgKey) -> Unit = {
+        fail("Unexpected success")
+    },
+    onNeedsPassphrase: suspend (GpgKeyImportResult.NeedsPassphrase, String?, ByteArray) -> Unit = { _, _, _ ->
+        fail("Unexpected passphrase request")
+    },
+    onReadError: suspend () -> Unit = {
+        fail("Unexpected read error")
+    },
+) = handleGpgKeyFileImport(
+    info = FilePickerResult(
+        uri = leParseUri("content://gpg/key"),
+        name = "private.gpg",
+        size = content.size.toLong(),
+    ),
+    readBytes = readBytes,
+    importGpgKey = importGpgKey,
+    onSuccess = onSuccess,
+    onNeedsPassphrase = onNeedsPassphrase,
+    onImportError = { fail("Unexpected import error") },
+    onReadError = onReadError,
+)

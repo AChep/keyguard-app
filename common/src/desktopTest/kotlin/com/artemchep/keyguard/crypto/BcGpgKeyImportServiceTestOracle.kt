@@ -11,12 +11,16 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags
+import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.openpgp.PGPException
 import org.bouncycastle.openpgp.PGPSecretKey
 import org.bouncycastle.openpgp.PGPSecretKeyRing
+import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPDigestCalculatorProviderBuilder
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 
 class BcGpgKeyImportServiceTestOracle(
     private val publicKeyParser: GpgPublicKeyParser,
@@ -25,16 +29,28 @@ class BcGpgKeyImportServiceTestOracle(
     override fun import(
         request: GpgKeyImportRequest,
     ): GpgKeyImportResult {
-        val content = request.content.trim()
-        if (content.isBlank()) {
+        val content = request.content
+        // Mirrors Rust's `u8::is_ascii_whitespace`, used by the native importer.
+        if (content.all { it.toInt().toChar() in " \t\n\u000C\r" }) {
             return GpgKeyImportResult.Error(GpgKeyImportError.Empty)
         }
 
-        val privateResult = importPrivateKey(request.copy(content = content))
+        val privateResult = importPrivateKey(request)
         if (privateResult != null) {
             return privateResult
         }
-        return importPublicKey(content)
+        val armored = runCatching {
+            ByteArrayOutputStream().also { out ->
+                ArmoredOutputStream(out).use { armor ->
+                    PGPUtil.getDecoderStream(ByteArrayInputStream(content)).use { input ->
+                        input.copyTo(armor)
+                    }
+                }
+            }.toString(Charsets.UTF_8)
+        }.getOrElse {
+            return GpgKeyImportResult.Error(GpgKeyImportError.MalformedKey)
+        }
+        return importPublicKey(armored)
     }
 
     private fun importPrivateKey(

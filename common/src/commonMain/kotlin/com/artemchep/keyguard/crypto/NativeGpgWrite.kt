@@ -125,12 +125,11 @@ object NativeGpgKeyImportService : GpgKeyImportService {
     override fun import(
         request: GpgKeyImportRequest,
     ): GpgKeyImportResult {
-        val content = request.content.trim()
-        if (content.isEmpty()) {
+        if (request.content.isEmpty()) {
             return GpgKeyImportResult.Error(GpgKeyImportError.Empty)
         }
 
-        val keyData = content.encodeToByteArray()
+        val keyData = request.content
         val passphrase = request.passphrase?.encodeToByteArray()
         return try {
             when (
@@ -148,7 +147,7 @@ object NativeGpgKeyImportService : GpgKeyImportService {
                         GpgKeyImportResult.Error(GpgKeyImportError.Empty)
 
                     NativeOpenPgpKeyImportError.UNSUPPORTED_FORMAT ->
-                        importPublicKey(content).let { publicResult ->
+                        importPublicKey(keyData).let { publicResult ->
                             if (
                                 publicResult ==
                                 GpgKeyImportResult.Error(GpgKeyImportError.MalformedKey)
@@ -169,7 +168,6 @@ object NativeGpgKeyImportService : GpgKeyImportService {
                 }
             }
         } finally {
-            keyData.fill(0)
             passphrase?.fill(0)
         }
     }
@@ -201,7 +199,7 @@ object NativeGpgKeyImportService : GpgKeyImportService {
     }
 
     private fun importPublicKey(
-        content: String,
+        content: ByteArray,
     ): GpgKeyImportResult = when (val parsed = NativeGpgPublicKeyParser.parse(content)) {
         is GpgPublicKeyParseResult.Success -> {
             val containsMultipleCertificates = parsed.keys.size > 1 ||

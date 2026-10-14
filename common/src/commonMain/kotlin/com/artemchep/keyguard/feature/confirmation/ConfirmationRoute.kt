@@ -8,6 +8,7 @@ import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.StringResource
 
@@ -157,4 +158,31 @@ inline fun <reified T> RememberStateFlowScope.createConfirmationDialogIntent(
         }
     }
     return NavigationIntent.NavigateToRoute(route)
+}
+
+/**
+ * Shows a single-item confirmation dialog and suspends until it closes.
+ * Returns `null` if the dialog was denied or dismissed.
+ */
+suspend inline fun <reified T> RememberStateFlowScope.awaitConfirmationDialog(
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    item: ConfirmationRoute.Args.Item<T>,
+    noinline icon: (@Composable () -> Unit)? = null,
+    title: String? = null,
+    message: String? = null,
+): T? {
+    val deferred = CompletableDeferred<ConfirmationResult>()
+    val route = confirmationRouteFactory.registerRouteResultReceiver(
+        args = ConfirmationRoute.Args(
+            icon = icon,
+            title = title,
+            message = message,
+            items = listOf(item),
+        ),
+    ) { result ->
+        deferred.complete(result)
+    }
+    navigate(NavigationIntent.NavigateToRoute(route))
+    val result = deferred.await() as? ConfirmationResult.Confirm
+    return result?.data?.get(item.key) as? T
 }

@@ -31,6 +31,7 @@ import arrow.optics.Lens
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GeneratedGpgKey
@@ -116,6 +117,7 @@ import com.artemchep.keyguard.common.service.gpgagent.isCanonical
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromFileAsText
+import com.artemchep.keyguard.common.service.text.readFromFileAsBytes
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CopyText
@@ -139,6 +141,7 @@ import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.common.util.validLuhn
+import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.feature.add.AddStateItem
 import com.artemchep.keyguard.feature.add.AddStateOwnership
 import com.artemchep.keyguard.feature.add.AddStateOwnershipElementHolder
@@ -158,6 +161,7 @@ import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
+import com.artemchep.keyguard.feature.confirmation.awaitConfirmationDialog
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
@@ -4295,7 +4299,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
         }
 
         suspend fun importKey(
-            content: String,
+            content: ByteArray,
             fileName: String?,
             passphrase: String?,
             snapshot: GpgKeyMutationGuard.Snapshot,
@@ -4328,7 +4332,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
         suspend fun onImportKeyWithPassphrase(
             result: GpgKeyImportResult.NeedsPassphrase,
             fileName: String?,
-            content: String,
+            content: ByteArray,
             snapshot: GpgKeyMutationGuard.Snapshot,
         ) {
             if (!keyMutations.isCurrent(snapshot)) {
@@ -4338,7 +4342,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             val passphraseTitle = translate(Res.string.key_import_passphrase_title)
             val passphraseHint = translate(Res.string.key_import_passphrase_hint, translate(Res.string.protocol_gpg))
 
-            val intent = createConfirmationDialogIntent(
+            val passphrase = awaitConfirmationDialog(
                 confirmationRouteFactory = confirmationRouteFactory,
                 item = ConfirmationRoute.Args.Item.StringItem(
                     key = "$id.passphrase",
@@ -4347,26 +4351,22 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                     type = ConfirmationRoute.Args.Item.StringItem.Type.Password,
                     canBeEmpty = false,
                 ),
-                title = translate(Res.string.key_import_passphrase_hint, translate(Res.string.protocol_gpg)),
+                title = passphraseHint,
                 message = translate(
                     Res.string.gpg_key_import_passphrase_dialog_message,
                     result.formatLabel,
                 ),
-            ) { passphrase ->
-                screenScope.launch {
-                    importKey(
-                        content = content,
-                        fileName = fileName,
-                        passphrase = passphrase,
-                        snapshot = snapshot,
-                        onNeedsPassphrase = {
-                            val msg = createLocalizedGpgKeyImportPassphraseErrorToast()
-                            showMessage.copy(msg)
-                        },
-                    )
-                }
-            }
-            navigate(intent)
+            ) ?: return
+            importKey(
+                content = content,
+                fileName = fileName,
+                passphrase = passphrase,
+                snapshot = snapshot,
+                onNeedsPassphrase = {
+                    val msg = createLocalizedGpgKeyImportPassphraseErrorToast()
+                    showMessage.copy(msg)
+                },
+            )
         }
 
         suspend fun onImportKey(
@@ -4375,7 +4375,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             val snapshot = keyMutations.snapshot()
             handleGpgKeyFileImport(
                 info = info,
-                readText = textService::readFromFileAsText,
+                readBytes = textService::readFromFileAsBytes,
                 importGpgKey = ::importGpgKey,
                 onSuccess = { importedGpgKey ->
                     publishImportedKey(snapshot, importedGpgKey)
@@ -4964,41 +4964,43 @@ private fun createGpgKeyImportToast(
     text = text,
 )
 
+/** Owns the file bytes until import and any passphrase prompt/retry have completed. */
 internal suspend fun handleGpgKeyFileImport(
     info: FilePickerResult,
-    readText: suspend (String) -> String,
+    readBytes: suspend (String) -> ByteArray,
     importGpgKey: suspend (GpgKeyImportRequest) -> GpgKeyImportResult,
     onSuccess: suspend (GeneratedGpgKey) -> Unit,
-    onNeedsPassphrase: suspend (GpgKeyImportResult.NeedsPassphrase, String?, String) -> Unit,
+    onNeedsPassphrase: suspend (GpgKeyImportResult.NeedsPassphrase, String?, ByteArray) -> Unit,
     onImportError: suspend (GpgKeyImportError) -> Unit,
     onReadError: suspend () -> Unit,
 ) {
-    val content = kotlin.runCatching {
-        readText(info.uri.toString())
+    val content = runCatchingNonFatal {
+        readBytes(info.uri.toString())
     }.getOrElse {
         onReadError()
         return
     }
-    val fileName = info.name
-    when (
-        val result = importGpgKey(
-            GpgKeyImportRequest(
-                content = content,
-                fileName = fileName,
-                passphrase = null,
-            ),
-        )
-    ) {
-        is GpgKeyImportResult.Success -> {
-            onSuccess(result.gpgKey)
-        }
+    content.useAndClear {
+        when (
+            val result = importGpgKey(
+                GpgKeyImportRequest(
+                    content = content,
+                    fileName = info.name,
+                    passphrase = null,
+                ),
+            )
+        ) {
+            is GpgKeyImportResult.Success -> {
+                onSuccess(result.gpgKey)
+            }
 
-        is GpgKeyImportResult.NeedsPassphrase -> {
-            onNeedsPassphrase(result, fileName, content)
-        }
+            is GpgKeyImportResult.NeedsPassphrase -> {
+                onNeedsPassphrase(result, info.name, content)
+            }
 
-        is GpgKeyImportResult.Error -> {
-            onImportError(result.reason)
+            is GpgKeyImportResult.Error -> {
+                onImportError(result.reason)
+            }
         }
     }
 }

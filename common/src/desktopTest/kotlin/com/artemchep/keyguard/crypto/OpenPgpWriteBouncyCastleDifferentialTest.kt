@@ -158,16 +158,22 @@ class OpenPgpWriteBouncyCastleDifferentialTest {
     fun `native and BC import outcomes preserve the same domain contract`() {
         val publicOnly = publicKeyArmoredOf(bcGenerated.privateKeyArmored)
         val cases = listOf(
-            GpgKeyImportRequest(content = ""),
-            GpgKeyImportRequest(content = bcGenerated.privateKeyArmored),
-            GpgKeyImportRequest(content = publicOnly),
+            GpgKeyImportRequest(content = byteArrayOf()),
+            GpgKeyImportRequest(content = bcGenerated.privateKeyArmored.encodeToByteArray()),
+            GpgKeyImportRequest(content = publicOnly.encodeToByteArray()),
+            GpgKeyImportRequest(
+                content = parseGpgSecretKeyRingCollection(bcGenerated.privateKeyArmored).keyRings.next().encoded,
+            ),
+            GpgKeyImportRequest(
+                content = parseGpgPublicKeyRingCollection(publicOnly).keyRings.next().encoded,
+            ),
         )
 
         cases.forEach { request ->
             assertEquals(
                 expected = bcImport.import(request).shape(),
                 actual = nativeImport.import(request).shape(),
-                message = request.content.lineSequence().firstOrNull().orEmpty(),
+                message = "Import input size: ${request.content.size}",
             )
         }
     }
@@ -277,13 +283,13 @@ class OpenPgpWriteBouncyCastleDifferentialTest {
     private fun assertArmorsReimportThroughNative(key: GeneratedGpgKey) {
         for (armor in listOf(key.publicKeyArmored, key.privateKeyArmored)) {
             val imported = assertIs<GpgKeyImportResult.Success>(
-                nativeImport.import(GpgKeyImportRequest(content = armor)),
+                nativeImport.import(GpgKeyImportRequest(content = armor.encodeToByteArray())),
             )
             assertEquals(key.fingerprint, imported.gpgKey.fingerprint)
             assertEquals(
                 key.fingerprint,
                 assertIs<GpgKeyImportResult.Success>(nativeImport.import(
-                    GpgKeyImportRequest(content = imported.gpgKey.publicKeyArmored),
+                    GpgKeyImportRequest(content = imported.gpgKey.publicKeyArmored.encodeToByteArray()),
                 )).gpgKey.fingerprint,
             )
         }
@@ -293,14 +299,14 @@ class OpenPgpWriteBouncyCastleDifferentialTest {
         val passphrase = "v6 import test passphrase"
         val protected = protectSecretKeys(key.privateKeyArmored, passphrase)
         assertIs<GpgKeyImportResult.NeedsPassphrase>(
-            nativeImport.import(GpgKeyImportRequest(content = protected)),
+            nativeImport.import(GpgKeyImportRequest(content = protected.encodeToByteArray())),
         )
         val unprotected = assertIs<GpgKeyImportResult.Success>(nativeImport.import(
-            GpgKeyImportRequest(content = protected, passphrase = passphrase),
+            GpgKeyImportRequest(content = protected.encodeToByteArray(), passphrase = passphrase),
         ))
         assertEquals(key.fingerprint, unprotected.gpgKey.fingerprint)
         assertIs<GpgKeyImportResult.Success>(nativeImport.import(
-            GpgKeyImportRequest(content = unprotected.gpgKey.privateKeyArmored),
+            GpgKeyImportRequest(content = unprotected.gpgKey.privateKeyArmored.encodeToByteArray()),
         ))
     }
 

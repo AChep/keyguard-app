@@ -240,7 +240,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
         val imported = assertIs<GpgKeyImportResult.Success>(
             NativeGpgKeyImportService.import(
                 GpgKeyImportRequest(
-                    content = forgedRing.armored(),
+                    content = forgedRing.armored().encodeToByteArray(),
                     fileName = "third-party-certified-public.asc",
                 ),
             ),
